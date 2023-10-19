@@ -5,7 +5,7 @@ alter table wvp_platform
     add auto_push_channel bool default false
 
 alter table wvp_stream_proxy
-    add stream_key varying(255)
+    add stream_key character varying(255)
 
 create table wvp_cloud_record (
       id serial primary key,
@@ -18,8 +18,17 @@ create table wvp_cloud_record (
       file_name character varying(255),
       folder character varying(255),
       file_path character varying(255),
-      collect_type character varying(255),
+      collect bool default false,
+      reserve bool default false,
       file_size integer,
       time_len integer,
       constraint uk_stream_push_app_stream_path unique (app, stream, file_path)
 );
+
+alter table wvp_media_server
+    add record_path character varying(255);
+
+alter table wvp_media_server
+    add record_date integer default 7;
+
+

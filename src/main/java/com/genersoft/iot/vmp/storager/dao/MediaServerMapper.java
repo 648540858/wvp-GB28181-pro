@@ -130,4 +130,8 @@ public interface MediaServerMapper {
 
     @Select("SELECT * FROM wvp_media_server WHERE default_server=true")
     MediaServerItem queryDefault();
+
+    @Select("SELECT * FROM wvp_media_server WHERE record_assist_port > 0")
+    List<MediaServerItem> queryAllWithAssistPort();
+
 }

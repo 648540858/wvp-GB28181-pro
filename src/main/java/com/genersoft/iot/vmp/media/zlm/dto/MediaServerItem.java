@@ -80,8 +80,13 @@ public class MediaServerItem{
     @Schema(description = "是否是默认ZLM")
     private boolean defaultServer;
 
-    @Schema(description = "当前使用到的端口")
-    private int currentPort;
+    @Schema(description = "录像存储路径")
+    private String recordPath;
+
+    @Schema(description = "录像存储时长")
+    private int recordDate;
+
+
 
 
     public MediaServerItem() {
@@ -269,14 +274,6 @@ public class MediaServerItem{
         this.updateTime = updateTime;
     }
 
-    public int getCurrentPort() {
-        return currentPort;
-    }
-
-    public void setCurrentPort(int currentPort) {
-        this.currentPort = currentPort;
-    }
-
     public boolean isStatus() {
         return status;
     }
@@ -307,5 +304,21 @@ public class MediaServerItem{
 
     public void setSendRtpPortRange(String sendRtpPortRange) {
         this.sendRtpPortRange = sendRtpPortRange;
+    }
+
+    public String getRecordPath() {
+        return recordPath;
+    }
+
+    public void setRecordPath(String recordPath) {
+        this.recordPath = recordPath;
+    }
+
+    public int getRecordDate() {
+        return recordDate;
+    }
+
+    public void setRecordDate(int recordDate) {
+        this.recordDate = recordDate;
     }
 }

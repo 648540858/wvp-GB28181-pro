@@ -1,19 +1,16 @@
 package com.genersoft.iot.vmp.vmanager.cloudRecord;
 
 import com.alibaba.fastjson2.JSONArray;
-import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.ICloudRecordService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.RecordFile;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -36,11 +33,6 @@ import java.util.List;
 @RequestMapping("/api/cloud/record")
 public class CloudRecordController {
 
-    @Autowired
-    private ZLMServerFactory zlmServerFactory;
-
-    @Autowired
-    private SendRtpPortManager sendRtpPortManager;
 
     private final static Logger logger = LoggerFactory.getLogger(CloudRecordController.class);
 
@@ -50,14 +42,6 @@ public class CloudRecordController {
     @Autowired
     private IMediaServerService mediaServerService;
 
-    @Autowired
-    private UserSetting userSetting;
-
-    @Autowired
-    private DynamicTask dynamicTask;
-
-    @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
 
     @ResponseBody
     @GetMapping("/date/list")
@@ -68,8 +52,8 @@ public class CloudRecordController {
     @Parameter(name = "month", description = "月，置空则查询当月", required = false)
     @Parameter(name = "mediaServerId", description = "流媒体ID，置空则查询全部", required = false)
     public List<String> openRtpServer(
-            @RequestParam String app,
-            @RequestParam String stream,
+            @RequestParam(required = true) String app,
+            @RequestParam(required = true) String stream,
             @RequestParam(required = false) int year,
             @RequestParam(required = false) int month,
             @RequestParam(required = false) String mediaServerId
@@ -108,8 +92,8 @@ public class CloudRecordController {
     @Parameter(name = "query", description = "检索内容", required = false)
     @Parameter(name = "app", description = "应用名", required = false)
     @Parameter(name = "stream", description = "流ID", required = false)
-    @Parameter(name = "page", description = "当前页", required = false)
-    @Parameter(name = "count", description = "每页查询数量", required = false)
+    @Parameter(name = "page", description = "当前页", required = true)
+    @Parameter(name = "count", description = "每页查询数量", required = true)
     @Parameter(name = "startTime", description = "开始时间(yyyy-MM-dd HH:mm:ss)", required = false)
     @Parameter(name = "endTime", description = "结束时间(yyyy-MM-dd HH:mm:ss)", required = false)
     @Parameter(name = "mediaServerId", description = "流媒体ID，置空则查询全部流媒体", required = false)
@@ -162,16 +146,16 @@ public class CloudRecordController {
     @ResponseBody
     @GetMapping("/task/add")
     @Operation(summary = "添加合并任务")
-    @Parameter(name = "app", description = "应用名", required = true)
-    @Parameter(name = "stream", description = "流ID", required = true)
+    @Parameter(name = "app", description = "应用名", required = false)
+    @Parameter(name = "stream", description = "流ID", required = false)
     @Parameter(name = "mediaServerId", description = "流媒体ID", required = false)
     @Parameter(name = "startTime", description = "鉴权ID", required = false)
     @Parameter(name = "endTime", description = "鉴权ID", required = false)
     @Parameter(name = "callId", description = "鉴权ID", required = false)
     @Parameter(name = "remoteHost", description = "返回地址时的远程地址", required = false)
     public String addTask(
-            @RequestParam(required = true) String app,
-            @RequestParam(required = true) String stream,
+            @RequestParam(required = false) String app,
+            @RequestParam(required = false) String stream,
             @RequestParam(required = false) String mediaServerId,
             @RequestParam(required = false) String startTime,
             @RequestParam(required = false) String endTime,
@@ -198,19 +182,61 @@ public class CloudRecordController {
     @ResponseBody
     @GetMapping("/collect/add")
     @Operation(summary = "添加收藏")
-    @Parameter(name = "app", description = "应用名", required = true)
-    @Parameter(name = "stream", description = "流ID", required = true)
+    @Parameter(name = "app", description = "应用名", required = false)
+    @Parameter(name = "stream", description = "流ID", required = false)
     @Parameter(name = "mediaServerId", description = "流媒体ID", required = false)
     @Parameter(name = "startTime", description = "鉴权ID", required = false)
     @Parameter(name = "endTime", description = "鉴权ID", required = false)
     @Parameter(name = "callId", description = "鉴权ID", required = false)
-    @Parameter(name = "collectType", description = "收藏类型", required = false)
-    public JSONArray addCollect(
-            @RequestParam(required = false) String taskId,
+    @Parameter(name = "collectType", description = "收藏类型, collect/reserve", required = false)
+    public void addCollect(
+            @RequestParam(required = false) String app,
+            @RequestParam(required = false) String stream,
             @RequestParam(required = false) String mediaServerId,
-            @RequestParam(required = false) Boolean isEnd
+            @RequestParam(required = false) String startTime,
+            @RequestParam(required = false) String endTime,
+            @RequestParam(required = false) String callId,
+            @RequestParam(required = false) String collectType,
+            @RequestParam(required = false) Integer recordId
     ){
-        return cloudRecordService.queryTask(taskId, mediaServerId, isEnd);
+        if (!"collect".equals(collectType) && !"reserve".equals(collectType)) {
+            collectType = "collect";
+        }
+        if (recordId != null) {
+            cloudRecordService.changeCollectById(recordId, collectType, true);
+        }else {
+            cloudRecordService.changeCollect(collectType, true, app, stream, mediaServerId, startTime, endTime, callId, collectType);
+        }
+    }
+
+    @ResponseBody
+    @GetMapping("/collect/delete")
+    @Operation(summary = "移除收藏")
+    @Parameter(name = "app", description = "应用名", required = false)
+    @Parameter(name = "stream", description = "流ID", required = false)
+    @Parameter(name = "mediaServerId", description = "流媒体ID", required = false)
+    @Parameter(name = "startTime", description = "鉴权ID", required = false)
+    @Parameter(name = "endTime", description = "鉴权ID", required = false)
+    @Parameter(name = "callId", description = "鉴权ID", required = false)
+    @Parameter(name = "collectType", description = "收藏类型, collect/reserve", required = false)
+    public void deleteCollect(
+            @RequestParam(required = false) String app,
+            @RequestParam(required = false) String stream,
+            @RequestParam(required = false) String mediaServerId,
+            @RequestParam(required = false) String startTime,
+            @RequestParam(required = false) String endTime,
+            @RequestParam(required = false) String callId,
+            @RequestParam(required = false) String collectType,
+            @RequestParam(required = false) Integer recordId
+    ){
+        if (!"collect".equals(collectType) && !"reserve".equals(collectType)) {
+            collectType = "collect";
+        }
+        if (recordId != null) {
+            cloudRecordService.changeCollectById(recordId, collectType, false);
+        }else {
+            cloudRecordService.changeCollect(collectType, false, app, stream, mediaServerId, startTime, endTime, callId, collectType);
+        }
     }
 
 

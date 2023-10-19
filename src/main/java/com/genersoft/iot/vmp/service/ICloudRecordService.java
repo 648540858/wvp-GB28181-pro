@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.service;
 
 import com.alibaba.fastjson2.JSONArray;
-import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRecordMp4HookParam;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
@@ -40,4 +39,15 @@ public interface ICloudRecordService {
      * 查询合并任务列表
      */
     JSONArray queryTask(String taskId, String mediaServerId, Boolean isEnd);
+
+    /**
+     * 收藏视频，收藏的视频过期不会删除
+     */
+    void changeCollect(String type, boolean result, String app, String stream, String mediaServerId, String startTime, String endTime, String callId, String collectType);
+
+    /**
+     * 添加指定录像收藏
+     */
+    void changeCollectById(Integer recordId, String collectType, boolean result);
+
 }

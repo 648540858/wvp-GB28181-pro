@@ -57,9 +57,14 @@ public class CloudRecordItem {
     private String folder;
     
     /**
-     * 收藏类型，收藏的文件不移除
+     * 收藏，收藏的文件不移除
      */
-    private String collectType;
+    private Boolean collect;
+
+    /**
+     * 保留，收藏的文件不移除
+     */
+    private Boolean reserve;
     
     /**
      * 文件大小
@@ -182,11 +187,19 @@ public class CloudRecordItem {
         this.timeLen = timeLen;
     }
 
-    public String getCollectType() {
-        return collectType;
+    public Boolean getCollect() {
+        return collect;
     }
 
-    public void setCollectType(String collectType) {
-        this.collectType = collectType;
+    public void setCollect(Boolean collect) {
+        this.collect = collect;
+    }
+
+    public Boolean getReserve() {
+        return reserve;
+    }
+
+    public void setReserve(Boolean reserve) {
+        this.reserve = reserve;
     }
 }

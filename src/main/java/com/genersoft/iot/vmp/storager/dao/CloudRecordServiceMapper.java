@@ -2,10 +2,7 @@ package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
@@ -78,4 +75,42 @@ public interface CloudRecordServiceMapper {
                                   @Param("startTimeStamp")Long startTimeStamp, @Param("endTimeStamp")Long endTimeStamp,
                                   @Param("callId")String callId, List<MediaServerItem> mediaServerItemList);
 
+    @Update(" <script>" +
+            "update wvp_cloud_record set collect = #{collect} where file_path in " +
+            " <foreach collection='cloudRecordItemList'  item='item'  open='(' separator=',' close=')' > #{item.filePath}</foreach>" +
+            " </script>")
+    void updateCollectList(@Param("collect") boolean collect, List<CloudRecordItem> cloudRecordItemList);
+
+    @Delete(" <script>" +
+            "delete from wvp_cloud_record where media_server_id=#{mediaServerId} file_path in " +
+            " <foreach collection='filePathList'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
+            " </script>")
+    void deleteByFileList(List<String> filePathList, @Param("mediaServerId") String mediaServerId);
+
+
+    @Select(" <script>" +
+            "select file_path" +
+            " from wvp_cloud_record " +
+            " where collect = false and reserve = false " +
+            " <if test= 'endTimeStamp != null '> and start_time &lt;= #{endTimeStamp}</if>" +
+            " <if test= 'callId != null '> and call_id = #{callId}</if>" +
+            " <if test= 'mediaServerId != null  ' > and media_server_id  = #{mediaServerId} </if>" +
+            " </script>")
+    List<String> queryRecordFilePathListForDelete(@Param("endTimeStamp")Long endTimeStamp, String mediaServerId);
+
+    @Update(" <script>" +
+            "update wvp_cloud_record set reserve = #{reserve} where file_path in " +
+            " <foreach collection='cloudRecordItems'  item='item'  open='(' separator=',' close=')' > #{item.filePath}</foreach>" +
+            " </script>")
+    void updateReserveList(@Param("reserve") boolean reserve,List<CloudRecordItem> cloudRecordItems);
+
+    @Update(" <script>" +
+            "update wvp_cloud_record set collect = #{collect} where id = #{recordId} " +
+            " </script>")
+    void changeCollectById(@Param("collect") boolean collect, @Param("recordId") Integer recordId);
+
+    @Update(" <script>" +
+            "update wvp_cloud_record set reserve = #{reserve} where id = #{recordId} " +
+            " </script>")
+    void changeReserveById(@Param("reserve") boolean reserve, Integer recordId);
 }

@@ -3,8 +3,6 @@ package com.genersoft.iot.vmp.service.impl;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.gb28181.bean.GbStream;
-import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
@@ -19,14 +17,13 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.unit.DataUnit;
 
 import java.time.*;
-import java.time.temporal.TemporalAccessor;
 import java.util.*;
 
 @Service
@@ -166,5 +163,74 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
             throw new ControllerException(result.getInteger("code"), result.getString("msg"));
         }
         return result.getJSONArray("data");
+    }
+
+    @Override
+    public void changeCollect(String type, boolean result, String app, String stream, String mediaServerId, String startTime, String endTime, String callId, String collectType) {
+        // 开始时间和结束时间在数据库中都是以秒为单位的
+        Long startTimeStamp = null;
+        Long endTimeStamp = null;
+        if (startTime != null ) {
+            if (!DateUtil.verification(startTime, DateUtil.formatter)) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "开始时间格式错误，正确格式为： " + DateUtil.formatter);
+            }
+            startTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime);
+
+        }
+        if (endTime != null ) {
+            if (!DateUtil.verification(endTime, DateUtil.formatter)) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "结束时间格式错误，正确格式为： " + DateUtil.formatter);
+            }
+            endTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime);
+
+        }
+
+        List<MediaServerItem> mediaServerItems;
+        if (!ObjectUtils.isEmpty(mediaServerId)) {
+            mediaServerItems = new ArrayList<>();
+            MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+            if (mediaServerItem == null) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到流媒体: " + mediaServerId);
+            }
+            mediaServerItems.add(mediaServerItem);
+        } else {
+            mediaServerItems = null;
+        }
+
+        List<CloudRecordItem> all = cloudRecordServiceMapper.getList(null, app, stream, startTimeStamp, endTimeStamp,
+                callId, mediaServerItems);
+        if (all.isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到待收藏的视频");
+        }
+        int limitCount = 50;
+        if (all.size() > limitCount) {
+            for (int i = 0; i < all.size(); i += limitCount) {
+                int toIndex = i + limitCount;
+                if (i + limitCount > all.size()) {
+                    toIndex = all.size();
+                }
+                if ("collect".equals(collectType)) {
+                    cloudRecordServiceMapper.updateCollectList(result, all.subList(i, toIndex));
+                }else  if ("reserve".equals(collectType)) {
+                    cloudRecordServiceMapper.updateReserveList(result, all.subList(i, toIndex));
+                }
+
+            }
+        }else {
+            if ("collect".equals(collectType)) {
+                cloudRecordServiceMapper.updateCollectList(result, all);
+            }else  if ("reserve".equals(collectType)) {
+                cloudRecordServiceMapper.updateReserveList(result, all);
+            }
+        }
+    }
+
+    @Override
+    public void changeCollectById(Integer recordId, String collectType, boolean result) {
+        if ("collect".equals(collectType)) {
+            cloudRecordServiceMapper.changeCollectById(result, recordId);
+        }else  if ("reserve".equals(collectType)) {
+            cloudRecordServiceMapper.changeReserveById(result, recordId);
+        }
     }
 }

@@ -93,4 +93,6 @@ public interface IMediaServerService {
      */
     MediaServerLoad getLoad(MediaServerItem mediaServerItem);
 
+    List<MediaServerItem> getAllWithAssistPort();
+
 }

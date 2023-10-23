@@ -80,14 +80,14 @@ public class CloudRecordItem {
         CloudRecordItem cloudRecordItem = new CloudRecordItem();
         cloudRecordItem.setApp(param.getApp());
         cloudRecordItem.setStream(param.getStream());
-        cloudRecordItem.setStartTime(param.getStart_time());
+        cloudRecordItem.setStartTime(param.getStart_time()*1000);
         cloudRecordItem.setFileName(param.getFile_name());
         cloudRecordItem.setFolder(param.getFolder());
         cloudRecordItem.setFileSize(param.getFile_size());
         cloudRecordItem.setFilePath(param.getFile_path());
         cloudRecordItem.setMediaServerId(param.getMediaServerId());
-        cloudRecordItem.setTimeLen(param.getTime_len());
-        cloudRecordItem.setEndTime(param.getStart_time() + param.getTime_len());
+        cloudRecordItem.setTimeLen((long) param.getTime_len() * 1000);
+        cloudRecordItem.setEndTime((param.getStart_time() + (long)param.getTime_len()) * 1000);
         return cloudRecordItem;
     }
 

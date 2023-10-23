@@ -14,7 +14,7 @@ public class OnRecordMp4HookParam extends HookParam{
     private String url;
     private String vhost;
     private long start_time;
-    private long time_len;
+    private double time_len;
 
     public String getApp() {
         return app;
@@ -88,11 +88,11 @@ public class OnRecordMp4HookParam extends HookParam{
         this.start_time = start_time;
     }
 
-    public long getTime_len() {
+    public double getTime_len() {
         return time_len;
     }
 
-    public void setTime_len(long time_len) {
+    public void setTime_len(double time_len) {
         this.time_len = time_len;
     }
 

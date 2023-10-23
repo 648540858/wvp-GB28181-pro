@@ -89,7 +89,7 @@ public class DateUtil {
      * 时间戳 转 yyyy_MM_dd
      */
     public static String timestampTo_yyyy_MM_dd(long timestamp) {
-        Instant instant = Instant.ofEpochSecond(timestamp);
+        Instant instant = Instant.ofEpochMilli(timestamp);
         return DateFormatter.format(LocalDateTime.ofInstant(instant, ZoneId.of(zoneStr)));
     }
 

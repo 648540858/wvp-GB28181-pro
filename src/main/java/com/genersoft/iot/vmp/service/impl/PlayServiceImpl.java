@@ -780,11 +780,12 @@ public class PlayServiceImpl implements IPlayService {
             } else {
                 String startTime = inviteInfo.getStreamInfo().getStartTime();
                 String endTime = inviteInfo.getStreamInfo().getEndTime();
+                // 此时start和end单位是秒
                 long start = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime);
                 long end = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime);
 
                 BigDecimal currentCount = new BigDecimal(duration);
-                BigDecimal totalCount = new BigDecimal(end - start);
+                BigDecimal totalCount = new BigDecimal((end - start) * 1000);
                 BigDecimal divide = currentCount.divide(totalCount, 2, RoundingMode.HALF_UP);
                 double process = divide.doubleValue();
                 inviteInfo.getStreamInfo().setProgress(process);

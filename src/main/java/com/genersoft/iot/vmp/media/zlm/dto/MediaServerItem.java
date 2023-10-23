@@ -80,14 +80,8 @@ public class MediaServerItem{
     @Schema(description = "是否是默认ZLM")
     private boolean defaultServer;
 
-    @Schema(description = "录像存储路径")
-    private String recordPath;
-
     @Schema(description = "录像存储时长")
     private int recordDate;
-
-
-
 
     public MediaServerItem() {
     }
@@ -304,14 +298,6 @@ public class MediaServerItem{
 
     public void setSendRtpPortRange(String sendRtpPortRange) {
         this.sendRtpPortRange = sendRtpPortRange;
-    }
-
-    public String getRecordPath() {
-        return recordPath;
-    }
-
-    public void setRecordPath(String recordPath) {
-        this.recordPath = recordPath;
     }
 
     public int getRecordDate() {

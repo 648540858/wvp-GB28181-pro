@@ -198,6 +198,8 @@ public class CloudRecordController {
             @RequestParam(required = false) String callId,
             @RequestParam(required = false) Integer recordId
     ){
+        logger.info("[云端录像] 添加收藏，app={}，stream={},mediaServerId={},startTime={},endTime={},callId={},recordId={}",
+                app, stream, mediaServerId, startTime, endTime, callId, recordId);
         if (recordId != null) {
             return cloudRecordService.changeCollectById(recordId, true);
         }else {
@@ -224,6 +226,8 @@ public class CloudRecordController {
             @RequestParam(required = false) String callId,
             @RequestParam(required = false) Integer recordId
     ){
+        logger.info("[云端录像] 移除收藏，app={}，stream={},mediaServerId={},startTime={},endTime={},callId={},recordId={}",
+                app, stream, mediaServerId, startTime, endTime, callId, recordId);
         if (recordId != null) {
             return cloudRecordService.changeCollectById(recordId, false);
         }else {

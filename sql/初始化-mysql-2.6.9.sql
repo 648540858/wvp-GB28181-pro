@@ -273,16 +273,16 @@ create table wvp_cloud_record (
                                   app character varying(255),
                                   stream character varying(255),
                                   call_id character varying(255),
-                                  start_time integer,
-                                  end_time integer,
+                                  start_time bigint,
+                                  end_time bigint,
                                   media_server_id character varying(50),
                                   file_name character varying(255),
                                   folder character varying(255),
                                   file_path character varying(255),
                                   collect bool default false,
                                   reserve bool default false,
-                                  file_size integer,
-                                  time_len float,
+                                  file_size bigint,
+                                  time_len bigint,
                                   constraint uk_stream_push_app_stream_path unique (app, stream, file_path)
 );
 

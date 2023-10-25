@@ -188,24 +188,20 @@ public class CloudRecordController {
     @Parameter(name = "startTime", description = "鉴权ID", required = false)
     @Parameter(name = "endTime", description = "鉴权ID", required = false)
     @Parameter(name = "callId", description = "鉴权ID", required = false)
-    @Parameter(name = "collectType", description = "收藏类型, collect/reserve", required = false)
-    public void addCollect(
+    @Parameter(name = "recordId", description = "录像记录的ID，用于精准收藏一个视频文件", required = false)
+    public int addCollect(
             @RequestParam(required = false) String app,
             @RequestParam(required = false) String stream,
             @RequestParam(required = false) String mediaServerId,
             @RequestParam(required = false) String startTime,
             @RequestParam(required = false) String endTime,
             @RequestParam(required = false) String callId,
-            @RequestParam(required = false) String collectType,
             @RequestParam(required = false) Integer recordId
     ){
-        if (!"collect".equals(collectType) && !"reserve".equals(collectType)) {
-            collectType = "collect";
-        }
         if (recordId != null) {
-            cloudRecordService.changeCollectById(recordId, collectType, true);
+            return cloudRecordService.changeCollectById(recordId, true);
         }else {
-            cloudRecordService.changeCollect(collectType, true, app, stream, mediaServerId, startTime, endTime, callId, collectType);
+            return cloudRecordService.changeCollect(true, app, stream, mediaServerId, startTime, endTime, callId);
         }
     }
 
@@ -218,27 +214,20 @@ public class CloudRecordController {
     @Parameter(name = "startTime", description = "鉴权ID", required = false)
     @Parameter(name = "endTime", description = "鉴权ID", required = false)
     @Parameter(name = "callId", description = "鉴权ID", required = false)
-    @Parameter(name = "collectType", description = "收藏类型, collect/reserve", required = false)
-    public void deleteCollect(
+    @Parameter(name = "recordId", description = "录像记录的ID，用于精准精准移除一个视频文件的收藏", required = false)
+    public int deleteCollect(
             @RequestParam(required = false) String app,
             @RequestParam(required = false) String stream,
             @RequestParam(required = false) String mediaServerId,
             @RequestParam(required = false) String startTime,
             @RequestParam(required = false) String endTime,
             @RequestParam(required = false) String callId,
-            @RequestParam(required = false) String collectType,
             @RequestParam(required = false) Integer recordId
     ){
-        if (!"collect".equals(collectType) && !"reserve".equals(collectType)) {
-            collectType = "collect";
-        }
         if (recordId != null) {
-            cloudRecordService.changeCollectById(recordId, collectType, false);
+            return cloudRecordService.changeCollectById(recordId, false);
         }else {
-            cloudRecordService.changeCollect(collectType, false, app, stream, mediaServerId, startTime, endTime, callId, collectType);
+            return cloudRecordService.changeCollect(false, app, stream, mediaServerId, startTime, endTime, callId);
         }
     }
-
-
-
 }

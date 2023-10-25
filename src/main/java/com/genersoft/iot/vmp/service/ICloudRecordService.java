@@ -43,11 +43,11 @@ public interface ICloudRecordService {
     /**
      * 收藏视频，收藏的视频过期不会删除
      */
-    void changeCollect(String type, boolean result, String app, String stream, String mediaServerId, String startTime, String endTime, String callId, String collectType);
+    int changeCollect(boolean result, String app, String stream, String mediaServerId, String startTime, String endTime, String callId);
 
     /**
      * 添加指定录像收藏
      */
-    void changeCollectById(Integer recordId, String collectType, boolean result);
+    int changeCollectById(Integer recordId, boolean result);
 
 }

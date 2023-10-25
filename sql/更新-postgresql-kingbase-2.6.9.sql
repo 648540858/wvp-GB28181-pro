@@ -19,7 +19,6 @@ create table wvp_cloud_record (
       folder character varying(255),
       file_path character varying(255),
       collect bool default false,
-      reserve bool default false,
       file_size int8,
       time_len int8,
       constraint uk_stream_push_app_stream_path unique (app, stream, file_path)

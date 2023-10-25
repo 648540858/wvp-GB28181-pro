@@ -166,7 +166,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     }
 
     @Override
-    public void changeCollect(String type, boolean result, String app, String stream, String mediaServerId, String startTime, String endTime, String callId, String collectType) {
+    public int changeCollect(boolean result, String app, String stream, String mediaServerId, String startTime, String endTime, String callId) {
         // 开始时间和结束时间在数据库中都是以秒为单位的
         Long startTimeStamp = null;
         Long endTimeStamp = null;
@@ -203,34 +203,24 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到待收藏的视频");
         }
         int limitCount = 50;
+        int resultCount = 0;
         if (all.size() > limitCount) {
             for (int i = 0; i < all.size(); i += limitCount) {
                 int toIndex = i + limitCount;
                 if (i + limitCount > all.size()) {
                     toIndex = all.size();
                 }
-                if ("collect".equals(collectType)) {
-                    cloudRecordServiceMapper.updateCollectList(result, all.subList(i, toIndex));
-                }else  if ("reserve".equals(collectType)) {
-                    cloudRecordServiceMapper.updateReserveList(result, all.subList(i, toIndex));
-                }
+                resultCount += cloudRecordServiceMapper.updateCollectList(result, all.subList(i, toIndex));
 
             }
         }else {
-            if ("collect".equals(collectType)) {
-                cloudRecordServiceMapper.updateCollectList(result, all);
-            }else  if ("reserve".equals(collectType)) {
-                cloudRecordServiceMapper.updateReserveList(result, all);
-            }
+            resultCount = cloudRecordServiceMapper.updateCollectList(result, all);
         }
+        return resultCount;
     }
 
     @Override
-    public void changeCollectById(Integer recordId, String collectType, boolean result) {
-        if ("collect".equals(collectType)) {
-            cloudRecordServiceMapper.changeCollectById(result, recordId);
-        }else  if ("reserve".equals(collectType)) {
-            cloudRecordServiceMapper.changeReserveById(result, recordId);
-        }
+    public int changeCollectById(Integer recordId, boolean result) {
+       return cloudRecordServiceMapper.changeCollectById(result, recordId);
     }
 }

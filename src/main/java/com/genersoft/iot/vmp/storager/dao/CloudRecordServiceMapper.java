@@ -79,7 +79,7 @@ public interface CloudRecordServiceMapper {
             "update wvp_cloud_record set collect = #{collect} where file_path in " +
             " <foreach collection='cloudRecordItemList'  item='item'  open='(' separator=',' close=')' > #{item.filePath}</foreach>" +
             " </script>")
-    void updateCollectList(@Param("collect") boolean collect, List<CloudRecordItem> cloudRecordItemList);
+    int updateCollectList(@Param("collect") boolean collect, List<CloudRecordItem> cloudRecordItemList);
 
     @Delete(" <script>" +
             "delete from wvp_cloud_record where media_server_id=#{mediaServerId} file_path in " +
@@ -91,7 +91,7 @@ public interface CloudRecordServiceMapper {
     @Select(" <script>" +
             "select file_path" +
             " from wvp_cloud_record " +
-            " where collect = false and reserve = false " +
+            " where collect = false " +
             " <if test= 'endTimeStamp != null '> and start_time &lt;= #{endTimeStamp}</if>" +
             " <if test= 'callId != null '> and call_id = #{callId}</if>" +
             " <if test= 'mediaServerId != null  ' > and media_server_id  = #{mediaServerId} </if>" +
@@ -99,18 +99,8 @@ public interface CloudRecordServiceMapper {
     List<String> queryRecordFilePathListForDelete(@Param("endTimeStamp")Long endTimeStamp, String mediaServerId);
 
     @Update(" <script>" +
-            "update wvp_cloud_record set reserve = #{reserve} where file_path in " +
-            " <foreach collection='cloudRecordItems'  item='item'  open='(' separator=',' close=')' > #{item.filePath}</foreach>" +
-            " </script>")
-    void updateReserveList(@Param("reserve") boolean reserve,List<CloudRecordItem> cloudRecordItems);
-
-    @Update(" <script>" +
             "update wvp_cloud_record set collect = #{collect} where id = #{recordId} " +
             " </script>")
-    void changeCollectById(@Param("collect") boolean collect, @Param("recordId") Integer recordId);
+    int changeCollectById(@Param("collect") boolean collect, @Param("recordId") Integer recordId);
 
-    @Update(" <script>" +
-            "update wvp_cloud_record set reserve = #{reserve} where id = #{recordId} " +
-            " </script>")
-    void changeReserveById(@Param("reserve") boolean reserve, Integer recordId);
 }

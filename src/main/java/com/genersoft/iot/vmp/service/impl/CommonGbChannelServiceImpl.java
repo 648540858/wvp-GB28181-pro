@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.genersoft.iot.vmp.common.CivilCodePo;
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.conf.CivilCodeFileConf;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -119,18 +120,23 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
             Gb28181CodeType channelIdType = SipUtils.getChannelIdType(deviceChannel.getChannelId());
             if (channelIdType != null) {
                 if (
-                        (
-                                channelIdType == Gb28181CodeType.CIVIL_CODE_PROVINCE
-                                        || channelIdType == Gb28181CodeType.CIVIL_CODE_CITY
-                                        || channelIdType == Gb28181CodeType.CIVIL_CODE_COUNTY
-                                        || channelIdType == Gb28181CodeType.CIVIL_CODE_GRASS_ROOTS
-                        )
-                                &&
-                                !regionMap.containsKey(deviceChannel.getChannelId())
+                    (
+                        channelIdType == Gb28181CodeType.CIVIL_CODE_PROVINCE
+                            || channelIdType == Gb28181CodeType.CIVIL_CODE_CITY
+                            || channelIdType == Gb28181CodeType.CIVIL_CODE_COUNTY
+                            || channelIdType == Gb28181CodeType.CIVIL_CODE_GRASS_ROOTS
+                    )
+                    &&
+                    !regionMap.containsKey(deviceChannel.getChannelId())
                 ) {
+                    CivilCodePo parentCivilCodePo = civilCodeFileConf.getParentCode(deviceChannel.getChannelId());
+                    String civilCode = null;
+                    if (parentCivilCodePo != null) {
+                        civilCode = parentCivilCodePo.getCode();
+                    }
                     // 行政区划条目
                     Region region = Region.getInstance(deviceChannel.getChannelId(), deviceChannel.getName(),
-                            civilCodeFileConf.getParentCode(deviceChannel.getChannelId()).getCode());
+                            civilCode);
                     regionMap.put(deviceChannel.getChannelId(), region);
                 }
                 if (channelIdType == Gb28181CodeType.BUSINESS_GROUP
@@ -386,18 +392,20 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
             commonGbChannel.setCommonGbManufacturer(deviceChannel.getManufacture());
             commonGbChannel.setCommonGbModel(deviceChannel.getModel());
             commonGbChannel.setCommonGbOwner(deviceChannel.getOwner());
-            Gb28181CodeType channelIdType = SipUtils.getChannelIdType(deviceChannel.getCivilCode());
-            if (channelIdType == Gb28181CodeType.CIVIL_CODE_PROVINCE
+            if (deviceChannel.getCivilCode() != null) {
+                Gb28181CodeType channelIdType = SipUtils.getChannelIdType(deviceChannel.getCivilCode());
+                if (channelIdType == Gb28181CodeType.CIVIL_CODE_PROVINCE
                         || channelIdType == Gb28181CodeType.CIVIL_CODE_CITY
                         || channelIdType == Gb28181CodeType.CIVIL_CODE_COUNTY
                         || channelIdType == Gb28181CodeType.CIVIL_CODE_GRASS_ROOTS
-            ){
-                commonGbChannel.setCommonGbCivilCode(deviceChannel.getCivilCode());
-            }else {
-                logger.warn("[不规范的CivilCode]，deviceId: {}, channel: {}, civilCode: {}",
-                        deviceChannel.getDeviceId(),
-                        deviceChannel.getChannelId(),
-                        deviceChannel.getCivilCode());
+                ){
+                    commonGbChannel.setCommonGbCivilCode(deviceChannel.getCivilCode());
+                }else {
+                    logger.warn("[不规范的CivilCode]，deviceId: {}, channel: {}, civilCode: {}",
+                            deviceChannel.getDeviceId(),
+                            deviceChannel.getChannelId(),
+                            deviceChannel.getCivilCode());
+                }
             }
 
             commonGbChannel.setCommonGbCivilCode(deviceChannel.getCivilCode());
@@ -443,6 +451,9 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
                         commonGbChannel.setCommonGbOwner(deviceChannel.getOwner());
                         break;
                     case "commonGbCivilCode":
+                        if (deviceChannel.getCivilCode() == null) {
+                            break;
+                        }
                         Gb28181CodeType channelIdType = SipUtils.getChannelIdType(deviceChannel.getCivilCode());
                         if (channelIdType == Gb28181CodeType.CIVIL_CODE_PROVINCE
                                 || channelIdType == Gb28181CodeType.CIVIL_CODE_CITY

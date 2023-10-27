@@ -120,7 +120,7 @@ alter table device_channel
     change status status bool default false;
 
 alter table device_channel
-    change streamId stream_id varchar(50) null;
+    change streamId stream_id varchar(255) null;
 
 alter table device_channel
     change deviceId device_id varchar(50) not null;

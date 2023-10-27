@@ -89,17 +89,17 @@ public class CatalogSubscribeTask implements ISubscribeTask {
                 ResponseEvent event = (ResponseEvent) eventResult.event;
                 if (event.getResponse().getRawContent() != null) {
                     // 成功
-                    logger.info("[取消目录订阅订阅]成功： {}", device.getDeviceId());
+                    logger.info("[取消目录订阅]成功： {}", device.getDeviceId());
                 }else {
                     // 成功
-                    logger.info("[取消目录订阅订阅]成功： {}", device.getDeviceId());
+                    logger.info("[取消目录订阅]成功： {}", device.getDeviceId());
                 }
             },eventResult -> {
                 // 失败
-                logger.warn("[取消目录订阅订阅]失败，信令发送失败： {}-{} ", device.getDeviceId(), eventResult.msg);
+                logger.warn("[取消目录订阅]失败，信令发送失败： {}-{} ", device.getDeviceId(), eventResult.msg);
             });
         } catch (InvalidArgumentException | SipException | ParseException e) {
-            logger.error("[命令发送失败] 取消目录订阅订阅: {}", e.getMessage());
+            logger.error("[命令发送失败] 取消目录订阅: {}", e.getMessage());
         }
     }
 }

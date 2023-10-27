@@ -506,6 +506,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
         stream.setUpdateTime(DateUtil.getNow());
         stream.setCreateTime(DateUtil.getNow());
         stream.setServerId(userSetting.getServerId());
+        stream.setMediaServerId(mediaConfig.getId());
+        stream.setSelf(true);
+        stream.setPushIng(true);
 
         // 放在事务内执行
         boolean result = false;

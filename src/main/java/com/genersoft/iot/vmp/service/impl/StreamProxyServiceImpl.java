@@ -35,15 +35,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 视频代理业务
@@ -553,5 +557,44 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         int online = streamProxyMapper.getOnline();
 
         return new ResourceBaseInfo(total, online);
+    }
+
+
+    @Scheduled(cron = "* 0/10 * * * ?")
+    public void asyncCheckStreamProxyStatus() {
+
+        List<MediaServerItem> all = mediaServerService.getAllOnline();
+
+        if (CollectionUtils.isEmpty(all)){
+            return;
+        }
+
+        Map<String, MediaServerItem> serverItemMap = all.stream().collect(Collectors.toMap(MediaServerItem::getId, Function.identity(), (m1, m2) -> m1));
+
+        List<StreamProxyItem> list = videoManagerStorager.getStreamProxyListForEnable(true);
+
+        if (CollectionUtils.isEmpty(list)){
+            return;
+        }
+
+        for (StreamProxyItem streamProxyItem : list) {
+
+            MediaServerItem mediaServerItem = serverItemMap.get(streamProxyItem.getMediaServerId());
+
+            // TODO 支持其他 schema
+            JSONObject mediaInfo = zlmresTfulUtils.isMediaOnline(mediaServerItem, streamProxyItem.getApp(), streamProxyItem.getStream(), "rtsp");
+
+            if (mediaInfo == null){
+                streamProxyItem.setStatus(false);
+            } else {
+                if (mediaInfo.getInteger("code") == 0 && mediaInfo.getBoolean("online")) {
+                    streamProxyItem.setStatus(true);
+                } else {
+                    streamProxyItem.setStatus(false);
+                }
+            }
+
+            updateStreamProxy(streamProxyItem);
+        }
     }
 }

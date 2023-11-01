@@ -569,7 +569,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         Map<String, Object> param = new HashMap<>();
         param.put("api.secret",mediaServerItem.getSecret()); // -profile:v Baseline
         if (mediaServerItem.getRtspPort() != 0) {
-            param.put("ffmpeg.snap", "%s -rtsp_transport tcp -i %s -y -f mjpeg -t 0.001 %s");
+            param.put("ffmpeg.snap", "%s -rtsp_transport tcp -i %s -y -f mjpeg -frames:v 1 %s");
         }
         param.put("hook.enable","1");
         param.put("hook.on_flow_report","");

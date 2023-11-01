@@ -82,25 +82,28 @@ public interface CloudRecordServiceMapper {
     int updateCollectList(@Param("collect") boolean collect, List<CloudRecordItem> cloudRecordItemList);
 
     @Delete(" <script>" +
-            "delete from wvp_cloud_record where media_server_id=#{mediaServerId} file_path in " +
+            "delete from wvp_cloud_record where media_server_id=#{mediaServerId} and file_path in " +
             " <foreach collection='filePathList'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
             " </script>")
     void deleteByFileList(List<String> filePathList, @Param("mediaServerId") String mediaServerId);
 
 
     @Select(" <script>" +
-            "select file_path" +
+            "select *" +
             " from wvp_cloud_record " +
-            " where collect = false " +
-            " <if test= 'endTimeStamp != null '> and start_time &lt;= #{endTimeStamp}</if>" +
-            " <if test= 'callId != null '> and call_id = #{callId}</if>" +
-            " <if test= 'mediaServerId != null  ' > and media_server_id  = #{mediaServerId} </if>" +
+            " where end_time &lt;= #{endTimeStamp} and media_server_id  = #{mediaServerId} " +
             " </script>")
-    List<String> queryRecordFilePathListForDelete(@Param("endTimeStamp")Long endTimeStamp, String mediaServerId);
+    List<CloudRecordItem> queryRecordListForDelete(@Param("endTimeStamp")Long endTimeStamp, String mediaServerId);
 
     @Update(" <script>" +
             "update wvp_cloud_record set collect = #{collect} where id = #{recordId} " +
             " </script>")
     int changeCollectById(@Param("collect") boolean collect, @Param("recordId") Integer recordId);
+
+    @Delete(" <script>" +
+            "delete from wvp_cloud_record where media_server_id=#{mediaServerId} and id in " +
+            " <foreach collection='cloudRecordItemIdList'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
+            " </script>")
+    int deleteList(List<Integer> cloudRecordItemIdList, @Param("mediaServerId") String mediaServerId);
 
 }

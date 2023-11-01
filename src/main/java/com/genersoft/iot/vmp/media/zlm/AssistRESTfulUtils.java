@@ -268,14 +268,4 @@ public class AssistRESTfulUtils {
 
         return sendGet(mediaServerItem, "api/record/file/download/task/list", param, null);
     }
-
-    public JSONObject addCollect(MediaServerItem mediaServerItem, JSONObject jsonObject) {
-        return sendPost(mediaServerItem, "api/record/file/collection/add", jsonObject, null, 30);
-    }
-
-    public JSONObject deleteFiles(MediaServerItem mediaServerItem, List<String> filePathList) {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("filePathList", filePathList);
-        return sendPost(mediaServerItem, "api/record/file/delete", jsonObject, null, 15*60);
-    }
 }

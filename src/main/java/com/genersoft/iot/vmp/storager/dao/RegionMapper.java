@@ -11,28 +11,28 @@ public interface RegionMapper {
     List<Region> getChildren(@Param("parentDeviceId") String parentDeviceId);
 
     @Insert("INSERT INTO wvp_common_region (" +
-            "common_region_device_id, " +
-            "common_region_name, " +
-            "common_region_parent_id, " +
-            "common_region_path, " +
-            "common_region_create_time, " +
-            "common_region_update_time ) " +
-            "VALUES (" +
-            "#{commonRegionDeviceId}, " +
-            "#{commonRegionName}, " +
-            "#{commonRegionParentId}, " +
-            "#{commonRegionPath}, " +
-            "#{commonRegionCreateTime}, " +
-            "#{commonRegionUpdateTime})")
+            " common_region_device_id, " +
+            " common_region_name, " +
+            " common_region_parent_id, " +
+            " common_region_path, " +
+            " common_region_create_time, " +
+            " common_region_update_time ) " +
+            " VALUES (" +
+            " #{commonRegionDeviceId}, " +
+            " #{commonRegionName}, " +
+            " #{commonRegionParentId}, " +
+            " #{commonRegionPath}, " +
+            " #{commonRegionCreateTime}, " +
+            " #{commonRegionUpdateTime})")
     int add(Region region);
 
     @Delete("delete from wvp_common_region where common_region_device_id = #{regionDeviceId}")
     int deleteByDeviceId(@Param("regionDeviceId") String regionDeviceId);
 
     @Update(value = {" <script>" +
-            "UPDATE wvp_common_region " +
-            "SET common_region_update_time=#{updateTime}, common_region_name=#{name}" +
-            "WHERE common_region_device_id=#{regionDeviceId}" +
+            " UPDATE wvp_common_region " +
+            " SET common_region_update_time=#{updateTime}, common_region_name=#{name}" +
+            " HERE common_region_device_id=#{regionDeviceId}" +
             " </script>"})
     int updateRegionName(@Param("name") String name, @Param("updateTime") String updateTime, @Param("regionDeviceId") String regionDeviceId);
 
@@ -69,8 +69,36 @@ public interface RegionMapper {
             " UPDATE" +
             " wvp_common_region" +
             " SET common_region_name=#{item.commonRegionName}" +
-            "WHERE common_region_device_id=#{item.commonRegionDeviceId}"+
+            " WHERE common_region_device_id=#{item.commonRegionDeviceId}"+
             "</foreach>" +
             "</script>"})
     void updateAllForName(List<Region> regionInForUpdate);
+
+    @Select("select * from wvp_common_region where common_region_id = #{commonRegionId}")
+    Region queryRegion(@Param("commonRegionId") int commonRegionId);
+
+    @Update(value = {" <script>" +
+            " UPDATE wvp_common_region " +
+            " SET" +
+            " common_region_update_time=#{commonRegionUpdateTime}," +
+            " common_region_device_id=#{commonRegionDeviceId}," +
+            " common_region_name=#{commonRegionName}," +
+            " common_region_parent_id=#{commonRegionParentId}" +
+            " WHERE common_region_id=#{commonRegionId}" +
+            " </script>"})
+    void update(@Param("region") Region region);
+
+    @Update(value = {" <script>" +
+            " UPDATE wvp_common_region " +
+            " SET" +
+            " common_region_parent_id=#{commonRegionDeviceIdForNew}" +
+            " WHERE common_region_parent_id=#{commonRegionDeviceIdForOld}" +
+            " </script>"})
+    void updateChild(@Param("commonRegionDeviceIdForOld") String commonRegionDeviceIdForOld,
+                     @Param("commonRegionDeviceIdForNew") String commonRegionDeviceIdForNew);
+    @Select("<script> "+
+            "select * from wvp_common_region where 1=1 " +
+            "<if test='query != null'> and (common_region_device_id LIKE concat('%',#{query},'%') or common_region_name LIKE concat('%',#{query},'%') )  </if>" +
+            "</script>")
+    List<Region> query(String query);
 }

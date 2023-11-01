@@ -1,45 +1,54 @@
 package com.genersoft.iot.vmp.service.bean;
 
 import com.genersoft.iot.vmp.utils.DateUtil;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * 分组数据
  */
+@Schema(description = "分组数据")
 public class Group {
 
     /**
      * 数据库自增ID
      */
+    @Schema(description = "数据库自增ID")
     private int commonGroupId;
 
     /**
      * 分组国标编号
      */
+    @Schema(description = "分组国标编号")
     private String commonGroupDeviceId;
 
     /**
      * 分组名称
      */
+    @Schema(description = "分组名称")
     private String commonGroupName;
 
     /**
      * 分组父ID
      */
+    @Schema(description = "分组父ID")
     private String commonGroupParentId;
 
     /**
      * 分组的顶级节点ID，对应多个虚拟组织的业务分组ID
      */
+    @Schema(description = "分组的顶级节点ID，对应多个虚拟组织的业务分组ID")
     private String commonGroupTopId;
 
     /**
      * 创建时间
      */
+    @Schema(description = "创建时间")
     private String commonGroupCreateTime;
 
     /**
      * 更新时间
      */
+    @Schema(description = "更新时间")
     private String commonGroupUpdateTime;
 
     public static Group getInstance(String commonGroupDeviceId, String commonGroupName, String commonGroupParentId, String commonGroupTopId) {

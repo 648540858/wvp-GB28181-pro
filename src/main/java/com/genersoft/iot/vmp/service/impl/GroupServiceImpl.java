@@ -1,10 +1,14 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.service.IGroupService;
 import com.genersoft.iot.vmp.service.bean.Group;
 import com.genersoft.iot.vmp.storager.dao.GroupMapper;
 import com.genersoft.iot.vmp.storager.dao.CommonGbChannelMapper;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.PageInfo;
+import com.github.pagehelper.PageHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +16,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -40,7 +45,7 @@ public class GroupServiceImpl implements IGroupService {
 
     @Override
     public List<CommonGbChannel> getChannels(int id) {
-        Group group = groupMapper.query(id);
+        Group group = groupMapper.queryOne(id);
         if (group == null) {
             return null;
         }
@@ -58,6 +63,8 @@ public class GroupServiceImpl implements IGroupService {
 
     @Override
     public boolean add(Group group) {
+        assert group.getCommonGroupDeviceId() != null;
+        assert group.getCommonGroupDeviceId() != null;
         return groupMapper.add(group) > 0;
     }
 
@@ -72,10 +79,25 @@ public class GroupServiceImpl implements IGroupService {
     }
 
     @Override
+    @Transactional
     public boolean update(Group group) {
-        if (group.getCommonGroupId() == 0) {
+        assert group.getCommonGroupId() >= 0;
+        Group groupInDb = groupMapper.queryOne(group.getCommonGroupId());
+        if (groupInDb == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未查询到待更新的分组");
+        }
+        if (!groupInDb.getCommonGroupDeviceId().equals(group.getCommonGroupDeviceId())) {
+            // 分组编号变化
+            // 修改所有子分组的父节点编号
+            groupMapper.updateParentDeviceId(groupInDb.getCommonGroupDeviceId(), group.getCommonGroupDeviceId());
+            // 修改所有通用通道中分组编号
+            commonGbChannelDao.updateChanelGroup(groupInDb.getCommonGroupDeviceId(), group.getCommonGroupDeviceId());
+        }else if (groupInDb.getCommonGroupParentId().equals(group.getCommonGroupParentId())
+                && groupInDb.getCommonGroupName().equals(group.getCommonGroupName())) {
+            // 数据无变化
             return false;
         }
+
         return groupMapper.update(group) > 0;
     }
 
@@ -84,7 +106,7 @@ public class GroupServiceImpl implements IGroupService {
         if (channels.isEmpty()) {
             return false;
         }
-        Group group = groupMapper.query(id);
+        Group group = groupMapper.queryOne(id);
         if (group == null) {
             return false;
         }
@@ -160,4 +182,17 @@ public class GroupServiceImpl implements IGroupService {
         return true;
     }
 
+    @Override
+    public PageInfo<Group> queryGroup(String query, int page, int count) {
+        PageHelper.startPage(page, count);
+        List<Group> groupList = groupMapper.query(query);
+        return new PageInfo<>(groupList);
+    }
+
+    @Override
+    public PageInfo<Group> queryChildGroupList(String groupParentId, int page, int count) {
+        PageHelper.startPage(page, count);
+        List<Group> groupList = groupMapper.queryChildGroupList(groupParentId);
+        return new PageInfo<>(groupList);
+    }
 }

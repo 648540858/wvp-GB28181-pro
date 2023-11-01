@@ -16,6 +16,8 @@ import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.GroupMapper;
 import com.genersoft.iot.vmp.storager.dao.RegionMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
@@ -84,6 +86,10 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
 
     @Override
     public int update(CommonGbChannel channel) {
+        assert channel.getCommonGbId() >= 0;
+        assert channel.getCommonGbDeviceID() != null;
+        assert channel.getCommonGbName() != null;
+        // TODO 如果状态变化，需要发送消息给级联的上级
         return commonGbChannelMapper.update(channel);
     }
 
@@ -551,11 +557,6 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
     }
 
     @Override
-    public List<CommonGbChannel> getChannelsInRegion(String civilCode) {
-        return null;
-    }
-
-    @Override
     public List<CommonGbChannel> getChannelsInBusinessGroup(String businessGroupID) {
         return null;
     }
@@ -591,5 +592,28 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
     @Override
     public void channelsOfflineFromList(List<DeviceChannel> channelList) {
         commonGbChannelMapper.channelsOfflineFromList(channelList);
+    }
+
+    @Override
+    public PageInfo<CommonGbChannel> getChannelsInRegion(String regionDeviceId, String query, int page, int count) {
+        assert regionDeviceId != null;
+        PageHelper.startPage(page, count);
+        List<CommonGbChannel> all = commonGbChannelMapper.getChannelsInRegion(regionDeviceId, query);
+        return new PageInfo<>(all);
+    }
+
+    @Override
+    public PageInfo<CommonGbChannel> queryChannelListInGroup(String groupDeviceId, String query, int page, int count) {
+        assert groupDeviceId != null;
+        PageHelper.startPage(page, count);
+        List<CommonGbChannel> all = commonGbChannelMapper.queryChannelListInGroup(groupDeviceId, query);
+        return new PageInfo<>(all);
+    }
+
+    @Override
+    public PageInfo<CommonGbChannel> queryChannelList(String query, int page, int count) {
+        PageHelper.startPage(page, count);
+        List<CommonGbChannel> all = commonGbChannelMapper.query(query);
+        return new PageInfo<>(all);
     }
 }

@@ -317,4 +317,37 @@ public interface CommonGbChannelMapper {
             "<foreach collection='commonGbChannelList'  item='item'  open='(' separator=',' close=')' > #{item.commonGbDeviceID}</foreach>" +
             "</script>")
     List<CommonGbChannel> queryInList(List<CommonGbChannel> commonGbChannelList);
+
+    @Update("<script> "+
+            "UPDATE wvp_common_gb_channel SET common_gb_civilCode = #{commonRegionDeviceIdForNew}  WHERE common_gb_civilCode = #{commonRegionDeviceIdForOld}" +
+            "</script>")
+    void updateChanelRegion(@Param("commonRegionDeviceIdForOld") String commonRegionDeviceIdForOld,
+                            @Param("commonRegionDeviceIdForNew") String commonRegionDeviceIdForNew);
+
+    @Update("<script> "+
+            "UPDATE wvp_common_gb_channel SET common_gb_business_group_id = #{groupDeviceIdForNew}  WHERE common_gb_business_group_id = #{groupDeviceIdForOld}" +
+            "</script>")
+    void updateChanelGroup(
+            @Param("commonRegionDeviceIdForOld") String groupDeviceIdForOld,
+            @Param("groupDeviceIdForNew") String groupDeviceIdForNew);
+
+    @Select("<script> "+
+            "select * from wvp_common_gb_channel where common_gb_civilCode = '#{regionDeviceId}'" +
+            "<if test='query != null'> and ( common_gb_device_id LIKE concat('%',#{query},'%') or common_gb_name LIKE concat('%',#{query},'%') )  </if>" +
+            "</script>")
+    List<CommonGbChannel> getChannelsInRegion(@Param("regionDeviceId") String regionDeviceId,
+                                              @Param("query") String query);
+
+    @Select("<script> "+
+            "select * from wvp_common_gb_channel where common_gb_business_group_id = '#{groupDeviceId}'" +
+            "<if test='query != null'> and ( common_gb_device_id LIKE concat('%',#{query},'%') or common_gb_name LIKE concat('%',#{query},'%') )  </if>" +
+            "</script>")
+    List<CommonGbChannel> queryChannelListInGroup(@Param("groupDeviceId") String groupDeviceId,
+                                                  @Param("query") String query);
+
+    @Select("<script> "+
+            "select * from wvp_common_gb_channel where 1=1 " +
+            "<if test='query != null'> and ( common_gb_device_id LIKE concat('%',#{query},'%') or common_gb_name LIKE concat('%',#{query},'%') )  </if>" +
+            "</script>")
+    List<CommonGbChannel> query(String query);
 }

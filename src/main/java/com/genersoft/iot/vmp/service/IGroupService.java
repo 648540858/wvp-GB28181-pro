@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.service.bean.Group;
+import com.genersoft.iot.vmp.vmanager.bean.PageInfo;
 
 import java.util.List;
 
@@ -28,7 +29,7 @@ public interface IGroupService {
     /**
      * 添加业务分组
      */
-    boolean add(Group businessGroup);
+    boolean add(Group group);
 
     /**
      * 移除业务分组
@@ -43,7 +44,7 @@ public interface IGroupService {
     /**
      * 更新业务分组
      */
-    boolean update(Group businessGroup);
+    boolean update(Group group);
 
     /**
      * 设置国标设备到相关的分组中
@@ -61,4 +62,13 @@ public interface IGroupService {
     boolean removeChannelsFromGroup(List<CommonGbChannel> channels);
 
 
+    /**
+     * 查询分组
+     */
+    PageInfo<Group> queryGroup(String query, int page, int count);
+
+    /**
+     * 查询子节点
+     */
+    PageInfo<Group> queryChildGroupList(String groupParentId, int page, int count);
 }

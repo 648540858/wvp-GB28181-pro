@@ -17,15 +17,15 @@ public interface GroupMapper {
             " <if test='parentId == null' >  AND common_group_parent_id is null </if>" +
             " order by common_group_id ASC " +
             " </script>")
-    List<Group> getNodes(String parentId);
+    List<Group> getNodes(@Param("parentId") String parentId);
 
     @Select(" select * from wvp_common_group " +
             " WHERE common_group_id = #{id} ")
-    Group query(int id);
+    Group queryOne(@Param("id") int id);
 
     @Select(" select * from wvp_common_group " +
             " WHERE common_group_device_id = #{deviceId} ")
-    Group queryByDeviceId(String deviceId);
+    Group queryByDeviceId(@Param("deviceId") String deviceId);
 
     @Insert("INSERT INTO wvp_common_group (" +
             "common_group_device_id, " +
@@ -41,14 +41,14 @@ public interface GroupMapper {
             "#{commonGroupTopId}, " +
             "#{commonGroupUpdateTime}, " +
             "#{commonGroupCreateTime})")
-    int add(Group group);
+    int add(@Param("group") Group group);
 
     @Delete("delete from wvp_common_group where common_group_id = #{id}")
-    int remove(int id);
+    int remove(@Param("id") int id);
 
 
     @Delete("delete from wvp_common_group where common_group_device_id = #{deviceId}")
-    int removeByDeviceId(String deviceId);
+    int removeByDeviceId(@Param("deviceId") String deviceId);
 
 
     @Update(value = {" <script>" +
@@ -61,7 +61,7 @@ public interface GroupMapper {
             "<if test='commonGroupUpdateTime != null'>, common_group_update_time=#{commonGroupUpdateTime}</if>" +
             "WHERE common_group_id=#{commonGroupId}" +
             " </script>"})
-    int update(Group Group);
+    int update(@Param("Group") Group Group);
 
 
     @Insert(value = "<script>" +
@@ -86,11 +86,31 @@ public interface GroupMapper {
             ") " +
             "</foreach>" +
             "</script>")
-    int addAll(List<Group> allGroup);
+    int addAll(@Param("allGroup") List<Group> allGroup);
 
     @Select("<script> "+
             "SELECT * FROM wvp_common_group WHERE common_group_device_id in" +
             "<foreach collection='allGroup'  item='item'  open='(' separator=',' close=')' > #{item.commonGroupDeviceId}</foreach>" +
             "</script>")
-    List<Group> queryInList(List<Group> allGroup);
+    List<Group> queryInList(@Param("allGroup") List<Group> allGroup);
+
+    @Select("<script> "+
+            "select * from wvp_common_group where 1=1 " +
+            "<if test='query != null'> and (common_group_device_id LIKE concat('%',#{query},'%') or common_group_name LIKE concat('%',#{query},'%') )  </if>" +
+            "</script>")
+    List<Group> query(@Param("query") String query);
+
+    @Update(value = {" <script>" +
+            " UPDATE wvp_common_group " +
+            " SET" +
+            " common_group_parent_id=#{newParentDeviceId}" +
+            " WHERE common_group_parent_id=#{oldParentDeviceId}" +
+            " </script>"})
+    void updateParentDeviceId(@Param("oldParentDeviceId") String oldParentDeviceId, @Param("newParentDeviceId") String newParentDeviceId);
+
+    @Select("<script> "+
+            "select * from wvp_common_group where common_group_parent_id = #{groupParentId} " +
+            "</script>")
+    List<Group> queryChildGroupList(String groupParentId);
+
 }

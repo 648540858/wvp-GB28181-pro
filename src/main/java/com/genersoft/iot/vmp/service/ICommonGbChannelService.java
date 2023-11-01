@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.service;
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.github.pagehelper.PageInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +32,7 @@ public interface ICommonGbChannelService {
 
     CommonGbChannel getCommonChannelFromDeviceChannel(DeviceChannel deviceChannel, List<String> syncKeys);
 
-    List<CommonGbChannel> getChannelsInRegion(String civilCode);
+    PageInfo<CommonGbChannel> getChannelsInRegion(String regionDeviceId, String query, int page, int count);
 
     List<CommonGbChannel> getChannelsInBusinessGroup(String businessGroupID);
 
@@ -44,4 +45,8 @@ public interface ICommonGbChannelService {
     void channelsOnlineFromList(List<DeviceChannel> deleteChannelList);
 
     void channelsOfflineFromList(List<DeviceChannel> deleteChannelList);
+
+    PageInfo<CommonGbChannel> queryChannelListInGroup(String groupDeviceId, String query, int page, int count);
+
+    PageInfo<CommonGbChannel> queryChannelList(String query, int page, int count);
 }

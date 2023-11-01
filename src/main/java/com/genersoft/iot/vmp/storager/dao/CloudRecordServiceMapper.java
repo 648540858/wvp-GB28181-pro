@@ -102,8 +102,8 @@ public interface CloudRecordServiceMapper {
 
     @Delete(" <script>" +
             "delete from wvp_cloud_record where media_server_id=#{mediaServerId} and id in " +
-            " <foreach collection='cloudRecordItemIdList'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
+            " <foreach collection='cloudRecordItemIdList'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
             " </script>")
-    int deleteList(List<Integer> cloudRecordItemIdList, @Param("mediaServerId") String mediaServerId);
+    int deleteList(List<CloudRecordItem> cloudRecordItemIdList);
 
 }

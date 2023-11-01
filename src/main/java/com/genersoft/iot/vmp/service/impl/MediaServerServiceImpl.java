@@ -419,17 +419,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
 
         if (serverItem.isAutoConfig()) {
-            // 查看assist服务的录像路径配置
-            if (serverItem.getRecordAssistPort() > 0 && userSetting.getRecordPath() == null) {
-                JSONObject info = assistRESTfulUtils.getInfo(serverItem, null);
-                if (info != null && info.getInteger("code") != null && info.getInteger("code") == 0 ) {
-                    JSONObject dataJson = info.getJSONObject("data");
-                    if (dataJson != null) {
-                        String recordPath = dataJson.getString("record");
-                        userSetting.setRecordPath(recordPath);
-                    }
-                }
-            }
             setZLMConfig(serverItem, "0".equals(zlmServerConfig.getHookEnable()));
         }
         final String zlmKeepaliveKey = zlmKeepaliveKeyPrefix + serverItem.getId();
@@ -606,10 +595,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
             param.put("rtp_proxy.port_range", mediaServerItem.getRtpPortRange().replace(",", "-"));
         }
 
-        if (userSetting.getRecordPath() != null) {
-            File recordPathFile = new File(userSetting.getRecordPath());
-            File mp4SavePathFile = recordPathFile.getParentFile().getAbsoluteFile();
-            param.put("protocol.mp4_save_path", mp4SavePathFile.getAbsoluteFile());
+        if (mediaServerItem.getRecordPath() != null) {
+            File recordPathFile = new File(mediaServerItem.getRecordPath());
+            param.put("protocol.mp4_save_path", recordPathFile.getParentFile().getPath());
             param.put("record.appName", recordPathFile.getName());
         }
 

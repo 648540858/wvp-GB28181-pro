@@ -496,6 +496,6 @@ alter table wvp_media_server
     add record_path character varying(255);
 
 alter table wvp_media_server
-    add record_date integer default 7;
+    add record_day integer default 7;
 
 

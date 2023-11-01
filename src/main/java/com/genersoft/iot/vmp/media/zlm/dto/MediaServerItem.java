@@ -81,7 +81,10 @@ public class MediaServerItem{
     private boolean defaultServer;
 
     @Schema(description = "录像存储时长")
-    private int recordDate;
+    private int recordDay;
+
+    @Schema(description = "录像存储路径")
+    private String recordPath;
 
     public MediaServerItem() {
     }
@@ -300,11 +303,19 @@ public class MediaServerItem{
         this.sendRtpPortRange = sendRtpPortRange;
     }
 
-    public int getRecordDate() {
-        return recordDate;
+    public int getRecordDay() {
+        return recordDay;
     }
 
-    public void setRecordDate(int recordDate) {
-        this.recordDate = recordDate;
+    public void setRecordDay(int recordDay) {
+        this.recordDay = recordDay;
+    }
+
+    public String getRecordPath() {
+        return recordPath;
+    }
+
+    public void setRecordPath(String recordPath) {
+        this.recordPath = recordPath;
     }
 }

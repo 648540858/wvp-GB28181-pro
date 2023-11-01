@@ -31,6 +31,8 @@ public interface MediaServerMapper {
             "rtp_port_range,"+
             "send_rtp_port_range,"+
             "record_assist_port,"+
+            "record_day,"+
+            "record_path,"+
             "default_server,"+
             "create_time,"+
             "update_time,"+
@@ -55,6 +57,8 @@ public interface MediaServerMapper {
             "#{rtpPortRange}, " +
             "#{sendRtpPortRange}, " +
             "#{recordAssistPort}, " +
+            "#{recordDay}, " +
+            "#{recordPath}, " +
             "#{defaultServer}, " +
             "#{createTime}, " +
             "#{updateTime}, " +
@@ -82,6 +86,8 @@ public interface MediaServerMapper {
             "<if test=\"secret != null\">, secret=#{secret}</if>" +
             "<if test=\"recordAssistPort != null\">, record_assist_port=#{recordAssistPort}</if>" +
             "<if test=\"hookAliveInterval != null\">, hook_alive_interval=#{hookAliveInterval}</if>" +
+            "<if test=\"recordDay != null\">, record_day=#{recordDay}</if>" +
+            "<if test=\"recordPath != null\">, record_path=#{recordPath}</if>" +
             "WHERE id=#{id}"+
             " </script>"})
     int update(MediaServerItem mediaServerItem);
@@ -105,6 +111,8 @@ public interface MediaServerMapper {
             "<if test=\"sendRtpPortRange != null\">, send_rtp_port_range=#{sendRtpPortRange}</if>" +
             "<if test=\"secret != null\">, secret=#{secret}</if>" +
             "<if test=\"recordAssistPort != null\">, record_assist_port=#{recordAssistPort}</if>" +
+            "<if test=\"recordDay != null\">, record_day=#{recordDay}</if>" +
+            "<if test=\"recordPath != null\">, record_path=#{recordPath}</if>" +
             "<if test=\"hookAliveInterval != null\">, hook_alive_interval=#{hookAliveInterval}</if>" +
             "WHERE ip=#{ip} and http_port=#{httpPort}"+
             " </script>"})

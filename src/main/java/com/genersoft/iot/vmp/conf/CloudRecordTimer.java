@@ -41,8 +41,8 @@ public class CloudRecordTimer {
     /**
      * 定时查询待删除的录像文件
      */
+//    @Scheduled(fixedRate = 5000) //每五秒执行一次，方便测试
     @Scheduled(cron = "0 0 0 * * ?")   //每天的0点执行
-//    @Scheduled(fixedRate = 5000)
     public void execute(){
         logger.info("[录像文件定时清理] 开始清理过期录像文件");
         // 获取配置了assist的流媒体节点
@@ -54,10 +54,10 @@ public class CloudRecordTimer {
         for (MediaServerItem mediaServerItem : mediaServerItemList) {
 
             Calendar lastCalendar = Calendar.getInstance();
-            if (mediaServerItem.getRecordDate() > 0) {
+            if (mediaServerItem.getRecordDay() > 0) {
                 lastCalendar.setTime(new Date());
                 // 获取保存的最后截至日期，因为每个节点都有一个日期，也就是支持每个节点设置不同的保存日期，
-                lastCalendar.add(Calendar.DAY_OF_MONTH, -mediaServerItem.getRecordDate());
+                lastCalendar.add(Calendar.DAY_OF_MONTH, -mediaServerItem.getRecordDay());
                 Long lastDate = lastCalendar.getTimeInMillis();
 
                 // 获取到截至日期之前的录像文件列表，文件列表满足未被收藏和保持的。这两个字段目前共能一致，
@@ -66,22 +66,16 @@ public class CloudRecordTimer {
                 if (cloudRecordItemList.isEmpty()) {
                     continue;
                 }
-                List<Integer> cloudRecordItemIdList = new ArrayList<>();
                 for (CloudRecordItem cloudRecordItem : cloudRecordItemList) {
                     String date = new File(cloudRecordItem.getFilePath()).getParentFile().getName();
                     JSONObject jsonObject = zlmresTfulUtils.deleteRecordDirectory(mediaServerItem, cloudRecordItem.getApp(),
                             cloudRecordItem.getStream(), date, cloudRecordItem.getFileName());
                     if (jsonObject.getInteger("code") == 0) {
-                        cloudRecordItemIdList.add(cloudRecordItem.getId());
                     }else {
-                        logger.warn("[录像文件定时清理] 删除磁盘文件错误： {}", jsonObject);
+                        logger.warn("[录像文件定时清理] 删除磁盘文件错误： {}:{}", cloudRecordItem.getFilePath(), jsonObject);
                     }
                 }
-                if (cloudRecordItemIdList.isEmpty()) {
-                    continue;
-                }
-                cloudRecordServiceMapper.deleteList(cloudRecordItemIdList, mediaServerItem.getId());
-                result += cloudRecordItemIdList.size();
+                result += cloudRecordServiceMapper.deleteList(cloudRecordItemList);
             }
         }
         logger.info("[录像文件定时清理] 共清理{}个过期录像文件", result);

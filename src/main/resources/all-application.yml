@@ -34,6 +34,19 @@ spring:
         poolMaxWait: 5
     # [必选] jdbc数据库配置
     datasource:
+        # kingbase配置
+        #        type: com.zaxxer.hikari.HikariDataSource
+        #        driver-class-name: com.kingbase8.Driver
+        #        url: jdbc:kingbase8://192.168.1.55:54321/wvp?useUnicode=true&characterEncoding=utf8
+        #        username: system
+        #        password: system
+        # postgresql配置
+        #    type: com.zaxxer.hikari.HikariDataSource
+        #    driver-class-name: org.postgresql.Driver
+        #    url: jdbc:postgresql://192.168.1.242:3306/242wvp
+        #    username: root
+        #    password: SYceshizu1234
+        # mysql配置
         type: com.zaxxer.hikari.HikariDataSource
         driver-class-name: com.mysql.cj.jdbc.Driver
         url: jdbc:mysql://127.0.0.1:3306/wvp2?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true

@@ -60,8 +60,7 @@ alter table device
     change online on_line varchar(50) null;
 
 alter table device
-    add COLUMN switch_primary_sub_stream bool default false comment '开启主子码流切换的开关（0-不开启，1-开启）现在已知支持设备为 大华、TP——LINK全系设备'
-
+    add COLUMN switch_primary_sub_stream bool default false comment '开启主子码流切换的开关（0-不开启，1-开启）现在已知支持设备为 大华、TP——LINK全系设备';
 
 alter table device_alarm
     change deviceId device_id varchar(50) not null;

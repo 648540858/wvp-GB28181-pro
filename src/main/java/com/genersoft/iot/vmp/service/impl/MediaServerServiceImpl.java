@@ -553,7 +553,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         logger.info("[ZLM] 正在设置 ：{} -> {}:{}",
                 mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
         String protocol = sslEnabled ? "https" : "http";
-        String hookPrex = String.format("%s://%s:%s/index/hook", protocol, mediaServerItem.getHookIp(), serverPort);
+        String hookPrefix = String.format("%s://%s:%s/index/hook", protocol, mediaServerItem.getHookIp(), serverPort);
 
         Map<String, Object> param = new HashMap<>();
         param.put("api.secret",mediaServerItem.getSecret()); // -profile:v Baseline
@@ -562,21 +562,21 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         param.put("hook.enable","1");
         param.put("hook.on_flow_report","");
-        param.put("hook.on_play",String.format("%s/on_play", hookPrex));
+        param.put("hook.on_play",String.format("%s/on_play", hookPrefix));
         param.put("hook.on_http_access","");
-        param.put("hook.on_publish", String.format("%s/on_publish", hookPrex));
+        param.put("hook.on_publish", String.format("%s/on_publish", hookPrefix));
         param.put("hook.on_record_ts","");
         param.put("hook.on_rtsp_auth","");
         param.put("hook.on_rtsp_realm","");
-        param.put("hook.on_server_started",String.format("%s/on_server_started", hookPrex));
+        param.put("hook.on_server_started",String.format("%s/on_server_started", hookPrefix));
         param.put("hook.on_shell_login","");
-        param.put("hook.on_stream_changed",String.format("%s/on_stream_changed", hookPrex));
-        param.put("hook.on_stream_none_reader",String.format("%s/on_stream_none_reader", hookPrex));
-        param.put("hook.on_stream_not_found",String.format("%s/on_stream_not_found", hookPrex));
-        param.put("hook.on_server_keepalive",String.format("%s/on_server_keepalive", hookPrex));
-        param.put("hook.on_send_rtp_stopped",String.format("%s/on_send_rtp_stopped", hookPrex));
-        param.put("hook.on_rtp_server_timeout",String.format("%s/on_rtp_server_timeout", hookPrex));
-        param.put("hook.on_record_mp4",String.format("%s/on_record_mp4", hookPrex));
+        param.put("hook.on_stream_changed",String.format("%s/on_stream_changed", hookPrefix));
+        param.put("hook.on_stream_none_reader",String.format("%s/on_stream_none_reader", hookPrefix));
+        param.put("hook.on_stream_not_found",String.format("%s/on_stream_not_found", hookPrefix));
+        param.put("hook.on_server_keepalive",String.format("%s/on_server_keepalive", hookPrefix));
+        param.put("hook.on_send_rtp_stopped",String.format("%s/on_send_rtp_stopped", hookPrefix));
+        param.put("hook.on_rtp_server_timeout",String.format("%s/on_rtp_server_timeout", hookPrefix));
+        param.put("hook.on_record_mp4",String.format("%s/on_record_mp4", hookPrefix));
         param.put("hook.timeoutSec","20");
         // 推流断开后可以在超时时间内重新连接上继续推流，这样播放器会接着播放。
         // 置0关闭此特性(推流断开会导致立即断开播放器)

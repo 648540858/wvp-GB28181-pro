@@ -2,12 +2,14 @@ package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.gb28181.bean.Gb28181CodeType;
+import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.service.IGroupService;
 import com.genersoft.iot.vmp.service.bean.Group;
 import com.genersoft.iot.vmp.storager.dao.GroupMapper;
 import com.genersoft.iot.vmp.storager.dao.CommonGbChannelMapper;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.PageInfo;
+import com.github.pagehelper.PageInfo;
 import com.github.pagehelper.PageHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -192,7 +194,14 @@ public class GroupServiceImpl implements IGroupService {
     @Override
     public PageInfo<Group> queryChildGroupList(String groupParentId, int page, int count) {
         PageHelper.startPage(page, count);
-        List<Group> groupList = groupMapper.queryChildGroupList(groupParentId);
+        Gb28181CodeType channelIdType = SipUtils.getChannelIdType(groupParentId);
+        List<Group> groupList;
+        if (groupParentId == null || channelIdType == Gb28181CodeType.BUSINESS_GROUP) {
+            groupList = groupMapper.queryVirtualGroupList(groupParentId);
+        }else {
+            groupList = groupMapper.queryChildGroupList(groupParentId);
+        }
+
         return new PageInfo<>(groupList);
     }
 }

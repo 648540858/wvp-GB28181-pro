@@ -1,9 +1,8 @@
 package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.service.bean.Region;
-import com.genersoft.iot.vmp.vmanager.bean.PageInfo;
+import com.github.pagehelper.PageInfo;
 
-import java.util.List;
 
 public interface IRegionService {
 

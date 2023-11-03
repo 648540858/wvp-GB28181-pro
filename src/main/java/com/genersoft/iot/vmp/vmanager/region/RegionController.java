@@ -1,9 +1,8 @@
 package com.genersoft.iot.vmp.vmanager.region;
 
 import com.genersoft.iot.vmp.service.IRegionService;
-import com.genersoft.iot.vmp.service.bean.Group;
 import com.genersoft.iot.vmp.service.bean.Region;
-import com.genersoft.iot.vmp.vmanager.bean.PageInfo;
+import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

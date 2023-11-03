@@ -164,16 +164,17 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
                 commonGbChannelList.add(commonGbChannel);
             }
         });
-        // 检查是否存在已存在通道与将写入通道相同的情况
-        List<CommonGbChannel> commonGbChannelInDbList = commonGbChannelMapper.queryInList(commonGbChannelList);
-        if (!commonGbChannelInDbList.isEmpty()) {
-            // 这里可以控制新数据覆盖旧数据还是丢弃重复的新数据
-            // 目前使用新数据覆盖旧数据，后续分局实际业务需求再做修改
-            commonGbChannelInDbList.stream().forEach(commonGbChannel->{
-                clearChannels.add(commonGbChannel.getCommonGbDeviceID());
-            });
+        if (!commonGbChannelList.isEmpty()) {
+            // 检查是否存在已存在通道与将写入通道相同的情况
+            List<CommonGbChannel> commonGbChannelInDbList = commonGbChannelMapper.queryInList(commonGbChannelList);
+            if (!commonGbChannelInDbList.isEmpty()) {
+                // 这里可以控制新数据覆盖旧数据还是丢弃重复的新数据
+                // 目前使用新数据覆盖旧数据，后续分局实际业务需求再做修改
+                commonGbChannelInDbList.stream().forEach(commonGbChannel->{
+                    clearChannels.add(commonGbChannel.getCommonGbDeviceID());
+                });
+            }
         }
-
 
         // 检测分组境况
         if (businessGroupMap.isEmpty()) {
@@ -251,22 +252,26 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         }
         // 写入通道数据
         boolean result;
-        if (commonGbChannelList.size() <= limit) {
-            result = commonGbChannelMapper.addAll(commonGbChannelList) > 0;
-        } else {
-            for (int i = 0; i < commonGbChannelList.size(); i += limit) {
-                int toIndex = i + limit;
-                if (i + limit > commonGbChannelList.size()) {
-                    toIndex = commonGbChannelList.size();
+        if (!commonGbChannelList.isEmpty()) {
+            if (commonGbChannelList.size() <= limit) {
+                result = commonGbChannelMapper.addAll(commonGbChannelList) > 0;
+            } else {
+                for (int i = 0; i < commonGbChannelList.size(); i += limit) {
+                    int toIndex = i + limit;
+                    if (i + limit > commonGbChannelList.size()) {
+                        toIndex = commonGbChannelList.size();
+                    }
+                    List<CommonGbChannel> commonGbChannelListSub = commonGbChannelList.subList(i, toIndex);
+                    int currentResult = commonGbChannelMapper.addAll(commonGbChannelListSub);
+                    if (currentResult <= 0) {
+                        dataSourceTransactionManager.rollback(transactionStatus);
+                        logger.info("[同步通用通道]来自国标设备，失败， 写入数据库失败, 国标编号: {}", gbDeviceId);
+                        return false;
+                    }
                 }
-                List<CommonGbChannel> commonGbChannelListSub = commonGbChannelList.subList(i, toIndex);
-                int currentResult = commonGbChannelMapper.addAll(commonGbChannelListSub);
-                if (currentResult <= 0) {
-                    dataSourceTransactionManager.rollback(transactionStatus);
-                    logger.info("[同步通用通道]来自国标设备，失败， 写入数据库失败, 国标编号: {}", gbDeviceId);
-                    return false;
-                }
+                result = true;
             }
+        }else {
             result = true;
         }
         deviceChannelMapper.updateCommonChannelId(gbDeviceId);

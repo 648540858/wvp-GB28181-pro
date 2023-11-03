@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.service.bean.Group;
-import com.genersoft.iot.vmp.vmanager.bean.PageInfo;
+import com.github.pagehelper.PageInfo;
 
 import java.util.List;
 

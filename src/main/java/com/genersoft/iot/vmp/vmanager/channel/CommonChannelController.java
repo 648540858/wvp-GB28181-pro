@@ -91,7 +91,7 @@ public class CommonChannelController {
     @Operation(summary = "更新通道")
     @Parameter(name = "CommonGbChannel", description = "commonGbChannel", required = true)
     @ResponseBody
-    @GetMapping("/list")
+    @GetMapping("/update")
     public void update(
             @RequestParam(required = false) CommonGbChannel commonGbChannel
     ){

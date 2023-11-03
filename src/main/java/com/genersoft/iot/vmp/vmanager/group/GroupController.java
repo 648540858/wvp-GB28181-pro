@@ -4,10 +4,11 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.service.IGroupService;
 import com.genersoft.iot.vmp.service.bean.Group;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.PageInfo;
+import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,10 +74,13 @@ public class GroupController {
     @ResponseBody
     @GetMapping("/child/list")
     public PageInfo<Group> queryChildGroupList(
-            @RequestParam(required = true) String groupParentId,
+            @RequestParam(required = false) String groupParentId,
             @RequestParam(required = true) int page,
             @RequestParam(required = true) int count
     ){
-       return groupService.queryChildGroupList(groupParentId, page, count);
+        if (ObjectUtils.isEmpty(groupParentId)) {
+            groupParentId = null;
+        }
+        return groupService.queryChildGroupList(groupParentId, page, count);
     }
 }

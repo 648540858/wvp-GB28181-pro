@@ -9,7 +9,7 @@ import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.PageInfo;
+import com.genersoft.iot.vmp.vmanager.bean.WVPPageInfo;
 import com.genersoft.iot.vmp.vmanager.bean.RecordFile;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -108,7 +108,7 @@ public class CloudRecordController {
     @Parameter(name = "startTime", description = "开始时间(yyyy-MM-dd HH:mm:ss)", required = true)
     @Parameter(name = "endTime", description = "结束时间(yyyy-MM-dd HH:mm:ss)", required = true)
     @Parameter(name = "mediaServerId", description = "流媒体ID，置空则查询全部流媒体", required = false)
-    public PageInfo<RecordFile> openRtpServer(
+    public WVPPageInfo<RecordFile> openRtpServer(
             @RequestParam String app,
             @RequestParam String stream,
             @RequestParam int page,
@@ -133,10 +133,10 @@ public class CloudRecordController {
             mediaServerItems = mediaServerService.getAll();
         }
         if (mediaServerItems.isEmpty()) {
-            return new PageInfo<>();
+            return new WVPPageInfo<>();
         }
         List<RecordFile> records = mediaServerService.getRecords(app, stream, startTime, endTime, mediaServerItems);
-        PageInfo<RecordFile> pageInfo = new PageInfo<>(records);
+        WVPPageInfo<RecordFile> pageInfo = new WVPPageInfo<>(records);
         pageInfo.startPage(page, count);
         return pageInfo;
     }

@@ -109,8 +109,16 @@ public interface GroupMapper {
     void updateParentDeviceId(@Param("oldParentDeviceId") String oldParentDeviceId, @Param("newParentDeviceId") String newParentDeviceId);
 
     @Select("<script> "+
-            "select * from wvp_common_group where common_group_parent_id = #{groupParentId} " +
+            "select * from wvp_common_group where common_group_parent_id = #{groupParentId}" +
             "</script>")
-    List<Group> queryChildGroupList(String groupParentId);
+    List<Group> queryChildGroupList(@Param("groupParentId") String groupParentId);
 
+    @Select("<script> "+
+            "select * from wvp_common_group where " +
+            "<if test='groupParentId != null'> " +
+            "common_group_top_id = #{groupParentId} and common_group_parent_id is null and common_group_device_id != common_group_top_id " +
+            "</if>" +
+            "<if test='groupParentId == null'> common_group_device_id = common_group_top_id</if>" +
+            "</script>")
+    List<Group> queryVirtualGroupList(@Param("groupParentId") String groupParentId);
 }

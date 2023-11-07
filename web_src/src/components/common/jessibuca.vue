@@ -1,6 +1,6 @@
 <template>
   <div ref="container" @dblclick="fullscreenSwich"
-       style="width:100%;height:100%;background-color: #000000;margin:0 auto;">
+       style="width:100%;height:100%;background-color: #000000;margin:0 auto;position: relative;">
     <div class="buttons-box" id="buttonsBox">
       <div class="buttons-box-left">
         <i v-if="!playing" class="iconfont icon-play jessibuca-btn" @click="playBtnClick"></i>
@@ -60,8 +60,13 @@ export default {
     })
   },
   watch: {
-    videoUrl(val, _) {
-      this.play(val);
+    videoUrl: {
+      handler(val, _) {
+        this.$nextTick(() => {
+          this.play(val);
+        })
+      },
+      immediate: true
     }
   },
   methods: {

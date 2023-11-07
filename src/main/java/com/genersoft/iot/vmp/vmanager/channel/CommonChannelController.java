@@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +56,10 @@ public class CommonChannelController {
             @RequestParam(required = true) int page,
             @RequestParam(required = true) int count ){
 
+        if (ObjectUtils.isEmpty(query)) {
+            query = null;
+        }
+        assert !ObjectUtils.isEmpty(groupDeviceId);
         return commonGbChannelService.queryChannelListInGroup(groupDeviceId, query, page, count);
     }
 

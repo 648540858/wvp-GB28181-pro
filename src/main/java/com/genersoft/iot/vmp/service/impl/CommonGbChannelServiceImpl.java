@@ -621,4 +621,10 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         List<CommonGbChannel> all = commonGbChannelMapper.query(query);
         return new PageInfo<>(all);
     }
+
+    @Override
+    public String getRandomCode(Gb28181CodeType type) {
+
+        return "";
+    }
 }

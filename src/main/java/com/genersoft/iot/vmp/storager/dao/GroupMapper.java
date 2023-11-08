@@ -53,15 +53,15 @@ public interface GroupMapper {
 
     @Update(value = {" <script>" +
             "UPDATE wvp_common_group " +
-            "SET common_group_update_time=#{commonGroupUpdateTime}" +
-            "<if test='commonGroupName != null'>, common_group_name=#{commonGroupName}</if>" +
-            "<if test='commonGroupDeviceId != null'>, common_group_device_id=#{commonGroupDeviceId}</if>" +
-            "<if test='commonGroupParentId != null'>, common_group_parent_id=#{commonGroupParentId}</if>" +
-            "<if test='commonGroupTopId != null'>, common_group_top_id=#{commonGroupTopId}</if>" +
-            "<if test='commonGroupUpdateTime != null'>, common_group_update_time=#{commonGroupUpdateTime}</if>" +
-            "WHERE common_group_id=#{commonGroupId}" +
+            "SET common_group_update_time=#{group.commonGroupUpdateTime}" +
+            "<if test='group.commonGroupName != null'>, common_group_name=#{group.commonGroupName}</if>" +
+            "<if test='group.commonGroupDeviceId != null'>, common_group_device_id=#{group.commonGroupDeviceId}</if>" +
+            "<if test='group.commonGroupParentId != null'>, common_group_parent_id=#{group.commonGroupParentId}</if>" +
+            "<if test='group.commonGroupTopId != null'>, common_group_top_id=#{group.commonGroupTopId}</if>" +
+            "<if test='group.commonGroupUpdateTime != null'>, common_group_update_time=#{group.commonGroupUpdateTime}</if>" +
+            "WHERE common_group_id=#{group.commonGroupId}" +
             " </script>"})
-    int update(@Param("Group") Group Group);
+    int update(@Param("group") Group group);
 
 
     @Insert(value = "<script>" +

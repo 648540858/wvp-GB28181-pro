@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.service.IGroupService;
 import com.genersoft.iot.vmp.service.bean.Group;
 import com.genersoft.iot.vmp.storager.dao.GroupMapper;
 import com.genersoft.iot.vmp.storager.dao.CommonGbChannelMapper;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageInfo;
 import com.github.pagehelper.PageHelper;
@@ -67,6 +68,8 @@ public class GroupServiceImpl implements IGroupService {
     public boolean add(Group group) {
         assert group.getCommonGroupDeviceId() != null;
         assert group.getCommonGroupDeviceId() != null;
+        group.setCommonGroupCreateTime(DateUtil.getNow());
+        group.setCommonGroupUpdateTime(DateUtil.getNow());
         return groupMapper.add(group) > 0;
     }
 
@@ -94,7 +97,9 @@ public class GroupServiceImpl implements IGroupService {
             groupMapper.updateParentDeviceId(groupInDb.getCommonGroupDeviceId(), group.getCommonGroupDeviceId());
             // 修改所有通用通道中分组编号
             commonGbChannelDao.updateChanelGroup(groupInDb.getCommonGroupDeviceId(), group.getCommonGroupDeviceId());
-        }else if (groupInDb.getCommonGroupParentId().equals(group.getCommonGroupParentId())
+        }else if (
+                ((groupInDb.getCommonGroupParentId() == null && group.getCommonGroupParentId() == null)
+                        || groupInDb.getCommonGroupParentId().equals(group.getCommonGroupParentId()))
                 && groupInDb.getCommonGroupName().equals(group.getCommonGroupName())) {
             // 数据无变化
             return false;

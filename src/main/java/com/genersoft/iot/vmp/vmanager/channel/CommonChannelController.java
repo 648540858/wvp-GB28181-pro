@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.channel;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
+import com.genersoft.iot.vmp.gb28181.bean.Gb28181CodeType;
 import com.genersoft.iot.vmp.service.ICommonGbChannelService;
 import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
@@ -101,6 +102,22 @@ public class CommonChannelController {
             @RequestParam(required = false) CommonGbChannel commonGbChannel
     ){
         commonGbChannelService.update(commonGbChannel);
+    }
+
+    @Operation(summary = "获取一个随机的可用国标编号")
+    @Parameter(name = "type", description = "类型： " +
+            "CIVIL_CODE_PROVINCE 省级编号 " +
+            "CIVIL_CODE_CIT 市级编号" +
+            "CIVIL_CODE_GRASS_ROOTS 区级编号" +
+            "CIVIL_CODE_GRASS_ROOTS 基层接入单位编号 " +
+            "BUSINESS_GROUP 业务分组 " +
+            "VIRTUAL_ORGANIZATION 虚拟组织 ", required = true)
+    @ResponseBody
+    @GetMapping("/code/random")
+    public String getRandomCode(
+            @RequestParam(required = true) Gb28181CodeType type
+    ){
+        return commonGbChannelService.getRandomCode(type);
     }
 
 }

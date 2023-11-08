@@ -178,7 +178,7 @@ user-settings:
     # 国标是否录制
     record-sip: true
     # 是否将日志存储进数据库
-    logInDatabase: true
+    log-in-database: true
     # 使用推流状态作为推流通道状态
     use-pushing-as-status: true
     # 使用来源请求ip作为streamIp,当且仅当你只有zlm节点它与wvp在一起的情况下开启

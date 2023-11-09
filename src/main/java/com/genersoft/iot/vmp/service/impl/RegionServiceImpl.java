@@ -1,6 +1,9 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.genersoft.iot.vmp.common.CivilCodePo;
+import com.genersoft.iot.vmp.conf.CivilCodeFileConf;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.service.IRegionService;
 import com.genersoft.iot.vmp.service.bean.Region;
 import com.genersoft.iot.vmp.storager.dao.CommonGbChannelMapper;
@@ -28,6 +31,10 @@ public class RegionServiceImpl implements IRegionService {
 
     @Autowired
     private CommonGbChannelMapper commonGbChannelMapper;
+
+
+    @Autowired
+    private CivilCodeFileConf civilCodeFileConf;
 
     @Override
     public void add(Region region) {
@@ -85,5 +92,10 @@ public class RegionServiceImpl implements IRegionService {
         }
         regionMapper.update(region);
 
+    }
+
+    @Override
+    public List<Region> getAllChild(String parent) {
+        return civilCodeFileConf.getAllChild(parent);
     }
 }

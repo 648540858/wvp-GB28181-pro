@@ -3,6 +3,8 @@ package com.genersoft.iot.vmp.service;
 import com.genersoft.iot.vmp.service.bean.Region;
 import com.github.pagehelper.PageInfo;
 
+import java.util.List;
+
 
 public interface IRegionService {
 
@@ -24,4 +26,6 @@ public interface IRegionService {
      * 更新区域
      */
     void update(Region region);
+
+    List<Region> getAllChild(String parent);
 }

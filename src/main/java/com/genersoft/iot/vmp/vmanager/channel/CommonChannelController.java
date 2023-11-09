@@ -120,4 +120,5 @@ public class CommonChannelController {
         return commonGbChannelService.getRandomCode(type);
     }
 
+
 }

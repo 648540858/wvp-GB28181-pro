@@ -18,6 +18,8 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -120,6 +122,20 @@ public class CivilCodeFileConf implements CommandLineRunner {
             }
             return Region.getInstance(code, civilCodePo.getName(), parentCode);
         }
+    }
+
+    public List<Region> getAllChild(String parent) {
+        List<Region> result = new ArrayList<>();
+        for (String key : civilCodeMap.keySet()) {
+            if (parent == null) {
+                if (ObjectUtils.isEmpty(civilCodeMap.get(key).getParentCode().trim())) {
+                    result.add(Region.getInstance(key, civilCodeMap.get(key).getName(), civilCodeMap.get(key).getParentCode()));
+                }
+            }else if (civilCodeMap.get(key).getParentCode().equals(parent)) {
+                result.add(Region.getInstance(key, civilCodeMap.get(key).getName(), civilCodeMap.get(key).getParentCode()));
+            }
+        }
+        return result;
     }
 
 }

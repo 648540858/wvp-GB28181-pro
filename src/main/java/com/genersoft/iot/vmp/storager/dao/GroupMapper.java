@@ -27,20 +27,22 @@ public interface GroupMapper {
             " WHERE common_group_device_id = #{deviceId} ")
     Group queryByDeviceId(@Param("deviceId") String deviceId);
 
-    @Insert("INSERT INTO wvp_common_group (" +
+    @Insert(value = " <script>" +
+            "INSERT INTO wvp_common_group (" +
             "common_group_device_id, " +
             "common_group_name, " +
-            "common_group_parent_id, " +
+            "<if test='group.commonGroupParentId != null'>common_group_parent_id, </if>" +
             "common_group_top_id, " +
             "common_group_update_time, " +
             "common_group_create_time ) " +
             "VALUES (" +
-            "#{commonGroupDeviceId}, " +
-            "#{commonGroupName}, " +
-            "#{commonGroupParentId}, " +
-            "#{commonGroupTopId}, " +
-            "#{commonGroupUpdateTime}, " +
-            "#{commonGroupCreateTime})")
+            "#{group.commonGroupDeviceId}, " +
+            "#{group.commonGroupName}, " +
+            "<if test='group.commonGroupParentId != null'>#{group.commonGroupParentId}, </if>" +
+            "#{group.commonGroupTopId}, " +
+            "#{group.commonGroupUpdateTime}, " +
+            "#{group.commonGroupCreateTime})" +
+            "</script>")
     int add(@Param("group") Group group);
 
     @Delete("delete from wvp_common_group where common_group_id = #{id}")

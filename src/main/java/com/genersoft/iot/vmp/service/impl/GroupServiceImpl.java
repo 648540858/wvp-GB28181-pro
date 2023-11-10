@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 
@@ -70,6 +71,16 @@ public class GroupServiceImpl implements IGroupService {
         assert group.getCommonGroupDeviceId() != null;
         group.setCommonGroupCreateTime(DateUtil.getNow());
         group.setCommonGroupUpdateTime(DateUtil.getNow());
+        Gb28181CodeType channelIdType = SipUtils.getChannelIdType(group.getCommonGroupParentId());
+        if (ObjectUtils.isEmpty(group.getCommonGroupParentId().trim()) || channelIdType.equals(Gb28181CodeType.BUSINESS_GROUP)) {
+            group.setCommonGroupParentId(null);
+        }
+        if (ObjectUtils.isEmpty(group.getCommonGroupTopId().trim())) {
+            Gb28181CodeType channelIdTypeForItem = SipUtils.getChannelIdType(group.getCommonGroupDeviceId());
+            if (channelIdTypeForItem.equals(Gb28181CodeType.BUSINESS_GROUP)) {
+                group.setCommonGroupTopId(group.getCommonGroupDeviceId());
+            }
+        }
         return groupMapper.add(group) > 0;
     }
 

@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Gb28181CodeType;
+import com.genersoft.iot.vmp.service.bean.*;
 import com.github.pagehelper.PageInfo;
 
 import java.util.ArrayList;
@@ -52,4 +53,11 @@ public interface ICommonGbChannelService {
     PageInfo<CommonGbChannel> queryChannelList(String query, int page, int count);
 
     String getRandomCode(Gb28181CodeType type);
+
+    List<IndustryCodeType> getIndustryCodeList();
+
+    List<DeviceType> getDeviceTypeList();
+
+    List<NetworkIdentificationType> getNetworkIdentificationTypeList();
+
 }

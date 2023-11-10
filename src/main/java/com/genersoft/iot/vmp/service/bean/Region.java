@@ -2,12 +2,13 @@ package com.genersoft.iot.vmp.service.bean;
 
 import com.genersoft.iot.vmp.utils.DateUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * 区域
  */
 @Schema(description = "区域")
-public class Region {
+public class Region implements Comparable<Region>{
     /**
      * 数据库自增ID
      */
@@ -100,5 +101,10 @@ public class Region {
 
     public void setCommonRegionUpdateTime(String commonRegionUpdateTime) {
         this.commonRegionUpdateTime = commonRegionUpdateTime;
+    }
+
+    @Override
+    public int compareTo(@NotNull Region region) {
+        return Integer.compare(Integer.parseInt(this.commonRegionDeviceId), Integer.parseInt(region.getCommonRegionDeviceId()));
     }
 }

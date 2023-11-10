@@ -8,9 +8,7 @@ import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Gb28181CodeType;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.service.ICommonGbChannelService;
-import com.genersoft.iot.vmp.service.bean.Group;
-import com.genersoft.iot.vmp.service.bean.CommonGbChannelType;
-import com.genersoft.iot.vmp.service.bean.Region;
+import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.storager.dao.CommonGbChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.GroupMapper;
@@ -20,6 +18,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.assertj.core.util.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -626,5 +625,38 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
     public String getRandomCode(Gb28181CodeType type) {
 
         return "";
+    }
+
+    @Override
+    public List<IndustryCodeType> getIndustryCodeList() {
+        IndustryCodeTypeEnum[] values = IndustryCodeTypeEnum.values();
+        List<IndustryCodeType> result = new ArrayList<>(values.length);
+        for (IndustryCodeTypeEnum value : values) {
+            result.add(IndustryCodeType.getInstance(value));
+        }
+        Collections.sort(result);
+        return result;
+    }
+
+    @Override
+    public List<DeviceType> getDeviceTypeList() {
+        DeviceTypeEnum[] values = DeviceTypeEnum.values();
+        List<DeviceType> result = new ArrayList<>(values.length);
+        for (DeviceTypeEnum value : values) {
+            result.add(DeviceType.getInstance(value));
+        }
+        Collections.sort(result);
+        return result;
+    }
+
+    @Override
+    public List<NetworkIdentificationType> getNetworkIdentificationTypeList() {
+        NetworkIdentificationTypeEnum[] values = NetworkIdentificationTypeEnum.values();
+        List<NetworkIdentificationType> result = new ArrayList<>(values.length);
+        for (NetworkIdentificationTypeEnum value : values) {
+            result.add(NetworkIdentificationType.getInstance(value));
+        }
+        Collections.sort(result);
+        return result;
     }
 }

@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -96,6 +98,8 @@ public class RegionServiceImpl implements IRegionService {
 
     @Override
     public List<Region> getAllChild(String parent) {
-        return civilCodeFileConf.getAllChild(parent);
+        List<Region> allChild = civilCodeFileConf.getAllChild(parent);
+        Collections.sort(allChild);
+        return allChild;
     }
 }

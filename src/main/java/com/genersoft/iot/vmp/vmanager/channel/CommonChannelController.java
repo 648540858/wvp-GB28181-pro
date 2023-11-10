@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.vmanager.channel;
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Gb28181CodeType;
 import com.genersoft.iot.vmp.service.ICommonGbChannelService;
+import com.genersoft.iot.vmp.service.bean.*;
 import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
 import io.swagger.v3.oas.annotations.Operation;
@@ -119,6 +120,29 @@ public class CommonChannelController {
     ){
         return commonGbChannelService.getRandomCode(type);
     }
+
+    @Operation(summary = "获取行业编码列表")
+    @ResponseBody
+    @GetMapping("/industry/list")
+    public List<IndustryCodeType> getIndustryCodeList(){
+        return commonGbChannelService.getIndustryCodeList();
+    }
+
+    @Operation(summary = "获取编码列表")
+    @ResponseBody
+    @GetMapping("/type/list")
+    public List<DeviceType> getDeviceTypeList(){
+        return commonGbChannelService.getDeviceTypeList();
+    }
+
+    @Operation(summary = "获取编码列表")
+    @ResponseBody
+    @GetMapping("/network/identification/list")
+    public List<NetworkIdentificationType> getNetworkIdentificationTypeList(){
+        return commonGbChannelService.getNetworkIdentificationTypeList();
+    }
+
+
 
 
 }

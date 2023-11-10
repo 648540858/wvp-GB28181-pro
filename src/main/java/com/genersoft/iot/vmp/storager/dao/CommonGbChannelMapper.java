@@ -328,7 +328,7 @@ public interface CommonGbChannelMapper {
             "UPDATE wvp_common_gb_channel SET common_gb_business_group_id = #{groupDeviceIdForNew}  WHERE common_gb_business_group_id = #{groupDeviceIdForOld}" +
             "</script>")
     void updateChanelGroup(
-            @Param("commonRegionDeviceIdForOld") String groupDeviceIdForOld,
+            @Param("groupDeviceIdForOld") String groupDeviceIdForOld,
             @Param("groupDeviceIdForNew") String groupDeviceIdForNew);
 
     @Select("<script> "+

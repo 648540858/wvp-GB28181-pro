@@ -123,4 +123,22 @@ public interface GroupMapper {
             "<if test='groupParentId == null'> common_group_device_id = common_group_top_id</if>" +
             "</script>")
     List<Group> queryVirtualGroupList(@Param("groupParentId") String groupParentId);
+
+    @Select("<script> "+
+            "select * from wvp_common_group where common_group_top_id = #{commonGroupTopId}" +
+            "</script>")
+    List<Group> queryGroupListByTopId(@Param("commonGroupTopId") String commonGroupTopId);
+
+    @Select("<script> "+
+            "SELECT * FROM wvp_common_group WHERE common_group_top_id = #{commonGroupTopId} and common_group_parent_id in" +
+            "<foreach collection='parentGroups'  item='item'  open='(' separator=',' close=')' > #{item.commonGroupDeviceId}</foreach>" +
+            "</script>")
+    List<Group> queryChildGroupListInParentGroup(@Param("parentGroups") List<Group> parentGroups,
+                                                 @Param("commonGroupTopId") String commonGroupTopId);
+
+    @Select("<script> "+
+            "delete from wvp_common_group where common_group_id in" +
+            "<foreach collection='groups'  item='item'  open='(' separator=',' close=')' > #{item.commonGroupId}</foreach>" +
+            "</script>")
+    void removeGroupByList(@Param("groups") List<Group> groups);
 }

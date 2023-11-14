@@ -59,8 +59,9 @@ public class GroupController {
     @Operation(summary = "删除区域")
     @Parameter(name = "groupDeviceId", description = "待删除的节点编号", required = true)
     @ResponseBody
-    @DeleteMapping("/delete")
+    @GetMapping("/delete")
     public void deleteGroup(String groupDeviceId){
+       assert groupDeviceId != null;
        boolean result = groupService.remove(groupDeviceId);
        if (!result) {
            throw new ControllerException(ErrorCode.ERROR100.getCode(), "移除失败");

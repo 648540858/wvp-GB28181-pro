@@ -2,6 +2,8 @@ package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.service.bean.Group;
+import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToGroup;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -339,15 +341,54 @@ public interface CommonGbChannelMapper {
                                               @Param("query") String query);
 
     @Select("<script> "+
-            "select * from wvp_common_gb_channel where common_gb_business_group_id = #{groupDeviceId}" +
+            "select * from wvp_common_gb_channel where 1=1 " +
+            "<if test='groupDeviceId != null'> and common_gb_business_group_id = #{groupDeviceId} </if>" +
+            "<if test='regionDeviceId != null'> and common_gb_civilCode = #{regionDeviceId} </if>" +
+            "<if test='inGroup != null &amp; inGroup'> and common_gb_business_group_id is not null </if>" +
+            "<if test='inGroup != null &amp; !inGroup'> and common_gb_business_group_id is null </if>" +
+            "<if test='inRegion != null'> and common_gb_civilCode is not null </if>" +
+            "<if test='type != null'> and type = #{type} </if>" +
             "<if test='query != null'> and ( common_gb_device_id LIKE concat('%',#{query},'%') or common_gb_name LIKE concat('%',#{query},'%') )  </if>" +
             "</script>")
-    List<CommonGbChannel> queryChannelListInGroup(@Param("groupDeviceId") String groupDeviceId,
-                                                  @Param("query") String query);
+    List<CommonGbChannel> queryChannelListInGroup(@Param("query") String query,
+                                                  @Param("groupDeviceId") String groupDeviceId,
+                                                  @Param("regionDeviceId") String regionDeviceId,
+                                                  @Param("inGroup") Boolean inGroup,
+                                                  @Param("inRegion") Boolean inRegion,
+                                                  @Param("type") String type
+    );
+
+
 
     @Select("<script> "+
             "select * from wvp_common_gb_channel where 1=1 " +
             "<if test='query != null'> and ( common_gb_device_id LIKE concat('%',#{query},'%') or common_gb_name LIKE concat('%',#{query},'%') )  </if>" +
             "</script>")
     List<CommonGbChannel> query(@Param("query") String query);
+
+    @Select("<script> "+
+            "UPDATE wvp_common_gb_channel SET common_gb_business_group_id = null  WHERE common_gb_business_group_id  in" +
+            "<foreach collection='groupList'  item='item'  open='(' separator=',' close=')' > #{item.commonGroupDeviceId}</foreach>" +
+            "</script>")
+    void removeGroupInfo(@Param("groupList") List<Group> groupList);
+
+    @Update({"<script>" +
+            "<foreach collection='commonGbChannel.commonGbIds' item='item' separator=';'>" +
+            " UPDATE" +
+            " wvp_common_gb_channel" +
+            " SET common_gb_business_group_id = #{commonGbChannel.commonGbBusinessGroupID}" +
+            " WHERE common_gb_id = #{item}" +
+            "</foreach>" +
+            "</script>"})
+    void updateChannelToGroup(@Param("commonGbChannel") UpdateCommonChannelToGroup commonGbChannel);
+
+    @Update({"<script>" +
+            "<foreach collection='commonGbChannel.commonGbIds' item='item' separator=';'>" +
+            " UPDATE" +
+            " wvp_common_gb_channel" +
+            " SET common_gb_business_group_id = null" +
+            " WHERE common_gb_id = #{item}" +
+            "</foreach>" +
+            "</script>"})
+    void removeFromGroup(@Param("commonGbChannel") UpdateCommonChannelToGroup commonGbChannel);
 }

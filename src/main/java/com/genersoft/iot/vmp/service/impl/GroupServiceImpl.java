@@ -22,6 +22,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -30,7 +31,7 @@ public class GroupServiceImpl implements IGroupService {
     private final static Logger logger = LoggerFactory.getLogger(GroupServiceImpl.class);
 
     @Autowired
-    private CommonGbChannelMapper commonGbChannelDao;
+    private CommonGbChannelMapper commonGbChannelMapper;
 
     @Autowired
     private GroupMapper groupMapper;
@@ -53,7 +54,7 @@ public class GroupServiceImpl implements IGroupService {
         if (group == null) {
             return null;
         }
-        return commonGbChannelDao.getChannels(group.getCommonGroupDeviceId());
+        return commonGbChannelMapper.getChannels(group.getCommonGroupDeviceId());
     }
 
     @Override
@@ -62,7 +63,7 @@ public class GroupServiceImpl implements IGroupService {
         if (group == null) {
             return null;
         }
-        return commonGbChannelDao.getChannels(group.getCommonGroupDeviceId());
+        return commonGbChannelMapper.getChannels(group.getCommonGroupDeviceId());
     }
 
     @Override
@@ -90,8 +91,67 @@ public class GroupServiceImpl implements IGroupService {
     }
 
     @Override
+    @Transactional
     public boolean remove(String deviceId) {
-        return groupMapper.removeByDeviceId(deviceId) > 0;
+        assert deviceId != null;
+        Gb28181CodeType channelIdType = SipUtils.getChannelIdType(deviceId);
+        // 查询所有从属的分组
+        List<Group> groupList;
+        if (channelIdType == Gb28181CodeType.BUSINESS_GROUP) {
+            // 如果要删除的是一个业务分组，那么直接查询commonGroupTopId是这个节点的即可，这里也包括要删除的节点本身
+            groupList = groupMapper.queryGroupListByTopId(deviceId);
+        }else {
+            // 如果要删除的是一个虚拟组织，那么就不只能不断的递归拿到所有的子节点了
+            Group group = groupMapper.queryByDeviceId(deviceId);
+            assert  group != null;
+            List<Group> groupParentList = new ArrayList<>();
+            groupParentList.add(group);
+            groupList = queryAllChildGroup(groupParentList, group.getCommonGroupTopId(), groupParentList);
+        }
+        // 移除所有管理当前节点和字节点的通道
+        int limitCount = 50;
+        if (!groupList.isEmpty()) {
+            if (groupList.size() > limitCount) {
+                for (int i = 0; i < groupList.size(); i += limitCount) {
+                    int toIndex = i + limitCount;
+                    if (i + limitCount > groupList.size()) {
+                        toIndex = groupList.size();
+                    }
+                    commonGbChannelMapper.removeGroupInfo(groupList.subList(i, toIndex));
+                }
+            }else {
+                commonGbChannelMapper.removeGroupInfo(groupList);
+            }
+        }
+
+        // 移除所有子节点
+        if (!groupList.isEmpty()) {
+            if (groupList.size() > limitCount) {
+                for (int i = 0; i < groupList.size(); i += limitCount) {
+                    int toIndex = i + limitCount;
+                    if (i + limitCount > groupList.size()) {
+                        toIndex = groupList.size();
+                    }
+                    groupMapper.removeGroupByList(groupList.subList(i, toIndex));
+                }
+            }else {
+                groupMapper.removeGroupByList(groupList);
+            }
+        }
+        return true;
+    }
+
+    private List<Group> queryAllChildGroup(List<Group> parentGroups, String commonGroupTopId, List<Group> resultList) {
+        if (parentGroups.isEmpty()) {
+            return resultList;
+        }
+        List<Group> childGroupList = groupMapper.queryChildGroupListInParentGroup(parentGroups, commonGroupTopId);
+        if (childGroupList.isEmpty()) {
+            return resultList;
+        }else {
+            resultList.addAll(childGroupList);
+            return queryAllChildGroup(childGroupList, commonGroupTopId, resultList);
+        }
     }
 
     @Override
@@ -107,7 +167,7 @@ public class GroupServiceImpl implements IGroupService {
             // 修改所有子分组的父节点编号
             groupMapper.updateParentDeviceId(groupInDb.getCommonGroupDeviceId(), group.getCommonGroupDeviceId());
             // 修改所有通用通道中分组编号
-            commonGbChannelDao.updateChanelGroup(groupInDb.getCommonGroupDeviceId(), group.getCommonGroupDeviceId());
+            commonGbChannelMapper.updateChanelGroup(groupInDb.getCommonGroupDeviceId(), group.getCommonGroupDeviceId());
         }else if (
                 ((groupInDb.getCommonGroupParentId() == null && group.getCommonGroupParentId() == null)
                         || groupInDb.getCommonGroupParentId().equals(group.getCommonGroupParentId()))
@@ -150,7 +210,7 @@ public class GroupServiceImpl implements IGroupService {
         }
         int limit = 50;
         if (channels.size() <= limit) {
-            if (commonGbChannelDao.updateChanelForGroup(channels) <= 0) {
+            if (commonGbChannelMapper.updateChanelForGroup(channels) <= 0) {
                 logger.info("[添加通道到分组] 失败");
                 return false;
             }
@@ -162,7 +222,7 @@ public class GroupServiceImpl implements IGroupService {
                     toIndex = channels.size();
                 }
                 List<CommonGbChannel> channelsSub = channels.subList(i, toIndex);
-                if (commonGbChannelDao.updateChanelForGroup(channelsSub) <= 0) {
+                if (commonGbChannelMapper.updateChanelForGroup(channelsSub) <= 0) {
                     dataSourceTransactionManager.rollback(transactionStatus);
                     logger.info("[添加通道到分组] 失败");
                     return false;
@@ -177,7 +237,7 @@ public class GroupServiceImpl implements IGroupService {
     public boolean removeChannelsFromGroup(List<CommonGbChannel> channels) {
         int limit = 50;
         if (channels.size() <= limit) {
-            if (commonGbChannelDao.removeChannelsForGroup(channels) <= 0) {
+            if (commonGbChannelMapper.removeChannelsForGroup(channels) <= 0) {
                 logger.info("[从分组移除通道] 失败");
                 return false;
             }
@@ -189,7 +249,7 @@ public class GroupServiceImpl implements IGroupService {
                     toIndex = channels.size();
                 }
                 List<CommonGbChannel> channelsSub = channels.subList(i, toIndex);
-                if (commonGbChannelDao.removeChannelsForGroup(channelsSub) <= 0) {
+                if (commonGbChannelMapper.removeChannelsForGroup(channelsSub) <= 0) {
                     dataSourceTransactionManager.rollback(transactionStatus);
                     logger.info("[从分组移除通道] 失败");
                     return false;

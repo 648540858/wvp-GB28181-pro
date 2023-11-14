@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Gb28181CodeType;
 import com.genersoft.iot.vmp.service.bean.*;
+import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToGroup;
 import com.github.pagehelper.PageInfo;
 
 import java.util.ArrayList;
@@ -48,7 +49,9 @@ public interface ICommonGbChannelService {
 
     void channelsOfflineFromList(List<DeviceChannel> deleteChannelList);
 
-    PageInfo<CommonGbChannel> queryChannelListInGroup(String groupDeviceId, String query, int page, int count);
+    PageInfo<CommonGbChannel> queryChannelListInGroup(int page, int count, String query, String groupDeviceId,
+                                                      String regionDeviceId, Boolean inGroup, Boolean inRegion,
+                                                      String type);
 
     PageInfo<CommonGbChannel> queryChannelList(String query, int page, int count);
 
@@ -60,4 +63,7 @@ public interface ICommonGbChannelService {
 
     List<NetworkIdentificationType> getNetworkIdentificationTypeList();
 
+    void updateChannelToGroup(UpdateCommonChannelToGroup commonGbChannel);
+
+    void removeFromGroup(UpdateCommonChannelToGroup params);
 }

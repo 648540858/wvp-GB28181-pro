@@ -14,8 +14,10 @@ import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.GroupMapper;
 import com.genersoft.iot.vmp.storager.dao.RegionMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToGroup;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.assertj.core.util.Lists;
@@ -607,10 +609,21 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
     }
 
     @Override
-    public PageInfo<CommonGbChannel> queryChannelListInGroup(String groupDeviceId, String query, int page, int count) {
-        assert groupDeviceId != null;
+    public PageInfo<CommonGbChannel> queryChannelListInGroup(int page, int count, String query, String groupDeviceId,
+                                                             String regionDeviceId, Boolean inGroup, Boolean inRegion,
+                                                             String type) {
         PageHelper.startPage(page, count);
-        List<CommonGbChannel> all = commonGbChannelMapper.queryChannelListInGroup(groupDeviceId, query);
+        if (groupDeviceId != null && ObjectUtils.isEmpty(groupDeviceId.trim())) {
+            inGroup = null;
+        }
+        if (regionDeviceId != null && ObjectUtils.isEmpty(regionDeviceId.trim())) {
+            inRegion = null;
+        }
+        if (type != null && ObjectUtils.isEmpty(type.trim())) {
+            type = null;
+        }
+        List<CommonGbChannel> all = commonGbChannelMapper.queryChannelListInGroup(query, groupDeviceId,
+                regionDeviceId, inGroup, inRegion, type);
         return new PageInfo<>(all);
     }
 
@@ -658,5 +671,15 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         }
         Collections.sort(result);
         return result;
+    }
+
+    @Override
+    public void updateChannelToGroup(UpdateCommonChannelToGroup updateCommonChannelToGroup) {
+        commonGbChannelMapper.updateChannelToGroup(updateCommonChannelToGroup);
+    }
+
+    @Override
+    public void removeFromGroup(UpdateCommonChannelToGroup params) {
+        commonGbChannelMapper.removeFromGroup(params);
     }
 }

@@ -108,7 +108,7 @@ public class GroupServiceImpl implements IGroupService {
             groupParentList.add(group);
             groupList = queryAllChildGroup(groupParentList, group.getCommonGroupTopId(), groupParentList);
         }
-        // 移除所有管理当前节点和字节点的通道
+
         int limitCount = 50;
         if (!groupList.isEmpty()) {
             if (groupList.size() > limitCount) {
@@ -117,24 +117,16 @@ public class GroupServiceImpl implements IGroupService {
                     if (i + limitCount > groupList.size()) {
                         toIndex = groupList.size();
                     }
-                    commonGbChannelMapper.removeGroupInfo(groupList.subList(i, toIndex));
+                    List<Group> subList = groupList.subList(i, toIndex);
+                    // 移除所有管理当前节点和字节点的通道
+                    commonGbChannelMapper.removeGroupInfo(subList);
+                    // 移除所有子节点
+                    groupMapper.removeGroupByList(subList);
                 }
             }else {
+                // 移除所有管理当前节点和字节点的通道
                 commonGbChannelMapper.removeGroupInfo(groupList);
-            }
-        }
-
-        // 移除所有子节点
-        if (!groupList.isEmpty()) {
-            if (groupList.size() > limitCount) {
-                for (int i = 0; i < groupList.size(); i += limitCount) {
-                    int toIndex = i + limitCount;
-                    if (i + limitCount > groupList.size()) {
-                        toIndex = groupList.size();
-                    }
-                    groupMapper.removeGroupByList(groupList.subList(i, toIndex));
-                }
-            }else {
+                // 移除所有子节点
                 groupMapper.removeGroupByList(groupList);
             }
         }

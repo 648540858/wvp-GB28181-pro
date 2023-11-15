@@ -10,7 +10,7 @@ public interface IRegionService {
 
     void add(Region region);
 
-    void deleteByDeviceId(String regionDeviceId);
+    boolean deleteByDeviceId(String regionDeviceId);
 
     /**
      * 查询区划列表

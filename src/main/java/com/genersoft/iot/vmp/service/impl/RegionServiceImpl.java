@@ -49,8 +49,31 @@ public class RegionServiceImpl implements IRegionService {
     }
 
     @Override
-    public void deleteByDeviceId(String regionDeviceId) {
-        regionMapper.deleteByDeviceId(regionDeviceId);
+    @Transactional
+    public boolean deleteByDeviceId(String regionDeviceId) {
+        // 查询所有从属的地区，从属地区的编号一定是父节点编号开头的，基于这个获取所有的子节点
+        List<Region> regionList =  regionMapper.queryAllChildByDeviceId(regionDeviceId);
+
+        int limitCount = 50;
+        if (regionList.size() > limitCount) {
+            for (int i = 0; i < regionList.size(); i += limitCount) {
+                int toIndex = i + limitCount;
+                if (i + limitCount > regionList.size()) {
+                    toIndex = regionList.size();
+                }
+                List<Region> subList = regionList.subList(i, toIndex);
+                // 移除所有关联当前节点和子节点的通道
+                commonGbChannelMapper.removeRegionInfo(subList);
+                // 移除所有节点
+                regionMapper.removeRegionByList(subList);
+            }
+        }else {
+            // 移除所有关联当前节点和子节点的通道
+            commonGbChannelMapper.removeRegionInfo(regionList);
+            // 移除所有节点
+            regionMapper.removeRegionByList(regionList);
+        }
+        return true;
     }
 
     @Override
@@ -87,8 +110,10 @@ public class RegionServiceImpl implements IRegionService {
             // 修改所有所属的通道的编号
             commonGbChannelMapper.updateChanelRegion(regionInDb.getCommonRegionDeviceId(),
                     region.getCommonRegionDeviceId());
-        }else if (region.getCommonRegionName().equals(regionInDb.getCommonRegionName()) &&
-         region.getCommonRegionParentId().equals(regionInDb.getCommonRegionParentId())) {
+        }else if (
+                ((regionInDb.getCommonRegionParentId() == null && region.getCommonRegionParentId() == null)
+                        || regionInDb.getCommonRegionParentId().equals(region.getCommonRegionParentId()))
+                        && regionInDb.getCommonRegionName().equals(region.getCommonRegionName())) {
             // 数据没有变化
             return;
         }

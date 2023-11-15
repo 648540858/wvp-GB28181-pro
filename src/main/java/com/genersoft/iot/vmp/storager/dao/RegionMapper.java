@@ -7,7 +7,11 @@ import java.util.List;
 
 @Mapper
 public interface RegionMapper {
-    @Select("select * from wvp_common_region where common_region_parent_id = #{parentDeviceId}")
+    @Select(" <script>" +
+            "select * from wvp_common_region where" +
+            "<if test='parentDeviceId != null'> common_region_parent_id = #{parentDeviceId}</if>" +
+            "<if test='parentDeviceId == null'> common_region_parent_id is null</if>" +
+            " </script>")
     List<Region> getChildren(@Param("parentDeviceId") String parentDeviceId);
 
     @Insert("INSERT INTO wvp_common_region (" +
@@ -101,4 +105,15 @@ public interface RegionMapper {
             "<if test='query != null'> and (common_region_device_id LIKE concat('%',#{query},'%') or common_region_name LIKE concat('%',#{query},'%') )  </if>" +
             "</script>")
     List<Region> query(String query);
+
+    @Select("<script> "+
+            "select * from wvp_common_region where common_region_device_id LIKE concat(#{regionDeviceId},'%') " +
+            "</script>")
+    List<Region> queryAllChildByDeviceId(@Param("regionDeviceId") String regionDeviceId);
+
+    @Select("<script> "+
+            "delete from wvp_common_region where common_region_id in" +
+            "<foreach collection='regionList'  item='item'  open='(' separator=',' close=')' > #{item.commonRegionId}</foreach>" +
+            "</script>")
+    void removeRegionByList(@Param("regionList") List<Region> regionList);
 }

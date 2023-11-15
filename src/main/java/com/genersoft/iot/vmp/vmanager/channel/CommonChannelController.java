@@ -57,7 +57,7 @@ public class CommonChannelController {
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页查询数量", required = true)
     @ResponseBody
-    @GetMapping("/group/list")
+    @GetMapping("/list")
     public PageInfo<CommonGbChannel> queryChannelListInGroup(
             @RequestParam(required = false) String groupDeviceId,
             @RequestParam(required = false) String regionDeviceId,
@@ -101,19 +101,19 @@ public class CommonChannelController {
     }
 
 
-    @Operation(summary = "分页查询通道")
-    @Parameter(name = "query", description = "要搜索的内容", required = false)
-    @Parameter(name = "page", description = "当前页", required = true)
-    @Parameter(name = "count", description = "每页查询数量", required = true)
-    @ResponseBody
-    @GetMapping("/list")
-    public PageInfo<CommonGbChannel> queryChannelList(
-            @RequestParam(required = false) String query,
-            @RequestParam(required = true) int page,
-            @RequestParam(required = true) int count ){
-
-        return commonGbChannelService.queryChannelList(query, page, count);
-    }
+//    @Operation(summary = "分页查询通道")
+//    @Parameter(name = "query", description = "要搜索的内容", required = false)
+//    @Parameter(name = "page", description = "当前页", required = true)
+//    @Parameter(name = "count", description = "每页查询数量", required = true)
+//    @ResponseBody
+//    @GetMapping("/list")
+//    public PageInfo<CommonGbChannel> queryChannelList(
+//            @RequestParam(required = false) String query,
+//            @RequestParam(required = true) int page,
+//            @RequestParam(required = true) int count ){
+//
+//        return commonGbChannelService.queryChannelList(query, page, count);
+//    }
 
     @Operation(summary = "更新通道")
     @Parameter(name = "CommonGbChannel", description = "commonGbChannel", required = true)

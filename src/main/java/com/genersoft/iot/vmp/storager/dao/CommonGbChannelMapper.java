@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.storager.dao;
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.service.bean.Group;
+import com.genersoft.iot.vmp.service.bean.Region;
 import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToGroup;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
@@ -346,7 +347,8 @@ public interface CommonGbChannelMapper {
             "<if test='regionDeviceId != null'> and common_gb_civilCode = #{regionDeviceId} </if>" +
             "<if test='inGroup != null &amp; inGroup'> and common_gb_business_group_id is not null </if>" +
             "<if test='inGroup != null &amp; !inGroup'> and common_gb_business_group_id is null </if>" +
-            "<if test='inRegion != null'> and common_gb_civilCode is not null </if>" +
+            "<if test='inRegion != null &amp; inRegion'> and common_gb_civilCode is not null </if>" +
+            "<if test='inRegion != null &amp; !inRegion'> and common_gb_civilCode is null </if>" +
             "<if test='type != null'> and type = #{type} </if>" +
             "<if test='query != null'> and ( common_gb_device_id LIKE concat('%',#{query},'%') or common_gb_name LIKE concat('%',#{query},'%') )  </if>" +
             "</script>")
@@ -399,4 +401,10 @@ public interface CommonGbChannelMapper {
             " WHERE common_gb_business_group_id = #{commonGbBusinessGroupID}" +
             "</script>"})
     void removeFromGroupByGroupId(@Param("commonGbBusinessGroupID") String commonGbBusinessGroupID);
+
+    @Select("<script> "+
+            "UPDATE wvp_common_gb_channel SET common_gb_civilCode = null  WHERE common_gb_civilCode  in" +
+            "<foreach collection='regionList'  item='item'  open='(' separator=',' close=')' > #{item.commonRegionDeviceId}</foreach>" +
+            "</script>")
+    void removeRegionInfo(@Param("regionList") List<Region> regionList);
 }

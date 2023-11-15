@@ -1,8 +1,10 @@
 package com.genersoft.iot.vmp.vmanager.region;
 
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Gb28181CodeType;
 import com.genersoft.iot.vmp.service.IRegionService;
 import com.genersoft.iot.vmp.service.bean.Region;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -60,7 +62,11 @@ public class RegionController {
     @ResponseBody
     @DeleteMapping("/delete")
     public void delete(@RequestBody String regionDeviceId){
-        regionService.deleteByDeviceId(regionDeviceId);
+        assert regionDeviceId != null;
+        boolean result = regionService.deleteByDeviceId(regionDeviceId);
+        if (!result) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "移除失败");
+        }
     }
 
     @Operation(summary = "分页区域子节点")
@@ -74,6 +80,9 @@ public class RegionController {
             @RequestParam(required = true) int page,
             @RequestParam(required = true) int count
     ){
+        if (ObjectUtils.isEmpty(regionParentId.trim())) {
+            regionParentId = null;
+        }
         return regionService.queryChildGroupList(regionParentId, page, count);
     }
 

@@ -383,12 +383,20 @@ public interface CommonGbChannelMapper {
     void updateChannelToGroup(@Param("commonGbChannel") UpdateCommonChannelToGroup commonGbChannel);
 
     @Update({"<script>" +
-            "<foreach collection='commonGbChannel.commonGbIds' item='item' separator=';'>" +
+            "<foreach collection='commonGbIds' item='item' separator=';'>" +
             " UPDATE" +
             " wvp_common_gb_channel" +
             " SET common_gb_business_group_id = null" +
             " WHERE common_gb_id = #{item}" +
             "</foreach>" +
             "</script>"})
-    void removeFromGroup(@Param("commonGbChannel") UpdateCommonChannelToGroup commonGbChannel);
+    void removeFromGroupByIds(@Param("commonGbIds") List<Integer> commonGbIds);
+
+    @Update({"<script>" +
+            " UPDATE" +
+            " wvp_common_gb_channel" +
+            " SET common_gb_business_group_id = null" +
+            " WHERE common_gb_business_group_id = #{commonGbBusinessGroupID}" +
+            "</script>"})
+    void removeFromGroupByGroupId(@Param("commonGbBusinessGroupID") String commonGbBusinessGroupID);
 }

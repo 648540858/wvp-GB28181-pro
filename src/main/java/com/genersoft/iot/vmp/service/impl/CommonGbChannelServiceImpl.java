@@ -20,7 +20,6 @@ import com.github.pagehelper.PageInfo;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.assertj.core.util.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -680,6 +679,11 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
 
     @Override
     public void removeFromGroup(UpdateCommonChannelToGroup params) {
-        commonGbChannelMapper.removeFromGroup(params);
+        if (!params.getCommonGbIds().isEmpty()) {
+            commonGbChannelMapper.removeFromGroupByIds(params.getCommonGbIds());
+        }
+        if (!ObjectUtils.isEmpty(params.getCommonGbBusinessGroupID().trim())){
+            commonGbChannelMapper.removeFromGroupByGroupId(params.getCommonGbBusinessGroupID());
+        }
     }
 }

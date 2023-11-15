@@ -171,11 +171,11 @@ public class CommonChannelController {
         commonGbChannelService.updateChannelToGroup(params);
     }
 
-    @Operation(summary = "为通道添加分组")
+    @Operation(summary = "从分组中移除通道")
     @ResponseBody
     @PostMapping("/group/remove")
     public void removeFromGroup(@RequestBody UpdateCommonChannelToGroup params){
-        assert params.getCommonGbBusinessGroupID() != null;
+        assert params.getCommonGbBusinessGroupID() != null || !params.getCommonGbIds().isEmpty();
         commonGbChannelService.removeFromGroup(params);
     }
 

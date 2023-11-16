@@ -60,8 +60,8 @@ public class RegionController {
     @Operation(summary = "删除区域")
     @Parameter(name = "regionDeviceId", description = "区域编码", required = true)
     @ResponseBody
-    @DeleteMapping("/delete")
-    public void delete(@RequestBody String regionDeviceId){
+    @GetMapping("/delete")
+    public void delete(String regionDeviceId){
         assert regionDeviceId != null;
         boolean result = regionService.deleteByDeviceId(regionDeviceId);
         if (!result) {

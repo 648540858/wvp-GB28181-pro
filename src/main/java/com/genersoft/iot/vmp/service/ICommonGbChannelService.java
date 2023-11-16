@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Gb28181CodeType;
 import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToGroup;
+import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToRegion;
 import com.github.pagehelper.PageInfo;
 
 import java.util.ArrayList;
@@ -66,4 +67,8 @@ public interface ICommonGbChannelService {
     void updateChannelToGroup(UpdateCommonChannelToGroup commonGbChannel);
 
     void removeFromGroup(UpdateCommonChannelToGroup params);
+
+    void removeFromRegion(UpdateCommonChannelToRegion params);
+
+    void updateChannelToRegion(UpdateCommonChannelToRegion params);
 }

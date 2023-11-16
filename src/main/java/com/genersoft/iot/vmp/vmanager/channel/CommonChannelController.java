@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Gb28181CodeType;
 import com.genersoft.iot.vmp.service.ICommonGbChannelService;
 import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToGroup;
+import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToRegion;
 import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
 import io.swagger.v3.oas.annotations.Operation;
@@ -179,7 +180,22 @@ public class CommonChannelController {
         commonGbChannelService.removeFromGroup(params);
     }
 
+    @Operation(summary = "从区域中移除通道")
+    @ResponseBody
+    @PostMapping("/region/remove")
+    public void removeFromRegion(@RequestBody UpdateCommonChannelToRegion params){
+        assert params.getCommonGbCivilCode() != null || !params.getCommonGbIds().isEmpty();
+        commonGbChannelService.removeFromRegion(params);
+    }
 
+    @Operation(summary = "为通道添加分组")
+    @ResponseBody
+    @PostMapping("/region/update")
+    public void updateChannelToRegion(@RequestBody UpdateCommonChannelToRegion params){
+        assert params.getCommonGbCivilCode() != null;
+        assert !params.getCommonGbIds().isEmpty();
+        commonGbChannelService.updateChannelToRegion(params);
+    }
 
 
 }

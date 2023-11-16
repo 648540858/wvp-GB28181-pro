@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.service.bean.Group;
 import com.genersoft.iot.vmp.service.bean.Region;
 import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToGroup;
+import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToRegion;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -375,14 +376,14 @@ public interface CommonGbChannelMapper {
     void removeGroupInfo(@Param("groupList") List<Group> groupList);
 
     @Update({"<script>" +
-            "<foreach collection='commonGbChannel.commonGbIds' item='item' separator=';'>" +
+            "<foreach collection='param.commonGbIds' item='item' separator=';'>" +
             " UPDATE" +
             " wvp_common_gb_channel" +
-            " SET common_gb_business_group_id = #{commonGbChannel.commonGbBusinessGroupID}" +
+            " SET common_gb_business_group_id = #{param.commonGbBusinessGroupID}" +
             " WHERE common_gb_id = #{item}" +
             "</foreach>" +
             "</script>"})
-    void updateChannelToGroup(@Param("commonGbChannel") UpdateCommonChannelToGroup commonGbChannel);
+    void updateChannelToGroup(@Param("param") UpdateCommonChannelToGroup param);
 
     @Update({"<script>" +
             "<foreach collection='commonGbIds' item='item' separator=';'>" +
@@ -407,4 +408,32 @@ public interface CommonGbChannelMapper {
             "<foreach collection='regionList'  item='item'  open='(' separator=',' close=')' > #{item.commonRegionDeviceId}</foreach>" +
             "</script>")
     void removeRegionInfo(@Param("regionList") List<Region> regionList);
+
+    @Update({"<script>" +
+            "<foreach collection='commonGbIds' item='item' separator=';'>" +
+            " UPDATE" +
+            " wvp_common_gb_channel" +
+            " SET common_gb_civilCode = null" +
+            " WHERE common_gb_id = #{item}" +
+            "</foreach>" +
+            "</script>"})
+    void removeRegionGroupByIds(@Param("commonGbIds") List<Integer> commonGbIds);
+
+    @Update({"<script>" +
+            " UPDATE" +
+            " wvp_common_gb_channel" +
+            " SET common_gb_civilCode = null" +
+            " WHERE common_gb_civilCode = #{commonGbCivilCode}" +
+            "</script>"})
+    void removeFromRegionByRegionId(@Param("commonGbCivilCode") String commonGbCivilCode);
+
+    @Update({"<script>" +
+            "<foreach collection='param.commonGbIds' item='item' separator=';'>" +
+            " UPDATE" +
+            " wvp_common_gb_channel" +
+            " SET common_gb_civilCode = #{param.commonGbCivilCode}" +
+            " WHERE common_gb_id = #{item}" +
+            "</foreach>" +
+            "</script>"})
+    void updateChannelToRegion(@Param("param") UpdateCommonChannelToRegion param);
 }

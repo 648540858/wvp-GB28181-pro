@@ -14,21 +14,21 @@ public interface RegionMapper {
             " </script>")
     List<Region> getChildren(@Param("parentDeviceId") String parentDeviceId);
 
-    @Insert("INSERT INTO wvp_common_region (" +
+    @Insert(" <script>" +
+            "INSERT INTO wvp_common_region (" +
             " common_region_device_id, " +
             " common_region_name, " +
-            " common_region_parent_id, " +
-            " common_region_path, " +
+            "<if test='region.commonRegionParentId != null'>common_region_parent_id, </if>" +
             " common_region_create_time, " +
             " common_region_update_time ) " +
             " VALUES (" +
-            " #{commonRegionDeviceId}, " +
-            " #{commonRegionName}, " +
-            " #{commonRegionParentId}, " +
-            " #{commonRegionPath}, " +
-            " #{commonRegionCreateTime}, " +
-            " #{commonRegionUpdateTime})")
-    int add(Region region);
+            " #{region.commonRegionDeviceId}, " +
+            " #{region.commonRegionName}, " +
+            "<if test='region.commonRegionParentId != null'> #{region.commonRegionParentId}, </if>" +
+            " #{region.commonRegionCreateTime}, " +
+            " #{region.commonRegionUpdateTime})" +
+            " </script>")
+    int add(@Param("region") Region region);
 
     @Delete("delete from wvp_common_region where common_region_device_id = #{regionDeviceId}")
     int deleteByDeviceId(@Param("regionDeviceId") String regionDeviceId);
@@ -84,11 +84,11 @@ public interface RegionMapper {
     @Update(value = {" <script>" +
             " UPDATE wvp_common_region " +
             " SET" +
-            " common_region_update_time=#{commonRegionUpdateTime}," +
-            " common_region_device_id=#{commonRegionDeviceId}," +
-            " common_region_name=#{commonRegionName}," +
-            " common_region_parent_id=#{commonRegionParentId}" +
-            " WHERE common_region_id=#{commonRegionId}" +
+            " common_region_update_time=#{region.commonRegionUpdateTime}," +
+            " common_region_device_id=#{region.commonRegionDeviceId}," +
+            " common_region_name=#{region.commonRegionName}," +
+            " common_region_parent_id=#{region.commonRegionParentId}" +
+            " WHERE common_region_id=#{region.commonRegionId}" +
             " </script>"})
     void update(@Param("region") Region region);
 

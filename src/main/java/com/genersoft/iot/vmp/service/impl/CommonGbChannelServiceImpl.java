@@ -15,6 +15,7 @@ import com.genersoft.iot.vmp.storager.dao.GroupMapper;
 import com.genersoft.iot.vmp.storager.dao.RegionMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToGroup;
+import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToRegion;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.apache.commons.lang3.ObjectUtils;
@@ -685,5 +686,20 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         if (!ObjectUtils.isEmpty(params.getCommonGbBusinessGroupID().trim())){
             commonGbChannelMapper.removeFromGroupByGroupId(params.getCommonGbBusinessGroupID());
         }
+    }
+
+    @Override
+    public void removeFromRegion(UpdateCommonChannelToRegion params) {
+        if (!params.getCommonGbIds().isEmpty()) {
+            commonGbChannelMapper.removeRegionGroupByIds(params.getCommonGbIds());
+        }
+        if (!ObjectUtils.isEmpty(params.getCommonGbCivilCode().trim())){
+            commonGbChannelMapper.removeFromRegionByRegionId(params.getCommonGbCivilCode());
+        }
+    }
+
+    @Override
+    public void updateChannelToRegion(UpdateCommonChannelToRegion params) {
+        commonGbChannelMapper.updateChannelToRegion(params);
     }
 }

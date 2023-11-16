@@ -15,6 +15,7 @@ import com.github.pagehelper.PageHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -42,7 +43,9 @@ public class RegionServiceImpl implements IRegionService {
     public void add(Region region) {
         assert region.getCommonRegionName() != null;
         assert region.getCommonRegionDeviceId() != null;
-        assert region.getCommonRegionParentId() != null;
+        if (ObjectUtils.isEmpty(region.getCommonRegionParentId().trim())) {
+            region.setCommonRegionParentId(null);
+        }
         region.setCommonRegionCreateTime(DateUtil.getNow());
         region.setCommonRegionUpdateTime(DateUtil.getNow());
         regionMapper.add(region);

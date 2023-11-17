@@ -75,7 +75,7 @@ public class RegionController {
     @Parameter(name = "count", description = "每页查询数量", required = true)
     @ResponseBody
     @GetMapping("/child/list")
-    public PageInfo<Region> queryChildGroupList(
+    public PageInfo<Region> queryChildRegionList(
             @RequestParam(required = true) String regionParentId,
             @RequestParam(required = true) int page,
             @RequestParam(required = true) int count
@@ -83,7 +83,20 @@ public class RegionController {
         if (ObjectUtils.isEmpty(regionParentId.trim())) {
             regionParentId = null;
         }
-        return regionService.queryChildGroupList(regionParentId, page, count);
+        return regionService.queryChildRegionList(regionParentId, page, count);
+    }
+
+    @Operation(summary = "根据区域Id查询区域")
+    @Parameter(name = "regionDeviceId", description = "行政区划节点编号", required = true)
+    @ResponseBody
+    @GetMapping("/one")
+    public Region queryRegionByDeviceId(
+            @RequestParam(required = true) String regionDeviceId
+    ){
+        if (ObjectUtils.isEmpty(regionDeviceId.trim())) {
+            throw new ControllerException(ErrorCode.ERROR400);
+        }
+        return regionService.queryRegionByDeviceId(regionDeviceId);
     }
 
     @Operation(summary = "获取所属的行政区划下的行政区划")

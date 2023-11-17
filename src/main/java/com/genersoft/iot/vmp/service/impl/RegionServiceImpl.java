@@ -87,7 +87,7 @@ public class RegionServiceImpl implements IRegionService {
     }
 
     @Override
-    public PageInfo<Region> queryChildGroupList(String regionParentId, int page, int count) {
+    public PageInfo<Region> queryChildRegionList(String regionParentId, int page, int count) {
         assert regionParentId != null;
         PageHelper.startPage(page, count);
         List<Region> all = regionMapper.getChildren(regionParentId);
@@ -129,5 +129,10 @@ public class RegionServiceImpl implements IRegionService {
         List<Region> allChild = civilCodeFileConf.getAllChild(parent);
         Collections.sort(allChild);
         return allChild;
+    }
+
+    @Override
+    public Region queryRegionByDeviceId(String regionDeviceId) {
+        return regionMapper.queryRegionByDeviceId(regionDeviceId);
     }
 }

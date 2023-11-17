@@ -20,7 +20,7 @@ public interface IRegionService {
     /**
      * 查询子区划列表
      */
-    PageInfo<Region> queryChildGroupList(String regionParentId, int page, int count);
+    PageInfo<Region> queryChildRegionList(String regionParentId, int page, int count);
 
     /**
      * 更新区域
@@ -28,4 +28,6 @@ public interface IRegionService {
     void update(Region region);
 
     List<Region> getAllChild(String parent);
+
+    Region queryRegionByDeviceId(String regionDeviceId);
 }

@@ -445,7 +445,8 @@ public class PlayServiceImpl implements IPlayService {
                                                           String endTime, ErrorCallback<Object> callback) {
         Device device = storager.queryVideoDevice(deviceId);
         if (device == null) {
-            logger.warn("[录像回放] 未找到设备 deviceId: {},channelId:{}", deviceId, channelId);
+            logger.warn("[录像回放] 未找到设备 deviceId: {}, channelId:{},startTime:{}, endTime:{}",
+                    deviceId, channelId, startTime, endTime);
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备：" + deviceId);
         }
 

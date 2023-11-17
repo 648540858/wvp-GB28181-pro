@@ -116,4 +116,7 @@ public interface RegionMapper {
             "<foreach collection='regionList'  item='item'  open='(' separator=',' close=')' > #{item.commonRegionId}</foreach>" +
             "</script>")
     void removeRegionByList(@Param("regionList") List<Region> regionList);
+
+    @Select("select * from wvp_common_region where common_region_device_id = #{regionDeviceId}")
+    Region queryRegionByDeviceId(@Param("regionDeviceId") String regionDeviceId);
 }

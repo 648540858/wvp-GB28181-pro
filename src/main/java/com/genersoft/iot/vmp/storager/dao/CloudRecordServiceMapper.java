@@ -91,7 +91,7 @@ public interface CloudRecordServiceMapper {
     @Select(" <script>" +
             "select *" +
             " from wvp_cloud_record " +
-            " where end_time &lt;= #{endTimeStamp} and media_server_id  = #{mediaServerId} " +
+            " where collect = false and end_time &lt;= #{endTimeStamp} and media_server_id  = #{mediaServerId} " +
             " </script>")
     List<CloudRecordItem> queryRecordListForDelete(@Param("endTimeStamp")Long endTimeStamp, String mediaServerId);
 

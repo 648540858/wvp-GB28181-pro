@@ -41,8 +41,8 @@ public class CloudRecordTimer {
     /**
      * 定时查询待删除的录像文件
      */
-//    @Scheduled(fixedRate = 5000) //每五秒执行一次，方便测试
-    @Scheduled(cron = "0 0 0 * * ?")   //每天的0点执行
+    @Scheduled(fixedRate = 5000) //每五秒执行一次，方便测试
+//    @Scheduled(cron = "0 0 0 * * ?")   //每天的0点执行
     public void execute(){
         logger.info("[录像文件定时清理] 开始清理过期录像文件");
         // 获取配置了assist的流媒体节点
@@ -56,7 +56,7 @@ public class CloudRecordTimer {
             Calendar lastCalendar = Calendar.getInstance();
             if (mediaServerItem.getRecordDay() > 0) {
                 lastCalendar.setTime(new Date());
-                // 获取保存的最后截至日期，因为每个节点都有一个日期，也就是支持每个节点设置不同的保存日期，
+                // 获取保存的最后截至日[期，因为每个节点都有一个日期，也就是支持每个节点设置不同的保存日期，
                 lastCalendar.add(Calendar.DAY_OF_MONTH, -mediaServerItem.getRecordDay());
                 Long lastDate = lastCalendar.getTimeInMillis();
 

@@ -132,6 +132,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             }
             JSONArray dataArray = jsonObject.getJSONArray("data");
             JSONObject mediaServerConfig = dataArray.getJSONObject(0);
+            if (ObjectUtils.isEmpty(param.getFfmpegCmdKey())) {
+                param.setFfmpegCmdKey("ffmpeg.cmd");
+            }
             String ffmpegCmd = mediaServerConfig.getString(param.getFfmpegCmdKey());
             if (ffmpegCmd == null) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), "ffmpeg拉流代理无法获取ffmpeg cmd");

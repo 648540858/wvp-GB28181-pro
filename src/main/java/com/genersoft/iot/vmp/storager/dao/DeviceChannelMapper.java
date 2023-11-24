@@ -10,6 +10,7 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 用于存储设备通道信息
@@ -405,6 +406,9 @@ public interface DeviceChannelMapper {
     @Select("select * from wvp_device_channel where device_id = #{deviceId}")
     List<DeviceChannel> queryAllChannels(String deviceId);
 
+    @MapKey("channelId")
+    @Select("select * from wvp_device_channel where device_id = #{deviceId}")
+    Map<String, DeviceChannel> queryAllChannelsForMap(String deviceId);
 
     @Select("select channelId" +
             ", device_id" +
@@ -472,5 +476,18 @@ public interface DeviceChannelMapper {
             " (select wcgc.common_gb_id from wvp_common_gb_channel wcgc where wdc.channel_id = wcgc.common_gb_device_id) " +
             " where wdc.device_id = #{deviceId}")
     int updateCommonChannelId(@Param("deviceId") String deviceId);
+
+    @Select(value = {" <script>" +
+            "select * " +
+            "from wvp_device_channel " +
+            "where common_gb_channel_id=#{commonGbId}" +
+            " </script>"})
+    DeviceChannel getChannelByCommonChannelId(@Param("commonGbId") int commonGbId);
+
+    @Update(" update wvp_device_channel " +
+            " set common_gb_channel_id = null " +
+            " where common_gb_channel_id = #{commonGbId}")
+    int removeCommonChannelId(@Param("commonGbId") int commonGbId);
+
 
 }

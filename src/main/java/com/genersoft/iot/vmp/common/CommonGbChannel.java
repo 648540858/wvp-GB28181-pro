@@ -1,6 +1,9 @@
 package com.genersoft.iot.vmp.common;
 
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import io.swagger.v3.oas.annotations.media.Schema;
+
+import java.util.List;
 
 public class CommonGbChannel {
 
@@ -596,5 +599,10 @@ public class CommonGbChannel {
 
     public void setCreateTime(String createTime) {
         this.createTime = createTime;
+    }
+
+
+    public static CommonGbChannel getInstance(List<String> syncKeys, DeviceChannel channel){
+
     }
 }

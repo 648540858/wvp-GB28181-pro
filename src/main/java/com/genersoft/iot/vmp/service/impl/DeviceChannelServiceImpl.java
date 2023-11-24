@@ -59,6 +59,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     @Autowired
     ICommonGbChannelService commonGbChannelService;
 
+
     @Override
     public DeviceChannel updateGps(DeviceChannel deviceChannel, Device device) {
         if (deviceChannel.getLongitude()*deviceChannel.getLatitude() > 0) {
@@ -97,7 +98,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     public void updateChannel(String deviceId, DeviceChannel channel) {
         String channelId = channel.getChannelId();
         channel.setDeviceId(deviceId);
-//        StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
         InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
         if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
             channel.setStreamId(inviteInfo.getStreamInfo().getStream());
@@ -283,25 +283,24 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         if (CollectionUtils.isEmpty(deviceChannelList)) {
             return false;
         }
-        List<DeviceChannel> allChannels = channelMapper.queryAllChannels(device.getDeviceId());
-        Map<String,DeviceChannel> allChannelMap = new ConcurrentHashMap<>();
-        if (!allChannels.isEmpty()) {
-            allChannels.stream().forEach(deviceChannel -> {
-                allChannelMap.put(deviceChannel.getChannelId(), deviceChannel);
-            });
-        }
-        // 数据去重
+        Map<String, DeviceChannel> allChannelMap = channelMapper.queryAllChannelsForMap(device.getDeviceId());
+
+        // 存储数据，方便对数据去重
         List<DeviceChannel> channels = new ArrayList<>();
 
-        List<DeviceChannel> updateChannels = new ArrayList<>();
+        // 存储需要更新的数据
+        List<DeviceChannel> updateChannelsForInfo = new ArrayList<>();
+        List<DeviceChannel> updateChannelsForStatus = new ArrayList<>();
+        // 存储需要需要新增的数据库
         List<DeviceChannel> addChannels = new ArrayList<>();
 
         StringBuilder stringBuilder = new StringBuilder();
         Map<String, Integer> subContMap = new HashMap<>();
 
-        // 数据去重
+
         Set<String> gbIdSet = new HashSet<>();
         for (DeviceChannel deviceChannel : deviceChannelList) {
+            // 数据去重
             if (gbIdSet.contains(deviceChannel.getChannelId())) {
                 stringBuilder.append(deviceChannel.getChannelId()).append(",");
                 continue;
@@ -311,17 +310,21 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 deviceChannel.setStreamId(allChannelMap.get(deviceChannel.getChannelId()).getStreamId());
                 deviceChannel.setHasAudio(allChannelMap.get(deviceChannel.getChannelId()).isHasAudio());
                 deviceChannel.setCommonGbChannelId(allChannelMap.get(deviceChannel.getChannelId()).getCommonGbChannelId());
-                if (allChannelMap.get(deviceChannel.getChannelId()).isStatus() !=deviceChannel.isStatus()){
-                    List<String> strings = platformChannelMapper.queryParentPlatformByChannelId(deviceChannel.getChannelId());
-                    if (!CollectionUtils.isEmpty(strings)){
-                        strings.forEach(platformId->{
-                            eventPublisher.catalogEventPublish(platformId, deviceChannel, deviceChannel.isStatus()? CatalogEvent.ON:CatalogEvent.OFF);
-                        });
-                    }
-
-                }
+                deviceChannel.setCommonGbChannelId(allChannelMap.get(deviceChannel.getChannelId()).getCommonGbChannelId());
                 deviceChannel.setUpdateTime(DateUtil.getNow());
-                updateChannels.add(deviceChannel);
+                // 同步时发现状态变化
+                if (allChannelMap.get(deviceChannel.getChannelId()).isStatus() !=deviceChannel.isStatus()){
+                    // TODO 应该通知给commonChannel
+                    updateChannelsForStatus.add(deviceChannel);
+//                    List<String> strings = platformChannelMapper.queryParentPlatformByChannelId(deviceChannel.getChannelId());
+//                    if (!CollectionUtils.isEmpty(strings)){
+//                        strings.forEach(platformId->{
+//                            eventPublisher.catalogEventPublish(platformId, deviceChannel, deviceChannel.isStatus()? CatalogEvent.ON:CatalogEvent.OFF);
+//                        });
+//                    }
+                }else {
+                    updateChannelsForInfo.add(deviceChannel);
+                }
             }else {
                 deviceChannel.setCreateTime(DateUtil.getNow());
                 deviceChannel.setUpdateTime(DateUtil.getNow());
@@ -385,17 +388,17 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                         result = channelMapper.batchAdd(addChannels) < 0;
                     }
                 }
-                if (!updateChannels.isEmpty()) {
-                    if (updateChannels.size() > limitCount) {
-                        for (int i = 0; i < updateChannels.size(); i += limitCount) {
+                if (!updateChannelsForInfo.isEmpty()) {
+                    if (updateChannelsForInfo.size() > limitCount) {
+                        for (int i = 0; i < updateChannelsForInfo.size(); i += limitCount) {
                             int toIndex = i + limitCount;
-                            if (i + limitCount > updateChannels.size()) {
-                                toIndex = updateChannels.size();
+                            if (i + limitCount > updateChannelsForInfo.size()) {
+                                toIndex = updateChannelsForInfo.size();
                             }
-                            result = result || channelMapper.batchUpdate(updateChannels.subList(i, toIndex)) < 0;
+                            result = result || channelMapper.batchUpdate(updateChannelsForInfo.subList(i, toIndex)) < 0;
                         }
                     }else {
-                        result = result || channelMapper.batchUpdate(updateChannels) < 0;
+                        result = result || channelMapper.batchUpdate(updateChannelsForInfo) < 0;
                     }
                 }
             }

@@ -12,6 +12,10 @@ import com.github.pagehelper.PageInfo;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 通用通道资源管理
+ * 接入的资源通过调用这个类实现将自己本身的数据添加到通用通道当中
+ */
 public interface ICommonGbChannelService {
 
     CommonGbChannel getChannel(String channelId);
@@ -56,8 +60,6 @@ public interface ICommonGbChannelService {
 
     PageInfo<CommonGbChannel> queryChannelList(String query, int page, int count);
 
-    String getRandomCode(Gb28181CodeType type);
-
     List<IndustryCodeType> getIndustryCodeList();
 
     List<DeviceType> getDeviceTypeList();
@@ -71,4 +73,8 @@ public interface ICommonGbChannelService {
     void removeFromRegion(UpdateCommonChannelToRegion params);
 
     void updateChannelToRegion(UpdateCommonChannelToRegion params);
+
+    void startPlay(CommonGbChannel channel, IResourcePlayCallback callback);
+
+    void stopPlay(CommonGbChannel channel, IResourcePlayCallback callback);
 }

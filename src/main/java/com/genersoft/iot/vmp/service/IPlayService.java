@@ -45,4 +45,5 @@ public interface IPlayService {
     void getSnap(String deviceId, String channelId, String fileName, ErrorCallback errorCallback);
 
 
+    void stop(String deviceId, String channelId);
 }

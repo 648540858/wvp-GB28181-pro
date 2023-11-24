@@ -8,6 +8,8 @@ import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Gb28181CodeType;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.service.ICommonGbChannelService;
+import com.genersoft.iot.vmp.service.IResourcePlayCallback;
+import com.genersoft.iot.vmp.service.IResourceService;
 import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.storager.dao.CommonGbChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
@@ -56,6 +58,9 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
 
     @Autowired
     private CivilCodeFileConf civilCodeFileConf;
+
+    @Autowired
+    private Map<String, IResourceService> resourceServiceMap;
 
 
     @Override
@@ -635,12 +640,6 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
     }
 
     @Override
-    public String getRandomCode(Gb28181CodeType type) {
-
-        return "";
-    }
-
-    @Override
     public List<IndustryCodeType> getIndustryCodeList() {
         IndustryCodeTypeEnum[] values = IndustryCodeTypeEnum.values();
         List<IndustryCodeType> result = new ArrayList<>(values.length);
@@ -702,4 +701,20 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
     public void updateChannelToRegion(UpdateCommonChannelToRegion params) {
         commonGbChannelMapper.updateChannelToRegion(params);
     }
+
+    @Override
+    public void startPlay(CommonGbChannel channel, IResourcePlayCallback callback) {
+        IResourceService resourceService = resourceServiceMap.get(channel.getType());
+        assert resourceService != null;
+        resourceService.startPlay(channel, callback);
+    }
+
+    @Override
+    public void stopPlay(CommonGbChannel channel, IResourcePlayCallback callback) {
+        IResourceService resourceService = resourceServiceMap.get(channel.getType());
+        assert resourceService != null;
+        resourceService.stopPlay(channel,callback);
+    }
+
+
 }

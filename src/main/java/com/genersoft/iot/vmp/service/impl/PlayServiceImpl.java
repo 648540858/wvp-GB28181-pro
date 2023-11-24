@@ -32,6 +32,7 @@ import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import gov.nist.javax.sip.message.SIPResponse;
@@ -75,9 +76,6 @@ public class PlayServiceImpl implements IPlayService {
     private IInviteStreamService inviteStreamService;
 
     @Autowired
-    private DeferredResultHolder resultHolder;
-
-    @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;
 
     @Autowired
@@ -96,7 +94,7 @@ public class PlayServiceImpl implements IPlayService {
     private VideoStreamSessionManager streamSession;
 
     @Autowired
-    private IDeviceService deviceService;
+    private DeviceMapper deviceMapper;
 
     @Autowired
     private UserSetting userSetting;
@@ -296,6 +294,29 @@ public class PlayServiceImpl implements IPlayService {
 
             inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channelId);
         }
+    }
+
+    @Override
+    public void stop(String deviceId, String channelId) {
+        Device device = storager.queryVideoDevice(deviceId);
+        if (device == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备[" + deviceId + "]不存在");
+        }
+        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
+        if (inviteInfo == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "点播未找到");
+        }
+        if (InviteSessionStatus.ok == inviteInfo.getStatus()) {
+            try {
+                logger.info("[停止点播] {}/{}", deviceId, channelId);
+                cmder.streamByeCmd(device, channelId, inviteInfo.getStream(), null, null);
+            } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
+                logger.error("[命令发送失败] 停止点播， 发送BYE: {}", e.getMessage());
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+            }
+        }
+        inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
+        storager.stopPlay(deviceId, channelId);
     }
 
     private void tcpActiveHandler(Device device, String channelId, String contentString,
@@ -828,7 +849,7 @@ public class PlayServiceImpl implements IPlayService {
         if (allSsrc.size() > 0) {
             for (SsrcTransaction ssrcTransaction : allSsrc) {
                 if (ssrcTransaction.getMediaServerId().equals(mediaServerId)) {
-                    Device device = deviceService.getDevice(ssrcTransaction.getDeviceId());
+                    Device device = deviceMapper.getDeviceByDeviceId(ssrcTransaction.getDeviceId());
                     if (device == null) {
                         continue;
                     }
@@ -944,7 +965,7 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void getSnap(String deviceId, String channelId, String fileName, ErrorCallback errorCallback) {
-        Device device = deviceService.getDevice(deviceId);
+        Device device = deviceMapper.getDeviceByDeviceId(deviceId);
         if (device == null) {
             errorCallback.run(InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getCode(), InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getMsg(), null);
             return;

@@ -92,4 +92,5 @@ public interface IDeviceChannelService {
      * 重置通道
      */
     boolean resetChannels(Device device, List<DeviceChannel> deviceChannelList);
+
 }

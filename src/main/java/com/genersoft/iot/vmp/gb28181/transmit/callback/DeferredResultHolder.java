@@ -55,6 +55,9 @@ public class DeferredResultHolder {
 
 	public static final String CALLBACK_CMD_SNAP= "CALLBACK_SNAP";
 
+
+	public static final String CALLBACK_CHANNEL_PLAY = "CALLBACK_CHANNEL_PLAY";
+
 	private Map<String, Map<String, DeferredResultEx>> map = new ConcurrentHashMap<>();
 
 

@@ -41,12 +41,12 @@ public class CloudRecordTimer {
     /**
      * 定时查询待删除的录像文件
      */
-//    @Scheduled(fixedRate = 5000) //每五秒执行一次，方便测试
+//    @Scheduled(fixedRate = 10000) //每五秒执行一次，方便测试
     @Scheduled(cron = "0 0 0 * * ?")   //每天的0点执行
     public void execute(){
         logger.info("[录像文件定时清理] 开始清理过期录像文件");
         // 获取配置了assist的流媒体节点
-        List<MediaServerItem> mediaServerItemList =  mediaServerService.getAllWithAssistPort();
+        List<MediaServerItem> mediaServerItemList =  mediaServerService.getAllOnline();
         if (mediaServerItemList.isEmpty()) {
             return;
         }
@@ -70,8 +70,7 @@ public class CloudRecordTimer {
                     String date = new File(cloudRecordItem.getFilePath()).getParentFile().getName();
                     JSONObject jsonObject = zlmresTfulUtils.deleteRecordDirectory(mediaServerItem, cloudRecordItem.getApp(),
                             cloudRecordItem.getStream(), date, cloudRecordItem.getFileName());
-                    if (jsonObject.getInteger("code") == 0) {
-                    }else {
+                    if (jsonObject.getInteger("code") != 0) {
                         logger.warn("[录像文件定时清理] 删除磁盘文件错误： {}:{}", cloudRecordItem.getFilePath(), jsonObject);
                     }
                 }

@@ -81,8 +81,8 @@ public class MediaConfig{
     @Value("${media.record-assist-port:0}")
     private Integer recordAssistPort = 0;
 
-    @Value("${media.record-date:7}")
-    private Integer recordDay = 7;
+    @Value("${media.record-day:7}")
+    private Integer recordDay;
 
     @Value("${media.record-path}")
     private String recordPath;

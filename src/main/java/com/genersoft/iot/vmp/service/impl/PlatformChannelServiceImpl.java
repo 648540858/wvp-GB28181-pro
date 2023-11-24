@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.genersoft.iot.vmp.common.BatchLimit;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
@@ -82,12 +83,11 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         int allCount = 0;
         boolean result = false;
         TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
-        int limitCount = 50;
-        if (channelReducesToAdd.size() > 0) {
-            if (channelReducesToAdd.size() > limitCount) {
-                for (int i = 0; i < channelReducesToAdd.size(); i += limitCount) {
-                    int toIndex = i + limitCount;
-                    if (i + limitCount > channelReducesToAdd.size()) {
+        if (!channelReducesToAdd.isEmpty()) {
+            if (channelReducesToAdd.size() > BatchLimit.count) {
+                for (int i = 0; i < channelReducesToAdd.size(); i += BatchLimit.count) {
+                    int toIndex = i + BatchLimit.count;
+                    if (i + BatchLimit.count > channelReducesToAdd.size()) {
                         toIndex = channelReducesToAdd.size();
                     }
                     int count = platformChannelMapper.addChannels(platformId, channelReducesToAdd.subList(i, toIndex));

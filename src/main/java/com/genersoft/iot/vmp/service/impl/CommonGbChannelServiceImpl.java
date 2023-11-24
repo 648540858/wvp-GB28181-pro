@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.genersoft.iot.vmp.common.BatchLimit;
 import com.genersoft.iot.vmp.common.CivilCodePo;
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.conf.CivilCodeFileConf;
@@ -237,14 +238,13 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         // ====开始写入数据====
         // 清理重复数据
         TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
-        int limit = 50;
         if (!clearChannels.isEmpty()) {
-            if (clearChannels.size() <= limit) {
+            if (clearChannels.size() <= BatchLimit.count) {
                 commonGbChannelMapper.deleteByDeviceIDs(clearChannels);
             } else {
-                for (int i = 0; i < clearChannels.size(); i += limit) {
-                    int toIndex = i + limit;
-                    if (i + limit > clearChannels.size()) {
+                for (int i = 0; i < clearChannels.size(); i += BatchLimit.count) {
+                    int toIndex = i + BatchLimit.count;
+                    if (i + BatchLimit.count > clearChannels.size()) {
                         toIndex = clearChannels.size();
                     }
                     List<String> clearChannelsSun = clearChannels.subList(i, toIndex);
@@ -259,12 +259,12 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         // 写入通道数据
         boolean result;
         if (!commonGbChannelList.isEmpty()) {
-            if (commonGbChannelList.size() <= limit) {
+            if (commonGbChannelList.size() <= BatchLimit.count) {
                 result = commonGbChannelMapper.addAll(commonGbChannelList) > 0;
             } else {
-                for (int i = 0; i < commonGbChannelList.size(); i += limit) {
-                    int toIndex = i + limit;
-                    if (i + limit > commonGbChannelList.size()) {
+                for (int i = 0; i < commonGbChannelList.size(); i += BatchLimit.count) {
+                    int toIndex = i + BatchLimit.count;
+                    if (i + BatchLimit.count > commonGbChannelList.size()) {
                         toIndex = commonGbChannelList.size();
                     }
                     List<CommonGbChannel> commonGbChannelListSub = commonGbChannelList.subList(i, toIndex);
@@ -298,16 +298,16 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
                 });
             }
             if (!allGroup.isEmpty()) {
-                if (allGroup.size() <= limit) {
+                if (allGroup.size() <= BatchLimit.count) {
                     if (groupMapper.addAll(allGroup) <= 0) {
                         dataSourceTransactionManager.rollback(transactionStatus);
                         logger.info("[同步通用通道]来自国标设备，失败，添加分组信息失败, 国标编号: {}", gbDeviceId);
                         return false;
                     }
                 } else {
-                    for (int i = 0; i < allGroup.size(); i += limit) {
-                        int toIndex = i + limit;
-                        if (i + limit > allGroup.size()) {
+                    for (int i = 0; i < allGroup.size(); i += BatchLimit.count) {
+                        int toIndex = i + BatchLimit.count;
+                        if (i + BatchLimit.count > allGroup.size()) {
                             toIndex = allGroup.size();
                         }
                         List<Group> allGroupSub = allGroup.subList(i, toIndex);
@@ -341,16 +341,16 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
                 });
             }
             if (!allRegion.isEmpty()) {
-                if (allRegion.size() <= limit) {
+                if (allRegion.size() <= BatchLimit.count) {
                     if (regionMapper.addAll(allRegion) <= 0) {
                         dataSourceTransactionManager.rollback(transactionStatus);
                         logger.info("[同步通用通道]来自国标设备，失败，添加行政区划信息失败, 国标编号: {}", gbDeviceId);
                         return false;
                     }
                 } else {
-                    for (int i = 0; i < allRegion.size(); i += limit) {
-                        int toIndex = i + limit;
-                        if (i + limit > allRegion.size()) {
+                    for (int i = 0; i < allRegion.size(); i += BatchLimit.count) {
+                        int toIndex = i + BatchLimit.count;
+                        if (i + BatchLimit.count > allRegion.size()) {
                             toIndex = allRegion.size();
                         }
                         List<Region> allRegionSub = allRegion.subList(i, toIndex);
@@ -366,8 +366,6 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
             if (!regionInForUpdate.isEmpty()) {
                 regionMapper.updateAllForName(regionInForUpdate);
             }
-
-
         }
         dataSourceTransactionManager.commit(transactionStatus);
         return result;
@@ -716,5 +714,71 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         resourceService.stopPlay(channel,callback);
     }
 
+    @Override
+    public void batchAdd(List<CommonGbChannel> commonGbChannels) {
+        if (commonGbChannels.isEmpty()) {
+            return;
+        }
+        if (commonGbChannels.size() > BatchLimit.count) {
+            for (int i = 0; i < commonGbChannels.size(); i += BatchLimit.count) {
+                int toIndex = i + BatchLimit.count;
+                if (i + BatchLimit.count > commonGbChannels.size()) {
+                    toIndex = commonGbChannels.size();
+                }
+                if (commonGbChannelMapper.batchAdd(commonGbChannels.subList(i, toIndex)) < 0) {
+                    throw new RuntimeException("batch add commonGbChannel fail");
+                }
+            }
+        }else {
+            if (commonGbChannelMapper.batchAdd(commonGbChannels) < 0) {
+                throw new RuntimeException("batch add commonGbChannel fail");
+            }
+        }
+    }
 
+    @Override
+    public void batchUpdate(List<CommonGbChannel> commonGbChannels) {
+        if (commonGbChannels.isEmpty()) {
+            return;
+        }
+        if (commonGbChannels.size() > BatchLimit.count) {
+            for (int i = 0; i < commonGbChannels.size(); i += BatchLimit.count) {
+                int toIndex = i + BatchLimit.count;
+                if (i + BatchLimit.count > commonGbChannels.size()) {
+                    toIndex = commonGbChannels.size();
+                }
+                if (commonGbChannelMapper.batchUpdate(commonGbChannels.subList(i, toIndex)) < 0) {
+                    throw new RuntimeException("batch update commonGbChannel fail");
+                }
+            }
+        }else {
+            if (commonGbChannelMapper.batchUpdate(commonGbChannels) < 0) {
+                throw new RuntimeException("batch update commonGbChannel fail");
+            }
+        }
+        // TODO 向国标级联发送catalog
+    }
+
+    @Override
+    public void batchDelete(List<Integer> channelsForDelete) {
+        if (channelsForDelete.isEmpty()) {
+            return;
+        }
+        if (channelsForDelete.size() > BatchLimit.count) {
+            for (int i = 0; i < channelsForDelete.size(); i += BatchLimit.count) {
+                int toIndex = i + BatchLimit.count;
+                if (i + BatchLimit.count > channelsForDelete.size()) {
+                    toIndex = channelsForDelete.size();
+                }
+                if (commonGbChannelMapper.batchDelete(channelsForDelete.subList(i, toIndex)) < 0) {
+                    throw new RuntimeException("batch update commonGbChannel fail");
+                }
+            }
+        }else {
+            if (commonGbChannelMapper.batchDelete(channelsForDelete) < 0) {
+                throw new RuntimeException("batch update commonGbChannel fail");
+            }
+        }
+        // TODO 向国标级联发送catalog
+    }
 }

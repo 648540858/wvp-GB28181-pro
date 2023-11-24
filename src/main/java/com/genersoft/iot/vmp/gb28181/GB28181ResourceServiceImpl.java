@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.IResourcePlayCallback;
 import com.genersoft.iot.vmp.service.IResourceService;
+import com.genersoft.iot.vmp.service.bean.CommonGbChannelType;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
@@ -28,12 +29,10 @@ import java.net.URL;
 /**
  * 国标的资源实现类
  */
-@Service("28181")
+@Service(CommonGbChannelType.GB28181)
 public class GB28181ResourceServiceImpl implements IResourceService {
 
     private final Logger logger = LoggerFactory.getLogger(GB28181ResourceServiceImpl.class);
-
-    public static final String resourceType = "28181";
 
     @Autowired
     private DeviceMapper deviceMapper;
@@ -46,7 +45,7 @@ public class GB28181ResourceServiceImpl implements IResourceService {
 
     @Override
     public boolean deleteChannel(CommonGbChannel commonGbChannel) {
-        if (!GB28181ResourceServiceImpl.resourceType.equals(commonGbChannel.getType())) {
+        if (!CommonGbChannelType.GB28181.equals(commonGbChannel.getType())) {
             logger.warn("[资源类-国标28181] 收到移除通道： {} 时发现类型不为28181", commonGbChannel.getCommonGbId());
             return false;
         }
@@ -56,7 +55,7 @@ public class GB28181ResourceServiceImpl implements IResourceService {
     @Override
     public void startPlay(CommonGbChannel commonGbChannel, IResourcePlayCallback callback) {
         assert callback != null;
-        if (!GB28181ResourceServiceImpl.resourceType.equals(commonGbChannel.getType())) {
+        if (!CommonGbChannelType.GB28181.equals(commonGbChannel.getType())) {
             logger.warn("[资源类-国标28181] 收到播放通道： {} 时发现类型不为28181", commonGbChannel.getCommonGbId());
             callback.call(commonGbChannel, ErrorCode.ERROR500.getCode(), ErrorCode.ERROR500.getMsg(), null);
             return;
@@ -89,7 +88,7 @@ public class GB28181ResourceServiceImpl implements IResourceService {
 
     @Override
     public void stopPlay(CommonGbChannel commonGbChannel, IResourcePlayCallback callback) {
-        if (!GB28181ResourceServiceImpl.resourceType.equals(commonGbChannel.getType())) {
+        if (!CommonGbChannelType.GB28181.equals(commonGbChannel.getType())) {
             logger.warn("[资源类-国标28181] 收到停止播放通道： {} 时发现类型不为28181", commonGbChannel.getCommonGbId());
             if (callback != null) {
                 callback.call(commonGbChannel, ErrorCode.ERROR500.getCode(), ErrorCode.ERROR500.getMsg(), null);

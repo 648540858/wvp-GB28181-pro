@@ -436,4 +436,138 @@ public interface CommonGbChannelMapper {
             "</foreach>" +
             "</script>"})
     void updateChannelToRegion(@Param("param") UpdateCommonChannelToRegion param);
+
+    @Insert("<script> " +
+            "insert into wvp_common_gb_channel " +
+            "( common_gb_device_id,  " +
+            " common_gb_name,  " +
+            " common_gb_manufacturer,  " +
+            " common_gb_model,  " +
+            " common_gb_owner,  " +
+            " common_gb_civilCode,  " +
+            " common_gb_block,  " +
+            " common_gb_address,  " +
+            " common_gb_parental,  " +
+            " common_gb_parent_id,  " +
+            " common_gb_safety_way,  " +
+            " common_gb_register_way,  " +
+            " common_gb_cert_num,  " +
+            " common_gb_certifiable,  " +
+            " common_gb_err_code,  " +
+            " common_gb_end_time,  " +
+            " common_gb_secrecy,  " +
+            " common_gb_ip_address,  " +
+            " common_gb_port,  " +
+            " common_gb_password,  " +
+            " common_gb_status,  " +
+            " common_gb_longitude,  " +
+            " common_gb_latitude,  " +
+            " common_gb_ptz_type,  " +
+            " common_gb_position_type,  " +
+            " common_gb_room_type,  " +
+            " common_gb_use_type,  " +
+            " common_gb_supply_light_type,  " +
+            " common_gb_direction_type,  " +
+            " common_gb_resolution,  " +
+            " common_gb_business_group_id,  " +
+            " common_gb_download_speed,  " +
+            " common_gb_svc_time_support_mode,  " +
+            " type,  " +
+            " updateTime,  " +
+            " createTime  )"+
+            "values " +
+            "<foreach collection='commonGbChannels' index='index' item='item' open='(' close=')' separator=','> " +
+            "#{item.commonGbDeviceID}, " +
+            "#{item.commonGbName}, " +
+            "#{item.commonGbManufacturer}, " +
+            "#{item.commonGbModel}, " +
+            "#{item.commonGbOwner}, " +
+            "#{item.commonGbCivilCode}, " +
+            "#{item.commonGbBlock}," +
+            "#{item.commonGbAddress}," +
+            "#{item.commonGbParental}," +
+            "#{item.commonGbParentID}," +
+            "#{item.commonGbSafetyWay}," +
+            "#{item.commonGbRegisterWay}," +
+            "#{item.commonGbCertNum}," +
+            "#{item.commonGbCertifiable}," +
+            "#{item.commonGbErrCode}," +
+            "#{item.commonGbEndTime}," +
+            "#{item.commonGbSecrecy}," +
+            "#{item.commonGbIPAddress}," +
+            "#{item.commonGbPort}," +
+            "#{item.commonGbPassword}," +
+            "#{item.commonGbStatus}," +
+            "#{item.commonGbLongitude}," +
+            "#{item.commonGbLatitude}," +
+            "#{item.commonGbPtzType}," +
+            "#{item.commonGbPositionType}," +
+            "#{item.commonGbRoomType}," +
+            "#{item.commonGbUseType}," +
+            "#{item.commonGbSupplyLightType}," +
+            "#{item.commonGbDirectionType}," +
+            "#{item.commonGbResolution}," +
+            "#{item.commonGbBusinessGroupID}," +
+            "#{item.commonGbDownloadSpeed}," +
+            "#{item.commonGbSVCTimeSupportMode}," +
+            "#{item.type}," +
+            "#{item.updateTime}," +
+            "#{item.createTime}" +
+            "</foreach> " +
+    "</script>")
+    int batchAdd(@Param("commonGbChannels") List<CommonGbChannel> commonGbChannels);
+
+    @Update({"<script>" +
+            "<foreach collection='commonGbChannels' item='item' separator=';'>" +
+            " UPDATE" +
+            " wvp_common_gb_channel" +
+            " SET update_time=#{item.updateTime}" +
+            " <if test='item.commonGbDeviceID != null' > ,common_gb_device_id = #{item.commonGbDeviceID} </if>" +
+            " <if test='item.commonGbName != null' > ,common_gb_name = #{item.commonGbName} </if>" +
+            " <if test='item.commonGbManufacturer != null' > ,common_gb_manufacturer = #{item.commonGbManufacturer} </if>" +
+            " <if test='item.commonGbModel != null' > ,common_gb_model = #{item.commonGbModel} </if>" +
+            " <if test='item.commonGbOwner != null' > ,common_gb_owner = #{item.commonGbOwner} </if>" +
+            " <if test='item.commonGbCivilCode != null' > ,common_gb_civilCode = #{item.commonGbCivilCode} </if>" +
+            " <if test='item.commonGbBlock != null' > ,common_gb_block = #{item.commonGbBlock} </if>" +
+            " <if test='item.commonGbAddress != null' > ,common_gb_address = #{item.commonGbAddress} </if>" +
+            " <if test='item.common_gb_parental != null' > ,common_gb_parental = #{item.commonGbParental} </if>" +
+            " <if test='item.commonGbParentID != null' > ,common_gb_parent_id = #{item.commonGbParentID} </if>" +
+            " <if test='item.commonGbSafetyWay != null' > ,common_gb_safety_way = #{item.commonGbSafetyWay} </if>" +
+            " <if test='item.commonGbRegisterWay != null' > ,common_gb_register_way = #{item.commonGbRegisterWay} </if>" +
+            " <if test='item.commonGbCertNum != null' > ,common_gb_cert_num = #{item.commonGbCertNum} </if>" +
+            " <if test='item.commonGbCertifiable != null' > ,common_gb_certifiable = #{item.commonGbCertifiable} </if>" +
+            " <if test='item.commonGbErrCode != null' > ,common_gb_err_code = #{item.commonGbErrCode} </if>" +
+            " <if test='item.commonGbEndTime != null' > ,common_gb_end_time = #{item.commonGbEndTime} </if>" +
+            " <if test='item.commonGbSecrecy != null' > ,common_gb_secrecy = #{item.commonGbSecrecy} </if>" +
+            " <if test='item.commonGbIPAddress != null' > ,common_gb_ip_address = #{item.commonGbIPAddress} </if>" +
+            " <if test='item.commonGbPort != null' > ,common_gb_port = #{item.commonGbPort} </if>" +
+            " <if test='item.commonGbPassword != null' > ,common_gb_password = #{item.commonGbPassword} </if>" +
+            " <if test='item.commonGbStatus != null' > ,common_gb_status = #{item.commonGbStatus} </if>" +
+            " <if test='item.commonGbLongitude != null' > ,common_gb_longitude = #{item.commonGbLongitude} </if>" +
+            " <if test='item.commonGbLatitude != null' > ,common_gb_latitude = #{item.commonGbLatitude} </if>" +
+            " <if test='item.commonGbPtzType != null' > ,common_gb_ptz_type = #{item.commonGbPtzType} </if>" +
+            " <if test='item.commonGbPositionType != null' > ,common_gb_position_type = #{item.commonGbPositionType} </if>" +
+            " <if test='item.commonGbRoomType != null' > ,common_gb_room_type = #{item.commonGbRoomType} </if>" +
+            " <if test='item.commonGbUseType != null' > ,common_gb_use_type = #{item.commonGbUseType} </if>" +
+            " <if test='item.commonGbEndTime != null' > ,common_gb_supply_light_type = #{item.commonGbSupplyLightType} </if>" +
+            " <if test='item.commonGbSupplyLightType != null' > ,common_gb_direction_type = #{item.commonGbDirectionType} </if>" +
+            " <if test='item.commonGbResolution != null' > ,common_gb_resolution = #{item.commonGbResolution} </if>" +
+            " <if test='item.commonGbBusinessGroupID != null' > ,common_gb_business_group_id = #{item.commonGbBusinessGroupID} </if>" +
+            " <if test='item.commonGbDownloadSpeed != null' > ,common_gb_download_speed = #{item.commonGbDownloadSpeed} </if>" +
+            " <if test='item.commonGbSVCTimeSupportMode != null' > ,common_gb_svc_time_support_mode = #{item.commonGbSVCTimeSupportMode} </if>" +
+            " <if test='item.type != null' > ,type = #{item.type} </if>" +
+            " WHERE common_gb_id=#{item.commonGbId}" +
+            "</foreach>" +
+            "</script>"})
+    int batchUpdate(@Param("commonGbChannels") List<CommonGbChannel> commonGbChannels);
+
+
+    @Delete(value = {" <script>" +
+                "DELETE " +
+                "from " +
+                "wvp_common_gb_channel " +
+                "WHERE common_gb_id IN " +
+                "<foreach collection='ids'  item='item'  open='(' separator=',' close=')' >#{item}</foreach>" +
+            " </script>"})
+    int batchDelete(@Param("ids") List<Integer> ids);
 }

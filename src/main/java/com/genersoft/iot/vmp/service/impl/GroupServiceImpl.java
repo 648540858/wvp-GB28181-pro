@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.genersoft.iot.vmp.common.BatchLimit;
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Gb28181CodeType;
@@ -109,12 +110,11 @@ public class GroupServiceImpl implements IGroupService {
             groupList = queryAllChildGroup(groupParentList, group.getCommonGroupTopId(), groupParentList);
         }
 
-        int limitCount = 50;
         if (!groupList.isEmpty()) {
-            if (groupList.size() > limitCount) {
-                for (int i = 0; i < groupList.size(); i += limitCount) {
-                    int toIndex = i + limitCount;
-                    if (i + limitCount > groupList.size()) {
+            if (groupList.size() > BatchLimit.count) {
+                for (int i = 0; i < groupList.size(); i += BatchLimit.count) {
+                    int toIndex = i + BatchLimit.count;
+                    if (i + BatchLimit.count > groupList.size()) {
                         toIndex = groupList.size();
                     }
                     List<Group> subList = groupList.subList(i, toIndex);
@@ -200,17 +200,16 @@ public class GroupServiceImpl implements IGroupService {
             channel.setCommonGbBusinessGroupID(group.getCommonGroupTopId());
             channel.setCommonGbParentID(group.getCommonGroupDeviceId());
         }
-        int limit = 50;
-        if (channels.size() <= limit) {
+        if (channels.size() <= com.genersoft.iot.vmp.common.BatchLimit.count) {
             if (commonGbChannelMapper.updateChanelForGroup(channels) <= 0) {
                 logger.info("[添加通道到分组] 失败");
                 return false;
             }
         } else {
             TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
-            for (int i = 0; i < channels.size(); i += limit) {
-                int toIndex = i + limit;
-                if (i + limit > channels.size()) {
+            for (int i = 0; i < channels.size(); i += BatchLimit.count) {
+                int toIndex = i + BatchLimit.count;
+                if (i + BatchLimit.count > channels.size()) {
                     toIndex = channels.size();
                 }
                 List<CommonGbChannel> channelsSub = channels.subList(i, toIndex);
@@ -227,17 +226,16 @@ public class GroupServiceImpl implements IGroupService {
 
     @Override
     public boolean removeChannelsFromGroup(List<CommonGbChannel> channels) {
-        int limit = 50;
-        if (channels.size() <= limit) {
+        if (channels.size() <= BatchLimit.count) {
             if (commonGbChannelMapper.removeChannelsForGroup(channels) <= 0) {
                 logger.info("[从分组移除通道] 失败");
                 return false;
             }
         } else {
             TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
-            for (int i = 0; i < channels.size(); i += limit) {
-                int toIndex = i + limit;
-                if (i + limit > channels.size()) {
+            for (int i = 0; i < channels.size(); i += BatchLimit.count) {
+                int toIndex = i + BatchLimit.count;
+                if (i + BatchLimit.count > channels.size()) {
                     toIndex = channels.size();
                 }
                 List<CommonGbChannel> channelsSub = channels.subList(i, toIndex);

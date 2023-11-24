@@ -77,4 +77,11 @@ public interface ICommonGbChannelService {
     void startPlay(CommonGbChannel channel, IResourcePlayCallback callback);
 
     void stopPlay(CommonGbChannel channel, IResourcePlayCallback callback);
+
+    void batchAdd(List<CommonGbChannel> commonGbChannels);
+
+    void batchUpdate(List<CommonGbChannel> commonGbChannels);
+
+    void batchDelete(List<Integer> allCommonChannelsForDelete);
+
 }

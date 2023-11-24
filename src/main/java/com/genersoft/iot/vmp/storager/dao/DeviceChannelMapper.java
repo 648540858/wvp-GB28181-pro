@@ -203,7 +203,8 @@ public interface DeviceChannelMapper {
             "(channel_id, device_id, name, manufacture, model, owner, civil_code, block, sub_count, " +
             "  address, parental, parent_id, safety_way, register_way, cert_num, certifiable, err_code, secrecy, " +
             "  ip_address,port,password,ptz_type,status,stream_id,longitude,latitude,longitude_gcj02,latitude_gcj02,"+
-            "  longitude_wgs84,latitude_wgs84,has_audio,create_time,update_time,business_group_id,gps_time)"+
+            "  longitude_wgs84,latitude_wgs84,has_audio,create_time,update_time,business_group_id,gps_time," +
+            " common_gb_channel_id)"+
             "values " +
             "<foreach collection='addChannels' index='index' item='item' separator=','> " +
             "(#{item.channelId}, #{item.deviceId}, #{item.name}, #{item.manufacture}, #{item.model}, " +
@@ -213,7 +214,7 @@ public interface DeviceChannelMapper {
             "#{item.ipAddress}, #{item.port}, #{item.password}, #{item.PTZType}, #{item.status}, " +
             "#{item.streamId}, #{item.longitude}, #{item.latitude},#{item.longitudeGcj02}, " +
             "#{item.latitudeGcj02},#{item.longitudeWgs84}, #{item.latitudeWgs84}, #{item.hasAudio}, now(), now(), " +
-            "#{item.businessGroupId}, #{item.gpsTime}) " +
+            "#{item.businessGroupId}, #{item.gpsTime}, #{item.commonGbChannelId}) " +
             "</foreach> " +
             "</script>")
     int batchAdd(@Param("addChannels") List<DeviceChannel> addChannels);
@@ -224,7 +225,7 @@ public interface DeviceChannelMapper {
             "(channel_id,device_id,name,manufacture,model,owner,civil_code,block,sub_count,"+
             "  address,parental,parent_id,safety_way,register_way,cert_num,certifiable,err_code,secrecy,"+
             "  ip_address,port,password,ptz_type,status,stream_id,longitude,latitude,longitude_gcj02,latitude_gcj02,"+
-            "  longitude_wgs84,latitude_wgs84,has_audio,create_time,update_time,business_group_id,gps_time)"+
+            "  longitude_wgs84,latitude_wgs84,has_audio,create_time,update_time,business_group_id,gps_time,common_gb_channel_id)"+
             "values " +
             "<foreach collection='addChannels' index='index' item='item' separator=','> " +
             "(#{item.channelId}, #{item.deviceId}, #{item.name}, #{item.manufacture}, #{item.model}, " +
@@ -234,7 +235,7 @@ public interface DeviceChannelMapper {
             "#{item.ipAddress}, #{item.port}, #{item.password}, #{item.PTZType}, #{item.status}, " +
             "#{item.streamId}, #{item.longitude}, #{item.latitude},#{item.longitudeGcj02}, " +
             "#{item.latitudeGcj02},#{item.longitudeWgs84}, #{item.latitudeWgs84}, #{item.hasAudio}, now(), now(), " +
-            "#{item.businessGroupId}, #{item.gpsTime}) " +
+            "#{item.businessGroupId}, #{item.gpsTime}, #{item.commonGbChannelId}) " +
             "</foreach> " +
             "ON DUPLICATE KEY UPDATE " +
             "update_time=VALUES(update_time), " +
@@ -268,7 +269,8 @@ public interface DeviceChannelMapper {
             "latitude_wgs84=VALUES(latitude_wgs84), " +
             "has_audio=VALUES(has_audio), " +
             "business_group_id=VALUES(business_group_id), " +
-            "gps_time=VALUES(gps_time)" +
+            "gps_time=VALUES(gps_time)," +
+            "common_gb_channel_id=VALUES(commonGbChannelId)" +
             "</script>")
     int batchAddOrUpdate(List<DeviceChannel> addChannels);
 
@@ -311,6 +313,7 @@ public interface DeviceChannelMapper {
             "<if test='item.latitudeWgs84 != null'>, latitude_wgs84=#{item.latitudeWgs84}</if>" +
             "<if test='item.businessGroupId != null'>, business_group_id=#{item.businessGroupId}</if>" +
             "<if test='item.gpsTime != null'>, gps_time=#{item.gpsTime}</if>" +
+            "<if test='item.commonGbChannelId != null'>, common_gb_channel_id=#{item.commonGbChannelId}</if>" +
             "<if test='item.id > 0'>WHERE id=#{item.id}</if>" +
             "<if test='item.id == 0'>WHERE device_id=#{item.deviceId} AND channel_id=#{item.channelId}</if>" +
             "</foreach>" +
@@ -327,10 +330,10 @@ public interface DeviceChannelMapper {
             "wvp_device_channel " +
             "WHERE " +
             "device_id = #{deviceId} " +
-            " AND channel_id NOT IN " +
-            "<foreach collection='channels'  item='item'  open='(' separator=',' close=')' > #{item.channelId}</foreach>" +
+            " AND id IN " +
+            "<foreach collection='channels'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
             " </script>"})
-    int cleanChannelsNotInList(@Param("deviceId") String deviceId, @Param("channels") List<DeviceChannel> channels);
+    int cleanChannelsInList(@Param("deviceId") String deviceId, @Param("channels") List<DeviceChannel> channels);
 
     @Update(" update wvp_device_channel" +
             " set sub_count = (select *" +

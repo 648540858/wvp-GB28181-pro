@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.genersoft.iot.vmp.common.BatchLimit;
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -39,16 +41,10 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     private final static Logger logger = LoggerFactory.getLogger(DeviceChannelServiceImpl.class);
 
     @Autowired
-    private IRedisCatchStorage redisCatchStorage;
-
-    @Autowired
     private IInviteStreamService inviteStreamService;
 
     @Autowired
     private DeviceChannelMapper channelMapper;
-
-    @Autowired
-    private PlatformChannelMapper platformChannelMapper;
 
     @Autowired
     private DeviceMapper deviceMapper;
@@ -157,12 +153,11 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     }
                 }
             }
-            int limitCount = 50;
-            if (addChannels.size() > 0) {
-                if (addChannels.size() > limitCount) {
-                    for (int i = 0; i < addChannels.size(); i += limitCount) {
-                        int toIndex = i + limitCount;
-                        if (i + limitCount > addChannels.size()) {
+            if (!addChannels.isEmpty()) {
+                if (addChannels.size() > BatchLimit.count) {
+                    for (int i = 0; i < addChannels.size(); i += BatchLimit.count) {
+                        int toIndex = i + BatchLimit.count;
+                        if (i + BatchLimit.count > addChannels.size()) {
                             toIndex = addChannels.size();
                         }
                         channelMapper.batchAdd(addChannels.subList(i, toIndex));
@@ -171,11 +166,11 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     channelMapper.batchAdd(addChannels);
                 }
             }
-            if (updateChannels.size() > 0) {
-                if (updateChannels.size() > limitCount) {
-                    for (int i = 0; i < updateChannels.size(); i += limitCount) {
-                        int toIndex = i + limitCount;
-                        if (i + limitCount > updateChannels.size()) {
+            if (!updateChannels.isEmpty()) {
+                if (updateChannels.size() > BatchLimit.count) {
+                    for (int i = 0; i < updateChannels.size(); i += BatchLimit.count) {
+                        int toIndex = i + BatchLimit.count;
+                        if (i + BatchLimit.count > updateChannels.size()) {
                             toIndex = updateChannels.size();
                         }
                         channelMapper.batchUpdate(updateChannels.subList(i, toIndex));
@@ -215,11 +210,10 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             deviceChannel.setUpdateTime(now);
             result.add(updateGps(deviceChannel, device));
         });
-        int limitCount = 50;
-        if (result.size() > limitCount) {
-            for (int i = 0; i < result.size(); i += limitCount) {
-                int toIndex = i + limitCount;
-                if (i + limitCount > result.size()) {
+        if (result.size() > BatchLimit.count) {
+            for (int i = 0; i < result.size(); i += BatchLimit.count) {
+                int toIndex = i + BatchLimit.count;
+                if (i + BatchLimit.count > result.size()) {
                     toIndex = result.size();
                 }
                 channelMapper.batchUpdate(result.subList(i, toIndex));
@@ -279,7 +273,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     @Transactional
-    public boolean resetChannels(Device device, List<DeviceChannel> deviceChannelList) {
+    public boolean updateChannels(Device device, List<DeviceChannel> deviceChannelList) {
         if (CollectionUtils.isEmpty(deviceChannelList)) {
             return false;
         }
@@ -290,9 +284,10 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
         // 存储需要更新的数据
         List<DeviceChannel> updateChannelsForInfo = new ArrayList<>();
-        List<DeviceChannel> updateChannelsForStatus = new ArrayList<>();
+        List<CommonGbChannel> updateCommonChannelsForInfo = new ArrayList<>();
         // 存储需要需要新增的数据库
         List<DeviceChannel> addChannels = new ArrayList<>();
+        List<CommonGbChannel> addCommonChannels = new ArrayList<>();
 
         StringBuilder stringBuilder = new StringBuilder();
         Map<String, Integer> subContMap = new HashMap<>();
@@ -307,28 +302,22 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             }
             gbIdSet.add(deviceChannel.getChannelId());
             if (allChannelMap.containsKey(deviceChannel.getChannelId())) {
-                deviceChannel.setStreamId(allChannelMap.get(deviceChannel.getChannelId()).getStreamId());
-                deviceChannel.setHasAudio(allChannelMap.get(deviceChannel.getChannelId()).isHasAudio());
-                deviceChannel.setCommonGbChannelId(allChannelMap.get(deviceChannel.getChannelId()).getCommonGbChannelId());
-                deviceChannel.setCommonGbChannelId(allChannelMap.get(deviceChannel.getChannelId()).getCommonGbChannelId());
+                DeviceChannel channelInDb = allChannelMap.get(deviceChannel.getChannelId());
+                deviceChannel.setId(channelInDb.getId());
+                deviceChannel.setStreamId(channelInDb.getStreamId());
+                deviceChannel.setHasAudio(channelInDb.isHasAudio());
+                deviceChannel.setCommonGbChannelId(channelInDb.getCommonGbChannelId());
                 deviceChannel.setUpdateTime(DateUtil.getNow());
                 // 同步时发现状态变化
-                if (allChannelMap.get(deviceChannel.getChannelId()).isStatus() !=deviceChannel.isStatus()){
-                    // TODO 应该通知给commonChannel
-                    updateChannelsForStatus.add(deviceChannel);
-//                    List<String> strings = platformChannelMapper.queryParentPlatformByChannelId(deviceChannel.getChannelId());
-//                    if (!CollectionUtils.isEmpty(strings)){
-//                        strings.forEach(platformId->{
-//                            eventPublisher.catalogEventPublish(platformId, deviceChannel, deviceChannel.isStatus()? CatalogEvent.ON:CatalogEvent.OFF);
-//                        });
-//                    }
-                }else {
-                    updateChannelsForInfo.add(deviceChannel);
-                }
+                updateChannelsForInfo.add(deviceChannel);
+                updateCommonChannelsForInfo.add(CommonGbChannel.getInstance(null, deviceChannel));
+                // 将需要更新的移除，剩下的都是需要删除的了
+                allChannelMap.remove(deviceChannel.getChannelId());
             }else {
                 deviceChannel.setCreateTime(DateUtil.getNow());
                 deviceChannel.setUpdateTime(DateUtil.getNow());
                 addChannels.add(deviceChannel);
+                addCommonChannels.add(CommonGbChannel.getInstance(null, deviceChannel));
             }
             channels.add(deviceChannel);
             if (!ObjectUtils.isEmpty(deviceChannel.getParentId())) {
@@ -360,54 +349,59 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             return false;
         }
         try {
-            int limitCount = 50;
-            int cleanChannelsResult = 0;
-            if (channels.size() > limitCount) {
-                for (int i = 0; i < channels.size(); i += limitCount) {
-                    int toIndex = i + limitCount;
-                    if (i + limitCount > channels.size()) {
-                        toIndex = channels.size();
-                    }
-                    cleanChannelsResult += channelMapper.cleanChannelsNotInList(device.getDeviceId(), channels.subList(i, toIndex));
-                }
-            } else {
-                cleanChannelsResult = channelMapper.cleanChannelsNotInList(device.getDeviceId(), channels);
-            }
-            boolean result = cleanChannelsResult < 0;
-            if (!result) {
-                if (!addChannels.isEmpty()) {
-                    if (addChannels.size() > limitCount) {
-                        for (int i = 0; i < addChannels.size(); i += limitCount) {
-                            int toIndex = i + limitCount;
-                            if (i + limitCount > addChannels.size()) {
-                                toIndex = addChannels.size();
-                            }
-                            result = result || channelMapper.batchAdd(addChannels.subList(i, toIndex)) < 0;
+            // 此时allChannelMap剩余的就是需要移除的
+            if (!allChannelMap.isEmpty()) {
+                if (allChannelMap.size() > BatchLimit.count) {
+                    for (int i = 0; i < allChannelMap.size(); i += BatchLimit.count) {
+                        int toIndex = i + BatchLimit.count;
+                        if (i + BatchLimit.count > allChannelMap.size()) {
+                            toIndex = allChannelMap.size();
                         }
-                    }else {
-                        result = channelMapper.batchAdd(addChannels) < 0;
+                        channelMapper.cleanChannelsInList(device.getDeviceId(),
+                                new ArrayList<>(allChannelMap.values()).subList(i, toIndex));
                     }
+                } else {
+                    channelMapper.cleanChannelsInList(device.getDeviceId(), new ArrayList<>(allChannelMap.values()));
                 }
-                if (!updateChannelsForInfo.isEmpty()) {
-                    if (updateChannelsForInfo.size() > limitCount) {
-                        for (int i = 0; i < updateChannelsForInfo.size(); i += limitCount) {
-                            int toIndex = i + limitCount;
-                            if (i + limitCount > updateChannelsForInfo.size()) {
-                                toIndex = updateChannelsForInfo.size();
-                            }
-                            result = result || channelMapper.batchUpdate(updateChannelsForInfo.subList(i, toIndex)) < 0;
+                List<Integer> allCommonChannelsForDelete = new ArrayList<>();
+                allChannelMap.values().stream().forEach((deviceChannel) -> {
+                    allCommonChannelsForDelete.add(deviceChannel.getCommonGbChannelId());
+                });
+                // 通知通用通道批量移除
+                commonGbChannelService.batchDelete(allCommonChannelsForDelete);
+            }
+            // addChannels 与 addCommonChannels 数量一致，这里使用同一个循环处理
+            if (!addChannels.isEmpty()) {
+                // 对于新增的部分需要先添加通用通道，拿到ID后再添加国标通道
+                commonGbChannelService.batchAdd(addCommonChannels);
+                for (int j = 0; j < addCommonChannels.size(); j++) {
+                    addChannels.get(j).setCommonGbChannelId(addCommonChannels.get(j).getCommonGbId());
+                }
+                if (addChannels.size() > BatchLimit.count) {
+                    for (int i = 0; i < addChannels.size(); i += BatchLimit.count) {
+                        int toIndex = i + BatchLimit.count;
+                        if (i + BatchLimit.count > addChannels.size()) {
+                            toIndex = addChannels.size();
                         }
-                    }else {
-                        result = result || channelMapper.batchUpdate(updateChannelsForInfo) < 0;
+                        channelMapper.batchAdd(addChannels.subList(i, toIndex));
                     }
+                }else {
+                    channelMapper.batchAdd(addChannels);
                 }
             }
-            if (result) {
-                //事务回滚
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            }
-            if (device.isAutoSyncChannel()) {
-                commonGbChannelService.syncChannelFromGb28181Device(device.getDeviceId(), null, true, true);
+            if (!updateChannelsForInfo.isEmpty()) {
+                if (updateChannelsForInfo.size() > BatchLimit.count) {
+                    for (int i = 0; i < updateChannelsForInfo.size(); i += BatchLimit.count) {
+                        int toIndex = i + BatchLimit.count;
+                        if (i + BatchLimit.count > updateChannelsForInfo.size()) {
+                            toIndex = updateChannelsForInfo.size();
+                        }
+                        channelMapper.batchUpdate(updateChannelsForInfo.subList(i, toIndex));
+                    }
+                }else {
+                    channelMapper.batchUpdate(updateChannelsForInfo);
+                }
+                commonGbChannelService.batchUpdate(updateCommonChannelsForInfo);
             }
             return true;
         }catch (Exception e) {

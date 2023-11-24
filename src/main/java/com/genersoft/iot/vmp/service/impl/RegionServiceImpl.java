@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.genersoft.iot.vmp.common.BatchLimit;
 import com.genersoft.iot.vmp.common.CivilCodePo;
 import com.genersoft.iot.vmp.conf.CivilCodeFileConf;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
@@ -57,11 +58,10 @@ public class RegionServiceImpl implements IRegionService {
         // 查询所有从属的地区，从属地区的编号一定是父节点编号开头的，基于这个获取所有的子节点
         List<Region> regionList =  regionMapper.queryAllChildByDeviceId(regionDeviceId);
 
-        int limitCount = 50;
-        if (regionList.size() > limitCount) {
-            for (int i = 0; i < regionList.size(); i += limitCount) {
-                int toIndex = i + limitCount;
-                if (i + limitCount > regionList.size()) {
+        if (regionList.size() > BatchLimit.count) {
+            for (int i = 0; i < regionList.size(); i += BatchLimit.count) {
+                int toIndex = i + BatchLimit.count;
+                if (i + BatchLimit.count > regionList.size()) {
                     toIndex = regionList.size();
                 }
                 List<Region> subList = regionList.subList(i, toIndex);

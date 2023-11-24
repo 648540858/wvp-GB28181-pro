@@ -1,11 +1,21 @@
 package com.genersoft.iot.vmp.common;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.Gb28181CodeType;
+import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.genersoft.iot.vmp.service.bean.CommonGbChannelType;
+import com.genersoft.iot.vmp.service.impl.CommonGbChannelServiceImpl;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class CommonGbChannel {
+
+    private final static Logger logger = LoggerFactory.getLogger(CommonGbChannel.class);
 
 
     /**
@@ -602,7 +612,134 @@ public class CommonGbChannel {
     }
 
 
-    public static CommonGbChannel getInstance(List<String> syncKeys, DeviceChannel channel){
+    public static CommonGbChannel getInstance(List<String> syncKeys, DeviceChannel deviceChannel){
+        CommonGbChannel commonGbChannel = new CommonGbChannel();
+        commonGbChannel.setCommonGbDeviceID(deviceChannel.getChannelId());
+        commonGbChannel.setCommonGbStatus(deviceChannel.isStatus());
+        commonGbChannel.setType(CommonGbChannelType.GB28181);
+        commonGbChannel.setCreateTime(DateUtil.getNow());
+        commonGbChannel.setUpdateTime(DateUtil.getNow());
+        if (syncKeys == null || syncKeys.contains("commonGbName")) {
+            commonGbChannel.setCommonGbName(deviceChannel.getName());
+        }
+        if (syncKeys == null || syncKeys.contains("commonGbManufacturer")) {
+            commonGbChannel.setCommonGbManufacturer(deviceChannel.getManufacture());
+        }
+        if (syncKeys == null || syncKeys.contains("commonGbName")) {
+            commonGbChannel.setCommonGbModel(deviceChannel.getModel());
+        }
+        if (syncKeys == null || syncKeys.contains("commonGbOwner")) {
+            commonGbChannel.setCommonGbOwner(deviceChannel.getOwner());
+        }
+        if (syncKeys == null || syncKeys.contains("commonGbCivilCode")) {
+            if (deviceChannel.getCivilCode() != null) {
+                Gb28181CodeType channelIdType = SipUtils.getChannelIdType(deviceChannel.getCivilCode());
+                if (channelIdType == Gb28181CodeType.CIVIL_CODE_PROVINCE
+                        || channelIdType == Gb28181CodeType.CIVIL_CODE_CITY
+                        || channelIdType == Gb28181CodeType.CIVIL_CODE_COUNTY
+                        || channelIdType == Gb28181CodeType.CIVIL_CODE_GRASS_ROOTS
+                ) {
+                    commonGbChannel.setCommonGbCivilCode(deviceChannel.getCivilCode());
+                } else {
+                    logger.warn("[不规范的CivilCode]，deviceId: {}, channel: {}, civilCode: {}",
+                            deviceChannel.getDeviceId(),
+                            deviceChannel.getChannelId(),
+                            deviceChannel.getCivilCode());
+                }
+                commonGbChannel.setCommonGbCivilCode(deviceChannel.getCivilCode());
+            }
+        }
+        if (syncKeys == null || syncKeys.contains("commonGbBlock")) {
+            commonGbChannel.setCommonGbBlock(deviceChannel.getBlock());
+        }
+        if (syncKeys == null || syncKeys.contains("commonGbAddress")) {
+            commonGbChannel.setCommonGbAddress(deviceChannel.getAddress());
+        }
+        if (syncKeys == null || syncKeys.contains("commonGbParental")) {
+            commonGbChannel.setCommonGbParental(deviceChannel.getParental());
+        }
+        if (syncKeys == null || syncKeys.contains("commonGbParentID")) {
+            commonGbChannel.setCommonGbParentID(deviceChannel.getParentId());
+        }
+        if (syncKeys == null || syncKeys.contains("commonGbSafetyWay")) {
+            commonGbChannel.setCommonGbSafetyWay(deviceChannel.getSafetyWay());
+        }
+        if (syncKeys == null || syncKeys.contains("commonGbRegisterWay")) {
+            commonGbChannel.setCommonGbRegisterWay(deviceChannel.getRegisterWay());
+        }
+        if (syncKeys == null || syncKeys.contains("commonGbCertNum")) {
+            commonGbChannel.setCommonGbCertNum(deviceChannel.getCertNum());
+        }
+        if (syncKeys == null || syncKeys.contains("commonGbCertifiable")) {
 
+        commonGbChannel.setCommonGbCertifiable(deviceChannel.getCertifiable());
+        }
+        if (syncKeys == null || syncKeys.contains("commonGbErrCode")) {
+        commonGbChannel.setCommonGbErrCode(deviceChannel.getErrCode());
+    }
+        if (syncKeys == null || syncKeys.contains("commonGbEndTime")) {
+            commonGbChannel.setCommonGbEndTime(deviceChannel.getEndTime());
+        }
+
+        if (syncKeys == null || syncKeys.contains("commonGbSecrecy")) {
+            if (NumberUtils.isParsable(deviceChannel.getSecrecy())) {
+                commonGbChannel.setCommonGbSecrecy(Integer.parseInt(deviceChannel.getSecrecy()));
+            }
+        }
+
+        if (syncKeys == null || syncKeys.contains("commonGbIPAddress")) {
+            commonGbChannel.setCommonGbIPAddress(deviceChannel.getIpAddress());
+        }
+
+        if (syncKeys == null || syncKeys.contains("commonGbPort")) {
+            commonGbChannel.setCommonGbPort(deviceChannel.getPort());
+        }
+
+        if (syncKeys == null || syncKeys.contains("commonGbPassword")) {
+            commonGbChannel.setCommonGbPassword(deviceChannel.getPassword());
+        }
+
+        if (syncKeys == null || syncKeys.contains("commonGbLongitude")) {
+            commonGbChannel.setCommonGbLongitude(deviceChannel.getLongitude());
+        }
+
+        if (syncKeys == null || syncKeys.contains("commonGbLatitude")) {
+            commonGbChannel.setCommonGbLatitude(deviceChannel.getLatitude());
+        }
+
+        if (syncKeys == null || syncKeys.contains("commonGbPtzType")) {
+            commonGbChannel.setCommonGbPtzType(deviceChannel.getPTZType());
+        }
+
+//        if (syncKeys == null || syncKeys.contains("commonGbPositionType")) {
+////                        commonGbChannel.setCommonGbPositionType(deviceChannel.getCommonGbPositionType());
+//        }
+//
+//        if (syncKeys == null || syncKeys.contains("commonGbRoomType")) {
+//
+//        }
+//        if (syncKeys == null || syncKeys.contains("commonGbUseType")) {
+//
+//        }
+//        if (syncKeys == null || syncKeys.contains("commonGbSupplyLightType")) {
+//
+//        }
+//        if (syncKeys == null || syncKeys.contains("commonGbDirectionType")) {
+//
+//        }
+//        if (syncKeys == null || syncKeys.contains("commonGbResolution")) {
+//
+//        }
+//        if (syncKeys == null || syncKeys.contains("commonGbBusinessGroupID")) {
+//            commonGbChannel.setCommonGbBusinessGroupID(deviceChannel.getBusinessGroupId());
+//        }
+//
+//        if (syncKeys == null || syncKeys.contains("commonGbDownloadSpeed")) {
+//
+//        }
+//        if (syncKeys == null || syncKeys.contains("commonGbSVCTimeSupportMode")) {
+//
+//        }
+        return commonGbChannel;
     }
 }

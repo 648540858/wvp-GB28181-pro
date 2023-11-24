@@ -601,6 +601,6 @@ public class DeviceChannel {
 	}
 
 	public void setCommonGbChannelId(int commonGbChannelId) {
-		commonGbChannelId = commonGbChannelId;
+		this.commonGbChannelId = commonGbChannelId;
 	}
 }

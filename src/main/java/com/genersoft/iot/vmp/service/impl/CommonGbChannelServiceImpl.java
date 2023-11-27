@@ -120,8 +120,6 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         Map<String, Group> virtuallyGroupMap = new HashMap<>();
         // 存储得到的行政区划数据
         Map<String, Region> regionMap = new HashMap<>();
-//        // 存储得到的所有parentId, 后续检验parentId是否已传输对应的分组/行政区划数据，从而确定是否需要自动创建节点。
-//        Set<String> parentIdSet = new HashSet<>();
         // 存储得到的所有行政区划, 后续检验civilCode是否已传输对应的行政区划数据，从而确定是否需要自动创建节点。
         Set<String> civilCodeSet = new HashSet<>();
         List<String> clearChannels = new ArrayList<>();

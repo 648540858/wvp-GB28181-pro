@@ -66,6 +66,7 @@ public class CloudRecordTimer {
                 if (cloudRecordItemList.isEmpty()) {
                     continue;
                 }
+                // TODO 后续可以删除空了的过期日期文件夹
                 for (CloudRecordItem cloudRecordItem : cloudRecordItemList) {
                     String date = new File(cloudRecordItem.getFilePath()).getParentFile().getName();
                     JSONObject jsonObject = zlmresTfulUtils.deleteRecordDirectory(mediaServerItem, cloudRecordItem.getApp(),

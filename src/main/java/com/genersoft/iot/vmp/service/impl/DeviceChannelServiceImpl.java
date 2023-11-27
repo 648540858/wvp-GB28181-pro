@@ -292,21 +292,31 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         // 存储数据，方便对数据去重
         List<DeviceChannel> channels = new ArrayList<>();
 
-        // 存储需要更新的数据
+        // 存储需要更新的国标通道
         List<DeviceChannel> updateChannelsForInfo = new ArrayList<>();
+        // 存储需要更新的通用通道
         List<CommonGbChannel> updateCommonChannelsForInfo = new ArrayList<>();
-        // 存储需要需要新增的数据库
+        // 存储需要更新的分组
+        List<Group> updateGroupForInfo = new ArrayList<>();
+        // 存储需要更新的行政区划
+        List<Region> updateRegionForInfo = new ArrayList<>();
+        // 存储需要需要新增的国标通道
         List<DeviceChannel> addChannels = new ArrayList<>();
+        // 存储需要需要新增的通用通道
         List<CommonGbChannel> addCommonChannels = new ArrayList<>();
+        // 存储需要需要新增的分组
+        List<Group> addGroups = new ArrayList<>();
+        // 存储需要需要新增的行政区划
+        List<Region> addRegions = new ArrayList<>();
 
         Map<String, Integer> subContMap = new HashMap<>();
 
-        // 存储得到的10到13位为215的业务分组数据
-        Map<String, Group> businessGroupMap = new HashMap<>();
-        // 存储得到的10到13位为216的虚拟组织 数据
-        Map<String, Group> virtuallyGroupMap = new HashMap<>();
-        // 存储得到的行政区划数据
-        Map<String, Region> regionMap = new HashMap<>();
+        // 存储得到的10到13位为215的业务分组数据, 默认加载数据库中的所有业务分组
+        Map<String, Group> businessGroupMap = groupMapper.queryTopGroupForMap();
+        // 存储得到的10到13位为216的虚拟组织 数据, 默认加载数据库中的所有虚拟组织
+        Map<String, Group> virtuallyGroupMap = groupMapper.queryNotTopGroupForMap();
+        // 存储得到的行政区划数据, 默认加载数据库中的所有行政区划
+        Map<String, Region> regionMap = regionMapper.getAllForMap();
         // 存储得到的所有行政区划, 后续检验civilCode是否已传输对应的行政区划数据，从而确定是否需要自动创建节点。
         Set<String> civilCodeSet = new HashSet<>();
         List<String> clearChannels = new ArrayList<>();
@@ -319,6 +329,8 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 continue;
             }
             gbIdSet.add(deviceChannel.getChannelId());
+            Gb28181CodeType channelIdType = SipUtils.getChannelIdType(deviceChannel.getChannelId());
+            // 处理国标通道相关的判断
             if (allChannelMap.containsKey(deviceChannel.getChannelId())) {
                 DeviceChannel channelInDb = allChannelMap.get(deviceChannel.getChannelId());
                 deviceChannel.setId(channelInDb.getId());
@@ -328,56 +340,91 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 deviceChannel.setUpdateTime(DateUtil.getNow());
                 // 同步时发现状态变化
                 updateChannelsForInfo.add(deviceChannel);
-                updateCommonChannelsForInfo.add(CommonGbChannel.getInstance(null, deviceChannel));
+                if (channelIdType == null) {
+                    updateCommonChannelsForInfo.add(CommonGbChannel.getInstance(null, deviceChannel));
+                }
                 // 将需要更新的移除，剩下的都是需要删除的了
                 allChannelMap.remove(deviceChannel.getChannelId());
             }else {
                 deviceChannel.setCreateTime(DateUtil.getNow());
                 deviceChannel.setUpdateTime(DateUtil.getNow());
                 addChannels.add(deviceChannel);
+                if (channelIdType == null) {
+                    addCommonChannels.add(CommonGbChannel.getInstance(null, deviceChannel));
+                }
+            }
 
-                Gb28181CodeType channelIdType = SipUtils.getChannelIdType(deviceChannel.getChannelId());
-                if (channelIdType != null) {
-                    if (
-                            (
-                                    channelIdType == Gb28181CodeType.CIVIL_CODE_PROVINCE
-                                            || channelIdType == Gb28181CodeType.CIVIL_CODE_CITY
-                                            || channelIdType == Gb28181CodeType.CIVIL_CODE_COUNTY
-                                            || channelIdType == Gb28181CodeType.CIVIL_CODE_GRASS_ROOTS
-                            )
-                                    &&
-                                    !regionMap.containsKey(deviceChannel.getChannelId())
-                    ) {
+
+            if (channelIdType != null) {
+                if (isRegion(channelIdType)) {
+                    Region region;
+                    if (!regionMap.containsKey(deviceChannel.getChannelId())) {
+                        // 区域不存在记录并新增
                         CivilCodePo parentCivilCodePo = civilCodeFileConf.getParentCode(deviceChannel.getChannelId());
                         String civilCode = null;
                         if (parentCivilCodePo != null) {
                             civilCode = parentCivilCodePo.getCode();
                         }
                         // 行政区划条目
-                        Region region = Region.getInstance(deviceChannel.getChannelId(), deviceChannel.getName(),
+                        region = Region.getInstance(deviceChannel.getChannelId(), deviceChannel.getName(),
                                 civilCode);
-                        regionMap.put(deviceChannel.getChannelId(), region);
+                        addRegions.add(region);
+                    }else {
+                        // 区域存在记录并检查是否需要更新
+                        region = regionMap.get(deviceChannel.getChannelId());
+                        if (region.getCommonRegionName().equals(deviceChannel.getName())) {
+                            // 对于行政区划，父节点是不会变化的，所以只需要判断名称变化，执行更新就可以
+                            region.setCommonRegionName(deviceChannel.getName());
+                            updateRegionForInfo.add(region);
+                        }
                     }
-                    if (channelIdType == Gb28181CodeType.BUSINESS_GROUP
-                            && !businessGroupMap.containsKey(deviceChannel.getChannelId())) {
-                        Group group = Group.getInstance(deviceChannel.getChannelId(), deviceChannel.getName(),
+                    regionMap.put(region.getCommonRegionDeviceId(), region);
+
+                }else if (channelIdType == Gb28181CodeType.BUSINESS_GROUP) {
+                    Group group;
+                    if (!businessGroupMap.containsKey(deviceChannel.getChannelId())) {
+                        group = Group.getInstance(deviceChannel.getChannelId(), deviceChannel.getName(),
                                 null, deviceChannel.getChannelId());
                         businessGroupMap.put(deviceChannel.getChannelId(), group);
+                    }else {
+                        // 对于业务分组，因为它本身即使顶级节点，所以不能父节点变化，所以只需要考虑名称变化的情况
+                        group = businessGroupMap.get(deviceChannel.getChannelId());
+                        if (!group.getCommonGroupName().equals(deviceChannel.getName())) {
+                            group.setCommonGroupName(deviceChannel.getName());
+                        }
+                        updateGroupForInfo.add(group);
                     }
-                    if (channelIdType == Gb28181CodeType.VIRTUAL_ORGANIZATION
-                            && !virtuallyGroupMap.containsKey(deviceChannel.getChannelId())) {
-                        Group group = Group.getInstance(deviceChannel.getChannelId(), deviceChannel.getName(), deviceChannel.getParentId(), deviceChannel.getBusinessGroupId());
-                        virtuallyGroupMap.put(deviceChannel.getChannelId(), group);
-                    }
-                }else {
-                    if (!StringUtils.isEmpty(deviceChannel.getCivilCode())) {
-                        civilCodeSet.add(deviceChannel.getCivilCode());
-                    }
-                    addCommonChannels.add(CommonGbChannel.getInstance(null, deviceChannel));
-                }
+                    businessGroupMap.put(group.getCommonGroupDeviceId(), group);
 
+                }else if (channelIdType == Gb28181CodeType.VIRTUAL_ORGANIZATION) {
+                    Group group;
+                    if (!virtuallyGroupMap.containsKey(deviceChannel.getChannelId())) {
+                        group = Group.getInstance(deviceChannel.getChannelId(), deviceChannel.getName(), deviceChannel.getParentId(), deviceChannel.getBusinessGroupId());
+                        virtuallyGroupMap.put(deviceChannel.getChannelId(), group);
+                    }else {
+                        // 对于虚拟组织的变化，需要考虑三点， 名称， 顶级父节点（所属业务分组）或者 父节点
+                        group = virtuallyGroupMap.get(deviceChannel.getChannelId());
+                        if (!group.getCommonGroupName().equals(device.getName())
+                                || !group.getCommonGroupParentId().equals(deviceChannel.getParentId())
+                                || !group.getCommonGroupTopId().equals(deviceChannel.getBusinessGroupId())
+                        ) {
+                            group.setCommonGroupName(deviceChannel.getName());
+                            group.setCommonGroupTopId(deviceChannel.getBusinessGroupId());
+                            group.setCommonGroupParentId(deviceChannel.getParentId());
+                            updateGroupForInfo.add(group);
+                        }
+                    }
+                    virtuallyGroupMap.put(group.getCommonGroupDeviceId(), group);
+                }
+            }else {
+                if (!StringUtils.isEmpty(deviceChannel.getCivilCode())) {
+                    civilCodeSet.add(deviceChannel.getCivilCode());
+                }
+                addCommonChannels.add(CommonGbChannel.getInstance(null, deviceChannel));
             }
+
             channels.add(deviceChannel);
+            // 统计每个节点的子节点个数
             if (!ObjectUtils.isEmpty(deviceChannel.getParentId())) {
                 if (subContMap.get(deviceChannel.getParentId()) == null) {
                     subContMap.put(deviceChannel.getParentId(), 1);
@@ -422,16 +469,29 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 }
             }
         }
-        // 检测行政区划信息是否完整
+        // 对于只发送了行政区划编号，没有发送行政区划的情况进行兼容，自动为通道创建一个行政区划。
         for (String civilCode : civilCodeSet) {
             if (!regionMap.containsKey(civilCode)) {
                 logger.warn("[通道信息中缺少地区信息]补充地区信息 civilCode： {}", civilCode );
-                Region region = civilCodeFileConf.createRegion(civilCode);
-                if (region != null) {
-                    regionMap.put(region.getCommonRegionDeviceId(), region);
-                }else {
-                    logger.warn("[获取地区信息]失败 civilCode： {}", civilCode );
+                if (civilCode.length() == 8) {
+                    Region region = civilCodeFileConf.createRegion(civilCode.substring(0, 6));
+                    if (region != null) {
+                        Region.getInstance(civilCode, region.getCommonRegionName() + "的基层组织", region.getCommonRegionDeviceId());
+                        regionMap.put(region.getCommonRegionDeviceId(), region);
+                    }else {
+                        logger.warn("[获取地区信息]失败 civilCode： {}", civilCode );
+                    }
+                }else if (civilCode.length() <= 6) {
+                    Region region = civilCodeFileConf.createRegion(civilCode);
+                    if (region != null) {
+                        regionMap.put(region.getCommonRegionDeviceId(), region);
+                    }else {
+                        logger.warn("[获取地区信息]失败 civilCode： {}", civilCode );
+                    }
                 }
+
+
+
             }
         }
         // 对待写入的数据做处理
@@ -589,5 +649,12 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return false;
         }
+    }
+
+    private boolean isRegion(Gb28181CodeType channelIdType) {
+        return channelIdType == Gb28181CodeType.CIVIL_CODE_PROVINCE
+                || channelIdType == Gb28181CodeType.CIVIL_CODE_CITY
+                || channelIdType == Gb28181CodeType.CIVIL_CODE_COUNTY
+                || channelIdType == Gb28181CodeType.CIVIL_CODE_GRASS_ROOTS;
     }
 }

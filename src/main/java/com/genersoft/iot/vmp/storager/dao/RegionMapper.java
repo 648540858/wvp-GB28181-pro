@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.service.bean.Region;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface RegionMapper {
@@ -119,4 +120,8 @@ public interface RegionMapper {
 
     @Select("select * from wvp_common_region where common_region_device_id = #{regionDeviceId}")
     Region queryRegionByDeviceId(@Param("regionDeviceId") String regionDeviceId);
+
+    @MapKey("commonRegionDeviceId")
+    @Select("select * from wvp_common_region")
+    Map<String, Region> getAllForMap();
 }

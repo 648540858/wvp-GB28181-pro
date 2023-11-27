@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 @Repository
@@ -141,4 +142,12 @@ public interface GroupMapper {
             "<foreach collection='groups'  item='item'  open='(' separator=',' close=')' > #{item.commonGroupId}</foreach>" +
             "</script>")
     void removeGroupByList(@Param("groups") List<Group> groups);
+
+    @MapKey("commonGroupDeviceId")
+    @Select("select * from wvp_common_group where common_group_device_id = common_group_top_id")
+    Map<String, Group> queryTopGroupForMap();
+
+    @MapKey("commonGroupDeviceId")
+    @Select("select * from wvp_common_group where common_group_device_id != common_group_top_id")
+    Map<String, Group> queryNotTopGroupForMap();
 }

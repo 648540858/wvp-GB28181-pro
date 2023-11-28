@@ -112,7 +112,7 @@ public class CatalogDataCatch {
             if ( catalogData.getLastTime().isBefore(instantBefore5S)) {
                 // 超过五秒收不到消息任务超时， 只更新这一部分数据, 收到数据与声明的总数一致，则重置通道数据，数据不全则只对收到的数据做更新操作
                 if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.runIng)) {
-                    deviceChannelService.updateChannels(catalogData.getDevice(), catalogData.getChannelList());
+                    deviceChannelService.updateChannelsForCatalog(catalogData.getDevice(), catalogData.getChannelList());
                     String errorMsg = "更新成功，共" + catalogData.getTotal() + "条，已更新" + catalogData.getChannelList().size() + "条";
                     catalogData.setErrorMsg(errorMsg);
                 }else if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.ready)) {

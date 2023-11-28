@@ -10,6 +10,7 @@ import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 @Repository
@@ -21,7 +22,7 @@ public interface CommonGbChannelMapper {
     @Update(value = "<script>" +
             "<foreach collection='channels' item='item' separator=';'>" +
             "UPDATE wvp_common_gb_channel SET " +
-            "updateTime= #{ item.updateTime} " +
+            "update_time= #{ item.updateTime} " +
             " <if test='item.commonGbDeviceID != null' > ,common_gb_device_id= #{ item.commonGbDeviceID} </if>" +
             " <if test='item.commonGbName != null' > ,common_gb_name= #{ item.commonGbName} </if>" +
             " <if test='item.commonGbManufacturer != null' > ,common_gb_manufacturer= #{ item.commonGbManufacturer} </if>" +
@@ -30,7 +31,7 @@ public interface CommonGbChannelMapper {
             " <if test='item.commonGbCivilCode != null' > ,common_gb_civilCode= #{ item.commonGbCivilCode} </if>" +
             " <if test='item.commonGbBlock != null' > ,common_gb_block= #{ item.commonGbBlock} </if>" +
             " <if test='item.commonGbAddress != null' > ,common_gb_address= #{ item.commonGbAddress} </if>" +
-            " <if test='item.common_gb_parental != null' > ,common_gb_parental= #{ item.commonGbParental} </if>" +
+            " <if test='item.commonGbParental != null' > ,common_gb_parental= #{ item.commonGbParental} </if>" +
             " <if test='item.commonGbParentID != null' > ,common_gb_parent_id= #{ item.commonGbParentID} </if>" +
             " <if test='item.commonGbSafetyWay != null' > ,common_gb_safety_way= #{ item.commonGbSafetyWay} </if>" +
             " <if test='item.commonGbRegisterWay != null' > ,common_gb_register_way= #{ item.commonGbRegisterWay} </if>" +
@@ -108,8 +109,8 @@ public interface CommonGbChannelMapper {
             " <if test='common_gb_download_speed != null' > ,common_gb_download_speed </if>" +
             " <if test='common_gb_svc_time_support_mode != null' > ,common_gb_svc_time_support_mode </if>" +
             " <if test='type != null' > ,type </if>" +
-            " <if test='updateTime != null' > ,updateTime </if>" +
-            " <if test='createTime != null' > ,createTime </if>" +
+            " <if test='updateTime != null' > ,update_time </if>" +
+            " <if test='createTime != null' > ,create_time </if>" +
             ") values (" +
             "#{commonGbDeviceID}" +
             " <if test='common_gb_name != null' > ,#{commonGbName}</if>" +
@@ -156,7 +157,7 @@ public interface CommonGbChannelMapper {
 
     @Update(value = "<script>" +
             "UPDATE wvp_common_gb_channel SET " +
-            "updateTime= #{ updateTime} " +
+            "update_time= #{ updateTime} " +
             " <if test='commonGbDeviceID != null' > ,common_gb_device_id= #{ commonGbDeviceID} </if>" +
             " <if test='commonGbName != null' > ,common_gb_name= #{ commonGbName} </if>" +
             " <if test='commonGbManufacturer != null' > ,common_gb_manufacturer= #{ commonGbManufacturer} </if>" +
@@ -165,7 +166,7 @@ public interface CommonGbChannelMapper {
             " <if test='commonGbCivilCode != null' > ,common_gb_civilCode= #{ commonGbCivilCode} </if>" +
             " <if test='commonGbBlock != null' > ,common_gb_block= #{ commonGbBlock} </if>" +
             " <if test='commonGbAddress != null' > ,common_gb_address= #{ commonGbAddress} </if>" +
-            " <if test='common_gb_parental != null' > ,common_gb_parental= #{ commonGbParental} </if>" +
+            " <if test='commonGbParental != null' > ,common_gb_parental= #{ commonGbParental} </if>" +
             " <if test='commonGbParentID != null' > ,common_gb_parent_id= #{ commonGbParentID} </if>" +
             " <if test='commonGbSafetyWay != null' > ,common_gb_safety_way= #{ commonGbSafetyWay} </if>" +
             " <if test='commonGbRegisterWay != null' > ,common_gb_register_way= #{ commonGbRegisterWay} </if>" +
@@ -238,8 +239,8 @@ public interface CommonGbChannelMapper {
             "common_gb_download_speed, " +
             "common_gb_svc_time_support_mode, " +
             "type, " +
-            "updateTime, " +
-            "createTime " +
+            "update_time, " +
+            "create_time " +
             ") values " +
             "<foreach collection='commonGbChannelList' index='index' item='item' separator=','> " +
             "( " +
@@ -473,10 +474,11 @@ public interface CommonGbChannelMapper {
             " common_gb_download_speed,  " +
             " common_gb_svc_time_support_mode,  " +
             " type,  " +
-            " updateTime,  " +
-            " createTime  )"+
+            " update_time,  " +
+            " create_time  )"+
             "values " +
-            "<foreach collection='commonGbChannels' index='index' item='item' open='(' close=')' separator=','> " +
+            "<foreach collection='commonGbChannels' index='index' item='item' separator=','> " +
+            "(" +
             "#{item.commonGbDeviceID}, " +
             "#{item.commonGbName}, " +
             "#{item.commonGbManufacturer}, " +
@@ -513,7 +515,7 @@ public interface CommonGbChannelMapper {
             "#{item.type}," +
             "#{item.updateTime}," +
             "#{item.createTime}" +
-            "</foreach> " +
+            ")</foreach> " +
     "</script>")
     int batchAdd(@Param("commonGbChannels") List<CommonGbChannel> commonGbChannels);
 
@@ -530,7 +532,7 @@ public interface CommonGbChannelMapper {
             " <if test='item.commonGbCivilCode != null' > ,common_gb_civilCode = #{item.commonGbCivilCode} </if>" +
             " <if test='item.commonGbBlock != null' > ,common_gb_block = #{item.commonGbBlock} </if>" +
             " <if test='item.commonGbAddress != null' > ,common_gb_address = #{item.commonGbAddress} </if>" +
-            " <if test='item.common_gb_parental != null' > ,common_gb_parental = #{item.commonGbParental} </if>" +
+            " <if test='item.commonGbParental != null' > ,common_gb_parental = #{item.commonGbParental} </if>" +
             " <if test='item.commonGbParentID != null' > ,common_gb_parent_id = #{item.commonGbParentID} </if>" +
             " <if test='item.commonGbSafetyWay != null' > ,common_gb_safety_way = #{item.commonGbSafetyWay} </if>" +
             " <if test='item.commonGbRegisterWay != null' > ,common_gb_register_way = #{item.commonGbRegisterWay} </if>" +
@@ -570,4 +572,9 @@ public interface CommonGbChannelMapper {
                 "<foreach collection='ids'  item='item'  open='(' separator=',' close=')' >#{item}</foreach>" +
             " </script>"})
     int batchDelete(@Param("ids") List<Integer> ids);
+
+    @MapKey("commonGbDeviceID")
+    @Select("select * from wvp_common_gb_channel")
+    Map<String, CommonGbChannel> queryAllChannelsForMap();
+
 }

@@ -150,4 +150,17 @@ public interface GroupMapper {
     @MapKey("commonGroupDeviceId")
     @Select("select * from wvp_common_group where common_group_device_id != common_group_top_id")
     Map<String, Group> queryNotTopGroupForMap();
+
+    @Update({"<script>" +
+            "<foreach collection='groupList' item='item' separator=';'>" +
+            " UPDATE" +
+            " wvp_common_group" +
+            " SET " +
+            " common_group_top_id=#{item.commonGroupTopId}, " +
+            " common_group_parent_id=#{item.commonGroupParentId}, " +
+            " common_group_name=#{item.commonGroupName}" +
+            " WHERE common_group_device_id=#{item.commonGroupId}"+
+            "</foreach>" +
+            "</script>"})
+    int updateAll(@Param("groupList") List<Group> groupList);
 }

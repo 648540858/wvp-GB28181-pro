@@ -48,6 +48,9 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     private DeviceChannelMapper channelMapper;
 
     @Autowired
+    private CommonGbChannelMapper commonGbChannelMapper;
+
+    @Autowired
     private DeviceMapper deviceMapper;
 
     @Autowired
@@ -122,7 +125,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
-    public int updateChannels(String deviceId, List<DeviceChannel> channels) {
+    public int updateChannelsForCatalog(String deviceId, List<DeviceChannel> channels) {
         List<DeviceChannel> addChannels = new ArrayList<>();
         List<DeviceChannel> updateChannels = new ArrayList<>();
         HashMap<String, DeviceChannel> channelsInStore = new HashMap<>();
@@ -283,31 +286,35 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     @Transactional
-    public boolean updateChannels(Device device, List<DeviceChannel> deviceChannelList) {
+    public boolean updateChannelsForCatalog(Device device, List<DeviceChannel> deviceChannelList) {
         if (CollectionUtils.isEmpty(deviceChannelList)) {
             return false;
         }
         Map<String, DeviceChannel> allChannelMap = channelMapper.queryAllChannelsForMap(device.getDeviceId());
+        Map<String, CommonGbChannel> allCommonChannelMap = commonGbChannelMapper.queryAllChannelsForMap();
 
         // 存储数据，方便对数据去重
         List<DeviceChannel> channels = new ArrayList<>();
 
-        // 存储需要更新的国标通道
-        List<DeviceChannel> updateChannelsForInfo = new ArrayList<>();
-        // 存储需要更新的通用通道
-        List<CommonGbChannel> updateCommonChannelsForInfo = new ArrayList<>();
-        // 存储需要更新的分组
-        List<Group> updateGroupForInfo = new ArrayList<>();
-        // 存储需要更新的行政区划
-        List<Region> updateRegionForInfo = new ArrayList<>();
         // 存储需要需要新增的国标通道
-        List<DeviceChannel> addChannels = new ArrayList<>();
+        List<DeviceChannel> addChannelList = new ArrayList<>();
+        // 存储需要更新的国标通道
+        List<DeviceChannel> updateChannelList = new ArrayList<>();
+
         // 存储需要需要新增的通用通道
-        List<CommonGbChannel> addCommonChannels = new ArrayList<>();
+        List<CommonGbChannel> addCommonChannelList = new ArrayList<>();
+        // 存储需要更新的通用通道
+        List<CommonGbChannel> updateCommonChannelList = new ArrayList<>();
+
         // 存储需要需要新增的分组
-        List<Group> addGroups = new ArrayList<>();
+        List<Group> addGroupList = new ArrayList<>();
+        // 存储需要更新的分组
+        List<Group> updateGroupList = new ArrayList<>();
+
         // 存储需要需要新增的行政区划
-        List<Region> addRegions = new ArrayList<>();
+        List<Region> addRegionList = new ArrayList<>();
+        // 存储需要更新的行政区划
+        List<Region> updateRegionList = new ArrayList<>();
 
         Map<String, Integer> subContMap = new HashMap<>();
 
@@ -339,18 +346,19 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 deviceChannel.setCommonGbChannelId(channelInDb.getCommonGbChannelId());
                 deviceChannel.setUpdateTime(DateUtil.getNow());
                 // 同步时发现状态变化
-                updateChannelsForInfo.add(deviceChannel);
-                if (channelIdType == null) {
-                    updateCommonChannelsForInfo.add(CommonGbChannel.getInstance(null, deviceChannel));
-                }
+                updateChannelList.add(deviceChannel);
                 // 将需要更新的移除，剩下的都是需要删除的了
                 allChannelMap.remove(deviceChannel.getChannelId());
             }else {
                 deviceChannel.setCreateTime(DateUtil.getNow());
                 deviceChannel.setUpdateTime(DateUtil.getNow());
-                addChannels.add(deviceChannel);
-                if (channelIdType == null) {
-                    addCommonChannels.add(CommonGbChannel.getInstance(null, deviceChannel));
+                addChannelList.add(deviceChannel);
+            }
+            if (channelIdType == null) {
+                if (allCommonChannelMap.containsKey(deviceChannel.getChannelId())) {
+                    updateCommonChannelList.add(CommonGbChannel.getInstance(null, deviceChannel));
+                }else {
+                    addCommonChannelList.add(CommonGbChannel.getInstance(null, deviceChannel));
                 }
             }
 
@@ -368,14 +376,14 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                         // 行政区划条目
                         region = Region.getInstance(deviceChannel.getChannelId(), deviceChannel.getName(),
                                 civilCode);
-                        addRegions.add(region);
+                        addRegionList.add(region);
                     }else {
                         // 区域存在记录并检查是否需要更新
                         region = regionMap.get(deviceChannel.getChannelId());
                         if (region.getCommonRegionName().equals(deviceChannel.getName())) {
                             // 对于行政区划，父节点是不会变化的，所以只需要判断名称变化，执行更新就可以
                             region.setCommonRegionName(deviceChannel.getName());
-                            updateRegionForInfo.add(region);
+                            updateRegionList.add(region);
                         }
                     }
                     regionMap.put(region.getCommonRegionDeviceId(), region);
@@ -385,14 +393,14 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     if (!businessGroupMap.containsKey(deviceChannel.getChannelId())) {
                         group = Group.getInstance(deviceChannel.getChannelId(), deviceChannel.getName(),
                                 null, deviceChannel.getChannelId());
-                        businessGroupMap.put(deviceChannel.getChannelId(), group);
+                        addGroupList.add(group);
                     }else {
                         // 对于业务分组，因为它本身即使顶级节点，所以不能父节点变化，所以只需要考虑名称变化的情况
                         group = businessGroupMap.get(deviceChannel.getChannelId());
                         if (!group.getCommonGroupName().equals(deviceChannel.getName())) {
                             group.setCommonGroupName(deviceChannel.getName());
                         }
-                        updateGroupForInfo.add(group);
+                        updateGroupList.add(group);
                     }
                     businessGroupMap.put(group.getCommonGroupDeviceId(), group);
 
@@ -400,7 +408,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     Group group;
                     if (!virtuallyGroupMap.containsKey(deviceChannel.getChannelId())) {
                         group = Group.getInstance(deviceChannel.getChannelId(), deviceChannel.getName(), deviceChannel.getParentId(), deviceChannel.getBusinessGroupId());
-                        virtuallyGroupMap.put(deviceChannel.getChannelId(), group);
+                        addGroupList.add(group);
                     }else {
                         // 对于虚拟组织的变化，需要考虑三点， 名称， 顶级父节点（所属业务分组）或者 父节点
                         group = virtuallyGroupMap.get(deviceChannel.getChannelId());
@@ -411,16 +419,11 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                             group.setCommonGroupName(deviceChannel.getName());
                             group.setCommonGroupTopId(deviceChannel.getBusinessGroupId());
                             group.setCommonGroupParentId(deviceChannel.getParentId());
-                            updateGroupForInfo.add(group);
+                            updateGroupList.add(group);
                         }
                     }
                     virtuallyGroupMap.put(group.getCommonGroupDeviceId(), group);
                 }
-            }else {
-                if (!StringUtils.isEmpty(deviceChannel.getCivilCode())) {
-                    civilCodeSet.add(deviceChannel.getCivilCode());
-                }
-                addCommonChannels.add(CommonGbChannel.getInstance(null, deviceChannel));
             }
 
             channels.add(deviceChannel);
@@ -452,20 +455,33 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         }else {
             // 检查业务分组与虚拟组织
             if (!virtuallyGroupMap.isEmpty()) {
-                for (String key : virtuallyGroupMap.keySet()) {
-                    Group virtuallyGroup = virtuallyGroupMap.get(key);
-                    if (virtuallyGroup.getCommonGroupTopId() == null
-                            || !businessGroupMap.containsKey(virtuallyGroup.getCommonGroupTopId())
-                    ) {
-                        virtuallyGroupMap.remove(key);
+                for (int i = 0; i < addGroupList.size(); i++) {
+                    Group group = addGroupList.get(i);
+                    if (ObjectUtils.isEmpty(group.getCommonGroupTopId())) {
+                        if (businessGroupMap.containsKey(group.getCommonGroupParentId())) {
+                            group.setCommonGroupTopId(group.getCommonGroupParentId());
+                        }else {
+                            addGroupList.remove(i);
+                            i--;
+                            continue;
+                        }
+                    }else {
+                        if (!businessGroupMap.containsKey(group.getCommonGroupTopId())) {
+                            addGroupList.remove(i);
+                            i--;
+                            continue;
+                        }
+                    }
+
+                    if (!ObjectUtils.isEmpty(group.getCommonGroupParentId())
+                            && !virtuallyGroupMap.containsKey(group.getCommonGroupParentId())) {
+                        addGroupList.remove(i);
+                        i--;
                         continue;
                     }
-                    if (virtuallyGroup.getCommonGroupParentId() != null && !virtuallyGroupMap.containsKey(virtuallyGroup.getCommonGroupParentId())) {
-                        virtuallyGroup.setCommonGroupParentId(null);
+                    if (!businessGroupMap.containsKey(group.getCommonGroupTopId())) {
+                        group.setCommonGroupTopId(null);
                     }
-                }
-                if (virtuallyGroupMap.isEmpty()) {
-                    businessGroupMap.clear();
                 }
             }
         }
@@ -474,10 +490,13 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             if (!regionMap.containsKey(civilCode)) {
                 logger.warn("[通道信息中缺少地区信息]补充地区信息 civilCode： {}", civilCode );
                 if (civilCode.length() == 8) {
-                    Region region = civilCodeFileConf.createRegion(civilCode.substring(0, 6));
-                    if (region != null) {
-                        Region.getInstance(civilCode, region.getCommonRegionName() + "的基层组织", region.getCommonRegionDeviceId());
+                    Region parentRegion = civilCodeFileConf.createRegion(civilCode.substring(0, 6));
+                    if (parentRegion != null) {
+                        Region region = Region.getInstance(civilCode,
+                                parentRegion.getCommonRegionName() + "的基层组织",
+                                parentRegion.getCommonRegionDeviceId());
                         regionMap.put(region.getCommonRegionDeviceId(), region);
+                        addRegionList.add(region);
                     }else {
                         logger.warn("[获取地区信息]失败 civilCode： {}", civilCode );
                     }
@@ -485,18 +504,16 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     Region region = civilCodeFileConf.createRegion(civilCode);
                     if (region != null) {
                         regionMap.put(region.getCommonRegionDeviceId(), region);
+                        addRegionList.add(region);
                     }else {
                         logger.warn("[获取地区信息]失败 civilCode： {}", civilCode );
                     }
                 }
-
-
-
             }
         }
         // 对待写入的数据做处理
-        if (!addCommonChannels.isEmpty()) {
-            addCommonChannels.stream().forEach(commonGbChannel -> {
+        if (!addCommonChannelList.isEmpty()) {
+            addCommonChannelList.stream().forEach(commonGbChannel -> {
                 if (commonGbChannel.getCommonGbParentID() != null
                         && !virtuallyGroupMap.containsKey(commonGbChannel.getCommonGbParentID())) {
                     commonGbChannel.setCommonGbParentID(null);
@@ -540,108 +557,62 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 commonGbChannelService.batchDelete(allCommonChannelsForDelete);
             }
             // addChannels 与 addCommonChannels 数量一致，这里使用同一个循环处理
-            if (!addChannels.isEmpty()) {
+            if (!addChannelList.isEmpty()) {
                 // 对于新增的部分需要先添加通用通道，拿到ID后再添加国标通道
-                commonGbChannelService.batchAdd(addCommonChannels);
-                for (int j = 0; j < addCommonChannels.size(); j++) {
-                    addChannels.get(j).setCommonGbChannelId(addCommonChannels.get(j).getCommonGbId());
+                commonGbChannelService.batchAdd(addCommonChannelList);
+                for (int j = 0; j < addCommonChannelList.size(); j++) {
+                    addChannelList.get(j).setCommonGbChannelId(addCommonChannelList.get(j).getCommonGbId());
                 }
-                if (addChannels.size() > BatchLimit.count) {
-                    for (int i = 0; i < addChannels.size(); i += BatchLimit.count) {
-                        int toIndex = i + BatchLimit.count;
-                        if (i + BatchLimit.count > addChannels.size()) {
-                            toIndex = addChannels.size();
-                        }
-                        channelMapper.batchAdd(addChannels.subList(i, toIndex));
-                    }
-                }else {
-                    channelMapper.batchAdd(addChannels);
-                }
+                addChannelHandler(addChannelList);
+
             }
-            if (!updateChannelsForInfo.isEmpty()) {
-                if (updateChannelsForInfo.size() > BatchLimit.count) {
-                    for (int i = 0; i < updateChannelsForInfo.size(); i += BatchLimit.count) {
-                        int toIndex = i + BatchLimit.count;
-                        if (i + BatchLimit.count > updateChannelsForInfo.size()) {
-                            toIndex = updateChannelsForInfo.size();
-                        }
-                        channelMapper.batchUpdate(updateChannelsForInfo.subList(i, toIndex));
-                    }
-                }else {
-                    channelMapper.batchUpdate(updateChannelsForInfo);
-                }
-                commonGbChannelService.batchUpdate(updateCommonChannelsForInfo);
+            if (!updateChannelList.isEmpty()) {
+                commonGbChannelService.batchUpdate(updateCommonChannelList);
+                updateChannelHandler(updateChannelList);
             }
             // 写入分组数据
-            List<Group> allGroup = new ArrayList<>(businessGroupMap.values());
-            allGroup.addAll(virtuallyGroupMap.values());
-            if (!allGroup.isEmpty()) {
-                // 这里也采取只插入新数据的方式
-                List<Group> groupInDBList = groupMapper.queryInList(allGroup);
-                if (!groupInDBList.isEmpty()) {
-                    groupInDBList.stream().forEach(groupInDB -> {
-                        for (int i = 0; i < allGroup.size(); i++) {
-                            if (groupInDB.getCommonGroupDeviceId().equalsIgnoreCase(allGroup.get(i).getCommonGroupDeviceId())) {
-                                allGroup.remove(i);
-                                break;
-                            }
-                        }
-                    });
-                }
-                if (!allGroup.isEmpty()) {
-                    if (allGroup.size() <= BatchLimit.count) {
-                        groupMapper.addAll(allGroup);
-                    } else {
-                        for (int i = 0; i < allGroup.size(); i += BatchLimit.count) {
-                            int toIndex = i + BatchLimit.count;
-                            if (i + BatchLimit.count > allGroup.size()) {
-                                toIndex = allGroup.size();
-                            }
-                            groupMapper.addAll(allGroup.subList(i, toIndex));
-                        }
-                    }
-                }
+            if (!addGroupList.isEmpty()) {
+                addGroupHandler(addGroupList);
             }
-            // 写入地区
-            List<Region> allRegion = new ArrayList<>(regionMap.values());
+            if (!updateGroupList.isEmpty()) {
+                updateGroupHandler(updateGroupList);
+            }
 
-            if (!allRegion.isEmpty()) {
-                // 这里也采取只插入新数据的方式
-                List<Region> regionInDBList = regionMapper.queryInList(allRegion);
-                List<Region> regionInForUpdate = new ArrayList<>();
-                if (!regionInDBList.isEmpty()) {
-                    regionInDBList.stream().forEach(regionInDB -> {
-                        for (int i = 0; i < allRegion.size(); i++) {
-                            if (regionInDB.getCommonRegionDeviceId().equalsIgnoreCase(allRegion.get(i).getCommonRegionDeviceId())) {
-                                if (!regionInDB.getCommonRegionName().equals(allRegion.get(i).getCommonRegionName())) {
-                                    regionInForUpdate.add(allRegion.get(i));
-                                }
-                                allRegion.remove(i);
-                                break;
+            // 写入地区
+            if (!addRegionList.isEmpty()) {
+                // 如果下级未发送完整的区域树，则通过自动探查补全
+                addRegionList.stream().forEach((region -> {
+                    if (!regionMap.containsKey(region.getCommonRegionParentId())
+                            && !ObjectUtils.isEmpty(region.getCommonRegionParentId())
+                            && region.getCommonRegionParentId().length() > 2) {
+                        Region parentRegion = civilCodeFileConf.createRegion(region.getCommonRegionParentId());
+                        addRegionList.add(parentRegion);
+                        String parentDeviceId = parentRegion.getCommonRegionParentId();
+                        if (parentDeviceId.length() == 6) {
+                            CivilCodePo parentCode = civilCodeFileConf.getParentCode(region.getCommonRegionDeviceId());
+                            if (parentCode == null) {
+                                return;
+                            }
+                            parentDeviceId = parentCode.getParentCode();
+                            if (regionMap.containsKey(region.getCommonRegionDeviceId())) {
+                                addRegionList.add(Region.getInstance(parentCode.getCode(),
+                                        parentCode.getCode(), parentCode.getParentCode()));
                             }
                         }
-                    });
-                }
-                if (!allRegion.isEmpty()) {
-                    if (allRegion.size() <= BatchLimit.count) {
-                        if (regionMapper.addAll(allRegion) <= 0) {
-                            regionMapper.addAll(allRegion);
-                        }
-                    } else {
-                        for (int i = 0; i < allRegion.size(); i += BatchLimit.count) {
-                            int toIndex = i + BatchLimit.count;
-                            if (i + BatchLimit.count > allRegion.size()) {
-                                toIndex = allRegion.size();
+                        if (parentDeviceId.length() == 4) {
+                            CivilCodePo parentCode = civilCodeFileConf.getParentCode(region.getCommonRegionDeviceId());
+                            if (parentCode == null) {
+                                return;
                             }
-                            List<Region> allRegionSub = allRegion.subList(i, toIndex);
-                            regionMapper.addAll(allRegionSub);
+                            addRegionList.add(Region.getInstance(parentCode.getCode(),
+                                    parentCode.getCode(), parentCode.getParentCode()));
                         }
                     }
-                }
-                // 对于名称变化的地区进行修改
-                if (!regionInForUpdate.isEmpty()) {
-                    regionMapper.updateAllForName(regionInForUpdate);
-                }
+                }));
+                addRegionHandler(addRegionList);
+            }
+            if (!updateRegionList.isEmpty()) {
+                updateRegionHandler(updateRegionList);
             }
             return true;
         }catch (Exception e) {
@@ -656,5 +627,93 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 || channelIdType == Gb28181CodeType.CIVIL_CODE_CITY
                 || channelIdType == Gb28181CodeType.CIVIL_CODE_COUNTY
                 || channelIdType == Gb28181CodeType.CIVIL_CODE_GRASS_ROOTS;
+    }
+
+    private void addChannelHandler(List<DeviceChannel> addChannels) {
+        if (addChannels.size() > BatchLimit.count) {
+            for (int i = 0; i < addChannels.size(); i += BatchLimit.count) {
+                int toIndex = i + BatchLimit.count;
+                if (i + BatchLimit.count > addChannels.size()) {
+                    toIndex = addChannels.size();
+                }
+                channelMapper.batchAdd(addChannels.subList(i, toIndex));
+            }
+        }else {
+            channelMapper.batchAdd(addChannels);
+        }
+    }
+
+    private void updateChannelHandler(List<DeviceChannel> updateChannels) {
+        if (updateChannels.size() > BatchLimit.count) {
+            for (int i = 0; i < updateChannels.size(); i += BatchLimit.count) {
+                int toIndex = i + BatchLimit.count;
+                if (i + BatchLimit.count > updateChannels.size()) {
+                    toIndex = updateChannels.size();
+                }
+                channelMapper.batchUpdate(updateChannels.subList(i, toIndex));
+            }
+        }else {
+            channelMapper.batchUpdate(updateChannels);
+        }
+    }
+
+    private void addRegionHandler(List<Region> regionList) {
+        if (regionList.size() <= BatchLimit.count) {
+            if (regionMapper.addAll(regionList) <= 0) {
+                regionMapper.addAll(regionList);
+            }
+        } else {
+            for (int i = 0; i < regionList.size(); i += BatchLimit.count) {
+                int toIndex = i + BatchLimit.count;
+                if (i + BatchLimit.count > regionList.size()) {
+                    toIndex = regionList.size();
+                }
+                List<Region> allRegionSub = regionList.subList(i, toIndex);
+                regionMapper.addAll(allRegionSub);
+            }
+        }
+    }
+
+    private void updateRegionHandler(List<Region> regionList) {
+        if (regionList.size() <= BatchLimit.count) {
+            regionMapper.updateAllForName(regionList);
+        } else {
+            for (int i = 0; i < regionList.size(); i += BatchLimit.count) {
+                int toIndex = i + BatchLimit.count;
+                if (i + BatchLimit.count > regionList.size()) {
+                    toIndex = regionList.size();
+                }
+                List<Region> allRegionSub = regionList.subList(i, toIndex);
+                regionMapper.updateAllForName(allRegionSub);
+            }
+        }
+    }
+
+    private void addGroupHandler(List<Group> groupList) {
+        if (groupList.size() <= BatchLimit.count) {
+            groupMapper.addAll(groupList);
+        } else {
+            for (int i = 0; i < groupList.size(); i += BatchLimit.count) {
+                int toIndex = i + BatchLimit.count;
+                if (i + BatchLimit.count > groupList.size()) {
+                    toIndex = groupList.size();
+                }
+                groupMapper.addAll(groupList.subList(i, toIndex));
+            }
+        }
+    }
+
+    private void updateGroupHandler(List<Group> groupList) {
+        if (groupList.size() <= BatchLimit.count) {
+            groupMapper.updateAll(groupList);
+        } else {
+            for (int i = 0; i < groupList.size(); i += BatchLimit.count) {
+                int toIndex = i + BatchLimit.count;
+                if (i + BatchLimit.count > groupList.size()) {
+                    toIndex = groupList.size();
+                }
+                groupMapper.updateAll(groupList.subList(i, toIndex));
+            }
+        }
     }
 }

@@ -723,14 +723,10 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
                 if (i + BatchLimit.count > commonGbChannels.size()) {
                     toIndex = commonGbChannels.size();
                 }
-                if (commonGbChannelMapper.batchAdd(commonGbChannels.subList(i, toIndex)) < 0) {
-                    throw new RuntimeException("batch add commonGbChannel fail");
-                }
+                commonGbChannelMapper.batchAdd(commonGbChannels.subList(i, toIndex));
             }
         }else {
-            if (commonGbChannelMapper.batchAdd(commonGbChannels) < 0) {
-                throw new RuntimeException("batch add commonGbChannel fail");
-            }
+            commonGbChannelMapper.batchAdd(commonGbChannels);
         }
     }
 

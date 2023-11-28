@@ -35,8 +35,8 @@ CREATE TABLE `wvp_common_gb_channel`
     `common_gb_download_speed`        varchar(255) DEFAULT NULL,
     `common_gb_svc_time_support_mode` integer,
     `type`                            varchar(255) NOT NULL,
-    `updateTime`          varchar(50) NOT NULL,
-    `createTime`          varchar(50) NOT NULL,
+    `update_time`          varchar(50) NOT NULL,
+    `create_time`          varchar(50) NOT NULL,
     PRIMARY KEY (`common_gb_id`),
     UNIQUE KEY `common_gb_device_id` (`common_gb_device_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

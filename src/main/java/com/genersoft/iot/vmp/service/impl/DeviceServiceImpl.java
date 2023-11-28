@@ -390,7 +390,7 @@ public class DeviceServiceImpl implements IDeviceService {
            for (DeviceChannel deviceChannel : deviceChannels) {
                deviceChannelsForStore.add(deviceChannelService.updateGps(deviceChannel, device));
            }
-           deviceChannelService.updateChannels(device.getDeviceId(), deviceChannelsForStore);
+           deviceChannelService.updateChannelsForCatalog(device.getDeviceId(), deviceChannelsForStore);
        }
     }
 

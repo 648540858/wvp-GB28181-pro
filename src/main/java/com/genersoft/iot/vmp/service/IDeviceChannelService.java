@@ -32,7 +32,7 @@ public interface IDeviceChannelService {
      * @param deviceId 设备id
      * @param channels 多个通道
      */
-    int updateChannels(String deviceId, List<DeviceChannel> channels);
+    int updateChannelsForCatalog(String deviceId, List<DeviceChannel> channels);
 
     /**
      * 获取统计信息
@@ -91,6 +91,6 @@ public interface IDeviceChannelService {
     /**
      * 重置通道
      */
-    boolean updateChannels(Device device, List<DeviceChannel> deviceChannelList);
+    boolean updateChannelsForCatalog(Device device, List<DeviceChannel> deviceChannelList);
 
 }

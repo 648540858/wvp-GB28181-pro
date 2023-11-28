@@ -124,6 +124,9 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
                 remoteHost = "http://" + mediaServerItem.getStreamIp() + ":" + mediaServerItem.getRecordAssistPort();
             }
         }
+        if (mediaServerItem.getRecordAssistPort() == 0) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "为配置Assist服务");
+        }
         Long startTimeStamp = null;
         Long endTimeStamp = null;
         if (startTime != null) {
@@ -148,7 +151,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     }
 
     @Override
-    public JSONArray queryTask(String taskId, String mediaServerId, Boolean isEnd) {
+    public JSONArray queryTask(String app, String stream, String callId, String taskId, String mediaServerId, Boolean isEnd) {
         MediaServerItem mediaServerItem = null;
         if (mediaServerId == null) {
             mediaServerItem = mediaServerService.getDefaultMediaServer();
@@ -158,7 +161,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         if (mediaServerItem == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的流媒体");
         }
-        JSONObject result =  assistRESTfulUtils.queryTaskList(mediaServerItem, taskId, isEnd);
+        JSONObject result =  assistRESTfulUtils.queryTaskList(mediaServerItem, app, stream, callId, taskId, isEnd);
         if (result.getInteger("code") != 0) {
             throw new ControllerException(result.getInteger("code"), result.getString("msg"));
         }

@@ -257,8 +257,17 @@ public class AssistRESTfulUtils {
         return sendPost(mediaServerItem, "api/record/file/download/task/add", videoTaskInfoJSON, null, 30);
     }
 
-    public JSONObject queryTaskList(MediaServerItem mediaServerItem, String taskId, Boolean isEnd) {
+    public JSONObject queryTaskList(MediaServerItem mediaServerItem, String app, String stream, String callId,  String taskId, Boolean isEnd) {
         Map<String, Object> param = new HashMap<>();
+        if (!ObjectUtils.isEmpty(app)) {
+            param.put("app", app);
+        }
+        if (!ObjectUtils.isEmpty(stream)) {
+            param.put("stream", stream);
+        }
+        if (!ObjectUtils.isEmpty(callId)) {
+            param.put("callId", callId);
+        }
         if (!ObjectUtils.isEmpty(taskId)) {
             param.put("taskId", taskId);
         }

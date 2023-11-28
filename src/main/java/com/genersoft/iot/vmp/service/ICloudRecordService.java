@@ -38,7 +38,7 @@ public interface ICloudRecordService {
     /**
      * 查询合并任务列表
      */
-    JSONArray queryTask(String taskId, String mediaServerId, Boolean isEnd);
+    JSONArray queryTask(String app, String stream, String callId, String taskId, String mediaServerId, Boolean isEnd);
 
     /**
      * 收藏视频，收藏的视频过期不会删除

@@ -172,11 +172,14 @@ public class CloudRecordController {
     @Parameter(name = "mediaServerId", description = "流媒体ID", required = false)
     @Parameter(name = "isEnd", description = "是否结束", required = false)
     public JSONArray queryTaskList(
+            @RequestParam(required = false) String app,
+            @RequestParam(required = false) String stream,
+            @RequestParam(required = false) String callId,
             @RequestParam(required = false) String taskId,
             @RequestParam(required = false) String mediaServerId,
             @RequestParam(required = false) Boolean isEnd
     ){
-        return cloudRecordService.queryTask(taskId, mediaServerId, isEnd);
+        return cloudRecordService.queryTask(app, stream, callId, taskId, mediaServerId, isEnd);
     }
 
     @ResponseBody

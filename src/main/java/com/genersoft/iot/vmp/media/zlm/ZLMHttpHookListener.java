@@ -392,6 +392,9 @@ public class ZLMHttpHookListener {
                                     || param.getOriginType() == OriginType.RTC_PUSH.ordinal()) {
                                 param.setSeverId(userSetting.getServerId());
                                 zlmMediaListManager.addPush(param);
+
+                                // 冗余数据，自己系统中自用
+                                redisCatchStorage.addPushListItem(param.getApp(), param.getStream(), param);
                             }
                         } else {
                             // 兼容流注销时类型从redis记录获取
@@ -400,6 +403,10 @@ public class ZLMHttpHookListener {
                             if (onStreamChangedHookParam != null) {
                                 type = OriginType.values()[onStreamChangedHookParam.getOriginType()].getType();
                                 redisCatchStorage.removeStream(mediaInfo.getId(), type, param.getApp(), param.getStream());
+                                if ("PUSH".equalsIgnoreCase(type)) {
+                                    // 冗余数据，自己系统中自用
+                                    redisCatchStorage.removePushListItem(param.getApp(), param.getStream(), param.getMediaServerId());
+                                }
                             }
                             GbStream gbStream = storager.getGbStream(param.getApp(), param.getStream());
                             if (gbStream != null) {

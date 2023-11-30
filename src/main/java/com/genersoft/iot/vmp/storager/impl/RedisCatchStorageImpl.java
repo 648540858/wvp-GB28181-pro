@@ -650,4 +650,20 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         logger.info("[redis发送通知] 发送 上级平台停止观看 {}: {}/{}->{}", key, msg.getApp(), msg.getStream(), msg.getPlatFormId());
         redisTemplate.convertAndSend(key, JSON.toJSON(msg));
     }
+
+    @Override
+    public void addPushListItem(String app, String stream, OnStreamChangedHookParam param) {
+        String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
+        redisTemplate.opsForValue().set(key, param);
+    }
+
+    @Override
+    public void removePushListItem(String app, String stream, String mediaServerId) {
+        String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
+        OnStreamChangedHookParam param = (OnStreamChangedHookParam)redisTemplate.opsForValue().get(key);
+        if (param != null && param.getMediaServerId().equalsIgnoreCase(mediaServerId)) {
+            redisTemplate.delete(key);
+        }
+
+    }
 }

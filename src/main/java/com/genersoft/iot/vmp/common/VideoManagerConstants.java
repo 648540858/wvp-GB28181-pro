@@ -70,6 +70,7 @@ public class VideoManagerConstants {
 	public static final String SYSTEM_INFO_DISK_PREFIX = "VMP_SYSTEM_INFO_DISK_";
 
 	public static final String REGISTER_EXPIRE_TASK_KEY_PREFIX = "VMP_device_register_expire_";
+	public static final String PUSH_STREAM_LIST = "VMP_PUSH_STREAM_LIST_";
 
 
 

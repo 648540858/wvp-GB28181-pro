@@ -394,7 +394,7 @@ public class PlayServiceImpl implements IPlayService {
                 deviceChannel.setStreamId(streamInfo.getStream());
                 storager.startPlay(deviceId, channelId, streamInfo.getStream());
             }
-            InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAYBACK, deviceId, channelId);
+            InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, ((OnStreamChangedHookParam) param).getStream());
             if (inviteInfo != null) {
                 inviteInfo.setStatus(InviteSessionStatus.ok);
 

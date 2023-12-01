@@ -464,7 +464,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         streamProxyMapper.deleteAutoRemoveItemByMediaServerId(mediaServerId);
 
         // 移除拉流代理生成的流信息
-//        syncPullStream(mediaServerId);
+        syncPullStream(mediaServerId);
 
         // 恢复流代理, 只查找这个这个流媒体
         List<StreamProxyItem> streamProxyListForEnable = storager.getStreamProxyListForEnableInMediaServer(

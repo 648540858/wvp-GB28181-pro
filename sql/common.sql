@@ -1,4 +1,4 @@
-CREATE TABLE `wvp_common_gb_channel`
+CREATE TABLE `wvp_common_channel`
 (
     `common_gb_id`                    bigint unsigned NOT NULL AUTO_INCREMENT,
     `common_gb_device_id`             varchar(50)  NOT NULL,
@@ -67,11 +67,11 @@ CREATE TABLE `wvp_common_region`
     UNIQUE KEY `common_region_device_id` (`common_region_device_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE `wvp_common_platform_channel`
+CREATE TABLE `wvp_common_channel_platform`
 (
     `id`                   bigint unsigned NOT NULL AUTO_INCREMENT,
-    `platform_id`          varchar(50) NOT NULL,
-    `common_gb_channel_id` varchar(50) NOT NULL,
+    `platform_id`          bigint unsigned NOT NULL,
+    `common_gb_channel_id` bigint unsigned NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `id` (`id`),
     UNIQUE KEY `uk_platform_id_common_gb_channel_id` (`platform_id`,`common_gb_channel_id`)
@@ -79,17 +79,12 @@ CREATE TABLE `wvp_common_platform_channel`
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci;
 
-CREATE TABLE `wvp_common_platform_region`
-(
-    `id`          bigint unsigned NOT NULL AUTO_INCREMENT,
-    `platform_id` varchar(50) NOT NULL,
-    `region_id`   varchar(50) NOT NULL,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `id` (`id`),
-    UNIQUE KEY `uk_platform_region_id` (`platform_id`,`region_id`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_0900_ai_ci;
+
+drop table wvp_platform_gb_stream;
+drop table wvp_platform_gb_channel;
+drop table wvp_platform_catalog;
+drop table wvp_platform_gb_channel;
+drop table wvp_resources_tree;
 
 
 

@@ -165,7 +165,6 @@ public class PlatformController {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "error severPort");
         }
 
-
         ParentPlatform parentPlatformOld = storager.queryParentPlatByServerGBId(parentPlatform.getServerGBId());
         if (parentPlatformOld != null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台 " + parentPlatform.getServerGBId() + " 已存在");
@@ -284,72 +283,27 @@ public class PlatformController {
     }
 
     /**
-     * 分页查询级联平台的所有所有通道
-     *
-     * @param page        当前页
-     * @param count       每页条数
-     * @param platformId  上级平台ID
-     * @param query       查询内容
-     * @param online      是否在线
-     * @param channelType 通道类型
-     * @return
-     */
-    @Operation(summary = "查询上级平台是否存在")
-    @Parameter(name = "page", description = "当前页", required = true)
-    @Parameter(name = "count", description = "每页条数", required = true)
-    @Parameter(name = "platformId", description = "上级平台的国标编号")
-    @Parameter(name = "catalogId", description = "目录ID")
-    @Parameter(name = "query", description = "查询内容")
-    @Parameter(name = "online", description = "是否在线")
-    @Parameter(name = "channelType", description = "通道类型")
-    @GetMapping("/channel_list")
-    @ResponseBody
-    public PageInfo<ChannelReduce> channelList(int page, int count,
-                                               @RequestParam(required = false) String platformId,
-                                               @RequestParam(required = false) String catalogId,
-                                               @RequestParam(required = false) String query,
-                                               @RequestParam(required = false) Boolean online,
-                                               @RequestParam(required = false) Boolean channelType) {
-
-        if (ObjectUtils.isEmpty(platformId)) {
-            platformId = null;
-        }
-        if (ObjectUtils.isEmpty(query)) {
-            query = null;
-        }
-        if (ObjectUtils.isEmpty(platformId) || ObjectUtils.isEmpty(catalogId)) {
-            catalogId = null;
-        }
-        PageInfo<ChannelReduce> channelReduces = storager.queryAllChannelList(page, count, query, online, channelType, platformId, catalogId);
-
-        return channelReduces;
-    }
-
-    /**
      * 向上级平台添加国标通道
-     *
-     * @param param 通道关联参数
-     * @return
      */
     @Operation(summary = "向上级平台添加国标通道")
-    @PostMapping("/update_channel_for_gb")
+    @PostMapping("/channel/add")
     @ResponseBody
-    public void updateChannelForGB(@RequestBody UpdateChannelParam param) {
+    public void addChannelForGB(@RequestBody UpdateChannelParam param) {
 
         if (logger.isDebugEnabled()) {
             logger.debug("给上级平台添加国标通道API调用");
         }
-        int result = 0;
-        if (param.getChannelReduces() == null || param.getChannelReduces().size() == 0) {
-            if (param.isAll()) {
-                logger.info("[国标级联]添加所有通道到上级平台， {}", param.getPlatformId());
-                List<ChannelReduce> allChannelForDevice = deviceChannelService.queryAllChannelList(param.getPlatformId());
-                result = platformChannelService.updateChannelForGB(param.getPlatformId(), allChannelForDevice, param.getCatalogId());
-            }
-        }else {
-            result = platformChannelService.updateChannelForGB(param.getPlatformId(), param.getChannelReduces(), param.getCatalogId());
+        ParentPlatform platform = platformService.queryPlatformByServerGBId(param.getPlatformId());
+        if (platform == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台不存在");
         }
-        if (result <= 0) {
+        if (platform.isShareAllChannel()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "已开启共享所有通道，不需要添加了");
+        }
+        if (param.getCommonGbChannelIds() == null || param.getCommonGbChannelIds().isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR100);
+        }
+        if (platformChannelService.addChannelForGB(platform,param.getCommonGbChannelIds()) <= 0) {
             throw new ControllerException(ErrorCode.ERROR100);
         }
     }
@@ -361,23 +315,24 @@ public class PlatformController {
      * @return
      */
     @Operation(summary = "从上级平台移除国标通道")
-    @DeleteMapping("/del_channel_for_gb")
+    @DeleteMapping("/channel/delete")
     @ResponseBody
     public void delChannelForGB(@RequestBody UpdateChannelParam param) {
 
         if (logger.isDebugEnabled()) {
             logger.debug("给上级平台删除国标通道API调用");
         }
-        int result = 0;
-        if (param.getChannelReduces() == null || param.getChannelReduces().size() == 0) {
-            if (param.isAll()) {
-                logger.info("[国标级联]移除所有通道，上级平台， {}", param.getPlatformId());
-                result = platformChannelService.delAllChannelForGB(param.getPlatformId(), param.getCatalogId());
-            }
-        }else {
-            result = storager.delChannelForGB(param.getPlatformId(), param.getChannelReduces());
+        ParentPlatform platform = platformService.queryPlatformByServerGBId(param.getPlatformId());
+        if (platform == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台不存在");
         }
-        if (result <= 0) {
+        if (platform.isShareAllChannel()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "已开启共享所有通道，不支持部分移除");
+        }
+        if (param.getCommonGbChannelIds() == null || param.getCommonGbChannelIds().isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR100);
+        }
+        if (platformChannelService.removeChannelForGB(platform,param.getCommonGbChannelIds()) <= 0) {
             throw new ControllerException(ErrorCode.ERROR100);
         }
     }

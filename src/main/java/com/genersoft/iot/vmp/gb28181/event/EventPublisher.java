@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.event;
 
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.device.RequestTimeoutEvent;
 import com.genersoft.iot.vmp.gb28181.event.record.RecordEndEvent;
@@ -52,10 +53,10 @@ public class EventPublisher {
 	}
 
 
-	public void catalogEventPublish(String platformId, DeviceChannel deviceChannel, String type) {
-		List<DeviceChannel> deviceChannelList = new ArrayList<>();
-		deviceChannelList.add(deviceChannel);
-		catalogEventPublish(platformId, deviceChannelList, type);
+	public void catalogEventPublish(String platformId, CommonGbChannel channel, String type) {
+		List<CommonGbChannel> channelList = new ArrayList<>();
+		channelList.add(channel);
+		catalogEventPublish(platformId, channelList, type);
 	}
 
 
@@ -69,25 +70,12 @@ public class EventPublisher {
 	/**
 	 *
 	 * @param platformId
-	 * @param deviceChannels
+	 * @param channels
 	 * @param type
 	 */
-	public void catalogEventPublish(String platformId, List<DeviceChannel> deviceChannels, String type) {
+	public void catalogEventPublish(String platformId, List<CommonGbChannel> channels, String type) {
 		CatalogEvent outEvent = new CatalogEvent(this);
-		List<DeviceChannel> channels = new ArrayList<>();
-		if (deviceChannels.size() > 1) {
-			// 数据去重
-			Set<String> gbIdSet = new HashSet<>();
-			for (DeviceChannel deviceChannel : deviceChannels) {
-				if (!gbIdSet.contains(deviceChannel.getChannelId())) {
-					gbIdSet.add(deviceChannel.getChannelId());
-					channels.add(deviceChannel);
-				}
-			}
-		}else {
-			channels = deviceChannels;
-		}
-		outEvent.setDeviceChannels(channels);
+		outEvent.setChannels(channels);
 		outEvent.setType(type);
 		outEvent.setPlatformId(platformId);
 		applicationEventPublisher.publishEvent(outEvent);

@@ -577,4 +577,15 @@ public interface CommonGbChannelMapper {
     @Select("select * from wvp_common_channel")
     Map<String, CommonGbChannel> queryAllChannelsForMap();
 
+    @Select("<script> "+
+            "SELECT * FROM wvp_common_channel WHERE common_gb_id in" +
+            "<foreach collection='channelIds'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
+            "</script>")
+    List<CommonGbChannel> queryInIdList(@Param("channelIds") List<Integer> channelIds);
+
+    @Select("<script> "+
+            "SELECT common_gb_id FROM wvp_common_channel WHERE common_gb_id in" +
+            "<foreach collection='channelIds'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
+            "</script>")
+    List<Integer> getChannelIdsByIds(@Param("channelIds") List<Integer> channelIds);
 }

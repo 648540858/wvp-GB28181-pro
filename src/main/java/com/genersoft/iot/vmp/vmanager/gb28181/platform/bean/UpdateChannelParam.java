@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.platform.bean;
 
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
@@ -14,14 +15,8 @@ public class UpdateChannelParam {
     @Schema(description = "上级平台的国标编号")
     private String platformId;
 
-    @Schema(description = "目录的国标编号")
-    private String catalogId;
-
-    @Schema(description = "处理所有通道")
-    private boolean all;
-
-    @Schema(description = "")
-    private List<ChannelReduce> channelReduces;
+    @Schema(description = "待关联的通道ID")
+    private List<Integer> commonGbChannelIds;
 
     public String getPlatformId() {
         return platformId;
@@ -31,27 +26,11 @@ public class UpdateChannelParam {
         this.platformId = platformId;
     }
 
-    public List<ChannelReduce> getChannelReduces() {
-        return channelReduces;
+    public List<Integer> getCommonGbChannelIds() {
+        return commonGbChannelIds;
     }
 
-    public void setChannelReduces(List<ChannelReduce> channelReduces) {
-        this.channelReduces = channelReduces;
-    }
-
-    public String getCatalogId() {
-        return catalogId;
-    }
-
-    public void setCatalogId(String catalogId) {
-        this.catalogId = catalogId;
-    }
-
-    public boolean isAll() {
-        return all;
-    }
-
-    public void setAll(boolean all) {
-        this.all = all;
+    public void setCommonGbChannelIds(List<Integer> commonGbChannelIds) {
+        this.commonGbChannelIds = commonGbChannelIds;
     }
 }

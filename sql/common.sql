@@ -86,6 +86,15 @@ drop table wvp_platform_catalog;
 drop table wvp_platform_gb_channel;
 drop table wvp_resources_tree;
 
+alter table wvp_platform
+    add share_all_channel bool default false;
+
+alter table wvp_platform
+    add share_group bool default true;
+
+alter table wvp_platform
+    add share_region bool default false;
+
 
 
 

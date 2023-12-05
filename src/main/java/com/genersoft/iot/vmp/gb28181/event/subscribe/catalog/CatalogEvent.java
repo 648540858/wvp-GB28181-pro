@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.event.subscribe.catalog;
 
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import org.springframework.context.ApplicationEvent;
@@ -46,17 +47,17 @@ public class CatalogEvent  extends ApplicationEvent {
      */
     public static final String UPDATE = "UPDATE";
 
-    private List<DeviceChannel> deviceChannels;
+    private List<CommonGbChannel> channels;
     private List<GbStream> gbStreams;
     private String type;
     private String platformId;
 
-    public List<DeviceChannel> getDeviceChannels() {
-        return deviceChannels;
+    public List<CommonGbChannel> getChannels() {
+        return channels;
     }
 
-    public void setDeviceChannels(List<DeviceChannel> deviceChannels) {
-        this.deviceChannels = deviceChannels;
+    public void setChannels(List<CommonGbChannel> channels) {
+        this.channels = channels;
     }
 
     public String getType() {

@@ -6,8 +6,7 @@
         <el-progress :percentage="percentage"></el-progress>
       </el-col>
       <el-col :span="6" >
-        <el-button icon="el-icon-download" v-if="percentage < 100" size="mini" title="点击下载可将以缓存部分下载到本地" @click="download()">停止缓存并下载</el-button>
-        <el-button icon="el-icon-download" v-if="downloadFile" size="mini" title="点击下载" @click="downloadFileClientEvent()">点击下载</el-button>
+        <el-button icon="el-icon-download" v-if="downloadFile" size="mini" title="点击下载" @click="downloadFileClientEvent()">下载</el-button>
       </el-col>
     </el-row>
   </el-dialog>

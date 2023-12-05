@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ServiceException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 
@@ -44,5 +45,5 @@ public interface IPlayService {
 
     void getSnap(String deviceId, String channelId, String fileName, ErrorCallback errorCallback);
 
-
+    void getFilePath(String deviceId, String channelId, String stream, ErrorCallback<DownloadFileInfo> callback);
 }

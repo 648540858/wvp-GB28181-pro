@@ -275,7 +275,7 @@ public class ZLMHttpHookListener {
         List<SsrcTransaction> ssrcTransactionForAll = sessionManager.getSsrcTransactionForAll(null, null, null, param.getStream());
         if (ssrcTransactionForAll != null && ssrcTransactionForAll.size() == 1) {
 
-            // 为录制国标模拟一个鉴权信息
+            // 为录制国标模拟一个鉴权信息, 方便后续写入录像文件时使用
             StreamAuthorityInfo streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(param);
             streamAuthorityInfo.setApp(param.getApp());
             streamAuthorityInfo.setStream(ssrcTransactionForAll.get(0).getStream());
@@ -291,8 +291,18 @@ public class ZLMHttpHookListener {
             }
             // 如果是录像下载就设置视频间隔十秒
             if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.DOWNLOAD) {
-                result.setMp4_max_second(30);
-                result.setEnable_mp4(true);
+                // 获取录像的总时长，然后设置为这个视频的时长
+                InviteInfo inviteInfo = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, deviceId, channelId, param.getStream());
+                if (inviteInfo.getStreamInfo() != null ) {
+                    String startTime = inviteInfo.getStreamInfo().getStartTime();
+                    String endTime = inviteInfo.getStreamInfo().getEndTime();
+                    long difference = DateUtil.getDifference(startTime, endTime)/1000;
+                    result.setMp4_max_second((int)difference);
+                    result.setEnable_mp4(true);
+                    // 设置为2保证得到的mp4的时长是正常的
+                    result.setModify_stamp(2);
+                }
+
             }
         }
         if (param.getApp().equalsIgnoreCase("rtp")) {

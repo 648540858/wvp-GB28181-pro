@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.record;
 
+import com.genersoft.iot.vmp.common.InviteInfo;
+import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
@@ -10,7 +12,9 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.service.IDeviceService;
+import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.IPlayService;
+import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -23,6 +27,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -54,6 +59,9 @@ public class GBRecordController {
 
 	@Autowired
 	private IPlayService playService;
+
+	@Autowired
+	private IInviteStreamService inviteStreamService;
 
 	@Autowired
 	private IDeviceService deviceService;
@@ -203,5 +211,33 @@ public class GBRecordController {
 			throw new ControllerException(ErrorCode.ERROR404);
 		}
 		return new StreamContent(downLoadInfo);
+	}
+
+	@Operation(summary = "获取历史媒体下载文件地址")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@Parameter(name = "stream", description = "流ID", required = true)
+	@GetMapping("/download/file/path/{deviceId}/{channelId}/{stream}")
+	public DeferredResult<WVPResult<DownloadFileInfo>> getDownloadFilePath(@PathVariable String deviceId, @PathVariable String channelId, @PathVariable String stream) {
+
+		DeferredResult<WVPResult<DownloadFileInfo>> result = new DeferredResult<>();
+
+		result.onTimeout(()->{
+			WVPResult<DownloadFileInfo> wvpResult = new WVPResult<>();
+			wvpResult.setCode(ErrorCode.ERROR100.getCode());
+			wvpResult.setMsg("timeout");
+			result.setResult(wvpResult);
+		});
+
+		playService.getFilePath(deviceId, channelId, stream, (code, msg, data)->{
+			WVPResult<DownloadFileInfo> wvpResult = new WVPResult<>();
+			wvpResult.setCode(code);
+			wvpResult.setMsg(msg);
+			wvpResult.setData(data);
+			result.setResult(wvpResult);
+		});
+
+
+		return result;
 	}
 }

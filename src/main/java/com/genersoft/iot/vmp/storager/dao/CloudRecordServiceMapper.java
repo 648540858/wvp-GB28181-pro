@@ -106,4 +106,10 @@ public interface CloudRecordServiceMapper {
             " </script>")
     int deleteList(List<CloudRecordItem> cloudRecordItemIdList);
 
+    @Select(" <script>" +
+            "select *" +
+            " from wvp_cloud_record " +
+            "where call_id = #{callId}" +
+            " </script>")
+    List<CloudRecordItem> getListByCallId(@Param("callId") String callId);
 }

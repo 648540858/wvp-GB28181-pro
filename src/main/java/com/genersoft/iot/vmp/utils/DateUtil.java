@@ -139,4 +139,13 @@ public class DateUtil {
         Instant beforeInstant = Instant.from(formatter.parse(keepaliveTime));
         return ChronoUnit.MILLIS.between(beforeInstant, Instant.now());
     }
+
+    public static long getDifference(String startTime, String endTime) {
+        if (ObjectUtils.isEmpty(startTime) || ObjectUtils.isEmpty(endTime)) {
+            return 0;
+        }
+        Instant startInstant = Instant.from(formatter.parse(startTime));
+        Instant endInstant = Instant.from(formatter.parse(endTime));
+        return ChronoUnit.MILLIS.between(endInstant, startInstant);
+    }
 }

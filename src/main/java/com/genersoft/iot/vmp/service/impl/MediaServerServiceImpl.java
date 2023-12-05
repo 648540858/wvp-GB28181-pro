@@ -592,6 +592,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if (mediaServerItem.getRecordPath() != null) {
             File recordPathFile = new File(mediaServerItem.getRecordPath());
             param.put("protocol.mp4_save_path", recordPathFile.getParentFile().getPath());
+            param.put("protocol.downloadRoot", recordPathFile.getParentFile().getPath());
             param.put("record.appName", recordPathFile.getName());
         }
 

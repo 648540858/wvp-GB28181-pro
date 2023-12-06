@@ -1,4 +1,4 @@
-CREATE TABLE `wvp_common_gb_channel`
+CREATE TABLE `wvp_common_channel`
 (
     `common_gb_id`                    bigint unsigned NOT NULL AUTO_INCREMENT,
     `common_gb_device_id`             varchar(50)  NOT NULL,
@@ -67,7 +67,7 @@ CREATE TABLE `wvp_common_region`
     UNIQUE KEY `common_region_device_id` (`common_region_device_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE `wvp_common_platform_channel`
+CREATE TABLE `wvp_common_channel_platform`
 (
     `id`                   bigint unsigned NOT NULL AUTO_INCREMENT,
     `platform_id`          bigint unsigned NOT NULL,
@@ -79,10 +79,21 @@ CREATE TABLE `wvp_common_platform_channel`
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci;
 
-drop table `wvp_platform_catalog`;
-drop table `wvp_platform_gb_channel`;
-drop table `wvp_platform_gb_stream`;
-drop table `wvp_resources_tree`;
+
+drop table wvp_platform_gb_stream;
+drop table wvp_platform_gb_channel;
+drop table wvp_platform_catalog;
+drop table wvp_platform_gb_channel;
+drop table wvp_resources_tree;
+
+alter table wvp_platform
+    add share_all_channel bool default false;
+
+alter table wvp_platform
+    add share_group bool default true;
+
+alter table wvp_platform
+    add share_region bool default false;
 
 
 

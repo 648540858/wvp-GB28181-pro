@@ -186,8 +186,17 @@ public class ParentPlatform {
     @Schema(description = "是否作为消息通道")
     private boolean asMessageChannel;
 
-    @Schema(description = "是否作为消息通道")
+    @Schema(description = "通道自动推送")
     private boolean autoPushChannel;
+
+    @Schema(description = "是否共享所有通道")
+    private boolean shareAllChannel;
+
+    @Schema(description = "是否共享分组")
+    private boolean shareGroup;
+
+    @Schema(description = "是否共享区域")
+    private boolean shareRegion;
 
     public Integer getId() {
         return id;
@@ -435,5 +444,29 @@ public class ParentPlatform {
 
     public void setAutoPushChannel(boolean autoPushChannel) {
         this.autoPushChannel = autoPushChannel;
+    }
+
+    public boolean isShareAllChannel() {
+        return shareAllChannel;
+    }
+
+    public void setShareAllChannel(boolean shareAllChannel) {
+        this.shareAllChannel = shareAllChannel;
+    }
+
+    public boolean isShareGroup() {
+        return shareGroup;
+    }
+
+    public void setShareGroup(boolean shareGroup) {
+        this.shareGroup = shareGroup;
+    }
+
+    public boolean isShareRegion() {
+        return shareRegion;
+    }
+
+    public void setShareRegion(boolean shareRegion) {
+        this.shareRegion = shareRegion;
     }
 }

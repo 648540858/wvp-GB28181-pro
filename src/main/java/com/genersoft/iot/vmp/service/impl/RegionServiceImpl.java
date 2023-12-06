@@ -1,13 +1,11 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.common.BatchLimit;
-import com.genersoft.iot.vmp.common.CivilCodePo;
 import com.genersoft.iot.vmp.conf.CivilCodeFileConf;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.service.IRegionService;
 import com.genersoft.iot.vmp.service.bean.Region;
-import com.genersoft.iot.vmp.storager.dao.CommonGbChannelMapper;
+import com.genersoft.iot.vmp.storager.dao.CommonChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.RegionMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -18,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -34,7 +31,7 @@ public class RegionServiceImpl implements IRegionService {
 
 
     @Autowired
-    private CommonGbChannelMapper commonGbChannelMapper;
+    private CommonChannelMapper commonGbChannelMapper;
 
 
     @Autowired

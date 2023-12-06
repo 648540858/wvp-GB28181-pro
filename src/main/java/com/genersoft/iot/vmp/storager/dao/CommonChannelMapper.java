@@ -14,7 +14,7 @@ import java.util.Map;
 
 @Mapper
 @Repository
-public interface CommonGbChannelMapper {
+public interface CommonChannelMapper {
 
     @Select(value = "select * from wvp_common_channel where common_gb_business_group_id = '#{commonGroupId}'")
     List<CommonGbChannel> getChannels(String commonGroupId);

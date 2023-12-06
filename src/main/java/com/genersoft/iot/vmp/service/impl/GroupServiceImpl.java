@@ -8,7 +8,7 @@ import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.service.IGroupService;
 import com.genersoft.iot.vmp.service.bean.Group;
 import com.genersoft.iot.vmp.storager.dao.GroupMapper;
-import com.genersoft.iot.vmp.storager.dao.CommonGbChannelMapper;
+import com.genersoft.iot.vmp.storager.dao.CommonChannelMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageInfo;
@@ -32,7 +32,7 @@ public class GroupServiceImpl implements IGroupService {
     private final static Logger logger = LoggerFactory.getLogger(GroupServiceImpl.class);
 
     @Autowired
-    private CommonGbChannelMapper commonGbChannelMapper;
+    private CommonChannelMapper commonGbChannelMapper;
 
     @Autowired
     private GroupMapper groupMapper;

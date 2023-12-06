@@ -12,7 +12,7 @@ import com.genersoft.iot.vmp.service.ICommonGbChannelService;
 import com.genersoft.iot.vmp.service.IResourcePlayCallback;
 import com.genersoft.iot.vmp.service.IResourceService;
 import com.genersoft.iot.vmp.service.bean.*;
-import com.genersoft.iot.vmp.storager.dao.CommonGbChannelMapper;
+import com.genersoft.iot.vmp.storager.dao.CommonChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.GroupMapper;
 import com.genersoft.iot.vmp.storager.dao.RegionMapper;
@@ -40,7 +40,7 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
     private final static Logger logger = LoggerFactory.getLogger(CommonGbChannelServiceImpl.class);
 
     @Autowired
-    private CommonGbChannelMapper commonGbChannelMapper;
+    private CommonChannelMapper commonGbChannelMapper;
 
     @Autowired
     private DeviceChannelMapper deviceChannelMapper;

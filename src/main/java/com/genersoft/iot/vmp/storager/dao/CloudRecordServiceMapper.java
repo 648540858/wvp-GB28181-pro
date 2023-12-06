@@ -112,4 +112,11 @@ public interface CloudRecordServiceMapper {
             "where call_id = #{callId}" +
             " </script>")
     List<CloudRecordItem> getListByCallId(@Param("callId") String callId);
+
+    @Select(" <script>" +
+            "select *" +
+            " from wvp_cloud_record " +
+            "where id = #{id}" +
+            " </script>")
+    CloudRecordItem queryOne(@Param("id") Integer id);
 }

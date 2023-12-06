@@ -32,6 +32,7 @@ import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.CloudRecordServiceMapper;
+import com.genersoft.iot.vmp.utils.CloudRecordUtils;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import gov.nist.javax.sip.message.SIPResponse;
@@ -728,7 +729,7 @@ public class PlayServiceImpl implements IPlayService {
                             logger.info("[录像下载] 收到录像写入磁盘消息内容： " + hookParam);
                             OnRecordMp4HookParam recordMp4HookParam = (OnRecordMp4HookParam)hookParam;
                             String filePath = recordMp4HookParam.getFile_path();
-                            DownloadFileInfo downloadFileInfo = getDownloadFilePath(mediaServerItem, filePath);
+                            DownloadFileInfo downloadFileInfo = CloudRecordUtils.getDownloadFilePath(mediaServerItem, filePath);
                             InviteInfo inviteInfoForNew = inviteStreamService.getInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId()
                                     , inviteInfo.getChannelId(), inviteInfo.getStream());
                             inviteInfoForNew.getStreamInfo().setDownLoadFilePath(downloadFileInfo);
@@ -822,21 +823,6 @@ public class PlayServiceImpl implements IPlayService {
         }
         inviteStreamService.updateInviteInfo(inviteInfo);
         return inviteInfo.getStreamInfo();
-    }
-
-    private DownloadFileInfo getDownloadFilePath(MediaServerItem mediaServerItem, String filePath) {
-        DownloadFileInfo downloadFileInfo = new DownloadFileInfo();
-
-        String pathTemplate = "%s://%s:%s/index/api/downloadFile?file_path=" + filePath;
-
-        downloadFileInfo.setHttpPath(String.format(pathTemplate, "http", mediaServerItem.getStreamIp(),
-                mediaServerItem.getHttpPort()));
-
-        if (mediaServerItem.getHttpSSlPort() > 0) {
-            downloadFileInfo.setHttpsPath(String.format(pathTemplate, "https", mediaServerItem.getStreamIp(),
-                    mediaServerItem.getHttpSSlPort()));
-        }
-        return downloadFileInfo;
     }
 
     private StreamInfo onPublishHandlerForDownload(MediaServerItem mediaServerItemInuse, HookParam hookParam, String deviceId, String channelId, String startTime, String endTime) {

@@ -213,10 +213,26 @@ export default {
       console.log(row)
       this.chooseRecord = row;
       this.showPlayer = true;
-      let videoPath = row.filePath.substring(row.filePath.length - 25);
-      console.log(videoPath)
-      this.videoUrl = `${this.getFileBasePath(row)}/download/${row.app}/${row.stream}/${videoPath}`
-      console.log(this.videoUrl)
+      this.$axios({
+        method: 'get',
+        url: `/api/cloud/record/play/path`,
+        params: {
+          recordId: row.id,
+        }
+      }).then((res) => {
+        console.log(res)
+        if (res.data.code === 0) {
+          if (location.protocol === "https:") {
+            this.videoUrl = res.data.data.httpsPath;
+          }else {
+            this.videoUrl = res.data.data.httpPath;
+          }
+          console.log(222 )
+          console.log(this.videoUrl )
+        }
+      }).catch((error) => {
+        console.log(error);
+      });
     },
       getFileBasePath(item) {
           let basePath = ""

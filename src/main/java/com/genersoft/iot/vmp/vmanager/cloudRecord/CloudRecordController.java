@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.ICloudRecordService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
+import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
@@ -236,5 +237,15 @@ public class CloudRecordController {
         }else {
             return cloudRecordService.changeCollect(false, app, stream, mediaServerId, startTime, endTime, callId);
         }
+    }
+
+    @ResponseBody
+    @GetMapping("/play/path")
+    @Operation(summary = "获取播放地址")
+    @Parameter(name = "recordId", description = "录像记录的ID", required = true)
+    public DownloadFileInfo getPlayUrlPath(
+            @RequestParam(required = true) Integer recordId
+    ){
+        return cloudRecordService.getPlayUrlPath(recordId);
     }
 }

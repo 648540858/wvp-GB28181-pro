@@ -11,8 +11,10 @@ import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRecordMp4HookParam;
 import com.genersoft.iot.vmp.service.ICloudRecordService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
+import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.CloudRecordServiceMapper;
+import com.genersoft.iot.vmp.utils.CloudRecordUtils;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageHelper;
@@ -225,5 +227,16 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     @Override
     public int changeCollectById(Integer recordId, boolean result) {
        return cloudRecordServiceMapper.changeCollectById(result, recordId);
+    }
+
+    @Override
+    public DownloadFileInfo getPlayUrlPath(Integer recordId) {
+        CloudRecordItem recordItem = cloudRecordServiceMapper.queryOne(recordId);
+        if (recordItem == null) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "资源不存在");
+        }
+        String filePath = recordItem.getFilePath();
+        MediaServerItem mediaServerItem = mediaServerService.getOne(recordItem.getMediaServerId());
+        return CloudRecordUtils.getDownloadFilePath(mediaServerItem, filePath);
     }
 }

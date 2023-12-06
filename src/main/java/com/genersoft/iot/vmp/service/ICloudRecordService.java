@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSONArray;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRecordMp4HookParam;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
+import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
@@ -50,4 +51,8 @@ public interface ICloudRecordService {
      */
     int changeCollectById(Integer recordId, boolean result);
 
+    /**
+     * 获取播放地址
+     */
+    DownloadFileInfo getPlayUrlPath(Integer recordId);
 }

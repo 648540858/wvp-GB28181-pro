@@ -761,7 +761,7 @@ public class ZLMHttpHookListener {
         taskExecutor.execute(() -> {
             JSONObject json = (JSONObject) JSON.toJSON(param);
             List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_rtp_server_timeout);
-            if (subscribes != null && subscribes.size() > 0) {
+            if (subscribes != null && !subscribes.isEmpty()) {
                 for (ZlmHttpHookSubscribe.Event subscribe : subscribes) {
                     subscribe.response(null, param);
                 }
@@ -780,7 +780,14 @@ public class ZLMHttpHookListener {
         logger.info("[ZLM HOOK] 录像完成事件：{}->{}", param.getMediaServerId(), param.getFile_path());
 
         taskExecutor.execute(() -> {
+            List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_record_mp4);
+            if (subscribes != null && !subscribes.isEmpty()) {
+                for (ZlmHttpHookSubscribe.Event subscribe : subscribes) {
+                    subscribe.response(null, param);
+                }
+            }
             cloudRecordService.addRecord(param);
+
         });
 
         return HookResult.SUCCESS();

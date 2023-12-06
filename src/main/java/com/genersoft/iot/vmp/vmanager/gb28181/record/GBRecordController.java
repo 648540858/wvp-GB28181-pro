@@ -212,32 +212,4 @@ public class GBRecordController {
 		}
 		return new StreamContent(downLoadInfo);
 	}
-
-	@Operation(summary = "获取历史媒体下载文件地址")
-	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
-	@Parameter(name = "channelId", description = "通道国标编号", required = true)
-	@Parameter(name = "stream", description = "流ID", required = true)
-	@GetMapping("/download/file/path/{deviceId}/{channelId}/{stream}")
-	public DeferredResult<WVPResult<DownloadFileInfo>> getDownloadFilePath(@PathVariable String deviceId, @PathVariable String channelId, @PathVariable String stream) {
-
-		DeferredResult<WVPResult<DownloadFileInfo>> result = new DeferredResult<>();
-
-		result.onTimeout(()->{
-			WVPResult<DownloadFileInfo> wvpResult = new WVPResult<>();
-			wvpResult.setCode(ErrorCode.ERROR100.getCode());
-			wvpResult.setMsg("timeout");
-			result.setResult(wvpResult);
-		});
-
-		playService.getFilePath(deviceId, channelId, stream, (code, msg, data)->{
-			WVPResult<DownloadFileInfo> wvpResult = new WVPResult<>();
-			wvpResult.setCode(code);
-			wvpResult.setMsg(msg);
-			wvpResult.setData(data);
-			result.setResult(wvpResult);
-		});
-
-
-		return result;
-	}
 }

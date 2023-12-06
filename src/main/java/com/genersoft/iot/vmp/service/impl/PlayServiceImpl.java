@@ -49,9 +49,11 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.ParseException;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
+import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Service
@@ -718,6 +720,28 @@ public class PlayServiceImpl implements IPlayService {
                         // 处理收到200ok后的TCP主动连接以及SSRC不一致的问题
                         InviteOKHandler(eventResult, ssrcInfo, mediaServerItem, device, channelId,
                                 downLoadTimeOutTaskKey, callback, inviteInfo, InviteSessionType.DOWNLOAD);
+
+                        // 注册录像回调事件，录像下载结束后写入下载地址
+                        ZlmHttpHookSubscribe.Event hookEventForRecord = (mediaServerItemInuse, hookParam) -> {
+                            logger.info("[录像下载] 收到录像写入磁盘消息： ， {}/{}-{}",
+                                    inviteInfo.getDeviceId(), inviteInfo.getChannelId(), ssrcInfo.getStream());
+                            logger.info("[录像下载] 收到录像写入磁盘消息内容： " + hookParam);
+                            OnRecordMp4HookParam recordMp4HookParam = (OnRecordMp4HookParam)hookParam;
+                            String filePath = recordMp4HookParam.getFile_path();
+                            DownloadFileInfo downloadFileInfo = getDownloadFilePath(mediaServerItem, filePath);
+                            InviteInfo inviteInfoForNew = inviteStreamService.getInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId()
+                                    , inviteInfo.getChannelId(), inviteInfo.getStream());
+                            inviteInfoForNew.getStreamInfo().setDownLoadFilePath(downloadFileInfo);
+                            inviteStreamService.updateInviteInfo(inviteInfoForNew);
+                        };
+                        HookSubscribeForRecordMp4 hookSubscribe = HookSubscribeFactory.on_record_mp4(
+                                mediaServerItem.getId(), "rtp", ssrcInfo.getStream());
+
+                        // 设置过期时间，下载失败时自动处理订阅数据
+//                        long difference = DateUtil.getDifference(startTime, endTime)/1000;
+//                        Instant expiresInstant = Instant.now().plusSeconds(TimeUnit.MINUTES.toSeconds(difference * 2));
+//                        hookSubscribe.setExpires(expiresInstant);
+                        subscribe.addSubscribe(hookSubscribe, hookEventForRecord);
                     });
         } catch (InvalidArgumentException | SipException | ParseException e) {
             logger.error("[命令发送失败] 录像下载: {}", e.getMessage());
@@ -791,74 +815,13 @@ public class PlayServiceImpl implements IPlayService {
             BigDecimal totalCount = new BigDecimal((end - start) * 1000);
             BigDecimal divide = currentCount.divide(totalCount, 2, RoundingMode.HALF_UP);
             double process = divide.doubleValue();
+            if (process > 0.999) {
+                process = 1.0;
+            }
             inviteInfo.getStreamInfo().setProgress(process);
         }
         inviteStreamService.updateInviteInfo(inviteInfo);
         return inviteInfo.getStreamInfo();
-    }
-
-    @Override
-    public void getFilePath(String deviceId, String channelId, String stream, ErrorCallback<DownloadFileInfo> callback) {
-        InviteInfo inviteInfo = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, deviceId, channelId, stream);
-        if (inviteInfo == null || inviteInfo.getStreamInfo() == null) {
-            logger.warn("[获取录像下载文件地址] 未查询到录像下载的信息， {}/{}-{}", deviceId, channelId, stream);
-            callback.run(ErrorCode.ERROR100.getCode(), "未查询到录像下载的信息", null);
-            return ;
-        }
-
-        if (!ObjectUtils.isEmpty(inviteInfo.getStreamInfo().getDownLoadFilePath())) {
-            callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(),
-                    inviteInfo.getStreamInfo().getDownLoadFilePath());
-            return;
-        }
-
-        StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo("rtp", stream);
-        if (streamAuthorityInfo == null) {
-            logger.warn("[获取录像下载文件地址] 未查询到录像的视频信息， {}/{}-{}", deviceId, channelId, stream);
-            callback.run(ErrorCode.ERROR100.getCode(), "未查询到录像的视频信息", null);
-            return ;
-        }
-
-        // 获取当前已下载时长
-        String mediaServerId = inviteInfo.getStreamInfo().getMediaServerId();
-        MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
-        if (mediaServerItem == null) {
-            logger.warn("[获取录像下载文件地址] 查询录像信息时发现节点不存在， {}/{}-{}", deviceId, channelId, stream);
-            callback.run(ErrorCode.ERROR100.getCode(), "查询录像信息时发现节点不存在", null);
-            return ;
-        }
-
-        List<CloudRecordItem> cloudRecordItemList =  cloudRecordServiceMapper.getListByCallId(streamAuthorityInfo.getCallId());
-        if (!cloudRecordItemList.isEmpty()) {
-            String filePath = cloudRecordItemList.get(0).getFilePath();
-
-            DownloadFileInfo downloadFileInfo = getDownloadFilePath(mediaServerItem, filePath);
-            inviteInfo.getStreamInfo().setDownLoadFilePath(downloadFileInfo);
-            inviteStreamService.updateInviteInfo(inviteInfo);
-            callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), downloadFileInfo);
-        }else {
-            // 可能尚未生成，那就监听hook等着收到对应的录像通知
-            ZlmHttpHookSubscribe.Event hookEvent = (mediaServerItemInuse, hookParam) -> {
-                logger.info("[录像下载]收到订阅消息： ， {}/{}-{}", deviceId, channelId, stream);
-                logger.info("[录像下载]收到订阅消息内容： " + hookParam);
-                dynamicTask.stop(streamAuthorityInfo.getCallId());
-                OnRecordMp4HookParam recordMp4HookParam = (OnRecordMp4HookParam)hookParam;
-                String filePath = recordMp4HookParam.getFile_path();
-                DownloadFileInfo downloadFileInfo = getDownloadFilePath(mediaServerItem, filePath);
-                inviteInfo.getStreamInfo().setDownLoadFilePath(downloadFileInfo);
-                inviteStreamService.updateInviteInfo(inviteInfo);
-                callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), downloadFileInfo);
-            };
-            HookSubscribeForRecordMp4 hookSubscribe = HookSubscribeFactory.on_record_mp4(mediaServerId, "rtp", stream);
-            subscribe.addSubscribe(hookSubscribe, hookEvent);
-
-            // 设置超时，超时结束监听
-            dynamicTask.startDelay(streamAuthorityInfo.getCallId(), ()->{
-                logger.info("[录像下载] 接收hook超时， {}/{}-{}", deviceId, channelId, stream);
-                subscribe.removeSubscribe(hookSubscribe);
-                callback.run(ErrorCode.ERROR100.getCode(), "接收hook超时", null);
-            }, 10000);
-        }
     }
 
     private DownloadFileInfo getDownloadFilePath(MediaServerItem mediaServerItem, String filePath) {

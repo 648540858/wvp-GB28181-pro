@@ -593,7 +593,7 @@ public class ZLMHttpHookListener {
             String deviceId = s[0];
             String channelId = s[1];
             Device device = redisCatchStorage.getDevice(deviceId);
-            if (device == null) {
+            if (device == null || !device.isOnLine()) {
                 defaultResult.setResult(new HookResult(ErrorCode.ERROR404.getCode(), ErrorCode.ERROR404.getMsg()));
                 return defaultResult;
             }

@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service;
 
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
@@ -101,7 +102,7 @@ public interface IStreamPushService {
     /**
      * 增加推流
      */
-    boolean add(StreamPushItem stream);
+    boolean add(StreamPushItem stream, CommonGbChannel commonGbChannel);
 
     /**
      * 获取全部的app+Streanm 用于判断推流列表是新增还是修改

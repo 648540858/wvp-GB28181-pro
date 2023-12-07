@@ -40,12 +40,6 @@ public interface IDeviceChannelService {
      */
     ResourceBaseInfo getOverview();
 
-    /**
-     * 查询所有未分配的通道
-     * @param platformId
-     * @return
-     */
-    List<ChannelReduce> queryAllChannelList(String platformId);
 
     /**
      * 数据位置信息格式处理

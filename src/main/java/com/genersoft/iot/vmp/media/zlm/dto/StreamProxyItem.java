@@ -1,13 +1,12 @@
 package com.genersoft.iot.vmp.media.zlm.dto;
 
-import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * @author lin
  */
 @Schema(description = "拉流代理的信息")
-public class StreamProxyItem extends GbStream {
+public class StreamProxyItem {
 
     @Schema(description = "类型")
     private String type;
@@ -44,6 +43,12 @@ public class StreamProxyItem extends GbStream {
     @Schema(description = "拉流代理时zlm返回的key，用于停止拉流代理")
     private String streamKey;
 
+    /**
+     * 国标通用信息ID
+     */
+    @Schema(description = "国标通用信息ID")
+    private int commonGbChannelId;
+
     public String getType() {
         return type;
     }
@@ -52,32 +57,31 @@ public class StreamProxyItem extends GbStream {
         this.type = type;
     }
 
-    @Override
     public String getApp() {
         return app;
     }
 
-    @Override
+    
     public void setApp(String app) {
         this.app = app;
     }
 
-    @Override
+    
     public String getStream() {
         return stream;
     }
 
-    @Override
+    
     public void setStream(String stream) {
         this.stream = stream;
     }
 
-    @Override
+    
     public String getMediaServerId() {
         return mediaServerId;
     }
 
-    @Override
+    
     public void setMediaServerId(String mediaServerId) {
         this.mediaServerId = mediaServerId;
     }
@@ -176,5 +180,13 @@ public class StreamProxyItem extends GbStream {
 
     public void setStreamKey(String streamKey) {
         this.streamKey = streamKey;
+    }
+
+    public int getCommonGbChannelId() {
+        return commonGbChannelId;
+    }
+
+    public void setCommonGbChannelId(int commonGbChannelId) {
+        this.commonGbChannelId = commonGbChannelId;
     }
 }

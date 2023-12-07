@@ -95,6 +95,15 @@ alter table wvp_platform
 alter table wvp_platform
     add share_region bool default false;
 
+alter table wvp_device_channel
+    add common_gb_channel_id integer;
+
+alter table wvp_stream_push
+    add common_gb_channel_id integer;
+
+alter table wvp_stream_proxy
+    add common_gb_channel_id integer;
+
 
 
 

@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.vmanager.streamPush;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelReader;
 import com.alibaba.excel.read.metadata.ReadSheet;
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
@@ -17,6 +18,7 @@ import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.impl.StreamPushUploadFileHandler;
 import com.genersoft.iot.vmp.vmanager.bean.*;
+import com.genersoft.iot.vmp.vmanager.streamPush.bean.StreamPushWithCommonChannelParam;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -59,8 +61,6 @@ public class StreamPushController {
     @Autowired
     private IMediaService mediaService;
 
-    @Autowired
-    private UserSetting userSetting;
 
     @GetMapping(value = "/list")
     @ResponseBody
@@ -86,23 +86,11 @@ public class StreamPushController {
         return pushList;
     }
 
-    @PostMapping(value = "/save_to_gb")
+    @PostMapping(value = "/save")
     @ResponseBody
-    @Operation(summary = "将推流添加到国标")
-    public void saveToGB(@RequestBody GbStream stream){
-        if (!streamPushService.saveToGB(stream)){
-           throw new ControllerException(ErrorCode.ERROR100);
-        }
-    }
+    @Operation(summary = "将推流添加到资源")
+    public void saveToCommonChannel(@RequestBody StreamPushWithCommonChannelParam param){
 
-
-    @DeleteMapping(value = "/remove_form_gb")
-    @ResponseBody
-    @Operation(summary = "将推流移出到国标")
-    public void removeFormGB(@RequestBody GbStream stream){
-        if (!streamPushService.removeFromGB(stream)){
-            throw new ControllerException(ErrorCode.ERROR100);
-        }
     }
 
 
@@ -256,24 +244,19 @@ public class StreamPushController {
 
     /**
      * 添加推流信息
-     * @param stream 推流信息
-     * @return
      */
     @PostMapping(value = "/add")
     @ResponseBody
     @Operation(summary = "添加推流信息")
-    public void add(@RequestBody StreamPushItem stream){
-        if (ObjectUtils.isEmpty(stream.getGbId())) {
-            throw new ControllerException(ErrorCode.ERROR400.getCode(), "国标ID不可为空");
-        }
-        if (ObjectUtils.isEmpty(stream.getApp()) && ObjectUtils.isEmpty(stream.getStream())) {
+    public void add(@RequestBody StreamPushWithCommonChannelParam param){
+        if (ObjectUtils.isEmpty(param.getApp()) && ObjectUtils.isEmpty(param.getStream())) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "app或stream不可为空");
         }
-        stream.setStatus(false);
-        stream.setPushIng(false);
-        stream.setAliveSecond(0L);
-        stream.setTotalReaderCount("0");
-        if (!streamPushService.add(stream)) {
+        StreamPushItem streamPushItem = new StreamPushItem();
+        streamPushItem.setApp(param.getApp());
+        streamPushItem.setStream(param.getStream());
+
+        if (!streamPushService.add(streamPushItem, param)) {
             throw new ControllerException(ErrorCode.ERROR100);
         }
     }

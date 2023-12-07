@@ -57,4 +57,9 @@ public interface IPlatformService {
     void sendNotifyMobilePosition(String platformId);
 
     void addSimulatedSubscribeInfo(ParentPlatform parentPlatform);
+
+    /**
+     * 移除上级平台
+     */
+    boolean delete(String serverGBId);
 }

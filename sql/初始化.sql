@@ -248,6 +248,7 @@ create table wvp_stream_proxy (
                                   update_time character varying(50),
                                   stream_key character varying(255),
                                   enable_disable_none_reader bool default false,
+                                  common_gb_channel_id integer,
                                   constraint uk_stream_proxy_app_stream unique (app, stream)
 );
 
@@ -266,6 +267,7 @@ create table wvp_stream_push (
                                  update_time character varying(50),
                                  push_ing bool default false,
                                  self bool default false,
+                                 common_gb_channel_id integer,
                                  constraint uk_stream_push_app_stream unique (app, stream)
 );
 

@@ -28,7 +28,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     private final static Logger logger = LoggerFactory.getLogger(PlatformChannelServiceImpl.class);
 
     @Autowired
-    private PlatformChannelMapper platformChannelMapper;
+    private CommonChannelPlatformMapper platformChannelMapper;
 
     @Autowired
     private CommonChannelMapper commonGbChannelMapper;
@@ -41,16 +41,6 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
 
     @Autowired
     private SubscribeHolder subscribeHolder;
-
-
-    @Autowired
-    private DeviceChannelMapper deviceChannelMapper;
-
-    @Autowired
-    private PlatformCatalogMapper catalogManager;
-
-    @Autowired
-    private ParentPlatformMapper platformMapper;
 
     @Autowired
     EventPublisher eventPublisher;
@@ -100,6 +90,32 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
 
     @Override
     public int removeChannelForGB(ParentPlatform platform, List<Integer> commonGbChannelIds) {
-        return 0;
+        assert platform != null;
+        if (commonGbChannelIds.isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "有效待关联通道Id为空");
+        }
+        int allCount = 0;
+        if (commonGbChannelIds.size() > BatchLimit.count) {
+            for (int i = 0; i < commonGbChannelIds.size(); i += BatchLimit.count) {
+                int toIndex = i + BatchLimit.count;
+                if (i + BatchLimit.count > commonGbChannelIds.size()) {
+                    toIndex = commonGbChannelIds.size();
+                }
+                int count = platformChannelMapper.removeChannels(platform.getId(), commonGbChannelIds.subList(i, toIndex));
+                allCount += count;
+                logger.info("[关联通道]国标通道 平台：{}, 取消关联通道数:{}, 已关联：{}", platform.getServerGBId(), commonGbChannelIds.size(), allCount);
+            }
+        }else {
+            allCount = platformChannelMapper.removeChannels(platform.getId(), commonGbChannelIds);
+            logger.info("[关联通道]国标通道 平台：{}, 取消关联通道数:{}", platform.getServerGBId(), commonGbChannelIds.size());
+        }
+        SubscribeInfo catalogSubscribe = subscribeHolder.getCatalogSubscribe(platform.getServerGBId());
+        if (catalogSubscribe != null) {
+            List<CommonGbChannel> channelList = commonGbChannelMapper.queryInIdList(commonGbChannelIds);
+            if (channelList != null) {
+                eventPublisher.catalogEventPublish(platform.getServerGBId(), channelList, CatalogEvent.DEL);
+            }
+        }
+        return allCount;
     }
 }

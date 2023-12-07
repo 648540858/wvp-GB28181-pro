@@ -71,23 +71,13 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
 
     @Override
     public int add(CommonGbChannel channel) {
+        // TODO 给标记了共享所有通道的上级·平台发送数据
         return commonGbChannelMapper.add(channel);
     }
 
     @Override
-    public int addFromGbChannel(DeviceChannel channel) {
-        CommonGbChannel commonGbChannel = commonGbChannelMapper.queryByDeviceID(channel.getChannelId());
-        logger.info("[添加通用通道]来自国标通道，国标编号: {}, 同步所有字段", channel.getChannelId());
-        if (commonGbChannel != null) {
-            logger.info("[添加通用通道]来自国标通道，失败，已存在。国标编号: {}", channel.getChannelId());
-            return 0;
-        }
-        CommonGbChannel commonChannelFromDeviceChannel = getCommonChannelFromDeviceChannel(channel, null);
-        return commonGbChannelMapper.add(commonChannelFromDeviceChannel);
-    }
-
-    @Override
     public int delete(String channelId) {
+
         return commonGbChannelMapper.deleteByDeviceID(channelId);
     }
 

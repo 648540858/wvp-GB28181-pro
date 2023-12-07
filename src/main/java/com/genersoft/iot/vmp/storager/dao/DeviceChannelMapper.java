@@ -3,7 +3,6 @@ package com.genersoft.iot.vmp.storager.dao;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannelInPlatform;
-import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.annotations.Param;
@@ -148,33 +147,6 @@ public interface DeviceChannelMapper {
 
     @Update(value = {"UPDATE wvp_device_channel SET stream_id=#{streamId} WHERE device_id=#{deviceId} AND channel_id=#{channelId}"})
     void startPlay(@Param("deviceId") String deviceId, @Param("channelId") String channelId, @Param("streamId") String streamId);
-
-
-    @Select(value = {" <script>" +
-            "SELECT " +
-            "    dc.id,\n" +
-            "    dc.channel_id,\n" +
-            "    dc.device_id,\n" +
-            "    dc.name,\n" +
-            "    de.manufacturer,\n" +
-            "    de.host_address,\n" +
-            "    dc.sub_count,\n" +
-            "    pgc.platform_id as platform_id,\n" +
-            "    pgc.catalog_id as catalog_id " +
-            " FROM wvp_device_channel dc " +
-            " LEFT JOIN wvp_device de ON dc.device_id = de.device_id " +
-            " LEFT JOIN wvp_platform_gb_channel pgc on pgc.device_channel_id = dc.id " +
-            " WHERE 1=1 " +
-            " <if test='query != null'> AND (dc.channel_id LIKE concat('%',#{query},'%') OR dc.name LIKE concat('%',#{query},'%') OR dc.name LIKE concat('%',#{query},'%'))</if> " +
-            " <if test='online == true' > AND dc.status=true</if> " +
-            " <if test='online == false' > AND dc.status=false</if> " +
-            " <if test='hasSubChannel!= null and hasSubChannel == true' >  AND dc.sub_count > 0</if> " +
-            " <if test='hasSubChannel!= null and hasSubChannel == false' >  AND dc.sub_count = 0</if> " +
-            " <if test='catalogId == null ' >  AND dc.id not in (select device_channel_id from wvp_platform_gb_channel where platform_id=#{platformId} ) </if> " +
-            " <if test='catalogId != null ' >  AND pgc.platform_id = #{platformId} and pgc.catalog_id=#{catalogId} </if> " +
-            " ORDER BY dc.device_id, dc.channel_id ASC" +
-            " </script>"})
-    List<ChannelReduce> queryChannelListInAll(@Param("query") String query, @Param("online") Boolean online, @Param("hasSubChannel") Boolean hasSubChannel, @Param("platformId") String platformId, @Param("catalogId") String catalogId);
 
     @Select(value = {" <script>" +
             "SELECT " +

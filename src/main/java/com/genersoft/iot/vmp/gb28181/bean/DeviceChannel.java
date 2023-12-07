@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
-import com.genersoft.iot.vmp.common.CommonGbChannel;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "通道信息")

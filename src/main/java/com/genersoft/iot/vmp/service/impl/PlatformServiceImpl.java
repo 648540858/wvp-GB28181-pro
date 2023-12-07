@@ -1,7 +1,9 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
@@ -15,6 +17,7 @@ import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.*;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -49,15 +52,6 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Autowired
     private ParentPlatformMapper platformMapper;
-
-    @Autowired
-    private PlatformCatalogMapper catalogMapper;
-
-    @Autowired
-    private PlatformChannelMapper platformChannelMapper;
-
-    @Autowired
-    private PlatformGbStreamMapper platformGbStreamMapper;
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -426,5 +420,52 @@ public class PlatformServiceImpl implements IPlatformService {
                 }
             }
         }
+    }
+
+    @Override
+    public boolean delete(String serverGBId) {
+        ParentPlatform parentPlatform = platformMapper.getParentPlatByServerGBId(serverGBId);
+        ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(serverGBId);
+        if (parentPlatform == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台不存在");
+        }
+        // TODO 发送取消订阅的消息，等待市场检验后确定需要再添加此项，暂时记录
+        //  可通过发送subscription-state 头域为terminated 的 NOTIFY 消息主动结束订阅, NOTIFY消息体可为空,
+        //  订阅方接收到该消息后回复200 OK 响应。
+        // 停止推流
+        stopAllPush(parentPlatform.getServerGBId());
+        // 停止发送位置订阅定时任务
+        String sendMobilePositionTaskKey = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetting.getServerId() +  "_MobilePosition_" + parentPlatform.getServerGBId();
+        if (dynamicTask.contains(sendMobilePositionTaskKey)) {
+            dynamicTask.stop(sendMobilePositionTaskKey);
+        }
+        // 停止注册
+        final String registerTaskKey = REGISTER_KEY_PREFIX + parentPlatform.getServerGBId();
+        if (dynamicTask.contains(registerTaskKey)) {
+            dynamicTask.stop(registerTaskKey);
+        }
+        // 清除定时心跳
+        final String keepaliveTaskKey = KEEPALIVE_KEY_PREFIX + parentPlatform.getServerGBId();
+        if (dynamicTask.contains(keepaliveTaskKey)) {
+            dynamicTask.stop(keepaliveTaskKey);
+        }
+        // 删除缓存的订阅信息
+        subscribeHolder.removeAllSubscribe(parentPlatform.getServerGBId());
+
+        // 发送注销的请求
+        if (parentPlatformCatch != null && parentPlatformCatch.getSipTransactionInfo() != null) {
+            // 发送离线消息,无论是否成功都删除缓存
+            try {
+                commanderForPlatform.unregister(parentPlatform, parentPlatformCatch.getSipTransactionInfo(), null, null);
+            } catch (InvalidArgumentException | ParseException | SipException e) {
+                logger.error("[命令发送失败] 国标级联 注销: {}", e.getMessage());
+            } finally {
+                // 清空redis缓存
+                redisCatchStorage.delPlatformCatchInfo(parentPlatform.getServerGBId());
+                redisCatchStorage.delPlatformKeepalive(parentPlatform.getServerGBId());
+                redisCatchStorage.delPlatformRegister(parentPlatform.getServerGBId());
+            }
+        }
+        return true;
     }
 }

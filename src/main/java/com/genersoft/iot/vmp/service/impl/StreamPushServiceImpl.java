@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.alibaba.fastjson2.TypeReference;
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -13,9 +14,10 @@ import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OriginType;
-import com.genersoft.iot.vmp.service.IGbStreamService;
+import com.genersoft.iot.vmp.service.ICommonGbChannelService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
+import com.genersoft.iot.vmp.service.bean.CommonGbChannelType;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.*;
@@ -30,6 +32,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import java.util.*;
@@ -41,25 +44,10 @@ public class StreamPushServiceImpl implements IStreamPushService {
     private final static Logger logger = LoggerFactory.getLogger(StreamPushServiceImpl.class);
 
     @Autowired
-    private GbStreamMapper gbStreamMapper;
-
-    @Autowired
     private StreamPushMapper streamPushMapper;
 
     @Autowired
     private StreamProxyMapper streamProxyMapper;
-
-    @Autowired
-    private ParentPlatformMapper parentPlatformMapper;
-
-    @Autowired
-    private PlatformCatalogMapper platformCatalogMapper;
-
-    @Autowired
-    private PlatformGbStreamMapper platformGbStreamMapper;
-
-    @Autowired
-    private IGbStreamService gbStreamService;
 
     @Autowired
     private EventPublisher eventPublisher;
@@ -75,6 +63,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Autowired
     private IMediaServerService mediaServerService;
+
+    @Autowired
+    private ICommonGbChannelService commonGbChannelService;
 
     @Autowired
     DataSourceTransactionManager dataSourceTransactionManager;
@@ -126,8 +117,6 @@ public class StreamPushServiceImpl implements IStreamPushService {
         streamPushItem.setOriginUrl(item.getOriginUrl());
         streamPushItem.setCreateTime(DateUtil.getNow());
         streamPushItem.setAliveSecond(item.getAliveSecond());
-        streamPushItem.setStatus(true);
-        streamPushItem.setStreamType("push");
         streamPushItem.setVhost(item.getVhost());
         streamPushItem.setServerId(item.getSeverId());
         return streamPushItem;
@@ -144,37 +133,6 @@ public class StreamPushServiceImpl implements IStreamPushService {
     public List<StreamPushItem> getPushList(String mediaServerId) {
         return streamPushMapper.selectAllByMediaServerIdWithOutGbID(mediaServerId);
     }
-
-    @Override
-    public boolean saveToGB(GbStream stream) {
-        stream.setStreamType("push");
-        stream.setStatus(true);
-        stream.setCreateTime(DateUtil.getNow());
-        stream.setStreamType("push");
-        stream.setMediaServerId(mediaConfig.getId());
-        int add = gbStreamMapper.add(stream);
-        return add > 0;
-    }
-
-    @Override
-    public boolean removeFromGB(GbStream stream) {
-        // 判断是否需要发送事件
-        gbStreamService.sendCatalogMsg(stream, CatalogEvent.DEL);
-        platformGbStreamMapper.delByAppAndStream(stream.getApp(), stream.getStream());
-        int del = gbStreamMapper.del(stream.getApp(), stream.getStream());
-        MediaServerItem mediaInfo = mediaServerService.getOne(stream.getMediaServerId());
-        JSONObject mediaList = zlmresTfulUtils.getMediaList(mediaInfo, stream.getApp(), stream.getStream());
-        if (mediaList != null) {
-            if (mediaList.getInteger("code") == 0) {
-                JSONArray data = mediaList.getJSONArray("data");
-                if (data == null) {
-                    streamPushMapper.del(stream.getApp(), stream.getStream());
-                }
-            }
-        }
-        return del > 0;
-    }
-
 
     @Override
     public StreamPushItem getPush(String app, String streamId) {
@@ -456,10 +414,6 @@ public class StreamPushServiceImpl implements IStreamPushService {
         if (gbStreams == null || gbStreams.size() == 0) {
             return false;
         }
-        gbStreamService.sendCatalogMsgs(gbStreams, CatalogEvent.DEL);
-
-        platformGbStreamMapper.delByGbStreams(gbStreams);
-        gbStreamMapper.batchDelForGbStream(gbStreams);
         int delStream = streamPushMapper.delAllForGbStream(gbStreams);
         if (delStream > 0) {
             for (GbStream gbStream : gbStreams) {
@@ -502,27 +456,25 @@ public class StreamPushServiceImpl implements IStreamPushService {
     }
 
     @Override
-    public boolean add(StreamPushItem stream) {
-        stream.setUpdateTime(DateUtil.getNow());
-        stream.setCreateTime(DateUtil.getNow());
-        stream.setServerId(userSetting.getServerId());
+    @Transactional
+    public boolean add(StreamPushItem stream, CommonGbChannel commonGbChannel) {
+        assert !ObjectUtils.isEmpty(commonGbChannel.getCommonGbDeviceID());
+        assert !ObjectUtils.isEmpty(commonGbChannel.getCommonGbName());
+        String now = DateUtil.getNow();
+        commonGbChannel.setCreateTime(now);
+        commonGbChannel.setUpdateTime(now);
+        commonGbChannel.setType(CommonGbChannelType.PUSH);
 
-        // 放在事务内执行
-        boolean result = false;
-        TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
-        try {
-            int addStreamResult = streamPushMapper.add(stream);
-            if (!ObjectUtils.isEmpty(stream.getGbId())) {
-                stream.setStreamType("push");
-                gbStreamMapper.add(stream);
-            }
-            dataSourceTransactionManager.commit(transactionStatus);
-            result = true;
-        }catch (Exception e) {
-            logger.error("批量移除流与平台的关系时错误", e);
-            dataSourceTransactionManager.rollback(transactionStatus);
+        commonGbChannelService.add(commonGbChannel);
+        if (commonGbChannel.getCommonGbId() > 0) {
+            stream.setCommonGbChannelId(commonGbChannel.getCommonGbId());
+        }else {
+            return false;
         }
-        return result;
+        stream.setUpdateTime(now);
+        stream.setCreateTime(now);
+        stream.setServerId(userSetting.getServerId());
+        return streamPushMapper.add(stream) > 1;
     }
 
     @Override

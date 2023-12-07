@@ -22,8 +22,6 @@ public interface ICommonGbChannelService {
 
     int add(CommonGbChannel channel);
 
-    int addFromGbChannel(DeviceChannel channel);
-
     int delete(String channelId);
 
     int update(CommonGbChannel channel);

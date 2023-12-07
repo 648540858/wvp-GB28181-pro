@@ -46,25 +46,13 @@ public class PlatformController {
     private final static Logger logger = LoggerFactory.getLogger(PlatformController.class);
 
     @Autowired
-    private UserSetting userSetting;
-
-    @Autowired
     private IVideoManagerStorage storager;
-
-    @Autowired
-    private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
     private SubscribeHolder subscribeHolder;
 
     @Autowired
-    private ISIPCommanderForPlatform commanderForPlatform;
-
-    @Autowired
     private SipConfig sipConfig;
-
-	@Autowired
-	private DynamicTask dynamicTask;
 
 	@Autowired
 	private IPlatformService platformService;
@@ -215,43 +203,10 @@ public class PlatformController {
         if (logger.isDebugEnabled()) {
             logger.debug("删除上级平台API调用");
         }
-        if (ObjectUtils.isEmpty(serverGBId)
-        ) {
+        if (ObjectUtils.isEmpty(serverGBId)) {
             throw new ControllerException(ErrorCode.ERROR400);
         }
-        ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(serverGBId);
-        ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(serverGBId);
-        if (parentPlatform == null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台不存在");
-        }
-        if (parentPlatformCatch == null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台不存在");
-        }
-        // 发送离线消息,无论是否成功都删除缓存
-        try {
-            commanderForPlatform.unregister(parentPlatform, parentPlatformCatch.getSipTransactionInfo(), (event -> {
-                // 清空redis缓存
-                redisCatchStorage.delPlatformCatchInfo(parentPlatform.getServerGBId());
-                redisCatchStorage.delPlatformKeepalive(parentPlatform.getServerGBId());
-                redisCatchStorage.delPlatformRegister(parentPlatform.getServerGBId());
-            }), (event -> {
-                // 清空redis缓存
-                redisCatchStorage.delPlatformCatchInfo(parentPlatform.getServerGBId());
-                redisCatchStorage.delPlatformKeepalive(parentPlatform.getServerGBId());
-                redisCatchStorage.delPlatformRegister(parentPlatform.getServerGBId());
-            }));
-        } catch (InvalidArgumentException | ParseException | SipException e) {
-            logger.error("[命令发送失败] 国标级联 注销: {}", e.getMessage());
-        }
-
-        boolean deleteResult = storager.deleteParentPlatform(parentPlatform);
-        storager.delCatalogByPlatformId(parentPlatform.getServerGBId());
-        storager.delRelationByPlatformId(parentPlatform.getServerGBId());
-        // 停止发送位置订阅定时任务
-        String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetting.getServerId() +  "_MobilePosition_" + parentPlatform.getServerGBId();
-        dynamicTask.stop(key);
-        // 删除缓存的订阅信息
-        subscribeHolder.removeAllSubscribe(parentPlatform.getServerGBId());
+        boolean deleteResult = platformService.delete(serverGBId);
         if (!deleteResult) {
             throw new ControllerException(ErrorCode.ERROR100);
         }

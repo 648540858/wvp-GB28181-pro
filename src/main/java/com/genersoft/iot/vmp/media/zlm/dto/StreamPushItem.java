@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 @Schema(description = "推流信息")
-public class StreamPushItem extends GbStream implements Comparable<StreamPushItem>{
+public class StreamPushItem implements Comparable<StreamPushItem>{
 
     /**
      * id
@@ -133,20 +133,17 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
     @Schema(description = "是否自己平台的推流")
     private boolean self;
 
+    /**
+     * 国标通用信息ID
+     */
+    @Schema(description = "国标通用信息ID")
+    private int commonGbChannelId;
 
-
-    public String getVhost() {
-        return vhost;
-    }
-
-    public void setVhost(String vhost) {
-        this.vhost = vhost;
-    }
 
 
     @Override
     public int compareTo(@NotNull StreamPushItem streamPushItem) {
-        return Long.valueOf(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(super.createTime)
+        return Long.valueOf(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(this.createTime)
                 - DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(streamPushItem.getCreateTime())).intValue();
     }
 
@@ -179,22 +176,18 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
         this.id = id;
     }
 
-    @Override
     public String getApp() {
         return app;
     }
 
-    @Override
     public void setApp(String app) {
         this.app = app;
     }
 
-    @Override
     public String getStream() {
         return stream;
     }
 
-    @Override
     public void setStream(String stream) {
         this.stream = stream;
     }
@@ -231,7 +224,6 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
         this.originSock = originSock;
     }
 
-
     public String getOriginTypeStr() {
         return originTypeStr;
     }
@@ -264,13 +256,18 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
         this.tracks = tracks;
     }
 
+    public String getVhost() {
+        return vhost;
+    }
 
-    @Override
+    public void setVhost(String vhost) {
+        this.vhost = vhost;
+    }
+
     public String getMediaServerId() {
         return mediaServerId;
     }
 
-    @Override
     public void setMediaServerId(String mediaServerId) {
         this.mediaServerId = mediaServerId;
     }
@@ -282,7 +279,6 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
     public void setServerId(String serverId) {
         this.serverId = serverId;
     }
-
 
     public String getPushTime() {
         return pushTime;
@@ -300,12 +296,10 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
         this.updateTime = updateTime;
     }
 
-    @Override
     public String getCreateTime() {
         return createTime;
     }
 
-    @Override
     public void setCreateTime(String createTime) {
         this.createTime = createTime;
     }
@@ -326,64 +320,12 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
         this.self = self;
     }
 
-//    @Override
-//    public Integer getGbStreamId() {
-//        return super.getGbStreamId();
-//    }
-//
-//    @Override
-//    public void setGbStreamId(Integer gbStreamId) {
-//        super.setGbStreamId(gbStreamId);
-//    }
-//
-//
-//    public String getGbId() {
-//        return super.getGbId();
-//    }
-//
-//    public void setGbId(String gbId) {
-//       super.setGbId(gbId);
-//    }
-//
-//    public String getName() {
-//        return super.getName();
-//    }
-//
-//    public void setName(String name) {
-//        super.setName(name);
-//    }
-//
-//    public double getLongitude() {
-//        return super.getLongitude();
-//    }
-//
-//    public void setLongitude(double longitude) {
-//        super.setLongitude(longitude);
-//    }
-//
-//    public double getLatitude() {
-//        return super.getLatitude();
-//    }
-//
-//    public void setLatitude(double latitude) {
-//        super.setLatitude(latitude);
-//    }
-//
-//    public String getStreamType() {
-//        return super.getStreamType();
-//    }
-//
-//    public void setStreamType(String streamType) {
-//        super.setStreamType(streamType);
-//    }
-//
-//    public boolean isStatus() {
-//        return super.isStatus();
-//    }
-//
-//    public void setStatus(boolean status) {
-//        super.setStatus(status);
-//    }
+    public int getCommonGbChannelId() {
+        return commonGbChannelId;
+    }
 
+    public void setCommonGbChannelId(int commonGbChannelId) {
+        this.commonGbChannelId = commonGbChannelId;
+    }
 }
 

@@ -150,6 +150,7 @@ public interface CommonChannelMapper {
             " <if test='createTime != null' > ,#{createTime}</if>" +
             ")" +
             "</script>")
+    @Options(useGeneratedKeys=true, keyProperty="commonGbId", keyColumn="common_gb_id")
     int add(CommonGbChannel channel);
 
     @Delete("delete from wvp_common_channel where common_gb_device_id = #{channelId}")

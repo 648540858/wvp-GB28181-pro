@@ -17,4 +17,29 @@ import java.util.Map;
 public interface CommonChannelPlatformMapper {
 
 
+    @Select(" <script>" +
+            "select * from wvp_common_channel_platform where platform_id = #{platformId} and common_gb_channel_id in " +
+            "<foreach collection='commonGbChannelIds'  item='item'  open='(' separator=',' close=')' >#{item}</foreach>" +
+            " </script>")
+    List<Integer> findChannelsInDb(@Param("platformId") Integer platformId,
+                                   @Param("commonGbChannelIds") List<Integer> commonGbChannelIds);
+
+    @Insert("<script> " +
+            "INSERT into wvp_common_channel_platform " +
+            "(platform_id, common_gb_channel_id)" +
+            "values " +
+            "<foreach collection='commonGbChannelIds' index='index' item='item' separator=','> " +
+            "(#{platformId}, #{item}) "+
+            "</foreach> " +
+            "</script>")
+    int addChannels(@Param("platformId") Integer platformId,
+                    @Param("commonGbChannelIds") List<Integer> commonGbChannelIds);
+
+    @Delete("<script> " +
+            "delete from wvp_common_channel_platform " +
+            "where platform_id = #{platformId} and common_gb_channel_id in " +
+            "<foreach collection='commonGbChannelIds'  item='item'  open='(' separator=',' close=')' >#{item}</foreach>" +
+            "</script>")
+    int removeChannels(@Param("platformId") Integer platformId,
+                       @Param("commonGbChannelIds") List<Integer> commonGbChannelIds);
 }

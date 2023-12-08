@@ -99,10 +99,34 @@ alter table wvp_device_channel
     add common_gb_channel_id integer;
 
 alter table wvp_stream_push
+    add name varchar(255) default NULL;
+
+alter table wvp_stream_push
     add common_gb_channel_id integer;
 
 alter table wvp_stream_proxy
     add common_gb_channel_id integer;
+
+alter table wvp_stream_push
+    drop column origin_type;
+
+alter table wvp_stream_push
+    drop column origin_type_str;
+
+alter table wvp_stream_push
+    add gb_id varchar(50) default NULL;
+
+alter table wvp_stream_push
+    add longitude double precision;
+
+alter table wvp_stream_push
+    add latitude double precision;
+
+alter table wvp_stream_push
+    add status bool default false;
+
+
+
 
 
 

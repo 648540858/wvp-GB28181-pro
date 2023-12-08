@@ -8,7 +8,7 @@ import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
@@ -71,7 +71,7 @@ public class RedisPushStreamCloseResponseListener implements MessageListener {
     public void onMessage(Message message, byte[] bytes) {
         logger.info("[REDIS消息-推流结束]： {}", new String(message.getBody()));
         MessageForPushChannel pushChannel = JSON.parseObject(message.getBody(), MessageForPushChannel.class);
-        StreamPushItem push = streamPushService.getPush(pushChannel.getApp(), pushChannel.getStream());
+        StreamPush push = streamPushService.getPush(pushChannel.getApp(), pushChannel.getStream());
         if (push != null) {
             if (redisCatchStorage.isChannelSendingRTP(push.getGbId())) {
                 List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByChnnelId(

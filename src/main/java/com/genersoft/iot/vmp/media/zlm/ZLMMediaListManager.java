@@ -68,9 +68,9 @@ public class ZLMMediaListManager {
 
     private Map<String, ChannelOnlineEvent> channelOnPublishEvents = new ConcurrentHashMap<>();
 
-    public StreamPushItem addPush(OnStreamChangedHookParam onStreamChangedHookParam) {
-        StreamPushItem transform = streamPushService.transform(onStreamChangedHookParam);
-        StreamPushItem pushInDb = streamPushService.getPush(onStreamChangedHookParam.getApp(), onStreamChangedHookParam.getStream());
+    public StreamPush addPush(OnStreamChangedHookParam onStreamChangedHookParam) {
+        StreamPush transform = streamPushService.transform(onStreamChangedHookParam);
+        StreamPush pushInDb = streamPushService.getPush(onStreamChangedHookParam.getApp(), onStreamChangedHookParam.getStream());
         transform.setPushIng(onStreamChangedHookParam.isRegist());
         transform.setUpdateTime(DateUtil.getNow());
         transform.setPushTime(DateUtil.getNow());

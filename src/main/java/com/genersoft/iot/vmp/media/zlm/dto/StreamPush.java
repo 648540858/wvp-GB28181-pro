@@ -1,21 +1,21 @@
 package com.genersoft.iot.vmp.media.zlm.dto;
 
-import com.genersoft.iot.vmp.gb28181.bean.GbStream;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 
 @Schema(description = "推流信息")
-public class StreamPushItem implements Comparable<StreamPushItem>{
+public class StreamPush implements Comparable<StreamPush>{
 
     /**
      * id
      */
     @Schema(description = "id")
     private Integer id;
+
+    @Schema(description = "名称")
+    private String name;
 
     /**
      * 应用名
@@ -35,55 +35,12 @@ public class StreamPushItem implements Comparable<StreamPushItem>{
     @Schema(description = "观看总人数")
     private String totalReaderCount;
 
-    /**
-     * 协议 包括hls/rtsp/rtmp/http-flv/ws-flv
-     */
-    @Schema(description = "协议 包括hls/rtsp/rtmp/http-flv/ws-flv")
-    private List<MediaSchema> schemas;
-
-    /**
-     * 产生源类型，
-     * unknown = 0,
-     * rtmp_push=1,
-     * rtsp_push=2,
-     * rtp_push=3,
-     * pull=4,
-     * ffmpeg_pull=5,
-     * mp4_vod=6,
-     * device_chn=7
-     */
-    @Schema(description = "产生源类型")
-    private int originType;
-
-    /**
-     * 客户端和服务器网络信息，可能为null类型
-     */
-    @Schema(description = "客户端和服务器网络信息，可能为null类型")
-    private OnStreamChangedHookParam.OriginSock originSock;
-
-    /**
-     * 产生源类型的字符串描述
-     */
-    @Schema(description = "产生源类型的字符串描述")
-    private String originTypeStr;
-
-    /**
-     * 产生源的url
-     */
-    @Schema(description = "产生源的url")
-    private String originUrl;
 
     /**
      * 存活时间，单位秒
      */
     @Schema(description = "存活时间，单位秒")
     private Long aliveSecond;
-
-    /**
-     * 音视频轨道
-     */
-    @Schema(description = "音视频轨道")
-    private List<OnStreamChangedHookParam.MediaTrack> tracks;
 
     /**
      * 音视频轨道
@@ -139,33 +96,23 @@ public class StreamPushItem implements Comparable<StreamPushItem>{
     @Schema(description = "国标通用信息ID")
     private int commonGbChannelId;
 
+    @Schema(description = "国标ID")
+    private String gbId;
+
+    @Schema(description = "经度")
+    private double longitude;
+
+    @Schema(description = "纬度")
+    private double latitude;
+
+    @Schema(description = "状态")
+    private boolean status;
 
 
     @Override
-    public int compareTo(@NotNull StreamPushItem streamPushItem) {
+    public int compareTo(@NotNull StreamPush streamPushItem) {
         return Long.valueOf(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(this.createTime)
                 - DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(streamPushItem.getCreateTime())).intValue();
-    }
-
-    public static class MediaSchema {
-        private String schema;
-        private Long bytesSpeed;
-
-        public String getSchema() {
-            return schema;
-        }
-
-        public void setSchema(String schema) {
-            this.schema = schema;
-        }
-
-        public Long getBytesSpeed() {
-            return bytesSpeed;
-        }
-
-        public void setBytesSpeed(Long bytesSpeed) {
-            this.bytesSpeed = bytesSpeed;
-        }
     }
 
     public Integer getId() {
@@ -174,6 +121,14 @@ public class StreamPushItem implements Comparable<StreamPushItem>{
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getApp() {
@@ -200,60 +155,12 @@ public class StreamPushItem implements Comparable<StreamPushItem>{
         this.totalReaderCount = totalReaderCount;
     }
 
-    public List<MediaSchema> getSchemas() {
-        return schemas;
-    }
-
-    public void setSchemas(List<MediaSchema> schemas) {
-        this.schemas = schemas;
-    }
-
-    public int getOriginType() {
-        return originType;
-    }
-
-    public void setOriginType(int originType) {
-        this.originType = originType;
-    }
-
-    public OnStreamChangedHookParam.OriginSock getOriginSock() {
-        return originSock;
-    }
-
-    public void setOriginSock(OnStreamChangedHookParam.OriginSock originSock) {
-        this.originSock = originSock;
-    }
-
-    public String getOriginTypeStr() {
-        return originTypeStr;
-    }
-
-    public void setOriginTypeStr(String originTypeStr) {
-        this.originTypeStr = originTypeStr;
-    }
-
-    public String getOriginUrl() {
-        return originUrl;
-    }
-
-    public void setOriginUrl(String originUrl) {
-        this.originUrl = originUrl;
-    }
-
     public Long getAliveSecond() {
         return aliveSecond;
     }
 
     public void setAliveSecond(Long aliveSecond) {
         this.aliveSecond = aliveSecond;
-    }
-
-    public List<OnStreamChangedHookParam.MediaTrack> getTracks() {
-        return tracks;
-    }
-
-    public void setTracks(List<OnStreamChangedHookParam.MediaTrack> tracks) {
-        this.tracks = tracks;
     }
 
     public String getVhost() {
@@ -326,6 +233,38 @@ public class StreamPushItem implements Comparable<StreamPushItem>{
 
     public void setCommonGbChannelId(int commonGbChannelId) {
         this.commonGbChannelId = commonGbChannelId;
+    }
+
+    public String getGbId() {
+        return gbId;
+    }
+
+    public void setGbId(String gbId) {
+        this.gbId = gbId;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
     }
 }
 

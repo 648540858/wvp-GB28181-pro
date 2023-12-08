@@ -254,11 +254,10 @@ create table wvp_stream_proxy (
 
 create table wvp_stream_push (
                                  id serial primary key,
+                                 name character varying(255) default NULL,
                                  app character varying(255),
                                  stream character varying(255),
                                  total_reader_count character varying(50),
-                                 origin_type integer,
-                                 origin_type_str character varying(50),
                                  create_time character varying(50),
                                  alive_second integer,
                                  media_server_id character varying(50),

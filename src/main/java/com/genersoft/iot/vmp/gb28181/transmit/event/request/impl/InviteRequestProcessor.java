@@ -160,7 +160,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 PlatformCatalog catalog = storager.getCatalog(requesterId, channelId);
 
                 MediaServerItem mediaServerItem = null;
-                StreamPushItem streamPushItem = null;
+                StreamPush streamPushItem = null;
                 StreamProxyItem proxyByAppAndStream =null;
                 // 不是通道可能是直播流
                 if (channel != null && gbStream == null) {
@@ -624,7 +624,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         }
 
     }
-    private void pushStream(RequestEvent evt, SIPRequest request, GbStream gbStream, StreamPushItem streamPushItem, ParentPlatform platform,
+    private void pushStream(RequestEvent evt, SIPRequest request, GbStream gbStream, StreamPush streamPushItem, ParentPlatform platform,
                             CallIdHeader callIdHeader, MediaServerItem mediaServerItem,
                             int port, Boolean tcpActive, boolean mediaTransmissionTCP,
                             String channelId, String addressStr, String ssrc, String requesterId) {
@@ -676,7 +676,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     /**
      * 通知流上线
      */
-    private void notifyStreamOnline(RequestEvent evt, SIPRequest request, GbStream gbStream, StreamPushItem streamPushItem, ParentPlatform platform,
+    private void notifyStreamOnline(RequestEvent evt, SIPRequest request, GbStream gbStream, StreamPush streamPushItem, ParentPlatform platform,
                                     CallIdHeader callIdHeader, MediaServerItem mediaServerItem,
                                     int port, Boolean tcpActive, boolean mediaTransmissionTCP,
                                     String channelId, String addressStr, String ssrc, String requesterId) {
@@ -804,7 +804,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     /**
      * 来自其他wvp的推流
      */
-    private void otherWvpPushStream(RequestEvent evt, SIPRequest request, GbStream gbStream, StreamPushItem streamPushItem, ParentPlatform platform,
+    private void otherWvpPushStream(RequestEvent evt, SIPRequest request, GbStream gbStream, StreamPush streamPushItem, ParentPlatform platform,
                                     CallIdHeader callIdHeader, MediaServerItem mediaServerItem,
                                     int port, Boolean tcpActive, boolean mediaTransmissionTCP,
                                     String channelId, String addressStr, String ssrc, String requesterId) {
@@ -848,7 +848,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     if (wvpResult.getCode() == RedisGbPlayMsgListener.ERROR_CODE_OFFLINE) {
                         // 离线
                         // 查询是否在本机上线了
-                        StreamPushItem currentStreamPushItem = streamPushService.getPush(streamPushItem.getApp(), streamPushItem.getStream());
+                        StreamPush currentStreamPushItem = streamPushService.getPush(streamPushItem.getApp(), streamPushItem.getStream());
                         if (currentStreamPushItem.isPushIng()) {
                             // 在线状态
                             pushStream(evt, request, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,

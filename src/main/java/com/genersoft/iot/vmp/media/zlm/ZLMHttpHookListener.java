@@ -20,7 +20,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.media.zlm.dto.HookType;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.*;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
@@ -199,7 +199,7 @@ public class ZLMHttpHookListener {
         }
         // 推流鉴权的处理
         if (!"rtp".equals(param.getApp())) {
-            StreamProxyItem stream = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
+            StreamProxy stream = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
             if (stream != null) {
                 HookResultForOnPublish result = HookResultForOnPublish.SUCCESS();
                 result.setEnable_audio(stream.isEnableAudio());
@@ -539,7 +539,7 @@ public class ZLMHttpHookListener {
         } else {
             // 非国标流 推流/拉流代理
             // 拉流代理
-            StreamProxyItem streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
+            StreamProxy streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
             if (streamProxyItem != null) {
                 if (streamProxyItem.isEnableRemoveNoneReader()) {
                     // 无人观看自动移除
@@ -678,7 +678,7 @@ public class ZLMHttpHookListener {
 
         } else {
             // 拉流代理
-            StreamProxyItem streamProxyByAppAndStream = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
+            StreamProxy streamProxyByAppAndStream = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
             if (streamProxyByAppAndStream != null && streamProxyByAppAndStream.isEnableDisableNoneReader()) {
                 streamProxyService.start(param.getApp(), param.getStream());
             }

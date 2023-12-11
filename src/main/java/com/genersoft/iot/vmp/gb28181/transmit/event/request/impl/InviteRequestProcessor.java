@@ -161,7 +161,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
                 MediaServerItem mediaServerItem = null;
                 StreamPush streamPushItem = null;
-                StreamProxyItem proxyByAppAndStream =null;
+                StreamProxy proxyByAppAndStream =null;
                 // 不是通道可能是直播流
                 if (channel != null && gbStream == null) {
                     // 通道存在，发100，TRYING

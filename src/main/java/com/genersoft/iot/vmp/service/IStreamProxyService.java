@@ -4,7 +4,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.GeneralCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.github.pagehelper.PageInfo;
 
@@ -14,21 +14,21 @@ public interface IStreamProxyService {
      * 保存视频代理
      * @param param
      */
-    void save(StreamProxyItem param, GeneralCallback<StreamInfo> callback);
+    void save(StreamProxy param, GeneralCallback<StreamInfo> callback);
 
     /**
      * 添加视频代理到zlm
      * @param param
      * @return
      */
-    JSONObject addStreamProxyToZlm(StreamProxyItem param);
+    JSONObject addStreamProxyToZlm(StreamProxy param);
 
     /**
      * 从zlm移除视频代理
      * @param param
      * @return
      */
-    JSONObject removeStreamProxyFromZlm(StreamProxyItem param);
+    JSONObject removeStreamProxyFromZlm(StreamProxy param);
 
     /**
      * 分页查询
@@ -36,7 +36,7 @@ public interface IStreamProxyService {
      * @param count
      * @return
      */
-    PageInfo<StreamProxyItem> getAll(Integer page, Integer count);
+    PageInfo<StreamProxy> getAll(Integer page, Integer count);
 
     /**
      * 删除视频代理
@@ -81,7 +81,7 @@ public interface IStreamProxyService {
      * 根据app与stream获取streamProxy
      * @return
      */
-    StreamProxyItem getStreamProxyByAppAndStream(String app, String streamId);
+    StreamProxy getStreamProxyByAppAndStream(String app, String streamId);
 
 
     /**
@@ -103,7 +103,7 @@ public interface IStreamProxyService {
     /**
      * 更新代理流
      */
-    boolean updateStreamProxy(StreamProxyItem streamProxyItem);
+    boolean updateStreamProxy(StreamProxy streamProxyItem);
 
     /**
      * 获取统计信息

@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.storager.dao;
 
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
@@ -16,7 +16,7 @@ public interface StreamProxyMapper {
             "(#{type}, #{name}, #{app}, #{stream}, #{mediaServerId}, #{url}, #{srcUrl}, #{dstUrl}, " +
             "#{timeoutMs}, #{ffmpegCmdKey}, #{rtpType}, #{enableAudio}, #{enableMp4}, #{enable}, #{status}, #{streamKey}, " +
             "#{enableRemoveNoneReader}, #{enableDisableNoneReader}, #{createTime} )")
-    int add(StreamProxyItem streamProxyDto);
+    int add(StreamProxy streamProxyDto);
 
     @Update("UPDATE wvp_stream_proxy " +
             "SET type=#{type}, " +
@@ -38,29 +38,29 @@ public interface StreamProxyMapper {
             "enable_disable_none_reader=#{enableDisableNoneReader}, " +
             "enable_mp4=#{enableMp4} " +
             "WHERE app=#{app} AND stream=#{stream}")
-    int update(StreamProxyItem streamProxyDto);
+    int update(StreamProxy streamProxyDto);
 
     @Delete("DELETE FROM wvp_stream_proxy WHERE app=#{app} AND stream=#{stream}")
     int del(String app, String stream);
 
     @Select("SELECT st.*, pgs.gb_id, pgs.name, pgs.longitude, pgs.latitude FROM wvp_stream_proxy st LEFT join wvp_gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream order by st.create_time desc")
-    List<StreamProxyItem> selectAll();
+    List<StreamProxy> selectAll();
 
     @Select("SELECT st.*, pgs.gb_id, pgs.name, pgs.longitude, pgs.latitude, 'proxy' as streamType FROM wvp_stream_proxy st LEFT join wvp_gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream WHERE st.enable=#{enable} order by st.create_time desc")
-    List<StreamProxyItem> selectForEnable(boolean enable);
+    List<StreamProxy> selectForEnable(boolean enable);
 
     @Select("SELECT st.*, pgs.gb_id, pgs.name, pgs.longitude, pgs.latitude FROM wvp_stream_proxy st LEFT join wvp_gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream WHERE st.app=#{app} AND st.stream=#{stream} order by st.create_time desc")
-    StreamProxyItem selectOne(@Param("app") String app, @Param("stream") String stream);
+    StreamProxy selectOne(@Param("app") String app, @Param("stream") String stream);
 
     @Select("SELECT st.*, pgs.gb_id, pgs.name, pgs.longitude, pgs.latitude FROM wvp_stream_proxy st " +
             "LEFT join wvp_gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream " +
             "WHERE st.enable=#{enable} and st.media_server_id= #{id} order by st.create_time desc")
-    List<StreamProxyItem> selectForEnableInMediaServer( @Param("id")  String id, @Param("enable") boolean enable);
+    List<StreamProxy> selectForEnableInMediaServer(@Param("id")  String id, @Param("enable") boolean enable);
 
     @Select("SELECT st.*, pgs.gb_id, pgs.name, pgs.longitude, pgs.latitude FROM wvp_stream_proxy st " +
             "LEFT join wvp_gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream " +
             "WHERE st.media_server_id= #{id} order by st.create_time desc")
-    List<StreamProxyItem> selectInMediaServer(String id);
+    List<StreamProxy> selectInMediaServer(String id);
 
     @Update("UPDATE wvp_stream_proxy " +
             "SET status=#{status} " +
@@ -76,7 +76,7 @@ public interface StreamProxyMapper {
     void deleteAutoRemoveItemByMediaServerId(String mediaServerId);
 
     @Select("SELECT st.*, pgs.gb_id, pgs.name, pgs.longitude, pgs.latitude FROM wvp_stream_proxy st LEFT join wvp_gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream WHERE st.enable_remove_none_reader=true AND st.media_server_id=#{mediaServerId} order by st.create_time desc")
-    List<StreamProxyItem> selectAutoRemoveItemByMediaServerId(String mediaServerId);
+    List<StreamProxy> selectAutoRemoveItemByMediaServerId(String mediaServerId);
 
     @Select("select count(1) as total, sum(status) as online from wvp_stream_proxy")
     ResourceBaseInfo getOverview();

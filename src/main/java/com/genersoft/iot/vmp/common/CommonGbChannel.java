@@ -3,11 +3,13 @@ package com.genersoft.iot.vmp.common;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Gb28181CodeType;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
 import com.genersoft.iot.vmp.service.bean.CommonGbChannelType;
 import com.genersoft.iot.vmp.service.impl.CommonGbChannelServiceImpl;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.checkerframework.checker.units.qual.C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -611,6 +613,17 @@ public class CommonGbChannel {
         this.createTime = createTime;
     }
 
+    public static CommonGbChannel getInstance(StreamProxy streamProxy) {
+        CommonGbChannel commonGbChannel = new CommonGbChannel();
+        commonGbChannel.setType(CommonGbChannelType.PROXY);
+        commonGbChannel.setCommonGbDeviceID(streamProxy.getGbId());
+        commonGbChannel.setCommonGbName(streamProxy.getName());
+        commonGbChannel.setCommonGbLongitude(streamProxy.getLongitude());
+        commonGbChannel.setCommonGbLatitude(streamProxy.getLatitude());
+        commonGbChannel.setCreateTime(DateUtil.getNow());
+        commonGbChannel.setUpdateTime(DateUtil.getNow());
+        return commonGbChannel;
+    }
 
     public static CommonGbChannel getInstance(List<String> syncKeys, DeviceChannel deviceChannel){
         CommonGbChannel commonGbChannel = new CommonGbChannel();

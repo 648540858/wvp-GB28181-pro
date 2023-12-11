@@ -7,7 +7,7 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -59,10 +59,10 @@ public class StreamProxyController {
     @Parameter(name = "online", description = "是否在线")
     @GetMapping(value = "/list")
     @ResponseBody
-    public PageInfo<StreamProxyItem> list(@RequestParam(required = false)Integer page,
-                                          @RequestParam(required = false)Integer count,
-                                          @RequestParam(required = false)String query,
-                                          @RequestParam(required = false)Boolean online ){
+    public PageInfo<StreamProxy> list(@RequestParam(required = false)Integer page,
+                                      @RequestParam(required = false)Integer count,
+                                      @RequestParam(required = false)String query,
+                                      @RequestParam(required = false)Boolean online ){
 
         return streamProxyService.getAll(page, count);
     }
@@ -72,7 +72,7 @@ public class StreamProxyController {
     @Parameter(name = "stream", description = "流Id")
     @GetMapping(value = "/one")
     @ResponseBody
-    public StreamProxyItem one(String app, String stream){
+    public StreamProxy one(String app, String stream){
 
         return streamProxyService.getStreamProxyByAppAndStream(app, stream);
     }
@@ -82,7 +82,7 @@ public class StreamProxyController {
     })
     @PostMapping(value = "/save")
     @ResponseBody
-    public DeferredResult<Object> save(@RequestBody StreamProxyItem param){
+    public DeferredResult<Object> save(@RequestBody StreamProxy param){
         logger.info("添加代理： " + JSONObject.toJSONString(param));
         if (ObjectUtils.isEmpty(param.getMediaServerId())) {
             param.setMediaServerId("auto");
@@ -96,35 +96,27 @@ public class StreamProxyController {
         if (ObjectUtils.isEmpty(param.getGbId())) {
             param.setGbId(null);
         }
-        StreamProxyItem streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
+        StreamProxy streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
         if (streamProxyItem  != null) {
             streamProxyService.del(param.getApp(), param.getStream());
         }
 
-        RequestMessage requestMessage = new RequestMessage();
-        String key = DeferredResultHolder.CALLBACK_CMD_PROXY + param.getApp() + param.getStream();
-        requestMessage.setKey(key);
-        String uuid = UUID.randomUUID().toString();
-        requestMessage.setId(uuid);
         DeferredResult<Object> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
         // 录像查询以channelId作为deviceId查询
-        resultHolder.put(key, uuid, result);
         result.onTimeout(()->{
             WVPResult<StreamInfo> wvpResult = new WVPResult<>();
             wvpResult.setCode(ErrorCode.ERROR100.getCode());
             wvpResult.setMsg("超时");
-            requestMessage.setData(wvpResult);
-            resultHolder.invokeAllResult(requestMessage);
+            result.setResult(wvpResult);
         });
 
         streamProxyService.save(param, (code, msg, streamInfo) -> {
             logger.info("[拉流代理] {}", code == ErrorCode.SUCCESS.getCode()? "成功":"失败： " + msg);
             if (code == ErrorCode.SUCCESS.getCode()) {
-                requestMessage.setData(new StreamContent(streamInfo));
+                result.setResult(new StreamContent(streamInfo));
             }else {
-                requestMessage.setData(WVPResult.fail(code, msg));
+                result.setResult(WVPResult.fail(code, msg));
             }
-            resultHolder.invokeAllResult(requestMessage);
         });
         return result;
     }

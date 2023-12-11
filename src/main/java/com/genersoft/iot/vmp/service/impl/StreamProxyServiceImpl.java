@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.service.impl;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.common.GeneralCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
@@ -15,17 +16,15 @@ import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
-import com.genersoft.iot.vmp.service.IGbStreamService;
+import com.genersoft.iot.vmp.service.ICommonGbChannelService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.ParentPlatformMapper;
-import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.StreamProxyMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -38,12 +37,10 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * 视频代理业务
@@ -78,19 +75,13 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     private UserSetting userSetting;
 
     @Autowired
-    private GbStreamMapper gbStreamMapper;
-
-    @Autowired
-    private PlatformGbStreamMapper platformGbStreamMapper;
+    private ICommonGbChannelService commonGbChannelService;
 
     @Autowired
     private EventPublisher eventPublisher;
 
     @Autowired
     private ParentPlatformMapper parentPlatformMapper;
-
-    @Autowired
-    private IGbStreamService gbStreamService;
 
     @Autowired
     private IMediaServerService mediaServerService;
@@ -109,7 +100,8 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
 
     @Override
-    public void save(StreamProxyItem param, GeneralCallback<StreamInfo> callback) {
+    @Transactional
+    public void save(StreamProxy param, GeneralCallback<StreamInfo> callback) {
         MediaServerItem mediaInfo;
         if (ObjectUtils.isEmpty(param.getMediaServerId()) || "auto".equals(param.getMediaServerId())){
             mediaInfo = mediaServerService.getMediaServerForMinimumLoad(null);
@@ -155,16 +147,30 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         param.setDstUrl(dstUrl);
         logger.info("[拉流代理] 输出地址为：{}", dstUrl);
         param.setMediaServerId(mediaInfo.getId());
-        boolean saveResult;
         // 更新
-        if (videoManagerStorager.queryStreamProxy(param.getApp(), param.getStream()) != null) {
-            saveResult = updateStreamProxy(param);
+        StreamProxy streamProxyInDb = videoManagerStorager.queryStreamProxy(param.getApp(), param.getStream());
+        if (streamProxyInDb != null) {
+            if (streamProxyInDb.getCommonGbChannelId() == 0 && param.getGbId() != null ) {
+                // 新增通用通道
+                CommonGbChannel commonGbChannel = CommonGbChannel.getInstance(param);
+                commonGbChannelService.add(commonGbChannel);
+                param.setCommonGbChannelId(commonGbChannel.getCommonGbId());
+            }
+            if (streamProxyInDb.getCommonGbChannelId() > 0 && param.getGbId() == null ) {
+                // 移除通用通道
+                commonGbChannelService.deleteById(streamProxyInDb.getCommonGbChannelId());
+            }
+            param.setUpdateTime(DateUtil.getNow());
+            streamProxyMapper.update(param);
         }else { // 新增
-            saveResult = addStreamProxy(param);
-        }
-        if (!saveResult) {
-            callback.run(ErrorCode.ERROR100.getCode(), "保存失败", null);
-            return;
+            // 新增通用通道
+            CommonGbChannel commonGbChannel = CommonGbChannel.getInstance(param);
+            commonGbChannelService.add(commonGbChannel);
+            param.setCommonGbChannelId(commonGbChannel.getCommonGbId());
+
+            param.setCreateTime(DateUtil.getNow());
+            param.setUpdateTime(DateUtil.getNow());
+            streamProxyMapper.add(param);
         }
         HookSubscribeForStreamChange hookSubscribeForStreamChange = HookSubscribeFactory.on_stream_changed(param.getApp(), param.getStream(), true, "rtsp", mediaInfo.getId());
         hookSubscribe.addSubscribe(hookSubscribeForStreamChange, (mediaServerItem, response) -> {
@@ -233,78 +239,18 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     /**
-     * 新增代理流
-     * @param streamProxyItem
-     * @return
-     */
-    private boolean addStreamProxy(StreamProxyItem streamProxyItem) {
-        TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
-        boolean result = false;
-        streamProxyItem.setStreamType("proxy");
-        streamProxyItem.setStatus(true);
-        String now = DateUtil.getNow();
-        streamProxyItem.setCreateTime(now);
-        try {
-            if (streamProxyMapper.add(streamProxyItem) > 0) {
-                if (!ObjectUtils.isEmpty(streamProxyItem.getGbId())) {
-                    if (gbStreamMapper.add(streamProxyItem) < 0) {
-                        //事务回滚
-                        dataSourceTransactionManager.rollback(transactionStatus);
-                        return false;
-                    }
-                }
-            }else {
-                //事务回滚
-                dataSourceTransactionManager.rollback(transactionStatus);
-                return false;
-            }
-            result = true;
-            dataSourceTransactionManager.commit(transactionStatus);     //手动提交
-        }catch (Exception e) {
-            logger.error("向数据库添加流代理失败：", e);
-            dataSourceTransactionManager.rollback(transactionStatus);
-        }
-
-
-        return result;
-    }
-
-    /**
      * 更新代理流
      * @param streamProxyItem
      * @return
      */
     @Override
-    public boolean updateStreamProxy(StreamProxyItem streamProxyItem) {
-        TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
-        boolean result = false;
-        streamProxyItem.setStreamType("proxy");
-        try {
-            if (streamProxyMapper.update(streamProxyItem) > 0) {
-                if (!ObjectUtils.isEmpty(streamProxyItem.getGbId())) {
-                    if (gbStreamMapper.updateByAppAndStream(streamProxyItem) == 0) {
-                        //事务回滚
-                        dataSourceTransactionManager.rollback(transactionStatus);
-                        return false;
-                    }
-                }
-            } else {
-                //事务回滚
-                dataSourceTransactionManager.rollback(transactionStatus);
-                return false;
-            }
-
-            dataSourceTransactionManager.commit(transactionStatus);     //手动提交
-            result = true;
-        }catch (Exception e) {
-            logger.error("未处理的异常 ", e);
-            dataSourceTransactionManager.rollback(transactionStatus);
-        }
-        return result;
+    public boolean updateStreamProxy(StreamProxy streamProxyItem) {
+        streamProxyItem.setCreateTime(DateUtil.getNow());
+        return streamProxyMapper.update(streamProxyItem) > 0;
     }
 
     @Override
-    public JSONObject addStreamProxyToZlm(StreamProxyItem param) {
+    public JSONObject addStreamProxyToZlm(StreamProxy param) {
         JSONObject result = null;
         MediaServerItem mediaServerItem = null;
         if (param.getMediaServerId() == null) {
@@ -347,7 +293,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     @Override
-    public JSONObject removeStreamProxyFromZlm(StreamProxyItem param) {
+    public JSONObject removeStreamProxyFromZlm(StreamProxy param) {
         if (param ==null) {
             return null;
         }
@@ -362,19 +308,17 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     @Override
-    public PageInfo<StreamProxyItem> getAll(Integer page, Integer count) {
+    public PageInfo<StreamProxy> getAll(Integer page, Integer count) {
         return videoManagerStorager.queryStreamProxyList(page, count);
     }
 
     @Override
     public void del(String app, String stream) {
-        StreamProxyItem streamProxyItem = videoManagerStorager.queryStreamProxy(app, stream);
+        StreamProxy streamProxyItem = videoManagerStorager.queryStreamProxy(app, stream);
         if (streamProxyItem != null) {
-            gbStreamService.sendCatalogMsg(streamProxyItem, CatalogEvent.DEL);
-
-            // 如果关联了国标那么移除关联
-            platformGbStreamMapper.delByAppAndStream(app, stream);
-            gbStreamMapper.del(app, stream);
+            if (streamProxyItem.getCommonGbChannelId() > 0) {
+                commonGbChannelService.deleteById(streamProxyItem.getCommonGbChannelId());
+            }
             videoManagerStorager.deleteStreamProxy(app, stream);
             redisCatchStorage.removeStream(streamProxyItem.getMediaServerId(), "PULL", app, stream);
             JSONObject jsonObject = removeStreamProxyFromZlm(streamProxyItem);
@@ -389,7 +333,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public boolean start(String app, String stream) {
         boolean result = false;
-        StreamProxyItem streamProxy = videoManagerStorager.queryStreamProxy(app, stream);
+        StreamProxy streamProxy = videoManagerStorager.queryStreamProxy(app, stream);
         if (streamProxy != null && !streamProxy.isEnable() ) {
             JSONObject jsonObject = addStreamProxyToZlm(streamProxy);
             if (jsonObject == null) {
@@ -410,7 +354,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public boolean stop(String app, String stream) {
         boolean result = false;
-        StreamProxyItem streamProxyDto = videoManagerStorager.queryStreamProxy(app, stream);
+        StreamProxy streamProxyDto = videoManagerStorager.queryStreamProxy(app, stream);
         if (streamProxyDto != null && streamProxyDto.isEnable()) {
             JSONObject jsonObject = removeStreamProxyFromZlm(streamProxyDto);
             if (jsonObject != null && jsonObject.getInteger("code") == 0) {
@@ -440,16 +384,24 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
 
     @Override
-    public StreamProxyItem getStreamProxyByAppAndStream(String app, String streamId) {
+    public StreamProxy getStreamProxyByAppAndStream(String app, String streamId) {
         return videoManagerStorager.getStreamProxyByAppAndStream(app, streamId);
     }
 
     @Override
     public void zlmServerOnline(String mediaServerId) {
         // 移除开启了无人观看自动移除的流
-        List<StreamProxyItem> streamProxyItemList = streamProxyMapper.selectAutoRemoveItemByMediaServerId(mediaServerId);
-        if (streamProxyItemList.size() > 0) {
-            gbStreamMapper.batchDel(streamProxyItemList);
+        List<StreamProxy> streamProxyItemList = streamProxyMapper.selectAutoRemoveItemByMediaServerId(mediaServerId);
+        List<Integer> commonChannelIdList = new ArrayList<>();
+        if (!streamProxyItemList.isEmpty()) {
+            streamProxyItemList.stream().forEach(streamProxy -> {
+                if (streamProxy.getCommonGbChannelId() > 0) {
+                    commonChannelIdList.add(streamProxy.getCommonGbChannelId());
+                }
+            });
+        }
+        if (!commonChannelIdList.isEmpty()) {
+            commonGbChannelService.deleteByIdList(commonChannelIdList);
         }
         streamProxyMapper.deleteAutoRemoveItemByMediaServerId(mediaServerId);
 
@@ -457,9 +409,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 //        syncPullStream(mediaServerId);
 
         // 恢复流代理, 只查找这个这个流媒体
-        List<StreamProxyItem> streamProxyListForEnable = storager.getStreamProxyListForEnableInMediaServer(
+        List<StreamProxy> streamProxyListForEnable = storager.getStreamProxyListForEnableInMediaServer(
                 mediaServerId, true);
-        for (StreamProxyItem streamProxyDto : streamProxyListForEnable) {
+        for (StreamProxy streamProxyDto : streamProxyListForEnable) {
             logger.info("恢复流代理，" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
             JSONObject jsonObject = addStreamProxyToZlm(streamProxyDto);
             if (jsonObject == null) {
@@ -475,9 +427,17 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public void zlmServerOffline(String mediaServerId) {
         // 移除开启了无人观看自动移除的流
-        List<StreamProxyItem> streamProxyItemList = streamProxyMapper.selectAutoRemoveItemByMediaServerId(mediaServerId);
-        if (streamProxyItemList.size() > 0) {
-            gbStreamMapper.batchDel(streamProxyItemList);
+        List<StreamProxy> streamProxyItemList = streamProxyMapper.selectAutoRemoveItemByMediaServerId(mediaServerId);
+        List<Integer> commonChannelIdList = new ArrayList<>();
+        if (!streamProxyItemList.isEmpty()) {
+            streamProxyItemList.stream().forEach(streamProxy -> {
+                if (streamProxy.getCommonGbChannelId() > 0) {
+                    commonChannelIdList.add(streamProxy.getCommonGbChannelId());
+                }
+            });
+        }
+        if (!commonChannelIdList.isEmpty()) {
+            commonGbChannelService.deleteByIdList(commonChannelIdList);
         }
         streamProxyMapper.deleteAutoRemoveItemByMediaServerId(mediaServerId);
         // 其他的流设置离线

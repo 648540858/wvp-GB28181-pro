@@ -765,4 +765,9 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         }
         // TODO 向国标级联发送catalog
     }
+
+    @Override
+    public void deleteById(int commonGbChannelId) {
+
+    }
 }

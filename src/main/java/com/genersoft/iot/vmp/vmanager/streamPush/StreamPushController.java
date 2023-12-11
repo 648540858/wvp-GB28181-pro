@@ -163,7 +163,6 @@ public class StreamPushController {
         //获取文件流
         InputStream inputStream = null;
         try {
-            String name = file.getName();
             inputStream = file.getInputStream();
         } catch (IOException e) {
             logger.error("未处理的异常 ", e);

@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.service.IDeviceAlarmService;
 import com.genersoft.iot.vmp.storager.dao.DeviceAlarmMapper;
 import com.github.pagehelper.PageHelper;

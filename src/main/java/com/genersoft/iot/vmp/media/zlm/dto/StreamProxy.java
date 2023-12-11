@@ -6,7 +6,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * @author lin
  */
 @Schema(description = "拉流代理的信息")
-public class StreamProxyItem {
+public class StreamProxy {
+
+    @Schema(description = "ID")
+    private int id;
 
     @Schema(description = "类型")
     private String type;
@@ -43,11 +46,43 @@ public class StreamProxyItem {
     @Schema(description = "拉流代理时zlm返回的key，用于停止拉流代理")
     private String streamKey;
 
+    @Schema(description = "国标ID")
+    private String gbId;
+
+    @Schema(description = "名称")
+    private String name;
+    @Schema(description = "经度")
+    private double longitude;
+    @Schema(description = "纬度")
+    private double latitude;
+    @Schema(description = "状态")
+    private boolean status;
+    @Schema(description = "创建时间")
+    private String createTime;
+    @Schema(description = "更新时间")
+    private String updateTime;
+
     /**
      * 国标通用信息ID
      */
     @Schema(description = "国标通用信息ID")
     private int commonGbChannelId;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getCreateTime() {
+        return createTime;
+    }
+
+    public String getUpdateTime() {
+        return updateTime;
+    }
 
     public String getType() {
         return type;
@@ -188,5 +223,61 @@ public class StreamProxyItem {
 
     public void setCommonGbChannelId(int commonGbChannelId) {
         this.commonGbChannelId = commonGbChannelId;
+    }
+
+    public String getGbId() {
+        return gbId;
+    }
+
+    public void setGbId(String gbId) {
+        this.gbId = gbId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
+    public String isCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(String createTime) {
+        this.createTime = createTime;
+    }
+
+    public String isUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(String updateTime) {
+        this.updateTime = updateTime;
     }
 }

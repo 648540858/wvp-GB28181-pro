@@ -82,4 +82,7 @@ public interface ICommonGbChannelService {
 
     void batchDelete(List<Integer> allCommonChannelsForDelete);
 
+    void deleteById(int commonGbChannelId);
+
+    void deleteByIdList(List<Integer> commonChannelIdList);
 }

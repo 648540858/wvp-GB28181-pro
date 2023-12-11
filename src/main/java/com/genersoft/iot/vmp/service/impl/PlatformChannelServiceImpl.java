@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -122,5 +123,31 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     @Override
     public List<ParentPlatform> querySharePlatformListByChannelId(int commonGbId, List<String> platforms) {
         return platformChannelMapper.querySharePlatformListByChannelId();
+    }
+
+    @Override
+    public List<CommonGbChannel> queryChannelList(ParentPlatform platform) {
+        List<CommonGbChannel> result = new ArrayList<>();
+        if (platform.isShareAllChannel()) {
+            // 获取所有通道
+            List<CommonGbChannel> allChannelList = commonGbChannelMapper.getAll();
+            if (!allChannelList.isEmpty()) {
+                result.addAll(allChannelList);
+                // 获取所有分组
+
+                // 获取所有地区
+            }
+        }else {
+            // 查询所有关联了的国标通道
+            if (platform.isShareGroup()) {
+                // 获取相关分组
+            }
+            if (platform.isShareRegion()) {
+
+            }
+        }
+
+
+        return null;
     }
 }

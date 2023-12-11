@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service;
 
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 
 import java.util.List;
@@ -24,4 +25,9 @@ public interface IPlatformChannelService {
      * 在一个给定的范围内查出分享了这个通道的上级平台
      */
     List<ParentPlatform> querySharePlatformListByChannelId(int commonGbId, List<String> platforms);
+
+    /**
+     * 查询关联了上级平台的所有通道
+     */
+    List<CommonGbChannel> queryChannelList(ParentPlatform platform);
 }

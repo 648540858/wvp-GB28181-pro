@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.cmd;
 
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
@@ -9,6 +10,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.QueryMessageHandler;
+import com.genersoft.iot.vmp.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.Element;
@@ -43,7 +45,7 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
     private SIPCommanderFroPlatform cmderFroPlatform;
 
     @Autowired
-    private SipConfig config;
+    private IPlatformChannelService platformChannelService;
 
     @Autowired
     private EventPublisher publisher;
@@ -74,33 +76,11 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
         Element snElement = rootElement.element("SN");
         String sn = snElement.getText();
         // 准备回复通道信息
-        List<DeviceChannel> deviceChannelInPlatforms = storager.queryChannelWithCatalog(parentPlatform.getServerGBId());
-        // 查询关联的直播通道
-        List<DeviceChannel> gbStreams = storager.queryGbStreamListInPlatform(parentPlatform.getServerGBId());
-        // 回复目录信息
-        List<DeviceChannel> catalogs =  storager.queryCatalogInPlatform(parentPlatform.getServerGBId());
+        List<CommonGbChannel> commonGbChannelList = platformChannelService.queryChannelList(parentPlatform);
 
-        List<DeviceChannel> allChannels = new ArrayList<>();
-
-        // 回复平台
-//            DeviceChannel deviceChannel = getChannelForPlatform(parentPlatform);
-//            allChannels.add(deviceChannel);
-
-        // 回复目录
-        if (catalogs.size() > 0) {
-            allChannels.addAll(catalogs);
-        }
-        // 回复级联的通道
-        if (deviceChannelInPlatforms.size() > 0) {
-            allChannels.addAll(deviceChannelInPlatforms);
-        }
-        // 回复直播的通道
-        if (gbStreams.size() > 0) {
-            allChannels.addAll(gbStreams);
-        }
         try {
-            if (allChannels.size() > 0) {
-                cmderFroPlatform.catalogQuery(allChannels, parentPlatform, sn, fromHeader.getTag());
+            if (commonGbChannelList.size() > 0) {
+                cmderFroPlatform.catalogQuery(commonGbChannelList, parentPlatform, sn, fromHeader.getTag());
             }else {
                 // 回复无通道
                 cmderFroPlatform.catalogQuery(null, parentPlatform, sn, fromHeader.getTag(), 0);

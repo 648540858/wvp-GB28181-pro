@@ -600,4 +600,10 @@ public interface CommonChannelMapper {
             "<foreach collection='commonChannelIdList'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
             "</script>")
     void deleteByIdList(List<Integer> commonChannelIdList);
+
+    @Select("<script> "+
+            "SELECT * FROM wvp_common_channel" +
+            "</script>")
+    List<CommonGbChannel> getAll();
+
 }

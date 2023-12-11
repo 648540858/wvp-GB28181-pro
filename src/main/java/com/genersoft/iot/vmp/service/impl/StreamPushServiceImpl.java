@@ -3,8 +3,8 @@ package com.genersoft.iot.vmp.service.impl;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.alibaba.fastjson2.TypeReference;
+import com.genersoft.iot.vmp.common.BatchLimit;
 import com.genersoft.iot.vmp.common.CommonGbChannel;
-import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
@@ -13,15 +13,15 @@ import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OriginType;
-import com.genersoft.iot.vmp.service.ICommonGbChannelService;
-import com.genersoft.iot.vmp.service.IMediaServerService;
-import com.genersoft.iot.vmp.service.IStreamPushService;
+import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.CommonGbChannelType;
+import com.genersoft.iot.vmp.service.bean.Group;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.*;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
+import com.genersoft.iot.vmp.vmanager.bean.StreamPushExcelDto;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -66,13 +66,14 @@ public class StreamPushServiceImpl implements IStreamPushService {
     private ICommonGbChannelService commonGbChannelService;
 
     @Autowired
-    DataSourceTransactionManager dataSourceTransactionManager;
+    private DataSourceTransactionManager dataSourceTransactionManager;
 
     @Autowired
-    TransactionDefinition transactionDefinition;
+    private TransactionDefinition transactionDefinition;
 
     @Autowired
-    private MediaConfig mediaConfig;
+    private IGroupService groupService;
+
 
 
     @Override
@@ -163,14 +164,14 @@ public class StreamPushServiceImpl implements IStreamPushService {
         // redis记录
         List<OnStreamChangedHookParam> onStreamChangedHookParams = redisCatchStorage.getStreams(mediaServerId, "PUSH");
         Map<String, OnStreamChangedHookParam> streamInfoPushItemMap = new HashMap<>();
-        if (pushList.size() > 0) {
+        if (!pushList.isEmpty()) {
             for (StreamPush streamPushItem : pushList) {
                 if (streamPushItem.getCommonGbChannelId() > 0) {
                     pushItemMap.put(streamPushItem.getApp() + streamPushItem.getStream(), streamPushItem);
                 }
             }
         }
-        if (onStreamChangedHookParams.size() > 0) {
+        if (!onStreamChangedHookParams.isEmpty()) {
             for (OnStreamChangedHookParam onStreamChangedHookParam : onStreamChangedHookParams) {
                 streamInfoPushItemMap.put(onStreamChangedHookParam.getApp() + onStreamChangedHookParam.getStream(), onStreamChangedHookParam);
             }
@@ -203,13 +204,12 @@ public class StreamPushServiceImpl implements IStreamPushService {
                 }
             }
             List<StreamPush> offlinePushItems = new ArrayList<>(pushItemMap.values());
-            if (offlinePushItems.size() > 0) {
+            if (!offlinePushItems.isEmpty()) {
                 String type = "PUSH";
-                int runLimit = 300;
-                if (offlinePushItems.size() > runLimit) {
-                    for (int i = 0; i < offlinePushItems.size(); i += runLimit) {
-                        int toIndex = i + runLimit;
-                        if (i + runLimit > offlinePushItems.size()) {
+                if (offlinePushItems.size() > BatchLimit.count) {
+                    for (int i = 0; i < offlinePushItems.size(); i += BatchLimit.count) {
+                        int toIndex = i + BatchLimit.count;
+                        if (i + BatchLimit.count > offlinePushItems.size()) {
                             toIndex = offlinePushItems.size();
                         }
                         List<StreamPush> streamPushItemsSub = offlinePushItems.subList(i, toIndex);
@@ -221,7 +221,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
             }
             Collection<OnStreamChangedHookParam> offlineOnStreamChangedHookParamList = streamInfoPushItemMap.values();
-            if (offlineOnStreamChangedHookParamList.size() > 0) {
+            if (!offlineOnStreamChangedHookParamList.isEmpty()) {
                 String type = "PUSH";
                 for (OnStreamChangedHookParam offlineOnStreamChangedHookParam : offlineOnStreamChangedHookParamList) {
                     JSONObject jsonObject = new JSONObject();
@@ -237,7 +237,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
             }
 
             Collection<StreamAuthorityInfo> streamAuthorityInfos = streamAuthorityInfoInfoMap.values();
-            if (streamAuthorityInfos.size() > 0) {
+            if (!streamAuthorityInfos.isEmpty()) {
                 for (StreamAuthorityInfo streamAuthorityInfo : streamAuthorityInfos) {
                     // 移除redis内流的信息
                     redisCatchStorage.removeStreamAuthorityInfo(streamAuthorityInfo.getApp(), streamAuthorityInfo.getStream());
@@ -258,7 +258,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         String type = "PUSH";
         // 发送redis消息
         List<OnStreamChangedHookParam> streamInfoList = redisCatchStorage.getStreams(mediaServerId, type);
-        if (streamInfoList.size() > 0) {
+        if (!streamInfoList.isEmpty()) {
             for (OnStreamChangedHookParam onStreamChangedHookParam : streamInfoList) {
                 // 移除redis内流的信息
                 redisCatchStorage.removeStream(mediaServerId, type, onStreamChangedHookParam.getApp(), onStreamChangedHookParam.getStream());
@@ -282,10 +282,40 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Transactional
     public void batchAdd(List<StreamPush> streamPushItems) {
         // 把存在国标Id的写入同步资源库
+        List<CommonGbChannel> commonGbChannelList = new ArrayList<>();
+        List<StreamPush> streamPushListForChannel = new ArrayList<>();
+        List<StreamPush> streamPushListWithoutChannel = new ArrayList<>();
+        // 将含有国标编号的推流数据与没有国标编号的进行拆分，拆分先将通用通道存储，得到每个通道的ID，赋值给推流信息后再将所有推流信息存入
+        streamPushItems.stream().forEach(streamPush -> {
+            if (!ObjectUtils.isEmpty(streamPush.getGbId())) {
+                CommonGbChannel channel = CommonGbChannel.getInstance(streamPush);
+                commonGbChannelList.add(channel);
+                streamPushListForChannel.add(streamPush);
+            }else {
+                streamPushListWithoutChannel.add(streamPush);
+            }
+        });
+        if (!commonGbChannelList.isEmpty()) {
 
-        streamPushMapper.addAll(streamPushItems);
+            commonGbChannelService.batchAdd(commonGbChannelList);
 
-
+            for (int i = 0; i < commonGbChannelList.size(); i++) {
+                streamPushListForChannel.get(i).setCommonGbChannelId(commonGbChannelList.get(i).getCommonGbId());
+            }
+            streamPushListWithoutChannel.addAll(streamPushListForChannel);
+        }
+        if (streamPushListWithoutChannel.size() > BatchLimit.count) {
+            for (int i = 0; i < streamPushListWithoutChannel.size(); i += BatchLimit.count) {
+                int toIndex = i + BatchLimit.count;
+                if (i + BatchLimit.count > streamPushListWithoutChannel.size()) {
+                    toIndex = streamPushListWithoutChannel.size();
+                }
+                List<StreamPush> streamPushItemsSub = streamPushListWithoutChannel.subList(i, toIndex);
+                streamPushMapper.addAll(streamPushItemsSub);
+            }
+        }else {
+            streamPushMapper.addAll(streamPushListWithoutChannel);
+        }
     }
 
     @Override
@@ -294,91 +324,45 @@ public class StreamPushServiceImpl implements IStreamPushService {
     }
 
     @Override
-    public void batchAddForUpload(List<StreamPush> streamPushItems, Map<String, List<String[]>> streamPushItemsForAll ) {
-        // 存储数据到stream_push表
-        streamPushMapper.addAll(streamPushItems);
-        List<StreamPush> streamPushItemForGbStream = streamPushItems.stream()
-                .filter(streamPushItem-> streamPushItem.getGbId() != null)
-                .collect(Collectors.toList());
-        // 存储数据到gb_stream表， id会返回到streamPushItemForGbStream里
-        if (streamPushItemForGbStream.size() > 0) {
-            gbStreamMapper.batchAdd(streamPushItemForGbStream);
+    @Transactional
+    public void batchAddForUpload(List<StreamPushExcelDto> streamPushExcelDtoList) {
+        // 插入国标通用通道得到通道ID
+        List<CommonGbChannel> commonGbChannelList = new ArrayList<>();
+        List<StreamPush> streamPushListForChannel = new ArrayList<>();
+        List<StreamPush> streamPushListWithoutChannel = new ArrayList<>();
+        Map<String, Group> groupMap = groupService.getAllGroupMap();
+        streamPushExcelDtoList.stream().forEach(streamPushExcelDto -> {
+            StreamPush streamPush = StreamPush.getInstance(streamPushExcelDto);
+
+            if (!ObjectUtils.isEmpty(streamPushExcelDto.getGbId().trim())) {
+                CommonGbChannel commonGbChannel = CommonGbChannel.getInstance(streamPush);
+                if (!ObjectUtils.isEmpty(streamPushExcelDto.getCatalogId())
+                        && groupMap.containsKey(streamPushExcelDto.getCatalogId())) {
+                    commonGbChannel.setCommonGbBusinessGroupID(streamPushExcelDto.getCatalogId());
+                }
+                commonGbChannelList.add(commonGbChannel);
+                streamPushListForChannel.add(streamPush);
+            }else {
+                streamPushListWithoutChannel.add(streamPush);
+
+            }
+        });
+        commonGbChannelService.batchAdd(commonGbChannelList);
+        for (int i = 0; i < commonGbChannelList.size(); i++) {
+            streamPushListForChannel.get(i).setCommonGbChannelId(commonGbChannelList.get(i).getCommonGbId());
         }
-        // 去除没有ID也就是没有存储到数据库的数据
-        List<StreamPush> streamPushItemsForPlatform = streamPushItemForGbStream.stream()
-                .filter(streamPushItem-> streamPushItem.getGbStreamId() != null)
-                .collect(Collectors.toList());
-
-        if (streamPushItemsForPlatform.size() > 0) {
-            // 获取所有平台，平台和目录信息一般不会特别大量。
-            List<ParentPlatform> parentPlatformList = parentPlatformMapper.getParentPlatformList();
-            Map<String, Map<String, PlatformCatalog>> platformInfoMap = new HashMap<>();
-            if (parentPlatformList.size() == 0) {
-                return;
-            }
-            for (ParentPlatform platform : parentPlatformList) {
-                Map<String, PlatformCatalog> catalogMap = new HashMap<>();
-
-                // 创建根节点
-                PlatformCatalog platformCatalog = new PlatformCatalog();
-                platformCatalog.setId(platform.getServerGBId());
-                catalogMap.put(platform.getServerGBId(), platformCatalog);
-
-                // 查询所有节点信息
-                List<PlatformCatalog> platformCatalogs = platformCatalogMapper.selectByPlatForm(platform.getServerGBId());
-                if (platformCatalogs.size() > 0) {
-                    for (PlatformCatalog catalog : platformCatalogs) {
-                        catalogMap.put(catalog.getId(), catalog);
-                    }
+        streamPushListWithoutChannel.addAll(streamPushListForChannel);
+        if (streamPushListWithoutChannel.size() > BatchLimit.count) {
+            for (int i = 0; i < streamPushListWithoutChannel.size(); i += BatchLimit.count) {
+                int toIndex = i + BatchLimit.count;
+                if (i + BatchLimit.count > streamPushListWithoutChannel.size()) {
+                    toIndex = streamPushListWithoutChannel.size();
                 }
-                platformInfoMap.put(platform.getServerGBId(), catalogMap);
+                List<StreamPush> streamPushItemsSub = streamPushListWithoutChannel.subList(i, toIndex);
+                streamPushMapper.addAll(streamPushItemsSub);
             }
-            List<StreamPush> streamPushItemListFroPlatform = new ArrayList<>();
-            Map<String, List<GbStream>> platformForEvent = new HashMap<>();
-            // 遍历存储结果，查找app+Stream->platformId+catalogId的对应关系，然后执行批量写入
-            for (StreamPush streamPushItem : streamPushItemsForPlatform) {
-                List<String[]> platFormInfoList = streamPushItemsForAll.get(streamPushItem.getApp() + streamPushItem.getStream());
-                if (platFormInfoList != null && platFormInfoList.size() > 0) {
-                    for (String[] platFormInfoArray : platFormInfoList) {
-                        StreamPush streamPushItemForPlatform = new StreamPush();
-                        streamPushItemForPlatform.setGbStreamId(streamPushItem.getGbStreamId());
-                        if (platFormInfoArray.length > 0) {
-                            // 数组 platFormInfoArray 0 为平台ID。 1为目录ID
-                            // 不存在这个平台，则忽略导入此关联关系
-                            if (platformInfoMap.get(platFormInfoArray[0]) == null
-                                    || platformInfoMap.get(platFormInfoArray[0]).get(platFormInfoArray[1]) == null) {
-                                logger.info("导入数据时不存在平台或目录{}/{},已导入未分配", platFormInfoArray[0], platFormInfoArray[1] );
-                                continue;
-                            }
-                            streamPushItemForPlatform.setPlatformId(platFormInfoArray[0]);
-                            List<GbStream> gbStreamList = platformForEvent.get(platFormInfoArray[0]);
-                            if (gbStreamList == null) {
-                                gbStreamList = new ArrayList<>();
-                                platformForEvent.put(platFormInfoArray[0], gbStreamList);
-                            }
-                            // 为发送通知整理数据
-                            streamPushItemForPlatform.setName(streamPushItem.getName());
-                            streamPushItemForPlatform.setApp(streamPushItem.getApp());
-                            streamPushItemForPlatform.setStream(streamPushItem.getStream());
-                            streamPushItemForPlatform.setGbId(streamPushItem.getGbId());
-                            gbStreamList.add(streamPushItemForPlatform);
-                        }
-                        if (platFormInfoArray.length > 1) {
-                            streamPushItemForPlatform.setCatalogId(platFormInfoArray[1]);
-                        }
-                        streamPushItemListFroPlatform.add(streamPushItemForPlatform);
-                    }
-
-                }
-            }
-            if (!streamPushItemListFroPlatform.isEmpty()) {
-                platformGbStreamMapper.batchAdd(streamPushItemListFroPlatform);
-                // 发送通知
-                for (String platformId : platformForEvent.keySet()) {
-                    eventPublisher.catalogEventPublishForStream(
-                            platformId, platformForEvent.get(platformId), CatalogEvent.ADD);
-                }
-            }
+        }else {
+            streamPushMapper.addAll(streamPushListWithoutChannel);
         }
     }
 
@@ -401,14 +385,12 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Override
     public void allStreamOffline() {
-        List<GbStream> onlinePushers = streamPushMapper.getOnlinePusherForGb();
-        if (onlinePushers.size() == 0) {
-            return;
-        }
+        List<Integer> onlinePushers = streamPushMapper.getOnlinePusherForGb();
         streamPushMapper.setAllStreamOffline();
+        if (!onlinePushers.isEmpty()) {
+            commonGbChannelService.offlineForList(onlinePushers);
+        }
 
-        // 发送通知
-        eventPublisher.catalogEventPublishForStream(null, onlinePushers, CatalogEvent.OFF);
     }
 
     @Override
@@ -431,24 +413,37 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Override
     @Transactional
-    public boolean add(StreamPush stream, CommonGbChannel commonGbChannel) {
-        assert !ObjectUtils.isEmpty(commonGbChannel.getCommonGbDeviceID());
-        assert !ObjectUtils.isEmpty(commonGbChannel.getCommonGbName());
+    public boolean add(StreamPush stream) {
         String now = DateUtil.getNow();
-        commonGbChannel.setCreateTime(now);
-        commonGbChannel.setUpdateTime(now);
-        commonGbChannel.setType(CommonGbChannelType.PUSH);
-
-        commonGbChannelService.add(commonGbChannel);
-        if (commonGbChannel.getCommonGbId() > 0) {
-            stream.setCommonGbChannelId(commonGbChannel.getCommonGbId());
-        }else {
-            return false;
+        CommonGbChannel commonGbChannel = null;
+        if (!ObjectUtils.isEmpty(stream.getGbId())) {
+            commonGbChannel = CommonGbChannel.getInstance(stream);
+            commonGbChannelService.add(commonGbChannel);
+            if (commonGbChannel.getCommonGbId() > 0) {
+                stream.setCommonGbChannelId(commonGbChannel.getCommonGbId());
+            }
         }
         stream.setUpdateTime(now);
         stream.setCreateTime(now);
         stream.setServerId(userSetting.getServerId());
         return streamPushMapper.add(stream) > 1;
+    }
+
+    @Override
+    @Transactional
+    public void update(StreamPush streamPush) {
+        assert streamPush.getId() > 0;
+        StreamPush streamPushIDb = streamPushMapper.query(streamPush.getId());
+        assert streamPushIDb != null;
+        if (streamPushIDb.getCommonGbChannelId() > 0 && streamPush.getCommonGbChannelId() == 0) {
+            commonGbChannelService.deleteById(streamPushIDb.getCommonGbChannelId());
+        }
+        if (streamPushIDb.getCommonGbChannelId() == 0 && streamPush.getCommonGbChannelId() > 0) {
+            CommonGbChannel commonGbChannel = CommonGbChannel.getInstance(streamPush);
+            commonGbChannelService.add(commonGbChannel);
+        }
+        streamPush.setUpdateTime(DateUtil.getNow());
+        streamPushMapper.update(streamPush);
     }
 
     @Override

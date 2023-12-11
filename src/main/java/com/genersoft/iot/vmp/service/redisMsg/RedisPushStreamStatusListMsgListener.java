@@ -3,10 +3,8 @@ package com.genersoft.iot.vmp.service.redisMsg;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
-import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
-import com.genersoft.iot.vmp.service.dto.StreamPushDto;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +76,11 @@ public class RedisPushStreamStatusListMsgListener implements MessageListener {
                                 if (!streamPush.getName().equals(streamPushBoInDB.getName())
                                 || !streamPush.getGbId().equals(streamPushBoInDB.getGbId())
                                 || !streamPush.isStatus() == streamPushBoInDB.isStatus()) {
-                                    streamPushItemForUpdate.add(streamPush);
+                                    streamPushBoInDB.setName(streamPush.getName());
+                                    streamPushBoInDB.setGbId(streamPush.getGbId());
+                                    streamPushBoInDB.setStatus(streamPush.isStatus());
+
+                                    streamPushItemForUpdate.add(streamPushBoInDB);
                                 }
                             }
                         }

@@ -166,8 +166,8 @@ public interface StreamPushMapper {
             ")</script>")
     void online(List<StreamPushItemFromRedis> onlineStreams);
 
-    @Select("SELECT gs.* FROM wvp_stream_push sp left join wvp_gb_stream gs on sp.app = gs.app AND sp.stream = gs.stream where sp.status = true")
-    List<GbStream> getOnlinePusherForGb();
+    @Select("SELECT common_gb_channel_id FROM wvp_stream_push gb_id > 0")
+    List<Integer> getOnlinePusherForGb();
 
     @Update("UPDATE wvp_stream_push SET status=0")
     void setAllStreamOffline();
@@ -192,4 +192,7 @@ public interface StreamPushMapper {
             "</foreach>" +
             "</script>")
     List<StreamPush> getListIn(List<StreamPush> streamPushItems);
+
+    @Select("select* from wvp_stream_push where id = #{id}")
+    StreamPush query(@Param("id") Integer id);
 }

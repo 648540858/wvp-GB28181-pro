@@ -36,7 +36,7 @@ public class SubscribeHolder {
             // 添加订阅到期
             String taskOverdueKey = taskOverduePrefix +  "catalog_" + platformId;
             // 添加任务处理订阅过期
-            dynamicTask.startDelay(taskOverdueKey, () -> removeCatalogSubscribe(subscribeInfo.getId()),
+            dynamicTask.startDelay(taskOverdueKey, () -> removeCatalogSubscribe(platformId),
                     subscribeInfo.getExpires() * 1000);
         }
     }
@@ -68,7 +68,7 @@ public class SubscribeHolder {
         if (subscribeInfo.getExpires() > 0) {
             // 添加任务处理订阅过期
             dynamicTask.startDelay(taskOverdueKey, () -> {
-                        removeMobilePositionSubscribe(subscribeInfo.getId());
+                        removeMobilePositionSubscribe(platformId);
                     },
                     subscribeInfo.getExpires() * 1000);
         }

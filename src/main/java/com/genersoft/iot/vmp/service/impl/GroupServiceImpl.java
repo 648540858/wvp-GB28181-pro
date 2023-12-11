@@ -25,6 +25,7 @@ import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class GroupServiceImpl implements IGroupService {
@@ -269,5 +270,10 @@ public class GroupServiceImpl implements IGroupService {
         }
 
         return new PageInfo<>(groupList);
+    }
+
+    @Override
+    public Map<String, Group> getAllGroupMap() {
+        return groupMapper.queryAllForMap();
     }
 }

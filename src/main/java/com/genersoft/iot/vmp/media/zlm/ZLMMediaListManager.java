@@ -5,12 +5,11 @@ import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IResourceService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
-import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.StreamPushMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import org.slf4j.Logger;
@@ -40,16 +39,10 @@ public class ZLMMediaListManager {
     private IVideoManagerStorage storager;
 
     @Autowired
-    private GbStreamMapper gbStreamMapper;
-
-    @Autowired
-    private PlatformGbStreamMapper platformGbStreamMapper;
-
-    @Autowired
     private IStreamPushService streamPushService;
 
     @Autowired
-    private IStreamProxyService streamProxyService;
+    private Map<String, IResourceService> resourceServiceMap;
 
     @Autowired
     private StreamPushMapper streamPushMapper;
@@ -71,16 +64,16 @@ public class ZLMMediaListManager {
     public StreamPush addPush(OnStreamChangedHookParam onStreamChangedHookParam) {
         StreamPush transform = streamPushService.transform(onStreamChangedHookParam);
         StreamPush pushInDb = streamPushService.getPush(onStreamChangedHookParam.getApp(), onStreamChangedHookParam.getStream());
-        transform.setPushIng(onStreamChangedHookParam.isRegist());
-        transform.setUpdateTime(DateUtil.getNow());
-        transform.setPushTime(DateUtil.getNow());
-        transform.setSelf(userSetting.getServerId().equals(onStreamChangedHookParam.getSeverId()));
+        
         if (pushInDb == null) {
-            transform.setCreateTime(DateUtil.getNow());
-            streamPushMapper.add(transform);
+            
+            streamPushService.add(transform);
         }else {
-            streamPushMapper.update(transform);
-            gbStreamMapper.updateMediaServer(onStreamChangedHookParam.getApp(), onStreamChangedHookParam.getStream(), onStreamChangedHookParam.getMediaServerId());
+            pushInDb.setPushIng(onStreamChangedHookParam.isRegist());
+            pushInDb.setUpdateTime(DateUtil.getNow());
+            pushInDb.setPushTime(DateUtil.getNow());
+            pushInDb.setSelf(userSetting.getServerId().equals(onStreamChangedHookParam.getSeverId()));
+            streamPushService.update(pushInDb);
         }
         ChannelOnlineEvent channelOnlineEventLister = getChannelOnlineEventLister(transform.getApp(), transform.getStream());
         if ( channelOnlineEventLister != null)  {
@@ -111,16 +104,10 @@ public class ZLMMediaListManager {
         }
     }
 
-    public int removeMedia(String app, String streamId) {
-        // 查找是否关联了国标， 关联了不删除， 置为离线
-        GbStream gbStream = gbStreamMapper.selectOne(app, streamId);
-        int result;
-        if (gbStream == null) {
-            result = storager.removeMedia(app, streamId);
-        }else {
-            result =storager.mediaOffline(app, streamId);
+    public void streamOffline(String app, String streamId) {
+        for (String key : resourceServiceMap.keySet()) {
+            resourceServiceMap.get(key).streamOffline(app, streamId);
         }
-        return result;
     }
 
     public void addChannelOnlineEventLister(String app, String stream, ChannelOnlineEvent callback) {

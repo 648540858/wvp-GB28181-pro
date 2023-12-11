@@ -12,14 +12,10 @@ import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.CatalogResponseMessageHandler;
-import com.genersoft.iot.vmp.service.IDeviceChannelService;
-import com.genersoft.iot.vmp.service.IDeviceService;
-import com.genersoft.iot.vmp.service.IInviteStreamService;
-import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
-import com.genersoft.iot.vmp.storager.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.BaseTree;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
@@ -30,6 +26,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import javax.sip.InvalidArgumentException;
@@ -69,8 +66,6 @@ public class DeviceServiceImpl implements IDeviceService {
     @Autowired
     private DeviceMapper deviceMapper;
 
-    @Autowired
-    private PlatformChannelMapper platformChannelMapper;
 
     @Autowired
     private IDeviceChannelService deviceChannelService;
@@ -95,6 +90,9 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Autowired
     private IMediaServerService mediaServerService;
+
+    @Autowired
+    private ICommonGbChannelService commonGbChannelService;
 
     @Override
     public void online(Device device, SipTransactionInfo sipTransactionInfo) {
@@ -571,25 +569,13 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
+    @Transactional
     public boolean delete(String deviceId) {
-        TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
-        boolean result = false;
-        try {
-            platformChannelMapper.delChannelForDeviceId(deviceId);
-            deviceChannelMapper.cleanChannelsByDeviceId(deviceId);
-            if ( deviceMapper.del(deviceId) < 0 ) {
-                //事务回滚
-                dataSourceTransactionManager.rollback(transactionStatus);
-            }
-            result = true;
-            dataSourceTransactionManager.commit(transactionStatus);     //手动提交
-        }catch (Exception e) {
-            dataSourceTransactionManager.rollback(transactionStatus);
-        }
-        if (result) {
-            redisCatchStorage.removeDevice(deviceId);
-        }
-        return result;
+        List<Integer> commonChannelIdList = deviceChannelMapper.getCommonChannelIdList(deviceId);
+        commonGbChannelService.deleteByIdList(commonChannelIdList);
+        deviceChannelMapper.cleanChannelsByDeviceId(deviceId);
+        deviceMapper.del(deviceId);
+        return true;
     }
 
     @Override

@@ -163,4 +163,9 @@ public interface GroupMapper {
             "</foreach>" +
             "</script>"})
     int updateAll(@Param("groupList") List<Group> groupList);
+
+    @MapKey("commonGroupDeviceId")
+    @Select("select * from wvp_common_group")
+    Map<String, Group> queryAllForMap();
+
 }

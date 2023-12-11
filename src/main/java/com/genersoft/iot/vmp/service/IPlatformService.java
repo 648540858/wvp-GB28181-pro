@@ -54,7 +54,7 @@ public interface IPlatformService {
      * 向上级平台发送位置订阅
      * @param platformId 平台
      */
-    void sendNotifyMobilePosition(String platformId);
+    void sendNotifyMobilePosition(Integer platformId);
 
     void addSimulatedSubscribeInfo(ParentPlatform parentPlatform);
 

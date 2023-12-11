@@ -79,7 +79,7 @@ public class RedisStreamMsgListener implements MessageListener {
                         if (register) {
                             zlmMediaListManager.addPush(onStreamChangedHookParam);
                         }else {
-                            zlmMediaListManager.removeMedia(app, stream);
+                            zlmMediaListManager.streamOffline(app, stream);
                         }
                     }catch (Exception e) {
                         logger.warn("[REDIS消息-流变化] 发现未处理的异常, \r\n{}", JSON.toJSONString(message));

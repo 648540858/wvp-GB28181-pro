@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.media.zlm.dto;
 
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.vmanager.bean.StreamPushExcelDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.jetbrains.annotations.NotNull;
 
@@ -107,6 +108,22 @@ public class StreamPush implements Comparable<StreamPush>{
 
     @Schema(description = "状态")
     private boolean status;
+
+    @Schema(description = "分组国标编号")
+    private String groupDeviceId;
+
+    public static StreamPush getInstance(StreamPushExcelDto streamPushExcelDto) {
+        StreamPush streamPush = new StreamPush();
+        streamPush.setApp(streamPushExcelDto.getApp());
+        streamPush.setStream(streamPushExcelDto.getStream());
+        streamPush.setStatus(streamPushExcelDto.isStatus());
+        streamPush.setCreateTime(DateUtil.getNow());
+        streamPush.setUpdateTime(DateUtil.getNow());
+        streamPush.setGbId(streamPushExcelDto.getGbId());
+        streamPush.setName(streamPushExcelDto.getName());
+        streamPush.setGroupDeviceId(streamPushExcelDto.getCatalogId());
+        return streamPush;
+    }
 
 
     @Override
@@ -265,6 +282,14 @@ public class StreamPush implements Comparable<StreamPush>{
 
     public void setStatus(boolean status) {
         this.status = status;
+    }
+
+    public String getGroupDeviceId() {
+        return groupDeviceId;
+    }
+
+    public void setGroupDeviceId(String groupDeviceId) {
+        this.groupDeviceId = groupDeviceId;
     }
 }
 

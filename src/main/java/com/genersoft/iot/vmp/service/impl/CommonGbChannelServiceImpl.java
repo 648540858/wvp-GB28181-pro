@@ -777,4 +777,11 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         commonGbChannelMapper.deleteByIdList(commonChannelIdList);
         // TODO 向国标级联发送catalog
     }
+
+    @Override
+    public void offlineForList(List<Integer> onlinePushers) {
+
+
+        // TODO 向国标级联发送catalog
+    }
 }

@@ -37,4 +37,9 @@ public interface IResourceService {
      */
     boolean ptzControl(CommonGbChannel commonGbChannel, String command,
                        Integer horizonSpeed, Integer verticalSpeed, Integer zoomSpeed);
+
+    /**
+     * 流离线
+     */
+    void streamOffline(String app, String streamId);
 }

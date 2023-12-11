@@ -464,5 +464,10 @@ public interface DeviceChannelMapper {
             " where common_gb_channel_id = #{commonGbId}")
     int removeCommonChannelId(@Param("commonGbId") int commonGbId);
 
-
+    @Select(value = {" <script>" +
+            "select common_gb_channel_id " +
+            "from wvp_device_channel " +
+            "where device_id=#{deviceId}" +
+            " </script>"})
+    List<Integer> getCommonChannelIdList(@Param("deviceId") String deviceId);
 }

@@ -385,8 +385,8 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public void sendNotifyMobilePosition(String platformId) {
-        ParentPlatform platform = platformMapper.getParentPlatByServerGBId(platformId);
+    public void sendNotifyMobilePosition(Integer platformId) {
+        ParentPlatform platform = platformMapper.getParentPlatById(platformId);
         if (platform == null) {
             return;
         }

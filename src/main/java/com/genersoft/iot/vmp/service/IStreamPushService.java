@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
+import com.genersoft.iot.vmp.vmanager.bean.StreamPushExcelDto;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
@@ -65,7 +66,7 @@ public interface IStreamPushService {
     /**
      * 导入时批量增加
      */
-    void batchAddForUpload(List<StreamPush> streamPushItems, Map<String, List<String[]>> streamPushItemsForAll);
+    void batchAddForUpload(List<StreamPushExcelDto> streamPushItems);
 
     /**
      * 全部离线
@@ -85,7 +86,7 @@ public interface IStreamPushService {
     /**
      * 增加推流
      */
-    boolean add(StreamPush stream, CommonGbChannel commonGbChannel);
+    boolean add(StreamPush stream);
 
     /**
      * 获取全部的app+Streanm 用于判断推流列表是新增还是修改
@@ -100,4 +101,6 @@ public interface IStreamPushService {
     ResourceBaseInfo getOverview();
 
     void batchUpdate(List<StreamPush> streamPushItemForUpdate);
+
+    void update(StreamPush transform);
 }

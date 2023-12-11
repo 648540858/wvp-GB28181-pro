@@ -244,15 +244,12 @@ public class StreamPushController {
     @PostMapping(value = "/add")
     @ResponseBody
     @Operation(summary = "添加推流信息")
-    public void add(@RequestBody StreamPushWithCommonChannelParam param){
+    public void add(@RequestBody StreamPush param){
         if (ObjectUtils.isEmpty(param.getApp()) && ObjectUtils.isEmpty(param.getStream())) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "app或stream不可为空");
         }
-        StreamPush streamPushItem = new StreamPush();
-        streamPushItem.setApp(param.getApp());
-        streamPushItem.setStream(param.getStream());
 
-        if (!streamPushService.add(streamPushItem, param)) {
+        if (!streamPushService.add(param)) {
             throw new ControllerException(ErrorCode.ERROR100);
         }
     }

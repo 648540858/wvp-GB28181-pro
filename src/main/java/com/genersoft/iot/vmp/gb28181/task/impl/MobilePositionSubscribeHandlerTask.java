@@ -24,10 +24,10 @@ public class MobilePositionSubscribeHandlerTask implements ISubscribeTask {
 
 
     private IPlatformService platformService;
-    private String platformId;
+    private Integer platformId;
 
 
-    public MobilePositionSubscribeHandlerTask(String platformId) {
+    public MobilePositionSubscribeHandlerTask(Integer platformId) {
         this.platformService = SpringBeanFactory.getBean("platformServiceImpl");
         this.platformId = platformId;
     }

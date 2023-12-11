@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.service.bean.Group;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 业务分组
@@ -71,4 +72,7 @@ public interface IGroupService {
      * 查询子节点
      */
     PageInfo<Group> queryChildGroupList(String groupParentId, int page, int count);
+
+    Map<String, Group> getAllGroupMap();
+
 }

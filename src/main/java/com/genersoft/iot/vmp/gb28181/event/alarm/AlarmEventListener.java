@@ -1,55 +1,68 @@
 package com.genersoft.iot.vmp.gb28181.event.alarm;
 
-import org.springframework.context.ApplicationListener;
-import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-import java.io.IOException;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.Map;
-
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationListener;
+import org.springframework.stereotype.Component;
+
+import java.io.PrintWriter;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @description: 报警事件监听
- * @author: lawrencehj
- * @data: 2021-01-20
+ * 报警事件监听器.
+ *
+ * @author lawrencehj
+ * @author <a href="mailto:xiaoQQya@126.com">xiaoQQya</a>
+ * @since 2021/01/20
  */
-
 @Component
 public class AlarmEventListener implements ApplicationListener<AlarmEvent> {
 
-    private final static Logger logger = LoggerFactory.getLogger(AlarmEventListener.class);
+    private static final Logger logger = LoggerFactory.getLogger(AlarmEventListener.class);
 
-    private static Map<String, SseEmitter> sseEmitters = new Hashtable<>();
+    private static final Map<String, PrintWriter> SSE_CACHE = new ConcurrentHashMap<>();
 
-    public void addSseEmitters(String browserId, SseEmitter sseEmitter) {
-        sseEmitters.put(browserId, sseEmitter);
+    public void addSseEmitter(String browserId, PrintWriter writer) {
+        SSE_CACHE.put(browserId, writer);
+        logger.info("SSE 在线数量: {}", SSE_CACHE.size());
+    }
+
+    public void removeSseEmitter(String browserId, PrintWriter writer) {
+        SSE_CACHE.remove(browserId, writer);
+        logger.info("SSE 在线数量: {}", SSE_CACHE.size());
     }
 
     @Override
-    public void onApplicationEvent(AlarmEvent event) {
+    public void onApplicationEvent(@NotNull AlarmEvent event) {
         if (logger.isDebugEnabled()) {
-            logger.debug("设备报警事件触发，deviceId：" + event.getAlarmInfo().getDeviceId() + ", "
-                    + event.getAlarmInfo().getAlarmDescription());
+            logger.debug("设备报警事件触发, deviceId: {}, {}", event.getAlarmInfo().getDeviceId(), event.getAlarmInfo().getAlarmDescription());
         }
-        String msg = "<strong>设备编码：</strong> <i>" + event.getAlarmInfo().getDeviceId() + "</i>"
-                    + "<br><strong>报警描述：</strong> <i>" + event.getAlarmInfo().getAlarmDescription() + "</i>"
-                    + "<br><strong>报警时间：</strong> <i>" + event.getAlarmInfo().getAlarmTime() + "</i>"
-                    + "<br><strong>报警位置：</strong> <i>" + event.getAlarmInfo().getLongitude() + "</i>"
-                    + ", <i>" + event.getAlarmInfo().getLatitude() + "</i>";
 
-        for (Iterator<Map.Entry<String, SseEmitter>> it = sseEmitters.entrySet().iterator(); it.hasNext();) {
-            Map.Entry<String, SseEmitter> emitter = it.next();
-            logger.info("推送到SSE连接，浏览器ID: " + emitter.getKey());
+        String msg = "<strong>设备编号：</strong> <i>" + event.getAlarmInfo().getDeviceId() + "</i>"
+                + "<br><strong>通道编号：</strong> <i>" + event.getAlarmInfo().getChannelId() + "</i>"
+                + "<br><strong>报警描述：</strong> <i>" + event.getAlarmInfo().getAlarmDescription() + "</i>"
+                + "<br><strong>报警时间：</strong> <i>" + event.getAlarmInfo().getAlarmTime() + "</i>";
+
+        for (Iterator<Map.Entry<String, PrintWriter>> it = SSE_CACHE.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<String, PrintWriter> response = it.next();
+            logger.info("推送到 SSE 连接, 浏览器 ID: {}", response.getKey());
             try {
-                emitter.getValue().send(msg);
-            } catch (IOException | IllegalStateException e) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("SSE连接已关闭");
+                PrintWriter writer = response.getValue();
+
+                if (writer.checkError()) {
+                    it.remove();
+                    continue;
                 }
-                // 移除已关闭的连接
+
+                String sseMsg = "event:message\n" +
+                        "data:" + msg + "\n" +
+                        "\n";
+                writer.write(sseMsg);
+                writer.flush();
+            } catch (Exception e) {
                 it.remove();
             }
         }

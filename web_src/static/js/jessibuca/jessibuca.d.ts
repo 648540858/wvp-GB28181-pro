@@ -561,9 +561,9 @@ declare class Jessibuca {
         buf: number;
         /** 当前视频帧率 */
         fps: number;
-        /** 当前音频码率，单位bit */
+        /** 当前音频码率，单位byte */
         abps: number;
-        /** 当前视频码率，单位bit */
+        /** 当前视频码率，单位byte */
         vbps: number;
         /** 当前视频帧pts，单位毫秒 */
         ts: number;

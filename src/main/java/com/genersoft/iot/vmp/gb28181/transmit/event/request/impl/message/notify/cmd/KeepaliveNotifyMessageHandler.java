@@ -80,6 +80,11 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             device.setPort(remoteAddressInfo.getPort());
             device.setHostAddress(remoteAddressInfo.getIp().concat(":").concat(String.valueOf(remoteAddressInfo.getPort())));
             device.setIp(remoteAddressInfo.getIp());
+            // 设备地址变化会引起目录订阅任务失效，需要重新添加
+            if (device.getSubscribeCycleForCatalog() > 0) {
+                deviceService.removeCatalogSubscribe(device);
+                deviceService.addCatalogSubscribe(device);
+            }
         }
         if (device.getKeepaliveTime() == null) {
             device.setKeepaliveIntervalTime(60);

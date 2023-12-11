@@ -21,4 +21,9 @@ public interface IPlatformChannelService {
      * 移除共享通道
      */
     int removeChannelForGB(ParentPlatform platform, List<Integer> commonGbChannelIds);
+
+    /**
+     * 在一个给定的范围内查出分享了这个通道的上级平台
+     */
+    List<ParentPlatform> querySharePlatformListByChannelId(int commonGbId, List<String> platforms);
 }

@@ -53,7 +53,7 @@ public class EventPublisher {
 	}
 
 
-	public void catalogEventPublish(String platformId, CommonGbChannel channel, String type) {
+	public void catalogEventPublish(Integer platformId, CommonGbChannel channel, String type) {
 		List<CommonGbChannel> channelList = new ArrayList<>();
 		channelList.add(channel);
 		catalogEventPublish(platformId, channelList, type);
@@ -73,7 +73,7 @@ public class EventPublisher {
 	 * @param channels
 	 * @param type
 	 */
-	public void catalogEventPublish(String platformId, List<CommonGbChannel> channels, String type) {
+	public void catalogEventPublish(Integer platformId, List<CommonGbChannel> channels, String type) {
 		CatalogEvent outEvent = new CatalogEvent(this);
 		outEvent.setChannels(channels);
 		outEvent.setType(type);
@@ -82,7 +82,7 @@ public class EventPublisher {
 	}
 
 
-	public void catalogEventPublishForStream(String platformId, List<GbStream> gbStreams, String type) {
+	public void catalogEventPublishForStream(Integer platformId, List<GbStream> gbStreams, String type) {
 		CatalogEvent outEvent = new CatalogEvent(this);
 		outEvent.setGbStreams(gbStreams);
 		outEvent.setType(type);
@@ -91,7 +91,7 @@ public class EventPublisher {
 	}
 
 
-	public void catalogEventPublishForStream(String platformId, GbStream gbStream, String type) {
+	public void catalogEventPublishForStream(Integer platformId, GbStream gbStream, String type) {
 		List<GbStream> gbStreamList = new ArrayList<>();
 		gbStreamList.add(gbStream);
 		catalogEventPublishForStream(platformId, gbStreamList, type);

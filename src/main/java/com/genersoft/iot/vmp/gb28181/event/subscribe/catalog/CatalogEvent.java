@@ -48,9 +48,8 @@ public class CatalogEvent  extends ApplicationEvent {
     public static final String UPDATE = "UPDATE";
 
     private List<CommonGbChannel> channels;
-    private List<GbStream> gbStreams;
     private String type;
-    private String platformId;
+    private Integer platformId;
 
     public List<CommonGbChannel> getChannels() {
         return channels;
@@ -68,19 +67,12 @@ public class CatalogEvent  extends ApplicationEvent {
         this.type = type;
     }
 
-    public String getPlatformId() {
+    public Integer getPlatformId() {
         return platformId;
     }
 
-    public void setPlatformId(String platformId) {
+    public void setPlatformId(Integer platformId) {
         this.platformId = platformId;
     }
 
-    public List<GbStream> getGbStreams() {
-        return gbStreams;
-    }
-
-    public void setGbStreams(List<GbStream> gbStreams) {
-        this.gbStreams = gbStreams;
-    }
 }

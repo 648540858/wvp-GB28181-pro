@@ -34,6 +34,7 @@ CREATE TABLE `wvp_common_channel`
     `common_gb_business_group_id`     varchar(255) DEFAULT NULL,
     `common_gb_download_speed`        varchar(255) DEFAULT NULL,
     `common_gb_svc_time_support_mode` integer,
+    `common_gb_svc_space_support_mode` integer,
     `type`                            varchar(255) NOT NULL,
     `update_time`          varchar(50) NOT NULL,
     `create_time`          varchar(50) NOT NULL,

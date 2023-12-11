@@ -75,9 +75,6 @@ public class PlatformServiceImpl implements IPlatformService {
     private SubscribeHolder subscribeHolder;
 
     @Autowired
-    private GbStreamMapper gbStreamMapper;
-
-    @Autowired
     private UserSetting userSetting;
 
 
@@ -259,13 +256,13 @@ public class PlatformServiceImpl implements IPlatformService {
                     (parentPlatform.getKeepTimeout())*1000);
         }
         if (parentPlatform.isAutoPushChannel()) {
-            if (subscribeHolder.getCatalogSubscribe(parentPlatform.getServerGBId()) == null) {
+            if (subscribeHolder.getCatalogSubscribe(parentPlatform.getId()) == null) {
                 addSimulatedSubscribeInfo(parentPlatform);
             }
         }else {
-            SubscribeInfo catalogSubscribe = subscribeHolder.getCatalogSubscribe(parentPlatform.getServerGBId());
+            SubscribeInfo catalogSubscribe = subscribeHolder.getCatalogSubscribe(parentPlatform.getId());
             if (catalogSubscribe != null && catalogSubscribe.getExpires() == -1) {
-                subscribeHolder.removeCatalogSubscribe(parentPlatform.getServerGBId());
+                subscribeHolder.removeCatalogSubscribe(parentPlatform.getId());
             }
         }
     }
@@ -282,7 +279,7 @@ public class PlatformServiceImpl implements IPlatformService {
         subscribeInfo.setSimulatedCallId(UUID.randomUUID().toString().replace("-", "") + "@" + parentPlatform.getServerIP());
         subscribeInfo.setSimulatedFromTag(UUID.randomUUID().toString().replace("-", ""));
         subscribeInfo.setSimulatedToTag(UUID.randomUUID().toString().replace("-", ""));
-        subscribeHolder.putCatalogSubscribe(parentPlatform.getServerGBId(), subscribeInfo);
+        subscribeHolder.putCatalogSubscribe(parentPlatform.getId(), subscribeInfo);
     }
 
     private void registerTask(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo){
@@ -339,7 +336,7 @@ public class PlatformServiceImpl implements IPlatformService {
         }
         // 停止目录订阅回复
         logger.info("[平台离线] {}, 停止订阅回复", parentPlatform.getServerGBId());
-        subscribeHolder.removeAllSubscribe(parentPlatform.getServerGBId());
+        subscribeHolder.removeAllSubscribe(parentPlatform.getId());
         // 发起定时自动重新注册
         if (!stopRegister) {
             // 设置为60秒自动尝试重新注册
@@ -393,7 +390,7 @@ public class PlatformServiceImpl implements IPlatformService {
         if (platform == null) {
             return;
         }
-        SubscribeInfo subscribe = subscribeHolder.getMobilePositionSubscribe(platform.getServerGBId());
+        SubscribeInfo subscribe = subscribeHolder.getMobilePositionSubscribe(platform.getId());
         if (subscribe != null) {
 
             // TODO 暂时只处理视频流的回复,后续增加对国标设备的支持
@@ -450,7 +447,7 @@ public class PlatformServiceImpl implements IPlatformService {
             dynamicTask.stop(keepaliveTaskKey);
         }
         // 删除缓存的订阅信息
-        subscribeHolder.removeAllSubscribe(parentPlatform.getServerGBId());
+        subscribeHolder.removeAllSubscribe(parentPlatform.getId());
 
         // 发送注销的请求
         if (parentPlatformCatch != null && parentPlatformCatch.getSipTransactionInfo() != null) {
@@ -467,5 +464,10 @@ public class PlatformServiceImpl implements IPlatformService {
             }
         }
         return true;
+    }
+
+    @Override
+    public ParentPlatform query(Integer platformId) {
+        return platformMapper.getParentPlatById(platformId);
     }
 }

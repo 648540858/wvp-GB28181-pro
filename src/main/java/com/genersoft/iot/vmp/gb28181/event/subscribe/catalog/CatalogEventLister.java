@@ -1,9 +1,11 @@
 package com.genersoft.iot.vmp.gb28181.event.subscribe.catalog;
 
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
-import com.genersoft.iot.vmp.service.IGbStreamService;
+import com.genersoft.iot.vmp.service.IPlatformChannelService;
+import com.genersoft.iot.vmp.service.IPlatformService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,54 +31,43 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
     private final static Logger logger = LoggerFactory.getLogger(CatalogEventLister.class);
 
     @Autowired
-    private IVideoManagerStorage storager;
+    private IPlatformChannelService platformChannelService;
+
+    @Autowired
+    private IPlatformService platformService;
 
     @Autowired
     private SIPCommanderFroPlatform sipCommanderFroPlatform;
 
     @Autowired
-    private IGbStreamService gbStreamService;
-
-    @Autowired
     private SubscribeHolder subscribeHolder;
-
-    @Autowired
-    private UserSetting userSetting;
 
     @Override
     public void onApplicationEvent(CatalogEvent event) {
         SubscribeInfo subscribe = null;
         ParentPlatform parentPlatform = null;
 
-        Map<String, List<ParentPlatform>> parentPlatformMap = new HashMap<>();
+        Map<CommonGbChannel, List<ParentPlatform>> parentPlatformMap = new HashMap<>();
+
         if (!ObjectUtils.isEmpty(event.getPlatformId())) {
+            // 如果事件指定了要通知的上级，那么定向发给这个上级
             subscribe = subscribeHolder.getCatalogSubscribe(event.getPlatformId());
             if (subscribe == null) {
                 return;
             }
-            parentPlatform = storager.queryParentPlatByServerGBId(event.getPlatformId());
+            parentPlatform = platformService.query(event.getPlatformId());
             if (parentPlatform != null && !parentPlatform.isStatus()) {
                 return;
             }
 
         }else {
-            // 获取所用订阅
+            // 如果事件没有要通知的上级，那么需要自己查询到所有要通知的上级进行通知
             List<String> platforms = subscribeHolder.getAllCatalogSubscribePlatform();
-            if (event.getDeviceChannels() != null) {
-                if (platforms.size() > 0) {
-                    for (DeviceChannel deviceChannel : event.getDeviceChannels()) {
-                        List<ParentPlatform> parentPlatformsForGB = storager.queryPlatFormListForGBWithGBId(deviceChannel.getChannelId(), platforms);
-                        parentPlatformMap.put(deviceChannel.getChannelId(), parentPlatformsForGB);
-                    }
-                }
-            }else if (event.getGbStreams() != null) {
-                if (platforms.size() > 0) {
-                    for (GbStream gbStream : event.getGbStreams()) {
-                        if (gbStream == null || ObjectUtils.isEmpty(gbStream.getGbId())) {
-                            continue;
-                        }
-                        List<ParentPlatform> parentPlatformsForGB = storager.queryPlatFormListForStreamWithGBId(gbStream.getApp(),gbStream.getStream(), platforms);
-                        parentPlatformMap.put(gbStream.getGbId(), parentPlatformsForGB);
+            if (event.getChannels() != null) {
+                if (!platforms.isEmpty()) {
+                    for (CommonGbChannel channel : event.getChannels()) {
+                        List<ParentPlatform> parentPlatformsForGB = platformChannelService.querySharePlatformListByChannelId(channel.getCommonGbId(), platforms);
+                        parentPlatformMap.put(channel, parentPlatformsForGB);
                     }
                 }
             }
@@ -86,53 +77,42 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
             case CatalogEvent.OFF:
             case CatalogEvent.DEL:
 
-                if (parentPlatform != null || subscribe != null) {
-                    List<DeviceChannel> deviceChannelList = new ArrayList<>();
-                    if (event.getDeviceChannels() != null) {
-                        deviceChannelList.addAll(event.getDeviceChannels());
-                    }
-                    if (event.getGbStreams() != null && !event.getGbStreams().isEmpty()){
-                        for (GbStream gbStream : event.getGbStreams()) {
-                            if (gbStream != null
-                                    && gbStream.getStreamType() != null
-                                    && gbStream.getStreamType().equals("push")
-                                    && !userSetting.isUsePushingAsStatus()) {
-                                continue;
-                            }
-                            DeviceChannel deviceChannelByStream = gbStreamService.getDeviceChannelListByStream(gbStream, gbStream.getCatalogId(), parentPlatform);
-                            deviceChannelList.add(deviceChannelByStream);
-                        }
-                    }
-                    if (deviceChannelList.size() > 0) {
-                        logger.info("[Catalog事件: {}]平台：{}，影响通道{}个", event.getType(), event.getPlatformId(), deviceChannelList.size());
+                if (parentPlatform != null ) {
+
+                    if (!event.getChannels().isEmpty()) {
+                        logger.info("[Catalog事件: {}]平台：{}，影响通道{}个", event.getType(), event.getPlatformId(), event.getChannels().size());
                         try {
-                            sipCommanderFroPlatform.sendNotifyForCatalogOther(event.getType(), parentPlatform, deviceChannelList, subscribe, null);
+                            sipCommanderFroPlatform.sendNotifyForCatalogOther(event.getType(), parentPlatform, event.getChannels(), subscribe, null);
                         } catch (InvalidArgumentException | ParseException | NoSuchFieldException | SipException |
                                  IllegalAccessException e) {
                             logger.error("[命令发送失败] 国标级联 Catalog通知: {}", e.getMessage());
                         }
                     }
-                }else if (parentPlatformMap.keySet().size() > 0) {
-                    for (String gbId : parentPlatformMap.keySet()) {
-                        List<ParentPlatform> parentPlatforms = parentPlatformMap.get(gbId);
+                }else if (!parentPlatformMap.keySet().isEmpty()) {
+                    // 事件没有要通知的上级，那么需要通知所有订阅了的上级
+                    Map<ParentPlatform, List<CommonGbChannel>> catalogData = new HashMap<>();
+                    for (CommonGbChannel channel : parentPlatformMap.keySet()) {
+                        List<ParentPlatform> parentPlatforms = parentPlatformMap.get(channel);
                         if (parentPlatforms != null && parentPlatforms.size() > 0) {
                             for (ParentPlatform platform : parentPlatforms) {
-                                SubscribeInfo subscribeInfo = subscribeHolder.getCatalogSubscribe(platform.getServerGBId());
-                                if (subscribeInfo == null) {
-                                    continue;
+                                if (!catalogData.containsKey(platform)) {
+                                    catalogData.put(platform, new ArrayList<>());
                                 }
-                                logger.info("[Catalog事件: {}]平台：{}，影响通道{}", event.getType(), platform.getServerGBId(), gbId);
-                                List<DeviceChannel> deviceChannelList = new ArrayList<>();
-                                DeviceChannel deviceChannel = new DeviceChannel();
-                                deviceChannel.setChannelId(gbId);
-                                deviceChannelList.add(deviceChannel);
-                                try {
-                                    sipCommanderFroPlatform.sendNotifyForCatalogOther(event.getType(), platform, deviceChannelList, subscribeInfo, null);
-                                } catch (InvalidArgumentException | ParseException | NoSuchFieldException | SipException |
-                                         IllegalAccessException e) {
-                                    logger.error("[命令发送失败] 国标级联 Catalog通知: {}", e.getMessage());
-                                }
+                                catalogData.get(platform).add(channel);
                             }
+                        }
+                    }
+                    for (ParentPlatform platform : catalogData.keySet()) {
+                        SubscribeInfo subscribeInfo = subscribeHolder.getCatalogSubscribe(platform.getId());
+                        if (subscribeInfo == null) {
+                            continue;
+                        }
+                        logger.info("[Catalog事件: {}]平台：{}，影响通道{}个", event.getType(), platform.getServerGBId(), catalogData.get(platform).size());
+                        try {
+                            sipCommanderFroPlatform.sendNotifyForCatalogOther(event.getType(), platform, catalogData.get(platform), subscribeInfo, null);
+                        } catch (InvalidArgumentException | ParseException | NoSuchFieldException | SipException |
+                                 IllegalAccessException e) {
+                            logger.error("[命令发送失败] 国标级联 Catalog通知: {}", e.getMessage());
                         }
                     }
                 }
@@ -144,50 +124,40 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
             case CatalogEvent.ADD:
             case CatalogEvent.UPDATE:
                 if (parentPlatform != null || subscribe != null) {
-                     List<DeviceChannel> deviceChannelList = new ArrayList<>();
-                     if (event.getDeviceChannels() != null) {
-                         deviceChannelList.addAll(event.getDeviceChannels());
-                     }
-                    if (event.getGbStreams() != null && event.getGbStreams().size() > 0){
-                        for (GbStream gbStream : event.getGbStreams()) {
-                            deviceChannelList.add(
-                                    gbStreamService.getDeviceChannelListByStreamWithStatus(gbStream, gbStream.getCatalogId(), parentPlatform));
-                        }
-                    }
-                    if (deviceChannelList.size() > 0) {
-                        logger.info("[Catalog事件: {}]平台：{}，影响通道{}个", event.getType(), event.getPlatformId(), deviceChannelList.size());
+                    if (!event.getChannels().isEmpty()) {
+                        logger.info("[Catalog事件: {}]平台：{}，影响通道{}个", event.getType(), event.getPlatformId(), event.getChannels().size());
                         try {
-                            sipCommanderFroPlatform.sendNotifyForCatalogAddOrUpdate(event.getType(), parentPlatform, deviceChannelList, subscribe, null);
+                            sipCommanderFroPlatform.sendNotifyForCatalogAddOrUpdate(event.getType(), parentPlatform, event.getChannels(), subscribe, null);
                         } catch (InvalidArgumentException | ParseException | NoSuchFieldException | SipException |
                                  IllegalAccessException e) {
                             logger.error("[命令发送失败] 国标级联 Catalog通知: {}", e.getMessage());
                         }
                     }
-                }else if (parentPlatformMap.keySet().size() > 0) {
-                    for (String gbId : parentPlatformMap.keySet()) {
-                        List<ParentPlatform> parentPlatforms = parentPlatformMap.get(gbId);
+                }else if (!parentPlatformMap.keySet().isEmpty()) {
+                    // 事件没有要通知的上级，那么需要通知所有订阅了的上级
+                    Map<ParentPlatform, List<CommonGbChannel>> catalogData = new HashMap<>();
+                    for (CommonGbChannel channel : parentPlatformMap.keySet()) {
+                        List<ParentPlatform> parentPlatforms = parentPlatformMap.get(channel);
                         if (parentPlatforms != null && parentPlatforms.size() > 0) {
                             for (ParentPlatform platform : parentPlatforms) {
-                                SubscribeInfo subscribeInfo = subscribeHolder.getCatalogSubscribe(platform.getServerGBId());
-                                if (subscribeInfo == null) {
-                                    continue;
+                                if (!catalogData.containsKey(platform)) {
+                                    catalogData.put(platform, new ArrayList<>());
                                 }
-                                logger.info("[Catalog事件: {}]平台：{}，影响通道{}", event.getType(), platform.getServerGBId(), gbId);
-                                List<DeviceChannel> deviceChannelList = new ArrayList<>();
-                                DeviceChannel deviceChannel = storager.queryChannelInParentPlatform(platform.getServerGBId(), gbId);
-                                deviceChannelList.add(deviceChannel);
-                                GbStream gbStream = storager.queryStreamInParentPlatform(platform.getServerGBId(), gbId);
-                                if(gbStream != null){
-                                    DeviceChannel deviceChannelByStream = gbStreamService.getDeviceChannelListByStreamWithStatus(gbStream, gbStream.getCatalogId(), platform);
-                                    deviceChannelList.add(deviceChannelByStream);
-                                }
-                                try {
-                                    sipCommanderFroPlatform.sendNotifyForCatalogAddOrUpdate(event.getType(), platform, deviceChannelList, subscribeInfo, null);
-                                } catch (InvalidArgumentException | ParseException | NoSuchFieldException |
-                                         SipException | IllegalAccessException e) {
-                                    logger.error("[命令发送失败] 国标级联 Catalog通知: {}", e.getMessage());
-                                }
+                                catalogData.get(platform).add(channel);
                             }
+                        }
+                    }
+                    for (ParentPlatform platform : catalogData.keySet()) {
+                        SubscribeInfo subscribeInfo = subscribeHolder.getCatalogSubscribe(platform.getId());
+                        if (subscribeInfo == null) {
+                            continue;
+                        }
+                        logger.info("[Catalog事件: {}]平台：{}，影响通道{}个", event.getType(), platform.getServerGBId(), catalogData.get(platform).size());
+                        try {
+                            sipCommanderFroPlatform.sendNotifyForCatalogAddOrUpdate(event.getType(), platform, catalogData.get(platform), subscribeInfo, null);
+                        } catch (InvalidArgumentException | ParseException | NoSuchFieldException | SipException |
+                                 IllegalAccessException e) {
+                            logger.error("[命令发送失败] 国标级联 Catalog通知: {}", e.getMessage());
                         }
                     }
                 }

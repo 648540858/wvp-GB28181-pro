@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 
 import com.alibaba.fastjson2.JSON;
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.gb28181.SipLayer;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -556,30 +557,30 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public void sendNotifyForCatalogAddOrUpdate(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels, SubscribeInfo subscribeInfo, Integer index) throws InvalidArgumentException, ParseException, NoSuchFieldException, SipException, IllegalAccessException {
-        if (parentPlatform == null || deviceChannels == null || deviceChannels.size() == 0 || subscribeInfo == null) {
+    public void sendNotifyForCatalogAddOrUpdate(String type, ParentPlatform parentPlatform, List<CommonGbChannel> channelList, SubscribeInfo subscribeInfo, Integer index) throws InvalidArgumentException, ParseException, NoSuchFieldException, SipException, IllegalAccessException {
+        if (parentPlatform == null || channelList == null || channelList.size() == 0 || subscribeInfo == null) {
             return;
         }
         if (index == null) {
             index = 0;
         }
-        if (index >= deviceChannels.size()) {
+        if (index >= channelList.size()) {
             return;
         }
-        List<DeviceChannel> channels;
-        if (index + parentPlatform.getCatalogGroup() < deviceChannels.size()) {
-            channels = deviceChannels.subList(index, index + parentPlatform.getCatalogGroup());
+        List<CommonGbChannel> subChannels;
+        if (index + parentPlatform.getCatalogGroup() < channelList.size()) {
+            subChannels = channelList.subList(index, index + parentPlatform.getCatalogGroup());
         }else {
-            channels = deviceChannels.subList(index, deviceChannels.size());
+            subChannels = channelList.subList(index, channelList.size());
         }
         Integer finalIndex = index;
-        String catalogXmlContent = getCatalogXmlContentForCatalogAddOrUpdate(parentPlatform, channels,
-                deviceChannels.size(), type, subscribeInfo);
+        String catalogXmlContent = getCatalogXmlContentForCatalogAddOrUpdate(parentPlatform, subChannels,
+                channelList.size(), type, subscribeInfo);
         sendNotify(parentPlatform, catalogXmlContent, subscribeInfo, eventResult -> {
             logger.error("发送NOTIFY通知消息失败。错误：{} {}", eventResult.statusCode, eventResult.msg);
         }, (eventResult -> {
             try {
-                sendNotifyForCatalogAddOrUpdate(type, parentPlatform, deviceChannels, subscribeInfo,
+                sendNotifyForCatalogAddOrUpdate(type, parentPlatform, channelList, subscribeInfo,
                         finalIndex + parentPlatform.getCatalogGroup());
             } catch (InvalidArgumentException | ParseException | NoSuchFieldException | SipException |
                      IllegalAccessException e) {
@@ -601,7 +602,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         sipSender.transmitRequest(parentPlatform.getDeviceIp(), notifyRequest);
     }
 
-    private  String getCatalogXmlContentForCatalogAddOrUpdate(ParentPlatform parentPlatform, List<DeviceChannel> channels, int sumNum, String type, SubscribeInfo subscribeInfo) {
+    private  String getCatalogXmlContentForCatalogAddOrUpdate(ParentPlatform parentPlatform, List<CommonGbChannel> channels, int sumNum, String type, SubscribeInfo subscribeInfo) {
         StringBuffer catalogXml = new StringBuffer(600);
 
         String characterSet = parentPlatform.getCharacterSet();
@@ -613,40 +614,109 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 .append("<SumNum>1</SumNum>\r\n")
                 .append("<DeviceList Num=\"" + channels.size() + "\">\r\n");
         if (channels.size() > 0) {
-            for (DeviceChannel channel : channels) {
-                if (parentPlatform.getServerGBId().equals(channel.getParentId())) {
-                    channel.setParentId(parentPlatform.getDeviceGBId());
-                }
+            for (CommonGbChannel channel : channels) {
                 catalogXml.append("<Item>\r\n");
                 // 行政区划分组只需要这两项就可以
-                catalogXml.append("<DeviceID>" + channel.getChannelId() + "</DeviceID>\r\n");
-                catalogXml.append("<Name>" + channel.getName() + "</Name>\r\n");
-                if (channel.getParentId() != null) {
+                catalogXml.append("<DeviceID>" + channel.getCommonGbDeviceID() + "</DeviceID>\r\n");
+                catalogXml.append("<Name>" + channel.getCommonGbName() + "</Name>\r\n");
+                if (!ObjectUtils.isEmpty(channel.getCommonGbManufacturer())) {
+                    catalogXml.append("<Manufacturer>" + channel.getCommonGbManufacturer() + "</Manufacturer>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbModel())) {
+                    catalogXml.append("<Model>" + channel.getCommonGbModel() + "</Model>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbOwner())) {
+                    catalogXml.append("<Owner> " + channel.getCommonGbOwner()+ "</Owner>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbCivilCode())) {
+                    catalogXml.append("<CivilCode> " + channel.getCommonGbCivilCode()+ "</CivilCode>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbBlock())) {
+                    catalogXml.append("<Block>" + channel.getCommonGbBlock() + "</Block>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbAddress())) {
+                    catalogXml.append("<Address> " + channel.getCommonGbAddress()+ "</Address>\r\n");
+                }
+                catalogXml.append("<Parental>" + channel.getCommonGbParental() + "</Parental>\r\n");
+                if (!ObjectUtils.isEmpty(channel.getCommonGbParentID())) {
                     // 业务分组加上这一项即可，提高兼容性，
-                    catalogXml.append("<ParentID>" + channel.getParentId() + "</ParentID>\r\n");
+                    catalogXml.append("<ParentID>" + channel.getCommonGbParentID() + "</ParentID>\r\n");
                 }
-                if (channel.getChannelId().length() == 20 && Integer.parseInt(channel.getChannelId().substring(10, 13)) == 216) {
-                    // 虚拟组织增加BusinessGroupID字段
-                    catalogXml.append("<BusinessGroupID>" + channel.getParentId() + "</BusinessGroupID>\r\n");
+                if (!ObjectUtils.isEmpty(channel.getCommonGbSafetyWay())) {
+                    catalogXml.append("<SafetyWay>" + channel.getCommonGbSafetyWay() + "</SafetyWay>\r\n");
                 }
-                catalogXml.append("<Parental>" + channel.getParental() + "</Parental>\r\n");
-                if (channel.getParental() == 0) {
-                    // 通道项
-                    catalogXml.append("<Manufacturer>" + channel.getManufacture() + "</Manufacturer>\r\n")
-                            .append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n")
-                            .append("<RegisterWay>" + channel.getRegisterWay() + "</RegisterWay>\r\n")
-                            .append("<Status>" + (channel.isStatus() ? "ON" : "OFF") + "</Status>\r\n");
+                if (!ObjectUtils.isEmpty(channel.getCommonGbRegisterWay())) {
+                    catalogXml.append("<RegisterWay>" + channel.getCommonGbRegisterWay() + "</RegisterWay>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbCertNum())) {
+                    catalogXml.append("<CertNum>" + channel.getCommonGbCertNum() + "</CertNum>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbCertifiable())) {
+                    catalogXml.append("<Certifiable>" + channel.getCommonGbCertifiable() + "</Certifiable>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbErrCode())) {
+                    catalogXml.append("<ErrCode>" + channel.getCommonGbErrCode() + "</ErrCode>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbEndTime())) {
+                    catalogXml.append("<EndTime>" + channel.getCommonGbEndTime() + "</EndTime>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbSecrecy())) {
+                    catalogXml.append("<Secrecy>" + channel.getCommonGbSecrecy() + "</Secrecy>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbIPAddress())) {
+                    catalogXml.append("<IPAddress>" + channel.getCommonGbIPAddress() + "</IPAddress>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbPort())) {
+                    catalogXml.append("<Port>" + channel.getCommonGbPort() + "</Port>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbPassword())) {
+                    catalogXml.append("<Password>" + channel.getCommonGbPassword() + "</Password>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbStatus())) {
+                    catalogXml.append("<Status>" + (channel.getCommonGbStatus() ? "ON" : "OFF") + "</Status>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbLongitude())) {
+                    catalogXml.append("<Longitude>" + channel.getCommonGbLongitude() + "</Longitude>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbLatitude())) {
+                    catalogXml.append("<Latitude>" + channel.getCommonGbLatitude() + "</Latitude>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbPtzType())) {
+                    catalogXml.append("<PTZType>" + channel.getCommonGbPtzType() + "</PTZType>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbPositionType())) {
+                    catalogXml.append("<PositionType>" + channel.getCommonGbPositionType() + "</PositionType>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbRoomType())) {
+                    catalogXml.append("<RoomType>" + channel.getCommonGbRoomType() + "</RoomType>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbUseType())) {
+                    catalogXml.append("<UseType>" + channel.getCommonGbUseType() + "</UseType>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbSupplyLightType())) {
+                    catalogXml.append("<SupplyLightType>" + channel.getCommonGbSupplyLightType() + "</SupplyLightType>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbDirectionType())) {
+                    catalogXml.append("<DirectionType>" + channel.getCommonGbDirectionType() + "</DirectionType>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbResolution())) {
+                    catalogXml.append("<Resolution>" + channel.getCommonGbResolution() + "</Resolution>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbBusinessGroupID())) {
+                    catalogXml.append("<BusinessGroupID>" + channel.getCommonGbBusinessGroupID() + "</BusinessGroupID>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbDownloadSpeed())) {
+                    catalogXml.append("<DownloadSpeed>" + channel.getCommonGbDownloadSpeed() + "</DownloadSpeed>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getSVCSpaceSupportMode())) {
+                    catalogXml.append("<SVCSpaceSupportMode>" + channel.getSVCSpaceSupportMode() + "</SVCSpaceSupportMode>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbSVCTimeSupportMode())) {
+                    catalogXml.append("<SVCTimeSupportMode>" + channel.getCommonGbSVCTimeSupportMode() + "</SVCTimeSupportMode>\r\n");
+                }
 
-                    if (channel.getChannelType() != 2) {  // 业务分组/虚拟组织/行政区划 不设置以下属性
-                        catalogXml.append("<Model>" + channel.getModel() + "</Model>\r\n")
-                                .append("<Owner> " + channel.getOwner()+ "</Owner>\r\n")
-                                .append("<CivilCode>" + channel.getCivilCode() + "</CivilCode>\r\n")
-                                .append("<Address>" + channel.getAddress() + "</Address>\r\n");
-                    }
-                    if (!"presence".equals(subscribeInfo.getEventType())) {
-                        catalogXml.append("<Event>" + type + "</Event>\r\n");
-                    }
-
+                if (!"presence".equals(subscribeInfo.getEventType())) {
+                    catalogXml.append("<Event>" + type + "</Event>\r\n");
                 }
                 catalogXml.append("</Item>\r\n");
             }
@@ -657,11 +727,11 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public void sendNotifyForCatalogOther(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels,
+    public void sendNotifyForCatalogOther(String type, ParentPlatform parentPlatform, List<CommonGbChannel> channelList,
                                              SubscribeInfo subscribeInfo, Integer index) throws InvalidArgumentException, ParseException, NoSuchFieldException, SipException, IllegalAccessException {
         if (parentPlatform == null
-                || deviceChannels == null
-                || deviceChannels.size() == 0
+                || channelList == null
+                || channelList.size() == 0
                 || subscribeInfo == null) {
             logger.warn("[缺少必要参数]");
             return;
@@ -670,22 +740,22 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         if (index == null) {
             index = 0;
         }
-        if (index >= deviceChannels.size()) {
+        if (index >= channelList.size()) {
             return;
         }
-        List<DeviceChannel> channels;
-        if (index + parentPlatform.getCatalogGroup() < deviceChannels.size()) {
-            channels = deviceChannels.subList(index, index + parentPlatform.getCatalogGroup());
+        List<CommonGbChannel> subChannels;
+        if (index + parentPlatform.getCatalogGroup() < channelList.size()) {
+            subChannels = channelList.subList(index, index + parentPlatform.getCatalogGroup());
         }else {
-            channels = deviceChannels.subList(index, deviceChannels.size());
+            subChannels = channelList.subList(index, channelList.size());
         }
         Integer finalIndex = index;
-        String catalogXmlContent = getCatalogXmlContentForCatalogOther(parentPlatform, channels, type);
+        String catalogXmlContent = getCatalogXmlContentForCatalogOther(parentPlatform, subChannels, type);
         sendNotify(parentPlatform, catalogXmlContent, subscribeInfo, eventResult -> {
             logger.error("发送NOTIFY通知消息失败。错误：{} {}", eventResult.statusCode, eventResult.msg);
         }, eventResult -> {
             try {
-                sendNotifyForCatalogOther(type, parentPlatform, deviceChannels, subscribeInfo,
+                sendNotifyForCatalogOther(type, parentPlatform, channelList, subscribeInfo,
                         finalIndex + parentPlatform.getCatalogGroup());
             } catch (InvalidArgumentException | ParseException | NoSuchFieldException | SipException |
                      IllegalAccessException e) {
@@ -694,7 +764,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         });
     }
 
-    private String getCatalogXmlContentForCatalogOther(ParentPlatform parentPlatform, List<DeviceChannel> channels, String type) {
+    private String getCatalogXmlContentForCatalogOther(ParentPlatform parentPlatform, List<CommonGbChannel> channels, String type) {
 
         String characterSet = parentPlatform.getCharacterSet();
         StringBuffer catalogXml = new StringBuffer(600);
@@ -706,12 +776,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 .append("<SumNum>1</SumNum>\r\n")
                 .append("<DeviceList Num=\" " + channels.size() + " \">\r\n");
         if (channels.size() > 0) {
-            for (DeviceChannel channel : channels) {
-                if (parentPlatform.getServerGBId().equals(channel.getParentId())) {
-                    channel.setParentId(parentPlatform.getDeviceGBId());
-                }
+            for (CommonGbChannel channel : channels) {
                 catalogXml.append("<Item>\r\n")
-                        .append("<DeviceID>" + channel.getChannelId() + "</DeviceID>\r\n")
+                        .append("<DeviceID>" + channel.getCommonGbDeviceID() + "</DeviceID>\r\n")
                         .append("<Event>" + type + "</Event>\r\n")
                         .append("</Item>\r\n");
             }

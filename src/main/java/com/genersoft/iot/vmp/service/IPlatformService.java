@@ -62,4 +62,9 @@ public interface IPlatformService {
      * 移除上级平台
      */
     boolean delete(String serverGBId);
+
+    /**
+     * 根据ID查询上级平台
+     */
+    ParentPlatform query(Integer platformId);
 }

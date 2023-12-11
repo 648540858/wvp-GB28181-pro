@@ -106,8 +106,8 @@ public class PlatformController {
         PageInfo<ParentPlatform> parentPlatformPageInfo = platformService.queryParentPlatformList(page, count);
         if (parentPlatformPageInfo.getList().size() > 0) {
             for (ParentPlatform platform : parentPlatformPageInfo.getList()) {
-                platform.setMobilePositionSubscribe(subscribeHolder.getMobilePositionSubscribe(platform.getServerGBId()) != null);
-                platform.setCatalogSubscribe(subscribeHolder.getCatalogSubscribe(platform.getServerGBId()) != null);
+                platform.setMobilePositionSubscribe(subscribeHolder.getMobilePositionSubscribe(platform.getId()) != null);
+                platform.setCatalogSubscribe(subscribeHolder.getCatalogSubscribe(platform.getId()) != null);
             }
         }
         return parentPlatformPageInfo;

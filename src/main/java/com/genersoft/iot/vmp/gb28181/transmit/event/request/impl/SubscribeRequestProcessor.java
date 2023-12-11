@@ -138,13 +138,12 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		}
 
 		try {
-			ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
-			SIPResponse response = responseXmlAck(request, resultXml.toString(), parentPlatform, subscribeInfo.getExpires());
+			SIPResponse response = responseXmlAck(request, resultXml.toString(), platform, subscribeInfo.getExpires());
 			if (subscribeInfo.getExpires() == 0) {
-				subscribeHolder.removeMobilePositionSubscribe(platformId);
+				subscribeHolder.removeMobilePositionSubscribe(platform.getId());
 			}else {
 				subscribeInfo.setResponse(response);
-				subscribeHolder.putMobilePositionSubscribe(platformId, subscribeInfo);
+				subscribeHolder.putMobilePositionSubscribe(platform.getId(), subscribeInfo);
 			}
 
 		} catch (SipException | InvalidArgumentException | ParseException e) {
@@ -180,23 +179,22 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 				.append("</Response>\r\n");
 
 		if (subscribeInfo.getExpires() > 0) {
-			subscribeHolder.putCatalogSubscribe(platformId, subscribeInfo);
+			subscribeHolder.putCatalogSubscribe(platform.getId(), subscribeInfo);
 		}else if (subscribeInfo.getExpires() == 0) {
-			subscribeHolder.removeCatalogSubscribe(platformId);
+			subscribeHolder.removeCatalogSubscribe(platform.getId());
 		}
 		try {
-			ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
-			SIPResponse response = responseXmlAck(request, resultXml.toString(), parentPlatform, subscribeInfo.getExpires());
+			SIPResponse response = responseXmlAck(request, resultXml.toString(), platform, subscribeInfo.getExpires());
 			if (subscribeInfo.getExpires() == 0) {
-				subscribeHolder.removeCatalogSubscribe(platformId);
+				subscribeHolder.removeCatalogSubscribe(platform.getId());
 			}else {
 				subscribeInfo.setResponse(response);
-				subscribeHolder.putCatalogSubscribe(platformId, subscribeInfo);
+				subscribeHolder.putCatalogSubscribe(platform.getId(), subscribeInfo);
 			}
 		} catch (SipException | InvalidArgumentException | ParseException e) {
 			logger.error("未处理的异常 ", e);
 		}
-		if (subscribeHolder.getCatalogSubscribe(platformId) == null && platform.isAutoPushChannel()) {
+		if (subscribeHolder.getCatalogSubscribe(platform.getId()) == null && platform.isAutoPushChannel()) {
 			platformService.addSimulatedSubscribeInfo(platform);
 		}
 	}

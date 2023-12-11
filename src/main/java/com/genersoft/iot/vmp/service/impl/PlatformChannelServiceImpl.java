@@ -78,11 +78,11 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
             allCount = platformChannelMapper.addChannels(platform.getId(), commonGbChannelIdsForSave);
             logger.info("[关联通道]国标通道 平台：{}, 关联通道数:{}", platform.getServerGBId(), commonGbChannelIdsForSave.size());
         }
-        SubscribeInfo catalogSubscribe = subscribeHolder.getCatalogSubscribe(platform.getServerGBId());
+        SubscribeInfo catalogSubscribe = subscribeHolder.getCatalogSubscribe(platform.getId());
         if (catalogSubscribe != null) {
             List<CommonGbChannel> channelList = commonGbChannelMapper.queryInIdList(commonGbChannelIdsForSave);
             if (channelList != null) {
-                eventPublisher.catalogEventPublish(platform.getServerGBId(), channelList, CatalogEvent.ADD);
+                eventPublisher.catalogEventPublish(platform.getId(), channelList, CatalogEvent.ADD);
             }
         }
         return allCount;
@@ -109,13 +109,18 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
             allCount = platformChannelMapper.removeChannels(platform.getId(), commonGbChannelIds);
             logger.info("[关联通道]国标通道 平台：{}, 取消关联通道数:{}", platform.getServerGBId(), commonGbChannelIds.size());
         }
-        SubscribeInfo catalogSubscribe = subscribeHolder.getCatalogSubscribe(platform.getServerGBId());
+        SubscribeInfo catalogSubscribe = subscribeHolder.getCatalogSubscribe(platform.getId());
         if (catalogSubscribe != null) {
             List<CommonGbChannel> channelList = commonGbChannelMapper.queryInIdList(commonGbChannelIds);
             if (channelList != null) {
-                eventPublisher.catalogEventPublish(platform.getServerGBId(), channelList, CatalogEvent.DEL);
+                eventPublisher.catalogEventPublish(platform.getId(), channelList, CatalogEvent.DEL);
             }
         }
         return allCount;
+    }
+
+    @Override
+    public List<ParentPlatform> querySharePlatformListByChannelId(int commonGbId, List<String> platforms) {
+        return platformChannelMapper.querySharePlatformListByChannelId();
     }
 }

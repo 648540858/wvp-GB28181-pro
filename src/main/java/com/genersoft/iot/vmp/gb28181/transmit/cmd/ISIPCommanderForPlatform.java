@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd;
 
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
@@ -89,17 +90,13 @@ public interface ISIPCommanderForPlatform {
 
     /**
      * 回复catalog事件-增加/更新
-     * @param parentPlatform
-     * @param deviceChannels
      */
-    void sendNotifyForCatalogAddOrUpdate(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels, SubscribeInfo subscribeInfo, Integer index) throws InvalidArgumentException, ParseException, NoSuchFieldException, SipException, IllegalAccessException;
+    void sendNotifyForCatalogAddOrUpdate(String type, ParentPlatform parentPlatform, List<CommonGbChannel> channels, SubscribeInfo subscribeInfo, Integer index) throws InvalidArgumentException, ParseException, NoSuchFieldException, SipException, IllegalAccessException;
 
     /**
      * 回复catalog事件-删除
-     * @param parentPlatform
-     * @param deviceChannels
      */
-    void sendNotifyForCatalogOther(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels, SubscribeInfo subscribeInfo, Integer index) throws InvalidArgumentException, ParseException, NoSuchFieldException, SipException, IllegalAccessException;
+    void sendNotifyForCatalogOther(String type, ParentPlatform parentPlatform, List<CommonGbChannel> channels, SubscribeInfo subscribeInfo, Integer index) throws InvalidArgumentException, ParseException, NoSuchFieldException, SipException, IllegalAccessException;
 
     /**
      * 回复recordInfo

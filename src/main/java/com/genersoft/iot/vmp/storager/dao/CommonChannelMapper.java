@@ -589,4 +589,15 @@ public interface CommonChannelMapper {
             "<foreach collection='channelIds'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
             "</script>")
     List<Integer> getChannelIdsByIds(@Param("channelIds") List<Integer> channelIds);
+
+    @Delete("<script> "+
+            "delete from wvp_common_channel WHERE common_gb_id = #{commonGbChannelId}" +
+            "</script>")
+    void delete(@Param("commonGbChannelId") int commonGbChannelId);
+
+    @Delete("<script> "+
+            "delete from wvp_common_channel WHERE common_gb_id in" +
+            "<foreach collection='commonChannelIdList'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
+            "</script>")
+    void deleteByIdList(List<Integer> commonChannelIdList);
 }

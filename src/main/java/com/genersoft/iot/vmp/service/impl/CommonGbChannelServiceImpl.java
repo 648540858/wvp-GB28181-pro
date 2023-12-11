@@ -768,6 +768,13 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
 
     @Override
     public void deleteById(int commonGbChannelId) {
+        commonGbChannelMapper.delete(commonGbChannelId);
+        // TODO 向国标级联发送catalog
+    }
 
+    @Override
+    public void deleteByIdList(List<Integer> commonChannelIdList) {
+        commonGbChannelMapper.deleteByIdList(commonChannelIdList);
+        // TODO 向国标级联发送catalog
     }
 }

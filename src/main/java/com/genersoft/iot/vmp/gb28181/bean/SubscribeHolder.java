@@ -26,11 +26,11 @@ public class SubscribeHolder {
 
     private final String taskOverduePrefix = "subscribe_overdue_";
 
-    private static ConcurrentHashMap<String, SubscribeInfo> catalogMap = new ConcurrentHashMap<>();
-    private static ConcurrentHashMap<String, SubscribeInfo> mobilePositionMap = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<Integer, SubscribeInfo> catalogMap = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<Integer, SubscribeInfo> mobilePositionMap = new ConcurrentHashMap<>();
 
 
-    public void putCatalogSubscribe(String platformId, SubscribeInfo subscribeInfo) {
+    public void putCatalogSubscribe(Integer platformId, SubscribeInfo subscribeInfo) {
         catalogMap.put(platformId, subscribeInfo);
         if (subscribeInfo.getExpires() > 0) {
             // 添加订阅到期
@@ -41,11 +41,11 @@ public class SubscribeHolder {
         }
     }
 
-    public SubscribeInfo getCatalogSubscribe(String platformId) {
+    public SubscribeInfo getCatalogSubscribe(Integer platformId) {
         return catalogMap.get(platformId);
     }
 
-    public void removeCatalogSubscribe(String platformId) {
+    public void removeCatalogSubscribe(Integer platformId) {
 
         catalogMap.remove(platformId);
         String taskOverdueKey = taskOverduePrefix +  "catalog_" + platformId;
@@ -58,7 +58,7 @@ public class SubscribeHolder {
         dynamicTask.stop(taskOverdueKey);
     }
 
-    public void putMobilePositionSubscribe(String platformId, SubscribeInfo subscribeInfo) {
+    public void putMobilePositionSubscribe(Integer platformId, SubscribeInfo subscribeInfo) {
         mobilePositionMap.put(platformId, subscribeInfo);
         String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetting.getServerId() + "MobilePosition_" + platformId;
         // 添加任务处理GPS定时推送
@@ -74,11 +74,11 @@ public class SubscribeHolder {
         }
     }
 
-    public SubscribeInfo getMobilePositionSubscribe(String platformId) {
+    public SubscribeInfo getMobilePositionSubscribe(Integer platformId) {
         return mobilePositionMap.get(platformId);
     }
 
-    public void removeMobilePositionSubscribe(String platformId) {
+    public void removeMobilePositionSubscribe(Integer platformId) {
         mobilePositionMap.remove(platformId);
         String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetting.getServerId() + "MobilePosition_" + platformId;
         // 结束任务处理GPS定时推送
@@ -96,14 +96,14 @@ public class SubscribeHolder {
     public List<String> getAllCatalogSubscribePlatform() {
         List<String> platforms = new ArrayList<>();
         if(catalogMap.size() > 0) {
-            for (String key : catalogMap.keySet()) {
+            for (Integer key : catalogMap.keySet()) {
                 platforms.add(catalogMap.get(key).getId());
             }
         }
         return platforms;
     }
 
-    public void removeAllSubscribe(String platformId) {
+    public void removeAllSubscribe(Integer platformId) {
         removeMobilePositionSubscribe(platformId);
         removeCatalogSubscribe(platformId);
     }

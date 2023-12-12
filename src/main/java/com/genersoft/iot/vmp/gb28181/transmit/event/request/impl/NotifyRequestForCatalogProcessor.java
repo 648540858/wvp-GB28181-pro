@@ -245,8 +245,6 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 							logger.warn("[ NotifyCatalog ] event not found ： {}", event );
 
 					}
-					// 转发变化信息
-					eventPublisher.catalogEventPublish(null, channel, event);
 
 					if (updateChannelMap.keySet().size() > 0
 							|| addChannelMap.keySet().size() > 0

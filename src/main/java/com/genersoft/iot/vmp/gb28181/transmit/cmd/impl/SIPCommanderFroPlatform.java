@@ -185,15 +185,15 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public void catalogQuery(List<DeviceChannel> channels, ParentPlatform parentPlatform, String sn, String fromTag) throws InvalidArgumentException, ParseException, SipException {
+    public void catalogQuery(List<CommonGbChannel> channels, ParentPlatform parentPlatform, String sn, String fromTag) throws InvalidArgumentException, ParseException, SipException {
         if ( parentPlatform ==null) {
             return ;
         }
         sendCatalogResponse(channels, parentPlatform, sn, fromTag, 0, true);
     }
-    private String getCatalogXml(List<DeviceChannel> channels, String sn, ParentPlatform parentPlatform, int size) {
+    private String getCatalogXml(List<CommonGbChannel> channels, String sn, ParentPlatform parentPlatform, int size) {
         String characterSet = parentPlatform.getCharacterSet();
-        StringBuffer catalogXml = new StringBuffer(600);
+        StringBuilder catalogXml = new StringBuilder(600);
         catalogXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet +"\"?>\r\n")
                 .append("<Response>\r\n")
                 .append("<CmdType>Catalog</CmdType>\r\n")
@@ -201,161 +201,108 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 .append("<DeviceID>" + parentPlatform.getDeviceGBId() + "</DeviceID>\r\n")
                 .append("<SumNum>" + size + "</SumNum>\r\n")
                 .append("<DeviceList Num=\"" + channels.size() +"\">\r\n");
-        if (channels.size() > 0) {
-            for (DeviceChannel channel : channels) {
-                if (parentPlatform.getServerGBId().equals(channel.getParentId())) {
-                    channel.setParentId(parentPlatform.getDeviceGBId());
-                }
+        if (!channels.isEmpty()) {
+            for (CommonGbChannel channel : channels) {
                 catalogXml.append("<Item>\r\n");
-                // 行政区划分组只需要这两项就可以
-                catalogXml.append("<DeviceID>" + channel.getChannelId() + "</DeviceID>\r\n");
-                catalogXml.append("<Name>" + channel.getName() + "</Name>\r\n");
-                if (channel.getChannelId().length() <= 8) {
-                    catalogXml.append("</Item>\r\n");
-                    continue;
-                }else {
-                    if (channel.getChannelId().length() != 20) {
-                        catalogXml.append("</Item>\r\n");
-                        logger.warn("[编号长度异常] {} 长度错误，请使用20位长度的国标编号,当前长度：{}", channel.getChannelId(), channel.getChannelId().length());
-                        catalogXml.append("</Item>\r\n");
-                        continue;
-                    }
-                    switch (Integer.parseInt(channel.getChannelId().substring(10, 13))){
-                        case 200:
-//                            catalogXml.append("<Manufacturer>三永华通</Manufacturer>\r\n");
-//                            GitUtil gitUtil = SpringBeanFactory.getBean("gitUtil");
-//                            String model = (gitUtil == null || gitUtil.getBuildVersion() == null)?"1.0": gitUtil.getBuildVersion();
-//                            catalogXml.append("<Model>" + model + "</Manufacturer>\r\n");
-//                            catalogXml.append("<Owner>三永华通</Owner>\r\n");
-                             if (channel.getCivilCode() != null) {
-                                 catalogXml.append("<CivilCode>"+channel.getCivilCode()+"</CivilCode>\r\n");
-                             }else {
-                                 catalogXml.append("<CivilCode></CivilCode>\r\n");
-                             }
-
-                            catalogXml.append("<RegisterWay>1</RegisterWay>\r\n");
-                            catalogXml.append("<Secrecy>0</Secrecy>\r\n");
-                            break;
-                        case 215:
-                            if (!ObjectUtils.isEmpty(channel.getParentId())) {
-                                catalogXml.append("<ParentID>" + channel.getParentId() + "</ParentID>\r\n");
-                            }
-
-                            break;
-                        case 216:
-                            if (!ObjectUtils.isEmpty(channel.getParentId())) {
-                                catalogXml.append("<ParentID>" + channel.getParentId() + "</ParentID>\r\n");
-                            }else {
-                                catalogXml.append("<ParentID></ParentID>\r\n");
-                            }
-                            if (!ObjectUtils.isEmpty(channel.getBusinessGroupId())) {
-                                catalogXml.append("<BusinessGroupID>" + channel.getBusinessGroupId() + "</BusinessGroupID>\r\n");
-                            }else {
-                                catalogXml.append("<BusinessGroupID></BusinessGroupID>\r\n");
-                            }
-                            break;
-                        default:
-                            // 通道项
-                            if (channel.getManufacture() != null) {
-                                catalogXml.append("<Manufacturer>" + channel.getManufacture() + "</Manufacturer>\r\n");
-                            }else {
-                                catalogXml.append("<Manufacturer></Manufacturer>\r\n");
-                            }
-                            if (channel.getSecrecy() != null) {
-                                catalogXml.append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n");
-                            }else {
-                                catalogXml.append("<Secrecy></Secrecy>\r\n");
-                            }
-                            catalogXml.append("<RegisterWay>" + channel.getRegisterWay() + "</RegisterWay>\r\n");
-                            if (channel.getModel() != null) {
-                                catalogXml.append("<Model>" + channel.getModel() + "</Model>\r\n");
-                            }else {
-                                catalogXml.append("<Model></Model>\r\n");
-                            }
-                            if (channel.getOwner() != null) {
-                                catalogXml.append("<Owner>" + channel.getOwner()+ "</Owner>\r\n");
-                            }else {
-                                catalogXml.append("<Owner></Owner>\r\n");
-                            }
-                            if (channel.getCivilCode() != null) {
-                                catalogXml.append("<CivilCode>" + channel.getCivilCode() + "</CivilCode>\r\n");
-                            }else {
-                                catalogXml.append("<CivilCode></CivilCode>\r\n");
-                            }
-                            if (channel.getAddress() == null) {
-                                catalogXml.append("<Address></Address>\r\n");
-                            }else {
-                                catalogXml.append("<Address>" + channel.getAddress() + "</Address>\r\n");
-                            }
-                            if (!ObjectUtils.isEmpty(channel.getParentId())) {
-                                catalogXml.append("<ParentID>" + channel.getParentId() + "</ParentID>\r\n");
-                            }else {
-                                catalogXml.append("<ParentID></ParentID>\r\n");
-                            }
-                            if (!ObjectUtils.isEmpty(channel.getBlock())) {
-                                catalogXml.append("<Block>" + channel.getBlock() + "</Block>\r\n");
-                            }else {
-                                catalogXml.append("<Block></Block>\r\n");
-                            }
-                            if (!ObjectUtils.isEmpty(channel.getSafetyWay())) {
-                                catalogXml.append("<SafetyWay>" + channel.getSafetyWay() + "</SafetyWay>\r\n");
-                            }else {
-                                catalogXml.append("<SafetyWay></SafetyWay>\r\n");
-                            }
-                            if (!ObjectUtils.isEmpty(channel.getCertNum())) {
-                                catalogXml.append("<CertNum>" + channel.getCertNum() + "</CertNum>\r\n");
-                            }else {
-                                catalogXml.append("<CertNum></CertNum>\r\n");
-                            }
-                            if (!ObjectUtils.isEmpty(channel.getCertifiable())) {
-                                catalogXml.append("<Certifiable>" + channel.getCertifiable() + "</Certifiable>\r\n");
-                            }else {
-                                catalogXml.append("<Certifiable></Certifiable>\r\n");
-                            }
-                            if (!ObjectUtils.isEmpty(channel.getErrCode())) {
-                                catalogXml.append("<ErrCode>" + channel.getErrCode() + "</ErrCode>\r\n");
-                            }else {
-                                catalogXml.append("<ErrCode></ErrCode>\r\n");
-                            }
-                            if (!ObjectUtils.isEmpty(channel.getEndTime())) {
-                                catalogXml.append("<EndTime>" + channel.getEndTime() + "</EndTime>\r\n");
-                            }else {
-                                catalogXml.append("<EndTime></EndTime>\r\n");
-                            }
-                            if (!ObjectUtils.isEmpty(channel.getSecrecy())) {
-                                catalogXml.append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n");
-                            }else {
-                                catalogXml.append("<Secrecy></Secrecy>\r\n");
-                            }
-                            if (!ObjectUtils.isEmpty(channel.getIpAddress())) {
-                                catalogXml.append("<IPAddress>" + channel.getIpAddress() + "</IPAddress>\r\n");
-                            }else {
-                                catalogXml.append("<IPAddress></IPAddress>\r\n");
-                            }
-                            catalogXml.append("<Port>" + channel.getPort() + "</Port>\r\n");
-                            if (!ObjectUtils.isEmpty(channel.getPassword())) {
-                                catalogXml.append("<Password>" + channel.getPassword() + "</Password>\r\n");
-                            }else {
-                                catalogXml.append("<Password></Password>\r\n");
-                            }
-                            if (!ObjectUtils.isEmpty(channel.getPTZType())) {
-                                catalogXml.append("<PTZType>" + channel.getPTZType() + "</PTZType>\r\n");
-                            }else {
-                                catalogXml.append("<PTZType></PTZType>\r\n");
-                            }
-                            catalogXml.append("<Status>" + (channel.isStatus() ?"ON":"OFF") + "</Status>\r\n");
-
-                            catalogXml.append("<Longitude>" +
-                                    (channel.getLongitudeWgs84() != 0? channel.getLongitudeWgs84():channel.getLongitude())
-                                    + "</Longitude>\r\n");
-                            catalogXml.append("<Latitude>" +
-                                    (channel.getLatitudeWgs84() != 0? channel.getLatitudeWgs84():channel.getLatitude())
-                                    + "</Latitude>\r\n");
-                            break;
-
-                    }
-                    catalogXml.append("</Item>\r\n");
+                catalogXml.append("<DeviceID>" + channel.getCommonGbDeviceID() + "</DeviceID>\r\n");
+                catalogXml.append("<Name>" + channel.getCommonGbName() + "</Name>\r\n");
+                if (!ObjectUtils.isEmpty(channel.getCommonGbManufacturer())) {
+                    catalogXml.append("<Manufacturer>" + channel.getCommonGbManufacturer() + "</Manufacturer>\r\n");
                 }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbModel())) {
+                    catalogXml.append("<Model>" + channel.getCommonGbModel() + "</Model>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbOwner())) {
+                    catalogXml.append("<Owner> " + channel.getCommonGbOwner()+ "</Owner>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbCivilCode())) {
+                    catalogXml.append("<CivilCode> " + channel.getCommonGbCivilCode()+ "</CivilCode>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbBlock())) {
+                    catalogXml.append("<Block>" + channel.getCommonGbBlock() + "</Block>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbAddress())) {
+                    catalogXml.append("<Address> " + channel.getCommonGbAddress()+ "</Address>\r\n");
+                }
+                catalogXml.append("<Parental>" + channel.getCommonGbParental() + "</Parental>\r\n");
+                if (!ObjectUtils.isEmpty(channel.getCommonGbParentID())) {
+                    // 业务分组加上这一项即可，提高兼容性，
+                    catalogXml.append("<ParentID>" + channel.getCommonGbParentID() + "</ParentID>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbSafetyWay())) {
+                    catalogXml.append("<SafetyWay>" + channel.getCommonGbSafetyWay() + "</SafetyWay>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbRegisterWay())) {
+                    catalogXml.append("<RegisterWay>" + channel.getCommonGbRegisterWay() + "</RegisterWay>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbCertNum())) {
+                    catalogXml.append("<CertNum>" + channel.getCommonGbCertNum() + "</CertNum>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbCertifiable())) {
+                    catalogXml.append("<Certifiable>" + channel.getCommonGbCertifiable() + "</Certifiable>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbErrCode())) {
+                    catalogXml.append("<ErrCode>" + channel.getCommonGbErrCode() + "</ErrCode>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbEndTime())) {
+                    catalogXml.append("<EndTime>" + channel.getCommonGbEndTime() + "</EndTime>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbSecrecy())) {
+                    catalogXml.append("<Secrecy>" + channel.getCommonGbSecrecy() + "</Secrecy>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbIPAddress())) {
+                    catalogXml.append("<IPAddress>" + channel.getCommonGbIPAddress() + "</IPAddress>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbPort())) {
+                    catalogXml.append("<Port>" + channel.getCommonGbPort() + "</Port>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbPassword())) {
+                    catalogXml.append("<Password>" + channel.getCommonGbPassword() + "</Password>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbStatus())) {
+                    catalogXml.append("<Status>" + (channel.getCommonGbStatus() ? "ON" : "OFF") + "</Status>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbLongitude())) {
+                    catalogXml.append("<Longitude>" + channel.getCommonGbLongitude() + "</Longitude>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbLatitude())) {
+                    catalogXml.append("<Latitude>" + channel.getCommonGbLatitude() + "</Latitude>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbPtzType())) {
+                    catalogXml.append("<PTZType>" + channel.getCommonGbPtzType() + "</PTZType>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbPositionType())) {
+                    catalogXml.append("<PositionType>" + channel.getCommonGbPositionType() + "</PositionType>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbRoomType())) {
+                    catalogXml.append("<RoomType>" + channel.getCommonGbRoomType() + "</RoomType>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbUseType())) {
+                    catalogXml.append("<UseType>" + channel.getCommonGbUseType() + "</UseType>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbSupplyLightType())) {
+                    catalogXml.append("<SupplyLightType>" + channel.getCommonGbSupplyLightType() + "</SupplyLightType>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbDirectionType())) {
+                    catalogXml.append("<DirectionType>" + channel.getCommonGbDirectionType() + "</DirectionType>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbResolution())) {
+                    catalogXml.append("<Resolution>" + channel.getCommonGbResolution() + "</Resolution>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbBusinessGroupID())) {
+                    catalogXml.append("<BusinessGroupID>" + channel.getCommonGbBusinessGroupID() + "</BusinessGroupID>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbDownloadSpeed())) {
+                    catalogXml.append("<DownloadSpeed>" + channel.getCommonGbDownloadSpeed() + "</DownloadSpeed>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getSVCSpaceSupportMode())) {
+                    catalogXml.append("<SVCSpaceSupportMode>" + channel.getSVCSpaceSupportMode() + "</SVCSpaceSupportMode>\r\n");
+                }
+                if (!ObjectUtils.isEmpty(channel.getCommonGbSVCTimeSupportMode())) {
+                    catalogXml.append("<SVCTimeSupportMode>" + channel.getCommonGbSVCTimeSupportMode() + "</SVCTimeSupportMode>\r\n");
+                }
+
+                catalogXml.append("</Item>\r\n");
             }
         }
 
@@ -364,17 +311,17 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         return catalogXml.toString();
     }
 
-    private void sendCatalogResponse(List<DeviceChannel> channels, ParentPlatform parentPlatform, String sn, String fromTag, int index, boolean sendAfterResponse) throws SipException, InvalidArgumentException, ParseException {
+    private void sendCatalogResponse(List<CommonGbChannel> channels, ParentPlatform parentPlatform, String sn, String fromTag, int index, boolean sendAfterResponse) throws SipException, InvalidArgumentException, ParseException {
         if (index >= channels.size()) {
             return;
         }
-        List<DeviceChannel> deviceChannels;
+        List<CommonGbChannel> channelList;
         if (index + parentPlatform.getCatalogGroup() < channels.size()) {
-            deviceChannels = channels.subList(index, index + parentPlatform.getCatalogGroup());
+            channelList = channels.subList(index, index + parentPlatform.getCatalogGroup());
         }else {
-            deviceChannels = channels.subList(index, channels.size());
+            channelList = channels.subList(index, channels.size());
         }
-        String catalogXml = getCatalogXml(deviceChannels, sn, parentPlatform, channels.size());
+        String catalogXml = getCatalogXml(channelList, sn, parentPlatform, channels.size());
         // callid
         CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
 
@@ -616,7 +563,6 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         if (channels.size() > 0) {
             for (CommonGbChannel channel : channels) {
                 catalogXml.append("<Item>\r\n");
-                // 行政区划分组只需要这两项就可以
                 catalogXml.append("<DeviceID>" + channel.getCommonGbDeviceID() + "</DeviceID>\r\n");
                 catalogXml.append("<Name>" + channel.getCommonGbName() + "</Name>\r\n");
                 if (!ObjectUtils.isEmpty(channel.getCommonGbManufacturer())) {

@@ -90,13 +90,6 @@ public class EventPublisher {
 		applicationEventPublisher.publishEvent(outEvent);
 	}
 
-
-	public void catalogEventPublishForStream(Integer platformId, GbStream gbStream, String type) {
-		List<GbStream> gbStreamList = new ArrayList<>();
-		gbStreamList.add(gbStream);
-		catalogEventPublishForStream(platformId, gbStreamList, type);
-	}
-
 	public void recordEndEventPush(RecordInfo recordInfo) {
 		RecordEndEvent outEvent = new RecordEndEvent(this);
 		outEvent.setRecordInfo(recordInfo);

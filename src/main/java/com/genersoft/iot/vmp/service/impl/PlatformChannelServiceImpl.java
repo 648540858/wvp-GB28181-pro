@@ -146,8 +146,11 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
 
             }
         }
+        return null;
+    }
 
-
+    @Override
+    public CommonGbChannel queryChannelByPlatformIdAndChannelDeviceId(Integer platformId, String channelId) {
         return null;
     }
 }

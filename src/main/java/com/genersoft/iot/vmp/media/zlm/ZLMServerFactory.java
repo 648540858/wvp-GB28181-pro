@@ -162,7 +162,7 @@ public class ZLMServerFactory {
      * @return SendRtpItem
      */
     public SendRtpItem createSendRtpItem(MediaServerItem serverItem, String ip, int port, String ssrc, String platformId,
-                                         String deviceId, String channelId, boolean tcp, boolean rtcp){
+                                         String channelId, boolean tcp, boolean rtcp){
 
         int localPort = sendRtpPortManager.getNextPort(serverItem);
         if (localPort == 0) {
@@ -173,7 +173,6 @@ public class ZLMServerFactory {
         sendRtpItem.setPort(port);
         sendRtpItem.setSsrc(ssrc);
         sendRtpItem.setPlatformId(platformId);
-        sendRtpItem.setDeviceId(deviceId);
         sendRtpItem.setChannelId(channelId);
         sendRtpItem.setTcp(tcp);
         sendRtpItem.setRtcp(rtcp);

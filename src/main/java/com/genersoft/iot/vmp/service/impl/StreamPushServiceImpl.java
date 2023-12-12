@@ -395,20 +395,34 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Override
     public void offline(List<StreamPushItemFromRedis> offlineStreams) {
+
+        List<StreamPush> streamPushList = streamPushMapper.getListIn(offlineStreams);
+        List<Integer> commonChannelIdList = new ArrayList<>();
+        streamPushList.stream().forEach(streamPush -> {
+            commonChannelIdList.add(streamPush.getCommonGbChannelId());
+        });
+
         // 更新部分设备离线
-        List<GbStream> onlinePushers = streamPushMapper.getOnlinePusherForGbInList(offlineStreams);
-        streamPushMapper.offline(offlineStreams);
-        // 发送通知
-        eventPublisher.catalogEventPublishForStream(null, onlinePushers, CatalogEvent.OFF);
+        streamPushMapper.offline(streamPushList);
+        if (!commonChannelIdList.isEmpty()) {
+            commonGbChannelService.offlineForList(commonChannelIdList);
+        }
+
     }
 
     @Override
     public void online(List<StreamPushItemFromRedis> onlineStreams) {
-        // 更新部分设备上线streamPushService
-        List<GbStream> onlinePushers = streamPushMapper.getOfflinePusherForGbInList(onlineStreams);
-        streamPushMapper.online(onlineStreams);
-        // 发送通知
-        eventPublisher.catalogEventPublishForStream(null, onlinePushers, CatalogEvent.ON);
+        List<StreamPush> streamPushList = streamPushMapper.getListIn(onlineStreams);
+        List<Integer> commonChannelIdList = new ArrayList<>();
+        streamPushList.stream().forEach(streamPush -> {
+            commonChannelIdList.add(streamPush.getCommonGbChannelId());
+        });
+
+        // 更新部分设备离线
+        streamPushMapper.offline(streamPushList);
+        if (!commonChannelIdList.isEmpty()) {
+            commonGbChannelService.onlineForList(commonChannelIdList);
+        }
     }
 
     @Override

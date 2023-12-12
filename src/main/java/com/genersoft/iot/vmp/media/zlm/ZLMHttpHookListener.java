@@ -413,17 +413,7 @@ public class ZLMHttpHookListener {
                                 type = OriginType.values()[onStreamChangedHookParam.getOriginType()].getType();
                                 redisCatchStorage.removeStream(mediaInfo.getId(), type, param.getApp(), param.getStream());
                             }
-                            GbStream gbStream = storager.getGbStream(param.getApp(), param.getStream());
-                            if (gbStream != null) {
-//									eventPublisher.catalogEventPublishForStream(null, gbStream, CatalogEvent.OFF);
-                            }
                             zlmMediaListManager.streamOffline(param.getApp(), param.getStream());
-                        }
-                        GbStream gbStream = storager.getGbStream(param.getApp(), param.getStream());
-                        if (gbStream != null) {
-                            if (userSetting.isUsePushingAsStatus()) {
-                                eventPublisher.catalogEventPublishForStream(null, gbStream, param.isRegist()?CatalogEvent.ON:CatalogEvent.OFF);
-                            }
                         }
                         if (type != null) {
                             // 发送流变化redis消息

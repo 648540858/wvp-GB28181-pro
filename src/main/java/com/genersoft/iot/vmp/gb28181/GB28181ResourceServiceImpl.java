@@ -57,20 +57,20 @@ public class GB28181ResourceServiceImpl implements IResourceService {
         assert callback != null;
         if (!CommonGbChannelType.GB28181.equals(commonGbChannel.getType())) {
             logger.warn("[资源类-国标28181] 收到播放通道： {} 时发现类型不为28181", commonGbChannel.getCommonGbId());
-            callback.call(commonGbChannel, ErrorCode.ERROR500.getCode(), ErrorCode.ERROR500.getMsg(), null);
+            callback.call(commonGbChannel, null, ErrorCode.ERROR500.getCode(), ErrorCode.ERROR500.getMsg(), null);
             return;
         }
         DeviceChannel channel = deviceChannelMapper.getChannelByCommonChannelId(commonGbChannel.getCommonGbId());
         if (channel == null) {
             logger.warn("[资源类-国标28181] 收到播放通道： {} 时未找到国标通道", commonGbChannel.getCommonGbId());
-            callback.call(commonGbChannel, ErrorCode.ERROR500.getCode(), ErrorCode.ERROR500.getMsg(), null);
+            callback.call(commonGbChannel, null, ErrorCode.ERROR500.getCode(), ErrorCode.ERROR500.getMsg(), null);
             return;
         }
         Device device = deviceMapper.getDeviceByDeviceId(channel.getDeviceId());
         if (device == null) {
             logger.warn("[资源类-国标28181] 收到播放通道： {} 时未找到通道 {} 所属的国标设备",
                     commonGbChannel.getCommonGbId(), channel.getDeviceId());
-            callback.call(commonGbChannel, ErrorCode.ERROR500.getCode(), ErrorCode.ERROR500.getMsg(), null);
+            callback.call(commonGbChannel, null, ErrorCode.ERROR500.getCode(), ErrorCode.ERROR500.getMsg(), null);
             return;
         }
         MediaServerItem mediaServerItem = playService.getNewMediaServerItem(device);
@@ -78,10 +78,10 @@ public class GB28181ResourceServiceImpl implements IResourceService {
             if (code == InviteErrorCode.SUCCESS.getCode()) {
                 if (data != null) {
                     StreamInfo streamInfo = (StreamInfo)data;
-                    callback.call(commonGbChannel, ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+                    callback.call(commonGbChannel, mediaServerItem, ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
                 }
             }else {
-                callback.call(commonGbChannel, code, msg, null);
+                callback.call(commonGbChannel, null, code, msg, null);
             }
         });
     }
@@ -91,7 +91,7 @@ public class GB28181ResourceServiceImpl implements IResourceService {
         if (!CommonGbChannelType.GB28181.equals(commonGbChannel.getType())) {
             logger.warn("[资源类-国标28181] 收到停止播放通道： {} 时发现类型不为28181", commonGbChannel.getCommonGbId());
             if (callback != null) {
-                callback.call(commonGbChannel, ErrorCode.ERROR500.getCode(), ErrorCode.ERROR500.getMsg(), null);
+                callback.call(commonGbChannel,null, ErrorCode.ERROR500.getCode(), ErrorCode.ERROR500.getMsg(), null);
             }
             return;
         }
@@ -99,7 +99,7 @@ public class GB28181ResourceServiceImpl implements IResourceService {
         if (channel == null) {
             logger.warn("[资源类-国标28181] 收到停止播放通道： {} 时未找到国标通道", commonGbChannel.getCommonGbId());
             if (callback != null) {
-                callback.call(commonGbChannel, ErrorCode.ERROR500.getCode(), ErrorCode.ERROR500.getMsg(), null);
+                callback.call(commonGbChannel, null, ErrorCode.ERROR500.getCode(), ErrorCode.ERROR500.getMsg(), null);
             }
             return;
         }
@@ -107,7 +107,7 @@ public class GB28181ResourceServiceImpl implements IResourceService {
             playService.stop(channel.getDeviceId(), channel.getChannelId());
         } catch (ControllerException exception) {
             if (callback != null) {
-                callback.call(commonGbChannel, exception.getCode(), exception.getMsg(), null);
+                callback.call(commonGbChannel, null,exception.getCode(), exception.getMsg(), null);
             }
         }
     }
@@ -119,4 +119,8 @@ public class GB28181ResourceServiceImpl implements IResourceService {
         return false;
     }
 
+    @Override
+    public void streamOffline(String app, String streamId) {
+        // TODO
+    }
 }

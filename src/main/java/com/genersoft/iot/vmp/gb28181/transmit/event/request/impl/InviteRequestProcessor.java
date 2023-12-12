@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -69,15 +70,15 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     private IVideoManagerStorage storager;
 
     @Autowired
+    private IPlatformChannelService platformChannelService;
+
+    @Autowired
     private IStreamPushService streamPushService;
     @Autowired
     private IStreamProxyService streamProxyService;
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
-
-    @Autowired
-    private IInviteStreamService inviteStreamService;
 
     @Autowired
     private SSRCFactory ssrcFactory;
@@ -90,6 +91,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
     @Autowired
     private IPlayService playService;
+
+    @Autowired
+    private Map<String, IResourceService> resourceServiceMap;
 
     @Autowired
     private SIPSender sipSender;
@@ -147,7 +151,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 return;
             }
 
-
             // 查询请求是否来自上级平台\设备
             ParentPlatform platform = storager.queryParentPlatByServerGBId(requesterId);
             if (platform == null) {
@@ -155,83 +158,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
             } else {
                 // 查询平台下是否有该通道
-                DeviceChannel channel = storager.queryChannelInParentPlatform(requesterId, channelId);
-                GbStream gbStream = storager.queryStreamInParentPlatform(requesterId, channelId);
-                PlatformCatalog catalog = storager.getCatalog(requesterId, channelId);
-
-                MediaServerItem mediaServerItem = null;
-                StreamPush streamPushItem = null;
-                StreamProxy proxyByAppAndStream =null;
-                // 不是通道可能是直播流
-                if (channel != null && gbStream == null) {
-                    // 通道存在，发100，TRYING
-                    try {
-                        responseAck(request, Response.TRYING);
-                    } catch (SipException | InvalidArgumentException | ParseException e) {
-                        logger.error("[命令发送失败] invite TRYING: {}", e.getMessage());
-                    }
-                } else if (channel == null && gbStream != null) {
-
-                    String mediaServerId = gbStream.getMediaServerId();
-                    mediaServerItem = mediaServerService.getOne(mediaServerId);
-                    if (mediaServerItem == null) {
-                        if ("proxy".equals(gbStream.getStreamType())) {
-                            logger.info("[ app={}, stream={} ]找不到zlm {}，返回410", gbStream.getApp(), gbStream.getStream(), mediaServerId);
-                            try {
-                                responseAck(request, Response.GONE);
-                            } catch (SipException | InvalidArgumentException | ParseException e) {
-                                logger.error("[命令发送失败] invite GONE: {}", e.getMessage());
-                            }
-                            return;
-                        } else {
-                            streamPushItem = streamPushService.getPush(gbStream.getApp(), gbStream.getStream());
-                            if (streamPushItem != null) {
-                                mediaServerItem = mediaServerService.getOne(streamPushItem.getMediaServerId());
-                            }
-                            if (mediaServerItem == null) {
-                                mediaServerItem = mediaServerService.getDefaultMediaServer();
-                            }
-                        }
-                    } else {
-                        if ("push".equals(gbStream.getStreamType())) {
-                            streamPushItem = streamPushService.getPush(gbStream.getApp(), gbStream.getStream());
-                            if (streamPushItem == null) {
-                                logger.info("[ app={}, stream={} ]找不到zlm {}，返回410", gbStream.getApp(), gbStream.getStream(), mediaServerId);
-                                try {
-                                    responseAck(request, Response.GONE);
-                                } catch (SipException | InvalidArgumentException | ParseException e) {
-                                    logger.error("[命令发送失败] invite GONE: {}", e.getMessage());
-                                }
-                                return;
-                            }
-                        }else if("proxy".equals(gbStream.getStreamType())){
-                            proxyByAppAndStream = streamProxyService.getStreamProxyByAppAndStream(gbStream.getApp(), gbStream.getStream());
-                            if (proxyByAppAndStream == null) {
-                                logger.info("[ app={}, stream={} ]找不到zlm {}，返回410", gbStream.getApp(), gbStream.getStream(), mediaServerId);
-                                try {
-                                    responseAck(request, Response.GONE);
-                                } catch (SipException | InvalidArgumentException | ParseException e) {
-                                    logger.error("[命令发送失败] invite GONE: {}", e.getMessage());
-                                }
-                                return;
-                            }
-                        }
-                    }
-                    try {
-                        responseAck(request, Response.CALL_IS_BEING_FORWARDED);
-                    } catch (SipException | InvalidArgumentException | ParseException e) {
-                        logger.error("[命令发送失败] invite CALL_IS_BEING_FORWARDED: {}", e.getMessage());
-                    }
-                } else if (catalog != null) {
-                    try {
-                        // 目录不支持点播
-                        responseAck(request, Response.BAD_REQUEST, "catalog channel can not play");
-                    } catch (SipException | InvalidArgumentException | ParseException e) {
-                        logger.error("[命令发送失败] invite 目录不支持点播: {}", e.getMessage());
-                    }
-                    return;
-                } else {
-                    logger.info("通道不存在，返回404: {}", channelId);
+                CommonGbChannel channel = platformChannelService.queryChannelByPlatformIdAndChannelDeviceId(platform.getId(), channelId);
+                if (channel == null) {
+                    logger.info("[国标级联] 上级点播 通道不存在，返回404: {}", channelId);
                     try {
                         // 通道不存在，发404，资源不存在
                         responseAck(request, Response.NOT_FOUND);
@@ -240,59 +169,30 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     }
                     return;
                 }
+                IResourceService resourceService = resourceServiceMap.get(channel.getType());
+                if (resourceService == null) {
+                    logger.info("[国标级联] 上级点播 未找到类型{}的处理类: {}", channel.getType(), channelId);
+                    try {
+                        // 通道不存在，发404，资源不存在
+                        responseAck(request, Response.NOT_IMPLEMENTED);
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error("[命令发送失败] invite 通道不存在: {}", e.getMessage());
+                    }
+                    return;
+                }
+                // 通道存在，发100，TRYING
+                try {
+                    responseAck(request, Response.TRYING);
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    logger.error("[命令发送失败] invite TRYING: {}", e.getMessage());
+                }
+
                 // 解析sdp消息, 使用jainsip 自带的sdp解析方式
                 String contentString = new String(request.getRawContent());
 
                 Gb28181Sdp gb28181Sdp = SipUtils.parseSDP(contentString);
-                SessionDescription sdp = gb28181Sdp.getBaseSdb();
-                String sessionName = sdp.getSessionName().getValue();
 
-                Long startTime = null;
-                Long stopTime = null;
-                Instant start = null;
-                Instant end = null;
-                if (sdp.getTimeDescriptions(false) != null && sdp.getTimeDescriptions(false).size() > 0) {
-                    TimeDescriptionImpl timeDescription = (TimeDescriptionImpl) (sdp.getTimeDescriptions(false).get(0));
-                    TimeField startTimeFiled = (TimeField) timeDescription.getTime();
-                    startTime = startTimeFiled.getStartTime();
-                    stopTime = startTimeFiled.getStopTime();
-
-                    start = Instant.ofEpochSecond(startTime);
-                    end = Instant.ofEpochSecond(stopTime);
-                }
-                //  获取支持的格式
-                Vector mediaDescriptions = sdp.getMediaDescriptions(true);
-                // 查看是否支持PS 负载96
-                //String ip = null;
-                int port = -1;
-                boolean mediaTransmissionTCP = false;
-                Boolean tcpActive = null;
-                for (Object description : mediaDescriptions) {
-                    MediaDescription mediaDescription = (MediaDescription) description;
-                    Media media = mediaDescription.getMedia();
-
-                    Vector mediaFormats = media.getMediaFormats(false);
-                    if (mediaFormats.contains("96")) {
-                        port = media.getMediaPort();
-                        //String mediaType = media.getMediaType();
-                        String protocol = media.getProtocol();
-
-                        // 区分TCP发流还是udp， 当前默认udp
-                        if ("TCP/RTP/AVP".equalsIgnoreCase(protocol)) {
-                            String setup = mediaDescription.getAttribute("setup");
-                            if (setup != null) {
-                                mediaTransmissionTCP = true;
-                                if ("active".equalsIgnoreCase(setup)) {
-                                    tcpActive = true;
-                                } else if ("passive".equalsIgnoreCase(setup)) {
-                                    tcpActive = false;
-                                }
-                            }
-                        }
-                        break;
-                    }
-                }
-                if (port == -1) {
+                if (gb28181Sdp.getSdpPort() == 0) {
                     logger.info("不支持的媒体格式，返回415");
                     // 回复不支持的格式
                     try {
@@ -303,267 +203,316 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     }
                     return;
                 }
-                String username = sdp.getOrigin().getUsername();
-                String addressStr = sdp.getConnection().getAddress();
-
-
-                Device device = null;
-                // 通过 channel 和 gbStream 是否为null 值判断来源是直播流合适国标
-                if (channel != null) {
-                    device = storager.queryVideoDeviceByPlatformIdAndChannelId(requesterId, channelId);
-                    if (device == null) {
-                        logger.warn("点播平台{}的通道{}时未找到设备信息", requesterId, channel);
-                        try {
-                            responseAck(request, Response.SERVER_INTERNAL_ERROR);
-                        } catch (SipException | InvalidArgumentException | ParseException e) {
-                            logger.error("[命令发送失败] invite 未找到设备信息: {}", e.getMessage());
-                        }
-                        return;
-                    }
-                    mediaServerItem = playService.getNewMediaServerItem(device);
-                    if (mediaServerItem == null) {
-                        logger.warn("未找到可用的zlm");
-                        try {
-                            responseAck(request, Response.BUSY_HERE);
-                        } catch (SipException | InvalidArgumentException | ParseException e) {
-                            logger.error("[命令发送失败] invite BUSY_HERE: {}", e.getMessage());
-                        }
-                        return;
-                    }
-
-                    String ssrc;
-                    if (userSetting.getUseCustomSsrcForParentInvite() || gb28181Sdp.getSsrc() == null) {
-                        // 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
-                        ssrc = "Play".equalsIgnoreCase(sessionName) ? ssrcFactory.getPlaySsrc(mediaServerItem.getId()) : ssrcFactory.getPlayBackSsrc(mediaServerItem.getId());
+                String sessionName = gb28181Sdp.getBaseSdb().getSessionName().getValue();
+                String streamTypeStr = "UDP";
+                if (gb28181Sdp.isTcp()) {
+                    if (gb28181Sdp.isTcpActive()) {
+                        streamTypeStr = "TCP-ACTIVE";
                     }else {
-                        ssrc = gb28181Sdp.getSsrc();
+                        streamTypeStr = "TCP-PASSIVE";
                     }
-                    String streamTypeStr = null;
-                    if (mediaTransmissionTCP) {
-                        if (tcpActive) {
-                            streamTypeStr = "TCP-ACTIVE";
+                }
+                logger.info("[上级Invite] {}, 平台：{}， 通道：{}, 收流地址：{}:{}，收流方式：{}, ssrc：{}",
+                        sessionName, gb28181Sdp.getUsername(), channelId, gb28181Sdp.getAddressStr(),
+                        gb28181Sdp.getSdpPort(), streamTypeStr, gb28181Sdp.getSsrc());
+
+                IResourcePlayCallback callback = (commonGbChannel, mediaServerItem,  code, message, streamInfo) -> {
+                    if (code != 0) {
+                        logger.info("[上级Invite] 获取资源流失败。{}, {}/{}", message, streamInfo.getApp(), streamInfo.getStream());
+                        try {
+                            cmderFroPlatform.streamByeCmd(platform, callIdHeader.getCallId());
+                        } catch (SipException | InvalidArgumentException | ParseException e) {
+                            logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+                        }
+                        return;
+                    }
+                    try {
+                        String ssrc;
+                        logger.info("[上级Invite] 收到资源推流。 回复200OK(SDP)， {}/{}", streamInfo.getApp(), streamInfo.getStream());
+                        if (userSetting.getUseCustomSsrcForParentInvite() || gb28181Sdp.getSsrc() == null) {
+                            // 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
+                            ssrc = "Play".equalsIgnoreCase(sessionName) ?
+                                    ssrcFactory.getPlaySsrc(mediaServerItem.getId()) :
+                                    ssrcFactory.getPlayBackSsrc(mediaServerItem.getId());
                         }else {
-                            streamTypeStr = "TCP-PASSIVE";
+                            ssrc = gb28181Sdp.getSsrc();
                         }
-                    }else {
-                        streamTypeStr = "UDP";
-                    }
-                    logger.info("[上级Invite] {}, 平台：{}， 通道：{}, 收流地址：{}:{}，收流方式：{}, ssrc：{}", sessionName, username, channelId, addressStr, port, streamTypeStr, ssrc);
-                    SendRtpItem sendRtpItem = zlmServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
-                            device.getDeviceId(), channelId, mediaTransmissionTCP, platform.isRtcp());
 
-                    if (tcpActive != null) {
-                        sendRtpItem.setTcpActive(tcpActive);
-                    }
-                    if (sendRtpItem == null) {
-                        logger.warn("服务器端口资源不足");
-                        try {
-                            responseAck(request, Response.BUSY_HERE);
-                        } catch (SipException | InvalidArgumentException | ParseException e) {
-                            logger.error("[命令发送失败] invite 服务器端口资源不足: {}", e.getMessage());
+                        SendRtpItem sendRtpItem = zlmServerFactory.createSendRtpItem(mediaServerItem,
+                                gb28181Sdp.getAddressStr(), gb28181Sdp.getSdpPort(), ssrc, requesterId,
+                                channelId, gb28181Sdp.isTcp(), platform.isRtcp());
+                        if (sendRtpItem == null) {
+                            logger.warn("[上级Invite] 获取发流端口资源失败 服务器端口资源可能不足");
+                            try {
+                                responseAck(request, Response.BUSY_HERE);
+                            } catch (SipException | InvalidArgumentException | ParseException e) {
+                                logger.error("[命令发送失败] invite 服务器端口资源不足: {}", e.getMessage());
+                            }
+                            return;
                         }
-                        return;
-                    }
-                    sendRtpItem.setCallId(callIdHeader.getCallId());
-                    sendRtpItem.setPlayType("Play".equalsIgnoreCase(sessionName) ? InviteStreamType.PLAY : InviteStreamType.PLAYBACK);
-
-                    Long finalStartTime = startTime;
-                    Long finalStopTime = stopTime;
-                    ErrorCallback<Object> hookEvent = (code, msg, data) -> {
-                        StreamInfo streamInfo = (StreamInfo)data;
-                        MediaServerItem mediaServerItemInUSe = mediaServerService.getOne(streamInfo.getMediaServerId());
-                        logger.info("[上级Invite]下级已经开始推流。 回复200OK(SDP)， {}/{}", streamInfo.getApp(), streamInfo.getStream());
-                        //     * 0 等待设备推流上来
-                        //     * 1 下级已经推流，等待上级平台回复ack
-                        //     * 2 推流中
+                        sendRtpItem.setTcpActive(gb28181Sdp.isTcpActive());
+                        sendRtpItem.setCallId(callIdHeader.getCallId());
+                        if ("Play".equalsIgnoreCase(sessionName)) {
+                            sendRtpItem.setPlayType(InviteStreamType.PLAY);
+                        }else if ("Playback".equalsIgnoreCase(sessionName)) {
+                            sendRtpItem.setPlayType(InviteStreamType.PLAYBACK);
+                        }else if ("Download".equalsIgnoreCase(sessionName)) {
+                            sendRtpItem.setPlayType(InviteStreamType.DOWNLOAD);
+                        }
                         sendRtpItem.setStatus(1);
                         redisCatchStorage.updateSendRTPSever(sendRtpItem);
 
                         StringBuffer content = new StringBuffer(200);
                         content.append("v=0\r\n");
-                        content.append("o=" + channelId + " 0 0 IN IP4 " + mediaServerItemInUSe.getSdpIp() + "\r\n");
+                        content.append("o=" + channelId + " 0 0 IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
                         content.append("s=" + sessionName + "\r\n");
-                        content.append("c=IN IP4 " + mediaServerItemInUSe.getSdpIp() + "\r\n");
-                        if ("Playback".equalsIgnoreCase(sessionName)) {
-                            content.append("t=" + finalStartTime + " " + finalStopTime + "\r\n");
+                        content.append("c=IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
+                        if (!"Play".equalsIgnoreCase(sessionName)) {
+                            content.append("t=" + gb28181Sdp.getStartTime() + " " + gb28181Sdp.getStopTime() + "\r\n");
                         } else {
                             content.append("t=0 0\r\n");
                         }
-                        int localPort = sendRtpItem.getLocalPort();
-                        if (localPort == 0) {
-                            // 非严格模式端口不统一, 增加兼容性，修改为一个不为0的端口
-                            localPort = new Random().nextInt(65535) + 1;
-                        }
-                        content.append("m=video " + localPort + " RTP/AVP 96\r\n");
+                        content.append("m=video " + sendRtpItem.getLocalPort() + " RTP/AVP 96\r\n");
                         content.append("a=sendonly\r\n");
                         content.append("a=rtpmap:96 PS/90000\r\n");
                         content.append("y=" + sendRtpItem.getSsrc() + "\r\n");
                         content.append("f=\r\n");
 
-
-                        try {
-                            // 超时未收到Ack应该回复bye,当前等待时间为10秒
-                            dynamicTask.startDelay(callIdHeader.getCallId(), () -> {
-                                logger.info("Ack 等待超时");
-                                mediaServerService.releaseSsrc(mediaServerItemInUSe.getId(), sendRtpItem.getSsrc());
-                                // 回复bye
-                                try {
-                                    cmderFroPlatform.streamByeCmd(platform, callIdHeader.getCallId());
-                                } catch (SipException | InvalidArgumentException | ParseException e) {
-                                    logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
-                                }
-                            }, 60 * 1000);
-                            responseSdpAck(request, content.toString(), platform);
-                            // tcp主动模式，回复sdp后开启监听
-                            if (sendRtpItem.isTcpActive()) {
-                                MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-                                Map<String, Object> param = new HashMap<>(12);
-                                param.put("vhost","__defaultVhost__");
-                                param.put("app",sendRtpItem.getApp());
-                                param.put("stream",sendRtpItem.getStreamId());
-                                param.put("ssrc", sendRtpItem.getSsrc());
-                                if (!sendRtpItem.isTcpActive()) {
-                                    param.put("dst_url",sendRtpItem.getIp());
-                                    param.put("dst_port", sendRtpItem.getPort());
-                                }
-                                String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
-                                param.put("is_udp", is_Udp);
-                                param.put("src_port", localPort);
-                                param.put("pt", sendRtpItem.getPt());
-                                param.put("use_ps", sendRtpItem.isUsePs() ? "1" : "0");
-                                param.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
-                                if (!sendRtpItem.isTcp()) {
-                                    // 开启rtcp保活
-                                    param.put("udp_rtcp_timeout", sendRtpItem.isRtcp()? "1":"0");
-                                }
-                                JSONObject startSendRtpStreamResult = zlmServerFactory.startSendRtpStreamForPassive(mediaInfo, param);
-                                if (startSendRtpStreamResult != null) {
-                                    startSendRtpStreamHand(evt, sendRtpItem, null, startSendRtpStreamResult, param, callIdHeader);
-                                }
+                        // 超时未收到Ack应该回复bye,当前等待时间为10秒
+                        dynamicTask.startDelay(callIdHeader.getCallId(), () -> {
+                            logger.info("Ack 等待超时");
+                            mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpItem.getSsrc());
+                            // 回复bye
+                            try {
+                                cmderFroPlatform.streamByeCmd(platform, callIdHeader.getCallId());
+                            } catch (SipException | InvalidArgumentException | ParseException e) {
+                                logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
                             }
-                        } catch (SipException | InvalidArgumentException | ParseException e) {
-                            logger.error("[命令发送失败] 国标级联 回复SdpAck", e);
-                        }
-                    };
-                    ErrorCallback<Object> errorEvent = ((statusCode, msg, data) -> {
-                        // 未知错误。直接转发设备点播的错误
-                        try {
-                            if (statusCode > 0) {
-                                Response response = getMessageFactory().createResponse(statusCode, evt.getRequest());
-                                sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
+                        }, 60 * 1000);
+                        responseSdpAck(request, content.toString(), platform);
+                        if (sendRtpItem.isTcpActive()) {
+                            MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+                            Map<String, Object> param = new HashMap<>(12);
+                            param.put("vhost","__defaultVhost__");
+                            param.put("app",sendRtpItem.getApp());
+                            param.put("stream",sendRtpItem.getStreamId());
+                            param.put("ssrc", sendRtpItem.getSsrc());
+                            if (!sendRtpItem.isTcpActive()) {
+                                param.put("dst_url",sendRtpItem.getIp());
+                                param.put("dst_port", sendRtpItem.getPort());
                             }
-                        } catch (ParseException | SipException  e) {
-                            logger.error("未处理的异常 ", e);
-                        }
-                    });
-                    sendRtpItem.setApp("rtp");
-                    if ("Playback".equalsIgnoreCase(sessionName)) {
-                        sendRtpItem.setPlayType(InviteStreamType.PLAYBACK);
-                        String startTimeStr = DateUtil.urlFormatter.format(start);
-                        String endTimeStr = DateUtil.urlFormatter.format(end);
-                        String stream = device.getDeviceId() + "_" + channelId + "_" + startTimeStr + "_" + endTimeStr;
-                        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, stream, null, device.isSsrcCheck(), true, 0, false, device.getStreamModeForParam());
-                        sendRtpItem.setStreamId(ssrcInfo.getStream());
-                        // 写入redis， 超时时回复
-                        redisCatchStorage.updateSendRTPSever(sendRtpItem);
-                        playService.playBack(mediaServerItem, ssrcInfo, device.getDeviceId(), channelId, DateUtil.formatter.format(start),
-                                DateUtil.formatter.format(end),
-                                (code, msg, data) -> {
-                                    if (code == InviteErrorCode.SUCCESS.getCode()){
-                                        hookEvent.run(code, msg, data);
-                                    }else if (code == InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode() || code == InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode()){
-                                        logger.info("[录像回放]超时, 用户：{}， 通道：{}", username, channelId);
-                                        redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
-                                        errorEvent.run(code, msg, data);
-                                    }else {
-                                        errorEvent.run(code, msg, data);
-                                    }
-                                });
-                    } else if ("Download".equalsIgnoreCase(sessionName)) {
-                        // 获取指定的下载速度
-                        Vector sdpMediaDescriptions = sdp.getMediaDescriptions(true);
-                        MediaDescription mediaDescription = null;
-                        String downloadSpeed = "1";
-                        if (sdpMediaDescriptions.size() > 0) {
-                            mediaDescription = (MediaDescription) sdpMediaDescriptions.get(0);
-                        }
-                        if (mediaDescription != null) {
-                            downloadSpeed = mediaDescription.getAttribute("downloadspeed");
-                        }
-
-                        sendRtpItem.setPlayType(InviteStreamType.DOWNLOAD);
-                        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, null, null, device.isSsrcCheck(), true, 0, false, device.getStreamModeForParam());
-                        sendRtpItem.setStreamId(ssrcInfo.getStream());
-                        // 写入redis， 超时时回复
-                        redisCatchStorage.updateSendRTPSever(sendRtpItem);
-                        playService.download(mediaServerItem, ssrcInfo, device.getDeviceId(), channelId, DateUtil.formatter.format(start),
-                                DateUtil.formatter.format(end), Integer.parseInt(downloadSpeed),
-                                (code, msg, data) -> {
-                                    if (code == InviteErrorCode.SUCCESS.getCode()) {
-                                        hookEvent.run(code, msg, data);
-                                    } else if (code == InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode() || code == InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode()) {
-                                        logger.info("[录像下载]超时, 用户：{}， 通道：{}", username, channelId);
-                                        redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
-                                        errorEvent.run(code, msg, data);
-                                    } else {
-                                        errorEvent.run(code, msg, data);
-                                    }
-                                });
-                    } else {
-
-                        SSRCInfo ssrcInfo = playService.play(mediaServerItem, device.getDeviceId(), channelId, ssrc, ((code, msg, data) -> {
-                            if (code == InviteErrorCode.SUCCESS.getCode()) {
-                                hookEvent.run(code, msg, data);
-                            } else if (code == InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode() || code == InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode()) {
-                                logger.info("[上级点播]超时, 用户：{}， 通道：{}", username, channelId);
-                                redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
-                                errorEvent.run(code, msg, data);
-                            } else {
-                                errorEvent.run(code, msg, data);
+                            String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
+                            param.put("is_udp", is_Udp);
+                            param.put("src_port", sendRtpItem.getLocalPort());
+                            param.put("pt", sendRtpItem.getPt());
+                            param.put("use_ps", sendRtpItem.isUsePs() ? "1" : "0");
+                            param.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
+                            if (!sendRtpItem.isTcp()) {
+                                // 开启rtcp保活
+                                param.put("udp_rtcp_timeout", sendRtpItem.isRtcp()? "1":"0");
                             }
-                        }));
-                        sendRtpItem.setPlayType(InviteStreamType.PLAY);
-                        String streamId = String.format("%s_%s", device.getDeviceId(), channelId);
-                        sendRtpItem.setStreamId(streamId);
-                        sendRtpItem.setSsrc(ssrcInfo.getSsrc());
-                        redisCatchStorage.updateSendRTPSever(sendRtpItem);
-
+                            JSONObject startSendRtpStreamResult = zlmServerFactory.startSendRtpStreamForPassive(mediaInfo, param);
+                            if (startSendRtpStreamResult != null) {
+                                startSendRtpStreamHand(evt, sendRtpItem, null, startSendRtpStreamResult, param, callIdHeader);
+                            }
+                        }
+                    }catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error("[命令发送失败] 国标级联 回复SdpAck", e);
                     }
-                } else if (gbStream != null) {
-
-                    String ssrc;
-                    if (userSetting.getUseCustomSsrcForParentInvite() || gb28181Sdp.getSsrc() == null) {
-                        // 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
-                        ssrc = "Play".equalsIgnoreCase(sessionName) ? ssrcFactory.getPlaySsrc(mediaServerItem.getId()) : ssrcFactory.getPlayBackSsrc(mediaServerItem.getId());
-                    }else {
-                        ssrc = gb28181Sdp.getSsrc();
-                    }
-
-                    if("push".equals(gbStream.getStreamType())) {
-                        if (streamPushItem != null && streamPushItem.isPushIng()) {
-                            // 推流状态
-                            pushStream(evt, request, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
-                                    mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
-                        } else {
-                            // 未推流 拉起
-                            notifyStreamOnline(evt, request,gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
-                                    mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
-                        }
-                    }else if ("proxy".equals(gbStream.getStreamType())){
-                        if (null != proxyByAppAndStream) {
-                            if(proxyByAppAndStream.isStatus()){
-                                pushProxyStream(evt, request, gbStream,  platform, callIdHeader, mediaServerItem, port, tcpActive,
-                                        mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
-                            }else{
-                                //开启代理拉流
-                                notifyStreamOnline(evt, request,gbStream, null, platform, callIdHeader, mediaServerItem, port, tcpActive,
-                                        mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
-                            }
-                        }
-
-
-                    }
+                };
+                if ("Play".equalsIgnoreCase(sessionName)) {
+                    resourceService.startPlay(channel, callback);
+                }else if ("Playback".equalsIgnoreCase(sessionName)) {
+                    resourceService.startPlayback(channel, gb28181Sdp.getStartTime(), gb28181Sdp.getStopTime(), callback);
+                }else if ("Download".equalsIgnoreCase(sessionName)) {
+                    resourceService.startDownload(channel, gb28181Sdp.getStartTime(), gb28181Sdp.getStopTime(),
+                            gb28181Sdp.getDownloadSpeed(), callback);
                 }
+
+
+
+
+//
+//                Device device = null;
+//                // 通过 channel 和 gbStream 是否为null 值判断来源是直播流合适国标
+//                if (channel != null) {
+//
+//                    ErrorCallback<Object> hookEvent = (code, msg, data) -> {
+//                        StreamInfo streamInfo = (StreamInfo)data;
+//                        MediaServerItem mediaServerItemInUSe = mediaServerService.getOne(streamInfo.getMediaServerId());
+//                        logger.info("[上级Invite]下级已经开始推流。 回复200OK(SDP)， {}/{}", streamInfo.getApp(), streamInfo.getStream());
+//                        //     * 0 等待设备推流上来
+//                        //     * 1 下级已经推流，等待上级平台回复ack
+//                        //     * 2 推流中
+//                        sendRtpItem.setStatus(1);
+//                        redisCatchStorage.updateSendRTPSever(sendRtpItem);
+//
+//
+//
+//
+//                        try {
+//                            // 超时未收到Ack应该回复bye,当前等待时间为10秒
+//                            dynamicTask.startDelay(callIdHeader.getCallId(), () -> {
+//                                logger.info("Ack 等待超时");
+//                                mediaServerService.releaseSsrc(mediaServerItemInUSe.getId(), sendRtpItem.getSsrc());
+//                                // 回复bye
+//                                try {
+//                                    cmderFroPlatform.streamByeCmd(platform, callIdHeader.getCallId());
+//                                } catch (SipException | InvalidArgumentException | ParseException e) {
+//                                    logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+//                                }
+//                            }, 60 * 1000);
+//                            responseSdpAck(request, content.toString(), platform);
+//                            // tcp主动模式，回复sdp后开启监听
+//                            if (sendRtpItem.isTcpActive()) {
+//                                MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+//                                Map<String, Object> param = new HashMap<>(12);
+//                                param.put("vhost","__defaultVhost__");
+//                                param.put("app",sendRtpItem.getApp());
+//                                param.put("stream",sendRtpItem.getStreamId());
+//                                param.put("ssrc", sendRtpItem.getSsrc());
+//                                if (!sendRtpItem.isTcpActive()) {
+//                                    param.put("dst_url",sendRtpItem.getIp());
+//                                    param.put("dst_port", sendRtpItem.getPort());
+//                                }
+//                                String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
+//                                param.put("is_udp", is_Udp);
+//                                param.put("src_port", localPort);
+//                                param.put("pt", sendRtpItem.getPt());
+//                                param.put("use_ps", sendRtpItem.isUsePs() ? "1" : "0");
+//                                param.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
+//                                if (!sendRtpItem.isTcp()) {
+//                                    // 开启rtcp保活
+//                                    param.put("udp_rtcp_timeout", sendRtpItem.isRtcp()? "1":"0");
+//                                }
+//                                JSONObject startSendRtpStreamResult = zlmServerFactory.startSendRtpStreamForPassive(mediaInfo, param);
+//                                if (startSendRtpStreamResult != null) {
+//                                    startSendRtpStreamHand(evt, sendRtpItem, null, startSendRtpStreamResult, param, callIdHeader);
+//                                }
+//                            }
+//                        } catch (SipException | InvalidArgumentException | ParseException e) {
+//                            logger.error("[命令发送失败] 国标级联 回复SdpAck", e);
+//                        }
+//                    };
+//                    ErrorCallback<Object> errorEvent = ((statusCode, msg, data) -> {
+//                        // 未知错误。直接转发设备点播的错误
+//                        try {
+//                            if (statusCode > 0) {
+//                                Response response = getMessageFactory().createResponse(statusCode, evt.getRequest());
+//                                sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
+//                            }
+//                        } catch (ParseException | SipException  e) {
+//                            logger.error("未处理的异常 ", e);
+//                        }
+//                    });
+//                    sendRtpItem.setApp("rtp");
+//                    if ("Playback".equalsIgnoreCase(sessionName)) {
+//                        sendRtpItem.setPlayType(InviteStreamType.PLAYBACK);
+//                        String startTimeStr = DateUtil.urlFormatter.format(start);
+//                        String endTimeStr = DateUtil.urlFormatter.format(end);
+//                        String stream = device.getDeviceId() + "_" + channelId + "_" + startTimeStr + "_" + endTimeStr;
+//                        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, stream, null, device.isSsrcCheck(), true, 0, false, device.getStreamModeForParam());
+//                        sendRtpItem.setStreamId(ssrcInfo.getStream());
+//                        // 写入redis， 超时时回复
+//                        redisCatchStorage.updateSendRTPSever(sendRtpItem);
+//                        playService.playBack(mediaServerItem, ssrcInfo, device.getDeviceId(), channelId, DateUtil.formatter.format(start),
+//                                DateUtil.formatter.format(end),
+//                                (code, msg, data) -> {
+//                                    if (code == InviteErrorCode.SUCCESS.getCode()){
+//                                        hookEvent.run(code, msg, data);
+//                                    }else if (code == InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode() || code == InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode()){
+//                                        logger.info("[录像回放]超时, 用户：{}， 通道：{}", username, channelId);
+//                                        redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
+//                                        errorEvent.run(code, msg, data);
+//                                    }else {
+//                                        errorEvent.run(code, msg, data);
+//                                    }
+//                                });
+//                    } else if ("Download".equalsIgnoreCase(sessionName)) {
+//                        // 获取指定的下载速度
+//                        Vector sdpMediaDescriptions = sdp.getMediaDescriptions(true);
+//                        MediaDescription mediaDescription = null;
+//                        String downloadSpeed = "1";
+//                        if (sdpMediaDescriptions.size() > 0) {
+//                            mediaDescription = (MediaDescription) sdpMediaDescriptions.get(0);
+//                        }
+//                        if (mediaDescription != null) {
+//                            downloadSpeed = mediaDescription.getAttribute("downloadspeed");
+//                        }
+//
+//                        sendRtpItem.setPlayType(InviteStreamType.DOWNLOAD);
+//                        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, null, null, device.isSsrcCheck(), true, 0, false, device.getStreamModeForParam());
+//                        sendRtpItem.setStreamId(ssrcInfo.getStream());
+//                        // 写入redis， 超时时回复
+//                        redisCatchStorage.updateSendRTPSever(sendRtpItem);
+//                        playService.download(mediaServerItem, ssrcInfo, device.getDeviceId(), channelId, DateUtil.formatter.format(start),
+//                                DateUtil.formatter.format(end), Integer.parseInt(downloadSpeed),
+//                                (code, msg, data) -> {
+//                                    if (code == InviteErrorCode.SUCCESS.getCode()) {
+//                                        hookEvent.run(code, msg, data);
+//                                    } else if (code == InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode() || code == InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode()) {
+//                                        logger.info("[录像下载]超时, 用户：{}， 通道：{}", username, channelId);
+//                                        redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
+//                                        errorEvent.run(code, msg, data);
+//                                    } else {
+//                                        errorEvent.run(code, msg, data);
+//                                    }
+//                                });
+//                    } else {
+//
+//                        SSRCInfo ssrcInfo = playService.play(mediaServerItem, device.getDeviceId(), channelId, ssrc, ((code, msg, data) -> {
+//                            if (code == InviteErrorCode.SUCCESS.getCode()) {
+//                                hookEvent.run(code, msg, data);
+//                            } else if (code == InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode() || code == InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode()) {
+//                                logger.info("[上级点播]超时, 用户：{}， 通道：{}", username, channelId);
+//                                redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
+//                                errorEvent.run(code, msg, data);
+//                            } else {
+//                                errorEvent.run(code, msg, data);
+//                            }
+//                        }));
+//                        sendRtpItem.setPlayType(InviteStreamType.PLAY);
+//                        String streamId = String.format("%s_%s", device.getDeviceId(), channelId);
+//                        sendRtpItem.setStreamId(streamId);
+//                        sendRtpItem.setSsrc(ssrcInfo.getSsrc());
+//                        redisCatchStorage.updateSendRTPSever(sendRtpItem);
+//
+//                    }
+//                } else if (gbStream != null) {
+//
+//                    String ssrc;
+//                    if (userSetting.getUseCustomSsrcForParentInvite() || gb28181Sdp.getSsrc() == null) {
+//                        // 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
+//                        ssrc = "Play".equalsIgnoreCase(sessionName) ? ssrcFactory.getPlaySsrc(mediaServerItem.getId()) : ssrcFactory.getPlayBackSsrc(mediaServerItem.getId());
+//                    }else {
+//                        ssrc = gb28181Sdp.getSsrc();
+//                    }
+//
+//                    if("push".equals(gbStream.getStreamType())) {
+//                        if (streamPushItem != null && streamPushItem.isPushIng()) {
+//                            // 推流状态
+//                            pushStream(evt, request, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
+//                                    mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
+//                        } else {
+//                            // 未推流 拉起
+//                            notifyStreamOnline(evt, request,gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
+//                                    mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
+//                        }
+//                    }else if ("proxy".equals(gbStream.getStreamType())){
+//                        if (null != proxyByAppAndStream) {
+//                            if(proxyByAppAndStream.isStatus()){
+//                                pushProxyStream(evt, request, gbStream,  platform, callIdHeader, mediaServerItem, port, tcpActive,
+//                                        mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
+//                            }else{
+//                                //开启代理拉流
+//                                notifyStreamOnline(evt, request,gbStream, null, platform, callIdHeader, mediaServerItem, port, tcpActive,
+//                                        mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
+//                            }
+//                        }
+//
+//
+//                    }
+//                }
             }
         } catch (SdpParseException e) {
             logger.error("sdp解析错误", e);

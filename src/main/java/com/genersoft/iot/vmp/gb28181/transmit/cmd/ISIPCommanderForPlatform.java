@@ -51,7 +51,7 @@ public interface ISIPCommanderForPlatform {
      * @return
      */
     void catalogQuery(DeviceChannel channel, ParentPlatform parentPlatform, String sn, String fromTag, int size) throws SipException, InvalidArgumentException, ParseException;
-    void catalogQuery(List<DeviceChannel> channels, ParentPlatform parentPlatform, String sn, String fromTag) throws InvalidArgumentException, ParseException, SipException;
+    void catalogQuery(List<CommonGbChannel> channels, ParentPlatform parentPlatform, String sn, String fromTag) throws InvalidArgumentException, ParseException, SipException;
 
     /**
      * 向上级回复DeviceInfo查询信息

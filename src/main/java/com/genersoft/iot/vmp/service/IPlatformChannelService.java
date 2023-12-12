@@ -30,4 +30,9 @@ public interface IPlatformChannelService {
      * 查询关联了上级平台的所有通道
      */
     List<CommonGbChannel> queryChannelList(ParentPlatform platform);
+
+    /**
+     * 查询通道
+     */
+    CommonGbChannel queryChannelByPlatformIdAndChannelDeviceId(Integer platformId, String channelId);
 }

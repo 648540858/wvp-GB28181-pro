@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
@@ -42,7 +43,7 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
     private IVideoManagerStorage storager;
 
     @Autowired
-    private SIPCommanderFroPlatform cmderFroPlatform;
+    private ISIPCommanderForPlatform cmderFroPlatform;
 
     @Autowired
     private IPlatformChannelService platformChannelService;

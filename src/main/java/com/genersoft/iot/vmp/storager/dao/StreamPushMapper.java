@@ -142,12 +142,12 @@ public interface StreamPushMapper {
     List<GbStream> getOnlinePusherForGbInList(List<StreamPushItemFromRedis> offlineStreams);
 
     @Update("<script> "+
-            "UPDATE wvp_stream_push SET status=0  where (app, stream) in (" +
+            "UPDATE wvp_stream_push SET status=0  where id in (" +
             "<foreach collection='offlineStreams' item='item' separator=','>" +
-            "(#{item.app}, #{item.stream}) " +
+            "#{item.id} " +
             "</foreach>" +
             ")</script>")
-    void offline(List<StreamPushItemFromRedis> offlineStreams);
+    void offline(List<StreamPush> offlineStreams);
 
     @Select("<script> "+
             "SELECT * FROM wvp_stream_push sp left join wvp_gb_stream gs on sp.app = gs.app AND sp.stream = gs.stream " +
@@ -186,12 +186,12 @@ public interface StreamPushMapper {
     int getAllOnline(Boolean usePushingAsStatus);
 
     @Select("<script> " +
-            "select app, stream from wvp_stream_push where (app, stream) in " +
+            "select * from wvp_stream_push where (app, stream) in " +
             "<foreach collection='streamPushItems' item='item' separator=','>" +
             "(#{item.app}, #{item.stream}) " +
             "</foreach>" +
             "</script>")
-    List<StreamPush> getListIn(List<StreamPush> streamPushItems);
+    List<StreamPush> getListIn(@Param("streamPushItems") List<StreamPushItemFromRedis> streamPushItems);
 
     @Select("select* from wvp_stream_push where id = #{id}")
     StreamPush query(@Param("id") Integer id);

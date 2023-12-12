@@ -1,11 +1,10 @@
 package com.genersoft.iot.vmp.gb28181.utils;
 
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.Gb28181CodeType;
-import com.genersoft.iot.vmp.gb28181.bean.Gb28181Sdp;
-import com.genersoft.iot.vmp.gb28181.bean.RemoteAddressInfo;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.GitUtil;
+import gov.nist.javax.sdp.TimeDescriptionImpl;
+import gov.nist.javax.sdp.fields.TimeField;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
 import gov.nist.javax.sip.header.Subject;
@@ -15,21 +14,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
 
-import javax.sdp.SdpFactory;
-import javax.sdp.SdpParseException;
-import javax.sdp.SessionDescription;
+import javax.sdp.*;
+import javax.sip.InvalidArgumentException;
 import javax.sip.PeerUnavailableException;
+import javax.sip.SipException;
 import javax.sip.SipFactory;
 import javax.sip.header.FromHeader;
 import javax.sip.header.Header;
 import javax.sip.header.UserAgentHeader;
 import javax.sip.message.Request;
+import javax.sip.message.Response;
 import java.text.ParseException;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.Vector;
 
 /**
  * @author panlinlin
@@ -203,7 +205,7 @@ public class SipUtils {
         return deviceChannel;
     }
 
-    public static Gb28181Sdp parseSDP(String sdpStr) throws SdpParseException {
+    public static Gb28181Sdp parseSDP(String sdpStr) throws SdpException {
 
         // jainSip不支持y= f=字段， 移除以解析。
         int ssrcIndex = sdpStr.indexOf("y=");

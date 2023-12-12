@@ -42,4 +42,14 @@ public interface IResourceService {
      * 流离线
      */
     void streamOffline(String app, String streamId);
+
+    /**
+     * 录像回放
+     */
+    void startPlayback(CommonGbChannel channel, Long startTime, Long stopTime, IResourcePlayCallback callback);
+
+    /**
+     * 录像下载
+     */
+    void startDownload(CommonGbChannel channel, Long startTime, Long stopTime, Integer downloadSpeed, IResourcePlayCallback playCallback);
 }

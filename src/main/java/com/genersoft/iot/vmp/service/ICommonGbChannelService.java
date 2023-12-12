@@ -87,4 +87,6 @@ public interface ICommonGbChannelService {
     void deleteByIdList(List<Integer> commonChannelIdList);
 
     void offlineForList(List<Integer> onlinePushers);
+
+    void onlineForList(List<Integer> commonChannelIdList);
 }

@@ -784,4 +784,9 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
 
         // TODO 向国标级联发送catalog
     }
+
+    @Override
+    public void onlineForList(List<Integer> commonChannelIdList) {
+        // TODO 向国标级联发送catalog
+    }
 }

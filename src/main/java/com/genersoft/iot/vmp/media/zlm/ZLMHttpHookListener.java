@@ -263,7 +263,7 @@ public class ZLMHttpHookListener {
         }
 
         // 国标流
-        if ("rtp".equals(param.getApp())) {
+        if ("rtp".equals(param.getApp()) ) {
             String ssrc = String.format("%010d", Long.parseLong(param.getStream(), 16));
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoBySSRC(ssrc);
 

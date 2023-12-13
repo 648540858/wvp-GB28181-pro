@@ -144,6 +144,7 @@ public class JwtUtils implements InitializingBean {
             jwtUser.setUserName(username);
             jwtUser.setPassword(user.getPassword());
             jwtUser.setRoleId(user.getRole().getId());
+            jwtUser.setUserId(user.getId());
 
             return jwtUser;
         } catch (InvalidJwtException e) {

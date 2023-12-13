@@ -61,7 +61,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             return;
         }
         SIPRequest request = (SIPRequest) evt.getRequest();
-        logger.info("[收到心跳]， device: {}, callId: {}", device.getDeviceId(), request.getCallIdHeader().getCallId());
+        logger.info("[收到心跳] device: {}, callId: {}", device.getDeviceId(), request.getCallIdHeader().getCallId());
 
         // 回复200 OK
         try {

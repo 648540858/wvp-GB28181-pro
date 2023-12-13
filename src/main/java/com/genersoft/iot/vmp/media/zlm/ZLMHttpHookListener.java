@@ -264,11 +264,13 @@ public class ZLMHttpHookListener {
 
         // 国标流
         if ("rtp".equals(param.getApp()) ) {
-            String ssrc = String.format("%010d", Long.parseLong(param.getStream(), 16));
-            InviteInfo inviteInfo = inviteStreamService.getInviteInfoBySSRC(ssrc);
+
+            InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, param.getStream());
 
             // 单端口模式下修改流 ID
-            if (!mediaInfo.isRtpEnable() && inviteInfo != null) {
+            if (!mediaInfo.isRtpEnable() && inviteInfo == null) {
+                String ssrc = String.format("%010d", Long.parseLong(param.getStream(), 16));
+                inviteInfo = inviteStreamService.getInviteInfoBySSRC(ssrc);
                 result.setStream_replace(inviteInfo.getStream());
                 logger.info("[ZLM HOOK]推流鉴权 stream: {} 替换为 {}", param.getStream(), inviteInfo.getStream());
             }

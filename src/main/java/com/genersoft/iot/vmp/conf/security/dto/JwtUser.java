@@ -21,6 +21,7 @@ public class JwtUser {
         EXCEPTION
     }
 
+    private int userId;
     private String userName;
 
     private String password;
@@ -28,6 +29,14 @@ public class JwtUser {
     private int roleId;
 
     private TokenStatus status;
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
 
     public String getUserName() {
         return userName;

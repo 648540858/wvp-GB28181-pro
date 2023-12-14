@@ -374,7 +374,8 @@ public class SIPCommander implements ISIPCommander {
         }), e -> {
             ResponseEvent responseEvent = (ResponseEvent) e.event;
             SIPResponse response = (SIPResponse) responseEvent.getResponse();
-            streamSession.put(device.getDeviceId(), channelId, "play", stream, ssrcInfo.getSsrc(), mediaServerItem.getId(), response,
+            String callId = response.getCallIdHeader().getCallId();
+            streamSession.put(device.getDeviceId(), channelId, callId, stream, ssrcInfo.getSsrc(), mediaServerItem.getId(), response,
                     InviteSessionType.PLAY);
             okEvent.response(e);
         });
@@ -1000,7 +1001,7 @@ public class SIPCommander implements ISIPCommander {
         catalogXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
         catalogXml.append("</Query>\r\n");
 
-        
+
 
         Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), null, SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
 

@@ -251,7 +251,6 @@ public class ZLMHttpHookListener {
 
 
         HookResultForOnPublish result = HookResultForOnPublish.SUCCESS();
-        result.setEnable_audio(true);
         taskExecutor.execute(() -> {
             ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_publish, json);
             if (subscribe != null) {
@@ -269,35 +268,42 @@ public class ZLMHttpHookListener {
         } else {
             result.setEnable_mp4(userSetting.isRecordPushLive());
         }
-        // 替换流地址
-        if ("rtp".equals(param.getApp()) && !mediaInfo.isRtpEnable()) {
-            String ssrc = String.format("%010d", Long.parseLong(param.getStream(), 16));;
-            InviteInfo inviteInfo = inviteStreamService.getInviteInfoBySSRC(ssrc);
-            if (inviteInfo != null) {
+
+        // 国标流
+        if ("rtp".equals(param.getApp()) ) {
+
+            InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, param.getStream());
+
+            // 单端口模式下修改流 ID
+            if (!mediaInfo.isRtpEnable() && inviteInfo == null) {
+                String ssrc = String.format("%010d", Long.parseLong(param.getStream(), 16));
+                inviteInfo = inviteStreamService.getInviteInfoBySSRC(ssrc);
                 result.setStream_replace(inviteInfo.getStream());
                 logger.info("[ZLM HOOK]推流鉴权 stream: {} 替换为 {}", param.getStream(), inviteInfo.getStream());
             }
-        }
-        List<SsrcTransaction> ssrcTransactionForAll = sessionManager.getSsrcTransactionForAll(null, null, null, param.getStream());
-        if (ssrcTransactionForAll != null && ssrcTransactionForAll.size() == 1) {
-            String deviceId = ssrcTransactionForAll.get(0).getDeviceId();
-            String channelId = ssrcTransactionForAll.get(0).getChannelId();
-            DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
-            if (deviceChannel != null) {
 
-                result.setEnable_audio(deviceChannel.isHasAudio());
+            // 设置音频信息及录制信息
+            List<SsrcTransaction> ssrcTransactionForAll = (inviteInfo == null ? null :
+                    sessionManager.getSsrcTransactionForAll(inviteInfo.getDeviceId(), inviteInfo.getChannelId(), null, null));
+            if (ssrcTransactionForAll != null && ssrcTransactionForAll.size() == 1) {
+                String deviceId = ssrcTransactionForAll.get(0).getDeviceId();
+                String channelId = ssrcTransactionForAll.get(0).getChannelId();
+                DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
+                if (deviceChannel != null) {
+                    result.setEnable_audio(deviceChannel.isHasAudio());
+                }
+                // 如果是录像下载就设置视频间隔十秒
+                if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.DOWNLOAD) {
+                    result.setMp4_max_second(10);
+                    result.setEnable_mp4(true);
+                }
+                // 如果是talk对讲，则默认获取声音
+                if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.TALK) {
+                    result.setEnable_audio(true);
+                }
             }
-            // 如果是录像下载就设置视频间隔十秒
-            if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.DOWNLOAD) {
-                result.setMp4_max_second(10);
-                result.setEnable_mp4(true);
-            }
-            // 如果是talk对讲，则默认获取声音
-            if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.TALK) {
-                result.setEnable_audio(true);
-            }
-
         }
+
         if (mediaInfo.getRecordAssistPort() > 0 && userSetting.getRecordPath() == null) {
             logger.info("推流时发现尚未设置录像路径，从assist服务中读取");
             JSONObject info = assistRESTfulUtils.getInfo(mediaInfo, null);
@@ -684,7 +690,7 @@ public class ZLMHttpHookListener {
             String deviceId = s[0];
             String channelId = s[1];
             Device device = redisCatchStorage.getDevice(deviceId);
-            if (device == null) {
+            if (device == null || !device.isOnLine()) {
                 defaultResult.setResult(new HookResult(ErrorCode.ERROR404.getCode(), ErrorCode.ERROR404.getMsg()));
                 return defaultResult;
             }

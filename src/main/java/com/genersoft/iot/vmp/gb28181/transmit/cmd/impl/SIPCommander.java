@@ -40,6 +40,7 @@ import javax.sip.SipFactory;
 import javax.sip.header.CallIdHeader;
 import javax.sip.message.Request;
 import java.text.ParseException;
+import java.util.List;
 
 /**
  * @description:设备能力接口，用于定义设备的控制、查询能力
@@ -612,18 +613,20 @@ public class SIPCommander implements ISIPCommander {
      */
     @Override
     public void streamByeCmd(Device device, String channelId, String stream, String callId, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException {
-        SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(device.getDeviceId(), channelId, callId, stream);
-        if (ssrcTransaction == null) {
+        List<SsrcTransaction> ssrcTransactionList = streamSession.getSsrcTransactionForAll(device.getDeviceId(), channelId, callId, stream);
+        if (ssrcTransactionList == null || ssrcTransactionList.isEmpty()) {
             throw new SsrcTransactionNotFoundException(device.getDeviceId(), channelId, callId, stream);
         }
 
-        mediaServerService.releaseSsrc(ssrcTransaction.getMediaServerId(), ssrcTransaction.getSsrc());
+        for (SsrcTransaction ssrcTransaction : ssrcTransactionList) {
+            mediaServerService.releaseSsrc(ssrcTransaction.getMediaServerId(), ssrcTransaction.getSsrc());
 
-        mediaServerService.closeRTPServer(ssrcTransaction.getMediaServerId(), ssrcTransaction.getStream());
-        streamSession.removeByCallId(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getCallId());
+            mediaServerService.closeRTPServer(ssrcTransaction.getMediaServerId(), ssrcTransaction.getStream());
+            streamSession.removeByCallId(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getCallId());
 
-        Request byteRequest = headerProvider.createByteRequest(device, channelId, ssrcTransaction.getSipTransactionInfo());
-        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), byteRequest, null, okEvent);
+            Request byteRequest = headerProvider.createByteRequest(device, channelId, ssrcTransaction.getSipTransactionInfo());
+            sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), byteRequest, null, okEvent);
+        }
     }
 
     /**

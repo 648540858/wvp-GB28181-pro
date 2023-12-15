@@ -618,8 +618,9 @@ public class SIPCommander implements ISIPCommander {
         }
 
         mediaServerService.releaseSsrc(ssrcTransaction.getMediaServerId(), ssrcTransaction.getSsrc());
+
         mediaServerService.closeRTPServer(ssrcTransaction.getMediaServerId(), ssrcTransaction.getStream());
-        streamSession.remove(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
+        streamSession.removeByCallId(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getCallId());
 
         Request byteRequest = headerProvider.createByteRequest(device, channelId, ssrcTransaction.getSipTransactionInfo());
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), byteRequest, null, okEvent);

@@ -271,8 +271,10 @@ public class ZLMHttpHookListener {
             if (!mediaInfo.isRtpEnable() && inviteInfo == null) {
                 String ssrc = String.format("%010d", Long.parseLong(param.getStream(), 16));
                 inviteInfo = inviteStreamService.getInviteInfoBySSRC(ssrc);
-                result.setStream_replace(inviteInfo.getStream());
-                logger.info("[ZLM HOOK]推流鉴权 stream: {} 替换为 {}", param.getStream(), inviteInfo.getStream());
+                if (inviteInfo != null) {
+                    result.setStream_replace(inviteInfo.getStream());
+                    logger.info("[ZLM HOOK]推流鉴权 stream: {} 替换为 {}", param.getStream(), inviteInfo.getStream());
+                }
             }
 
             // 设置音频信息及录制信息

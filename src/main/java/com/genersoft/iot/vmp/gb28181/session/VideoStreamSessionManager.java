@@ -117,8 +117,19 @@ public class VideoStreamSessionManager {
 	}
 	
 	public void remove(String deviceId, String channelId, String stream) {
-		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId, null, stream);
-		if (ssrcTransaction == null) {
+		List<SsrcTransaction> ssrcTransactionList = getSsrcTransactionForAll(deviceId, channelId, null, stream);
+		if (ssrcTransactionList == null || ssrcTransactionList.isEmpty()) {
+			return;
+		}
+		for (SsrcTransaction ssrcTransaction : ssrcTransactionList) {
+			redisTemplate.delete(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + "_"
+					+  deviceId + "_" + channelId + "_" + ssrcTransaction.getCallId() + "_" + ssrcTransaction.getStream());
+		}
+	}
+
+	public void removeByCallId(String deviceId, String channelId, String callId) {
+		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId, callId, null);
+		if (ssrcTransaction == null ) {
 			return;
 		}
 		redisTemplate.delete(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + "_"

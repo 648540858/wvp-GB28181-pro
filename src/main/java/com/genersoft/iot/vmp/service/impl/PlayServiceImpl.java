@@ -636,6 +636,7 @@ public class PlayServiceImpl implements IPlayService {
 
 
 
+
     @Override
     public void download(String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, ErrorCallback<Object> callback) {
         Device device = storager.queryVideoDevice(deviceId);

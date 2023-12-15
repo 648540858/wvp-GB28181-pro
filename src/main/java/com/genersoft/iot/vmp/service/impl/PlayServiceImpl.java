@@ -314,7 +314,13 @@ public class PlayServiceImpl implements IPlayService {
         if (!device.getStreamMode().equalsIgnoreCase("TCP-ACTIVE")) {
             return;
         }
-        String substring = contentString.substring(0, contentString.indexOf("y="));
+
+        String substring;
+        if (contentString.indexOf("y=") > 0) {
+            substring = contentString.substring(0, contentString.indexOf("y="));
+        }else {
+            substring = contentString;
+        }
         try {
             SessionDescription sdp = SdpFactory.getInstance().createSessionDescription(substring);
             int port = -1;
@@ -568,6 +574,10 @@ public class PlayServiceImpl implements IPlayService {
         ResponseEvent responseEvent = (ResponseEvent) eventResult.event;
         String contentString = new String(responseEvent.getResponse().getRawContent());
         String ssrcInResponse = SipUtils.getSsrcFromSdp(contentString);
+        // 兼容回复的消息中缺少ssrc(y字段)的情况
+        if (ssrcInResponse == null) {
+            ssrcInResponse = ssrcInfo.getSsrc();
+        }
         if (ssrcInfo.getSsrc().equals(ssrcInResponse)) {
             // ssrc 一致
             if (mediaServerItem.isRtpEnable()) {

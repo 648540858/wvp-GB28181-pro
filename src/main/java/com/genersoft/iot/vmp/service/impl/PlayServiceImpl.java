@@ -233,6 +233,15 @@ public class PlayServiceImpl implements IPlayService {
                     HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcInfo.getStream(), true, "rtsp", mediaServerItem.getId());
                     subscribe.removeSubscribe(hookSubscribe);
                 }
+            }else {
+                logger.info("[点播超时] 收流超时 deviceId: {}, channelId: {},码流类型：{}，端口：{}, SSRC: {}",
+                        device.getDeviceId(), channelId, device.isSwitchPrimarySubStream() ? "辅码流" : "主码流",
+                        ssrcInfo.getPort(), ssrcInfo.getSsrc());
+
+                mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+
+                mediaServerService.closeRTPServer(mediaServerItem.getId(), ssrcInfo.getStream());
+                streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
             }
         }, userSetting.getPlayTimeout());
 
@@ -263,6 +272,7 @@ public class PlayServiceImpl implements IPlayService {
                 InviteOKHandler(eventResult, ssrcInfo, mediaServerItem, device, channelId,
                         timeOutTaskKey, callback, inviteInfo, InviteSessionType.PLAY);
             }, (event) -> {
+                logger.info("[点播失败] deviceId: {}, channelId:{}, {}: {}", device.getDeviceId(), channelId, event.statusCode, event.msg);
                 dynamicTask.stop(timeOutTaskKey);
                 mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                 // 释放ssrc

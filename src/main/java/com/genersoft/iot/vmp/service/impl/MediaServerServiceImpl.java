@@ -163,10 +163,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if (streamId == null) {
             streamId = String.format("%08x", Long.parseLong(ssrc)).toUpperCase();
         }
-        int ssrcCheckParam = 0;
-        if (ssrcCheck && tcpMode > 1) {
+        if (ssrcCheck && tcpMode > 0) {
             // 目前zlm不支持 tcp模式更新ssrc，暂时关闭ssrc校验
-            logger.warn("[openRTPServer] TCP被动/TCP主动收流时，默认关闭ssrc检验");
+            logger.warn("[openRTPServer] 平台对接时下级可能自定义ssrc，但是tcp模式zlm收流目前无法更新ssrc，可能收流超时，此时请使用udp收流或者关闭ssrc校验");
         }
         int rtpServerPort;
         if (mediaServerItem.isRtpEnable()) {

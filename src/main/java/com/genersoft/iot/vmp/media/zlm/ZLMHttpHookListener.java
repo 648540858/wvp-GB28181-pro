@@ -275,37 +275,37 @@ public class ZLMHttpHookListener {
             }
 
             // 设置音频信息及录制信息
-        List<SsrcTransaction> ssrcTransactionForAll = sessionManager.getSsrcTransactionForAll(null, null, null, param.getStream());
-        if (ssrcTransactionForAll != null && ssrcTransactionForAll.size() == 1) {
+            List<SsrcTransaction> ssrcTransactionForAll = sessionManager.getSsrcTransactionForAll(null, null, null, param.getStream());
+            if (ssrcTransactionForAll != null && ssrcTransactionForAll.size() == 1) {
 
-            // 为录制国标模拟一个鉴权信息, 方便后续写入录像文件时使用
-            StreamAuthorityInfo streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(param);
-            streamAuthorityInfo.setApp(param.getApp());
-            streamAuthorityInfo.setStream(ssrcTransactionForAll.get(0).getStream());
-            streamAuthorityInfo.setCallId(ssrcTransactionForAll.get(0).getSipTransactionInfo().getCallId());
+                // 为录制国标模拟一个鉴权信息, 方便后续写入录像文件时使用
+                StreamAuthorityInfo streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(param);
+                streamAuthorityInfo.setApp(param.getApp());
+                streamAuthorityInfo.setStream(ssrcTransactionForAll.get(0).getStream());
+                streamAuthorityInfo.setCallId(ssrcTransactionForAll.get(0).getSipTransactionInfo().getCallId());
 
-            redisCatchStorage.updateStreamAuthorityInfo(param.getApp(), ssrcTransactionForAll.get(0).getStream(), streamAuthorityInfo);
+                redisCatchStorage.updateStreamAuthorityInfo(param.getApp(), ssrcTransactionForAll.get(0).getStream(), streamAuthorityInfo);
 
-            String deviceId = ssrcTransactionForAll.get(0).getDeviceId();
-            String channelId = ssrcTransactionForAll.get(0).getChannelId();
-            DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
-            if (deviceChannel != null) {
-                result.setEnable_audio(deviceChannel.isHasAudio());
-            }
-            // 如果是录像下载就设置视频间隔十秒
-            if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.DOWNLOAD) {
-                // 获取录像的总时长，然后设置为这个视频的时长
-                InviteInfo inviteInfoForDownload = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, deviceId, channelId, param.getStream());
-                if (inviteInfoForDownload != null && inviteInfoForDownload.getStreamInfo() != null ) {
-                    String startTime = inviteInfoForDownload.getStreamInfo().getStartTime();
-                    String endTime = inviteInfoForDownload.getStreamInfo().getEndTime();
-                    long difference = DateUtil.getDifference(startTime, endTime)/1000;
-                    result.setMp4_max_second((int)difference);
-                    result.setEnable_mp4(true);
-                    // 设置为2保证得到的mp4的时长是正常的
-                    result.setModify_stamp(2);
+                String deviceId = ssrcTransactionForAll.get(0).getDeviceId();
+                String channelId = ssrcTransactionForAll.get(0).getChannelId();
+                DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
+                if (deviceChannel != null) {
+                    result.setEnable_audio(deviceChannel.isHasAudio());
                 }
-
+                // 如果是录像下载就设置视频间隔十秒
+                if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.DOWNLOAD) {
+                    // 获取录像的总时长，然后设置为这个视频的时长
+                    InviteInfo inviteInfoForDownload = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, deviceId, channelId, param.getStream());
+                    if (inviteInfoForDownload != null && inviteInfoForDownload.getStreamInfo() != null) {
+                        String startTime = inviteInfoForDownload.getStreamInfo().getStartTime();
+                        String endTime = inviteInfoForDownload.getStreamInfo().getEndTime();
+                        long difference = DateUtil.getDifference(startTime, endTime) / 1000;
+                        result.setMp4_max_second((int) difference);
+                        result.setEnable_mp4(true);
+                        // 设置为2保证得到的mp4的时长是正常的
+                        result.setModify_stamp(2);
+                    }
+                }
             }
         }
         if (param.getApp().equalsIgnoreCase("rtp")) {

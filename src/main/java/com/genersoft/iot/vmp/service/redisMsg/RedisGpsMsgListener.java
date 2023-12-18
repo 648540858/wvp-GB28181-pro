@@ -1,6 +1,8 @@
 package com.genersoft.iot.vmp.service.redisMsg;
 
 import com.alibaba.fastjson2.JSON;
+import com.genersoft.iot.vmp.service.IStreamProxyService;
+import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -32,6 +34,12 @@ public class RedisGpsMsgListener implements MessageListener {
 
     @Autowired
     private IVideoManagerStorage storager;
+
+    @Autowired
+    private IStreamProxyService streamProxyService;
+
+    @Autowired
+    private IStreamPushService streamPushService;
 
     private ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 
@@ -66,10 +74,12 @@ public class RedisGpsMsgListener implements MessageListener {
      */
     @Scheduled(fixedRate = 2 * 1000)   //每2秒执行一次
     public void execute(){
-        List<GPSMsgInfo> gpsMsgInfo = redisCatchStorage.getAllGpsMsgInfo();
-        if (gpsMsgInfo.size() > 0) {
-            storager.updateStreamGPS(gpsMsgInfo);
-            for (GPSMsgInfo msgInfo : gpsMsgInfo) {
+        List<GPSMsgInfo> gpsMsgInfoList = redisCatchStorage.getAllGpsMsgInfo();
+        if (gpsMsgInfoList.size() > 0) {
+            streamProxyService.updateStreamGPS(gpsMsgInfoList);
+            streamPushService.updateStreamGPS(gpsMsgInfoList);
+
+            for (GPSMsgInfo msgInfo : gpsMsgInfoList) {
                 msgInfo.setStored(true);
                 redisCatchStorage.updateGpsMsgInfo(msgInfo);
             }

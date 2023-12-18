@@ -86,4 +86,8 @@ public interface IDeviceChannelService {
      */
     boolean updateChannelsForCatalog(Device device, List<DeviceChannel> deviceChannelList);
 
+    /**
+     * 根据通道ID获取设备
+     */
+    Device getDeviceByChannelCommonGbId(int commonGbId);
 }

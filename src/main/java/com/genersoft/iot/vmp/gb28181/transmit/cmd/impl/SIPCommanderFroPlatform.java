@@ -165,12 +165,12 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
      * @param parentPlatform 平台信息
      */
     @Override
-    public void catalogQuery(DeviceChannel channel, ParentPlatform parentPlatform, String sn, String fromTag, int size) throws SipException, InvalidArgumentException, ParseException {
+    public void catalogQuery(CommonGbChannel channel, ParentPlatform parentPlatform, String sn, String fromTag, int size) throws SipException, InvalidArgumentException, ParseException {
 
         if ( parentPlatform ==null) {
             return ;
         }
-        List<DeviceChannel> channels = new ArrayList<>();
+        List<CommonGbChannel> channels = new ArrayList<>();
         if (channel != null) {
             channels.add(channel);
         }
@@ -734,7 +734,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         return catalogXml.toString();
     }
     @Override
-    public void recordInfo(DeviceChannel deviceChannel, ParentPlatform parentPlatform, String fromTag, RecordInfo recordInfo) throws SipException, InvalidArgumentException, ParseException {
+    public void recordInfo(CommonGbChannel commonGbChannel, ParentPlatform parentPlatform, String fromTag, RecordInfo recordInfo) throws SipException, InvalidArgumentException, ParseException {
         if ( parentPlatform ==null) {
             return ;
         }
@@ -753,7 +753,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             if (recordInfo.getRecordList().size() > 0) {
                 for (RecordItem recordItem : recordInfo.getRecordList()) {
                     recordXml.append("<Item>\r\n");
-                    if (deviceChannel != null) {
+                    if (commonGbChannel != null) {
                         recordXml.append("<DeviceID>" + recordItem.getDeviceId() + "</DeviceID>\r\n")
                                 .append("<Name>" + recordItem.getName() + "</Name>\r\n")
                                 .append("<StartTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(recordItem.getStartTime()) + "</StartTime>\r\n")

@@ -35,4 +35,6 @@ public interface IPlatformChannelService {
      * 查询通道
      */
     CommonGbChannel queryChannelByPlatformIdAndChannelDeviceId(Integer platformId, String channelId);
+
+    List<CommonGbChannel> queryCommonGbChannellList(Integer id);
 }

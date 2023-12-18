@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.cmd;
 
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
@@ -9,6 +10,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.QueryMessageHandler;
+import com.genersoft.iot.vmp.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.Element;
@@ -43,7 +45,7 @@ public class DeviceStatusQueryMessageHandler extends SIPRequestProcessorParent i
     private SIPCommanderFroPlatform cmderFroPlatform;
 
     @Autowired
-    private SipConfig config;
+    private IPlatformChannelService platformChannelService;
 
     @Autowired
     private EventPublisher publisher;
@@ -71,13 +73,13 @@ public class DeviceStatusQueryMessageHandler extends SIPRequestProcessorParent i
         }
         String sn = rootElement.element("SN").getText();
         String channelId = getText(rootElement, "DeviceID");
-        DeviceChannel deviceChannel = storager.queryChannelInParentPlatform(parentPlatform.getServerGBId(), channelId);
-        if (deviceChannel ==null){
+        CommonGbChannel commonGbChannel = platformChannelService.queryChannelByPlatformIdAndChannelDeviceId(parentPlatform.getId(), channelId);
+        if (commonGbChannel ==null){
             logger.error("[平台没有该通道的使用权限]:platformId"+parentPlatform.getServerGBId()+"  deviceID:"+channelId);
             return;
         }
         try {
-            cmderFroPlatform.deviceStatusResponse(parentPlatform,channelId, sn, fromHeader.getTag(),deviceChannel.isStatus());
+            cmderFroPlatform.deviceStatusResponse(parentPlatform,channelId, sn, fromHeader.getTag(),commonGbChannel.getCommonGbStatus());
         } catch (SipException | InvalidArgumentException | ParseException e) {
             logger.error("[命令发送失败] 国标级联 DeviceStatus查询回复: {}", e.getMessage());
         }

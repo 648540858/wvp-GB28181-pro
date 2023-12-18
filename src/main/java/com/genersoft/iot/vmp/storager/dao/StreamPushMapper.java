@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
+import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
@@ -195,4 +196,14 @@ public interface StreamPushMapper {
 
     @Select("select* from wvp_stream_push where id = #{id}")
     StreamPush query(@Param("id") Integer id);
+
+    @Update({"<script>" +
+            "<foreach collection='gpsMsgInfoList' item='item' separator=';'>" +
+            " UPDATE" +
+            " wvp_stream_push" +
+            " SET longitude = #{item.lng}, latitude= #{item.lat}" +
+            " WHERE gb_id=#{item.id}" +
+            "</foreach>" +
+            "</script>"})
+    void updateStreamGPS(List<GPSMsgInfo> gpsMsgInfoList);
 }

@@ -123,18 +123,7 @@ public interface IVideoManagerStorage {
 	 */
 	ParentPlatform queryParentPlatByServerGBId(String platformGbId);
 
-    DeviceChannel queryChannelInParentPlatform(String platformId, String channelId);
 
-
-    Device queryVideoDeviceByPlatformIdAndChannelId(String platformId, String channelId);
-
-	/**
-	 * 针对deviceinfo指令的查询接口
-	 * @param platformId 平台id
-	 * @param channelId 通道id
-	 * @return 设备信息
-	 */
-	Device queryDeviceInfoByPlatformIdAndChannelId(String platformId, String channelId);
 	/**
 	 * 添加Mobile Position设备移动位置
 	 * @param mobilePosition
@@ -182,33 +171,6 @@ public interface IVideoManagerStorage {
 	PageInfo<StreamProxy> queryStreamProxyList(Integer page, Integer count);
 
 	/**
-	 * 根据国标ID获取平台关联的直播流
-	 * @param platformId
-	 * @param channelId
-	 * @return
-	 */
-	GbStream queryStreamInParentPlatform(String platformId, String channelId);
-
-	/**
-	 * 获取平台关联的直播流
-	 * @param platformId
-	 * @return
-	 */
-	List<DeviceChannel> queryGbStreamListInPlatform(String platformId);
-
-	/**
-	 * 移除单个推流
-	 * @param app
-	 * @param stream
-	 */
-	int removeMedia(String app, String stream);
-
-	/**
-	 * 设置流离线
-	 */
-	int mediaOffline(String app, String streamId);
-
-	/**
 	 * 根据媒体ID获取启用/不启用的代理列表
 	 * @param id 媒体ID
 	 * @param enable 启用/不启用
@@ -236,16 +198,6 @@ public interface IVideoManagerStorage {
 	 */
     StreamProxy getStreamProxyByAppAndStream(String app, String streamId);
 
-	int updateStreamGPS(List<GPSMsgInfo> gpsMsgInfo);
-
-	List<ParentPlatform> queryPlatFormListForGBWithGBId(String channelId, List<String> platforms);
-
-	List<ParentPlatform> queryPlatFormListForStreamWithGBId(String app, String stream, List<String> platforms);
-
-	GbStream getGbStream(String app, String streamId);
-
-
-	List<ChannelSourceInfo> getChannelSource(String platformId, String gbId);
 
     void updateChannelPosition(DeviceChannel deviceChannel);
 

@@ -15,6 +15,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OriginType;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.CommonGbChannelType;
+import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.Group;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -471,5 +472,10 @@ public class StreamPushServiceImpl implements IStreamPushService {
         int online = streamPushMapper.getAllOnline(userSetting.isUsePushingAsStatus());
 
         return new ResourceBaseInfo(total, online);
+    }
+
+    @Override
+    public void updateStreamGPS(List<GPSMsgInfo> gpsMsgInfoList) {
+        streamPushMapper.updateStreamGPS(gpsMsgInfoList);
     }
 }

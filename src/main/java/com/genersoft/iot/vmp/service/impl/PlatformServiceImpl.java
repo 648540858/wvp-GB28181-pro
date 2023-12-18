@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -12,6 +13,7 @@ import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.service.IPlatformService;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -76,6 +78,9 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private IPlatformChannelService platformChannelService;
 
 
 
@@ -393,14 +398,12 @@ public class PlatformServiceImpl implements IPlatformService {
         SubscribeInfo subscribe = subscribeHolder.getMobilePositionSubscribe(platform.getId());
         if (subscribe != null) {
 
-            // TODO 暂时只处理视频流的回复,后续增加对国标设备的支持
-            List<DeviceChannel> gbStreams = gbStreamMapper.queryGbStreamListInPlatform(platform.getServerGBId(), userSetting.isUsePushingAsStatus());
-            if (gbStreams.size() == 0) {
+            List<CommonGbChannel> channelList = platformChannelService.queryCommonGbChannellList(platform.getId());
+            if (channelList.isEmpty()) {
                 return;
             }
-            for (DeviceChannel deviceChannel : gbStreams) {
-                String gbId = deviceChannel.getChannelId();
-                GPSMsgInfo gpsMsgInfo = redisCatchStorage.getGpsMsgInfo(gbId);
+            for (CommonGbChannel channel : channelList) {
+                GPSMsgInfo gpsMsgInfo = redisCatchStorage.getGpsMsgInfo(channel.getCommonGbDeviceID());
                 // 无最新位置不发送
                 if (gpsMsgInfo != null) {
                     // 经纬度都为0不发送

@@ -123,4 +123,14 @@ public class GB28181ResourceServiceImpl implements IResourceService {
     public void streamOffline(String app, String streamId) {
         // TODO
     }
+
+    @Override
+    public void startPlayback(CommonGbChannel channel, Long startTime, Long stopTime, IResourcePlayCallback callback) {
+
+    }
+
+    @Override
+    public void startDownload(CommonGbChannel channel, Long startTime, Long stopTime, Integer downloadSpeed, IResourcePlayCallback playCallback) {
+
+    }
 }

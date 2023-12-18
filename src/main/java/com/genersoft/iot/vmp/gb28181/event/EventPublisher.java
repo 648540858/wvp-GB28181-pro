@@ -81,15 +81,6 @@ public class EventPublisher {
 		applicationEventPublisher.publishEvent(outEvent);
 	}
 
-
-	public void catalogEventPublishForStream(Integer platformId, List<GbStream> gbStreams, String type) {
-		CatalogEvent outEvent = new CatalogEvent(this);
-		outEvent.setGbStreams(gbStreams);
-		outEvent.setType(type);
-		outEvent.setPlatformId(platformId);
-		applicationEventPublisher.publishEvent(outEvent);
-	}
-
 	public void recordEndEventPush(RecordInfo recordInfo) {
 		RecordEndEvent outEvent = new RecordEndEvent(this);
 		outEvent.setRecordInfo(recordInfo);

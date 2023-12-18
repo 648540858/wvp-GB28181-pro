@@ -22,6 +22,7 @@ import com.genersoft.iot.vmp.service.ICommonGbChannelService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
+import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.ParentPlatformMapper;
@@ -519,5 +520,10 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         int online = streamProxyMapper.getOnline();
 
         return new ResourceBaseInfo(total, online);
+    }
+
+    @Override
+    public void updateStreamGPS(List<GPSMsgInfo> gpsMsgInfoList) {
+        streamProxyMapper.updateStreamGPS(gpsMsgInfoList);
     }
 }

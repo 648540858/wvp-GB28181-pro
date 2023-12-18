@@ -50,7 +50,7 @@ public interface ISIPCommanderForPlatform {
      * @param size
      * @return
      */
-    void catalogQuery(DeviceChannel channel, ParentPlatform parentPlatform, String sn, String fromTag, int size) throws SipException, InvalidArgumentException, ParseException;
+    void catalogQuery(CommonGbChannel channel, ParentPlatform parentPlatform, String sn, String fromTag, int size) throws SipException, InvalidArgumentException, ParseException;
     void catalogQuery(List<CommonGbChannel> channels, ParentPlatform parentPlatform, String sn, String fromTag) throws InvalidArgumentException, ParseException, SipException;
 
     /**
@@ -100,12 +100,12 @@ public interface ISIPCommanderForPlatform {
 
     /**
      * 回复recordInfo
-     * @param deviceChannel 通道信息
+     * @param channel 通道信息
      * @param parentPlatform 平台信息
      * @param fromTag fromTag
      * @param recordInfo 录像信息
      */
-    void recordInfo(DeviceChannel deviceChannel, ParentPlatform parentPlatform, String fromTag, RecordInfo recordInfo) throws SipException, InvalidArgumentException, ParseException;
+    void recordInfo(CommonGbChannel channel, ParentPlatform parentPlatform, String fromTag, RecordInfo recordInfo) throws SipException, InvalidArgumentException, ParseException;
 
     /**
      * 录像播放推送完成时发送MediaStatus消息

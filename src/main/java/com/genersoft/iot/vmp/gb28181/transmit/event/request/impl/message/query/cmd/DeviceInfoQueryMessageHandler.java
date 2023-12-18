@@ -1,11 +1,14 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.cmd;
 
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.QueryMessageHandler;
+import com.genersoft.iot.vmp.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.Element;
@@ -35,8 +38,12 @@ public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent imp
 
     @Autowired
     private SIPCommanderFroPlatform cmderFroPlatform;
+
     @Autowired
-    private IVideoManagerStorage storager;
+    private IPlatformChannelService platformChannelService;
+
+    @Autowired
+    private IDeviceChannelService deviceChannelService;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -52,9 +59,10 @@ public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent imp
     public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element rootElement) {
         logger.info("[DeviceInfo查询]消息");
         FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
+        SIPRequest request = (SIPRequest) evt.getRequest();
         try {
             // 回复200 OK
-            responseAck((SIPRequest) evt.getRequest(), Response.OK);
+            responseAck(request, Response.OK);
         } catch (SipException | InvalidArgumentException | ParseException e) {
             logger.error("[命令发送失败] DeviceInfo查询回复: {}", e.getMessage());
             return;
@@ -70,7 +78,17 @@ public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent imp
         Device device = null;
         // 如果id指向平台的国标编号，那么就是查询平台的信息
         if (!parentPlatform.getDeviceGBId().equals(channelId)) {
-            device = storager.queryDeviceInfoByPlatformIdAndChannelId(parentPlatform.getServerGBId(), channelId);
+
+            CommonGbChannel commonGbChannel = platformChannelService.queryChannelByPlatformIdAndChannelDeviceId(parentPlatform.getId(), channelId);
+            if (commonGbChannel == null) {
+                try {
+                    responseAck(request, Response.NOT_FOUND);
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    logger.error("[命令发送失败] 错误信息: {}", e.getMessage());
+                }
+                return;
+            }
+            device = deviceChannelService.getDeviceByChannelCommonGbId(commonGbChannel.getCommonGbId());
             if (device ==null){
                 logger.error("[平台没有该通道的使用权限]:platformId"+parentPlatform.getServerGBId()+"  deviceID:"+channelId);
                 return;

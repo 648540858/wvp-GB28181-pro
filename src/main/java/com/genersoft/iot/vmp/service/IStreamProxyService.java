@@ -5,8 +5,11 @@ import com.genersoft.iot.vmp.common.GeneralCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
+import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.github.pagehelper.PageInfo;
+
+import java.util.List;
 
 public interface IStreamProxyService {
 
@@ -111,4 +114,8 @@ public interface IStreamProxyService {
      */
     ResourceBaseInfo getOverview();
 
+    /**
+     * 更新redis发来的gps更新消息
+     */
+    void updateStreamGPS(List<GPSMsgInfo> gpsMsgInfoList);
 }

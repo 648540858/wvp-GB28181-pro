@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.control.cmd;
 
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.common.enums.DeviceControlType;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DragZoomRequest;
@@ -11,6 +12,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.control.ControlMessageHandler;
+import com.genersoft.iot.vmp.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.Element;
@@ -47,7 +50,10 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
     private SIPCommander cmder;
 
     @Autowired
-    private SIPCommanderFroPlatform cmderFroPlatform;
+    private IPlatformChannelService platformChannelService;
+
+    @Autowired
+    private IDeviceChannelService deviceChannelService;
 
     @Qualifier("taskExecutor")
     @Autowired
@@ -109,8 +115,18 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
         DeviceControlType deviceControlType = DeviceControlType.typeOf(rootElement);
         logger.info("[接受deviceControl命令] 命令: {}", deviceControlType);
         if (!ObjectUtils.isEmpty(deviceControlType) && !parentPlatform.getServerGBId().equals(targetGBId)) {
+
+            CommonGbChannel commonGbChannel = platformChannelService.queryChannelByPlatformIdAndChannelDeviceId(parentPlatform.getId(), channelId);
+            if (commonGbChannel == null) {
+                try {
+                    responseAck(request, Response.NOT_FOUND);
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    logger.error("[命令发送失败] 错误信息: {}", e.getMessage());
+                }
+                return;
+            }
             //判断是否存在该通道
-            Device deviceForPlatform = storager.queryVideoDeviceByPlatformIdAndChannelId(parentPlatform.getServerGBId(), channelId);
+            Device deviceForPlatform = deviceChannelService.getDeviceByChannelCommonGbId(commonGbChannel.getCommonGbId());
             if (deviceForPlatform == null) {
                 try {
                     responseAck(request, Response.NOT_FOUND);

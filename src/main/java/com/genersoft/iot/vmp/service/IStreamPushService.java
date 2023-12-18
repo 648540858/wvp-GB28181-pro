@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
+import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.vmanager.bean.StreamPushExcelDto;
@@ -103,4 +104,9 @@ public interface IStreamPushService {
     void batchUpdate(List<StreamPush> streamPushItemForUpdate);
 
     void update(StreamPush transform);
+
+    /**
+     * 更新redis发来的gps更新消息
+     */
+    void updateStreamGPS(List<GPSMsgInfo> gpsMsgInfoList);
 }

@@ -203,7 +203,7 @@ public class CommonChannelController {
             result.setResult(wvpResult);
             commonGbChannelService.stopPlay(channel, null);
         });
-        commonGbChannelService.startPlay(channel, (callbackChannel, code, message, streamInfo) -> {
+        commonGbChannelService.startPlay(channel, (callbackChannel, mediaServerItem, code, message, streamInfo) -> {
             if (code == ErrorCode.SUCCESS.getCode()) {
                 WVPResult<StreamContent> wvpResult = new WVPResult<>();
                 wvpResult.setCode(ErrorCode.SUCCESS.getCode());
@@ -252,15 +252,15 @@ public class CommonChannelController {
         result.onTimeout(()->{
             logger.info("[停止播放通道] 超时 channelDeviceId：{} ", channelDeviceId);
             // 释放rtpserver
-            WVPResult wvpResult = new WVPResult<>();
+            WVPResult<StreamContent> wvpResult = new WVPResult<>();
             wvpResult.setCode(ErrorCode.ERROR100.getCode());
             wvpResult.setMsg("停止播放通道超时");
             result.setResult(wvpResult);
             commonGbChannelService.stopPlay(channel, null);
         });
 
-        commonGbChannelService.stopPlay(channel, (commonGbChannel, code, message, streamInfo) -> {
-            WVPResult wvpResult = new WVPResult();
+        commonGbChannelService.stopPlay(channel, (commonGbChannel, mediaServerItem, code, message, streamInfo) -> {
+            WVPResult<StreamContent> wvpResult = new WVPResult<>();
             wvpResult.setCode(code);
             wvpResult.setMsg(message);
             result.setResult(wvpResult);

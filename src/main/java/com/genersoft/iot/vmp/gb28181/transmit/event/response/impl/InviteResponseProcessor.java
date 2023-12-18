@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.sdp.SdpException;
 import javax.sdp.SdpParseException;
 import javax.sdp.SessionDescription;
 import javax.sip.InvalidArgumentException;
@@ -90,7 +91,9 @@ public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 			}
 		} catch (InvalidArgumentException | ParseException | SipException | SdpParseException e) {
 			logger.info("[点播回复ACK]，异常：", e );
-		}
-	}
+		} catch (SdpException e) {
+			logger.info("[点播收到200OK]，SDP解析异常：", e );
+        }
+    }
 
 }

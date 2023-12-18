@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.conf.CivilCodeFileConf;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -469,8 +470,9 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 							logger.warn("[ NotifyCatalog ] event not found ： {}", event );
 
 					}
+					CommonGbChannel commonGbChannel = CommonGbChannel.getInstance(null, channel);
 					// 转发变化信息
-					eventPublisher.catalogEventPublish(null, channel, event);
+					eventPublisher.catalogEventPublish(null, commonGbChannel, event);
 
 				}
 			}

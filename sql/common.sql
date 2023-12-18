@@ -128,6 +128,20 @@ alter table wvp_stream_push
 
 
 
+alter table wvp_stream_proxy
+    add gb_id varchar(50) default NULL;
+
+alter table wvp_stream_proxy
+    add longitude double precision;
+
+alter table wvp_stream_proxy
+    add latitude double precision;
+
+alter table wvp_stream_proxy
+    add status bool default false;
+
+
+
 
 
 

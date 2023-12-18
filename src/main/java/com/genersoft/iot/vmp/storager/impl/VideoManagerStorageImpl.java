@@ -229,49 +229,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		return deviceMapper.queryDeviceWithAsMessageChannel();
 	}
 
-	@Override
-	public DeviceChannel queryChannelInParentPlatform(String platformId, String channelId) {
-		List<DeviceChannel> channels = platformChannelMapper.queryChannelInParentPlatform(platformId, channelId);
-		if (channels.size() > 1) {
-			// 出现长度大于0的时候肯定是国标通道的ID重复了
-			logger.warn("国标ID存在重复：{}", channelId);
-		}
-		if (channels.size() == 0) {
-			return null;
-		}else {
-			return channels.get(0);
-		}
-	}
-
-	@Override
-	public Device queryVideoDeviceByPlatformIdAndChannelId(String platformId, String channelId) {
-		List<Device> devices = platformChannelMapper.queryVideoDeviceByPlatformIdAndChannelId(platformId, channelId);
-		if (devices.size() > 1) {
-			// 出现长度大于0的时候肯定是国标通道的ID重复了
-			logger.warn("国标ID存在重复：{}", channelId);
-		}
-		if (devices.size() == 0) {
-			return null;
-		}else {
-			return devices.get(0);
-		}
-
-
-	}
-
-	@Override
-	public Device queryDeviceInfoByPlatformIdAndChannelId(String platformId, String channelId) {
-		List<Device> devices = platformChannelMapper.queryDeviceInfoByPlatformIdAndChannelId(platformId, channelId);
-		if (devices.size() > 1) {
-			// 出现长度大于0的时候肯定是国标通道的ID重复了
-			logger.warn("国标ID存在重复：{}", channelId);
-		}
-		if (devices.size() == 0) {
-			return null;
-		}else {
-			return devices.get(0);
-		}
-	}
 
 	/**
 	 * 查询最新移动位置
@@ -307,27 +264,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	}
 
 	/**
-	 * 根据国标ID获取平台关联的直播流
-	 * @param platformId
-	 * @param gbId
-	 * @return
-	 */
-	@Override
-	public GbStream queryStreamInParentPlatform(String platformId, String gbId) {
-		return gbStreamMapper.queryStreamInPlatform(platformId, gbId);
-	}
-
-	/**
-	 * 获取平台关联的直播流
-	 * @param platformId
-	 * @return
-	 */
-	@Override
-	public List<DeviceChannel> queryGbStreamListInPlatform(String platformId) {
-		return gbStreamMapper.queryGbStreamListInPlatform(platformId, userSetting.isUsePushingAsStatus());
-	}
-
-	/**
 	 * 按照是app和stream获取代理流
 	 * @param app
 	 * @param stream
@@ -339,23 +275,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	}
 
 	@Override
-	public int removeMedia(String app, String stream) {
-		return streamPushMapper.del(app, stream);
-	}
-
-	@Override
-	public int mediaOffline(String app, String stream) {
-		GbStream gbStream = gbStreamMapper.selectOne(app, stream);
-		int result;
-		if ("proxy".equals(gbStream.getStreamType())) {
-			result = streamProxyMapper.updateStatus(app, stream, false);
-		}else {
-			result = streamPushMapper.updatePushStatus(app, stream, false);
-		}
-		return result;
-	}
-
-	@Override
 	public List<StreamProxy> getStreamProxyListForEnableInMediaServer(String id, boolean enable) {
 		return streamProxyMapper.selectForEnableInMediaServer(id, enable);
 	}
@@ -363,11 +282,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	@Override
 	public StreamProxy getStreamProxyByAppAndStream(String app, String streamId) {
 		return streamProxyMapper.selectOne(app, streamId);
-	}
-
-	@Override
-	public int updateStreamGPS(List<GPSMsgInfo> gpsMsgInfos) {
-		return gbStreamMapper.updateStreamGPS(gpsMsgInfos);
 	}
 
 
@@ -389,29 +303,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		deviceChannel.setOwner("wvp-pro");
 		deviceChannel.setSecrecy("0");
 		return deviceChannel;
-	}
-
-	@Override
-	public List<ParentPlatform> queryPlatFormListForGBWithGBId(String channelId, List<String> platforms) {
-		return platformChannelMapper.queryPlatFormListForGBWithGBId(channelId, platforms);
-	}
-
-	@Override
-	public List<ParentPlatform> queryPlatFormListForStreamWithGBId(String app, String stream, List<String> platforms) {
-		if (platforms == null || platforms.size() == 0) {
-			return new ArrayList<>();
-		}
-		return platformGbStreamMapper.queryPlatFormListForGBWithGBId(app, stream, platforms);
-	}
-
-	@Override
-	public GbStream getGbStream(String app, String streamId) {
-		return gbStreamMapper.selectOne(app, streamId);
-	}
-
-	@Override
-	public List<ChannelSourceInfo> getChannelSource(String platformId, String gbId) {
-		return platformMapper.getChannelSource(platformId, gbId);
 	}
 
 	@Override

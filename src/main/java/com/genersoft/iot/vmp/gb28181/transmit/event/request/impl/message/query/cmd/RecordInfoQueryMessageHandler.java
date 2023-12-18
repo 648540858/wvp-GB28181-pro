@@ -1,14 +1,20 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.cmd;
 
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.record.RecordEndEventListener;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.QueryMessageHandler;
+import com.genersoft.iot.vmp.service.ICommonGbChannelService;
+import com.genersoft.iot.vmp.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.service.IPlatformChannelService;
+import com.genersoft.iot.vmp.service.bean.CommonGbChannelType;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
@@ -40,7 +46,7 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
     private IVideoManagerStorage storager;
 
     @Autowired
-    private SIPCommanderFroPlatform cmderFroPlatform;
+    private ISIPCommanderForPlatform cmderFroPlatform;
 
     @Autowired
     private SIPCommander commander;
@@ -49,10 +55,10 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
     private RecordEndEventListener recordEndEventListener;
 
     @Autowired
-    private SipConfig config;
+    private IDeviceChannelService deviceChannelService;
 
     @Autowired
-    private EventPublisher publisher;
+    private IPlatformChannelService platformChannelService;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -93,16 +99,15 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
             type =  typeElement.getText();
         }
         // 确认是直播还是国标， 国标直接请求下级，直播请求录像管理服务
-        List<ChannelSourceInfo> channelSources = storager.getChannelSource(parentPlatform.getServerGBId(), channelId);
-
-        if (channelSources.get(0).getCount() > 0) { // 国标
+        CommonGbChannel commonGbChannel = platformChannelService.queryChannelByPlatformIdAndChannelDeviceId(parentPlatform.getId(), channelId);
+        if (commonGbChannel.getType().equals(CommonGbChannelType.GB28181)) { // 国标
             // 向国标设备请求录像数据
-            Device device = storager.queryVideoDeviceByPlatformIdAndChannelId(parentPlatform.getServerGBId(), channelId);
-            DeviceChannel deviceChannel = storager.queryChannelInParentPlatform(parentPlatform.getServerGBId(), channelId);
+            Device device = deviceChannelService.getDeviceByChannelCommonGbId(commonGbChannel.getCommonGbId());
+
             // 接收录像数据
-            recordEndEventListener.addEndEventHandler(deviceChannel.getDeviceId(), channelId, (recordInfo)->{
+            recordEndEventListener.addEndEventHandler(device.getDeviceId(), channelId, (recordInfo)->{
                 try {
-                    cmderFroPlatform.recordInfo(deviceChannel, parentPlatform, request.getFromTag(), recordInfo);
+                    cmderFroPlatform.recordInfo(commonGbChannel, parentPlatform, request.getFromTag(), recordInfo);
                 } catch (SipException | InvalidArgumentException | ParseException e) {
                     logger.error("[命令发送失败] 国标级联 回复录像数据: {}", e.getMessage());
                 }
@@ -128,7 +133,8 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
                 logger.error("[命令发送失败] 录像查询: {}", e.getMessage());
             }
 
-        }else if (channelSources.get(1).getCount() > 0) { // 直播流
+        }else if (commonGbChannel.getType().equals(CommonGbChannelType.PUSH)
+                || commonGbChannel.getType().equals(CommonGbChannelType.PROXY)) { // 直播流
             // TODO
             try {
                 responseAck(request, Response.NOT_IMPLEMENTED); // 回复未实现

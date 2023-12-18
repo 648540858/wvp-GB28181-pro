@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
+import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
@@ -87,4 +88,16 @@ public interface StreamProxyMapper {
 
     @Select("select count(1) from wvp_stream_proxy where status = true")
     int getOnline();
+
+
+    @Update({"<script>" +
+            "<foreach collection='gpsMsgInfoList' item='item' separator=';'>" +
+            " UPDATE" +
+            " wvp_stream_proxy" +
+            " SET longitude = #{item.lng}, latitude= #{item.lat}" +
+            " WHERE gb_id=#{item.id}" +
+            "</foreach>" +
+            "</script>"})
+    void updateStreamGPS(@Param("gpsMsgInfoList") List<GPSMsgInfo> gpsMsgInfoList);
+
 }

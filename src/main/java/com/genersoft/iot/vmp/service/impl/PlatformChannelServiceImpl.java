@@ -122,7 +122,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
 
     @Override
     public List<ParentPlatform> querySharePlatformListByChannelId(int commonGbId, List<String> platforms) {
-        return platformChannelMapper.querySharePlatformListByChannelId();
+        return platformChannelMapper.querySharePlatformListByChannelId(commonGbId, platforms);
     }
 
     @Override
@@ -152,5 +152,10 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     @Override
     public CommonGbChannel queryChannelByPlatformIdAndChannelDeviceId(Integer platformId, String channelId) {
         return null;
+    }
+
+    @Override
+    public List<CommonGbChannel> queryCommonGbChannellList(Integer platformId) {
+        return platformChannelMapper.queryCommonGbChannellList(platformId);
     }
 }

@@ -259,19 +259,22 @@ public class ZLMHttpHookListener {
         } else {
             result.setEnable_mp4(userSetting.isRecordPushLive());
         }
-        // 替换流地址
-        if ("rtp".equals(param.getApp()) && !mediaInfo.isRtpEnable()) {
-            if (!mediaInfo.isRtpEnable()) {
-                String ssrc = String.format("%010d", Long.parseLong(param.getStream(), 16));;
-                InviteInfo inviteInfo = inviteStreamService.getInviteInfoBySSRC(ssrc);
+        // 国标流
+        if ("rtp".equals(param.getApp()) ) {
+
+            InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, param.getStream());
+
+            // 单端口模式下修改流 ID
+            if (!mediaInfo.isRtpEnable() && inviteInfo == null) {
+                String ssrc = String.format("%010d", Long.parseLong(param.getStream(), 16));
+                inviteInfo = inviteStreamService.getInviteInfoBySSRC(ssrc);
                 if (inviteInfo != null) {
                     result.setStream_replace(inviteInfo.getStream());
                     logger.info("[ZLM HOOK]推流鉴权 stream: {} 替换为 {}", param.getStream(), inviteInfo.getStream());
                 }
             }
 
-        }
-
+            // 设置音频信息及录制信息
         List<SsrcTransaction> ssrcTransactionForAll = sessionManager.getSsrcTransactionForAll(null, null, null, param.getStream());
         if (ssrcTransactionForAll != null && ssrcTransactionForAll.size() == 1) {
 
@@ -292,10 +295,10 @@ public class ZLMHttpHookListener {
             // 如果是录像下载就设置视频间隔十秒
             if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.DOWNLOAD) {
                 // 获取录像的总时长，然后设置为这个视频的时长
-                InviteInfo inviteInfo = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, deviceId, channelId, param.getStream());
-                if (inviteInfo.getStreamInfo() != null ) {
-                    String startTime = inviteInfo.getStreamInfo().getStartTime();
-                    String endTime = inviteInfo.getStreamInfo().getEndTime();
+                InviteInfo inviteInfoForDownload = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, deviceId, channelId, param.getStream());
+                if (inviteInfoForDownload != null && inviteInfoForDownload.getStreamInfo() != null ) {
+                    String startTime = inviteInfoForDownload.getStreamInfo().getStartTime();
+                    String endTime = inviteInfoForDownload.getStreamInfo().getEndTime();
                     long difference = DateUtil.getDifference(startTime, endTime)/1000;
                     result.setMp4_max_second((int)difference);
                     result.setEnable_mp4(true);
@@ -529,11 +532,15 @@ public class ZLMHttpHookListener {
                         if (info != null) {
                             cmder.streamByeCmd(device, inviteInfo.getChannelId(),
                                     inviteInfo.getStream(), null);
+                        }else {
+                            logger.info("[无人观看] 未找到设备的点播信息： {}， 流：{}", inviteInfo.getDeviceId(), param.getStream());
                         }
                     } catch (InvalidArgumentException | ParseException | SipException |
                              SsrcTransactionNotFoundException e) {
                         logger.error("[无人观看]点播， 发送BYE失败 {}", e.getMessage());
                     }
+                }else {
+                    logger.info("[无人观看] 未找到设备： {}，流：{}", inviteInfo.getDeviceId(), param.getStream());
                 }
 
                 inviteStreamService.removeInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(),
@@ -598,7 +605,7 @@ public class ZLMHttpHookListener {
             String deviceId = s[0];
             String channelId = s[1];
             Device device = redisCatchStorage.getDevice(deviceId);
-            if (device == null) {
+            if (device == null || !device.isOnLine()) {
                 defaultResult.setResult(new HookResult(ErrorCode.ERROR404.getCode(), ErrorCode.ERROR404.getMsg()));
                 return defaultResult;
             }

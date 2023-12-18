@@ -37,7 +37,6 @@
 </template>
 
 <script>
-
 import changePasswordDialog from '../components/dialog/changePassword.vue'
 import userService from '../components/service/UserService'
 import {Notification} from 'element-ui';
@@ -55,18 +54,19 @@ export default {
     };
   },
   created() {
-    console.log(4444)
     console.log(JSON.stringify(userService.getUser()))
     if (this.$route.path.startsWith("/channelList")) {
       this.activeIndex = "/deviceList"
-
     }
   },
   mounted() {
     window.addEventListener('beforeunload', e => this.beforeunloadHandler(e))
-    // window.addEventListener('unload', e => this.unloadHandler(e))
     this.alarmNotify = this.getAlarmSwitchStatus() === "true";
-    this.sseControl();
+
+    // TODO: 此处延迟连接 sse, 避免 sse 连接时 browserId 还未生成, 后续待优化
+    setTimeout(() => {
+      this.sseControl()
+    }, 3000);
   },
   methods: {
     loginout() {
@@ -107,10 +107,12 @@ export default {
         this.sseSource = new EventSource('/api/emit?browserId=' + this.$browserId);
         this.sseSource.addEventListener('message', function (evt) {
           that.$notify({
-            title: '收到报警信息',
+            title: '报警信息',
             dangerouslyUseHTMLString: true,
             message: evt.data,
-            type: 'warning'
+            type: 'warning',
+            position: 'bottom-right',
+            duration: 3000
           });
           console.log("收到信息：" + evt.data);
         });

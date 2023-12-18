@@ -167,9 +167,9 @@ media:
     # 录像辅助服务， 部署此服务可以实现zlm录像的管理与下载， 0 表示不使用
     record-assist-port: 0
 
-# [可选] 日志配置, 一般不需要改
+# [可选] 日志配置, 如果不需要在jar外修改日志内容那么可以不配置此项
 logging:
-    config: classpath:logback-spring-local.xml
+    config: classpath:logback-spring.xml
 
 # [根据业务需求配置]
 user-settings:

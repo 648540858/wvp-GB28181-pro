@@ -413,6 +413,8 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 logger.info("启用代理失败： {}/{}->{}({})", app, stream, jsonObject.getString("msg"),
                         streamProxy.getSrcUrl() == null? streamProxy.getUrl():streamProxy.getSrcUrl());
             }
+        } else if (streamProxy != null && streamProxy.isEnable()) {
+           return true ;
         }
         return result;
     }

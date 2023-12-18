@@ -217,7 +217,7 @@ public class DeviceServiceImpl implements IDeviceService {
             for (SsrcTransaction ssrcTransaction : ssrcTransactions) {
                 mediaServerService.releaseSsrc(ssrcTransaction.getMediaServerId(), ssrcTransaction.getSsrc());
                 mediaServerService.closeRTPServer(ssrcTransaction.getMediaServerId(), ssrcTransaction.getStream());
-                streamSession.remove(deviceId, ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
+                streamSession.removeByCallId(deviceId, ssrcTransaction.getChannelId(), ssrcTransaction.getCallId());
             }
         }
         // 移除订阅

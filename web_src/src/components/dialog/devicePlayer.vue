@@ -1,7 +1,7 @@
 <template>
 <div id="devicePlayer" v-loading="isLoging">
 
-    <el-dialog title="视频播放" top="0" :close-on-click-modal="false" :visible.sync="showVideoDialog" @close="close()">
+    <el-dialog title="视频播放" top="0" :close-on-click-modal="false" :visible.sync="showVideoDialog" @close="close()" v-if="showVideoDialog">
       <div style="width: 100%; height: 100%">
         <el-tabs type="card" :stretch="true" v-model="activePlayer" @tab-click="changePlayer" v-if="Object.keys(this.player).length > 1">
 <!--          <el-tab-pane label="LivePlayer" name="livePlayer">-->

@@ -179,7 +179,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			if (mediaServerItem != null) {
 				mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcTransaction.getSsrc());
 			}
-			streamSession.remove(device.getDeviceId(), channel.getChannelId(), ssrcTransaction.getStream());
+			streamSession.removeByCallId(device.getDeviceId(), channel.getChannelId(), ssrcTransaction.getCallId());
 		}
 	}
 }

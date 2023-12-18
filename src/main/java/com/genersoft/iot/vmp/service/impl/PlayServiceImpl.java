@@ -233,6 +233,15 @@ public class PlayServiceImpl implements IPlayService {
                     HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcInfo.getStream(), true, "rtsp", mediaServerItem.getId());
                     subscribe.removeSubscribe(hookSubscribe);
                 }
+            }else {
+                logger.info("[点播超时] 收流超时 deviceId: {}, channelId: {},码流类型：{}，端口：{}, SSRC: {}",
+                        device.getDeviceId(), channelId, device.isSwitchPrimarySubStream() ? "辅码流" : "主码流",
+                        ssrcInfo.getPort(), ssrcInfo.getSsrc());
+
+                mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+
+                mediaServerService.closeRTPServer(mediaServerItem.getId(), ssrcInfo.getStream());
+                streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
             }
         }, userSetting.getPlayTimeout());
 
@@ -263,6 +272,7 @@ public class PlayServiceImpl implements IPlayService {
                 InviteOKHandler(eventResult, ssrcInfo, mediaServerItem, device, channelId,
                         timeOutTaskKey, callback, inviteInfo, InviteSessionType.PLAY);
             }, (event) -> {
+                logger.info("[点播失败] deviceId: {}, channelId:{}, {}: {}", device.getDeviceId(), channelId, event.statusCode, event.msg);
                 dynamicTask.stop(timeOutTaskKey);
                 mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                 // 释放ssrc
@@ -304,7 +314,13 @@ public class PlayServiceImpl implements IPlayService {
         if (!device.getStreamMode().equalsIgnoreCase("TCP-ACTIVE")) {
             return;
         }
-        String substring = contentString.substring(0, contentString.indexOf("y="));
+
+        String substring;
+        if (contentString.indexOf("y=") > 0) {
+            substring = contentString.substring(0, contentString.indexOf("y="));
+        }else {
+            substring = contentString;
+        }
         try {
             SessionDescription sdp = SdpFactory.getInstance().createSessionDescription(substring);
             int port = -1;
@@ -394,7 +410,7 @@ public class PlayServiceImpl implements IPlayService {
                 deviceChannel.setStreamId(streamInfo.getStream());
                 storager.startPlay(deviceId, channelId, streamInfo.getStream());
             }
-            InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAYBACK, deviceId, channelId);
+            InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, ((OnStreamChangedHookParam) param).getStream());
             if (inviteInfo != null) {
                 inviteInfo.setStatus(InviteSessionStatus.ok);
 
@@ -537,7 +553,6 @@ public class PlayServiceImpl implements IPlayService {
                         // 处理收到200ok后的TCP主动连接以及SSRC不一致的问题
                         InviteOKHandler(eventResult, ssrcInfo, mediaServerItem, device, channelId,
                                 playBackTimeOutTaskKey, callback, inviteInfo, InviteSessionType.PLAYBACK);
-
                     }, errorEvent);
         } catch (InvalidArgumentException | SipException | ParseException e) {
             logger.error("[命令发送失败] 录像回放: {}", e.getMessage());
@@ -558,6 +573,10 @@ public class PlayServiceImpl implements IPlayService {
         ResponseEvent responseEvent = (ResponseEvent) eventResult.event;
         String contentString = new String(responseEvent.getResponse().getRawContent());
         String ssrcInResponse = SipUtils.getSsrcFromSdp(contentString);
+        // 兼容回复的消息中缺少ssrc(y字段)的情况
+        if (ssrcInResponse == null) {
+            ssrcInResponse = ssrcInfo.getSsrc();
+        }
         if (ssrcInfo.getSsrc().equals(ssrcInResponse)) {
             // ssrc 一致
             if (mediaServerItem.isRtpEnable()) {
@@ -633,6 +652,7 @@ public class PlayServiceImpl implements IPlayService {
             }
         }
     }
+
 
 
 

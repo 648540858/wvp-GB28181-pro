@@ -1,12 +1,12 @@
 package com.genersoft.iot.vmp.conf.security;
 
 import com.genersoft.iot.vmp.conf.UserSetting;
-import org.springframework.core.annotation.Order;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -28,6 +28,7 @@ import java.util.Arrays;
 
 /**
  * 配置Spring Security
+ *
  * @author lin
  */
 @Configuration
@@ -79,7 +80,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             matchers.add("/assets/**");
             matchers.add("/resource/**");
             matchers.add("/favicon.ico");
-            matchers.addAll(userSetting.getInterfaceAuthenticationExcludes());
+            matchers.add("/api/emit");
             // 可以直接访问的静态数据
             web.ignoring().antMatchers(matchers.toArray(new String[0]));
         }
@@ -87,6 +88,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     /**
      * 配置认证方式
+     *
      * @param auth
      * @throws Exception
      */
@@ -115,7 +117,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
                 .antMatchers(userSetting.getInterfaceAuthenticationExcludes().toArray(new String[0])).permitAll()
-                .antMatchers("/api/user/login","/index/hook/**","/zlm_Proxy/FhTuMYqB2HeCuNOb/record/t/1/2023-03-25/16:35:07-16:35:16-9353.mp4").permitAll()
+                .antMatchers("/api/user/login", "/index/hook/**").permitAll()
                 .anyRequest().authenticated()
                 // 异常处理器
                 .and()
@@ -128,7 +130,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     }
 
-    CorsConfigurationSource configurationSource(){
+    CorsConfigurationSource configurationSource() {
         // 配置跨域
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.setAllowedHeaders(Arrays.asList("*"));
@@ -139,7 +141,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         corsConfiguration.setExposedHeaders(Arrays.asList(JwtUtils.getHeader()));
 
         UrlBasedCorsConfigurationSource url = new UrlBasedCorsConfigurationSource();
-        url.registerCorsConfiguration("/**",corsConfiguration);
+        url.registerCorsConfiguration("/**", corsConfiguration);
         return url;
     }
 

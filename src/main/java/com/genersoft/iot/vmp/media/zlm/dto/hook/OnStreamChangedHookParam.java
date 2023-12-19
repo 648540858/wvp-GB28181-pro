@@ -140,7 +140,7 @@ public class OnStreamChangedHookParam extends HookParam{
         /**
          * 音频采样位数
          */
-        private int sampleBit;
+        private int sample_bit;
 
         /**
          * 音频采样率
@@ -150,7 +150,7 @@ public class OnStreamChangedHookParam extends HookParam{
         /**
          * 视频fps
          */
-        private int fps;
+        private float fps;
 
         /**
          * 视频高
@@ -161,6 +161,31 @@ public class OnStreamChangedHookParam extends HookParam{
          * 视频宽
          */
         private int width;
+
+        /**
+         * 帧数
+         */
+        private int frames;
+
+        /**
+         * 关键帧数
+         */
+        private int key_frames;
+
+        /**
+         * GOP大小
+         */
+        private int gop_size;
+
+        /**
+         * GOP间隔时长(ms)
+         */
+        private int gop_interval_ms;
+
+        /**
+         * 丢帧率
+         */
+        private float loss;
 
         public int getChannels() {
             return channels;
@@ -202,12 +227,12 @@ public class OnStreamChangedHookParam extends HookParam{
             this.ready = ready;
         }
 
-        public int getSampleBit() {
-            return sampleBit;
+        public int getSample_bit() {
+            return sample_bit;
         }
 
-        public void setSampleBit(int sampleBit) {
-            this.sampleBit = sampleBit;
+        public void setSample_bit(int sample_bit) {
+            this.sample_bit = sample_bit;
         }
 
         public int getSample_rate() {
@@ -218,11 +243,11 @@ public class OnStreamChangedHookParam extends HookParam{
             this.sample_rate = sample_rate;
         }
 
-        public int getFps() {
+        public float getFps() {
             return fps;
         }
 
-        public void setFps(int fps) {
+        public void setFps(float fps) {
             this.fps = fps;
         }
 
@@ -240,6 +265,46 @@ public class OnStreamChangedHookParam extends HookParam{
 
         public void setWidth(int width) {
             this.width = width;
+        }
+
+        public int getFrames() {
+            return frames;
+        }
+
+        public void setFrames(int frames) {
+            this.frames = frames;
+        }
+
+        public int getKey_frames() {
+            return key_frames;
+        }
+
+        public void setKey_frames(int key_frames) {
+            this.key_frames = key_frames;
+        }
+
+        public int getGop_size() {
+            return gop_size;
+        }
+
+        public void setGop_size(int gop_size) {
+            this.gop_size = gop_size;
+        }
+
+        public int getGop_interval_ms() {
+            return gop_interval_ms;
+        }
+
+        public void setGop_interval_ms(int gop_interval_ms) {
+            this.gop_interval_ms = gop_interval_ms;
+        }
+
+        public float getLoss() {
+            return loss;
+        }
+
+        public void setLoss(float loss) {
+            this.loss = loss;
         }
     }
 

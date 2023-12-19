@@ -4,8 +4,8 @@
 	<springProperty scop="context" name="spring.application.name" source="spring.application.name" defaultValue=""/>
 	<property name="LOG_HOME" value="logs" />
 
-	<substitutionProperty name="log.pattern" value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(---){faint} %clr(%-1.30logger{0}){cyan} %clr(:){faint} %m%n%wEx"/>
-
+	<substitutionProperty name="log.pattern"
+						  value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr([%thread]) %clr(%5p) %clr(---){faint} %clr(%logger{50}){cyan}%clr(:) %clr(%L){cyan} %m%n%wEx"/>
 	<conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
 	<conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
 	<conversionRule conversionWord="wEx" converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>

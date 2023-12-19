@@ -150,6 +150,22 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     }
 
     @Override
+    public int delAllChannelForGB(String platformId, String catalogId) {
+
+        int result;
+        if (platformId == null) {
+            return 0;
+        }
+        ParentPlatform platform = platformMapper.getParentPlatByServerGBId(platformId);
+        if (platform == null) {
+            return 0;
+        }
+        if (ObjectUtils.isEmpty(catalogId)) {
+            catalogId = null;
+        }
+    }
+
+    @Override
     public CommonGbChannel queryChannelByPlatformIdAndChannelDeviceId(Integer platformId, String channelId) {
         return platformChannelMapper.queryChannelByPlatformIdAndChannelDeviceId(platformId, channelId);
     }

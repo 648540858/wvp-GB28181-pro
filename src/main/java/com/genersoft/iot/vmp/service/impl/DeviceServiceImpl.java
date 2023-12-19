@@ -215,7 +215,7 @@ public class DeviceServiceImpl implements IDeviceService {
             for (SsrcTransaction ssrcTransaction : ssrcTransactions) {
                 mediaServerService.releaseSsrc(ssrcTransaction.getMediaServerId(), ssrcTransaction.getSsrc());
                 mediaServerService.closeRTPServer(ssrcTransaction.getMediaServerId(), ssrcTransaction.getStream());
-                streamSession.remove(deviceId, ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
+                streamSession.removeByCallId(deviceId, ssrcTransaction.getChannelId(), ssrcTransaction.getCallId());
             }
         }
         // 移除订阅
@@ -518,16 +518,18 @@ public class DeviceServiceImpl implements IDeviceService {
 
 
         //  目录订阅相关的信息
-        if (device.getSubscribeCycleForCatalog() > 0) {
-            if (deviceInStore.getSubscribeCycleForCatalog() == 0 || deviceInStore.getSubscribeCycleForCatalog() != device.getSubscribeCycleForCatalog()) {
-                deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
+        if (deviceInStore.getSubscribeCycleForCatalog() != device.getSubscribeCycleForCatalog()) {
+            if (device.getSubscribeCycleForCatalog() > 0) {
+                // 若已开启订阅，但订阅周期不同，则先取消
+                if (deviceInStore.getSubscribeCycleForCatalog() != 0) {
+                    removeCatalogSubscribe(deviceInStore);
+                }
                 // 开启订阅
-                addCatalogSubscribe(deviceInStore);
-            }
-        }else if (device.getSubscribeCycleForCatalog() == 0) {
-            if (deviceInStore.getSubscribeCycleForCatalog() != 0) {
                 deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
+                addCatalogSubscribe(deviceInStore);
+            }else if (device.getSubscribeCycleForCatalog() == 0) {
                 // 取消订阅
+                deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
                 removeCatalogSubscribe(deviceInStore);
             }
         }
@@ -542,6 +544,8 @@ public class DeviceServiceImpl implements IDeviceService {
             }
         }else if (device.getSubscribeCycleForMobilePosition() == 0) {
             if (deviceInStore.getSubscribeCycleForMobilePosition() != 0) {
+                deviceInStore.setMobilePositionSubmissionInterval(device.getMobilePositionSubmissionInterval());
+                deviceInStore.setSubscribeCycleForMobilePosition(device.getSubscribeCycleForMobilePosition());
                 // 取消订阅
                 removeMobilePositionSubscribe(deviceInStore);
             }

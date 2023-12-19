@@ -441,6 +441,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
         stream.setUpdateTime(now);
         stream.setCreateTime(now);
         stream.setServerId(userSetting.getServerId());
+        stream.setMediaServerId(mediaConfig.getId());
+        stream.setSelf(true);
+        stream.setPushIng(true);
         return streamPushMapper.add(stream) > 1;
     }
 

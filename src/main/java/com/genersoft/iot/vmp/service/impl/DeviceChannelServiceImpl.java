@@ -272,6 +272,10 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         if (channels.isEmpty()) {
             return;
         }
+        String now = DateUtil.getNow();
+        for (DeviceChannel channel : channels) {
+            channel.setUpdateTime(now);
+        }
         channelMapper.batchUpdate(channels);
         for (DeviceChannel channel : channels) {
             if (channel.getParentId() != null) {

@@ -71,10 +71,6 @@ media:
     record-assist-port: 18081
     sdp-ip: ${sip.ip}
     stream-ip: ${sip.ip}
-# [可选] 日志配置, 一般不需要改
-# [可选] 日志配置, 一般不需要改
-logging:
-    config: classpath:logback-spring-local.xml
 
 # [根据业务需求配置]
 user-settings:

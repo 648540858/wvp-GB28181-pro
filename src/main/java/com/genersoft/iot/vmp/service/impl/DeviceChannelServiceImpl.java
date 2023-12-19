@@ -240,11 +240,25 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public int channelsOnline(List<DeviceChannel> channels) {
+        List<Integer> ids = new ArrayList<>();
+        for (DeviceChannel channel : channels) {
+            ids.add(channel.getCommonGbChannelId());
+        }
+        if (!ids.isEmpty()) {
+            commonGbChannelService.onlineForList(ids);
+        }
         return channelMapper.batchOnline(channels);
     }
 
     @Override
     public int channelsOffline(List<DeviceChannel> channels) {
+        List<Integer> ids = new ArrayList<>();
+        for (DeviceChannel channel : channels) {
+            ids.add(channel.getCommonGbChannelId());
+        }
+        if (!ids.isEmpty()) {
+            commonGbChannelService.offlineForList(ids);
+        }
         return channelMapper.batchOffline(channels);
     }
 
@@ -279,7 +293,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             commonGbChannelList.add(CommonGbChannel.getInstance(null, channel));
         });
         commonGbChannelService.batchAdd(commonGbChannelList);
-
         channelMapper.batchAdd(channels);
         for (DeviceChannel channel : channels) {
             if (channel.getParentId() != null) {

@@ -1,35 +1,23 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.common.BatchLimit;
-import com.genersoft.iot.vmp.common.CivilCodePo;
 import com.genersoft.iot.vmp.common.CommonGbChannel;
-import com.genersoft.iot.vmp.conf.CivilCodeFileConf;
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEventType;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.storager.dao.CommonChannelMapper;
-import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
-import com.genersoft.iot.vmp.storager.dao.GroupMapper;
-import com.genersoft.iot.vmp.storager.dao.RegionMapper;
-import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToGroup;
 import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToRegion;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
@@ -43,24 +31,6 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
 
     @Autowired
     private CommonChannelMapper commonGbChannelMapper;
-
-    @Autowired
-    private DeviceChannelMapper deviceChannelMapper;
-
-    @Autowired
-    private GroupMapper groupMapper;
-
-    @Autowired
-    private RegionMapper regionMapper;
-
-    @Autowired
-    private DataSourceTransactionManager dataSourceTransactionManager;
-
-    @Autowired
-    private TransactionDefinition transactionDefinition;
-
-    @Autowired
-    private CivilCodeFileConf civilCodeFileConf;
 
     @Autowired
     private IPlatformService platformService;
@@ -114,25 +84,19 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         }
     }
 
+    private void sendCatalogEvent(CommonGbChannel channel, CatalogEventType catalogEventType) {
+        List<CommonGbChannel> commonGbChannelList = new ArrayList<>();
+        commonGbChannelList.add(channel);
+        sendCatalogEvent(commonGbChannelList, catalogEventType);
+    }
+
     @Override
     public int add(CommonGbChannel channel) {
         int result = commonGbChannelMapper.add(channel);
         if (result == 0) {
             return 0;
         }
-        List<CommonGbChannel> channelList = new ArrayList<>();
-        sendCatalogEvent(channelList, CatalogEventType.ADD);
-        return result;
-    }
-
-    @Override
-    public int delete(String channelId) {
-        int result = commonGbChannelMapper.deleteByDeviceID(channelId);
-        if (result == 0) {
-            return 0;
-        }
-        List<CommonGbChannel> channelList = new ArrayList<>();
-        sendCatalogEvent(channelList, CatalogEventType.DEL);
+        sendCatalogEvent(channel, CatalogEventType.ADD);
         return result;
     }
 
@@ -145,29 +109,8 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         if (result == 0) {
             return 0;
         }
-        List<CommonGbChannel> channelList = new ArrayList<>();
-        sendCatalogEvent(channelList, CatalogEventType.UPDATE);
+        sendCatalogEvent(channel, CatalogEventType.UPDATE);
         return result;
-    }
-
-    @Override
-    public boolean checkChannelInPlatform(String channelId, String platformServerId) {
-        return commonGbChannelMapper.checkChannelInPlatform(channelId, platformServerId) > 0;
-    }
-
-    @Override
-    public List<CommonGbChannel> getChannelsInBusinessGroup(String businessGroupID) {
-        return null;
-    }
-
-    @Override
-    public void updateChannelFromGb28181DeviceInList(Device device, List<DeviceChannel> deviceChannels) {
-
-    }
-
-    @Override
-    public void addChannelFromGb28181DeviceInList(Device device, List<DeviceChannel> deviceChannels) {
-
     }
 
     @Override
@@ -181,16 +124,6 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         }
         commonGbChannelMapper.deleteByDeviceIDs(channelIdList);
 
-    }
-
-    @Override
-    public void channelsOnlineFromList(List<DeviceChannel> channelList) {
-        commonGbChannelMapper.channelsOnlineFromList(channelList);
-    }
-
-    @Override
-    public void channelsOfflineFromList(List<DeviceChannel> channelList) {
-        commonGbChannelMapper.channelsOfflineFromList(channelList);
     }
 
     @Override
@@ -350,45 +283,65 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         if (channelsForDelete.isEmpty()) {
             return;
         }
+        List<CommonGbChannel> channelList = commonGbChannelMapper.queryInIdList(channelsForDelete);
+        if (channelList.isEmpty()) {
+            return;
+        }
         if (channelsForDelete.size() > BatchLimit.count) {
             for (int i = 0; i < channelsForDelete.size(); i += BatchLimit.count) {
                 int toIndex = i + BatchLimit.count;
                 if (i + BatchLimit.count > channelsForDelete.size()) {
                     toIndex = channelsForDelete.size();
                 }
-                if (commonGbChannelMapper.batchDelete(channelsForDelete.subList(i, toIndex)) < 0) {
+                if (commonGbChannelMapper.batchDelete(channelList.subList(i, toIndex)) < 0) {
                     throw new RuntimeException("batch update commonGbChannel fail");
                 }
             }
         }else {
-            if (commonGbChannelMapper.batchDelete(channelsForDelete) < 0) {
+            if (commonGbChannelMapper.batchDelete(channelList) < 0) {
                 throw new RuntimeException("batch update commonGbChannel fail");
             }
         }
-        // TODO 向国标级联发送catalog
+        sendCatalogEvent(channelList, CatalogEventType.DEL);
     }
 
     @Override
     public void deleteById(int commonGbChannelId) {
+        CommonGbChannel commonGbChannel = commonGbChannelMapper.getOne(commonGbChannelId);
+        if (commonGbChannel == null) {
+            return;
+        }
         commonGbChannelMapper.delete(commonGbChannelId);
-        // TODO 向国标级联发送catalog
+        sendCatalogEvent(commonGbChannel, CatalogEventType.DEL);
     }
 
     @Override
     public void deleteByIdList(List<Integer> commonChannelIdList) {
-        commonGbChannelMapper.deleteByIdList(commonChannelIdList);
-        // TODO 向国标级联发送catalog
+        List<CommonGbChannel> commonGbChannelList = commonGbChannelMapper.queryInIdList(commonChannelIdList);
+        if (commonGbChannelList.isEmpty()) {
+            return;
+        }
+        commonGbChannelMapper.batchDelete(commonGbChannelList);
+        sendCatalogEvent(commonGbChannelList, CatalogEventType.DEL);
     }
 
     @Override
-    public void offlineForList(List<Integer> onlinePushers) {
-
-
-        // TODO 向国标级联发送catalog
+    public void offlineForList(List<Integer> commonChannelIdList) {
+        List<CommonGbChannel> commonGbChannelList = commonGbChannelMapper.queryInIdList(commonChannelIdList);
+        if (commonGbChannelList.isEmpty()) {
+            return;
+        }
+        commonGbChannelMapper.channelsOfflineFromList(commonGbChannelList);
+        sendCatalogEvent(commonGbChannelList, CatalogEventType.OFF);
     }
 
     @Override
     public void onlineForList(List<Integer> commonChannelIdList) {
-        // TODO 向国标级联发送catalog
+        List<CommonGbChannel> commonGbChannelList = commonGbChannelMapper.queryInIdList(commonChannelIdList);
+        if (commonGbChannelList.isEmpty()) {
+            return;
+        }
+        commonGbChannelMapper.channelsOnlineFromList(commonGbChannelList);
+        sendCatalogEvent(commonGbChannelList, CatalogEventType.ON);
     }
 }

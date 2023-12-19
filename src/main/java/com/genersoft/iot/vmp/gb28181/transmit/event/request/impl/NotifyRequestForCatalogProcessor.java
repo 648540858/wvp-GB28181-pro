@@ -286,9 +286,6 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 			ArrayList<DeviceChannel> deviceChannels = new ArrayList<>(addChannelMap.values());
 			addChannelMap.clear();
 			deviceChannelService.batchAddChannel(deviceChannels);
-			if (device.isAutoSyncChannel()) {
-				commonGbChannelService.addChannelFromGb28181DeviceInList(device, deviceChannels);
-			}
 		}
 	}
 
@@ -305,9 +302,6 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 	private void executeSaveForOnline(Device device){
 		if (!updateChannelOnlineList.isEmpty()) {
 			deviceChannelService.channelsOnline(updateChannelOnlineList);
-			if (device.isAutoSyncChannel()) {
-				commonGbChannelService.channelsOnlineFromList(deleteChannelList);
-			}
 			updateChannelOnlineList.clear();
 		}
 	}
@@ -315,9 +309,6 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 	private void executeSaveForOffline(Device device){
 		if (!updateChannelOfflineList.isEmpty()) {
 			deviceChannelService.channelsOffline(updateChannelOfflineList);
-			if (device.isAutoSyncChannel()) {
-				commonGbChannelService.channelsOfflineFromList(deleteChannelList);
-			}
 			updateChannelOfflineList.clear();
 		}
 	}

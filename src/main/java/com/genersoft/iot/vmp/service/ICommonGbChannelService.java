@@ -22,25 +22,12 @@ public interface ICommonGbChannelService {
 
     int add(CommonGbChannel channel);
 
-    int delete(String channelId);
-
     int update(CommonGbChannel channel);
-
-    boolean checkChannelInPlatform(String channelId, String platformServerId);
 
     PageInfo<CommonGbChannel> getChannelsInRegion(String regionDeviceId, String query, int page, int count);
 
-    List<CommonGbChannel> getChannelsInBusinessGroup(String businessGroupID);
-
-    void updateChannelFromGb28181DeviceInList(Device device, List<DeviceChannel> deviceChannels);
-
-    void addChannelFromGb28181DeviceInList(Device device, List<DeviceChannel> deviceChannels);
-
     void deleteGbChannelsFromList(List<DeviceChannel> deleteChannelList);
 
-    void channelsOnlineFromList(List<DeviceChannel> deleteChannelList);
-
-    void channelsOfflineFromList(List<DeviceChannel> deleteChannelList);
 
     PageInfo<CommonGbChannel> queryChannelListInGroup(int page, int count, String query, String groupDeviceId,
                                                       String regionDeviceId, Boolean inGroup, Boolean inRegion,

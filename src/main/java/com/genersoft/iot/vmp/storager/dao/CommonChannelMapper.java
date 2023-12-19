@@ -295,16 +295,16 @@ public interface CommonChannelMapper {
 
     @Update("<script> "+
             "UPDATE wvp_common_channel SET commonGbStatus = true  WHERE common_gb_id in" +
-            "<foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.commonGbChannelId}</foreach>" +
+            "<foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.commonGbId}</foreach>" +
             "</script>")
-    void channelsOnlineFromList(List<DeviceChannel> channelList);
+    void channelsOnlineFromList(List<CommonGbChannel> channelList);
 
 
     @Update("<script> "+
             "UPDATE wvp_common_channel SET commonGbStatus = false  WHERE common_gb_id in" +
-            "<foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.commonGbChannelId}</foreach>" +
+            "<foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.commonGbId}</foreach>" +
             "</script>")
-    void channelsOfflineFromList(List<DeviceChannel> channelList);
+    void channelsOfflineFromList(List<CommonGbChannel> channelList);
 
     @Update("<script> "+
             "UPDATE wvp_common_channel SET common_gb_parent_id = null  WHERE common_gb_id in" +
@@ -570,9 +570,9 @@ public interface CommonChannelMapper {
                 "from " +
                 "wvp_common_channel " +
                 "WHERE common_gb_id IN " +
-                "<foreach collection='ids'  item='item'  open='(' separator=',' close=')' >#{item}</foreach>" +
+                "<foreach collection='commonGbChannels'  item='item'  open='(' separator=',' close=')' >#{item.commonGbId}</foreach>" +
             " </script>"})
-    int batchDelete(@Param("ids") List<Integer> ids);
+    int batchDelete(@Param("commonGbChannels") List<CommonGbChannel> commonGbChannels);
 
     @MapKey("commonGbDeviceID")
     @Select("select * from wvp_common_channel")
@@ -599,11 +599,13 @@ public interface CommonChannelMapper {
             "delete from wvp_common_channel WHERE common_gb_id in" +
             "<foreach collection='commonChannelIdList'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
             "</script>")
-    void deleteByIdList(List<Integer> commonChannelIdList);
+    void deleteByIdList(@Param("commonChannelIdList") List<Integer> commonChannelIdList);
 
     @Select("<script> "+
             "SELECT * FROM wvp_common_channel" +
             "</script>")
     List<CommonGbChannel> getAll();
 
+    @Select("SELECT common_gb_id FROM wvp_common_channel WHERE common_gb_id = #{commonGbChannelId}")
+    CommonGbChannel getOne(@Param("commonGbChannelId") int commonGbChannelId);
 }

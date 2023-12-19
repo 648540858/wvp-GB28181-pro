@@ -28,16 +28,6 @@ public interface ICommonGbChannelService {
 
     boolean checkChannelInPlatform(String channelId, String platformServerId);
 
-    /**
-     * 从国标设备中同步通道
-     *
-     * @param gbDeviceId  国标设备编号
-     * @param syncKeys    要同步的字段
-     */
-    boolean syncChannelFromGb28181Device(String gbDeviceId, List<String> syncKeys, Boolean syncGroup, Boolean syncRegion);
-
-    CommonGbChannel getCommonChannelFromDeviceChannel(DeviceChannel deviceChannel, List<String> syncKeys);
-
     PageInfo<CommonGbChannel> getChannelsInRegion(String regionDeviceId, String query, int page, int count);
 
     List<CommonGbChannel> getChannelsInBusinessGroup(String businessGroupID);

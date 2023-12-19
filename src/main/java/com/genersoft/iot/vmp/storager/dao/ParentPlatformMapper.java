@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.storager.dao;
 
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
 import org.apache.ibatis.annotations.*;
@@ -104,4 +105,21 @@ public interface ParentPlatformMapper {
             "union " +
             "select 'stream' as name, count(pgs.platform_id) count from wvp_platform_gb_stream pgs left join wvp_gb_stream gs on pgs.gb_stream_id = gs.gb_stream_id where  pgs.platform_id=#{platform_id} and gs.gb_id =#{gbId}")
     List<ChannelSourceInfo> getChannelSource(@Param("platform_id") String platform_id, @Param("gbId") String gbId);
+
+    @Select("SELECT * FROM wvp_platform WHERE share_all_channel=true")
+    List<ParentPlatform> queryAllWithShareAll();
+
+
+    @Select("<script>" +
+            "select wp.*" +
+            "from wvp_platform wp\n" +
+            "         left join wvp_common_channel_platform wccp on wp.id = wccp.platform_id\n" +
+            "where wp.share_all_channel = true " +
+            "or (wccp.common_gb_channel_id in " +
+            "<foreach collection='channelList'  item='item'  open='(' separator=',' close=')' >#{item.commonGbId}</foreach>" +
+            "and wccp.platform_id in " +
+            "<foreach collection='platformIdList'  item='item'  open='(' separator=',' close=')' >#{item}</foreach>" +
+            "</script>")
+    List<ParentPlatform> querySharePlatform(@Param("channelList") List<CommonGbChannel> channelList,
+                                            @Param("platformIdList") List<Integer> platformIdList);
 }

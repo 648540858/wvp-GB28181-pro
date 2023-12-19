@@ -255,12 +255,21 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public void batchUpdateChannel(List<DeviceChannel> channels) {
+        if (channels.isEmpty()) {
+            return;
+        }
         channelMapper.batchUpdate(channels);
         for (DeviceChannel channel : channels) {
             if (channel.getParentId() != null) {
                 channelMapper.updateChannelSubCount(channel.getDeviceId(), channel.getParentId());
             }
         }
+        List<CommonGbChannel> commonGbChannelList = new ArrayList<>();
+        for (DeviceChannel channel : channels) {
+            CommonGbChannel commonGbChannel = CommonGbChannel.getInstance(null, channel);
+            commonGbChannelList.add(commonGbChannel);
+        }
+        commonGbChannelService.batchUpdate(commonGbChannelList);
     }
 
     @Override
@@ -269,6 +278,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         channels.stream().forEach(channel->{
             commonGbChannelList.add(CommonGbChannel.getInstance(null, channel));
         });
+        commonGbChannelService.batchAdd(commonGbChannelList);
 
         channelMapper.batchAdd(channels);
         for (DeviceChannel channel : channels) {

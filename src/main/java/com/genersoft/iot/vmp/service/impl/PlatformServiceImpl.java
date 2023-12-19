@@ -275,15 +275,7 @@ public class PlatformServiceImpl implements IPlatformService {
     @Override
     public void addSimulatedSubscribeInfo(ParentPlatform parentPlatform) {
         // 自动添加一条模拟的订阅信息
-        SubscribeInfo subscribeInfo = new SubscribeInfo();
-        subscribeInfo.setId(parentPlatform.getServerGBId());
-        subscribeInfo.setExpires(-1);
-        subscribeInfo.setEventType("Catalog");
-        int random = (int) Math.floor(Math.random() * 10000);
-        subscribeInfo.setEventId(random + "");
-        subscribeInfo.setSimulatedCallId(UUID.randomUUID().toString().replace("-", "") + "@" + parentPlatform.getServerIP());
-        subscribeInfo.setSimulatedFromTag(UUID.randomUUID().toString().replace("-", ""));
-        subscribeInfo.setSimulatedToTag(UUID.randomUUID().toString().replace("-", ""));
+        SubscribeInfo subscribeInfo = SipUtils.buildVirtuallyCatalogSubSubscribe(parentPlatform);
         subscribeHolder.putCatalogSubscribe(parentPlatform.getId(), subscribeInfo);
     }
 
@@ -472,5 +464,15 @@ public class PlatformServiceImpl implements IPlatformService {
     @Override
     public ParentPlatform query(Integer platformId) {
         return platformMapper.getParentPlatById(platformId);
+    }
+
+    @Override
+    public List<ParentPlatform> queryAllWithShareAll() {
+        return platformMapper.queryAllWithShareAll();
+    }
+
+    @Override
+    public List<ParentPlatform> querySharePlatform(List<CommonGbChannel> channel, List<Integer> platformIdList) {
+        return platformMapper.querySharePlatform(channel, platformIdList);
     }
 }

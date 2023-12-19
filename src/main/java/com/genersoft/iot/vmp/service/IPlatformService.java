@@ -1,8 +1,11 @@
 package com.genersoft.iot.vmp.service;
 
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.github.pagehelper.PageInfo;
+
+import java.util.List;
 
 /**
  * 国标平台的业务类
@@ -67,4 +70,14 @@ public interface IPlatformService {
      * 根据ID查询上级平台
      */
     ParentPlatform query(Integer platformId);
+
+    /**
+     * 开启所有开启了共享所有通道的上级
+     */
+    List<ParentPlatform> queryAllWithShareAll();
+
+    /**
+     * 获取指定范围内共享了指定通道的上级平台
+     */
+    List<ParentPlatform> querySharePlatform(List<CommonGbChannel> channel, List<Integer> platformIdList);
 }

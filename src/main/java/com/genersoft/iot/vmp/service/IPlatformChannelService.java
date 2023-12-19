@@ -24,7 +24,7 @@ public interface IPlatformChannelService {
     /**
      * 在一个给定的范围内查出分享了这个通道的上级平台
      */
-    List<ParentPlatform> querySharePlatformListByChannelId(int commonGbId, List<String> platforms);
+    List<ParentPlatform> querySharePlatformListByChannelId(int commonGbId, List<Integer> platforms);
 
     /**
      * 查询关联了上级平台的所有通道
@@ -36,5 +36,13 @@ public interface IPlatformChannelService {
      */
     CommonGbChannel queryChannelByPlatformIdAndChannelDeviceId(Integer platformId, String channelId);
 
-    List<CommonGbChannel> queryCommonGbChannellList(Integer id);
+    /**
+     * 获取指定平台关联的通道
+     */
+    List<CommonGbChannel> queryCommonGbChannellList(Integer platformId);
+
+    /**
+     * 获取指定平台范围已经共享的通道
+     */
+    List<CommonGbChannel> queryChannelListInRange(Integer platformId, List<CommonGbChannel> channelList);
 }

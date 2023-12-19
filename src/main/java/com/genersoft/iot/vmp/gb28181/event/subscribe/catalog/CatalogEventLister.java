@@ -62,7 +62,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
 
         }else {
             // 如果事件没有要通知的上级，那么需要自己查询到所有要通知的上级进行通知
-            List<String> platforms = subscribeHolder.getAllCatalogSubscribePlatform();
+            List<Integer> platforms = subscribeHolder.getAllCatalogSubscribePlatform();
             if (event.getChannels() != null) {
                 if (!platforms.isEmpty()) {
                     for (CommonGbChannel channel : event.getChannels()) {

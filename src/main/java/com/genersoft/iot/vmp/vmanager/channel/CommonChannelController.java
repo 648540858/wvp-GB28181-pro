@@ -51,22 +51,6 @@ public class CommonChannelController {
     private UserSetting userSetting;
 
 
-    /**
-     * 从下级设备中同步通道 TODO 存疑 放在国标的接口里可能更合适
-     *
-     * @param deviceId 设备编号
-     */
-    @GetMapping("/sync/device")
-    @Operation(summary = "从下级设备中同步通道")
-    @Parameter(name = "deviceId", description = "设备编号")
-    @Parameter(name = "syncKeys", description = "选择性同步的字段")
-    public boolean syncFromDevice(String deviceId, String[] syncKeys,
-                                  @RequestParam(required = false) Boolean syncGroup,
-                                  @RequestParam(required = false) Boolean syncRegion) {
-        return commonGbChannelService.syncChannelFromGb28181Device(deviceId, Lists.newArrayList(syncKeys), syncGroup, syncRegion);
-    }
-
-
     @Operation(summary = "更新通道信息")
     @Parameter(name = "CommonGbChannel", description = "commonGbChannel", required = true)
     @ResponseBody

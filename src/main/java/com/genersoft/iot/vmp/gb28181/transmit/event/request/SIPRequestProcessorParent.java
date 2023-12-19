@@ -6,7 +6,6 @@ import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.google.common.primitives.Bytes;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
-import org.apache.commons.lang3.ArrayUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -31,9 +30,9 @@ import java.util.Arrays;
 import java.util.List;
 
 /**    
- * @description:处理接收IPCamera发来的SIP协议请求消息
- * @author: songww
- * @date:   2020年5月3日 下午4:42:22     
+ * 处理接收IPCamera发来的SIP协议请求消息
+ * songww
+ * 2020年5月3日 下午4:42:22
  */
 public abstract class SIPRequestProcessorParent {
 
@@ -60,7 +59,7 @@ public abstract class SIPRequestProcessorParent {
 		return null;
 	}
 
-	class ResponseAckExtraParam{
+	static class ResponseAckExtraParam{
 		String content;
 		ContentTypeHeader contentTypeHeader;
 		SipURI sipURI;

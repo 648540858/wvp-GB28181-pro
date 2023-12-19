@@ -277,9 +277,6 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 			ArrayList<DeviceChannel> deviceChannels = new ArrayList<>(updateChannelMap.values());
 			updateChannelMap.clear();
 			deviceChannelService.batchUpdateChannel(deviceChannels);
-			if (device.isAutoSyncChannel()) {
-				commonGbChannelService.updateChannelFromGb28181DeviceInList(device, deviceChannels);
-			}
 		}
 
 	}

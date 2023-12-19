@@ -46,13 +46,35 @@ public interface CommonChannelPlatformMapper {
                        @Param("commonGbChannelIds") List<Integer> commonGbChannelIds);
 
     @Select("<script>" +
-            "select p.* from wvp_platform p left join wvp_common_channel_platform cp on p.id = cp.platform_id where cp.common_gb_channel_id = #{commonGbId} and p.server_gb_id in " +
+            "select p.* from wvp_platform p left join wvp_common_channel_platform cp on p.id = cp.platform_id where cp.common_gb_channel_id = #{commonGbId} and p.id in " +
             "<foreach collection='platforms'  item='item'  open='(' separator=',' close=')' >#{item}</foreach>" +
             " </script>")
-    List<ParentPlatform> querySharePlatformListByChannelId(@Param("commonGbId") int commonGbId, @Param("platforms") List<String> platforms);
+    List<ParentPlatform> querySharePlatformListByChannelId(@Param("commonGbId") int commonGbId, @Param("platforms") List<Integer> platforms);
 
     @Select("<script>" +
             "select cc.* from wvp_common_channel cc left join wvp_common_channel_platform cp on cc.common_gb_id = cp.common_gb_channel_id where cp.platform_id = #{platformId}" +
             " </script>")
     List<CommonGbChannel> queryCommonGbChannellList(@Param("platformId") Integer platformId);
+
+
+    @Select("<script>" +
+            " select cc.* from wvp_common_channel cc " +
+            " left join wvp_common_channel_platform cp " +
+            " on cc.common_gb_id = cp.common_gb_channel_id " +
+            " where cp.platform_id = #{platformId}" +
+            " and cp.common_gb_channel_id = #{channelId}" +
+            " </script>")
+    CommonGbChannel queryChannelByPlatformIdAndChannelDeviceId(@Param("platformId") Integer platformId,
+                                                               @Param("channelId") String channelId);
+
+    @Select("<script>" +
+            " select cc.* from wvp_common_channel cc " +
+            " left join wvp_common_channel_platform cp " +
+            " on cc.common_gb_id = cp.common_gb_channel_id " +
+            " where cp.platform_id = #{platformId}" +
+            " and cp.common_gb_channel_id in " +
+            "<foreach collection='channelList'  item='item'  open='(' separator=',' close=')' >#{item.commonGbId}</foreach>" +
+            " </script>")
+    List<CommonGbChannel> queryChannelListInRange(@Param("platformId") Integer platformId,
+                                                  @Param("channelList") List<CommonGbChannel> channelList);
 }

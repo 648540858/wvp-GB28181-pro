@@ -93,12 +93,10 @@ public class SubscribeHolder {
         dynamicTask.stop(taskOverdueKey);
     }
 
-    public List<String> getAllCatalogSubscribePlatform() {
-        List<String> platforms = new ArrayList<>();
-        if(catalogMap.size() > 0) {
-            for (Integer key : catalogMap.keySet()) {
-                platforms.add(catalogMap.get(key).getId());
-            }
+    public List<Integer> getAllCatalogSubscribePlatform() {
+        List<Integer> platforms = new ArrayList<>();
+        if(!catalogMap.isEmpty()) {
+            platforms.addAll(catalogMap.keySet());
         }
         return platforms;
     }

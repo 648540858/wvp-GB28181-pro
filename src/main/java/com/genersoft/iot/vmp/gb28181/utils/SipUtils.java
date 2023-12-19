@@ -311,4 +311,18 @@ public class SipUtils {
             }
         }
     }
+
+    public static SubscribeInfo buildVirtuallyCatalogSubSubscribe(ParentPlatform platform) {
+        // 模拟一条订阅信息
+        SubscribeInfo subscribeInfo = new SubscribeInfo();
+        subscribeInfo.setId(platform.getServerGBId());
+        subscribeInfo.setExpires(-1);
+        subscribeInfo.setEventType("Catalog");
+        int random = (int) Math.floor(Math.random() * 10000);
+        subscribeInfo.setEventId(random + "");
+        subscribeInfo.setSimulatedCallId(UUID.randomUUID().toString().replace("-", "") + "@" + platform.getServerIP());
+        subscribeInfo.setSimulatedFromTag(UUID.randomUUID().toString().replace("-", ""));
+        subscribeInfo.setSimulatedToTag(UUID.randomUUID().toString().replace("-", ""));
+        return subscribeInfo;
+    }
 }

@@ -109,7 +109,7 @@ public interface StreamPushMapper {
     @Select("SELECT * FROM wvp_stream_push WHERE media_server_id=#{mediaServerId}")
     List<StreamPush> selectAllByMediaServerId(String mediaServerId);
 
-    @Select("SELECT sp.* FROM wvp_stream_push sp WHERE sp.media_server_id=#{mediaServerId} and sp.gb_id is null")
+    @Select("SELECT * FROM wvp_stream_push WHERE media_server_id=#{mediaServerId} and gb_id is null")
     List<StreamPush> selectAllByMediaServerIdWithOutGbID(String mediaServerId);
 
     @Update("UPDATE wvp_stream_push " +

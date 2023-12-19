@@ -14,10 +14,10 @@ public interface StreamProxyMapper {
 
     @Insert("INSERT INTO wvp_stream_proxy (type, name, app, stream,media_server_id, url, src_url, dst_url, " +
             "timeout_ms, ffmpeg_cmd_key, rtp_type, enable_audio, enable_mp4, enable, status, stream_key, " +
-            "enable_remove_none_reader, enable_disable_none_reader, create_time) VALUES " +
+            "enable_remove_none_reader, enable_disable_none_reader, create_time, longitude, latitude, common_gb_channel_id) VALUES " +
             "(#{type}, #{name}, #{app}, #{stream}, #{mediaServerId}, #{url}, #{srcUrl}, #{dstUrl}, " +
             "#{timeoutMs}, #{ffmpegCmdKey}, #{rtpType}, #{enableAudio}, #{enableMp4}, #{enable}, #{status}, #{streamKey}, " +
-            "#{enableRemoveNoneReader}, #{enableDisableNoneReader}, #{createTime} )")
+            "#{enableRemoveNoneReader}, #{enableDisableNoneReader}, #{createTime} , #{longitude} , #{latitude}, #{commonGbChannelId} )")
     int add(StreamProxy streamProxy);
 
     @Update("UPDATE wvp_stream_proxy " +

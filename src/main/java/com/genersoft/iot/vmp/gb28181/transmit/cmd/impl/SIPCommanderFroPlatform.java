@@ -295,8 +295,8 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 if (!ObjectUtils.isEmpty(channel.getCommonGbDownloadSpeed())) {
                     catalogXml.append("<DownloadSpeed>" + channel.getCommonGbDownloadSpeed() + "</DownloadSpeed>\r\n");
                 }
-                if (!ObjectUtils.isEmpty(channel.getSVCSpaceSupportMode())) {
-                    catalogXml.append("<SVCSpaceSupportMode>" + channel.getSVCSpaceSupportMode() + "</SVCSpaceSupportMode>\r\n");
+                if (!ObjectUtils.isEmpty(channel.getCommonGbSVCSpaceSupportMode())) {
+                    catalogXml.append("<SVCSpaceSupportMode>" + channel.getCommonGbSVCSpaceSupportMode() + "</SVCSpaceSupportMode>\r\n");
                 }
                 if (!ObjectUtils.isEmpty(channel.getCommonGbSVCTimeSupportMode())) {
                     catalogXml.append("<SVCTimeSupportMode>" + channel.getCommonGbSVCTimeSupportMode() + "</SVCTimeSupportMode>\r\n");
@@ -654,8 +654,8 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 if (!ObjectUtils.isEmpty(channel.getCommonGbDownloadSpeed())) {
                     catalogXml.append("<DownloadSpeed>" + channel.getCommonGbDownloadSpeed() + "</DownloadSpeed>\r\n");
                 }
-                if (!ObjectUtils.isEmpty(channel.getSVCSpaceSupportMode())) {
-                    catalogXml.append("<SVCSpaceSupportMode>" + channel.getSVCSpaceSupportMode() + "</SVCSpaceSupportMode>\r\n");
+                if (!ObjectUtils.isEmpty(channel.getCommonGbSVCSpaceSupportMode())) {
+                    catalogXml.append("<SVCSpaceSupportMode>" + channel.getCommonGbSVCSpaceSupportMode() + "</SVCSpaceSupportMode>\r\n");
                 }
                 if (!ObjectUtils.isEmpty(channel.getCommonGbSVCTimeSupportMode())) {
                     catalogXml.append("<SVCTimeSupportMode>" + channel.getCommonGbSVCTimeSupportMode() + "</SVCTimeSupportMode>\r\n");

@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.dom4j.Attribute;
 import org.dom4j.Document;
@@ -214,8 +215,11 @@ public class XmlUtil {
             return deviceChannel;
         }
         Element nameElement = itemDevice.element("Name");
-        if (nameElement != null) {
+        // 当通道名称为空时，设置通道名称为通道编码，避免级联时因通道名称为空导致上级接收通道失败
+        if (nameElement != null && StringUtils.isNotBlank(nameElement.getText())) {
             deviceChannel.setName(nameElement.getText());
+        } else {
+            deviceChannel.setName(channelId);
         }
         if(channelId.length() <= 8) {
             deviceChannel.setHasAudio(false);

@@ -62,18 +62,16 @@ public interface ParentPlatformMapper {
     @Delete("DELETE FROM wvp_platform WHERE server_gb_id=#{serverGBId}")
     int delParentPlatform(ParentPlatform parentPlatform);
 
-    @Select("SELECT *, ((SELECT count(0)\n" +
-            "              FROM wvp_platform_gb_channel pc\n" +
-            "              WHERE pc.platform_id = pp.server_gb_id)\n" +
-            "              +\n" +
-            "              (SELECT count(0)\n" +
-            "              FROM wvp_platform_gb_stream pgs\n" +
-            "              WHERE pgs.platform_id = pp.server_gb_id)\n" +
-            "              +\n" +
-            "              (SELECT count(0)\n" +
-            "              FROM wvp_platform_catalog pgc\n" +
-            "              WHERE pgc.platform_id = pp.server_gb_id)) as channel_count\n" +
-            "FROM wvp_platform pp ")
+    @Select("<script>" +
+            "SELECT * " +
+            "<if test='shareAllChannel == false'> " +
+            "(SELECT count(0) as channel_count FROM wvp_common_channel_platform wccp WHERE wccp.platform_id = pp.id) " +
+            "</if>" +
+            "<if test='shareAllChannel == true'> " +
+            "(SELECT count(0) as channel_count FROM wvp_common_channel ) " +
+            "</if>" +
+            "FROM wvp_platform pp " +
+            "</script>")
     List<ParentPlatform> getParentPlatformList();
 
     @Select("SELECT * FROM wvp_platform WHERE enable=#{enable} ")
@@ -88,37 +86,33 @@ public interface ParentPlatformMapper {
     @Select("SELECT * FROM wvp_platform WHERE id=#{id}")
     ParentPlatform getParentPlatById(int id);
 
-    @Update("UPDATE wvp_platform SET status=false" )
-    int outlineForAllParentPlatform();
-
     @Update("UPDATE wvp_platform SET status=#{online} WHERE server_gb_id=#{platformGbID}" )
     int updateParentPlatformStatus(@Param("platformGbID") String platformGbID, @Param("online") boolean online);
 
-    @Update(value = {" <script>" +
-            "UPDATE wvp_platform " +
-            "SET catalog_id=#{catalogId}, update_time=#{updateTime}" +
-            "WHERE server_gb_id=#{platformId}"+
-            "</script>"})
-    int setDefaultCatalog(@Param("platformId") String platformId, @Param("catalogId") String catalogId, @Param("updateTime") String updateTime);
-
-    @Select("select 'channel' as name, count(pgc.platform_id) count from wvp_platform_gb_channel pgc left join wvp_device_channel dc on dc.id = pgc.device_channel_id where  pgc.platform_id=#{platform_id} and dc.channel_id =#{gbId} " +
-            "union " +
-            "select 'stream' as name, count(pgs.platform_id) count from wvp_platform_gb_stream pgs left join wvp_gb_stream gs on pgs.gb_stream_id = gs.gb_stream_id where  pgs.platform_id=#{platform_id} and gs.gb_id =#{gbId}")
-    List<ChannelSourceInfo> getChannelSource(@Param("platform_id") String platform_id, @Param("gbId") String gbId);
 
     @Select("SELECT * FROM wvp_platform WHERE share_all_channel=true")
     List<ParentPlatform> queryAllWithShareAll();
 
 
     @Select("<script>" +
-            "select wp.*" +
-            "from wvp_platform wp\n" +
+            "select wp.* " +
+            " from wvp_platform wp\n" +
             "         left join wvp_common_channel_platform wccp on wp.id = wccp.platform_id\n" +
-            "where wp.share_all_channel = true " +
-            "or (wccp.common_gb_channel_id in " +
-            "<foreach collection='channelList'  item='item'  open='(' separator=',' close=')' >#{item.commonGbId}</foreach>" +
-            "and wccp.platform_id in " +
-            "<foreach collection='platformIdList'  item='item'  open='(' separator=',' close=')' >#{item}</foreach>" +
+            " where wp.share_all_channel = true " +
+            "<if test='(channelList != null and channelList.size != 0) and (platformIdList != null and platformIdList.size != 0) '> " +
+            " or (wccp.common_gb_channel_id in " +
+            " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' >#{item.commonGbId}</foreach>" +
+            " and wccp.platform_id in " +
+            " <foreach collection='platformIdList'  item='item'  open='(' separator=',' close=')' >#{item}</foreach>)" +
+            "</if>" +
+            "<if test='(channelList != null and channelList.size != 0) and (platformIdList == null or platformIdList.size == 0) '> " +
+            " or wccp.common_gb_channel_id in " +
+            " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' >#{item.commonGbId}</foreach>" +
+            "</if>" +
+            "<if test='(channelList == null or channelList.size == 0) and (platformIdList != null and platformIdList.size != 0) '> " +
+            " or wccp.platform_id in " +
+            " <foreach collection='platformIdList'  item='item'  open='(' separator=',' close=')' >#{item}</foreach>" +
+            "</if>" +
             "</script>")
     List<ParentPlatform> querySharePlatform(@Param("channelList") List<CommonGbChannel> channelList,
                                             @Param("platformIdList") List<Integer> platformIdList);

@@ -33,7 +33,6 @@ create table wvp_device (
                             keepalive_interval_time integer,
                             switch_primary_sub_stream bool default false,
                             broadcast_push_after_ack bool default false,
-                            auto_sync_channel bool default true,
                             constraint uk_device_device unique (device_id)
 );
 
@@ -116,21 +115,6 @@ create table wvp_device_mobile_position (
                                             create_time character varying(50)
 );
 
-create table wvp_gb_stream (
-                               gb_stream_id serial primary key,
-                               app character varying(255) not null,
-                               stream character varying(255) not null,
-                               gb_id character varying(50) not null,
-                               name character varying(255),
-                               longitude double precision,
-                               latitude double precision,
-                               stream_type character varying(50),
-                               media_server_id character varying(50),
-                               create_time character varying(50),
-                               constraint uk_gb_stream_unique_gb_id unique (gb_id),
-                               constraint uk_gb_stream_unique_app_stream unique (app, stream)
-);
-
 create table wvp_log (
                          id serial primary key ,
                          name character varying(50),
@@ -200,30 +184,12 @@ create table wvp_platform (
                               constraint uk_platform_unique_server_gb_id unique (server_gb_id)
 );
 
-create table wvp_platform_catalog (
-                                      id character varying(50),
-                                      platform_id character varying(50),
-                                      name character varying(255),
-                                      parent_id character varying(50),
-                                      civil_code character varying(50),
-                                      business_group_id character varying(50),
-                                      constraint uk_platform_catalog_id_platform_id unique (id, platform_id)
-);
-
 create table wvp_platform_gb_channel (
                                          id serial primary key ,
                                          platform_id character varying(50),
                                          catalog_id character varying(50),
                                          device_channel_id integer,
                                          constraint uk_platform_gb_channel_platform_id_catalog_id_device_channel_id unique (platform_id, catalog_id, device_channel_id)
-);
-
-create table wvp_platform_gb_stream (
-                                        id serial primary key,
-                                        platform_id character varying(50),
-                                        catalog_id character varying(50),
-                                        gb_stream_id integer,
-                                        constraint uk_platform_gb_stream_platform_id_catalog_id_gb_stream_id unique (platform_id, catalog_id, gb_stream_id)
 );
 
 create table wvp_stream_proxy (
@@ -287,15 +253,6 @@ create table wvp_user_role (
                                authority character varying(50),
                                create_time character varying(50),
                                update_time character varying(50)
-);
-create table wvp_resources_tree (
-                                    id serial primary key ,
-                                    is_catalog bool default true,
-                                    device_channel_id integer ,
-                                    gb_stream_id integer,
-                                    name character varying(255),
-                                    parentId integer,
-                                    path character varying(255)
 );
 
 

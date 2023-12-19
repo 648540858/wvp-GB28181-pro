@@ -13,11 +13,12 @@ import java.util.List;
 public interface StreamProxyMapper {
 
     @Insert("INSERT INTO wvp_stream_proxy (type, name, app, stream,media_server_id, url, src_url, dst_url, " +
-            "timeout_ms, ffmpeg_cmd_key, rtp_type, enable_audio, enable_mp4, enable, status, stream_key, enable_remove_none_reader, enable_disable_none_reader, create_time) VALUES" +
+            "timeout_ms, ffmpeg_cmd_key, rtp_type, enable_audio, enable_mp4, enable, status, stream_key, " +
+            "enable_remove_none_reader, enable_disable_none_reader, create_time) VALUES " +
             "(#{type}, #{name}, #{app}, #{stream}, #{mediaServerId}, #{url}, #{srcUrl}, #{dstUrl}, " +
             "#{timeoutMs}, #{ffmpegCmdKey}, #{rtpType}, #{enableAudio}, #{enableMp4}, #{enable}, #{status}, #{streamKey}, " +
             "#{enableRemoveNoneReader}, #{enableDisableNoneReader}, #{createTime} )")
-    int add(StreamProxy streamProxyDto);
+    int add(StreamProxy streamProxy);
 
     @Update("UPDATE wvp_stream_proxy " +
             "SET type=#{type}, " +
@@ -44,22 +45,20 @@ public interface StreamProxyMapper {
     @Delete("DELETE FROM wvp_stream_proxy WHERE app=#{app} AND stream=#{stream}")
     int del(String app, String stream);
 
-    @Select("SELECT st.*, pgs.gb_id, pgs.name, pgs.longitude, pgs.latitude FROM wvp_stream_proxy st LEFT join wvp_gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream order by st.create_time desc")
+    @Select("SELECT st.* FROM wvp_stream_proxy st  order by st.create_time desc")
     List<StreamProxy> selectAll();
 
-    @Select("SELECT st.*, pgs.gb_id, pgs.name, pgs.longitude, pgs.latitude, 'proxy' as streamType FROM wvp_stream_proxy st LEFT join wvp_gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream WHERE st.enable=#{enable} order by st.create_time desc")
+    @Select("SELECT st.* FROM wvp_stream_proxy st  WHERE st.enable=#{enable} order by st.create_time desc")
     List<StreamProxy> selectForEnable(boolean enable);
 
-    @Select("SELECT st.*, pgs.gb_id, pgs.name, pgs.longitude, pgs.latitude FROM wvp_stream_proxy st LEFT join wvp_gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream WHERE st.app=#{app} AND st.stream=#{stream} order by st.create_time desc")
+    @Select("SELECT st.* from wvp_stream_proxy st WHERE st.app=#{app} AND st.stream=#{stream} order by st.create_time desc")
     StreamProxy selectOne(@Param("app") String app, @Param("stream") String stream);
 
-    @Select("SELECT st.*, pgs.gb_id, pgs.name, pgs.longitude, pgs.latitude FROM wvp_stream_proxy st " +
-            "LEFT join wvp_gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream " +
+    @Select("SELECT st.* FROM wvp_stream_proxy st " +
             "WHERE st.enable=#{enable} and st.media_server_id= #{id} order by st.create_time desc")
     List<StreamProxy> selectForEnableInMediaServer(@Param("id")  String id, @Param("enable") boolean enable);
 
-    @Select("SELECT st.*, pgs.gb_id, pgs.name, pgs.longitude, pgs.latitude FROM wvp_stream_proxy st " +
-            "LEFT join wvp_gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream " +
+    @Select("SELECT st.* FROM wvp_stream_proxy st " +
             "WHERE st.media_server_id= #{id} order by st.create_time desc")
     List<StreamProxy> selectInMediaServer(String id);
 
@@ -76,7 +75,7 @@ public interface StreamProxyMapper {
     @Delete("DELETE FROM wvp_stream_proxy WHERE enable_remove_none_reader=true AND media_server_id=#{mediaServerId}")
     void deleteAutoRemoveItemByMediaServerId(String mediaServerId);
 
-    @Select("SELECT st.*, pgs.gb_id, pgs.name, pgs.longitude, pgs.latitude FROM wvp_stream_proxy st LEFT join wvp_gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream WHERE st.enable_remove_none_reader=true AND st.media_server_id=#{mediaServerId} order by st.create_time desc")
+    @Select("SELECT st.* FROM wvp_stream_proxy st WHERE st.enable_remove_none_reader=true AND st.media_server_id=#{mediaServerId} order by st.create_time desc")
     List<StreamProxy> selectAutoRemoveItemByMediaServerId(String mediaServerId);
 
     @Select("select count(1) as total, sum(status) as online from wvp_stream_proxy")

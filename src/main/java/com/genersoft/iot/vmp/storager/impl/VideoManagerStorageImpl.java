@@ -59,22 +59,8 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
     private ParentPlatformMapper platformMapper;
 
 	@Autowired
-    private IRedisCatchStorage redisCatchStorage;
-
-	@Autowired
-    private PlatformChannelMapper platformChannelMapper;
-
-	@Autowired
-	private PlatformCatalogMapper platformCatalogMapper;
-
-	@Autowired
     private StreamProxyMapper streamProxyMapper;
 
-	@Autowired
-    private StreamPushMapper streamPushMapper;
-
-	@Autowired
-    private UserSetting userSetting;
 
 	/**
 	 * 根据设备ID判断设备是否存在

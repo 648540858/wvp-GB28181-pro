@@ -87,12 +87,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     private ICommonGbChannelService commonGbChannelService;
 
     @Autowired
-    private EventPublisher eventPublisher;
-
-    @Autowired
-    private ParentPlatformMapper parentPlatformMapper;
-
-    @Autowired
     private IMediaServerService mediaServerService;
 
     @Autowired
@@ -159,24 +153,25 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         // 更新
         StreamProxy streamProxyInDb = videoManagerStorager.queryStreamProxy(param.getApp(), param.getStream());
         if (streamProxyInDb != null) {
-            if (streamProxyInDb.getCommonGbChannelId() == 0 && param.getGbId() != null ) {
+            if (streamProxyInDb.getCommonGbChannelId() == 0 && !ObjectUtils.isEmpty(param.getGbId()) ) {
                 // 新增通用通道
                 CommonGbChannel commonGbChannel = CommonGbChannel.getInstance(param);
                 commonGbChannelService.add(commonGbChannel);
                 param.setCommonGbChannelId(commonGbChannel.getCommonGbId());
             }
-            if (streamProxyInDb.getCommonGbChannelId() > 0 && param.getGbId() == null ) {
+            if (streamProxyInDb.getCommonGbChannelId() > 0 && ObjectUtils.isEmpty(param.getGbId()) ) {
                 // 移除通用通道
                 commonGbChannelService.deleteById(streamProxyInDb.getCommonGbChannelId());
             }
             param.setUpdateTime(DateUtil.getNow());
             streamProxyMapper.update(param);
         }else { // 新增
-            // 新增通用通道
-            CommonGbChannel commonGbChannel = CommonGbChannel.getInstance(param);
-            commonGbChannelService.add(commonGbChannel);
-            param.setCommonGbChannelId(commonGbChannel.getCommonGbId());
-
+            if (!ObjectUtils.isEmpty(param.getGbId())) {
+                // 新增通用通道
+                CommonGbChannel commonGbChannel = CommonGbChannel.getInstance(param);
+                commonGbChannelService.add(commonGbChannel);
+                param.setCommonGbChannelId(commonGbChannel.getCommonGbId());
+            }
             param.setCreateTime(DateUtil.getNow());
             param.setUpdateTime(DateUtil.getNow());
             streamProxyMapper.add(param);
@@ -533,6 +528,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
 
+    /**
+     * 检查拉流代理状态
+     */
     @Scheduled(cron = "* 0/10 * * * ?")
     public void asyncCheckStreamProxyStatus() {
 
@@ -544,13 +542,13 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
         Map<String, MediaServerItem> serverItemMap = all.stream().collect(Collectors.toMap(MediaServerItem::getId, Function.identity(), (m1, m2) -> m1));
 
-        List<StreamProxyItem> list = videoManagerStorager.getStreamProxyListForEnable(true);
+        List<StreamProxy> list = getAllForEnable();
 
         if (CollectionUtils.isEmpty(list)){
             return;
         }
 
-        for (StreamProxyItem streamProxyItem : list) {
+        for (StreamProxy streamProxyItem : list) {
 
             MediaServerItem mediaServerItem = serverItemMap.get(streamProxyItem.getMediaServerId());
 
@@ -574,5 +572,10 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public void updateStreamGPS(List<GPSMsgInfo> gpsMsgInfoList) {
         streamProxyMapper.updateStreamGPS(gpsMsgInfoList);
+    }
+
+    @Override
+    public List<StreamProxy> getAllForEnable() {
+        return streamProxyMapper.selectForEnable(true);
     }
 }

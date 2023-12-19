@@ -53,8 +53,9 @@ public class Gb28181Sdp  {
 
         for (Object description : mediaDescriptions) {
             MediaDescription mediaDescription = (MediaDescription) description;
-            gb28181Sdp.setDownloadSpeed(Integer.parseInt(mediaDescription.getAttribute("downloadspeed")));
-
+            if (mediaDescription.getAttribute("downloadspeed") != null) {
+                gb28181Sdp.setDownloadSpeed(Integer.parseInt(mediaDescription.getAttribute("downloadspeed")));
+            }
             Media media = mediaDescription.getMedia();
             Vector mediaFormats = media.getMediaFormats(false);
             // 查看是否支持PS 负载96

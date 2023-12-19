@@ -14,9 +14,9 @@ import java.util.Map;
 @Repository
 public interface StreamPushMapper {
 
-    @Insert("INSERT INTO wvp_stream_push (app, stream, total_reader_count, origin_type, origin_type_str, " +
+    @Insert("INSERT INTO wvp_stream_push (app, stream, total_reader_count, " +
             "push_time, alive_second, media_server_id, update_time, create_time, push_ing, self) VALUES" +
-            "(#{app}, #{stream}, #{totalReaderCount}, #{originType}, #{originTypeStr}, " +
+            "(#{app}, #{stream}, #{totalReaderCount}, " +
             "#{pushTime}, #{aliveSecond}, #{mediaServerId} , #{updateTime} , #{createTime}, " +
             "#{pushIng}, #{self} )")
     int add(StreamPush streamPushItem);
@@ -27,8 +27,6 @@ public interface StreamPushMapper {
             "SET update_time=#{updateTime}" +
             "<if test=\"mediaServerId != null\">, media_server_id=#{mediaServerId}</if>" +
             "<if test=\"totalReaderCount != null\">, total_reader_count=#{totalReaderCount}</if>" +
-            "<if test=\"originType != null\">, origin_type=#{originType}</if>" +
-            "<if test=\"originTypeStr != null\">, origin_type_str=#{originTypeStr}</if>" +
             "<if test=\"pushTime != null\">, push_time=#{pushTime}</if>" +
             "<if test=\"aliveSecond != null\">, alive_second=#{aliveSecond}</if>" +
             "<if test=\"pushIng != null\">, push_ing=#{pushIng}</if>" +
@@ -41,9 +39,9 @@ public interface StreamPushMapper {
     int del(String app, String stream);
 
     @Delete("<script> "+
-            "DELETE sp FROM wvp_stream_push sp left join wvp_gb_stream gs on sp.app = gs.app AND sp.stream = gs.stream where " +
+            "DELETE sp FROM wvp_stream_push sp where " +
             "<foreach collection='streamPushItems' item='item' separator='or'>" +
-            "(sp.app=#{item.app} and sp.stream=#{item.stream} and gs.gb_id is null) " +
+            "(sp.app=#{item.app} and sp.stream=#{item.stream} and sp.gb_id is null) " +
             "</foreach>" +
             "</script>")
     int delAllWithoutGBId(List<StreamPush> streamPushItems);
@@ -67,34 +65,31 @@ public interface StreamPushMapper {
 
     @Select(value = {" <script>" +
             "SELECT " +
-            "st.*, " +
-            "gs.gb_id, gs.name, gs.longitude, gs.latitude, gs.gb_stream_id " +
+            "* " +
             "from " +
-            "wvp_stream_push st " +
-            "LEFT join wvp_gb_stream gs " +
-            "on st.app = gs.app AND st.stream = gs.stream " +
+            "wvp_stream_push " +
             "WHERE " +
             "1=1 " +
-            " <if test='query != null'> AND (st.app LIKE concat('%',#{query},'%') OR st.stream LIKE concat('%',#{query},'%') OR gs.gb_id LIKE concat('%',#{query},'%') OR gs.name LIKE concat('%',#{query},'%'))</if> " +
-            " <if test='pushing == true' > AND (gs.gb_id is null OR st.push_ing=1)</if>" +
-            " <if test='pushing == false' > AND (st.push_ing is null OR st.push_ing=0) </if>" +
-            " <if test='mediaServerId != null' > AND st.media_server_id=#{mediaServerId} </if>" +
-            "order by st.create_time desc" +
+            " <if test='query != null'> AND (app LIKE concat('%',#{query},'%') OR stream LIKE concat('%',#{query},'%') OR gb_id LIKE concat('%',#{query},'%') OR name LIKE concat('%',#{query},'%'))</if> " +
+            " <if test='pushing == true' > AND (gb_id is null OR push_ing=1)</if>" +
+            " <if test='pushing == false' > AND (push_ing is null OR push_ing=0) </if>" +
+            " <if test='mediaServerId != null' > AND media_server_id=#{mediaServerId} </if>" +
+            "order by create_time desc" +
             " </script>"})
     List<StreamPush> selectAllForList(@Param("query") String query, @Param("pushing") Boolean pushing, @Param("mediaServerId") String mediaServerId);
 
-    @Select("SELECT st.*, gs.gb_id, gs.name, gs.longitude, gs.latitude FROM wvp_stream_push st LEFT join wvp_gb_stream gs on st.app = gs.app AND st.stream = gs.stream order by st.create_time desc")
+    @Select("SELECT * from wvp_stream_push order by create_time desc")
     List<StreamPush> selectAll();
 
-    @Select("SELECT st.*, gs.gb_id, gs.name, gs.longitude, gs.latitude FROM wvp_stream_push st LEFT join wvp_gb_stream gs on st.app = gs.app AND st.stream = gs.stream WHERE st.app=#{app} AND st.stream=#{stream}")
+    @Select("SELECT * from wvp_stream_push WHERE app=#{app} AND stream=#{stream}")
     StreamPush selectOne(@Param("app") String app, @Param("stream") String stream);
 
     @Insert("<script>"  +
-            "Insert INTO wvp_stream_push (app, stream, total_reader_count, origin_type, origin_type_str, " +
+            "Insert INTO wvp_stream_push (app, stream, total_reader_count, " +
             "create_time, alive_second, media_server_id, status, push_ing) " +
             "VALUES <foreach collection='streamPushItems' item='item' index='index' separator=','>" +
-            "( #{item.app}, #{item.stream}, #{item.totalReaderCount}, #{item.originType}, " +
-            "#{item.originTypeStr},#{item.createTime}, #{item.aliveSecond}, #{item.mediaServerId}, #{item.status} ," +
+            "( #{item.app}, #{item.stream}, #{item.totalReaderCount}, " +
+            "#{item.createTime}, #{item.aliveSecond}, #{item.mediaServerId}, #{item.status} ," +
             " #{item.pushIng} )" +
             " </foreach>" +
             "</script>")
@@ -114,7 +109,7 @@ public interface StreamPushMapper {
     @Select("SELECT * FROM wvp_stream_push WHERE media_server_id=#{mediaServerId}")
     List<StreamPush> selectAllByMediaServerId(String mediaServerId);
 
-    @Select("SELECT sp.* FROM wvp_stream_push sp left join wvp_gb_stream gs on gs.app = sp.app and gs.stream= sp.stream WHERE sp.media_server_id=#{mediaServerId} and gs.gb_id is null")
+    @Select("SELECT sp.* FROM wvp_stream_push sp WHERE sp.media_server_id=#{mediaServerId} and sp.gb_id is null")
     List<StreamPush> selectAllByMediaServerIdWithOutGbID(String mediaServerId);
 
     @Update("UPDATE wvp_stream_push " +
@@ -132,16 +127,6 @@ public interface StreamPushMapper {
             "WHERE media_server_id=#{mediaServerId}")
     void updateStatusByMediaServerId(@Param("mediaServerId") String mediaServerId, @Param("status") boolean status);
 
-
-    @Select("<script> "+
-            "SELECT gs.* FROM wvp_stream_push sp left join wvp_gb_stream gs on sp.app = gs.app AND sp.stream = gs.stream " +
-            "where sp.status = true and (gs.app, gs.stream) in (" +
-            "<foreach collection='offlineStreams' item='item' separator=','>" +
-            "(#{item.app}, #{item.stream}) " +
-            "</foreach>" +
-            ")</script>")
-    List<GbStream> getOnlinePusherForGbInList(List<StreamPushItemFromRedis> offlineStreams);
-
     @Update("<script> "+
             "UPDATE wvp_stream_push SET status=0  where id in (" +
             "<foreach collection='offlineStreams' item='item' separator=','>" +
@@ -149,15 +134,6 @@ public interface StreamPushMapper {
             "</foreach>" +
             ")</script>")
     void offline(List<StreamPush> offlineStreams);
-
-    @Select("<script> "+
-            "SELECT * FROM wvp_stream_push sp left join wvp_gb_stream gs on sp.app = gs.app AND sp.stream = gs.stream " +
-            "where sp.status = 0 and (gs.app, gs.stream) in (" +
-            "<foreach collection='onlineStreams' item='item' separator=','>" +
-            "(#{item.app}, #{item.stream}) " +
-            "</foreach>" +
-            ") </script>")
-    List<GbStream> getOfflinePusherForGbInList(List<StreamPushItemFromRedis> onlineStreams);
 
     @Update("<script> "+
             "UPDATE wvp_stream_push SET status=1  where (app, stream) in (" +
@@ -174,7 +150,7 @@ public interface StreamPushMapper {
     void setAllStreamOffline();
 
     @MapKey("key")
-    @Select("SELECT CONCAT(wgs.app,wgs.stream) as keyId, wgs.* from wvp_gb_stream as wgs")
+    @Select("SELECT CONCAT(wsp.app,wsp.stream) as keyId, wsp.* from wvp_stream_push as wsp ")
     Map<String, StreamPush> getAllAppAndStream();
 
     @Select("select count(1) from wvp_stream_push ")

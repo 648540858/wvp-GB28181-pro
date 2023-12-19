@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.alibaba.fastjson2.TypeReference;
 import com.genersoft.iot.vmp.common.BatchLimit;
 import com.genersoft.iot.vmp.common.CommonGbChannel;
+import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
@@ -67,10 +68,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     private ICommonGbChannelService commonGbChannelService;
 
     @Autowired
-    private DataSourceTransactionManager dataSourceTransactionManager;
-
-    @Autowired
-    private TransactionDefinition transactionDefinition;
+    private MediaConfig mediaConfig;
 
     @Autowired
     private IGroupService groupService;

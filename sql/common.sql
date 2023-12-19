@@ -140,6 +140,9 @@ alter table wvp_stream_proxy
 alter table wvp_stream_proxy
     add status bool default false;
 
+alter table wvp_device
+    drop column auto_sync_channel;
+
 
 
 

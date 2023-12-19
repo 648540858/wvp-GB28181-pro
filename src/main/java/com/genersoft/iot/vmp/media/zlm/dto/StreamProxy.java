@@ -76,14 +76,6 @@ public class StreamProxy {
         this.id = id;
     }
 
-    public String getCreateTime() {
-        return createTime;
-    }
-
-    public String getUpdateTime() {
-        return updateTime;
-    }
-
     public String getType() {
         return type;
     }
@@ -96,27 +88,22 @@ public class StreamProxy {
         return app;
     }
 
-    
     public void setApp(String app) {
         this.app = app;
     }
 
-    
     public String getStream() {
         return stream;
     }
 
-    
     public void setStream(String stream) {
         this.stream = stream;
     }
 
-    
     public String getMediaServerId() {
         return mediaServerId;
     }
 
-    
     public void setMediaServerId(String mediaServerId) {
         this.mediaServerId = mediaServerId;
     }
@@ -133,40 +120,40 @@ public class StreamProxy {
         return srcUrl;
     }
 
-    public void setSrcUrl(String src_url) {
-        this.srcUrl = src_url;
+    public void setSrcUrl(String srcUrl) {
+        this.srcUrl = srcUrl;
     }
 
     public String getDstUrl() {
         return dstUrl;
     }
 
-    public void setDstUrl(String dst_url) {
-        this.dstUrl = dst_url;
+    public void setDstUrl(String dstUrl) {
+        this.dstUrl = dstUrl;
     }
 
     public int getTimeoutMs() {
         return timeoutMs;
     }
 
-    public void setTimeoutMs(int timeout_ms) {
-        this.timeoutMs = timeout_ms;
+    public void setTimeoutMs(int timeoutMs) {
+        this.timeoutMs = timeoutMs;
     }
 
     public String getFfmpegCmdKey() {
         return ffmpegCmdKey;
     }
 
-    public void setFfmpegCmdKey(String ffmpeg_cmd_key) {
-        this.ffmpegCmdKey = ffmpeg_cmd_key;
+    public void setFfmpegCmdKey(String ffmpegCmdKey) {
+        this.ffmpegCmdKey = ffmpegCmdKey;
     }
 
     public String getRtpType() {
         return rtpType;
     }
 
-    public void setRtpType(String rtp_type) {
-        this.rtpType = rtp_type;
+    public void setRtpType(String rtpType) {
+        this.rtpType = rtpType;
     }
 
     public boolean isEnable() {
@@ -177,36 +164,36 @@ public class StreamProxy {
         this.enable = enable;
     }
 
+    public boolean isEnableAudio() {
+        return enableAudio;
+    }
+
+    public void setEnableAudio(boolean enableAudio) {
+        this.enableAudio = enableAudio;
+    }
+
     public boolean isEnableMp4() {
         return enableMp4;
     }
 
-    public void setEnableMp4(boolean enable_mp4) {
-        this.enableMp4 = enable_mp4;
+    public void setEnableMp4(boolean enableMp4) {
+        this.enableMp4 = enableMp4;
     }
 
     public boolean isEnableRemoveNoneReader() {
         return enableRemoveNoneReader;
     }
 
-    public void setEnableRemoveNoneReader(boolean enable_remove_none_reader) {
-        this.enableRemoveNoneReader = enable_remove_none_reader;
+    public void setEnableRemoveNoneReader(boolean enableRemoveNoneReader) {
+        this.enableRemoveNoneReader = enableRemoveNoneReader;
     }
 
     public boolean isEnableDisableNoneReader() {
         return enableDisableNoneReader;
     }
 
-    public void setEnableDisableNoneReader(boolean enable_disable_none_reader) {
-        this.enableDisableNoneReader = enable_disable_none_reader;
-    }
-
-    public boolean isEnableAudio() {
-        return enableAudio;
-    }
-
-    public void setEnableAudio(boolean enable_audio) {
-        this.enableAudio = enable_audio;
+    public void setEnableDisableNoneReader(boolean enableDisableNoneReader) {
+        this.enableDisableNoneReader = enableDisableNoneReader;
     }
 
     public String getStreamKey() {
@@ -215,14 +202,6 @@ public class StreamProxy {
 
     public void setStreamKey(String streamKey) {
         this.streamKey = streamKey;
-    }
-
-    public int getCommonGbChannelId() {
-        return commonGbChannelId;
-    }
-
-    public void setCommonGbChannelId(int commonGbChannelId) {
-        this.commonGbChannelId = commonGbChannelId;
     }
 
     public String getGbId() {
@@ -265,7 +244,7 @@ public class StreamProxy {
         this.status = status;
     }
 
-    public String isCreateTime() {
+    public String getCreateTime() {
         return createTime;
     }
 
@@ -273,11 +252,19 @@ public class StreamProxy {
         this.createTime = createTime;
     }
 
-    public String isUpdateTime() {
+    public String getUpdateTime() {
         return updateTime;
     }
 
     public void setUpdateTime(String updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public int getCommonGbChannelId() {
+        return commonGbChannelId;
+    }
+
+    public void setCommonGbChannelId(int commonGbChannelId) {
+        this.commonGbChannelId = commonGbChannelId;
     }
 }

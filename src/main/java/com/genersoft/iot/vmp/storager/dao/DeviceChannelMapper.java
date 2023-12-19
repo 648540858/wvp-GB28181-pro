@@ -148,19 +148,6 @@ public interface DeviceChannelMapper {
     @Update(value = {"UPDATE wvp_device_channel SET stream_id=#{streamId} WHERE device_id=#{deviceId} AND channel_id=#{channelId}"})
     void startPlay(@Param("deviceId") String deviceId, @Param("channelId") String channelId, @Param("streamId") String streamId);
 
-    @Select(value = {" <script>" +
-            "SELECT " +
-            "    dc.*,\n" +
-            "    pgc.platform_id as platform_id,\n" +
-            "    pgc.catalog_id as catalog_id " +
-            " FROM wvp_device_channel dc " +
-            " LEFT JOIN wvp_platform_gb_channel pgc on pgc.device_channel_id = dc.id " +
-            " WHERE pgc.platform_id = #{platformId} " +
-            " ORDER BY dc.device_id, dc.channel_id ASC" +
-            " </script>"})
-    List<DeviceChannelInPlatform> queryChannelByPlatformId(String platformId);
-
-
     @Select("SELECT * FROM wvp_device_channel WHERE channel_id=#{channelId}")
     List<DeviceChannel> queryChannelByChannelId( String channelId);
 
@@ -331,52 +318,9 @@ public interface DeviceChannelMapper {
             " </script>"})
     void updatePosition(DeviceChannel deviceChannel);
 
-    @Select("SELECT * FROM wvp_device_channel WHERE length(trim(stream_id)) > 0")
-    List<DeviceChannel> getAllChannelInPlay();
-
     @Select("select * from wvp_device_channel where longitude*latitude > 0 and device_id = #{deviceId}")
     List<DeviceChannel> getAllChannelWithCoordinate(String deviceId);
 
-
-    @Select(value = {" <script>" +
-            "select * " +
-            "from wvp_device_channel " +
-            "where device_id=#{deviceId}" +
-            " <if test='parentId != null and length != null' > and parent_id= #{parentId} or left(channel_id, LENGTH(#{parentId})) = #{parentId} and length(channel_id)=#{length} </if>" +
-            " <if test='parentId == null and length != null' > and parent_id= #{parentId} or length(channel_id)=#{length} </if>" +
-            " <if test='parentId == null and length == null' > and parent_id= #{parentId} </if>" +
-            " <if test='parentId != null and length == null' > and parent_id= #{parentId} or left(channel_id, LENGTH(#{parentId})) = #{parentId} </if>" +
-            " </script>"})
-    List<DeviceChannel> getChannelsWithCivilCodeAndLength(@Param("deviceId") String deviceId, @Param("parentId") String parentId, @Param("length") Integer length);
-
-    @Select(value = {" <script>" +
-            "select * " +
-            "from wvp_device_channel " +
-            "where device_id=#{deviceId} and length(channel_id)>14 and civil_code=#{parentId}" +
-            " </script>"})
-    List<DeviceChannel> getChannelsByCivilCode(@Param("deviceId") String deviceId, @Param("parentId") String parentId);
-
-    @Select("select min(length(channel_id)) as minLength " +
-            "from wvp_device_channel " +
-            "where device_id=#{deviceId}")
-    Integer getChannelMinLength(String deviceId);
-
-    @Select("select * from wvp_device_channel where device_id=#{deviceId} and civil_code not in " +
-            "(select civil_code from wvp_device_channel where device_id=#{deviceId} group by civil_code)")
-    List<DeviceChannel> getChannelWithoutCivilCode(String deviceId);
-
-    @Select("select * from wvp_device_channel where device_id=#{deviceId} and SUBSTRING(channel_id, 11, 3)=#{typeCode}")
-    List<DeviceChannel> getBusinessGroups(@Param("deviceId") String deviceId, @Param("typeCode") String typeCode);
-
-    @Select("select dc.id, dc.channel_id, dc.device_id, dc.name, dc.manufacture,dc.model,dc.owner, pc.civil_code,dc.block, " +
-            " dc.address, '0' as parental,'0' as channel_type, pc.id as parent_id, dc.safety_way, dc.register_way,dc.cert_num, dc.certifiable,  " +
-            " dc.err_code,dc.end_time, dc.secrecy,   dc.ip_address,  dc.port,  dc.ptz_type,  dc.password, dc.status, " +
-            " dc.longitude_wgs84 as longitude, dc.latitude_wgs84 as latitude,  pc.business_group_id " +
-            " from wvp_device_channel dc" +
-            " LEFT JOIN wvp_platform_gb_channel pgc on  dc.id = pgc.device_channel_id" +
-            " LEFT JOIN wvp_platform_catalog pc on pgc.catalog_id = pc.id and pgc.platform_id = pc.platform_id" +
-            " where pgc.platform_id=#{serverGBId}")
-    List<DeviceChannel> queryChannelWithCatalog(String serverGBId);
 
     @Select("select * from wvp_device_channel where device_id = #{deviceId}")
     List<DeviceChannel> queryAllChannels(String deviceId);
@@ -444,13 +388,6 @@ public interface DeviceChannelMapper {
             " <if test='onlyCatalog == true '> and parental = 1 </if>" +
             " </script>"})
     List<DeviceChannel> getSubChannelsByDeviceId(@Param("deviceId") String deviceId, @Param("parentId") String parentId, @Param("onlyCatalog") boolean onlyCatalog);
-
-    @Update(" update wvp_device_channel wdc " +
-            " set " +
-            " common_gb_channel_id=" +
-            " (select wcgc.common_gb_id from wvp_common_channel wcgc where wdc.channel_id = wcgc.common_gb_device_id) " +
-            " where wdc.device_id = #{deviceId}")
-    int updateCommonChannelId(@Param("deviceId") String deviceId);
 
     @Select(value = {" <script>" +
             "select * " +

@@ -118,4 +118,10 @@ public interface IStreamProxyService {
      * 更新redis发来的gps更新消息
      */
     void updateStreamGPS(List<GPSMsgInfo> gpsMsgInfoList);
+
+    /**
+     * 获取所有启用的拉流代理
+     */
+    List<StreamProxy> getAllForEnable();
+
 }

@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.gb28181.bean.PresetQuerySipReq;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.DeferredResultEx;
@@ -193,15 +194,16 @@ public class ApiDeviceController {
         }
 
         Device device = storager.queryVideoDevice(serial);
-        String uuid =  UUID.randomUUID().toString();
-        String key =  DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + serial + code;
+        int sn = SipUtils.getNewSn();
+        String msgId = sn + "";
+        String key =  DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + sn;
         DeferredResult<Object> result = new DeferredResult<> (timeout * 1000L);
         DeferredResultEx<Object> deferredResultEx = new DeferredResultEx<>(result);
         result.onTimeout(()->{
             logger.warn("<模拟接口> 获取设备预置位超时");
             // 释放rtpserver
             RequestMessage msg = new RequestMessage();
-            msg.setId(uuid);
+            msg.setId(msgId);
             msg.setKey(key);
             msg.setData("wait for presetquery timeout["+timeout+"s]");
             resultHolder.invokeResult(msg);
@@ -228,12 +230,12 @@ public class ApiDeviceController {
             return resultMap;
         });
 
-        resultHolder.put(key, uuid, deferredResultEx);
+        resultHolder.put(key, msgId, deferredResultEx);
 
         try {
-            cmder.presetQuery(device, code, event -> {
+            cmder.presetQuery(device, code, sn, event -> {
                 RequestMessage msg = new RequestMessage();
-                msg.setId(uuid);
+                msg.setId(msgId);
                 msg.setKey(key);
                 msg.setData(String.format("获取设备预置位失败，错误码： %s, %s", event.statusCode, event.msg));
                 resultHolder.invokeResult(msg);

@@ -569,9 +569,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     sendRtpItem.setToTag(response.getToTag());
                 }
                 redisCatchStorage.updateSendRTPSever(sendRtpItem);
-
         }
-
     }
     private void pushStream(RequestEvent evt, SIPRequest request, GbStream gbStream, StreamPush streamPushItem, ParentPlatform platform,
                             CallIdHeader callIdHeader, MediaServerItem mediaServerItem,

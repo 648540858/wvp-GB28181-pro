@@ -206,41 +206,41 @@ public class PlayServiceImpl implements IPlayService {
         // 超时处理
         String timeOutTaskKey = UUID.randomUUID().toString();
         dynamicTask.startDelay(timeOutTaskKey, () -> {
+            // 取消订阅消息监听
+            HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcInfo.getStream(), true, "rtsp", mediaServerItem.getId());
+            subscribe.removeSubscribe(hookSubscribe);
+
             // 执行超时任务时查询是否已经成功，成功了则不执行超时任务，防止超时任务取消失败的情况
             InviteInfo inviteInfoForTimeOut = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channelId);
-            if (inviteInfoForTimeOut == null || inviteInfoForTimeOut.getStreamInfo() == null) {
-                logger.info("[点播超时] 收流超时 deviceId: {}, channelId: {},码流类型：{}，端口：{}, SSRC: {}",
+            int code;
+            String msg;
+            if (inviteInfoForTimeOut == null || inviteInfoForTimeOut.getStatus().equals(InviteSessionStatus.ready)) {
+                logger.info("[点播超时] 信令超时 deviceId: {}, channelId: {},码流类型：{}，端口：{}, SSRC: {}",
                         device.getDeviceId(), channelId, device.isSwitchPrimarySubStream() ? "辅码流" : "主码流",
                         ssrcInfo.getPort(), ssrcInfo.getSsrc());
-
-                callback.run(InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode(), InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getMsg(), null);
-                inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
-                        InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode(), InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getMsg(), null);
-                inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channelId);
-
-                try {
-                    cmder.streamByeCmd(device, channelId, ssrcInfo.getStream(), null);
-                } catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
-                    logger.error("[点播超时]， 发送BYE失败 {}", e.getMessage());
-                } finally {
-                    mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
-                    mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
-                    streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
-                    mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
-                    // 取消订阅消息监听
-                    HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcInfo.getStream(), true, "rtsp", mediaServerItem.getId());
-                    subscribe.removeSubscribe(hookSubscribe);
-                }
+                callback.run(InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode(), InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getMsg(), null);
+                code = InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode();
+                msg = InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getMsg();
             }else {
                 logger.info("[点播超时] 收流超时 deviceId: {}, channelId: {},码流类型：{}，端口：{}, SSRC: {}",
                         device.getDeviceId(), channelId, device.isSwitchPrimarySubStream() ? "辅码流" : "主码流",
                         ssrcInfo.getPort(), ssrcInfo.getSsrc());
+                code = InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode();
+                msg = InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getMsg();
 
-                mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
-
-                mediaServerService.closeRTPServer(mediaServerItem.getId(), ssrcInfo.getStream());
-                streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
+                try {
+                    cmder.streamByeCmd(device, channelId, ssrcInfo.getStream(), null);
+                } catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
+                    logger.error("[点播超时]，发送BYE失败 {}", e.getMessage());
+                }
             }
+            callback.run(code, msg, null);
+            inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null, code, msg, null);
+            inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channelId);
+            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+            streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
+            mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
+
         }, userSetting.getPlayTimeout());
 
         try {
@@ -592,9 +592,11 @@ public class PlayServiceImpl implements IPlayService {
                                  Device device, String channelId, String timeOutTaskKey, ErrorCallback<Object> callback,
                                  InviteInfo inviteInfo, InviteSessionType inviteSessionType){
         inviteInfo.setStatus(InviteSessionStatus.ok);
+        inviteStreamService.updateInviteInfo(inviteInfo);
         ResponseEvent responseEvent = (ResponseEvent) eventResult.event;
         String contentString = new String(responseEvent.getResponse().getRawContent());
         String ssrcInResponse = SipUtils.getSsrcFromSdp(contentString);
+        logger.info("[点播收到回复OK] deviceId: {}, channelId: {}， 发流SSRC： {}", device.getDeviceId(), channelId, ssrcInResponse);
         // 兼容回复的消息中缺少ssrc(y字段)的情况
         if (ssrcInResponse == null) {
             ssrcInResponse = ssrcInfo.getSsrc();

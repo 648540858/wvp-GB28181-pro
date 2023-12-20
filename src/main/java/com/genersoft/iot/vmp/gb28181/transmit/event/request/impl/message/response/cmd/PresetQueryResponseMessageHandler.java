@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.respon
 
 import com.genersoft.iot.vmp.gb28181.bean.PresetQuerySipReq;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.session.PresetDataCatch;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -43,6 +44,9 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
     @Autowired
     private DeferredResultHolder deferredResultHolder;
 
+    @Autowired
+    private PresetDataCatch presetDataCatch;
+
 
 
     @Override
@@ -68,14 +72,14 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
                 return;
             }
             Element presetListNumElement = rootElement.element("PresetList");
-            String sn = getText(rootElement, "SN");
+            String snStr = getText(rootElement, "SN");
             //该字段可能为通道或则设备的id
             String channelId = getText(rootElement, "DeviceID");
             if (channelId == null) {
 
             }
             String key = DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + deviceId + channelId;
-            if (sn == null || presetListNumElement == null) {
+            if (snStr == null || presetListNumElement == null) {
                 try {
                     responseAck(request, Response.BAD_REQUEST, "xml error");
                 } catch (InvalidArgumentException | ParseException | SipException e) {
@@ -84,29 +88,34 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
                 return;
             }
             int sumNum = Integer.parseInt(presetListNumElement.attributeValue("Num"));
-            List<PresetQuerySipReq> presetQuerySipReqList = new ArrayList<>();
-            if (sumNum > 0) {
+            int sn = Integer.parseInt(snStr);
+            List<PresetItem> presetItems = new ArrayList<>();
+            if (sumNum == 0) {
+                presetDataCatch.setChannelSyncEnd(sn, null );
+            }else {
                 for (Iterator<Element> presetIterator = presetListNumElement.elementIterator(); presetIterator.hasNext(); ) {
                     Element itemListElement = presetIterator.next();
-                    PresetQuerySipReq presetQuerySipReq = new PresetQuerySipReq();
+                    PresetItem presetItem = new PresetItem();
                     for (Iterator<Element> itemListIterator = itemListElement.elementIterator(); itemListIterator.hasNext(); ) {
                         // 遍历item
                         Element itemOne = itemListIterator.next();
                         String name = itemOne.getName();
                         String textTrim = itemOne.getTextTrim();
                         if ("PresetID".equalsIgnoreCase(name)) {
-                            presetQuerySipReq.setPresetId(textTrim);
+                            presetItem.setPresetID(Integer.parseInt(textTrim));
                         } else {
-                            presetQuerySipReq.setPresetName(textTrim);
+                            presetItem.setPresetName(textTrim);
                         }
                     }
-                    presetQuerySipReqList.add(presetQuerySipReq);
+                }
+                presetDataCatch.put(sn, sumNum, presetItems);
+                if (sumNum == presetDataCatch.get(sn).size()) {
+                    RequestMessage requestMessage = new RequestMessage();
+                    requestMessage.setKey(key);
+                    requestMessage.setData(presetDataCatch.get(sn));
+                    deferredResultHolder.invokeAllResult(requestMessage);
                 }
             }
-            RequestMessage requestMessage = new RequestMessage();
-            requestMessage.setKey(key);
-            requestMessage.setData(presetQuerySipReqList);
-            deferredResultHolder.invokeAllResult(requestMessage);
             try {
                 responseAck(request, Response.OK);
             } catch (InvalidArgumentException | ParseException | SipException e) {

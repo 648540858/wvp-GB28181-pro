@@ -38,13 +38,13 @@ public class PresetDataCatch {
         }
     }
 
-    public void put(int sn, int total, Device device, List<PresetItem> deviceChannelList) {
+    public void put(int sn, int total, List<PresetItem> presetItemList) {
         PresetData presetData = data.get(sn);
         if (presetData == null) {
             presetData = new PresetData();
             presetData.setSn(sn);
             presetData.setTotal(total);
-            presetData.setPresetItemList(deviceChannelList);
+            presetData.setPresetItemList(presetItemList);
             presetData.setStatus(DataStatus.runIng);
             presetData.setLastTime(Instant.now());
             data.put(sn, presetData);
@@ -55,7 +55,7 @@ public class PresetDataCatch {
             }
             presetData.setTotal(total);
             presetData.setStatus(DataStatus.runIng);
-            presetData.getPresetItemList().addAll(deviceChannelList);
+            presetData.getPresetItemList().addAll(presetItemList);
             presetData.setLastTime(Instant.now());
         }
     }

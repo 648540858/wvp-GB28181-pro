@@ -7,15 +7,12 @@ import com.genersoft.iot.vmp.common.BatchLimit;
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
-import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OriginType;
 import com.genersoft.iot.vmp.service.*;
-import com.genersoft.iot.vmp.service.bean.CommonGbChannelType;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.Group;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
@@ -29,14 +26,11 @@ import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class StreamPushServiceImpl implements IStreamPushService {
@@ -366,15 +360,15 @@ public class StreamPushServiceImpl implements IStreamPushService {
     }
 
     @Override
-    public boolean batchStop(List<GbStream> gbStreams) {
-        if (gbStreams == null || gbStreams.size() == 0) {
+    public boolean batchStop(List<StreamPush> streamPushList) {
+        if (streamPushList == null || streamPushList.size() == 0) {
             return false;
         }
-        int delStream = streamPushMapper.delAllForGbStream(gbStreams);
+        int delStream = streamPushMapper.delAllForStream(streamPushList);
         if (delStream > 0) {
-            for (GbStream gbStream : gbStreams) {
-                MediaServerItem mediaServerItem = mediaServerService.getOne(gbStream.getMediaServerId());
-                zlmresTfulUtils.closeStreams(mediaServerItem, gbStream.getApp(), gbStream.getStream());
+            for (StreamPush streamPush : streamPushList) {
+                MediaServerItem mediaServerItem = mediaServerService.getOne(streamPush.getMediaServerId());
+                zlmresTfulUtils.closeStreams(mediaServerItem, streamPush.getApp(), streamPush.getStream());
             }
         }
         return true;

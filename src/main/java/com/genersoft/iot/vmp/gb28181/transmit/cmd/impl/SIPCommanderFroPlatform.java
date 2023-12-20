@@ -556,7 +556,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         catalogXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n")
                 .append("<Notify>\r\n")
                 .append("<CmdType>Catalog</CmdType>\r\n")
-                .append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n")
+                .append("<SN>" + SipUtils.getNewSn() + "</SN>\r\n")
                 .append("<DeviceID>" + parentPlatform.getDeviceGBId() + "</DeviceID>\r\n")
                 .append("<SumNum>1</SumNum>\r\n")
                 .append("<DeviceList Num=\"" + channels.size() + "\">\r\n");
@@ -717,7 +717,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         catalogXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n")
                 .append("<Notify>\r\n")
                 .append("<CmdType>Catalog</CmdType>\r\n")
-                .append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n")
+                .append("<SN>" + SipUtils.getNewSn() + "</SN>\r\n")
                 .append("<DeviceID>" + parentPlatform.getDeviceGBId() + "</DeviceID>\r\n")
                 .append("<SumNum>1</SumNum>\r\n")
                 .append("<DeviceList Num=\" " + channels.size() + " \">\r\n");

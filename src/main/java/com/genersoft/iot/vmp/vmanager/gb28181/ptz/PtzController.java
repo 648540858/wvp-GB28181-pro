@@ -3,9 +3,12 @@ package com.genersoft.iot.vmp.vmanager.gb28181.ptz;
 
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.PresetItem;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,6 +24,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
+import java.util.List;
 import java.util.UUID;
 
 @Tag(name  = "云台控制")
@@ -32,7 +36,7 @@ public class PtzController {
 	private final static Logger logger = LoggerFactory.getLogger(PtzController.class);
 
 	@Autowired
-	private SIPCommander cmder;
+	private ISIPCommander cmder;
 
 	@Autowired
 	private IVideoManagerStorage storager;
@@ -141,31 +145,33 @@ public class PtzController {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@GetMapping("/preset/query/{deviceId}/{channelId}")
-	public DeferredResult<String> presetQueryApi(@PathVariable String deviceId, @PathVariable String channelId) {
+	public DeferredResult<List<PresetItem>> presetQueryApi(@PathVariable String deviceId, @PathVariable String channelId) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("设备预置位查询API调用");
 		}
 		Device device = storager.queryVideoDevice(deviceId);
-		String uuid =  UUID.randomUUID().toString();
-		String key =  DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (ObjectUtils.isEmpty(channelId) ? deviceId : channelId);
-		DeferredResult<String> result = new DeferredResult<String> (3 * 1000L);
+		int sn = SipUtils.getNewSn();
+		String msgId = sn + "";
+		String key =  DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + sn;
+		DeferredResult<List<PresetItem>> result = new DeferredResult<> (3 * 1000L);
 		result.onTimeout(()->{
 			logger.warn(String.format("获取设备预置位超时"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
+			msg.setId(msgId);
 			msg.setKey(key);
 			msg.setData("获取设备预置位超时");
 			resultHolder.invokeResult(msg);
+
 		});
 		if (resultHolder.exist(key, null)) {
 			return result;
 		}
-		resultHolder.put(key, uuid, result);
+		resultHolder.put(key, msgId, result);
 		try {
-			cmder.presetQuery(device, channelId, event -> {
+			cmder.presetQuery(device, channelId, sn, event -> {
 				RequestMessage msg = new RequestMessage();
-				msg.setId(uuid);
+				msg.setId(msgId);
 				msg.setKey(key);
 				msg.setData(String.format("获取设备预置位失败，错误码： %s, %s", event.statusCode, event.msg));
 				resultHolder.invokeResult(msg);

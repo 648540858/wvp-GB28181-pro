@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
+import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -43,6 +44,7 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
     private DeferredResultHolder deferredResultHolder;
 
 
+
     @Override
     public void afterPropertiesSet() throws Exception {
         responseMessageHandler.addHandler(cmdType, this);
@@ -52,7 +54,7 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
     public void handForDevice(RequestEvent evt, Device device, Element element) {
 
         SIPRequest request = (SIPRequest) evt.getRequest();
-
+        String deviceId = SipUtils.getUserIdFromFromHeader(request);
         try {
              Element rootElement = getRootElement(evt, device.getCharset());
 
@@ -66,11 +68,14 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
                 return;
             }
             Element presetListNumElement = rootElement.element("PresetList");
-            Element snElement = rootElement.element("SN");
+            String sn = getText(rootElement, "SN");
             //该字段可能为通道或则设备的id
-            String deviceId = getText(rootElement, "DeviceID");
-            String key = DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + deviceId;
-            if (snElement == null || presetListNumElement == null) {
+            String channelId = getText(rootElement, "DeviceID");
+            if (channelId == null) {
+
+            }
+            String key = DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + deviceId + channelId;
+            if (sn == null || presetListNumElement == null) {
                 try {
                     responseAck(request, Response.BAD_REQUEST, "xml error");
                 } catch (InvalidArgumentException | ParseException | SipException e) {

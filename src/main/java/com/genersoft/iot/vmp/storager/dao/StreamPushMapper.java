@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.storager.dao;
 
-import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
@@ -56,11 +55,11 @@ public interface StreamPushMapper {
 
     @Delete("<script> "+
             "DELETE FROM wvp_stream_push where " +
-            "<foreach collection='gbStreams' item='item' separator='or'>" +
+            "<foreach collection='streamPushList' item='item' separator='or'>" +
             "(app=#{item.app} and stream=#{item.stream}) " +
             "</foreach>" +
             "</script>")
-    int delAllForGbStream(List<GbStream> gbStreams);
+    int delAllForStream(List<StreamPush> streamPushList);
 
 
     @Select(value = {" <script>" +

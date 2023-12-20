@@ -1,7 +1,5 @@
 package com.genersoft.iot.vmp.service;
 
-import com.genersoft.iot.vmp.common.CommonGbChannel;
-import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
@@ -62,7 +60,7 @@ public interface IStreamPushService {
     /**
      * 中止多个推流
      */
-    boolean batchStop(List<GbStream> streamPushItems);
+    boolean batchStop(List<StreamPush> streamPushItems);
 
     /**
      * 导入时批量增加

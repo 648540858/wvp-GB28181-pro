@@ -306,7 +306,7 @@ public interface ISIPCommander {
 	 * 
 	 * @param device 视频设备
 	 */
-	void presetQuery(Device device, String channelId, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
+	void presetQuery(Device device, String channelId, int sn,  SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
 	
 	/**
 	 * 查询移动设备位置数据

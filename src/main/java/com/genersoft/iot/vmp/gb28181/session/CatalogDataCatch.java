@@ -1,9 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.session;
 
-import com.genersoft.iot.vmp.gb28181.bean.CatalogData;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,12 +21,12 @@ public class CatalogDataCatch {
 
     public void addReady(Device device, int sn ) {
         CatalogData catalogData = data.get(device.getDeviceId());
-        if (catalogData == null || catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end)) {
+        if (catalogData == null || catalogData.getStatus().equals(DataStatus.end)) {
             catalogData = new CatalogData();
             catalogData.setChannelList(Collections.synchronizedList(new ArrayList<>()));
             catalogData.setDevice(device);
             catalogData.setSn(sn);
-            catalogData.setStatus(CatalogData.CatalogDataStatus.ready);
+            catalogData.setStatus(DataStatus.ready);
             catalogData.setLastTime(Instant.now());
             data.put(device.getDeviceId(), catalogData);
         }
@@ -43,7 +40,7 @@ public class CatalogDataCatch {
             catalogData.setTotal(total);
             catalogData.setDevice(device);
             catalogData.setChannelList(deviceChannelList);
-            catalogData.setStatus(CatalogData.CatalogDataStatus.runIng);
+            catalogData.setStatus(DataStatus.runIng);
             catalogData.setLastTime(Instant.now());
             data.put(deviceId, catalogData);
         }else {
@@ -53,7 +50,7 @@ public class CatalogDataCatch {
             }
             catalogData.setTotal(total);
             catalogData.setDevice(device);
-            catalogData.setStatus(CatalogData.CatalogDataStatus.runIng);
+            catalogData.setStatus(DataStatus.runIng);
             catalogData.getChannelList().addAll(deviceChannelList);
             catalogData.setLastTime(Instant.now());
         }
@@ -84,7 +81,7 @@ public class CatalogDataCatch {
         syncStatus.setCurrent(catalogData.getChannelList().size());
         syncStatus.setTotal(catalogData.getTotal());
         syncStatus.setErrorMsg(catalogData.getErrorMsg());
-        if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end)) {
+        if (catalogData.getStatus().equals(DataStatus.end)) {
             syncStatus.setSyncIng(false);
         }else {
             syncStatus.setSyncIng(true);
@@ -97,7 +94,7 @@ public class CatalogDataCatch {
         if (catalogData == null) {
             return false;
         }
-        return !catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end);
+        return !catalogData.getStatus().equals(DataStatus.end);
     }
 
     @Scheduled(fixedRate = 5 * 1000)   //每5秒执行一次, 发现数据5秒未更新则移除数据并认为数据接收超时
@@ -111,17 +108,17 @@ public class CatalogDataCatch {
             CatalogData catalogData = data.get(deviceId);
             if ( catalogData.getLastTime().isBefore(instantBefore5S)) {
                 // 超过五秒收不到消息任务超时， 只更新这一部分数据, 收到数据与声明的总数一致，则重置通道数据，数据不全则只对收到的数据做更新操作
-                if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.runIng)) {
+                if (catalogData.getStatus().equals(DataStatus.runIng)) {
                     deviceChannelService.updateChannelsForCatalog(catalogData.getDevice(), catalogData.getChannelList());
                     String errorMsg = "更新成功，共" + catalogData.getTotal() + "条，已更新" + catalogData.getChannelList().size() + "条";
                     catalogData.setErrorMsg(errorMsg);
-                }else if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.ready)) {
+                }else if (catalogData.getStatus().equals(DataStatus.ready)) {
                     String errorMsg = "同步失败，等待回复超时";
                     catalogData.setErrorMsg(errorMsg);
                 }
-                catalogData.setStatus(CatalogData.CatalogDataStatus.end);
+                catalogData.setStatus(DataStatus.end);
             }
-            if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end) && catalogData.getLastTime().isBefore(instantBefore30S)) { // 超过三十秒，如果标记为end则删除
+            if (catalogData.getStatus().equals(DataStatus.end) && catalogData.getLastTime().isBefore(instantBefore30S)) { // 超过三十秒，如果标记为end则删除
                 data.remove(deviceId);
             }
         }
@@ -133,7 +130,7 @@ public class CatalogDataCatch {
         if (catalogData == null) {
             return;
         }
-        catalogData.setStatus(CatalogData.CatalogDataStatus.end);
+        catalogData.setStatus(DataStatus.end);
         catalogData.setErrorMsg(errorMsg);
     }
 }

@@ -106,10 +106,10 @@ public class StreamPushController {
     @ResponseBody
     @Operation(summary = "中止多个推流")
     public void batchStop(@RequestBody BatchGBStreamParam batchGBStreamParam){
-        if (batchGBStreamParam.getGbStreams().size() == 0) {
+        if (batchGBStreamParam.getStreamPushes().size() == 0) {
             throw new ControllerException(ErrorCode.ERROR100);
         }
-        if (!streamPushService.batchStop(batchGBStreamParam.getGbStreams())){
+        if (!streamPushService.batchStop(batchGBStreamParam.getStreamPushes())){
             throw new ControllerException(ErrorCode.ERROR100);
         }
     }

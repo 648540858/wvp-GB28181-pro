@@ -1,8 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.event.subscribe.catalog;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import org.springframework.context.ApplicationEvent;
 
 import java.util.List;

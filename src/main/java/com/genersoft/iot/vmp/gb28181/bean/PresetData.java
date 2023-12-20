@@ -4,18 +4,19 @@ import java.time.Instant;
 import java.util.List;
 
 /**
+ * 预置位数据
  * @author lin
  */
-public class CatalogData {
+public class PresetData {
     /**
      * 命令序列号
      */
     private int sn;
     private int total;
-    private List<DeviceChannel> channelList;
+    private List<PresetItem> presetItemList;
     private Instant lastTime;
-    private Device device;
     private String errorMsg;
+
     private DataStatus status;
 
 
@@ -35,12 +36,12 @@ public class CatalogData {
         this.total = total;
     }
 
-    public List<DeviceChannel> getChannelList() {
-        return channelList;
+    public List<PresetItem> getPresetItemList() {
+        return presetItemList;
     }
 
-    public void setChannelList(List<DeviceChannel> channelList) {
-        this.channelList = channelList;
+    public void setPresetItemList(List<PresetItem> presetItemList) {
+        this.presetItemList = presetItemList;
     }
 
     public Instant getLastTime() {
@@ -49,14 +50,6 @@ public class CatalogData {
 
     public void setLastTime(Instant lastTime) {
         this.lastTime = lastTime;
-    }
-
-    public Device getDevice() {
-        return device;
-    }
-
-    public void setDevice(Device device) {
-        this.device = device;
     }
 
     public String getErrorMsg() {

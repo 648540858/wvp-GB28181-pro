@@ -194,7 +194,7 @@ public class ApiDeviceController {
 
         Device device = storager.queryVideoDevice(serial);
         String uuid =  UUID.randomUUID().toString();
-        String key =  DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (ObjectUtils.isEmpty(code) ? serial : code);
+        String key =  DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + serial + code;
         DeferredResult<Object> result = new DeferredResult<> (timeout * 1000L);
         DeferredResultEx<Object> deferredResultEx = new DeferredResultEx<>(result);
         result.onTimeout(()->{

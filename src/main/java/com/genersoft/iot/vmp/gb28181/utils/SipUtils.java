@@ -325,4 +325,8 @@ public class SipUtils {
         subscribeInfo.setSimulatedToTag(UUID.randomUUID().toString().replace("-", ""));
         return subscribeInfo;
     }
+
+    public static int getNewSn(){
+        return (int) ((Math.random() * 9 + 1) * 100000);
+    }
 }

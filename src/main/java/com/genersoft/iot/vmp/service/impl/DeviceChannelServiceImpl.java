@@ -125,9 +125,9 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         List<DeviceChannel> updateChannels = new ArrayList<>();
         HashMap<String, DeviceChannel> channelsInStore = new HashMap<>();
         Device device = deviceMapper.getDeviceByDeviceId(deviceId);
-        if (channels != null && channels.size() > 0) {
+        if (channels != null && !channels.isEmpty()) {
             List<DeviceChannel> channelList = channelMapper.queryChannels(deviceId, null, null, null, null,null);
-            if (channelList.size() == 0) {
+            if (channelList.isEmpty()) {
                 for (DeviceChannel channel : channels) {
                     channel.setDeviceId(deviceId);
                     InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channel.getChannelId());
@@ -204,7 +204,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     public boolean updateAllGps(Device device) {
         List<DeviceChannel> deviceChannels = channelMapper.getChannelsWithoutTransform(device.getDeviceId());
         List<DeviceChannel> result = new CopyOnWriteArrayList<>();
-        if (deviceChannels.size() == 0) {
+        if (deviceChannels.isEmpty()) {
             return true;
         }
         String now = DateUtil.getNow();
@@ -348,7 +348,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         Map<String, Region> regionMap = regionMapper.getAllForMap();
         // 存储得到的所有行政区划, 后续检验civilCode是否已传输对应的行政区划数据，从而确定是否需要自动创建节点。
         Set<String> civilCodeSet = new HashSet<>();
-        List<String> clearChannels = new ArrayList<>();
 
         Set<String> gbIdSet = new HashSet<>();
         for (DeviceChannel deviceChannel : deviceChannelList) {
@@ -357,6 +356,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 logger.info("[目录查询]收到的数据存在重复： {}" , deviceChannel.getChannelId());
                 continue;
             }
+            civilCodeSet.add(deviceChannel.getCivilCode());
             gbIdSet.add(deviceChannel.getChannelId());
             Gb28181CodeType channelIdType = SipUtils.getChannelIdType(deviceChannel.getChannelId());
             // 处理国标通道相关的判断
@@ -579,14 +579,17 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 commonGbChannelService.batchDelete(allCommonChannelsForDelete);
             }
             // addChannels 与 addCommonChannels 数量一致，这里使用同一个循环处理
-            if (!addChannelList.isEmpty()) {
+            if (!addCommonChannelList.isEmpty()) {
                 // 对于新增的部分需要先添加通用通道，拿到ID后再添加国标通道
                 commonGbChannelService.batchAdd(addCommonChannelList);
-                for (int j = 0; j < addCommonChannelList.size(); j++) {
-                    addChannelList.get(j).setCommonGbChannelId(addCommonChannelList.get(j).getCommonGbId());
-                }
+                Map<String, Integer> commonChannelDeviceAndIdMap = new HashMap<>();
+                addCommonChannelList.stream().forEach(commonGbChannel ->{
+                    commonChannelDeviceAndIdMap.put(commonGbChannel.getCommonGbDeviceID(), commonGbChannel.getCommonGbId());
+                });
+                addChannelList.stream().forEach(channel ->{
+                    channel.setCommonGbChannelId(commonChannelDeviceAndIdMap.get(channel.getChannelId()));
+                });
                 addChannelHandler(addChannelList);
-
             }
             if (!updateChannelList.isEmpty()) {
                 commonGbChannelService.batchUpdate(updateCommonChannelList);

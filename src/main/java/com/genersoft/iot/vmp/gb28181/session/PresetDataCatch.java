@@ -129,17 +129,21 @@ public class PresetDataCatch {
         for (Integer sn : keys) {
             PresetData presetData = data.get(sn);
             String key = DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + sn;
-            if ( presetData.getLastTime().isBefore(instantBefore5S)) {
+            if ( presetData.getLastTime().isBefore(instantBefore5S) && !presetData.getStatus().equals(DataStatus.end) ) {
                 logger.info("[预置位接收等待超时] 直接返回已经收到的数据， {}/{}", presetData.getPresetItems().size(), presetData.getTotal());
                 // 超过五秒收不到消息任务超时， 只更新这一部分数据, 收到数据与声明的总数一致，则重置通道数据，数据不全则只对收到的数据做更新操作
                 if (presetData.getStatus().equals(DataStatus.runIng)) {
-                    RequestMessage requestMessage = new RequestMessage();
-                    requestMessage.setKey(key);
-                    requestMessage.setData(presetData.getPresetItems().values());
-                    deferredResultHolder.invokeAllResult(requestMessage);
-
                     String errorMsg = "更新成功，共" + presetData.getTotal() + "条，已更新" + presetData.getPresetItems().size() + "条";
                     presetData.setErrorMsg(errorMsg);
+                    RequestMessage requestMessage = new RequestMessage();
+                    requestMessage.setKey(key);
+                    requestMessage.setId(sn + "");
+                    if (!presetData.getPresetItems().isEmpty()) {
+                        requestMessage.setData(presetData.getPresetItems().values());
+                    }else {
+                        requestMessage.setData(presetData.getErrorMsg());
+                    }
+                    deferredResultHolder.invokeResult(requestMessage);
                 }else if (presetData.getStatus().equals(DataStatus.ready)) {
                     String errorMsg = "同步失败，等待回复超时";
                     presetData.setErrorMsg(errorMsg);

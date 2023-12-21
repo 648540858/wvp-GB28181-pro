@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.PresetQuerySipReq;
+import com.genersoft.iot.vmp.gb28181.session.PresetDataCatch;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
@@ -46,7 +47,7 @@ public class ApiDeviceController {
     @Autowired
     private SIPCommander cmder;
     @Autowired
-    private IDeviceService deviceService;
+    private PresetDataCatch presetDataCatch;
 
     @Autowired
     private DeferredResultHolder resultHolder;
@@ -233,6 +234,7 @@ public class ApiDeviceController {
         resultHolder.put(key, msgId, deferredResultEx);
 
         try {
+            presetDataCatch.addReady(sn);
             cmder.presetQuery(device, code, sn, event -> {
                 RequestMessage msg = new RequestMessage();
                 msg.setId(msgId);

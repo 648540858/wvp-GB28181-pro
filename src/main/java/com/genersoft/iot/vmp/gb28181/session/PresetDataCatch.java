@@ -3,7 +3,10 @@ package com.genersoft.iot.vmp.gb28181.session;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -19,6 +22,8 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class PresetDataCatch {
 
+    private final Logger logger = LoggerFactory.getLogger(PresetDataCatch.class);
+
     public static Map<Integer, PresetData> data = new ConcurrentHashMap<>();
 
 
@@ -30,7 +35,7 @@ public class PresetDataCatch {
         PresetData presetData = data.get(sn);
         if (presetData == null || presetData.getStatus().equals(DataStatus.end)) {
             presetData = new PresetData();
-            presetData.setPresetItemList(Collections.synchronizedList(new ArrayList<>()));
+            presetData.setPresetItems(new ConcurrentHashMap<>());
             presetData.setSn(sn);
             presetData.setStatus(DataStatus.ready);
             presetData.setLastTime(Instant.now());
@@ -44,7 +49,7 @@ public class PresetDataCatch {
             presetData = new PresetData();
             presetData.setSn(sn);
             presetData.setTotal(total);
-            presetData.setPresetItemList(presetItemList);
+            presetData.setPresetItems(new ConcurrentHashMap<>());
             presetData.setStatus(DataStatus.runIng);
             presetData.setLastTime(Instant.now());
             data.put(sn, presetData);
@@ -55,9 +60,22 @@ public class PresetDataCatch {
             }
             presetData.setTotal(total);
             presetData.setStatus(DataStatus.runIng);
-            presetData.getPresetItemList().addAll(presetItemList);
             presetData.setLastTime(Instant.now());
         }
+        if (!presetItemList.isEmpty()) {
+            for (PresetItem presetItem : presetItemList) {
+                presetData.getPresetItems().put(presetItem.getPresetID(), presetItem);
+            }
+        }
+//        presetData.getPresetItems().sort((a, b) ->{
+//            if (a.getPresetID() > b.getPresetID()) {
+//                return 1;
+//            }else if (a.getPresetID() < b.getPresetID()) {
+//                return -1;
+//            }else {
+//                return 0;
+//            }
+//        });
     }
 
     public List<PresetItem> get(int sn) {
@@ -65,7 +83,7 @@ public class PresetDataCatch {
         if (presetData == null) {
             return null;
         }
-        return presetData.getPresetItemList();
+        return new ArrayList<>(presetData.getPresetItems().values());
     }
 
     public int getTotal(int sn) {
@@ -82,7 +100,7 @@ public class PresetDataCatch {
             return null;
         }
         SyncStatus syncStatus = new SyncStatus();
-        syncStatus.setCurrent(presetData.getPresetItemList().size());
+        syncStatus.setCurrent(presetData.getPresetItems().size());
         syncStatus.setTotal(presetData.getTotal());
         syncStatus.setErrorMsg(presetData.getErrorMsg());
         if (presetData.getStatus().equals(DataStatus.end)) {
@@ -112,14 +130,15 @@ public class PresetDataCatch {
             PresetData presetData = data.get(sn);
             String key = DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + sn;
             if ( presetData.getLastTime().isBefore(instantBefore5S)) {
+                logger.info("[预置位接收等待超时] 直接返回已经收到的数据， {}/{}", presetData.getPresetItems().size(), presetData.getTotal());
                 // 超过五秒收不到消息任务超时， 只更新这一部分数据, 收到数据与声明的总数一致，则重置通道数据，数据不全则只对收到的数据做更新操作
                 if (presetData.getStatus().equals(DataStatus.runIng)) {
                     RequestMessage requestMessage = new RequestMessage();
                     requestMessage.setKey(key);
-                    requestMessage.setData(presetData.getPresetItemList());
+                    requestMessage.setData(presetData.getPresetItems().values());
                     deferredResultHolder.invokeAllResult(requestMessage);
 
-                    String errorMsg = "更新成功，共" + presetData.getTotal() + "条，已更新" + presetData.getPresetItemList().size() + "条";
+                    String errorMsg = "更新成功，共" + presetData.getTotal() + "条，已更新" + presetData.getPresetItems().size() + "条";
                     presetData.setErrorMsg(errorMsg);
                 }else if (presetData.getStatus().equals(DataStatus.ready)) {
                     String errorMsg = "同步失败，等待回复超时";

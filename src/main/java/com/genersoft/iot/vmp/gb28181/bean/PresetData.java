@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.bean;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 预置位数据
@@ -13,7 +14,7 @@ public class PresetData {
      */
     private int sn;
     private int total;
-    private List<PresetItem> presetItemList;
+    private Map<Integer, PresetItem> presetItems;
     private Instant lastTime;
     private String errorMsg;
 
@@ -36,12 +37,12 @@ public class PresetData {
         this.total = total;
     }
 
-    public List<PresetItem> getPresetItemList() {
-        return presetItemList;
+    public Map<Integer, PresetItem> getPresetItems() {
+        return presetItems;
     }
 
-    public void setPresetItemList(List<PresetItem> presetItemList) {
-        this.presetItemList = presetItemList;
+    public void setPresetItems(Map<Integer, PresetItem> presetItems) {
+        this.presetItems = presetItems;
     }
 
     public Instant getLastTime() {

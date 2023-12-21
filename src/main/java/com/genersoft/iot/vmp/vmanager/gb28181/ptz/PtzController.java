@@ -4,6 +4,7 @@ package com.genersoft.iot.vmp.vmanager.gb28181.ptz;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.PresetItem;
+import com.genersoft.iot.vmp.gb28181.session.PresetDataCatch;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
@@ -43,6 +44,9 @@ public class PtzController {
 
 	@Autowired
 	private DeferredResultHolder resultHolder;
+
+	@Autowired
+	private PresetDataCatch presetDataCatch;
 
 	/***
 	 * 云台控制
@@ -153,7 +157,7 @@ public class PtzController {
 		int sn = SipUtils.getNewSn();
 		String msgId = sn + "";
 		String key =  DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + sn;
-		DeferredResult<List<PresetItem>> result = new DeferredResult<> (3 * 1000L);
+		DeferredResult<List<PresetItem>> result = new DeferredResult<> (30 * 1000L);
 		result.onTimeout(()->{
 			logger.warn(String.format("获取设备预置位超时"));
 			// 释放rtpserver
@@ -169,6 +173,7 @@ public class PtzController {
 		}
 		resultHolder.put(key, msgId, result);
 		try {
+			presetDataCatch.addReady(sn);
 			cmder.presetQuery(device, channelId, sn, event -> {
 				RequestMessage msg = new RequestMessage();
 				msg.setId(msgId);

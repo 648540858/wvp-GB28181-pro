@@ -227,4 +227,181 @@ public class PtzController {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
 		}
 	}
+
+	@Operation(summary = "巡航组控制")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@Parameter(name = "command", description = "控制指令 允许值: add, remove, setSpeed, setStay, start, stop", required = true)
+	@Parameter(name = "cruiseId", description = "巡航组编号", required = true)
+	@Parameter(name = "presetId", description = "预置位编号", required = true)
+	@Parameter(name = "speed", description = "巡航速度（1~4095）", required = true)
+	@Parameter(name = "stay", description = "巡航停留时间(1~4095)", required = true)
+	@GetMapping("/cruise/control/{deviceId}/{channelId}")
+	public void cruiseControlApi(@PathVariable String deviceId, @PathVariable String channelId,
+								 String command, Integer cruiseId,
+								 @Parameter(required = false) Integer presetId,
+								 @Parameter(required = false)Integer speed,
+								 @Parameter(required = false)Integer stay) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("设备巡航组控制API调用");
+		}
+		Device device = storager.queryVideoDevice(deviceId);
+		if (device == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), deviceId + "不存在");
+		}
+		int cmdCode = 0;
+		int param1 = cruiseId;
+		int param2 = presetId != null? presetId: 0;
+		int param3 = 0;
+		switch (command){
+			case "add":
+				cmdCode = 132;
+				break;
+			case "remove":
+				cmdCode = 133;
+				break;
+			case "setSpeed":
+				cmdCode = 134;
+				param3= speed;
+				break;
+			case "setStay":
+				cmdCode = 135;
+				param3= stay;
+				break;
+			case "start":
+				cmdCode = 136;
+				break;
+			case "stop":
+				param1 = 0;
+				param2 = 0;
+				break;
+			default:
+				break;
+		}
+		try {
+			cmder.frontEndCmd(device, channelId, cmdCode, param1, param2, param3);
+		} catch (SipException | InvalidArgumentException | ParseException e) {
+			logger.error("[命令发送失败] 巡航组控制: {}", e.getMessage());
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+		}
+	}
+
+	@Operation(summary = "扫描组控制")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@Parameter(name = "command", description = "控制指令 允许值: setLeft, setRight, start, stop", required = true)
+	@Parameter(name = "scanId", description = "扫描组编号", required = true)
+	@Parameter(name = "speed", description = "自动扫描速度(1~4095)", required = false)
+	@GetMapping("/scan/control/{deviceId}/{channelId}")
+	public void scanControlApi(@PathVariable String deviceId, @PathVariable String channelId,
+								 String command, Integer scanId, @Parameter(required = false)Integer speed) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("设备扫描组API调用");
+		}
+		Device device = storager.queryVideoDevice(deviceId);
+		if (device == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), deviceId + "不存在");
+		}
+		int cmdCode = 0;
+		int param1 = scanId;
+		int param2 = 0;
+		int param3 = 0;
+		switch (command){
+			case "setSpeed":
+				cmdCode = 138;
+				if (speed == null || speed == 0) {
+					throw new ControllerException(ErrorCode.ERROR100.getCode(), "speed值不正确");
+				}
+				param3 = speed;
+				break;
+			case "setLeft":
+				cmdCode = 137;
+				break;
+			case "setRight":
+				cmdCode = 137;
+				break;
+			case "start":
+				cmdCode = 137;
+				break;
+			case "stop":
+				param1 = 0;
+				param2 = 0;
+				break;
+			default:
+				break;
+		}
+		try {
+			cmder.frontEndCmd(device, channelId, cmdCode, param1, param2, param3);
+		} catch (SipException | InvalidArgumentException | ParseException e) {
+			logger.error("[命令发送失败] 扫描组控制: {}", e.getMessage());
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+		}
+	}
+
+	@Operation(summary = "雨刷开关")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@Parameter(name = "command", description = "控制指令 允许值: on off", required = true)
+	@GetMapping("/wiper/control/{deviceId}/{channelId}")
+	public void wiperControlApi(@PathVariable String deviceId, @PathVariable String channelId, String command) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("设备雨刷开关控制API调用");
+		}
+		Device device = storager.queryVideoDevice(deviceId);
+		if (device == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), deviceId + "不存在");
+		}
+		int cmdCode = 0;
+		switch (command){
+			case "on":
+				cmdCode = 140;
+				break;
+			case "off":
+				cmdCode = 141;
+				break;
+			default:
+				break;
+		}
+		try {
+			cmder.frontEndCmd(device, channelId, cmdCode, 1, 0, 0);
+		} catch (SipException | InvalidArgumentException | ParseException e) {
+			logger.error("[命令发送失败] 雨刷开关控制: {}", e.getMessage());
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+		}
+	}
+
+	@Operation(summary = "辅助控制开关")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@Parameter(name = "command", description = "控制指令 允许值: on off", required = true)
+	@Parameter(name = "auxiliaryId", description = "开关ID（2-255）", required = true)
+	@GetMapping("/auxiliary/control/{deviceId}/{channelId}")
+	public void auxiliaryControlApi(@PathVariable String deviceId, @PathVariable String channelId, String command, int auxiliaryId) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("设备雨刷开关控制API调用");
+		}
+		Device device = storager.queryVideoDevice(deviceId);
+		if (device == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), deviceId + "不存在");
+		}
+		int cmdCode = 0;
+		int param2 = 0;
+		int param3 = 0;
+		switch (command){
+			case "on":
+				cmdCode = 140;
+				break;
+			case "off":
+				cmdCode = 141;
+				break;
+			default:
+				break;
+		}
+		try {
+			cmder.frontEndCmd(device, channelId, cmdCode, auxiliaryId, param2, param3);
+		} catch (SipException | InvalidArgumentException | ParseException e) {
+			logger.error("[命令发送失败] 雨刷开关控制: {}", e.getMessage());
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+		}
+	}
 }

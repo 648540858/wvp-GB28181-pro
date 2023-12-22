@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd;
 
-import com.genersoft.iot.vmp.gb28181.bean.PresetQuerySipReq;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.PresetDataCatch;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
@@ -8,7 +7,6 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
-import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -118,7 +116,7 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
                                 String name = itemOne.getName();
                                 String textTrim = itemOne.getTextTrim();
                                 if ("PresetID".equalsIgnoreCase(name)) {
-                                    presetItem.setPresetID(Integer.parseInt(textTrim));
+                                    presetItem.setPresetId(Integer.parseInt(textTrim));
                                 } else {
                                     presetItem.setPresetName(textTrim);
                                 }

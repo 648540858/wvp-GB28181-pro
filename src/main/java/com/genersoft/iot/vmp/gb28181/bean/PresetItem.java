@@ -2,15 +2,15 @@ package com.genersoft.iot.vmp.gb28181.bean;
 
 public class PresetItem {
 
-    private int presetID;
+    private int presetId;
     private String presetName;
 
-    public int getPresetID() {
-        return presetID;
+    public int getPresetId() {
+        return presetId;
     }
 
-    public void setPresetID(int presetID) {
-        this.presetID = presetID;
+    public void setPresetId(int presetID) {
+        this.presetId = presetID;
     }
 
     public String getPresetName() {

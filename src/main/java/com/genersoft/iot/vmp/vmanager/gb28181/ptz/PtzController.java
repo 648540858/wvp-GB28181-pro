@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -154,6 +155,9 @@ public class PtzController {
 			logger.debug("设备预置位查询API调用");
 		}
 		Device device = storager.queryVideoDevice(deviceId);
+		if (device == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), deviceId + "不存在");
+		}
 		int sn = SipUtils.getNewSn();
 		String msgId = sn + "";
 		String key =  DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + sn;
@@ -186,5 +190,41 @@ public class PtzController {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
 		}
 		return result;
+	}
+	@Operation(summary = "预置位控制")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@Parameter(name = "command", description = "控制指令 允许值: set, goto, delete", required = true)
+	@Parameter(name = "presetId", description = "预置位编号", required = true)
+	@GetMapping("/preset/control/{deviceId}/{channelId}")
+	public void presetControlApi(@PathVariable String deviceId, @PathVariable String channelId,
+											String command, int presetId) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("设备预置位控制API调用");
+		}
+		Device device = storager.queryVideoDevice(deviceId);
+		if (device == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), deviceId + "不存在");
+		}
+		int cmdCode = 0;
+		switch (command){
+			case "set":
+				cmdCode = 129;
+				break;
+			case "goto":
+				cmdCode = 130;
+				break;
+			case "delete":
+				cmdCode = 131;
+				break;
+			default:
+				break;
+		}
+		try {
+			cmder.frontEndCmd(device, channelId, cmdCode, 0, presetId, 2);
+		} catch (SipException | InvalidArgumentException | ParseException e) {
+			logger.error("[命令发送失败] 云台控制: {}", e.getMessage());
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+		}
 	}
 }

@@ -3,8 +3,6 @@ package com.genersoft.iot.vmp.gb28181.session;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
-import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +62,7 @@ public class PresetDataCatch {
         }
         if (!presetItemList.isEmpty()) {
             for (PresetItem presetItem : presetItemList) {
-                presetData.getPresetItems().put(presetItem.getPresetID(), presetItem);
+                presetData.getPresetItems().put(presetItem.getPresetId(), presetItem);
             }
         }
 //        presetData.getPresetItems().sort((a, b) ->{

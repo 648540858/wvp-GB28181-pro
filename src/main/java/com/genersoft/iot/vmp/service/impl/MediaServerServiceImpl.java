@@ -14,6 +14,8 @@ import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.media.zlm.*;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.ServerKeepaliveData;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamMediaInfo;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamMediaTrack;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
@@ -847,5 +849,49 @@ public class MediaServerServiceImpl implements IMediaServerService {
             }
         }
         return CompletableFuture.completedFuture(new ArrayList<>());
+    }
+
+    @Override
+    public StreamMediaInfo getMediaInfo(String mediaServerId, String app, String stream) {
+        MediaServerItem mediaServerItem = getOne(mediaServerId);
+        if (mediaServerItem == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到流媒体节点");
+        }
+        JSONObject mediaInfoJson = zlmresTfulUtils.getMediaInfo(mediaServerItem, app, "rtsp", stream);
+        if (mediaInfoJson == null || mediaInfoJson.getInteger("code") != 0) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), mediaInfoJson == null?"获取信息失败":mediaInfoJson.getString("msg"));
+        }
+        StreamMediaInfo streamMediaInfo = new StreamMediaInfo();
+        streamMediaInfo.setOnline(mediaInfoJson.getBoolean("online"));
+        streamMediaInfo.setTotalReaderCount(mediaInfoJson.getInteger("totalReaderCount"));
+        streamMediaInfo.setAliveSecond(mediaInfoJson.getInteger("aliveSecond"));
+        streamMediaInfo.setBytesSpeed(mediaInfoJson.getInteger("bytesSpeed"));
+
+        JSONArray tracks = mediaInfoJson.getJSONArray("tracks");
+        if (!tracks.isEmpty()) {
+            for (int i = 0; i < tracks.size(); i++) {
+                JSONObject tracksJson = tracks.getJSONObject(i);
+                StreamMediaTrack streamMediaTrack = new StreamMediaTrack();
+                streamMediaTrack.setChannels(tracksJson.getInteger("channels"));
+                streamMediaTrack.setCodec_id(tracksJson.getInteger("codec_id"));
+                streamMediaTrack.setCodec_id_name(tracksJson.getString("codec_id_name"));
+                streamMediaTrack.setCodec_type(tracksJson.getInteger("codec_type"));
+                streamMediaTrack.setReady(tracksJson.getBoolean("ready"));
+                streamMediaTrack.setSample_bit(tracksJson.getInteger("sample_bit"));
+                streamMediaTrack.setSample_rate(tracksJson.getInteger("sample_rate"));
+                streamMediaTrack.setFps(tracksJson.getFloat("fps"));
+                streamMediaTrack.setHeight(tracksJson.getInteger("height"));
+                streamMediaTrack.setWidth(tracksJson.getInteger("width"));
+                streamMediaTrack.setLoss(tracksJson.getFloat("loss"));
+                streamMediaTrack.setKey_frames(tracksJson.getInteger("key_frames"));
+                streamMediaTrack.setGop_size(tracksJson.getInteger("gop_size"));
+                streamMediaTrack.setGop_interval_ms(tracksJson.getInteger("gop_interval_ms"));
+                if (streamMediaInfo.getTracks() == null) {
+                    streamMediaInfo.setTracks(new ArrayList<>());
+                }
+                streamMediaInfo.getTracks().add(streamMediaTrack);
+            }
+        }
+        return streamMediaInfo;
     }
 }

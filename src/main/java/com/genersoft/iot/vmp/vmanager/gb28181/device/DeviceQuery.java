@@ -105,9 +105,23 @@ public class DeviceQuery {
 	@GetMapping("/devices")
 	@Options()
 	public PageInfo<Device> devices(int page, int count){
-//		if (page == null) page = 0;
-//		if (count == null) count = 20;
 		return storager.queryVideoDeviceList(page, count,null);
+	}
+
+
+	/**
+	 * 分页查询国标设备
+	 * @param page 当前页
+	 * @param count 每页查询数量
+	 * @return 分页国标列表
+	 */
+	@Operation(summary = "分页查询国标设备")
+	@Parameter(name = "page", description = "当前页", required = true)
+	@Parameter(name = "count", description = "每页查询数量", required = true)
+	@GetMapping("/device/list")
+	@Options()
+	public PageInfo<Device> getDeviceList(int page, int count, String query, Boolean online){
+		return deviceService.getDeviceList(page, count, query, online);
 	}
 
 	/**

@@ -80,7 +80,6 @@ export default {
                 webrtcPlayer.close();
                 webrtcPlayer = null;
             }
-
         },
         eventcallbacK: function(type, message) {
             console.log("player 事件回调")

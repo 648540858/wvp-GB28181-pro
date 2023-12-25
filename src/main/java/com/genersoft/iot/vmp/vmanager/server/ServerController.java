@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.vmanager.server;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.SystemAllInfo;
 import com.genersoft.iot.vmp.common.VersionPo;
 import com.genersoft.iot.vmp.conf.SipConfig;
@@ -12,6 +13,7 @@ import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.IHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamMediaInfo;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -265,5 +267,15 @@ public class ServerController {
         result.setProxy(proxyInfo);
 
         return result;
+    }
+
+    @GetMapping(value = "/media_server/getMediaInfo")
+    @ResponseBody
+    @Operation(summary = "获取流信息")
+    public StreamMediaInfo getMediaInfo(@RequestParam(required = false) String mediaServerId, String app, String stream) {
+        if (ObjectUtils.isEmpty(mediaServerId)) {
+            mediaServerId = mediaServerService.getDefaultMediaServer().getId();
+        }
+        return mediaServerService.getMediaInfo(mediaServerId, app, stream);
     }
 }

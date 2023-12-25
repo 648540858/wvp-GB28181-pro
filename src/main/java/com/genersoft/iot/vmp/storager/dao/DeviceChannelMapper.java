@@ -164,7 +164,7 @@ public interface DeviceChannelMapper {
             "  ip_address,port,password,ptz_type,status,stream_id,longitude,latitude,longitude_gcj02,latitude_gcj02,"+
             "  longitude_wgs84,latitude_wgs84,has_audio,create_time,update_time,business_group_id,gps_time," +
             " common_gb_channel_id)"+
-            "values " +
+            " values " +
             "<foreach collection='addChannels' index='index' item='item' separator=','> " +
             "(#{item.channelId}, #{item.deviceId}, #{item.name}, #{item.manufacture}, #{item.model}, " +
             "#{item.owner}, #{item.civilCode}, #{item.block},#{item.subCount}," +

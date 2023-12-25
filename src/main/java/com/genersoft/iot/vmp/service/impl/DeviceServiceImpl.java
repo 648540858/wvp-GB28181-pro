@@ -13,12 +13,15 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.CatalogResponseMessageHandler;
 import com.genersoft.iot.vmp.service.*;
+import com.genersoft.iot.vmp.service.bean.Group;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.BaseTree;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -594,5 +597,10 @@ public class DeviceServiceImpl implements IDeviceService {
         return deviceMapper.getAll();
     }
 
-
+    @Override
+    public PageInfo<Device> getDeviceList(int page, int count, String searchStr, Boolean online) {
+        PageHelper.startPage(page, count);
+        List<Device> deviceList = deviceMapper.getDeviceList(searchStr, online);
+        return new PageInfo<>(deviceList);
+    }
 }

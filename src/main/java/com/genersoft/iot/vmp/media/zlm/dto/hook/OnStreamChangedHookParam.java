@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.media.zlm.dto.hook;
 
+import com.genersoft.iot.vmp.media.zlm.dto.StreamMediaTrack;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 
 import java.util.List;
@@ -91,7 +92,7 @@ public class OnStreamChangedHookParam extends HookParam{
     /**
      * 音视频轨道
      */
-    private List<MediaTrack> tracks;
+    private List<StreamMediaTrack> tracks;
 
     /**
      * 音视频轨道
@@ -424,11 +425,11 @@ public class OnStreamChangedHookParam extends HookParam{
         this.aliveSecond = aliveSecond;
     }
 
-    public List<MediaTrack> getTracks() {
+    public List<StreamMediaTrack> getTracks() {
         return tracks;
     }
 
-    public void setTracks(List<MediaTrack> tracks) {
+    public void setTracks(List<StreamMediaTrack> tracks) {
         this.tracks = tracks;
     }
 

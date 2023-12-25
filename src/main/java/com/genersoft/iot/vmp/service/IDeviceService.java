@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
 import com.genersoft.iot.vmp.vmanager.bean.BaseTree;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
+import com.github.pagehelper.PageInfo;
 
 import java.util.List;
 
@@ -168,4 +169,9 @@ public interface IDeviceService {
      * 获取所有设备
      */
     List<Device> getAll();
+
+    /**
+     * 分页查询国标设备/下级平台列表
+     */
+    PageInfo<Device> getDeviceList(int page, int count, String searchStr, Boolean online);
 }

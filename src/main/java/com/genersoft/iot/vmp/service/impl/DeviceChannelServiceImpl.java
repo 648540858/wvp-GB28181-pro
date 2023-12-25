@@ -509,7 +509,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         }
         // 对于只发送了行政区划编号，没有发送行政区划的情况进行兼容，自动为通道创建一个行政区划。
         for (String civilCode : civilCodeSet) {
-            if (!regionMap.containsKey(civilCode)) {
+            if (civilCode != null && !regionMap.containsKey(civilCode)) {
                 logger.warn("[通道信息中缺少地区信息]补充地区信息 civilCode： {}", civilCode );
                 if (civilCode.length() == 8) {
                     Region parentRegion = civilCodeFileConf.createRegion(civilCode.substring(0, 6));
@@ -586,10 +586,12 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 addCommonChannelList.stream().forEach(commonGbChannel ->{
                     commonChannelDeviceAndIdMap.put(commonGbChannel.getCommonGbDeviceID(), commonGbChannel.getCommonGbId());
                 });
-                addChannelList.stream().forEach(channel ->{
-                    channel.setCommonGbChannelId(commonChannelDeviceAndIdMap.get(channel.getChannelId()));
-                });
-                addChannelHandler(addChannelList);
+                if (!addChannelList.isEmpty()) {
+                    addChannelList.stream().forEach(channel ->{
+                        channel.setCommonGbChannelId(commonChannelDeviceAndIdMap.get(channel.getChannelId()));
+                    });
+                    addChannelHandler(addChannelList);
+                }
             }
             if (!updateChannelList.isEmpty()) {
                 commonGbChannelService.batchUpdate(updateCommonChannelList);

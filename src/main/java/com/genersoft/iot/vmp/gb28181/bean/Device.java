@@ -10,6 +10,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "国标设备/平台")
 public class Device {
 
+
+
+	/**
+	 * 数据库自增ID
+	 */
+	@Schema(description = "数据库自增ID")
+	private int id;
+
 	/**
 	 * 设备国标编号
 	 */
@@ -191,6 +199,13 @@ public class Device {
 	@Schema(description = "自动同步通道信息到资源库")
 	private boolean autoSyncChannel;
 
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
 
 	public String getDeviceId() {
 		return deviceId;

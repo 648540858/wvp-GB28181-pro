@@ -579,7 +579,9 @@ public class DeviceServiceImpl implements IDeviceService {
     @Transactional
     public boolean delete(String deviceId) {
         List<Integer> commonChannelIdList = deviceChannelMapper.getCommonChannelIdList(deviceId);
-        commonGbChannelService.deleteByIdList(commonChannelIdList);
+        if (!commonChannelIdList.isEmpty()) {
+            commonGbChannelService.deleteByIdList(commonChannelIdList);
+        }
         deviceChannelMapper.cleanChannelsByDeviceId(deviceId);
         deviceMapper.del(deviceId);
         return true;

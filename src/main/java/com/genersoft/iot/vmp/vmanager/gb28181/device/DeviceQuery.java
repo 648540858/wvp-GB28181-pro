@@ -307,11 +307,14 @@ public class DeviceQuery {
 	 */
 	@Operation(summary = "添加设备信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "device", description = "设备", required = true)
-	@PostMapping("/device/add/")
-	public void addDevice(Device device){
+	@PostMapping("/device/add")
+	public void addDevice(@RequestBody Device device){
 
-		if (device == null || device.getDeviceId() == null) {
-			throw new ControllerException(ErrorCode.ERROR400);
+		if (device == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "参数不可为空");
+		}
+		if (device.getDeviceId() == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "DeviceId不可为空");
 		}
 
 		// 查看deviceId是否存在
@@ -329,12 +332,15 @@ public class DeviceQuery {
 	 */
 	@Operation(summary = "更新设备信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "device", description = "设备", required = true)
-	@PostMapping("/device/update/")
-	public void updateDevice(Device device){
-
-		if (device != null && device.getDeviceId() != null) {
-			deviceService.updateCustomDevice(device);
+	@PostMapping("/device/update")
+	public void updateDevice(@RequestBody Device device){
+		if (device == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "参数不可为空");
 		}
+		if (device.getDeviceId() == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "DeviceId不可为空");
+		}
+		deviceService.updateCustomDevice(device);
 	}
 
 	/**

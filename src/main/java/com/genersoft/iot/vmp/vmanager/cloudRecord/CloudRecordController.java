@@ -91,7 +91,7 @@ public class CloudRecordController {
 
     @ResponseBody
     @GetMapping("/list")
-    @Operation(summary = "分页查询云端录像"security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "分页查询云端录像", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "query", description = "检索内容", required = false)
     @Parameter(name = "app", description = "应用名", required = false)
     @Parameter(name = "stream", description = "流ID", required = false)

@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.vmanager.gb28181.platform;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
 import com.genersoft.iot.vmp.service.*;
@@ -11,6 +12,7 @@ import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +49,7 @@ public class PlatformController {
      *
      * @return
      */
-    @Operation(summary = "获取国标服务的配置")
+    @Operation(summary = "获取国标服务的配置", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @GetMapping("/server_config")
     public JSONObject serverConfig() {
         JSONObject result = new JSONObject();
@@ -63,7 +65,7 @@ public class PlatformController {
      *
      * @return
      */
-    @Operation(summary = "获取级联服务器信息")
+    @Operation(summary = "获取级联服务器信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "id", description = "平台国标编号", required = true)
     @GetMapping("/info/{id}")
     public ParentPlatform getPlatform(@PathVariable String id) {
@@ -83,7 +85,7 @@ public class PlatformController {
      * @return
      */
     @GetMapping("/query/{count}/{page}")
-    @Operation(summary = "分页查询级联平台")
+    @Operation(summary = "分页查询级联平台", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页条数", required = true)
     public PageInfo<ParentPlatform> platforms(@PathVariable int page, @PathVariable int count) {
@@ -104,7 +106,7 @@ public class PlatformController {
      * @param parentPlatform
      * @return
      */
-    @Operation(summary = "添加上级平台信息")
+    @Operation(summary = "添加上级平台信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @PostMapping("/add")
     @ResponseBody
     public void addPlatform(@RequestBody ParentPlatform parentPlatform) {
@@ -148,7 +150,7 @@ public class PlatformController {
      * @param parentPlatform
      * @return
      */
-    @Operation(summary = "保存上级平台信息")
+    @Operation(summary = "保存上级平台信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @PostMapping("/save")
     @ResponseBody
     public void savePlatform(@RequestBody ParentPlatform parentPlatform) {
@@ -179,7 +181,7 @@ public class PlatformController {
      * @param serverGBId 上级平台国标ID
      * @return
      */
-    @Operation(summary = "删除上级平台")
+    @Operation(summary = "删除上级平台", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "serverGBId", description = "上级平台的国标编号")
     @DeleteMapping("/delete/{serverGBId}")
     @ResponseBody
@@ -203,7 +205,7 @@ public class PlatformController {
      * @param serverGBId 上级平台国标ID
      * @return
      */
-    @Operation(summary = "查询上级平台是否存在")
+    @Operation(summary = "查询上级平台是否存在", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "serverGBId", description = "上级平台的国标编号")
     @GetMapping("/exit/{serverGBId}")
     @ResponseBody

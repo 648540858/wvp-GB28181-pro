@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
@@ -16,6 +17,7 @@ import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +54,7 @@ public class StreamProxyController {
     private UserSetting userSetting;
 
 
-    @Operation(summary = "分页查询流代理")
+    @Operation(summary = "分页查询流代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页")
     @Parameter(name = "count", description = "每页查询数量")
     @Parameter(name = "query", description = "查询内容")
@@ -67,7 +69,7 @@ public class StreamProxyController {
         return streamProxyService.getAll(page, count);
     }
 
-    @Operation(summary = "查询流代理")
+    @Operation(summary = "查询流代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "app", description = "应用名")
     @Parameter(name = "stream", description = "流Id")
     @GetMapping(value = "/one")
@@ -77,7 +79,7 @@ public class StreamProxyController {
         return streamProxyService.getStreamProxyByAppAndStream(app, stream);
     }
 
-    @Operation(summary = "保存代理", parameters = {
+    @Operation(summary = "保存代理", security = @SecurityRequirement(name = JwtUtils.HEADER), parameters = {
             @Parameter(name = "param", description = "代理参数", required = true),
     })
     @PostMapping(value = "/save")
@@ -123,7 +125,7 @@ public class StreamProxyController {
 
     @GetMapping(value = "/ffmpeg_cmd/list")
     @ResponseBody
-    @Operation(summary = "获取ffmpeg.cmd模板")
+    @Operation(summary = "获取ffmpeg.cmd模板", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "mediaServerId", description = "流媒体ID", required = true)
     public JSONObject getFFmpegCMDs(@RequestParam String mediaServerId){
         logger.debug("获取节点[ {} ]ffmpeg.cmd模板", mediaServerId );
@@ -137,7 +139,7 @@ public class StreamProxyController {
 
     @DeleteMapping(value = "/del")
     @ResponseBody
-    @Operation(summary = "移除代理")
+    @Operation(summary = "移除代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "app", description = "应用名", required = true)
     @Parameter(name = "stream", description = "流id", required = true)
     public void del(@RequestParam String app, @RequestParam String stream){
@@ -151,7 +153,7 @@ public class StreamProxyController {
 
     @GetMapping(value = "/start")
     @ResponseBody
-    @Operation(summary = "启用代理")
+    @Operation(summary = "启用代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "app", description = "应用名", required = true)
     @Parameter(name = "stream", description = "流id", required = true)
     public void start(String app, String stream){
@@ -164,7 +166,7 @@ public class StreamProxyController {
 
     @GetMapping(value = "/stop")
     @ResponseBody
-    @Operation(summary = "停用代理")
+    @Operation(summary = "停用代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "app", description = "应用名", required = true)
     @Parameter(name = "stream", description = "流id", required = true)
     public void stop(String app, String stream){

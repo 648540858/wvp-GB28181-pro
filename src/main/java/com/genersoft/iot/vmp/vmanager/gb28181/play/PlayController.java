@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
+import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
@@ -30,6 +31,7 @@ import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,7 +89,7 @@ public class PlayController {
 	@Autowired
 	private UserSetting userSetting;
 
-	@Operation(summary = "开始点播")
+	@Operation(summary = "开始点播", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@GetMapping("/start/{deviceId}/{channelId}")
@@ -152,7 +154,7 @@ public class PlayController {
 		return result;
 	}
 
-	@Operation(summary = "停止点播")
+	@Operation(summary = "停止点播", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@Parameter(name = "isSubStream", description = "是否子码流（true-子码流，false-主码流），默认为false", required = true)
@@ -177,7 +179,7 @@ public class PlayController {
 	 * 将不是h264的视频通过ffmpeg 转码为h264 + aac
 	 * @param streamId 流ID
 	 */
-	@Operation(summary = "将不是h264的视频通过ffmpeg 转码为h264 + aac")
+	@Operation(summary = "将不是h264的视频通过ffmpeg 转码为h264 + aac", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "streamId", description = "视频流ID", required = true)
 	@PostMapping("/convert/{streamId}")
 	public JSONObject playConvert(@PathVariable String streamId) {
@@ -219,7 +221,7 @@ public class PlayController {
 	/**
 	 * 结束转码
 	 */
-	@Operation(summary = "结束转码")
+	@Operation(summary = "结束转码", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "key", description = "视频流key", required = true)
 	@Parameter(name = "mediaServerId", description = "流媒体服务ID", required = true)
 	@PostMapping("/convertStop/{key}")
@@ -244,7 +246,7 @@ public class PlayController {
 		}
 	}
 
-	@Operation(summary = "语音广播命令")
+	@Operation(summary = "语音广播命令", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @GetMapping("/broadcast/{deviceId}")
     @PostMapping("/broadcast/{deviceId}")
@@ -310,7 +312,7 @@ public class PlayController {
 		return result;
 	}
 
-	@Operation(summary = "获取所有的ssrc")
+	@Operation(summary = "获取所有的ssrc", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@GetMapping("/ssrc")
 	public JSONObject getSSRC() {
 		if (logger.isDebugEnabled()) {
@@ -333,7 +335,7 @@ public class PlayController {
 		return jsonObject;
 	}
 
-	@Operation(summary = "获取截图")
+	@Operation(summary = "获取截图", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@Parameter(name = "isSubStream", description = "是否子码流（true-子码流，false-主码流），默认为false", required = true)

@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.vmanager.gb28181.device;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
@@ -23,6 +24,7 @@ import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.ibatis.annotations.Options;
@@ -85,7 +87,7 @@ public class DeviceQuery {
 	 * @param deviceId 国标ID
 	 * @return 国标设备
 	 */
-	@Operation(summary = "查询国标设备")
+	@Operation(summary = "查询国标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@GetMapping("/devices/{deviceId}")
 	public Device devices(@PathVariable String deviceId){
@@ -99,7 +101,7 @@ public class DeviceQuery {
 	 * @param count 每页查询数量
 	 * @return 分页国标列表
 	 */
-	@Operation(summary = "分页查询国标设备")
+	@Operation(summary = "分页查询国标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "page", description = "当前页", required = true)
 	@Parameter(name = "count", description = "每页查询数量", required = true)
 	@GetMapping("/devices")
@@ -137,7 +139,7 @@ public class DeviceQuery {
 	 * @return 通道列表
 	 */
 	@GetMapping("/devices/{deviceId}/channels")
-	@Operation(summary = "分页查询通道")
+	@Operation(summary = "分页查询通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "page", description = "当前页", required = true)
 	@Parameter(name = "count", description = "每页查询数量", required = true)
@@ -162,7 +164,7 @@ public class DeviceQuery {
 	 * @param deviceId 设备id
 	 * @return
 	 */
-	@Operation(summary = "同步设备通道")
+	@Operation(summary = "同步设备通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@GetMapping("/devices/{deviceId}/sync")
 	public WVPResult<SyncStatus> devicesSync(@PathVariable String deviceId){
@@ -190,7 +192,7 @@ public class DeviceQuery {
 	 * @param deviceId 设备id
 	 * @return
 	 */
-	@Operation(summary = "移除设备")
+	@Operation(summary = "移除设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@DeleteMapping("/devices/{deviceId}/delete")
 	public String delete(@PathVariable String deviceId){
@@ -235,7 +237,7 @@ public class DeviceQuery {
 	 * @param channelType 通道类型
 	 * @return 子通道列表
 	 */
-	@Operation(summary = "分页查询子目录通道")
+	@Operation(summary = "分页查询子目录通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@Parameter(name = "page", description = "当前页", required = true)
@@ -267,7 +269,7 @@ public class DeviceQuery {
 	 * @param channel 通道
 	 * @return
 	 */
-	@Operation(summary = "更新通道信息")
+	@Operation(summary = "更新通道信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channel", description = "通道信息", required = true)
 	@PostMapping("/channel/update/{deviceId}")
@@ -287,7 +289,7 @@ public class DeviceQuery {
 	 * @param streamMode 数据流传输模式
 	 * @return
 	 */
-	@Operation(summary = "修改数据流传输模式")
+	@Operation(summary = "修改数据流传输模式", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "streamMode", description = "数据流传输模式, 取值：" +
 			"UDP（udp传输），TCP-ACTIVE（tcp主动模式,暂不支持），TCP-PASSIVE（tcp被动模式）", required = true)
@@ -303,7 +305,7 @@ public class DeviceQuery {
 	 * @param device 设备信息
 	 * @return
 	 */
-	@Operation(summary = "添加设备信息")
+	@Operation(summary = "添加设备信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "device", description = "设备", required = true)
 	@PostMapping("/device/add/")
 	public void addDevice(Device device){
@@ -325,7 +327,7 @@ public class DeviceQuery {
 	 * @param device 设备信息
 	 * @return
 	 */
-	@Operation(summary = "更新设备信息")
+	@Operation(summary = "更新设备信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "device", description = "设备", required = true)
 	@PostMapping("/device/update/")
 	public void updateDevice(Device device){
@@ -340,7 +342,7 @@ public class DeviceQuery {
 	 * 
 	 * @param deviceId 设备id
 	 */
-	@Operation(summary = "设备状态查询")
+	@Operation(summary = "设备状态查询", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@GetMapping("/devices/{deviceId}/status")
 	public DeferredResult<ResponseEntity<String>> deviceStatusApi(@PathVariable String deviceId) {
@@ -391,7 +393,7 @@ public class DeviceQuery {
 	 * @param endTime		报警发生终止时间（可选）
 	 * @return				true = 命令发送成功
 	 */
-	@Operation(summary = "设备状态查询")
+	@Operation(summary = "设备报警查询", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "startPriority", description = "报警起始级别")
 	@Parameter(name = "endPriority", description = "报警终止级别")
@@ -441,7 +443,7 @@ public class DeviceQuery {
 
 
 	@GetMapping("/{deviceId}/sync_status")
-	@Operation(summary = "获取通道同步进度")
+	@Operation(summary = "获取通道同步进度", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	public WVPResult<SyncStatus> getSyncStatus(@PathVariable String deviceId) {
 		SyncStatus channelSyncStatus = deviceService.getChannelSyncStatus(deviceId);
@@ -461,7 +463,7 @@ public class DeviceQuery {
 	}
 
 	@GetMapping("/{deviceId}/subscribe_info")
-	@Operation(summary = "获取设备的订阅状态")
+	@Operation(summary = "获取设备的订阅状态", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	public WVPResult<Map<String, Integer>> getSubscribeInfo(@PathVariable String deviceId) {
 		Set<String> allKeys = dynamicTask.getAllKeys();

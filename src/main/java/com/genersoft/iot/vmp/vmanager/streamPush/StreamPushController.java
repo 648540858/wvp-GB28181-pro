@@ -5,6 +5,7 @@ import com.alibaba.excel.ExcelReader;
 import com.alibaba.excel.read.metadata.ReadSheet;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.conf.security.SecurityUtils;
 import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
@@ -19,6 +20,7 @@ import com.genersoft.iot.vmp.vmanager.streamPush.bean.StreamPushWithCommonChanne
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +63,7 @@ public class StreamPushController {
 
     @GetMapping(value = "/list")
     @ResponseBody
-    @Operation(summary = "推流列表查询")
+    @Operation(summary = "推流列表查询", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页")
     @Parameter(name = "count", description = "每页查询数量")
     @Parameter(name = "query", description = "查询内容")
@@ -83,7 +85,7 @@ public class StreamPushController {
         return pushList;
     }
 
-    @PostMapping(value = "/save")
+    @PostMapping(value = "/save", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @ResponseBody
     @Operation(summary = "将推流添加到资源")
     public void saveToCommonChannel(@RequestBody StreamPushWithCommonChannelParam param){
@@ -93,7 +95,7 @@ public class StreamPushController {
 
     @PostMapping(value = "/stop")
     @ResponseBody
-    @Operation(summary = "中止一个推流")
+    @Operation(summary = "中止一个推流", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "app", description = "应用名", required = true)
     @Parameter(name = "stream", description = "流id", required = true)
     public void stop(String app, String streamId){
@@ -104,7 +106,7 @@ public class StreamPushController {
 
     @DeleteMapping(value = "/batchStop")
     @ResponseBody
-    @Operation(summary = "中止多个推流")
+    @Operation(summary = "中止多个推流", security = @SecurityRequirement(name = JwtUtils.HEADER))
     public void batchStop(@RequestBody BatchGBStreamParam batchGBStreamParam){
         if (batchGBStreamParam.getStreamPushes().size() == 0) {
             throw new ControllerException(ErrorCode.ERROR100);
@@ -215,7 +217,7 @@ public class StreamPushController {
      */
     @GetMapping(value = "/getPlayUrl")
     @ResponseBody
-    @Operation(summary = "获取推流播放地址")
+    @Operation(summary = "获取推流播放地址", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "app", description = "应用名", required = true)
     @Parameter(name = "stream", description = "流id", required = true)
     @Parameter(name = "mediaServerId", description = "媒体服务器id")
@@ -243,7 +245,7 @@ public class StreamPushController {
      */
     @PostMapping(value = "/add")
     @ResponseBody
-    @Operation(summary = "添加推流信息")
+    @Operation(summary = "添加推流信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     public void add(@RequestBody StreamPush param){
         if (ObjectUtils.isEmpty(param.getApp()) && ObjectUtils.isEmpty(param.getStream())) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "app或stream不可为空");

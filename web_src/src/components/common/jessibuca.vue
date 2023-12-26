@@ -42,10 +42,9 @@ export default {
       volume: 1,
       rotate: 0,
       vod: true, // 点播
-      forceNoOffscreen: false,
     };
   },
-  props: ['videoUrl', 'error', 'hasAudio', 'height'],
+  props: ['videoUrl', 'error', 'hasAudio', 'height', 'autoPlay'],
   mounted() {
     let paramUrl = decodeURIComponent(this.$route.params.url)
     this.$nextTick(() => {
@@ -57,6 +56,9 @@ export default {
         this.videoUrl = paramUrl;
       }
       this.btnDom = document.getElementById("buttonsBox");
+      if (this.autoPlay) {
+        this.play(this.videoUrl);
+      }
     })
   },
   watch: {
@@ -65,8 +67,7 @@ export default {
         this.$nextTick(() => {
           this.play(val);
         })
-      },
-      immediate: true
+      }
     }
   },
   methods: {
@@ -122,7 +123,7 @@ export default {
         supportDblclickFullscreen: false,
         timeout: 10,
         useMSE: true,
-        useWCS: location.hostname === "localhost" || location.protocol === "https:",
+        useWCS: false,
         useWebFullScreen: true,
         videoBuffer: 0.1,
         wasmDecodeErrorReplay: true,

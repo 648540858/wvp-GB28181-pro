@@ -242,8 +242,9 @@ export default {
         console.error(error)
       })
     }
-    this.initData();
-
+    this.$nextTick(() => {
+      this.initData();
+    })
   },
   destroyed() {
     this.$destroy('videojs');

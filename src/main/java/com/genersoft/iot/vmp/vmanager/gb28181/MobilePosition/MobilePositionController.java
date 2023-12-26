@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.MobilePosition;
 
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
@@ -13,6 +14,7 @@ import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.util.StringUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +61,7 @@ public class MobilePositionController {
      * @param end 结束时间
      * @return
      */
-    @Operation(summary = "查询历史轨迹")
+    @Operation(summary = "查询历史轨迹", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号")
     @Parameter(name = "start", description = "开始时间")
@@ -84,7 +86,7 @@ public class MobilePositionController {
      * @param deviceId 设备ID
      * @return
      */
-    @Operation(summary = "查询设备最新位置")
+    @Operation(summary = "查询设备最新位置", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @GetMapping("/latest/{deviceId}")
     public MobilePosition latestPosition(@PathVariable String deviceId) {
@@ -96,7 +98,7 @@ public class MobilePositionController {
      * @param deviceId 设备ID
      * @return
      */
-    @Operation(summary = "获取移动位置信息")
+    @Operation(summary = "获取移动位置信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @GetMapping("/realtime/{deviceId}")
     public DeferredResult<MobilePosition> realTimePosition(@PathVariable String deviceId) {
@@ -136,7 +138,7 @@ public class MobilePositionController {
      * @param interval 上报时间间隔
      * @return true = 命令发送成功
      */
-    @Operation(summary = "订阅位置信息")
+    @Operation(summary = "订阅位置信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @Parameter(name = "expires", description = "订阅超时时间", required = true)
     @Parameter(name = "interval", description = "上报时间间隔", required = true)
@@ -162,7 +164,7 @@ public class MobilePositionController {
      * @param deviceId 设备ID
      * @return true = 命令发送成功
      */
-    @Operation(summary = "数据位置信息格式处理")
+    @Operation(summary = "数据位置信息格式处理", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @GetMapping("/transform/{deviceId}")
     public void positionTransform(@PathVariable String deviceId) {

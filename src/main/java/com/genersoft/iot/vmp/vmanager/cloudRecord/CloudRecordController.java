@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSONArray;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
@@ -15,6 +16,7 @@ import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
@@ -46,7 +48,7 @@ public class CloudRecordController {
 
     @ResponseBody
     @GetMapping("/date/list")
-    @Operation(summary = "查询存在云端录像的日期")
+    @Operation(summary = "查询存在云端录像的日期", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "app", description = "应用名", required = true)
     @Parameter(name = "stream", description = "流ID", required = true)
     @Parameter(name = "year", description = "年，置空则查询当年", required = false)
@@ -89,7 +91,7 @@ public class CloudRecordController {
 
     @ResponseBody
     @GetMapping("/list")
-    @Operation(summary = "分页查询云端录像")
+    @Operation(summary = "分页查询云端录像"security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "query", description = "检索内容", required = false)
     @Parameter(name = "app", description = "应用名", required = false)
     @Parameter(name = "stream", description = "流ID", required = false)

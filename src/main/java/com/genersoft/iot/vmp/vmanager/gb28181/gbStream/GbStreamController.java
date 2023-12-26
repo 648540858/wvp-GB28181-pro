@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.gbStream;
 
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.service.IGbStreamService;
@@ -11,6 +12,7 @@ import com.genersoft.iot.vmp.vmanager.gb28181.gbStream.bean.GbStreamParam;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +45,7 @@ public class GbStreamController {
      * @param platformId 平台ID
      * @return
      */
-    @Operation(summary = "查询国标通道")
+    @Operation(summary = "查询国标通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页条数", required = true)
     @Parameter(name = "platformId", description = "平台ID", required = true)
@@ -79,7 +81,7 @@ public class GbStreamController {
      * @param gbStreamParam
      * @return
      */
-    @Operation(summary = "移除国标关联")
+    @Operation(summary = "移除国标关联", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @DeleteMapping(value = "/del")
     @ResponseBody
     public void del(@RequestBody GbStreamParam gbStreamParam){
@@ -99,7 +101,7 @@ public class GbStreamController {
      * @param gbStreamParam
      * @return
      */
-    @Operation(summary = "保存国标关联")
+    @Operation(summary = "保存国标关联", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @PostMapping(value = "/add")
     @ResponseBody
     public void add(@RequestBody GbStreamParam gbStreamParam){
@@ -118,7 +120,7 @@ public class GbStreamController {
      * @param gbId
      * @return
      */
-    @Operation(summary = "保存国标关联")
+    @Operation(summary = "保存国标关联", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @GetMapping(value = "/addWithGbid")
     @ResponseBody
     public void add(String gbId, String platformGbId, @RequestParam(required = false) String catalogGbId){

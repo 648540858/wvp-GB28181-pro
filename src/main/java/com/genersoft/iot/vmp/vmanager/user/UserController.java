@@ -14,6 +14,7 @@ import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -95,7 +96,7 @@ public class UserController {
 
 
     @PostMapping("/add")
-    @Operation(summary = "添加用户")
+    @Operation(summary = "添加用户", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "username", description = "用户名", required = true)
     @Parameter(name = "password", description = "密码（未md5加密的密码）", required = true)
     @Parameter(name = "roleId", description = "角色ID", required = true)

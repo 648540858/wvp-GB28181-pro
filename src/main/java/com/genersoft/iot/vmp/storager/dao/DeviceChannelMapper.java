@@ -492,7 +492,44 @@ public interface DeviceChannelMapper {
     void clearPlay(String deviceId);
     // 设备主子码流逻辑END
     @Select(value = {" <script>" +
-            "select * " +
+            "SELECT id,\n" +
+            "       channel_id,\n" +
+            "       COALESCE(custom_name, name)           AS name,\n" +
+            "       custom_name,\n" +
+            "       manufacture,\n" +
+            "       model,\n" +
+            "       owner,\n" +
+            "       civil_code,\n" +
+            "       block,\n" +
+            "       address,\n" +
+            "       parent_id,\n" +
+            "       safety_way,\n" +
+            "       register_way,\n" +
+            "       cert_num,\n" +
+            "       certifiable,\n" +
+            "       err_code,\n" +
+            "       end_time,\n" +
+            "       secrecy,\n" +
+            "       ip_address,\n" +
+            "       port,\n" +
+            "       password,\n" +
+            "       COALESCE(custom_ptz_type, ptz_type)   AS ptz_type,\n" +
+            "       status,\n" +
+            "       COALESCE(custom_longitude, longitude) AS longitude,\n" +
+            "       COALESCE(custom_latitude, latitude)   AS latitude,\n" +
+            "       stream_id,\n" +
+            "       device_id,\n" +
+            "       parental,\n" +
+            "       has_audio,\n" +
+            "       create_time,\n" +
+            "       update_time,\n" +
+            "       sub_count,\n" +
+            "       longitude_gcj02,\n" +
+            "       latitude_gcj02,\n" +
+            "       longitude_wgs84,\n" +
+            "       latitude_wgs84,\n" +
+            "       business_group_id,\n" +
+            "       gps_time\n" +
             "from wvp_device_channel " +
             "where device_id=#{deviceId}" +
             " <if test='parentId != null and parentId != deviceId'> and parent_id = #{parentId} </if>" +

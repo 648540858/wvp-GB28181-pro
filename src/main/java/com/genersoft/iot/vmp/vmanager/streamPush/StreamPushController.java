@@ -85,9 +85,9 @@ public class StreamPushController {
         return pushList;
     }
 
-    @PostMapping(value = "/save", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @PostMapping(value = "/save")
     @ResponseBody
-    @Operation(summary = "将推流添加到资源")
+    @Operation(summary = "将推流添加到资源", security = @SecurityRequirement(name = JwtUtils.HEADER))
     public void saveToCommonChannel(@RequestBody StreamPushWithCommonChannelParam param){
 
     }

@@ -1228,7 +1228,6 @@ public class SIPCommander implements ISIPCommander {
      * @param startPriority 报警起始级别（可选）
      * @param endPriority   报警终止级别（可选）
      * @param alarmMethod   报警方式条件（可选）
-     * @param alarmType     报警类型
      * @param startTime     报警发生起始时间（可选）
      * @param endTime       报警发生终止时间（可选）
      * @return true = 命令发送成功

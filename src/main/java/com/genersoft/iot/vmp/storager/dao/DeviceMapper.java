@@ -15,6 +15,7 @@ import java.util.List;
 public interface DeviceMapper {
 
     @Select("SELECT " +
+            "id, " +
             "device_id, " +
             "coalesce(custom_name, name) as name, " +
             "password, " +
@@ -115,6 +116,7 @@ public interface DeviceMapper {
                 "<if test=\"model != null\">, model=#{model}</if>" +
                 "<if test=\"firmware != null\">, firmware=#{firmware}</if>" +
                 "<if test=\"transport != null\">, transport=#{transport}</if>" +
+                "<if test=\"streamMode != null\">, stream_mode=#{streamMode}</if>" +
                 "<if test=\"ip != null\">, ip=#{ip}</if>" +
                 "<if test=\"localIp != null\">, local_ip=#{localIp}</if>" +
                 "<if test=\"port != null\">, port=#{port}</if>" +

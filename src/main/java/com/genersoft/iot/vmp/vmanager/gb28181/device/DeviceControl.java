@@ -14,7 +14,6 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
@@ -71,9 +70,10 @@ public class DeviceControl {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@Parameter(name = "command", description = "控制命令，可选值：start（手动录像），stop（停止手动录像）", required = true)
-    @GetMapping("/record/{deviceId}/{channelId}/{command}")
-    public DeferredResult<ResponseEntity<String>> recordApi(@PathVariable String deviceId, @PathVariable String channelId,
-            @PathVariable String command) {
+    @GetMapping("/record/{deviceId}/{channelId}")
+    public DeferredResult<ResponseEntity<String>> recordApi(@PathVariable String deviceId,
+															@PathVariable String channelId,
+															String command) {
         if (logger.isDebugEnabled()) {
             logger.debug("开始/停止录像API调用");
         }
@@ -125,8 +125,8 @@ public class DeviceControl {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@Parameter(name = "command", description = "控制命令，可选值：start（布防），stop（撤防）", required = true)
-	@GetMapping("/guard/{deviceId}/{command}")
-	public DeferredResult<String> guardApi(@PathVariable String deviceId, @PathVariable String command) {
+	@GetMapping("/guard/{deviceId}")
+	public DeferredResult<String> guardApi(@PathVariable String deviceId, String command) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("布防/撤防API调用");
 		}
@@ -250,14 +250,14 @@ public class DeviceControl {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@Parameter(name = "command", description = "控制命令： start-开启看守位 stop-关闭看守位", required = true)
-	@Parameter(name = "presetIndex", description = "调用预置位编号, 取值范围为-255")
+	@Parameter(name = "presetId", description = "调用预置位编号, 取值范围为-255")
 	@Parameter(name = "resetTime", description = "自动归位时间间隔，单位:秒(s)")
-	@GetMapping("/home_position/{deviceId}/{command}")
+	@GetMapping("/home_position/{deviceId}")
 	public DeferredResult<String> homePositionApi(@PathVariable String deviceId,
-																@PathVariable String command,
-																@RequestParam(required = false) String resetTime,
-																@RequestParam(required = false) String presetIndex,
-                                                                String channelId) {
+												  String command,
+												  @RequestParam(required = false) String resetTime,
+												  @RequestParam(required = false) Integer presetId,
+												  String channelId) {
         if (logger.isDebugEnabled()) {
 			logger.debug("报警复位API调用");
 		}
@@ -267,8 +267,16 @@ public class DeviceControl {
 		if (device == null) {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), deviceId + "不存在");
 		}
+		boolean enabled;
+		if (command.equalsIgnoreCase("start")) {
+			enabled = true;
+		}else if (command.equalsIgnoreCase("stop")) {
+			enabled = false;
+		}else {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "command参数不是规定值");
+		}
 		try {
-			cmder.homePositionCmd(device, channelId, enabled, resetTime, presetIndex, event -> {
+			cmder.homePositionCmd(device, channelId, enabled, resetTime, presetId, event -> {
 				RequestMessage msg = new RequestMessage();
 				msg.setId(uuid);
 				msg.setKey(key);

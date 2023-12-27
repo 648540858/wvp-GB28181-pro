@@ -70,7 +70,7 @@ public class DeviceControl {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@Parameter(name = "command", description = "控制命令，可选值：start（手动录像），stop（停止手动录像）", required = true)
-    @GetMapping("/record/{deviceId}/{channelId}")
+		@GetMapping("/record/{deviceId}/{channelId}")
     public DeferredResult<ResponseEntity<String>> recordApi(@PathVariable String deviceId,
 															@PathVariable String channelId,
 															String command) {
@@ -123,8 +123,7 @@ public class DeviceControl {
 
 	@Operation(summary = "布防/撤防命令", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
-	@Parameter(name = "channelId", description = "通道国标编号", required = true)
-	@Parameter(name = "command", description = "控制命令，可选值：start（布防），stop（撤防）", required = true)
+	@Parameter(name = "command", description = "控制命令，可选值：set（布防），reset（撤防）", required = true)
 	@GetMapping("/guard/{deviceId}")
 	public DeferredResult<String> guardApi(@PathVariable String deviceId, String command) {
 		if (logger.isDebugEnabled()) {
@@ -137,9 +136,9 @@ public class DeviceControl {
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + deviceId + deviceId;
 		String uuid =UUID.randomUUID().toString();
 		boolean setGuard;
-		if (command.equalsIgnoreCase("start")) {
+		if (command.equalsIgnoreCase("set")) {
 			setGuard = true;
-		}else if (command.equalsIgnoreCase("stop")) {
+		}else if (command.equalsIgnoreCase("reset")) {
 			setGuard = false;
 		}else {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "command参数不是规定值");
@@ -185,7 +184,7 @@ public class DeviceControl {
 	@GetMapping("/reset_alarm/{deviceId}")
 	public DeferredResult<ResponseEntity<String>> resetAlarmApi(@PathVariable String deviceId,
 																@RequestParam(required = false) Integer alarmMethod,
-																@RequestParam(required = false) Integer alarmType) {
+																	@RequestParam(required = false) Integer alarmType) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("报警复位API调用");
 		}

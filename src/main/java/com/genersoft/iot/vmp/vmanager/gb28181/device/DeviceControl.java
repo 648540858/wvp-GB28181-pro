@@ -255,7 +255,7 @@ public class DeviceControl {
 	@GetMapping("/home_position/{deviceId}")
 	public DeferredResult<String> homePositionApi(@PathVariable String deviceId,
 												  String command,
-												  @RequestParam(required = false) String resetTime,
+												  @RequestParam(required = false) Integer resetTime,
 												  @RequestParam(required = false) Integer presetId,
 												  String channelId) {
         if (logger.isDebugEnabled()) {

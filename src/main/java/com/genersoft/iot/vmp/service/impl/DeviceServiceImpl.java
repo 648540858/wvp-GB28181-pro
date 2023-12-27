@@ -154,18 +154,19 @@ public class DeviceServiceImpl implements IDeviceService {
                         logger.error("[命令发送失败] 查询设备信息: {}", e.getMessage());
                     }
                     sync(device);
-                    // TODO 如果设备下的通道级联到了其他平台，那么需要发送事件或者notify给上级平台
+                    List<Integer> ids = deviceChannelMapper.getCommonChannelIdList(device.getDeviceId());
+                    if (!ids.isEmpty()) {
+                        commonGbChannelService.onlineForList(ids);
+                    }
                 }
             }else {
                 if (deviceChannelMapper.queryAllChannels(device.getDeviceId()).size() == 0) {
                     logger.info("[设备上线]: {}，通道数为0,查询通道信息", device.getDeviceId());
                     sync(device);
                 }
-
                 deviceMapper.update(device);
                 redisCatchStorage.updateDevice(device);
             }
-
         }
 
         // 上线添加订阅
@@ -207,6 +208,12 @@ public class DeviceServiceImpl implements IDeviceService {
         }
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + deviceId;
         dynamicTask.stop(registerExpireTaskKey);
+        if (device.isOnLine()) {
+            List<Integer> ids = deviceChannelMapper.getCommonChannelIdList(device.getDeviceId());
+            if (!ids.isEmpty()) {
+                commonGbChannelService.offlineForList(ids);
+            }
+        }
         device.setOnLine(false);
         redisCatchStorage.updateDevice(device);
         deviceMapper.update(device);

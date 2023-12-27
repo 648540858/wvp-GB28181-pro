@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.service.impl;
 
-import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.InviteInfo;
@@ -15,11 +14,9 @@ import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
-import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
@@ -50,11 +47,9 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.ParseException;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
-import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Service
@@ -440,23 +435,6 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public MediaServerItem getNewMediaServerItemHasAssist(Device device) {
-        if (device == null) {
-            return null;
-        }
-        MediaServerItem mediaServerItem;
-        if (ObjectUtils.isEmpty(device.getMediaServerId()) || "auto".equals(device.getMediaServerId())) {
-            mediaServerItem = mediaServerService.getMediaServerForMinimumLoad(true);
-        } else {
-            mediaServerItem = mediaServerService.getOne(device.getMediaServerId());
-        }
-        if (mediaServerItem == null) {
-            logger.warn("[获取可用的ZLM节点]未找到可使用的ZLM...");
-        }
-        return mediaServerItem;
-    }
-
-    @Override
     public void playBack(String deviceId, String channelId, String startTime,
                                                           String endTime, ErrorCallback<Object> callback) {
         Device device = storager.queryVideoDevice(deviceId);
@@ -662,7 +640,7 @@ public class PlayServiceImpl implements IPlayService {
         if (device == null) {
             return;
         }
-        MediaServerItem newMediaServerItem = getNewMediaServerItemHasAssist(device);
+        MediaServerItem newMediaServerItem = this.getNewMediaServerItem(device);
         if (newMediaServerItem == null) {
             callback.run(InviteErrorCode.ERROR_FOR_ASSIST_NOT_READY.getCode(),
                     InviteErrorCode.ERROR_FOR_ASSIST_NOT_READY.getMsg(),

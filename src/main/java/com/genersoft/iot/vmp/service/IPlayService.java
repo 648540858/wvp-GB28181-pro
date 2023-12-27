@@ -4,7 +4,6 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ServiceException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 
@@ -22,11 +21,6 @@ public interface IPlayService {
     SSRCInfo play(MediaServerItem mediaServerItem, String deviceId, String channelId, String ssrc, ErrorCallback<Object> callback);
 
     MediaServerItem getNewMediaServerItem(Device device);
-
-    /**
-     * 获取包含assist服务的节点
-     */
-    MediaServerItem getNewMediaServerItemHasAssist(Device device);
 
     void playBack(String deviceId, String channelId, String startTime, String endTime, ErrorCallback<Object> callback);
     void playBack(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, String deviceId, String channelId, String startTime, String endTime, ErrorCallback<Object> callback);

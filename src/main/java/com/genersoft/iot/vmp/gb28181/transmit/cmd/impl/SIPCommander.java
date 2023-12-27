@@ -694,7 +694,7 @@ public class SIPCommander implements ISIPCommander {
      * @param recordCmdStr 录像命令：Record / StopRecord
      */
     @Override
-    public void recordCmd(Device device, String channelId, String recordCmdStr, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void recordCmd(Device device, String channelId, boolean record, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
         StringBuffer cmdXml = new StringBuffer(200);
         String charset = device.getCharset();
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
@@ -706,7 +706,12 @@ public class SIPCommander implements ISIPCommander {
         } else {
             cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
         }
-        cmdXml.append("<RecordCmd>" + recordCmdStr + "</RecordCmd>\r\n");
+        if (record) {
+            cmdXml.append("<RecordCmd>Record</RecordCmd>\r\n");
+        }else {
+            cmdXml.append("<RecordCmd>StopRecord</RecordCmd>\r\n");
+        }
+
         cmdXml.append("</Control>\r\n");
 
         
@@ -746,7 +751,7 @@ public class SIPCommander implements ISIPCommander {
      * @param guardCmdStr "SetGuard"/"ResetGuard"
      */
     @Override
-    public void guardCmd(Device device, String guardCmdStr, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void guardCmd(Device device, boolean setGuard, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
 
         StringBuffer cmdXml = new StringBuffer(200);
         String charset = device.getCharset();
@@ -755,7 +760,11 @@ public class SIPCommander implements ISIPCommander {
         cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
         cmdXml.append("<SN>" + SipUtils.getNewSn() + "</SN>\r\n");
         cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
-        cmdXml.append("<GuardCmd>" + guardCmdStr + "</GuardCmd>\r\n");
+        if (setGuard) {
+            cmdXml.append("<GuardCmd>SetGuard</GuardCmd>\r\n");
+        }else {
+            cmdXml.append("<GuardCmd>ResetGuard</GuardCmd>\r\n");
+        }
         cmdXml.append("</Control>\r\n");
 
         Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
@@ -768,7 +777,7 @@ public class SIPCommander implements ISIPCommander {
      * @param device 视频设备
      */
     @Override
-    public void alarmCmd(Device device, String alarmMethod, String alarmType, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void alarmCmd(Device device, Integer alarmMethod, Integer alarmType, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
 
         StringBuffer cmdXml = new StringBuffer(200);
         String charset = device.getCharset();

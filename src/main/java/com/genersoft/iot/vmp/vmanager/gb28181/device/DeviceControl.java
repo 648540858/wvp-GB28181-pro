@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -45,16 +46,11 @@ public class DeviceControl {
     private IVideoManagerStorage storager;
 
     @Autowired
-    private SIPCommander cmder;
+    private ISIPCommander cmder;
 
     @Autowired
     private DeferredResultHolder resultHolder;
 
-    /**
-     * 远程启动控制命令API接口
-     * 
-     * @param deviceId 设备ID
-     */
 	@Operation(summary = "远程启动控制命令", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @GetMapping("/teleboot/{deviceId}")
@@ -71,24 +67,20 @@ public class DeviceControl {
 		}
     }
 
-    /**
-     * 录像控制命令API接口
-     * 
-     * @param deviceId 设备ID
-     * @param recordCmdStr  Record：手动录像，StopRecord：停止手动录像
-     * @param channelId     通道编码（可选）
-     */
 	@Operation(summary = "录像控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
-	@Parameter(name = "recordCmdStr", description = "命令， 可选值：Record（手动录像），StopRecord（停止手动录像）", required = true)
-    @GetMapping("/record/{deviceId}/{recordCmdStr}")
-    public DeferredResult<ResponseEntity<String>> recordApi(@PathVariable String deviceId,
-            @PathVariable String recordCmdStr, String channelId) {
+	@Parameter(name = "command", description = "控制命令，可选值：start（手动录像），stop（停止手动录像）", required = true)
+    @GetMapping("/record/{deviceId}/{channelId}/{command}")
+    public DeferredResult<ResponseEntity<String>> recordApi(@PathVariable String deviceId, @PathVariable String channelId,
+            @PathVariable String command) {
         if (logger.isDebugEnabled()) {
             logger.debug("开始/停止录像API调用");
         }
         Device device = storager.queryVideoDevice(deviceId);
+		if (device == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), deviceId + "不存在");
+		}
 		String uuid = UUID.randomUUID().toString();
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL +  deviceId + channelId;
 		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
@@ -105,8 +97,16 @@ public class DeviceControl {
 			return result;
 		}
 		resultHolder.put(key, uuid, result);
+		boolean isRecord;
+		if (command.equalsIgnoreCase("start")) {
+			isRecord = true;
+		}else if (command.equalsIgnoreCase("stop")) {
+			isRecord = false;
+		}else {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "command参数不是规定值");
+		}
 		try {
-			cmder.recordCmd(device, channelId, recordCmdStr, event -> {
+			cmder.recordCmd(device, channelId, isRecord, event -> {
 				RequestMessage msg = new RequestMessage();
 				msg.setId(uuid);
 				msg.setKey(key);
@@ -121,25 +121,31 @@ public class DeviceControl {
 		return result;
 	}
 
-	/**
-	 * 报警布防/撤防命令API接口
-	 * 
-	 * @param	deviceId 设备ID
-	 * @param	guardCmdStr SetGuard：布防，ResetGuard：撤防
-	 */
 	@Operation(summary = "布防/撤防命令", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
-	@Parameter(name = "guardCmdStr", description = "命令， 可选值：SetGuard（布防），ResetGuard（撤防）", required = true)
-	@GetMapping("/guard/{deviceId}/{guardCmdStr}")
-	public DeferredResult<String> guardApi(@PathVariable String deviceId, @PathVariable String guardCmdStr) {
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@Parameter(name = "command", description = "控制命令，可选值：start（布防），stop（撤防）", required = true)
+	@GetMapping("/guard/{deviceId}/{command}")
+	public DeferredResult<String> guardApi(@PathVariable String deviceId, @PathVariable String command) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("布防/撤防API调用");
 		}
 		Device device = storager.queryVideoDevice(deviceId);
+		if (device == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), deviceId + "不存在");
+		}
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + deviceId + deviceId;
 		String uuid =UUID.randomUUID().toString();
+		boolean setGuard;
+		if (command.equalsIgnoreCase("start")) {
+			setGuard = true;
+		}else if (command.equalsIgnoreCase("stop")) {
+			setGuard = false;
+		}else {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "command参数不是规定值");
+		}
 		try {
-			cmder.guardCmd(device, guardCmdStr, event -> {
+			cmder.guardCmd(device, setGuard, event -> {
 				RequestMessage msg = new RequestMessage();
 				msg.setId(uuid);
 				msg.setKey(key);
@@ -165,28 +171,30 @@ public class DeviceControl {
 		return result;
 	}
 
-	/**
-	 * 报警复位API接口
-	 * 
-	 * @param	deviceId 设备ID
-	 * @param	alarmMethod 报警方式（可选）
-	 * @param	alarmType   报警类型（可选）
-	 */
 	@Operation(summary = "报警复位", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
-	@Parameter(name = "channelId", description = "通道国标编号", required = true)
-	@Parameter(name = "alarmMethod", description = "报警方式")
-	@Parameter(name = "alarmType", description = "报警类型")
+	@Parameter(name = "alarmMethod", description = "报警方式, 取值0为全部," +
+			"1为电话报警,2为设备报警,3为短信报警,4为GPS报警,5为视频报警,6为设备故障报警," +
+			"7其他报警;" +
+			"可以为直接组合如12为电话报警或设备报警", required = false)
+	@Parameter(name = "alarmType", description = "报警类型, " +
+			"alarmMethod为2时，取值为：1-视频丢失报警;2-设备防拆报警;3-存储设备磁盘满报警;4-设备高温报警;5-设备低温报警。" +
+			"alarmMethod为5时, 取值为:1-人工视频报警;2-运动目标检测报警;3-遗留物检测报警;4-物体移除检测报警;5-绊线检测报警;" +
+			"						6-入侵检测报警;7-逆行检测报警;8-徘徊检测报警;9-流量统计报警;10-密度检测报警;11-视频异常检测报警;12-快速移动报警。" +
+			"alarmMethod为6时, 取值为:1-存储设备磁盘故障报警;2-存储设备风扇故障报警  ", required = false)
 	@GetMapping("/reset_alarm/{deviceId}")
-	public DeferredResult<ResponseEntity<String>> resetAlarmApi(@PathVariable String deviceId, String channelId,
-																@RequestParam(required = false) String alarmMethod,
-																@RequestParam(required = false) String alarmType) {
+	public DeferredResult<ResponseEntity<String>> resetAlarmApi(@PathVariable String deviceId,
+																@RequestParam(required = false) Integer alarmMethod,
+																@RequestParam(required = false) Integer alarmType) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("报警复位API调用");
 		}
 		Device device = storager.queryVideoDevice(deviceId);
+		if (device == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), deviceId + "不存在");
+		}
 		String uuid = UUID.randomUUID().toString();
-		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + deviceId + channelId;
+		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + deviceId ;
 		try {
 			cmder.alarmCmd(device, alarmMethod, alarmType, event -> {
 				RequestMessage msg = new RequestMessage();
@@ -213,22 +221,18 @@ public class DeviceControl {
 		return result;
 	}
 
-	/**
-	 * 强制关键帧API接口
-	 * 
-	 * @param	deviceId 设备ID
-	 * @param	channelId  通道ID
-	 */
 	@Operation(summary = "强制关键帧", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号")
-	@GetMapping("/i_frame/{deviceId}")
-	public JSONObject iFrame(@PathVariable String deviceId,
-										@RequestParam(required = false) String channelId) {
+	@GetMapping("/i_frame/{deviceId}/{channelId}")
+	public JSONObject iFrame(@PathVariable String deviceId, @PathVariable String channelId) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("强制关键帧API调用");
 		}
 		Device device = storager.queryVideoDevice(deviceId);
+		if (device == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), deviceId + "不存在");
+		}
 		try {
 			cmder.iFrameCmd(device, channelId);
 		} catch (InvalidArgumentException | SipException | ParseException e) {
@@ -242,24 +246,15 @@ public class DeviceControl {
 		return json;
 	}
 
-	/**
-	 * 看守位控制命令API接口
-	 * 
-	 * @param deviceId 设备ID
-	 * @param enabled       看守位使能1:开启,0:关闭
-	 * @param resetTime     自动归位时间间隔（可选）
-     * @param presetIndex   调用预置位编号（可选）
-     * @param channelId     通道编码（可选）
-	 */
 	@Operation(summary = "看守位控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
-	@Parameter(name = "enabled", description = "是否开启看守位 1:开启,0:关闭", required = true)
-	@Parameter(name = "presetIndex", description = "调用预置位编号")
-	@Parameter(name = "resetTime", description = "自动归位时间间隔")
-	@GetMapping("/home_position/{deviceId}/{enabled}")
+	@Parameter(name = "command", description = "控制命令： start-开启看守位 stop-关闭看守位", required = true)
+	@Parameter(name = "presetIndex", description = "调用预置位编号, 取值范围为-255")
+	@Parameter(name = "resetTime", description = "自动归位时间间隔，单位:秒(s)")
+	@GetMapping("/home_position/{deviceId}/{command}")
 	public DeferredResult<String> homePositionApi(@PathVariable String deviceId,
-																@PathVariable String enabled,
+																@PathVariable String command,
 																@RequestParam(required = false) String resetTime,
 																@RequestParam(required = false) String presetIndex,
                                                                 String channelId) {
@@ -269,6 +264,9 @@ public class DeviceControl {
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (ObjectUtils.isEmpty(channelId) ? deviceId : channelId);
 		String uuid = UUID.randomUUID().toString();
 		Device device = storager.queryVideoDevice(deviceId);
+		if (device == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), deviceId + "不存在");
+		}
 		try {
 			cmder.homePositionCmd(device, channelId, enabled, resetTime, presetIndex, event -> {
 				RequestMessage msg = new RequestMessage();
@@ -332,6 +330,9 @@ public class DeviceControl {
 			logger.debug(String.format("设备拉框放大 API调用，deviceId：%s ，channelId：%s ，length：%d ，width：%d ，midpointx：%d ，midpointy：%d ，lengthx：%d ，lengthy：%d",deviceId, channelId, length, width, midpointx, midpointy,lengthx, lengthy));
 		}
 		Device device = storager.queryVideoDevice(deviceId);
+		if (device == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), deviceId + "不存在");
+		}
 		StringBuffer cmdXml = new StringBuffer(200);
 		cmdXml.append("<DragZoomIn>\r\n");
 		cmdXml.append("<Length>" + length+ "</Length>\r\n");
@@ -384,6 +385,9 @@ public class DeviceControl {
 			logger.debug(String.format("设备拉框缩小 API调用，deviceId：%s ，channelId：%s ，length：%d ，width：%d ，midpointx：%d ，midpointy：%d ，lengthx：%d ，lengthy：%d",deviceId, channelId, length, width, midpointx, midpointy,lengthx, lengthy));
 		}
 		Device device = storager.queryVideoDevice(deviceId);
+		if (device == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), deviceId + "不存在");
+		}
 		StringBuffer cmdXml = new StringBuffer(200);
 		cmdXml.append("<DragZoomOut>\r\n");
 		cmdXml.append("<Length>" + length+ "</Length>\r\n");

@@ -180,9 +180,9 @@ public interface ISIPCommander {
 	 * 
 	 * @param device  		视频设备
 	 * @param channelId  	预览通道
-	 * @param recordCmdStr	录像命令：Record / StopRecord
+	 * @param record	    是否录像
 	 */
-	void recordCmd(Device device, String channelId, String recordCmdStr, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
+	void recordCmd(Device device, String channelId, boolean record, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
 	
 	/**
 	 * 远程启动控制命令
@@ -196,7 +196,7 @@ public interface ISIPCommander {
 	 * 
 	 * @param device  	视频设备
 	 */
-	void guardCmd(Device device, String guardCmdStr, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
+	void guardCmd(Device device, boolean guard, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
 	
 	/**
 	 * 报警复位命令
@@ -205,7 +205,7 @@ public interface ISIPCommander {
 	 * @param alarmMethod	报警方式（可选）
 	 * @param alarmType		报警类型（可选）
 	 */
-	void alarmCmd(Device device, String alarmMethod, String alarmType, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
+	void alarmCmd(Device device, Integer alarmMethod, Integer alarmType, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
 	
 	/**
 	 * 强制关键帧命令,设备收到此命令应立刻发送一个IDR帧
@@ -224,7 +224,7 @@ public interface ISIPCommander {
 	 * @param resetTime   自动归位时间间隔，开启看守位时使用，单位:秒(s)
 	 * @param presetIndex 调用预置位编号，开启看守位时使用，取值范围0~255
 	 */
-	void homePositionCmd(Device device, String channelId, String enabled, String resetTime, String presetIndex, SipSubscribe.Event errorEvent,SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
+	void homePositionCmd(Device device, String channelId, boolean enabled, String resetTime, String presetIndex, SipSubscribe.Event errorEvent,SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
 
 	/**
 	 * 设备配置命令

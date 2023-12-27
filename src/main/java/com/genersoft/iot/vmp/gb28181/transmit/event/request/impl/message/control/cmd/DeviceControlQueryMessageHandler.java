@@ -281,14 +281,20 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
      */
     private void handleAlarmCmd(Device device, Element rootElement, SIPRequest request) {
         //告警方法
-        String alarmMethod = "";
+        Integer alarmMethod = null;
         //告警类型
-        String alarmType = "";
+        Integer alarmType = null;
         List<Element> info = rootElement.elements("Info");
         if (info != null) {
             for (Element element : info) {
-                alarmMethod = getText(element, "AlarmMethod");
-                alarmType = getText(element, "AlarmType");
+                String alarmMethodStr = getText(element, "AlarmMethod");
+                if (alarmMethodStr != null) {
+                    alarmMethod = Integer.parseInt(alarmMethodStr);
+                }
+                String alarmTypeStr = getText(element, "AlarmType");
+                if (alarmTypeStr != null) {
+                    alarmType = Integer.parseInt(alarmTypeStr);
+                }
             }
         }
         try {
@@ -312,8 +318,16 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
     private void handleRecordCmd(Device device, String channelId, Element rootElement, SIPRequest request, DeviceControlType type) {
         //获取整个消息主体，我们只需要修改请求头即可
         String cmdString = getText(rootElement, type.getVal());
+        Boolean isRecord = null;
+        if (cmdString.equalsIgnoreCase("Record")) {
+            isRecord = true;
+        }else if (cmdString.equalsIgnoreCase("StopRecord")) {
+            isRecord = false;
+        }else {
+            return;
+        }
         try {
-            cmder.recordCmd(device, channelId, cmdString,
+            cmder.recordCmd(device, channelId, isRecord,
                     errorResult -> onError(request, errorResult),
                     okResult -> onOk(request, okResult));
         } catch (InvalidArgumentException | SipException | ParseException e) {
@@ -332,8 +346,16 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
     private void handleGuardCmd(Device device, Element rootElement, SIPRequest request, DeviceControlType type) {
         //获取整个消息主体，我们只需要修改请求头即可
         String cmdString = getText(rootElement, type.getVal());
+        boolean setGuard;
+        if (cmdString.equalsIgnoreCase("Record")) {
+            setGuard = true;
+        }else if (cmdString.equalsIgnoreCase("StopRecord")) {
+            setGuard = false;
+        }else {
+            return;
+        }
         try {
-            cmder.guardCmd(device, cmdString,
+            cmder.guardCmd(device, setGuard,
                     errorResult -> onError(request, errorResult),
                     okResult -> onOk(request, okResult));
         } catch (InvalidArgumentException | SipException | ParseException e) {

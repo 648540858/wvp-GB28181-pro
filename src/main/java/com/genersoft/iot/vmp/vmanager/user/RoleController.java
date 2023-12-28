@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.user;
 
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.conf.security.SecurityUtils;
 import com.genersoft.iot.vmp.service.IRoleService;
 import com.genersoft.iot.vmp.storager.dao.dto.Role;
@@ -8,6 +9,7 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +26,7 @@ public class RoleController {
     private IRoleService roleService;
 
     @PostMapping("/add")
-    @Operation(summary = "添加角色")
+    @Operation(summary = "添加角色", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "name", description = "角色名", required = true)
     @Parameter(name = "authority", description = "权限（自行定义内容，目前未使用）", required = true)
     public void add(@RequestParam String name,
@@ -49,7 +51,7 @@ public class RoleController {
     }
 
     @DeleteMapping("/delete")
-    @Operation(summary = "删除角色")
+    @Operation(summary = "删除角色", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "id", description = "用户Id", required = true)
     public void delete(@RequestParam Integer id){
         // 获取当前登录用户id
@@ -66,7 +68,7 @@ public class RoleController {
     }
 
     @GetMapping("/all")
-    @Operation(summary = "查询角色")
+    @Operation(summary = "查询角色", security = @SecurityRequirement(name = JwtUtils.HEADER))
     public List<Role> all(){
         // 获取当前登录用户id
         List<Role> allRoles = roleService.getAll();

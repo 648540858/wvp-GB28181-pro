@@ -1,9 +1,12 @@
 package com.genersoft.iot.vmp.conf;
 
+import com.genersoft.iot.vmp.conf.security.JwtUtils;
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.core.annotation.Order;
 import org.springdoc.core.GroupedOpenApi;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,10 +29,14 @@ public class SpringDocConfig {
         contact.setName("pan");
         contact.setEmail("648540858@qq.com");
         return new OpenAPI()
+                .components(new Components()
+                        .addSecuritySchemes(JwtUtils.HEADER, new SecurityScheme()
+                                .type(SecurityScheme.Type.HTTP)
+                                .bearerFormat("JWT")))
                 .info(new Info().title("WVP-PRO 接口文档")
                         .contact(contact)
                         .description("开箱即用的28181协议视频平台")
-                        .version("v2.0")
+                        .version("v3.1.0")
                         .license(new License().name("Apache 2.0").url("http://springdoc.org")));
     }
 

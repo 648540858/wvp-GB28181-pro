@@ -44,7 +44,7 @@ export default {
       vod: true, // 点播
     };
   },
-  props: ['videoUrl', 'error', 'hasAudio', 'height', 'autoPlay'],
+  props: ['videoUrl', 'error', 'hasAudio', 'height'],
   mounted() {
     let paramUrl = decodeURIComponent(this.$route.params.url)
     this.$nextTick(() => {
@@ -56,9 +56,6 @@ export default {
         this.videoUrl = paramUrl;
       }
       this.btnDom = document.getElementById("buttonsBox");
-      if (this.autoPlay) {
-        this.play(this.videoUrl);
-      }
     })
   },
   watch: {
@@ -67,7 +64,8 @@ export default {
         this.$nextTick(() => {
           this.play(val);
         })
-      }
+      },
+      immediate: true
     }
   },
   methods: {

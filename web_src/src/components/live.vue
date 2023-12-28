@@ -18,7 +18,7 @@
                  @click="playerIdx = (i-1)">
               <div v-if="!videoUrl[i-1]" style="color: #ffffff;font-size: 30px;font-weight: bold;">{{ i }}</div>
               <player ref="player" v-else :videoUrl="videoUrl[i-1]" fluent autoplay @screenshot="shot"
-                      @destroy="destroy" :auto-play="true"/>
+                      @destroy="destroy"/>
             </div>
           </div>
         </el-main>

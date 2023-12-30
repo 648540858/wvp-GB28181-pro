@@ -56,14 +56,12 @@ export default {
         }
       },
       handleContextMenu(event,data,node,element) {
-        console.log("右键点击事件")
         let deviceNode = this.$refs.gdTree.getNode(data.userData.deviceId)
         if(typeof (this.contextMenuEvent) == "function") {
           this.contextMenuEvent(deviceNode.data.userData, event, data.userData, data.type === 2)
         }
       },
       loadNode: function(node, resolve){
-        console.log(this.device)
         if (node.level === 0) {
           if (this.device) {
             let node = {
@@ -77,11 +75,9 @@ export default {
             resolve([node])
           }else {
             this.deviceService.getAllDeviceList((data)=>{
-              console.log(data)
               if (data.length > 0) {
                 let nodeList = []
                 for (let i = 0; i < data.length; i++) {
-                  console.log(data[i].name)
                   let node = {
                     name: data[i].name || data[i].deviceId,
                     isLeaf: false,
@@ -106,7 +102,6 @@ export default {
           let channelArray = []
 
           this.deviceService.getTree(node.data.userData.deviceId, node.data.id, this.onlyCatalog, catalogData =>{
-            console.log(catalogData)
             channelArray = channelArray.concat(catalogData)
             this.channelDataHandler(channelArray, resolve)
           },(endCatalogData) => {
@@ -126,11 +121,9 @@ export default {
             }else {
               if (item.id.length > 14) {
                 let channelType = item.id.substring(10, 13)
-                console.log("channelType: " + channelType)
                 if (channelType === '215' || channelType === '216') {
                   type = 2;
                 }
-                console.log(type)
                 if (item.basicData.ptztype === 1 ) { // 1-球机;2-半球;3-固定枪机;4-遥控枪机
                   type = 4;
                 }else if (item.basicData.ptztype === 2) {

@@ -40,7 +40,7 @@
     </div>
     <devicePlayer ref="devicePlayer"></devicePlayer>
     <el-container v-loading="isLoging" style="height: 82vh;">
-      <el-aside width="auto" style="height: 82vh; background-color: #ffffff; overflow: auto" v-if="showTree">
+      <el-aside width="300px" style="height: 82vh; background-color: #ffffff; overflow: auto" v-if="showTree">
         <DeviceTree ref="deviceTree" :device="device" :onlyCatalog="true" :clickEvent="treeNodeClickEvent"></DeviceTree>
       </el-aside>
       <el-main style="padding: 5px;">
@@ -235,8 +235,7 @@ export default {
   mounted() {
     if (this.deviceId) {
       this.deviceService.getDevice(this.deviceId, (result) => {
-        this.device = result;
-
+        this.device = result.data;
       }, (error) => {
         console.log("获取设备信息失败")
         console.error(error)
@@ -469,8 +468,8 @@ export default {
           }
         }).then((res) => {
           if (res.data.code === 0) {
-            this.total = res.data.total;
-            this.deviceChannelList = res.data.list;
+            this.total = res.data.data.total;
+            this.deviceChannelList = res.data.data.list;
             // 防止出现表格错位
             this.$nextTick(() => {
               this.$refs.channelListTable.doLayout();

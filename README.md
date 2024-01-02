@@ -13,6 +13,7 @@ WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的开箱即用的网�
 流媒体服务基于@夏楚 ZLMediaKit [https://github.com/ZLMediaKit/ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)   
 播放器使用@dexter jessibuca [https://github.com/langhuihui/jessibuca/tree/v3](https://github.com/langhuihui/jessibuca/tree/v3)  
 前端页面基于@Kyle MediaServerUI [https://gitee.com/kkkkk5G/MediaServerUI](https://gitee.com/kkkkk5G/MediaServerUI) 进行修改.  
+时间轴组件基于@gitboyzcf  [https://github.com/gitboyzcf/time-line?tab=readme-ov-file](https://github.com/gitboyzcf/time-line?tab=readme-ov-file)
 
 # 应用场景：
 支持浏览器无插件播放摄像头视频。

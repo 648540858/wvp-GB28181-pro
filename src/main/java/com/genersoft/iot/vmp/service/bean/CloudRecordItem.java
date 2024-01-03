@@ -22,7 +22,7 @@ public class CloudRecordItem {
     private String stream;
     
     /**
-     * 健全ID
+     * 鉴权ID
      */
     private String callId;
     
@@ -60,11 +60,6 @@ public class CloudRecordItem {
      * 收藏，收藏的文件不移除
      */
     private Boolean collect;
-
-    /**
-     * 保留，收藏的文件不移除
-     */
-    private Boolean reserve;
     
     /**
      * 文件大小
@@ -195,11 +190,4 @@ public class CloudRecordItem {
         this.collect = collect;
     }
 
-    public Boolean getReserve() {
-        return reserve;
-    }
-
-    public void setReserve(Boolean reserve) {
-        this.reserve = reserve;
-    }
 }

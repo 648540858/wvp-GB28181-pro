@@ -741,11 +741,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public List<MediaServerItem> getAllWithAssistPort() {
-        return mediaServerMapper.queryAllWithAssistPort();
-    }
-
-    @Override
     public StreamMediaInfo getMediaInfo(String mediaServerId, String app, String stream) {
         MediaServerItem mediaServerItem = getOne(mediaServerId);
         if (mediaServerItem == null) {

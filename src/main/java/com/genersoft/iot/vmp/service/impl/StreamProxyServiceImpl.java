@@ -123,7 +123,13 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             }
             JSONArray dataArray = jsonObject.getJSONArray("data");
             JSONObject mediaServerConfig = dataArray.getJSONObject(0);
+            if (ObjectUtils.isEmpty(param.getFfmpegCmdKey())) {
+                param.setFfmpegCmdKey("ffmpeg.cmd");
+            }
             String ffmpegCmd = mediaServerConfig.getString(param.getFfmpegCmdKey());
+            if (ffmpegCmd == null) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "ffmpeg拉流代理无法获取ffmpeg cmd");
+            }
             String schema = getSchemaFromFFmpegCmd(ffmpegCmd);
             if (schema == null) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), "ffmpeg拉流代理无法从ffmpeg cmd中获取到输出格式");
@@ -412,7 +418,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         streamProxyMapper.deleteAutoRemoveItemByMediaServerId(mediaServerId);
 
         // 移除拉流代理生成的流信息
-//        syncPullStream(mediaServerId);
+        syncPullStream(mediaServerId);
 
         // 恢复流代理, 只查找这个这个流媒体
         List<StreamProxy> streamProxyListForEnable = storager.getStreamProxyListForEnableInMediaServer(

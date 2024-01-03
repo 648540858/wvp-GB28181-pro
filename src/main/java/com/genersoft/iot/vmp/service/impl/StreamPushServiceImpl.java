@@ -226,6 +226,8 @@ public class StreamPushServiceImpl implements IStreamPushService {
                     redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
                     // 移除redis内流的信息
                     redisCatchStorage.removeStream(mediaServerItem.getId(), "PUSH", offlineOnStreamChangedHookParam.getApp(), offlineOnStreamChangedHookParam.getStream());
+                    // 冗余数据，自己系统中自用
+                    redisCatchStorage.removePushListItem(offlineOnStreamChangedHookParam.getApp(), offlineOnStreamChangedHookParam.getStream(), mediaServerItem.getId());
                 }
             }
 
@@ -262,6 +264,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
                 jsonObject.put("register", false);
                 jsonObject.put("mediaServerId", mediaServerId);
                 redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
+
+                // 冗余数据，自己系统中自用
+                redisCatchStorage.removePushListItem(onStreamChangedHookParam.getApp(), onStreamChangedHookParam.getStream(), mediaServerId);
             }
         }
     }

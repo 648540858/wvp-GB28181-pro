@@ -92,7 +92,6 @@ create table wvp_device_channel (
                                     latitude_wgs84 double precision,
                                     business_group_id character varying(50),
                                     gps_time character varying(50),
-                                    common_gb_channel_id integer,
                                     constraint uk_wvp_device_channel_unique_device_channel unique (device_id, channel_id)
 );
 
@@ -113,6 +112,21 @@ create table wvp_device_mobile_position (
                                             longitude_wgs84 double precision,
                                             latitude_wgs84 double precision,
                                             create_time character varying(50)
+);
+
+create table wvp_gb_stream (
+                               gb_stream_id serial primary key,
+                               app character varying(255) not null,
+                               stream character varying(255) not null,
+                               gb_id character varying(50) not null,
+                               name character varying(255),
+                               longitude double precision,
+                               latitude double precision,
+                               stream_type character varying(50),
+                               media_server_id character varying(50),
+                               create_time character varying(50),
+                               constraint uk_gb_stream_unique_gb_id unique (gb_id),
+                               constraint uk_gb_stream_unique_app_stream unique (app, stream)
 );
 
 create table wvp_log (
@@ -150,6 +164,8 @@ create table wvp_media_server (
                                   create_time character varying(50),
                                   update_time character varying(50),
                                   hook_alive_interval integer,
+                                  record_path character varying(255),
+                                  record_day integer default 7,
                                   constraint uk_media_server_unique_ip_http_port unique (ip, http_port)
 );
 
@@ -184,12 +200,30 @@ create table wvp_platform (
                               constraint uk_platform_unique_server_gb_id unique (server_gb_id)
 );
 
+create table wvp_platform_catalog (
+                                      id character varying(50),
+                                      platform_id character varying(50),
+                                      name character varying(255),
+                                      parent_id character varying(50),
+                                      civil_code character varying(50),
+                                      business_group_id character varying(50),
+                                      constraint uk_platform_catalog_id_platform_id unique (id, platform_id)
+);
+
 create table wvp_platform_gb_channel (
                                          id serial primary key ,
                                          platform_id character varying(50),
                                          catalog_id character varying(50),
                                          device_channel_id integer,
                                          constraint uk_platform_gb_channel_platform_id_catalog_id_device_channel_id unique (platform_id, catalog_id, device_channel_id)
+);
+
+create table wvp_platform_gb_stream (
+                                        id serial primary key,
+                                        platform_id character varying(50),
+                                        catalog_id character varying(50),
+                                        gb_stream_id integer,
+                                        constraint uk_platform_gb_stream_platform_id_catalog_id_gb_stream_id unique (platform_id, catalog_id, gb_stream_id)
 );
 
 create table wvp_stream_proxy (
@@ -214,16 +248,16 @@ create table wvp_stream_proxy (
                                   update_time character varying(50),
                                   stream_key character varying(255),
                                   enable_disable_none_reader bool default false,
-                                  common_gb_channel_id integer,
                                   constraint uk_stream_proxy_app_stream unique (app, stream)
 );
 
 create table wvp_stream_push (
                                  id serial primary key,
-                                 name character varying(255) default NULL,
                                  app character varying(255),
                                  stream character varying(255),
                                  total_reader_count character varying(50),
+                                 origin_type integer,
+                                 origin_type_str character varying(50),
                                  create_time character varying(50),
                                  alive_second integer,
                                  media_server_id character varying(50),
@@ -232,8 +266,23 @@ create table wvp_stream_push (
                                  update_time character varying(50),
                                  push_ing bool default false,
                                  self bool default false,
-                                 common_gb_channel_id integer,
                                  constraint uk_stream_push_app_stream unique (app, stream)
+);
+create table wvp_cloud_record (
+                                  id serial primary key,
+                                  app character varying(255),
+                                  stream character varying(255),
+                                  call_id character varying(255),
+                                  start_time bigint,
+                                  end_time bigint,
+                                  media_server_id character varying(50),
+                                  file_name character varying(255),
+                                  folder character varying(255),
+                                  file_path character varying(255),
+                                  collect bool default false,
+                                  file_size bigint,
+                                  time_len bigint,
+                                  constraint uk_stream_push_app_stream_path unique (app, stream, file_path)
 );
 
 create table wvp_user (
@@ -253,6 +302,15 @@ create table wvp_user_role (
                                authority character varying(50),
                                create_time character varying(50),
                                update_time character varying(50)
+);
+create table wvp_resources_tree (
+                                    id serial primary key ,
+                                    is_catalog bool default true,
+                                    device_channel_id integer ,
+                                    gb_stream_id integer,
+                                    name character varying(255),
+                                    parentId integer,
+                                    path character varying(255)
 );
 
 

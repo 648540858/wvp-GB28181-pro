@@ -159,32 +159,35 @@ public class DeviceServiceImpl implements IDeviceService {
                         commonGbChannelService.onlineForList(ids);
                     }
                 }
+                // 上线添加订阅
+                if (device.getSubscribeCycleForCatalog() > 0) {
+                    // 查询在线设备那些开启了订阅，为设备开启定时的目录订阅
+                    addCatalogSubscribe(device);
+                }
+                if (device.getSubscribeCycleForMobilePosition() > 0) {
+                    addMobilePositionSubscribe(device);
+                }
+                if (userSetting.getDeviceStatusNotify()) {
+                    // 发送redis消息
+                    redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), null, true);
+                }
+
             }else {
                 if (deviceChannelMapper.queryAllChannels(device.getDeviceId()).size() == 0) {
                     logger.info("[设备上线]: {}，通道数为0,查询通道信息", device.getDeviceId());
                     sync(device);
                 }
+
                 deviceMapper.update(device);
                 redisCatchStorage.updateDevice(device);
             }
+
         }
 
-        // 上线添加订阅
-        if (device.getSubscribeCycleForCatalog() > 0) {
-            // 查询在线设备那些开启了订阅，为设备开启定时的目录订阅
-            addCatalogSubscribe(device);
-        }
-        if (device.getSubscribeCycleForMobilePosition() > 0) {
-            addMobilePositionSubscribe(device);
-        }
         // 刷新过期任务
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
         // 如果第一次注册那么必须在60 * 3时间内收到一个心跳，否则设备离线
         dynamicTask.startDelay(registerExpireTaskKey, ()-> offline(device.getDeviceId(), "首次注册后未能收到心跳"), device.getKeepaliveIntervalTime() * 1000 * 3);
-        if (userSetting.getDeviceStatusNotify()) {
-            // 发送redis消息
-            redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), null, true);
-        }
 
 //
 //        try {
@@ -209,11 +212,16 @@ public class DeviceServiceImpl implements IDeviceService {
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + deviceId;
         dynamicTask.stop(registerExpireTaskKey);
         if (device.isOnLine()) {
+            if (userSetting.getDeviceStatusNotify()) {
+                // 发送redis消息
+                redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), null, false);
+            }
             List<Integer> ids = deviceChannelMapper.getCommonChannelIdList(device.getDeviceId());
             if (!ids.isEmpty()) {
                 commonGbChannelService.offlineForList(ids);
             }
         }
+
         device.setOnLine(false);
         redisCatchStorage.updateDevice(device);
         deviceMapper.update(device);
@@ -231,11 +239,6 @@ public class DeviceServiceImpl implements IDeviceService {
         // 移除订阅
         removeCatalogSubscribe(device);
         removeMobilePositionSubscribe(device);
-        if (userSetting.getDeviceStatusNotify()) {
-            // 发送redis消息
-            redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), null, false);
-        }
-
     }
 
     @Override

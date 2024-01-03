@@ -1,3 +1,4 @@
+
 alter table device
     change deviceId device_id varchar(50) not null;
 
@@ -38,7 +39,7 @@ alter table device
     change geoCoordSys geo_coord_sys varchar(50) not null;
 
 alter table device
-    drop column treeType;
+drop column treeType;
 
 alter table device
     change mediaServerId media_server_id varchar(50) default 'auto' null;
@@ -59,8 +60,7 @@ alter table device
     change online on_line varchar(50) null;
 
 alter table device
-    add COLUMN switch_primary_sub_stream bool default false comment '开启主子码流切换的开关（0-不开启，1-开启）现在已知支持设备为 大华、TP——LINK全系设备'
-
+    add COLUMN switch_primary_sub_stream bool default false comment '开启主子码流切换的开关（0-不开启，1-开启）现在已知支持设备为 大华、TP——LINK全系设备';
 
 alter table device_alarm
     change deviceId device_id varchar(50) not null;
@@ -120,7 +120,7 @@ alter table device_channel
     change status status bool default false;
 
 alter table device_channel
-    change streamId stream_id varchar(50) null;
+    change streamId stream_id varchar(255) null;
 
 alter table device_channel
     change deviceId device_id varchar(50) not null;
@@ -203,9 +203,6 @@ alter table log
 
 alter table media_server
     change hookIp hook_ip varchar(50) not null;
-
-alter table media_server
-    add send_rtp_port_range varchar(50) not null;
 
 alter table media_server
     add column send_rtp_port_range varchar(50) default null;
@@ -307,7 +304,7 @@ alter table parent_platform
     change updateTime update_time varchar(50) null;
 
 alter table parent_platform
-    drop column treeType;
+drop column treeType;
 
 alter table parent_platform
     change asMessageChannel as_message_channel bool default false;
@@ -418,7 +415,7 @@ alter table stream_push
     change self self bool default false;
 
 alter table stream_push
-    drop column serverId;
+drop column serverId;
 
 
 alter table user
@@ -471,32 +468,33 @@ create table wvp_resources_tree (
                                     path character varying(255)
 );
 
+alter table wvp_platform
+    add auto_push_channel bool default false;
 
+alter table wvp_stream_proxy
+    add stream_key character varying(255);
 
+create table wvp_cloud_record (
+      id serial primary key,
+      app character varying(255),
+      stream character varying(255),
+      call_id character varying(255),
+      start_time bigint,
+      end_time bigint,
+      media_server_id character varying(50),
+      file_name character varying(255),
+      folder character varying(255),
+      file_path character varying(255),
+      collect bool default false,
+      file_size bigint,
+      time_len bigint,
+      constraint uk_stream_push_app_stream_path unique (app, stream, file_path)
+);
 
+alter table wvp_media_server
+    add record_path character varying(255);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+alter table wvp_media_server
+    add record_day integer default 7;
 
 

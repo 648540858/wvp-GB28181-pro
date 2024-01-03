@@ -56,8 +56,6 @@ public class UserSetting {
 
     private String serverId = "000000";
 
-    private String recordPath = null;
-
     private String thirdPartyGBIdReg = "[\\s\\S]*";
 
     private String civilCodeFile = "classpath:civilCode.csv";
@@ -250,14 +248,6 @@ public class UserSetting {
 
     public void setRefuseChannelStatusChannelFormNotify(Boolean refuseChannelStatusChannelFormNotify) {
         this.refuseChannelStatusChannelFormNotify = refuseChannelStatusChannelFormNotify;
-    }
-
-    public String getRecordPath() {
-        return recordPath;
-    }
-
-    public void setRecordPath(String recordPath) {
-        this.recordPath = recordPath;
     }
 
     public int getMaxNotifyCountQueue() {

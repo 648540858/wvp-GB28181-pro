@@ -956,6 +956,7 @@ public class PlayServiceImpl implements IPlayService {
         // zlm 暂停RTP超时检查
         JSONObject jsonObject = zlmresTfulUtils.pauseRtpCheck(mediaServerItem, streamId);
         if (jsonObject == null || jsonObject.getInteger("code") != 0) {
+            logger.warn("[暂停流] 暂停RTP接收失败： {}", jsonObject );
             throw new ServiceException("暂停RTP接收失败");
         }
         Device device = storager.queryVideoDevice(inviteInfo.getDeviceId());
@@ -976,9 +977,11 @@ public class PlayServiceImpl implements IPlayService {
             logger.warn("mediaServer 不存在!");
             throw new ServiceException("mediaServer不存在");
         }
+
         // zlm 暂停RTP超时检查
         JSONObject jsonObject = zlmresTfulUtils.resumeRtpCheck(mediaServerItem, streamId);
         if (jsonObject == null || jsonObject.getInteger("code") != 0) {
+            logger.info("[暂停RTP超时检查] 失败：" + jsonObject);
             throw new ServiceException("继续RTP接收失败");
         }
         Device device = storager.queryVideoDevice(inviteInfo.getDeviceId());

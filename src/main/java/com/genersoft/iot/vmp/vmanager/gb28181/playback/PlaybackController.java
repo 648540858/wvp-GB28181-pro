@@ -145,9 +145,9 @@ public class PlaybackController {
 		}
 		try {
 			cmder.streamByeCmd(device, channelId, stream, null);
-		} catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
+		} catch (InvalidArgumentException | ParseException | SipException e) {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "发送bye失败： " + e.getMessage());
-		}
+		} catch (SsrcTransactionNotFoundException ignored) {}
 	}
 
 
@@ -159,9 +159,7 @@ public class PlaybackController {
 
 		try {
 			playService.pauseRtp(streamId);
-		} catch (ServiceException e) {
-			throw new ControllerException(ErrorCode.ERROR400.getCode(), e.getMessage());
-		} catch (InvalidArgumentException | ParseException | SipException e) {
+		}catch (ServiceException | InvalidArgumentException | ParseException | SipException e) {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
 		}
 	}

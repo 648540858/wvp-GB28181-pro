@@ -109,8 +109,8 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         }else {
             endDate = LocalDate.of(year, month + 1, 1);
         }
-        long startTimeStamp = startDate.atStartOfDay().toInstant(ZoneOffset.ofHours(8)).getEpochSecond();
-        long endTimeStamp = endDate.atStartOfDay().toInstant(ZoneOffset.ofHours(8)).getEpochSecond();
+        long startTimeStamp = startDate.atStartOfDay().toInstant(ZoneOffset.ofHours(8)).getEpochSecond() * 1000;
+        long endTimeStamp = endDate.atStartOfDay().toInstant(ZoneOffset.ofHours(8)).getEpochSecond() * 1000;
         List<CloudRecordItem> cloudRecordItemList = cloudRecordServiceMapper.getList(null, app, stream, startTimeStamp,
                 endTimeStamp, null, mediaServerItems);
         if (cloudRecordItemList.isEmpty()) {
@@ -159,10 +159,10 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         Long startTimeStamp = null;
         Long endTimeStamp = null;
         if (startTime != null) {
-            startTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime);
+            startTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime) * 1000;
         }
         if (endTime != null) {
-            endTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime);
+            endTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) * 1000;
         }
 
         List<MediaServerItem> mediaServers = new ArrayList<>();
@@ -206,14 +206,14 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
             if (!DateUtil.verification(startTime, DateUtil.formatter)) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), "开始时间格式错误，正确格式为： " + DateUtil.formatter);
             }
-            startTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime);
+            startTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime) * 1000;
 
         }
         if (endTime != null ) {
             if (!DateUtil.verification(endTime, DateUtil.formatter)) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), "结束时间格式错误，正确格式为： " + DateUtil.formatter);
             }
-            endTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime);
+            endTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) * 1000;
 
         }
 

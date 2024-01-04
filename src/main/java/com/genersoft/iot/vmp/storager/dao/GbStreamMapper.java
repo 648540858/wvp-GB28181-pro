@@ -158,7 +158,7 @@ public interface GbStreamMapper {
                 " <foreach collection='list' item='item' index='index' separator=';'>"+
                     "UPDATE wvp_gb_stream " +
                     " SET name=#{item.name},"+
-                    " gb_id=#{item.gb_id}"+
+                    " gb_id=#{item.gbId}"+
                     " WHERE app=#{item.app} and stream=#{item.stream}"+
                 "</foreach>"+
             "</script>")

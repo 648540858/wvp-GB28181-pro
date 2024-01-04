@@ -57,14 +57,14 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
             if (!DateUtil.verification(startTime, DateUtil.formatter)) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), "开始时间格式错误，正确格式为： " + DateUtil.formatter);
             }
-            startTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime);
+            startTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime) * 1000;
 
         }
         if (endTime != null ) {
             if (!DateUtil.verification(endTime, DateUtil.formatter)) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), "结束时间格式错误，正确格式为： " + DateUtil.formatter);
             }
-            endTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime);
+            endTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) * 1000;
 
         }
         PageHelper.startPage(page, count);

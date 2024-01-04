@@ -252,4 +252,24 @@ public class CloudRecordController {
     ){
         return cloudRecordService.getPlayUrlPath(recordId);
     }
+
+    @ResponseBody
+    @GetMapping("/download/path")
+    @Operation(summary = "获取播放地址")
+    @Parameter(name = "recordId", description = "录像记录的ID", required = true)
+    public DownloadFileInfo getDownloadPath(
+            @RequestParam(required = true) Integer recordId
+    ){
+        return cloudRecordService.getPlayUrlPath(recordId);
+    }
+
+    @ResponseBody
+    @GetMapping("/play/live")
+    @Operation(summary = "获取点播i地址")
+    @Parameter(name = "recordId", description = "录像记录的ID", required = true)
+    public DownloadFileInfo getLivePath(
+            @RequestParam(required = true) Integer recordId
+    ){
+        return cloudRecordService.getLivePath(recordId);
+    }
 }

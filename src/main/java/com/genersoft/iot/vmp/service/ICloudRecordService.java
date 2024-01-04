@@ -55,4 +55,9 @@ public interface ICloudRecordService {
      * 获取播放地址
      */
     DownloadFileInfo getPlayUrlPath(Integer recordId);
+
+    /**
+     * 点播视频流
+     */
+    DownloadFileInfo getLivePath(Integer recordId);
 }

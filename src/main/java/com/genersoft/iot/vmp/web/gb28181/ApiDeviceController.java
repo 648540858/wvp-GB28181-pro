@@ -70,6 +70,7 @@ public class ApiDeviceController {
 //        if (logger.isDebugEnabled()) {
 //            logger.debug("查询所有视频设备API调用");
 //        }
+
         JSONObject result = new JSONObject();
         List<Device> devices;
         if (start == null || limit ==null) {
@@ -82,7 +83,7 @@ public class ApiDeviceController {
         }
 
         JSONArray deviceJSONList = new JSONArray();
-        for (Device device : devices) {
+        devices.stream().forEach(device -> {
             JSONObject deviceJsonObject = new JSONObject();
             deviceJsonObject.put("ID", device.getDeviceId());
             deviceJsonObject.put("Name", device.getName());
@@ -101,7 +102,7 @@ public class ApiDeviceController {
             deviceJsonObject.put("UpdatedAt", "");
             deviceJsonObject.put("CreatedAt", "");
             deviceJSONList.add(deviceJsonObject);
-        }
+        });
         result.put("DeviceList",deviceJSONList);
         return result;
     }
@@ -116,7 +117,6 @@ public class ApiDeviceController {
                                    @RequestParam(required = false)String q,
                                    @RequestParam(required = false)Boolean online ){
 
-
         JSONObject result = new JSONObject();
         List<DeviceChannelExtend> deviceChannels;
         List<String> channelIds = null;
@@ -129,13 +129,19 @@ public class ApiDeviceController {
             deviceChannels = allDeviceChannelList;
             result.put("ChannelCount", deviceChannels.size());
         }else {
-            deviceChannels = storager.queryChannelsByDeviceIdWithStartAndLimit(serial,channelIds, null, null, online,start, limit);
-            int total = allDeviceChannelList.size();
-            result.put("ChannelCount", total);
+            if (start > allDeviceChannelList.size()) {
+                deviceChannels = new ArrayList<>();
+            }else {
+                if (start + limit < allDeviceChannelList.size()) {
+                    deviceChannels = allDeviceChannelList.subList(start, start + limit);
+                }else {
+                    deviceChannels = allDeviceChannelList.subList(start, allDeviceChannelList.size());
+                }
+            }
+            result.put("ChannelCount", allDeviceChannelList.size());
         }
-
         JSONArray channleJSONList = new JSONArray();
-        for (DeviceChannelExtend deviceChannelExtend : deviceChannels) {
+        deviceChannels.stream().forEach(deviceChannelExtend -> {
             JSONObject deviceJOSNChannel = new JSONObject();
             deviceJOSNChannel.put("ID", deviceChannelExtend.getChannelId());
             deviceJOSNChannel.put("DeviceID", deviceChannelExtend.getDeviceId());
@@ -168,7 +174,7 @@ public class ApiDeviceController {
             deviceJOSNChannel.put("StreamID", deviceChannelExtend.getStreamId()); // StreamID 直播流ID, 有值表示正在直播
             deviceJOSNChannel.put("NumOutputs ", -1); // 直播在线人数
             channleJSONList.add(deviceJOSNChannel);
-        }
+        });
         result.put("ChannelList", channleJSONList);
         return result;
     }

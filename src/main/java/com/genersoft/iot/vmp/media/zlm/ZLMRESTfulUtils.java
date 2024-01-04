@@ -413,7 +413,7 @@ public class ZLMRESTfulUtils {
         param.put("app", app);
         param.put("stream", stream);
         param.put("file_path", file_path);
-        param.put("file_repeat", '0');
+        param.put("file_repeat", '1');
         param.put("enable_hls", '1');
         param.put("enable_hls_fmp4", '1');
         param.put("enable_mp4", '0');

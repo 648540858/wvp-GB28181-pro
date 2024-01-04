@@ -250,9 +250,6 @@ public class GbStreamServiceImpl implements IGbStreamService {
         if (platform == null) {
             return ;
         }
-        if (ObjectUtils.isEmpty(catalogId)) {
-            catalogId = platform.getDeviceGBId();
-        }
         if (platformGbStreamMapper.delByPlatformAndCatalogId(platformId, catalogId) > 0) {
             List<GbStream> gbStreams = platformGbStreamMapper.queryChannelInParentPlatformAndCatalog(platformId, catalogId);
             List<DeviceChannel> deviceChannelList = new ArrayList<>();

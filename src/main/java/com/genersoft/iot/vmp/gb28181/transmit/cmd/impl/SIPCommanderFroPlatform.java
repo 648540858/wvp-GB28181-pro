@@ -598,7 +598,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
         SIPRequest notifyRequest = headerProviderPlatformProvider.createNotifyRequest(parentPlatform, catalogXmlContent, subscribeInfo);
 
-        sipSender.transmitRequest(parentPlatform.getDeviceIp(), notifyRequest);
+        sipSender.transmitRequest(parentPlatform.getDeviceIp(), notifyRequest, errorEvent, okEvent);
     }
 
     private  String getCatalogXmlContentForCatalogAddOrUpdate(ParentPlatform parentPlatform, List<DeviceChannel> channels, int sumNum, String type, SubscribeInfo subscribeInfo) {
@@ -610,7 +610,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 .append("<CmdType>Catalog</CmdType>\r\n")
                 .append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n")
                 .append("<DeviceID>" + parentPlatform.getDeviceGBId() + "</DeviceID>\r\n")
-                .append("<SumNum>1</SumNum>\r\n")
+                .append("<SumNum>"+ channels.size() +"</SumNum>\r\n")
                 .append("<DeviceList Num=\"" + channels.size() + "\">\r\n");
         if (channels.size() > 0) {
             for (DeviceChannel channel : channels) {

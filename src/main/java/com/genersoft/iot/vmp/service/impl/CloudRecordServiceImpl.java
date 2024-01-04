@@ -2,16 +2,31 @@ package com.genersoft.iot.vmp.service.impl;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.InviteInfo;
+import com.genersoft.iot.vmp.common.InviteSessionStatus;
+import com.genersoft.iot.vmp.common.InviteSessionType;
+import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
+import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
+import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
+import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
+import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.HookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRecordMp4HookParam;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.ICloudRecordService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
+import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.CloudRecordServiceMapper;
 import com.genersoft.iot.vmp.utils.CloudRecordUtils;
@@ -25,6 +40,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
+import java.text.ParseException;
 import java.time.*;
 import java.util.*;
 
@@ -40,13 +58,22 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     private IMediaServerService mediaServerService;
 
     @Autowired
+    private IMediaService mediaService;
+
+    @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
     private AssistRESTfulUtils assistRESTfulUtils;
 
     @Autowired
-    private VideoStreamSessionManager streamSession;
+    private ZLMRESTfulUtils zlmresTfulUtils;
+
+    @Autowired
+    private ZlmHttpHookSubscribe subscribe;
+
+    @Autowired
+    private DynamicTask dynamicTask;
 
     @Override
     public PageInfo<CloudRecordItem> getList(int page, int count, String query, String app, String stream, String startTime, String endTime, List<MediaServerItem> mediaServerItems) {
@@ -238,5 +265,47 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         String filePath = recordItem.getFilePath();
         MediaServerItem mediaServerItem = mediaServerService.getOne(recordItem.getMediaServerId());
         return CloudRecordUtils.getDownloadFilePath(mediaServerItem, filePath);
+    }
+
+    @Override
+    public void getLivePath(Integer recordId, ErrorCallback<StreamInfo> callback) {
+        CloudRecordItem recordItem = cloudRecordServiceMapper.queryOne(recordId);
+        if (recordItem == null) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "资源不存在");
+        }
+        // 监听流上线
+        String app = "record-live";
+        String stream = recordItem.getId() + "";
+        MediaServerItem mediaServerItem = mediaServerService.getOne(recordItem.getMediaServerId());
+        if (mediaServerItem == null) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "录像记录使用的流媒体节点不在线");
+        }
+        StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(app, stream, recordItem.getMediaServerId(), false);
+        if (streamInfo != null) {
+            callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+            return;
+        }
+        String timeOutTaskKey = UUID.randomUUID().toString();
+        dynamicTask.startDelay(timeOutTaskKey, () -> {
+            // 取消订阅消息监听
+            HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed(app, stream, true, "rtsp", mediaServerItem.getId());
+            subscribe.removeSubscribe(hookSubscribe);
+            callback.run(ErrorCode.ERROR100.getCode(), "加载视频文件为视频流超时", null);
+        }, 10000);
+        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed(app, stream, true, "rtsp", mediaServerItem.getId());
+        subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, HookParam hookParam) -> {
+            dynamicTask.stop(timeOutTaskKey);
+            OnStreamChangedHookParam streamChangedHookParam = (OnStreamChangedHookParam)hookParam;
+            StreamInfo streamInfoForHook = mediaService.getStreamInfoByAppAndStream(mediaServerItem, app, stream, streamChangedHookParam.getTracks(), null);
+            subscribe.removeSubscribe(hookSubscribe);
+            callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfoForHook);
+        });
+        JSONObject jsonObject = zlmresTfulUtils.loadMP4File(mediaServerItem, app, stream, recordItem.getFilePath());
+        if (jsonObject == null || jsonObject.getInteger("code") != 0) {
+            subscribe.removeSubscribe(hookSubscribe);
+            dynamicTask.stop(timeOutTaskKey);
+            callback.run(ErrorCode.SUCCESS.getCode(),
+                    jsonObject != null ? jsonObject.getString("msg"): "加载视频文件为视频流失败", null);
+        }
     }
 }

@@ -1,10 +1,12 @@
 package com.genersoft.iot.vmp.service;
 
 import com.alibaba.fastjson2.JSONArray;
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRecordMp4HookParam;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
@@ -56,8 +58,5 @@ public interface ICloudRecordService {
      */
     DownloadFileInfo getPlayUrlPath(Integer recordId);
 
-    /**
-     * 点播视频流
-     */
-    DownloadFileInfo getLivePath(Integer recordId);
+    void getLivePath(Integer recordId, ErrorCallback<StreamInfo> callback);
 }

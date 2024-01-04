@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.cloudRecord;
 
 import com.alibaba.fastjson2.JSONArray;
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
@@ -12,9 +13,7 @@ import com.genersoft.iot.vmp.service.ICloudRecordService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
-import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.WVPPageInfo;
-import com.genersoft.iot.vmp.vmanager.bean.RecordFile;
+import com.genersoft.iot.vmp.vmanager.bean.*;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,7 +25,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.servlet.http.HttpServletRequest;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -46,6 +49,9 @@ public class CloudRecordController {
 
     @Autowired
     private IMediaServerService mediaServerService;
+
+    @Autowired
+    private UserSetting userSetting;
 
 
     @ResponseBody
@@ -265,11 +271,32 @@ public class CloudRecordController {
 
     @ResponseBody
     @GetMapping("/play/live")
-    @Operation(summary = "获取点播i地址")
+    @Operation(summary = "获取点播地址")
     @Parameter(name = "recordId", description = "录像记录的ID", required = true)
-    public DownloadFileInfo getLivePath(
-            @RequestParam(required = true) Integer recordId
+    public DeferredResult<WVPResult<StreamContent>> getLivePath(
+            HttpServletRequest request, @RequestParam(required = true) Integer recordId
     ){
-        return cloudRecordService.getLivePath(recordId);
+        DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>();
+        cloudRecordService.getLivePath(recordId, (code, msg, data) -> {
+            WVPResult<StreamContent> wvpResult = new WVPResult<>();
+            wvpResult.setCode(code);
+            wvpResult.setMsg(msg);
+            if (code == ErrorCode.SUCCESS.getCode()) {
+                if (userSetting.getUseSourceIpAsStreamIp()) {
+                    data=data.clone();//深拷贝
+                    String host;
+                    try {
+                        URL url=new URL(request.getRequestURL().toString());
+                        host=url.getHost();
+                    } catch (MalformedURLException e) {
+                        host=request.getLocalAddr();
+                    }
+                    data.channgeStreamIp(host);
+                }
+                wvpResult.setData(new StreamContent(data));
+            }
+            result.setResult(wvpResult);
+        });
+        return result;
     }
 }

@@ -406,4 +406,24 @@ public class ZLMRESTfulUtils {
         param.put("name", fileName);
         return sendPost(mediaServerItem, "deleteRecordDirectory",param, null);
     }
+
+    public JSONObject loadMP4File(MediaServerItem mediaServerItem, String app, String stream, String file_path) {
+        Map<String, Object> param = new HashMap<>(1);
+        param.put("vhost", "__defaultVhost__");
+        param.put("app", app);
+        param.put("stream", stream);
+        param.put("file_path", file_path);
+        param.put("file_repeat", '0');
+        param.put("enable_hls", '1');
+        param.put("enable_hls_fmp4", '1');
+        param.put("enable_mp4", '0');
+        param.put("enable_rtsp", '1');
+        param.put("enable_rtmp", '1');
+        param.put("enable_ts", '1');
+        param.put("enable_fmp4", '1');
+        param.put("enable_audio", '1');
+        param.put("add_mute_audio", '1');
+        param.put("auto_close", '1');
+        return sendPost(mediaServerItem, "loadMP4File",param, null);
+    }
 }

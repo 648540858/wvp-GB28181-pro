@@ -255,17 +255,16 @@ create table wvp_stream_push (
                                  id serial primary key,
                                  app character varying(255),
                                  stream character varying(255),
-                                 total_reader_count character varying(50),
-                                 origin_type integer,
-                                 origin_type_str character varying(50),
                                  create_time character varying(50),
-                                 alive_second integer,
                                  media_server_id character varying(50),
                                  push_time character varying(50),
                                  status bool default false,
                                  update_time character varying(50),
                                  push_ing bool default false,
                                  self bool default false,
+                                 gb_id varchar(50) default NULL
+                                 longitude double precision,
+                                 latitude double precision,
                                  constraint uk_stream_push_app_stream unique (app, stream)
 );
 create table wvp_cloud_record (

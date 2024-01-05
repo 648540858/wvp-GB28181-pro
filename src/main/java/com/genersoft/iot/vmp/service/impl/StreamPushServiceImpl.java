@@ -101,10 +101,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         streamPushItem.setApp(item.getApp());
         streamPushItem.setMediaServerId(item.getMediaServerId());
         streamPushItem.setStream(item.getStream());
-        streamPushItem.setAliveSecond(item.getAliveSecond());
-        streamPushItem.setTotalReaderCount(item.getTotalReaderCount());
         streamPushItem.setCreateTime(DateUtil.getNow());
-        streamPushItem.setAliveSecond(item.getAliveSecond());
         streamPushItem.setVhost(item.getVhost());
         streamPushItem.setServerId(item.getSeverId());
         return streamPushItem;
@@ -369,7 +366,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         if (streamPushList == null || streamPushList.size() == 0) {
             return false;
         }
-        int delStream = streamPushMapper.delAllForStream(streamPushList);
+        int delStream = streamPushMapper.delAllByAppAndStream(streamPushList);
         if (delStream > 0) {
             for (StreamPush streamPush : streamPushList) {
                 MediaServerItem mediaServerItem = mediaServerService.getOne(streamPush.getMediaServerId());
@@ -448,7 +445,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Transactional
     public void update(StreamPush streamPush) {
         assert streamPush.getId() > 0;
-        StreamPush streamPushIDb = streamPushMapper.query(streamPush.getId());
+        StreamPush streamPushIDb = streamPushMapper.getOne(streamPush.getId());
         assert streamPushIDb != null;
         if (streamPushIDb.getCommonGbChannelId() > 0 && streamPush.getCommonGbChannelId() == 0) {
             commonGbChannelService.deleteById(streamPushIDb.getCommonGbChannelId());

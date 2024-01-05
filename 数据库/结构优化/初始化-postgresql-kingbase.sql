@@ -225,9 +225,7 @@ create table wvp_stream_push (
                                  name character varying(255) default NULL,
                                  app character varying(255),
                                  stream character varying(255),
-                                 total_reader_count character varying(50),
                                  create_time character varying(50),
-                                 alive_second integer,
                                  media_server_id character varying(50),
                                  push_time character varying(50),
                                  status bool default false,
@@ -235,6 +233,9 @@ create table wvp_stream_push (
                                  push_ing bool default false,
                                  self bool default false,
                                  common_gb_channel_id integer,
+                                 gb_id character varying(50) default NULL
+                                 longitude double precision,
+                                 latitude double precision,
                                  constraint uk_stream_push_app_stream unique (app, stream)
 );
 create table wvp_cloud_record (

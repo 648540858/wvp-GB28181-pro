@@ -31,19 +31,6 @@ public class StreamPush implements Comparable<StreamPush>{
     private String stream;
 
     /**
-     * 观看总人数，包括hls/rtsp/rtmp/http-flv/ws-flv
-     */
-    @Schema(description = "观看总人数")
-    private String totalReaderCount;
-
-
-    /**
-     * 存活时间，单位秒
-     */
-    @Schema(description = "存活时间，单位秒")
-    private Long aliveSecond;
-
-    /**
      * 音视频轨道
      */
     @Schema(description = "音视频轨道")
@@ -162,22 +149,6 @@ public class StreamPush implements Comparable<StreamPush>{
 
     public void setStream(String stream) {
         this.stream = stream;
-    }
-
-    public String getTotalReaderCount() {
-        return totalReaderCount;
-    }
-
-    public void setTotalReaderCount(String totalReaderCount) {
-        this.totalReaderCount = totalReaderCount;
-    }
-
-    public Long getAliveSecond() {
-        return aliveSecond;
-    }
-
-    public void setAliveSecond(Long aliveSecond) {
-        this.aliveSecond = aliveSecond;
     }
 
     public String getVhost() {

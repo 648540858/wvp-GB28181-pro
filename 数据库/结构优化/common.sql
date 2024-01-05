@@ -143,6 +143,12 @@ alter table wvp_stream_proxy
 alter table wvp_device
     drop column auto_sync_channel;
 
+alter table wvp_stream_push
+    drop column total_reader_count;
+
+alter table wvp_stream_push
+    drop column alive_second;
+
 
 
 

@@ -85,11 +85,16 @@ public class StreamPushController {
         return pushList;
     }
 
-    @PostMapping(value = "/save")
+    @PostMapping(value = "/update")
     @ResponseBody
-    @Operation(summary = "将推流添加到资源", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    public void saveToCommonChannel(@RequestBody StreamPushWithCommonChannelParam param){
-
+    @Operation(summary = "更新", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    public void update(@RequestBody StreamPush streamPush){
+        if (ObjectUtils.isEmpty(streamPush.getApp()) && ObjectUtils.isEmpty(streamPush.getStream())) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "app或stream不可为空");
+        }
+        if (!streamPushService.update(streamPush)) {
+            throw new ControllerException(ErrorCode.ERROR100);
+        }
     }
 
 
@@ -104,14 +109,26 @@ public class StreamPushController {
         }
     }
 
-    @DeleteMapping(value = "/batchStop")
+//    @DeleteMapping(value = "/batchStop")
+//    @ResponseBody
+//    @Operation(summary = "中止多个推流", security = @SecurityRequirement(name = JwtUtils.HEADER))
+//    public void batchStop(@RequestBody BatchGBStreamParam batchGBStreamParam){
+//        if (batchGBStreamParam.getStreamPushes().size() == 0) {
+//            throw new ControllerException(ErrorCode.ERROR100);
+//        }
+//        if (!streamPushService.batchStop(batchGBStreamParam.getStreamPushes())){
+//            throw new ControllerException(ErrorCode.ERROR100);
+//        }
+//    }
+
+    @DeleteMapping(value = "/batchDelete")
     @ResponseBody
-    @Operation(summary = "中止多个推流", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    public void batchStop(@RequestBody BatchGBStreamParam batchGBStreamParam){
-        if (batchGBStreamParam.getStreamPushes().size() == 0) {
+    @Operation(summary = "删除多个推流", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    public void batchDelete(@RequestBody BatchGBStreamParam batchGBStreamParam){
+        if (batchGBStreamParam.getStreamPushIds().size() == 0) {
             throw new ControllerException(ErrorCode.ERROR100);
         }
-        if (!streamPushService.batchStop(batchGBStreamParam.getStreamPushes())){
+        if (!streamPushService.batchStop(batchGBStreamParam.getStreamPushIds())){
             throw new ControllerException(ErrorCode.ERROR100);
         }
     }
@@ -250,8 +267,21 @@ public class StreamPushController {
         if (ObjectUtils.isEmpty(param.getApp()) && ObjectUtils.isEmpty(param.getStream())) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "app或stream不可为空");
         }
-
+        param.setPushIng(false);
         if (!streamPushService.add(param)) {
+            throw new ControllerException(ErrorCode.ERROR100);
+        }
+    }
+
+    /**
+     * 移除推流信息
+     */
+    @DeleteMapping(value = "/delete")
+    @ResponseBody
+    @Operation(summary = "移除推流信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    public void delete(@RequestBody StreamPush param){
+
+        if (!streamPushService.remove(param.getId())) {
             throw new ControllerException(ErrorCode.ERROR100);
         }
     }

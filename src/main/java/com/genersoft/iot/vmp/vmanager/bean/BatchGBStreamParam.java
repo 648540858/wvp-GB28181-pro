@@ -12,6 +12,8 @@ import java.util.List;
 public class BatchGBStreamParam {
     @Schema(description = "推流信息列表")
     private List<StreamPush> streamPushes;
+    @Schema(description = "推流信息列表")
+    private List<Integer> streamPushIds;
 
     public List<StreamPush> getStreamPushes() {
         return streamPushes;
@@ -19,5 +21,13 @@ public class BatchGBStreamParam {
 
     public void setStreamPushes(List<StreamPush> streamPushes) {
         this.streamPushes = streamPushes;
+    }
+
+    public List<Integer> getStreamPushIds() {
+        return streamPushIds;
+    }
+
+    public void setStreamPushIds(List<Integer> streamPushIds) {
+        this.streamPushIds = streamPushIds;
     }
 }

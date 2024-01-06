@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.media.zlm;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
+import com.genersoft.iot.vmp.service.ICommonGbChannelService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IResourceService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
@@ -10,10 +11,12 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.StreamPushMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import io.netty.util.internal.ObjectUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
 import java.text.ParseException;
 import java.util.*;
@@ -28,25 +31,10 @@ public class ZLMMediaListManager {
     private Logger logger = LoggerFactory.getLogger("ZLMMediaListManager");
 
     @Autowired
-    private ZLMRESTfulUtils zlmresTfulUtils;
-
-    @Autowired
-    private IRedisCatchStorage redisCatchStorage;
-
-    @Autowired
-    private IVideoManagerStorage storager;
-
-    @Autowired
     private IStreamPushService streamPushService;
 
     @Autowired
     private Map<String, IResourceService> resourceServiceMap;
-
-    @Autowired
-    private StreamPushMapper streamPushMapper;
-
-    @Autowired
-    private ZlmHttpHookSubscribe subscribe;
 
     @Autowired
     private UserSetting userSetting;
@@ -57,6 +45,9 @@ public class ZLMMediaListManager {
     @Autowired
     private IMediaServerService mediaServerService;
 
+    @Autowired
+    private ICommonGbChannelService commonGbChannelService;
+
     private Map<String, ChannelOnlineEvent> channelOnPublishEvents = new ConcurrentHashMap<>();
 
     public StreamPush addPush(OnStreamChangedHookParam onStreamChangedHookParam) {
@@ -64,7 +55,8 @@ public class ZLMMediaListManager {
         StreamPush pushInDb = streamPushService.getPush(onStreamChangedHookParam.getApp(), onStreamChangedHookParam.getStream());
         
         if (pushInDb == null) {
-            
+            transform.setPushIng(true);
+            transform.setPushTime(DateUtil.getNow());
             streamPushService.add(transform);
         }else {
             pushInDb.setPushIng(onStreamChangedHookParam.isRegist());
@@ -83,6 +75,22 @@ public class ZLMMediaListManager {
             removedChannelOnlineEventLister(transform.getApp(), transform.getStream());
         }
         return transform;
+    }
+
+    public void removePush(OnStreamChangedHookParam param) {
+        StreamPush pushInDb = streamPushService.getPush(param.getApp(), param.getStream());
+        if (pushInDb == null) {
+            return;
+        }
+        if (ObjectUtils.isEmpty(pushInDb.getGbId())) {
+            streamPushService.remove(pushInDb.getId());
+        }else {
+            List<Integer> onlinePushers = new ArrayList<>();
+            onlinePushers.add(pushInDb.getCommonGbChannelId());
+            commonGbChannelService.offlineForList(onlinePushers);
+            streamPushService.offline(pushInDb.getId());
+        }
+
     }
 
     public void sendStreamEvent(String app, String stream, String mediaServerId) {
@@ -119,5 +127,4 @@ public class ZLMMediaListManager {
     public ChannelOnlineEvent getChannelOnlineEventLister(String app, String stream) {
         return this.channelOnPublishEvents.get(app + "_" + stream);
     }
-
 }

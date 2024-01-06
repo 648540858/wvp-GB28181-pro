@@ -520,6 +520,7 @@ public interface CommonChannelMapper {
             "#{item.createTime}" +
             ")</foreach> " +
     "</script>")
+    @Options(useGeneratedKeys=true, keyProperty="commonGbId", keyColumn="common_gb_id")
     int batchAdd(@Param("commonGbChannels") List<CommonGbChannel> commonGbChannels);
 
     @Update({"<script>" +

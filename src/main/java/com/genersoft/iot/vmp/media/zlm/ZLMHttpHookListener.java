@@ -87,6 +87,9 @@ public class ZLMHttpHookListener {
     private IStreamProxyService streamProxyService;
 
     @Autowired
+    private IStreamPushService streamPushService;
+
+    @Autowired
     private DeferredResultHolder resultHolder;
 
     @Autowired
@@ -336,6 +339,7 @@ public class ZLMHttpHookListener {
 
         JSONObject json = (JSONObject) JSON.toJSON(param);
         taskExecutor.execute(() -> {
+            // 发送hook订阅通知
             ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_stream_changed, json);
             MediaServerItem mediaInfo = mediaServerService.getOne(param.getMediaServerId());
             if (mediaInfo == null) {
@@ -347,7 +351,6 @@ public class ZLMHttpHookListener {
             }
 
             List<StreamMediaTrack> tracks = param.getTracks();
-            // TODO 重构此处逻辑
             if (param.isRegist()) {
                 // 处理流注册的鉴权信息， 流注销这里不再删除鉴权信息，下次来了新的鉴权信息会对就的进行覆盖
                 if (param.getOriginType() == OriginType.RTMP_PUSH.ordinal()
@@ -416,6 +419,7 @@ public class ZLMHttpHookListener {
                                 if ("PUSH".equalsIgnoreCase(type)) {
                                     // 冗余数据，自己系统中自用
                                     redisCatchStorage.removePushListItem(param.getApp(), param.getStream(), param.getMediaServerId());
+                                    zlmMediaListManager.removePush(param);
                                 }
                             }
                             zlmMediaListManager.streamOffline(param.getApp(), param.getStream());

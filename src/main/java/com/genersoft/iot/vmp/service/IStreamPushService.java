@@ -60,7 +60,7 @@ public interface IStreamPushService {
     /**
      * 中止多个推流
      */
-    boolean batchStop(List<StreamPush> streamPushItems);
+    boolean batchStop(List<Integer> streamPushIds);
 
     /**
      * 导入时批量增加
@@ -101,10 +101,20 @@ public interface IStreamPushService {
 
     void batchUpdate(List<StreamPush> streamPushItemForUpdate);
 
-    void update(StreamPush transform);
+    boolean update(StreamPush transform);
 
     /**
      * 更新redis发来的gps更新消息
      */
     void updateStreamGPS(List<GPSMsgInfo> gpsMsgInfoList);
+
+    /**
+     * 移除推流信息
+     */
+    boolean remove(Integer id);
+
+    /**
+     * 设置推流离线
+     */
+    void offline(Integer id);
 }

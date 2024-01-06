@@ -37,8 +37,8 @@ public interface StreamPushMapper {
             " </script>"})
     int update(StreamPush streamPushItem);
 
-    @Delete("DELETE FROM wvp_stream_push WHERE app=#{app} AND stream=#{stream}")
-    int del(String app, String stream);
+    @Delete("DELETE FROM wvp_stream_push WHERE id=#{id}")
+    int del(@Param("id") int id);
 
     @Delete("<script> " +
             "DELETE sp FROM wvp_stream_push sp where " +
@@ -81,7 +81,7 @@ public interface StreamPushMapper {
     List<StreamPush> selectAll();
 
     @Select("SELECT * from wvp_stream_push WHERE app=#{app} AND stream=#{stream}")
-    StreamPush selectOne(@Param("app") String app, @Param("stream") String stream);
+    StreamPush selectOneByAppAndStream(@Param("app") String app, @Param("stream") String stream);
 
     @Insert("<script>" +
             "Insert INTO wvp_stream_push (name, app, stream, common_gb_channel_id, gb_id, longitude, " +
@@ -131,6 +131,9 @@ public interface StreamPushMapper {
             ")</script>")
     void offline(List<StreamPush> offlineStreams);
 
+    @Update("UPDATE wvp_stream_push SET status=0  where id = #{id}" )
+    void offlineById(@Param("id") int id);
+
     @Update("<script> " +
             "UPDATE wvp_stream_push SET status=1  where id in (" +
             "<foreach collection='onlineStreams' item='item' separator=','>" +
@@ -178,4 +181,24 @@ public interface StreamPushMapper {
             "</foreach>" +
             "</script>"})
     void updateStreamGPS(List<GPSMsgInfo> gpsMsgInfoList);
+
+    @Select("select * from wvp_stream_push where id=#{id}")
+    StreamPush selectOne(@Param("id") Integer id);
+
+
+    @Select("<script>" +
+            "select * from wvp_stream_push where id in (" +
+                "<foreach collection='streamPushIdList' item='item' separator=','>" +
+                "#{item} " +
+                "</foreach>)" +
+            "</script>" )
+    List<StreamPush> getListInIds(List<Integer> streamPushIdList);
+
+    @Delete("<script> " +
+            "DELETE FROM wvp_stream_push where " +
+            "<foreach collection='streamPushIdList' item='item' separator='or'>" +
+            "(id=#{item}) " +
+            "</foreach>" +
+            "</script>")
+    int delAllByIds(List<Integer> streamPushIdList);
 }

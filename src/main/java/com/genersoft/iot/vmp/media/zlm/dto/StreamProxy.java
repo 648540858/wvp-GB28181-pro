@@ -7,10 +7,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
  */
 @Schema(description = "拉流代理的信息")
 public class StreamProxy {
-
     @Schema(description = "ID")
     private int id;
-
     @Schema(description = "类型")
     private String type;
     @Schema(description = "应用名")
@@ -31,11 +29,13 @@ public class StreamProxy {
     private String ffmpegCmdKey;
     @Schema(description = "rtsp拉流时，拉流方式，0：tcp，1：udp，2：组播")
     private String rtpType;
+    @Schema(description = "代理失败的原因")
+    private String proxyError;
     @Schema(description = "是否启用")
     private boolean enable;
     @Schema(description = "是否启用音频")
     private boolean enableAudio;
-    @Schema(description = "是否启用MP4")
+    @Schema(description = "是否录制")
     private boolean enableMp4;
     @Schema(description = "是否 无人观看时删除")
     private boolean enableRemoveNoneReader;
@@ -266,5 +266,13 @@ public class StreamProxy {
 
     public void setCommonGbChannelId(int commonGbChannelId) {
         this.commonGbChannelId = commonGbChannelId;
+    }
+
+    public String getProxyError() {
+        return proxyError;
+    }
+
+    public void setProxyError(String proxyError) {
+        this.proxyError = proxyError;
     }
 }

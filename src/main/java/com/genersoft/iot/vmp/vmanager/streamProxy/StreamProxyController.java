@@ -123,6 +123,46 @@ public class StreamProxyController {
         return result;
     }
 
+    @Operation(summary = "添加代理", security = @SecurityRequirement(name = JwtUtils.HEADER), parameters = {
+            @Parameter(name = "param", description = "代理参数", required = true),
+    })
+    @PostMapping(value = "/add")
+    @ResponseBody
+    public DeferredResult<Object> add(@RequestBody StreamProxy param){
+        logger.info("添加代理： " + JSONObject.toJSONString(param));
+        if (ObjectUtils.isEmpty(param.getMediaServerId())) {
+            param.setMediaServerId("auto");
+        }
+        if (ObjectUtils.isEmpty(param.getType())) {
+            param.setType("default");
+        }
+        if (ObjectUtils.isEmpty(param.getRtpType())) {
+            param.setRtpType("1");
+        }
+        if (ObjectUtils.isEmpty(param.getGbId())) {
+            param.setGbId(null);
+        }
+
+        DeferredResult<Object> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
+        // 录像查询以channelId作为deviceId查询
+        result.onTimeout(()->{
+            WVPResult<StreamInfo> wvpResult = new WVPResult<>();
+            wvpResult.setCode(ErrorCode.ERROR100.getCode());
+            wvpResult.setMsg("超时");
+            result.setResult(wvpResult);
+        });
+
+        streamProxyService.add(param, (code, msg, streamInfo) -> {
+            logger.info("[添加拉流代理] {}", code == ErrorCode.SUCCESS.getCode()? "成功":"失败： " + msg);
+            if (code == ErrorCode.SUCCESS.getCode()) {
+                result.setResult(new StreamContent(streamInfo));
+            }else {
+                result.setResult(WVPResult.fail(code, msg));
+            }
+        });
+        return result;
+    }
+
     @GetMapping(value = "/ffmpeg_cmd/list")
     @ResponseBody
     @Operation(summary = "获取ffmpeg.cmd模板", security = @SecurityRequirement(name = JwtUtils.HEADER))

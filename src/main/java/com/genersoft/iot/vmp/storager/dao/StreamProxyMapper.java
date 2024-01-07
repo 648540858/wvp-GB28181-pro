@@ -18,6 +18,7 @@ public interface StreamProxyMapper {
             "(#{type}, #{name}, #{app}, #{stream}, #{mediaServerId}, #{url}, #{srcUrl}, #{dstUrl}, " +
             "#{timeoutMs}, #{ffmpegCmdKey}, #{rtpType}, #{enableAudio}, #{enableMp4}, #{enable}, #{status}, #{streamKey}, " +
             "#{enableRemoveNoneReader}, #{enableDisableNoneReader}, #{createTime} , #{longitude} , #{latitude}, #{commonGbChannelId} )")
+    @Options(useGeneratedKeys=true, keyProperty="id", keyColumn="id")
     int add(StreamProxy streamProxy);
 
     @Update("UPDATE wvp_stream_proxy " +

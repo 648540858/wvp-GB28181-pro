@@ -245,6 +245,7 @@ create table wvp_stream_proxy (
                                   enable_remove_none_reader bool default false,
                                   create_time character varying(50),
                                   name character varying(255),
+                                  proxy_error character varying(255) default null,
                                   update_time character varying(50),
                                   stream_key character varying(255),
                                   enable_disable_none_reader bool default false,

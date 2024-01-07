@@ -124,4 +124,8 @@ public interface IStreamProxyService {
      */
     List<StreamProxy> getAllForEnable();
 
+    /**
+     * 添加拉流代理
+     */
+    void add(StreamProxy param, GeneralCallback<StreamInfo> callback);
 }

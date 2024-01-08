@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.ServerKeepaliveData;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamMediaInfo;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
+import com.genersoft.iot.vmp.vmanager.bean.FFmpegCmdInfo;
 import com.genersoft.iot.vmp.vmanager.bean.RecordFile;
 
 import java.util.List;
@@ -98,4 +99,6 @@ public interface IMediaServerService {
      * 获取媒体流的信息
      */
     StreamMediaInfo getMediaInfo(String mediaServerId, String app, String stream);
+
+    List<FFmpegCmdInfo> getFFmpegCMDList(String mediaServerID);
 }

@@ -18,10 +18,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.StreamMediaInfo;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
-import com.genersoft.iot.vmp.vmanager.bean.ResourceInfo;
-import com.genersoft.iot.vmp.vmanager.bean.SystemConfigInfo;
+import com.genersoft.iot.vmp.vmanager.bean.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -93,6 +90,13 @@ public class ServerController {
     @Operation(summary = "在线流媒体服务列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
     public List<MediaServerItem> getOnlineMediaServerList() {
         return mediaServerService.getAllOnline();
+    }
+
+    @GetMapping(value = "/media_server/ffmpeg_cmd/list")
+    @ResponseBody
+    @Operation(summary = "ffmpeg_cmd列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    public List<FFmpegCmdInfo> getFFmpegCMDList(String mediaServerId) {
+        return mediaServerService.getFFmpegCMDList(mediaServerId);
     }
 
     @GetMapping(value = "/media_server/one/{id}")

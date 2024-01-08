@@ -26,6 +26,7 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.JsonUtil;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.FFmpegCmdInfo;
 import com.genersoft.iot.vmp.vmanager.bean.RecordFile;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -782,5 +783,26 @@ public class MediaServerServiceImpl implements IMediaServerService {
             }
         }
         return streamMediaInfo;
+    }
+
+    @Override
+    public List<FFmpegCmdInfo> getFFmpegCMDList(String mediaServerId) {
+        MediaServerItem mediaServerItem = mediaServerMapper.queryOne(mediaServerId);
+        if (mediaServerItem == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "MediaServer不存在");
+        }
+        List<FFmpegCmdInfo> result = new ArrayList<>();
+        JSONObject mediaServerConfigResuly = zlmresTfulUtils.getMediaServerConfig(mediaServerItem);
+        if (mediaServerConfigResuly != null && mediaServerConfigResuly.getInteger("code") == 0
+                && mediaServerConfigResuly.getJSONArray("data").size() > 0){
+            JSONObject mediaServerConfig = mediaServerConfigResuly.getJSONArray("data").getJSONObject(0);
+
+            for (String key : mediaServerConfig.keySet()) {
+                if (key.startsWith("ffmpeg.cmd")){
+                    result.add(new FFmpegCmdInfo(key, mediaServerConfig.getString(key)));
+                }
+            }
+        }
+        return result;
     }
 }

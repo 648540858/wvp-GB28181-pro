@@ -258,9 +258,8 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                     if (path.indexOf("/", 1) < 0) {
                         throw new ControllerException(ErrorCode.ERROR100.getCode(), "解析DstUrl失败, 至少两层路径");
                     }
-                    int appIndex = path.indexOf("/", 1);
-                    String app = path.substring(1, appIndex);
-                    String stream = path.substring(path.indexOf(app));
+                    String app = path.substring(1, path.indexOf("/", 2));
+                    String stream = path.substring(path.indexOf("/", 2) + 1);
                     param.setApp(app);
                     param.setStream(stream);
                 } catch (MalformedURLException e) {

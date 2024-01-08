@@ -14,6 +14,7 @@ import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.service.ICommonGbChannelService;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.slf4j.Logger;
@@ -189,6 +190,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 							// 判断此通道是否存在
 							DeviceChannel deviceChannel = deviceChannelService.getOne(deviceId, channel.getChannelId());
 							if (deviceChannel != null) {
+								logger.info("[增加通道] 已存在，不发送通知只更新，设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 								channel.setId(deviceChannel.getId());
 								updateChannelMap.put(channel.getChannelId(), channel);
 								if (updateChannelMap.keySet().size() > 300) {
@@ -226,6 +228,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 							DeviceChannel deviceChannelForUpdate = deviceChannelService.getOne(deviceId, channel.getChannelId());
 							if (deviceChannelForUpdate != null) {
 								channel.setId(deviceChannelForUpdate.getId());
+								channel.setUpdateTime(DateUtil.getNow());
 								updateChannelMap.put(channel.getChannelId(), channel);
 								if (updateChannelMap.keySet().size() > 300) {
 									executeSaveForUpdate(device);
@@ -246,11 +249,11 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 
 					}
 
-					if (updateChannelMap.keySet().size() > 0
-							|| addChannelMap.keySet().size() > 0
-							|| updateChannelOnlineList.size() > 0
-							|| updateChannelOfflineList.size() > 0
-							|| deleteChannelList.size() > 0) {
+					if (!updateChannelMap.keySet().isEmpty()
+							|| !addChannelMap.keySet().isEmpty()
+							|| !updateChannelOnlineList.isEmpty()
+							|| !updateChannelOfflineList.isEmpty()
+							|| !deleteChannelList.isEmpty()) {
 
 						if (!dynamicTask.contains(talkKey)) {
 							dynamicTask.startDelay(talkKey, ()-> executeSave(device), 1000);
@@ -264,11 +267,31 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 	}
 
 	private void executeSave(Device device){
-		executeSaveForAdd(device);
-		executeSaveForUpdate(device);
-		executeSaveForDelete(device);
-		executeSaveForOnline(device);
-		executeSaveForOffline(device);
+		try {
+			executeSaveForAdd(device);
+		} catch (Exception e) {
+			logger.error("[存储收到的增加通道] 异常： ", e );
+		}
+		try {
+			executeSaveForUpdate(device);
+		} catch (Exception e) {
+			logger.error("[存储收到的更新通道] 异常： ", e );
+		}
+		try {
+			executeSaveForDelete(device);
+		} catch (Exception e) {
+			logger.error("[存储收到的删除通道] 异常： ", e );
+		}
+		try {
+			executeSaveForOnline(device);
+		} catch (Exception e) {
+			logger.error("[存储收到的通道上线] 异常： ", e );
+		}
+		try {
+			executeSaveForOffline(device);
+		} catch (Exception e) {
+			logger.error("[存储收到的通道离线] 异常： ", e );
+		}
 		dynamicTask.stop(talkKey);
 	}
 

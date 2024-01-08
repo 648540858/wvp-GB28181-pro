@@ -14,10 +14,12 @@ public interface StreamProxyMapper {
 
     @Insert("INSERT INTO wvp_stream_proxy (type, name, app, stream,media_server_id, url, src_url, dst_url, " +
             "timeout_ms, ffmpeg_cmd_key, rtp_type, enable_audio, enable_mp4, enable, status, stream_key, " +
-            "enable_remove_none_reader, enable_disable_none_reader, create_time, longitude, latitude, common_gb_channel_id) VALUES " +
+            "enable_remove_none_reader, enable_disable_none_reader, create_time, longitude, latitude, " +
+            "common_gb_channel_id, gb_id) VALUES " +
             "(#{type}, #{name}, #{app}, #{stream}, #{mediaServerId}, #{url}, #{srcUrl}, #{dstUrl}, " +
             "#{timeoutMs}, #{ffmpegCmdKey}, #{rtpType}, #{enableAudio}, #{enableMp4}, #{enable}, #{status}, #{streamKey}, " +
-            "#{enableRemoveNoneReader}, #{enableDisableNoneReader}, #{createTime} , #{longitude} , #{latitude}, #{commonGbChannelId} )")
+            "#{enableRemoveNoneReader}, #{enableDisableNoneReader}, #{createTime} , #{longitude} , #{latitude}, " +
+            "#{commonGbChannelId}, #{gbId})")
     @Options(useGeneratedKeys=true, keyProperty="id", keyColumn="id")
     int add(StreamProxy streamProxy);
 
@@ -46,13 +48,13 @@ public interface StreamProxyMapper {
     @Delete("DELETE FROM wvp_stream_proxy WHERE app=#{app} AND stream=#{stream}")
     int del(String app, String stream);
 
-    @Select("SELECT st.* FROM wvp_stream_proxy st  order by st.create_time desc")
+    @Select("SELECT * FROM wvp_stream_proxy order by create_time desc")
     List<StreamProxy> selectAll();
 
     @Select("SELECT st.* FROM wvp_stream_proxy st  WHERE st.enable=#{enable} order by st.create_time desc")
     List<StreamProxy> selectForEnable(boolean enable);
 
-    @Select("SELECT st.* from wvp_stream_proxy st WHERE st.app=#{app} AND st.stream=#{stream} order by st.create_time desc")
+    @Select("SELECT st.* from wvp_stream_proxy st WHERE st.app=#{app} AND st.stream=#{stream}")
     StreamProxy selectOne(@Param("app") String app, @Param("stream") String stream);
 
     @Select("SELECT st.* FROM wvp_stream_proxy st " +
@@ -99,5 +101,11 @@ public interface StreamProxyMapper {
             "</foreach>" +
             "</script>"})
     void updateStreamGPS(@Param("gpsMsgInfoList") List<GPSMsgInfo> gpsMsgInfoList);
+
+    @Select("SELECT * from wvp_stream_proxy WHERE id=#{id}")
+    StreamProxy selectOneById(@Param("id") int id);
+
+    @Delete("delete from wvp_stream_proxy WHERE id=#{id}")
+    void delById(int id);
 
 }

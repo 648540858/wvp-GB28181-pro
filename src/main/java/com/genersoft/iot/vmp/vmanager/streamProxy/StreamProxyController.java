@@ -191,6 +191,20 @@ public class StreamProxyController {
         }
     }
 
+    @DeleteMapping(value = "/del/id")
+    @ResponseBody
+    @Operation(summary = "使用ID移除代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "app", description = "应用名", required = true)
+    @Parameter(name = "stream", description = "流id", required = true)
+    public void del(@RequestBody StreamProxy proxy){
+        logger.info("移除代理： " + proxy.getGbId());
+        if (ObjectUtils.isEmpty(proxy.getGbId())) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "缺少ID");
+        }else {
+            streamProxyService.delById(proxy.getId());
+        }
+    }
+
     @GetMapping(value = "/start")
     @ResponseBody
     @Operation(summary = "启用代理", security = @SecurityRequirement(name = JwtUtils.HEADER))

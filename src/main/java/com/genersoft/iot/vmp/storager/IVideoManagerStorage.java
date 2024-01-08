@@ -1,9 +1,6 @@
 package com.genersoft.iot.vmp.storager;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
-import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
-import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
 import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
 import com.github.pagehelper.PageInfo;
 
@@ -145,39 +142,6 @@ public interface IVideoManagerStorage {
 	 */
 	public MobilePosition queryLatestPosition(String deviceId);
 
-
-	/**
-	 * 移除代理流
-	 * @param app
-	 * @param stream
-	 * @return
-	 */
-	public int deleteStreamProxy(String app, String stream);
-
-	/**
-	 * 按照是app和stream获取代理流
-	 * @param app
-	 * @param stream
-	 * @return
-	 */
-	public StreamProxy queryStreamProxy(String app, String stream);
-
-	/**
-	 * 获取代理流
-	 * @param page
-	 * @param count
-	 * @return
-	 */
-	PageInfo<StreamProxy> queryStreamProxyList(Integer page, Integer count);
-
-	/**
-	 * 根据媒体ID获取启用/不启用的代理列表
-	 * @param id 媒体ID
-	 * @param enable 启用/不启用
-	 * @return
-	 */
-	List<StreamProxy> getStreamProxyListForEnableInMediaServer(String id, boolean enable);
-
 	/**
 	 * 通道上线
 	 * @param channelId 通道ID
@@ -189,14 +153,6 @@ public interface IVideoManagerStorage {
 	 * @param channelId 通道ID
 	 */
 	void deviceChannelOffline(String deviceId, String channelId);
-
-	/**
-	 * 通过app与stream获取StreamProxy
-	 * @param app
-	 * @param streamId
-	 * @return
-	 */
-    StreamProxy getStreamProxyByAppAndStream(String app, String streamId);
 
 
     void updateChannelPosition(DeviceChannel deviceChannel);

@@ -30,6 +30,7 @@ import com.genersoft.iot.vmp.storager.dao.StreamProxyMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
+import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -159,7 +160,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         logger.info("[拉流代理] 输出地址为：{}", dstUrl);
         param.setMediaServerId(mediaInfo.getId());
         // 更新
-        StreamProxy streamProxyInDb = videoManagerStorager.queryStreamProxy(param.getApp(), param.getStream());
+        StreamProxy streamProxyInDb = streamProxyMapper.selectOne(param.getApp(), param.getStream());
         if (streamProxyInDb != null) {
             if (streamProxyInDb.getCommonGbChannelId() == 0 && !ObjectUtils.isEmpty(param.getGbId()) ) {
                 // 新增通用通道
@@ -426,31 +427,55 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Override
     public PageInfo<StreamProxy> getAll(Integer page, Integer count) {
-        return videoManagerStorager.queryStreamProxyList(page, count);
+        PageHelper.startPage(page, count);
+        List<StreamProxy> all = streamProxyMapper.selectAll();
+        return new PageInfo<>(all);
     }
 
     @Override
     public void del(String app, String stream) {
-        StreamProxy streamProxyItem = videoManagerStorager.queryStreamProxy(app, stream);
-        if (streamProxyItem != null) {
-            if (streamProxyItem.getCommonGbChannelId() > 0) {
-                commonGbChannelService.deleteById(streamProxyItem.getCommonGbChannelId());
-            }
-            videoManagerStorager.deleteStreamProxy(app, stream);
-            redisCatchStorage.removeStream(streamProxyItem.getMediaServerId(), "PULL", app, stream);
-            JSONObject jsonObject = removeStreamProxyFromZlm(streamProxyItem);
-            if (jsonObject != null && jsonObject.getInteger("code") == 0) {
-                logger.info("[移除代理]： 代理： {}/{}, 从zlm移除成功", app, stream);
-            }else {
-                logger.info("[移除代理]： 代理： {}/{}, 从zlm移除失败", app, stream);
-            }
+        StreamProxy streamProxyItem = streamProxyMapper.selectOne(app, stream);
+        if (streamProxyItem == null) {
+            return;
+        }
+        if (streamProxyItem.getCommonGbChannelId() > 0) {
+            commonGbChannelService.deleteById(streamProxyItem.getCommonGbChannelId());
+        }
+        streamProxyMapper.delById(streamProxyItem.getId());
+        redisCatchStorage.removeStream(streamProxyItem.getMediaServerId(), "PULL", app, stream);
+
+        JSONObject jsonObject = removeStreamProxyFromZlm(streamProxyItem);
+        if (jsonObject != null && jsonObject.getInteger("code") == 0) {
+            logger.info("[移除代理]： 代理： {}/{}, 从zlm移除成功", app, stream);
+        }else {
+            logger.info("[移除代理]： 代理： {}/{}, 从zlm移除失败", app, stream);
+        }
+    }
+
+    @Override
+    public void delById(int id) {
+        StreamProxy streamProxyItem = streamProxyMapper.selectOneById(id);
+        if (streamProxyItem == null) {
+            return;
+        }
+        if (streamProxyItem.getCommonGbChannelId() > 0) {
+            commonGbChannelService.deleteById(streamProxyItem.getCommonGbChannelId());
+        }
+        streamProxyMapper.delById(id);
+        redisCatchStorage.removeStream(streamProxyItem.getMediaServerId(), "PULL", streamProxyItem.getApp(), streamProxyItem.getStream());
+
+        JSONObject jsonObject = removeStreamProxyFromZlm(streamProxyItem);
+        if (jsonObject != null && jsonObject.getInteger("code") == 0) {
+            logger.info("[移除代理]： 代理： {}/{}, 从zlm移除成功", streamProxyItem.getApp(), streamProxyItem.getStream());
+        }else {
+            logger.info("[移除代理]： 代理： {}/{}, 从zlm移除失败", streamProxyItem.getApp(), streamProxyItem.getStream());
         }
     }
 
     @Override
     public boolean start(String app, String stream) {
         boolean result = false;
-        StreamProxy streamProxy = videoManagerStorager.queryStreamProxy(app, stream);
+        StreamProxy streamProxy = streamProxyMapper.selectOne(app, stream);
         if (streamProxy != null && !streamProxy.isEnable() ) {
             JSONObject jsonObject = addStreamProxyToZlm(streamProxy);
             if (jsonObject == null) {
@@ -473,7 +498,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public boolean stop(String app, String stream) {
         boolean result = false;
-        StreamProxy streamProxyDto = videoManagerStorager.queryStreamProxy(app, stream);
+        StreamProxy streamProxyDto = streamProxyMapper.selectOne(app, stream);
         if (streamProxyDto != null && streamProxyDto.isEnable()) {
             JSONObject jsonObject = removeStreamProxyFromZlm(streamProxyDto);
             if (jsonObject != null && jsonObject.getInteger("code") == 0) {
@@ -504,7 +529,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Override
     public StreamProxy getStreamProxyByAppAndStream(String app, String streamId) {
-        return videoManagerStorager.getStreamProxyByAppAndStream(app, streamId);
+        return streamProxyMapper.selectOne(app, streamId);
     }
 
     @Override
@@ -528,7 +553,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         syncPullStream(mediaServerId);
 
         // 恢复流代理, 只查找这个这个流媒体
-        List<StreamProxy> streamProxyListForEnable = storager.getStreamProxyListForEnableInMediaServer(
+        List<StreamProxy> streamProxyListForEnable = streamProxyMapper.selectForEnableInMediaServer(
                 mediaServerId, true);
         for (StreamProxy streamProxyDto : streamProxyListForEnable) {
             logger.info("恢复流代理，" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());

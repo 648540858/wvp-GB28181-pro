@@ -128,4 +128,6 @@ public interface IStreamProxyService {
      * 添加拉流代理
      */
     void add(StreamProxy param, GeneralCallback<StreamInfo> callback);
+
+    void delById(int gbId);
 }

@@ -130,4 +130,9 @@ public interface IStreamProxyService {
     void add(StreamProxy param, GeneralCallback<StreamInfo> callback);
 
     void delById(int gbId);
+
+    /**
+     * 编辑拉流代理
+     */
+    void edit(StreamProxy param, GeneralCallback<StreamInfo> callback);
 }

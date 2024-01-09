@@ -142,6 +142,11 @@ public class StreamProxyController {
         if (ObjectUtils.isEmpty(param.getGbId())) {
             param.setGbId(null);
         }
+        if (ObjectUtils.isEmpty(param.getSrcUrl())) {
+            param.setSrcUrl(param.getUrl());
+        }else {
+            param.setUrl(param.getSrcUrl());
+        }
 
         DeferredResult<Object> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
         // 录像查询以channelId作为deviceId查询
@@ -153,6 +158,53 @@ public class StreamProxyController {
         });
 
         streamProxyService.add(param, (code, msg, streamInfo) -> {
+            logger.info("[添加拉流代理] {}", code == ErrorCode.SUCCESS.getCode()? "成功":"失败： " + msg);
+            if (code == ErrorCode.SUCCESS.getCode()) {
+                result.setResult(new StreamContent(streamInfo));
+            }else {
+                result.setResult(WVPResult.fail(code, msg));
+            }
+        });
+        return result;
+    }
+    @Operation(summary = "编辑代理", security = @SecurityRequirement(name = JwtUtils.HEADER), parameters = {
+            @Parameter(name = "param", description = "代理参数", required = true),
+    })
+    @PostMapping(value = "/edit")
+    @ResponseBody
+    public DeferredResult<Object> edit(@RequestBody StreamProxy param){
+        logger.info("编辑代理： " + JSONObject.toJSONString(param));
+        if (param.getId() <= 0) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "缺少主键ID");
+        }
+        if (ObjectUtils.isEmpty(param.getMediaServerId())) {
+            param.setMediaServerId("auto");
+        }
+        if (ObjectUtils.isEmpty(param.getType())) {
+            param.setType("default");
+        }
+        if (ObjectUtils.isEmpty(param.getRtpType())) {
+            param.setRtpType("1");
+        }
+        if (ObjectUtils.isEmpty(param.getGbId())) {
+            param.setGbId(null);
+        }
+        if (ObjectUtils.isEmpty(param.getSrcUrl())) {
+            param.setSrcUrl(param.getUrl());
+        }else {
+            param.setUrl(param.getSrcUrl());
+        }
+
+        DeferredResult<Object> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
+        // 录像查询以channelId作为deviceId查询
+        result.onTimeout(()->{
+            WVPResult<StreamInfo> wvpResult = new WVPResult<>();
+            wvpResult.setCode(ErrorCode.ERROR100.getCode());
+            wvpResult.setMsg("超时");
+            result.setResult(wvpResult);
+        });
+
+        streamProxyService.edit(param, (code, msg, streamInfo) -> {
             logger.info("[添加拉流代理] {}", code == ErrorCode.SUCCESS.getCode()? "成功":"失败： " + msg);
             if (code == ErrorCode.SUCCESS.getCode()) {
                 result.setResult(new StreamContent(streamInfo));

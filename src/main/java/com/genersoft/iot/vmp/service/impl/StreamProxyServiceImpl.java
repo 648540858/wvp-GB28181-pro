@@ -320,6 +320,120 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }
     }
 
+    @Override
+    public void edit(StreamProxy param, GeneralCallback<StreamInfo> callback) {
+        MediaServerItem mediaInfo;
+        StreamProxy streamProxyInDb = streamProxyMapper.selectOneById(param.getId());
+        if (streamProxyInDb != null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "代理不存在");
+        }
+        if (ObjectUtils.isEmpty(param.getMediaServerId()) || "auto".equals(param.getMediaServerId())){
+            mediaInfo = mediaServerService.getMediaServerForMinimumLoad(null);
+        }else {
+            mediaInfo = mediaServerService.getOne(param.getMediaServerId());
+        }
+        if (mediaInfo == null) {
+            logger.warn("[编辑拉流代理] 未找到在线的ZLM...");
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "保存代理未找到可用的ZLM");
+        }
+        // 国标编号发生变化，修改通用通道国标变化，通用通道应发送删除再发送添加命令通知上级
+        // 类型变化，启用->启用：需要重新拉起视频流， 启用->未启用： 停止旧的视频流， 未启用->启用：发起新的视频流
+        // 流地址发生变化。停止旧的，拉起新的
+        // ffmpeg类型下，目标流地址变化，停止旧的，拉起新的
+        // 节点变化： 停止旧的，拉起新的
+        // ffmpeg命令模板变化： 停止旧的，拉起新的
+        if (ObjectUtils.isEmpty(streamProxyInDb.getGbId())) {
+            if (!ObjectUtils.isEmpty(param.getGbId())) {
+                // 之前是空的，现在添加了国标编号
+
+            }
+        }else {
+            if (ObjectUtils.isEmpty(param.getGbId())) {
+                // 移除了国标编号
+            }else {
+                if (!streamProxyInDb.getGbId().equals(param.getGbId())) {
+                    // 修改了国标编号
+                }
+            }
+        }
+
+
+
+        if ("ffmpeg".equalsIgnoreCase(param.getType())) {
+            if (ObjectUtils.isEmpty(param.getDstUrl())) {
+                logger.warn("[添加拉流代理] 未设置目标URL地址（DstUrl）");
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "未设置目标URL地址");
+            }
+            logger.info("[添加拉流代理] ffmpeg，源地址: {}, 目标地址为：{}", param.getUrl(), param.getDstUrl());
+            if (ObjectUtils.isEmpty(param.getApp()) || ObjectUtils.isEmpty(param.getStream())) {
+                try {
+                    URL url = new URL(param.getDstUrl());
+                    String path = url.getPath();
+                    if (path.indexOf("/", 1) < 0) {
+                        throw new ControllerException(ErrorCode.ERROR100.getCode(), "解析DstUrl失败, 至少两层路径");
+                    }
+                    String app = path.substring(1, path.indexOf("/", 2));
+                    String stream = path.substring(path.indexOf("/", 2) + 1);
+                    param.setApp(app);
+                    param.setStream(stream);
+                } catch (MalformedURLException e) {
+                    throw new ControllerException(ErrorCode.ERROR100.getCode(), "解析DstUrl失败");
+                }
+            }
+        }else {
+            logger.info("[添加拉流代理] 直接拉流，源地址: {}, app: {}, stream: {}", param.getUrl(), param.getApp(), param.getStream());
+        }
+        param.setMediaServerId(mediaInfo.getId());
+        StreamProxy streamProxyInDb = streamProxyMapper.selectOne(param.getApp(), param.getStream());
+        if (streamProxyInDb != null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "app/stream已经存在");
+        }
+        if (!param.isEnable()) {
+            param.setStatus(false);
+            saveProxyToDb(param);
+            StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(
+                    mediaInfo, param.getApp(), param.getStream(), null, null);
+            callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+            return;
+        }
+        String talkKey = UUID.randomUUID().toString();
+        String delayTalkKey = UUID.randomUUID().toString();
+
+        HookSubscribeForStreamChange hookSubscribeForStreamChange = HookSubscribeFactory.on_stream_changed(param.getApp(), param.getStream(), true, "rtsp", mediaInfo.getId());
+        hookSubscribe.addSubscribe(hookSubscribeForStreamChange, (mediaServerItem, response) -> {
+            dynamicTask.stop(talkKey);
+            param.setStatus(true);
+            saveProxyToDb(param);
+            StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(
+                    mediaInfo, param.getApp(), param.getStream(), null, null);
+            callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+        });
+
+        dynamicTask.startDelay(delayTalkKey, ()->{
+            hookSubscribe.removeSubscribe(hookSubscribeForStreamChange);
+            dynamicTask.stop(talkKey);
+            callback.run(ErrorCode.ERROR100.getCode(), "启用超时，请检查源地址是否可用", null);
+            if (param.isEnableRemoveNoneReader()) {
+                return;
+            }
+            param.setProxyError("启用超时");
+            param.setStatus(false);
+            saveProxyToDb(param);
+        }, 10000);
+        JSONObject jsonObject = addStreamProxyToZlm(param);
+        if (jsonObject != null && jsonObject.getInteger("code") != 0) {
+            hookSubscribe.removeSubscribe(hookSubscribeForStreamChange);
+            dynamicTask.stop(talkKey);
+            callback.run(ErrorCode.ERROR100.getCode(), jsonObject.getString("msg"), null);
+            if (param.isEnableRemoveNoneReader()) {
+                return;
+            }
+            param.setProxyError("启用失败: " + jsonObject.getString("msg"));
+            param.setStatus(false);
+            saveProxyToDb(param);
+        }
+    }
+
     private void saveProxyToDb(StreamProxy param) {
         // 未启用的数据可以直接保存了
         if (!ObjectUtils.isEmpty(param.getGbId())) {

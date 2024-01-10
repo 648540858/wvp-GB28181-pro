@@ -261,6 +261,7 @@ create table wvp_stream_push (
                                  create_time character varying(50),
                                  alive_second integer,
                                  media_server_id character varying(50),
+                                 server_id character varying(50),
                                  push_time character varying(50),
                                  status bool default false,
                                  update_time character varying(50),

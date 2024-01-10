@@ -13,9 +13,9 @@ import java.util.List;
 public interface StreamPushMapper {
 
     @Insert("INSERT INTO wvp_stream_push (app, stream, total_reader_count, origin_type, origin_type_str, " +
-            "push_time, alive_second, media_server_id, update_time, create_time, push_ing, self) VALUES" +
+            "push_time, alive_second, media_server_id, server_id, update_time, create_time, push_ing, self) VALUES" +
             "(#{app}, #{stream}, #{totalReaderCount}, #{originType}, #{originTypeStr}, " +
-            "#{pushTime}, #{aliveSecond}, #{mediaServerId} , #{updateTime} , #{createTime}, " +
+            "#{pushTime}, #{aliveSecond}, #{mediaServerId} , #{serverId} , #{updateTime} , #{createTime}, " +
             "#{pushIng}, #{self} )")
     int add(StreamPushItem streamPushItem);
 
@@ -24,6 +24,7 @@ public interface StreamPushMapper {
             "UPDATE wvp_stream_push " +
             "SET update_time=#{updateTime}" +
             "<if test=\"mediaServerId != null\">, media_server_id=#{mediaServerId}</if>" +
+            "<if test=\"serverId != null\">, server_id=#{serverId}</if>" +
             "<if test=\"totalReaderCount != null\">, total_reader_count=#{totalReaderCount}</if>" +
             "<if test=\"originType != null\">, origin_type=#{originType}</if>" +
             "<if test=\"originTypeStr != null\">, origin_type_str=#{originTypeStr}</if>" +
@@ -89,10 +90,10 @@ public interface StreamPushMapper {
 
     @Insert("<script>"  +
             "Insert INTO wvp_stream_push (app, stream, total_reader_count, origin_type, origin_type_str, " +
-            "create_time, alive_second, media_server_id, status, push_ing) " +
+            "create_time, alive_second, media_server_id, server_id, status, push_ing) " +
             "VALUES <foreach collection='streamPushItems' item='item' index='index' separator=','>" +
             "( #{item.app}, #{item.stream}, #{item.totalReaderCount}, #{item.originType}, " +
-            "#{item.originTypeStr},#{item.createTime}, #{item.aliveSecond}, #{item.mediaServerId}, #{item.status} ," +
+            "#{item.originTypeStr},#{item.createTime}, #{item.aliveSecond}, #{item.mediaServerId},#{item.serverId}, #{item.status} ," +
             " #{item.pushIng} )" +
             " </foreach>" +
             "</script>")

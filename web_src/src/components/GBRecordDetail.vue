@@ -298,7 +298,7 @@
       downloadRecord: function (row) {
         if (!row) {
           let startTimeStr = moment(new Date(this.chooseDate + " 00:00:00").getTime() + this.playTime[0]*1000).format("YYYY-MM-DD HH:mm:ss");
-          let endTimeStr = moment(new Date(this.chooseDate + " 00:p400:00").getTime() + this.playTime[1]*1000).format("YYYY-MM-DD HH:mm:ss");
+          let endTimeStr = moment(new Date(this.chooseDate + " 00:00:00").getTime() + this.playTime[1]*1000).format("YYYY-MM-DD HH:mm:ss");
           console.log(startTimeStr);
           console.log(endTimeStr);
           row = {

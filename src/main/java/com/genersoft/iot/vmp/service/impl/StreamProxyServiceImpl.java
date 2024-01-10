@@ -434,6 +434,50 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }
     }
 
+    public void startProxy(StreamProxy streamProxy, MediaServerItem mediaInfo,  GeneralCallback<StreamInfo> callback) {
+        String talkKey = UUID.randomUUID().toString();
+        String delayTalkKey = UUID.randomUUID().toString();
+
+        HookSubscribeForStreamChange hookSubscribeForStreamChange = HookSubscribeFactory.on_stream_changed(streamProxy.getApp(), streamProxy.getStream(), true, "rtsp", mediaInfo.getId());
+        hookSubscribe.addSubscribe(hookSubscribeForStreamChange, (mediaServerItem, response) -> {
+            dynamicTask.stop(talkKey);
+            streamProxy.setStatus(true);
+            saveProxyToDb(streamProxy);
+            StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(
+                    mediaInfo, streamProxy.getApp(), streamProxy.getStream(), null, null);
+            callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+        });
+
+        dynamicTask.startDelay(delayTalkKey, ()->{
+            hookSubscribe.removeSubscribe(hookSubscribeForStreamChange);
+            dynamicTask.stop(talkKey);
+            callback.run(ErrorCode.ERROR100.getCode(), "启用超时，请检查源地址是否可用", null);
+            if (streamProxy.isEnableRemoveNoneReader()) {
+                return;
+            }
+            streamProxy.setProxyError("启用超时");
+            streamProxy.setStatus(false);
+            saveProxyToDb(streamProxy);
+        }, 10000);
+        JSONObject jsonObject = addStreamProxyToZlm(streamProxy);
+        if (jsonObject != null && jsonObject.getInteger("code") != 0) {
+            hookSubscribe.removeSubscribe(hookSubscribeForStreamChange);
+            dynamicTask.stop(talkKey);
+            callback.run(ErrorCode.ERROR100.getCode(), jsonObject.getString("msg"), null);
+            if (streamProxy.isEnableRemoveNoneReader()) {
+                return;
+            }
+            streamProxy.setProxyError("启用失败: " + jsonObject.getString("msg"));
+            streamProxy.setStatus(false);
+            saveProxyToDb(streamProxy);
+        }
+    }
+
+    public void stopProxy(StreamProxy streamProxy, GeneralCallback<StreamInfo> callback) {
+
+    }
+
+
     private void saveProxyToDb(StreamProxy param) {
         // 未启用的数据可以直接保存了
         if (!ObjectUtils.isEmpty(param.getGbId())) {

@@ -594,7 +594,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             param.put("rtp_proxy.port_range", mediaServerItem.getRtpPortRange().replace(",", "-"));
         }
 
-        if (mediaServerItem.getRecordPath() != null) {
+        if (!ObjectUtils.isEmpty(mediaServerItem.getRecordPath())) {
             File recordPathFile = new File(mediaServerItem.getRecordPath());
             param.put("protocol.mp4_save_path", recordPathFile.getParentFile().getPath());
             param.put("protocol.downloadRoot", recordPathFile.getParentFile().getPath());

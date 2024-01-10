@@ -145,7 +145,7 @@ public class PlatformServiceImpl implements IPlatformService {
         dynamicTask.stop(registerTaskKey);
         // 注销旧的
         try {
-            if (parentPlatformOld.isStatus()) {
+            if (parentPlatformOld.isStatus() && parentPlatformCatchOld != null) {
                 logger.info("保存平台{}时发现旧平台在线，发送注销命令", parentPlatformOld.getServerGBId());
                 commanderForPlatform.unregister(parentPlatformOld, parentPlatformCatchOld.getSipTransactionInfo(), null, eventResult -> {
                     logger.info("[国标级联] 注销成功， 平台：{}", parentPlatformOld.getServerGBId());

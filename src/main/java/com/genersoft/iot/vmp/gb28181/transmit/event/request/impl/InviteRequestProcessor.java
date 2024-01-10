@@ -733,11 +733,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 try {
                     mediaListManager.removedChannelOnlineEventLister(gbStream.getApp(), gbStream.getStream());
                     responseAck(request, Response.REQUEST_TIMEOUT); // 超时
-                } catch (SipException e) {
-                    logger.error("未处理的异常 ", e);
-                } catch (InvalidArgumentException e) {
-                    logger.error("未处理的异常 ", e);
-                } catch (ParseException e) {
+                } catch (SipException | InvalidArgumentException | ParseException e) {
                     logger.error("未处理的异常 ", e);
                 }
             }, userSetting.getPlatformPlayTimeout());

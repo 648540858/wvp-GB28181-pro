@@ -84,7 +84,7 @@ public class MediaConfig{
     @Value("${media.record-day:7}")
     private Integer recordDay;
 
-    @Value("${media.record-path}")
+    @Value("${media.record-path:}")
     private String recordPath;
 
     public String getId() {

@@ -14,9 +14,9 @@ import java.util.Map;
 public interface StreamPushMapper {
 
     @Insert("INSERT INTO wvp_stream_push (name, app, stream, common_gb_channel_id, gb_id, longitude, latitude, " +
-            "push_time, media_server_id, update_time, create_time, push_ing, self, status) VALUES" +
+            "push_time, media_server_id, server_id, update_time, create_time, push_ing, self, status) VALUES" +
             "(#{name}, #{app}, #{stream}, #{commonGbChannelId}, #{gbId},#{longitude},#{latitude}, " +
-            "#{pushTime}, #{mediaServerId} , #{updateTime} , #{createTime}, #{pushIng}, #{self}, #{status} )")
+            "#{pushTime}, #{mediaServerId} , #{serverId}, #{updateTime} , #{createTime}, #{pushIng}, #{self}, #{status} )")
     int add(StreamPush streamPushItem);
 
 
@@ -25,6 +25,7 @@ public interface StreamPushMapper {
             "SET update_time=#{updateTime}" +
             "<if test=\"name != null\">, name=#{name}</if>" +
             "<if test=\"mediaServerId != null\">, media_server_id=#{mediaServerId}</if>" +
+            "<if test=\"serverId != null\">, server_id=#{serverId}</if>" +
             "<if test=\"commonGbChannelId != null\">, common_gb_channel_id=#{commonGbChannelId}</if>" +
             "<if test=\"gbId != null\">, gb_id=#{gbId}</if>" +
             "<if test=\"longitude != null\">, longitude=#{longitude}</if>" +
@@ -85,10 +86,10 @@ public interface StreamPushMapper {
 
     @Insert("<script>" +
             "Insert INTO wvp_stream_push (name, app, stream, common_gb_channel_id, gb_id, longitude, " +
-            "latitude, create_time, media_server_id, status, push_ing) " +
+            "latitude, create_time, media_server_id, server_id, status, push_ing) " +
             "VALUES <foreach collection='streamPushItems' item='item' index='index' separator=','>" +
             "(#{item.name}, #{item.app}, #{item.stream}, #{item.commonGbChannelId}, #{item.gbId},#{item.longitude}, " +
-            "#{item.latitude}, #{item.createTime}, #{item.mediaServerId}, #{item.status}, #{item.pushIng} )" +
+            "#{item.latitude}, #{item.createTime}, #{item.mediaServerId}, #{item.serverId}, #{item.status}, #{item.pushIng} )" +
             " </foreach>" +
             "</script>")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")

@@ -498,5 +498,8 @@ alter table wvp_media_server
 alter table wvp_media_server
     add record_day integer default 7;
 
+alter table wvp_stream_push
+    add server_id character varying(50);
+
 
 

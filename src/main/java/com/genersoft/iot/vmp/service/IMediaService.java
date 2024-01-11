@@ -41,4 +41,14 @@ public interface IMediaService {
      * @return
      */
     StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream, Object tracks, String addr, String callId);
+
+    /**
+     * 查看流是否已经注册
+     */
+    boolean isReady(MediaServerItem mediaInfo, String app, String stream);
+
+    /**
+     * 关闭zlm的流
+     */
+    boolean closeStream(MediaServerItem mediaInfo, String app, String stream);
 }

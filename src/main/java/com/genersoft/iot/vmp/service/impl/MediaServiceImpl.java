@@ -110,4 +110,15 @@ public class MediaServiceImpl implements IMediaService {
         return streamInfoResult;
     }
 
+    @Override
+    public boolean isReady(MediaServerItem mediaInfo, String app, String stream) {
+        JSONObject jsonObject = zlmresTfulUtils.getMediaInfo(mediaInfo, app, "rtsp", stream);
+        return jsonObject != null && jsonObject.getInteger("code") == 0 && jsonObject.getBoolean("online");
+    }
+
+    @Override
+    public boolean closeStream(MediaServerItem mediaInfo, String app, String stream) {
+        JSONObject jsonObject =  zlmresTfulUtils.closeStreams(mediaInfo, app, stream);
+        return jsonObject != null && jsonObject.getInteger("code") == 0 && jsonObject.getInteger("count_hit") > 0;
+    }
 }

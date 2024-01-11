@@ -18,18 +18,9 @@ public class VideoManagerConstants {
 
 	public static final String DEVICE_PREFIX = "VMP_DEVICE_";
 
-	// 设备同步完成
-	public static final String DEVICE_SYNC_PREFIX = "VMP_DEVICE_SYNC_";
-
-	public static final String CACHEKEY_PREFIX = "VMP_CHANNEL_";
-
-	public static final String KEEPLIVEKEY_PREFIX = "VMP_KEEPALIVE_";
 
 	// TODO 此处多了一个_，暂不修改
 	public static final String INVITE_PREFIX = "VMP_INVITE";
-	public static final String PLAYER_PREFIX = "VMP_INVITE_PLAY_";
-	public static final String PLAY_BLACK_PREFIX = "VMP_INVITE_PLAYBACK_";
-	public static final String DOWNLOAD_PREFIX = "VMP_INVITE_DOWNLOAD_";
 
 	public static final String PLATFORM_KEEPALIVE_PREFIX = "VMP_PLATFORM_KEEPALIVE_";
 
@@ -40,16 +31,6 @@ public class VideoManagerConstants {
 	public static final String PLATFORM_REGISTER_INFO_PREFIX = "VMP_PLATFORM_REGISTER_INFO_";
 
 	public static final String PLATFORM_SEND_RTP_INFO_PREFIX = "VMP_PLATFORM_SEND_RTP_INFO_";
-
-	public static final String EVENT_ONLINE_REGISTER = "1";
-
-	public static final String EVENT_ONLINE_MESSAGE = "3";
-
-	public static final String EVENT_OUTLINE_UNREGISTER = "1";
-	
-	public static final String EVENT_OUTLINE_TIMEOUT = "2";
-
-	public static final String MEDIA_SSRC_USED_PREFIX = "VMP_MEDIA_USED_SSRC_";
 
 	public static final String MEDIA_TRANSACTION_USED_PREFIX = "VMP_MEDIA_TRANSACTION_";
 

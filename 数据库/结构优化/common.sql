@@ -152,6 +152,9 @@ alter table wvp_stream_push
 alter table wvp_stream_push
     drop column alive_second;
 
+alter table wvp_stream_proxy
+    drop column src_url;
+
 
 
 

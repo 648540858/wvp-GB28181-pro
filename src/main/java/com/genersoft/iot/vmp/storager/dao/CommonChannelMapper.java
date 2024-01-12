@@ -296,14 +296,14 @@ public interface CommonChannelMapper {
     int deleteByDeviceIDs(List<String> clearChannels);
 
     @Update("<script> "+
-            "UPDATE wvp_common_channel SET commonGbStatus = true  WHERE common_gb_id in" +
+            "UPDATE wvp_common_channel SET common_gb_status = true  WHERE common_gb_id in" +
             "<foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.commonGbId}</foreach>" +
             "</script>")
     void channelsOnlineFromList(List<CommonGbChannel> channelList);
 
 
     @Update("<script> "+
-            "UPDATE wvp_common_channel SET commonGbStatus = false  WHERE common_gb_id in" +
+            "UPDATE wvp_common_channel SET common_gb_status = false  WHERE common_gb_id in" +
             "<foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.commonGbId}</foreach>" +
             "</script>")
     void channelsOfflineFromList(List<CommonGbChannel> channelList);

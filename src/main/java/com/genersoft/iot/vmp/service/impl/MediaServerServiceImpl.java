@@ -759,7 +759,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         streamMediaInfo.setBytesSpeed(mediaInfoJson.getInteger("bytesSpeed"));
 
         JSONArray tracks = mediaInfoJson.getJSONArray("tracks");
-        if (!tracks.isEmpty()) {
+        if (tracks != null && !tracks.isEmpty()) {
             for (int i = 0; i < tracks.size(); i++) {
                 JSONObject tracksJson = tracks.getJSONObject(i);
                 StreamMediaTrack streamMediaTrack = new StreamMediaTrack();

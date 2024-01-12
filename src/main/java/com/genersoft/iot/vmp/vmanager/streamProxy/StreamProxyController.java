@@ -192,7 +192,7 @@ public class StreamProxyController {
         });
 
         streamProxyService.edit(param, (code, msg, streamInfo) -> {
-            logger.info("[添加拉流代理] {}", code == ErrorCode.SUCCESS.getCode()? "成功":"失败： " + msg);
+            logger.info("[编辑拉流代理] {}", code == ErrorCode.SUCCESS.getCode()? "成功":"失败： " + msg);
             if (code == ErrorCode.SUCCESS.getCode()) {
                 result.setResult(new StreamContent(streamInfo));
             }else {

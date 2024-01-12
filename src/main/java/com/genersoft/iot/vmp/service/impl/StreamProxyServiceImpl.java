@@ -260,6 +260,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         boolean stopOldProxy = !streamProxyInDb.getType().equals(param.getType())
                 || !streamProxyInDb.getUrl().equals(param.getUrl())
                 || !streamProxyInDb.getMediaServerId().equals(param.getMediaServerId())
+                || (streamProxyInDb.isEnable() && !param.isEnable())
                 || (streamProxyInDb.getType().equals("ffmpeg") && (
                         streamProxyInDb.getDstUrl().equals(param.getDstUrl())
                        || streamProxyInDb.getFfmpegCmdKey().equals(param.getFfmpegCmdKey())
@@ -281,14 +282,10 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         };
         if(stopOldProxy) {
             stopProxy(param, mediaInfo, (code, msg, data) -> {
-                if (code == ErrorCode.SUCCESS.getCode()) {
-                    if (param.isEnable()) {
-                        startProxy(param, mediaInfo, startProxyCallback);
-                    }else {
-                        callback.run(code, msg, null);
-                    }
+                if (param.isEnable()) {
+                    startProxy(param, mediaInfo, startProxyCallback);
                 }else {
-                    callback.run(code, "停止旧的代理失败： " + msg, null);
+                    callback.run(code, msg, null);
                 }
             });
         }else {
@@ -303,6 +300,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     public void startProxy(StreamProxy streamProxy, MediaServerItem mediaInfo, GeneralCallback<StreamInfo> callback) {
+        logger.info("[开始拉流代理] {}/{}", streamProxy.getApp(), streamProxy.getStream());
         // 检测是否在线
         boolean ready = mediaService.isReady(mediaInfo, streamProxy.getApp(), streamProxy.getStream());
         if (ready) {
@@ -317,26 +315,26 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             }else {
                 StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(
                         mediaInfo, streamProxy.getApp(), streamProxy.getStream(), null, null);
+                logger.info("[开始拉流代理] 已拉起，直接返回 {}/{}", streamProxy.getApp(), streamProxy.getStream());
                 callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
             }
             return;
         }
-        String talkKey = UUID.randomUUID().toString();
         String delayTalkKey = UUID.randomUUID().toString();
 
         HookSubscribeForStreamChange hookSubscribeForStreamChange = HookSubscribeFactory.on_stream_changed(streamProxy.getApp(), streamProxy.getStream(), true, "rtsp", mediaInfo.getId());
         hookSubscribe.addSubscribe(hookSubscribeForStreamChange, (mediaServerItem, response) -> {
-            dynamicTask.stop(talkKey);
+            dynamicTask.stop(delayTalkKey);
             streamProxy.setStatus(true);
             StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(
                     mediaInfo, streamProxy.getApp(), streamProxy.getStream(), null, null);
-            logger.info("[拉流代理] 启用成功： {}/{}", streamProxy.getApp(), streamProxy.getStream());
+            logger.info("[开始拉流代理] 成功： {}/{}", streamProxy.getApp(), streamProxy.getStream());
             callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
         });
 
         dynamicTask.startDelay(delayTalkKey, ()->{
             hookSubscribe.removeSubscribe(hookSubscribeForStreamChange);
-            dynamicTask.stop(talkKey);
+            dynamicTask.stop(delayTalkKey);
             callback.run(ErrorCode.ERROR100.getCode(), "启用超时，请检查源地址是否可用", null);
             streamProxy.setProxyError("启用超时");
         }, 10000);
@@ -355,7 +353,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }
         if (result.getInteger("code") != 0) {
             hookSubscribe.removeSubscribe(hookSubscribeForStreamChange);
-            dynamicTask.stop(talkKey);
+            dynamicTask.stop(delayTalkKey);
             callback.run(result.getInteger("code"), result.getString("msg"), null);
         }else {
             JSONObject data = result.getJSONObject("data");
@@ -375,6 +373,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     public void stopProxy(StreamProxy streamProxy, MediaServerItem mediaInfo, GeneralCallback<StreamInfo> callback) {
+        logger.info("[停止拉流代理] {}/{}", streamProxy.getApp(), streamProxy.getStream());
         boolean ready = mediaService.isReady(mediaInfo, streamProxy.getApp(), streamProxy.getStream());
         if (ready) {
             if ("ffmpeg".equalsIgnoreCase(streamProxy.getType())){
@@ -392,6 +391,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         if (redisTemplate.opsForValue().get(key) == null) {
             redisTemplate.delete(key);
         }
+        logger.info("[停止拉流代理] 成功 {}/{}", streamProxy.getApp(), streamProxy.getStream());
         callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), null);
     }
 
@@ -418,7 +418,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 }
             }
         }else {
-            logger.info("[拉流代理参数处理] 直接拉流，源地址: {}, app: {}, stream: {}", param.getUrl(), param.getApp(), param.getStream());
+            logger.info("[拉流代理参数处理] 方式：直接拉流，源地址: {}, app: {}, stream: {}", param.getUrl(), param.getApp(), param.getStream());
         }
     }
 

@@ -250,55 +250,22 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             callback.run(code, msg, data);
             if (code == ErrorCode.SUCCESS.getCode()) {
                 param.setStatus(true);
-                addProxyToDb(param);
             } else {
-
+                if (param.isEnableRemoveNoneReader()) {
+                    return;
+                }
+                param.setProxyError(msg);
+                param.setStatus(false);
             }
+            addProxyToDb(param);
         });
-
-        String talkKey = UUID.randomUUID().toString();
-        String delayTalkKey = UUID.randomUUID().toString();
-
-        HookSubscribeForStreamChange hookSubscribeForStreamChange = HookSubscribeFactory.on_stream_changed(param.getApp(), param.getStream(), true, "rtsp", mediaInfo.getId());
-        hookSubscribe.addSubscribe(hookSubscribeForStreamChange, (mediaServerItem, response) -> {
-            dynamicTask.stop(talkKey);
-            param.setStatus(true);
-            addProxyToDb(param);
-            StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(
-                    mediaInfo, param.getApp(), param.getStream(), null, null);
-            callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
-        });
-
-        dynamicTask.startDelay(delayTalkKey, ()->{
-            hookSubscribe.removeSubscribe(hookSubscribeForStreamChange);
-            dynamicTask.stop(talkKey);
-            callback.run(ErrorCode.ERROR100.getCode(), "启用超时，请检查源地址是否可用", null);
-            if (param.isEnableRemoveNoneReader()) {
-                return;
-            }
-            param.setProxyError("启用超时");
-            param.setStatus(false);
-            addProxyToDb(param);
-        }, 10000);
-        JSONObject jsonObject = addStreamProxyToZlm(param);
-        if (jsonObject != null && jsonObject.getInteger("code") != 0) {
-            hookSubscribe.removeSubscribe(hookSubscribeForStreamChange);
-            dynamicTask.stop(talkKey);
-            callback.run(ErrorCode.ERROR100.getCode(), jsonObject.getString("msg"), null);
-            if (param.isEnableRemoveNoneReader()) {
-                return;
-            }
-            param.setProxyError("启用失败: " + jsonObject.getString("msg"));
-            param.setStatus(false);
-            addProxyToDb(param);
-        }
     }
 
     @Override
     public void edit(StreamProxy param, GeneralCallback<StreamInfo> callback) {
         MediaServerItem mediaInfo;
         StreamProxy streamProxyInDb = streamProxyMapper.selectOneById(param.getId());
-        if (streamProxyInDb != null) {
+        if (streamProxyInDb == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "代理不存在");
         }
         if (ObjectUtils.isEmpty(param.getMediaServerId()) || "auto".equals(param.getMediaServerId())){
@@ -316,6 +283,36 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         // ffmpeg类型下，目标流地址变化，停止旧的，拉起新的
         // 节点变化： 停止旧的，拉起新的
         // ffmpeg命令模板变化： 停止旧的，拉起新的
+        boolean stopOldProxy = !streamProxyInDb.getType().equals(param.getType())
+                || !streamProxyInDb.getUrl().equals(param.getUrl())
+                || !streamProxyInDb.getMediaServerId().equals(param.getMediaServerId())
+                || (streamProxyInDb.getType().equals("ffmpeg") && (
+                        streamProxyInDb.getDstUrl().equals(param.getDstUrl())
+                       || streamProxyInDb.getFfmpegCmdKey().equals(param.getFfmpegCmdKey())
+                    ));
+
+        // 如果是开启代理这是开启代理结束后的回调
+        final GeneralCallback<StreamInfo> startProxyCallback = (code, msg, data) -> {
+
+        };
+
+        if (stopOldProxy) {
+            stopProxy(param, mediaInfo, (code, msg, data) -> {
+                if (code == ErrorCode.SUCCESS.getCode()) {
+                    if (param.isEnable()) {
+                        startProxy(param, mediaInfo, startProxyCallback);
+                    }
+                }
+            });
+        }else {
+            if (param.isEnable()) {
+                startProxy(param, mediaInfo, startProxyCallback);
+            }
+        }
+
+
+
+
         if (ObjectUtils.isEmpty(streamProxyInDb.getGbId())) {
             if (!ObjectUtils.isEmpty(param.getGbId())) {
                 // 之前是空的，现在添加了国标编号
@@ -447,7 +444,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }, 10000);
         JSONObject result;
         if ("ffmpeg".equalsIgnoreCase(streamProxy.getType())){
-           result = zlmresTfulUtils.addFFmpegSource(mediaInfo, streamProxy.getSrcUrl().trim(), streamProxy.getDstUrl(),
+           result = zlmresTfulUtils.addFFmpegSource(mediaInfo, streamProxy.getUrl().trim(), streamProxy.getDstUrl(),
                     streamProxy.getTimeoutMs() + "", streamProxy.isEnableAudio(), streamProxy.isEnableMp4(),
                     streamProxy.getFfmpegCmdKey());
         }else {
@@ -594,7 +591,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             zlmresTfulUtils.closeStreams(mediaServerItem, param.getApp(), param.getStream());
         }
         if ("ffmpeg".equalsIgnoreCase(param.getType())){
-            result = zlmresTfulUtils.addFFmpegSource(mediaServerItem, param.getSrcUrl().trim(), param.getDstUrl(),
+            result = zlmresTfulUtils.addFFmpegSource(mediaServerItem, param.getUrl().trim(), param.getDstUrl(),
                     param.getTimeoutMs() + "", param.isEnableAudio(), param.isEnableMp4(),
                     param.getFfmpegCmdKey());
         }else {
@@ -695,7 +692,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 updateStreamProxy(streamProxy);
             }else {
                 logger.info("启用代理失败： {}/{}->{}({})", app, stream, jsonObject.getString("msg"),
-                        streamProxy.getSrcUrl() == null? streamProxy.getUrl():streamProxy.getSrcUrl());
+                        streamProxy.getUrl() == null? streamProxy.getUrl():streamProxy.getUrl());
             }
         } else if (streamProxy != null && streamProxy.isEnable()) {
            return true ;

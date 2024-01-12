@@ -6,7 +6,6 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
 import com.genersoft.iot.vmp.service.IMediaServerService;
@@ -26,8 +25,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
-
-import java.util.UUID;
 
 @SuppressWarnings("rawtypes")
 /**
@@ -142,11 +139,6 @@ public class StreamProxyController {
         if (ObjectUtils.isEmpty(param.getGbId())) {
             param.setGbId(null);
         }
-        if (ObjectUtils.isEmpty(param.getSrcUrl())) {
-            param.setSrcUrl(param.getUrl());
-        }else {
-            param.setUrl(param.getSrcUrl());
-        }
 
         DeferredResult<Object> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
         // 录像查询以channelId作为deviceId查询
@@ -188,11 +180,6 @@ public class StreamProxyController {
         }
         if (ObjectUtils.isEmpty(param.getGbId())) {
             param.setGbId(null);
-        }
-        if (ObjectUtils.isEmpty(param.getSrcUrl())) {
-            param.setSrcUrl(param.getUrl());
-        }else {
-            param.setUrl(param.getSrcUrl());
         }
 
         DeferredResult<Object> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());

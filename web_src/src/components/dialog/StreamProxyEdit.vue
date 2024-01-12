@@ -33,9 +33,6 @@
               <el-form-item label="拉流地址" prop="url" v-if="proxyParam.type=='default'">
                 <el-input v-model="proxyParam.url" clearable></el-input>
               </el-form-item>
-              <el-form-item label="拉流地址" prop="srcUrl" v-if="proxyParam.type=='ffmpeg'">
-                <el-input v-model="proxyParam.srcUrl" clearable></el-input>
-              </el-form-item>
               <el-form-item label="超时时间:毫秒" prop="timeoutMs" v-if="proxyParam.type=='ffmpeg'">
                 <el-input v-model="proxyParam.timeoutMs" clearable></el-input>
               </el-form-item>
@@ -158,7 +155,6 @@ export default {
           app: null,
           stream: null,
           url: "",
-          srcUrl: null,
           timeoutMs: null,
           ffmpegCmdKey: null,
           gbId: null,
@@ -180,7 +176,6 @@ export default {
         app: [{ required: true, message: "请输入应用名", trigger: "blur" }],
         stream: [{ required: true, message: "请输入流ID", trigger: "blur" }],
         url: [{ required: true, message: "请输入要代理的流", trigger: "blur" }],
-        srcUrl: [{ required: true, message: "请输入要代理的流", trigger: "blur" }],
         timeoutMs: [{ required: true, message: "请输入FFmpeg推流成功超时时间", trigger: "blur" }],
         ffmpegCmdKey: [{ required: false, message: "请输入FFmpeg命令参数模板（可选）", trigger: "blur" }],
       },

@@ -19,8 +19,6 @@ public class StreamProxy {
     private String mediaServerId;
     @Schema(description = "拉流地址")
     private String url;
-    @Schema(description = "拉流地址")
-    private String srcUrl;
     @Schema(description = "目标地址")
     private String dstUrl;
     @Schema(description = "超时时间")
@@ -114,14 +112,6 @@ public class StreamProxy {
 
     public void setUrl(String url) {
         this.url = url;
-    }
-
-    public String getSrcUrl() {
-        return srcUrl;
-    }
-
-    public void setSrcUrl(String srcUrl) {
-        this.srcUrl = srcUrl;
     }
 
     public String getDstUrl() {

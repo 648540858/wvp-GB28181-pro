@@ -75,6 +75,11 @@ public interface StreamProxyMapper {
             "WHERE app=#{app} AND stream=#{stream}")
     int updateStatus(@Param("app") String app, @Param("stream") String stream, @Param("status") boolean status);
 
+    @Update("UPDATE wvp_stream_proxy " +
+            "SET status=#{status} " +
+            "WHERE id=#{id}")
+    int updateStatusById(@Param("id") int id, @Param("status") boolean status);
+
     @Delete("DELETE FROM wvp_stream_proxy WHERE enable_remove_none_reader=true AND media_server_id=#{mediaServerId}")
     void deleteAutoRemoveItemByMediaServerId(String mediaServerId);
 

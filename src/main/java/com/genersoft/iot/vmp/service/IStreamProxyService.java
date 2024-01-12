@@ -19,19 +19,6 @@ public interface IStreamProxyService {
      */
     void save(StreamProxy param, GeneralCallback<StreamInfo> callback);
 
-    /**
-     * 添加视频代理到zlm
-     * @param param
-     * @return
-     */
-    JSONObject addStreamProxyToZlm(StreamProxy param);
-
-    /**
-     * 从zlm移除视频代理
-     * @param param
-     * @return
-     */
-    JSONObject removeStreamProxyFromZlm(StreamProxy param);
 
     /**
      * 分页查询
@@ -41,12 +28,6 @@ public interface IStreamProxyService {
      */
     PageInfo<StreamProxy> getAll(Integer page, Integer count);
 
-    /**
-     * 删除视频代理
-     * @param app
-     * @param stream
-     */
-    void del(String app, String stream);
 
     /**
      * 启用视频代理
@@ -54,7 +35,7 @@ public interface IStreamProxyService {
      * @param stream
      * @return
      */
-    boolean start(String app, String stream);
+    void start(String app, String stream, GeneralCallback<StreamInfo> callback);
 
     /**
      * 更新状态
@@ -62,7 +43,7 @@ public interface IStreamProxyService {
      * @param app
      * @param stream
      */
-    int updateStatus(boolean status, String app, String stream);
+    void updateStatus(boolean status, String app, String stream);
 
 
 
@@ -72,7 +53,7 @@ public interface IStreamProxyService {
      * @param stream
      * @return
      */
-    boolean stop(String app, String stream);
+    void stop(String app, String stream, GeneralCallback<StreamInfo> callback);
 
     /**
      * 获取ffmpeg.cmd模板
@@ -101,13 +82,6 @@ public interface IStreamProxyService {
      */
     void zlmServerOffline(String mediaServerId);
 
-    void clean();
-
-    /**
-     * 更新代理流
-     */
-    boolean updateStreamProxy(StreamProxy streamProxyItem);
-
     /**
      * 获取统计信息
      * @return
@@ -129,7 +103,7 @@ public interface IStreamProxyService {
      */
     void add(StreamProxy param, GeneralCallback<StreamInfo> callback);
 
-    void delById(int gbId);
+    void removeProxy(int gbId);
 
     /**
      * 编辑拉流代理

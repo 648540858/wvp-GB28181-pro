@@ -374,10 +374,7 @@ public class ZLMHttpHookListener {
                     mediaServerService.removeCount(param.getMediaServerId());
                 }
                 // 设置拉流代理上线/离线
-                int updateStatusResult = streamProxyService.updateStatus(param.isRegist(), param.getApp(), param.getStream());
-                if (updateStatusResult > 0) {
-
-                }
+                streamProxyService.updateStatus(param.isRegist(), param.getApp(), param.getStream());
 
                 if ("rtp".equals(param.getApp()) && !param.isRegist()) {
                     InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, param.getStream());
@@ -546,14 +543,13 @@ public class ZLMHttpHookListener {
                 if (streamProxyItem.isEnableRemoveNoneReader()) {
                     // 无人观看自动移除
                     ret.put("close", true);
-                    streamProxyService.del(param.getApp(), param.getStream());
-                    String url = streamProxyItem.getUrl() != null ? streamProxyItem.getUrl() : streamProxyItem.getUrl();
-                    logger.info("[{}/{}]<-[{}] 拉流代理无人观看已经移除", param.getApp(), param.getStream(), url);
+                    streamProxyService.removeProxy(streamProxyItem.getId());
+                    logger.info("[{}/{}]<-[{}] 拉流代理无人观看已经移除", param.getApp(), param.getStream(), streamProxyItem.getUrl());
                 } else if (streamProxyItem.isEnableDisableNoneReader()) {
                     // 无人观看停用
                     ret.put("close", true);
                     // 修改数据
-                    streamProxyService.stop(param.getApp(), param.getStream());
+                    streamProxyService.stop(param.getApp(), param.getStream(), null);
                 } else {
                     // 无人观看不做处理
                     ret.put("close", false);
@@ -682,7 +678,7 @@ public class ZLMHttpHookListener {
             // 拉流代理
             StreamProxy streamProxyByAppAndStream = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
             if (streamProxyByAppAndStream != null && streamProxyByAppAndStream.isEnableDisableNoneReader()) {
-                streamProxyService.start(param.getApp(), param.getStream());
+                streamProxyService.start(param.getApp(), param.getStream(), null);
             }
             DeferredResult<HookResult> result = new DeferredResult<>();
             result.setResult(HookResult.SUCCESS());

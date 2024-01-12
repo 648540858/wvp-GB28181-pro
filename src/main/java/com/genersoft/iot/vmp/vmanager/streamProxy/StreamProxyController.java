@@ -97,7 +97,7 @@ public class StreamProxyController {
         }
         StreamProxy streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
         if (streamProxyItem  != null) {
-            streamProxyService.del(param.getApp(), param.getStream());
+            streamProxyService.removeProxy(streamProxyItem.getId());
         }
 
         DeferredResult<Object> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
@@ -226,7 +226,11 @@ public class StreamProxyController {
         if (app == null || stream == null) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), app == null ?"app不能为null":"stream不能为null");
         }else {
-            streamProxyService.del(app, stream);
+            StreamProxy streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(app,stream);
+            if (streamProxyItem  == null) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "代理不存在");
+            }
+            streamProxyService.removeProxy(streamProxyItem.getId());
         }
     }
 
@@ -240,7 +244,7 @@ public class StreamProxyController {
         if (proxy.getId() <= 0) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "缺少ID");
         }else {
-            streamProxyService.delById(proxy.getId());
+            streamProxyService.removeProxy(proxy.getId());
         }
     }
 
@@ -249,12 +253,14 @@ public class StreamProxyController {
     @Operation(summary = "启用代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "app", description = "应用名", required = true)
     @Parameter(name = "stream", description = "流id", required = true)
-    public void start(String app, String stream){
+    public DeferredResult<WVPResult> start(String app, String stream){
         logger.info("启用代理： " + app + "/" + stream);
-        boolean result = streamProxyService.start(app, stream);
-        if (!result) {
-            throw new ControllerException(ErrorCode.ERROR100);
-        }
+        DeferredResult<WVPResult> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
+        streamProxyService.start(app, stream, (code, msg, data) -> {
+            WVPResult<Object> wvpResult = new WVPResult<>(code, msg, null);
+            result.setResult(wvpResult);
+        });
+        return result;
     }
 
     @GetMapping(value = "/stop")
@@ -262,12 +268,13 @@ public class StreamProxyController {
     @Operation(summary = "停用代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "app", description = "应用名", required = true)
     @Parameter(name = "stream", description = "流id", required = true)
-    public void stop(String app, String stream){
+    public DeferredResult<WVPResult> stop(String app, String stream){
         logger.info("停用代理： " + app + "/" + stream);
-        boolean result = streamProxyService.stop(app, stream);
-        if (!result) {
-            logger.info("停用代理失败： " + app + "/" + stream);
-            throw new ControllerException(ErrorCode.ERROR100);
-        }
+        DeferredResult<WVPResult> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
+        streamProxyService.stop(app, stream, (code, msg, data) -> {
+            WVPResult<Object> wvpResult = new WVPResult<>(code, msg, null);
+            result.setResult(wvpResult);
+        });
+        return result;
     }
 }

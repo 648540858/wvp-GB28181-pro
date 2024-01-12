@@ -29,6 +29,7 @@ import com.genersoft.iot.vmp.service.redisMsg.RedisPushStreamResponseListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import gov.nist.javax.sdp.TimeDescriptionImpl;
 import gov.nist.javax.sdp.fields.TimeField;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -643,19 +644,17 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 logger.info("[ app={}, stream={} ] 等待拉流代理流超时", gbStream.getApp(), gbStream.getStream());
                 zlmHttpHookSubscribe.removeSubscribe(hookSubscribe);
             }, userSetting.getPlatformPlayTimeout());
-            boolean start = streamProxyService.start(gbStream.getApp(), gbStream.getStream());
-            if (!start) {
-                try {
-                    responseAck(request, Response.BUSY_HERE, "channel [" + gbStream.getGbId() + "] offline");
-                } catch (SipException | InvalidArgumentException | ParseException e) {
-                    logger.error("[命令发送失败] invite 通道未推流: {}", e.getMessage());
+            streamProxyService.start(gbStream.getApp(), gbStream.getStream(), (code, msg, data) -> {
+                if (code != ErrorCode.SUCCESS.getCode()) {
+                    try {
+                        responseAck(request, Response.BUSY_HERE, "channel [" + gbStream.getGbId() + "] offline");
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error("[命令发送失败] invite 通道未推流: {}", e.getMessage());
+                    }
+                    zlmHttpHookSubscribe.removeSubscribe(hookSubscribe);
+                    dynamicTask.stop(callIdHeader.getCallId());
                 }
-                zlmHttpHookSubscribe.removeSubscribe(hookSubscribe);
-                dynamicTask.stop(callIdHeader.getCallId());
-            }
-
-
-
+            });
         } else if ("push".equals(gbStream.getStreamType())) {
             if (!platform.isStartOfflinePush()) {
                 // 平台设置中关闭了拉起离线的推流则直接回复

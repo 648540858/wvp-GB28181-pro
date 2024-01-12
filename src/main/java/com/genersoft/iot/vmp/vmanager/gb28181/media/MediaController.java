@@ -94,8 +94,8 @@ public class MediaController {
             return  new StreamContent(streamInfo);
         }else {
             //获取流失败，重启拉流后重试一次
-            streamProxyService.stop(app,stream);
-            boolean start = streamProxyService.start(app, stream);
+            streamProxyService.stop(app,stream, null);
+            streamProxyService.start(app, stream, null);
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {

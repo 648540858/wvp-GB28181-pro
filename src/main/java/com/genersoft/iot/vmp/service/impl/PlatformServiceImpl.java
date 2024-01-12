@@ -266,6 +266,7 @@ public class PlatformServiceImpl implements IPlatformService {
         }
         if (parentPlatform.isAutoPushChannel()) {
             if (subscribeHolder.getCatalogSubscribe(parentPlatform.getServerGBId()) == null) {
+                logger.info("[国标级联]：{}, 添加自动通道推送模拟订阅信息", parentPlatform.getServerGBId());
                 addSimulatedSubscribeInfo(parentPlatform);
             }
         }else {
@@ -343,9 +344,16 @@ public class PlatformServiceImpl implements IPlatformService {
             // 清除心跳任务
             dynamicTask.stop(keepaliveTaskKey);
         }
-        // 停止目录订阅回复
-        logger.info("[平台离线] {}, 停止订阅回复", parentPlatform.getServerGBId());
-        subscribeHolder.removeAllSubscribe(parentPlatform.getServerGBId());
+        // 停止订阅回复
+        SubscribeInfo catalogSubscribe = subscribeHolder.getCatalogSubscribe(parentPlatform.getServerGBId());
+        if (catalogSubscribe != null) {
+            if (catalogSubscribe.getExpires() > 0) {
+                logger.info("[平台离线] {}, 停止目录订阅回复", parentPlatform.getServerGBId());
+                subscribeHolder.removeCatalogSubscribe(parentPlatform.getServerGBId());
+            }
+        }
+        logger.info("[平台离线] {}, 停止移动位置订阅回复", parentPlatform.getServerGBId());
+        subscribeHolder.removeMobilePositionSubscribe(parentPlatform.getServerGBId());
         // 发起定时自动重新注册
         if (!stopRegister) {
             // 设置为60秒自动尝试重新注册

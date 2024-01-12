@@ -558,7 +558,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 .append("<CmdType>Catalog</CmdType>\r\n")
                 .append("<SN>" + SipUtils.getNewSn() + "</SN>\r\n")
                 .append("<DeviceID>" + parentPlatform.getDeviceGBId() + "</DeviceID>\r\n")
-                .append("<SumNum>"+ channels.size() +"</SumNum>\r\n")
+                .append("<SumNum>"+ sumNum +"</SumNum>\r\n")
                 .append("<DeviceList Num=\"" + channels.size() + "\">\r\n");
         if (channels.size() > 0) {
             for (CommonGbChannel channel : channels) {

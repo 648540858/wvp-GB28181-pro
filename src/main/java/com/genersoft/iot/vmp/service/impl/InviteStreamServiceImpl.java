@@ -117,7 +117,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
                 + ":*";
         List<Object> scanResult = RedisUtil.scan(redisTemplate, key);
         if (scanResult.size() != 1) {
-            return null;
+            logger.warn("[获取InviteInfo] 发现 key: {}存在多条", key);
         }
 
         return (InviteInfo) redisTemplate.opsForValue().get(scanResult.get(0));

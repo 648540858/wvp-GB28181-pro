@@ -702,6 +702,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             ssrcFactory.initMediaServerSSRC(mediaServerItem.getId(), null);
             String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerItem.getId();
             redisTemplate.opsForValue().set(key, mediaServerItem);
+            resetOnlineServerItem(mediaServerItem);
             clearRTPServer(mediaServerItem);
         }
         final String zlmKeepaliveKey = zlmKeepaliveKeyPrefix + mediaServerItem.getId();

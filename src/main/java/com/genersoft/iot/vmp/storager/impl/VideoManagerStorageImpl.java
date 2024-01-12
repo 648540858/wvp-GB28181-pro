@@ -162,7 +162,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 			}
 			allChannelMap.remove(deviceChannel.getChannelId());
 			channels.add(deviceChannel);
-			if (!ObjectUtils.isEmpty(deviceChannel.getParentId())) {
+			if (!ObjectUtils.isEmpty(deviceChannel.getParentId()) && !deviceChannel.getParentId().equals(deviceChannel.getChannelId())) {
 				if (subContMap.get(deviceChannel.getParentId()) == null) {
 					subContMap.put(deviceChannel.getParentId(), 1);
 				}else {

@@ -26,7 +26,7 @@ public interface IStreamProxyService {
      * @param count
      * @return
      */
-    PageInfo<StreamProxy> getAll(Integer page, Integer count);
+    PageInfo<StreamProxy> getAll(String query, Boolean online, String mediaServerId, Integer page, Integer count);
 
 
     /**
@@ -109,4 +109,10 @@ public interface IStreamProxyService {
      * 编辑拉流代理
      */
     void edit(StreamProxy param, GeneralCallback<StreamInfo> callback);
+
+    /**
+     * 获取播放地址
+     */
+    void getStreamProxyById(Integer id, GeneralCallback<StreamInfo> callback);
+
 }

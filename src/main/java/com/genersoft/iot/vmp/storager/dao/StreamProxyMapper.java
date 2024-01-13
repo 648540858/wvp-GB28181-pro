@@ -47,8 +47,17 @@ public interface StreamProxyMapper {
     @Delete("DELETE FROM wvp_stream_proxy WHERE app=#{app} AND stream=#{stream}")
     int del(String app, String stream);
 
-    @Select("SELECT * FROM wvp_stream_proxy order by create_time desc")
-    List<StreamProxy> selectAll();
+    @Select(" <script>" +
+            "SELECT * FROM wvp_stream_proxy where 1 = 1 " +
+            " <if test='query != null'> AND (app LIKE '%${query}%' OR stream LIKE '%${query}%' OR name LIKE '%${query}%')</if> " +
+            " <if test='mediaServerId != null'> AND media_server_id=#{mediaServerId}</if> " +
+            " <if test='online == true' > AND status=true</if>" +
+            " <if test='online == false' > AND status=false</if>" +
+            "order by create_time desc"+
+            " </script>" )
+    List<StreamProxy> selectAll(@Param("query") String query,
+                                @Param("online") Boolean online,
+                                @Param("mediaServerId") String mediaServerId);
 
     @Select("SELECT st.* FROM wvp_stream_proxy st  WHERE st.enable=#{enable} order by st.create_time desc")
     List<StreamProxy> selectForEnable(boolean enable);

@@ -56,14 +56,16 @@ public class StreamProxyController {
     @Parameter(name = "count", description = "每页查询数量")
     @Parameter(name = "query", description = "查询内容")
     @Parameter(name = "online", description = "是否在线")
+    @Parameter(name = "mediaServerId", description = "节点ID")
     @GetMapping(value = "/list")
     @ResponseBody
     public PageInfo<StreamProxy> list(@RequestParam(required = false)Integer page,
                                       @RequestParam(required = false)Integer count,
                                       @RequestParam(required = false)String query,
+                                      @RequestParam(required = false)String mediaServerId,
                                       @RequestParam(required = false)Boolean online ){
 
-        return streamProxyService.getAll(page, count);
+        return streamProxyService.getAll(query, online, mediaServerId, page, count);
     }
 
     @Operation(summary = "查询流代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -273,6 +275,20 @@ public class StreamProxyController {
         DeferredResult<WVPResult> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
         streamProxyService.stop(app, stream, (code, msg, data) -> {
             WVPResult<Object> wvpResult = new WVPResult<>(code, msg, null);
+            result.setResult(wvpResult);
+        });
+        return result;
+    }
+
+    @GetMapping(value = "/stream")
+    @ResponseBody
+    @Operation(summary = "获取代理播放地址", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "id", description = "ID", required = true)
+    public DeferredResult<WVPResult<StreamContent>> getStream(Integer id){
+        logger.info("获取代理播放地址： " + id );
+        DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
+        streamProxyService.getStreamProxyById(id, (code, msg, data) -> {
+            WVPResult<StreamContent> wvpResult = new WVPResult<>(code, msg, new StreamContent(data));
             result.setResult(wvpResult);
         });
         return result;

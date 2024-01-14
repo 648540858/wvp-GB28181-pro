@@ -296,7 +296,7 @@ public class CommonGbChannel {
     private String commonGbDownloadSpeed;
 
     /**
-     * 时域编码能力,取值0:不支持;1:1级增强;2:2级增强;3:3级增强(可选)
+     * 空域编码能力,取值0:不支持;1:1级增强;2:2级增强;3:3级增强(可选)
      */
     @Schema(description = "空域编码能力,取值0:不支持;1:1级增强(1个增强层);2:2级增强(2个增强层);3:3级增强(3个增强层)(可选)")
     private Integer commonGbSVCSpaceSupportMode;

@@ -31,7 +31,7 @@ public interface ICommonGbChannelService {
 
     PageInfo<CommonGbChannel> queryChannelListInGroup(int page, int count, String query, String groupDeviceId,
                                                       String regionDeviceId, Boolean inGroup, Boolean inRegion,
-                                                      String type);
+                                                      String type, String ptzType, Boolean online);
 
     PageInfo<CommonGbChannel> queryChannelList(String query, int page, int count);
 

@@ -137,8 +137,11 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
     @Override
     public PageInfo<CommonGbChannel> queryChannelListInGroup(int page, int count, String query, String groupDeviceId,
                                                              String regionDeviceId, Boolean inGroup, Boolean inRegion,
-                                                             String type) {
+                                                             String type, String ptzType, Boolean online) {
         PageHelper.startPage(page, count);
+        if (query != null && ObjectUtils.isEmpty(query.trim())) {
+            query = null;
+        }
         if (groupDeviceId != null && ObjectUtils.isEmpty(groupDeviceId.trim())) {
             inGroup = null;
         }
@@ -147,6 +150,9 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         }
         if (type != null && ObjectUtils.isEmpty(type.trim())) {
             type = null;
+        }
+        if (ptzType != null && ObjectUtils.isEmpty(ptzType.trim())) {
+            ptzType = null;
         }
         List<CommonGbChannel> all = commonGbChannelMapper.queryChannelListInGroup(query, groupDeviceId,
                 regionDeviceId, inGroup, inRegion, type);

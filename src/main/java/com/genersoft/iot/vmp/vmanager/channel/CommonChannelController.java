@@ -54,9 +54,8 @@ public class CommonChannelController {
     @Operation(summary = "更新通道信息")
     @Parameter(name = "CommonGbChannel", description = "commonGbChannel", required = true)
     @ResponseBody
-    @GetMapping("/update")
-    public void update(
-            @RequestParam(required = false) CommonGbChannel commonGbChannel
+    @PostMapping("/update")
+    public void update(@RequestBody CommonGbChannel commonGbChannel
     ){
         commonGbChannelService.update(commonGbChannel);
     }
@@ -108,6 +107,8 @@ public class CommonChannelController {
             @RequestParam(required = false) String regionDeviceId,
             @RequestParam(required = false) String query,
             @RequestParam(required = false) String type,
+            @RequestParam(required = false) String ptzType,
+            @RequestParam(required = false) Boolean online,
             @RequestParam(required = false) Boolean inGroup,
             @RequestParam(required = false) Boolean inRegion,
             @RequestParam(required = true) int page,
@@ -125,9 +126,12 @@ public class CommonChannelController {
         if (type != null && ObjectUtils.isEmpty(type.trim())) {
             type = null;
         }
+        if (ptzType != null && ObjectUtils.isEmpty(ptzType.trim())) {
+            ptzType = null;
+        }
         assert !ObjectUtils.isEmpty(groupDeviceId);
         return commonGbChannelService.queryChannelListInGroup(page, count, query, groupDeviceId, regionDeviceId,
-                inGroup, inRegion, type);
+                inGroup, inRegion, type, ptzType, online);
     }
 
     @Operation(summary = "为区域添加分组")

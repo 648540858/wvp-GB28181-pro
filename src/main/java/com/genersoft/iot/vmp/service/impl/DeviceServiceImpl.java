@@ -277,7 +277,7 @@ public class DeviceServiceImpl implements IDeviceService {
         // 设置最小值为30
         int subscribeCycleForCatalog = Math.max(device.getSubscribeCycleForMobilePosition(),30);
         // 刷新订阅
-        dynamicTask.startCron(device.getDeviceId() + "mobile_position" , mobilePositionSubscribeTask, (subscribeCycleForCatalog) * 1000);
+        dynamicTask.startCron(device.getDeviceId() + "mobile_position" , mobilePositionSubscribeTask, subscribeCycleForCatalog * 1000);
         return true;
     }
 

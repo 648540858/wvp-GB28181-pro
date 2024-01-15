@@ -58,7 +58,10 @@ public interface PlatformChannelMapper {
     @Select("SELECT dc.* from wvp_platform_gb_channel pgc left join wvp_device_channel dc on dc.id = pgc.device_channel_id WHERE dc.channel_id=#{channelId} and pgc.platform_id=#{platformId}")
     List<DeviceChannel> queryChannelInParentPlatform(@Param("platformId") String platformId, @Param("channelId") String channelId);
 
-    @Select("SELECT dc.* from wvp_platform_gb_channel pgc left join wvp_device_channel dc on dc.id = pgc.device_channel_id WHERE pgc.platform_id=#{platformId} and pgc.catalog_id=#{catalogId}")
+    @Select("<script> "+
+            "SELECT dc.* from wvp_platform_gb_channel pgc left join wvp_device_channel dc on dc.id = pgc.device_channel_id WHERE pgc.platform_id=#{platformId} " +
+            " <if test='catalogId != null' > and pgc.catalog_id=#{catalogId}</if>" +
+            "</script>")
     List<DeviceChannel> queryAllChannelInCatalog(@Param("platformId") String platformId, @Param("catalogId") String catalogId);
 
     @Select(" select dc.channel_id as id, dc.name as name, pgc.platform_id as platform_id, pgc.catalog_id as parent_id, 0 as children_count, 1 as type " +

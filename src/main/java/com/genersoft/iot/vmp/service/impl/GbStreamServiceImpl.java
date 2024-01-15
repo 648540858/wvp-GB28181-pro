@@ -77,8 +77,6 @@ public class GbStreamServiceImpl implements IGbStreamService {
         }
         try {
             List<DeviceChannel> deviceChannelList = new ArrayList<>();
-
-
             for (int i = 0; i < gbStreams.size(); i++) {
                 GbStream gbStream = gbStreams.get(i);
                 gbStream.setCatalogId(catalogId);
@@ -250,16 +248,18 @@ public class GbStreamServiceImpl implements IGbStreamService {
         if (platform == null) {
             return ;
         }
-        if (platformGbStreamMapper.delByPlatformAndCatalogId(platformId, catalogId) > 0) {
-            List<GbStream> gbStreams = platformGbStreamMapper.queryChannelInParentPlatformAndCatalog(platformId, catalogId);
-            List<DeviceChannel> deviceChannelList = new ArrayList<>();
-            for (GbStream gbStream : gbStreams) {
-                DeviceChannel deviceChannel = new DeviceChannel();
-                deviceChannel.setChannelId(gbStream.getGbId());
-                deviceChannelList.add(deviceChannel);
-            }
-            eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.DEL);
+        if (ObjectUtils.isEmpty(catalogId)) {
+            catalogId = null;
         }
+        List<GbStream> gbStreams = platformGbStreamMapper.queryChannelInParentPlatformAndCatalog(platformId, catalogId);
+        List<DeviceChannel> deviceChannelList = new ArrayList<>();
+        for (GbStream gbStream : gbStreams) {
+            DeviceChannel deviceChannel = new DeviceChannel();
+            deviceChannel.setChannelId(gbStream.getGbId());
+            deviceChannelList.add(deviceChannel);
+        }
+        eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.DEL);
+        platformGbStreamMapper.delByPlatformAndCatalogId(platformId, catalogId);
     }
 
     @Override

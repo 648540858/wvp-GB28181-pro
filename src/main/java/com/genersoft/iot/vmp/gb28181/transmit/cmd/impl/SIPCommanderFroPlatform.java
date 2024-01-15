@@ -579,7 +579,6 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         sendNotify(parentPlatform, catalogXmlContent, subscribeInfo, eventResult -> {
             logger.error("发送NOTIFY通知消息失败。错误：{} {}", eventResult.statusCode, eventResult.msg);
         }, (eventResult -> {
-            logger.info("[发送NOTIFY通知]类型： {}，发送成功： {}", type, channels.size());
             try {
                 sendNotifyForCatalogAddOrUpdate(type, parentPlatform, deviceChannels, subscribeInfo,
                         finalIndex + parentPlatform.getCatalogGroup());
@@ -681,6 +680,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         }else {
             channels = deviceChannels.subList(index, deviceChannels.size());
         }
+        logger.info("[发送NOTIFY通知]类型： {}，发送数量： {}", type, channels.size());
         Integer finalIndex = index;
         String catalogXmlContent = getCatalogXmlContentForCatalogOther(parentPlatform, channels, type);
         sendNotify(parentPlatform, catalogXmlContent, subscribeInfo, eventResult -> {

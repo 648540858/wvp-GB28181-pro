@@ -53,11 +53,14 @@ public interface PlatformGbStreamMapper {
             "WHERE gs.app=#{app} AND gs.stream=#{stream} AND pgs.platform_id=#{platformId}")
     StreamProxyItem selectOne(@Param("app") String app, @Param("stream") String stream, @Param("platformId") String platformId);
 
-    @Select("select gs.* \n" +
-            "from wvp_gb_stream gs\n" +
+    @Select("<script> " +
+            "select gs.* " +
+            " from wvp_gb_stream gs\n" +
             "    left join wvp_platform_gb_stream pgs\n" +
             "        on gs.gb_stream_id = pgs.gb_stream_id\n" +
-            "where pgs.platform_id=#{platformId} and pgs.catalog_id=#{catalogId}")
+            " where pgs.platform_id=#{platformId} " +
+            " <if test='catalogId != null' > and pgs.catalog_id=#{catalogId}</if>" +
+            "</script>")
     List<GbStream> queryChannelInParentPlatformAndCatalog(@Param("platformId") String platformId, @Param("catalogId") String catalogId);
 
     @Select("select gs.gb_id as id, gs.name as name, pgs.platform_id as platform_id, pgs.catalog_id as catalog_id , 0 as children_count, 2 as type\n" +

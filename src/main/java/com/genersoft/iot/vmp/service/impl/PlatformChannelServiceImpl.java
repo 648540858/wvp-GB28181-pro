@@ -165,10 +165,9 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
             catalogId = null;
         }
 
-        if ((result = platformChannelMapper.delChannelForGBByCatalogId(platformId, catalogId)) > 0) {
-            List<DeviceChannel> deviceChannels = platformChannelMapper.queryAllChannelInCatalog(platformId, catalogId);
-            eventPublisher.catalogEventPublish(platformId, deviceChannels, CatalogEvent.DEL);
-        }
-        return result;
+        List<DeviceChannel> deviceChannels = platformChannelMapper.queryAllChannelInCatalog(platformId, catalogId);
+        eventPublisher.catalogEventPublish(platformId, deviceChannels, CatalogEvent.DEL);
+
+        return platformChannelMapper.delChannelForGBByCatalogId(platformId, catalogId);
     }
 }

@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.storager.dao.CommonChannelMapper;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToGroup;
 import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToRegion;
 import com.github.pagehelper.PageHelper;
@@ -105,6 +106,7 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         assert channel.getCommonGbId() >= 0;
         assert channel.getCommonGbDeviceID() != null;
         assert channel.getCommonGbName() != null;
+        channel.setUpdateTime(DateUtil.getNow());
         int result = commonGbChannelMapper.update(channel);
         if (result == 0) {
             return 0;

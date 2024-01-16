@@ -18,7 +18,7 @@ public interface ILogService {
      * @param endTime 结束时间
      * @return 日志列表
      */
-    PageInfo<LogDto> getAll(int page, int count, String query, String type, String startTime, String endTime);
+    PageInfo<LogDto> getAll(int page, int count, String query, String type, String startTime, String endTime, Boolean result);
 
     /**
      * 添加日志
@@ -31,4 +31,5 @@ public interface ILogService {
      */
     int clear();
 
+    void deleteById(int id);
 }

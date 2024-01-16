@@ -18,9 +18,9 @@ public class LogServiceImpl implements ILogService {
     private LogMapper logMapper;
 
     @Override
-    public PageInfo<LogDto> getAll(int page, int count, String query, String type, String startTime, String endTime) {
+    public PageInfo<LogDto> getAll(int page, int count, String query, String type, String startTime, String endTime, Boolean result) {
         PageHelper.startPage(page, count);
-        List<LogDto> all = logMapper.query(query, type, startTime, endTime);
+        List<LogDto> all = logMapper.query(query, type, startTime, endTime, result);
         return new PageInfo<>(all);
     }
 
@@ -32,5 +32,10 @@ public class LogServiceImpl implements ILogService {
     @Override
     public int clear() {
         return logMapper.clear();
+    }
+
+    @Override
+    public void deleteById(int id) {
+        logMapper.deleteById(id);
     }
 }

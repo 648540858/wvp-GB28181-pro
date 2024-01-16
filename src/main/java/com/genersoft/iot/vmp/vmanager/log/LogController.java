@@ -57,10 +57,14 @@ public class LogController {
             @RequestParam(required = false)  String query,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String startTime,
-            @RequestParam(required = false) String endTime
+            @RequestParam(required = false) String endTime,
+            @RequestParam(required = false) Boolean result
     ) {
         if (ObjectUtils.isEmpty(query)) {
             query = null;
+        }
+        if (ObjectUtils.isEmpty(type)) {
+            type = null;
         }
 
         if (!userSetting.getLogInDatabase()) {
@@ -79,7 +83,17 @@ public class LogController {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "endTime格式为" + DateUtil.PATTERN);
         }
 
-        return logService.getAll(page, count, query, type, startTime, endTime);
+        return logService.getAll(page, count, query, type, startTime, endTime, result);
+    }
+
+    /**
+     *  删除日志
+     *
+     */
+    @Operation(summary = "删除日志", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @DeleteMapping("/delete")
+    public void delete(@RequestBody LogDto logDto) {
+        logService.deleteById(logDto.getId());
     }
 
     /**

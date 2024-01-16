@@ -108,12 +108,6 @@ public class PlayServiceImpl implements IPlayService {
     private ZLMRESTfulUtils zlmresTfulUtils;
 
     @Autowired
-    private ZLMServerFactory zlmServerFactory;
-
-    @Autowired
-    private AssistRESTfulUtils assistRESTfulUtils;
-
-    @Autowired
     private IMediaService mediaService;
 
     @Autowired

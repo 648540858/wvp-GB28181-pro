@@ -302,6 +302,10 @@ public class ZLMHttpHookListener {
                     result.setEnable_audio(true);
                 }
             }
+        }else if (param.getApp().equals("broadcast")) {
+            result.setEnable_audio(true);
+        }else if (param.getApp().equals("talk")) {
+            result.setEnable_audio(true);
         }
 
         if (mediaInfo.getRecordAssistPort() > 0 && userSetting.getRecordPath() == null) {

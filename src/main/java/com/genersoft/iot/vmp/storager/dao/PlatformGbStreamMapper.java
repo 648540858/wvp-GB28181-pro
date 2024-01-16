@@ -103,6 +103,9 @@ public interface PlatformGbStreamMapper {
             "</script>")
     void delByAppAndStreamsByPlatformId(@Param("gbStreams") List<GbStream> gbStreams, @Param("platformId") String platformId);
 
-    @Delete("DELETE from wvp_platform_gb_stream WHERE platform_id=#{platformId} and catalog_id=#{catalogId}")
+    @Delete("<script> "+
+            "DELETE from wvp_platform_gb_stream WHERE platform_id=#{platformId}" +
+            " <if test='catalogId != null' >  and catalog_id=#{catalogId}</if>" +
+            "</script>")
     int delByPlatformAndCatalogId(@Param("platformId") String platformId, @Param("catalogId") String catalogId);
 }

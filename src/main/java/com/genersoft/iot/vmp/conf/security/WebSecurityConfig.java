@@ -68,6 +68,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             matchers.add("/");
             matchers.add("/#/**");
             matchers.add("/static/**");
+            matchers.add("/swagger-ui.html");
+            matchers.add("/swagger-ui/");
             matchers.add("/index.html");
             matchers.add("/doc.html");
             matchers.add("/webjars/**");
@@ -77,7 +79,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             matchers.add("/api/device/query/snap/**");
             matchers.add("/record_proxy/*/**");
             matchers.add("/api/emit");
-            matchers.addAll(userSetting.getInterfaceAuthenticationExcludes());
+            matchers.add("/favicon.ico");
             // 可以直接访问的静态数据
             web.ignoring().antMatchers(matchers.toArray(new String[0]));
         }
@@ -114,7 +116,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
                 .antMatchers(userSetting.getInterfaceAuthenticationExcludes().toArray(new String[0])).permitAll()
-                .antMatchers("/api/user/login", "/index/hook/**").permitAll()
+                .antMatchers("/api/user/login", "/index/hook/**", "/swagger-ui/**", "/doc.html").permitAll()
                 .anyRequest().authenticated()
                 // 异常处理器
                 .and()

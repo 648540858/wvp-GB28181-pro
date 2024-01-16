@@ -165,14 +165,13 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if (streamId == null) {
             streamId = String.format("%08x", Long.parseLong(ssrc)).toUpperCase();
         }
-        int ssrcCheckParam = 0;
-        if (ssrcCheck && tcpMode > 1) {
+        if (ssrcCheck && tcpMode > 0) {
             // 目前zlm不支持 tcp模式更新ssrc，暂时关闭ssrc校验
-            logger.warn("[openRTPServer] TCP被动/TCP主动收流时，默认关闭ssrc检验");
+            logger.warn("[openRTPServer] 平台对接时下级可能自定义ssrc，但是tcp模式zlm收流目前无法更新ssrc，可能收流超时，此时请使用udp收流或者关闭ssrc校验");
         }
         int rtpServerPort;
         if (mediaServerItem.isRtpEnable()) {
-            rtpServerPort = zlmServerFactory.createRTPServer(mediaServerItem, streamId, (ssrcCheck && tcpMode == 0) ? Long.parseLong(ssrc) : 0, port, onlyAuto, reUsePort, tcpMode);
+            rtpServerPort = zlmServerFactory.createRTPServer(mediaServerItem, streamId, ssrcCheck ? Long.parseLong(ssrc) : 0, port, onlyAuto, reUsePort, tcpMode);
         } else {
             rtpServerPort = mediaServerItem.getRtpProxyPort();
         }
@@ -205,7 +204,10 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Override
     public void closeRTPServer(String mediaServerId, String streamId) {
         MediaServerItem mediaServerItem = this.getOne(mediaServerId);
-        closeRTPServer(mediaServerItem, streamId);
+        if (mediaServerItem.isRtpEnable()) {
+            closeRTPServer(mediaServerItem, streamId);
+        }
+        zlmresTfulUtils.closeStreams(mediaServerItem, "rtp", streamId);
     }
 
     @Override
@@ -428,17 +430,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
 
         if (serverItem.isAutoConfig()) {
-            // 查看assist服务的录像路径配置
-            if (serverItem.getRecordAssistPort() > 0 && userSetting.getRecordPath() == null) {
-                JSONObject info = assistRESTfulUtils.getInfo(serverItem, null);
-                if (info != null && info.getInteger("code") != null && info.getInteger("code") == 0 ) {
-                    JSONObject dataJson = info.getJSONObject("data");
-                    if (dataJson != null) {
-                        String recordPath = dataJson.getString("record");
-                        userSetting.setRecordPath(recordPath);
-                    }
-                }
-            }
             setZLMConfig(serverItem, "0".equals(zlmServerConfig.getHookEnable()));
         }
         final String zlmKeepaliveKey = zlmKeepaliveKeyPrefix + serverItem.getId();
@@ -573,7 +564,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         logger.info("[ZLM] 正在设置 ：{} -> {}:{}",
                 mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
         String protocol = sslEnabled ? "https" : "http";
-        String hookPrex = String.format("%s://%s:%s/index/hook", protocol, mediaServerItem.getHookIp(), serverPort);
+        String hookPrefix = String.format("%s://%s:%s/index/hook", protocol, mediaServerItem.getHookIp(), serverPort);
 
         Map<String, Object> param = new HashMap<>();
         param.put("api.secret",mediaServerItem.getSecret()); // -profile:v Baseline
@@ -582,25 +573,21 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         param.put("hook.enable","1");
         param.put("hook.on_flow_report","");
-        param.put("hook.on_play",String.format("%s/on_play", hookPrex));
+        param.put("hook.on_play",String.format("%s/on_play", hookPrefix));
         param.put("hook.on_http_access","");
-        param.put("hook.on_publish", String.format("%s/on_publish", hookPrex));
+        param.put("hook.on_publish", String.format("%s/on_publish", hookPrefix));
         param.put("hook.on_record_ts","");
         param.put("hook.on_rtsp_auth","");
         param.put("hook.on_rtsp_realm","");
-        param.put("hook.on_server_started",String.format("%s/on_server_started", hookPrex));
+        param.put("hook.on_server_started",String.format("%s/on_server_started", hookPrefix));
         param.put("hook.on_shell_login","");
-        param.put("hook.on_stream_changed",String.format("%s/on_stream_changed", hookPrex));
-        param.put("hook.on_stream_none_reader",String.format("%s/on_stream_none_reader", hookPrex));
-        param.put("hook.on_stream_not_found",String.format("%s/on_stream_not_found", hookPrex));
-        param.put("hook.on_server_keepalive",String.format("%s/on_server_keepalive", hookPrex));
-        param.put("hook.on_send_rtp_stopped",String.format("%s/on_send_rtp_stopped", hookPrex));
-        param.put("hook.on_rtp_server_timeout",String.format("%s/on_rtp_server_timeout", hookPrex));
-        if (mediaServerItem.getRecordAssistPort() > 0) {
-            param.put("hook.on_record_mp4",String.format("http://127.0.0.1:%s/api/record/on_record_mp4", mediaServerItem.getRecordAssistPort()));
-        }else {
-            param.put("hook.on_record_mp4","");
-        }
+        param.put("hook.on_stream_changed",String.format("%s/on_stream_changed", hookPrefix));
+        param.put("hook.on_stream_none_reader",String.format("%s/on_stream_none_reader", hookPrefix));
+        param.put("hook.on_stream_not_found",String.format("%s/on_stream_not_found", hookPrefix));
+        param.put("hook.on_server_keepalive",String.format("%s/on_server_keepalive", hookPrefix));
+        param.put("hook.on_send_rtp_stopped",String.format("%s/on_send_rtp_stopped", hookPrefix));
+        param.put("hook.on_rtp_server_timeout",String.format("%s/on_rtp_server_timeout", hookPrefix));
+        param.put("hook.on_record_mp4",String.format("%s/on_record_mp4", hookPrefix));
         param.put("hook.timeoutSec","20");
         // 推流断开后可以在超时时间内重新连接上继续推流，这样播放器会接着播放。
         // 置0关闭此特性(推流断开会导致立即断开播放器)
@@ -609,15 +596,14 @@ public class MediaServerServiceImpl implements IMediaServerService {
         param.put("protocol.continue_push_ms", "3000" );
         // 最多等待未初始化的Track时间，单位毫秒，超时之后会忽略未初始化的Track, 设置此选项优化那些音频错误的不规范流，
         // 等zlm支持给每个rtpServer设置关闭音频的时候可以不设置此选项
-//        param.put("general.wait_track_ready_ms", "3000" );
         if (mediaServerItem.isRtpEnable() && !ObjectUtils.isEmpty(mediaServerItem.getRtpPortRange())) {
             param.put("rtp_proxy.port_range", mediaServerItem.getRtpPortRange().replace(",", "-"));
         }
 
-        if (userSetting.getRecordPath() != null) {
-            File recordPathFile = new File(userSetting.getRecordPath());
-            File mp4SavePathFile = recordPathFile.getParentFile().getAbsoluteFile();
-            param.put("protocol.mp4_save_path", mp4SavePathFile.getAbsoluteFile());
+        if (!ObjectUtils.isEmpty(mediaServerItem.getRecordPath())) {
+            File recordPathFile = new File(mediaServerItem.getRecordPath());
+            param.put("protocol.mp4_save_path", recordPathFile.getParentFile().getPath());
+            param.put("protocol.downloadRoot", recordPathFile.getParentFile().getPath());
             param.put("record.appName", recordPathFile.getName());
         }
 
@@ -722,6 +708,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             ssrcFactory.initMediaServerSSRC(mediaServerItem.getId(), null);
             String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerItem.getId();
             redisTemplate.opsForValue().set(key, mediaServerItem);
+            resetOnlineServerItem(mediaServerItem);
             clearRTPServer(mediaServerItem);
         }
         final String zlmKeepaliveKey = zlmKeepaliveKeyPrefix + mediaServerItem.getId();
@@ -750,15 +737,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public boolean checkRtpServer(MediaServerItem mediaServerItem, String app, String stream) {
-        JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaServerItem, stream);
-        if(rtpInfo.getInteger("code") == 0){
-            return rtpInfo.getBoolean("exist");
-        }
-        return false;
-    }
-
-    @Override
     public MediaServerLoad getLoad(MediaServerItem mediaServerItem) {
         MediaServerLoad result = new MediaServerLoad();
         result.setId(mediaServerItem.getId());
@@ -771,88 +749,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public List<RecordFile> getRecords(String app, String stream, String startTime, String endTime, List<MediaServerItem> mediaServerItems) {
-        Assert.notNull(app, "app不存在");
-        Assert.notNull(stream, "stream不存在");
-        Assert.notNull(startTime, "startTime不存在");
-        Assert.notNull(endTime, "endTime不存在");
-        Assert.notEmpty(mediaServerItems, "流媒体列表为空");
-
-        CompletableFuture[] completableFutures = new CompletableFuture[mediaServerItems.size()];
-        for (int i = 0; i < mediaServerItems.size(); i++) {
-            completableFutures[i] = getRecordFilesForOne(app, stream, startTime, endTime, mediaServerItems.get(i));
-        }
-        List<RecordFile> result = new ArrayList<>();
-        for (int i = 0; i < completableFutures.length; i++) {
-            try {
-                List<RecordFile> list = (List<RecordFile>) completableFutures[i].get();
-                if (!list.isEmpty()) {
-                    for (int g = 0; g < list.size(); g++) {
-                        list.get(g).setMediaServerId(mediaServerItems.get(i).getId());
-                    }
-                    result.addAll(list);
-                }
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } catch (ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        Comparator<RecordFile> comparator = Comparator.comparing(RecordFile::getFileName);
-        result.sort(comparator);
-        return result;
-    }
-
-    @Override
-    public List<String> getRecordDates(String app, String stream, int year, int month, List<MediaServerItem> mediaServerItems) {
-        Assert.notNull(app, "app不存在");
-        Assert.notNull(stream, "stream不存在");
-        Assert.notEmpty(mediaServerItems, "流媒体列表为空");
-        CompletableFuture[] completableFutures = new CompletableFuture[mediaServerItems.size()];
-
-        for (int i = 0; i < mediaServerItems.size(); i++) {
-            completableFutures[i] = getRecordDatesForOne(app, stream, year, month, mediaServerItems.get(i));
-        }
-        List<String> result = new ArrayList<>();
-        CompletableFuture.allOf(completableFutures).join();
-        for (CompletableFuture completableFuture : completableFutures) {
-            try {
-                List<String> list = (List<String>) completableFuture.get();
-                result.addAll(list);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } catch (ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        Collections.sort(result);
-        return result;
-    }
-
-    @Async
-    public CompletableFuture<List<String>> getRecordDatesForOne(String app, String stream, int year, int month, MediaServerItem mediaServerItem) {
-        JSONObject fileListJson = assistRESTfulUtils.getDateList(mediaServerItem, app, stream, year, month);
-        if (fileListJson != null && !fileListJson.isEmpty()) {
-            if (fileListJson.getString("code") != null && fileListJson.getInteger("code") == 0) {
-                JSONArray data = fileListJson.getJSONArray("data");
-                return CompletableFuture.completedFuture(data.toJavaList(String.class));
-            }
-        }
-        return CompletableFuture.completedFuture(new ArrayList<>());
-    }
-
-    @Async
-    public CompletableFuture<List<RecordFile>> getRecordFilesForOne(String app, String stream, String startTime, String endTime, MediaServerItem mediaServerItem) {
-        JSONObject fileListJson = assistRESTfulUtils.getFileList(mediaServerItem, 1, 100000000, app, stream, startTime, endTime);
-        if (fileListJson != null && !fileListJson.isEmpty()) {
-            if (fileListJson.getString("code") != null && fileListJson.getInteger("code") == 0) {
-                JSONObject data = fileListJson.getJSONObject("data");
-                JSONArray list = data.getJSONArray("list");
-                if (list != null) {
-                    return CompletableFuture.completedFuture(list.toJavaList(RecordFile.class));
-                }
-            }
-        }
-        return CompletableFuture.completedFuture(new ArrayList<>());
+    public List<MediaServerItem> getAllWithAssistPort() {
+        return mediaServerMapper.queryAllWithAssistPort();
     }
 }

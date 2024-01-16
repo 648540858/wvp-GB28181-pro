@@ -37,13 +37,13 @@
           <div class="record-list-box" :style="recordListStyle">
             <ul v-if="detailFiles.length >0" class="infinite-list record-list" v-infinite-scroll="infiniteScroll" >
               <li v-for="(item,index) in detailFiles" :key="index" class="infinite-list-item record-list-item" >
-                <el-tag v-if="choosedFile !== item.filename" @click="chooseFile(item)">
+                <el-tag v-if="choosedFile !== item.fileName" @click="chooseFile(item)">
                   <i class="el-icon-video-camera"  ></i>
-                  {{ getFileShowName(item.fileName) }}
+                  {{ getFileShowName(item) }}
                 </el-tag>
-                <el-tag type="danger" v-if="choosedFile === item.filename">
+                <el-tag type="danger" v-if="choosedFile === item.fileName">
                   <i class="el-icon-video-camera"  ></i>
-                  {{ getFileShowName(item.fileName) }}
+                  {{ getFileShowName(item) }}
                 </el-tag>
                 <a class="el-icon-download" style="color: #409EFF;font-weight: 600;margin-left: 10px;"
                    :href="`${getFileBasePath(item)}/download.html?url=download/${app}/${stream}/${chooseDate}/${item.fileName}`"
@@ -135,7 +135,7 @@
 <script>
   // TODO 根据查询的时间列表设置滑轨的最大值与最小值，
 	import uiHeader from '../layout/UiHeader.vue'
-	import player from './dialog/easyPlayer.vue'
+	import player from './common/easyPlayer.vue'
   import moment  from 'moment'
   import axios from "axios";
 	export default {
@@ -319,7 +319,7 @@
           this.choosedFile = "";
         }else {
           this.choosedFile = file.fileName;
-          this.videoUrl = `${this.getFileBasePath(file)}/download/${this.app}/${this.stream}/${this.chooseDate}/${this.choosedFile}`
+          this.videoUrl = `${this.getFileBasePath(file)}/download/${this.app}/${this.stream}/${this.chooseDate}/${file.fileName}`
           console.log(this.videoUrl)
         }
 
@@ -327,9 +327,8 @@
       backToList() {
         this.$router.back()
       },
-      getFileShowName(name) {
-        return name.substring(0, 2) + ":" + name.substring(2, 4) + ":" + name.substring(4, 6) + "-" +
-            name.substring(7, 9) + ":" + name.substring(9, 11) + ":" + name.substring(11, 13)
+      getFileShowName(item) {
+          return  moment.unix(item.startTime).format('HH:mm:ss') + "-" + moment.unix(item.endTime).format('HH:mm:ss')
       },
       chooseMediaChange() {
 
@@ -376,13 +375,8 @@
       },
       getTimeForFile(file){
         console.log(file)
-        let timeStr = file.fileName.substring(0, 17);
-        if(timeStr.indexOf("~") > 0){
-          timeStr = timeStr.replaceAll("-",":")
-        }
-        let timeArr = timeStr.split("-");
-        let starTime = new Date(this.chooseDate + " " + timeArr[0]);
-        let endTime = new Date(this.chooseDate + " " + timeArr[1]);
+        let starTime = new Date(file.startTime * 1000);
+        let endTime = new Date(file.endTime * 1000);
         if(this.checkIsOver24h(starTime,endTime)){
            endTime = new Date(this.chooseDate + " " + "23:59:59");
         }
@@ -486,12 +480,13 @@
         let that = this;
         this.$axios({
           method: 'get',
-          url:`/record_proxy/${that.mediaServerId}/api/record/file/download/task/add`,
+          url:`/api/cloud/record/task/add`,
           params: {
-            app: that.app,
-            stream: that.stream,
-            startTime: moment(this.taskTimeRange[0]).format('YYYY-MM-DD HH:mm:ss'),
-            endTime: moment(this.taskTimeRange[1]).format('YYYY-MM-DD HH:mm:ss'),
+              app: this.app,
+              stream: this.stream,
+              mediaServerId: this.mediaServerId,
+              startTime: moment(this.taskTimeRange[0]).format('YYYY-MM-DD HH:mm:ss'),
+              endTime: moment(this.taskTimeRange[1]).format('YYYY-MM-DD HH:mm:ss'),
           }
         }).then(function (res) {
           if (res.data.code === 0 ) {
@@ -511,8 +506,9 @@
         let that = this;
         this.$axios({
           method: 'get',
-          url:`/record_proxy/${that.mediaServerId}/api/record/file/download/task/list`,
+          url:`/api/cloud/record/task/list`,
           params: {
+            mediaServerId: this.mediaServerId,
             isEnd: isEnd,
           }
         }).then(function (res) {

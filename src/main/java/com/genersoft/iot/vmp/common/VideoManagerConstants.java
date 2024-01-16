@@ -53,7 +53,7 @@ public class VideoManagerConstants {
 
 	public static final String MEDIA_TRANSACTION_USED_PREFIX = "VMP_MEDIA_TRANSACTION_";
 
-	public static final String MEDIA_STREAM_AUTHORITY = "MEDIA_STREAM_AUTHORITY_";
+	public static final String MEDIA_STREAM_AUTHORITY = "VMP_MEDIA_STREAM_AUTHORITY_";
 
 	public static final String SIP_CSEQ_PREFIX = "VMP_SIP_CSEQ_";
 
@@ -71,6 +71,7 @@ public class VideoManagerConstants {
 	public static final String BROADCAST_WAITE_INVITE = "task_broadcast_waite_invite_";
 
 	public static final String REGISTER_EXPIRE_TASK_KEY_PREFIX = "VMP_device_register_expire_";
+	public static final String PUSH_STREAM_LIST = "VMP_PUSH_STREAM_LIST_";
 
 
 

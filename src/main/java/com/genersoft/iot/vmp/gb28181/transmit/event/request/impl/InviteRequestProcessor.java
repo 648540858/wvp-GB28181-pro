@@ -152,7 +152,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             String requesterId = SipUtils.getUserIdFromFromHeader(request);
             CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
             if (requesterId == null || channelId == null) {
-                logger.info("无法从FromHeader的Address中获取到平台id，返回400");
+                logger.info("无法从请求中获取到平台id，返回400");
                 // 参数不全， 发400，请求错误
                 try {
                     responseAck(request, Response.BAD_REQUEST);
@@ -745,13 +745,10 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             dynamicTask.startDelay(callIdHeader.getCallId(), () -> {
                 logger.info("[ app={}, stream={} ] 等待设备开始推流超时", gbStream.getApp(), gbStream.getStream());
                 try {
+                    redisPushStreamResponseListener.removeEvent(gbStream.getApp(), gbStream.getStream());
                     mediaListManager.removedChannelOnlineEventLister(gbStream.getApp(), gbStream.getStream());
                     responseAck(request, Response.REQUEST_TIMEOUT); // 超时
-                } catch (SipException e) {
-                    logger.error("未处理的异常 ", e);
-                } catch (InvalidArgumentException e) {
-                    logger.error("未处理的异常 ", e);
-                } catch (ParseException e) {
+                } catch (SipException | InvalidArgumentException | ParseException e) {
                     logger.error("未处理的异常 ", e);
                 }
             }, userSetting.getPlatformPlayTimeout());
@@ -762,6 +759,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             // 添加在本机上线的通知
             mediaListManager.addChannelOnlineEventLister(gbStream.getApp(), gbStream.getStream(), (app, stream, serverId) -> {
                 dynamicTask.stop(callIdHeader.getCallId());
+                redisPushStreamResponseListener.removeEvent(gbStream.getApp(), gbStream.getStream());
                 if (serverId.equals(userSetting.getServerId())) {
                     SendRtpItem sendRtpItem = zlmServerFactory.createSendRtpItem(mediaServerItem, addressStr, finalPort, ssrc, requesterId,
                             app, stream, channelId, mediaTransmissionTCP, platform.isRtcp());

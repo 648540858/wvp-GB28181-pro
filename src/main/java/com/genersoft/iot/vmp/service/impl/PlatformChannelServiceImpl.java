@@ -155,6 +155,26 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     }
 
     @Override
+    public int delAllChannelForGB(String platformId, String catalogId) {
+
+        int result;
+        if (platformId == null) {
+            return 0;
+        }
+        ParentPlatform platform = platformMapper.getParentPlatByServerGBId(platformId);
+        if (platform == null) {
+            return 0;
+        }
+        if (ObjectUtils.isEmpty(catalogId)) {
+            catalogId = null;
+        }
+
+        List<DeviceChannel> deviceChannels = platformChannelMapper.queryAllChannelInCatalog(platformId, catalogId);
+        eventPublisher.catalogEventPublish(platformId, deviceChannels, CatalogEvent.DEL);
+
+        return platformChannelMapper.delChannelForGBByCatalogId(platformId, catalogId);
+    }
+    @Override
     public List<CommonGbChannel> queryCommonGbChannellList(Integer platformId) {
         return platformChannelMapper.queryCommonGbChannellList(platformId);
     }

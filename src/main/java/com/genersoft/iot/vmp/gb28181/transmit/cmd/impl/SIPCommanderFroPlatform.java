@@ -695,6 +695,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         }else {
             subChannels = channelList.subList(index, channelList.size());
         }
+        logger.info("[发送NOTIFY通知]类型： {}，发送数量： {}", type, channels.size());
         Integer finalIndex = index;
         String catalogXmlContent = getCatalogXmlContentForCatalogOther(parentPlatform, subChannels, type);
         sendNotify(parentPlatform, catalogXmlContent, subscribeInfo, eventResult -> {

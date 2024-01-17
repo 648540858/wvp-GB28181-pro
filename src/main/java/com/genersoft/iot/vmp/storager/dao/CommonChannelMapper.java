@@ -194,10 +194,53 @@ public interface CommonChannelMapper {
             " <if test='commonGbBusinessGroupID != null' > ,common_gb_business_group_id= #{ commonGbBusinessGroupID} </if>" +
             " <if test='commonGbDownloadSpeed != null' > ,common_gb_download_speed= #{ commonGbDownloadSpeed} </if>" +
             " <if test='commonGbSVCTimeSupportMode != null' > ,common_gb_svc_time_support_mode= #{ commonGbSVCTimeSupportMode} </if>" +
+            " <if test='commonGbSVCSpaceSupportMode != null' > ,common_gb_svc_space_support_mode= #{commonGbSVCSpaceSupportMode} </if>" +
             " <if test='type != null' > ,type= #{ type} </if>" +
             " WHERE common_gb_id=#{commonGbId}" +
             "</script>")
     int update(CommonGbChannel channel);
+
+    @Update(value = "<script>" +
+            "UPDATE wvp_common_channel SET " +
+            "update_time= #{ updateTime}" +
+            ", common_gb_device_id= #{ commonGbDeviceID}" +
+            ", common_gb_name= #{ commonGbName} " +
+            ", common_gb_manufacturer= #{ commonGbManufacturer} " +
+            ", common_gb_model= #{ commonGbModel} " +
+            ", common_gb_owner= #{ commonGbOwner} " +
+            ", common_gb_civilCode= #{ commonGbCivilCode} " +
+            ", common_gb_block= #{ commonGbBlock} " +
+            ", common_gb_address= #{ commonGbAddress} " +
+            ", common_gb_parental= #{ commonGbParental} " +
+            ", common_gb_parent_id= #{ commonGbParentID} " +
+            ", common_gb_safety_way= #{ commonGbSafetyWay} " +
+            ", common_gb_register_way= #{ commonGbRegisterWay} " +
+            ", common_gb_cert_num= #{ commonGbCertNum} " +
+            ", common_gb_certifiable= #{ commonGbCertifiable} " +
+            ", common_gb_err_code= #{ commonGbErrCode} " +
+            ", common_gb_end_time= #{ commonGbEndTime} " +
+            ", common_gb_secrecy= #{ commonGbSecrecy} " +
+            ", common_gb_ip_address= #{ commonGbIPAddress} " +
+            ", common_gb_port= #{ commonGbPort} " +
+            ", common_gb_password= #{ commonGbPassword} " +
+            ", common_gb_status= #{ commonGbStatus} " +
+            ", common_gb_longitude= #{ commonGbLongitude} " +
+            ", common_gb_latitude= #{ commonGbLatitude} " +
+            ", common_gb_ptz_type= #{ commonGbPtzType} " +
+            ", common_gb_position_type= #{ commonGbPositionType} " +
+            ", common_gb_room_type= #{ commonGbRoomType} " +
+            ", common_gb_use_type= #{ commonGbUseType} " +
+            ", common_gb_supply_light_type= #{ commonGbSupplyLightType} " +
+            ", common_gb_direction_type= #{ commonGbDirectionType} " +
+            ", common_gb_resolution= #{ commonGbResolution} " +
+            ", common_gb_business_group_id= #{ commonGbBusinessGroupID} " +
+            ", common_gb_download_speed= #{ commonGbDownloadSpeed} " +
+            ", common_gb_svc_time_support_mode= #{ commonGbSVCTimeSupportMode} " +
+            ", common_gb_svc_space_support_mode= #{commonGbSVCSpaceSupportMode} " +
+            ", type= #{ type} " +
+            " WHERE common_gb_id=#{commonGbId}" +
+            " </script>")
+    int updateForForm(CommonGbChannel channel);
 
     @Select("select count(1)\n" +
             "from wvp_common_channel gc " +
@@ -565,6 +608,7 @@ public interface CommonChannelMapper {
             " WHERE common_gb_id=#{item.commonGbId}" +
             "</foreach>" +
             "</script>"})
+    @Options(useGeneratedKeys=true, keyProperty="commonGbId", keyColumn="common_gb_id")
     int batchUpdate(@Param("commonGbChannels") List<CommonGbChannel> commonGbChannels);
 
 

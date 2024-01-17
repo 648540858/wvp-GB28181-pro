@@ -80,7 +80,7 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
         List<CommonGbChannel> commonGbChannelList = platformChannelService.queryChannelList(parentPlatform);
 
         try {
-            if (commonGbChannelList.size() > 0) {
+            if (!commonGbChannelList.isEmpty()) {
                 cmderFroPlatform.catalogQuery(commonGbChannelList, parentPlatform, sn, fromHeader.getTag());
             }else {
                 // 回复无通道

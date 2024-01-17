@@ -146,7 +146,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
 
             }
         }
-        return null;
+        return result;
     }
 
     @Override

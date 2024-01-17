@@ -23,6 +23,7 @@ public interface ICommonGbChannelService {
     int add(CommonGbChannel channel);
 
     int update(CommonGbChannel channel);
+    int updateForForm(CommonGbChannel channel);
 
     PageInfo<CommonGbChannel> getChannelsInRegion(String regionDeviceId, String query, int page, int count);
 

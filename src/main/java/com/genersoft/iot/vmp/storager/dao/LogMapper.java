@@ -24,7 +24,7 @@ public interface LogMapper {
     @Select(value = {"<script>" +
             " SELECT * FROM wvp_log " +
             " WHERE 1=1 " +
-            " <if test='query != null'> AND (name LIKE concat('%',#{query},'%'))</if> " +
+            " <if test='query != null'> AND (name LIKE concat('%',#{query},'%') or uri LIKE concat('%',#{query},'%'))</if> " +
             " <if test='type != null' >  AND type = #{type}</if>" +
             " <if test='startTime != null' >  AND create_time &gt;= #{startTime} </if>" +
             " <if test='endTime != null' >  AND create_time &lt;= #{endTime} </if>" +

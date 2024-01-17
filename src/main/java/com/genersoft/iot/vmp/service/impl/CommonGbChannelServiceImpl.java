@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.common.BatchLimit;
 import com.genersoft.iot.vmp.common.CommonGbChannel;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEventType;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
@@ -10,6 +11,7 @@ import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.storager.dao.CommonChannelMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToGroup;
 import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToRegion;
 import com.github.pagehelper.PageHelper;
@@ -108,6 +110,25 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         assert channel.getCommonGbName() != null;
         channel.setUpdateTime(DateUtil.getNow());
         int result = commonGbChannelMapper.update(channel);
+        if (result == 0) {
+            return 0;
+        }
+        sendCatalogEvent(channel, CatalogEventType.UPDATE);
+        return result;
+    }
+
+    @Override
+    public int updateForForm(CommonGbChannel channel) {
+        assert channel.getCommonGbId() >= 0;
+        assert channel.getCommonGbDeviceID() != null;
+        assert channel.getCommonGbName() != null;
+        channel.setUpdateTime(DateUtil.getNow());
+        CommonGbChannel commonGbChannel = commonGbChannelMapper.queryByDeviceID(channel.getCommonGbDeviceID());
+        if (commonGbChannel != null && commonGbChannel.getCommonGbId() != channel.getCommonGbId()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "失败： 编号 " + channel.getCommonGbDeviceID() + " 已存在");
+        }
+
+        int result = commonGbChannelMapper.updateForForm(channel);
         if (result == 0) {
             return 0;
         }
@@ -235,14 +256,24 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
     public void startPlay(CommonGbChannel channel, IResourcePlayCallback callback) {
         IResourceService resourceService = resourceServiceMap.get(channel.getType());
         assert resourceService != null;
-        resourceService.startPlay(channel, callback);
+        resourceService.startPlay(channel, ((commonGbChannel, mediaServerItem, code, message, streamInfo) -> {
+            if (code == InviteErrorCode.SUCCESS.getCode()) {
+               // 记录到数据库
+            }
+            callback.call(commonGbChannel, mediaServerItem, code, message, streamInfo);
+        }));
     }
 
     @Override
     public void stopPlay(CommonGbChannel channel, IResourcePlayCallback callback) {
         IResourceService resourceService = resourceServiceMap.get(channel.getType());
         assert resourceService != null;
-        resourceService.stopPlay(channel,callback);
+        resourceService.stopPlay(channel,((commonGbChannel, mediaServerItem, code, message, streamInfo) -> {
+            if (code == InviteErrorCode.SUCCESS.getCode()) {
+                // 记录到数据库
+            }
+            callback.call(commonGbChannel, mediaServerItem, code, message, streamInfo);
+        }));
     }
 
     @Override
@@ -257,9 +288,11 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
                     toIndex = commonGbChannels.size();
                 }
                 commonGbChannelMapper.batchAdd(commonGbChannels.subList(i, toIndex));
+                System.out.println(11);
             }
         }else {
             commonGbChannelMapper.batchAdd(commonGbChannels);
+            System.out.println(11);
         }
     }
 

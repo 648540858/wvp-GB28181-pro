@@ -292,11 +292,15 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public void batchAddChannel(List<DeviceChannel> channels) {
-        List<CommonGbChannel> commonGbChannelList = new ArrayList<>();
+
+        Map<String, CommonGbChannel> channelMap = new HashMap<>();
         channels.stream().forEach(channel->{
-            commonGbChannelList.add(CommonGbChannel.getInstance(null, channel));
+            channelMap.put(channel.getChannelId(),CommonGbChannel.getInstance(null, channel));
         });
-        commonGbChannelService.batchAdd(commonGbChannelList);
+        commonGbChannelService.batchAdd(new ArrayList<>(channelMap.values()));
+        for (DeviceChannel channel : channels) {
+            channel.setCommonGbChannelId(channelMap.get(channel.getChannelId()).getCommonGbId());
+        }
         channelMapper.batchAdd(channels);
         for (DeviceChannel channel : channels) {
             if (channel.getParentId() != null) {

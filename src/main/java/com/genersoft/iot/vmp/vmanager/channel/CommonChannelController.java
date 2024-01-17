@@ -57,7 +57,7 @@ public class CommonChannelController {
     @PostMapping("/update")
     public void update(@RequestBody CommonGbChannel commonGbChannel
     ){
-        commonGbChannelService.update(commonGbChannel);
+        commonGbChannelService.updateForForm(commonGbChannel);
     }
 
     /**
@@ -172,7 +172,7 @@ public class CommonChannelController {
     @Operation(summary = "播放通道")
     @Parameter(name = "channelDeviceId", description = "通道国标编号", required = true)
     @ResponseBody
-    @PostMapping("/play")
+    @GetMapping("/play")
     public DeferredResult<WVPResult<StreamContent>> play(HttpServletRequest request, String channelDeviceId){
         logger.info("[播放通道] channelDeviceId：{} ", channelDeviceId);
         assert !ObjectUtils.isEmpty(channelDeviceId);
@@ -210,6 +210,7 @@ public class CommonChannelController {
                         streamInfo.channgeStreamIp(host);
                     }
                     wvpResult.setData(new StreamContent(streamInfo));
+                    result.setResult(wvpResult);
                 }
             }else {
                 WVPResult<StreamContent> wvpResult = new WVPResult<>();

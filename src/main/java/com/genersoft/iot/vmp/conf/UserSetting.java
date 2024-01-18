@@ -23,7 +23,7 @@ public class UserSetting {
 
     private Integer playTimeout = 18000;
 
-    private int platformPlayTimeout = 60000;
+    private int platformPlayTimeout = 20000;
 
     private Boolean interfaceAuthentication = Boolean.TRUE;
 

@@ -147,6 +147,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 return;
             }
 
+            logger.info("[INVITE] requesterId: {}, callId: {}, 来自：{}：{}",
+                    requesterId, callIdHeader.getCallId(), request.getRemoteAddress(), request.getRemotePort());
 
             // 查询请求是否来自上级平台\设备
             ParentPlatform platform = storager.queryParentPlatByServerGBId(requesterId);
@@ -706,9 +708,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 zlmHttpHookSubscribe.removeSubscribe(hookSubscribe);
                 dynamicTask.stop(callIdHeader.getCallId());
             }
-
-
-
         } else if ("push".equals(gbStream.getStreamType())) {
             if (!platform.isStartOfflinePush()) {
                 // 平台设置中关闭了拉起离线的推流则直接回复

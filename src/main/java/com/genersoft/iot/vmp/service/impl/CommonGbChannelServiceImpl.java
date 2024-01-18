@@ -298,6 +298,11 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
 
     @Override
     public void batchUpdate(List<CommonGbChannel> commonGbChannels) {
+        for (CommonGbChannel commonGbChannel : commonGbChannels) {
+            if (commonGbChannel.getCommonGbDeviceID().equals("34020000001310000002")) {
+                System.out.println("34020000001310000002====" + commonGbChannel.getCommonGbStatus());
+            }
+        }
         if (commonGbChannels.isEmpty()) {
             return;
         }

@@ -146,6 +146,10 @@ public class DeviceServiceImpl implements IDeviceService {
                 device.setCreateTime(now);
                 deviceMapper.update(device);
                 redisCatchStorage.updateDevice(device);
+                List<Integer> ids = deviceChannelMapper.getCommonChannelIdList(device.getDeviceId(), true);
+                if (!ids.isEmpty()) {
+                    commonGbChannelService.onlineForList(ids);
+                }
                 if (userSetting.getSyncChannelOnDeviceOnline()) {
                     logger.info("[设备上线,离线状态下重新注册]: {}，查询设备信息以及通道信息", device.getDeviceId());
                     try {
@@ -154,10 +158,6 @@ public class DeviceServiceImpl implements IDeviceService {
                         logger.error("[命令发送失败] 查询设备信息: {}", e.getMessage());
                     }
                     sync(device);
-                }
-                List<Integer> ids = deviceChannelMapper.getCommonChannelIdList(device.getDeviceId());
-                if (!ids.isEmpty()) {
-                    commonGbChannelService.onlineForList(ids);
                 }
                 // 上线添加订阅
                 if (device.getSubscribeCycleForCatalog() > 0) {
@@ -216,7 +216,8 @@ public class DeviceServiceImpl implements IDeviceService {
                 // 发送redis消息
                 redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), null, false);
             }
-            List<Integer> ids = deviceChannelMapper.getCommonChannelIdList(device.getDeviceId());
+            // 设备离线则其下的全部通用通道设置为离线
+            List<Integer> ids = deviceChannelMapper.getCommonChannelIdList(device.getDeviceId(), null);
             if (!ids.isEmpty()) {
                 commonGbChannelService.offlineForList(ids);
             }
@@ -588,7 +589,7 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     @Transactional
     public boolean delete(String deviceId) {
-        List<Integer> commonChannelIdList = deviceChannelMapper.getCommonChannelIdList(deviceId);
+        List<Integer> commonChannelIdList = deviceChannelMapper.getCommonChannelIdList(deviceId, null);
         if (!commonChannelIdList.isEmpty()) {
             commonGbChannelService.deleteByIdList(commonChannelIdList);
         }

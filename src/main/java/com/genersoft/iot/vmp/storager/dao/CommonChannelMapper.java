@@ -64,8 +64,8 @@ public interface CommonChannelMapper {
 
 
     @Delete(value = "<script>" +
-            "<foreach collection='channels' item='item' separator=';'>" +
-            "delete from wvp_common_channel WHERE common_gb_id=#{item.commonGbId}" +
+            "<foreach collection='channels' item='item' separator=';'> " +
+            " delete from wvp_common_channel WHERE common_gb_id=#{item.commonGbId}" +
             "</foreach>" +
             "</script>")
     int removeChannelsForGroup(List<CommonGbChannel> channels);

@@ -530,8 +530,9 @@ public interface DeviceChannelMapper {
             "select common_gb_channel_id " +
             "from wvp_device_channel " +
             "where device_id=#{deviceId}" +
+            "<if test='online != null'> and status = #{online} </if>" +
             " </script>"})
-    List<Integer> getCommonChannelIdList(@Param("deviceId") String deviceId);
+    List<Integer> getCommonChannelIdList(@Param("deviceId") String deviceId, @Param("online") Boolean online);
 
     @Select("select de.* from wvp_device de left join wvp_device_channel dc on de.device_id = dc.deviceId where dc.common_gb_channel_id=#{commonGbId}")
     Device getDeviceByChannelCommonGbId(@Param("commonGbId") int commonGbId);

@@ -816,43 +816,43 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     /**
      * 检查拉流代理状态
      */
-    @Scheduled(cron = "* 0/10 * * * ?")
-    @Transactional
-    public void asyncCheckStreamProxyStatus() {
-
-        List<MediaServerItem> all = mediaServerService.getAllOnline();
-        if (CollectionUtils.isEmpty(all)){
-            return;
-        }
-        Map<String, MediaServerItem> serverItemMap = all.stream().collect(
-                Collectors.toMap(MediaServerItem::getId, Function.identity(), (m1, m2) -> m1));
-        List<StreamProxy> list = getAllForEnable();
-
-        if (CollectionUtils.isEmpty(list)){
-            return;
-        }
-        for (StreamProxy streamProxyItem : list) {
-            MediaServerItem mediaServerItem = serverItemMap.get(streamProxyItem.getMediaServerId());
-            JSONObject mediaInfo = zlmresTfulUtils.isMediaOnline(mediaServerItem, streamProxyItem.getApp(),
-                    streamProxyItem.getStream(), "rtsp");
-            if (mediaInfo == null){
-                if (streamProxyItem.isStatus()) {
-                    updateStatusById(streamProxyItem, false);
-                }
-            } else {
-                if (mediaInfo.getInteger("code") == 0 && mediaInfo.getBoolean("online")) {
-                    if (!streamProxyItem.isStatus()) {
-                        updateStatusById(streamProxyItem, true);
-                    }
-                } else {
-                    if (streamProxyItem.isStatus()) {
-                        updateStatusById(streamProxyItem, false);
-                    }
-                }
-            }
-
-        }
-    }
+//    @Scheduled(cron = "* 0/10 * * * ?")
+//    @Transactional
+//    public void asyncCheckStreamProxyStatus() {
+//
+//        List<MediaServerItem> all = mediaServerService.getAllOnline();
+//        if (CollectionUtils.isEmpty(all)){
+//            return;
+//        }
+//        Map<String, MediaServerItem> serverItemMap = all.stream().collect(
+//                Collectors.toMap(MediaServerItem::getId, Function.identity(), (m1, m2) -> m1));
+//        List<StreamProxy> list = getAllForEnable();
+//
+//        if (CollectionUtils.isEmpty(list)){
+//            return;
+//        }
+//        for (StreamProxy streamProxyItem : list) {
+//            MediaServerItem mediaServerItem = serverItemMap.get(streamProxyItem.getMediaServerId());
+//            JSONObject mediaInfo = zlmresTfulUtils.isMediaOnline(mediaServerItem, streamProxyItem.getApp(),
+//                    streamProxyItem.getStream(), "rtsp");
+//            if (mediaInfo == null){
+//                if (streamProxyItem.isStatus()) {
+//                    updateStatusById(streamProxyItem, false);
+//                }
+//            } else {
+//                if (mediaInfo.getInteger("code") == 0 && mediaInfo.getBoolean("online")) {
+//                    if (!streamProxyItem.isStatus()) {
+//                        updateStatusById(streamProxyItem, true);
+//                    }
+//                } else {
+//                    if (streamProxyItem.isStatus()) {
+//                        updateStatusById(streamProxyItem, false);
+//                    }
+//                }
+//            }
+//
+//        }
+//    }
 
     @Override
     public void updateStreamGPS(List<GPSMsgInfo> gpsMsgInfoList) {

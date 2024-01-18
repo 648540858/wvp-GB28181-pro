@@ -592,7 +592,10 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 });
                 if (!addChannelList.isEmpty()) {
                     addChannelList.stream().forEach(channel ->{
-                        channel.setCommonGbChannelId(commonChannelDeviceAndIdMap.get(channel.getChannelId()));
+                        Integer commonGbChannelId = commonChannelDeviceAndIdMap.get(channel.getChannelId());
+                        if (commonGbChannelId != null) {
+                            channel.setCommonGbChannelId(commonGbChannelId);
+                        }
                     });
                     addChannelHandler(addChannelList);
                 }

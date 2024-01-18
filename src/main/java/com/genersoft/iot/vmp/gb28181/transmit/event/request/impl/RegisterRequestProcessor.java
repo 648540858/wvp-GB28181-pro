@@ -103,23 +103,27 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             String title = registerFlag ? "[注册请求]": "[注销请求]";
                     logger.info(title + "设备：{}, 开始处理: {}", deviceId, requestAddress);
             if (device != null &&
-                device.getSipTransactionInfo() != null &&
-                request.getCallIdHeader().getCallId().equals(device.getSipTransactionInfo().getCallId())) {
+                    device.getSipTransactionInfo() != null &&
+                    request.getCallIdHeader().getCallId().equals(device.getSipTransactionInfo().getCallId())) {
                 logger.info(title + "设备：{}, 注册续订: {}",device.getDeviceId(), device.getDeviceId());
-                device.setExpires(request.getExpires().getExpires());
-                device.setIp(remoteAddressInfo.getIp());
-                device.setPort(remoteAddressInfo.getPort());
-                device.setHostAddress(remoteAddressInfo.getIp().concat(":").concat(String.valueOf(remoteAddressInfo.getPort())));
-                device.setLocalIp(request.getLocalAddress().getHostAddress());
-                Response registerOkResponse = getRegisterOkResponse(request);
-                // 判断TCP还是UDP
-                ViaHeader reqViaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
-                String transport = reqViaHeader.getTransport();
-                device.setTransport("TCP".equalsIgnoreCase(transport) ? "TCP" : "UDP");
-                sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), registerOkResponse);
-                device.setRegisterTime(DateUtil.getNow());
-                SipTransactionInfo sipTransactionInfo = new SipTransactionInfo((SIPResponse)registerOkResponse);
-                deviceService.online(device, sipTransactionInfo);
+                if (registerFlag) {
+                    device.setExpires(request.getExpires().getExpires());
+                    device.setIp(remoteAddressInfo.getIp());
+                    device.setPort(remoteAddressInfo.getPort());
+                    device.setHostAddress(remoteAddressInfo.getIp().concat(":").concat(String.valueOf(remoteAddressInfo.getPort())));
+                    device.setLocalIp(request.getLocalAddress().getHostAddress());
+                    Response registerOkResponse = getRegisterOkResponse(request);
+                    // 判断TCP还是UDP
+                    ViaHeader reqViaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
+                    String transport = reqViaHeader.getTransport();
+                    device.setTransport("TCP".equalsIgnoreCase(transport) ? "TCP" : "UDP");
+                    sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), registerOkResponse);
+                    device.setRegisterTime(DateUtil.getNow());
+                    SipTransactionInfo sipTransactionInfo = new SipTransactionInfo((SIPResponse)registerOkResponse);
+                    deviceService.online(device, sipTransactionInfo);
+                }else {
+                    deviceService.offline(deviceId, "主动注销");
+                }
                 return;
             }
             String password = (device != null && !ObjectUtils.isEmpty(device.getPassword()))? device.getPassword() : sipConfig.getPassword();

@@ -152,6 +152,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 return;
             }
 
+            logger.info("[INVITE] requesterId: {}, callId: {}, 来自：{}：{}",
+                    requesterId, callIdHeader.getCallId(), request.getRemoteAddress(), request.getRemotePort());
+
             // 查询请求是否来自上级平台\设备
             ParentPlatform platform = storager.queryParentPlatByServerGBId(requesterId);
             if (platform == null) {

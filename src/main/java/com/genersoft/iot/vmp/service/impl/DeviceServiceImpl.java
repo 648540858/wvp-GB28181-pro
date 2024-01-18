@@ -154,10 +154,10 @@ public class DeviceServiceImpl implements IDeviceService {
                         logger.error("[命令发送失败] 查询设备信息: {}", e.getMessage());
                     }
                     sync(device);
-                    List<Integer> ids = deviceChannelMapper.getCommonChannelIdList(device.getDeviceId());
-                    if (!ids.isEmpty()) {
-                        commonGbChannelService.onlineForList(ids);
-                    }
+                }
+                List<Integer> ids = deviceChannelMapper.getCommonChannelIdList(device.getDeviceId());
+                if (!ids.isEmpty()) {
+                    commonGbChannelService.onlineForList(ids);
                 }
                 // 上线添加订阅
                 if (device.getSubscribeCycleForCatalog() > 0) {

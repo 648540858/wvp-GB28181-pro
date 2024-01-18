@@ -272,6 +272,9 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
             if (code == InviteErrorCode.SUCCESS.getCode()) {
                 // 记录到数据库
             }
+            if (callback == null) {
+                return;
+            }
             callback.call(commonGbChannel, mediaServerItem, code, message, streamInfo);
         }));
     }

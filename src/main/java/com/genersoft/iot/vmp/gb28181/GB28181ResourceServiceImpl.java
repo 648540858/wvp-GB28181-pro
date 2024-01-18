@@ -78,7 +78,7 @@ public class GB28181ResourceServiceImpl implements IResourceService {
             if (code == InviteErrorCode.SUCCESS.getCode()) {
                 if (data != null) {
                     StreamInfo streamInfo = (StreamInfo)data;
-                    callback.call(commonGbChannel, mediaServerItem, ErrorCode.ERROR100.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+                    callback.call(commonGbChannel, mediaServerItem, ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
                 }
             }else {
                 callback.call(commonGbChannel, null, code, msg, null);

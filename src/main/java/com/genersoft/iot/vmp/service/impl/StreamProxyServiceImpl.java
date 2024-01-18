@@ -189,7 +189,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                     param.setEnable(false);
                     // 直接移除
                     if (param.isEnableRemoveNoneReader()) {
-                        delProxyFromDb(param.getApp(), param.getStream());
+                        delProxyFromDb(param);
                     }else {
                         updateProxyToDb(param);
                     }
@@ -483,20 +483,23 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             logger.error("[更新代理存储到数据库] 错误，ID： {} 不在数据库中", param.getId());
             return;
         }
-        if (!ObjectUtils.isEmpty(streamProxyInDb.getGbId().trim()) && ObjectUtils.isEmpty(param.getGbId().trim())) {
+        if (!ObjectUtils.isEmpty(streamProxyInDb.getGbId())
+                && ObjectUtils.isEmpty(param.getGbId())) {
             // 国标ID已经移除
             if (streamProxyInDb.getCommonGbChannelId() > 0) {
                 commonGbChannelService.deleteById(streamProxyInDb.getCommonGbChannelId());
             }
         }
-        if (!ObjectUtils.isEmpty(param.getGbId().trim()) && ObjectUtils.isEmpty(streamProxyInDb.getGbId().trim())) {
+        if (!ObjectUtils.isEmpty(param.getGbId())
+                && ObjectUtils.isEmpty(streamProxyInDb.getGbId())) {
             CommonGbChannel commonGbChannel = CommonGbChannel.getInstance(param);
             // 国标ID已经添加
             if (commonGbChannelService.add(commonGbChannel) > 0) {
                 param.setCommonGbChannelId(commonGbChannel.getCommonGbId());
             }
         }
-        if (!param.getGbId().equals(streamProxyInDb.getGbId())) {
+        if (param.getGbId() != null && streamProxyInDb.getGbId() != null
+                && !param.getGbId().equals(streamProxyInDb.getGbId())) {
             CommonGbChannel commonGbChannel = CommonGbChannel.getInstance(param);
             commonGbChannel.setCommonGbId(streamProxyInDb.getCommonGbChannelId());
             // 国标ID已经改变
@@ -535,8 +538,13 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         return new PageInfo<>(all);
     }
 
-    private void delProxyFromDb(String app, String stream) {
-        StreamProxy streamProxyItem = streamProxyMapper.selectOne(app, stream);
+    private void delProxyFromDb(StreamProxy streamProxy) {
+        StreamProxy streamProxyItem;
+        if (streamProxy.getId() <= 0) {
+            streamProxyItem = streamProxyMapper.selectOne(streamProxy.getApp(), streamProxy.getStream());
+        }else {
+            streamProxyItem = streamProxy;
+        }
         if (streamProxyItem == null) {
             return;
         }
@@ -544,7 +552,8 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             commonGbChannelService.deleteById(streamProxyItem.getCommonGbChannelId());
         }
         streamProxyMapper.delById(streamProxyItem.getId());
-        redisCatchStorage.removeStream(streamProxyItem.getMediaServerId(), "PULL", app, stream);
+        redisCatchStorage.removeStream(streamProxyItem.getMediaServerId(), "PULL",
+                streamProxy.getApp(), streamProxy.getStream());
     }
 
     @Override
@@ -568,9 +577,8 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                     });
                 }
             }
-        }else {
-            delProxyFromDb(streamProxy.getApp(), streamProxy.getStream());
         }
+        delProxyFromDb(streamProxy);
     }
 
     @Override

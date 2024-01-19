@@ -33,7 +33,7 @@ public interface ICloudRecordService {
     /**
      * 添加合并任务
      */
-    String addTask(String app, String stream, String mediaServerId, String startTime, String endTime, String callId, String remoteHost);
+    String addTask(String app, String stream, MediaServerItem mediaServerItem, String startTime, String endTime, String callId, String remoteHost);
 
 
     /**

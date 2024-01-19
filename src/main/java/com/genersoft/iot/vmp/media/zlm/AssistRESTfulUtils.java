@@ -2,7 +2,9 @@ package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import okhttp3.*;
 import okhttp3.logging.HttpLoggingInterceptor;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +15,9 @@ import org.springframework.util.ObjectUtils;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -148,13 +152,14 @@ public class AssistRESTfulUtils {
         return responseJSON;
     }
 
-    public JSONObject sendPost(MediaServerItem mediaServerItem, String api, JSONObject param, ZLMRESTfulUtils.RequestCallback callback, Integer readTimeOut) {
+    public JSONObject sendPost(MediaServerItem mediaServerItem, String url,
+                               JSONObject param, ZLMRESTfulUtils.RequestCallback callback,
+                               Integer readTimeOut) {
         OkHttpClient client = getClient(readTimeOut);
 
         if (mediaServerItem == null) {
             return null;
         }
-        String url = String.format("http://%s:%s/%s",  mediaServerItem.getIp(), mediaServerItem.getRecordAssistPort(), api);
         JSONObject responseJSON = new JSONObject();
         //-2自定义流媒体 调用错误码
         responseJSON.put("code",-2);
@@ -253,8 +258,8 @@ public class AssistRESTfulUtils {
         if (!ObjectUtils.isEmpty(remoteHost)) {
             videoTaskInfoJSON.put("remoteHost", remoteHost);
         }
-
-        return sendPost(mediaServerItem, "api/record/file/download/task/add", videoTaskInfoJSON, null, 30);
+        String urlStr = String.format("%s/api/record/file/download/task/add",  remoteHost);;
+        return sendPost(mediaServerItem, urlStr, videoTaskInfoJSON, null, 30);
     }
 
     public JSONObject queryTaskList(MediaServerItem mediaServerItem, String app, String stream, String callId,  String taskId, Boolean isEnd) {

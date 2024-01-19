@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.*;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.slf4j.Logger;
@@ -76,6 +77,9 @@ public class RedisGbPlayMsgListener implements MessageListener {
 
     @Autowired
     private IMediaServerService mediaServerService;
+
+    @Autowired
+    private IRedisCatchStorage redisCatchStorage;
 
 
     @Autowired
@@ -322,6 +326,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
         responseSendItemMsg.setSendRtpItem(sendRtpItem);
         responseSendItemMsg.setMediaServerItem(mediaServerItem);
         result.setData(responseSendItemMsg);
+        redisCatchStorage.updateSendRTPSever(sendRtpItem);
 
         WvpRedisMsg response = WvpRedisMsg.getResponseInstance(
                 userSetting.getServerId(), toId, WvpRedisMsgCmd.GET_SEND_ITEM, serial, JSON.toJSONString(result)

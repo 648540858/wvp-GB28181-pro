@@ -191,8 +191,8 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的流媒体");
         }
         JSONObject result =  assistRESTfulUtils.queryTaskList(mediaServerItem, app, stream, callId, taskId, isEnd);
-        if (result.getInteger("code") != 0) {
-            throw new ControllerException(result.getInteger("code"), result.getString("msg"));
+        if (result == null || result.getInteger("code") != 0) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), result.getString("msg"));
         }
         return result.getJSONArray("data");
     }

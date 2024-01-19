@@ -107,7 +107,11 @@ public interface DeviceChannelMapper {
             "wvp_device_channel dc " +
             "WHERE " +
             "dc.device_id = #{deviceId} " +
-" <if test='query != null'> AND (dc.channel_id LIKE concat('%',#{query},'%') OR dc.name LIKE concat('%',#{query},'%') OR dc.name LIKE concat('%',#{query},'%'))</if> " +
+            " <if test='query != null'> AND (" +
+            "dc.channel_id LIKE concat('%',#{query},'%') " +
+            "OR dc.name LIKE concat('%',#{query},'%') " +
+            "OR dc.custom_name LIKE concat('%',#{query},'%')" +
+            ")</if> " +
             " <if test='parentChannelId != null'> AND (dc.parent_id=#{parentChannelId} OR dc.civil_code = #{parentChannelId}) </if> " +
             " <if test='online == true' > AND dc.status= true</if>" +
             " <if test='online == false' > AND dc.status= false</if>" +

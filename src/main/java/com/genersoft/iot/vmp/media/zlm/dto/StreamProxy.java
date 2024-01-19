@@ -29,8 +29,6 @@ public class StreamProxy {
     private String rtpType;
     @Schema(description = "代理失败的原因")
     private String proxyError;
-    @Schema(description = "是否启用")
-    private boolean enable;
     @Schema(description = "是否启用音频")
     private boolean enableAudio;
     @Schema(description = "是否录制")
@@ -53,8 +51,10 @@ public class StreamProxy {
     private double longitude;
     @Schema(description = "纬度")
     private double latitude;
-    @Schema(description = "状态")
-    private boolean status;
+    @Schema(description = "正在拉流")
+    private boolean pulling;
+    @Schema(description = "拉流时间")
+    private String pullTime;
     @Schema(description = "创建时间")
     private String createTime;
     @Schema(description = "更新时间")
@@ -224,14 +224,6 @@ public class StreamProxy {
 
     public void setLatitude(double latitude) {
         this.latitude = latitude;
-    }
-
-    public boolean isStatus() {
-        return status;
-    }
-
-    public void setStatus(boolean status) {
-        this.status = status;
     }
 
     public String getCreateTime() {

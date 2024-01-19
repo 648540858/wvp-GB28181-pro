@@ -241,7 +241,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                     param.setProxyError(msg);
                     param.setStatus(false);
                 }
-                addProxyToDb(param);
+//                updateStatusById(param.get);
             });
         });
     }
@@ -489,17 +489,14 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             if (streamProxyInDb.getCommonGbChannelId() > 0) {
                 commonGbChannelService.deleteById(streamProxyInDb.getCommonGbChannelId());
             }
-        }
-        if (!ObjectUtils.isEmpty(param.getGbId())
+        }else if (!ObjectUtils.isEmpty(param.getGbId())
                 && ObjectUtils.isEmpty(streamProxyInDb.getGbId())) {
             CommonGbChannel commonGbChannel = CommonGbChannel.getInstance(param);
             // 国标ID已经添加
             if (commonGbChannelService.add(commonGbChannel) > 0) {
                 param.setCommonGbChannelId(commonGbChannel.getCommonGbId());
             }
-        }
-        if (param.getGbId() != null && streamProxyInDb.getGbId() != null
-                && !param.getGbId().equals(streamProxyInDb.getGbId())) {
+        }else {
             CommonGbChannel commonGbChannel = CommonGbChannel.getInstance(param);
             commonGbChannel.setCommonGbId(streamProxyInDb.getCommonGbChannelId());
             // 国标ID已经改变
@@ -525,7 +522,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 }else {
                     return null;
                 }
-
             }
         }
         return null;
@@ -717,7 +713,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             }else {
                 commonGbChannelService.offlineForList(ids);
             }
-
         }
     }
 
@@ -765,9 +760,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         if (streamProxy == null) {
             return;
         }
-        if (streamProxy.getCommonGbChannelId() > 0) {
-            updateStatusById(streamProxy, status);
-        }
+        updateStatusById(streamProxy, status);
     }
 
     private void syncPullStream(String mediaServerId){

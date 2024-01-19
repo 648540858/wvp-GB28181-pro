@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import java.io.*;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;

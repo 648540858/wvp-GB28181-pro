@@ -280,14 +280,14 @@ public class StreamProxyController {
         return result;
     }
 
-    @GetMapping(value = "/stream")
+    @GetMapping(value = "/play")
     @ResponseBody
-    @Operation(summary = "获取代理播放地址", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "播放代理流", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "id", description = "ID", required = true)
     public DeferredResult<WVPResult<StreamContent>> getStream(Integer id){
-        logger.info("获取代理播放地址： " + id );
+        logger.info("播放代理流： " + id );
         DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
-        streamProxyService.getStreamProxyById(id, (code, msg, data) -> {
+        streamProxyService.play(id, (code, msg, data) -> {
             WVPResult<StreamContent> wvpResult = new WVPResult<>(code, msg, new StreamContent(data));
             result.setResult(wvpResult);
         });

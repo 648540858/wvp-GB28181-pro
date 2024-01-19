@@ -248,7 +248,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         streamPushMapper.deleteWithoutGBId(mediaServerId);
         // 其他的流设置未启用
         streamPushMapper.updateStatusByMediaServerId(mediaServerId, false);
-        streamProxyMapper.updateStatusByMediaServerId(mediaServerId, false);
+        streamProxyMapper.updatePullingStatusByMediaServerId(mediaServerId, false);
         // 发送流停止消息
         String type = "PUSH";
         // 发送redis消息

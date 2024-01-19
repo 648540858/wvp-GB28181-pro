@@ -74,11 +74,6 @@ public interface IStreamProxyService {
     void updateStreamGPS(List<GPSMsgInfo> gpsMsgInfoList);
 
     /**
-     * 获取所有启用的拉流代理
-     */
-    List<StreamProxy> getAllForEnable();
-
-    /**
      * 添加拉流代理
      */
     void add(StreamProxy param, GeneralCallback<StreamInfo> callback);
@@ -98,4 +93,8 @@ public interface IStreamProxyService {
      */
     void getStreamProxyById(Integer id, GeneralCallback<StreamInfo> callback);
 
+    /**
+     * 播放代理流
+     */
+    void play(Integer id, GeneralCallback<StreamInfo> callback);
 }

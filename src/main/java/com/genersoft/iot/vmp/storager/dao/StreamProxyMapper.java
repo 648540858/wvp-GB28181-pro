@@ -13,11 +13,11 @@ import java.util.List;
 public interface StreamProxyMapper {
 
     @Insert("INSERT INTO wvp_stream_proxy (type, name, app, stream,media_server_id, url, dst_url, " +
-            "timeout_ms, ffmpeg_cmd_key, rtp_type, enable_audio, enable_mp4, enable, status, stream_key, " +
+            "timeout_ms, ffmpeg_cmd_key, rtp_type, enable_audio, enable_mp4, pulling, stream_key, " +
             "enable_remove_none_reader, enable_disable_none_reader, create_time, longitude, latitude, " +
             "common_gb_channel_id, gb_id) VALUES " +
             "(#{type}, #{name}, #{app}, #{stream}, #{mediaServerId}, #{url}, #{dstUrl}, " +
-            "#{timeoutMs}, #{ffmpegCmdKey}, #{rtpType}, #{enableAudio}, #{enableMp4}, #{enable}, #{status}, #{streamKey}, " +
+            "#{timeoutMs}, #{ffmpegCmdKey}, #{rtpType}, #{enableAudio}, #{enableMp4}, #{pulling}, #{streamKey}, " +
             "#{enableRemoveNoneReader}, #{enableDisableNoneReader}, #{createTime} , #{longitude} , #{latitude}, " +
             "#{commonGbChannelId}, #{gbId})")
     @Options(useGeneratedKeys=true, keyProperty="id", keyColumn="id")
@@ -35,8 +35,7 @@ public interface StreamProxyMapper {
             "ffmpeg_cmd_key=#{ffmpegCmdKey}, " +
             "rtp_type=#{rtpType}, " +
             "enable_audio=#{enableAudio}, " +
-            "enable=#{enable}, " +
-            "status=#{status}, " +
+            "pulling=#{pulling}, " +
             "stream_key=#{streamKey}, " +
             "enable_remove_none_reader=#{enableRemoveNoneReader}, " +
             "enable_disable_none_reader=#{enableDisableNoneReader}, " +
@@ -51,42 +50,26 @@ public interface StreamProxyMapper {
             "SELECT * FROM wvp_stream_proxy where 1 = 1 " +
             " <if test='query != null'> AND (app LIKE '%${query}%' OR stream LIKE '%${query}%' OR name LIKE '%${query}%')</if> " +
             " <if test='mediaServerId != null'> AND media_server_id=#{mediaServerId}</if> " +
-            " <if test='online == true' > AND status=true</if>" +
-            " <if test='online == false' > AND status=false</if>" +
+            " <if test='pulling == true' > AND pulling=true</if>" +
+            " <if test='pulling == false' > AND pulling=false</if>" +
             "order by create_time desc"+
             " </script>" )
     List<StreamProxy> selectAll(@Param("query") String query,
-                                @Param("online") Boolean online,
+                                @Param("pulling") Boolean pulling,
                                 @Param("mediaServerId") String mediaServerId);
 
-    @Select("SELECT st.* FROM wvp_stream_proxy st  WHERE st.enable=#{enable} order by st.create_time desc")
-    List<StreamProxy> selectForEnable(boolean enable);
 
     @Select("SELECT st.* from wvp_stream_proxy st WHERE st.app=#{app} AND st.stream=#{stream}")
     StreamProxy selectOne(@Param("app") String app, @Param("stream") String stream);
 
-    @Select("SELECT st.* FROM wvp_stream_proxy st " +
-            "WHERE st.enable=#{enable} and st.media_server_id= #{id} order by st.create_time desc")
-    List<StreamProxy> selectForEnableInMediaServer(@Param("id")  String id, @Param("enable") boolean enable);
-
-    @Select("SELECT st.* FROM wvp_stream_proxy st " +
-            "WHERE st.media_server_id= #{id} order by st.create_time desc")
-    List<StreamProxy> selectInMediaServer(String id);
-
     @Update("UPDATE wvp_stream_proxy " +
-            "SET status=#{status} " +
+            "SET pulling=#{pulling} " +
             "WHERE media_server_id=#{mediaServerId}")
-    void updateStatusByMediaServerId(@Param("mediaServerId") String mediaServerId, @Param("status") boolean status);
-
+    void updatePullingStatusByMediaServerId(@Param("mediaServerId") String mediaServerId, @Param("pulling") boolean pulling);
     @Update("UPDATE wvp_stream_proxy " +
-            "SET status=#{status} " +
-            "WHERE app=#{app} AND stream=#{stream}")
-    int updateStatus(@Param("app") String app, @Param("stream") String stream, @Param("status") boolean status);
-
-    @Update("UPDATE wvp_stream_proxy " +
-            "SET status=#{status} " +
+            "SET pulling=#{pulling} " +
             "WHERE id=#{id}")
-    int updateStatusById(@Param("id") int id, @Param("status") boolean status);
+    int updatePullingById(@Param("id") int id, @Param("pulling") boolean pulling);
 
     @Delete("DELETE FROM wvp_stream_proxy WHERE enable_remove_none_reader=true AND media_server_id=#{mediaServerId}")
     void deleteAutoRemoveItemByMediaServerId(String mediaServerId);
@@ -94,15 +77,15 @@ public interface StreamProxyMapper {
     @Select("SELECT st.* FROM wvp_stream_proxy st WHERE st.enable_remove_none_reader=true AND st.media_server_id=#{mediaServerId} order by st.create_time desc")
     List<StreamProxy> selectAutoRemoveItemByMediaServerId(String mediaServerId);
 
-    @Select("select count(1) as total, sum(status) as online from wvp_stream_proxy")
+    @Select("select count(1) as total, sum(pulling) as online from wvp_stream_proxy")
     ResourceBaseInfo getOverview();
 
     @Select("select count(1) from wvp_stream_proxy")
 
     int getAllCount();
 
-    @Select("select count(1) from wvp_stream_proxy where status = true")
-    int getOnline();
+    @Select("select count(1) from wvp_stream_proxy where pulling = true")
+    int getPulline();
 
 
     @Update({"<script>" +

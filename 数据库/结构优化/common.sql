@@ -138,10 +138,19 @@ alter table wvp_stream_proxy
     add latitude double precision;
 
 alter table wvp_stream_proxy
-    add status bool default false;
+    add pulling bool default false;
+
+alter table wvp_stream_proxy
+    add pulling bool default false;
+
+alter table wvp_stream_proxy
+    add pull_time varchar(255) default NULL;
 
 alter table wvp_stream_proxy
     add proxy_error varchar(255) default NULL;
+
+alter table wvp_stream_proxy
+    drop column enable;
 
 alter table wvp_device
     drop column auto_sync_channel;

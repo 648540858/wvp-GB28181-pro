@@ -146,14 +146,6 @@ public class StreamProxy {
         this.rtpType = rtpType;
     }
 
-    public boolean isEnable() {
-        return enable;
-    }
-
-    public void setEnable(boolean enable) {
-        this.enable = enable;
-    }
-
     public boolean isEnableAudio() {
         return enableAudio;
     }
@@ -256,5 +248,21 @@ public class StreamProxy {
 
     public void setProxyError(String proxyError) {
         this.proxyError = proxyError;
+    }
+
+    public boolean isPulling() {
+        return pulling;
+    }
+
+    public void setPulling(boolean pulling) {
+        this.pulling = pulling;
+    }
+
+    public String getPullTime() {
+        return pullTime;
+    }
+
+    public void setPullTime(String pullTime) {
+        this.pullTime = pullTime;
     }
 }

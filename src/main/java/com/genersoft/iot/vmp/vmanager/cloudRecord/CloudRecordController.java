@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -154,6 +155,7 @@ public class CloudRecordController {
     @Parameter(name = "callId", description = "鉴权ID", required = false)
     @Parameter(name = "remoteHost", description = "返回地址时的远程地址", required = false)
     public String addTask(
+            HttpServletRequest request,
             @RequestParam(required = false) String app,
             @RequestParam(required = false) String stream,
             @RequestParam(required = false) String mediaServerId,
@@ -162,7 +164,24 @@ public class CloudRecordController {
             @RequestParam(required = false) String callId,
             @RequestParam(required = false) String remoteHost
     ){
-        return cloudRecordService.addTask(app, stream, mediaServerId, startTime, endTime, callId, remoteHost);
+        System.out.println(request.getScheme());
+        System.out.println(request.getLocalAddr());
+        System.out.println(request.getRemoteAddr());
+        System.out.println(request.getRequestURI());
+        MediaServerItem mediaServerItem;
+        if (mediaServerId == null) {
+            mediaServerItem = mediaServerService.getDefaultMediaServer();
+        }else {
+            mediaServerItem = mediaServerService.getOne(mediaServerId);
+        }
+        if (mediaServerItem == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的流媒体");
+        }else {
+            if (remoteHost == null) {
+                remoteHost = request.getScheme() + "://" + request.getLocalAddr() + ":" + mediaServerItem.getRecordAssistPort();
+            }
+        }
+        return cloudRecordService.addTask(app, stream, mediaServerItem, startTime, endTime, callId, remoteHost);
     }
 
     @ResponseBody

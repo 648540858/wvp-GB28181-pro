@@ -107,23 +107,10 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     }
 
     @Override
-    public String addTask(String app, String stream, String mediaServerId, String startTime, String endTime, String callId, String remoteHost) {
+    public String addTask(String app, String stream, MediaServerItem mediaServerItem, String startTime, String endTime, String callId, String remoteHost) {
         // 参数校验
         assert app != null;
         assert stream != null;
-        MediaServerItem mediaServerItem = null;
-        if (mediaServerId == null) {
-            mediaServerItem = mediaServerService.getDefaultMediaServer();
-        }else {
-            mediaServerItem = mediaServerService.getOne(mediaServerId);
-        }
-        if (mediaServerItem == null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的流媒体");
-        }else {
-            if (remoteHost == null) {
-                remoteHost = "http://" + mediaServerItem.getStreamIp() + ":" + mediaServerItem.getRecordAssistPort();
-            }
-        }
         if (mediaServerItem.getRecordAssistPort() == 0) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "为配置Assist服务");
         }
@@ -163,7 +150,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         }
         JSONObject result =  assistRESTfulUtils.queryTaskList(mediaServerItem, app, stream, callId, taskId, isEnd);
         if (result == null || result.getInteger("code") != 0) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), result.getString("msg"));
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), result == null ? "查询任务列表失败" : result.getString("msg"));
         }
         return result.getJSONArray("data");
     }

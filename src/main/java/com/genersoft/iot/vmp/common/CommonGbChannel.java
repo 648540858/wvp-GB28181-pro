@@ -628,6 +628,7 @@ public class CommonGbChannel {
         commonGbChannel.setCommonGbName(streamProxy.getName());
         commonGbChannel.setCommonGbLongitude(streamProxy.getLongitude());
         commonGbChannel.setCommonGbLatitude(streamProxy.getLatitude());
+        commonGbChannel.setCommonGbStatus(true);
         commonGbChannel.setCreateTime(DateUtil.getNow());
         commonGbChannel.setUpdateTime(DateUtil.getNow());
         return commonGbChannel;

@@ -95,6 +95,11 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
 
     @Override
     public int add(CommonGbChannel channel) {
+        CommonGbChannel commonGbChannel = commonGbChannelMapper.queryByDeviceID(channel.getCommonGbDeviceID());
+        if (commonGbChannel != null) {
+            channel.setCommonGbId(commonGbChannel.getCommonGbId());
+            return update(channel);
+        }
         int result = commonGbChannelMapper.add(channel);
         if (result == 0) {
             return 0;

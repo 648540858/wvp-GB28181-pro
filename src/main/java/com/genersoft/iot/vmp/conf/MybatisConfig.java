@@ -28,6 +28,7 @@ public class MybatisConfig {
         if (userSetting.getSqlLog()){
             config.setLogImpl(StdOutImpl.class);
         }
+        // 自动将数据库中的下划线转换为驼峰格式
         config.setMapUnderscoreToCamelCase(true);
         sqlSessionFactory.setConfiguration(config);
         return sqlSessionFactory.getObject();

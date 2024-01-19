@@ -512,7 +512,10 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                     }
                                 });
                     } else {
-
+                        sendRtpItem.setPlayType(InviteStreamType.PLAY);
+                        String streamId = String.format("%s_%s", device.getDeviceId(), channelId);
+                        sendRtpItem.setStreamId(streamId);
+                        redisCatchStorage.updateSendRTPSever(sendRtpItem);
                         SSRCInfo ssrcInfo = playService.play(mediaServerItem, device.getDeviceId(), channelId, ssrc, ((code, msg, data) -> {
                             if (code == InviteErrorCode.SUCCESS.getCode()) {
                                 hookEvent.run(code, msg, data);
@@ -524,9 +527,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                 errorEvent.run(code, msg, data);
                             }
                         }));
-                        sendRtpItem.setPlayType(InviteStreamType.PLAY);
-                        String streamId = String.format("%s_%s", device.getDeviceId(), channelId);
-                        sendRtpItem.setStreamId(streamId);
                         sendRtpItem.setSsrc(ssrcInfo.getSsrc());
                         redisCatchStorage.updateSendRTPSever(sendRtpItem);
 

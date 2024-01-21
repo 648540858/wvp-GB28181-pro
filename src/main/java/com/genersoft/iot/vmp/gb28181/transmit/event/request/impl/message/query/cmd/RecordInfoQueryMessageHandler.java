@@ -102,6 +102,7 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
             // 接收录像数据
             recordEndEventListener.addEndEventHandler(deviceChannel.getDeviceId(), channelId, (recordInfo)->{
                 try {
+                    logger.info("[国标级联] 录像查询收到数据， 通道： {}，准备转发===", channelId);
                     cmderFroPlatform.recordInfo(deviceChannel, parentPlatform, request.getFromTag(), recordInfo);
                 } catch (SipException | InvalidArgumentException | ParseException e) {
                     logger.error("[命令发送失败] 国标级联 回复录像数据: {}", e.getMessage());

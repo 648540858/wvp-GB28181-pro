@@ -396,7 +396,16 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             // 非严格模式端口不统一, 增加兼容性，修改为一个不为0的端口
                             localPort = new Random().nextInt(65535) + 1;
                         }
-                        content.append("m=video " + localPort + " RTP/AVP 96\r\n");
+                        if (sendRtpItem.isTcp()) {
+                            content.append("m=video " + localPort + " TCP/RTP/AVP 96\r\n");
+                            if (!sendRtpItem.isTcpActive()) {
+                                content.append("a=setup:active\r\n");
+                            } else {
+                                content.append("a=setup:passive\r\n");
+                            }
+                        }else {
+                            content.append("m=video " + localPort + " RTP/AVP 96\r\n");
+                        }
                         content.append("a=sendonly\r\n");
                         content.append("a=rtpmap:96 PS/90000\r\n");
                         content.append("y=" + sendRtpItem.getSsrc() + "\r\n");

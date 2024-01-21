@@ -727,6 +727,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         if ( parentPlatform ==null) {
             return ;
         }
+        logger.info("[国标级联] 发送录像数据通道： {}", recordInfo.getChannelId());
         String characterSet = parentPlatform.getCharacterSet();
         StringBuffer recordXml = new StringBuffer(600);
         recordXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n")
@@ -763,12 +764,14 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
         recordXml.append("</RecordList>\r\n")
                 .append("</Response>\r\n");
-
+        logger.info("[国标级联] 发送录像数据通道：{}, 内容： {}", recordInfo.getChannelId(), recordXml);
         // callid
         CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
 
         Request request = headerProviderPlatformProvider.createMessageRequest(parentPlatform, recordXml.toString(), fromTag, SipUtils.getNewViaTag(), callIdHeader);
-        sipSender.transmitRequest(parentPlatform.getDeviceIp(), request);
+        sipSender.transmitRequest(parentPlatform.getDeviceIp(), request, null, eventResult -> {
+            logger.info("[国标级联] 发送录像数据通道：{}, 发送成功", recordInfo.getChannelId());
+        });
 
     }
 

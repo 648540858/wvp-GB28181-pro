@@ -734,7 +734,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 .append("<Response>\r\n")
                 .append("<CmdType>RecordInfo</CmdType>\r\n")
                 .append("<SN>" +recordInfo.getSn() + "</SN>\r\n")
-                .append("<DeviceID>" + recordInfo.getChannelId() + "</DeviceID>\r\n")
+                .append("<DeviceID>" + deviceChannel.getChannelId() + "</DeviceID>\r\n")
                 .append("<SumNum>" + recordInfo.getSumNum() + "</SumNum>\r\n");
         if (recordInfo.getRecordList() == null ) {
             recordXml.append("<RecordList Num=\"0\">\r\n");
@@ -744,7 +744,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 for (RecordItem recordItem : recordInfo.getRecordList()) {
                     recordXml.append("<Item>\r\n");
                     if (deviceChannel != null) {
-                        recordXml.append("<DeviceID>" + recordItem.getDeviceId() + "</DeviceID>\r\n")
+                        recordXml.append("<DeviceID>" + deviceChannel.getChannelId() + "</DeviceID>\r\n")
                                 .append("<Name>" + recordItem.getName() + "</Name>\r\n")
                                 .append("<StartTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(recordItem.getStartTime()) + "</StartTime>\r\n")
                                 .append("<EndTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(recordItem.getEndTime()) + "</EndTime>\r\n")

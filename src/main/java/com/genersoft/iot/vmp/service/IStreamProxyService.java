@@ -18,7 +18,6 @@ public interface IStreamProxyService {
      */
     void save(StreamProxy param, GeneralCallback<StreamInfo> callback);
 
-
     /**
      * 分页查询
      */
@@ -97,4 +96,9 @@ public interface IStreamProxyService {
      * 播放代理流
      */
     void play(Integer id, GeneralCallback<StreamInfo> callback);
+
+    /**
+     * 根据通用通道查询拉流代理
+     */
+    StreamProxy getStreamProxyByCommonGbChannelId(int commonGbId);
 }

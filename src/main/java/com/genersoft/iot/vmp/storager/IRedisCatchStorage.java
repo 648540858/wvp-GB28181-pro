@@ -134,6 +134,8 @@ public interface IRedisCatchStorage {
 
     OnStreamChangedHookParam getStreamInfo(String app, String streamId, String mediaServerId);
 
+    OnStreamChangedHookParam getProxyStreamInfo(String app, String streamId, String mediaServerId);
+
     void addCpuInfo(double cpuInfo);
 
     void addMemInfo(double memInfo);

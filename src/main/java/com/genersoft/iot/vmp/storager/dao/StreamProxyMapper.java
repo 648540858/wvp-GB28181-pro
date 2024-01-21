@@ -104,4 +104,6 @@ public interface StreamProxyMapper {
     @Delete("delete from wvp_stream_proxy WHERE id=#{id}")
     void delById(int id);
 
+    @Select("SELECT * from wvp_stream_proxy WHERE common_gb_channel_id=#{commonGbId}")
+    StreamProxy selectOneByByCommonGbChannelId(@Param("commonGbId") int commonGbId);
 }

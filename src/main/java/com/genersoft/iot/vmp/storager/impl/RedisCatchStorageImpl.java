@@ -478,6 +478,20 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
+    public OnStreamChangedHookParam getProxyStreamInfo(String app, String streamId, String mediaServerId) {
+        String scanKey = VideoManagerConstants.WVP_SERVER_STREAM_PREFIX  + userSetting.getServerId() + "_PULL_" + app + "_" + streamId + "_" + mediaServerId;
+
+        OnStreamChangedHookParam result = null;
+        List<Object> keys = RedisUtil.scan(redisTemplate, scanKey);
+        if (keys.size() > 0) {
+            String key = (String) keys.get(0);
+            result = JsonUtil.redisJsonToObject(redisTemplate, key, OnStreamChangedHookParam.class);
+        }
+
+        return result;
+    }
+
+    @Override
     public void addCpuInfo(double cpuInfo) {
         String key = VideoManagerConstants.SYSTEM_INFO_CPU_PREFIX + userSetting.getServerId();
         Map<String, String> infoMap = new HashMap<>();

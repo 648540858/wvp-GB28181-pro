@@ -76,10 +76,8 @@ public class GB28181ResourceServiceImpl implements IResourceService {
         MediaServerItem mediaServerItem = playService.getNewMediaServerItem(device);
         playService.play(mediaServerItem, channel.getDeviceId(), channel.getChannelId(), null, (code, msg, data) -> {
             if (code == InviteErrorCode.SUCCESS.getCode()) {
-                if (data != null) {
-                    StreamInfo streamInfo = (StreamInfo)data;
-                    callback.call(commonGbChannel, mediaServerItem, ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
-                }
+                StreamInfo streamInfo = (StreamInfo)data;
+                callback.call(commonGbChannel, mediaServerItem, ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
             }else {
                 callback.call(commonGbChannel, null, code, msg, null);
             }

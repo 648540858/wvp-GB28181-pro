@@ -330,9 +330,11 @@ public class ZLMHttpHookListener {
     public HookResult onStreamChanged(@RequestBody OnStreamChangedHookParam param) {
 
         if (param.isRegist()) {
-            logger.info("[ZLM HOOK] 流注册, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
+            logger.info("[ZLM HOOK] 流注册, {}->{}->{}->{}/{}", param.getMediaServerId(), param.getSchema(),
+                    OriginType.values()[param.getOriginType()].getType(), param.getApp(), param.getStream());
         } else {
-            logger.info("[ZLM HOOK] 流注销, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
+            logger.info("[ZLM HOOK] 流注销, {}->{}->{}->{}/{}", param.getMediaServerId(), param.getSchema(),
+                    OriginType.values()[param.getOriginType()].getType(), param.getApp(), param.getStream());
         }
 
 
@@ -373,18 +375,25 @@ public class ZLMHttpHookListener {
                 } else {
                     mediaServerService.removeCount(param.getMediaServerId());
                 }
-                // 设置拉流代理上线/离线
-                streamProxyService.updateStatus(param.isRegist(), param.getApp(), param.getStream());
 
-                if ("rtp".equals(param.getApp()) && !param.isRegist()) {
-                    InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, param.getStream());
-                    if (inviteInfo != null && (inviteInfo.getType() == InviteSessionType.PLAY || inviteInfo.getType() == InviteSessionType.PLAYBACK)) {
-                        inviteStreamService.removeInviteInfo(inviteInfo);
-                        storager.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
+                if ("rtp".equals(param.getApp())) {
+                    if (!param.isRegist()) {
+                        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, param.getStream());
+                        if (inviteInfo != null && (inviteInfo.getType() == InviteSessionType.PLAY || inviteInfo.getType() == InviteSessionType.PLAYBACK)) {
+                            inviteStreamService.removeInviteInfo(inviteInfo);
+                            storager.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
+                        }
                     }
+
                 } else {
-                    if (!"rtp".equals(param.getApp())) {
-                        String type = OriginType.values()[param.getOriginType()].getType();
+                    String type;
+                    if (param.getOriginType() == 0) {
+                        // 源类型为unknown，则主动查询类型
+                        type = mediaService.getStreamType(param.getApp(), param.getStream());
+                    }else {
+                        type = OriginType.values()[param.getOriginType()].getType();
+                    }
+                    if (type != null) {
                         if (param.isRegist()) {
                             StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(
                                     param.getApp(), param.getStream());
@@ -415,21 +424,20 @@ public class ZLMHttpHookListener {
                                 if ("PUSH".equalsIgnoreCase(type)) {
                                     // 冗余数据，自己系统中自用
                                     redisCatchStorage.removePushListItem(param.getApp(), param.getStream(), param.getMediaServerId());
-                                    zlmMediaListManager.removePush(param);
+                                    streamPushService.offline(param.getApp(), param.getStream());
                                 }
                             }
-                            zlmMediaListManager.streamOffline(param.getApp(), param.getStream());
                         }
-                        if (type != null) {
-                            // 发送流变化redis消息
-                            JSONObject jsonObject = new JSONObject();
-                            jsonObject.put("serverId", userSetting.getServerId());
-                            jsonObject.put("app", param.getApp());
-                            jsonObject.put("stream", param.getStream());
-                            jsonObject.put("register", param.isRegist());
-                            jsonObject.put("mediaServerId", param.getMediaServerId());
-                            redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
-                        }
+                        // 设置拉流代理拉流状态
+                        streamProxyService.updatePullingStatus(param.isRegist(), param.getApp(), param.getStream());
+                        // 发送流变化redis消息
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put("serverId", userSetting.getServerId());
+                        jsonObject.put("app", param.getApp());
+                        jsonObject.put("stream", param.getStream());
+                        jsonObject.put("register", param.isRegist());
+                        jsonObject.put("mediaServerId", param.getMediaServerId());
+                        redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
                     }
                 }
                 if (!param.isRegist()) {
@@ -556,12 +564,6 @@ public class ZLMHttpHookListener {
                 }
                 return ret;
             }
-            // TODO 推流具有主动性，暂时不做处理
-//			StreamPushItem streamPushItem = streamPushService.getPush(app, streamId);
-//			if (streamPushItem != null) {
-//				// TODO 发送停止
-//
-//			}
         }
         return ret;
     }

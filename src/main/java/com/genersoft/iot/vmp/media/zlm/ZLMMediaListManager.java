@@ -77,22 +77,6 @@ public class ZLMMediaListManager {
         return transform;
     }
 
-    public void removePush(OnStreamChangedHookParam param) {
-        StreamPush pushInDb = streamPushService.getPush(param.getApp(), param.getStream());
-        if (pushInDb == null) {
-            return;
-        }
-        if (ObjectUtils.isEmpty(pushInDb.getGbId())) {
-            streamPushService.remove(pushInDb.getId());
-        }else {
-            List<Integer> onlinePushers = new ArrayList<>();
-            onlinePushers.add(pushInDb.getCommonGbChannelId());
-            commonGbChannelService.offlineForList(onlinePushers);
-            streamPushService.offline(pushInDb.getId());
-        }
-
-    }
-
     public void sendStreamEvent(String app, String stream, String mediaServerId) {
         MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
         // 查看推流状态

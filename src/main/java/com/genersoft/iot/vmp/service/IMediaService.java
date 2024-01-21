@@ -51,4 +51,6 @@ public interface IMediaService {
      * 关闭zlm的流
      */
     boolean closeStream(MediaServerItem mediaInfo, String app, String stream);
+
+    String getStreamType(String app, String stream);
 }

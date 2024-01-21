@@ -32,7 +32,7 @@ public interface IStreamProxyService {
     /**
      * 更新状态
      */
-    void updateStatus(boolean status, String app, String stream);
+    void updatePullingStatus(boolean status, String app, String stream);
 
 
 

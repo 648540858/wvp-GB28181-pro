@@ -518,20 +518,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         syncPullStream(mediaServerId);
     }
 
-    @Transactional
-    public void updateStatusById(StreamProxy streamProxy, boolean status) {
-        streamProxyMapper.updatePullingById(streamProxy.getId(), status);
-        if (streamProxy.getCommonGbChannelId() > 0) {
-            List<Integer> ids = new ArrayList<>();
-            ids.add(streamProxy.getCommonGbChannelId());
-            if (status) {
-                commonGbChannelService.onlineForList(ids);
-            }else {
-                commonGbChannelService.offlineForList(ids);
-            }
-        }
-    }
-
     @Override
     public void zlmServerOffline(String mediaServerId) {
         // 移除开启了无人观看自动移除的流
@@ -571,12 +557,8 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Override
     @Transactional
-    public void updateStatus(boolean status, String app, String stream) {
-        StreamProxy streamProxy = streamProxyMapper.selectOne(app, stream);
-        if (streamProxy == null) {
-            return;
-        }
-        updateStatusById(streamProxy, status);
+    public void updatePullingStatus(boolean status, String app, String stream) {
+        streamProxyMapper.updatePullingById(app, stream, status);
     }
 
     private void syncPullStream(String mediaServerId){

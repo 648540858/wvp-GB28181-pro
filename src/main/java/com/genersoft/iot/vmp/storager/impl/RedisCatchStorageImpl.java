@@ -479,11 +479,14 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public OnStreamChangedHookParam getProxyStreamInfo(String app, String streamId, String mediaServerId) {
+        if (mediaServerId == null) {
+            mediaServerId = "*";
+        }
         String scanKey = VideoManagerConstants.WVP_SERVER_STREAM_PREFIX  + userSetting.getServerId() + "_PULL_" + app + "_" + streamId + "_" + mediaServerId;
 
         OnStreamChangedHookParam result = null;
         List<Object> keys = RedisUtil.scan(redisTemplate, scanKey);
-        if (keys.size() > 0) {
+        if (!keys.isEmpty()) {
             String key = (String) keys.get(0);
             result = JsonUtil.redisJsonToObject(redisTemplate, key, OnStreamChangedHookParam.class);
         }
@@ -679,4 +682,5 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         }
 
     }
+
 }

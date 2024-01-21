@@ -87,6 +87,9 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
                     }
                     return;
                 }else {
+                    if (streamProxy.getStreamKey() != null) {
+                        zlmresTfulUtils.delStreamProxy(mediaInfo, streamProxy.getStreamKey());
+                    }
                     redisCatchStorage.removeStream(streamChangedHookParam.getMediaServerId(), "PULL", streamChangedHookParam.getApp(),
                             streamChangedHookParam.getStream());
                 }
@@ -94,10 +97,12 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
                 redisCatchStorage.removeStream(streamChangedHookParam.getMediaServerId(), "PULL", streamChangedHookParam.getApp(),
                         streamChangedHookParam.getStream());
             }
-        }
-
-        if (streamProxy.getStreamKey() != null) {
-            zlmresTfulUtils.delStreamProxy(mediaInfo, streamProxy.getStreamKey());
+        } else {
+            // 查询zlm是否含有这个流，存在则停止
+            boolean ready = mediaService.isReady(mediaInfo, streamProxy.getApp(), streamProxy.getStream());
+            if (ready) {
+                mediaService.closeStream(mediaInfo, streamProxy.getApp(), streamProxy.getStream());
+            }
         }
 
         String delayTalkKey = UUID.randomUUID().toString();
@@ -140,6 +145,7 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
             return;
         }
         if (result.getInteger("code") != 0) {
+            logger.info("[开始拉流代理] 失败： {}", result.getString("msg") );
             hookSubscribe.removeSubscribe(hookSubscribeForStreamChange);
             dynamicTask.stop(delayTalkKey);
             if (callback != null) {

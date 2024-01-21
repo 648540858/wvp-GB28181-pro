@@ -529,21 +529,25 @@ public class StreamPushServiceImpl implements IStreamPushService {
     }
 
     @Override
-    public void offline(Integer id) {
-        if (id == null) {
+    public void offline(String app, String stream) {
+        if (app == null || stream == null) {
             return;
         }
-        StreamPush streamPush = streamPushMapper.selectOne(id);
+        StreamPush streamPush = streamPushMapper.selectOneByAppAndStream(app, stream);
         if (streamPush == null) {
             return;
         }
-        if (userSetting.isUsePushingAsStatus()) {
-            if (streamPush.getCommonGbChannelId() > 0) {
-                List<Integer> pushers = new ArrayList<>();
-                pushers.add(streamPush.getCommonGbChannelId());
-                commonGbChannelService.offlineForList(pushers);
+        if (streamPush.getGbId() == null) {
+            streamPushMapper.del(streamPush.getId());
+        }else {
+            if (userSetting.isUsePushingAsStatus()) {
+                if (streamPush.getCommonGbChannelId() > 0) {
+                    List<Integer> pushers = new ArrayList<>();
+                    pushers.add(streamPush.getCommonGbChannelId());
+                    commonGbChannelService.offlineForList(pushers);
+                }
+                streamPushMapper.offlineById(streamPush.getId());
             }
-            streamPushMapper.offlineById(streamPush.getId());
         }
     }
 }

@@ -116,5 +116,5 @@ public interface IStreamPushService {
     /**
      * 设置推流离线
      */
-    void offline(Integer id);
+    void offline(String app, String stream);
 }

@@ -9,10 +9,14 @@ import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.service.IMediaService;
+import com.genersoft.iot.vmp.storager.dao.StreamProxyMapper;
+import com.genersoft.iot.vmp.storager.dao.StreamPushMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -26,7 +30,10 @@ public class MediaServiceImpl implements IMediaService {
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
-    private IVideoManagerStorage storager;
+    private StreamProxyMapper streamProxyMapper;
+
+    @Autowired
+    private StreamPushMapper streamPushMapper;
 
     @Autowired
     private IMediaServerService mediaServerService;
@@ -120,5 +127,20 @@ public class MediaServiceImpl implements IMediaService {
     public boolean closeStream(MediaServerItem mediaInfo, String app, String stream) {
         JSONObject jsonObject =  zlmresTfulUtils.closeStreams(mediaInfo, app, stream);
         return jsonObject != null && jsonObject.getInteger("code") == 0 && jsonObject.getInteger("count_hit") > 0;
+    }
+
+    @Override
+    public String getStreamType(String app, String stream) {
+        String result = null;
+        StreamProxy streamProxy = streamProxyMapper.selectOne(app, stream);
+        if (streamProxy != null) {
+            result = "PULL";
+        }else {
+            StreamPush streamPush = streamPushMapper.selectOneByAppAndStream(app, stream);
+            if (streamPush != null) {
+                result = "PUSH";
+            }
+        }
+        return result;
     }
 }

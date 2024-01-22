@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.service.IUserService;
 import com.genersoft.iot.vmp.storager.dao.UserMapper;
 import com.genersoft.iot.vmp.storager.dao.dto.User;
@@ -12,6 +13,7 @@ import org.springframework.util.DigestUtils;
 import java.util.List;
 
 @Service
+@DS("master")
 public class UserServiceImpl implements IUserService {
 
     @Autowired

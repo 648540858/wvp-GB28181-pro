@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.alibaba.fastjson2.JSON;
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionStatus;
 import com.genersoft.iot.vmp.common.InviteSessionType;
@@ -20,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service
+@DS("master")
 public class InviteStreamServiceImpl implements IInviteStreamService {
 
     private final Logger logger = LoggerFactory.getLogger(InviteStreamServiceImpl.class);

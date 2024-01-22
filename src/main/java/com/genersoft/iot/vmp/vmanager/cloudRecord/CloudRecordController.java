@@ -194,7 +194,10 @@ public class CloudRecordController {
             @RequestParam(required = false) String mediaServerId,
             @RequestParam(required = false) Boolean isEnd
     ){
-        return cloudRecordService.queryTask(app, stream, callId, taskId, mediaServerId, isEnd);
+       if (ObjectUtils.isEmpty(mediaServerId)) {
+           mediaServerId = null;
+       }
+       return cloudRecordService.queryTask(app, stream, callId, taskId, mediaServerId, isEnd);
     }
 
     @ResponseBody

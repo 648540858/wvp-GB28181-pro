@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -45,6 +46,7 @@ import java.util.concurrent.TimeUnit;
  * 设备业务（目录订阅）
  */
 @Service
+@DS("master")
 public class DeviceServiceImpl implements IDeviceService {
 
     private final static Logger logger = LoggerFactory.getLogger(DeviceServiceImpl.class);

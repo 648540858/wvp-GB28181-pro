@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@DS("master")
 public class GbStreamServiceImpl implements IGbStreamService {
 
     private final static Logger logger = LoggerFactory.getLogger(GbStreamServiceImpl.class);

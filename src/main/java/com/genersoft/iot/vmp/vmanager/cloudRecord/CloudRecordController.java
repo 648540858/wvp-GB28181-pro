@@ -177,7 +177,7 @@ public class CloudRecordController {
                 remoteHost = request.getScheme() + "://" + request.getLocalAddr() + ":" + mediaServerItem.getRecordAssistPort();
             }
         }
-        return cloudRecordService.addTask(app, stream, mediaServerItem, startTime, endTime, callId, remoteHost);
+        return cloudRecordService.addTask(app, stream, mediaServerItem, startTime, endTime, callId, remoteHost, mediaServerId != null);
     }
 
     @ResponseBody

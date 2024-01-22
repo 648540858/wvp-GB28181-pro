@@ -125,10 +125,8 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
             endTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime);
         }
 
-        List<MediaServerItem> mediaServers = new ArrayList<>();
-        mediaServers.add(mediaServerItem);
         // 检索相关的录像文件
-        List<String> filePathList = cloudRecordServiceMapper.queryRecordFilePathList(app, stream, startTimeStamp, endTimeStamp, callId, mediaServers);
+        List<String> filePathList = cloudRecordServiceMapper.queryRecordFilePathList(app, stream, startTimeStamp, endTimeStamp, callId, null);
         if (filePathList == null || filePathList.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未检索到视频文件");
         }

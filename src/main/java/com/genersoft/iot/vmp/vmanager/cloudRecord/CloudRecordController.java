@@ -164,10 +164,6 @@ public class CloudRecordController {
             @RequestParam(required = false) String callId,
             @RequestParam(required = false) String remoteHost
     ){
-        System.out.println(request.getScheme());
-        System.out.println(request.getLocalAddr());
-        System.out.println(request.getRemoteAddr());
-        System.out.println(request.getRequestURI());
         MediaServerItem mediaServerItem;
         if (mediaServerId == null) {
             mediaServerItem = mediaServerService.getDefaultMediaServer();

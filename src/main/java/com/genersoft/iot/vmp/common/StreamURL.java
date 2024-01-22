@@ -83,7 +83,11 @@ public class StreamURL implements Serializable,Cloneable {
     @Override
     public String toString() {
         if (protocol != null && host != null && port != -1 ) {
-            return String.format("%s://%s:%s/%s", protocol, host, port, file);
+            String url = String.format("%s://%s:%s/%s", protocol, host, port, file);
+            if (sign != null) {
+                url += "?sign=" + sign;
+            }
+            return url;
         }else {
             return null;
         }

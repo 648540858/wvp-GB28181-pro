@@ -26,4 +26,6 @@ public interface IUserService {
     PageInfo<User> getUsers(int page, int count);
 
     int changePushKey(int id, String pushKey);
+
+    User getUserById(int id);
 }

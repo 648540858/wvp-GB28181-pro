@@ -111,7 +111,7 @@ public class PlaybackController {
 								} catch (MalformedURLException e) {
 									host=request.getLocalAddr();
 								}
-								streamInfo.channgeStreamIp(host);
+								streamInfo.changeStreamIp(host);
 							}
 							wvpResult.setData(new StreamContent(streamInfo));
 						}

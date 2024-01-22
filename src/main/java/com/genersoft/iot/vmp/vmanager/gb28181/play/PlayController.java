@@ -3,12 +3,10 @@ package com.genersoft.iot.vmp.vmanager.gb28181.play;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.InviteInfo;
-import com.genersoft.iot.vmp.common.InviteSessionStatus;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
@@ -140,7 +138,7 @@ public class PlayController {
 						} catch (MalformedURLException e) {
 							host=request.getLocalAddr();
 						}
-						streamInfo.channgeStreamIp(host);
+						streamInfo.changeStreamIp(host);
 					}
 					wvpResult.setData(new StreamContent(streamInfo));
 				}

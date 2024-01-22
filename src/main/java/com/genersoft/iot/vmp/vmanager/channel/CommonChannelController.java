@@ -1,21 +1,12 @@
 package com.genersoft.iot.vmp.vmanager.channel;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.CommonGbChannel;
-import com.genersoft.iot.vmp.common.InviteSessionType;
-import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.Gb28181CodeType;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.ICommonGbChannelService;
 import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.vmanager.bean.*;
 import com.github.pagehelper.PageInfo;
-import com.google.common.collect.Lists;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,9 +20,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 import javax.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 @Tag(name = "通用国标通道")
 
@@ -207,7 +196,7 @@ public class CommonChannelController {
                         } catch (MalformedURLException e) {
                             host = request.getLocalAddr();
                         }
-                        streamInfo.channgeStreamIp(host);
+                        streamInfo.changeStreamIp(host);
                     }
                     wvpResult.setData(new StreamContent(streamInfo));
                     result.setResult(wvpResult);

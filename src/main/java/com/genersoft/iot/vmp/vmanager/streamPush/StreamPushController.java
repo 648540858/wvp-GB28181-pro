@@ -15,7 +15,9 @@ import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
+import com.genersoft.iot.vmp.service.IUserService;
 import com.genersoft.iot.vmp.service.impl.StreamPushUploadFileHandler;
+import com.genersoft.iot.vmp.storager.dao.dto.User;
 import com.genersoft.iot.vmp.vmanager.bean.*;
 import com.genersoft.iot.vmp.vmanager.streamPush.bean.StreamPushWithCommonChannelParam;
 import com.github.pagehelper.PageInfo;
@@ -29,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.DigestUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -60,6 +63,9 @@ public class StreamPushController {
 
     @Autowired
     private IMediaService mediaService;
+
+    @Autowired
+    private IUserService userService;
 
 
     @GetMapping(value = "/list")
@@ -305,7 +311,14 @@ public class StreamPushController {
         }
         StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(mediaServerItem, param.getApp(), param.getStream(), null, null);
         // 获取登录的用户，添加推流SIGN
+        LoginUser userInfo = SecurityUtils.getUserInfo();
 
-
+        if (userInfo == null || userInfo.getId() < 0 ) {
+            throw new ControllerException(ErrorCode.ERROR100);
+        }
+        User user = userService.getUserById(userInfo.getId());
+        String checkSign = DigestUtils.md5DigestAsHex(user.getPushKey().getBytes());
+        streamInfo.changeStreamSign(checkSign);
+        return new StreamContent(streamInfo);
     }
 }

@@ -91,4 +91,9 @@ public class UserServiceImpl implements IUserService {
     public int changePushKey(int id, String pushKey) {
         return userMapper.changePushKey(id,pushKey);
     }
+
+    @Override
+    public User getUserById(int id) {
+        return userMapper.selectById(id);
+    }
 }

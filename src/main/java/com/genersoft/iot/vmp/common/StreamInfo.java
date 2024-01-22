@@ -253,7 +253,7 @@ public class StreamInfo implements Serializable, Cloneable{
         }
     }
 
-    public void channgeStreamIp(String localAddr) {
+    public void changeStreamIp(String localAddr) {
         if (this.flv != null) {
             this.flv.setHost(localAddr);
         }
@@ -316,6 +316,72 @@ public class StreamInfo implements Serializable, Cloneable{
         }
         if (this.rtmps != null) {
             this.rtmps.setHost(localAddr);
+        }
+    }
+
+    public void changeStreamSign(String sign) {
+        if (this.flv != null) {
+            this.flv.setSign(sign);
+        }
+        if (this.ws_flv != null ){
+            this.ws_flv.setSign(sign);
+        }
+        if (this.hls != null ) {
+            this.hls.setSign(sign);
+        }
+        if (this.ws_hls != null ) {
+            this.ws_hls.setSign(sign);
+        }
+        if (this.ts != null ) {
+            this.ts.setSign(sign);
+        }
+        if (this.ws_ts != null ) {
+            this.ws_ts.setSign(sign);
+        }
+        if (this.fmp4 != null ) {
+            this.fmp4.setSign(sign);
+        }
+        if (this.ws_fmp4 != null ) {
+            this.ws_fmp4.setSign(sign);
+        }
+        if (this.rtc != null ) {
+            this.rtc.setSign(sign);
+        }
+        if (this.https_flv != null) {
+            this.https_flv.setSign(sign);
+        }
+        if (this.wss_flv != null) {
+            this.wss_flv.setSign(sign);
+        }
+        if (this.https_hls != null) {
+            this.https_hls.setSign(sign);
+        }
+        if (this.wss_hls != null) {
+            this.wss_hls.setSign(sign);
+        }
+        if (this.wss_ts != null) {
+            this.wss_ts.setSign(sign);
+        }
+        if (this.https_fmp4 != null) {
+            this.https_fmp4.setSign(sign);
+        }
+        if (this.wss_fmp4 != null) {
+            this.wss_fmp4.setSign(sign);
+        }
+        if (this.rtcs != null) {
+            this.rtcs.setSign(sign);
+        }
+        if (this.rtsp != null) {
+            this.rtsp.setSign(sign);
+        }
+        if (this.rtsps != null) {
+            this.rtsps.setSign(sign);
+        }
+        if (this.rtmp != null) {
+            this.rtmp.setSign(sign);
+        }
+        if (this.rtmps != null) {
+            this.rtmps.setSign(sign);
         }
     }
 

@@ -78,11 +78,11 @@ public class AssistRESTfulUtils {
             logger.warn("未启用Assist服务");
             return null;
         }
-        StringBuffer stringBuffer = new StringBuffer();
-        stringBuffer.append(String.format("http://%s:%s/%s",  mediaServerItem.getIp(), mediaServerItem.getRecordAssistPort(), api));
+        StringBuilder stringBuffer = new StringBuilder();
+        stringBuffer.append(api);
         JSONObject responseJSON = null;
 
-        if (param != null && param.keySet().size() > 0) {
+        if (param != null && !param.keySet().isEmpty()) {
             stringBuffer.append("?");
             int index = 1;
             for (String key : param.keySet()){
@@ -97,6 +97,7 @@ public class AssistRESTfulUtils {
         }
 
         String url = stringBuffer.toString();
+        logger.info("[访问assist]： {}", url);
         Request request = new Request.Builder()
                 .get()
                 .url(url)
@@ -262,7 +263,8 @@ public class AssistRESTfulUtils {
         return sendPost(mediaServerItem, urlStr, videoTaskInfoJSON, null, 30);
     }
 
-    public JSONObject queryTaskList(MediaServerItem mediaServerItem, String app, String stream, String callId,  String taskId, Boolean isEnd) {
+    public JSONObject queryTaskList(MediaServerItem mediaServerItem, String app, String stream, String callId,
+                                    String taskId, Boolean isEnd, String scheme) {
         Map<String, Object> param = new HashMap<>();
         if (!ObjectUtils.isEmpty(app)) {
             param.put("app", app);
@@ -279,7 +281,8 @@ public class AssistRESTfulUtils {
         if (!ObjectUtils.isEmpty(isEnd)) {
             param.put("isEnd", isEnd);
         }
-
-        return sendGet(mediaServerItem, "api/record/file/download/task/list", param, null);
+        String urlStr = String.format("%s://%s:%s/api/record/file/download/task/list",
+                scheme, mediaServerItem.getIp(), mediaServerItem.getRecordAssistPort());;
+        return sendGet(mediaServerItem, urlStr, param, null);
     }
 }

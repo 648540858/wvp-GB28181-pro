@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.service.impl;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionStatus;
 import com.genersoft.iot.vmp.common.InviteSessionType;
@@ -53,6 +54,7 @@ import java.util.Vector;
 
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Service
+@DS("master")
 public class PlayServiceImpl implements IPlayService {
 
     private final static Logger logger = LoggerFactory.getLogger(PlayServiceImpl.class);

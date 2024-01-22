@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.service.impl;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
@@ -53,6 +54,7 @@ import java.util.concurrent.ExecutionException;
  * 媒体服务器节点管理
  */
 @Service
+@DS("master")
 public class MediaServerServiceImpl implements IMediaServerService {
 
     private final static Logger logger = LoggerFactory.getLogger(MediaServerServiceImpl.class);
@@ -306,7 +308,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Override
     public MediaServerItem getDefaultMediaServer() {
-
         return mediaServerMapper.queryDefault();
     }
 

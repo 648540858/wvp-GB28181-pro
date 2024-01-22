@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.service.impl;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
@@ -29,6 +30,7 @@ import java.time.*;
 import java.util.*;
 
 @Service
+@DS("share")
 public class CloudRecordServiceImpl implements ICloudRecordService {
 
     private final static Logger logger = LoggerFactory.getLogger(CloudRecordServiceImpl.class);
@@ -109,7 +111,8 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     }
 
     @Override
-    public String addTask(String app, String stream, MediaServerItem mediaServerItem, String startTime, String endTime, String callId, String remoteHost) {
+    public String addTask(String app, String stream, MediaServerItem mediaServerItem, String startTime, String endTime,
+                          String callId, String remoteHost, boolean filterMediaServer) {
         // 参数校验
         assert app != null;
         assert stream != null;
@@ -128,7 +131,8 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         List<MediaServerItem> mediaServers = new ArrayList<>();
         mediaServers.add(mediaServerItem);
         // 检索相关的录像文件
-        List<String> filePathList = cloudRecordServiceMapper.queryRecordFilePathList(app, stream, startTimeStamp, endTimeStamp, callId, mediaServers);
+        List<String> filePathList = cloudRecordServiceMapper.queryRecordFilePathList(app, stream, startTimeStamp,
+                endTimeStamp, callId, filterMediaServer ? mediaServers : null);
         if (filePathList == null || filePathList.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未检索到视频文件");
         }

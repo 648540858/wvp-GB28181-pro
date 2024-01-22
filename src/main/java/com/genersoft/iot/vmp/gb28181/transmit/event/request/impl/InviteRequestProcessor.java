@@ -276,7 +276,21 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         } else {
                             content.append("t=0 0\r\n");
                         }
-                        content.append("m=video " + sendRtpItem.getLocalPort() + " RTP/AVP 96\r\n");
+                        int localPort = sendRtpItem.getLocalPort();
+                        if (localPort == 0) {
+                            // 非严格模式端口不统一, 增加兼容性，修改为一个不为0的端口
+                            localPort = new Random().nextInt(65535) + 1;
+                        }
+                        if (sendRtpItem.isTcp()) {
+                            content.append("m=video " + localPort + " TCP/RTP/AVP 96\r\n");
+                            if (!sendRtpItem.isTcpActive()) {
+                                content.append("a=setup:active\r\n");
+                            } else {
+                                content.append("a=setup:passive\r\n");
+                            }
+                        }else {
+                            content.append("m=video " + localPort + " RTP/AVP 96\r\n");
+                        }
                         content.append("a=sendonly\r\n");
                         content.append("a=rtpmap:96 PS/90000\r\n");
                         content.append("y=" + sendRtpItem.getSsrc() + "\r\n");

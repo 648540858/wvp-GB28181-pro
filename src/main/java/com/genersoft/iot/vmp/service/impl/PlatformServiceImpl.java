@@ -58,6 +58,9 @@ public class PlatformServiceImpl implements IPlatformService {
     private ParentPlatformMapper platformMapper;
 
     @Autowired
+    private  CommonChannelMapper commonChannelMapper;
+
+    @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
@@ -92,10 +95,17 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public PageInfo<ParentPlatform> queryParentPlatformList(int page, int count) {
+    public PageInfo<ParentPlatform> queryParentPlatformList(int page, int count, String query, Boolean online) {
         PageHelper.startPage(page, count);
-        List<ParentPlatform> all = platformMapper.getParentPlatformList();
-        return new PageInfo<>(all);
+        List<ParentPlatform> all = platformMapper.getParentPlatformList(query, online);
+        PageInfo<ParentPlatform> platformPageInfo = new PageInfo<>(all);
+        int allCount = commonChannelMapper.getAllCount();
+        platformPageInfo.getList().stream().forEach(parentPlatform -> {
+            if (parentPlatform.isShareAllChannel()) {
+                parentPlatform.setChannelCount(allCount);
+            }
+        });
+        return platformPageInfo;
     }
 
     @Override

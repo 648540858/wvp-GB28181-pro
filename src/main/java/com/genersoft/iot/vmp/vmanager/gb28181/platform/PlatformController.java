@@ -84,14 +84,19 @@ public class PlatformController {
      * @param count 每页条数
      * @return
      */
-    @GetMapping("/query/{count}/{page}")
+    @GetMapping("/list/{count}/{page}")
     @Operation(summary = "分页查询级联平台", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页条数", required = true)
-    public PageInfo<ParentPlatform> platforms(@PathVariable int page, @PathVariable int count) {
+    public PageInfo<ParentPlatform> platforms(int page, int count,
+                                              @RequestParam(required = false)String query,
+                                              @RequestParam(required = false)Boolean online) {
 
-        PageInfo<ParentPlatform> parentPlatformPageInfo = platformService.queryParentPlatformList(page, count);
-        if (parentPlatformPageInfo.getList().size() > 0) {
+        if (ObjectUtils.isEmpty(query)) {
+            query = null;
+        }
+        PageInfo<ParentPlatform> parentPlatformPageInfo = platformService.queryParentPlatformList(page, count, query, online);
+        if (!parentPlatformPageInfo.getList().isEmpty()) {
             for (ParentPlatform platform : parentPlatformPageInfo.getList()) {
                 platform.setMobilePositionSubscribe(subscribeHolder.getMobilePositionSubscribe(platform.getId()) != null);
                 platform.setCatalogSubscribe(subscribeHolder.getCatalogSubscribe(platform.getId()) != null);

@@ -655,4 +655,10 @@ public interface CommonChannelMapper {
 
     @Select("SELECT common_gb_id FROM wvp_common_channel WHERE common_gb_id = #{commonGbChannelId}")
     CommonGbChannel getOne(@Param("commonGbChannelId") int commonGbChannelId);
+
+    @Select("<script> "+
+            "SELECT count(0) FROM wvp_common_channel" +
+            "</script>")
+    int getAllCount();
+
 }

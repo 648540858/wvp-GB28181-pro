@@ -63,16 +63,17 @@ public interface ParentPlatformMapper {
     int delParentPlatform(ParentPlatform parentPlatform);
 
     @Select("<script>" +
-            "SELECT * " +
-            "<if test='shareAllChannel == false'> " +
+            "SELECT *,  " +
             "(SELECT count(0) as channel_count FROM wvp_common_channel_platform wccp WHERE wccp.platform_id = pp.id) " +
+            "FROM wvp_platform pp where 1=1 " +
+            "<if test='query != null'> " +
+            "and (pp.name LIKE '%${query}%' OR de.server_gb_id LIKE '%${query}%' OR de.device_gb_id LIKE '%${query}%')" +
             "</if>" +
-            "<if test='shareAllChannel == true'> " +
-            "(SELECT count(0) as channel_count FROM wvp_common_channel ) " +
+            "<if test='online != null'> " +
+            "and status = #{online}" +
             "</if>" +
-            "FROM wvp_platform pp " +
             "</script>")
-    List<ParentPlatform> getParentPlatformList();
+    List<ParentPlatform> getParentPlatformList(@Param("query") String query, @Param("online") Boolean online);
 
     @Select("SELECT * FROM wvp_platform WHERE enable=#{enable} ")
     List<ParentPlatform> getEnableParentPlatformList(boolean enable);

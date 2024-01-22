@@ -21,7 +21,7 @@ public interface IPlatformService {
      * @param count
      * @return
      */
-    PageInfo<ParentPlatform> queryParentPlatformList(int page, int count);
+    PageInfo<ParentPlatform> queryParentPlatformList(int page, int count, String query, Boolean online);
 
     /**
      * 添加级联平台

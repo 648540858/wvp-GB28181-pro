@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.conf.security.SecurityUtils;
 import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMediaService;
@@ -284,5 +285,27 @@ public class StreamPushController {
         if (!streamPushService.remove(param.getId())) {
             throw new ControllerException(ErrorCode.ERROR100);
         }
+    }
+
+    /**
+     * 根据推流信息获取一个可能的流地址，方便与设备对接
+     */
+    @PostMapping(value = "/predict")
+    @ResponseBody
+    @Operation(summary = "根据推流信息获取一个可能的流地址，方便与设备对接", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    public StreamContent predictStream(@RequestBody StreamPush param){
+        if (ObjectUtils.isEmpty(param.getApp()) && ObjectUtils.isEmpty(param.getStream())) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "app或stream不可为空");
+        }
+        MediaServerItem mediaServerItem = null;
+        if (ObjectUtils.isEmpty(param.getMediaServerId())) {
+            mediaServerItem = mediaServerService.getMediaServerForMinimumLoad(null);
+        }else {
+            mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
+        }
+        StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(mediaServerItem, param.getApp(), param.getStream(), null, null);
+        // 获取登录的用户，添加推流SIGN
+
+
     }
 }

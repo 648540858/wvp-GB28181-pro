@@ -746,7 +746,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 .append("<Response>\r\n")
                 .append("<CmdType>RecordInfo</CmdType>\r\n")
                 .append("<SN>" +recordInfo.getSn() + "</SN>\r\n")
-                .append("<DeviceID>" + deviceChannel.getChannelId() + "</DeviceID>\r\n")
+                .append("<DeviceID>" + commonGbChannel.getCommonGbDeviceID() + "</DeviceID>\r\n")
                 .append("<SumNum>" + recordInfo.getSumNum() + "</SumNum>\r\n");
         if (recordInfo.getRecordList() == null ) {
             recordXml.append("<RecordList Num=\"0\">\r\n");

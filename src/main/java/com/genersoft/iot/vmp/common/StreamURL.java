@@ -23,6 +23,9 @@ public class StreamURL implements Serializable,Cloneable {
     @Schema(description = "拼接后的地址")
     private String url;
 
+    @Schema(description = "鉴权的信息")
+    private String sign;
+
     public StreamURL() {
     }
 
@@ -63,6 +66,14 @@ public class StreamURL implements Serializable,Cloneable {
 
     public void setFile(String file) {
         this.file = file;
+    }
+
+    public String getSign() {
+        return sign;
+    }
+
+    public void setSign(String sign) {
+        this.sign = sign;
     }
 
     public String getUrl() {

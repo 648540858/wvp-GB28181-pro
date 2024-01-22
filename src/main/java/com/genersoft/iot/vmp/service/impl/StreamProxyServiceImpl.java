@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.service.impl;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.CommonGbChannel;
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.GeneralCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
@@ -50,6 +51,7 @@ import java.util.*;
  * 视频代理业务
  */
 @Service
+@DS("master")
 public class StreamProxyServiceImpl implements IStreamProxyService {
 
     private final static Logger logger = LoggerFactory.getLogger(StreamProxyServiceImpl.class);

@@ -2,6 +2,9 @@ package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.common.*;
 import com.genersoft.iot.vmp.conf.CivilCodeFileConf;
+import com.baomidou.dynamic.datasource.annotation.DS;
+import com.genersoft.iot.vmp.common.InviteInfo;
+import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Gb28181CodeType;
@@ -32,6 +35,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @author lin
  */
 @Service
+@DS("master")
 public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     private final static Logger logger = LoggerFactory.getLogger(DeviceChannelServiceImpl.class);

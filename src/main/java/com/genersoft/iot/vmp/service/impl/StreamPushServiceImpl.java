@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.alibaba.fastjson2.TypeReference;
 import com.genersoft.iot.vmp.common.BatchLimit;
 import com.genersoft.iot.vmp.common.CommonGbChannel;
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
@@ -36,6 +37,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
+@DS("master")
 public class StreamPushServiceImpl implements IStreamPushService {
 
     private final static Logger logger = LoggerFactory.getLogger(StreamPushServiceImpl.class);

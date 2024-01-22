@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
@@ -43,6 +44,7 @@ import java.util.*;
  * @author lin
  */
 @Service
+@DS("master")
 public class PlatformServiceImpl implements IPlatformService {
 
     private final static String REGISTER_KEY_PREFIX = "platform_register_";

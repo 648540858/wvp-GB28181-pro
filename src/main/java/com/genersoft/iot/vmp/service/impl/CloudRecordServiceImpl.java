@@ -142,7 +142,8 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     }
 
     @Override
-    public JSONArray queryTask(String app, String stream, String callId, String taskId, String mediaServerId, Boolean isEnd) {
+    public JSONArray queryTask(String app, String stream, String callId, String taskId, String mediaServerId,
+                               Boolean isEnd, String scheme) {
         MediaServerItem mediaServerItem = null;
         if (mediaServerId == null) {
             mediaServerItem = mediaServerService.getDefaultMediaServer();
@@ -152,7 +153,8 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         if (mediaServerItem == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的流媒体");
         }
-        JSONObject result =  assistRESTfulUtils.queryTaskList(mediaServerItem, app, stream, callId, taskId, isEnd);
+
+        JSONObject result =  assistRESTfulUtils.queryTaskList(mediaServerItem, app, stream, callId, taskId, isEnd, scheme);
         if (result == null || result.getInteger("code") != 0) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), result == null ? "查询任务列表失败" : result.getString("msg"));
         }

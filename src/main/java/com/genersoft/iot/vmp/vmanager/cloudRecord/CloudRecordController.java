@@ -174,7 +174,7 @@ public class CloudRecordController {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的流媒体");
         }else {
             if (remoteHost == null) {
-                remoteHost = request.getScheme() + "://" + request.getLocalAddr() + ":" + mediaServerItem.getRecordAssistPort();
+                remoteHost = request.getScheme() + "://" + mediaServerItem.getIp() + ":" + mediaServerItem.getRecordAssistPort();
             }
         }
         return cloudRecordService.addTask(app, stream, mediaServerItem, startTime, endTime, callId, remoteHost, mediaServerId != null);
@@ -187,6 +187,7 @@ public class CloudRecordController {
     @Parameter(name = "mediaServerId", description = "流媒体ID", required = false)
     @Parameter(name = "isEnd", description = "是否结束", required = false)
     public JSONArray queryTaskList(
+            HttpServletRequest request,
             @RequestParam(required = false) String app,
             @RequestParam(required = false) String stream,
             @RequestParam(required = false) String callId,
@@ -197,7 +198,8 @@ public class CloudRecordController {
        if (ObjectUtils.isEmpty(mediaServerId)) {
            mediaServerId = null;
        }
-       return cloudRecordService.queryTask(app, stream, callId, taskId, mediaServerId, isEnd);
+
+       return cloudRecordService.queryTask(app, stream, callId, taskId, mediaServerId, isEnd, request.getScheme());
     }
 
     @ResponseBody

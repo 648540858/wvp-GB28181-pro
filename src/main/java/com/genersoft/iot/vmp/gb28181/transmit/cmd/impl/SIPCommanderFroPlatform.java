@@ -90,48 +90,48 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     @Override
     public void register(ParentPlatform parentPlatform, @Nullable SipTransactionInfo sipTransactionInfo, @Nullable WWWAuthenticateHeader www,
                             SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent, boolean isRegister) throws SipException, InvalidArgumentException, ParseException {
-            Request request;
+        Request request;
 
-            CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
-            String fromTag = SipUtils.getNewFromTag();
-            String toTag = null;
-            if (sipTransactionInfo != null ) {
-                if (sipTransactionInfo.getCallId() != null) {
-                    callIdHeader.setCallId(sipTransactionInfo.getCallId());
-                }
-                if (sipTransactionInfo.getFromTag() != null) {
-                    fromTag = sipTransactionInfo.getFromTag();
-                }
-                if (sipTransactionInfo.getToTag() != null) {
-                    toTag = sipTransactionInfo.getToTag();
-                }
+        CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
+        String fromTag = SipUtils.getNewFromTag();
+        String toTag = null;
+        if (sipTransactionInfo != null ) {
+            if (sipTransactionInfo.getCallId() != null) {
+                callIdHeader.setCallId(sipTransactionInfo.getCallId());
             }
-
-            if (www == null ) {
-                request = headerProviderPlatformProvider.createRegisterRequest(parentPlatform,
-                        redisCatchStorage.getCSEQ(), fromTag,
-                        toTag, callIdHeader, isRegister? parentPlatform.getExpires() : 0);
-                // 将 callid 写入缓存， 等注册成功可以更新状态
-                String callIdFromHeader = callIdHeader.getCallId();
-                redisCatchStorage.updatePlatformRegisterInfo(callIdFromHeader, PlatformRegisterInfo.getInstance(parentPlatform.getServerGBId(), isRegister));
-
-                sipSubscribe.addErrorSubscribe(callIdHeader.getCallId(), (event)->{
-                    if (event != null) {
-                        logger.info("向上级平台 [ {} ] 注册发生错误： {} ",
-                                parentPlatform.getServerGBId(),
-                                event.msg);
-                    }
-                    redisCatchStorage.delPlatformRegisterInfo(callIdFromHeader);
-                    if (errorEvent != null ) {
-                        errorEvent.response(event);
-                    }
-                });
-
-            }else {
-                request = headerProviderPlatformProvider.createRegisterRequest(parentPlatform, fromTag, toTag, www, callIdHeader, isRegister? parentPlatform.getExpires() : 0);
+            if (sipTransactionInfo.getFromTag() != null) {
+                fromTag = sipTransactionInfo.getFromTag();
             }
+            if (sipTransactionInfo.getToTag() != null) {
+                toTag = sipTransactionInfo.getToTag();
+            }
+        }
 
-            sipSender.transmitRequest(parentPlatform.getDeviceIp(), request, null, okEvent);
+        if (www == null ) {
+            request = headerProviderPlatformProvider.createRegisterRequest(parentPlatform,
+                    redisCatchStorage.getCSEQ(), fromTag,
+                    toTag, callIdHeader, isRegister? parentPlatform.getExpires() : 0);
+            // 将 callid 写入缓存， 等注册成功可以更新状态
+            String callIdFromHeader = callIdHeader.getCallId();
+            redisCatchStorage.updatePlatformRegisterInfo(callIdFromHeader, PlatformRegisterInfo.getInstance(parentPlatform.getServerGBId(), isRegister));
+
+            sipSubscribe.addErrorSubscribe(callIdHeader.getCallId(), (event)->{
+                if (event != null) {
+                    logger.info("向上级平台 [ {} ] 注册发生错误： {} ",
+                            parentPlatform.getServerGBId(),
+                            event.msg);
+                }
+                redisCatchStorage.delPlatformRegisterInfo(callIdFromHeader);
+                if (errorEvent != null ) {
+                    errorEvent.response(event);
+                }
+            });
+
+        }else {
+            request = headerProviderPlatformProvider.createRegisterRequest(parentPlatform, fromTag, toTag, www, callIdHeader, isRegister? parentPlatform.getExpires() : 0);
+        }
+
+        sipSender.transmitRequest(parentPlatform.getDeviceIp(), request, null, okEvent);
     }
 
     @Override
@@ -677,7 +677,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                                              SubscribeInfo subscribeInfo, Integer index) throws InvalidArgumentException, ParseException, NoSuchFieldException, SipException, IllegalAccessException {
         if (parentPlatform == null
                 || channelList == null
-                || channelList.size() == 0
+                || channelList.isEmpty()
                 || subscribeInfo == null) {
             logger.warn("[缺少必要参数]");
             return;

@@ -164,6 +164,12 @@ alter table wvp_stream_push
 alter table wvp_stream_proxy
     drop column src_url;
 
+alter table wvp_platform
+    drop column administrative_division;
+
+alter table wvp_platform
+    drop column catalog_id;
+
 
 
 

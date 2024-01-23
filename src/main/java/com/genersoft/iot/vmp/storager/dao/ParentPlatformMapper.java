@@ -19,11 +19,11 @@ public interface ParentPlatformMapper {
     @Insert("INSERT INTO wvp_platform (enable, name, server_gb_id, server_gb_domain, server_ip, server_port,device_gb_id,device_ip,"+
             "device_port,username,password,expires,keep_timeout,transport,character_set,ptz,rtcp,as_message_channel,auto_push_channel," +
             "share_all_channel,share_group,share_region,"+
-            "status,start_offline_push,catalog_id,administrative_division,catalog_group,create_time,update_time) " +
+            "status,start_offline_push,catalog_group,create_time,update_time) " +
             "            VALUES (#{enable}, #{name}, #{serverGBId}, #{serverGBDomain}, #{serverIP}, #{serverPort}, #{deviceGBId}, #{deviceIp}, " +
             "            #{devicePort}, #{username}, #{password}, #{expires}, #{keepTimeout}, #{transport}, #{characterSet}, #{ptz}, " +
             "            #{rtcp}, #{asMessageChannel}, #{autoPushChannel}, #{shareAllChannel}, #{shareGroup}, #{shareRegion}, " +
-            "            #{status},  #{startOfflinePush}, #{catalogId}, #{administrativeDivision}, #{catalogGroup}, #{createTime}, #{updateTime})")
+            "            #{status},  #{startOfflinePush}, #{catalogGroup}, #{createTime}, #{updateTime})")
     int addParentPlatform(ParentPlatform parentPlatform);
 
     @Update("UPDATE wvp_platform " +
@@ -52,10 +52,8 @@ public interface ParentPlatformMapper {
             "status=#{status}, " +
             "start_offline_push=#{startOfflinePush}, " +
             "catalog_group=#{catalogGroup}, " +
-            "administrative_division=#{administrativeDivision}, " +
             "create_time=#{createTime}, " +
-            "update_time=#{updateTime}, " +
-            "catalog_id=#{catalogId} " +
+            "update_time=#{updateTime} " +
             "WHERE id=#{id}")
     int updateParentPlatform(ParentPlatform parentPlatform);
 
@@ -67,13 +65,18 @@ public interface ParentPlatformMapper {
             "(SELECT count(0) as channel_count FROM wvp_common_channel_platform wccp WHERE wccp.platform_id = pp.id) " +
             "FROM wvp_platform pp where 1=1 " +
             "<if test='query != null'> " +
-            "and (pp.name LIKE '%${query}%' OR de.server_gb_id LIKE '%${query}%' OR de.device_gb_id LIKE '%${query}%')" +
+            "and (pp.name LIKE '%${query}%' OR pp.server_gb_id LIKE '%${query}%' OR pp.device_gb_id LIKE '%${query}%')" +
             "</if>" +
             "<if test='online != null'> " +
             "and status = #{online}" +
             "</if>" +
+            "<if test='enable != null'> " +
+            "and enable = #{enable}" +
+            "</if>" +
             "</script>")
-    List<ParentPlatform> getParentPlatformList(@Param("query") String query, @Param("online") Boolean online);
+    List<ParentPlatform> getParentPlatformList(@Param("query") String query,
+                                               @Param("online") Boolean online,
+                                               @Param("enable") Boolean enable);
 
     @Select("SELECT * FROM wvp_platform WHERE enable=#{enable} ")
     List<ParentPlatform> getEnableParentPlatformList(boolean enable);

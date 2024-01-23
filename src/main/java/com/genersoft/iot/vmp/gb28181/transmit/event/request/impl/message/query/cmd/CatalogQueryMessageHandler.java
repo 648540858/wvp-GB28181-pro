@@ -101,7 +101,6 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
         deviceChannel.setName(platform.getName());
         deviceChannel.setManufacture("wvp-pro");
         deviceChannel.setOwner("wvp-pro");
-        deviceChannel.setCivilCode(platform.getAdministrativeDivision());
         deviceChannel.setAddress("wvp-pro");
         deviceChannel.setRegisterWay(0);
         deviceChannel.setSecrecy("0");

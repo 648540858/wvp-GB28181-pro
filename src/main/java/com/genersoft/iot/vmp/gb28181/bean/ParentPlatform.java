@@ -130,12 +130,6 @@ public class ParentPlatform {
     private int channelCount;
 
     /**
-     * 默认目录Id,自动添加的通道多放在这个目录下
-     */
-    @Schema(description = "默认目录Id,自动添加的通道多放在这个目录下")
-    private String catalogId;
-
-    /**
      * 已被订阅目录信息
      */
     @Schema(description = "已被订阅目录信息")
@@ -166,12 +160,6 @@ public class ParentPlatform {
     private int catalogGroup;
 
     /**
-     * 行政区划
-     */
-    @Schema(description = "行政区划")
-    private String administrativeDivision;
-
-    /**
      * 更新时间
      */
     @Schema(description = "更新时间")
@@ -197,6 +185,9 @@ public class ParentPlatform {
 
     @Schema(description = "是否共享区域")
     private boolean shareRegion;
+
+    @Schema(description = "推送系统目录")
+    private boolean systemCatalog;
 
     public Integer getId() {
         return id;
@@ -358,14 +349,6 @@ public class ParentPlatform {
         this.channelCount = channelCount;
     }
 
-    public String getCatalogId() {
-        return catalogId;
-    }
-
-    public void setCatalogId(String catalogId) {
-        this.catalogId = catalogId;
-    }
-
     public boolean isCatalogSubscribe() {
         return catalogSubscribe;
     }
@@ -404,14 +387,6 @@ public class ParentPlatform {
 
     public void setCatalogGroup(int catalogGroup) {
         this.catalogGroup = catalogGroup;
-    }
-
-    public String getAdministrativeDivision() {
-        return administrativeDivision;
-    }
-
-    public void setAdministrativeDivision(String administrativeDivision) {
-        this.administrativeDivision = administrativeDivision;
     }
 
     public String getUpdateTime() {

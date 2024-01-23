@@ -95,9 +95,9 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public PageInfo<ParentPlatform> queryParentPlatformList(int page, int count, String query, Boolean online) {
+    public PageInfo<ParentPlatform> queryParentPlatformList(int page, int count, String query, Boolean online, Boolean enable) {
         PageHelper.startPage(page, count);
-        List<ParentPlatform> all = platformMapper.getParentPlatformList(query, online);
+        List<ParentPlatform> all = platformMapper.getParentPlatformList(query, online, enable);
         PageInfo<ParentPlatform> platformPageInfo = new PageInfo<>(all);
         int allCount = commonChannelMapper.getAllCount();
         platformPageInfo.getList().stream().forEach(parentPlatform -> {
@@ -115,11 +115,6 @@ public class PlatformServiceImpl implements IPlatformService {
             // 每次发送目录的数量默认为1
             parentPlatform.setCatalogGroup(1);
         }
-        if (parentPlatform.getAdministrativeDivision() == null) {
-            // 行政区划默认去编号的前6位
-            parentPlatform.setAdministrativeDivision(parentPlatform.getServerGBId().substring(0,6));
-        }
-        parentPlatform.setCatalogId(parentPlatform.getDeviceGBId());
         int result = platformMapper.addParentPlatform(parentPlatform);
         // 添加缓存
         ParentPlatformCatch parentPlatformCatch = new ParentPlatformCatch();
@@ -171,10 +166,6 @@ public class PlatformServiceImpl implements IPlatformService {
         if (parentPlatform.getCatalogGroup() == 0) {
             parentPlatform.setCatalogGroup(1);
         }
-        if (parentPlatform.getAdministrativeDivision() == null) {
-            parentPlatform.setAdministrativeDivision(parentPlatform.getAdministrativeDivision());
-        }
-
         platformMapper.updateParentPlatform(parentPlatform);
         // 更新redis
         redisCatchStorage.delPlatformCatchInfo(parentPlatformOld.getServerGBId());
@@ -478,7 +469,7 @@ public class PlatformServiceImpl implements IPlatformService {
                 redisCatchStorage.delPlatformRegister(parentPlatform.getServerGBId());
             }
         }
-        return true;
+        return platformMapper.delParentPlatform(parentPlatform) > 0;
     }
 
     @Override

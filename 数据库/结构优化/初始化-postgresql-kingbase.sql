@@ -177,21 +177,12 @@ create table wvp_platform (
                               rtcp bool default false,
                               status bool default false,
                               start_offline_push bool default false,
-                              administrative_division character varying(50),
                               catalog_group integer,
                               create_time character varying(50),
                               update_time character varying(50),
                               as_message_channel bool default false,
                               auto_push_channel bool default false,
                               constraint uk_platform_unique_server_gb_id unique (server_gb_id)
-);
-
-create table wvp_platform_gb_channel (
-                                         id serial primary key ,
-                                         platform_id character varying(50),
-                                         catalog_id character varying(50),
-                                         device_channel_id integer,
-                                         constraint uk_platform_gb_channel_platform_id_catalog_id_device_channel_id unique (platform_id, catalog_id, device_channel_id)
 );
 
 create table wvp_stream_proxy (

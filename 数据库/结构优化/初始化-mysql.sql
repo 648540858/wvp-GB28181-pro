@@ -186,44 +186,16 @@ create table wvp_platform (
                               keep_timeout character varying(50),
                               transport character varying(50),
                               character_set character varying(50),
-                              catalog_id character varying(50),
                               ptz bool default false,
                               rtcp bool default false,
                               status bool default false,
                               start_offline_push bool default false,
-                              administrative_division character varying(50),
                               catalog_group integer,
                               create_time character varying(50),
                               update_time character varying(50),
                               as_message_channel bool default false,
                               auto_push_channel bool default false,
                               constraint uk_platform_unique_server_gb_id unique (server_gb_id)
-);
-
-create table wvp_platform_catalog (
-                                      id character varying(50),
-                                      platform_id character varying(50),
-                                      name character varying(255),
-                                      parent_id character varying(50),
-                                      civil_code character varying(50),
-                                      business_group_id character varying(50),
-                                      constraint uk_platform_catalog_id_platform_id unique (id, platform_id)
-);
-
-create table wvp_platform_gb_channel (
-                                         id serial primary key ,
-                                         platform_id character varying(50),
-                                         catalog_id character varying(50),
-                                         device_channel_id integer,
-                                         constraint uk_platform_gb_channel_platform_id_catalog_id_device_channel_id unique (platform_id, catalog_id, device_channel_id)
-);
-
-create table wvp_platform_gb_stream (
-                                        id serial primary key,
-                                        platform_id character varying(50),
-                                        catalog_id character varying(50),
-                                        gb_stream_id integer,
-                                        constraint uk_platform_gb_stream_platform_id_catalog_id_gb_stream_id unique (platform_id, catalog_id, gb_stream_id)
 );
 
 create table wvp_stream_proxy (
@@ -302,15 +274,6 @@ create table wvp_user_role (
                                authority character varying(50),
                                create_time character varying(50),
                                update_time character varying(50)
-);
-create table wvp_resources_tree (
-                                    id serial primary key ,
-                                    is_catalog bool default true,
-                                    device_channel_id integer ,
-                                    gb_stream_id integer,
-                                    name character varying(255),
-                                    parentId integer,
-                                    path character varying(255)
 );
 
 

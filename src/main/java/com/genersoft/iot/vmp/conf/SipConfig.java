@@ -28,6 +28,43 @@ public class SipConfig {
 
 	private boolean alarm;
 
+	private String name = "WVP视频平台";
+
+	/**
+	 * 平台厂商
+	 */
+	private String manufacturer = "WVP视频平台";
+
+	/**
+	 * 平台型号
+	 */
+	private String model;
+
+	/**
+	 * 平台归属
+	 */
+	private String owner;
+
+	/**
+	 * 平台行政区划
+	 */
+	private String civilCode;
+
+	/**
+	 * 平台安装地址
+	 */
+	private String address;
+
+	/**
+	 * 注册方式
+	 */
+	private int registerWay = 1;
+
+	/**
+	 * 是否保密
+	 */
+	private int secrecy = 0;
+
 	public void setIp(String ip) {
 		this.ip = ip;
 	}
@@ -106,5 +143,69 @@ public class SipConfig {
 
 	public void setShowIp(String showIp) {
 		this.showIp = showIp;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getManufacturer() {
+		return manufacturer;
+	}
+
+	public void setManufacturer(String manufacturer) {
+		this.manufacturer = manufacturer;
+	}
+
+	public String getModel() {
+		return model;
+	}
+
+	public void setModel(String model) {
+		this.model = model;
+	}
+
+	public String getOwner() {
+		return owner;
+	}
+
+	public void setOwner(String owner) {
+		this.owner = owner;
+	}
+
+	public String getCivilCode() {
+		return civilCode;
+	}
+
+	public void setCivilCode(String civilCode) {
+		this.civilCode = civilCode;
+	}
+
+	public String getAddress() {
+		return address;
+	}
+
+	public void setAddress(String address) {
+		this.address = address;
+	}
+
+	public int getRegisterWay() {
+		return registerWay;
+	}
+
+	public void setRegisterWay(int registerWay) {
+		this.registerWay = registerWay;
+	}
+
+	public int getSecrecy() {
+		return secrecy;
+	}
+
+	public void setSecrecy(int secrecy) {
+		this.secrecy = secrecy;
 	}
 }

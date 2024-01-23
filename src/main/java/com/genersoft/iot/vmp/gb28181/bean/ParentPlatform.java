@@ -124,9 +124,9 @@ public class ParentPlatform {
     private boolean status;
 
     /**
-     * 在线状态
+     * 共享的通道数量
      */
-    @Schema(description = "在线状态")
+    @Schema(description = "共享的通道数量")
     private int channelCount;
 
     /**

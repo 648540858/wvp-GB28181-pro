@@ -2,13 +2,17 @@ package com.genersoft.iot.vmp.vmanager.channel;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.service.ICommonGbChannelService;
 import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.vmanager.bean.*;
+import com.genersoft.iot.vmp.vmanager.channel.bean.ShareCommonChannelListResult;
+import com.genersoft.iot.vmp.vmanager.channel.bean.ShareCommonGbChannelParam;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
@@ -40,7 +44,7 @@ public class CommonChannelController {
     private UserSetting userSetting;
 
 
-    @Operation(summary = "更新通道信息")
+    @Operation(summary = "更新通道信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "CommonGbChannel", description = "commonGbChannel", required = true)
     @ResponseBody
     @PostMapping("/update")
@@ -52,7 +56,7 @@ public class CommonChannelController {
     /**
      * TODO 存疑 可以单独创建一个controller
      */
-    @Operation(summary = "获取行业编码列表")
+    @Operation(summary = "获取行业编码列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @ResponseBody
     @GetMapping("/industry/list")
     public List<IndustryCodeType> getIndustryCodeList(){
@@ -62,7 +66,7 @@ public class CommonChannelController {
     /**
      * TODO 存疑 可以单独创建一个controller
      */
-    @Operation(summary = "获取编码列表")
+    @Operation(summary = "获取编码列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @ResponseBody
     @GetMapping("/type/list")
     public List<DeviceType> getDeviceTypeList(){
@@ -72,14 +76,14 @@ public class CommonChannelController {
     /**
      * TODO 存疑 可以单独创建一个controller
      */
-    @Operation(summary = "获取编码列表")
+    @Operation(summary = "获取编码列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @ResponseBody
     @GetMapping("/network/identification/list")
     public List<NetworkIdentificationType> getNetworkIdentificationTypeList(){
         return commonGbChannelService.getNetworkIdentificationTypeList();
     }
 
-    @Operation(summary = "查询分组或区域下的通道")
+    @Operation(summary = "查询分组或区域下的通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "groupDeviceId", description = "分组的编号", required = false)
     @Parameter(name = "regionDeviceId", description = "区域的编号", required = false)
     @Parameter(name = "query", description = "要搜索的内容", required = false)
@@ -123,7 +127,7 @@ public class CommonChannelController {
                 inGroup, inRegion, type, ptzType, online);
     }
 
-    @Operation(summary = "为区域添加分组")
+    @Operation(summary = "为区域添加分组", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @ResponseBody
     @PostMapping("/region/update")
     public void updateChannelToRegion(@RequestBody UpdateCommonChannelToRegion params){
@@ -132,7 +136,7 @@ public class CommonChannelController {
         commonGbChannelService.updateChannelToRegion(params);
     }
 
-    @Operation(summary = "从区域中移除通道")
+    @Operation(summary = "从区域中移除通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @ResponseBody
     @PostMapping("/region/remove")
     public void removeFromRegion(@RequestBody UpdateCommonChannelToRegion params){
@@ -140,7 +144,7 @@ public class CommonChannelController {
         commonGbChannelService.removeFromRegion(params);
     }
 
-    @Operation(summary = "为通道添加分组")
+    @Operation(summary = "为通道添加分组", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @ResponseBody
     @PostMapping("/group/update")
     public void updateChannelToGroup(@RequestBody UpdateCommonChannelToGroup params){
@@ -149,7 +153,7 @@ public class CommonChannelController {
         commonGbChannelService.updateChannelToGroup(params);
     }
 
-    @Operation(summary = "从分组中移除通道")
+    @Operation(summary = "从分组中移除通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @ResponseBody
     @PostMapping("/group/remove")
     public void removeFromGroup(@RequestBody UpdateCommonChannelToGroup params){
@@ -158,7 +162,7 @@ public class CommonChannelController {
     }
 
 
-    @Operation(summary = "播放通道")
+    @Operation(summary = "播放通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "channelDeviceId", description = "通道国标编号", required = true)
     @ResponseBody
     @GetMapping("/play")
@@ -213,7 +217,7 @@ public class CommonChannelController {
     }
 
 
-    @Operation(summary = "停止播放通道")
+    @Operation(summary = "停止播放通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "channelDeviceId", description = "通道国标编号", required = true)
     @GetMapping("/stopPlay")
     public void playStop(String channelDeviceId) {
@@ -246,8 +250,36 @@ public class CommonChannelController {
     }
 
     // 将通道共享到上级平台
+    @Operation(summary = "添加通道共享", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "param", description = "共享通道参数", required = true)
+    @PostMapping("/share/add")
+    public void addShareChannel(@RequestBody ShareCommonGbChannelParam param) {
+        commonGbChannelService.addShareChannel(param);
+    }
 
     // 从上级平台共享中移除通道
+    @Operation(summary = "移除通道共享", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "param", description = "共享通道参数", required = true)
+    @DeleteMapping("/share/remove")
+    public void removeShareChannel(@RequestBody ShareCommonGbChannelParam param) {
+        commonGbChannelService.removeShareChannel(param);
+    }
 
-
+    @Operation(summary = "通道共享列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "platformId", description = "平台Id", required = true)
+    @GetMapping("/share/list")
+    public PageInfo<ShareCommonChannelListResult> getShareChannel(@RequestParam(required = true) Integer platformId,
+                                                              @RequestParam(required = true) Integer page,
+                                                              @RequestParam(required = true) Integer count,
+                                                              @RequestParam(required = false) String query,
+                                                              @RequestParam(required = false) String type,
+                                                              @RequestParam(required = false) Boolean online) {
+        if (ObjectUtils.isEmpty(query)) {
+            query = null;
+        }
+        if (ObjectUtils.isEmpty(type)) {
+            type = null;
+        }
+        return commonGbChannelService.getShareChannelList(platformId, page, count, query, type, online);
+    }
 }

@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.service.IPlatformChannelService;
+import com.genersoft.iot.vmp.service.bean.Group;
 import com.genersoft.iot.vmp.storager.dao.*;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import org.slf4j.Logger;
@@ -18,8 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lin
@@ -35,6 +35,12 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
 
     @Autowired
     private CommonChannelMapper commonGbChannelMapper;
+
+    @Autowired
+    private RegionMapper regionMapper;
+
+    @Autowired
+    private GroupMapper groupMapper;
 
     @Autowired
     TransactionDefinition transactionDefinition;
@@ -131,24 +137,70 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     public List<CommonGbChannel> queryChannelList(ParentPlatform platform) {
         List<CommonGbChannel> result = new ArrayList<>();
         if (platform.isShareAllChannel()) {
+            // 获取所有地区
+            List<CommonGbChannel> allRegionList = regionMapper.queryAllForCommonChannel();
+            if (!allRegionList.isEmpty()) {
+                result.addAll(allRegionList);
+            }
+            // 获取所有分组
+            List<CommonGbChannel> allGroupList = groupMapper.queryAllForCommonChannelByDeviceIdSet(null);
+            if (!allGroupList.isEmpty()) {
+                result.addAll(allGroupList);
+            }
             // 获取所有通道
             List<CommonGbChannel> allChannelList = commonGbChannelMapper.getAll();
             if (!allChannelList.isEmpty()) {
                 result.addAll(allChannelList);
-                // 获取所有分组
-
-                // 获取所有地区
             }
         }else {
+            List<CommonGbChannel> channelList = commonGbChannelMapper.getShareChannelInPLatform(platform.getId());
+            if (channelList.isEmpty()) {
+                return result;
+            }
             // 查询所有关联了的国标通道
             if (platform.isShareGroup()) {
-                // 获取相关分组
+                Map<String, Group> allDependenceGroupMap = getAllDependenceGroup(channelList);
+                if (!allDependenceGroupMap.isEmpty()) {
+                    for (Group group : allDependenceGroupMap.values()) {
+                        result.add(CommonGbChannel.getInstance(group));
+                    }
+                }
             }
             if (platform.isShareRegion()) {
 
             }
+
+            result.addAll(channelList);
         }
         return result;
+    }
+
+    private Map<String, Group> getAllDependenceGroup(List<CommonGbChannel> commonGbChannelList) {
+        Map<String, Group> result = new HashMap<>();
+        // 查询这些ID对应的分组信息
+        List<Group> groupList = groupMapper.queryAllByDeviceIds(commonGbChannelList);
+        // 查询这些分组信息有可能涉及到的全部分组信息
+        Map<String, Group> allGroupMap = groupMapper.queryAllByTopId(groupList);
+        for (Group group : groupList) {
+            result.put(group.getCommonGroupDeviceId(), group);
+            List<Group> allParentGroup = new ArrayList<>();
+            getAllParentGroup(group, allGroupMap, allParentGroup);
+            if (!allParentGroup.isEmpty()) {
+                for (Group parentGroup : allParentGroup) {
+                    result.put(parentGroup.getCommonGroupDeviceId(), parentGroup);
+                }
+            }
+        }
+        return result;
+    }
+
+    private void getAllParentGroup(Group group, Map<String, Group> allGroupMap, List<Group> resultGroupList) {
+        if (Objects.equals(group.getCommonGroupDeviceId(), group.getCommonGroupTopId())) {
+            return;
+        }
+        Group parentGroup = allGroupMap.get(group.getCommonGroupDeviceId());
+        resultGroupList.add(parentGroup);
+        getAllParentGroup(parentGroup, allGroupMap, resultGroupList);
     }
 
     @Override

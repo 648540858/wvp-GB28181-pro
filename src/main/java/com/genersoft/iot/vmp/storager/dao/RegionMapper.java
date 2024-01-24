@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.storager.dao;
 
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.service.bean.Region;
 import org.apache.ibatis.annotations.*;
 
@@ -124,4 +125,13 @@ public interface RegionMapper {
     @MapKey("commonRegionDeviceId")
     @Select("select * from wvp_common_region")
     Map<String, Region> getAllForMap();
+
+
+    @Select("select " +
+            "common_region_id as common_gb_id, " +
+            "common_region_device_id as common_gb_device_id, " +
+            "common_region_name as common_gb_name, " +
+            "from wvp_common_region")
+    List<CommonGbChannel> queryAllForCommonChannel();
+
 }

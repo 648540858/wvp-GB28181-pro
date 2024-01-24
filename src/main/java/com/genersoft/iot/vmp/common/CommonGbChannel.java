@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
 import com.genersoft.iot.vmp.service.bean.CommonGbChannelType;
+import com.genersoft.iot.vmp.service.bean.Group;
 import com.genersoft.iot.vmp.service.impl.CommonGbChannelServiceImpl;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -324,6 +325,7 @@ public class CommonGbChannel {
      */
     @Schema(description = "创建时间")
     private String createTime;
+
 
     public int getCommonGbId() {
         return commonGbId;
@@ -793,5 +795,15 @@ public class CommonGbChannel {
 
     public void setCommonGbSVCSpaceSupportMode(Integer commonGbSVCSpaceSupportMode) {
         this.commonGbSVCSpaceSupportMode = commonGbSVCSpaceSupportMode;
+    }
+
+    public static CommonGbChannel getInstance(Group group) {
+        CommonGbChannel commonGbChannel = new CommonGbChannel();
+        commonGbChannel.setCommonGbDeviceID(group.getCommonGroupDeviceId());
+        commonGbChannel.setCommonGbName(group.getCommonGroupName());
+        commonGbChannel.setCommonGbParental(1);
+        commonGbChannel.setCommonGbParentID(group.getCommonGroupParentId());
+        commonGbChannel.setCommonGbBusinessGroupID(group.getCommonGroupTopId());
+        return commonGbChannel;
     }
 }

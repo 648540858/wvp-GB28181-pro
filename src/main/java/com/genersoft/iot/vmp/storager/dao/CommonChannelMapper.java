@@ -6,11 +6,14 @@ import com.genersoft.iot.vmp.service.bean.Group;
 import com.genersoft.iot.vmp.service.bean.Region;
 import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToGroup;
 import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToRegion;
+import com.genersoft.iot.vmp.vmanager.channel.bean.ShareCommonChannelListResult;
+import com.genersoft.iot.vmp.vmanager.channel.bean.ShareCommonGbChannelParam;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Mapper
 @Repository
@@ -665,4 +668,55 @@ public interface CommonChannelMapper {
             "</script>")
     int getAllCount();
 
+    @Select("<script> "+
+            " SELECT common_gb_id " +
+            " FROM wvp_common_channel wcc" +
+            "         left join wvp_common_channel_platform wccp " +
+            "           on wcc.common_gb_id = wccp.common_gb_channel_id " +
+            " where wcc.common_gb_id in " +
+            "<foreach collection='channelIdList'  item='item'  open='(' separator=',' close=')' >#{item}</foreach>" +
+            "  and wccp.platform_id = #{platformId}" +
+            "</script>")
+    List<Integer> getShareChannelInList(@Param("platformId") Integer platformId, @Param("channelIdList") Set<Integer> channelIdList);
+
+    @Insert(value = "<script>" +
+            "insert into wvp_common_channel_platform ( " +
+            "platform_id, " +
+            "common_gb_channel_id " +
+            ") values " +
+            "<foreach collection='channelIdList' index='index' item='item' separator=','> " +
+            "( " +
+            "#{platformId}, " +
+            "#{item} " +
+            ")" +
+            "</foreach>" +
+            "</script>")
+    void addShareChannel(ShareCommonGbChannelParam param);
+
+    @Delete("<script> "+
+            " delete from wvp_common_channel_platform where platform_id=#{platformId} and common_gb_channel_id in " +
+            "<foreach collection='channelIdList'  item='item'  open='(' separator=',' close=')' >#{item}</foreach>" +
+            "</script>")
+    void removeShareChannel(ShareCommonGbChannelParam param);
+
+
+    @Select("<script>" +
+            " select wcc.*, wccp.platform_id " +
+            " from wvp_common_channel wcc " +
+            "         left join wvp_common_channel_platform wccp on wcc.common_gb_id = wccp.common_gb_channel_id " +
+            " where (wccp.platform_id = #{platformId} || wccp.platform_id is null) " +
+            "<if test='query != null'> and ( wcc.common_gb_device_id LIKE concat('%',#{query},'%') or wcc.common_gb_name LIKE concat('%',#{query},'%') )  </if>" +
+            "<if test='type != null'> and wcc.type = #{type} </if>" +
+            "<if test='online != null'> and wcc.common_gb_status = #{online} </if>" +
+            "</script>" )
+    List<ShareCommonChannelListResult> getShareChannel(@Param("platformId") int platformId, @Param("query") String query,
+                                                       @Param("type") String type, @Param("online") Boolean online);
+
+    @Select("<script>" +
+            " select wcc.* " +
+            " from wvp_common_channel wcc " +
+            "         left join wvp_common_channel_platform wccp on wcc.common_gb_id = wccp.common_gb_channel_id " +
+            " where wccp.platform_id = #{id}" +
+            "</script>" )
+    List<CommonGbChannel> getShareChannelInPLatform(@Param("id") Integer id);
 }

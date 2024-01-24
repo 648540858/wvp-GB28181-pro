@@ -1,11 +1,13 @@
 package com.genersoft.iot.vmp.storager.dao;
 
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.service.bean.Group;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Mapper
 @Repository
@@ -168,4 +170,43 @@ public interface GroupMapper {
     @Select("select * from wvp_common_group")
     Map<String, Group> queryAllForMap();
 
+
+    @Select("<script>"  +
+            " select " +
+            " common_group_id as common_gb_id" +
+            " common_group_device_id as common_gb_device_id" +
+            " common_group_name as common_gb_name" +
+            " 1 as common_gb_parental" +
+            " common_group_parent_id as common_gb_parent_id" +
+            " common_group_top_id as common_gb_business_group_id" +
+            " from wvp_common_group" +
+            " where 1=1" +
+            "<if test='groupDeviceIdSet != null'> " +
+            " and common_group_device_id in " +
+            "<foreach collection='groupDeviceIdSet'  item='item'  open='(' separator=',' close=')' >#{item}</foreach>" +
+            "</if>" +
+            "</script>")
+    List<CommonGbChannel> queryAllForCommonChannelByDeviceIdSet(Set<String> groupDeviceIdSet);
+
+    @Select("<script>"  +
+            " select * " +
+            " from wvp_common_group" +
+            " where 1=1" +
+            "<if test='groupDeviceIdSet != null'> " +
+            " and common_group_device_id in " +
+            "<foreach collection='commonGbChannelList'  item='item'  open='(' separator=',' close=')' >#{item.commonGbBusinessGroupID}</foreach>" +
+            "</if>" +
+            "</script>")
+    List<Group> queryAllByDeviceIds(List<CommonGbChannel> commonGbChannelList);
+
+    @Select("<script>"  +
+            " select * " +
+            " from wvp_common_group" +
+            " where 1=1" +
+            "<if test='groupList != null'> " +
+            " and common_group_top_id in " +
+            "<foreach collection='groupList'  item='item'  open='(' separator=',' close=')' >#{item.commonGroupTopId}</foreach>" +
+            "</if>" +
+            "</script>")
+    Map<String, Group> queryAllByTopId(List<Group> groupList);
 }

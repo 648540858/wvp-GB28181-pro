@@ -1,15 +1,14 @@
 package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.Gb28181CodeType;
 import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToGroup;
 import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToRegion;
+import com.genersoft.iot.vmp.vmanager.channel.bean.ShareCommonChannelListResult;
+import com.genersoft.iot.vmp.vmanager.channel.bean.ShareCommonGbChannelParam;
 import com.github.pagehelper.PageInfo;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -67,4 +66,10 @@ public interface ICommonGbChannelService {
     void offlineForList(List<Integer> onlinePushers);
 
     void onlineForList(List<Integer> commonChannelIdList);
+
+    void addShareChannel(ShareCommonGbChannelParam param);
+
+    void removeShareChannel(ShareCommonGbChannelParam param);
+
+    PageInfo<ShareCommonChannelListResult> getShareChannelList(int platformId, int page, int count, String query, String type, Boolean online);
 }

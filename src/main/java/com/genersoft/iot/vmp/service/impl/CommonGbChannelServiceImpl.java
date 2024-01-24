@@ -14,6 +14,8 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToGroup;
 import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToRegion;
+import com.genersoft.iot.vmp.vmanager.channel.bean.ShareCommonChannelListResult;
+import com.genersoft.iot.vmp.vmanager.channel.bean.ShareCommonGbChannelParam;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.apache.commons.lang3.ObjectUtils;
@@ -84,6 +86,30 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
                      IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+    /**
+     * 发送catalog消息
+     */
+    private void sendCatalogEvent(List<CommonGbChannel> channelListForShare, ParentPlatform platform, CatalogEventType catalogEventType) {
+        // 获取开启了目录订阅且关联了这些通道的
+        SubscribeInfo catalogSubscribe = subscribeHolder.getCatalogSubscribe(platform.getId());
+        if (catalogSubscribe == null) {
+            catalogSubscribe = SipUtils.buildVirtuallyCatalogSubSubscribe(platform);
+        }
+        // 获取关联的通道
+        logger.warn("[发送Catalog事件] 类型： {}， 平台：{}， 通道个数： {}",
+                catalogEventType.getVal(), platform.getServerGBId(), channelListForShare.size());
+        try {
+            if (catalogEventType.equals(CatalogEventType.ADD) || catalogEventType.equals(CatalogEventType.UPDATE)) {
+                sipCommanderForPlatform.sendNotifyForCatalogAddOrUpdate(catalogEventType.getVal(), platform, channelListForShare, catalogSubscribe, 0);
+            }else {
+                sipCommanderForPlatform.sendNotifyForCatalogOther(catalogEventType.getVal(), platform, channelListForShare, catalogSubscribe, 0);
+            }
+        } catch (InvalidArgumentException | ParseException | NoSuchFieldException | SipException |
+                 IllegalAccessException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -397,5 +423,69 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         }
         commonGbChannelMapper.channelsOnlineFromList(commonGbChannelList);
         sendCatalogEvent(commonGbChannelList, CatalogEventType.ON);
+    }
+
+    @Override
+    public void addShareChannel(ShareCommonGbChannelParam param) {
+        if (param == null || ObjectUtils.isEmpty(param.getPlatformId()) || param.getChannelIdList().isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "参数不全");
+        }
+        ParentPlatform platform = platformService.query(param.getPlatformId());
+        if (platform == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台不存在");
+        }
+        if (platform.isShareAllChannel()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台已开启共享所有通道");
+        }
+        // 排除参数中已经共享的数据
+        List<Integer> channelList = commonGbChannelMapper.getShareChannelInList(
+               param.getPlatformId(), param.getChannelIdList());
+        if (!channelList.isEmpty()) {
+            for (Integer id : channelList) {
+                param.getChannelIdList().remove(id);
+            }
+        }
+        if (param.getChannelIdList().isEmpty()) {
+            logger.info("[添加共享通道] 移除已经共享的数据后，待加入数据为空");
+            return;
+        }
+        logger.info("[添加共享通道] 平台： {}， 共{}个通道", platform.getServerGBId(), param.getChannelIdList().size());
+        commonGbChannelMapper.addShareChannel(param);
+        // 发送ADD事件
+        List<CommonGbChannel> commonGbChannelList = commonGbChannelMapper.queryInIdList(new ArrayList<>(param.getChannelIdList()));
+        sendCatalogEvent(commonGbChannelList, platform, CatalogEventType.ADD);
+    }
+
+    @Override
+    public void removeShareChannel(ShareCommonGbChannelParam param) {
+        if (param == null || ObjectUtils.isEmpty(param.getPlatformId()) || param.getChannelIdList().isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "参数不全");
+        }
+        ParentPlatform platform = platformService.query(param.getPlatformId());
+        if (platform == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台不存在");
+        }
+        if (platform.isShareAllChannel()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台已开启共享所有通道");
+        }
+        // 获取参数中确实已经共享的数据
+        List<Integer> channelList = commonGbChannelMapper.getShareChannelInList(
+                param.getPlatformId(), param.getChannelIdList());
+        if (channelList.isEmpty()) {
+            logger.info("[移除共享通道] 参数中确定已经共享的数据为空");
+            return;
+        }
+        param.setChannelIdList(new HashSet<>(channelList));
+        commonGbChannelMapper.removeShareChannel(param);
+        // 发送DELETE事件
+        List<CommonGbChannel> commonGbChannelList = commonGbChannelMapper.queryInIdList(new ArrayList<>(param.getChannelIdList()));
+        sendCatalogEvent(commonGbChannelList, platform, CatalogEventType.DEL);
+    }
+
+    @Override
+    public PageInfo<ShareCommonChannelListResult> getShareChannelList(int platformId, int page, int count, String query, String type, Boolean online) {
+        PageHelper.startPage(page, count);
+        List<ShareCommonChannelListResult> all = commonGbChannelMapper.getShareChannel(platformId, query, type, online);
+        return new PageInfo<>(all);
     }
 }

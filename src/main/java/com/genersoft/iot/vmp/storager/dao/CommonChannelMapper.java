@@ -398,6 +398,8 @@ public interface CommonChannelMapper {
             "<if test='inRegion != null &amp; inRegion'> and common_gb_civilCode is not null </if>" +
             "<if test='inRegion != null &amp; !inRegion'> and common_gb_civilCode is null </if>" +
             "<if test='type != null'> and type = #{type} </if>" +
+            "<if test='online != null'> and common_gb_status = #{online} </if>" +
+            "<if test='ptzType != null'> and common_gb_ptz_type = #{ptzType} </if>" +
             "<if test='query != null'> and ( common_gb_device_id LIKE concat('%',#{query},'%') or common_gb_name LIKE concat('%',#{query},'%') )  </if>" +
             "</script>")
     List<CommonGbChannel> queryChannelListInGroup(@Param("query") String query,
@@ -405,7 +407,9 @@ public interface CommonChannelMapper {
                                                   @Param("regionDeviceId") String regionDeviceId,
                                                   @Param("inGroup") Boolean inGroup,
                                                   @Param("inRegion") Boolean inRegion,
-                                                  @Param("type") String type
+                                                  @Param("type") String type,
+                                                  @Param("ptzType") String ptzType,
+                                                  @Param("online") Boolean online
     );
 
 

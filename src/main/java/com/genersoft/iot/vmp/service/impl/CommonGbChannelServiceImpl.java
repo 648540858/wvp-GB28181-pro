@@ -183,7 +183,7 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
             ptzType = null;
         }
         List<CommonGbChannel> all = commonGbChannelMapper.queryChannelListInGroup(query, groupDeviceId,
-                regionDeviceId, inGroup, inRegion, type);
+                regionDeviceId, inGroup, inRegion, type, ptzType, online);
         return new PageInfo<>(all);
     }
 

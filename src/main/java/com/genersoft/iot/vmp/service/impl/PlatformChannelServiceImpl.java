@@ -211,15 +211,6 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         getAllParentGroup(parentGroup, allGroupMap, resultGroupList);
     }
 
-    private void getAllParentRegion(Region region, Map<String, Region> allRegionMap, List<Region> resultRegionList) {
-        if (region.getCommonRegionDeviceId().length() == 2) {
-            return;
-        }
-        Region parentRegion = allRegionMap.get(region.getCommonRegionDeviceId());
-        resultRegionList.add(parentRegion);
-        getAllParentRegion(parentRegion, allRegionMap, resultRegionList);
-    }
-
     @Override
     public CommonGbChannel queryChannelByPlatformIdAndChannelDeviceId(Integer platformId, String channelId) {
         return platformChannelMapper.queryChannelByPlatformIdAndChannelDeviceId(platformId, channelId);

@@ -172,7 +172,7 @@ public class ZLMServerFactory {
         sendRtpItem.setIp(ip);
         sendRtpItem.setPort(port);
         sendRtpItem.setSsrc(ssrc);
-        sendRtpItem.setPlatformId(platformId);
+        sendRtpItem.setDestId(platformId);
         sendRtpItem.setChannelId(channelId);
         sendRtpItem.setTcp(tcp);
         sendRtpItem.setRtcp(rtcp);
@@ -206,7 +206,7 @@ public class ZLMServerFactory {
         sendRtpItem.setSsrc(ssrc);
         sendRtpItem.setApp(app);
         sendRtpItem.setStreamId(stream);
-        sendRtpItem.setPlatformId(platformId);
+        sendRtpItem.setDestId(platformId);
         sendRtpItem.setChannelId(channelId);
         sendRtpItem.setTcp(tcp);
         sendRtpItem.setLocalPort(localPort);

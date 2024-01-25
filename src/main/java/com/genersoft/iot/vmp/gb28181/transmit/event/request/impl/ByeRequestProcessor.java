@@ -5,7 +5,6 @@ import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
@@ -31,7 +30,6 @@ import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -68,9 +66,6 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 	private ZLMServerFactory zlmServerFactory;
 
 	@Autowired
-	private SSRCFactory ssrcFactory;
-
-	@Autowired
 	private IMediaServerService mediaServerService;
 
 	@Autowired
@@ -105,7 +100,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 		SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(null, null, null, callIdHeader.getCallId());
 
 		if (sendRtpItem != null){
-			logger.info("[收到bye] 来自平台{}， 停止通道：{}", sendRtpItem.getPlatformId(), sendRtpItem.getChannelId());
+			logger.info("[收到bye] 来自平台{}， 停止通道：{}", sendRtpItem.getDestId(), sendRtpItem.getChannelId());
 			String streamId = sendRtpItem.getStreamId();
 			Map<String, Object> param = new HashMap<>();
 			param.put("vhost","__defaultVhost__");
@@ -114,19 +109,19 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			param.put("ssrc",sendRtpItem.getSsrc());
 			logger.info("[收到bye] 停止向上级推流：{}", streamId);
 			MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-			redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(),
+			redisCatchStorage.deleteSendRTPServer(sendRtpItem.getDestId(), sendRtpItem.getChannelId(),
 					callIdHeader.getCallId(), null);
 			zlmServerFactory.stopSendRtpStream(mediaInfo, param);
 			if (sendRtpItem.getPlayType().equals(InviteStreamType.PUSH)) {
-				ParentPlatform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
+				ParentPlatform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getDestId());
 				if (platform != null) {
 					MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
 							sendRtpItem.getApp(), sendRtpItem.getStreamId(), sendRtpItem.getChannelId(),
-							sendRtpItem.getPlatformId(), platform.getName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
+							sendRtpItem.getDestId(), platform.getName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
 					messageForPushChannel.setPlatFormIndex(platform.getId());
 					redisCatchStorage.sendPlatformStopPlayMsg(messageForPushChannel);
 				}else {
-					logger.info("[上级平台停止观看] 未找到平台{}的信息，发送redis消息失败", sendRtpItem.getPlatformId());
+					logger.info("[上级平台停止观看] 未找到平台{}的信息，发送redis消息失败", sendRtpItem.getDestId());
 				}
 			}
 
@@ -134,6 +129,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			if (totalReaderCount <= 0) {
 				logger.info("[收到bye] {} 无其它观看者，通知设备停止推流", streamId);
 				if (sendRtpItem.getPlayType().equals(InviteStreamType.PLAY)) {
+
 					Device device = deviceService.getDevice(sendRtpItem.getDeviceId());
 					if (device == null) {
 						logger.info("[收到bye] {} 通知设备停止推流时未找到设备信息", streamId);

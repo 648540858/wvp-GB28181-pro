@@ -445,7 +445,7 @@ public class ZLMHttpHookListener {
                     if (sendRtpItems.size() > 0) {
                         for (SendRtpItem sendRtpItem : sendRtpItems) {
                             if (sendRtpItem != null && sendRtpItem.getApp().equals(param.getApp())) {
-                                String platformId = sendRtpItem.getPlatformId();
+                                String platformId = sendRtpItem.getDestId();
                                 ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
                                 Device device = deviceService.getDevice(platformId);
 
@@ -500,7 +500,7 @@ public class ZLMHttpHookListener {
                             inviteInfo.getChannelId());
                     if (sendRtpItems.size() > 0) {
                         for (SendRtpItem sendRtpItem : sendRtpItems) {
-                            ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
+                            ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getDestId());
                             try {
                                 commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
                             } catch (SipException | InvalidArgumentException | ParseException e) {
@@ -511,7 +511,7 @@ public class ZLMHttpHookListener {
                             if (InviteStreamType.PUSH == sendRtpItem.getPlayType()) {
                                 MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
                                         sendRtpItem.getApp(), sendRtpItem.getStreamId(), sendRtpItem.getChannelId(),
-                                        sendRtpItem.getPlatformId(), parentPlatform.getName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
+                                        sendRtpItem.getDestId(), parentPlatform.getName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
                                 messageForPushChannel.setPlatFormIndex(parentPlatform.getId());
                                 redisCatchStorage.sendPlatformStopPlayMsg(messageForPushChannel);
                             }
@@ -729,7 +729,7 @@ public class ZLMHttpHookListener {
             List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(param.getStream());
             if (sendRtpItems.size() > 0) {
                 for (SendRtpItem sendRtpItem : sendRtpItems) {
-                    ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
+                    ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getDestId());
                     ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
                     try {
                         commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());

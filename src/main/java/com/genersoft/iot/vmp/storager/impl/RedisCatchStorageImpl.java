@@ -148,7 +148,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX +
                 userSetting.getServerId() + "_"
                 + sendRtpItem.getMediaServerId() + "_"
-                + sendRtpItem.getPlatformId() + "_"
+                + sendRtpItem.getDestId() + "_"
                 + sendRtpItem.getChannelId() + "_"
                 + sendRtpItem.getStreamId() + "_"
                 + sendRtpItem.getCallId();

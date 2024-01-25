@@ -106,7 +106,7 @@ public class SipRunner implements CommandLineRunner {
         if (sendRtpItems.size() > 0) {
             for (SendRtpItem sendRtpItem : sendRtpItems) {
                 MediaServerItem mediaServerItem = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-                redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(),sendRtpItem.getChannelId(), sendRtpItem.getCallId(),sendRtpItem.getStreamId());
+                redisCatchStorage.deleteSendRTPServer(sendRtpItem.getDestId(),sendRtpItem.getChannelId(), sendRtpItem.getCallId(),sendRtpItem.getStreamId());
                 if (mediaServerItem != null) {
                     ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
                     Map<String, Object> param = new HashMap<>();
@@ -116,7 +116,7 @@ public class SipRunner implements CommandLineRunner {
                     param.put("ssrc",sendRtpItem.getSsrc());
                     JSONObject jsonObject = zlmresTfulUtils.stopSendRtp(mediaServerItem, param);
                     if (jsonObject != null && jsonObject.getInteger("code") == 0) {
-                        ParentPlatform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
+                        ParentPlatform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getDestId());
                         if (platform != null) {
                             try {
                                 commanderForPlatform.streamByeCmd(platform, sendRtpItem.getCallId());

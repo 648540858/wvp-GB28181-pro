@@ -2,6 +2,8 @@ package com.genersoft.iot.vmp.gb28181.bean;
 
 public class SendRtpItem {
 
+    private String id;
+
     /**
      * 推流ip
      */
@@ -18,14 +20,14 @@ public class SendRtpItem {
     private String ssrc;
 
     /**
-     * 平台id
+     * 目标设备/平台id
      */
-    private String platformId;
+    private String destId;
 
-     /**
-     * 对应设备id
+    /**
+     * 源设备/平台id
      */
-    private String deviceId;
+    private String sourceId;
 
     /**
      * 直播流的应用名
@@ -141,20 +143,12 @@ public class SendRtpItem {
         this.ssrc = ssrc;
     }
 
-    public String getPlatformId() {
-        return platformId;
+    public String getDestId() {
+        return destId;
     }
 
-    public void setPlatformId(String platformId) {
-        this.platformId = platformId;
-    }
-
-    public String getDeviceId() {
-        return deviceId;
-    }
-
-    public void setDeviceId(String deviceId) {
-        this.deviceId = deviceId;
+    public void setDestId(String destId) {
+        this.destId = destId;
     }
 
     public String getChannelId() {
@@ -291,5 +285,21 @@ public class SendRtpItem {
 
     public void setRtcp(boolean rtcp) {
         this.rtcp = rtcp;
+    }
+
+    public String getSourceId() {
+        return sourceId;
+    }
+
+    public void setSourceId(String sourceId) {
+        this.sourceId = sourceId;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }

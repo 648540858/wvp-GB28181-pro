@@ -77,9 +77,9 @@ public class RedisPushStreamCloseResponseListener implements MessageListener {
                     push.getGbId());
             if (!sendRtpItems.isEmpty()) {
                 for (SendRtpItem sendRtpItem : sendRtpItems) {
-                    ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
+                    ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getDestId());
                     if (parentPlatform != null) {
-                        redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(), sendRtpItem.getCallId(), sendRtpItem.getStreamId());
+                        redisCatchStorage.deleteSendRTPServer(sendRtpItem.getDestId(), sendRtpItem.getChannelId(), sendRtpItem.getCallId(), sendRtpItem.getStreamId());
                         try {
                             commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem);
                         } catch (SipException | InvalidArgumentException | ParseException e) {
@@ -96,12 +96,12 @@ public class RedisPushStreamCloseResponseListener implements MessageListener {
                         param.put("ssrc",sendRtpItem.getSsrc());
                         logger.info("[REDIS消息-推流结束] 停止向上级推流：{}", streamId);
                         MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-                        redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(), sendRtpItem.getCallId(), sendRtpItem.getStreamId());
+                        redisCatchStorage.deleteSendRTPServer(sendRtpItem.getDestId(), sendRtpItem.getChannelId(), sendRtpItem.getCallId(), sendRtpItem.getStreamId());
                         zlmServerFactory.stopSendRtpStream(mediaInfo, param);
                         if (InviteStreamType.PUSH == sendRtpItem.getPlayType()) {
                             MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
                                     sendRtpItem.getApp(), sendRtpItem.getStreamId(), sendRtpItem.getChannelId(),
-                                    sendRtpItem.getPlatformId(), parentPlatform.getName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
+                                    sendRtpItem.getDestId(), parentPlatform.getName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
                             messageForPushChannel.setPlatFormIndex(parentPlatform.getId());
                             redisCatchStorage.sendPlatformStopPlayMsg(messageForPushChannel);
                         }

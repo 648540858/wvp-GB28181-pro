@@ -886,7 +886,7 @@ public class PlayServiceImpl implements IPlayService {
         if (sendRtpItems.size() > 0) {
             for (SendRtpItem sendRtpItem : sendRtpItems) {
                 if (sendRtpItem.getMediaServerId().equals(mediaServerId)) {
-                    ParentPlatform platform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
+                    ParentPlatform platform = storager.queryParentPlatByServerGBId(sendRtpItem.getDestId());
                     try {
                         sipCommanderFroPlatform.streamByeCmd(platform, sendRtpItem.getCallId());
                     } catch (SipException | InvalidArgumentException | ParseException e) {

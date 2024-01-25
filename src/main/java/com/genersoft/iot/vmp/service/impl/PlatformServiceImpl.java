@@ -11,6 +11,7 @@ import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.genersoft.iot.vmp.media.zlm.IStreamSendManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
@@ -62,6 +63,9 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private IStreamSendManager streamSendManager;
 
     @Autowired
     private SSRCFactory ssrcFactory;
@@ -360,11 +364,12 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     private void stopAllPush(String platformId) {
-        List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServer(platformId);
-        if (sendRtpItems != null && sendRtpItems.size() > 0) {
+        List<SendRtpItem> sendRtpItems = streamSendManager.getByDestId(platformId);
+
+        if (sendRtpItems != null && !sendRtpItems.isEmpty()) {
             for (SendRtpItem sendRtpItem : sendRtpItems) {
                 ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
-                redisCatchStorage.deleteSendRTPServer(platformId, sendRtpItem.getChannelId(), null, null);
+                streamSendManager.remove(sendRtpItem);
                 MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
                 Map<String, Object> param = new HashMap<>(3);
                 param.put("vhost", "__defaultVhost__");

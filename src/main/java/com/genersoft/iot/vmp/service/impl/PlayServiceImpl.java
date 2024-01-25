@@ -18,6 +18,7 @@ import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.genersoft.iot.vmp.media.zlm.IStreamSendManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
@@ -71,6 +72,9 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private IStreamSendManager streamSendManager;
 
     @Autowired
     private IInviteStreamService inviteStreamService;
@@ -882,8 +886,8 @@ public class PlayServiceImpl implements IPlayService {
     @Override
     public void zlmServerOffline(String mediaServerId) {
         // 处理正在向上推流的上级平台
-        List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServer(null);
-        if (sendRtpItems.size() > 0) {
+        List<SendRtpItem> sendRtpItems = streamSendManager.getByMediaServerId(mediaServerId);
+        if (!sendRtpItems.isEmpty()) {
             for (SendRtpItem sendRtpItem : sendRtpItems) {
                 if (sendRtpItem.getMediaServerId().equals(mediaServerId)) {
                     ParentPlatform platform = storager.queryParentPlatByServerGBId(sendRtpItem.getDestId());

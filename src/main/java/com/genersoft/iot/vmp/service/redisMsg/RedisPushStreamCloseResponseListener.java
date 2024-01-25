@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.gb28181.bean.InviteStreamType;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
+import com.genersoft.iot.vmp.media.zlm.IStreamSendManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
@@ -46,6 +47,9 @@ public class RedisPushStreamCloseResponseListener implements MessageListener {
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
+    private IStreamSendManager streamSendManager;
+
+    @Autowired
     private IVideoManagerStorage storager;
 
     @Autowired
@@ -73,13 +77,12 @@ public class RedisPushStreamCloseResponseListener implements MessageListener {
         MessageForPushChannel pushChannel = JSON.parseObject(message.getBody(), MessageForPushChannel.class);
         StreamPush push = streamPushService.getPush(pushChannel.getApp(), pushChannel.getStream());
         if (push != null) {
-            List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByChnnelId(
-                    push.getGbId());
+            List<SendRtpItem> sendRtpItems = streamSendManager.getByAppAndStream(pushChannel.getApp(), pushChannel.getStream());
             if (!sendRtpItems.isEmpty()) {
                 for (SendRtpItem sendRtpItem : sendRtpItems) {
                     ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getDestId());
                     if (parentPlatform != null) {
-                        redisCatchStorage.deleteSendRTPServer(sendRtpItem.getDestId(), sendRtpItem.getChannelId(), sendRtpItem.getCallId(), sendRtpItem.getStreamId());
+                        streamSendManager.remove(sendRtpItem);
                         try {
                             commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem);
                         } catch (SipException | InvalidArgumentException | ParseException e) {
@@ -96,7 +99,7 @@ public class RedisPushStreamCloseResponseListener implements MessageListener {
                         param.put("ssrc",sendRtpItem.getSsrc());
                         logger.info("[REDIS消息-推流结束] 停止向上级推流：{}", streamId);
                         MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-                        redisCatchStorage.deleteSendRTPServer(sendRtpItem.getDestId(), sendRtpItem.getChannelId(), sendRtpItem.getCallId(), sendRtpItem.getStreamId());
+                        streamSendManager.remove(sendRtpItem);
                         zlmServerFactory.stopSendRtpStream(mediaInfo, param);
                         if (InviteStreamType.PUSH == sendRtpItem.getPlayType()) {
                             MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,

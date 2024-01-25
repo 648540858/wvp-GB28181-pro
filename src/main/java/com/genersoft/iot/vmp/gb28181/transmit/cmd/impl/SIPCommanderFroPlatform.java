@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderPlarformProvider;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.genersoft.iot.vmp.media.zlm.IStreamSendManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
@@ -60,7 +61,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     private ZLMServerFactory zlmServerFactory;
 
     @Autowired
-    private SipLayer sipLayer;
+    private IStreamSendManager streamSendManager;
 
     @Autowired
     private SIPSender sipSender;
@@ -816,7 +817,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         if (platform == null) {
             return;
         }
-        SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(platform.getServerGBId(), null, null, callId);
+        SendRtpItem sendRtpItem = streamSendManager.getByCallId(callId);
         if (sendRtpItem != null) {
             streamByeCmd(platform, sendRtpItem);
         }

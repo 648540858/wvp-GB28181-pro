@@ -41,31 +41,6 @@ public interface IRedisCatchStorage {
 
     void delPlatformRegisterInfo(String callId);
 
-    void updateSendRTPSever(SendRtpItem sendRtpItem);
-
-    /**
-     * 查询RTP推送信息缓存
-     * @param platformGbId
-     * @param channelId
-     * @return sendRtpItem
-     */
-    SendRtpItem querySendRTPServer(String platformGbId, String channelId, String streamId, String callId);
-
-    List<SendRtpItem> querySendRTPServer(String platformGbId);
-
-    /**
-     * 删除RTP推送信息缓存
-     * @param platformGbId
-     * @param channelId
-     */
-    void deleteSendRTPServer(String platformGbId, String channelId, String callId, String streamId);
-
-    /**
-     * 查询某个通道是否存在上级点播（RTP推送）
-     * @param channelId
-     */
-    boolean isChannelSendingRTP(String channelId);
-
     /**
      * 在redis添加wvp的信息
      */
@@ -183,10 +158,6 @@ public interface IRedisCatchStorage {
      */
     void sendStreamPushRequestedMsgForStatus();
 
-    List<SendRtpItem> querySendRTPServerByChnnelId(String channelId);
-
-    List<SendRtpItem> querySendRTPServerByStream(String stream);
-
     SystemAllInfo getSystemInfo();
 
     int getPushStreamCount(String id);
@@ -196,8 +167,6 @@ public interface IRedisCatchStorage {
     int getGbSendCount(String id);
 
     void addDiskInfo(List<Map<String, Object>> diskInfo);
-
-    List<SendRtpItem> queryAllSendRTPServer();
 
     List<Device> getAllDevices();
 

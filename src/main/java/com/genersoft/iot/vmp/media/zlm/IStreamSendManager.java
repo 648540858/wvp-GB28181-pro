@@ -7,9 +7,9 @@ import java.util.List;
 
 public interface IStreamSendManager {
 
-    void add(SendRtpItem sendRtpItem);
-
     void update(SendRtpItem sendRtpItem);
+
+    List<SendRtpItem> getAll();
 
     SendRtpItem getByCallId(String callId);
 
@@ -27,5 +27,8 @@ public interface IStreamSendManager {
 
     void removeByCallID(String id);
 
+    void remove(SendRtpItem sendRtpItem);
+
     void remove(List<SendRtpItem> sendRtpItemList);
+
 }

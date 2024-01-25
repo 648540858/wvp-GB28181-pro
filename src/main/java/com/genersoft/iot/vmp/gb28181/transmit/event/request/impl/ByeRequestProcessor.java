@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -10,6 +11,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
+import com.genersoft.iot.vmp.media.zlm.IStreamSendManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.*;
@@ -45,6 +47,12 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 	private ISIPCommander cmder;
 
 	@Autowired
+	private IStreamSendManager streamSendManager;
+
+	@Autowired
+	private ICommonGbChannelService commonGbChannelService;
+
+	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
 
 	@Autowired
@@ -77,6 +85,9 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 	@Autowired
 	private UserSetting userSetting;
 
+	@Autowired
+	private Map<String, IResourceService> resourceServiceMap;
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		// 添加消息处理的订阅
@@ -97,10 +108,9 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 		}
 		CallIdHeader callIdHeader = (CallIdHeader)evt.getRequest().getHeader(CallIdHeader.NAME);
 
-		SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(null, null, null, callIdHeader.getCallId());
-
+		SendRtpItem sendRtpItem = streamSendManager.getByCallId(callIdHeader.getCallId());
 		if (sendRtpItem != null){
-			logger.info("[收到bye] 来自平台{}， 停止通道：{}", sendRtpItem.getDestId(), sendRtpItem.getChannelId());
+			logger.info("[收到bye] 来自{}， 停止通道：{}", sendRtpItem.getDestId(), sendRtpItem.getChannelId());
 			String streamId = sendRtpItem.getStreamId();
 			Map<String, Object> param = new HashMap<>();
 			param.put("vhost","__defaultVhost__");
@@ -109,9 +119,13 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			param.put("ssrc",sendRtpItem.getSsrc());
 			logger.info("[收到bye] 停止向上级推流：{}", streamId);
 			MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-			redisCatchStorage.deleteSendRTPServer(sendRtpItem.getDestId(), sendRtpItem.getChannelId(),
-					callIdHeader.getCallId(), null);
 			zlmServerFactory.stopSendRtpStream(mediaInfo, param);
+			streamSendManager.remove(sendRtpItem);
+			CommonGbChannel channel = commonGbChannelService.getChannel(sendRtpItem.getChannelId());
+			IResourceService resourceService = resourceServiceMap.get(channel.getType());
+			if (resourceService != null) {
+				resourceService.stopPlay(channel, null);
+			}
 			if (sendRtpItem.getPlayType().equals(InviteStreamType.PUSH)) {
 				ParentPlatform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getDestId());
 				if (platform != null) {
@@ -122,25 +136,6 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 					redisCatchStorage.sendPlatformStopPlayMsg(messageForPushChannel);
 				}else {
 					logger.info("[上级平台停止观看] 未找到平台{}的信息，发送redis消息失败", sendRtpItem.getDestId());
-				}
-			}
-
-			int totalReaderCount = zlmServerFactory.totalReaderCount(mediaInfo, sendRtpItem.getApp(), streamId);
-			if (totalReaderCount <= 0) {
-				logger.info("[收到bye] {} 无其它观看者，通知设备停止推流", streamId);
-				if (sendRtpItem.getPlayType().equals(InviteStreamType.PLAY)) {
-
-					Device device = deviceService.getDevice(sendRtpItem.getDeviceId());
-					if (device == null) {
-						logger.info("[收到bye] {} 通知设备停止推流时未找到设备信息", streamId);
-					}
-					try {
-						logger.info("[停止点播] {}", sendRtpItem.getChannelId());
-						cmder.streamByeCmd(device, sendRtpItem.getChannelId(), streamId, null);
-					} catch (InvalidArgumentException | ParseException | SipException |
-							 SsrcTransactionNotFoundException e) {
-						logger.error("[收到bye] {} 无其它观看者，通知设备停止推流， 发送BYE失败 {}",streamId, e.getMessage());
-					}
 				}
 			}
 		}else {

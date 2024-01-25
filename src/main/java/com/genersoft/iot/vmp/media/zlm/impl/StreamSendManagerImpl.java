@@ -1,12 +1,15 @@
 package com.genersoft.iot.vmp.media.zlm.impl;
 
+import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.media.zlm.IStreamSendManager;
+import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,18 +22,11 @@ import java.util.UUID;
 @Component
 public class StreamSendManagerImpl implements IStreamSendManager {
 
-    private Logger logger = LoggerFactory.getLogger("StreamSendManagerImpl");
-
     private final static String datePrefix = "VMP_SEND_STREAM:DATA:";
     private final static String queryPrefix = "VMP_SEND_STREAM:QUERY:";
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
-
-    @Override
-    public void add(SendRtpItem sendRtpItem) {
-
-    }
 
     @Override
     public void update(SendRtpItem sendRtpItem) {
@@ -85,6 +81,20 @@ public class StreamSendManagerImpl implements IStreamSendManager {
     }
 
     @Override
+    public List<SendRtpItem> getAll() {
+        String key = datePrefix + "_*_";
+        List<Object> scan = RedisUtil.scan(redisTemplate, key);
+        List<SendRtpItem> result = new ArrayList<>();
+        if (!scan.isEmpty()) {
+            for (Object keyStr : scan) {
+                SendRtpItem sendRtpItem = (SendRtpItem)redisTemplate.opsForValue().get(keyStr);
+                result.add(sendRtpItem);
+            }
+        }
+        return result;
+    }
+
+    @Override
     public SendRtpItem getByCallId(String callId) {
         String dateId = (String) redisTemplate.opsForValue().get(getCallIdKey(callId));
         if (dateId == null) {
@@ -136,6 +146,29 @@ public class StreamSendManagerImpl implements IStreamSendManager {
     }
 
     @Override
+    public void remove(SendRtpItem sendRtpItem) {
+        redisTemplate.delete(datePrefix);
+        if (sendRtpItem.getCallId() != null) {
+            redisTemplate.delete(getCallIdKey(sendRtpItem.getCallId()));
+        }
+        if (sendRtpItem.getApp() != null && sendRtpItem.getStreamId() != null) {
+            redisTemplate.opsForSet().remove(getAppAndStreamKey(sendRtpItem.getApp(), sendRtpItem.getStreamId()));
+        }
+        if (sendRtpItem.getMediaServerId() != null) {
+            redisTemplate.opsForSet().remove(getMediaServerIdKey(sendRtpItem.getMediaServerId()));
+        }
+        if (sendRtpItem.getDestId() != null) {
+            redisTemplate.opsForSet().remove(getDestIdKey(sendRtpItem.getDestId()));
+        }
+        if (sendRtpItem.getSourceId() != null) {
+            redisTemplate.opsForSet().remove(getSourceIdKey(sendRtpItem.getSourceId()));
+        }
+        if (sendRtpItem.getChannelId() != null) {
+            redisTemplate.opsForSet().remove(getChannelIdKey(sendRtpItem.getChannelId()));
+        }
+    }
+
+    @Override
     public void remove(String id) {
         if (id == null) {
             return;
@@ -144,11 +177,28 @@ public class StreamSendManagerImpl implements IStreamSendManager {
         if (sendRtpItem == null) {
             return;
         }
-
+        remove(sendRtpItem);
     }
 
     @Override
     public void remove(List<SendRtpItem> sendRtpItemList) {
+        if (sendRtpItemList == null || sendRtpItemList.isEmpty()) {
+            return;
+        }
+        for (SendRtpItem sendRtpItem : sendRtpItemList) {
+            remove(sendRtpItem);
+        }
+    }
 
+    @Override
+    public void removeByCallID(String callId) {
+        if (ObjectUtils.isEmpty(callId)) {
+            return;
+        }
+        SendRtpItem sendRtpItem = getByCallId(callId);
+        if (sendRtpItem == null) {
+            return;
+        }
+        remove(sendRtpItem);
     }
 }

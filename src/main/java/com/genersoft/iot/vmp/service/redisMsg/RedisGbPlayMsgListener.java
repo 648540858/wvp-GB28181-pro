@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.media.zlm.IStreamSendManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
@@ -79,7 +80,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
     private IMediaServerService mediaServerService;
 
     @Autowired
-    private IRedisCatchStorage redisCatchStorage;
+    private IStreamSendManager streamSendManager;
 
 
     @Autowired
@@ -326,7 +327,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
         responseSendItemMsg.setSendRtpItem(sendRtpItem);
         responseSendItemMsg.setMediaServerItem(mediaServerItem);
         result.setData(responseSendItemMsg);
-        redisCatchStorage.updateSendRTPSever(sendRtpItem);
+        streamSendManager.update(sendRtpItem);
 
         WvpRedisMsg response = WvpRedisMsg.getResponseInstance(
                 userSetting.getServerId(), toId, WvpRedisMsgCmd.GET_SEND_ITEM, serial, JSON.toJSONString(result)

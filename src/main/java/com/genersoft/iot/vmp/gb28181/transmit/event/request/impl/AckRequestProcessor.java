@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
+import com.genersoft.iot.vmp.media.zlm.IStreamSendManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
@@ -70,7 +71,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 	private ZLMServerFactory zlmServerFactory;
 
 	@Autowired
-	private ZlmHttpHookSubscribe hookSubscribe;
+	private IStreamSendManager streamSendManager;
 
 	@Autowired
 	private IMediaServerService mediaServerService;
@@ -106,7 +107,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 		// 取消设置的超时任务
 		dynamicTask.stop(callIdHeader.getCallId());
 		String channelId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getURI()).getUser();
-		SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(platformGbId, channelId, null, callIdHeader.getCallId());
+		SendRtpItem sendRtpItem = streamSendManager.getByCallId(callIdHeader.getCallId());
 		if (sendRtpItem == null) {
 			logger.warn("[收到ACK]：未找到通道({})的推流信息", channelId);
 			return;

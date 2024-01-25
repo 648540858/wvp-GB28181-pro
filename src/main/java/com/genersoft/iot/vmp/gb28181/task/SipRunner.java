@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
+import com.genersoft.iot.vmp.media.zlm.IStreamSendManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IDeviceService;
@@ -39,7 +40,7 @@ import java.util.Map;
 public class SipRunner implements CommandLineRunner {
 
     @Autowired
-    private IVideoManagerStorage storager;
+    private IStreamSendManager streamSendManager;
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -102,11 +103,11 @@ public class SipRunner implements CommandLineRunner {
 
 
         // 查找国标推流
-        List<SendRtpItem> sendRtpItems = redisCatchStorage.queryAllSendRTPServer();
+        List<SendRtpItem> sendRtpItems = streamSendManager.getAll();
         if (sendRtpItems.size() > 0) {
             for (SendRtpItem sendRtpItem : sendRtpItems) {
                 MediaServerItem mediaServerItem = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-                redisCatchStorage.deleteSendRTPServer(sendRtpItem.getDestId(),sendRtpItem.getChannelId(), sendRtpItem.getCallId(),sendRtpItem.getStreamId());
+                streamSendManager.remove(sendRtpItem);
                 if (mediaServerItem != null) {
                     ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
                     Map<String, Object> param = new HashMap<>();

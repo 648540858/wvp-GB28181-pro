@@ -74,6 +74,9 @@ public class ZLMHttpHookListener {
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
+    private IStreamSendManager streamSendManager;
+
+    @Autowired
     private IInviteStreamService inviteStreamService;
 
     @Autowired
@@ -441,8 +444,8 @@ public class ZLMHttpHookListener {
                     }
                 }
                 if (!param.isRegist()) {
-                    List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(param.getStream());
-                    if (sendRtpItems.size() > 0) {
+                    List<SendRtpItem> sendRtpItems = streamSendManager.getByAppAndStream(param.getApp(), param.getStream());
+                    if (!sendRtpItems.isEmpty()) {
                         for (SendRtpItem sendRtpItem : sendRtpItems) {
                             if (sendRtpItem != null && sendRtpItem.getApp().equals(param.getApp())) {
                                 String platformId = sendRtpItem.getDestId();
@@ -452,8 +455,7 @@ public class ZLMHttpHookListener {
                                 try {
                                     if (platform != null) {
                                         commanderFroPlatform.streamByeCmd(platform, sendRtpItem);
-                                        redisCatchStorage.deleteSendRTPServer(platformId, sendRtpItem.getChannelId(),
-                                                sendRtpItem.getCallId(), sendRtpItem.getStreamId());
+                                        streamSendManager.remove(sendRtpItem);
                                     } else {
                                         cmder.streamByeCmd(device, sendRtpItem.getChannelId(), param.getStream(), sendRtpItem.getCallId());
                                     }
@@ -495,26 +497,22 @@ public class ZLMHttpHookListener {
                     return ret;
                 }
                 // 收到无人观看说明流也没有在往上级推送
-                if (redisCatchStorage.isChannelSendingRTP(inviteInfo.getChannelId())) {
-                    List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByChnnelId(
-                            inviteInfo.getChannelId());
-                    if (sendRtpItems.size() > 0) {
-                        for (SendRtpItem sendRtpItem : sendRtpItems) {
-                            ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getDestId());
-                            try {
-                                commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
-                            } catch (SipException | InvalidArgumentException | ParseException e) {
-                                logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
-                            }
-                            redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
-                                    sendRtpItem.getCallId(), sendRtpItem.getStreamId());
-                            if (InviteStreamType.PUSH == sendRtpItem.getPlayType()) {
-                                MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
-                                        sendRtpItem.getApp(), sendRtpItem.getStreamId(), sendRtpItem.getChannelId(),
-                                        sendRtpItem.getDestId(), parentPlatform.getName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
-                                messageForPushChannel.setPlatFormIndex(parentPlatform.getId());
-                                redisCatchStorage.sendPlatformStopPlayMsg(messageForPushChannel);
-                            }
+                List<SendRtpItem> sendRtpItems = streamSendManager.getByByChanelId(inviteInfo.getChannelId());
+                if (!sendRtpItems.isEmpty()) {
+                    for (SendRtpItem sendRtpItem : sendRtpItems) {
+                        ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getDestId());
+                        try {
+                            commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
+                        } catch (SipException | InvalidArgumentException | ParseException e) {
+                            logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+                        }
+                        streamSendManager.remove(sendRtpItem);
+                        if (InviteStreamType.PUSH == sendRtpItem.getPlayType()) {
+                            MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
+                                    sendRtpItem.getApp(), sendRtpItem.getStreamId(), sendRtpItem.getChannelId(),
+                                    sendRtpItem.getDestId(), parentPlatform.getName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
+                            messageForPushChannel.setPlatFormIndex(parentPlatform.getId());
+                            redisCatchStorage.sendPlatformStopPlayMsg(messageForPushChannel);
                         }
                     }
                 }
@@ -726,8 +724,8 @@ public class ZLMHttpHookListener {
             return HookResult.SUCCESS();
         }
         taskExecutor.execute(() -> {
-            List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(param.getStream());
-            if (sendRtpItems.size() > 0) {
+            List<SendRtpItem> sendRtpItems = streamSendManager.getByAppAndStream(param.getApp(), param.getStream());
+            if (!sendRtpItems.isEmpty()) {
                 for (SendRtpItem sendRtpItem : sendRtpItems) {
                     ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getDestId());
                     ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
@@ -736,8 +734,7 @@ public class ZLMHttpHookListener {
                     } catch (SipException | InvalidArgumentException | ParseException e) {
                         logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
                     }
-                    redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
-                            sendRtpItem.getCallId(), sendRtpItem.getStreamId());
+                    streamSendManager.remove(sendRtpItem);
                 }
             }
         });

@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.genersoft.iot.vmp.media.zlm.IStreamSendManager;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -46,6 +47,9 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private IStreamSendManager streamSendManager;
 
     @Autowired
     private IInviteStreamService inviteStreamService;
@@ -108,7 +112,8 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
                 String contentType = header.getContentType();
                 String contentSubType = header.getContentSubType();
                 if ("Application".equalsIgnoreCase(contentType) && "MANSRTSP".equalsIgnoreCase(contentSubType)) {
-                    SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(null, null, null, callIdHeader.getCallId());
+
+                    SendRtpItem sendRtpItem = streamSendManager.getByCallId(callIdHeader.getCallId());
                     String streamId = sendRtpItem.getStreamId();
                     InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, streamId);
                     if (null == inviteInfo) {

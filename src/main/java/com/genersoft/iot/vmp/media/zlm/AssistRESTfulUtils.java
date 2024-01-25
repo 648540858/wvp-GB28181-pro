@@ -161,6 +161,7 @@ public class AssistRESTfulUtils {
         if (mediaServerItem == null) {
             return null;
         }
+        logger.info("[访问assist]： {}, 参数： {}", url, param);
         JSONObject responseJSON = new JSONObject();
         //-2自定义流媒体 调用错误码
         responseJSON.put("code",-2);

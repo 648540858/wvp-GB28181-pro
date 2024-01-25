@@ -142,18 +142,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
          redisTemplate.delete(VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + userSetting.getServerId() + "_" + callId);
     }
 
-    /**
-     * 查询某个通道是否存在上级点播（RTP推送）
-     */
-    @Override
-    public boolean isChannelSendingRTP(String channelId) {
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
-                + userSetting.getServerId() + "_*_*_"
-                + channelId + "*_" + "*_";
-        List<Object> RtpStreams = RedisUtil.scan(redisTemplate, key);
-        return RtpStreams.size() > 0;
-    }
-
     @Override
     public void updateWVPInfo(JSONObject jsonObject, int time) {
         String key = VideoManagerConstants.WVP_SERVER_PREFIX + userSetting.getServerId();

@@ -337,8 +337,8 @@ CREATE TABLE wvp_common_channel_platform
 (
     id                   serial primary key,
     platform_id          integer,
-    common_gb_channel_id integer,
-    constraint uk_platform_id_common_gb_channel_id unique (platform_id,common_gb_channel_id)
+    common_gb_channel_id    integer,
+    constraint uk_platform_id_common_channel_id unique (platform_id,common_gb_channel_id)
 );
 
 

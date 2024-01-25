@@ -62,7 +62,7 @@ public interface CommonChannelPlatformMapper {
             " left join wvp_common_channel_platform cp " +
             " on cc.common_gb_id = cp.common_gb_channel_id " +
             " where cp.platform_id = #{platformId}" +
-            " and cp.common_gb_channel_id = #{channelId}" +
+            " and cc.common_gb_device_id = #{channelId}" +
             " </script>")
     CommonGbChannel queryChannelByPlatformIdAndChannelDeviceId(@Param("platformId") Integer platformId,
                                                                @Param("channelId") String channelId);

@@ -256,6 +256,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         }
                         sendRtpItem.setTcpActive(gb28181Sdp.isTcpActive());
                         sendRtpItem.setCallId(callIdHeader.getCallId());
+                        sendRtpItem.setStreamId(streamInfo.getStream());
                         if ("Play".equalsIgnoreCase(sessionName)) {
                             sendRtpItem.setPlayType(InviteStreamType.PLAY);
                         }else if ("Playback".equalsIgnoreCase(sessionName)) {

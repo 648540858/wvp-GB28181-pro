@@ -277,6 +277,81 @@ create table wvp_user_role (
 );
 
 
+CREATE TABLE wvp_common_channel
+(
+    common_gb_id                    serial primary key,
+    common_gb_device_id             varchar(50)  NOT NULL,
+    common_gb_name                  varchar(255) DEFAULT NULL,
+    common_gb_manufacturer          varchar(255) DEFAULT NULL,
+    common_gb_model                 varchar(255) DEFAULT NULL,
+    common_gb_owner                 varchar(255) DEFAULT NULL,
+    common_gb_civilCode             varchar(50)  DEFAULT NULL,
+    common_gb_block                 varchar(255) DEFAULT NULL,
+    common_gb_address               varchar(255) DEFAULT NULL,
+    common_gb_parental              integer,
+    common_gb_parent_id             varchar(50)  DEFAULT NULL,
+    common_gb_safety_way            integer,
+    common_gb_register_way          integer,
+    common_gb_cert_num              varchar(255) DEFAULT NULL,
+    common_gb_certifiable           integer,
+    common_gb_err_code              integer,
+    common_gb_end_time              varchar(50)  DEFAULT NULL,
+    common_gb_secrecy               integer,
+    common_gb_ip_address            varchar(50)  DEFAULT NULL,
+    common_gb_port                  integer,
+    common_gb_password              varchar(50)  DEFAULT NULL,
+    common_gb_status                bool         default false,
+    common_gb_longitude             double,
+    common_gb_latitude              double,
+    common_gb_ptz_type              integer,
+    common_gb_position_type         integer,
+    common_gb_room_type             integer,
+    common_gb_use_type              integer,
+    common_gb_supply_light_type     integer,
+    common_gb_direction_type        integer,
+    common_gb_resolution            varchar(255) DEFAULT NULL,
+    common_gb_business_group_id     varchar(255) DEFAULT NULL,
+    common_gb_download_speed        varchar(255) DEFAULT NULL,
+    common_gb_svc_time_support_mode integer,
+    common_gb_svc_space_support_mode integer,
+    type                            varchar(255) NOT NULL,
+    update_time                     varchar(50) NOT NULL,
+    create_time                     varchar(50) NOT NULL,
+    UNIQUE KEY common_gb_device_id (common_gb_device_id)
+);
+
+
+CREATE TABLE wvp_common_group
+(
+    common_group_id           serial primary key,
+    common_group_device_id    varchar(50)  NOT NULL,
+    common_group_name         varchar(255) NOT NULL,
+    common_group_parent_id    varchar(50)  DEFAULT NULL,
+    common_group_top_id       varchar(50)  DEFAULT NULL,
+    common_group_create_time  varchar(50)  NOT NULL,
+    common_group_update_time  varchar(50)  NOT NULL,
+    UNIQUE KEY common_group_device_id (common_group_device_id)
+);
+
+CREATE TABLE wvp_common_region
+(
+    common_region_id            serial primary key,
+    common_region_device_id     varchar(50)  NOT NULL,
+    common_region_name          varchar(255) NOT NULL,
+    common_region_parent_id     varchar(50) DEFAULT NULL,
+    common_region_create_time   varchar(50) NOT NULL,
+    common_region_update_time   varchar(50) NOT NULL,
+    UNIQUE KEY common_region_device_id (common_region_device_id)
+);
+
+CREATE TABLE wvp_common_channel_platform
+(
+    id                   serial primary key,
+    platform_id          integer,
+    common_gb_channel_id    integer,
+    UNIQUE KEY uk_platform_id_common_gb_channel_id (platform_id,common_gb_channel_id)
+);
+
 /*初始数据*/
 INSERT INTO wvp_user VALUES (1, 'admin','21232f297a57a5a743894a0e4a801fc3',1,'2021-04-13 14:14:57','2021-04-13 14:14:57','3e80d1762a324d5b0ff636e0bd16f1e3');
 INSERT INTO wvp_user_role VALUES (1, 'admin','0','2021-04-13 14:14:57','2021-04-13 14:14:57');

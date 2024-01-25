@@ -225,7 +225,7 @@ create table wvp_stream_push (
                                  push_ing bool default false,
                                  self bool default false,
                                  common_gb_channel_id integer,
-                                 gb_id character varying(50) default NULL
+                                 gb_id character varying(50) default NULL,
                                  longitude double precision,
                                  latitude double precision,
                                  constraint uk_stream_push_app_stream unique (app, stream)
@@ -264,6 +264,81 @@ create table wvp_user_role (
                                authority character varying(50),
                                create_time character varying(50),
                                update_time character varying(50)
+);
+
+CREATE TABLE wvp_common_channel
+(
+    common_gb_id                    serial primary key,
+    common_gb_device_id             character varying(50)  NOT NULL,
+    common_gb_name                  character varying(255) DEFAULT NULL,
+    common_gb_manufacturer          character varying(255) DEFAULT NULL,
+    common_gb_model                 character varying(255) DEFAULT NULL,
+    common_gb_owner                 character varying(255) DEFAULT NULL,
+    common_gb_civilCode             character varying(50)  DEFAULT NULL,
+    common_gb_block                 character varying(255) DEFAULT NULL,
+    common_gb_address               character varying(255) DEFAULT NULL,
+    common_gb_parental              integer,
+    common_gb_parent_id             character varying(50)  DEFAULT NULL,
+    common_gb_safety_way            integer,
+    common_gb_register_way          integer,
+    common_gb_cert_num              character varying(255) DEFAULT NULL,
+    common_gb_certifiable           integer,
+    common_gb_err_code              integer,
+    common_gb_end_time              character varying(50)  DEFAULT NULL,
+    common_gb_secrecy               integer,
+    common_gb_ip_address            character varying(50)  DEFAULT NULL,
+    common_gb_port                  integer,
+    common_gb_password              character varying(50)  DEFAULT NULL,
+    common_gb_status                bool         default false,
+    common_gb_longitude             double precision,
+    common_gb_latitude              double precision,
+    common_gb_ptz_type              integer,
+    common_gb_position_type         integer,
+    common_gb_room_type             integer,
+    common_gb_use_type              integer,
+    common_gb_supply_light_type     integer,
+    common_gb_direction_type        integer,
+    common_gb_resolution            character varying(255) DEFAULT NULL,
+    common_gb_business_group_id     character varying(255) DEFAULT NULL,
+    common_gb_download_speed        character varying(255) DEFAULT NULL,
+    common_gb_svc_time_support_mode integer,
+    common_gb_svc_space_support_mode integer,
+    type                            character varying(255) NOT NULL,
+    update_time                     character varying(50) NOT NULL,
+    create_time                     character varying(50) NOT NULL,
+    constraint common_gb_device_id unique (common_gb_device_id)
+);
+
+
+CREATE TABLE wvp_common_group
+(
+    common_group_id           serial primary key,
+    common_group_device_id    character varying(50)  NOT NULL,
+    common_group_name         character varying(255) NOT NULL,
+    common_group_parent_id    character varying(50)  DEFAULT NULL,
+    common_group_top_id       character varying(50)  DEFAULT NULL,
+    common_group_create_time  character varying(50)  NOT NULL,
+    common_group_update_time  character varying(50)  NOT NULL,
+    constraint common_group_device_id unique (common_group_device_id)
+);
+
+CREATE TABLE wvp_common_region
+(
+    common_region_id        serial primary key,
+    common_region_device_id character varying(50)  NOT NULL,
+    common_region_name      character varying(255) NOT NULL,
+    common_region_parent_id character varying(50) DEFAULT NULL,
+    common_region_create_time character varying(50) NOT NULL,
+    common_region_update_time character varying(50) NOT NULL,
+    constraint common_region_device_id unique (common_region_device_id)
+);
+
+CREATE TABLE wvp_common_channel_platform
+(
+    id                   serial primary key,
+    platform_id          integer,
+    common_gb_channel_id integer,
+    constraint uk_platform_id_common_gb_channel_id unique (platform_id,common_gb_channel_id)
 );
 
 

@@ -74,15 +74,12 @@ public class GroupServiceImpl implements IGroupService {
         assert group.getCommonGroupDeviceId() != null;
         group.setCommonGroupCreateTime(DateUtil.getNow());
         group.setCommonGroupUpdateTime(DateUtil.getNow());
-        Gb28181CodeType channelIdType = SipUtils.getChannelIdType(group.getCommonGroupParentId());
+        Gb28181CodeType channelIdType = SipUtils.getChannelIdType(group.getCommonGroupDeviceId());
         if (ObjectUtils.isEmpty(group.getCommonGroupParentId().trim()) || channelIdType.equals(Gb28181CodeType.BUSINESS_GROUP)) {
             group.setCommonGroupParentId(null);
         }
-        if (ObjectUtils.isEmpty(group.getCommonGroupTopId().trim())) {
-            Gb28181CodeType channelIdTypeForItem = SipUtils.getChannelIdType(group.getCommonGroupDeviceId());
-            if (channelIdTypeForItem.equals(Gb28181CodeType.BUSINESS_GROUP)) {
-                group.setCommonGroupTopId(group.getCommonGroupDeviceId());
-            }
+        if (ObjectUtils.isEmpty(group.getCommonGroupTopId().trim()) && channelIdType.equals(Gb28181CodeType.BUSINESS_GROUP)) {
+            group.setCommonGroupTopId(group.getCommonGroupDeviceId());
         }
         return groupMapper.add(group) > 0;
     }
@@ -261,9 +258,8 @@ public class GroupServiceImpl implements IGroupService {
     @Override
     public PageInfo<Group> queryChildGroupList(String groupParentId, int page, int count) {
         PageHelper.startPage(page, count);
-        Gb28181CodeType channelIdType = SipUtils.getChannelIdType(groupParentId);
         List<Group> groupList;
-        if (groupParentId == null || channelIdType == Gb28181CodeType.BUSINESS_GROUP) {
+        if (groupParentId == null) {
             groupList = groupMapper.queryVirtualGroupList(groupParentId);
         }else {
             groupList = groupMapper.queryChildGroupList(groupParentId);

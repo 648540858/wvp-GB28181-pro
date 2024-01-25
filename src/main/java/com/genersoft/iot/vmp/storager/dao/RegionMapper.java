@@ -134,4 +134,13 @@ public interface RegionMapper {
             "from wvp_common_region")
     List<CommonGbChannel> queryAllForCommonChannel();
 
+    @Select("<script>" +
+            " WITH recursive temp AS ( " +
+            " SELECT * FROM wvp_common_region wcr WHERE wcr.common_region_device_id in " +
+            "<foreach collection='commonGbChannelList'  item='item'  open='(' separator=',' close=')' >#{item.commonGbCivilCode}</foreach>" +
+            " UNION ALL" +
+            " SELECT wcr.* FROM wvp_common_region wcr, temp t WHERE t.common_region_parent_id = wcr.common_region_device_id )" +
+            " select *from temp" +
+            "</script>")
+    List<Region> queryAllByDeviceIds(List<CommonGbChannel> commonGbChannelList);
 }

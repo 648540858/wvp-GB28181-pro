@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.service.bean.Group;
+import com.genersoft.iot.vmp.service.bean.Region;
 import com.genersoft.iot.vmp.storager.dao.*;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import org.slf4j.Logger;
@@ -157,19 +158,24 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
             if (channelList.isEmpty()) {
                 return result;
             }
-            // 查询所有关联了的国标通道
+            // 查询国标通道关联的分组以及这些分组的父级
             if (platform.isShareGroup()) {
-                Map<String, Group> allDependenceGroupMap = getAllDependenceGroup(channelList);
-                if (!allDependenceGroupMap.isEmpty()) {
-                    for (Group group : allDependenceGroupMap.values()) {
+                List<Group> groupList = groupMapper.queryAllByDeviceIds(channelList);
+                if (!groupList.isEmpty()) {
+                    for (Group group : groupList) {
                         result.add(CommonGbChannel.getInstance(group));
                     }
                 }
             }
+            // 查询国标通道关联的区域以及这些区域的父级
             if (platform.isShareRegion()) {
-
+                List<Region> regions = regionMapper.queryAllByDeviceIds(channelList);
+                if (!regions.isEmpty()) {
+                    for (Region region : regions) {
+                        result.add(CommonGbChannel.getInstance(region));
+                    }
+                }
             }
-
             result.addAll(channelList);
         }
         return result;
@@ -195,12 +201,23 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     }
 
     private void getAllParentGroup(Group group, Map<String, Group> allGroupMap, List<Group> resultGroupList) {
-        if (Objects.equals(group.getCommonGroupDeviceId(), group.getCommonGroupTopId())) {
+        if (group == null
+                || Objects.equals(group.getCommonGroupDeviceId(), group.getCommonGroupTopId())
+                || Objects.equals(group.getCommonGroupDeviceId(), group.getCommonGroupParentId())) {
             return;
         }
-        Group parentGroup = allGroupMap.get(group.getCommonGroupDeviceId());
+        Group parentGroup = allGroupMap.get(group.getCommonGroupParentId());
         resultGroupList.add(parentGroup);
         getAllParentGroup(parentGroup, allGroupMap, resultGroupList);
+    }
+
+    private void getAllParentRegion(Region region, Map<String, Region> allRegionMap, List<Region> resultRegionList) {
+        if (region.getCommonRegionDeviceId().length() == 2) {
+            return;
+        }
+        Region parentRegion = allRegionMap.get(region.getCommonRegionDeviceId());
+        resultRegionList.add(parentRegion);
+        getAllParentRegion(parentRegion, allRegionMap, resultRegionList);
     }
 
     @Override

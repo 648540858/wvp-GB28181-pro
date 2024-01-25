@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
 import com.genersoft.iot.vmp.service.bean.CommonGbChannelType;
 import com.genersoft.iot.vmp.service.bean.Group;
+import com.genersoft.iot.vmp.service.bean.Region;
 import com.genersoft.iot.vmp.service.impl.CommonGbChannelServiceImpl;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -804,6 +805,13 @@ public class CommonGbChannel {
         commonGbChannel.setCommonGbParental(1);
         commonGbChannel.setCommonGbParentID(group.getCommonGroupParentId());
         commonGbChannel.setCommonGbBusinessGroupID(group.getCommonGroupTopId());
+        return commonGbChannel;
+    }
+
+    public static CommonGbChannel getInstance(Region region) {
+        CommonGbChannel commonGbChannel = new CommonGbChannel();
+        commonGbChannel.setCommonGbDeviceID(region.getCommonRegionDeviceId());
+        commonGbChannel.setCommonGbName(region.getCommonRegionName());
         return commonGbChannel;
     }
 }

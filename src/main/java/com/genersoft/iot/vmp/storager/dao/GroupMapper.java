@@ -189,13 +189,12 @@ public interface GroupMapper {
     List<CommonGbChannel> queryAllForCommonChannelByDeviceIdSet(Set<String> groupDeviceIdSet);
 
     @Select("<script>"  +
-            " select * " +
-            " from wvp_common_group" +
-            " where 1=1" +
-            "<if test='groupDeviceIdSet != null'> " +
-            " and common_group_device_id in " +
+            " WITH recursive temp AS (" +
+            " SELECT * FROM wvp_common_group wcg WHERE wcg.common_group_device_id in " +
             "<foreach collection='commonGbChannelList'  item='item'  open='(' separator=',' close=')' >#{item.commonGbBusinessGroupID}</foreach>" +
-            "</if>" +
+            " UNION ALL" +
+            " SELECT wcg.* FROM wvp_common_group wcg, temp t WHERE t.common_group_parent_id = wcg.common_group_device_id )" +
+            " select *from temp" +
             "</script>")
     List<Group> queryAllByDeviceIds(List<CommonGbChannel> commonGbChannelList);
 
@@ -208,5 +207,6 @@ public interface GroupMapper {
             "<foreach collection='groupList'  item='item'  open='(' separator=',' close=')' >#{item.commonGroupTopId}</foreach>" +
             "</if>" +
             "</script>")
+    @MapKey("commonGroupDeviceId")
     Map<String, Group> queryAllByTopId(List<Group> groupList);
 }

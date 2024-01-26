@@ -83,6 +83,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
+    @Autowired
     private IStreamSendManager streamSendManager;
 
     @Autowired
@@ -95,13 +96,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     private RedisPushStreamResponseListener redisPushStreamResponseListener;
 
     @Autowired
-    private IPlayService playService;
-
-    @Autowired
     private Map<String, IResourceService> resourceServiceMap;
-
-    @Autowired
-    private SIPSender sipSender;
 
     @Autowired
     private ZLMServerFactory zlmServerFactory;
@@ -120,7 +115,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
     @Autowired
     private ZLMMediaListManager mediaListManager;
-
 
     @Autowired
     private RedisGbPlayMsgListener redisGbPlayMsgListener;
@@ -226,7 +220,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
                 IResourcePlayCallback callback = (commonGbChannel, mediaServerItem,  code, message, streamInfo) -> {
                     if (code != 0) {
-                        logger.info("[上级Invite] 获取资源流失败。{}, {}/{}", message, streamInfo.getApp(), streamInfo.getStream());
+                        logger.info("[上级Invite] channelId: {}, 获取资源流失败。{},", channelId, message);
                         try {
                             cmderFroPlatform.streamByeCmd(platform, callIdHeader.getCallId());
                         } catch (SipException | InvalidArgumentException | ParseException e) {

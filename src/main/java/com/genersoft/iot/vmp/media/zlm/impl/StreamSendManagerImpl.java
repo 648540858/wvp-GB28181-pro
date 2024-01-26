@@ -30,7 +30,7 @@ public class StreamSendManagerImpl implements IStreamSendManager {
 
     @Override
     public void update(SendRtpItem sendRtpItem) {
-        if (sendRtpItem.getId() != null) {
+        if (sendRtpItem.getId() == null) {
             sendRtpItem.setId(UUID.randomUUID().toString());
         }
         String dateId = datePrefix + sendRtpItem.getId();
@@ -94,6 +94,10 @@ public class StreamSendManagerImpl implements IStreamSendManager {
         return result;
     }
 
+    private SendRtpItem getById(String id) {
+        return (SendRtpItem)redisTemplate.opsForValue().get(datePrefix + id);
+    }
+
     @Override
     public SendRtpItem getByCallId(String callId) {
         String dateId = (String) redisTemplate.opsForValue().get(getCallIdKey(callId));
@@ -147,24 +151,25 @@ public class StreamSendManagerImpl implements IStreamSendManager {
 
     @Override
     public void remove(SendRtpItem sendRtpItem) {
-        redisTemplate.delete(datePrefix);
+        String dateId = datePrefix + sendRtpItem.getId();
+        redisTemplate.delete(dateId);
         if (sendRtpItem.getCallId() != null) {
             redisTemplate.delete(getCallIdKey(sendRtpItem.getCallId()));
         }
         if (sendRtpItem.getApp() != null && sendRtpItem.getStreamId() != null) {
-            redisTemplate.opsForSet().remove(getAppAndStreamKey(sendRtpItem.getApp(), sendRtpItem.getStreamId()));
+            redisTemplate.opsForSet().remove(getAppAndStreamKey(sendRtpItem.getApp(), sendRtpItem.getStreamId()), dateId);
         }
         if (sendRtpItem.getMediaServerId() != null) {
-            redisTemplate.opsForSet().remove(getMediaServerIdKey(sendRtpItem.getMediaServerId()));
+            redisTemplate.opsForSet().remove(getMediaServerIdKey(sendRtpItem.getMediaServerId()), dateId);
         }
         if (sendRtpItem.getDestId() != null) {
-            redisTemplate.opsForSet().remove(getDestIdKey(sendRtpItem.getDestId()));
+            redisTemplate.opsForSet().remove(getDestIdKey(sendRtpItem.getDestId()), dateId);
         }
         if (sendRtpItem.getSourceId() != null) {
-            redisTemplate.opsForSet().remove(getSourceIdKey(sendRtpItem.getSourceId()));
+            redisTemplate.opsForSet().remove(getSourceIdKey(sendRtpItem.getSourceId()), dateId);
         }
         if (sendRtpItem.getChannelId() != null) {
-            redisTemplate.opsForSet().remove(getChannelIdKey(sendRtpItem.getChannelId()));
+            redisTemplate.opsForSet().remove(getChannelIdKey(sendRtpItem.getChannelId()), dateId);
         }
     }
 

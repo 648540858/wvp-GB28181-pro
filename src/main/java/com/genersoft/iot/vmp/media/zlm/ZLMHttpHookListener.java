@@ -445,7 +445,7 @@ public class ZLMHttpHookListener {
                 }
                 if (!param.isRegist()) {
                     List<SendRtpItem> sendRtpItems = streamSendManager.getByAppAndStream(param.getApp(), param.getStream());
-                    if (!sendRtpItems.isEmpty()) {
+                    if (sendRtpItems != null && !sendRtpItems.isEmpty()) {
                         for (SendRtpItem sendRtpItem : sendRtpItems) {
                             if (sendRtpItem != null && sendRtpItem.getApp().equals(param.getApp())) {
                                 String platformId = sendRtpItem.getDestId();

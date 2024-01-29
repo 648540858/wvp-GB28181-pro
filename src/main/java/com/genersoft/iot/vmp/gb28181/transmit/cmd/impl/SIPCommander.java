@@ -611,6 +611,10 @@ public class SIPCommander implements ISIPCommander {
      */
     @Override
     public void streamByeCmd(Device device, String channelId, String stream, String callId, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException {
+        if (device == null) {
+            logger.warn("[发送BYE] device为null");
+            return;
+        }
         SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(device.getDeviceId(), channelId, callId, stream);
         if (ssrcTransaction == null) {
             throw new SsrcTransactionNotFoundException(device.getDeviceId(), channelId, callId, stream);

@@ -98,11 +98,11 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
 
             switch (deviceControlType) {
                 case PTZ:
-                    handlePtzCmd(commonGbChannel, rootElement, request, DeviceControlType.PTZ);
+                    handlePtzCmd(commonGbChannel, rootElement, request);
                     break;
-//                case ALARM:
-//                    handleAlarmCmd(deviceForPlatform, rootElement, request);
-//                    break;
+                case ALARM:
+                    handleAlarmCmd(commonGbChannel, rootElement, request);
+                    break;
 //                case GUARD:
 //                    handleGuardCmd(deviceForPlatform, rootElement, request, DeviceControlType.GUARD);
 //                    break;
@@ -133,7 +133,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
     /**
      * 处理云台指令
      */
-    private void handlePtzCmd(CommonGbChannel commonGbChannel, Element rootElement, SIPRequest request, DeviceControlType type) {
+    private void handlePtzCmd(CommonGbChannel commonGbChannel, Element rootElement, SIPRequest request) {
         IResourceService resourceService = resourceServiceMap.get(commonGbChannel.getType());
         if (resourceService == null) {
             try {
@@ -144,7 +144,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             return;
         }
 
-        String cmdString = getText(rootElement, type.getVal());
+        String cmdString = getText(rootElement, DeviceControlType.PTZ.getVal());
         // 解析云台控制参数
         ICommandInfo commandInfo = ControlCommand.analysisCommand(cmdString);
         if (commandInfo == null || !commandInfo.getType().equals(CommandType.PTZ)) {
@@ -166,22 +166,6 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                 ptzCommand.getxSpeed(), ptzCommand.getySpeed(), ptzCommand.getzSpeed());
 
         resourceService.ptzControl(commonGbChannel, ptzCommand);
-
-//        System.out.println();
-//        byte[] bytes = cmdString.getBytes();
-//        System.out.println(cmdString);
-//        for (byte aByte : bytes) {
-//            System.out.print(aByte);
-//            System.out.print(" ");
-//        }
-//        System.out.println(" ");
-//        try {
-//            cmder.fronEndCmd(device, channelId, cmdString,
-//                    errorResult -> onError(request, errorResult),
-//                    okResult -> onOk(request, okResult));
-//        } catch (InvalidArgumentException | SipException | ParseException e) {
-//            logger.error("[命令发送失败] 云台/前端: {}", e.getMessage());
-//        }
     }
 
     /**
@@ -275,12 +259,42 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
 
     /**
      * 处理告警消息***
-     *
-     * @param device      设备信息
-     * @param rootElement 根节点
-     * @param request     请求信息
      */
-    private void handleAlarmCmd(Device device, Element rootElement, SIPRequest request) {
+    private void handleAlarmCmd(CommonGbChannel commonGbChannel, Element rootElement, SIPRequest request) {
+        IResourceService resourceService = resourceServiceMap.get(commonGbChannel.getType());
+        if (resourceService == null) {
+            try {
+                responseAck(request, Response.FORBIDDEN);
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                logger.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
+
+        //告警方法
+        Integer alarmMethod = null;
+        //告警类型
+        Integer alarmType = null;
+        List<Element> info = rootElement.elements("Info");
+        if (info != null) {
+            for (Element element : info) {
+                String alarmMethodStr = getText(element, "AlarmMethod");
+                if (alarmMethodStr != null) {
+                    alarmMethod = Integer.parseInt(alarmMethodStr);
+                }
+                String alarmTypeStr = getText(element, "AlarmType");
+                if (alarmTypeStr != null) {
+                    alarmType = Integer.parseInt(alarmTypeStr);
+                }
+            }
+        }
+
+        logger.info("\r\n[报警]: alarmMethod： {} alarmType： {}", alarmMethod, alarmType);
+
+        resourceService.ptzControl(commonGbChannel, ptzCommand);
+
+
+
         //告警方法
         Integer alarmMethod = null;
         //告警类型

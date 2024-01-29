@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.gb28181.bean.DragZoomRequest;
 import com.genersoft.iot.vmp.gb28181.bean.command.PTZCommand;
 
 /**
@@ -51,4 +52,34 @@ public interface IResourceService {
      * 报警复位
      */
     void resetAlarm(CommonGbChannel commonGbChannel, Integer alarmMethod, Integer alarmType);
+
+    /**
+     * 布防/撤防
+     */
+    void setGuard(CommonGbChannel commonGbChannel, boolean setGuard);
+
+    /**
+     * 录像控制
+     */
+    void setRecord(CommonGbChannel commonGbChannel, Boolean isRecord);
+
+    /**
+     * 强制关键帧
+     */
+    void setIFame(CommonGbChannel commonGbChannel);
+
+    /**
+     * 重启
+     */
+    void setTeleBoot(CommonGbChannel commonGbChannel);
+
+    /**
+     * 拉框放大/缩小
+     */
+    void dragZoom(CommonGbChannel commonGbChannel, DragZoomRequest.DragZoom dragZoom, boolean isIn);
+
+    /**
+     * 看守位控制
+     */
+    void setHomePosition(CommonGbChannel commonGbChannel, boolean enabled, Integer resetTime, Integer presetIndex);
 }

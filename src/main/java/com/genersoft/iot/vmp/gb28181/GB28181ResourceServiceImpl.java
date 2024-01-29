@@ -2,9 +2,11 @@ package com.genersoft.iot.vmp.gb28181;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.enums.DeviceControlType;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.DragZoomRequest;
 import com.genersoft.iot.vmp.gb28181.bean.command.PTZCommand;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
+import javax.sip.message.Response;
 import java.text.ParseException;
 
 
@@ -136,12 +139,140 @@ public class GB28181ResourceServiceImpl implements IResourceService {
             return;
         }
         try {
-            commander.alarmCmd(checkResult.device, alarmMethod, alarmType,
-                    errorResult -> onError(request, errorResult),
-                    okResult -> onOk(request, okResult));
+            commander.alarmCmd(checkResult.device, alarmMethod, alarmType,null, null);
         } catch (InvalidArgumentException | SipException | ParseException e) {
             logger.error("[命令发送失败]： ", e);
         }
+    }
+
+    @Override
+    public void setGuard(CommonGbChannel commonGbChannel, boolean setGuard) {
+        CheckCommonGbChannelResult checkResult = checkCommonGbChannel(commonGbChannel);
+
+        if (checkResult.errorMsg != null) {
+            logger.warn("[资源类-国标28181] 布防/撤防失败： {}", checkResult.errorMsg);
+            return;
+        }
+        if (checkResult.device == null || checkResult.channel == null) {
+            logger.warn("[资源类-国标28181] 布防/撤防失败： 设备获取失败");
+            return;
+        }
+
+        try {
+            commander.guardCmd(checkResult.device, setGuard,null, null);
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            logger.error("[命令发送失败] 布防/撤防命令: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    public void setRecord(CommonGbChannel commonGbChannel, Boolean isRecord) {
+        CheckCommonGbChannelResult checkResult = checkCommonGbChannel(commonGbChannel);
+
+        if (checkResult.errorMsg != null) {
+            logger.warn("[资源类-国标28181] 录像控制失败： {}", checkResult.errorMsg);
+            return;
+        }
+        if (checkResult.device == null || checkResult.channel == null) {
+            logger.warn("[资源类-国标28181] 录像控制失败： 设备获取失败");
+            return;
+        }
+
+        try {
+            commander.recordCmd(checkResult.device, checkResult.channel.getChannelId(), isRecord,null, null);
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            logger.error("[命令发送失败] 录像控制命令: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    public void setIFame(CommonGbChannel commonGbChannel) {
+        CheckCommonGbChannelResult checkResult = checkCommonGbChannel(commonGbChannel);
+
+        if (checkResult.errorMsg != null) {
+            logger.warn("[资源类-国标28181] 强制关键帧失败： {}", checkResult.errorMsg);
+            return;
+        }
+        if (checkResult.device == null || checkResult.channel == null) {
+            logger.warn("[资源类-国标28181] 强制关键帧失败： 设备获取失败");
+            return;
+        }
+
+        try {
+            commander.iFrameCmd(checkResult.device, checkResult.channel.getChannelId());
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            logger.error("[命令发送失败] 强制关键帧: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    public void setTeleBoot(CommonGbChannel commonGbChannel) {
+        CheckCommonGbChannelResult checkResult = checkCommonGbChannel(commonGbChannel);
+
+        if (checkResult.errorMsg != null) {
+            logger.warn("[资源类-国标28181] 重启设备失败： {}", checkResult.errorMsg);
+            return;
+        }
+        if (checkResult.device == null || checkResult.channel == null) {
+            logger.warn("[资源类-国标28181] 重启设备失败： 设备获取失败");
+            return;
+        }
+
+        try {
+            commander.teleBootCmd(checkResult.device);
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            logger.error("[命令发送失败] 重启设备: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    public void dragZoom(CommonGbChannel commonGbChannel, DragZoomRequest.DragZoom dragZoom, boolean isIn) {
+        CheckCommonGbChannelResult checkResult = checkCommonGbChannel(commonGbChannel);
+
+        if (checkResult.errorMsg != null) {
+            logger.warn("[资源类-国标28181] 拉框放大/缩小失败： {}", checkResult.errorMsg);
+            return;
+        }
+        if (checkResult.device == null || checkResult.channel == null) {
+            logger.warn("[资源类-国标28181] 拉框放大/缩小失败： 设备获取失败");
+            return;
+        }
+        StringBuffer cmdXml = new StringBuffer(200);
+        String type = isIn? DeviceControlType.DRAG_ZOOM_IN.getVal(): DeviceControlType.DRAG_ZOOM_OUT.getVal();
+        cmdXml.append("<" + type + ">\r\n");
+        cmdXml.append("<Length>" + dragZoom.getLength() + "</Length>\r\n");
+        cmdXml.append("<Width>" + dragZoom.getWidth() + "</Width>\r\n");
+        cmdXml.append("<MidPointX>" + dragZoom.getMidPointX() + "</MidPointX>\r\n");
+        cmdXml.append("<MidPointY>" + dragZoom.getMidPointY() + "</MidPointY>\r\n");
+        cmdXml.append("<LengthX>" + dragZoom.getLengthX() + "</LengthX>\r\n");
+        cmdXml.append("<LengthY>" + dragZoom.getLengthY() + "</LengthY>\r\n");
+        cmdXml.append("</" + type + ">\r\n");
+        try {
+            commander.dragZoomCmd(checkResult.device, checkResult.channel.getChannelId(), cmdXml.toString());
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            logger.error("[命令发送失败] 拉框放大/缩小: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    public void setHomePosition(CommonGbChannel commonGbChannel, boolean enabled, Integer resetTime, Integer presetIndex) {
+        CheckCommonGbChannelResult checkResult = checkCommonGbChannel(commonGbChannel);
+
+        if (checkResult.errorMsg != null) {
+            logger.warn("[资源类-国标28181] 看守位控制失败： {}", checkResult.errorMsg);
+            return;
+        }
+        if (checkResult.device == null || checkResult.channel == null) {
+            logger.warn("[资源类-国标28181] 看守位控制失败： 设备获取失败");
+            return;
+        }
+        try {
+            commander.homePositionCmd(checkResult.device, checkResult.channel.getChannelId(),
+                    enabled, resetTime, presetIndex, null, null);
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            logger.error("[命令发送失败] 看守位控制: {}", e.getMessage());
+        }
+
     }
 
     @Override

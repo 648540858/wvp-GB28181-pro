@@ -6,16 +6,13 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.bean.command.CommandType;
 import com.genersoft.iot.vmp.gb28181.bean.command.ICommandInfo;
 import com.genersoft.iot.vmp.gb28181.bean.command.PTZCommand;
-import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.control.ControlMessageHandler;
-import com.genersoft.iot.vmp.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.service.IResourceService;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.Element;
 import org.slf4j.Logger;
@@ -34,7 +31,6 @@ import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
 
-import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.*;
 
 @Component
 public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
@@ -45,19 +41,11 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
     @Autowired
     private ControlMessageHandler controlMessageHandler;
 
-
-    @Autowired
-    private SIPCommander cmder;
-
     @Autowired
     private IPlatformChannelService platformChannelService;
 
     @Autowired
     private Map<String, IResourceService> resourceServiceMap;
-
-    @Qualifier("taskExecutor")
-    @Autowired
-    private ThreadPoolTaskExecutor taskExecutor;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -76,9 +64,9 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
 
         // 此处是上级发出的DeviceControl指令
         String targetGBId = ((SipURI) request.getToHeader().getAddress().getURI()).getUser();
-        String channelId = getText(rootElement, "DeviceID");
+        String channelId = XmlUtil.getText(rootElement, "DeviceID");
         // 远程启动功能
-        if (!ObjectUtils.isEmpty(getText(rootElement, "TeleBoot"))) {
+        if (!ObjectUtils.isEmpty(XmlUtil.getText(rootElement, "TeleBoot"))) {
             // TODO 拒绝远程启动命令
             logger.warn("[国标级联]收到平台的远程启动命令， 不处理");
         }
@@ -95,35 +83,43 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                 }
                 return;
             }
-
+            IResourceService resourceService = resourceServiceMap.get(commonGbChannel.getType());
+            if (resourceService == null) {
+                try {
+                    responseAck(request, Response.FORBIDDEN);
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    logger.error("[命令发送失败] 错误信息: {}", e.getMessage());
+                }
+                return;
+            }
             switch (deviceControlType) {
                 case PTZ:
-                    handlePtzCmd(commonGbChannel, rootElement, request);
+                    handlePtzCmd(commonGbChannel, resourceService, rootElement, request);
                     break;
                 case ALARM:
-                    handleAlarmCmd(commonGbChannel, rootElement, request);
+                    handleAlarmCmd(commonGbChannel, resourceService, rootElement, request);
                     break;
-//                case GUARD:
-//                    handleGuardCmd(deviceForPlatform, rootElement, request, DeviceControlType.GUARD);
-//                    break;
-//                case RECORD:
-//                    handleRecordCmd(deviceForPlatform, channelId, rootElement, request, DeviceControlType.RECORD);
-//                    break;
-//                case I_FRAME:
-//                    handleIFameCmd(deviceForPlatform, request, channelId);
-//                    break;
-//                case TELE_BOOT:
-//                    handleTeleBootCmd(deviceForPlatform, request);
-//                    break;
-//                case DRAG_ZOOM_IN:
-//                    handleDragZoom(deviceForPlatform, channelId, rootElement, request, DeviceControlType.DRAG_ZOOM_IN);
-//                    break;
-//                case DRAG_ZOOM_OUT:
-//                    handleDragZoom(deviceForPlatform, channelId, rootElement, request, DeviceControlType.DRAG_ZOOM_OUT);
-//                    break;
-//                case HOME_POSITION:
-//                    handleHomePositionCmd(deviceForPlatform, channelId, rootElement, request, DeviceControlType.HOME_POSITION);
-//                    break;
+                case GUARD:
+                    handleGuardCmd(commonGbChannel, resourceService, rootElement, request);
+                    break;
+                case RECORD:
+                    handleRecordCmd(commonGbChannel, resourceService, rootElement, request);
+                    break;
+                case I_FRAME:
+                    handleIFameCmd(commonGbChannel, resourceService, request);
+                    break;
+                case TELE_BOOT:
+                    handleTeleBootCmd(commonGbChannel, resourceService, request);
+                    break;
+                case DRAG_ZOOM_IN:
+                    handleDragZoom(commonGbChannel, resourceService, rootElement, request, true);
+                    break;
+                case DRAG_ZOOM_OUT:
+                    handleDragZoom(commonGbChannel, resourceService, rootElement, request, false);
+                    break;
+                case HOME_POSITION:
+                    handleHomePositionCmd(commonGbChannel, resourceService, rootElement, request);
+                    break;
                 default:
                     break;
             }
@@ -133,26 +129,16 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
     /**
      * 处理云台指令
      */
-    private void handlePtzCmd(CommonGbChannel commonGbChannel, Element rootElement, SIPRequest request) {
-        IResourceService resourceService = resourceServiceMap.get(commonGbChannel.getType());
-        if (resourceService == null) {
-            try {
-                responseAck(request, Response.FORBIDDEN);
-            } catch (SipException | InvalidArgumentException | ParseException e) {
-                logger.error("[命令发送失败] 错误信息: {}", e.getMessage());
-            }
-            return;
+    private void handlePtzCmd(CommonGbChannel commonGbChannel, IResourceService resourceService,  Element rootElement, SIPRequest request) {
+        try {
+            responseAck(request, Response.OK);
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 错误信息: {}", e.getMessage());
         }
-
-        String cmdString = getText(rootElement, DeviceControlType.PTZ.getVal());
+        String cmdString = XmlUtil.getText(rootElement, DeviceControlType.PTZ.getVal());
         // 解析云台控制参数
         ICommandInfo commandInfo = ControlCommand.analysisCommand(cmdString);
         if (commandInfo == null || !commandInfo.getType().equals(CommandType.PTZ)) {
-            try {
-                responseAck(request, Response.OK);
-            } catch (SipException | InvalidArgumentException | ParseException e) {
-                logger.error("[命令发送失败] 错误信息: {}", e.getMessage());
-            }
             return;
         }
         PTZCommand ptzCommand = (PTZCommand)commandInfo;
@@ -170,60 +156,56 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
 
     /**
      * 处理强制关键帧
-     *
-     * @param device    设备
-     * @param channelId 通道id
      */
-    private void handleIFameCmd(Device device, SIPRequest request, String channelId) {
+    private void handleIFameCmd(CommonGbChannel commonGbChannel, IResourceService resourceService, SIPRequest request) {
+        logger.info("\r\n[强制关键帧] channelID： {} ", commonGbChannel.getCommonGbDeviceID());
         try {
-            cmder.iFrameCmd(device, channelId);
             responseAck(request, Response.OK);
-        } catch (InvalidArgumentException | SipException | ParseException e) {
-            logger.error("[命令发送失败] 强制关键帧: {}", e.getMessage());
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 错误信息: {}", e.getMessage());
         }
+        resourceService.setIFame(commonGbChannel);
     }
+
+
 
     /**
      * 处理重启命令
      *
-     * @param device 设备信息
      */
-    private void handleTeleBootCmd(Device device, SIPRequest request) {
+    private void handleTeleBootCmd(CommonGbChannel commonGbChannel, IResourceService resourceService, SIPRequest request) {
+        logger.info("\r\n[重启设备] channelID： {} ", commonGbChannel.getCommonGbDeviceID());
         try {
-            cmder.teleBootCmd(device);
             responseAck(request, Response.OK);
-        } catch (InvalidArgumentException | SipException | ParseException e) {
-            logger.error("[命令发送失败] 重启: {}", e.getMessage());
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[重启设备] 错误信息: {}", e.getMessage());
         }
-
+        resourceService.setTeleBoot(commonGbChannel);
     }
 
     /**
-     * 处理拉框控制***
-     *
-     * @param device      设备信息
-     * @param channelId   通道id
-     * @param rootElement 根节点
-     * @param type        消息类型
+     * 处理拉框控制
      */
-    private void handleDragZoom(Device device, String channelId, Element rootElement, SIPRequest request, DeviceControlType type) {
+    private void handleDragZoom(CommonGbChannel commonGbChannel, IResourceService resourceService, Element rootElement, SIPRequest request, boolean isIn) {
         try {
-            DragZoomRequest dragZoomRequest = loadElement(rootElement, DragZoomRequest.class);
-            DragZoomRequest.DragZoom dragZoom = dragZoomRequest.getDragZoomIn();
-            if (dragZoom == null) {
+            responseAck(request, Response.OK);
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[拉框控制] 错误信息: {}", e.getMessage());
+        }
+
+        try {
+            DragZoomRequest dragZoomRequest = XmlUtil.loadElement(rootElement, DragZoomRequest.class);
+            DragZoomRequest.DragZoom dragZoom;
+            if (isIn) {
+                logger.info("\r\n[拉框放大] channelID： {}; 参数： {}", commonGbChannel.getCommonGbDeviceID(),
+                        dragZoomRequest.getDragZoomIn().toString());
+                dragZoom = dragZoomRequest.getDragZoomIn();
+            }else {
+                logger.info("\r\n[拉框缩小] channelID： {}; 参数： {} ", commonGbChannel.getCommonGbDeviceID(),
+                        dragZoomRequest.getDragZoomIn().toString());
                 dragZoom = dragZoomRequest.getDragZoomOut();
             }
-            StringBuffer cmdXml = new StringBuffer(200);
-            cmdXml.append("<" + type.getVal() + ">\r\n");
-            cmdXml.append("<Length>" + dragZoom.getLength() + "</Length>\r\n");
-            cmdXml.append("<Width>" + dragZoom.getWidth() + "</Width>\r\n");
-            cmdXml.append("<MidPointX>" + dragZoom.getMidPointX() + "</MidPointX>\r\n");
-            cmdXml.append("<MidPointY>" + dragZoom.getMidPointY() + "</MidPointY>\r\n");
-            cmdXml.append("<LengthX>" + dragZoom.getLengthX() + "</LengthX>\r\n");
-            cmdXml.append("<LengthY>" + dragZoom.getLengthY() + "</LengthY>\r\n");
-            cmdXml.append("</" + type.getVal() + ">\r\n");
-            cmder.dragZoomCmd(device, channelId, cmdXml.toString());
-            responseAck(request, Response.OK);
+            resourceService.dragZoom(commonGbChannel, dragZoom, isIn);
         } catch (Exception e) {
             logger.error("[命令发送失败] 拉框控制: {}", e.getMessage());
         }
@@ -231,27 +213,26 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
     }
 
     /**
-     * 处理看守位命令***
-     *
-     * @param device      设备信息
-     * @param channelId   通道id
-     * @param rootElement 根节点
-     * @param request     请求信息
-     * @param type        消息类型
+     * 处理看守位命令
      */
-    private void handleHomePositionCmd(Device device, String channelId, Element rootElement, SIPRequest request, DeviceControlType type) {
+    private void handleHomePositionCmd(CommonGbChannel commonGbChannel,  IResourceService resourceService, Element rootElement, SIPRequest request) {
         try {
-            HomePositionRequest homePosition = loadElement(rootElement, HomePositionRequest.class);
+            responseAck(request, Response.OK);
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[拉框控制] 错误信息: {}", e.getMessage());
+        }
+
+        try {
+            HomePositionRequest homePosition = XmlUtil.loadElement(rootElement, HomePositionRequest.class);
             //获取整个消息主体，我们只需要修改请求头即可
             HomePositionRequest.HomePosition info = homePosition.getHomePosition();
             if (info.getEnabled() == null) {
                 return;
             }
-            cmder.homePositionCmd(device, channelId, info.getEnabled().equals("1"),
+            resourceService.setHomePosition(commonGbChannel, info.getEnabled().equals("1"),
                     info.getResetTime() != null ? Integer.parseInt(info.getResetTime()): null,
-                    info.getPresetIndex() != null ? Integer.parseInt(info.getPresetIndex()): null,
-                    errorResult -> onError(request, errorResult),
-                    okResult -> onOk(request, okResult));
+                    info.getPresetIndex() != null ? Integer.parseInt(info.getPresetIndex()): null);
+
         } catch (Exception e) {
             logger.error("[命令发送失败] 看守位设置: {}", e.getMessage());
         }
@@ -260,15 +241,11 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
     /**
      * 处理告警消息
      */
-    private void handleAlarmCmd(CommonGbChannel commonGbChannel, Element rootElement, SIPRequest request) {
-        IResourceService resourceService = resourceServiceMap.get(commonGbChannel.getType());
-        if (resourceService == null) {
-            try {
-                responseAck(request, Response.FORBIDDEN);
-            } catch (SipException | InvalidArgumentException | ParseException e) {
-                logger.error("[命令发送失败] 错误信息: {}", e.getMessage());
-            }
-            return;
+    private void handleAlarmCmd(CommonGbChannel commonGbChannel, IResourceService resourceService, Element rootElement, SIPRequest request) {
+        try {
+            responseAck(request, Response.OK);
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 回复: {}", e.getMessage());
         }
 
         //告警方法
@@ -278,11 +255,11 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
         List<Element> info = rootElement.elements("Info");
         if (info != null) {
             for (Element element : info) {
-                String alarmMethodStr = getText(element, "AlarmMethod");
+                String alarmMethodStr = XmlUtil.getText(element, "AlarmMethod");
                 if (alarmMethodStr != null) {
                     alarmMethod = Integer.parseInt(alarmMethodStr);
                 }
-                String alarmTypeStr = getText(element, "AlarmType");
+                String alarmTypeStr = XmlUtil.getText(element, "AlarmType");
                 if (alarmTypeStr != null) {
                     alarmType = Integer.parseInt(alarmTypeStr);
                 }
@@ -296,44 +273,41 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
 
     /**
      * 处理录像控制
-     *
-     * @param device      设备信息
-     * @param channelId   通道id
-     * @param rootElement 根节点
-     * @param request     请求信息
-     * @param type        消息类型
      */
-    private void handleRecordCmd(Device device, String channelId, Element rootElement, SIPRequest request, DeviceControlType type) {
+    private void handleRecordCmd(CommonGbChannel commonGbChannel, IResourceService resourceService, Element rootElement, SIPRequest request) {
         //获取整个消息主体，我们只需要修改请求头即可
-        String cmdString = getText(rootElement, type.getVal());
+        String cmdString = XmlUtil.getText(rootElement, DeviceControlType.RECORD.getVal());
         Boolean isRecord = null;
         if (cmdString.equalsIgnoreCase("Record")) {
             isRecord = true;
         }else if (cmdString.equalsIgnoreCase("StopRecord")) {
             isRecord = false;
         }else {
+            logger.info("\r\n[录像控制] 解析失败： {} ", commonGbChannel.getCommonGbDeviceID());
             return;
         }
-        try {
-            cmder.recordCmd(device, channelId, isRecord,
-                    errorResult -> onError(request, errorResult),
-                    okResult -> onOk(request, okResult));
-        } catch (InvalidArgumentException | SipException | ParseException e) {
-            logger.error("[命令发送失败] 录像控制: {}", e.getMessage());
+        if (isRecord) {
+            logger.info("\r\n[录像控制] 开始录像: channelId： {} ", commonGbChannel.getCommonGbDeviceID());
+        }else {
+            logger.info("\r\n[录像控制] 停止录像： {} ", commonGbChannel.getCommonGbDeviceID());
         }
+
+        resourceService.setRecord(commonGbChannel, isRecord);
     }
+
+
 
     /**
      * 处理报警布防/撤防命令
-     *
-     * @param device      设备信息
-     * @param rootElement 根节点
-     * @param request     请求信息
-     * @param type        消息类型
      */
-    private void handleGuardCmd(Device device, Element rootElement, SIPRequest request, DeviceControlType type) {
+    private void handleGuardCmd(CommonGbChannel commonGbChannel, IResourceService resourceService, Element rootElement, SIPRequest request) {
+        try {
+            responseAck(request, Response.OK);
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 错误信息: {}", e.getMessage());
+        }
         //获取整个消息主体，我们只需要修改请求头即可
-        String cmdString = getText(rootElement, type.getVal());
+        String cmdString = XmlUtil.getText(rootElement, DeviceControlType.GUARD.getVal());
         boolean setGuard;
         if (cmdString.equalsIgnoreCase("Record")) {
             setGuard = true;
@@ -342,43 +316,12 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
         }else {
             return;
         }
-        try {
-            cmder.guardCmd(device, setGuard,
-                    errorResult -> onError(request, errorResult),
-                    okResult -> onOk(request, okResult));
-        } catch (InvalidArgumentException | SipException | ParseException e) {
-            logger.error("[命令发送失败] 布防/撤防命令: {}", e.getMessage());
+        if (setGuard) {
+            logger.info("\r\n[报警布防]: channelId： {} ", commonGbChannel.getCommonGbDeviceID());
+        }else {
+            logger.info("\r\n[报警撤防]: channelId： {} ", commonGbChannel.getCommonGbDeviceID());
         }
-    }
 
-
-    /**
-     * 错误响应处理
-     *
-     * @param request     请求
-     * @param eventResult 响应结构
-     */
-    private void onError(SIPRequest request, SipSubscribe.EventResult eventResult) {
-        // 失败的回复
-        try {
-            responseAck(request, eventResult.statusCode, eventResult.msg);
-        } catch (SipException | InvalidArgumentException | ParseException e) {
-            logger.error("[命令发送失败] 回复: {}", e.getMessage());
-        }
-    }
-
-    /**
-     * 成功响应处理
-     *
-     * @param request     请求
-     * @param eventResult 响应结构
-     */
-    private void onOk(SIPRequest request, SipSubscribe.EventResult eventResult) {
-        // 成功的回复
-        try {
-            responseAck(request, eventResult.statusCode);
-        } catch (SipException | InvalidArgumentException | ParseException e) {
-            logger.error("[命令发送失败] 回复: {}", e.getMessage());
-        }
+        resourceService.setGuard(commonGbChannel, setGuard);
     }
 }

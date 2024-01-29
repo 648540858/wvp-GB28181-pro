@@ -107,6 +107,18 @@ public class DragZoomRequest {
         public void setLengthY(Integer lengthY) {
             this.lengthY = lengthY;
         }
+
+        @Override
+        public String toString() {
+            return "DragZoom{" +
+                    "length=" + length +
+                    ", width=" + width +
+                    ", midPointX=" + midPointX +
+                    ", midPointY=" + midPointY +
+                    ", lengthX=" + lengthX +
+                    ", lengthY=" + lengthY +
+                    '}';
+        }
     }
 
     public String getSn() {

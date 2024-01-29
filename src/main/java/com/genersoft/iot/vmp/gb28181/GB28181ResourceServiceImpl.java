@@ -124,6 +124,27 @@ public class GB28181ResourceServiceImpl implements IResourceService {
     }
 
     @Override
+    public void resetAlarm(CommonGbChannel commonGbChannel, Integer alarmMethod, Integer alarmType) {
+        CheckCommonGbChannelResult checkResult = checkCommonGbChannel(commonGbChannel);
+
+        if (checkResult.errorMsg != null) {
+            logger.warn("[资源类-国标28181] 报警处理失败： {}", checkResult.errorMsg);
+            return;
+        }
+        if (checkResult.device == null || checkResult.channel == null) {
+            logger.warn("[资源类-国标28181] 报警处理失败： 设备获取失败");
+            return;
+        }
+        try {
+            commander.alarmCmd(checkResult.device, alarmMethod, alarmType,
+                    errorResult -> onError(request, errorResult),
+                    okResult -> onOk(request, okResult));
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            logger.error("[命令发送失败]： ", e);
+        }
+    }
+
+    @Override
     public void streamOffline(String app, String streamId) {
         // TODO
     }

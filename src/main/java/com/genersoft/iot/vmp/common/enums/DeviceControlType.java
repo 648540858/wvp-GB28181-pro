@@ -31,7 +31,7 @@ public enum DeviceControlType {
     /**
      * 告警控制
      */
-    ALARM("AlarmCmd","告警控制"),
+    ALARM("AlarmCmd","报警复位"),
     /**
      * 强制关键帧
      */

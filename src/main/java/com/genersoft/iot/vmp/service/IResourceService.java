@@ -46,4 +46,9 @@ public interface IResourceService {
      * 录像下载
      */
     void startDownload(CommonGbChannel channel, Long startTime, Long stopTime, Integer downloadSpeed, IResourcePlayCallback playCallback);
+
+    /**
+     * 报警复位
+     */
+    void resetAlarm(CommonGbChannel commonGbChannel, Integer alarmMethod, Integer alarmType);
 }

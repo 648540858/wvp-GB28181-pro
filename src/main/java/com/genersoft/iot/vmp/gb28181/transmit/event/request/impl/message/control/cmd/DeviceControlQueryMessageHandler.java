@@ -258,7 +258,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
     }
 
     /**
-     * 处理告警消息***
+     * 处理告警消息
      */
     private void handleAlarmCmd(CommonGbChannel commonGbChannel, Element rootElement, SIPRequest request) {
         IResourceService resourceService = resourceServiceMap.get(commonGbChannel.getType());
@@ -289,36 +289,9 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             }
         }
 
-        logger.info("\r\n[报警]: alarmMethod： {} alarmType： {}", alarmMethod, alarmType);
+        logger.info("\r\n[报警复位]: alarmMethod： {} alarmType： {}", alarmMethod, alarmType);
 
-        resourceService.ptzControl(commonGbChannel, ptzCommand);
-
-
-
-        //告警方法
-        Integer alarmMethod = null;
-        //告警类型
-        Integer alarmType = null;
-        List<Element> info = rootElement.elements("Info");
-        if (info != null) {
-            for (Element element : info) {
-                String alarmMethodStr = getText(element, "AlarmMethod");
-                if (alarmMethodStr != null) {
-                    alarmMethod = Integer.parseInt(alarmMethodStr);
-                }
-                String alarmTypeStr = getText(element, "AlarmType");
-                if (alarmTypeStr != null) {
-                    alarmType = Integer.parseInt(alarmTypeStr);
-                }
-            }
-        }
-        try {
-            cmder.alarmCmd(device, alarmMethod, alarmType,
-                    errorResult -> onError(request, errorResult),
-                    okResult -> onOk(request, okResult));
-        } catch (InvalidArgumentException | SipException | ParseException e) {
-            logger.error("[命令发送失败] 告警消息: {}", e.getMessage());
-        }
+        resourceService.resetAlarm(commonGbChannel, alarmMethod, alarmType);
     }
 
     /**

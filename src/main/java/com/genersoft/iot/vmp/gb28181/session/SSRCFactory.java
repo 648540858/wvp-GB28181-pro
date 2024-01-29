@@ -38,7 +38,8 @@ public class SSRCFactory {
 
 
     public void initMediaServerSSRC(String mediaServerId, Set<String> usedSet) {
-        String ssrcPrefix = sipConfig.getDomain().substring(3, 8);
+        String sipDomain = sipConfig.getDomain();
+        String ssrcPrefix = sipDomain.length() >= 8 ? sipDomain.substring(3, 8) : sipDomain;
         String redisKey = SSRC_INFO_KEY + userSetting.getServerId() + "_" + mediaServerId;
         List<String> ssrcList = new ArrayList<>();
         for (int i = 1; i < MAX_STREAM_COUNT; i++) {

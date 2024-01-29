@@ -34,10 +34,7 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
-import javax.sip.InvalidArgumentException;
-import javax.sip.ResponseEvent;
-import javax.sip.SipException;
-import javax.sip.SipFactory;
+import javax.sip.*;
 import javax.sip.header.CallIdHeader;
 import javax.sip.message.Request;
 import java.text.ParseException;
@@ -81,120 +78,10 @@ public class SIPCommander implements ISIPCommander {
     private IMediaServerService mediaServerService;
 
 
-    /**
-     * 云台方向放控制，使用配置文件中的默认镜头移动速度
-     *
-     * @param device    控制设备
-     * @param channelId 预览通道
-     * @param leftRight 镜头左移右移 0:停止 1:左移 2:右移
-     * @param upDown    镜头上移下移 0:停止 1:上移 2:下移
-     */
     @Override
-    public void ptzdirectCmd(Device device, String channelId, int leftRight, int upDown) throws InvalidArgumentException, ParseException, SipException {
-        ptzCmd(device, channelId, leftRight, upDown, 0, sipConfig.getPtzSpeed(), 0);
-    }
-
-    /**
-     * 云台方向放控制
-     *
-     * @param device    控制设备
-     * @param channelId 预览通道
-     * @param leftRight 镜头左移右移 0:停止 1:左移 2:右移
-     * @param upDown    镜头上移下移 0:停止 1:上移 2:下移
-     * @param moveSpeed 镜头移动速度
-     */
-    @Override
-    public void ptzdirectCmd(Device device, String channelId, int leftRight, int upDown, int moveSpeed) throws InvalidArgumentException, ParseException, SipException {
-        ptzCmd(device, channelId, leftRight, upDown, 0, moveSpeed, 0);
-    }
-
-    /**
-     * 云台缩放控制，使用配置文件中的默认镜头缩放速度
-     *
-     * @param device    控制设备
-     * @param channelId 预览通道
-     * @param inOut     镜头放大缩小 0:停止 1:缩小 2:放大
-     */
-    @Override
-    public void ptzZoomCmd(Device device, String channelId, int inOut) throws InvalidArgumentException, ParseException, SipException {
-        ptzCmd(device, channelId, 0, 0, inOut, 0, sipConfig.getPtzSpeed());
-    }
-
-    /**
-     * 云台缩放控制
-     *
-     * @param device    控制设备
-     * @param channelId 预览通道
-     * @param inOut     镜头放大缩小 0:停止 1:缩小 2:放大
-     * @param zoomSpeed 镜头缩放速度
-     */
-    @Override
-    public void ptzZoomCmd(Device device, String channelId, int inOut, int zoomSpeed) throws InvalidArgumentException, ParseException, SipException {
-        ptzCmd(device, channelId, 0, 0, inOut, 0, zoomSpeed);
-    }
-
-    /**
-     * 云台指令码计算
-     *
-     * @param cmdCode      指令码
-     * @param parameter1   数据1
-     * @param parameter2   数据2
-     * @param combineCode2 组合码2
-     */
-    public static String frontEndCmdString(int cmdCode, int parameter1, int parameter2, int combineCode2) {
-        StringBuilder builder = new StringBuilder("A50F01");
-        String strTmp;
-        strTmp = String.format("%02X", cmdCode);
-        builder.append(strTmp, 0, 2);
-        strTmp = String.format("%02X", parameter1);
-        builder.append(strTmp, 0, 2);
-        strTmp = String.format("%02X", parameter2);
-        builder.append(strTmp, 0, 2);
-        //优化zoom变倍速率
-        if ((combineCode2 > 0) && (combineCode2 <16))
-        {
-            combineCode2 = 16;
-        }
-        strTmp = String.format("%X", combineCode2);
-        builder.append(strTmp, 0, 1).append("0");
-        //计算校验码
-        int checkCode = (0XA5 + 0X0F + 0X01 + cmdCode + parameter1 + parameter2 + (combineCode2 & 0XF0)) % 0X100;
-        strTmp = String.format("%02X", checkCode);
-        builder.append(strTmp, 0, 2);
-        return builder.toString();
-    }
-
-    /**
-     * 云台控制，支持方向与缩放控制
-     *
-     * @param device    控制设备
-     * @param channelId 预览通道
-     * @param leftRight 镜头左移右移 0:停止 1:左移 2:右移
-     * @param upDown    镜头上移下移 0:停止 1:上移 2:下移
-     * @param inOut     镜头放大缩小 0:停止 1:缩小 2:放大
-     * @param moveSpeed 镜头移动速度
-     * @param zoomSpeed 镜头缩放速度
-     */
-    @Override
-    public void ptzCmd(Device device, String channelId, int leftRight, int upDown, int inOut, int moveSpeed,
-                       int zoomSpeed) throws InvalidArgumentException, SipException, ParseException {
-        String cmdStr = SipUtils.cmdString(leftRight, upDown, inOut, moveSpeed, zoomSpeed);
-        StringBuilder ptzXml = new StringBuilder(200);
-        String charset = device.getCharset();
-        ptzXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
-        ptzXml.append("<Control>\r\n");
-        ptzXml.append("<CmdType>DeviceControl</CmdType>\r\n");
-        ptzXml.append("<SN>" + SipUtils.getNewSn() + "</SN>\r\n");
-        ptzXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
-        ptzXml.append("<PTZCmd>" + cmdStr + "</PTZCmd>\r\n");
-        ptzXml.append("<Info>\r\n");
-        ptzXml.append("<ControlPriority>5</ControlPriority>\r\n");
-        ptzXml.append("</Info>\r\n");
-        ptzXml.append("</Control>\r\n");
-        
-        Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
-
-        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()),request);
+    public void ptzCmd(Device device, String channelId, PTZCommand ptzCommand) throws InvalidArgumentException, SipException, ParseException {
+        String cmdStr = SipUtils.cmdString(ptzCommand);
+        frontEndCmd(device, channelId, cmdStr);
     }
 
     /**
@@ -208,9 +95,14 @@ public class SIPCommander implements ISIPCommander {
      * @param combineCode2 组合码2
      */
     @Override
-    public void frontEndCmd(Device device, String channelId, int cmdCode, int parameter1, int parameter2, int combineCode2) throws SipException, InvalidArgumentException, ParseException {
+    public void frontEndCmd(Device device, String channelId, int cmdCode, int parameter1, int parameter2, int combineCode2)
+            throws SipException, InvalidArgumentException, ParseException {
+        String cmdStr = SipUtils.frontEndCmdString(cmdCode, parameter1, parameter2, combineCode2);
+        frontEndCmd(device, channelId, cmdStr);
+    }
+    private void frontEndCmd(Device device, String channelId, String cmdStr)
+            throws SipException, InvalidArgumentException, ParseException {
 
-        String cmdStr = frontEndCmdString(cmdCode, parameter1, parameter2, combineCode2);
         StringBuffer ptzXml = new StringBuffer(200);
         String charset = device.getCharset();
         ptzXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
@@ -224,40 +116,8 @@ public class SIPCommander implements ISIPCommander {
         ptzXml.append("</Info>\r\n");
         ptzXml.append("</Control>\r\n");
 
-
-
-
         SIPRequest request = (SIPRequest) headerProvider.createMessageRequest(device, ptzXml.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()),request);
-
-    }
-
-    /**
-     * 前端控制指令（用于转发上级指令）
-     *
-     * @param device    控制设备
-     * @param channelId 预览通道
-     * @param cmdString 前端控制指令串
-     */
-    @Override
-    public void fronEndCmd(Device device, String channelId, String cmdString, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
-
-        StringBuffer ptzXml = new StringBuffer(200);
-        String charset = device.getCharset();
-        ptzXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
-        ptzXml.append("<Control>\r\n");
-        ptzXml.append("<CmdType>DeviceControl</CmdType>\r\n");
-        ptzXml.append("<SN>" + SipUtils.getNewSn() + "</SN>\r\n");
-        ptzXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
-        ptzXml.append("<PTZCmd>" + cmdString + "</PTZCmd>\r\n");
-        ptzXml.append("<Info>\r\n");
-        ptzXml.append("<ControlPriority>5</ControlPriority>\r\n");
-        ptzXml.append("</Info>\r\n");
-        ptzXml.append("</Control>\r\n");
-        
-        
-        Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
-        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()),request, errorEvent, okEvent);
 
     }
 

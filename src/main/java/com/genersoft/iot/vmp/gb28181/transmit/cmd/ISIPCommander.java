@@ -22,57 +22,6 @@ import java.text.ParseException;
  */
 public interface ISIPCommander {
 
-	/**
-	 * 云台方向放控制，使用配置文件中的默认镜头移动速度
-	 * 
-	 * @param device  控制设备
-	 * @param channelId  预览通道
-	 * @param leftRight  镜头左移右移 0:停止 1:左移 2:右移
-     * @param upDown     镜头上移下移 0:停止 1:上移 2:下移
-	 */
-	void ptzdirectCmd(Device device,String channelId,int leftRight, int upDown) throws InvalidArgumentException, ParseException, SipException;
-	
-	/**
-	 * 云台方向放控制
-	 * 
-	 * @param device  控制设备
-	 * @param channelId  预览通道
-	 * @param leftRight  镜头左移右移 0:停止 1:左移 2:右移
-     * @param upDown     镜头上移下移 0:停止 1:上移 2:下移
-     * @param moveSpeed  镜头移动速度
-	 */
-	void ptzdirectCmd(Device device,String channelId,int leftRight, int upDown, int moveSpeed) throws InvalidArgumentException, ParseException, SipException;
-	
-	/**
-	 * 云台缩放控制，使用配置文件中的默认镜头缩放速度
-	 * 
-	 * @param device  控制设备
-	 * @param channelId  预览通道
-     * @param inOut      镜头放大缩小 0:停止 1:缩小 2:放大
-	 */
-	void ptzZoomCmd(Device device,String channelId,int inOut) throws InvalidArgumentException, ParseException, SipException;
-	
-	/**
-	 * 云台缩放控制
-	 * 
-	 * @param device  控制设备
-	 * @param channelId  预览通道
-     * @param inOut      镜头放大缩小 0:停止 1:缩小 2:放大
-	 */
-	void ptzZoomCmd(Device device,String channelId,int inOut, int moveSpeed) throws InvalidArgumentException, ParseException, SipException;
-	
-	/**
-	 * 云台控制，支持方向与缩放控制
-	 * 
-	 * @param device  控制设备
-	 * @param channelId  预览通道
-	 * @param leftRight  镜头左移右移 0:停止 1:左移 2:右移
-     * @param upDown     镜头上移下移 0:停止 1:上移 2:下移
-     * @param inOut      镜头放大缩小 0:停止 1:缩小 2:放大
-     * @param moveSpeed  镜头移动速度
-     * @param zoomSpeed  镜头缩放速度
-	 */
-	void ptzCmd(Device device,String channelId,int leftRight, int upDown, int inOut, int moveSpeed, int zoomSpeed) throws InvalidArgumentException, SipException, ParseException;
 	void ptzCmd(Device device, String channelId, PTZCommand ptzCommand) throws InvalidArgumentException, SipException, ParseException;
 
 	/**
@@ -86,14 +35,6 @@ public interface ISIPCommander {
      * @param combineCode2	组合码2
 	 */
 	void frontEndCmd(Device device, String channelId, int cmdCode, int parameter1, int parameter2, int combineCode2) throws SipException, InvalidArgumentException, ParseException;
-	
-	/**
-	 * 前端控制指令（用于转发上级指令）
-	 * @param device		控制设备
-	 * @param channelId		预览通道
-	 * @param cmdString		前端控制指令串
-	 */
-	void fronEndCmd(Device device, String channelId, String cmdString, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
 
 	/**
 	 * 请求预览视频流

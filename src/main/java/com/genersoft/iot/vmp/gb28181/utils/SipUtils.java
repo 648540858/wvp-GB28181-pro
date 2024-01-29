@@ -96,49 +96,24 @@ public class SipUtils {
     }
 
 
-    /**
-     * 云台指令码计算
-     *
-     * @param leftRight  镜头左移右移 0:停止 1:左移 2:右移
-     * @param upDown     镜头上移下移 0:停止 1:上移 2:下移
-     * @param inOut      镜头放大缩小 0:停止 1:缩小 2:放大
-     * @param moveSpeed  镜头移动速度 默认 0XFF (0-255)
-     * @param zoomSpeed  镜头缩放速度 默认 0X1 (0-255)
-     */
-    public static String cmdString(int leftRight, int upDown, int inOut, int moveSpeed, int zoomSpeed) {
-        int cmdCode = 0;
-        if (leftRight == 2) {
-            cmdCode|=0x01;		// 右移
-        } else if(leftRight == 1) {
-            cmdCode|=0x02;		// 左移
-        }
-        if (upDown == 2) {
-            cmdCode|=0x04;		// 下移
-        } else if(upDown == 1) {
-            cmdCode|=0x08;		// 上移
-        }
-        if (inOut == 2) {
-            cmdCode |= 0x10;	// 放大
-        } else if(inOut == 1) {
-            cmdCode |= 0x20;	// 缩小
-        }
+    public static String frontEndCmdString(int cmdCode, int parameter1, int parameter2, int combineCode2) {
         StringBuilder builder = new StringBuilder("A50F01");
         String strTmp;
         strTmp = String.format("%02X", cmdCode);
         builder.append(strTmp, 0, 2);
-        strTmp = String.format("%02X", moveSpeed);
+        strTmp = String.format("%02X", parameter1);
         builder.append(strTmp, 0, 2);
+        strTmp = String.format("%02X", parameter2);
         builder.append(strTmp, 0, 2);
-
-        //优化zoom低倍速下的变倍速率
-        if ((zoomSpeed > 0) && (zoomSpeed <16))
+        //优化zoom变倍速率
+        if ((combineCode2 > 0) && (combineCode2 <16))
         {
-            zoomSpeed = 16;
+            combineCode2 = 16;
         }
-        strTmp = String.format("%X", zoomSpeed);
+        strTmp = String.format("%X", combineCode2);
         builder.append(strTmp, 0, 1).append("0");
         //计算校验码
-        int checkCode = (0XA5 + 0X0F + 0X01 + cmdCode + moveSpeed + moveSpeed + (zoomSpeed /*<< 4*/ & 0XF0)) % 0X100;
+        int checkCode = (0XA5 + 0X0F + 0X01 + cmdCode + parameter1 + parameter2 + (combineCode2 & 0XF0)) % 0X100;
         strTmp = String.format("%02X", checkCode);
         builder.append(strTmp, 0, 2);
         return builder.toString();
@@ -164,15 +139,19 @@ public class SipUtils {
         if (command.isOut()) {
             byte4Int += 32;
         }
+        if (command.getzSpeed() < 0 || command.getzSpeed() > 15) {
+            command.setzSpeed(15);
+        }
         StringBuilder builder = new StringBuilder("A50F01");
-        builder.append(Integer.toHexString(byte4Int), 0, 2);
-        builder.append(Integer.toHexString(command.getxSpeed()), 0, 2);
-        builder.append(Integer.toHexString(command.getySpeed()), 0, 2);
-        builder.append(Integer.toHexString(command.getzSpeed()), 0, 1);
 
+        builder.append(String.format("%02X", byte4Int))
+                .append(String.format("%02X", command.getxSpeed()))
+                .append(String.format("%02X", command.getySpeed()))
+                .append(String.format("%X", command.getzSpeed()))
+                .append("0");
         //计算校验码
         int checkCode = (0XA5 + 0X0F + 0X01 + byte4Int + command.getxSpeed() + command.getySpeed() + (command.getzSpeed() /*<< 4*/ & 0XF0)) % 0X100;
-        builder.append(String.format("%02X", checkCode), 0, 2);
+        builder.append(String.format("%02X", checkCode));
         return builder.toString();
     }
 

@@ -156,9 +156,11 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             return;
         }
         PTZCommand ptzCommand = (PTZCommand)commandInfo;
-        logger.info("\r\n[云台控制]: \r\n镜头变倍: 放大： {}，缩小： {}， " +
-                        " \r\n垂直方向控制： 上： {}， 下： {}， 左： {}，右： {}" +
+        logger.info("\r\n[云台控制]: 命令： {}" +
+                        " \r\n镜头变倍: 放大： {}，缩小： {}， " +
+                        " \r\n方向控制： 上： {}， 下： {}， 左： {}，右： {}" +
                         " \r\n平控制速度相对值: {}, 垂直控制速度相对值: {}, 变倍控制速度相对值: {}",
+                cmdString,
                 ptzCommand.isIn(), ptzCommand.isOut(),
                 ptzCommand.isUp(), ptzCommand.isDown(), ptzCommand.isLeft(), ptzCommand.isRight(),
                 ptzCommand.getxSpeed(), ptzCommand.getySpeed(), ptzCommand.getzSpeed());

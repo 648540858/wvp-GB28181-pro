@@ -498,7 +498,7 @@ public class ZLMHttpHookListener {
                 }
                 // 收到无人观看说明流也没有在往上级推送
                 List<SendRtpItem> sendRtpItems = streamSendManager.getByByChanelId(inviteInfo.getChannelId());
-                if (!sendRtpItems.isEmpty()) {
+                if (sendRtpItems != null && !sendRtpItems.isEmpty()) {
                     for (SendRtpItem sendRtpItem : sendRtpItems) {
                         ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getDestId());
                         try {

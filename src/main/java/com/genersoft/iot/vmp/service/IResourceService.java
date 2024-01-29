@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.gb28181.bean.command.PTZCommand;
 
 /**
  * 同用资源接入接口，待接入的资源实现此接口即可自动接入，
@@ -28,15 +29,8 @@ public interface IResourceService {
 
     /**
      * 云台控制
-     * @param commonGbChannel 通道
-     * @param command 控制指令,允许值: left, right, up, down, upleft, upright, downleft, downright, zoomin, zoomout, stop
-     * @param horizonSpeed 水平速度 0-255
-     * @param verticalSpeed 垂直速度 0-255
-     * @param zoomSpeed 缩放速度
-     * @return 结果
      */
-    boolean ptzControl(CommonGbChannel commonGbChannel, String command,
-                       Integer horizonSpeed, Integer verticalSpeed, Integer zoomSpeed);
+    boolean ptzControl(CommonGbChannel commonGbChannel, PTZCommand ptzCommand);
 
     /**
      * 流离线

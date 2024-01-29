@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
+import com.genersoft.iot.vmp.gb28181.bean.command.PTZCommand;
 import com.genersoft.iot.vmp.service.IResourcePlayCallback;
 import com.genersoft.iot.vmp.service.IResourceService;
 import com.genersoft.iot.vmp.service.bean.CommonGbChannelType;
@@ -24,7 +25,7 @@ public class StreamPushResourceServiceImpl implements IResourceService {
     }
 
     @Override
-    public boolean ptzControl(CommonGbChannel commonGbChannel, String command, Integer horizonSpeed, Integer verticalSpeed, Integer zoomSpeed) {
+    public boolean ptzControl(CommonGbChannel commonGbChannel, PTZCommand ptzCommand) {
         return false;
     }
 

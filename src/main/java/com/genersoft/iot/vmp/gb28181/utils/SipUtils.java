@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.utils;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.bean.command.PTZCommand;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.GitUtil;
 import gov.nist.javax.sdp.TimeDescriptionImpl;
@@ -140,6 +141,38 @@ public class SipUtils {
         int checkCode = (0XA5 + 0X0F + 0X01 + cmdCode + moveSpeed + moveSpeed + (zoomSpeed /*<< 4*/ & 0XF0)) % 0X100;
         strTmp = String.format("%02X", checkCode);
         builder.append(strTmp, 0, 2);
+        return builder.toString();
+    }
+
+    public static String cmdString(PTZCommand command) {
+        int byte4Int = 0;
+        if (command.isRight()) {
+            byte4Int += 1;
+        }
+        if (command.isLeft()) {
+            byte4Int += 2;
+        }
+        if (command.isDown()) {
+            byte4Int += 4;
+        }
+        if (command.isUp()) {
+            byte4Int += 8;
+        }
+        if (command.isIn()) {
+            byte4Int += 16;
+        }
+        if (command.isOut()) {
+            byte4Int += 32;
+        }
+        StringBuilder builder = new StringBuilder("A50F01");
+        builder.append(Integer.toHexString(byte4Int), 0, 2);
+        builder.append(Integer.toHexString(command.getxSpeed()), 0, 2);
+        builder.append(Integer.toHexString(command.getySpeed()), 0, 2);
+        builder.append(Integer.toHexString(command.getzSpeed()), 0, 1);
+
+        //计算校验码
+        int checkCode = (0XA5 + 0X0F + 0X01 + byte4Int + command.getxSpeed() + command.getySpeed() + (command.getzSpeed() /*<< 4*/ & 0XF0)) % 0X100;
+        builder.append(String.format("%02X", checkCode), 0, 2);
         return builder.toString();
     }
 

@@ -2,10 +2,10 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.contro
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.common.enums.DeviceControlType;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DragZoomRequest;
-import com.genersoft.iot.vmp.gb28181.bean.HomePositionRequest;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.bean.command.CommandType;
+import com.genersoft.iot.vmp.gb28181.bean.command.ICommandInfo;
+import com.genersoft.iot.vmp.gb28181.bean.command.PTZCommand;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
@@ -143,18 +143,36 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             }
             return;
         }
-        // 解析云台控制参数
-
-//        resourceService.ptzControl(commonGbChannel)
 
         String cmdString = getText(rootElement, type.getVal());
-        byte[] bytes = cmdString.getBytes();
-        System.out.println(cmdString);
-        for (byte aByte : bytes) {
-            System.out.print(aByte);
-            System.out.print(" ");
+        // 解析云台控制参数
+        ICommandInfo commandInfo = ControlCommand.analysisCommand(cmdString);
+        if (commandInfo == null || !commandInfo.getType().equals(CommandType.PTZ)) {
+            try {
+                responseAck(request, Response.OK);
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                logger.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
         }
-        System.out.println(" ");
+        PTZCommand ptzCommand = (PTZCommand)commandInfo;
+        logger.info("\r\n[云台控制]: \r\n镜头变倍: 放大： {}，缩小： {}， " +
+                        " \r\n垂直方向控制： 上： {}， 下： {}， 左： {}，右： {}" +
+                        " \r\n平控制速度相对值: {}, 垂直控制速度相对值: {}, 变倍控制速度相对值: {}",
+                ptzCommand.isIn(), ptzCommand.isOut(),
+                ptzCommand.isUp(), ptzCommand.isDown(), ptzCommand.isLeft(), ptzCommand.isRight(),
+                ptzCommand.getxSpeed(), ptzCommand.getySpeed(), ptzCommand.getzSpeed());
+
+        resourceService.ptzControl(commonGbChannel, ptzCommand);
+
+//        System.out.println();
+//        byte[] bytes = cmdString.getBytes();
+//        System.out.println(cmdString);
+//        for (byte aByte : bytes) {
+//            System.out.print(aByte);
+//            System.out.print(" ");
+//        }
+//        System.out.println(" ");
 //        try {
 //            cmder.fronEndCmd(device, channelId, cmdString,
 //                    errorResult -> onError(request, errorResult),

@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.service.impl;
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.GB28181ResourceServiceImpl;
+import com.genersoft.iot.vmp.gb28181.bean.command.PTZCommand;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
 import com.genersoft.iot.vmp.service.*;
@@ -75,7 +76,7 @@ public class StreamProxyResourceServiceImpl implements IResourceService {
     }
 
     @Override
-    public boolean ptzControl(CommonGbChannel commonGbChannel, String command, Integer horizonSpeed, Integer verticalSpeed, Integer zoomSpeed) {
+    public boolean ptzControl(CommonGbChannel commonGbChannel, PTZCommand ptzCommand) {
         return false;
     }
 

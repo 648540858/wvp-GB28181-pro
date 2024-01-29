@@ -163,6 +163,9 @@ alter table wvp_platform
 alter table wvp_platform
     drop column catalog_id;
 
+alter table wvp_platform
+    add column system_catalog bool default false;
+
 
 
 

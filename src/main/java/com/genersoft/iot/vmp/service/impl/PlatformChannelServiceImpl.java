@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.common.BatchLimit;
 import com.genersoft.iot.vmp.common.CommonGbChannel;
+import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -54,6 +55,9 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
 
     @Autowired
     EventPublisher eventPublisher;
+
+    @Autowired
+    private SipConfig sipConfig;
 
     @Override
     @Transactional
@@ -137,6 +141,9 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     @Override
     public List<CommonGbChannel> queryChannelList(ParentPlatform platform) {
         List<CommonGbChannel> result = new ArrayList<>();
+        if (platform.isSystemCatalog()) {
+            result.add(0, getChannelForPlatform(platform));
+        }
         if (platform.isShareAllChannel()) {
             // 获取所有地区
             List<CommonGbChannel> allRegionList = regionMapper.queryAllForCommonChannel();
@@ -179,6 +186,22 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
             result.addAll(channelList);
         }
         return result;
+    }
+
+    private CommonGbChannel getChannelForPlatform(ParentPlatform platform) {
+        CommonGbChannel channel = new CommonGbChannel();
+
+        channel.setCommonGbDeviceID(platform.getDeviceGBId());
+        channel.setCommonGbName(platform.getName());
+        channel.setCommonGbManufacturer(sipConfig.getManufacturer());
+        channel.setCommonGbModel(sipConfig.getModel());
+        channel.setCommonGbOwner(sipConfig.getOwner());
+        channel.setCommonGbCivilCode(sipConfig.getCivilCode());
+        channel.setCommonGbAddress(sipConfig.getAddress());
+        channel.setCommonGbRegisterWay(1);
+        channel.setCommonGbSecrecy(0);
+
+        return channel;
     }
 
     private Map<String, Group> getAllDependenceGroup(List<CommonGbChannel> commonGbChannelList) {

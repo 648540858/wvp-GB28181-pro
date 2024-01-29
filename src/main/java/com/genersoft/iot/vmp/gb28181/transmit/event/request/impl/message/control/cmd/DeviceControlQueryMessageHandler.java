@@ -67,8 +67,13 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
         String channelId = XmlUtil.getText(rootElement, "DeviceID");
         // 远程启动功能
         if (!ObjectUtils.isEmpty(XmlUtil.getText(rootElement, "TeleBoot"))) {
-            // TODO 拒绝远程启动命令
             logger.warn("[国标级联]收到平台的远程启动命令， 不处理");
+            try {
+                responseAck(request, Response.OK);
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                logger.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
         }
         DeviceControlType deviceControlType = DeviceControlType.typeOf(rootElement);
         logger.info("[接受deviceControl命令] 命令: {}", deviceControlType);

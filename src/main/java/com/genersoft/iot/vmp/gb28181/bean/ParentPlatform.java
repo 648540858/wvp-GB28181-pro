@@ -444,4 +444,12 @@ public class ParentPlatform {
     public void setShareRegion(boolean shareRegion) {
         this.shareRegion = shareRegion;
     }
+
+    public boolean isSystemCatalog() {
+        return systemCatalog;
+    }
+
+    public void setSystemCatalog(boolean systemCatalog) {
+        this.systemCatalog = systemCatalog;
+    }
 }

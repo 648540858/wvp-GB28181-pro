@@ -182,6 +182,7 @@ create table wvp_platform (
                               update_time character varying(50),
                               as_message_channel bool default false,
                               auto_push_channel bool default false,
+                              system_catalog bool default false,
                               constraint uk_platform_unique_server_gb_id unique (server_gb_id)
 );
 

@@ -264,14 +264,16 @@ export default {
       });
     },
     formatTime(time) {
-      const h = parseInt(time / 3600)
-      const minute = parseInt(time / 60 % 60)
-      const second = Math.ceil(time % 60)
-
-      return (h > 0 ? h + `小时` : '') + (minute > 0 ? minute + '分' : '') + second + '秒'
+      const h = parseInt(time / 3600 / 1000)
+      const minute = parseInt((time - h * 3600 * 1000) / 60 / 1000)
+      let second = Math.ceil((time - h * 3600 * 1000 - minute * 60 * 1000) / 1000)
+      if (second < 0) {
+        second = 0;
+      }
+      return (h > 0 ? h + `小时` : '') + (minute > 0 ? minute + '分' : '') + (second > 0 ? second + '秒' : '')
     },
     formatTimeStamp(time) {
-      return moment.unix(time).format('yyyy-MM-DD HH:mm:ss')
+      return moment.unix(time/1000).format('yyyy-MM-DD HH:mm:ss')
     }
 
   }

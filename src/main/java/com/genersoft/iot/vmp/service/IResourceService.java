@@ -6,6 +6,8 @@ import com.genersoft.iot.vmp.gb28181.bean.DragZoomRequest;
 import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
 import com.genersoft.iot.vmp.gb28181.bean.command.PTZCommand;
 
+import java.time.Instant;
+
 /**
  * 同用资源接入接口，待接入的资源实现此接口即可自动接入，
  * 包括GIS，分屏播放，国标级联等功能
@@ -42,12 +44,12 @@ public interface IResourceService {
     /**
      * 录像回放
      */
-    void startPlayback(CommonGbChannel channel, Long startTime, Long stopTime, IResourcePlayCallback callback);
+    void startPlayback(CommonGbChannel channel, Instant startTime, Instant stopTime, IResourcePlayCallback callback);
 
     /**
      * 录像下载
      */
-    void startDownload(CommonGbChannel channel, Long startTime, Long stopTime, Integer downloadSpeed, IResourcePlayCallback playCallback);
+    void startDownload(CommonGbChannel channel, Instant startTime, Instant stopTime, Integer downloadSpeed, IResourcePlayCallback playCallback);
 
     /**
      * 报警复位

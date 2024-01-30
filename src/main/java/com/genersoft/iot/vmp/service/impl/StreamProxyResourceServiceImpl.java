@@ -21,6 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import java.time.Instant;
+
 @Service(CommonGbChannelType.PROXY)
 public class StreamProxyResourceServiceImpl implements IResourceService {
 
@@ -90,12 +92,12 @@ public class StreamProxyResourceServiceImpl implements IResourceService {
     }
 
     @Override
-    public void startPlayback(CommonGbChannel channel, Long startTime, Long stopTime, IResourcePlayCallback callback) {
+    public void startPlayback(CommonGbChannel channel, Instant startTime, Instant stopTime, IResourcePlayCallback callback) {
 
     }
 
     @Override
-    public void startDownload(CommonGbChannel channel, Long startTime, Long stopTime, Integer downloadSpeed, IResourcePlayCallback playCallback) {
+    public void startDownload(CommonGbChannel channel, Instant startTime, Instant stopTime, Integer downloadSpeed, IResourcePlayCallback playCallback) {
 
     }
 

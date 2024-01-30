@@ -13,11 +13,13 @@ import com.genersoft.iot.vmp.gb28181.bean.command.PTZCommand;
 import com.genersoft.iot.vmp.gb28181.event.record.RecordEndEventListener;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.IResourcePlayCallback;
 import com.genersoft.iot.vmp.service.IResourceService;
 import com.genersoft.iot.vmp.service.bean.CommonGbChannelType;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
+import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -30,6 +32,7 @@ import org.springframework.stereotype.Service;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
+import java.time.Instant;
 import java.util.ArrayList;
 
 
@@ -49,6 +52,10 @@ public class GB28181ResourceServiceImpl implements IResourceService {
 
     @Autowired
     private IPlayService playService;
+
+
+    @Autowired
+    private IMediaServerService mediaServerService;
 
     @Autowired
     private ISIPCommander commander;
@@ -322,12 +329,38 @@ public class GB28181ResourceServiceImpl implements IResourceService {
     }
 
     @Override
-    public void startPlayback(CommonGbChannel channel, Long startTime, Long stopTime, IResourcePlayCallback callback) {
+    public void startPlayback(CommonGbChannel commonGbChannel, Instant startTime, Instant stopTime, IResourcePlayCallback callback) {
+        assert callback != null;
+        CheckCommonGbChannelResult checkResult = checkCommonGbChannel(commonGbChannel);
 
+        if (checkResult.errorMsg != null) {
+            callback.call(commonGbChannel, null, ErrorCode.SUCCESS.getCode(), checkResult.errorMsg, null);
+            return;
+        }
+        if (checkResult.device == null || checkResult.channel == null) {
+            callback.call(commonGbChannel, null, ErrorCode.SUCCESS.getCode(), "设备获取失败", null);
+            return;
+        }
+        String startTimeStr = DateUtil.formatter.format(startTime);
+        String endTimeStr = DateUtil.formatter.format(stopTime);
+        String stream = checkResult.device.getDeviceId() + "_" + checkResult.channel.getChannelId() + "_" +
+                startTimeStr + "_" + endTimeStr;
+        MediaServerItem mediaServerItem = playService.getNewMediaServerItem(checkResult.device);
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, stream, null,
+                checkResult.device.isSsrcCheck(),  true, 0, false, checkResult.device.getStreamModeForParam());
+        playService.playBack(mediaServerItem, ssrcInfo, checkResult.channel.getDeviceId(), checkResult.channel.getChannelId(),
+                startTimeStr, endTimeStr, (code, msg, data) -> {
+            if (code == InviteErrorCode.SUCCESS.getCode()) {
+                StreamInfo streamInfo = (StreamInfo)data;
+                callback.call(commonGbChannel, mediaServerItem, ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+            }else {
+                callback.call(commonGbChannel, null, code, msg, null);
+            }
+        });
     }
 
     @Override
-    public void startDownload(CommonGbChannel channel, Long startTime, Long stopTime, Integer downloadSpeed, IResourcePlayCallback playCallback) {
+    public void startDownload(CommonGbChannel channel, Instant startTime, Instant stopTime, Integer downloadSpeed, IResourcePlayCallback playCallback) {
 
     }
 

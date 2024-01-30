@@ -3,13 +3,11 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.CommonGbChannel;
-import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
-import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -18,22 +16,18 @@ import com.genersoft.iot.vmp.media.zlm.IStreamSendManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMMediaListManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
-import com.genersoft.iot.vmp.media.zlm.dto.*;
+import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
+import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
-import com.genersoft.iot.vmp.media.zlm.service.ISendRtpService;
 import com.genersoft.iot.vmp.service.*;
-import com.genersoft.iot.vmp.service.bean.ErrorCallback;
-import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
-import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.service.redisMsg.RedisGbPlayMsgListener;
 import com.genersoft.iot.vmp.service.redisMsg.RedisPushStreamResponseListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import gov.nist.javax.sdp.TimeDescriptionImpl;
-import gov.nist.javax.sdp.fields.TimeField;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import org.slf4j.Logger;
@@ -337,13 +331,20 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         logger.error("[命令发送失败] 国标级联 回复SdpAck", e);
                     }
                 };
+                Instant start = null;
+                Instant stop = null;
+                if (gb28181Sdp.getStartTime() != null) {
+                    start = Instant.ofEpochSecond(gb28181Sdp.getStartTime());
+                }
+                if (gb28181Sdp.getStopTime() != null) {
+                    stop = Instant.ofEpochSecond(gb28181Sdp.getStopTime());
+                }
                 if ("Play".equalsIgnoreCase(sessionName)) {
                     resourceService.startPlay(channel, callback);
                 }else if ("Playback".equalsIgnoreCase(sessionName)) {
-                    resourceService.startPlayback(channel, gb28181Sdp.getStartTime(), gb28181Sdp.getStopTime(), callback);
+                    resourceService.startPlayback(channel, start, stop, callback);
                 }else if ("Download".equalsIgnoreCase(sessionName)) {
-                    resourceService.startDownload(channel, gb28181Sdp.getStartTime(), gb28181Sdp.getStopTime(),
-                            gb28181Sdp.getDownloadSpeed(), callback);
+                    resourceService.startDownload(channel, start, stop, gb28181Sdp.getDownloadSpeed(), callback);
                 }
             }
         } catch (SdpParseException e) {

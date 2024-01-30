@@ -18,7 +18,6 @@ import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.Element;
@@ -34,7 +33,6 @@ import javax.sip.SipException;
 import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
-import java.util.List;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
@@ -44,7 +42,7 @@ import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 @Component
 public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(MediaStatusNotifyMessageHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(MediaStatusNotifyMessageHandler.class);
     private final String cmdType = "MediaStatus";
 
     @Autowired
@@ -57,16 +55,10 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
     private SIPCommanderFroPlatform sipCommanderFroPlatform;
 
     @Autowired
-    private IRedisCatchStorage redisCatchStorage;
-
-    @Autowired
     private IStreamSendManager streamSendManager;
 
     @Autowired
     private IVideoManagerStorage storage;
-
-    @Autowired
-    private VideoStreamSessionManager sessionManager;
 
     @Autowired
     private ZlmHttpHookSubscribe subscribe;
@@ -114,7 +106,7 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
                 HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcTransaction.getStream(), false, "rtsp", ssrcTransaction.getMediaServerId());
                 subscribe.removeSubscribe(hookSubscribe);
 
-                // 如果级联播放，需要给上级发送此通知 TODO 多个上级同时观看一个下级 可能存在停错的问题，需要将点播CallId进行上下级绑定
+                // 如果级联播放，需要给上级发送此通知
                 SendRtpItem sendRtpItem = streamSendManager.getByCallId(ssrcTransaction.getCallId());
                 if (sendRtpItem != null) {
                     ParentPlatform parentPlatform = storage.queryParentPlatByServerGBId(sendRtpItem.getDestId());

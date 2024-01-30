@@ -344,7 +344,7 @@ public class GB28181ResourceServiceImpl implements IResourceService {
         String startTimeStr = DateUtil.formatter.format(startTime);
         String endTimeStr = DateUtil.formatter.format(stopTime);
         String stream = checkResult.device.getDeviceId() + "_" + checkResult.channel.getChannelId() + "_" +
-                startTimeStr + "_" + endTimeStr;
+                DateUtil.urlFormatter.format(startTime) + "_" + DateUtil.urlFormatter.format(stopTime);
         MediaServerItem mediaServerItem = playService.getNewMediaServerItem(checkResult.device);
         SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, stream, null,
                 checkResult.device.isSsrcCheck(),  true, 0, false, checkResult.device.getStreamModeForParam());
@@ -360,8 +360,34 @@ public class GB28181ResourceServiceImpl implements IResourceService {
     }
 
     @Override
-    public void startDownload(CommonGbChannel channel, Instant startTime, Instant stopTime, Integer downloadSpeed, IResourcePlayCallback playCallback) {
+    public void startDownload(CommonGbChannel commonGbChannel, Instant startTime, Instant stopTime, Integer downloadSpeed, IResourcePlayCallback callback) {
+        assert callback != null;
+        CheckCommonGbChannelResult checkResult = checkCommonGbChannel(commonGbChannel);
 
+        if (checkResult.errorMsg != null) {
+            callback.call(commonGbChannel, null, ErrorCode.SUCCESS.getCode(), checkResult.errorMsg, null);
+            return;
+        }
+        if (checkResult.device == null || checkResult.channel == null) {
+            callback.call(commonGbChannel, null, ErrorCode.SUCCESS.getCode(), "设备获取失败", null);
+            return;
+        }
+        String startTimeStr = DateUtil.formatter.format(startTime);
+        String endTimeStr = DateUtil.formatter.format(stopTime);
+        String stream = checkResult.device.getDeviceId() + "_" + checkResult.channel.getChannelId() + "_" +
+                DateUtil.urlFormatter.format(startTime) + "_" + DateUtil.urlFormatter.format(stopTime);
+        MediaServerItem mediaServerItem = playService.getNewMediaServerItem(checkResult.device);
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, stream, null,
+                checkResult.device.isSsrcCheck(),  true, 0, false, checkResult.device.getStreamModeForParam());
+        playService.download(mediaServerItem, ssrcInfo, checkResult.channel.getDeviceId(), checkResult.channel.getChannelId(),
+                startTimeStr, endTimeStr, downloadSpeed, (code, msg, data) -> {
+                    if (code == InviteErrorCode.SUCCESS.getCode()) {
+                        StreamInfo streamInfo = (StreamInfo)data;
+                        callback.call(commonGbChannel, mediaServerItem, ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+                    }else {
+                        callback.call(commonGbChannel, null, code, msg, null);
+                    }
+                });
     }
 
     static class CheckCommonGbChannelResult {

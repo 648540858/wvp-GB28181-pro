@@ -272,7 +272,7 @@ public class ZLMHttpHookListener {
                 inviteInfo = inviteStreamService.getInviteInfoBySSRC(ssrc);
                 if (inviteInfo != null) {
                     result.setStream_replace(inviteInfo.getStream());
-                    logger.info("[ZLM HOOK]推流鉴权 stream: {} 替换为 {}", param.getStream(), inviteInfo.getStream());
+                    logger.info("[ZLM HOOK] 推流鉴权 stream: {} 替换为 {}", param.getStream(), inviteInfo.getStream());
                 }
             }
 
@@ -320,7 +320,7 @@ public class ZLMHttpHookListener {
                 result.setEnable_mp4(true);
             }
         }
-        logger.info("[ZLM HOOK]推流鉴权 响应：{}->{}->>>>{}", param.getMediaServerId(), param, result);
+        logger.info("[ZLM HOOK] 推流鉴权 响应：{}->{} \r\n{}", param.getMediaServerId(), param, result);
         return result;
     }
 
@@ -725,7 +725,7 @@ public class ZLMHttpHookListener {
         }
         taskExecutor.execute(() -> {
             List<SendRtpItem> sendRtpItems = streamSendManager.getByAppAndStream(param.getApp(), param.getStream());
-            if (!sendRtpItems.isEmpty()) {
+            if (sendRtpItems != null && !sendRtpItems.isEmpty()) {
                 for (SendRtpItem sendRtpItem : sendRtpItems) {
                     ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getDestId());
                     ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());

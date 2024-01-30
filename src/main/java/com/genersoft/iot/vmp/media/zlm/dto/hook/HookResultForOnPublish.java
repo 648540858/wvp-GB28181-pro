@@ -71,13 +71,13 @@ public class HookResultForOnPublish extends HookResult{
 
     @Override
     public String toString() {
-        return "HookResultForOnPublish{" +
-                "enable_audio=" + enable_audio +
-                ", enable_mp4=" + enable_mp4 +
-                ", mp4_max_second=" + mp4_max_second +
-                ", mp4_save_path='" + mp4_save_path + '\'' +
-                ", stream_replace='" + stream_replace + '\'' +
-                ", modify_stamp='" + modify_stamp + '\'' +
-                '}';
+        return "\nHookResultForOnPublish {" +
+                "\nenable_audio=" + enable_audio +
+                "\n, enable_mp4=" + enable_mp4 +
+                "\n, mp4_max_second=" + mp4_max_second +
+                "\n, mp4_save_path='" + mp4_save_path + '\'' +
+                "\n, stream_replace='" + stream_replace + '\'' +
+                "\n, modify_stamp='" + modify_stamp + '\'' +
+                "\n}";
     }
 }

@@ -46,18 +46,13 @@ public class RecordEndEventListener implements ApplicationListener<RecordEndEven
 
     /**
      * 添加
-     * @param device
-     * @param channelId
-     * @param recordEndEventHandler
      */
     public void addEndEventHandler(String device, String channelId, RecordEndEventHandler recordEndEventHandler) {
         logger.info("录像查询事件添加监听，deviceId：{}, channelId: {}", device, channelId);
         handlerMap.put(device + channelId, recordEndEventHandler);
     }
     /**
-     * 添加
-     * @param device
-     * @param channelId
+     * 删除
      */
     public void delEndEventHandler(String device, String channelId) {
         logger.info("录像查询事件移除监听，deviceId：{}, channelId: {}", device, channelId);

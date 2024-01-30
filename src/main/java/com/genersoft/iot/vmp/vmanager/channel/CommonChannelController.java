@@ -3,9 +3,12 @@ package com.genersoft.iot.vmp.vmanager.channel;
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
+import com.genersoft.iot.vmp.gb28181.bean.command.PTZCommand;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.service.ICommonGbChannelService;
-import com.genersoft.iot.vmp.service.bean.*;
+import com.genersoft.iot.vmp.service.bean.DeviceType;
+import com.genersoft.iot.vmp.service.bean.IndustryCodeType;
+import com.genersoft.iot.vmp.service.bean.NetworkIdentificationType;
 import com.genersoft.iot.vmp.vmanager.bean.*;
 import com.genersoft.iot.vmp.vmanager.channel.bean.ShareCommonChannelListResult;
 import com.genersoft.iot.vmp.vmanager.channel.bean.ShareCommonGbChannelParam;
@@ -281,5 +284,73 @@ public class CommonChannelController {
             type = null;
         }
         return commonGbChannelService.getShareChannelList(platformId, page, count, query, type, online);
+    }
+
+    @Operation(summary = "云台控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "channelDeviceId", description = "通用通道国标编号", required = true)
+    @Parameter(name = "command", description = "控制指令,允许值: left, right, up, down, upleft, upright, downleft, downright, zoomin, zoomout, stop", required = true)
+    @Parameter(name = "horizonSpeed", description = "水平速度", required = true)
+    @Parameter(name = "verticalSpeed", description = "垂直速度", required = true)
+    @Parameter(name = "zoomSpeed", description = "缩放速度", required = true)
+    @RequestMapping(value = "/ptz", method = {RequestMethod.GET, RequestMethod.POST})
+    public void ptz(String channelDeviceId, String command, int horizonSpeed, int verticalSpeed, int zoomSpeed){
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("通用通道云台控制 API调用，channelDeviceId：{} ，command：{} ，horizonSpeed：{} ，verticalSpeed：{} " +
+                    "，zoomSpeed：{}", channelDeviceId, command, horizonSpeed, verticalSpeed, zoomSpeed);
+        }
+        assert !ObjectUtils.isEmpty(channelDeviceId);
+
+        CommonGbChannel channel = commonGbChannelService.getChannel(channelDeviceId);
+        assert channel != null;
+
+        PTZCommand ptzCommand = new PTZCommand();
+        ptzCommand.setzSpeed(zoomSpeed);
+        ptzCommand.setxSpeed(horizonSpeed);
+        ptzCommand.setySpeed(verticalSpeed);
+        switch (command){
+            case "left":
+                ptzCommand.setLeft(true);
+                break;
+            case "right":
+                ptzCommand.setRight(true);
+                break;
+            case "up":
+                ptzCommand.setUp(true);
+                break;
+            case "down":
+                ptzCommand.setDown(true);
+                break;
+            case "upleft":
+                ptzCommand.setUp(true);
+                ptzCommand.setLeft(true);
+                break;
+            case "upright":
+                ptzCommand.setUp(true);
+                ptzCommand.setRight(true);
+                break;
+            case "downleft":
+                ptzCommand.setDown(true);
+                ptzCommand.setLeft(true);
+                break;
+            case "downright":
+                ptzCommand.setDown(true);
+                ptzCommand.setRight(true);
+                break;
+            case "zoomin":
+                ptzCommand.setIn(true);
+                break;
+            case "zoomout":
+                ptzCommand.setOut(true);
+                break;
+            case "stop":
+                ptzCommand.setzSpeed(0);
+                ptzCommand.setxSpeed(0);
+                ptzCommand.setySpeed(0);
+                break;
+            default:
+                break;
+        }
+        commonGbChannelService.ptzControl(channel, ptzCommand);
     }
 }

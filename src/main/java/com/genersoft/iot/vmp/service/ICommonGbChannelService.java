@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.command.PTZCommand;
 import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToGroup;
 import com.genersoft.iot.vmp.vmanager.bean.UpdateCommonChannelToRegion;
@@ -72,4 +73,6 @@ public interface ICommonGbChannelService {
     void removeShareChannel(ShareCommonGbChannelParam param);
 
     PageInfo<ShareCommonChannelListResult> getShareChannelList(int platformId, int page, int count, String query, String type, Boolean online);
+
+    void ptzControl(CommonGbChannel channel, PTZCommand ptzCommand);
 }

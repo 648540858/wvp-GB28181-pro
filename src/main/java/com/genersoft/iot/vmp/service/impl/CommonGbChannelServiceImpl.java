@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.common.BatchLimit;
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.bean.command.PTZCommand;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEventType;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
@@ -487,5 +488,12 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         PageHelper.startPage(page, count);
         List<ShareCommonChannelListResult> all = commonGbChannelMapper.getShareChannel(platformId, query, type, online);
         return new PageInfo<>(all);
+    }
+
+    @Override
+    public void ptzControl(CommonGbChannel channel, PTZCommand ptzCommand) {
+        IResourceService resourceService = resourceServiceMap.get(channel.getType());
+        assert resourceService != null;
+        resourceService.ptzControl(channel, ptzCommand);
     }
 }

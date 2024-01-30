@@ -9,7 +9,6 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessag
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.QueryMessageHandler;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IPlatformChannelService;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.Element;
 import org.slf4j.Logger;
@@ -30,7 +29,7 @@ import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 @Component
 public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(DeviceInfoQueryMessageHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(DeviceInfoQueryMessageHandler.class);
     private final String cmdType = "DeviceInfo";
 
     @Autowired
@@ -57,7 +56,7 @@ public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent imp
 
     @Override
     public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element rootElement) {
-        logger.info("[DeviceInfo查询]消息");
+        logger.info("[DeviceInfo查询]消息: 平台： {}", parentPlatform.getServerGBId());
         FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
         SIPRequest request = (SIPRequest) evt.getRequest();
         try {
@@ -81,16 +80,12 @@ public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent imp
 
             CommonGbChannel commonGbChannel = platformChannelService.queryChannelByPlatformIdAndChannelDeviceId(parentPlatform.getId(), channelId);
             if (commonGbChannel == null) {
-                try {
-                    responseAck(request, Response.NOT_FOUND);
-                } catch (SipException | InvalidArgumentException | ParseException e) {
-                    logger.error("[命令发送失败] 错误信息: {}", e.getMessage());
-                }
+                logger.error("[DeviceInfo查询]失败：平台未关联通道 platformId {}, channelId: {}", parentPlatform.getServerGBId(), channelId);
                 return;
             }
             device = deviceChannelService.getDeviceByChannelCommonGbId(commonGbChannel.getCommonGbId());
             if (device ==null){
-                logger.error("[平台没有该通道的使用权限]:platformId"+parentPlatform.getServerGBId()+"  deviceID:"+channelId);
+                logger.error("[DeviceInfo查询] 失败： 平台没有该通道的使用权限 platformId {}, channelId: {}", parentPlatform.getServerGBId(), channelId);
                 return;
             }
         }

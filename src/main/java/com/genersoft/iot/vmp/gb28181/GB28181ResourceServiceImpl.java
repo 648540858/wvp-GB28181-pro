@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181;
 
+import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.enums.DeviceControlType;
@@ -7,9 +8,10 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.DragZoomRequest;
+import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
 import com.genersoft.iot.vmp.gb28181.bean.command.PTZCommand;
+import com.genersoft.iot.vmp.gb28181.event.record.RecordEndEventListener;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
-import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.IResourcePlayCallback;
@@ -18,8 +20,8 @@ import com.genersoft.iot.vmp.service.bean.CommonGbChannelType;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import org.aspectj.bridge.ICommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +29,8 @@ import org.springframework.stereotype.Service;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
-import javax.sip.message.Response;
 import java.text.ParseException;
+import java.util.ArrayList;
 
 
 /**
@@ -50,6 +52,9 @@ public class GB28181ResourceServiceImpl implements IResourceService {
 
     @Autowired
     private ISIPCommander commander;
+
+    @Autowired
+    private RecordEndEventListener recordEndEventListener;
 
     @Override
     public boolean deleteChannel(CommonGbChannel commonGbChannel) {
@@ -273,6 +278,42 @@ public class GB28181ResourceServiceImpl implements IResourceService {
             logger.error("[命令发送失败] 看守位控制: {}", e.getMessage());
         }
 
+    }
+
+    @Override
+    public void queryrecord(CommonGbChannel commonGbChannel, int sn, int secrecy, String type, String startTime, String endTime, CommonCallback<RecordInfo> callback) {
+        CheckCommonGbChannelResult checkResult = checkCommonGbChannel(commonGbChannel);
+
+        if (checkResult.errorMsg != null) {
+            logger.warn("[资源类-国标28181] 国标录像查询失败： {}", checkResult.errorMsg);
+            return;
+        }
+        if (checkResult.device == null || checkResult.channel == null) {
+            logger.warn("[资源类-国标28181] 国标录像查询失败： 设备获取失败");
+            return;
+        }
+        // 接收录像数据
+        recordEndEventListener.addEndEventHandler(checkResult.device.getDeviceId(), checkResult.channel.getChannelId(), (recordInfo)->{
+            if (recordInfo == null ) {
+                logger.info("[资源类-国标28181] 录像查询, 结果为空，设备: {}, 通道：{}",
+                        checkResult.device.getDeviceId(), checkResult.channel.getChannelId());
+                return;
+            }
+            if (recordInfo.getRecordList() == null) {
+                recordInfo.setRecordList(new ArrayList<>());
+            }
+            logger.info("[资源类-国标28181] 录像查询收到数据，设备: {}, 通道：{}，共{}条",
+                    checkResult.device.getDeviceId(), checkResult.channel.getChannelId(), recordInfo.getRecordList().size());
+            if (callback != null) {
+                callback.run(recordInfo);
+            }
+        });
+        try {
+            commander.recordInfoQuery(checkResult.device, checkResult.channel.getChannelId(), DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(startTime),
+                    DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(endTime), sn, secrecy, type, null, null);
+        } catch (InvalidArgumentException | ParseException | SipException e) {
+            logger.error("[命令发送失败] 录像查询: {}", e.getMessage());
+        }
     }
 
     @Override

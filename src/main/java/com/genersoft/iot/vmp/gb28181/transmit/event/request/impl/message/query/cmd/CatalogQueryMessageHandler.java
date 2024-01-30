@@ -27,7 +27,7 @@ import java.util.List;
 @Component
 public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(CatalogQueryMessageHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(CatalogQueryMessageHandler.class);
     private final String cmdType = "Catalog";
 
     @Autowired

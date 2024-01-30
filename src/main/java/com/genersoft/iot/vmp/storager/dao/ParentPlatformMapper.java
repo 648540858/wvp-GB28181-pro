@@ -2,9 +2,7 @@ package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
 import org.apache.ibatis.annotations.*;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -22,7 +20,7 @@ public interface ParentPlatformMapper {
             "status,start_offline_push,catalog_group,create_time,update_time) " +
             "            VALUES (#{enable}, #{name}, #{serverGBId}, #{serverGBDomain}, #{serverIP}, #{serverPort}, #{deviceGBId}, #{deviceIp}, " +
             "            #{devicePort}, #{username}, #{password}, #{expires}, #{keepTimeout}, #{transport}, #{characterSet}, #{ptz}, " +
-            "            #{rtcp}, #{asMessageChannel}, #{autoPushChannel}, #{shareAllChannel}, #{shareGroup}, #{shareRegion, #{systemCatalog}, " +
+            "            #{rtcp}, #{asMessageChannel}, #{autoPushChannel}, #{shareAllChannel}, #{shareGroup}, #{shareRegion}, #{systemCatalog}, " +
             "            #{status},  #{startOfflinePush}, #{catalogGroup}, #{createTime}, #{updateTime})")
     int addParentPlatform(ParentPlatform parentPlatform);
 

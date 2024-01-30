@@ -61,18 +61,17 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
     public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element rootElement) {
 
         SIPRequest request = (SIPRequest) evt.getRequest();
-
+        try {
+            responseAck(request, Response.OK);
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 错误信息: {}", e.getMessage());
+        }
         // 此处是上级发出的DeviceControl指令
         String targetGBId = ((SipURI) request.getToHeader().getAddress().getURI()).getUser();
         String channelId = XmlUtil.getText(rootElement, "DeviceID");
         // 远程启动功能
         if (!ObjectUtils.isEmpty(XmlUtil.getText(rootElement, "TeleBoot"))) {
             logger.warn("[国标级联]收到平台的远程启动命令， 不处理");
-            try {
-                responseAck(request, Response.OK);
-            } catch (SipException | InvalidArgumentException | ParseException e) {
-                logger.error("[命令发送失败] 错误信息: {}", e.getMessage());
-            }
             return;
         }
         DeviceControlType deviceControlType = DeviceControlType.typeOf(rootElement);
@@ -81,20 +80,13 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
 
             CommonGbChannel commonGbChannel = platformChannelService.queryChannelByPlatformIdAndChannelDeviceId(parentPlatform.getId(), channelId);
             if (commonGbChannel == null) {
-                try {
-                    responseAck(request, Response.NOT_FOUND);
-                } catch (SipException | InvalidArgumentException | ParseException e) {
-                    logger.error("[命令发送失败] 错误信息: {}", e.getMessage());
-                }
+                logger.warn("[国标级联] 设备控制消息：为查询到关联通道，平台：{}, 通道： {} ", parentPlatform.getServerGBId(), channelId);
                 return;
             }
             IResourceService resourceService = resourceServiceMap.get(commonGbChannel.getType());
             if (resourceService == null) {
-                try {
-                    responseAck(request, Response.FORBIDDEN);
-                } catch (SipException | InvalidArgumentException | ParseException e) {
-                    logger.error("[命令发送失败] 错误信息: {}", e.getMessage());
-                }
+                logger.warn("[国标级联] 设备控制消息：为查询到资源处理类，平台：{}, 通道： {}， 资源类型：{} ",
+                        parentPlatform.getServerGBId(), channelId, commonGbChannel.getType());
                 return;
             }
             switch (deviceControlType) {

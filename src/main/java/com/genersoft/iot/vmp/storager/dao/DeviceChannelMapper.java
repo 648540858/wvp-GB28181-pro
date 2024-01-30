@@ -538,6 +538,6 @@ public interface DeviceChannelMapper {
             " </script>"})
     List<Integer> getCommonChannelIdList(@Param("deviceId") String deviceId, @Param("online") Boolean online);
 
-    @Select("select de.* from wvp_device de left join wvp_device_channel dc on de.device_id = dc.deviceId where dc.common_gb_channel_id=#{commonGbId}")
+    @Select("select de.* from wvp_device de left join wvp_device_channel dc on de.device_id = dc.device_id where dc.common_gb_channel_id=#{commonGbId}")
     Device getDeviceByChannelCommonGbId(@Param("commonGbId") int commonGbId);
 }

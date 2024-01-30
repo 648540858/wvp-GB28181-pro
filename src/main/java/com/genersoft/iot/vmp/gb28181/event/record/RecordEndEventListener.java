@@ -1,10 +1,8 @@
 package com.genersoft.iot.vmp.gb28181.event.record;
 
 import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
-import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
@@ -43,9 +41,6 @@ public class RecordEndEventListener implements ApplicationListener<RecordEndEven
                     handlerMap.remove(deviceId + channelId);
                 }
             }
-        }else {
-            logger.info("录像查询完成事件触发, 但是订阅为空，取消发送，deviceId：{}, channelId: {}",
-                    event.getRecordInfo().getDeviceId(), event.getRecordInfo().getChannelId());
         }
     }
 

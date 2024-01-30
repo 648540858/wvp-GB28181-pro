@@ -1,8 +1,9 @@
 package com.genersoft.iot.vmp.service;
 
+import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.CommonGbChannel;
-import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.DragZoomRequest;
+import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
 import com.genersoft.iot.vmp.gb28181.bean.command.PTZCommand;
 
 /**
@@ -82,4 +83,8 @@ public interface IResourceService {
      * 看守位控制
      */
     void setHomePosition(CommonGbChannel commonGbChannel, boolean enabled, Integer resetTime, Integer presetIndex);
+
+
+    void queryrecord(CommonGbChannel commonGbChannel, int sn, int secrecy, String type,
+                     String startTime, String endTime, CommonCallback<RecordInfo> callback);
 }

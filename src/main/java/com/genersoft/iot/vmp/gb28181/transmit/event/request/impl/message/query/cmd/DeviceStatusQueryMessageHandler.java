@@ -1,17 +1,13 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.cmd;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
-import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.QueryMessageHandler;
 import com.genersoft.iot.vmp.service.IPlatformChannelService;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.Element;
 import org.slf4j.Logger;
@@ -32,23 +28,17 @@ import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 @Component
 public class DeviceStatusQueryMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(DeviceStatusQueryMessageHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(DeviceStatusQueryMessageHandler.class);
     private final String cmdType = "DeviceStatus";
 
     @Autowired
     private QueryMessageHandler queryMessageHandler;
 
     @Autowired
-    private IVideoManagerStorage storager;
-
-    @Autowired
     private SIPCommanderFroPlatform cmderFroPlatform;
 
     @Autowired
     private IPlatformChannelService platformChannelService;
-
-    @Autowired
-    private EventPublisher publisher;
 
     @Override
     public void afterPropertiesSet() throws Exception {

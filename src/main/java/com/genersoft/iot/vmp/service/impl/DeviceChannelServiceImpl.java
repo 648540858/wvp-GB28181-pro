@@ -559,7 +559,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             });
         }
 
-
         if(CollectionUtils.isEmpty(channels)){
             logger.info("通道重设，数据为空={}" , deviceChannelList);
             return false;

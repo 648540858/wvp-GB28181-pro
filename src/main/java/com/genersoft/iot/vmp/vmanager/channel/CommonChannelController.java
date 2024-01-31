@@ -206,8 +206,8 @@ public class CommonChannelController {
                         streamInfo.changeStreamIp(host);
                     }
                     wvpResult.setData(new StreamContent(streamInfo));
-                    result.setResult(wvpResult);
                 }
+                result.setResult(wvpResult);
             }else {
                 WVPResult<StreamContent> wvpResult = new WVPResult<>();
                 wvpResult.setCode(code);

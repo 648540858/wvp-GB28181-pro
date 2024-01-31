@@ -78,11 +78,11 @@ public class GB28181ResourceServiceImpl implements IResourceService {
         CheckCommonGbChannelResult checkResult = checkCommonGbChannel(commonGbChannel);
 
         if (checkResult.errorMsg != null) {
-            callback.call(commonGbChannel, null, ErrorCode.SUCCESS.getCode(), checkResult.errorMsg, null);
+            callback.call(commonGbChannel, null, ErrorCode.ERROR100.getCode(), checkResult.errorMsg, null);
             return;
         }
         if (checkResult.device == null || checkResult.channel == null) {
-            callback.call(commonGbChannel, null, ErrorCode.SUCCESS.getCode(), "设备获取失败", null);
+            callback.call(commonGbChannel, null, ErrorCode.ERROR100.getCode(), "设备获取失败", null);
             return;
         }
 
@@ -102,11 +102,11 @@ public class GB28181ResourceServiceImpl implements IResourceService {
         CheckCommonGbChannelResult checkResult = checkCommonGbChannel(commonGbChannel);
 
         if (checkResult.errorMsg != null) {
-            callback.call(commonGbChannel, null, ErrorCode.SUCCESS.getCode(), checkResult.errorMsg, null);
+            callback.call(commonGbChannel, null, ErrorCode.ERROR100.getCode(), checkResult.errorMsg, null);
             return;
         }
         if (checkResult.device == null || checkResult.channel == null) {
-            callback.call(commonGbChannel, null, ErrorCode.SUCCESS.getCode(), "设备获取失败", null);
+            callback.call(commonGbChannel, null, ErrorCode.ERROR100.getCode(), "设备获取失败", null);
             return;
         }
         try {

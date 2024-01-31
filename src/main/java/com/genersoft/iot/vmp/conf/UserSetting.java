@@ -51,7 +51,7 @@ public class UserSetting {
 
     private Boolean refuseChannelStatusChannelFormNotify = Boolean.FALSE;
 
-    private Boolean deviceStatusNotify = Boolean.FALSE;
+    private Boolean deviceStatusNotify = Boolean.TRUE;
     private Boolean useCustomSsrcForParentInvite = Boolean.TRUE;
 
     private String serverId = "000000";

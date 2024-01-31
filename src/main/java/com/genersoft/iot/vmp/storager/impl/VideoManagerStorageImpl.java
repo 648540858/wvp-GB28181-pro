@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.storager.impl;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -29,6 +30,7 @@ import java.util.*;
  */
 @SuppressWarnings("rawtypes")
 @Component
+@DS("master")
 public class VideoManagerStorageImpl implements IVideoManagerStorage {
 
 	private final Logger logger = LoggerFactory.getLogger(VideoManagerStorageImpl.class);

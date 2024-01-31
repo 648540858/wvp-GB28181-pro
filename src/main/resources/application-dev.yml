@@ -110,8 +110,7 @@ user-settings:
   auto-apply-play: true
   # 设备/通道状态变化时发送消息
   device-status-notify: true
-  # 跨域配置，配置你访问前端页面的地址即可， 可以配置多个
-  allowed-origins:
-    - http://localhost:8080
-    - http://127.0.0.1:8080
+# [可选] 日志配置, 一般不需要改
+logging:
+  config: classpath:logback-spring-local.xml
 

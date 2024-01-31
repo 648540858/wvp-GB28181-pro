@@ -1,6 +1,6 @@
 <template>
   <div ref="container" @dblclick="fullscreenSwich"
-       style="width:100%;height:100%;min-height: 200px;background-color: #000000;margin:0 auto;position: relative;">
+       style="width:100%;height:518px; min-height: 200px;background-color: #000000;margin:0 auto;position: relative;">
     <div class="buttons-box" id="buttonsBox">
       <div class="buttons-box-left">
         <i v-if="!playing" class="iconfont icon-play jessibuca-btn" @click="playBtnClick"></i>
@@ -46,7 +46,7 @@ export default {
     };
   },
   props: ['videoUrl', 'error', 'hasAudio', 'height'],
-  mounted() {
+  created() {
     let paramUrl = decodeURIComponent(this.$route.params.url)
     this.$nextTick(() => {
       this.updatePlayerDomSize()

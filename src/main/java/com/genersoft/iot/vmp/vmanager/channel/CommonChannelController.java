@@ -353,4 +353,18 @@ public class CommonChannelController {
         }
         commonGbChannelService.ptzControl(channel, ptzCommand);
     }
+
+    // 获取通用通道对应的原始资源信息
+//    @Operation(summary = "通用通道对应的原始资源信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
+//    @Parameter(name = "param", description = "共享通道参数", required = true)
+//    @GetMapping("/resource")
+//    public void removeShareChannel(String id) {
+//        CommonGbChannel commonGbChannel = commonGbChannelService.getChannelById(id);
+//        if (commonGbChannel == null) {
+//            throw new ControllerException(ErrorCode.ERROR100.getCode(), "通道不存在");
+//        }
+//
+//
+//        commonGbChannelService.removeShareChannel(param);
+//    }
 }

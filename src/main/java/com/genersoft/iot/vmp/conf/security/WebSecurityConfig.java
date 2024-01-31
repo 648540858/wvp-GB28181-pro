@@ -1,12 +1,12 @@
 package com.genersoft.iot.vmp.conf.security;
 
 import com.genersoft.iot.vmp.conf.UserSetting;
-import org.springframework.core.annotation.Order;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -25,6 +25,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * 配置Spring Security
@@ -129,8 +130,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         corsConfiguration.setAllowedHeaders(Arrays.asList("*"));
         corsConfiguration.setAllowedMethods(Arrays.asList("*"));
         corsConfiguration.setMaxAge(3600L);
-        corsConfiguration.setAllowCredentials(true);
-        corsConfiguration.setAllowedOrigins(userSetting.getAllowedOrigins());
+        if (userSetting.getAllowedOrigins() != null && !userSetting.getAllowedOrigins().isEmpty()) {
+            corsConfiguration.setAllowCredentials(true);
+            corsConfiguration.setAllowedOrigins(userSetting.getAllowedOrigins());
+        }else {
+            corsConfiguration.setAllowCredentials(false);
+            corsConfiguration.setAllowedOrigins(Collections.singletonList(CorsConfiguration.ALL));
+        }
+
         corsConfiguration.setExposedHeaders(Arrays.asList(JwtUtils.getHeader()));
 
         UrlBasedCorsConfigurationSource url = new UrlBasedCorsConfigurationSource();

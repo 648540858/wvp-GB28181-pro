@@ -496,4 +496,9 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         assert resourceService != null;
         resourceService.ptzControl(channel, ptzCommand);
     }
+
+    @Override
+    public CommonGbChannel getChannelById(int id) {
+        return commonGbChannelMapper.getOne(id);
+    }
 }

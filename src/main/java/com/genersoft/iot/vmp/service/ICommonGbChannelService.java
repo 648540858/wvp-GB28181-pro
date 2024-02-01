@@ -75,4 +75,6 @@ public interface ICommonGbChannelService {
     PageInfo<ShareCommonChannelListResult> getShareChannelList(int platformId, int page, int count, String query, String type, Boolean online);
 
     void ptzControl(CommonGbChannel channel, PTZCommand ptzCommand);
+
+    CommonGbChannel getChannelById(int id);
 }

@@ -90,4 +90,9 @@ public interface IDeviceChannelService {
      * 根据通道ID获取设备
      */
     Device getDeviceByChannelCommonGbId(int commonGbId);
+
+    /**
+     * 根据通用通道ID查询通道
+     */
+    DeviceChannel getChannelByCommonChannelId(int commonGbId);
 }

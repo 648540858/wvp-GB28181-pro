@@ -758,4 +758,9 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     public Device getDeviceByChannelCommonGbId(int commonGbId) {
         return channelMapper.getDeviceByChannelCommonGbId(commonGbId);
     }
+
+    @Override
+    public DeviceChannel getChannelByCommonChannelId(int commonGbId) {
+        return channelMapper.getChannelByCommonChannelId(commonGbId);
+    }
 }

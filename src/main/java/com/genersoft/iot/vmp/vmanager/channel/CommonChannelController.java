@@ -2,10 +2,18 @@ package com.genersoft.iot.vmp.vmanager.channel;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.command.PTZCommand;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.genersoft.iot.vmp.service.ICommonGbChannelService;
+import com.genersoft.iot.vmp.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.service.IStreamProxyService;
+import com.genersoft.iot.vmp.service.IStreamPushService;
+import com.genersoft.iot.vmp.service.bean.CommonGbChannelType;
 import com.genersoft.iot.vmp.service.bean.DeviceType;
 import com.genersoft.iot.vmp.service.bean.IndustryCodeType;
 import com.genersoft.iot.vmp.service.bean.NetworkIdentificationType;
@@ -27,7 +35,9 @@ import org.springframework.web.context.request.async.DeferredResult;
 import javax.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "通用国标通道")
 
@@ -45,6 +55,15 @@ public class CommonChannelController {
 
     @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private IDeviceChannelService deviceChannelService;
+
+    @Autowired
+    private IStreamPushService streamPushService;
+
+    @Autowired
+    private IStreamProxyService streamProxyService;
 
 
     @Operation(summary = "更新通道信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -355,16 +374,25 @@ public class CommonChannelController {
     }
 
     // 获取通用通道对应的原始资源信息
-//    @Operation(summary = "通用通道对应的原始资源信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
-//    @Parameter(name = "param", description = "共享通道参数", required = true)
-//    @GetMapping("/resource")
-//    public void removeShareChannel(String id) {
-//        CommonGbChannel commonGbChannel = commonGbChannelService.getChannelById(id);
-//        if (commonGbChannel == null) {
-//            throw new ControllerException(ErrorCode.ERROR100.getCode(), "通道不存在");
-//        }
-//
-//
-//        commonGbChannelService.removeShareChannel(param);
-//    }
+    @Operation(summary = "通用通道对应的原始资源信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "param", description = "共享通道参数", required = true)
+    @GetMapping("/resource")
+    public Map<String, Object> removeShareChannel(int id) {
+        Map<String, Object> resultMap = new HashMap<>();
+        CommonGbChannel commonGbChannel = commonGbChannelService.getChannelById(id);
+        if (commonGbChannel == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "通道不存在");
+        }
+        if (commonGbChannel.getType().equals(CommonGbChannelType.GB28181)) {
+            DeviceChannel deviceChannel = deviceChannelService.getChannelByCommonChannelId(commonGbChannel.getCommonGbId());
+            resultMap.put(CommonGbChannelType.GB28181, deviceChannel);
+        }else if (commonGbChannel.getType().equals(CommonGbChannelType.PUSH)) {
+            StreamPush streamPush = streamPushService.getPushByCommonChannelId(commonGbChannel.getCommonGbId());
+            resultMap.put(CommonGbChannelType.PUSH, streamPush);
+        }else if (commonGbChannel.getType().equals(CommonGbChannelType.PROXY)) {
+            StreamProxy streamProxy = streamProxyService.getProxyByCommonChnanelId(commonGbChannel.getCommonGbId());
+            resultMap.put(CommonGbChannelType.PROXY, streamProxy);
+        }
+        return resultMap;
+    }
 }

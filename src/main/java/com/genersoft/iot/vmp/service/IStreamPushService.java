@@ -117,4 +117,9 @@ public interface IStreamPushService {
      * 设置推流离线
      */
     void offline(String app, String stream);
+
+    /**
+     *
+     */
+    StreamPush getPushByCommonChannelId(int commonGbId);
 }

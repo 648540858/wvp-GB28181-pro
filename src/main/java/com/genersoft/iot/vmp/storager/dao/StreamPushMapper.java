@@ -202,4 +202,7 @@ public interface StreamPushMapper {
             "</foreach>" +
             "</script>")
     int delAllByIds(List<Integer> streamPushIdList);
+
+    @Select("select * from wvp_stream_push where common_gb_channel_id = #{commonGbId}")
+    StreamPush getOneByCommonChannelId(@Param("commonGbId") int commonGbId);
 }

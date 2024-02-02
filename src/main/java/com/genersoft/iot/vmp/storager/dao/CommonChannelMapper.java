@@ -660,7 +660,7 @@ public interface CommonChannelMapper {
             "</script>")
     List<CommonGbChannel> getAll();
 
-    @Select("SELECT common_gb_id FROM wvp_common_channel WHERE common_gb_id = #{commonGbChannelId}")
+    @Select("SELECT * FROM wvp_common_channel WHERE common_gb_id = #{commonGbChannelId}")
     CommonGbChannel getOne(@Param("commonGbChannelId") int commonGbChannelId);
 
     @Select("<script> "+

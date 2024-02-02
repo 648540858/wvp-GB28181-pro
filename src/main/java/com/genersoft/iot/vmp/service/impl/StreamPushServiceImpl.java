@@ -552,4 +552,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
             }
         }
     }
+
+    @Override
+    public StreamPush getPushByCommonChannelId(int commonGbId) {
+        return streamPushMapper.getOneByCommonChannelId(commonGbId);
+    }
 }

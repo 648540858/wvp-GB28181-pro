@@ -101,4 +101,5 @@ public interface IStreamProxyService {
      * 根据通用通道查询拉流代理
      */
     StreamProxy getStreamProxyByCommonGbChannelId(int commonGbId);
+
 }

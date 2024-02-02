@@ -383,15 +383,19 @@ public class CommonChannelController {
         if (commonGbChannel == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "通道不存在");
         }
-        if (commonGbChannel.getType().equals(CommonGbChannelType.GB28181)) {
-            DeviceChannel deviceChannel = deviceChannelService.getChannelByCommonChannelId(commonGbChannel.getCommonGbId());
-            resultMap.put(CommonGbChannelType.GB28181, deviceChannel);
-        }else if (commonGbChannel.getType().equals(CommonGbChannelType.PUSH)) {
-            StreamPush streamPush = streamPushService.getPushByCommonChannelId(commonGbChannel.getCommonGbId());
-            resultMap.put(CommonGbChannelType.PUSH, streamPush);
-        }else if (commonGbChannel.getType().equals(CommonGbChannelType.PROXY)) {
-            StreamProxy streamProxy = streamProxyService.getProxyByCommonChnanelId(commonGbChannel.getCommonGbId());
-            resultMap.put(CommonGbChannelType.PROXY, streamProxy);
+        switch (commonGbChannel.getType()) {
+            case CommonGbChannelType.GB28181:
+                DeviceChannel deviceChannel = deviceChannelService.getChannelByCommonChannelId(commonGbChannel.getCommonGbId());
+                resultMap.put(CommonGbChannelType.GB28181, deviceChannel);
+                break;
+            case CommonGbChannelType.PUSH:
+                StreamPush streamPush = streamPushService.getPushByCommonChannelId(commonGbChannel.getCommonGbId());
+                resultMap.put(CommonGbChannelType.PUSH, streamPush);
+                break;
+            case CommonGbChannelType.PROXY:
+                StreamProxy streamProxy = streamProxyService.getStreamProxyByCommonGbChannelId(commonGbChannel.getCommonGbId());
+                resultMap.put(CommonGbChannelType.PROXY, streamProxy);
+                break;
         }
         return resultMap;
     }

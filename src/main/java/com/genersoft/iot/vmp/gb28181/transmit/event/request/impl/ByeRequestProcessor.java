@@ -31,7 +31,6 @@ import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -117,6 +116,9 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(),
 					callIdHeader.getCallId(), null);
 			zlmServerFactory.stopSendRtpStream(mediaInfo, param);
+			if (userSetting.getUseCustomSsrcForParentInvite()) {
+				mediaServerService.releaseSsrc(mediaInfo.getId(), sendRtpItem.getSsrc());
+			}
 			if (sendRtpItem.getPlayType().equals(InviteStreamType.PUSH)) {
 				ParentPlatform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
 				if (platform != null) {

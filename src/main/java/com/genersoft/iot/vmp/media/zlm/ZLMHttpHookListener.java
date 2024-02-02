@@ -447,7 +447,7 @@ public class ZLMHttpHookListener {
                 }
                 if (!param.isRegist()) {
                     List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(param.getStream());
-                    if (sendRtpItems.size() > 0) {
+                    if (!sendRtpItems.isEmpty()) {
                         for (SendRtpItem sendRtpItem : sendRtpItems) {
                             if (sendRtpItem != null && sendRtpItem.getApp().equals(param.getApp())) {
                                 String platformId = sendRtpItem.getPlatformId();

@@ -126,6 +126,9 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			if (resourceService != null) {
 				resourceService.stopPlay(channel, null);
 			}
+			if (userSetting.getUseCustomSsrcForParentInvite()) {
+				mediaServerService.releaseSsrc(mediaInfo.getId(), sendRtpItem.getSsrc());
+			}
 			if (sendRtpItem.getPlayType().equals(InviteStreamType.PUSH)) {
 				ParentPlatform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getDestId());
 				if (platform != null) {

@@ -373,6 +373,71 @@ public class CommonChannelController {
         commonGbChannelService.ptzControl(channel, ptzCommand);
     }
 
+    @Operation(summary = "光圈控制和聚焦控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "channelDeviceId", description = "通用通道国标编号", required = true)
+    @Parameter(name = "command", description = "控制指令,允许值: focusnear（焦距近）, focusfar焦距远）, irisin, irisout, stop, stop", required = true)
+    @Parameter(name = "speed", description = "速度(0~255), 光圈控制时为光圈速度，聚焦控制时为聚焦速度 ", required = true)
+    @RequestMapping(value = "/fi", method = {RequestMethod.GET, RequestMethod.POST})
+    public void fi(String channelDeviceId, String command, int speed){
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("通用通道光圈控制和聚焦控制 API调用，channelDeviceId：{} ，command：{} ，speed：{}", channelDeviceId, command, speed);
+        }
+        assert !ObjectUtils.isEmpty(channelDeviceId);
+
+        CommonGbChannel channel = commonGbChannelService.getChannel(channelDeviceId);
+        assert channel != null;
+
+        PTZCommand ptzCommand = new PTZCommand();
+        ptzCommand.setzSpeed(zoomSpeed);
+        ptzCommand.setxSpeed(horizonSpeed);
+        ptzCommand.setySpeed(verticalSpeed);
+        switch (command){
+            case "left":
+                ptzCommand.setLeft(true);
+                break;
+            case "right":
+                ptzCommand.setRight(true);
+                break;
+            case "up":
+                ptzCommand.setUp(true);
+                break;
+            case "down":
+                ptzCommand.setDown(true);
+                break;
+            case "upleft":
+                ptzCommand.setUp(true);
+                ptzCommand.setLeft(true);
+                break;
+            case "upright":
+                ptzCommand.setUp(true);
+                ptzCommand.setRight(true);
+                break;
+            case "downleft":
+                ptzCommand.setDown(true);
+                ptzCommand.setLeft(true);
+                break;
+            case "downright":
+                ptzCommand.setDown(true);
+                ptzCommand.setRight(true);
+                break;
+            case "zoomin":
+                ptzCommand.setIn(true);
+                break;
+            case "zoomout":
+                ptzCommand.setOut(true);
+                break;
+            case "stop":
+                ptzCommand.setzSpeed(0);
+                ptzCommand.setxSpeed(0);
+                ptzCommand.setySpeed(0);
+                break;
+            default:
+                break;
+        }
+        commonGbChannelService.ptzControl(channel, ptzCommand);
+    }
+
     // 获取通用通道对应的原始资源信息
     @Operation(summary = "通用通道对应的原始资源信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "param", description = "共享通道参数", required = true)

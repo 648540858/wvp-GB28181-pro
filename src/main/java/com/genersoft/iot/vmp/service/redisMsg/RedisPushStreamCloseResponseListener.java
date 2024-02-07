@@ -79,7 +79,7 @@ public class RedisPushStreamCloseResponseListener implements MessageListener {
                 for (SendRtpItem sendRtpItem : sendRtpItems) {
                     ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
                     if (parentPlatform != null) {
-                        redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(), sendRtpItem.getCallId(), sendRtpItem.getStreamId());
+                        redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(), sendRtpItem.getCallId(), sendRtpItem.getStream());
                         try {
                             commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem);
                         } catch (SipException | InvalidArgumentException | ParseException e) {

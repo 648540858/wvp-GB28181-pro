@@ -537,7 +537,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     } else {
                         sendRtpItem.setPlayType(InviteStreamType.PLAY);
                         String streamId = String.format("%s_%s", device.getDeviceId(), channelId);
-                        sendRtpItem.setStreamId(streamId);
+                        sendRtpItem.setStream(streamId);
                         redisCatchStorage.updateSendRTPSever(sendRtpItem);
                         SSRCInfo ssrcInfo = playService.play(mediaServerItem, device.getDeviceId(), channelId, ssrc, ((code, msg, data) -> {
                             if (code == InviteErrorCode.SUCCESS.getCode()) {

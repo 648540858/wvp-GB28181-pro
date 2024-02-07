@@ -380,7 +380,6 @@ public class ZLMHttpHookListener {
                     redisCatchStorage.updateStreamAuthorityInfo(param.getApp(), param.getStream(), streamAuthorityInfo);
                 }
             }
-
             if ("rtsp".equals(param.getSchema())) {
                 logger.info("流变化：注册->{}, app->{}, stream->{}", param.isRegist(), param.getApp(), param.getStream());
                 if (param.isRegist()) {

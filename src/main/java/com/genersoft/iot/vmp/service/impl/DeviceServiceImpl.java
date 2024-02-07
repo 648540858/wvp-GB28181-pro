@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -46,6 +47,7 @@ import java.util.concurrent.TimeUnit;
  * 设备业务（目录订阅）
  */
 @Service
+@DS("master")
 public class DeviceServiceImpl implements IDeviceService {
 
     private final static Logger logger = LoggerFactory.getLogger(DeviceServiceImpl.class);
@@ -162,6 +164,19 @@ public class DeviceServiceImpl implements IDeviceService {
                     sync(device);
                     // TODO 如果设备下的通道级联到了其他平台，那么需要发送事件或者notify给上级平台
                 }
+                // 上线添加订阅
+                if (device.getSubscribeCycleForCatalog() > 0) {
+                    // 查询在线设备那些开启了订阅，为设备开启定时的目录订阅
+                    addCatalogSubscribe(device);
+                }
+                if (device.getSubscribeCycleForMobilePosition() > 0) {
+                    addMobilePositionSubscribe(device);
+                }
+                if (userSetting.getDeviceStatusNotify()) {
+                    // 发送redis消息
+                    redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), null, true);
+                }
+
             }else {
                 if (deviceChannelMapper.queryAllChannels(device.getDeviceId()).size() == 0) {
                     logger.info("[设备上线]: {}，通道数为0,查询通道信息", device.getDeviceId());
@@ -174,22 +189,10 @@ public class DeviceServiceImpl implements IDeviceService {
 
         }
 
-        // 上线添加订阅
-        if (device.getSubscribeCycleForCatalog() > 0) {
-            // 查询在线设备那些开启了订阅，为设备开启定时的目录订阅
-            addCatalogSubscribe(device);
-        }
-        if (device.getSubscribeCycleForMobilePosition() > 0) {
-            addMobilePositionSubscribe(device);
-        }
         // 刷新过期任务
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
         // 如果第一次注册那么必须在60 * 3时间内收到一个心跳，否则设备离线
         dynamicTask.startDelay(registerExpireTaskKey, ()-> offline(device.getDeviceId(), "首次注册后未能收到心跳"), device.getKeepaliveIntervalTime() * 1000 * 3);
-        if (userSetting.getDeviceStatusNotify()) {
-            // 发送redis消息
-            redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), null, true);
-        }
 
 //
 //        try {
@@ -213,6 +216,13 @@ public class DeviceServiceImpl implements IDeviceService {
         }
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + deviceId;
         dynamicTask.stop(registerExpireTaskKey);
+        if (device.isOnLine()) {
+            if (userSetting.getDeviceStatusNotify()) {
+                // 发送redis消息
+                redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), null, false);
+            }
+        }
+
         device.setOnLine(false);
         redisCatchStorage.updateDevice(device);
         deviceMapper.update(device);
@@ -224,7 +234,7 @@ public class DeviceServiceImpl implements IDeviceService {
             for (SsrcTransaction ssrcTransaction : ssrcTransactions) {
                 mediaServerService.releaseSsrc(ssrcTransaction.getMediaServerId(), ssrcTransaction.getSsrc());
                 mediaServerService.closeRTPServer(ssrcTransaction.getMediaServerId(), ssrcTransaction.getStream());
-                streamSession.remove(deviceId, ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
+                streamSession.removeByCallId(deviceId, ssrcTransaction.getChannelId(), ssrcTransaction.getCallId());
             }
         }
         // 移除订阅
@@ -299,7 +309,7 @@ public class DeviceServiceImpl implements IDeviceService {
         // 设置最小值为30
         int subscribeCycleForCatalog = Math.max(device.getSubscribeCycleForMobilePosition(),30);
         // 刷新订阅
-        dynamicTask.startCron(device.getDeviceId() + "mobile_position" , mobilePositionSubscribeTask, (subscribeCycleForCatalog) * 1000);
+        dynamicTask.startCron(device.getDeviceId() + "mobile_position" , mobilePositionSubscribeTask, subscribeCycleForCatalog * 1000);
         return true;
     }
 

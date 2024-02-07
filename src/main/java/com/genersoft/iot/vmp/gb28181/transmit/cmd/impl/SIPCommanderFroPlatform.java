@@ -579,7 +579,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
     @Override
     public void sendNotifyForCatalogAddOrUpdate(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels, SubscribeInfo subscribeInfo, Integer index) throws InvalidArgumentException, ParseException, NoSuchFieldException, SipException, IllegalAccessException {
-        if (parentPlatform == null || deviceChannels == null || deviceChannels.size() == 0 || subscribeInfo == null) {
+        if (parentPlatform == null || deviceChannels == null || deviceChannels.isEmpty() || subscribeInfo == null) {
             return;
         }
         if (index == null) {
@@ -597,6 +597,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         Integer finalIndex = index;
         String catalogXmlContent = getCatalogXmlContentForCatalogAddOrUpdate(parentPlatform, channels,
                 deviceChannels.size(), type, subscribeInfo);
+        logger.info("[发送NOTIFY通知]类型： {}，发送数量： {}", type, channels.size());
         sendNotify(parentPlatform, catalogXmlContent, subscribeInfo, eventResult -> {
             logger.error("发送NOTIFY通知消息失败。错误：{} {}", eventResult.statusCode, eventResult.msg);
         }, (eventResult -> {
@@ -620,7 +621,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
         SIPRequest notifyRequest = headerProviderPlatformProvider.createNotifyRequest(parentPlatform, catalogXmlContent, subscribeInfo);
 
-        sipSender.transmitRequest(parentPlatform.getDeviceIp(), notifyRequest);
+        sipSender.transmitRequest(parentPlatform.getDeviceIp(), notifyRequest, errorEvent, okEvent);
     }
 
     private  String getCatalogXmlContentForCatalogAddOrUpdate(ParentPlatform parentPlatform, List<DeviceChannel> channels, int sumNum, String type, SubscribeInfo subscribeInfo) {
@@ -632,9 +633,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 .append("<CmdType>Catalog</CmdType>\r\n")
                 .append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n")
                 .append("<DeviceID>" + parentPlatform.getDeviceGBId() + "</DeviceID>\r\n")
-                .append("<SumNum>1</SumNum>\r\n")
+                .append("<SumNum>"+ sumNum +"</SumNum>\r\n")
                 .append("<DeviceList Num=\"" + channels.size() + "\">\r\n");
-        if (channels.size() > 0) {
+        if (!channels.isEmpty()) {
             for (DeviceChannel channel : channels) {
                 if (parentPlatform.getServerGBId().equals(channel.getParentId())) {
                     channel.setParentId(parentPlatform.getDeviceGBId());
@@ -701,6 +702,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         }else {
             channels = deviceChannels.subList(index, deviceChannels.size());
         }
+        logger.info("[发送NOTIFY通知]类型： {}，发送数量： {}", type, channels.size());
         Integer finalIndex = index;
         String catalogXmlContent = getCatalogXmlContentForCatalogOther(parentPlatform, channels, type);
         sendNotify(parentPlatform, catalogXmlContent, subscribeInfo, eventResult -> {
@@ -747,13 +749,14 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         if ( parentPlatform ==null) {
             return ;
         }
+        logger.info("[国标级联] 发送录像数据通道： {}", recordInfo.getChannelId());
         String characterSet = parentPlatform.getCharacterSet();
         StringBuffer recordXml = new StringBuffer(600);
         recordXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n")
                 .append("<Response>\r\n")
                 .append("<CmdType>RecordInfo</CmdType>\r\n")
                 .append("<SN>" +recordInfo.getSn() + "</SN>\r\n")
-                .append("<DeviceID>" + recordInfo.getChannelId() + "</DeviceID>\r\n")
+                .append("<DeviceID>" + deviceChannel.getChannelId() + "</DeviceID>\r\n")
                 .append("<SumNum>" + recordInfo.getSumNum() + "</SumNum>\r\n");
         if (recordInfo.getRecordList() == null ) {
             recordXml.append("<RecordList Num=\"0\">\r\n");
@@ -763,7 +766,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 for (RecordItem recordItem : recordInfo.getRecordList()) {
                     recordXml.append("<Item>\r\n");
                     if (deviceChannel != null) {
-                        recordXml.append("<DeviceID>" + recordItem.getDeviceId() + "</DeviceID>\r\n")
+                        recordXml.append("<DeviceID>" + deviceChannel.getChannelId() + "</DeviceID>\r\n")
                                 .append("<Name>" + recordItem.getName() + "</Name>\r\n")
                                 .append("<StartTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(recordItem.getStartTime()) + "</StartTime>\r\n")
                                 .append("<EndTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(recordItem.getEndTime()) + "</EndTime>\r\n")
@@ -783,12 +786,14 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
         recordXml.append("</RecordList>\r\n")
                 .append("</Response>\r\n");
-
+        logger.info("[国标级联] 发送录像数据通道：{}, 内容： {}", recordInfo.getChannelId(), recordXml);
         // callid
         CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
 
         Request request = headerProviderPlatformProvider.createMessageRequest(parentPlatform, recordXml.toString(), fromTag, SipUtils.getNewViaTag(), callIdHeader);
-        sipSender.transmitRequest(parentPlatform.getDeviceIp(), request);
+        sipSender.transmitRequest(parentPlatform.getDeviceIp(), request, null, eventResult -> {
+            logger.info("[国标级联] 发送录像数据通道：{}, 发送成功", recordInfo.getChannelId());
+        });
 
     }
 

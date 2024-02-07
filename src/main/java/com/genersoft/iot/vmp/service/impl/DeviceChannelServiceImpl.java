@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -27,6 +28,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @author lin
  */
 @Service
+@DS("master")
 public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     private final static Logger logger = LoggerFactory.getLogger(DeviceChannelServiceImpl.class);
@@ -243,6 +245,10 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public void batchUpdateChannel(List<DeviceChannel> channels) {
+        String now = DateUtil.getNow();
+        for (DeviceChannel channel : channels) {
+            channel.setUpdateTime(now);
+        }
         channelMapper.batchUpdate(channels);
         for (DeviceChannel channel : channels) {
             if (channel.getParentId() != null) {

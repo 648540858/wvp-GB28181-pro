@@ -89,21 +89,12 @@ public interface IMediaServerService {
 
     void updateMediaServerKeepalive(String mediaServerId, ServerKeepaliveData data);
 
-    boolean checkRtpServer(MediaServerItem mediaServerItem, String rtp, String stream);
-
     /**
      * 获取负载信息
      * @return
      */
     MediaServerLoad getLoad(MediaServerItem mediaServerItem);
 
-    /**
-     * 按时间查找录像文件
-     */
-    List<RecordFile> getRecords(String app, String stream, String startTime, String endTime, List<MediaServerItem> mediaServerItems);
+    List<MediaServerItem> getAllWithAssistPort();
 
-    /**
-     * 查找存在录像文件的时间
-     */
-    List<String> getRecordDates(String app, String stream, int year, int month, List<MediaServerItem> mediaServerItems);
 }

@@ -23,7 +23,7 @@ public class UserSetting {
 
     private Integer playTimeout = 18000;
 
-    private int platformPlayTimeout = 60000;
+    private int platformPlayTimeout = 20000;
 
     private Boolean interfaceAuthentication = Boolean.TRUE;
 
@@ -51,12 +51,10 @@ public class UserSetting {
 
     private Boolean refuseChannelStatusChannelFormNotify = Boolean.FALSE;
 
-    private Boolean deviceStatusNotify = Boolean.FALSE;
+    private Boolean deviceStatusNotify = Boolean.TRUE;
     private Boolean useCustomSsrcForParentInvite = Boolean.TRUE;
 
     private String serverId = "000000";
-
-    private String recordPath = null;
 
     private String thirdPartyGBIdReg = "[\\s\\S]*";
 
@@ -260,14 +258,6 @@ public class UserSetting {
 
     public void setRefuseChannelStatusChannelFormNotify(Boolean refuseChannelStatusChannelFormNotify) {
         this.refuseChannelStatusChannelFormNotify = refuseChannelStatusChannelFormNotify;
-    }
-
-    public String getRecordPath() {
-        return recordPath;
-    }
-
-    public void setRecordPath(String recordPath) {
-        this.recordPath = recordPath;
     }
 
     public int getMaxNotifyCountQueue() {

@@ -40,11 +40,17 @@ public class DateUtil {
      */
     public static final String URL_PATTERN = "yyyyMMddHHmmss";
 
+    /**
+     * 日期格式
+     */
+    public static final String date_PATTERN = "yyyy-MM-dd";
+
     public static final String zoneStr = "Asia/Shanghai";
 
     public static final DateTimeFormatter formatterCompatibleISO8601 = DateTimeFormatter.ofPattern(ISO8601_COMPATIBLE_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
     public static final DateTimeFormatter formatterISO8601 = DateTimeFormatter.ofPattern(ISO8601_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
     public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
+    public static final DateTimeFormatter DateFormatter = DateTimeFormatter.ofPattern(date_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
     public static final DateTimeFormatter urlFormatter = DateTimeFormatter.ofPattern(URL_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
 
 	public static String yyyy_MM_dd_HH_mm_ssToISO8601(String formatTime) {
@@ -70,6 +76,22 @@ public class DateUtil {
         Instant instant = Instant.from(temporalAccessor);
         return instant.getEpochSecond();
 	}
+
+    /**
+     * 时间戳 转 yyyy_MM_dd_HH_mm_ss
+     */
+	public static String timestampTo_yyyy_MM_dd_HH_mm_ss(long timestamp) {
+        Instant instant = Instant.ofEpochSecond(timestamp);
+        return formatter.format(LocalDateTime.ofInstant(instant, ZoneId.of(zoneStr)));
+	}
+
+    /**
+     * 时间戳 转 yyyy_MM_dd
+     */
+    public static String timestampTo_yyyy_MM_dd(long timestamp) {
+        Instant instant = Instant.ofEpochMilli(timestamp);
+        return DateFormatter.format(LocalDateTime.ofInstant(instant, ZoneId.of(zoneStr)));
+    }
 
     /**
      * 获取当前时间
@@ -116,5 +138,14 @@ public class DateUtil {
         }
         Instant beforeInstant = Instant.from(formatter.parse(keepaliveTime));
         return ChronoUnit.MILLIS.between(beforeInstant, Instant.now());
+    }
+
+    public static long getDifference(String startTime, String endTime) {
+        if (ObjectUtils.isEmpty(startTime) || ObjectUtils.isEmpty(endTime)) {
+            return 0;
+        }
+        Instant startInstant = Instant.from(formatter.parse(startTime));
+        Instant endInstant = Instant.from(formatter.parse(endTime));
+        return ChronoUnit.MILLIS.between(endInstant, startInstant);
     }
 }

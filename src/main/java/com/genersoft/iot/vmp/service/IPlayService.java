@@ -33,11 +33,6 @@ public interface IPlayService {
 
     MediaServerItem getNewMediaServerItem(Device device);
 
-    /**
-     * 获取包含assist服务的节点
-     */
-    MediaServerItem getNewMediaServerItemHasAssist(Device device);
-
     void playBack(String deviceId, String channelId, String startTime, String endTime, ErrorCallback<Object> callback);
     void playBack(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, String deviceId, String channelId, String startTime, String endTime, ErrorCallback<Object> callback);
     void zlmServerOffline(String mediaServerId);
@@ -71,6 +66,5 @@ public interface IPlayService {
     void stopTalk(Device device, String channelId, Boolean streamIsReady);
 
     void getSnap(String deviceId, String channelId, String fileName, ErrorCallback errorCallback);
-
 
 }

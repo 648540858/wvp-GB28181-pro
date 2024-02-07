@@ -152,7 +152,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             String requesterId = SipUtils.getUserIdFromFromHeader(request);
             CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
             if (requesterId == null || channelId == null) {
-                logger.info("无法从FromHeader的Address中获取到平台id，返回400");
+                logger.info("无法从请求中获取到平台id，返回400");
                 // 参数不全， 发400，请求错误
                 try {
                     responseAck(request, Response.BAD_REQUEST);
@@ -162,6 +162,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 return;
             }
 
+            logger.info("[INVITE] requesterId: {}, callId: {}, 来自：{}：{}",
+                    requesterId, callIdHeader.getCallId(), request.getRemoteAddress(), request.getRemotePort());
 
             // 查询请求是否来自上级平台\设备
             ParentPlatform platform = storager.queryParentPlatByServerGBId(requesterId);
@@ -409,7 +411,16 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             // 非严格模式端口不统一, 增加兼容性，修改为一个不为0的端口
                             localPort = new Random().nextInt(65535) + 1;
                         }
-                        content.append("m=video " + localPort + " RTP/AVP 96\r\n");
+                        if (sendRtpItem.isTcp()) {
+                            content.append("m=video " + localPort + " TCP/RTP/AVP 96\r\n");
+                            if (!sendRtpItem.isTcpActive()) {
+                                content.append("a=setup:active\r\n");
+                            } else {
+                                content.append("a=setup:passive\r\n");
+                            }
+                        }else {
+                            content.append("m=video " + localPort + " RTP/AVP 96\r\n");
+                        }
                         content.append("a=sendonly\r\n");
                         content.append("a=rtpmap:96 PS/90000\r\n");
                         content.append("y=" + sendRtpItem.getSsrc() + "\r\n");
@@ -524,7 +535,10 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                     }
                                 });
                     } else {
-
+                        sendRtpItem.setPlayType(InviteStreamType.PLAY);
+                        String streamId = String.format("%s_%s", device.getDeviceId(), channelId);
+                        sendRtpItem.setStreamId(streamId);
+                        redisCatchStorage.updateSendRTPSever(sendRtpItem);
                         SSRCInfo ssrcInfo = playService.play(mediaServerItem, device.getDeviceId(), channelId, ssrc, ((code, msg, data) -> {
                             if (code == InviteErrorCode.SUCCESS.getCode()) {
                                 hookEvent.run(code, msg, data);
@@ -536,9 +550,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                 errorEvent.run(code, msg, data);
                             }
                         }));
-                        sendRtpItem.setPlayType(InviteStreamType.PLAY);
-                        String streamId = String.format("%s_%s", device.getDeviceId(), channelId);
-                        sendRtpItem.setStream(streamId);
                         sendRtpItem.setSsrc(ssrcInfo.getSsrc());
                         redisCatchStorage.updateSendRTPSever(sendRtpItem);
 
@@ -721,8 +732,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 zlmHttpHookSubscribe.removeSubscribe(hookSubscribe);
                 dynamicTask.stop(callIdHeader.getCallId());
             }
-
-
         } else if ("push".equals(gbStream.getStreamType())) {
             if (!platform.isStartOfflinePush()) {
                 // 平台设置中关闭了拉起离线的推流则直接回复
@@ -745,13 +754,10 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             dynamicTask.startDelay(callIdHeader.getCallId(), () -> {
                 logger.info("[ app={}, stream={} ] 等待设备开始推流超时", gbStream.getApp(), gbStream.getStream());
                 try {
+                    redisPushStreamResponseListener.removeEvent(gbStream.getApp(), gbStream.getStream());
                     mediaListManager.removedChannelOnlineEventLister(gbStream.getApp(), gbStream.getStream());
                     responseAck(request, Response.REQUEST_TIMEOUT); // 超时
-                } catch (SipException e) {
-                    logger.error("未处理的异常 ", e);
-                } catch (InvalidArgumentException e) {
-                    logger.error("未处理的异常 ", e);
-                } catch (ParseException e) {
+                } catch (SipException | InvalidArgumentException | ParseException e) {
                     logger.error("未处理的异常 ", e);
                 }
             }, userSetting.getPlatformPlayTimeout());
@@ -762,6 +768,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             // 添加在本机上线的通知
             mediaListManager.addChannelOnlineEventLister(gbStream.getApp(), gbStream.getStream(), (app, stream, serverId) -> {
                 dynamicTask.stop(callIdHeader.getCallId());
+                redisPushStreamResponseListener.removeEvent(gbStream.getApp(), gbStream.getStream());
                 if (serverId.equals(userSetting.getServerId())) {
                     SendRtpItem sendRtpItem = zlmServerFactory.createSendRtpItem(mediaServerItem, addressStr, finalPort, ssrc, requesterId,
                             app, stream, channelId, mediaTransmissionTCP, platform.isRtcp());
@@ -826,7 +833,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         // 发送redis消息
         redisGbPlayMsgListener.sendMsg(streamPushItem.getServerId(), streamPushItem.getMediaServerId(),
                 streamPushItem.getApp(), streamPushItem.getStream(), addressStr, port, ssrc, requesterId,
-                channelId, mediaTransmissionTCP, platform.isRtcp(), null, responseSendItemMsg -> {
+                channelId, mediaTransmissionTCP, platform.isRtcp(),platform.getName(), responseSendItemMsg -> {
                     SendRtpItem sendRtpItem = responseSendItemMsg.getSendRtpItem();
                     if (sendRtpItem == null || responseSendItemMsg.getMediaServerItem() == null) {
                         logger.warn("服务器端口资源不足");

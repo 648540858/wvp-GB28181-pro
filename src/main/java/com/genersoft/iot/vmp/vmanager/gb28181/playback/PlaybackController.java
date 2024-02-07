@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.exception.ServiceException;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
+import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
@@ -20,6 +21,7 @@ import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +70,7 @@ public class PlaybackController {
 	@Autowired
 	private UserSetting userSetting;
 
-	@Operation(summary = "开始视频回放")
+	@Operation(summary = "开始视频回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@Parameter(name = "startTime", description = "开始时间", required = true)
@@ -125,7 +127,7 @@ public class PlaybackController {
 	}
 
 
-	@Operation(summary = "停止视频回放")
+	@Operation(summary = "停止视频回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@Parameter(name = "stream", description = "流ID", required = true)
@@ -149,7 +151,7 @@ public class PlaybackController {
 	}
 
 
-	@Operation(summary = "回放暂停")
+	@Operation(summary = "回放暂停", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "streamId", description = "回放流ID", required = true)
 	@GetMapping("/pause/{streamId}")
 	public void playPause(@PathVariable String streamId) {
@@ -165,7 +167,7 @@ public class PlaybackController {
 	}
 
 
-	@Operation(summary = "回放恢复")
+	@Operation(summary = "回放恢复", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "streamId", description = "回放流ID", required = true)
 	@GetMapping("/resume/{streamId}")
 	public void playResume(@PathVariable String streamId) {
@@ -180,7 +182,7 @@ public class PlaybackController {
 	}
 
 
-	@Operation(summary = "回放拖动播放")
+	@Operation(summary = "回放拖动播放", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "streamId", description = "回放流ID", required = true)
 	@Parameter(name = "seekTime", description = "拖动偏移量，单位s", required = true)
 	@GetMapping("/seek/{streamId}/{seekTime}")
@@ -200,7 +202,7 @@ public class PlaybackController {
 		}
 	}
 
-	@Operation(summary = "回放倍速播放")
+	@Operation(summary = "回放倍速播放", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "streamId", description = "回放流ID", required = true)
 	@Parameter(name = "speed", description = "倍速0.25 0.5 1、2、4", required = true)
 	@GetMapping("/speed/{streamId}/{speed}")

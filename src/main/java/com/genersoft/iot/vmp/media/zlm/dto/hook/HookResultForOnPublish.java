@@ -7,6 +7,7 @@ public class HookResultForOnPublish extends HookResult{
     private int mp4_max_second;
     private String mp4_save_path;
     private String stream_replace;
+    private Integer modify_stamp;
 
     public HookResultForOnPublish() {
     }
@@ -60,14 +61,23 @@ public class HookResultForOnPublish extends HookResult{
         this.stream_replace = stream_replace;
     }
 
+    public Integer getModify_stamp() {
+        return modify_stamp;
+    }
+
+    public void setModify_stamp(Integer modify_stamp) {
+        this.modify_stamp = modify_stamp;
+    }
+
     @Override
     public String toString() {
         return "HookResultForOnPublish{" +
                 "enable_audio=" + enable_audio +
                 ", enable_mp4=" + enable_mp4 +
                 ", mp4_max_second=" + mp4_max_second +
-                ", stream_replace=" + stream_replace +
                 ", mp4_save_path='" + mp4_save_path + '\'' +
+                ", stream_replace='" + stream_replace + '\'' +
+                ", modify_stamp='" + modify_stamp + '\'' +
                 '}';
     }
 }

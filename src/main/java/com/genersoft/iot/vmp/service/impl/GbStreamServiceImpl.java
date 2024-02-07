@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@DS("master")
 public class GbStreamServiceImpl implements IGbStreamService {
 
     private final static Logger logger = LoggerFactory.getLogger(GbStreamServiceImpl.class);
@@ -77,8 +79,6 @@ public class GbStreamServiceImpl implements IGbStreamService {
         }
         try {
             List<DeviceChannel> deviceChannelList = new ArrayList<>();
-
-
             for (int i = 0; i < gbStreams.size(); i++) {
                 GbStream gbStream = gbStreams.get(i);
                 gbStream.setCatalogId(catalogId);
@@ -251,18 +251,17 @@ public class GbStreamServiceImpl implements IGbStreamService {
             return ;
         }
         if (ObjectUtils.isEmpty(catalogId)) {
-            catalogId = platform.getDeviceGBId();
+            catalogId = null;
         }
-        if (platformGbStreamMapper.delByPlatformAndCatalogId(platformId, catalogId) > 0) {
-            List<GbStream> gbStreams = platformGbStreamMapper.queryChannelInParentPlatformAndCatalog(platformId, catalogId);
-            List<DeviceChannel> deviceChannelList = new ArrayList<>();
-            for (GbStream gbStream : gbStreams) {
-                DeviceChannel deviceChannel = new DeviceChannel();
-                deviceChannel.setChannelId(gbStream.getGbId());
-                deviceChannelList.add(deviceChannel);
-            }
-            eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.DEL);
+        List<GbStream> gbStreams = platformGbStreamMapper.queryChannelInParentPlatformAndCatalog(platformId, catalogId);
+        List<DeviceChannel> deviceChannelList = new ArrayList<>();
+        for (GbStream gbStream : gbStreams) {
+            DeviceChannel deviceChannel = new DeviceChannel();
+            deviceChannel.setChannelId(gbStream.getGbId());
+            deviceChannelList.add(deviceChannel);
         }
+        eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.DEL);
+        platformGbStreamMapper.delByPlatformAndCatalogId(platformId, catalogId);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.common;
 
+import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.io.Serializable;
@@ -76,6 +77,8 @@ public class StreamInfo implements Serializable, Cloneable{
     private String endTime;
     @Schema(description = "进度（录像下载使用）")
     private double progress;
+    @Schema(description = "文件下载地址（录像下载使用）")
+    private DownloadFileInfo downLoadFilePath;
 
     @Schema(description = "是否暂停（录像回放使用）")
     private boolean pause;
@@ -605,5 +608,11 @@ public class StreamInfo implements Serializable, Cloneable{
         this.subStream = subStream;
     }
 
+    public DownloadFileInfo getDownLoadFilePath() {
+        return downLoadFilePath;
+    }
 
+    public void setDownLoadFilePath(DownloadFileInfo downLoadFilePath) {
+        this.downLoadFilePath = downLoadFilePath;
+    }
 }

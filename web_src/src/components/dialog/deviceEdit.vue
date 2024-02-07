@@ -20,7 +20,7 @@
             <el-input v-model="form.name" clearable></el-input>
           </el-form-item>
           <el-form-item label="密码" prop="password">
-            <el-input type="password" v-model="form.password" clearable></el-input>
+            <el-input v-model="form.password" clearable></el-input>
           </el-form-item>
           <el-form-item label="收流IP" prop="sdpIp">
             <el-input type="sdpIp" v-model="form.sdpIp" clearable></el-input>

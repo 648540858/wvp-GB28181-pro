@@ -6,7 +6,6 @@ import com.genersoft.iot.vmp.gb28181.bean.DeviceChannelInPlatform;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
 import org.apache.ibatis.annotations.*;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -31,7 +30,7 @@ public interface DeviceChannelMapper {
     @Update(value = {" <script>" +
             "UPDATE wvp_device_channel " +
             "SET update_time=#{updateTime}" +
-            "<if test='name != null'>, name=#{name}</if>" +
+            ", custom_name=#{name}" +
             "<if test='manufacture != null'>, manufacture=#{manufacture}</if>" +
             "<if test='model != null'>, model=#{model}</if>" +
             "<if test='owner != null'>, owner=#{owner}</if>" +
@@ -49,12 +48,12 @@ public interface DeviceChannelMapper {
             "<if test='ipAddress != null'>, ip_address=#{ipAddress}</if>" +
             "<if test='port != null'>, port=#{port}</if>" +
             "<if test='password != null'>, password=#{password}</if>" +
-            "<if test='PTZType != null'>, ptz_type=#{PTZType}</if>" +
+            "<if test='PTZType != null'>, custom_ptz_type=#{PTZType}</if>" +
             "<if test='status != null'>, status=#{status}</if>" +
             "<if test='streamId != null'>, stream_id=#{streamId}</if>" +
             "<if test='hasAudio != null'>, has_audio=#{hasAudio}</if>" +
-            "<if test='longitude != null'>, longitude=#{longitude}</if>" +
-            "<if test='latitude != null'>, latitude=#{latitude}</if>" +
+            ", custom_longitude=#{longitude}" +
+            ", custom_latitude=#{latitude}" +
             "<if test='longitudeGcj02 != null'>, longitude_gcj02=#{longitudeGcj02}</if>" +
             "<if test='latitudeGcj02 != null'>, latitude_gcj02=#{latitudeGcj02}</if>" +
             "<if test='longitudeWgs84 != null'>, longitude_wgs84=#{longitudeWgs84}</if>" +
@@ -67,12 +66,52 @@ public interface DeviceChannelMapper {
 
     @Select(value = {" <script>" +
             "SELECT " +
-            "dc.* " +
+            "dc.id, " +
+            "dc.channel_id, " +
+            "COALESCE(dc.custom_name, dc.name) AS name, " +
+            "dc.manufacture, " +
+            "dc.model, " +
+            "dc.owner, " +
+            "dc.civil_code, " +
+            "dc.block, " +
+            "dc.address, " +
+            "dc.parent_id, " +
+            "dc.safety_way, " +
+            "dc.register_way, " +
+            "dc.cert_num, " +
+            "dc.certifiable, " +
+            "dc.err_code, " +
+            "dc.end_time, " +
+            "dc.secrecy, " +
+            "dc.ip_address, " +
+            "dc.port, " +
+            "dc.password, " +
+            "COALESCE(dc.custom_ptz_type, dc.ptz_type) AS ptz_type, " +
+            "dc.status, " +
+            "COALESCE(dc.custom_longitude, dc.longitude) AS longitude, " +
+            "COALESCE(dc.custom_latitude, dc.latitude) AS latitude, " +
+            "dc.stream_id, " +
+            "dc.device_id, " +
+            "dc.parental, " +
+            "dc.has_audio, " +
+            "dc.create_time, " +
+            "dc.update_time, " +
+            "dc.sub_count, " +
+            "dc.longitude_gcj02, " +
+            "dc.latitude_gcj02, " +
+            "dc.longitude_wgs84, " +
+            "dc.latitude_wgs84, " +
+            "dc.business_group_id, " +
+            "dc.gps_time " +
             "from " +
             "wvp_device_channel dc " +
             "WHERE " +
             "dc.device_id = #{deviceId} " +
-" <if test='query != null'> AND (dc.channel_id LIKE concat('%',#{query},'%') OR dc.name LIKE concat('%',#{query},'%') OR dc.name LIKE concat('%',#{query},'%'))</if> " +
+            " <if test='query != null'> AND (" +
+            "dc.channel_id LIKE concat('%',#{query},'%') " +
+            "OR dc.name LIKE concat('%',#{query},'%') " +
+            "OR dc.custom_name LIKE concat('%',#{query},'%')" +
+            ")</if> " +
             " <if test='parentChannelId != null'> AND (dc.parent_id=#{parentChannelId} OR dc.civil_code = #{parentChannelId}) </if> " +
             " <if test='online == true' > AND dc.status= true</if>" +
             " <if test='online == false' > AND dc.status= false</if>" +
@@ -154,7 +193,7 @@ public interface DeviceChannelMapper {
             "    dc.id,\n" +
             "    dc.channel_id,\n" +
             "    dc.device_id,\n" +
-            "    dc.name,\n" +
+            "    COALESCE(dc.custom_name, dc.name) AS name,\n" +
             "    de.manufacturer,\n" +
             "    de.host_address,\n" +
             "    dc.sub_count,\n" +
@@ -392,10 +431,10 @@ public interface DeviceChannelMapper {
     @Select("select * from wvp_device_channel where device_id=#{deviceId} and SUBSTRING(channel_id, 11, 3)=#{typeCode}")
     List<DeviceChannel> getBusinessGroups(@Param("deviceId") String deviceId, @Param("typeCode") String typeCode);
 
-    @Select("select dc.id, dc.channel_id, dc.device_id, dc.name, dc.manufacture,dc.model,dc.owner, pc.civil_code,dc.block, " +
+    @Select("select dc.id, dc.channel_id, dc.device_id, COALESCE(dc.custom_name, dc.name) AS name, dc.manufacture,dc.model,dc.owner, pc.civil_code,dc.block, " +
             " dc.address, '0' as parental,'0' as channel_type, pc.id as parent_id, dc.safety_way, dc.register_way,dc.cert_num, dc.certifiable,  " +
-            " dc.err_code,dc.end_time, dc.secrecy,   dc.ip_address,  dc.port,  dc.ptz_type,  dc.password, dc.status, " +
-            " dc.longitude_wgs84 as longitude, dc.latitude_wgs84 as latitude,  pc.business_group_id " +
+            " dc.err_code,dc.end_time, dc.secrecy,   dc.ip_address,  dc.port,  COALESCE(dc.custom_ptz_type, dc.ptz_type) AS ptz_type,  dc.password, dc.status, " +
+            " COALESCE(dc.custom_longitude, dc.longitude) AS longitude, COALESCE(dc.custom_latitude, dc.latitude) AS latitude,  pc.business_group_id " +
             " from wvp_device_channel dc" +
             " LEFT JOIN wvp_platform_gb_channel pgc on  dc.id = pgc.device_channel_id" +
             " LEFT JOIN wvp_platform_catalog pc on pgc.catalog_id = pc.id and pgc.platform_id = pc.platform_id" +
@@ -457,7 +496,44 @@ public interface DeviceChannelMapper {
     void clearPlay(String deviceId);
     // 设备主子码流逻辑END
     @Select(value = {" <script>" +
-            "select * " +
+            "SELECT id,\n" +
+            "       channel_id,\n" +
+            "       COALESCE(custom_name, name)           AS name,\n" +
+            "       custom_name,\n" +
+            "       manufacture,\n" +
+            "       model,\n" +
+            "       owner,\n" +
+            "       civil_code,\n" +
+            "       block,\n" +
+            "       address,\n" +
+            "       parent_id,\n" +
+            "       safety_way,\n" +
+            "       register_way,\n" +
+            "       cert_num,\n" +
+            "       certifiable,\n" +
+            "       err_code,\n" +
+            "       end_time,\n" +
+            "       secrecy,\n" +
+            "       ip_address,\n" +
+            "       port,\n" +
+            "       password,\n" +
+            "       COALESCE(custom_ptz_type, ptz_type)   AS ptz_type,\n" +
+            "       status,\n" +
+            "       COALESCE(custom_longitude, longitude) AS longitude,\n" +
+            "       COALESCE(custom_latitude, latitude)   AS latitude,\n" +
+            "       stream_id,\n" +
+            "       device_id,\n" +
+            "       parental,\n" +
+            "       has_audio,\n" +
+            "       create_time,\n" +
+            "       update_time,\n" +
+            "       sub_count,\n" +
+            "       longitude_gcj02,\n" +
+            "       latitude_gcj02,\n" +
+            "       longitude_wgs84,\n" +
+            "       latitude_wgs84,\n" +
+            "       business_group_id,\n" +
+            "       gps_time\n" +
             "from wvp_device_channel " +
             "where device_id=#{deviceId}" +
             " <if test='parentId != null and parentId != deviceId'> and parent_id = #{parentId} </if>" +

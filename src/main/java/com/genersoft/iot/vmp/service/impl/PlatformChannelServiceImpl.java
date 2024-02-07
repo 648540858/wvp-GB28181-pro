@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
@@ -27,6 +28,7 @@ import java.util.Map;
  * @author lin
  */
 @Service
+@DS("master")
 public class PlatformChannelServiceImpl implements IPlatformChannelService {
 
     private final static Logger logger = LoggerFactory.getLogger(PlatformChannelServiceImpl.class);
@@ -165,10 +167,9 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
            catalogId = null;
         }
 
-        if ((result = platformChannelMapper.delChannelForGBByCatalogId(platformId, catalogId)) > 0) {
-            List<DeviceChannel> deviceChannels = platformChannelMapper.queryAllChannelInCatalog(platformId, catalogId);
-            eventPublisher.catalogEventPublish(platformId, deviceChannels, CatalogEvent.DEL);
-        }
-        return result;
+        List<DeviceChannel> deviceChannels = platformChannelMapper.queryAllChannelInCatalog(platformId, catalogId);
+        eventPublisher.catalogEventPublish(platformId, deviceChannels, CatalogEvent.DEL);
+
+        return platformChannelMapper.delChannelForGBByCatalogId(platformId, catalogId);
     }
 }

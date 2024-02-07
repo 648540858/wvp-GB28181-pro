@@ -75,6 +75,33 @@ public class VideoStreamSessionManager {
 		return (SsrcTransaction)redisTemplate.opsForValue().get(scanResult.get(0));
 	}
 
+	public SsrcTransaction getSsrcTransactionByCallId(String callId){
+
+		if (ObjectUtils.isEmpty(callId)) {
+			return null;
+		}
+		String key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + "_*_*_" + callId+ "_*";
+		List<Object> scanResult = RedisUtil.scan(redisTemplate, key);
+		if (!scanResult.isEmpty()) {
+			return (SsrcTransaction)redisTemplate.opsForValue().get(scanResult.get(0));
+		}else {
+			key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + "_*_*_play_*";
+			scanResult = RedisUtil.scan(redisTemplate, key);
+			if (scanResult.isEmpty()) {
+				return null;
+			}
+			for (Object keyObj : scanResult) {
+				SsrcTransaction ssrcTransaction = (SsrcTransaction)redisTemplate.opsForValue().get(keyObj);
+				if (ssrcTransaction.getSipTransactionInfo() != null &&
+						ssrcTransaction.getSipTransactionInfo().getCallId().equals(callId)) {
+					return ssrcTransaction;
+				}
+			}
+			return null;
+		}
+
+	}
+
 	public List<SsrcTransaction> getSsrcTransactionForAll(String deviceId, String channelId, String callId, String stream){
 		if (ObjectUtils.isEmpty(deviceId)) {
 			deviceId ="*";
@@ -117,8 +144,19 @@ public class VideoStreamSessionManager {
 	}
 	
 	public void remove(String deviceId, String channelId, String stream) {
-		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId, null, stream);
-		if (ssrcTransaction == null) {
+		List<SsrcTransaction> ssrcTransactionList = getSsrcTransactionForAll(deviceId, channelId, null, stream);
+		if (ssrcTransactionList == null || ssrcTransactionList.isEmpty()) {
+			return;
+		}
+		for (SsrcTransaction ssrcTransaction : ssrcTransactionList) {
+			redisTemplate.delete(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + "_"
+					+  deviceId + "_" + channelId + "_" + ssrcTransaction.getCallId() + "_" + ssrcTransaction.getStream());
+		}
+	}
+
+	public void removeByCallId(String deviceId, String channelId, String callId) {
+		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId, callId, null);
+		if (ssrcTransaction == null ) {
 			return;
 		}
 		redisTemplate.delete(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + "_"

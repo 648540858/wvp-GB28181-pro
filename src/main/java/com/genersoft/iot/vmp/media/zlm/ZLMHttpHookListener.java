@@ -118,6 +118,9 @@ public class ZLMHttpHookListener {
     private IUserService userService;
 
     @Autowired
+    private ICloudRecordService cloudRecordService;
+
+    @Autowired
     private VideoStreamSessionManager sessionManager;
 
     @Autowired
@@ -238,12 +241,6 @@ public class ZLMHttpHookListener {
                 streamAuthorityInfo.setSign(sign);
                 // 鉴权通过
                 redisCatchStorage.updateStreamAuthorityInfo(param.getApp(), param.getStream(), streamAuthorityInfo);
-                // 通知assist新的callId
-                if (mediaInfo != null && mediaInfo.getRecordAssistPort() > 0) {
-                    taskExecutor.execute(() -> {
-                        assistRESTfulUtils.addStreamCallInfo(mediaInfo, param.getApp(), param.getStream(), callId, null);
-                    });
-                }
             }
         } else {
             zlmMediaListManager.sendStreamEvent(param.getApp(), param.getStream(), param.getMediaServerId());
@@ -269,50 +266,56 @@ public class ZLMHttpHookListener {
         } else {
             result.setEnable_mp4(userSetting.isRecordPushLive());
         }
-        // 替换流地址
-        if ("rtp".equals(param.getApp()) && !mediaInfo.isRtpEnable()) {
-            String ssrc = String.format("%010d", Long.parseLong(param.getStream(), 16));;
-            InviteInfo inviteInfo = inviteStreamService.getInviteInfoBySSRC(ssrc);
-            if (inviteInfo != null) {
-                result.setStream_replace(inviteInfo.getStream());
-                logger.info("[ZLM HOOK]推流鉴权 stream: {} 替换为 {}", param.getStream(), inviteInfo.getStream());
-            }
-        }
-        List<SsrcTransaction> ssrcTransactionForAll = sessionManager.getSsrcTransactionForAll(null, null, null, param.getStream());
-        if (ssrcTransactionForAll != null && ssrcTransactionForAll.size() == 1) {
-            String deviceId = ssrcTransactionForAll.get(0).getDeviceId();
-            String channelId = ssrcTransactionForAll.get(0).getChannelId();
-            DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
-            if (deviceChannel != null) {
+        // 国标流
+        if ("rtp".equals(param.getApp()) ) {
 
-                result.setEnable_audio(deviceChannel.isHasAudio());
-            }
-            // 如果是录像下载就设置视频间隔十秒
-            if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.DOWNLOAD) {
-                result.setMp4_max_second(10);
-                result.setEnable_mp4(true);
-            }
-            // 如果是talk对讲，则默认获取声音
-            if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.TALK) {
-                result.setEnable_audio(true);
+            InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, param.getStream());
+
+            // 单端口模式下修改流 ID
+            if (!mediaInfo.isRtpEnable() && inviteInfo == null) {
+                String ssrc = String.format("%010d", Long.parseLong(param.getStream(), 16));
+                inviteInfo = inviteStreamService.getInviteInfoBySSRC(ssrc);
+                if (inviteInfo != null) {
+                    result.setStream_replace(inviteInfo.getStream());
+                    logger.info("[ZLM HOOK]推流鉴权 stream: {} 替换为 {}", param.getStream(), inviteInfo.getStream());
+                }
             }
 
-        }
-        if (mediaInfo.getRecordAssistPort() > 0 && userSetting.getRecordPath() == null) {
-            logger.info("推流时发现尚未设置录像路径，从assist服务中读取");
-            JSONObject info = assistRESTfulUtils.getInfo(mediaInfo, null);
-            if (info != null && info.getInteger("code") != null && info.getInteger("code") == 0) {
-                JSONObject dataJson = info.getJSONObject("data");
-                if (dataJson != null) {
-                    String recordPath = dataJson.getString("record");
-                    userSetting.setRecordPath(recordPath);
-                    result.setMp4_save_path(recordPath);
-                    // 修改zlm中的录像路径
-                    if (mediaInfo.isAutoConfig()) {
-                        taskExecutor.execute(() -> {
-                            mediaServerService.setZLMConfig(mediaInfo, false);
-                        });
+            // 设置音频信息及录制信息
+            List<SsrcTransaction> ssrcTransactionForAll = sessionManager.getSsrcTransactionForAll(null, null, null, param.getStream());
+            if (ssrcTransactionForAll != null && ssrcTransactionForAll.size() == 1) {
+
+                // 为录制国标模拟一个鉴权信息, 方便后续写入录像文件时使用
+                StreamAuthorityInfo streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(param);
+                streamAuthorityInfo.setApp(param.getApp());
+                streamAuthorityInfo.setStream(ssrcTransactionForAll.get(0).getStream());
+                streamAuthorityInfo.setCallId(ssrcTransactionForAll.get(0).getSipTransactionInfo().getCallId());
+
+                redisCatchStorage.updateStreamAuthorityInfo(param.getApp(), ssrcTransactionForAll.get(0).getStream(), streamAuthorityInfo);
+
+                String deviceId = ssrcTransactionForAll.get(0).getDeviceId();
+                String channelId = ssrcTransactionForAll.get(0).getChannelId();
+                DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
+                if (deviceChannel != null) {
+                    result.setEnable_audio(deviceChannel.isHasAudio());
+                }
+                // 如果是录像下载就设置视频间隔十秒
+                if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.DOWNLOAD) {
+                    // 获取录像的总时长，然后设置为这个视频的时长
+                    InviteInfo inviteInfoForDownload = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, deviceId, channelId, param.getStream());
+                    if (inviteInfoForDownload != null && inviteInfoForDownload.getStreamInfo() != null) {
+                        String startTime = inviteInfoForDownload.getStreamInfo().getStartTime();
+                        String endTime = inviteInfoForDownload.getStreamInfo().getEndTime();
+                        long difference = DateUtil.getDifference(startTime, endTime) / 1000;
+                        result.setMp4_max_second((int) difference);
+                        result.setEnable_mp4(true);
+                        // 设置为2保证得到的mp4的时长是正常的
+                        result.setModify_stamp(2);
                     }
+                }
+                // 如果是talk对讲，则默认获取声音
+                if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.TALK) {
+                    result.setEnable_audio(true);
                 }
             }
         }
@@ -361,13 +364,11 @@ public class ZLMHttpHookListener {
 
             List<OnStreamChangedHookParam.MediaTrack> tracks = param.getTracks();
             // TODO 重构此处逻辑
-            boolean isPush = false;
             if (param.isRegist()) {
-                // 处理流注册的鉴权信息
+                // 处理流注册的鉴权信息， 流注销这里不再删除鉴权信息，下次来了新的鉴权信息会对就的进行覆盖
                 if (param.getOriginType() == OriginType.RTMP_PUSH.ordinal()
                         || param.getOriginType() == OriginType.RTSP_PUSH.ordinal()
                         || param.getOriginType() == OriginType.RTC_PUSH.ordinal()) {
-                    isPush = true;
                     StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(param.getApp(), param.getStream());
                     if (streamAuthorityInfo == null) {
                         streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(param);
@@ -377,8 +378,6 @@ public class ZLMHttpHookListener {
                     }
                     redisCatchStorage.updateStreamAuthorityInfo(param.getApp(), param.getStream(), streamAuthorityInfo);
                 }
-            } else {
-                redisCatchStorage.removeStreamAuthorityInfo(param.getApp(), param.getStream());
             }
 
             if ("rtsp".equals(param.getSchema())) {
@@ -460,35 +459,40 @@ public class ZLMHttpHookListener {
                 } else {
                     if (!"rtp".equals(param.getApp())) {
                         String type = OriginType.values()[param.getOriginType()].getType();
-                        MediaServerItem mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
+                        if (param.isRegist()) {
+                            StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(
+                                    param.getApp(), param.getStream());
+                            String callId = null;
+                            if (streamAuthorityInfo != null) {
+                                callId = streamAuthorityInfo.getCallId();
+                            }
+                            StreamInfo streamInfoByAppAndStream = mediaService.getStreamInfoByAppAndStream(mediaInfo,
+                                    param.getApp(), param.getStream(), tracks, callId);
+                            param.setStreamInfo(new StreamContent(streamInfoByAppAndStream));
+                            redisCatchStorage.addStream(mediaInfo, type, param.getApp(), param.getStream(), param);
+                            if (param.getOriginType() == OriginType.RTSP_PUSH.ordinal()
+                                    || param.getOriginType() == OriginType.RTMP_PUSH.ordinal()
+                                    || param.getOriginType() == OriginType.RTC_PUSH.ordinal()) {
+                                param.setSeverId(userSetting.getServerId());
+                                zlmMediaListManager.addPush(param);
 
-                        if (mediaServerItem != null) {
-                            if (param.isRegist()) {
-                                StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(param.getApp(), param.getStream());
-                                String callId = null;
-                                if (streamAuthorityInfo != null) {
-                                    callId = streamAuthorityInfo.getCallId();
+                                // 冗余数据，自己系统中自用
+                                redisCatchStorage.addPushListItem(param.getApp(), param.getStream(), param);
+                            }
+                        } else {
+                            // 兼容流注销时类型从redis记录获取
+                            OnStreamChangedHookParam onStreamChangedHookParam = redisCatchStorage.getStreamInfo(
+                                    param.getApp(), param.getStream(), param.getMediaServerId());
+                            if (onStreamChangedHookParam != null) {
+                                type = OriginType.values()[onStreamChangedHookParam.getOriginType()].getType();
+                                redisCatchStorage.removeStream(mediaInfo.getId(), type, param.getApp(), param.getStream());
+                                if ("PUSH".equalsIgnoreCase(type)) {
+                                    // 冗余数据，自己系统中自用
+                                    redisCatchStorage.removePushListItem(param.getApp(), param.getStream(), param.getMediaServerId());
                                 }
-                                StreamInfo streamInfoByAppAndStream = mediaService.getStreamInfoByAppAndStream(mediaServerItem,
-                                        param.getApp(), param.getStream(), param.getTracks(), callId);
-                                param.setStreamInfo(new StreamContent(streamInfoByAppAndStream));
-                                redisCatchStorage.addStream(mediaServerItem, type, param.getApp(), param.getStream(), param);
-                                if (param.getOriginType() == OriginType.RTSP_PUSH.ordinal()
-                                        || param.getOriginType() == OriginType.RTMP_PUSH.ordinal()
-                                        || param.getOriginType() == OriginType.RTC_PUSH.ordinal()) {
-                                    param.setSeverId(userSetting.getServerId());
-                                    zlmMediaListManager.addPush(param);
-                                }
-                            } else {
-                                // 兼容流注销时类型从redis记录获取
-                                OnStreamChangedHookParam onStreamChangedHookParam = redisCatchStorage.getStreamInfo(
-                                        param.getApp(), param.getStream(), param.getMediaServerId());
-                                if (onStreamChangedHookParam != null) {
-                                    type = OriginType.values()[onStreamChangedHookParam.getOriginType()].getType();
-                                    redisCatchStorage.removeStream(mediaServerItem.getId(), type, param.getApp(), param.getStream());
-                                }
-                                GbStream gbStream = storager.getGbStream(param.getApp(), param.getStream());
-                                if (gbStream != null) {
+                            }
+                            GbStream gbStream = storager.getGbStream(param.getApp(), param.getStream());
+                            if (gbStream != null) {
 //									eventPublisher.catalogEventPublishForStream(null, gbStream, CatalogEvent.OFF);
                             }
                             zlmMediaListManager.removeMedia(param.getApp(), param.getStream());
@@ -513,7 +517,7 @@ public class ZLMHttpHookListener {
                 }
                 if (!param.isRegist()) {
                     List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(param.getStream());
-                    if (sendRtpItems.size() > 0) {
+                    if (!sendRtpItems.isEmpty()) {
                         for (SendRtpItem sendRtpItem : sendRtpItems) {
                             if (sendRtpItem != null && sendRtpItem.getApp().equals(param.getApp())) {
                                 String platformId = sendRtpItem.getPlatformId();
@@ -608,11 +612,15 @@ public class ZLMHttpHookListener {
                         if (info != null) {
                             cmder.streamByeCmd(device, inviteInfo.getChannelId(),
                                     inviteInfo.getStream(), null);
+                        }else {
+                            logger.info("[无人观看] 未找到设备的点播信息： {}， 流：{}", inviteInfo.getDeviceId(), param.getStream());
                         }
                     } catch (InvalidArgumentException | ParseException | SipException |
                              SsrcTransactionNotFoundException e) {
                         logger.error("[无人观看]点播， 发送BYE失败 {}", e.getMessage());
                     }
+                }else {
+                    logger.info("[无人观看] 未找到设备： {}，流：{}", inviteInfo.getDeviceId(), param.getStream());
                 }
 
                 inviteStreamService.removeInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(),
@@ -684,7 +692,7 @@ public class ZLMHttpHookListener {
             String deviceId = s[0];
             String channelId = s[1];
             Device device = redisCatchStorage.getDevice(deviceId);
-            if (device == null) {
+            if (device == null || !device.isOnLine()) {
                 defaultResult.setResult(new HookResult(ErrorCode.ERROR404.getCode(), ErrorCode.ERROR404.getMsg()));
                 return defaultResult;
             }
@@ -848,11 +856,33 @@ public class ZLMHttpHookListener {
         taskExecutor.execute(() -> {
             JSONObject json = (JSONObject) JSON.toJSON(param);
             List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_rtp_server_timeout);
-            if (subscribes != null && subscribes.size() > 0) {
+            if (subscribes != null && !subscribes.isEmpty()) {
                 for (ZlmHttpHookSubscribe.Event subscribe : subscribes) {
                     subscribe.response(null, param);
                 }
             }
+        });
+
+        return HookResult.SUCCESS();
+    }
+
+    /**
+     * 录像完成事件
+     */
+    @ResponseBody
+    @PostMapping(value = "/on_record_mp4", produces = "application/json;charset=UTF-8")
+    public HookResult onRecordMp4(HttpServletRequest request, @RequestBody OnRecordMp4HookParam param) {
+        logger.info("[ZLM HOOK] 录像完成事件：{}->{}", param.getMediaServerId(), param.getFile_path());
+
+        taskExecutor.execute(() -> {
+            List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_record_mp4);
+            if (subscribes != null && !subscribes.isEmpty()) {
+                for (ZlmHttpHookSubscribe.Event subscribe : subscribes) {
+                    subscribe.response(null, param);
+                }
+            }
+            cloudRecordService.addRecord(param);
+
         });
 
         return HookResult.SUCCESS();

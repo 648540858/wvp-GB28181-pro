@@ -28,7 +28,7 @@ public class JwtUtils implements InitializingBean {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
-    private static final String HEADER = "access-token";
+    public static final String HEADER = "access-token";
 
     private static final String AUDIENCE = "Audience";
 
@@ -144,6 +144,7 @@ public class JwtUtils implements InitializingBean {
             jwtUser.setUserName(username);
             jwtUser.setPassword(user.getPassword());
             jwtUser.setRoleId(user.getRole().getId());
+            jwtUser.setUserId(user.getId());
 
             return jwtUser;
         } catch (InvalidJwtException e) {

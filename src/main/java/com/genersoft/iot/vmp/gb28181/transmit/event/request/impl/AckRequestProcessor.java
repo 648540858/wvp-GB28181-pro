@@ -90,6 +90,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 	@Override
 	public void process(RequestEvent evt) {
 		CallIdHeader callIdHeader = (CallIdHeader)evt.getRequest().getHeader(CallIdHeader.NAME);
+		dynamicTask.stop(callIdHeader.getCallId());
 		String fromUserId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(FromHeader.NAME)).getAddress().getURI()).getUser();
 		String toUserId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getURI()).getUser();
 		logger.info("[收到ACK]： 来自->{}", fromUserId);

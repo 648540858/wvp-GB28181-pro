@@ -199,7 +199,7 @@ public class DeviceQuery {
 					Runnable runnable = dynamicTask.get(key);
 					if (runnable instanceof ISubscribeTask) {
 						ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
-						subscribeTask.stop();
+						subscribeTask.stop(null);
 					}
 					dynamicTask.stop(key);
 				}

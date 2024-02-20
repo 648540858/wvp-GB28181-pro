@@ -153,10 +153,7 @@ public class MobilePositionController {
         Device device = storager.queryVideoDevice(deviceId);
         device.setSubscribeCycleForMobilePosition(Integer.parseInt(expires));
         device.setMobilePositionSubmissionInterval(Integer.parseInt(interval));
-        deviceService.updateDevice(device);
-        if (!deviceService.removeMobilePositionSubscribe(device)) {
-            throw new ControllerException(ErrorCode.ERROR100);
-        }
+        deviceService.updateCustomDevice(device);
     }
 
     /**

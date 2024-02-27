@@ -206,7 +206,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Override
     public void closeRTPServer(String mediaServerId, String streamId) {
         MediaServerItem mediaServerItem = this.getOne(mediaServerId);
-        if (mediaServerItem.isRtpEnable()) {
+        if (mediaServerItem != null && mediaServerItem.isRtpEnable()) {
             closeRTPServer(mediaServerItem, streamId);
         }
         zlmresTfulUtils.closeStreams(mediaServerItem, "rtp", streamId);

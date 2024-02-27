@@ -978,8 +978,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 return;
             }
             String contentString = new String(request.getRawContent());
-            // jainSip不支持y=字段， 移除移除以解析。
-            String ssrc = "0000000404";
 
             try {
                 Gb28181Sdp gb28181Sdp = SipUtils.parseSDP(contentString);
@@ -1027,7 +1025,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     return;
                 }
                 String addressStr = sdp.getOrigin().getAddress();
-                logger.info("设备{}请求语音流，地址：{}:{}，ssrc：{}, {}", requesterId, addressStr, port, ssrc,
+                logger.info("设备{}请求语音流，地址：{}:{}，ssrc：{}, {}", requesterId, addressStr, port, gb28181Sdp.getSsrc(),
                         mediaTransmissionTCP ? (tcpActive ? "TCP主动" : "TCP被动") : "UDP");
 
                 MediaServerItem mediaServerItem = broadcastCatch.getMediaServerItem();
@@ -1041,11 +1039,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     }
                     return;
                 }
-                logger.info("设备{}请求语音流， 收流地址：{}:{}，ssrc：{}, {}, 对讲方式：{}", requesterId, addressStr, port, ssrc,
+                logger.info("设备{}请求语音流， 收流地址：{}:{}，ssrc：{}, {}, 对讲方式：{}", requesterId, addressStr, port, gb28181Sdp.getSsrc(),
                         mediaTransmissionTCP ? (tcpActive ? "TCP主动" : "TCP被动") : "UDP", sdp.getSessionName().getValue());
                 CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
 
-                SendRtpItem sendRtpItem = zlmServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
+                SendRtpItem sendRtpItem = zlmServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, gb28181Sdp.getSsrc(), requesterId,
                         device.getDeviceId(), broadcastCatch.getChannelId(),
                         mediaTransmissionTCP, false);
 
@@ -1081,7 +1079,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
                 Boolean streamReady = zlmServerFactory.isStreamReady(mediaServerItem, broadcastCatch.getApp(), broadcastCatch.getStream());
                 if (streamReady) {
-                    sendOk(device, sendRtpItem, sdp, request, mediaServerItem, mediaTransmissionTCP, ssrc);
+                    sendOk(device, sendRtpItem, sdp, request, mediaServerItem, mediaTransmissionTCP, gb28181Sdp.getSsrc());
                 } else {
                     logger.warn("[语音通话]， 未发现待推送的流,app={},stream={}", broadcastCatch.getApp(), broadcastCatch.getStream());
                     try {

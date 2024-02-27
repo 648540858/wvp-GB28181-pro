@@ -18,7 +18,6 @@ import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.sun.org.apache.xml.internal.resolver.Catalog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

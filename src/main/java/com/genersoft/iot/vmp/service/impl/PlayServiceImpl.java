@@ -538,7 +538,22 @@ public class PlayServiceImpl implements IPlayService {
             }
             logger.info("[TCP主动连接对方] deviceId: {}, channelId: {}, 连接对方的地址：{}:{}, 收流模式：{}, SSRC: {}, SSRC校验：{}", device.getDeviceId(), channelId, sdp.getConnection().getAddress(), port, device.getStreamMode(), ssrcInfo.getSsrc(), device.isSsrcCheck());
             JSONObject jsonObject = zlmresTfulUtils.connectRtpServer(mediaServerItem, sdp.getConnection().getAddress(), port, ssrcInfo.getStream());
-            logger.info("[TCP主动连接对方] 结果： {}", jsonObject);
+            logger.info("[TCP主动连接对方] 结果： {}" , jsonObject);
+            if (jsonObject.getInteger("code") != 0) {
+                // 主动连接失败，结束流程， 清理数据
+                dynamicTask.stop(timeOutTaskKey);
+                mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
+                // 释放ssrc
+                mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+
+                streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
+
+                callback.run(InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getCode(),
+                        InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getMsg(), null);
+                inviteStreamService.call(InviteSessionType.BROADCAST, device.getDeviceId(), channelId, null,
+                        InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getCode(),
+                        InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getMsg(), null);
+            }
         } catch (SdpException e) {
             logger.error("[TCP主动连接对方] deviceId: {}, channelId: {}, 解析200OK的SDP信息失败", device.getDeviceId(), channelId, e);
             dynamicTask.stop(timeOutTaskKey);
@@ -550,7 +565,7 @@ public class PlayServiceImpl implements IPlayService {
 
             callback.run(InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getCode(),
                     InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getMsg(), null);
-            inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
+            inviteStreamService.call(InviteSessionType.BROADCAST, device.getDeviceId(), channelId, null,
                     InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getCode(),
                     InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getMsg(), null);
         }

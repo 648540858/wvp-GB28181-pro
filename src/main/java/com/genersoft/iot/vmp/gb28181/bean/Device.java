@@ -452,27 +452,11 @@ public class Device {
 	public void setSipTransactionInfo(SipTransactionInfo sipTransactionInfo) {
 		this.sipTransactionInfo = sipTransactionInfo;
 	}
+    public boolean isBroadcastPushAfterAck() {
+        return broadcastPushAfterAck;
+    }
 
-	/*======================设备主子码流逻辑START=========================*/
-	@Schema(description = "开启主子码流切换的开关（false-不开启，true-开启）")
-	private boolean switchPrimarySubStream;
-
-	public boolean isSwitchPrimarySubStream() {
-		return switchPrimarySubStream;
-	}
-
-	public void setSwitchPrimarySubStream(boolean switchPrimarySubStream) {
-		this.switchPrimarySubStream = switchPrimarySubStream;
-	}
-
-	/*======================设备主子码流逻辑END=========================*/
-
-
-	public boolean isBroadcastPushAfterAck() {
-		return broadcastPushAfterAck;
-	}
-
-	public void setBroadcastPushAfterAck(boolean broadcastPushAfterAck) {
-		this.broadcastPushAfterAck = broadcastPushAfterAck;
-	}
+    public void setBroadcastPushAfterAck(boolean broadcastPushAfterAck) {
+        this.broadcastPushAfterAck = broadcastPushAfterAck;
+    }
 }

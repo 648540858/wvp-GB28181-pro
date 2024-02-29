@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -41,7 +42,7 @@ public class ApiControlController {
      * @param speed 速度(0~255) 默认值: 129
      * @return
      */
-    @RequestMapping(value = "/ptz")
+    @GetMapping(value = "/ptz")
     private void list(String serial,String command,
                             @RequestParam(required = false)Integer channel,
                             @RequestParam(required = false)String code,
@@ -114,7 +115,7 @@ public class ApiControlController {
      * @param name 预置位名称, command=set 时有效
      * @return
      */
-    @RequestMapping(value = "/preset")
+    @GetMapping(value = "/preset")
     private void list(String serial,String command,
                             @RequestParam(required = false)Integer channel,
                             @RequestParam(required = false)String code,

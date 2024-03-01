@@ -143,6 +143,9 @@ public class PlayController {
 						streamInfo.channgeStreamIp(host);
 					}
 					wvpResult.setData(new StreamContent(streamInfo));
+				}else {
+					wvpResult.setCode(code);
+					wvpResult.setMsg(msg);
 				}
 			}else {
 				wvpResult.setCode(code);

@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -59,7 +60,7 @@ public class ApiDeviceController {
      * @param online
      * @return
      */
-    @RequestMapping(value = "/list")
+    @GetMapping(value = "/list")
     public JSONObject list( @RequestParam(required = false)Integer start,
                             @RequestParam(required = false)Integer limit,
                             @RequestParam(required = false)String q,
@@ -105,7 +106,7 @@ public class ApiDeviceController {
         return result;
     }
 
-    @RequestMapping(value = "/channellist")
+    @GetMapping(value = "/channellist")
     public JSONObject channellist( String serial,
                                    @RequestParam(required = false)String channel_type,
                                    @RequestParam(required = false)String code ,
@@ -186,7 +187,7 @@ public class ApiDeviceController {
      * @param timeout 超时时间(秒) 默认值: 15
      * @return
      */
-    @RequestMapping(value = "/fetchpreset")
+    @GetMapping(value = "/fetchpreset")
     private DeferredResult<Object>  list(String serial,
                       @RequestParam(required = false)Integer channel,
                       @RequestParam(required = false)String code,

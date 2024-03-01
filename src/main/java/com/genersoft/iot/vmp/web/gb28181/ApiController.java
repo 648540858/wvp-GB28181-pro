@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -23,7 +24,7 @@ public class ApiController {
     private SipConfig sipConfig;
 
 
-    @RequestMapping("/getserverinfo")
+    @GetMapping("/getserverinfo")
     private JSONObject getserverinfo(){
         JSONObject result = new JSONObject();
         result.put("Authorization","ceshi");
@@ -50,7 +51,7 @@ public class ApiController {
         return result;
     }
 
-    @RequestMapping(value = "/userinfo")
+    @GetMapping(value = "/userinfo")
     private JSONObject userinfo(){
 //        JSONObject result = new JSONObject();
 //        result.put("ID","ceshi");
@@ -83,7 +84,7 @@ public class ApiController {
      * @param password 密码(经过md5加密,32位长度,不带中划线,不区分大小写)
      * @return
      */
-    @RequestMapping(value = "/login")
+    @GetMapping(value = "/login")
     @ResponseBody
     private JSONObject login(String username,String password ){
         if (logger.isDebugEnabled()) {

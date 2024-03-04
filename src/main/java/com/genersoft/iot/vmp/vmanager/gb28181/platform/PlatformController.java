@@ -239,6 +239,8 @@ public class PlatformController {
         if (parentPlatformCatch == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台不存在");
         }
+        parentPlatform.setEnable(false);
+        storager.updateParentPlatform(parentPlatform);
         // 发送离线消息,无论是否成功都删除缓存
         try {
             commanderForPlatform.unregister(parentPlatform, parentPlatformCatch.getSipTransactionInfo(), (event -> {

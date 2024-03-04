@@ -31,6 +31,11 @@ public class DateUtil {
 	private static final String ISO8601_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
 
     /**
+     * iso8601时间格式带时区，例如：2024-02-21T11:10:36+08:00
+     */
+    private static final String ISO8601_ZONE_PATTERN = "yyyy-MM-dd'T'HH:mm:ssXXX";
+
+    /**
      * wvp内部统一时间格式
      */
     public static final String PATTERN = "yyyy-MM-dd HH:mm:ss";
@@ -49,6 +54,7 @@ public class DateUtil {
 
     public static final DateTimeFormatter formatterCompatibleISO8601 = DateTimeFormatter.ofPattern(ISO8601_COMPATIBLE_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
     public static final DateTimeFormatter formatterISO8601 = DateTimeFormatter.ofPattern(ISO8601_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
+    public static final DateTimeFormatter formatterZoneISO8601 = DateTimeFormatter.ofPattern(ISO8601_ZONE_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
     public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
     public static final DateTimeFormatter DateFormatter = DateTimeFormatter.ofPattern(date_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
     public static final DateTimeFormatter urlFormatter = DateTimeFormatter.ofPattern(URL_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
@@ -59,7 +65,13 @@ public class DateUtil {
     }
 	
 	public static String ISO8601Toyyyy_MM_dd_HH_mm_ss(String formatTime) {
-        return formatter.format(formatterCompatibleISO8601.parse(formatTime));
+        // 三种日期格式都尝试，为了兼容不同厂家的日期格式
+        if (verification(formatTime, formatterCompatibleISO8601)) {
+            return formatter.format(formatterCompatibleISO8601.parse(formatTime));
+        } else if (verification(formatTime, formatterZoneISO8601)) {
+            return formatter.format(formatterZoneISO8601.parse(formatTime));
+        }
+        return formatter.format(formatterISO8601.parse(formatTime));
     }
 
 	public static String urlToyyyy_MM_dd_HH_mm_ss(String formatTime) {

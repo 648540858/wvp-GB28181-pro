@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service;
 
+import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
@@ -40,7 +41,7 @@ public interface IDeviceService {
      * @param device 设备信息
      * @return 布尔
      */
-    boolean removeCatalogSubscribe(Device device);
+    boolean removeCatalogSubscribe(Device device, CommonCallback<Boolean> callback);
 
     /**
      * 添加移动位置订阅
@@ -54,7 +55,7 @@ public interface IDeviceService {
      * @param device 设备信息
      * @return 布尔
      */
-    boolean removeMobilePositionSubscribe(Device device);
+    boolean removeMobilePositionSubscribe(Device device, CommonCallback<Boolean> callback);
 
     /**
      * 移除移动位置订阅

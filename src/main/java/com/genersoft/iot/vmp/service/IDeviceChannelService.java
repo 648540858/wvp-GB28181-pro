@@ -95,4 +95,9 @@ public interface IDeviceChannelService {
      * 根据通用通道ID查询通道
      */
     DeviceChannel getChannelByCommonChannelId(int commonGbId);
+
+    /**
+     * 修改通道的码流类型
+     */
+    void updateChannelStreamIdentification(DeviceChannel channel);
 }

@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.web.gb28181;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -13,15 +14,11 @@ import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.sip.InvalidArgumentException;
@@ -49,9 +46,6 @@ public class ApiStreamController {
     private UserSetting userSetting;
 
     @Autowired
-    private IRedisCatchStorage redisCatchStorage;
-
-    @Autowired
     private IDeviceService deviceService;
 
     @Autowired
@@ -73,7 +67,7 @@ public class ApiStreamController {
      * @param timeout 拉流超时(秒),
      * @return
      */
-    @RequestMapping(value = "/start")
+    @GetMapping("/start")
     private DeferredResult<JSONObject> start(String serial ,
                                              @RequestParam(required = false)Integer channel ,
                                              @RequestParam(required = false)String code,
@@ -85,107 +79,111 @@ public class ApiStreamController {
                                              @RequestParam(required = false)String timeout
 
     ){
-        DeferredResult<JSONObject> resultDeferredResult = new DeferredResult<>(userSetting.getPlayTimeout().longValue() + 10);
+        DeferredResult<JSONObject> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue() + 10);
         Device device = storager.queryVideoDevice(serial);
         if (device == null ) {
-            JSONObject result = new JSONObject();
-            result.put("error","device[ " + serial + " ]未找到");
-            resultDeferredResult.setResult(result);
-            return resultDeferredResult;
+            JSONObject resultJSON = new JSONObject();
+            resultJSON.put("error","device[ " + serial + " ]未找到");
+            result.setResult(resultJSON);
+            return result;
         }else if (!device.isOnLine()) {
-            JSONObject result = new JSONObject();
-            result.put("error","device[ " + code + " ]offline");
-            resultDeferredResult.setResult(result);
-            return resultDeferredResult;
+            JSONObject resultJSON = new JSONObject();
+            resultJSON.put("error","device[ " + code + " ]offline");
+            result.setResult(resultJSON);
+            return result;
         }
-        resultDeferredResult.onTimeout(()->{
+        result.onTimeout(()->{
             logger.info("播放等待超时");
-            JSONObject result = new JSONObject();
-            result.put("error","timeout");
-            resultDeferredResult.setResult(result);
-
+            JSONObject resultJSON = new JSONObject();
+            resultJSON.put("error","timeout");
+            result.setResult(resultJSON);
+            inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, serial, code);
+            storager.stopPlay(serial, code);
              // 清理RTP server
         });
 
         DeviceChannel deviceChannel = storager.queryChannel(serial, code);
         if (deviceChannel == null) {
-            JSONObject result = new JSONObject();
-            result.put("error","channel[ " + code + " ]未找到");
-            resultDeferredResult.setResult(result);
-            return resultDeferredResult;
+            JSONObject resultJSON = new JSONObject();
+            resultJSON.put("error","channel[ " + code + " ]未找到");
+            result.setResult(resultJSON);
+            return result;
         }else if (!deviceChannel.isStatus()) {
-            JSONObject result = new JSONObject();
-            result.put("error","channel[ " + code + " ]offline");
-            resultDeferredResult.setResult(result);
-            return resultDeferredResult;
+            JSONObject resultJSON = new JSONObject();
+            resultJSON.put("error","channel[ " + code + " ]offline");
+            result.setResult(resultJSON);
+            return result;
         }
         MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
 
-
         playService.play(newMediaServerItem, serial, code, null, (errorCode, msg, data) -> {
             if (errorCode == InviteErrorCode.SUCCESS.getCode()) {
-                InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, serial, code);
-                if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
-                    JSONObject result = new JSONObject();
-                    result.put("StreamID", inviteInfo.getStreamInfo().getStream());
-                    result.put("DeviceID", device.getDeviceId());
-                    result.put("ChannelID", code);
-                    result.put("ChannelName", deviceChannel.getName());
-                    result.put("ChannelCustomName", "");
-                    result.put("FLV", inviteInfo.getStreamInfo().getFlv().getUrl());
-                    if(inviteInfo.getStreamInfo().getHttps_flv() != null) {
-                        result.put("HTTPS_FLV", inviteInfo.getStreamInfo().getHttps_flv().getUrl());
+                if (data != null) {
+                    StreamInfo streamInfo = (StreamInfo)data;
+                    JSONObject resultJjson = new JSONObject();
+                    resultJjson.put("StreamID", streamInfo.getStream());
+                    resultJjson.put("DeviceID", serial);
+                    resultJjson.put("ChannelID", code);
+                    resultJjson.put("ChannelName", deviceChannel.getName());
+                    resultJjson.put("ChannelCustomName", "");
+                    resultJjson.put("FLV", streamInfo.getFlv().getUrl());
+                    if(streamInfo.getHttps_flv() != null) {
+                        resultJjson.put("HTTPS_FLV", streamInfo.getHttps_flv().getUrl());
                     }
-                    result.put("WS_FLV", inviteInfo.getStreamInfo().getWs_flv().getUrl());
-                    if(inviteInfo.getStreamInfo().getWss_flv() != null) {
-                        result.put("WSS_FLV", inviteInfo.getStreamInfo().getWss_flv().getUrl());
+                    resultJjson.put("WS_FLV", streamInfo.getWs_flv().getUrl());
+                    if(streamInfo.getWss_flv() != null) {
+                        resultJjson.put("WSS_FLV", streamInfo.getWss_flv().getUrl());
                     }
-                    result.put("RTMP", inviteInfo.getStreamInfo().getRtmp().getUrl());
-                    if (inviteInfo.getStreamInfo().getRtmps() != null) {
-                        result.put("RTMPS", inviteInfo.getStreamInfo().getRtmps().getUrl());
+                    resultJjson.put("RTMP", streamInfo.getRtmp().getUrl());
+                    if (streamInfo.getRtmps() != null) {
+                        resultJjson.put("RTMPS", streamInfo.getRtmps().getUrl());
                     }
-                    result.put("HLS", inviteInfo.getStreamInfo().getHls().getUrl());
-                    if (inviteInfo.getStreamInfo().getHttps_hls() != null) {
-                        result.put("HTTPS_HLS", inviteInfo.getStreamInfo().getHttps_hls().getUrl());
+                    resultJjson.put("HLS", streamInfo.getHls().getUrl());
+                    if (streamInfo.getHttps_hls() != null) {
+                        resultJjson.put("HTTPS_HLS", streamInfo.getHttps_hls().getUrl());
                     }
-                    result.put("RTSP", inviteInfo.getStreamInfo().getRtsp().getUrl());
-                    if (inviteInfo.getStreamInfo().getRtsps() != null) {
-                        result.put("RTSPS", inviteInfo.getStreamInfo().getRtsps().getUrl());
+                    resultJjson.put("RTSP", streamInfo.getRtsp().getUrl());
+                    if (streamInfo.getRtsps() != null) {
+                        resultJjson.put("RTSPS", streamInfo.getRtsps().getUrl());
                     }
-                    result.put("WEBRTC", inviteInfo.getStreamInfo().getRtc().getUrl());
-                    if (inviteInfo.getStreamInfo().getRtcs() != null) {
-                        result.put("HTTPS_WEBRTC", inviteInfo.getStreamInfo().getRtcs().getUrl());
+                    resultJjson.put("WEBRTC", streamInfo.getRtc().getUrl());
+                    if (streamInfo.getRtcs() != null) {
+                        resultJjson.put("HTTPS_WEBRTC", streamInfo.getRtcs().getUrl());
                     }
-                    result.put("CDN", "");
-                    result.put("SnapURL", "");
-                    result.put("Transport", device.getTransport());
-                    result.put("StartAt", "");
-                    result.put("Duration", "");
-                    result.put("SourceVideoCodecName", "");
-                    result.put("SourceVideoWidth", "");
-                    result.put("SourceVideoHeight", "");
-                    result.put("SourceVideoFrameRate", "");
-                    result.put("SourceAudioCodecName", "");
-                    result.put("SourceAudioSampleRate", "");
-                    result.put("AudioEnable", "");
-                    result.put("Ondemand", "");
-                    result.put("InBytes", "");
-                    result.put("InBitRate", "");
-                    result.put("OutBytes", "");
-                    result.put("NumOutputs", "");
-                    result.put("CascadeSize", "");
-                    result.put("RelaySize", "");
-                    result.put("ChannelPTZType", "0");
-                    resultDeferredResult.setResult(result);
+                    resultJjson.put("CDN", "");
+                    resultJjson.put("SnapURL", "");
+                    resultJjson.put("Transport", device.getTransport());
+                    resultJjson.put("StartAt", "");
+                    resultJjson.put("Duration", "");
+                    resultJjson.put("SourceVideoCodecName", "");
+                    resultJjson.put("SourceVideoWidth", "");
+                    resultJjson.put("SourceVideoHeight", "");
+                    resultJjson.put("SourceVideoFrameRate", "");
+                    resultJjson.put("SourceAudioCodecName", "");
+                    resultJjson.put("SourceAudioSampleRate", "");
+                    resultJjson.put("AudioEnable", "");
+                    resultJjson.put("Ondemand", "");
+                    resultJjson.put("InBytes", "");
+                    resultJjson.put("InBitRate", "");
+                    resultJjson.put("OutBytes", "");
+                    resultJjson.put("NumOutputs", "");
+                    resultJjson.put("CascadeSize", "");
+                    resultJjson.put("RelaySize", "");
+                    resultJjson.put("ChannelPTZType", "0");
+                    result.setResult(resultJjson);
+                }else {
+                    JSONObject resultJjson = new JSONObject();
+                    resultJjson.put("error", "channel[ " + code + " ] " + msg);
+                    result.setResult(resultJjson);
                 }
             }else {
-                JSONObject result = new JSONObject();
-                result.put("error", "channel[ " + code + " ] " + msg);
-                resultDeferredResult.setResult(result);
+                JSONObject resultJjson = new JSONObject();
+                resultJjson.put("error", "channel[ " + code + " ] " + msg);
+                result.setResult(resultJjson);
             }
         });
 
-        return resultDeferredResult;
+        return result;
     }
 
     /**
@@ -196,7 +194,7 @@ public class ApiStreamController {
      * @param check_outputs
      * @return
      */
-    @RequestMapping(value = "/stop")
+    @GetMapping("/stop")
     @ResponseBody
     private JSONObject stop(String serial ,
                              @RequestParam(required = false)Integer channel ,
@@ -236,7 +234,7 @@ public class ApiStreamController {
      * @param code 通道国标编号
      * @return
      */
-    @RequestMapping(value = "/touch")
+    @GetMapping("/touch")
     @ResponseBody
     private JSONObject touch(String serial ,String t,
                             @RequestParam(required = false)Integer channel ,

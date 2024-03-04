@@ -1,10 +1,10 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.baomidou.dynamic.datasource.annotation.DS;
+import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
@@ -139,10 +139,6 @@ public class DeviceServiceImpl implements IDeviceService {
             }
             sync(device);
         }else {
-
-            if (deviceInDb != null) {
-                device.setSwitchPrimarySubStream(deviceInDb.isSwitchPrimarySubStream());
-            }
             if(!device.isOnLine()){
                 device.setOnLine(true);
                 device.setCreateTime(now);
@@ -240,8 +236,8 @@ public class DeviceServiceImpl implements IDeviceService {
             }
         }
         // 移除订阅
-        removeCatalogSubscribe(device);
-        removeMobilePositionSubscribe(device);
+        removeCatalogSubscribe(device, null);
+        removeMobilePositionSubscribe(device, null);
     }
 
     @Override
@@ -260,7 +256,7 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public boolean removeCatalogSubscribe(Device device) {
+    public boolean removeCatalogSubscribe(Device device, CommonCallback<Boolean> callback) {
         if (device == null || device.getSubscribeCycleForCatalog() < 0) {
             return false;
         }
@@ -270,7 +266,7 @@ public class DeviceServiceImpl implements IDeviceService {
             Runnable runnable = dynamicTask.get(taskKey);
             if (runnable instanceof ISubscribeTask) {
                 ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
-                subscribeTask.stop();
+                subscribeTask.stop(callback);
             }
         }
         dynamicTask.stop(taskKey);
@@ -293,7 +289,7 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public boolean removeMobilePositionSubscribe(Device device) {
+    public boolean removeMobilePositionSubscribe(Device device, CommonCallback<Boolean> callback) {
         if (device == null || device.getSubscribeCycleForCatalog() < 0) {
             return false;
         }
@@ -303,7 +299,7 @@ public class DeviceServiceImpl implements IDeviceService {
             Runnable runnable = dynamicTask.get(taskKey);
             if (runnable instanceof ISubscribeTask) {
                 ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
-                subscribeTask.stop();
+                subscribeTask.stop(callback);
             }
         }
         dynamicTask.stop(taskKey);
@@ -494,21 +490,6 @@ public class DeviceServiceImpl implements IDeviceService {
             logger.warn("更新设备时未找到设备信息");
             return;
         }
-        if(deviceInStore.isSwitchPrimarySubStream() != device.isSwitchPrimarySubStream()){
-            //当修改设备的主子码流开关时，需要校验是否存在流，如果存在流则直接关闭
-            List<SsrcTransaction> ssrcTransactionForAll = streamSession.getSsrcTransactionForAll(device.getDeviceId(), null, null, null);
-            if(ssrcTransactionForAll != null){
-                for (SsrcTransaction ssrcTransaction: ssrcTransactionForAll) {
-                    try {
-                        cmder.streamByeCmd(device, ssrcTransaction.getChannelId(), ssrcTransaction.getStream(), null, null);
-                    } catch (InvalidArgumentException | SsrcTransactionNotFoundException | ParseException | SipException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            }
-            deviceChannelMapper.clearPlay(device.getDeviceId());
-            inviteStreamService.clearInviteInfo(device.getDeviceId());
-        }
 
         if (!ObjectUtils.isEmpty(device.getName())) {
             deviceInStore.setName(device.getName());
@@ -531,39 +512,54 @@ public class DeviceServiceImpl implements IDeviceService {
         if (!ObjectUtils.isEmpty(device.getStreamMode())) {
             deviceInStore.setStreamMode(device.getStreamMode());
         }
-
-
         //  目录订阅相关的信息
         if (deviceInStore.getSubscribeCycleForCatalog() != device.getSubscribeCycleForCatalog()) {
             if (device.getSubscribeCycleForCatalog() > 0) {
                 // 若已开启订阅，但订阅周期不同，则先取消
                 if (deviceInStore.getSubscribeCycleForCatalog() != 0) {
-                    removeCatalogSubscribe(deviceInStore);
+                    removeCatalogSubscribe(deviceInStore, result->{
+                        // 开启订阅
+                        deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
+                        addCatalogSubscribe(deviceInStore);
+                        // 因为是异步执行，需要在这里更新下数据
+                        deviceMapper.updateCustom(deviceInStore);
+                        redisCatchStorage.updateDevice(deviceInStore);
+                    });
+                }else {
+                    // 开启订阅
+                    deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
+                    addCatalogSubscribe(deviceInStore);
                 }
-                // 开启订阅
-                deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
-                addCatalogSubscribe(deviceInStore);
+
             }else if (device.getSubscribeCycleForCatalog() == 0) {
                 // 取消订阅
-                deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
-                removeCatalogSubscribe(deviceInStore);
+                deviceInStore.setSubscribeCycleForCatalog(0);
+                removeCatalogSubscribe(deviceInStore, null);
             }
         }
-
         // 移动位置订阅相关的信息
-        if (device.getSubscribeCycleForMobilePosition() > 0) {
-            if (deviceInStore.getSubscribeCycleForMobilePosition() == 0 || deviceInStore.getSubscribeCycleForMobilePosition() != device.getSubscribeCycleForMobilePosition()) {
-                deviceInStore.setMobilePositionSubmissionInterval(device.getMobilePositionSubmissionInterval());
-                deviceInStore.setSubscribeCycleForMobilePosition(device.getSubscribeCycleForMobilePosition());
-                // 开启订阅
-                addMobilePositionSubscribe(deviceInStore);
-            }
-        }else if (device.getSubscribeCycleForMobilePosition() == 0) {
-            if (deviceInStore.getSubscribeCycleForMobilePosition() != 0) {
-                deviceInStore.setMobilePositionSubmissionInterval(device.getMobilePositionSubmissionInterval());
-                deviceInStore.setSubscribeCycleForMobilePosition(device.getSubscribeCycleForMobilePosition());
+        if (deviceInStore.getSubscribeCycleForMobilePosition() != device.getSubscribeCycleForMobilePosition()) {
+            if (device.getSubscribeCycleForMobilePosition() > 0) {
+                // 若已开启订阅，但订阅周期不同，则先取消
+                if (deviceInStore.getSubscribeCycleForMobilePosition() != 0) {
+                    removeMobilePositionSubscribe(deviceInStore, result->{
+                        // 开启订阅
+                        deviceInStore.setSubscribeCycleForMobilePosition(device.getSubscribeCycleForMobilePosition());
+                        addMobilePositionSubscribe(deviceInStore);
+                        // 因为是异步执行，需要在这里更新下数据
+                        deviceMapper.updateCustom(deviceInStore);
+                        redisCatchStorage.updateDevice(deviceInStore);
+                    });
+                }else {
+                    // 开启订阅
+                    deviceInStore.setSubscribeCycleForMobilePosition(device.getSubscribeCycleForMobilePosition());
+                    addMobilePositionSubscribe(deviceInStore);
+                }
+
+            }else if (device.getSubscribeCycleForMobilePosition() == 0) {
                 // 取消订阅
-                removeMobilePositionSubscribe(deviceInStore);
+                deviceInStore.setSubscribeCycleForCatalog(0);
+                removeCatalogSubscribe(deviceInStore, null);
             }
         }
         if (deviceInStore.getGeoCoordSys() != null) {
@@ -583,9 +579,8 @@ public class DeviceServiceImpl implements IDeviceService {
         //作为消息通道
         deviceInStore.setAsMessageChannel(device.isAsMessageChannel());
         
-        // 更新redis
         deviceMapper.updateCustom(deviceInStore);
-        redisCatchStorage.removeDevice(deviceInStore.getDeviceId());
+        redisCatchStorage.updateDevice(deviceInStore);
     }
 
     @Override

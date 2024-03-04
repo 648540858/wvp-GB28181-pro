@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.ObjectUtils;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -762,5 +763,18 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     @Override
     public DeviceChannel getChannelByCommonChannelId(int commonGbId) {
         return channelMapper.getChannelByCommonChannelId(commonGbId);
+    }
+
+    @Override
+    public void updateChannelStreamIdentification(DeviceChannel channel) {
+        assert !ObjectUtils.isEmpty(channel.getDeviceId());
+        assert !ObjectUtils.isEmpty(channel.getStreamIdentification());
+        if (ObjectUtils.isEmpty(channel.getStreamIdentification())) {
+            logger.info("[重置通道码流类型] 设备: {}, 码流： {}", channel.getDeviceId(), channel.getStreamIdentification());
+        }else {
+            logger.info("[更新通道码流类型] 设备: {}, 通道：{}， 码流： {}", channel.getDeviceId(), channel.getChannelId(),
+                    channel.getStreamIdentification());
+        }
+        channelMapper.updateChannelStreamIdentification(channel);
     }
 }

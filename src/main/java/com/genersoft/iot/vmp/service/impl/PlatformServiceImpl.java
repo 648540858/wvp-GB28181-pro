@@ -24,22 +24,18 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import gov.nist.javax.sip.message.SIPRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.sip.InvalidArgumentException;
-import javax.sip.PeerUnavailableException;
 import javax.sip.SipException;
-import javax.sip.SipFactory;
-import javax.sip.address.Address;
-import javax.sip.address.SipURI;
-import javax.sip.header.*;
-import javax.sip.message.Request;
 import java.text.ParseException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * @author lin
@@ -359,7 +355,6 @@ public class PlatformServiceImpl implements IPlatformService {
                         ()-> registerTask(platform, null),
                         userSetting.getRegisterAgainAfterTime() * 1000);
             }
-
         }
     }
 
@@ -459,7 +454,8 @@ public class PlatformServiceImpl implements IPlatformService {
         }
         // 删除缓存的订阅信息
         subscribeHolder.removeAllSubscribe(parentPlatform.getId());
-
+        parentPlatform.setEnable(false);
+        update(parentPlatform);
         // 发送注销的请求
         if (parentPlatformCatch != null && parentPlatformCatch.getSipTransactionInfo() != null) {
             // 发送离线消息,无论是否成功都删除缓存

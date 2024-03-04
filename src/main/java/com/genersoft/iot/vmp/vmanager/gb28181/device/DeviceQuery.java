@@ -212,7 +212,7 @@ public class DeviceQuery {
 					Runnable runnable = dynamicTask.get(key);
 					if (runnable instanceof ISubscribeTask) {
 						ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
-						subscribeTask.stop();
+						subscribeTask.stop(null);
 					}
 					dynamicTask.stop(key);
 				}
@@ -281,6 +281,14 @@ public class DeviceQuery {
 			deviceChannel = channelJSON;
 		}
 		deviceChannelService.updateChannel(deviceId, deviceChannel);
+	}
+
+	@Operation(summary = "修改通道的码流类型", security = @SecurityRequirement(name = JwtUtils.HEADER))
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channel", description = "通道信息", required = true)
+	@PostMapping("/channel/stream/identification/update/")
+	public void updateChannelStreamIdentification(DeviceChannel channel){
+		deviceChannelService.updateChannelStreamIdentification(channel);
 	}
 
 	/**

@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.SipLayer;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.bean.command.PTZCommand;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
@@ -125,12 +126,12 @@ public class SIPCommander implements ISIPCommander {
      * 请求预览视频流
      *
      * @param device     视频设备
-     * @param channelId  预览通道
+     * @param channel  预览通道
      * @param event      hook订阅
      * @param errorEvent sip错误订阅
      */
     @Override
-    public void playStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
+    public void playStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, DeviceChannel channel,
                               ZlmHttpHookSubscribe.Event event, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
         String stream = ssrcInfo.getStream();
 
@@ -154,7 +155,7 @@ public class SIPCommander implements ISIPCommander {
         }
         StringBuffer content = new StringBuffer(200);
         content.append("v=0\r\n");
-        content.append("o=" + channelId + " 0 0 IN IP4 " + sdpIp + "\r\n");
+        content.append("o=" + channel.getChannelId() + " 0 0 IN IP4 " + sdpIp + "\r\n");
         content.append("s=Play\r\n");
         content.append("c=IN IP4 " + sdpIp + "\r\n");
         content.append("t=0 0\r\n");
@@ -205,20 +206,8 @@ public class SIPCommander implements ISIPCommander {
             }
         }
 
-        if( device.isSwitchPrimarySubStream() ){
-            if("TP-LINK".equals(device.getManufacturer())){
-                if (device.isSwitchPrimarySubStream()){
-                    content.append("a=streamMode:sub\r\n");
-                }else {
-                    content.append("a=streamMode:main\r\n");
-                }
-            }else {
-                if (device.isSwitchPrimarySubStream()){
-                    content.append("a=streamprofile:1\r\n");
-                }else {
-                    content.append("a=streamprofile:0\r\n");
-                }
-            }
+        if (!ObjectUtils.isEmpty(channel.getStreamIdentification())) {
+            content.append("a=" + channel.getStreamIdentification() + "\r\n");
         }
 
         content.append("y=" + ssrcInfo.getSsrc() + "\r\n");//ssrc
@@ -227,16 +216,16 @@ public class SIPCommander implements ISIPCommander {
 
 
 
-        Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, ssrcInfo.getSsrc(),sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
+        Request request = headerProvider.createInviteRequest(device, channel.getChannelId(), content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, ssrcInfo.getSsrc(),sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, (e -> {
-            streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
+            streamSession.remove(device.getDeviceId(), channel.getChannelId(), ssrcInfo.getStream());
             mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
             errorEvent.response(e);
         }), e -> {
             ResponseEvent responseEvent = (ResponseEvent) e.event;
             SIPResponse response = (SIPResponse) responseEvent.getResponse();
             String callId = response.getCallIdHeader().getCallId();
-            streamSession.put(device.getDeviceId(), channelId, callId, stream, ssrcInfo.getSsrc(), mediaServerItem.getId(), response,
+            streamSession.put(device.getDeviceId(), channel.getChannelId(), callId, stream, ssrcInfo.getSsrc(), mediaServerItem.getId(), response,
                     InviteSessionType.PLAY);
             okEvent.response(e);
         });

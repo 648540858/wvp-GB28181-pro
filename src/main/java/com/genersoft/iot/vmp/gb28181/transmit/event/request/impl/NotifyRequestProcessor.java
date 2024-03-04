@@ -7,7 +7,6 @@ import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
-import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
@@ -39,7 +38,6 @@ import javax.sip.SipException;
 import javax.sip.header.FromHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -223,7 +221,6 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 					mobilePosition.getLongitude(), mobilePosition.getLatitude());
 			mobilePosition.setReportSource("Mobile Position");
 
-
 			// 更新device channel 的经纬度
 			DeviceChannel deviceChannel = new DeviceChannel();
 			deviceChannel.setDeviceId(device.getDeviceId());
@@ -243,6 +240,8 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			}
 
 			storager.updateChannelPosition(deviceChannel);
+			// 向关联了该通道并且开启移动位置订阅的上级平台发送移动位置订阅消息
+
 
 			// 发送redis消息。 通知位置信息的变化
 			JSONObject jsonObject = new JSONObject();

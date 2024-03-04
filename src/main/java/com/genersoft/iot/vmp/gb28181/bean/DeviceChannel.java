@@ -258,6 +258,10 @@ public class DeviceChannel {
 	@Schema(description = "国标通用信息ID")
 	private int commonGbChannelId;
 
+	@Schema(description = "码流标识，优先级高于设备中码流标识，" +
+			"用于选择码流时组成码流标识。默认为null，不设置。可选值: stream/streamnumber/streamprofile/streamMode")
+	private String streamIdentification;
+
 	public int getId() {
 		return id;
 	}
@@ -601,5 +605,13 @@ public class DeviceChannel {
 
 	public void setCommonGbChannelId(int commonGbChannelId) {
 		this.commonGbChannelId = commonGbChannelId;
+	}
+
+	public String getStreamIdentification() {
+		return streamIdentification;
+	}
+
+	public void setStreamIdentification(String streamIdentification) {
+		this.streamIdentification = streamIdentification;
 	}
 }

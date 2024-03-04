@@ -82,8 +82,9 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             device.setIp(remoteAddressInfo.getIp());
             // 设备地址变化会引起目录订阅任务失效，需要重新添加
             if (device.getSubscribeCycleForCatalog() > 0) {
-                deviceService.removeCatalogSubscribe(device);
-                deviceService.addCatalogSubscribe(device);
+                deviceService.removeCatalogSubscribe(device, result->{
+                    deviceService.addCatalogSubscribe(device);
+                });
             }
         }
         if (device.getKeepaliveTime() == null) {

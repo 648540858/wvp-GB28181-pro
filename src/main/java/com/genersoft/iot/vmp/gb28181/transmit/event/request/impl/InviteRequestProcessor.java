@@ -28,8 +28,13 @@ import com.genersoft.iot.vmp.service.redisMsg.RedisPushStreamResponseListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.utils.DateUtil;
+import gov.nist.javax.sdp.TimeDescriptionImpl;
+import gov.nist.javax.sdp.fields.TimeField;
+import gov.nist.javax.sdp.fields.URIField;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -130,7 +135,20 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         //  Invite Request消息实现，此消息一般为级联消息，上级给下级发送请求视频指令
         try {
             SIPRequest request = (SIPRequest)evt.getRequest();
-            String channelId = SipUtils.getChannelIdFromRequest(request);
+            String channelIdFromSub = SipUtils.getChannelIdFromRequest(request);
+
+            // 解析sdp消息, 使用jainsip 自带的sdp解析方式
+            String contentString = new String(request.getRawContent());
+            Gb28181Sdp gb28181Sdp = SipUtils.parseSDP(contentString);
+            SessionDescription sdp = gb28181Sdp.getBaseSdb();
+            String sessionName = sdp.getSessionName().getValue();
+            String channelIdFromSdp = null;
+            if(StringUtils.equalsIgnoreCase("Playback", sessionName)){
+                URIField uriField = (URIField)sdp.getURI();
+                channelIdFromSdp = uriField.getURI().split(":")[0];
+            }
+            final String channelId = StringUtils.isNotBlank(channelIdFromSdp) ? channelIdFromSdp : channelIdFromSub;
+
             String requesterId = SipUtils.getUserIdFromFromHeader(request);
             CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
             if (requesterId == null || channelId == null) {
@@ -182,12 +200,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 } catch (SipException | InvalidArgumentException | ParseException e) {
                     logger.error("[命令发送失败] invite TRYING: {}", e.getMessage());
                 }
-
-                // 解析sdp消息, 使用jainsip 自带的sdp解析方式
-                String contentString = new String(request.getRawContent());
-
-                Gb28181Sdp gb28181Sdp = SipUtils.parseSDP(contentString);
-
                 if (gb28181Sdp.getSdpPort() == 0) {
                     logger.info("不支持的媒体格式，返回415");
                     // 回复不支持的格式

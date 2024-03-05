@@ -170,6 +170,10 @@ public class SipUtils {
     }
 
     public static DeviceChannel updateGps(DeviceChannel deviceChannel, String geoCoordSys) {
+        if (deviceChannel == null) {
+            return null;
+        }
+
         if (deviceChannel.getLongitude()*deviceChannel.getLatitude() > 0) {
 
             if (geoCoordSys == null) {

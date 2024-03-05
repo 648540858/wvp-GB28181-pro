@@ -408,6 +408,10 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 						event = eventElement.getText().toUpperCase();
 					}
 					DeviceChannel channel = XmlUtil.channelContentHandler(itemDevice, device, event, civilCodeFileConf);
+					if (channel == null) {
+						logger.info("[收到目录订阅]：但是解析失败 {}", new String(evt.getRequest().getRawContent()));
+						continue;
+					}
 					channel.setDeviceId(device.getDeviceId());
 					logger.info("[收到目录订阅]：{}/{}", device.getDeviceId(), channel.getChannelId());
 					switch (event) {

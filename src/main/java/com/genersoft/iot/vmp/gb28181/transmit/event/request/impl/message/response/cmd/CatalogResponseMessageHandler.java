@@ -113,6 +113,10 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                         continue;
                                     }
                                     DeviceChannel deviceChannel = XmlUtil.channelContentHandler(itemDevice, device, null, civilCodeFileConf);
+                                    if (deviceChannel == null) {
+                                        logger.info("[收到通道]：但是解析失败 {}", new String(evt.getRequest().getRawContent()));
+                                        continue;
+                                    }
                                     deviceChannel = SipUtils.updateGps(deviceChannel, device.getGeoCoordSys());
                                     deviceChannel.setDeviceId(take.getDevice().getDeviceId());
 

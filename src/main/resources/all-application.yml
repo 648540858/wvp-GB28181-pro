@@ -217,12 +217,16 @@ user-settings:
     push-authority: true
     # 设备上线时是否自动同步通道
     sync-channel-on-device-online: false
+    # 国标级联语音喊话发流模式 * UDP:udp传输 TCP-ACTIVE：tcp主动模式 TCP-PASSIVE：tcp被动模式
+    broadcast-for-platform: UDP
     # 是否使用设备来源Ip作为回复IP， 不设置则为 false
     sip-use-source-ip-as-remote-address: false
     # 是否开启sip日志
     sip-log: true
     # 是否开启sql日志
     sql-log: true
+    # 收到ack消息后开始发流，默认false， 回复200ok后直接开始发流
+    push-stream-after-ack: false
     # 消息通道功能-缺少国标ID是否给所有上级发送消息
     send-to-platforms-when-id-lost: true
     # 保持通道状态，不接受notify通道状态变化， 兼容海康平台发送错误消息

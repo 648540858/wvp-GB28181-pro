@@ -61,7 +61,7 @@ public class SipSubscribe {
         logger.debug("errorSubscribes.size:{}",errorSubscribes.size());
     }
 
-    public interface Event { void response(EventResult eventResult) ;
+    public interface Event { void response(EventResult eventResult);
     }
 
     /**
@@ -78,8 +78,10 @@ public class SipSubscribe {
         dialogTerminated,
         // 设备未找到
         deviceNotFoundEvent,
-        // 设备未找到
-        cmdSendFailEvent
+        // 消息发送失败
+        cmdSendFailEvent,
+        // 消息发送失败
+        failedToGetPort
     }
 
     public static class EventResult<EventObject>{

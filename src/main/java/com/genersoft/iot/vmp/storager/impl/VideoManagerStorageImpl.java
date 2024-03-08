@@ -96,12 +96,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	@Autowired
     private PlatformGbStreamMapper platformGbStreamMapper;
 
-	@Autowired
-    private IGbStreamService gbStreamService;
-
-	@Autowired
-    private ParentPlatformMapper parentPlatformMapper;
-
 	/**
 	 * 根据设备ID判断设备是否存在
 	 *

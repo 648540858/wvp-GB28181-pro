@@ -164,7 +164,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
             return 0;
         }
         if (ObjectUtils.isEmpty(catalogId)) {
-            catalogId = null;
+           catalogId = null;
         }
 
         List<DeviceChannel> deviceChannels = platformChannelMapper.queryAllChannelInCatalog(platformId, catalogId);

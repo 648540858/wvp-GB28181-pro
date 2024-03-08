@@ -119,6 +119,8 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
 
 
+
+
     /**
      * 初始化
      */
@@ -145,7 +147,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Override
     public SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, String presetSsrc, boolean ssrcCheck,
-                                  boolean isPlayback, Integer port, Boolean reUsePort, Integer tcpMode) {
+                                  boolean isPlayback, Integer port, Boolean onlyAuto, Boolean reUsePort, Integer tcpMode) {
         if (mediaServerItem == null || mediaServerItem.getId() == null) {
             logger.info("[openRTPServer] 失败, mediaServerItem == null || mediaServerItem.getId() == null");
             return null;
@@ -171,12 +173,18 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         int rtpServerPort;
         if (mediaServerItem.isRtpEnable()) {
-            rtpServerPort = zlmServerFactory.createRTPServer(mediaServerItem, streamId, ssrcCheck ? Long.parseLong(ssrc) : 0, port, reUsePort, tcpMode);
+            rtpServerPort = zlmServerFactory.createRTPServer(mediaServerItem, streamId, ssrcCheck ? Long.parseLong(ssrc) : 0, port, onlyAuto, reUsePort, tcpMode);
         } else {
             rtpServerPort = mediaServerItem.getRtpProxyPort();
         }
         return new SSRCInfo(rtpServerPort, ssrc, streamId);
     }
+
+    @Override
+    public SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, String ssrc, boolean ssrcCheck, boolean isPlayback, Integer port, Boolean onlyAuto) {
+        return openRTPServer(mediaServerItem, streamId, ssrc, ssrcCheck, isPlayback, port, onlyAuto, null, 0);
+    }
+
 
     @Override
     public void closeRTPServer(MediaServerItem mediaServerItem, String streamId) {
@@ -198,7 +206,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Override
     public void closeRTPServer(String mediaServerId, String streamId) {
         MediaServerItem mediaServerItem = this.getOne(mediaServerId);
-        if (mediaServerItem.isRtpEnable()) {
+        if (mediaServerItem != null && mediaServerItem.isRtpEnable()) {
             closeRTPServer(mediaServerItem, streamId);
         }
         zlmresTfulUtils.closeStreams(mediaServerItem, "rtp", streamId);
@@ -305,6 +313,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerId;
         return JsonUtil.redisJsonToObject(redisTemplate, key, MediaServerItem.class);
     }
+
 
     @Override
     public MediaServerItem getDefaultMediaServer() {

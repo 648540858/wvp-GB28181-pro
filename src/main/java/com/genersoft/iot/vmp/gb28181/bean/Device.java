@@ -188,8 +188,8 @@ public class Device {
 	@Schema(description = "设备注册的事务信息")
 	private SipTransactionInfo sipTransactionInfo;
 
-
-
+	@Schema(description = "控制语音对讲流程，释放收到ACK后发流")
+	private boolean broadcastPushAfterAck;
 
 	public String getDeviceId() {
 		return deviceId;
@@ -452,5 +452,11 @@ public class Device {
 	public void setSipTransactionInfo(SipTransactionInfo sipTransactionInfo) {
 		this.sipTransactionInfo = sipTransactionInfo;
 	}
+    public boolean isBroadcastPushAfterAck() {
+        return broadcastPushAfterAck;
+    }
 
+    public void setBroadcastPushAfterAck(boolean broadcastPushAfterAck) {
+        this.broadcastPushAfterAck = broadcastPushAfterAck;
+    }
 }

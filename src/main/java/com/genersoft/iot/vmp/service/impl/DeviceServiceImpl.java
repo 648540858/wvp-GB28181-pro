@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.CatalogSubscribeTask;
@@ -13,6 +14,8 @@ import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.CatalogResponseMessageHandler;
+import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
@@ -37,9 +40,7 @@ import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -97,6 +98,12 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Autowired
     private IMediaServerService mediaServerService;
+
+    @Autowired
+    private AudioBroadcastManager audioBroadcastManager;
+
+    @Autowired
+    private ZLMRESTfulUtils zlmresTfulUtils;
 
     @Override
     public void online(Device device, SipTransactionInfo sipTransactionInfo) {
@@ -229,6 +236,25 @@ public class DeviceServiceImpl implements IDeviceService {
         // 移除订阅
         removeCatalogSubscribe(device, null);
         removeMobilePositionSubscribe(device, null);
+
+        List<AudioBroadcastCatch> audioBroadcastCatches = audioBroadcastManager.get(deviceId);
+        if (audioBroadcastCatches.size() > 0) {
+            for (AudioBroadcastCatch audioBroadcastCatch : audioBroadcastCatches) {
+
+                SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(deviceId, audioBroadcastCatch.getChannelId(), null, null);
+                if (sendRtpItem != null) {
+                    redisCatchStorage.deleteSendRTPServer(deviceId, sendRtpItem.getChannelId(), null, null);
+                    MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+                    Map<String, Object> param = new HashMap<>();
+                    param.put("vhost", "__defaultVhost__");
+                    param.put("app", sendRtpItem.getApp());
+                    param.put("stream", sendRtpItem.getStream());
+                    zlmresTfulUtils.stopSendRtp(mediaInfo, param);
+                }
+
+                audioBroadcastManager.del(deviceId, audioBroadcastCatch.getChannelId());
+            }
+        }
     }
 
     @Override
@@ -569,7 +595,7 @@ public class DeviceServiceImpl implements IDeviceService {
         deviceInStore.setSsrcCheck(device.isSsrcCheck());
         //作为消息通道
         deviceInStore.setAsMessageChannel(device.isAsMessageChannel());
-        
+
         deviceMapper.updateCustom(deviceInStore);
         redisCatchStorage.updateDevice(deviceInStore);
     }

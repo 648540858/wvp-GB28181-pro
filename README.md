@@ -134,3 +134,11 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
 [mk1990](https://github.com/mk1990) [SaltFish001](https://github.com/SaltFish001)
 
 
+ffmpeg -re -i 123.mp3 -acodec pcm_alaw -ar 8000 -ac 1  -f rtsp rtsp://192.168.1.3:30554/broadcast/34020000001320000101_34020000001310000001
+
+ffmpeg -re -i 123.mp3 -acodec pcm_alaw -ar 8000 -ac 1  -f rtsp rtsp://192.168.1.3:30554/talk/34020000001320000011_34020000001370000001
+
+
+
+ffmpeg -re -i 123.mp3 -acodec pcm_alaw -ar 8000 -ac 1  -f rtsp rtsp://192.168.1.3:30554/talk/34020000001320000101_34020000001310000001
+

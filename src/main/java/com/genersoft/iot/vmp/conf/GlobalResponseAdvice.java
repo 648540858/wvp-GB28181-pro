@@ -32,7 +32,7 @@ public class GlobalResponseAdvice implements ResponseBodyAdvice<Object> {
     @Override
     public Object beforeBodyWrite(Object body, @NotNull MethodParameter returnType, @NotNull MediaType selectedContentType, @NotNull Class<? extends HttpMessageConverter<?>> selectedConverterType, @NotNull ServerHttpRequest request, @NotNull ServerHttpResponse response) {
         // 排除api文档的接口，这个接口不需要统一
-        String[] excludePath = {"/v3/api-docs","/api/v1","/index/hook"};
+        String[] excludePath = {"/v3/api-docs","/api/v1","/index/hook","/api/video-"};
         for (String path : excludePath) {
             if (request.getURI().getPath().startsWith(path)) {
                 return body;
@@ -59,8 +59,8 @@ public class GlobalResponseAdvice implements ResponseBodyAdvice<Object> {
      * 防止返回string时出错
      * @return
      */
-    @Bean
-    public HttpMessageConverters fast() {
+    /*@Bean
+    public HttpMessageConverters custHttpMessageConverter() {
         return new HttpMessageConverters(new FastJsonHttpMessageConverter());
-    }
+    }*/
 }

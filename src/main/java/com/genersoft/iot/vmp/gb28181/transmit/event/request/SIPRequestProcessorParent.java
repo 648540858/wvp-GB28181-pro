@@ -82,6 +82,7 @@ public abstract class SIPRequestProcessorParent {
 		return responseAck(sipRequest, statusCode, msg, null);
 	}
 
+
 	public SIPResponse responseAck(SIPRequest sipRequest, int statusCode, String msg, ResponseAckExtraParam responseAckExtraParam) throws SipException, InvalidArgumentException, ParseException {
 		if (sipRequest.getToHeader().getTag() == null) {
 			sipRequest.getToHeader().setTag(SipUtils.getNewTag());
@@ -124,6 +125,8 @@ public abstract class SIPRequestProcessorParent {
 		return response;
 	}
 
+
+
 	/**
 	 * 回复带sdp的200
 	 */
@@ -141,7 +144,10 @@ public abstract class SIPRequestProcessorParent {
 		responseAckExtraParam.content = sdp;
 		responseAckExtraParam.sipURI = sipURI;
 
-		return responseAck(request, Response.OK, null, responseAckExtraParam);
+		SIPResponse sipResponse = responseAck(request, Response.OK, null, responseAckExtraParam);
+
+
+		return sipResponse;
 	}
 
 	/**
@@ -174,7 +180,8 @@ public abstract class SIPRequestProcessorParent {
 		reader.setEncoding(charset);
 		// 对海康出现的未转义字符做处理。
 		String[] destStrArray = new String[]{"&lt;","&gt;","&amp;","&apos;","&quot;"};
-		char despChar = '&'; // 或许可扩展兼容其他字符
+		// 或许可扩展兼容其他字符
+		char despChar = '&';
 		byte destBye = (byte) despChar;
 		List<Byte> result = new ArrayList<>();
 		byte[] rawContent = request.getRawContent();
@@ -219,5 +226,6 @@ public abstract class SIPRequestProcessorParent {
 		}
 		return xml.getRootElement();
 	}
+
 
 }

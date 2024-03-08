@@ -27,6 +27,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
+import javax.sip.*;
+import javax.sip.header.*;
+import javax.sip.message.Request;
 import javax.sip.RequestEvent;
 import javax.sip.SipException;
 import javax.sip.header.AuthorizationHeader;

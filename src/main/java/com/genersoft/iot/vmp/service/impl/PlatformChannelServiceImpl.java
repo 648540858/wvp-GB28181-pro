@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
@@ -27,6 +28,7 @@ import java.util.Map;
  * @author lin
  */
 @Service
+@DS("master")
 public class PlatformChannelServiceImpl implements IPlatformChannelService {
 
     private final static Logger logger = LoggerFactory.getLogger(PlatformChannelServiceImpl.class);
@@ -82,7 +84,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         int allCount = 0;
         boolean result = false;
         TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
-        int limitCount = 300;
+        int limitCount = 50;
         if (channelReducesToAdd.size() > 0) {
             if (channelReducesToAdd.size() > limitCount) {
                 for (int i = 0; i < channelReducesToAdd.size(); i += limitCount) {
@@ -134,7 +136,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
                     deviceChannelList.add(deviceChannel);
                 }
                 return deviceChannelList;
-            } else if (catalog == null || !catalogId.equals(platform.getDeviceGBId())) {
+            } else if (catalog == null && !catalogId.equals(platform.getDeviceGBId())) {
                 logger.warn("未查询到目录{}的信息", catalogId);
                 return null;
             }
@@ -162,13 +164,12 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
             return 0;
         }
         if (ObjectUtils.isEmpty(catalogId)) {
-           catalogId = platform.getDeviceGBId();
+           catalogId = null;
         }
 
-        if ((result = platformChannelMapper.delChannelForGBByCatalogId(platformId, catalogId)) > 0) {
-            List<DeviceChannel> deviceChannels = platformChannelMapper.queryAllChannelInCatalog(platformId, catalogId);
-            eventPublisher.catalogEventPublish(platformId, deviceChannels, CatalogEvent.DEL);
-        }
-        return result;
+        List<DeviceChannel> deviceChannels = platformChannelMapper.queryAllChannelInCatalog(platformId, catalogId);
+        eventPublisher.catalogEventPublish(platformId, deviceChannels, CatalogEvent.DEL);
+
+        return platformChannelMapper.delChannelForGBByCatalogId(platformId, catalogId);
     }
 }

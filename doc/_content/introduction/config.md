@@ -153,11 +153,11 @@ user-settings:
     # 国标是否录制
     record-sip: true
     # 是否将日志存储进数据库
-    logInDatebase: true
+    logInDatabase: true
     # 第三方匹配，用于从stream钟获取有效信息
     thirdPartyGBIdReg: [\s\S]*
 ```
 
 
 如果配置信息无误，你可以启动zlm，再启动wvp来测试了，启动成功的话，你可以在wvp的日志下看到zlm已连接的提示。
-接下来[部署到服务器](./_content/introduction/deployment.md)， 如何你只是本地运行直接再本地运行即可。
+接下来[部署到服务器](./_content/introduction/deployment.md)， 如果你只是本地运行直接在本地运行即可。

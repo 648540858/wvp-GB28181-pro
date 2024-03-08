@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.google.common.primitives.Bytes;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import org.apache.commons.lang3.ArrayUtils;
@@ -81,6 +82,7 @@ public abstract class SIPRequestProcessorParent {
 		return responseAck(sipRequest, statusCode, msg, null);
 	}
 
+
 	public SIPResponse responseAck(SIPRequest sipRequest, int statusCode, String msg, ResponseAckExtraParam responseAckExtraParam) throws SipException, InvalidArgumentException, ParseException {
 		if (sipRequest.getToHeader().getTag() == null) {
 			sipRequest.getToHeader().setTag(SipUtils.getNewTag());
@@ -123,6 +125,8 @@ public abstract class SIPRequestProcessorParent {
 		return response;
 	}
 
+
+
 	/**
 	 * 回复带sdp的200
 	 */
@@ -140,7 +144,10 @@ public abstract class SIPRequestProcessorParent {
 		responseAckExtraParam.content = sdp;
 		responseAckExtraParam.sipURI = sipURI;
 
-		return responseAck(request, Response.OK, null, responseAckExtraParam);
+		SIPResponse sipResponse = responseAck(request, Response.OK, null, responseAckExtraParam);
+
+
+		return sipResponse;
 	}
 
 	/**
@@ -173,7 +180,8 @@ public abstract class SIPRequestProcessorParent {
 		reader.setEncoding(charset);
 		// 对海康出现的未转义字符做处理。
 		String[] destStrArray = new String[]{"&lt;","&gt;","&amp;","&apos;","&quot;"};
-		char despChar = '&'; // 或许可扩展兼容其他字符
+		// 或许可扩展兼容其他字符
+		char despChar = '&';
 		byte destBye = (byte) despChar;
 		List<Byte> result = new ArrayList<>();
 		byte[] rawContent = request.getRawContent();
@@ -196,15 +204,14 @@ public abstract class SIPRequestProcessorParent {
 				result.add(rawContent[i]);
 			}
 		}
-		Byte[] bytes = new Byte[0];
-		byte[] bytesResult = ArrayUtils.toPrimitive(result.toArray(bytes));
+		byte[] bytesResult = Bytes.toArray(result);
 
 		Document xml;
 		try {
 			xml = reader.read(new ByteArrayInputStream(bytesResult));
 		}catch (DocumentException e) {
-			logger.warn("[xml解析异常]： 愿文如下： \r\n{}", new String(bytesResult));
-			logger.warn("[xml解析异常]： 愿文如下： 尝试兼容性处理");
+			logger.warn("[xml解析异常]： 原文如下： \r\n{}", new String(bytesResult));
+			logger.warn("[xml解析异常]： 原文如下： 尝试兼容性处理");
 			String[] xmlLineArray = new String(bytesResult).split("\\r?\\n");
 
 			// 兼容海康的address字段带有<破换xml结构导致无法解析xml的问题
@@ -219,5 +226,6 @@ public abstract class SIPRequestProcessorParent {
 		}
 		return xml.getRootElement();
 	}
+
 
 }

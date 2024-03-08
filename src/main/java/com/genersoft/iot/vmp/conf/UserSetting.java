@@ -23,7 +23,7 @@ public class UserSetting {
 
     private Integer playTimeout = 18000;
 
-    private int platformPlayTimeout = 60000;
+    private int platformPlayTimeout = 20000;
 
     private Boolean interfaceAuthentication = Boolean.TRUE;
 
@@ -31,9 +31,9 @@ public class UserSetting {
 
     private Boolean recordSip = Boolean.TRUE;
 
-    private Boolean logInDatebase = Boolean.TRUE;
+    private Boolean logInDatabase = Boolean.TRUE;
 
-    private Boolean usePushingAsStatus = Boolean.TRUE;
+    private Boolean usePushingAsStatus = Boolean.FALSE;
 
     private Boolean useSourceIpAsStreamIp = Boolean.FALSE;
 
@@ -43,8 +43,6 @@ public class UserSetting {
 
     private Boolean pushAuthority = Boolean.TRUE;
 
-    private Boolean gbSendStreamStrict = Boolean.FALSE;
-
     private Boolean syncChannelOnDeviceOnline = Boolean.FALSE;
 
     private Boolean sipLog = Boolean.FALSE;
@@ -53,14 +51,14 @@ public class UserSetting {
 
     private Boolean refuseChannelStatusChannelFormNotify = Boolean.FALSE;
 
-    private Boolean deviceStatusNotify = Boolean.FALSE;
+    private Boolean deviceStatusNotify = Boolean.TRUE;
     private Boolean useCustomSsrcForParentInvite = Boolean.TRUE;
 
     private String serverId = "000000";
 
-    private String recordPath = null;
-
     private String thirdPartyGBIdReg = "[\\s\\S]*";
+
+    private String broadcastForPlatform = "UDP";
 
     private String civilCodeFile = "classpath:civilCode.csv";
 
@@ -134,12 +132,12 @@ public class UserSetting {
         this.interfaceAuthenticationExcludes = interfaceAuthenticationExcludes;
     }
 
-    public Boolean getLogInDatebase() {
-        return logInDatebase;
+    public Boolean getLogInDatabase() {
+        return logInDatabase;
     }
 
-    public void setLogInDatebase(Boolean logInDatebase) {
-        this.logInDatebase = logInDatebase;
+    public void setLogInDatabase(Boolean logInDatabase) {
+        this.logInDatabase = logInDatabase;
     }
 
     public String getServerId() {
@@ -206,20 +204,20 @@ public class UserSetting {
         this.pushAuthority = pushAuthority;
     }
 
-    public Boolean getGbSendStreamStrict() {
-        return gbSendStreamStrict;
-    }
-
-    public void setGbSendStreamStrict(Boolean gbSendStreamStrict) {
-        this.gbSendStreamStrict = gbSendStreamStrict;
-    }
-
     public Boolean getSyncChannelOnDeviceOnline() {
         return syncChannelOnDeviceOnline;
     }
 
     public void setSyncChannelOnDeviceOnline(Boolean syncChannelOnDeviceOnline) {
         this.syncChannelOnDeviceOnline = syncChannelOnDeviceOnline;
+    }
+
+    public String getBroadcastForPlatform() {
+        return broadcastForPlatform;
+    }
+
+    public void setBroadcastForPlatform(String broadcastForPlatform) {
+        this.broadcastForPlatform = broadcastForPlatform;
     }
 
     public Boolean getSipUseSourceIpAsRemoteAddress() {
@@ -260,14 +258,6 @@ public class UserSetting {
 
     public void setRefuseChannelStatusChannelFormNotify(Boolean refuseChannelStatusChannelFormNotify) {
         this.refuseChannelStatusChannelFormNotify = refuseChannelStatusChannelFormNotify;
-    }
-
-    public String getRecordPath() {
-        return recordPath;
-    }
-
-    public void setRecordPath(String recordPath) {
-        this.recordPath = recordPath;
     }
 
     public int getMaxNotifyCountQueue() {

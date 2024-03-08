@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import gov.nist.javax.sip.message.SIPRequest;
+import org.apache.commons.lang3.ObjectUtils;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +34,7 @@ import java.text.ParseException;
 public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
 
-    private Logger logger = LoggerFactory.getLogger(KeepaliveNotifyMessageHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(KeepaliveNotifyMessageHandler.class);
     private final static String cmdType = "Keepalive";
 
     @Autowired
@@ -59,28 +60,39 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             // 未注册的设备不做处理
             return;
         }
-        logger.info("[收到心跳]， device: {}", device.getDeviceId());
         SIPRequest request = (SIPRequest) evt.getRequest();
+        logger.info("[收到心跳] device: {}, callId: {}", device.getDeviceId(), request.getCallIdHeader().getCallId());
+
         // 回复200 OK
         try {
             responseAck(request, Response.OK);
         } catch (SipException | InvalidArgumentException | ParseException e) {
             logger.error("[命令发送失败] 心跳回复: {}", e.getMessage());
         }
+        if (!ObjectUtils.isEmpty(device.getKeepaliveTime()) && DateUtil.getDifferenceForNow(device.getKeepaliveTime()) <= 3000L) {
+            logger.info("[收到心跳] 心跳发送过于频繁，已忽略 device: {}, callId: {}", device.getDeviceId(), request.getCallIdHeader().getCallId());
+            return;
+        }
 
         RemoteAddressInfo remoteAddressInfo = SipUtils.getRemoteAddressFromRequest(request, userSetting.getSipUseSourceIpAsRemoteAddress());
         if (!device.getIp().equalsIgnoreCase(remoteAddressInfo.getIp()) || device.getPort() != remoteAddressInfo.getPort()) {
-            logger.info("[心跳] 设备{}地址变化, 远程地址为: {}:{}", device.getDeviceId(), remoteAddressInfo.getIp(), remoteAddressInfo.getPort());
+            logger.info("[收到心跳] 设备{}地址变化, 远程地址为: {}:{}", device.getDeviceId(), remoteAddressInfo.getIp(), remoteAddressInfo.getPort());
             device.setPort(remoteAddressInfo.getPort());
             device.setHostAddress(remoteAddressInfo.getIp().concat(":").concat(String.valueOf(remoteAddressInfo.getPort())));
             device.setIp(remoteAddressInfo.getIp());
+            // 设备地址变化会引起目录订阅任务失效，需要重新添加
+            if (device.getSubscribeCycleForCatalog() > 0) {
+                deviceService.removeCatalogSubscribe(device, result->{
+                    deviceService.addCatalogSubscribe(device);
+                });
+            }
         }
         if (device.getKeepaliveTime() == null) {
             device.setKeepaliveIntervalTime(60);
         }else {
             long lastTime = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(device.getKeepaliveTime());
             if (System.currentTimeMillis()/1000-lastTime > 10) {
-                device.setKeepaliveIntervalTime(new Long(System.currentTimeMillis()/1000-lastTime).intValue());
+                device.setKeepaliveIntervalTime(Long.valueOf(System.currentTimeMillis()/1000-lastTime).intValue());
             }
         }
 
@@ -104,7 +116,11 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
 
     @Override
     public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element element) {
-        // 不会收到上级平台的心跳信息
-
+        // 个别平台保活不回复200OK会判定离线
+        try {
+            responseAck((SIPRequest) evt.getRequest(), Response.OK);
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 心跳回复: {}", e.getMessage());
+        }
     }
 }

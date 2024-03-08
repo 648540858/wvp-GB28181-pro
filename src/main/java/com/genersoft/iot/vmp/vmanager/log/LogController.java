@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.vmanager.log;
 
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.service.ILogService;
 import com.genersoft.iot.vmp.storager.dao.dto.LogDto;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -9,6 +10,7 @@ import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +44,7 @@ public class LogController {
      * @return
      */
     @GetMapping("/all")
-    @Operation(summary = "分页查询报警")
+    @Operation(summary = "分页查询日志", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "query", description = "查询内容", required = true)
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页查询数量", required = true)
@@ -61,7 +63,7 @@ public class LogController {
             query = null;
         }
 
-        if (!userSetting.getLogInDatebase()) {
+        if (!userSetting.getLogInDatabase()) {
             logger.warn("自动记录日志功能已关闭，查询结果可能不完整。");
         }
 
@@ -84,7 +86,7 @@ public class LogController {
      *  清空日志
      *
      */
-    @Operation(summary = "停止视频回放")
+    @Operation(summary = "清空日志", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @DeleteMapping("/clear")
     public void clear() {
         logService.clear();

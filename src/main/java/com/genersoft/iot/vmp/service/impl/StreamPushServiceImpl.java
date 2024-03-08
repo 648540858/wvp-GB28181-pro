@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.alibaba.fastjson2.TypeReference;
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -36,6 +37,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@DS("master")
 public class StreamPushServiceImpl implements IStreamPushService {
 
     private final static Logger logger = LoggerFactory.getLogger(StreamPushServiceImpl.class);
@@ -282,6 +284,8 @@ public class StreamPushServiceImpl implements IStreamPushService {
                     redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
                     // 移除redis内流的信息
                     redisCatchStorage.removeStream(mediaServerItem.getId(), "PUSH", offlineOnStreamChangedHookParam.getApp(), offlineOnStreamChangedHookParam.getStream());
+                    // 冗余数据，自己系统中自用
+                    redisCatchStorage.removePushListItem(offlineOnStreamChangedHookParam.getApp(), offlineOnStreamChangedHookParam.getStream(), mediaServerItem.getId());
                 }
             }
 
@@ -319,6 +323,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
                 jsonObject.put("register", false);
                 jsonObject.put("mediaServerId", mediaServerId);
                 redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
+
+                // 冗余数据，自己系统中自用
+                redisCatchStorage.removePushListItem(onStreamChangedHookParam.getApp(), onStreamChangedHookParam.getStream(), mediaServerId);
             }
         }
     }
@@ -440,7 +447,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
                 }
             }
-            if (streamPushItemListFroPlatform.size() > 0) {
+            if (!streamPushItemListFroPlatform.isEmpty()) {
                 platformGbStreamMapper.batchAdd(streamPushItemListFroPlatform);
                 // 发送通知
                 for (String platformId : platformForEvent.keySet()) {
@@ -506,6 +513,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
         stream.setUpdateTime(DateUtil.getNow());
         stream.setCreateTime(DateUtil.getNow());
         stream.setServerId(userSetting.getServerId());
+        stream.setMediaServerId(mediaConfig.getId());
+        stream.setSelf(true);
+        stream.setPushIng(true);
 
         // 放在事务内执行
         boolean result = false;

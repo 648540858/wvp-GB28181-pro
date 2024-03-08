@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.dom4j.Attribute;
 import org.dom4j.Document;
@@ -74,6 +75,50 @@ public class XmlUtil {
         Element e = em.element(tag);
         //
         return null == e ? null : e.getText().trim();
+    }
+
+    /**
+     * 获取element对象的text的值
+     *
+     * @param em  节点的对象
+     * @param tag 节点的tag
+     * @return 节点
+     */
+    public static Double getDouble(Element em, String tag) {
+        if (null == em) {
+            return null;
+        }
+        Element e = em.element(tag);
+        if (null == e) {
+            return null;
+        }
+        String text = e.getText().trim();
+        if (ObjectUtils.isEmpty(text) || !NumberUtils.isParsable(text)) {
+            return null;
+        }
+        return Double.parseDouble(text);
+    }
+
+    /**
+     * 获取element对象的text的值
+     *
+     * @param em  节点的对象
+     * @param tag 节点的tag
+     * @return 节点
+     */
+    public static Integer getInteger(Element em, String tag) {
+        if (null == em) {
+            return null;
+        }
+        Element e = em.element(tag);
+        if (null == e) {
+            return null;
+        }
+        String text = e.getText().trim();
+        if (ObjectUtils.isEmpty(text) || !NumberUtils.isParsable(text)) {
+            return null;
+        }
+        return Integer.parseInt(text);
     }
 
     /**
@@ -214,8 +259,11 @@ public class XmlUtil {
             return deviceChannel;
         }
         Element nameElement = itemDevice.element("Name");
-        if (nameElement != null) {
+        // 当通道名称为空时，设置通道名称为通道编码，避免级联时因通道名称为空导致上级接收通道失败
+        if (nameElement != null && StringUtils.isNotBlank(nameElement.getText())) {
             deviceChannel.setName(nameElement.getText());
+        } else {
+            deviceChannel.setName(channelId);
         }
         if(channelId.length() <= 8) {
             deviceChannel.setHasAudio(false);

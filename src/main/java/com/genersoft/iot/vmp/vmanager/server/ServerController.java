@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.VersionInfo;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.IHookSubscribe;
@@ -21,6 +22,7 @@ import com.genersoft.iot.vmp.vmanager.bean.ResourceInfo;
 import com.genersoft.iot.vmp.vmanager.bean.SystemConfigInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -79,27 +81,27 @@ public class ServerController {
 
     @GetMapping(value = "/media_server/list")
     @ResponseBody
-    @Operation(summary = "流媒体服务列表")
+    @Operation(summary = "流媒体服务列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
     public List<MediaServerItem> getMediaServerList() {
         return mediaServerService.getAll();
     }
 
     @GetMapping(value = "/media_server/online/list")
     @ResponseBody
-    @Operation(summary = "在线流媒体服务列表")
+    @Operation(summary = "在线流媒体服务列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
     public List<MediaServerItem> getOnlineMediaServerList() {
         return mediaServerService.getAllOnline();
     }
 
     @GetMapping(value = "/media_server/one/{id}")
     @ResponseBody
-    @Operation(summary = "停止视频回放")
+    @Operation(summary = "停止视频回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "id", description = "流媒体服务ID", required = true)
     public MediaServerItem getMediaServer(@PathVariable String id) {
         return mediaServerService.getOne(id);
     }
 
-    @Operation(summary = "测试流媒体服务")
+    @Operation(summary = "测试流媒体服务", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "ip", description = "流媒体服务IP", required = true)
     @Parameter(name = "port", description = "流媒体服务HTT端口", required = true)
     @Parameter(name = "secret", description = "流媒体服务secret", required = true)
@@ -109,7 +111,7 @@ public class ServerController {
         return mediaServerService.checkMediaServer(ip, port, secret);
     }
 
-    @Operation(summary = "测试流媒体录像管理服务")
+    @Operation(summary = "测试流媒体录像管理服务", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "ip", description = "流媒体服务IP", required = true)
     @Parameter(name = "port", description = "流媒体服务HTT端口", required = true)
     @GetMapping(value = "/media_server/record/check")
@@ -121,7 +123,7 @@ public class ServerController {
         }
     }
 
-    @Operation(summary = "保存流媒体服务")
+    @Operation(summary = "保存流媒体服务", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "mediaServerItem", description = "流媒体信息", required = true)
     @PostMapping(value = "/media_server/save")
     @ResponseBody
@@ -135,7 +137,7 @@ public class ServerController {
         }
     }
 
-    @Operation(summary = "移除流媒体服务")
+    @Operation(summary = "移除流媒体服务", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "id", description = "流媒体ID", required = true)
     @DeleteMapping(value = "/media_server/delete")
     @ResponseBody
@@ -148,7 +150,7 @@ public class ServerController {
     }
 
 
-    @Operation(summary = "重启服务")
+    @Operation(summary = "重启服务", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @GetMapping(value = "/restart")
     @ResponseBody
     public void restart() {
@@ -173,7 +175,7 @@ public class ServerController {
 //        });
     };
 
-    @Operation(summary = "获取系统信息信息")
+    @Operation(summary = "获取系统信息信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @GetMapping(value = "/system/configInfo")
     @ResponseBody
     public SystemConfigInfo getConfigInfo() {
@@ -185,7 +187,7 @@ public class ServerController {
         return systemConfigInfo;
     }
 
-    @Operation(summary = "获取版本信息")
+    @Operation(summary = "获取版本信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @GetMapping(value = "/version")
     @ResponseBody
     public VersionPo VersionPogetVersion() {
@@ -264,14 +266,6 @@ public class ServerController {
         ResourceBaseInfo proxyInfo = proxyService.getOverview();
         result.setProxy(proxyInfo);
 
-        return result;
-    }
-
-    @PostMapping(value = "/test/getPort")
-    @ResponseBody
-    public int getPort() {
-        int result = sendRtpPortManager.getNextPort(mediaServerService.getDefaultMediaServer());
-        System.out.println(result);
         return result;
     }
 }

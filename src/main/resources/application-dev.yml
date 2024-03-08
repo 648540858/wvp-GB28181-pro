@@ -19,26 +19,30 @@ spring:
     # [可选] 数据库 DB
     database: 7
     # [可选] 访问密码,若你的redis服务器没有设置密码，就不需要用密码去连接
-    password:
+    password: luna
     # [可选] 超时时间
     timeout: 10000
     # mysql数据源
   datasource:
-    type: com.zaxxer.hikari.HikariDataSource
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/test_gb-89wulian?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true
-    username: root
-    password: root
-    hikari:
-      connection-timeout: 20000             # 是客户端等待连接池连接的最大毫秒数
-      initialSize: 10                       # 连接池初始化连接数
-      maximum-pool-size: 200                # 连接池最大连接数
-      minimum-idle: 5                       # 连接池最小空闲连接数
-      idle-timeout: 300000                  # 允许连接在连接池中空闲的最长时间（以毫秒为单位）
-      max-lifetime: 1200000                 # 是池中连接关闭后的最长生命周期（以毫秒为单位)
+    dynamic:
+      primary: master
+      datasource:
+        master:
+          type: com.zaxxer.hikari.HikariDataSource
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          url: jdbc:mysql://127.0.0.1:3306/wvp2?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true
+          username: root
+          password: root123
+          hikari:
+            connection-timeout: 20000             # 是客户端等待连接池连接的最大毫秒数
+            initialSize: 50                       # 连接池初始化连接数
+            maximum-pool-size: 200                # 连接池最大连接数
+            minimum-idle: 10                       # 连接池最小空闲连接数
+            idle-timeout: 300000                  # 允许连接在连接池中空闲的最长时间（以毫秒为单位）
+            max-lifetime: 1200000                 # 是池中连接关闭后的最长生命周期（以毫秒为单位)
 #[可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
 server:
-  port: 18978
+  port: 8080
   # [可选] HTTPS配置， 默认不开启
   ssl:
     # [可选] 是否开启HTTPS访问
@@ -56,7 +60,7 @@ sip:
   # 如果要监听多张网卡，可以使用逗号分隔多个IP， 例如： 192.168.1.4,10.0.0.4
   # 如果不明白，就使用0.0.0.0，大部分情况都是可以的
   # 请不要使用127.0.0.1，任何包括localhost在内的域名都是不可以的。
-  ip: 192.168.1.18
+  ip: 172.19.128.50
   # [可选] 28181服务监听的端口
   port: 8116
   # 根据国标6.1.2中规定，domain宜采用ID统一编码的前十位编码。国标附录D中定义前8位为中心编码（由省级、市级、区级、基层编号组成，参照GB/T 2260-2007）
@@ -73,21 +77,21 @@ sip:
 
 #zlm 默认服务器配置
 media:
-  id: 89wulian-one
+  id: zlmediakit-local
   # [必须修改] zlm服务器的内网IP
-  ip: 192.168.1.18
+  ip: 172.19.128.50
   # [必须修改] zlm服务器的http.port
-  http-port: 80
+  http-port: 9092
   # [可选] 返回流地址时的ip，置空使用 media.ip
-  stream-ip: 192.168.1.18
+  stream-ip: 172.19.128.50
   # [可选] wvp在国标信令中使用的ip，此ip为摄像机可以访问到的ip， 置空使用 media.ip
-  sdp-ip: 192.168.1.18
+  sdp-ip: 172.19.128.50
   # [可选] zlm服务器的hook所使用的IP, 默认使用sip.ip
-  hook-ip: 192.168.1.18
+  hook-ip: 172.19.128.50
   # [可选] zlm服务器的http.sslport, 置空使用zlm配置文件配置
-  http-ssl-port: 443
+  http-ssl-port: 1443
   # [可选] zlm服务器的hook.admin_params=secret
-  secret: 035c73f7-bb6b-4889-a715-d9eb2d1925cc
+  secret: 10000
   # 启用多端口模式, 多端口模式使用端口区分每路流，兼容性更好。 单端口使用流的ssrc区分， 点播超时建议使用多端口测试
   rtp:
     # [可选] 是否启用多端口模式, 开启后会在portRange范围内选择端口用于媒体流传输
@@ -106,10 +110,6 @@ user-settings:
   auto-apply-play: true
   # 设备/通道状态变化时发送消息
   device-status-notify: true
-  # 跨域配置，配置你访问前端页面的地址即可， 可以配置多个
-  allowed-origins:
-    - http://localhost:8080
-    - http://127.0.0.1:8080
 # [可选] 日志配置, 一般不需要改
 logging:
   config: classpath:logback-spring-local.xml

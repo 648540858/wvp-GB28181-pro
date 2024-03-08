@@ -2,12 +2,9 @@ package com.genersoft.iot.vmp.gb28181.bean;
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeHandlerTask;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
-import com.genersoft.iot.vmp.service.IPlatformService;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +21,9 @@ public class SubscribeHolder {
     @Autowired
     private DynamicTask dynamicTask;
 
+    @Autowired
+    private UserSetting userSetting;
+
     private final String taskOverduePrefix = "subscribe_overdue_";
 
     private static ConcurrentHashMap<String, SubscribeInfo> catalogMap = new ConcurrentHashMap<>();
@@ -32,11 +32,13 @@ public class SubscribeHolder {
 
     public void putCatalogSubscribe(String platformId, SubscribeInfo subscribeInfo) {
         catalogMap.put(platformId, subscribeInfo);
-        // 添加订阅到期
-        String taskOverdueKey = taskOverduePrefix +  "catalog_" + platformId;
-        // 添加任务处理订阅过期
-        dynamicTask.startDelay(taskOverdueKey, () -> removeCatalogSubscribe(subscribeInfo.getId()),
-                subscribeInfo.getExpires() * 1000);
+        if (subscribeInfo.getExpires() > 0) {
+            // 添加订阅到期
+            String taskOverdueKey = taskOverduePrefix +  "catalog_" + platformId;
+            // 添加任务处理订阅过期
+            dynamicTask.startDelay(taskOverdueKey, () -> removeCatalogSubscribe(subscribeInfo.getId()),
+                    subscribeInfo.getExpires() * 1000);
+        }
     }
 
     public SubscribeInfo getCatalogSubscribe(String platformId) {
@@ -50,7 +52,7 @@ public class SubscribeHolder {
         Runnable runnable = dynamicTask.get(taskOverdueKey);
         if (runnable instanceof ISubscribeTask) {
             ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
-            subscribeTask.stop();
+            subscribeTask.stop(null);
         }
         // 添加任务处理订阅过期
         dynamicTask.stop(taskOverdueKey);
@@ -58,16 +60,18 @@ public class SubscribeHolder {
 
     public void putMobilePositionSubscribe(String platformId, SubscribeInfo subscribeInfo) {
         mobilePositionMap.put(platformId, subscribeInfo);
-        String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX +  "MobilePosition_" + platformId;
+        String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetting.getServerId() + "MobilePosition_" + platformId;
         // 添加任务处理GPS定时推送
         dynamicTask.startCron(key, new MobilePositionSubscribeHandlerTask(platformId),
                 subscribeInfo.getGpsInterval() * 1000);
         String taskOverdueKey = taskOverduePrefix +  "MobilePosition_" + platformId;
-        // 添加任务处理订阅过期
-        dynamicTask.startDelay(taskOverdueKey, () -> {
-                    removeMobilePositionSubscribe(subscribeInfo.getId());
-                },
-                subscribeInfo.getExpires() * 1000);
+        if (subscribeInfo.getExpires() > 0) {
+            // 添加任务处理订阅过期
+            dynamicTask.startDelay(taskOverdueKey, () -> {
+                        removeMobilePositionSubscribe(subscribeInfo.getId());
+                    },
+                    subscribeInfo.getExpires() * 1000);
+        }
     }
 
     public SubscribeInfo getMobilePositionSubscribe(String platformId) {
@@ -76,14 +80,14 @@ public class SubscribeHolder {
 
     public void removeMobilePositionSubscribe(String platformId) {
         mobilePositionMap.remove(platformId);
-        String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX +  "MobilePosition_" + platformId;
+        String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetting.getServerId() + "MobilePosition_" + platformId;
         // 结束任务处理GPS定时推送
         dynamicTask.stop(key);
         String taskOverdueKey = taskOverduePrefix +  "MobilePosition_" + platformId;
         Runnable runnable = dynamicTask.get(taskOverdueKey);
         if (runnable instanceof ISubscribeTask) {
             ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
-            subscribeTask.stop();
+            subscribeTask.stop(null);
         }
         // 添加任务处理订阅过期
         dynamicTask.stop(taskOverdueKey);

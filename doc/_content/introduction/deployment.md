@@ -21,9 +21,9 @@
 4. WVP-PRO与ZLM支持分开部署，但是wvp-pro-assist必须与zlm部署在同一台主机;
 5. 生产环境按需开放端口，但是建议修改默认端口，尤其是5060端口，易受到攻击;
 6. zlm使用docker部署的情况，要求端口映射一致，比如映射5060,应将外部端口也映射为5060端口;
-7. 启动服务，以linux为例  
-### 启动WVP-PRO  
-**jar包：**
+7. zlm与wvp会保持高频率的通信，所以不要去将wvp与zlm分属在两个网络，比如wvp在内网，zlm却在公网的情况。
+8. 启动服务，以linux为例
+**启动WVP-PRO**
 ```shell
 nohup java -jar wvp-pro-*.jar &
 ```

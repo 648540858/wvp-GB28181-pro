@@ -25,20 +25,25 @@ public class ZLMRESTfulUtils {
 
     private OkHttpClient client;
 
-
-
     public interface RequestCallback{
         void run(JSONObject response);
     }
 
     private OkHttpClient getClient(){
+        return getClient(null);
+    }
+
+    private OkHttpClient getClient(Integer readTimeOut){
         if (client == null) {
+            if (readTimeOut == null) {
+                readTimeOut = 10;
+            }
             OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
             //todo 暂时写死超时时间 均为5s
             // 设置连接超时时间
-            httpClientBuilder.connectTimeout(5,TimeUnit.SECONDS);
+            httpClientBuilder.connectTimeout(8,TimeUnit.SECONDS);
             // 设置读取超时时间
-            httpClientBuilder.readTimeout(10,TimeUnit.SECONDS);
+            httpClientBuilder.readTimeout(readTimeOut,TimeUnit.SECONDS);
             // 设置连接池
             httpClientBuilder.connectionPool(new ConnectionPool(16, 5, TimeUnit.MINUTES));
             if (logger.isDebugEnabled()) {
@@ -55,9 +60,13 @@ public class ZLMRESTfulUtils {
 
     }
 
-
     public JSONObject sendPost(MediaServerItem mediaServerItem, String api, Map<String, Object> param, RequestCallback callback) {
-        OkHttpClient client = getClient();
+        return sendPost(mediaServerItem, api, param, callback, null);
+    }
+
+
+    public JSONObject sendPost(MediaServerItem mediaServerItem, String api, Map<String, Object> param, RequestCallback callback, Integer readTimeOut) {
+        OkHttpClient client = getClient(readTimeOut);
 
         if (mediaServerItem == null) {
             return null;
@@ -87,6 +96,7 @@ public class ZLMRESTfulUtils {
             if (callback == null) {
                 try {
                     Response response = client.newCall(request).execute();
+
                     if (response.isSuccessful()) {
                         ResponseBody responseBody = response.body();
                         if (responseBody != null) {
@@ -94,6 +104,8 @@ public class ZLMRESTfulUtils {
                             responseJSON = JSON.parseObject(responseStr);
                         }
                     }else {
+                        System.out.println( 2222);
+                        System.out.println( response.code());
                         response.close();
                         Objects.requireNonNull(response.body()).close();
                     }
@@ -102,11 +114,11 @@ public class ZLMRESTfulUtils {
 
                     if(e instanceof SocketTimeoutException){
                         //读取超时超时异常
-                        logger.error(String.format("读取ZLM数据失败: %s, %s", url, e.getMessage()));
+                        logger.error(String.format("读取ZLM数据超时失败: %s, %s", url, e.getMessage()));
                     }
                     if(e instanceof ConnectException){
                         //判断连接异常，我这里是报Failed to connect to 10.7.5.144
-                        logger.error(String.format("连接ZLM失败: %s, %s", url, e.getMessage()));
+                        logger.error(String.format("连接ZLM连接失败: %s, %s", url, e.getMessage()));
                     }
 
                 }catch (Exception e){
@@ -204,6 +216,21 @@ public class ZLMRESTfulUtils {
         }
     }
 
+    public JSONObject isMediaOnline(MediaServerItem mediaServerItem, String app, String stream, String schema){
+        Map<String, Object> param = new HashMap<>();
+        if (app != null) {
+            param.put("app",app);
+        }
+        if (stream != null) {
+            param.put("stream",stream);
+        }
+        if (schema != null) {
+            param.put("schema",schema);
+        }
+        param.put("vhost","__defaultVhost__");
+        return sendPost(mediaServerItem, "isMediaOnline", param, null);
+    }
+
     public JSONObject getMediaList(MediaServerItem mediaServerItem, String app, String stream, String schema, RequestCallback callback){
         Map<String, Object> param = new HashMap<>();
         if (app != null) {
@@ -261,6 +288,12 @@ public class ZLMRESTfulUtils {
         return sendPost(mediaServerItem, "delFFmpegSource",param, null);
     }
 
+    public JSONObject delStreamProxy(MediaServerItem mediaServerItem, String key){
+        Map<String, Object> param = new HashMap<>();
+        param.put("key", key);
+        return sendPost(mediaServerItem, "delStreamProxy",param, null);
+    }
+
     public JSONObject getMediaServerConfig(MediaServerItem mediaServerItem){
         return sendPost(mediaServerItem, "getServerConfig",null, null);
     }
@@ -293,6 +326,10 @@ public class ZLMRESTfulUtils {
         return sendPost(mediaServerItem, "startSendRtpPassive",param, null);
     }
 
+    public JSONObject startSendRtpPassive(MediaServerItem mediaServerItem, Map<String, Object> param, RequestCallback callback) {
+        return sendPost(mediaServerItem, "startSendRtpPassive",param, callback);
+    }
+
     public JSONObject stopSendRtp(MediaServerItem mediaServerItem, Map<String, Object> param) {
         return sendPost(mediaServerItem, "stopSendRtp",param, null);
     }
@@ -310,7 +347,7 @@ public class ZLMRESTfulUtils {
         param.put("enable_mp4", enable_mp4?1:0);
         param.put("enable_audio", enable_audio?1:0);
         param.put("rtp_type", rtp_type);
-        return sendPost(mediaServerItem, "addStreamProxy",param, null);
+        return sendPost(mediaServerItem, "addStreamProxy",param, null, 20);
     }
 
     public JSONObject closeStreams(MediaServerItem mediaServerItem, String app, String stream) {
@@ -365,5 +402,15 @@ public class ZLMRESTfulUtils {
         param.put("ssrc", ssrc);
         param.put("stream_id", streamId);
         return sendPost(mediaServerItem, "updateRtpServerSSRC",param, null);
+    }
+
+    public JSONObject deleteRecordDirectory(MediaServerItem mediaServerItem, String app, String stream, String date, String fileName) {
+        Map<String, Object> param = new HashMap<>(1);
+        param.put("vhost", "__defaultVhost__");
+        param.put("app", app);
+        param.put("stream", stream);
+        param.put("period", date);
+        param.put("name", fileName);
+        return sendPost(mediaServerItem, "deleteRecordDirectory",param, null);
     }
 }

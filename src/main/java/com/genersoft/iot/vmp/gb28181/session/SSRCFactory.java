@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -37,7 +38,8 @@ public class SSRCFactory {
 
 
     public void initMediaServerSSRC(String mediaServerId, Set<String> usedSet) {
-        String ssrcPrefix = sipConfig.getDomain().substring(3, 8);
+        String sipDomain = sipConfig.getDomain();
+        String ssrcPrefix = sipDomain.length() >= 8 ? sipDomain.substring(3, 8) : sipDomain;
         String redisKey = SSRC_INFO_KEY + userSetting.getServerId() + "_" + mediaServerId;
         List<String> ssrcList = new ArrayList<>();
         for (int i = 1; i < MAX_STREAM_COUNT; i++) {
@@ -118,7 +120,7 @@ public class SSRCFactory {
      */
     public boolean hasMediaServerSSRC(String mediaServerId) {
         String redisKey = SSRC_INFO_KEY + userSetting.getServerId() + "_" + mediaServerId;
-        return redisTemplate.opsForSet().members(redisKey) != null;
+        return Boolean.TRUE.equals(redisTemplate.hasKey(redisKey));
     }
 
 }

@@ -14,6 +14,7 @@ import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.security.sasl.AuthenticationException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Tag(name  = "用户管理")
@@ -57,7 +59,7 @@ public class UserController {
         if (user == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "用户名或密码错误");
         }else {
-            String jwt = JwtUtils.createToken(username, password, user.getRole().getId());
+            String jwt = JwtUtils.createToken(username);
             response.setHeader(JwtUtils.getHeader(), jwt);
             user.setAccessToken(jwt);
         }
@@ -66,7 +68,7 @@ public class UserController {
 
 
     @PostMapping("/changePassword")
-    @Operation(summary = "修改密码")
+    @Operation(summary = "修改密码", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "username", description = "用户名", required = true)
     @Parameter(name = "oldpassword", description = "旧密码（已md5加密的密码）", required = true)
     @Parameter(name = "password", description = "新密码（未md5加密的密码）", required = true)
@@ -95,7 +97,7 @@ public class UserController {
 
 
     @PostMapping("/add")
-    @Operation(summary = "添加用户")
+    @Operation(summary = "添加用户", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "username", description = "用户名", required = true)
     @Parameter(name = "password", description = "密码（未md5加密的密码）", required = true)
     @Parameter(name = "roleId", description = "角色ID", required = true)
@@ -131,7 +133,7 @@ public class UserController {
     }
 
     @DeleteMapping("/delete")
-    @Operation(summary = "删除用户")
+    @Operation(summary = "删除用户", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "id", description = "用户Id", required = true)
     public void delete(@RequestParam Integer id){
         // 获取当前登录用户id
@@ -147,7 +149,7 @@ public class UserController {
     }
 
     @GetMapping("/all")
-    @Operation(summary = "查询用户")
+    @Operation(summary = "查询用户", security = @SecurityRequirement(name = JwtUtils.HEADER))
     public List<User> all(){
         // 获取当前登录用户id
         return userService.getAllUsers();
@@ -161,7 +163,7 @@ public class UserController {
      * @return 分页用户列表
      */
     @GetMapping("/users")
-    @Operation(summary = "分页查询用户")
+    @Operation(summary = "分页查询用户", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页查询数量", required = true)
     public PageInfo<User> users(int page, int count) {
@@ -169,7 +171,7 @@ public class UserController {
     }
 
     @RequestMapping("/changePushKey")
-    @Operation(summary = "修改pushkey")
+    @Operation(summary = "修改pushkey", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "userId", description = "用户Id", required = true)
     @Parameter(name = "pushKey", description = "新的pushKey", required = true)
     public void changePushKey(@RequestParam Integer userId,@RequestParam String pushKey) {
@@ -187,7 +189,7 @@ public class UserController {
     }
 
     @PostMapping("/changePasswordForAdmin")
-    @Operation(summary = "管理员修改普通用户密码")
+    @Operation(summary = "管理员修改普通用户密码", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "adminId", description = "管理员id", required = true)
     @Parameter(name = "userId", description = "用户id", required = true)
     @Parameter(name = "password", description = "新密码（未md5加密的密码）", required = true)
@@ -204,5 +206,18 @@ public class UserController {
                 throw new ControllerException(ErrorCode.ERROR100);
             }
         }
+    }
+
+    @PostMapping("/userInfo")
+    @Operation(summary = "管理员修改普通用户密码")
+    public LoginUser getUserInfo() {
+        // 获取当前登录用户id
+        LoginUser userInfo = SecurityUtils.getUserInfo();
+
+        if (userInfo == null) {
+            throw new ControllerException(ErrorCode.ERROR100);
+        }
+        User user = userService.getUser(userInfo.getUsername(), userInfo.getPassword());
+        return new LoginUser(user, LocalDateTime.now());
     }
 }

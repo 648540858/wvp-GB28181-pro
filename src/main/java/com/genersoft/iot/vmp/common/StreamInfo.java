@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.common;
 
+import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.io.Serializable;
@@ -76,6 +77,8 @@ public class StreamInfo implements Serializable, Cloneable{
     private String endTime;
     @Schema(description = "进度（录像下载使用）")
     private double progress;
+    @Schema(description = "文件下载地址（录像下载使用）")
+    private DownloadFileInfo downLoadFilePath;
 
     @Schema(description = "是否暂停（录像回放使用）")
     private boolean pause;
@@ -237,11 +240,11 @@ public class StreamInfo implements Serializable, Cloneable{
         }
     }
 
-    public void setRtc(String host, int port, int sslPort, String app, String stream, String callIdParam) {
+    public void setRtc(String host, int port, int sslPort, String app, String stream, String callIdParam, boolean isPlay) {
         if (callIdParam != null) {
             callIdParam = Objects.equals(callIdParam, "") ? callIdParam : callIdParam.replace("?", "&");
         }
-        String file = String.format("index/api/webrtc?app=%s&stream=%s&type=play%s", app, stream, callIdParam);
+        String file = String.format("index/api/webrtc?app=%s&stream=%s&type=%s%s", app, stream, isPlay?"play":"push", callIdParam);
         if (port > 0) {
             this.rtc = new StreamURL("http", host, port, file);
         }
@@ -523,6 +526,69 @@ public class StreamInfo implements Serializable, Cloneable{
         StreamInfo instance = null;
         try{
             instance = (StreamInfo)super.clone();
+            if (this.flv != null) {
+                instance.flv=this.flv.clone();
+            }
+            if (this.ws_flv != null ){
+                instance.ws_flv= this.ws_flv.clone();
+            }
+            if (this.hls != null ) {
+                instance.hls= this.hls.clone();
+            }
+            if (this.ws_hls != null ) {
+                instance.ws_hls= this.ws_hls.clone();
+            }
+            if (this.ts != null ) {
+                instance.ts= this.ts.clone();
+            }
+            if (this.ws_ts != null ) {
+                instance.ws_ts= this.ws_ts.clone();
+            }
+            if (this.fmp4 != null ) {
+                instance.fmp4= this.fmp4.clone();
+            }
+            if (this.ws_fmp4 != null ) {
+                instance.ws_fmp4= this.ws_fmp4.clone();
+            }
+            if (this.rtc != null ) {
+                instance.rtc= this.rtc.clone();
+            }
+            if (this.https_flv != null) {
+                instance.https_flv= this.https_flv.clone();
+            }
+            if (this.wss_flv != null) {
+                instance.wss_flv= this.wss_flv.clone();
+            }
+            if (this.https_hls != null) {
+                instance.https_hls= this.https_hls.clone();
+            }
+            if (this.wss_hls != null) {
+                instance.wss_hls= this.wss_hls.clone();
+            }
+            if (this.wss_ts != null) {
+                instance.wss_ts= this.wss_ts.clone();
+            }
+            if (this.https_fmp4 != null) {
+                instance.https_fmp4= this.https_fmp4.clone();
+            }
+            if (this.wss_fmp4 != null) {
+                instance.wss_fmp4= this.wss_fmp4.clone();
+            }
+            if (this.rtcs != null) {
+                instance.rtcs= this.rtcs.clone();
+            }
+            if (this.rtsp != null) {
+                instance.rtsp= this.rtsp.clone();
+            }
+            if (this.rtsps != null) {
+                instance.rtsps= this.rtsps.clone();
+            }
+            if (this.rtmp != null) {
+                instance.rtmp= this.rtmp.clone();
+            }
+            if (this.rtmps != null) {
+                instance.rtmps= this.rtmps.clone();
+            }
         }catch(CloneNotSupportedException e) {
             e.printStackTrace();
         }
@@ -542,5 +608,11 @@ public class StreamInfo implements Serializable, Cloneable{
         this.subStream = subStream;
     }
 
+    public DownloadFileInfo getDownLoadFilePath() {
+        return downLoadFilePath;
+    }
 
+    public void setDownLoadFilePath(DownloadFileInfo downLoadFilePath) {
+        this.downLoadFilePath = downLoadFilePath;
+    }
 }

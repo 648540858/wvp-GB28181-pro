@@ -16,6 +16,7 @@ import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
+import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
 import com.genersoft.iot.vmp.storager.dao.dto.PlatformRegisterInfo;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.JsonUtil;
@@ -39,6 +40,9 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Autowired
     private DeviceChannelMapper deviceChannelMapper;
+
+    @Autowired
+    private DeviceMapper deviceMapper;
 
     @Autowired
     private UserSetting userSetting;
@@ -146,7 +150,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
                 + sendRtpItem.getMediaServerId() + "_"
                 + sendRtpItem.getPlatformId() + "_"
                 + sendRtpItem.getChannelId() + "_"
-                + sendRtpItem.getStreamId() + "_"
+                + sendRtpItem.getStream() + "_"
                 + sendRtpItem.getCallId();
         redisTemplate.opsForValue().set(key, sendRtpItem);
     }
@@ -375,7 +379,8 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         for (Object o : keys) {
             String key = (String) o;
             Device device = JsonUtil.redisJsonToObject(redisTemplate, key, Device.class);
-            if (Objects.nonNull(device)) { // 只取没有存过得
+            if (Objects.nonNull(device)) {
+                // 只取没有存过得
                 result.add(JsonUtil.redisJsonToObject(redisTemplate, key, Device.class));
             }
         }
@@ -386,14 +391,22 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public Device getDevice(String deviceId) {
         String key = VideoManagerConstants.DEVICE_PREFIX + userSetting.getServerId() + "_" + deviceId;
-        return JsonUtil.redisJsonToObject(redisTemplate, key, Device.class);
+        Device device = JsonUtil.redisJsonToObject(redisTemplate, key, Device.class);
+        if (device == null){
+            device = deviceMapper.getDeviceByDeviceId(deviceId);
+            if (device != null) {
+                updateDevice(device);
+            }
+        }
+        return device;
     }
 
     @Override
     public void updateGpsMsgInfo(GPSMsgInfo gpsMsgInfo) {
         String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetting.getServerId() + "_" + gpsMsgInfo.getId();
         Duration duration = Duration.ofSeconds(60L);
-        redisTemplate.opsForValue().set(key, gpsMsgInfo, duration); // 默认GPS消息保存1分钟
+        redisTemplate.opsForValue().set(key, gpsMsgInfo, duration);
+        // 默认GPS消息保存1分钟
     }
 
     @Override
@@ -596,14 +609,13 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void sendDeviceOrChannelStatus(String deviceId, String channelId, boolean online) {
         String key = VideoManagerConstants.VM_MSG_SUBSCRIBE_DEVICE_STATUS;
-        logger.info("[redis通知] 发送 推送设备/通道状态， {}/{}-{}", deviceId, channelId, online);
         StringBuilder msg = new StringBuilder();
         msg.append(deviceId);
         if (channelId != null) {
             msg.append(":").append(channelId);
         }
         msg.append(" ").append(online? "ON":"OFF");
-        logger.info("[redis通知] 推送状态-> {} ", msg);
+        logger.info("[redis通知] 推送设备/通道状态-> {} ", msg);
         // 使用 RedisTemplate<Object, Object> 发送字符串消息会导致发送的消息多带了双引号
         stringRedisTemplate.convertAndSend(key, msg.toString());
     }
@@ -636,5 +648,21 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         String key = VideoManagerConstants.VM_MSG_STREAM_STOP_PLAY_NOTIFY;
         logger.info("[redis发送通知] 发送 上级平台停止观看 {}: {}/{}->{}", key, msg.getApp(), msg.getStream(), msg.getPlatFormId());
         redisTemplate.convertAndSend(key, JSON.toJSON(msg));
+    }
+
+    @Override
+    public void addPushListItem(String app, String stream, OnStreamChangedHookParam param) {
+        String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
+        redisTemplate.opsForValue().set(key, param);
+    }
+
+    @Override
+    public void removePushListItem(String app, String stream, String mediaServerId) {
+        String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
+        OnStreamChangedHookParam param = (OnStreamChangedHookParam)redisTemplate.opsForValue().get(key);
+        if (param != null && param.getMediaServerId().equalsIgnoreCase(mediaServerId)) {
+            redisTemplate.delete(key);
+        }
+
     }
 }

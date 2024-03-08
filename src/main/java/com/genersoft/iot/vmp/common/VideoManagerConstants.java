@@ -53,7 +53,7 @@ public class VideoManagerConstants {
 
 	public static final String MEDIA_TRANSACTION_USED_PREFIX = "VMP_MEDIA_TRANSACTION_";
 
-	public static final String MEDIA_STREAM_AUTHORITY = "MEDIA_STREAM_AUTHORITY_";
+	public static final String MEDIA_STREAM_AUTHORITY = "VMP_MEDIA_STREAM_AUTHORITY_";
 
 	public static final String SIP_CSEQ_PREFIX = "VMP_SIP_CSEQ_";
 
@@ -68,8 +68,10 @@ public class VideoManagerConstants {
 	public static final String SYSTEM_INFO_NET_PREFIX = "VMP_SYSTEM_INFO_NET_";
 
 	public static final String SYSTEM_INFO_DISK_PREFIX = "VMP_SYSTEM_INFO_DISK_";
+	public static final String BROADCAST_WAITE_INVITE = "task_broadcast_waite_invite_";
 
 	public static final String REGISTER_EXPIRE_TASK_KEY_PREFIX = "VMP_device_register_expire_";
+	public static final String PUSH_STREAM_LIST = "VMP_PUSH_STREAM_LIST_";
 
 
 
@@ -158,7 +160,9 @@ public class VideoManagerConstants {
 	public static final String WVP_STREAM_GB_ID_PREFIX = "memberNo_";
 	public static final String WVP_STREAM_GPS_MSG_PREFIX = "WVP_STREAM_GPS_MSG_";
 	public static final String WVP_OTHER_SEND_RTP_INFO = "VMP_OTHER_SEND_RTP_INFO_";
+	public static final String WVP_OTHER_SEND_PS_INFO = "VMP_OTHER_SEND_PS_INFO_";
 	public static final String WVP_OTHER_RECEIVE_RTP_INFO = "VMP_OTHER_RECEIVE_RTP_INFO_";
+	public static final String WVP_OTHER_RECEIVE_PS_INFO = "VMP_OTHER_RECEIVE_PS_INFO_";
 
 	/**
 	 * Redis Const

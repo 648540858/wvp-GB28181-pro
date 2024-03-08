@@ -91,6 +91,8 @@
           <el-button size="medium" icon="el-icon-check" type="text" :loading="scope.row.startBtnLoading" v-if="!scope.row.enable" @click="start(scope.row)">启用</el-button>
           <el-divider v-if="!scope.row.enable" direction="vertical"></el-divider>
           <el-button size="medium" icon="el-icon-delete" type="text" style="color: #f56c6c" @click="deleteStreamProxy(scope.row)">删除</el-button>
+          <el-button size="medium" icon="el-icon-cloudy" type="text" @click="queryCloudRecords(scope.row)">云端录像
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -243,6 +245,10 @@
 				});
 
 			},
+      queryCloudRecords: function (row) {
+
+        this.$router.push(`/cloudRecordDetail/${row.app}/${row.stream}`)
+      },
 			deleteStreamProxy: function(row){
 				let that = this;
         this.$confirm('确定删除此代理吗？', '提示', {

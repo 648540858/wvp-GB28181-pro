@@ -15,11 +15,13 @@
   * [节点管理](_content/ability/node_manger.md)
   * [云端录像](_content/ability/cloud_record.md)
   * [不间断录像](_content/ability/continuous_recording.md)
+  * [语音对讲](_content/ability/continuous_broadcast.md)
 * **流程与原理**
   * [统一编码规则](_content/theory/code.md)
   * [树形结构](_content/theory/channel_tree.md)
   * [注册流程](_content/theory/register.md)
   * [点播流程](_content/theory/play.md)
+  * [级联语音喊话流程](_content/theory/broadcast_cascade.md)
 * **必备技巧**
   * [抓包](_content/skill/tcpdump.md)
 

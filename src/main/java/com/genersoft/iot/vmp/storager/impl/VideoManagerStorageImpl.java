@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.storager.impl;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -38,6 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @SuppressWarnings("rawtypes")
 @Component
+@DS("master")
 public class VideoManagerStorageImpl implements IVideoManagerStorage {
 
 	private final Logger logger = LoggerFactory.getLogger(VideoManagerStorageImpl.class);
@@ -74,6 +76,9 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
     private PlatformChannelMapper platformChannelMapper;
 
 	@Autowired
+	private PlatformCatalogMapper platformCatalogMapper;
+
+	@Autowired
     private StreamProxyMapper streamProxyMapper;
 
 	@Autowired
@@ -90,12 +95,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 
 	@Autowired
     private PlatformGbStreamMapper platformGbStreamMapper;
-
-	@Autowired
-    private IGbStreamService gbStreamService;
-
-	@Autowired
-    private ParentPlatformMapper parentPlatformMapper;
 
 	/**
 	 * 根据设备ID判断设备是否存在
@@ -126,6 +125,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 
 		List<DeviceChannel> updateChannels = new ArrayList<>();
 		List<DeviceChannel> addChannels = new ArrayList<>();
+		List<DeviceChannel> deleteChannels = new ArrayList<>();
 		StringBuilder stringBuilder = new StringBuilder();
 		Map<String, Integer> subContMap = new HashMap<>();
 
@@ -156,6 +156,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 				deviceChannel.setUpdateTime(DateUtil.getNow());
 				addChannels.add(deviceChannel);
 			}
+			allChannelMap.remove(deviceChannel.getChannelId());
 			channels.add(deviceChannel);
 			if (!ObjectUtils.isEmpty(deviceChannel.getParentId())) {
 				if (subContMap.get(deviceChannel.getParentId()) == null) {
@@ -166,7 +167,8 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 				}
 			}
 		}
-		if (channels.size() > 0) {
+		deleteChannels.addAll(allChannelMap.values());
+		if (!channels.isEmpty()) {
 			for (DeviceChannel channel : channels) {
 				if (subContMap.get(channel.getChannelId()) != null){
 					Integer count = subContMap.get(channel.getChannelId());
@@ -186,11 +188,9 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 			return false;
 		}
 		try {
-			int cleanChannelsResult = deviceChannelMapper.cleanChannelsNotInList(deviceId, channels);
-
-			int limitCount = 300;
-			boolean result = cleanChannelsResult < 0;
-			if (!result && addChannels.size() > 0) {
+			int limitCount = 50;
+			boolean result = false;
+			if (!result && !addChannels.isEmpty()) {
 				if (addChannels.size() > limitCount) {
 					for (int i = 0; i < addChannels.size(); i += limitCount) {
 						int toIndex = i + limitCount;
@@ -203,7 +203,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 					result = result || deviceChannelMapper.batchAdd(addChannels) < 0;
 				}
 			}
-			if (!result && updateChannels.size() > 0) {
+			if (!result && !updateChannels.isEmpty()) {
 				if (updateChannels.size() > limitCount) {
 					for (int i = 0; i < updateChannels.size(); i += limitCount) {
 						int toIndex = i + limitCount;
@@ -214,6 +214,20 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 					}
 				}else {
 					result = result || deviceChannelMapper.batchUpdate(updateChannels) < 0;
+				}
+			}
+			if (!result && !deleteChannels.isEmpty()) {
+				System.out.println("删除： " + deleteChannels.size());
+				if (deleteChannels.size() > limitCount) {
+					for (int i = 0; i < deleteChannels.size(); i += limitCount) {
+						int toIndex = i + limitCount;
+						if (i + limitCount > deleteChannels.size()) {
+							toIndex = deleteChannels.size();
+						}
+						result = result || deviceChannelMapper.batchDel(deleteChannels.subList(i, toIndex)) < 0;
+					}
+				}else {
+					result = result || deviceChannelMapper.batchDel(deleteChannels) < 0;
 				}
 			}
 
@@ -244,12 +258,12 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 				allChannelMap.put(deviceChannel.getChannelId(), deviceChannel);
 			}
 		}
-		List<DeviceChannel> addChannels = new ArrayList<>();
-		List<DeviceChannel> updateChannels = new ArrayList<>();
-
-
 		TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
 		// 数据去重
+		List<DeviceChannel> channels = new ArrayList<>();
+
+		List<DeviceChannel> updateChannels = new ArrayList<>();
+		List<DeviceChannel> addChannels = new ArrayList<>();
 		StringBuilder stringBuilder = new StringBuilder();
 		Map<String, Integer> subContMap = new HashMap<>();
 		if (deviceChannelList.size() > 0) {
@@ -258,15 +272,24 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 			for (DeviceChannel deviceChannel : deviceChannelList) {
 				if (!gbIdSet.contains(deviceChannel.getChannelId())) {
 					gbIdSet.add(deviceChannel.getChannelId());
+					deviceChannel.setUpdateTime(DateUtil.getNow());
 					if (allChannelMap.containsKey(deviceChannel.getChannelId())) {
 						deviceChannel.setStreamId(allChannelMap.get(deviceChannel.getChannelId()).getStreamId());
 						deviceChannel.setHasAudio(allChannelMap.get(deviceChannel.getChannelId()).isHasAudio());
-						deviceChannel.setUpdateTime(DateUtil.getNow());
+						if (allChannelMap.get(deviceChannel.getChannelId()).isStatus() !=deviceChannel.isStatus()){
+							List<String> strings = platformChannelMapper.queryParentPlatformByChannelId(deviceChannel.getChannelId());
+							if (!CollectionUtils.isEmpty(strings)){
+								strings.forEach(platformId->{
+									eventPublisher.catalogEventPublish(platformId, deviceChannel, deviceChannel.isStatus()?CatalogEvent.ON:CatalogEvent.OFF);
+								});
+							}
+						}
 						updateChannels.add(deviceChannel);
 					}else {
 						deviceChannel.setCreateTime(DateUtil.getNow());
 						addChannels.add(deviceChannel);
 					}
+					channels.add(deviceChannel);
 					if (!ObjectUtils.isEmpty(deviceChannel.getParentId())) {
 						if (subContMap.get(deviceChannel.getParentId()) == null) {
 							subContMap.put(deviceChannel.getParentId(), 1);
@@ -279,15 +302,8 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 					stringBuilder.append(deviceChannel.getChannelId()).append(",");
 				}
 			}
-			if (addChannels.size() > 0) {
-				for (DeviceChannel channel : addChannels) {
-					if (subContMap.get(channel.getChannelId()) != null){
-						channel.setSubCount(subContMap.get(channel.getChannelId()));
-					}
-				}
-			}
-			if (updateChannels.size() > 0) {
-				for (DeviceChannel channel : updateChannels) {
+			if (channels.size() > 0) {
+				for (DeviceChannel channel : channels) {
 					if (subContMap.get(channel.getChannelId()) != null){
 						channel.setSubCount(subContMap.get(channel.getChannelId()));
 					}
@@ -298,12 +314,12 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		if (stringBuilder.length() > 0) {
 			logger.info("[目录查询]收到的数据存在重复： {}" , stringBuilder);
 		}
-		if(CollectionUtils.isEmpty(updateChannels) && CollectionUtils.isEmpty(addChannels) ){
-			logger.info("通道更新，数据为空={}" , deviceChannelList);
+		if(CollectionUtils.isEmpty(channels)){
+			logger.info("通道重设，数据为空={}" , deviceChannelList);
 			return false;
 		}
 		try {
-			int limitCount = 300;
+			int limitCount = 50;
 			boolean result = false;
 			if (addChannels.size() > 0) {
 				if (addChannels.size() > limitCount) {
@@ -312,10 +328,10 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 						if (i + limitCount > addChannels.size()) {
 							toIndex = addChannels.size();
 						}
-						result = result || deviceChannelMapper.batchAddOrUpdate(addChannels.subList(i, toIndex)) < 0;
+						result = result || deviceChannelMapper.batchAdd(addChannels.subList(i, toIndex)) < 0;
 					}
 				}else {
-					result = result || deviceChannelMapper.batchAddOrUpdate(addChannels) < 0;
+					result = result || deviceChannelMapper.batchAdd(addChannels) < 0;
 				}
 			}
 			if (updateChannels.size() > 0) {
@@ -331,13 +347,12 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 					result = result || deviceChannelMapper.batchUpdate(updateChannels) < 0;
 				}
 			}
+
 			if (result) {
 				//事务回滚
 				dataSourceTransactionManager.rollback(transactionStatus);
-			}else {
-				//手动提交
-				dataSourceTransactionManager.commit(transactionStatus);
 			}
+			dataSourceTransactionManager.commit(transactionStatus);     //手动提交
 			return true;
 		}catch (Exception e) {
 			logger.error("未处理的异常 ", e);
@@ -899,7 +914,41 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 			eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.DEL);
 		}
 		int delChannelresult = platformChannelMapper.delByCatalogId(platformId, id);
+		// 查看是否存在子目录，如果存在一并删除
+		List<String> allChildCatalog = getAllChildCatalog(id, platformId);
+		if (!allChildCatalog.isEmpty()) {
+			int limitCount = 50;
+			if (allChildCatalog.size() > limitCount) {
+				for (int i = 0; i < allChildCatalog.size(); i += limitCount) {
+					int toIndex = i + limitCount;
+					if (i + limitCount > allChildCatalog.size()) {
+						toIndex = allChildCatalog.size();
+					}
+					delChannelresult += platformCatalogMapper.deleteAll(platformId, allChildCatalog.subList(i, toIndex));
+				}
+			}else {
+				delChannelresult += platformCatalogMapper.deleteAll(platformId, allChildCatalog);
+			}
+		}
 		return delresult + delChannelresult + delStreamresult;
+	}
+
+	private List<String> getAllChildCatalog(String id, String platformId) {
+		List<String> catalogList = platformCatalogMapper.queryCatalogFromParent(id, platformId);
+		List<String> catalogListChild = new ArrayList<>();
+		if (catalogList != null && !catalogList.isEmpty()) {
+			for (String childId : catalogList) {
+				List<String> allChildCatalog = getAllChildCatalog(childId, platformId);
+				if (allChildCatalog != null && !allChildCatalog.isEmpty()) {
+					catalogListChild.addAll(allChildCatalog);
+				}
+
+			}
+		}
+		if (!catalogListChild.isEmpty()) {
+			catalogList.addAll(catalogListChild);
+		}
+		return catalogList;
 	}
 
 

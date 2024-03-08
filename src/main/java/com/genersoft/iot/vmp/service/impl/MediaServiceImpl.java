@@ -4,20 +4,17 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.common.StreamURL;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import com.genersoft.iot.vmp.service.IMediaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
-
-import java.net.URL;
 
 @Service
 public class MediaServiceImpl implements IMediaService {
@@ -42,7 +39,7 @@ public class MediaServiceImpl implements IMediaService {
 
     @Override
     public StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream, Object tracks, String callId) {
-        return getStreamInfoByAppAndStream(mediaInfo, app, stream, tracks, null, callId);
+        return getStreamInfoByAppAndStream(mediaInfo, app, stream, tracks, null, callId, true);
     }
 
     @Override
@@ -67,12 +64,12 @@ public class MediaServiceImpl implements IMediaService {
                 if (data == null) {
                     return null;
                 }
-                JSONObject mediaJSON = JSON.parseObject(JSON.toJSONString(data.get(0)), JSONObject.class);
+                JSONObject mediaJSON = data.getJSONObject(0);
                 JSONArray tracks = mediaJSON.getJSONArray("tracks");
                 if (authority) {
-                    streamInfo = getStreamInfoByAppAndStream(mediaInfo, app, stream, tracks, addr, calld);
+                    streamInfo = getStreamInfoByAppAndStream(mediaInfo, app, stream, tracks, addr, calld, true);
                 }else {
-                    streamInfo = getStreamInfoByAppAndStream(mediaInfo, app, stream, tracks, addr,null);
+                    streamInfo = getStreamInfoByAppAndStream(mediaInfo, app, stream, tracks, addr,null, true);
                 }
             }
         }
@@ -87,7 +84,7 @@ public class MediaServiceImpl implements IMediaService {
     }
 
     @Override
-    public StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream, Object tracks, String addr, String callId) {
+    public StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream, Object tracks, String addr, String callId, boolean isPlay) {
         StreamInfo streamInfoResult = new StreamInfo();
         streamInfoResult.setStream(stream);
         streamInfoResult.setApp(app);
@@ -104,10 +101,9 @@ public class MediaServiceImpl implements IMediaService {
         streamInfoResult.setFmp4(addr, mediaInfo.getHttpPort(),mediaInfo.getHttpSSlPort(), app,  stream, callIdParam);
         streamInfoResult.setHls(addr, mediaInfo.getHttpPort(),mediaInfo.getHttpSSlPort(), app,  stream, callIdParam);
         streamInfoResult.setTs(addr, mediaInfo.getHttpPort(),mediaInfo.getHttpSSlPort(), app,  stream, callIdParam);
-        streamInfoResult.setRtc(addr, mediaInfo.getHttpPort(),mediaInfo.getHttpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setRtc(addr, mediaInfo.getHttpPort(),mediaInfo.getHttpSSlPort(), app,  stream, callIdParam, isPlay);
 
         streamInfoResult.setTracks(tracks);
         return streamInfoResult;
     }
-
 }

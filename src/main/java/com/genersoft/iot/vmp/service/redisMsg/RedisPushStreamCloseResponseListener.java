@@ -73,14 +73,22 @@ public class RedisPushStreamCloseResponseListener implements MessageListener {
         MessageForPushChannel pushChannel = JSON.parseObject(message.getBody(), MessageForPushChannel.class);
         StreamPushItem push = streamPushService.getPush(pushChannel.getApp(), pushChannel.getStream());
         if (push != null) {
-            if (redisCatchStorage.isChannelSendingRTP(push.getGbId())) {
-                List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByChnnelId(
-                        push.getGbId());
-                if (sendRtpItems.size() > 0) {
-                    for (SendRtpItem sendRtpItem : sendRtpItems) {
-                        ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
+            List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByChnnelId(
+                    push.getGbId());
+            if (!sendRtpItems.isEmpty()) {
+                for (SendRtpItem sendRtpItem : sendRtpItems) {
+                    ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
+                    if (parentPlatform != null) {
+                        redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(), sendRtpItem.getCallId(), sendRtpItem.getStream());
+                        try {
+                            commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem);
+                        } catch (SipException | InvalidArgumentException | ParseException e) {
+                            logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+                        }
+                    }
+                    if (push.isSelf()) {
                         // 停止向上级推流
-                        String streamId = sendRtpItem.getStreamId();
+                        String streamId = sendRtpItem.getStream();
                         Map<String, Object> param = new HashMap<>();
                         param.put("vhost","__defaultVhost__");
                         param.put("app",sendRtpItem.getApp());
@@ -88,17 +96,11 @@ public class RedisPushStreamCloseResponseListener implements MessageListener {
                         param.put("ssrc",sendRtpItem.getSsrc());
                         logger.info("[REDIS消息-推流结束] 停止向上级推流：{}", streamId);
                         MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-                        redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(), sendRtpItem.getCallId(), sendRtpItem.getStreamId());
+                        redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(), sendRtpItem.getCallId(), sendRtpItem.getStream());
                         zlmServerFactory.stopSendRtpStream(mediaInfo, param);
-
-                        try {
-                            commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem);
-                        } catch (SipException | InvalidArgumentException | ParseException e) {
-                            logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
-                        }
                         if (InviteStreamType.PUSH == sendRtpItem.getPlayType()) {
                             MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
-                                    sendRtpItem.getApp(), sendRtpItem.getStreamId(), sendRtpItem.getChannelId(),
+                                    sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getChannelId(),
                                     sendRtpItem.getPlatformId(), parentPlatform.getName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
                             messageForPushChannel.setPlatFormIndex(parentPlatform.getId());
                             redisCatchStorage.sendPlatformStopPlayMsg(messageForPushChannel);

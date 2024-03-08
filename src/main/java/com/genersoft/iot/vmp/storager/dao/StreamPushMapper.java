@@ -13,9 +13,9 @@ import java.util.List;
 public interface StreamPushMapper {
 
     @Insert("INSERT INTO wvp_stream_push (app, stream, total_reader_count, origin_type, origin_type_str, " +
-            "push_time, alive_second, media_server_id, update_time, create_time, push_ing, self) VALUES" +
+            "push_time, alive_second, media_server_id, server_id, update_time, create_time, push_ing, self) VALUES" +
             "(#{app}, #{stream}, #{totalReaderCount}, #{originType}, #{originTypeStr}, " +
-            "#{pushTime}, #{aliveSecond}, #{mediaServerId} , #{updateTime} , #{createTime}, " +
+            "#{pushTime}, #{aliveSecond}, #{mediaServerId} , #{serverId} , #{updateTime} , #{createTime}, " +
             "#{pushIng}, #{self} )")
     int add(StreamPushItem streamPushItem);
 
@@ -24,6 +24,7 @@ public interface StreamPushMapper {
             "UPDATE wvp_stream_push " +
             "SET update_time=#{updateTime}" +
             "<if test=\"mediaServerId != null\">, media_server_id=#{mediaServerId}</if>" +
+            "<if test=\"serverId != null\">, server_id=#{serverId}</if>" +
             "<if test=\"totalReaderCount != null\">, total_reader_count=#{totalReaderCount}</if>" +
             "<if test=\"originType != null\">, origin_type=#{originType}</if>" +
             "<if test=\"originTypeStr != null\">, origin_type_str=#{originTypeStr}</if>" +
@@ -79,20 +80,20 @@ public interface StreamPushMapper {
             " <if test='mediaServerId != null' > AND st.media_server_id=#{mediaServerId} </if>" +
             "order by st.create_time desc" +
             " </script>"})
-    List<StreamPushItem> selectAllForList(String query, Boolean pushing, String mediaServerId);
+    List<StreamPushItem> selectAllForList(@Param("query") String query, @Param("pushing") Boolean pushing, @Param("mediaServerId") String mediaServerId);
 
     @Select("SELECT st.*, gs.gb_id, gs.name, gs.longitude, gs.latitude FROM wvp_stream_push st LEFT join wvp_gb_stream gs on st.app = gs.app AND st.stream = gs.stream order by st.create_time desc")
     List<StreamPushItem> selectAll();
 
     @Select("SELECT st.*, gs.gb_id, gs.name, gs.longitude, gs.latitude FROM wvp_stream_push st LEFT join wvp_gb_stream gs on st.app = gs.app AND st.stream = gs.stream WHERE st.app=#{app} AND st.stream=#{stream}")
-    StreamPushItem selectOne(String app, String stream);
+    StreamPushItem selectOne(@Param("app") String app, @Param("stream") String stream);
 
     @Insert("<script>"  +
             "Insert INTO wvp_stream_push (app, stream, total_reader_count, origin_type, origin_type_str, " +
-            "create_time, alive_second, media_server_id, status, push_ing) " +
+            "create_time, alive_second, media_server_id, server_id, status, push_ing) " +
             "VALUES <foreach collection='streamPushItems' item='item' index='index' separator=','>" +
             "( #{item.app}, #{item.stream}, #{item.totalReaderCount}, #{item.originType}, " +
-            "#{item.originTypeStr},#{item.createTime}, #{item.aliveSecond}, #{item.mediaServerId}, #{item.status} ," +
+            "#{item.originTypeStr},#{item.createTime}, #{item.aliveSecond}, #{item.mediaServerId},#{item.serverId}, #{item.status} ," +
             " #{item.pushIng} )" +
             " </foreach>" +
             "</script>")
@@ -122,17 +123,17 @@ public interface StreamPushMapper {
     @Update("UPDATE wvp_stream_push " +
             "SET status=#{status} " +
             "WHERE app=#{app} AND stream=#{stream}")
-    int updateStatus(String app, String stream, boolean status);
+    int updateStatus(@Param("app") String app, @Param("stream") String stream, @Param("status") boolean status);
 
     @Update("UPDATE wvp_stream_push " +
             "SET push_ing=#{pushIng} " +
             "WHERE app=#{app} AND stream=#{stream}")
-    int updatePushStatus(String app, String stream, boolean pushIng);
+    int updatePushStatus(@Param("app") String app, @Param("stream") String stream, @Param("pushIng") boolean pushIng);
 
     @Update("UPDATE wvp_stream_push " +
             "SET status=#{status} " +
             "WHERE media_server_id=#{mediaServerId}")
-    void updateStatusByMediaServerId(String mediaServerId, boolean status);
+    void updateStatusByMediaServerId(@Param("mediaServerId") String mediaServerId, @Param("status") boolean status);
 
 
     @Select("<script> "+

@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.storager.dao.dto.User;
 import org.apache.ibatis.annotations.*;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -36,7 +37,7 @@ public interface UserMapper {
             @Result(column = "role_create_time", property = "role.createTime"),
             @Result(column = "role_update_time", property = "role.updateTime")
     })
-    User select(String username, String password);
+    User select(@Param("username") String username, @Param("password") String password);
 
     @Select("select u.*, r.id as role_id, r.name as role_name, r.authority as role_authority , r.create_time as role_create_time , r.update_time as role_update_time from wvp_user u, wvp_user_role r WHERE u.role_id=r.id and u.id=#{id}")
     @ResultMap(value="roleMap")
@@ -55,5 +56,5 @@ public interface UserMapper {
     List<User> getUsers();
 
     @Update("UPDATE wvp_user set push_key=#{pushKey} where id=#{id}")
-    int changePushKey(int id, String pushKey);
+    int changePushKey(@Param("id") int id, @Param("pushKey") String pushKey);
 }

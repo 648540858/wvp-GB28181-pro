@@ -6,8 +6,7 @@
         <el-progress :percentage="percentage"></el-progress>
       </el-col>
       <el-col :span="6" >
-        <el-button icon="el-icon-download" v-if="percentage < 100" size="mini" title="点击下载可将以缓存部分下载到本地" @click="download()">停止缓存并下载</el-button>
-        <el-button icon="el-icon-download" v-if="downloadFile" size="mini" title="点击下载" @click="downloadFileClientEvent()">点击下载</el-button>
+        <el-button icon="el-icon-download" v-if="downloadFile" size="mini" title="点击下载" @click="downloadFileClientEvent()">下载</el-button>
       </el-col>
     </el-row>
   </el-dialog>
@@ -27,7 +26,7 @@ export default {
     },
     data() {
         return {
-          title: "四倍速下载中...",
+          title: "下载中...",
           deviceId: "",
           channelId: "",
           app: "",
@@ -39,7 +38,6 @@ export default {
           streamInfo: null,
           taskId: null,
           getProgressRun: false,
-          getProgressForFileRun: false,
           timer: null,
           downloadFile: null,
 
@@ -62,7 +60,7 @@ export default {
             return;
           }
           if (this.percentage == 100 ) {
-            this.getFileDownload();
+
             return;
           }
           setTimeout( ()=>{
@@ -75,13 +73,21 @@ export default {
             method: 'get',
             url: `/api/gb_record/download/progress/${this.deviceId}/${this.channelId}/${this.stream}`
           }).then((res)=> {
-            console.log(res)
               if (res.data.code === 0) {
                 this.streamInfo = res.data.data;
                 if (parseFloat(res.data.progress) == 1) {
                   this.percentage = 100;
                 }else {
                   this.percentage = (parseFloat(res.data.data.progress)*100).toFixed(1);
+                }
+                if (this.streamInfo.downLoadFilePath) {
+                  if (location.protocol === "https:") {
+                    this.downloadFile = this.streamInfo.downLoadFilePath.httpsPath;
+                  }else {
+                    this.downloadFile = this.streamInfo.downLoadFilePath.httpPath;
+                  }
+                  this.getProgressRun = false;
+                  this.downloadFileClientEvent()
                 }
                 if (callback)callback();
               }else {
@@ -108,24 +114,11 @@ export default {
           }
           this.showDialog=false;
           this.getProgressRun = false;
-          this.getProgressForFileRun = false;
         },
         gbScale: function (scale){
           this.scale = scale;
         },
-        download: function (){
-          this.getProgressRun = false;
-          if (this.streamInfo != null ) {
-            if (this.streamInfo.progress < 1) {
-              // 发送停止缓存
-              this.stopDownloadRecord((res)=>{
-                  this.getFileDownload()
-              })
-            }else {
-              this.getFileDownload()
-            }
-          }
-        },
+
         stopDownloadRecord: function (callback) {
           this.$axios({
             method: 'get',
@@ -134,74 +127,20 @@ export default {
             if (callback) callback(res)
           });
         },
-        getFileDownload: function (){
-          this.$axios({
-            method: 'get',
-            url:`/record_proxy/${this.mediaServerId}/api/record/file/download/task/add`,
-            params: {
-              app: this.app,
-              stream: this.stream,
-              startTime: null,
-              endTime: null,
-            }
-          }).then((res) =>{
-            if (res.data.code === 0 ) {
-              // 查询进度
-              this.title = "录像文件处理中..."
-              this.taskId = res.data.data;
-              this.percentage = 0.0;
-              this.getProgressForFileRun = true;
-              this.getProgressForFileTimer();
-            }
-          }).catch(function (error) {
-            console.log(error);
-          });
-        },
-        getProgressForFileTimer: function (){
-          if (!this.getProgressForFileRun || this.percentage == 100) {
-            return;
-          }
-          setTimeout( ()=>{
-            if (!this.showDialog) return;
-            this.getProgressForFile(this.getProgressForFileTimer)
-          }, 1000)
-        },
-        getProgressForFile: function (callback){
-          this.$axios({
-            method: 'get',
-            url:`/record_proxy/${this.mediaServerId}/api/record/file/download/task/list`,
-            params: {
-              app: this.app,
-              stream: this.stream,
-              taskId: this.taskId,
-              isEnd: true,
-            }
-          }).then((res) => {
-            console.log(res)
-            if (res.data.code === 0) {
-              if (res.data.data.length === 0){
-                this.percentage = 0
-                // 往往在多次请求后（实验五分钟的视频是三次请求），才会返回数据，第一次请求通常是返回空数组
-                if (callback)callback()
-                return
-              }
-              // res.data.data应是数组类型
-                this.percentage = parseFloat(res.data.data[0].percentage)*100
-                 if (res.data.data[0].percentage === '1') {
-                   this.getProgressForFileRun = false;
-                   this.downloadFile = res.data.data[0].downloadFile
-                   this.title = "文件处理完成，点击按扭下载"
-                   // window.open(res.data.data[0].downloadFile)
-                 }else {
-                   if (callback)callback()
-                 }
-            }
-          }).catch(function (error) {
-            console.log(error);
-          });
-        },
       downloadFileClientEvent: function (){
-        window.open(this.downloadFile )
+        // window.open(this.downloadFile )
+
+        let x = new XMLHttpRequest();
+        x.open("GET", this.downloadFile, true);
+        x.responseType = 'blob';
+        x.onload=(e)=> {
+          let url = window.URL.createObjectURL(x.response)
+          let a = document.createElement('a');
+          a.href = url
+          a.download = this.deviceId + "-" + this.channelId + ".mp4";
+          a.click()
+        }
+        x.send();
       }
     },
     destroyed() {

@@ -6,7 +6,6 @@ import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
-import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
@@ -38,7 +37,6 @@ import javax.sip.SipException;
 import javax.sip.header.FromHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -132,7 +130,6 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 
 						if (CmdType.CATALOG.equals(cmd)) {
 							logger.info("接收到Catalog通知");
-//							processNotifyCatalogList(take.getEvt());
 							notifyRequestForCatalogProcessor.process(take.getEvt());
 						} else if (CmdType.ALARM.equals(cmd)) {
 							logger.info("接收到Alarm通知");
@@ -223,7 +220,6 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 					mobilePosition.getLongitude(), mobilePosition.getLatitude());
 			mobilePosition.setReportSource("Mobile Position");
 
-
 			// 更新device channel 的经纬度
 			DeviceChannel deviceChannel = new DeviceChannel();
 			deviceChannel.setDeviceId(device.getDeviceId());
@@ -243,6 +239,8 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			}
 
 			storager.updateChannelPosition(deviceChannel);
+			// 向关联了该通道并且开启移动位置订阅的上级平台发送移动位置订阅消息
+
 
 			// 发送redis消息。 通知位置信息的变化
 			JSONObject jsonObject = new JSONObject();
@@ -319,6 +317,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			logger.info("[收到Notify-Alarm]：{}/{}", device.getDeviceId(), deviceAlarm.getChannelId());
 			if ("4".equals(deviceAlarm.getAlarmMethod())) {
 				MobilePosition mobilePosition = new MobilePosition();
+				mobilePosition.setChannelId(channelId);
 				mobilePosition.setCreateTime(DateUtil.getNow());
 				mobilePosition.setDeviceId(deviceAlarm.getDeviceId());
 				mobilePosition.setTime(deviceAlarm.getAlarmTime());
@@ -364,114 +363,6 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			// 回复200 OK
 			if (redisCatchStorage.deviceIsOnline(deviceId)) {
 				publisher.deviceAlarmEventPublish(deviceAlarm);
-			}
-		} catch (DocumentException e) {
-			logger.error("未处理的异常 ", e);
-		}
-	}
-
-	/***
-	 * 处理catalog设备目录列表Notify
-	 *
-	 * @param evt
-	 */
-	private void processNotifyCatalogList(RequestEvent evt) {
-		try {
-			FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
-			String deviceId = SipUtils.getUserIdFromFromHeader(fromHeader);
-
-			Device device = redisCatchStorage.getDevice(deviceId);
-			if (device == null || !device.isOnLine()) {
-				logger.warn("[收到目录订阅]：{}, 但是设备已经离线", (device != null ? device.getDeviceId():"" ));
-				return;
-			}
-			Element rootElement = getRootElement(evt, device.getCharset());
-			if (rootElement == null) {
-				logger.warn("[ 收到目录订阅 ] content cannot be null, {}", evt.getRequest());
-				return;
-			}
-			Element deviceListElement = rootElement.element("DeviceList");
-			if (deviceListElement == null) {
-				return;
-			}
-			Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
-			if (deviceListIterator != null) {
-
-				// 遍历DeviceList
-				while (deviceListIterator.hasNext()) {
-					Element itemDevice = deviceListIterator.next();
-					Element channelDeviceElement = itemDevice.element("DeviceID");
-					if (channelDeviceElement == null) {
-						continue;
-					}
-					Element eventElement = itemDevice.element("Event");
-					String event;
-					if (eventElement == null) {
-						logger.warn("[收到目录订阅]：{}, 但是Event为空, 设为默认值 ADD", (device != null ? device.getDeviceId():"" ));
-						event = CatalogEvent.ADD;
-					}else {
-						event = eventElement.getText().toUpperCase();
-					}
-					DeviceChannel channel = XmlUtil.channelContentHandler(itemDevice, device, event, civilCodeFileConf);
-					if (channel == null) {
-						logger.info("[收到目录订阅]：但是解析失败 {}", new String(evt.getRequest().getRawContent()));
-						continue;
-					}
-					if (channel.getParentId() != null && channel.getParentId().equals(sipConfig.getId())) {
-						channel.setParentId(null);
-					}
-					channel.setDeviceId(device.getDeviceId());
-					logger.info("[收到目录订阅]：{}/{}", device.getDeviceId(), channel.getChannelId());
-					switch (event) {
-						case CatalogEvent.ON:
-							// 上线
-							logger.info("[收到通道上线通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
-							storager.deviceChannelOnline(deviceId, channel.getChannelId());
-							break;
-						case CatalogEvent.OFF :
-							// 离线
-							logger.info("[收到通道离线通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
-							if (userSetting.getRefuseChannelStatusChannelFormNotify()) {
-								storager.deviceChannelOffline(deviceId, channel.getChannelId());
-							}else {
-								logger.info("[收到通道离线通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
-							}
-							break;
-						case CatalogEvent.VLOST:
-							// 视频丢失
-							logger.info("[收到通道视频丢失通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
-							if (userSetting.getRefuseChannelStatusChannelFormNotify()) {
-								storager.deviceChannelOffline(deviceId, channel.getChannelId());
-							}else {
-								logger.info("[收到通道视频丢失通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
-							}
-							break;
-						case CatalogEvent.DEFECT:
-							// 故障
-							break;
-						case CatalogEvent.ADD:
-							// 增加
-							logger.info("[收到增加通道通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
-							deviceChannelService.updateChannel(deviceId, channel);
-							break;
-						case CatalogEvent.DEL:
-							// 删除
-							logger.info("[收到删除通道通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
-							storager.delChannel(deviceId, channel.getChannelId());
-							break;
-						case CatalogEvent.UPDATE:
-							// 更新
-							logger.info("[收到更新通道通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
-							deviceChannelService.updateChannel(deviceId, channel);
-							break;
-						default:
-							logger.warn("[ NotifyCatalog ] event not found ： {}", event );
-
-					}
-					// 转发变化信息
-					eventPublisher.catalogEventPublish(null, channel, event);
-
-				}
 			}
 		} catch (DocumentException e) {
 			logger.error("未处理的异常 ", e);

@@ -81,6 +81,12 @@ public class MediaConfig{
     @Value("${media.record-assist-port:0}")
     private Integer recordAssistPort = 0;
 
+    @Value("${media.record-day:7}")
+    private Integer recordDay;
+
+    @Value("${media.record-path:}")
+    private String recordPath;
+
     public String getId() {
         return id;
     }
@@ -91,7 +97,7 @@ public class MediaConfig{
 
     public String getHookIp() {
         if (ObjectUtils.isEmpty(hookIp)){
-            return sipIp.split(",")[0];
+            return sipIp;
         }else {
             return hookIp;
         }
@@ -212,11 +218,30 @@ public class MediaConfig{
         mediaServerItem.setSendRtpPortRange(rtpSendPortRange);
         mediaServerItem.setRecordAssistPort(recordAssistPort);
         mediaServerItem.setHookAliveInterval(30.00f);
-
+        mediaServerItem.setRecordDay(recordDay);
+        if (recordPath != null) {
+            mediaServerItem.setRecordPath(recordPath);
+        }
         mediaServerItem.setCreateTime(DateUtil.getNow());
         mediaServerItem.setUpdateTime(DateUtil.getNow());
 
         return mediaServerItem;
+    }
+
+    public Integer getRecordDay() {
+        return recordDay;
+    }
+
+    public void setRecordDay(Integer recordDay) {
+        this.recordDay = recordDay;
+    }
+
+    public String getRecordPath() {
+        return recordPath;
+    }
+
+    public void setRecordPath(String recordPath) {
+        this.recordPath = recordPath;
     }
 
     public String getRtpSendPortRange() {

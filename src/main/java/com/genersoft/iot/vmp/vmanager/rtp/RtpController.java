@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
@@ -19,6 +20,7 @@ import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.OtherRtpSendInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -69,7 +71,7 @@ public class RtpController {
 
     @GetMapping(value = "/receive/open")
     @ResponseBody
-    @Operation(summary = "开启收流和获取发流信息")
+    @Operation(summary = "开启收流和获取发流信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "isSend", description = "是否发送，false时只开启收流， true同时返回推流信息", required = true)
     @Parameter(name = "callId", description = "整个过程的唯一标识，为了与后续接口关联", required = true)
     @Parameter(name = "ssrc", description = "来源流的SSRC，不传则不校验来源ssrc", required = false)
@@ -91,17 +93,17 @@ public class RtpController {
         if (isSend != null && isSend && callId == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(),"isSend为true时，CallID不能为空");
         }
-        int ssrcInt = 0;
+        long ssrcInt = 0;
         if (ssrc != null) {
             try {
-                ssrcInt = Integer.parseInt(ssrc);
+                ssrcInt = Long.parseLong(ssrc);
             }catch (NumberFormatException e) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(),"ssrc格式错误");
             }
         }
         String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "_" + callId + "_"  + stream;
-        int localPortForVideo = zlmServerFactory.createRTPServer(mediaServerItem, stream, ssrcInt, null, false, tcpMode);
-        int localPortForAudio = zlmServerFactory.createRTPServer(mediaServerItem, stream + "_a" , ssrcInt, null, false, tcpMode);
+        int localPortForVideo = zlmServerFactory.createRTPServer(mediaServerItem, stream, ssrcInt, null, false, false, tcpMode);
+        int localPortForAudio = zlmServerFactory.createRTPServer(mediaServerItem, stream + "_a" , ssrcInt, null, false, false, tcpMode);
         if (localPortForVideo == 0 || localPortForAudio == 0) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "获取端口失败");
         }
@@ -156,7 +158,7 @@ public class RtpController {
 
     @GetMapping(value = "/receive/close")
     @ResponseBody
-    @Operation(summary = "关闭收流")
+    @Operation(summary = "关闭收流", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "stream", description = "流的ID", required = true)
     public void closeRtpServer(String stream) {
         logger.info("[第三方服务对接->关闭收流] stream->{}", stream);
@@ -175,7 +177,7 @@ public class RtpController {
 
     @GetMapping(value = "/send/start")
     @ResponseBody
-    @Operation(summary = "发送流")
+    @Operation(summary = "发送流", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "ssrc", description = "发送流的SSRC", required = true)
     @Parameter(name = "dstIpForAudio", description = "目标音频收流IP", required = false)
     @Parameter(name = "dstIpForVideo", description = "目标视频收流IP", required = false)
@@ -247,7 +249,6 @@ public class RtpController {
             String is_Udp = isUdp ? "1" : "0";
             paramForAudio.put("is_udp", is_Udp);
             paramForAudio.put("src_port", sendInfo.getSendLocalPortForAudio());
-            paramForAudio.put("use_ps", "0");
             paramForAudio.put("only_audio", "1");
             if (ptForAudio != null) {
                 paramForAudio.put("pt", ptForAudio);
@@ -268,7 +269,6 @@ public class RtpController {
             String is_Udp = isUdp ? "1" : "0";
             paramForVideo.put("is_udp", is_Udp);
             paramForVideo.put("src_port", sendInfo.getSendLocalPortForVideo());
-            paramForVideo.put("use_ps", "0");
             paramForVideo.put("only_audio", "0");
             if (ptForVideo != null) {
                 paramForVideo.put("pt", ptForVideo);
@@ -353,7 +353,7 @@ public class RtpController {
 
     @GetMapping(value = "/send/stop")
     @ResponseBody
-    @Operation(summary = "关闭发送流")
+    @Operation(summary = "关闭发送流", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "callId", description = "整个过程的唯一标识，不传则使用随机端口发流", required = true)
     public void closeSendRTP(String callId) {
         logger.info("[第三方服务对接->关闭发送流] callId->{}", callId);

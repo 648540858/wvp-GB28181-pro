@@ -18,6 +18,7 @@ import org.springframework.util.ObjectUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.ConnectException;
 
@@ -62,6 +63,18 @@ public class ProxyServletConfig {
                 }
             }
             return queryStr;
+        }
+
+
+        @Override
+        protected HttpResponse doExecute(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
+                                         HttpRequest proxyRequest) throws IOException {
+            HttpResponse response = super.doExecute(servletRequest, servletResponse, proxyRequest);
+            response.removeHeaders("Access-Control-Allow-Origin");
+            response.setHeader("Access-Control-Allow-Credentials","true");
+            response.removeHeaders("Access-Control-Allow-Credentials");
+
+            return response;
         }
 
         /**
@@ -179,6 +192,18 @@ public class ProxyServletConfig {
                 queryStr = "remoteHost=" + remoteHost;
             }
             return queryStr;
+        }
+
+
+        @Override
+        protected HttpResponse doExecute(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
+                                         HttpRequest proxyRequest) throws IOException {
+            HttpResponse response = super.doExecute(servletRequest, servletResponse, proxyRequest);
+            String origin = servletRequest.getHeader("origin");
+            response.setHeader("Access-Control-Allow-Origin",origin);
+            response.setHeader("Access-Control-Allow-Credentials","true");
+
+            return response;
         }
 
         /**

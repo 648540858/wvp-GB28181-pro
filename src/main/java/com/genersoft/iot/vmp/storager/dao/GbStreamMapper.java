@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import org.apache.ibatis.annotations.*;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,12 +15,12 @@ import java.util.List;
 @Repository
 public interface GbStreamMapper {
 
-    @Insert("REPLACE INTO wvp_gb_stream (app, stream, gb_id, name, " +
+    @Insert("INSERT INTO wvp_gb_stream (app, stream, gb_id, name, " +
             "longitude, latitude, stream_type,media_server_id,create_time) VALUES" +
             "(#{app}, #{stream}, #{gbId}, #{name}, " +
             "#{longitude}, #{latitude}, #{streamType}, " +
             "#{mediaServerId}, #{createTime})")
-    @Options(useGeneratedKeys = true, keyProperty = "gbStreamId", keyColumn = "gbStreamId")
+    @Options(useGeneratedKeys = true, keyProperty = "gbStreamId", keyColumn = "gb_stream_id")
     int add(GbStream gbStream);
 
     @Update("UPDATE wvp_gb_stream " +
@@ -47,7 +48,7 @@ public interface GbStreamMapper {
     int update(GbStream gbStream);
 
     @Delete("DELETE FROM wvp_gb_stream WHERE app=#{app} AND stream=#{stream}")
-    int del(String app, String stream);
+    int del(@Param("app") String app, @Param("stream") String stream);
 
     @Select("<script> "+
             "SELECT gs.* FROM wvp_gb_stream gs " +
@@ -61,10 +62,10 @@ public interface GbStreamMapper {
             " <if test='mediaServerId != null' > AND gs.media_server_id=#{mediaServerId} </if>" +
             " order by gs.gb_stream_id asc " +
             "</script>")
-    List<GbStream> selectAll(String platformId, String catalogId, String query, String mediaServerId);
+    List<GbStream> selectAll(@Param("platformId") String platformId, @Param("catalogId") String catalogId, @Param("query") String query, @Param("mediaServerId") String mediaServerId);
 
     @Select("SELECT * FROM wvp_gb_stream WHERE app=#{app} AND stream=#{stream}")
-    GbStream selectOne(String app, String stream);
+    GbStream selectOne(@Param("app") String app, @Param("stream") String stream);
 
     @Select("SELECT * FROM wvp_gb_stream WHERE gb_id=#{gbId}")
     List<GbStream> selectByGBId(String gbId);
@@ -72,7 +73,7 @@ public interface GbStreamMapper {
     @Select("SELECT gs.*, pgs.platform_id as platform_id, pgs.catalog_id as catalog_id FROM wvp_gb_stream gs " +
             "LEFT JOIN wvp_platform_gb_stream pgs ON gs.gb_stream_id = pgs.gb_stream_id " +
             "WHERE gs.gb_id = #{gbId} AND pgs.platform_id = #{platformId}")
-    GbStream queryStreamInPlatform(String platformId, String gbId);
+    GbStream queryStreamInPlatform(@Param("platformId") String platformId, @Param("gbId") String gbId);
 
     @Select("<script> "+
             "select gt.gb_id as channel_id, gt.name, 'wvp-pro' as manufacture,  st.status, gt.longitude, gt.latitude, pc.id as parent_id," +
@@ -90,7 +91,7 @@ public interface GbStreamMapper {
             " left join wvp_platform_catalog pc on pgs.catalog_id = pc.id and pgs.platform_id = pc.platform_id" +
             " where pgs.platform_id=#{platformId}" +
             "</script>")
-    List<DeviceChannel> queryGbStreamListInPlatform(String platformId, boolean usPushingAsStatus);
+    List<DeviceChannel> queryGbStreamListInPlatform(String platformId, @Param("usPushingAsStatus") boolean usPushingAsStatus);
 
 
     @Select("SELECT gs.* FROM wvp_gb_stream gs left join wvp_platform_gb_stream pgs " +
@@ -98,7 +99,7 @@ public interface GbStreamMapper {
     List<GbStream> queryStreamNotInPlatform();
 
     @Delete("DELETE FROM wvp_gb_stream WHERE stream_type=#{type} AND gb_id=NULL AND media_server_id=#{mediaServerId}")
-    void deleteWithoutGBId(String type, String mediaServerId);
+    void deleteWithoutGBId(@Param("type") String type, @Param("mediaServerId") String mediaServerId);
 
     @Delete("<script> "+
             "DELETE FROM wvp_gb_stream where " +
@@ -128,7 +129,7 @@ public interface GbStreamMapper {
             "</foreach> " +
             "</script>")
     @Options(useGeneratedKeys = true, keyProperty = "gbStreamId", keyColumn = "gb_stream_id")
-    void batchAdd(List<StreamPushItem> subList);
+    void batchAdd(@Param("subList") List<StreamPushItem> subList);
 
     @Update({"<script>" +
             "<foreach collection='gpsMsgInfos' item='item' separator=';'>" +
@@ -157,16 +158,16 @@ public interface GbStreamMapper {
                 " <foreach collection='list' item='item' index='index' separator=';'>"+
                     "UPDATE wvp_gb_stream " +
                     " SET name=#{item.name},"+
-                    " gb_id=#{item.gb_id}"+
+                    " gb_id=#{item.gbId}"+
                     " WHERE app=#{item.app} and stream=#{item.stream}"+
                 "</foreach>"+
             "</script>")
     int updateGbIdOrName(List<StreamPushItem> streamPushItemForUpdate);
 
     @Select("SELECT status FROM wvp_stream_proxy WHERE app=#{app} AND stream=#{stream}")
-    Boolean selectStatusForProxy(String app, String stream);
+    Boolean selectStatusForProxy(@Param("app") String app, @Param("stream") String stream);
 
     @Select("SELECT status FROM wvp_stream_push WHERE app=#{app} AND stream=#{stream}")
-    Boolean selectStatusForPush(String app, String stream);
+    Boolean selectStatusForPush(@Param("app") String app, @Param("stream") String stream);
 
 }

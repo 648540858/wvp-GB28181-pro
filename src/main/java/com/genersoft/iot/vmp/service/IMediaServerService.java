@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.ServerKeepaliveData;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
+import com.genersoft.iot.vmp.vmanager.bean.RecordFile;
 
 import java.util.List;
 
@@ -44,8 +45,10 @@ public interface IMediaServerService {
 
     void updateVmServer(List<MediaServerItem>  mediaServerItemList);
 
-    SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, String ssrc, boolean ssrcCheck,
-                           boolean isPlayback, Integer port, Boolean reUsePort, Integer tcpMode);
+    SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, String presetSsrc, boolean ssrcCheck,
+                           boolean isPlayback, Integer port, Boolean onlyAuto, Boolean reUsePort, Integer tcpMode);
+
+    SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, String ssrc, boolean ssrcCheck, boolean isPlayback, Integer port, Boolean onlyAuto);
 
     void closeRTPServer(MediaServerItem mediaServerItem, String streamId);
 
@@ -86,11 +89,12 @@ public interface IMediaServerService {
 
     void updateMediaServerKeepalive(String mediaServerId, ServerKeepaliveData data);
 
-    boolean checkRtpServer(MediaServerItem mediaServerItem, String rtp, String stream);
-
     /**
      * 获取负载信息
      * @return
      */
     MediaServerLoad getLoad(MediaServerItem mediaServerItem);
+
+    List<MediaServerItem> getAllWithAssistPort();
+
 }

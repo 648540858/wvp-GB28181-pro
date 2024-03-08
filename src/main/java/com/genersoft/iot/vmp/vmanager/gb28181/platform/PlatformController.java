@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
@@ -21,6 +22,7 @@ import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.UpdateChannelParam;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,7 +85,7 @@ public class PlatformController {
      *
      * @return
      */
-    @Operation(summary = "获取国标服务的配置")
+    @Operation(summary = "获取国标服务的配置", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @GetMapping("/server_config")
     public JSONObject serverConfig() {
         JSONObject result = new JSONObject();
@@ -99,7 +101,7 @@ public class PlatformController {
      *
      * @return
      */
-    @Operation(summary = "获取级联服务器信息")
+    @Operation(summary = "获取级联服务器信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "id", description = "平台国标编号", required = true)
     @GetMapping("/info/{id}")
     public ParentPlatform getPlatform(@PathVariable String id) {
@@ -119,7 +121,7 @@ public class PlatformController {
      * @return
      */
     @GetMapping("/query/{count}/{page}")
-    @Operation(summary = "分页查询级联平台")
+    @Operation(summary = "分页查询级联平台", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页条数", required = true)
     public PageInfo<ParentPlatform> platforms(@PathVariable int page, @PathVariable int count) {
@@ -140,7 +142,7 @@ public class PlatformController {
      * @param parentPlatform
      * @return
      */
-    @Operation(summary = "添加上级平台信息")
+    @Operation(summary = "添加上级平台信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @PostMapping("/add")
     @ResponseBody
     public void addPlatform(@RequestBody ParentPlatform parentPlatform) {
@@ -185,7 +187,7 @@ public class PlatformController {
      * @param parentPlatform
      * @return
      */
-    @Operation(summary = "保存上级平台信息")
+    @Operation(summary = "保存上级平台信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @PostMapping("/save")
     @ResponseBody
     public void savePlatform(@RequestBody ParentPlatform parentPlatform) {
@@ -216,7 +218,7 @@ public class PlatformController {
      * @param serverGBId 上级平台国标ID
      * @return
      */
-    @Operation(summary = "删除上级平台")
+    @Operation(summary = "删除上级平台", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "serverGBId", description = "上级平台的国标编号")
     @DeleteMapping("/delete/{serverGBId}")
     @ResponseBody
@@ -237,6 +239,8 @@ public class PlatformController {
         if (parentPlatformCatch == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台不存在");
         }
+        parentPlatform.setEnable(false);
+        storager.updateParentPlatform(parentPlatform);
         // 发送离线消息,无论是否成功都删除缓存
         try {
             commanderForPlatform.unregister(parentPlatform, parentPlatformCatch.getSipTransactionInfo(), (event -> {
@@ -273,7 +277,7 @@ public class PlatformController {
      * @param serverGBId 上级平台国标ID
      * @return
      */
-    @Operation(summary = "查询上级平台是否存在")
+    @Operation(summary = "查询上级平台是否存在", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "serverGBId", description = "上级平台的国标编号")
     @GetMapping("/exit/{serverGBId}")
     @ResponseBody
@@ -294,7 +298,7 @@ public class PlatformController {
      * @param channelType 通道类型
      * @return
      */
-    @Operation(summary = "查询上级平台是否存在")
+    @Operation(summary = "查询上级平台是否存在", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页条数", required = true)
     @Parameter(name = "platformId", description = "上级平台的国标编号")
@@ -331,7 +335,7 @@ public class PlatformController {
      * @param param 通道关联参数
      * @return
      */
-    @Operation(summary = "向上级平台添加国标通道")
+    @Operation(summary = "向上级平台添加国标通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @PostMapping("/update_channel_for_gb")
     @ResponseBody
     public void updateChannelForGB(@RequestBody UpdateChannelParam param) {
@@ -360,7 +364,7 @@ public class PlatformController {
      * @param param 通道关联参数
      * @return
      */
-    @Operation(summary = "从上级平台移除国标通道")
+    @Operation(summary = "从上级平台移除国标通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @DeleteMapping("/del_channel_for_gb")
     @ResponseBody
     public void delChannelForGB(@RequestBody UpdateChannelParam param) {
@@ -389,7 +393,7 @@ public class PlatformController {
      * @param parentId   目录父ID
      * @return
      */
-    @Operation(summary = "获取目录")
+    @Operation(summary = "获取目录", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "platformId", description = "上级平台的国标编号", required = true)
     @Parameter(name = "parentId", description = "父级目录的国标编号", required = true)
     @GetMapping("/catalog")
@@ -420,7 +424,7 @@ public class PlatformController {
      * @param platformCatalog 目录
      * @return
      */
-    @Operation(summary = "添加目录")
+    @Operation(summary = "添加目录", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @PostMapping("/catalog/add")
     @ResponseBody
     public void addCatalog(@RequestBody PlatformCatalog platformCatalog) {
@@ -445,7 +449,7 @@ public class PlatformController {
      * @param platformCatalog 目录
      * @return
      */
-    @Operation(summary = "编辑目录")
+    @Operation(summary = "编辑目录", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @PostMapping("/catalog/edit")
     @ResponseBody
     public void editCatalog(@RequestBody PlatformCatalog platformCatalog) {
@@ -471,7 +475,7 @@ public class PlatformController {
      * @param platformId 平台Id
      * @return
      */
-    @Operation(summary = "删除目录")
+    @Operation(summary = "删除目录", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "id", description = "目录Id", required = true)
     @Parameter(name = "platformId", description = "平台Id", required = true)
     @DeleteMapping("/catalog/del")
@@ -506,7 +510,7 @@ public class PlatformController {
      * @param platformCatalog 关联的信息
      * @return
      */
-    @Operation(summary = "删除关联")
+    @Operation(summary = "删除关联", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @DeleteMapping("/catalog/relation/del")
     @ResponseBody
     public void delRelation(@RequestBody PlatformCatalog platformCatalog) {
@@ -529,7 +533,7 @@ public class PlatformController {
      * @param catalogId  目录Id
      * @return
      */
-    @Operation(summary = "修改默认目录")
+    @Operation(summary = "修改默认目录", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "catalogId", description = "目录Id", required = true)
     @Parameter(name = "platformId", description = "平台Id", required = true)
     @PostMapping("/catalog/default/update")

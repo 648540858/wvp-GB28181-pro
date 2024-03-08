@@ -66,7 +66,7 @@ public class ParentPlatform {
      * 设备端口
      */
     @Schema(description = "设备端口")
-    private String devicePort;
+    private int devicePort;
 
     /**
      * SIP认证用户名(默认使用设备国标编号)
@@ -186,6 +186,9 @@ public class ParentPlatform {
     @Schema(description = "是否作为消息通道")
     private boolean asMessageChannel;
 
+    @Schema(description = "是否作为消息通道")
+    private boolean autoPushChannel;
+
     public Integer getId() {
         return id;
     }
@@ -258,11 +261,11 @@ public class ParentPlatform {
         this.deviceIp = deviceIp;
     }
 
-    public String getDevicePort() {
+    public int getDevicePort() {
         return devicePort;
     }
 
-    public void setDevicePort(String devicePort) {
+    public void setDevicePort(int devicePort) {
         this.devicePort = devicePort;
     }
 
@@ -424,5 +427,13 @@ public class ParentPlatform {
 
     public void setAsMessageChannel(boolean asMessageChannel) {
         this.asMessageChannel = asMessageChannel;
+    }
+
+    public boolean isAutoPushChannel() {
+        return autoPushChannel;
+    }
+
+    public void setAutoPushChannel(boolean autoPushChannel) {
+        this.autoPushChannel = autoPushChannel;
     }
 }

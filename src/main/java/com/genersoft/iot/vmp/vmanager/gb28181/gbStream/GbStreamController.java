@@ -1,12 +1,18 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.gbStream;
 
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.service.IGbStreamService;
+import com.genersoft.iot.vmp.service.IPlatformService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.gb28181.gbStream.bean.GbStreamParam;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Tag(name  = "视频流关联到级联平台")
@@ -28,7 +35,7 @@ public class GbStreamController {
     private IGbStreamService gbStreamService;
 
     @Autowired
-    private IVideoManagerStorage storager;
+    private IPlatformService platformService;
 
 
     /**
@@ -38,7 +45,7 @@ public class GbStreamController {
      * @param platformId 平台ID
      * @return
      */
-    @Operation(summary = "查询国标通道")
+    @Operation(summary = "查询国标通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页条数", required = true)
     @Parameter(name = "platformId", description = "平台ID", required = true)
@@ -74,12 +81,12 @@ public class GbStreamController {
      * @param gbStreamParam
      * @return
      */
-    @Operation(summary = "移除国标关联")
+    @Operation(summary = "移除国标关联", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @DeleteMapping(value = "/del")
     @ResponseBody
     public void del(@RequestBody GbStreamParam gbStreamParam){
 
-        if (gbStreamParam.getGbStreams() == null || gbStreamParam.getGbStreams().size() == 0) {
+        if (gbStreamParam.getGbStreams() == null || gbStreamParam.getGbStreams().isEmpty()) {
             if (gbStreamParam.isAll()) {
                 gbStreamService.delAllPlatformInfo(gbStreamParam.getPlatformId(), gbStreamParam.getCatalogId());
             }
@@ -94,11 +101,11 @@ public class GbStreamController {
      * @param gbStreamParam
      * @return
      */
-    @Operation(summary = "保存国标关联")
+    @Operation(summary = "保存国标关联", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @PostMapping(value = "/add")
     @ResponseBody
     public void add(@RequestBody GbStreamParam gbStreamParam){
-        if (gbStreamParam.getGbStreams() == null || gbStreamParam.getGbStreams().size() == 0) {
+        if (gbStreamParam.getGbStreams() == null || gbStreamParam.getGbStreams().isEmpty()) {
             if (gbStreamParam.isAll()) {
                 List<GbStream> allGBChannels = gbStreamService.getAllGBChannels(gbStreamParam.getPlatformId());
                 gbStreamService.addPlatformInfo(allGBChannels, gbStreamParam.getPlatformId(), gbStreamParam.getCatalogId());
@@ -106,5 +113,21 @@ public class GbStreamController {
         }else {
             gbStreamService.addPlatformInfo(gbStreamParam.getGbStreams(), gbStreamParam.getPlatformId(), gbStreamParam.getCatalogId());
         }
+    }
+
+    /**
+     * 保存国标关联
+     * @param gbId
+     * @return
+     */
+    @Operation(summary = "保存国标关联", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @GetMapping(value = "/addWithGbid")
+    @ResponseBody
+    public void add(String gbId, String platformGbId, @RequestParam(required = false) String catalogGbId){
+        List<GbStream> gbStreams = gbStreamService.getGbChannelWithGbid(gbId);
+        if (gbStreams.isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "gbId的信息未找到");
+        }
+        gbStreamService.addPlatformInfo(gbStreams, platformGbId, catalogGbId);
     }
 }

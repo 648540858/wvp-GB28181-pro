@@ -93,7 +93,10 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                     }
                     if (event.getGbStreams() != null && event.getGbStreams().size() > 0){
                         for (GbStream gbStream : event.getGbStreams()) {
-                            if (gbStream.getStreamType().equals("push") && !userSetting.isUsePushingAsStatus()) {
+                            if (gbStream != null
+                                    && gbStream.getStreamType() != null
+                                    && gbStream.getStreamType().equals("push")
+                                    && !userSetting.isUsePushingAsStatus()) {
                                 continue;
                             }
                             DeviceChannel deviceChannelByStream = gbStreamService.getDeviceChannelListByStream(gbStream, gbStream.getCatalogId(), parentPlatform);
@@ -145,13 +148,13 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                      if (event.getDeviceChannels() != null) {
                          deviceChannelList.addAll(event.getDeviceChannels());
                      }
-                    if (event.getGbStreams() != null && event.getGbStreams().size() > 0){
+                    if (event.getGbStreams() != null && !event.getGbStreams().isEmpty()){
                         for (GbStream gbStream : event.getGbStreams()) {
                             deviceChannelList.add(
                                     gbStreamService.getDeviceChannelListByStreamWithStatus(gbStream, gbStream.getCatalogId(), parentPlatform));
                         }
                     }
-                    if (deviceChannelList.size() > 0) {
+                    if (!deviceChannelList.isEmpty()) {
                         logger.info("[Catalog事件: {}]平台：{}，影响通道{}个", event.getType(), event.getPlatformId(), deviceChannelList.size());
                         try {
                             sipCommanderFroPlatform.sendNotifyForCatalogAddOrUpdate(event.getType(), parentPlatform, deviceChannelList, subscribe, null);
@@ -160,10 +163,10 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                             logger.error("[命令发送失败] 国标级联 Catalog通知: {}", e.getMessage());
                         }
                     }
-                }else if (parentPlatformMap.keySet().size() > 0) {
+                }else if (!parentPlatformMap.keySet().isEmpty()) {
                     for (String gbId : parentPlatformMap.keySet()) {
                         List<ParentPlatform> parentPlatforms = parentPlatformMap.get(gbId);
-                        if (parentPlatforms != null && parentPlatforms.size() > 0) {
+                        if (parentPlatforms != null && !parentPlatforms.isEmpty()) {
                             for (ParentPlatform platform : parentPlatforms) {
                                 SubscribeInfo subscribeInfo = subscribeHolder.getCatalogSubscribe(platform.getServerGBId());
                                 if (subscribeInfo == null) {

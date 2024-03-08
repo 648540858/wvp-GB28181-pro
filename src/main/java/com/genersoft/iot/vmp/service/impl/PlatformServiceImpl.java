@@ -43,12 +43,11 @@ import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
 import javax.sip.PeerUnavailableException;
 import javax.sip.SipException;
-import javax.sip.SipFactory;
-import javax.sip.address.Address;
-import javax.sip.address.SipURI;
-import javax.sip.header.*;
-import javax.sip.message.Request;
 import java.text.ParseException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -392,7 +391,6 @@ public class PlatformServiceImpl implements IPlatformService {
                         ()-> registerTask(platform, null),
                         userSetting.getRegisterAgainAfterTime() * 1000);
             }
-
         }
     }
 

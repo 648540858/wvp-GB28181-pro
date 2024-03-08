@@ -78,6 +78,50 @@ public class XmlUtil {
     }
 
     /**
+     * 获取element对象的text的值
+     *
+     * @param em  节点的对象
+     * @param tag 节点的tag
+     * @return 节点
+     */
+    public static Double getDouble(Element em, String tag) {
+        if (null == em) {
+            return null;
+        }
+        Element e = em.element(tag);
+        if (null == e) {
+            return null;
+        }
+        String text = e.getText().trim();
+        if (ObjectUtils.isEmpty(text) || !NumberUtils.isParsable(text)) {
+            return null;
+        }
+        return Double.parseDouble(text);
+    }
+
+    /**
+     * 获取element对象的text的值
+     *
+     * @param em  节点的对象
+     * @param tag 节点的tag
+     * @return 节点
+     */
+    public static Integer getInteger(Element em, String tag) {
+        if (null == em) {
+            return null;
+        }
+        Element e = em.element(tag);
+        if (null == e) {
+            return null;
+        }
+        String text = e.getText().trim();
+        if (ObjectUtils.isEmpty(text) || !NumberUtils.isParsable(text)) {
+            return null;
+        }
+        return Integer.parseInt(text);
+    }
+
+    /**
      * 递归解析xml节点，适用于 多节点数据
      *
      * @param node     node

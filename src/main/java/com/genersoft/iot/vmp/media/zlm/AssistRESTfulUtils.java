@@ -38,7 +38,7 @@ public class AssistRESTfulUtils {
     private OkHttpClient getClient(){
         return getClient(null);
     }
-    
+
     private OkHttpClient getClient(Integer readTimeOut){
         if (client == null) {
             if (readTimeOut == null) {
@@ -251,7 +251,7 @@ public class AssistRESTfulUtils {
 
     public JSONObject addTask(MediaServerItem mediaServerItem, String app, String stream, String startTime,
                               String endTime, String callId, List<String> filePathList, String remoteHost) {
-        
+
         JSONObject videoTaskInfoJSON = new JSONObject();
         videoTaskInfoJSON.put("app", app);
         videoTaskInfoJSON.put("stream", stream);

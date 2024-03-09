@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
-import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 
 public class SipTransactionInfo {
@@ -10,11 +9,23 @@ public class SipTransactionInfo {
     private String toTag;
     private String viaBranch;
 
+    // 自己是否媒体流发送者
+    private boolean asSender;
+
+    public SipTransactionInfo(SIPResponse response, boolean asSender) {
+        this.callId = response.getCallIdHeader().getCallId();
+        this.fromTag = response.getFromTag();
+        this.toTag = response.getToTag();
+        this.viaBranch = response.getTopmostViaHeader().getBranch();
+        this.asSender = asSender;
+    }
+
     public SipTransactionInfo(SIPResponse response) {
         this.callId = response.getCallIdHeader().getCallId();
         this.fromTag = response.getFromTag();
         this.toTag = response.getToTag();
         this.viaBranch = response.getTopmostViaHeader().getBranch();
+        this.asSender = false;
     }
 
     public SipTransactionInfo() {
@@ -50,5 +61,13 @@ public class SipTransactionInfo {
 
     public void setViaBranch(String viaBranch) {
         this.viaBranch = viaBranch;
+    }
+
+    public boolean isAsSender() {
+        return asSender;
+    }
+
+    public void setAsSender(boolean asSender) {
+        this.asSender = asSender;
     }
 }

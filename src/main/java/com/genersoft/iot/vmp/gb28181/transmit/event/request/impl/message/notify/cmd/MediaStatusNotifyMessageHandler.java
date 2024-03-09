@@ -99,7 +99,7 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
 
                 try {
                     cmder.streamByeCmd(device, ssrcTransaction.getChannelId(), null, callIdHeader.getCallId());
-                } catch (InvalidArgumentException | ParseException | SsrcTransactionNotFoundException | SipException e) {
+                } catch (InvalidArgumentException | ParseException  | SipException | SsrcTransactionNotFoundException e) {
                     logger.error("[录像流]推送完毕，收到关流通知， 发送BYE失败 {}", e.getMessage());
                 }
                 // 去除监听流注销自动停止下载的监听

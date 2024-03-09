@@ -35,6 +35,21 @@ public class HookSubscribeFactory {
         return hookSubscribe;
     }
 
+    public static HookSubscribeForStreamPush on_publish(String app, String stream, String scheam, String mediaServerId) {
+        HookSubscribeForStreamPush hookSubscribe = new HookSubscribeForStreamPush();
+        JSONObject subscribeKey = new JSONObject();
+        subscribeKey.put("app", app);
+        subscribeKey.put("stream", stream);
+        if (scheam != null) {
+            subscribeKey.put("schema", scheam);
+        }
+        subscribeKey.put("mediaServerId", mediaServerId);
+        hookSubscribe.setContent(subscribeKey);
+
+        return hookSubscribe;
+    }
+
+
     public static HookSubscribeForServerStarted on_server_started() {
         HookSubscribeForServerStarted hookSubscribe = new HookSubscribeForServerStarted();
         hookSubscribe.setContent(new JSONObject());
@@ -52,4 +67,5 @@ public class HookSubscribeFactory {
 
         return hookSubscribe;
     }
+
 }

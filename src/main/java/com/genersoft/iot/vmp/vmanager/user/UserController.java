@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.security.sasl.AuthenticationException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Tag(name  = "用户管理")
@@ -205,5 +206,18 @@ public class UserController {
                 throw new ControllerException(ErrorCode.ERROR100);
             }
         }
+    }
+
+    @PostMapping("/userInfo")
+    @Operation(summary = "管理员修改普通用户密码")
+    public LoginUser getUserInfo() {
+        // 获取当前登录用户id
+        LoginUser userInfo = SecurityUtils.getUserInfo();
+
+        if (userInfo == null) {
+            throw new ControllerException(ErrorCode.ERROR100);
+        }
+        User user = userService.getUser(userInfo.getUsername(), userInfo.getPassword());
+        return new LoginUser(user, LocalDateTime.now());
     }
 }

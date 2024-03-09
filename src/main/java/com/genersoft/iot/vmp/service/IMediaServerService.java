@@ -47,8 +47,10 @@ public interface IMediaServerService {
 
     void updateVmServer(List<MediaServerItem>  mediaServerItemList);
 
-    SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, String ssrc, boolean ssrcCheck,
-                           boolean isPlayback, Integer port, Boolean reUsePort, Integer tcpMode);
+    SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, String presetSsrc, boolean ssrcCheck,
+                           boolean isPlayback, Integer port, Boolean onlyAuto, Boolean reUsePort, Integer tcpMode);
+
+    SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, String ssrc, boolean ssrcCheck, boolean isPlayback, Integer port, Boolean onlyAuto);
 
     void closeRTPServer(MediaServerItem mediaServerItem, String streamId);
 

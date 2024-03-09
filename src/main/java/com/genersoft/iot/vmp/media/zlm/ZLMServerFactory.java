@@ -42,7 +42,7 @@ public class ZLMServerFactory {
      * @param tcpMode 0/null udp 模式，1 tcp 被动模式, 2 tcp 主动模式。
      * @return
      */
-    public int createRTPServer(MediaServerItem mediaServerItem, String streamId, long ssrc, Integer port, Boolean reUsePort, Integer tcpMode) {
+    public int createRTPServer(MediaServerItem mediaServerItem, String streamId, long ssrc, Integer port, Boolean onlyAuto, Boolean reUsePort, Integer tcpMode) {
         int result = -1;
         // 查询此rtp server 是否已经存在
         JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaServerItem, streamId);
@@ -58,7 +58,7 @@ public class ZLMServerFactory {
                     JSONObject jsonObject = zlmresTfulUtils.closeRtpServer(mediaServerItem, param);
                     if (jsonObject != null ) {
                         if (jsonObject.getInteger("code") == 0) {
-                            return createRTPServer(mediaServerItem, streamId, ssrc, port, reUsePort, tcpMode);
+                            return createRTPServer(mediaServerItem, streamId, ssrc, port,onlyAuto, reUsePort, tcpMode);
                         }else {
                             logger.warn("[开启rtpServer], 重启RtpServer错误");
                         }
@@ -86,6 +86,9 @@ public class ZLMServerFactory {
         }else {
             param.put("port", port);
         }
+        if (onlyAuto != null) {
+            param.put("only_audio", onlyAuto?"1":"0");
+        }
         if (ssrc != 0) {
             param.put("ssrc", ssrc);
         }
@@ -111,9 +114,10 @@ public class ZLMServerFactory {
             Map<String, Object> param = new HashMap<>();
             param.put("stream_id", streamId);
             JSONObject jsonObject = zlmresTfulUtils.closeRtpServer(serverItem, param);
+            logger.info("关闭RTP Server " +  jsonObject);
             if (jsonObject != null ) {
                 if (jsonObject.getInteger("code") == 0) {
-                    result = jsonObject.getInteger("hit") == 1;
+                    result = jsonObject.getInteger("hit") >= 1;
                 }else {
                     logger.error("关闭RTP Server 失败: " + jsonObject.getString("msg"));
                 }
@@ -205,8 +209,8 @@ public class ZLMServerFactory {
         sendRtpItem.setPort(port);
         sendRtpItem.setSsrc(ssrc);
         sendRtpItem.setApp(app);
-        sendRtpItem.setStreamId(stream);
         sendRtpItem.setDestId(platformId);
+        sendRtpItem.setStream(stream);
         sendRtpItem.setChannelId(channelId);
         sendRtpItem.setTcp(tcp);
         sendRtpItem.setLocalPort(localPort);
@@ -226,8 +230,12 @@ public class ZLMServerFactory {
     /**
      * 调用zlm RESTFUL API —— startSendRtpPassive
      */
-    public JSONObject startSendRtpStreamForPassive(MediaServerItem mediaServerItem, Map<String, Object>param) {
+    public JSONObject startSendRtpPassive(MediaServerItem mediaServerItem, Map<String, Object>param) {
         return zlmresTfulUtils.startSendRtpPassive(mediaServerItem, param);
+    }
+
+    public JSONObject startSendRtpPassive(MediaServerItem mediaServerItem, Map<String, Object>param, ZLMRESTfulUtils.RequestCallback callback) {
+        return zlmresTfulUtils.startSendRtpPassive(mediaServerItem, param, callback);
     }
 
     /**
@@ -265,11 +273,11 @@ public class ZLMServerFactory {
             return 0;
         }
         Integer code = mediaInfo.getInteger("code");
-        if ( code < 0) {
+        if (code < 0) {
             logger.warn("查询流({}/{})是否有其它观看者时得到： {}", app, streamId, mediaInfo.getString("msg"));
             return -1;
         }
-        if ( code == 0 && mediaInfo.getBoolean("online") != null && !mediaInfo.getBoolean("online")) {
+        if ( code == 0 && mediaInfo.getBoolean("online") != null && ! mediaInfo.getBoolean("online")) {
             logger.warn("查询流({}/{})是否有其它观看者时得到： {}", app, streamId, mediaInfo.getString("msg"));
             return -1;
         }
@@ -288,13 +296,54 @@ public class ZLMServerFactory {
             result= true;
             logger.info("[停止RTP推流] 成功");
         } else {
-            logger.error("[停止RTP推流] 失败: {}, 参数：{}->\r\n{}",jsonObject.getString("msg"), JSON.toJSON(param), jsonObject);
+            logger.warn("[停止RTP推流] 失败: {}, 参数：{}->\r\n{}",jsonObject.getString("msg"), JSON.toJSON(param), jsonObject);
         }
         return result;
     }
 
-    public void closeAllSendRtpStream() {
+    public JSONObject startSendRtp(MediaServerItem mediaInfo, SendRtpItem sendRtpItem) {
+        String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
+        logger.info("rtp/{}开始推流, 目标={}:{}，SSRC={}", sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc());
+        Map<String, Object> param = new HashMap<>(12);
+        param.put("vhost","__defaultVhost__");
+        param.put("app",sendRtpItem.getApp());
+        param.put("stream",sendRtpItem.getStream());
+        param.put("ssrc", sendRtpItem.getSsrc());
+        param.put("src_port", sendRtpItem.getLocalPort());
+        param.put("pt", sendRtpItem.getPt());
+        param.put("use_ps", sendRtpItem.isUsePs() ? "1" : "0");
+        param.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
+        if (!sendRtpItem.isTcp()) {
+            // udp模式下开启rtcp保活
+            param.put("udp_rtcp_timeout", sendRtpItem.isRtcp()? "1":"0");
+        }
 
+        if (mediaInfo == null) {
+            return null;
+        }
+        // 如果是非严格模式，需要关闭端口占用
+        JSONObject startSendRtpStreamResult = null;
+        if (sendRtpItem.getLocalPort() != 0) {
+            if (sendRtpItem.isTcpActive()) {
+                startSendRtpStreamResult = startSendRtpPassive(mediaInfo, param);
+                System.out.println(JSON.toJSON(param));
+            }else {
+                param.put("is_udp", is_Udp);
+                param.put("dst_url", sendRtpItem.getIp());
+                param.put("dst_port", sendRtpItem.getPort());
+                startSendRtpStreamResult = startSendRtpStream(mediaInfo, param);
+            }
+        }else {
+            if (sendRtpItem.isTcpActive()) {
+                startSendRtpStreamResult = startSendRtpPassive(mediaInfo, param);
+            }else {
+                param.put("is_udp", is_Udp);
+                param.put("dst_url", sendRtpItem.getIp());
+                param.put("dst_port", sendRtpItem.getPort());
+                startSendRtpStreamResult = startSendRtpStream(mediaInfo, param);
+            }
+        }
+        return startSendRtpStreamResult;
     }
 
     public Boolean updateRtpServerSSRC(MediaServerItem mediaServerItem, String streamId, String ssrc) {

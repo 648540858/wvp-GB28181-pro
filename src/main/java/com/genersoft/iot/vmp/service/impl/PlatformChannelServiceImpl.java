@@ -238,8 +238,6 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     public CommonGbChannel queryChannelByPlatformIdAndChannelDeviceId(Integer platformId, String channelId) {
         return platformChannelMapper.queryChannelByPlatformIdAndChannelDeviceId(platformId, channelId);
     }
-
-    @Override
     public List<CommonGbChannel> queryCommonGbChannellList(Integer platformId) {
         return platformChannelMapper.queryCommonGbChannellList(platformId);
     }

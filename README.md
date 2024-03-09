@@ -68,6 +68,7 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
   - [X] 支持国标网络校时
   - [X] 支持播放H264和H265
   - [X] 报警信息处理，支持向前端推送报警信息
+  - [X] 语音对讲
   - [X] 支持订阅与通知方法
     - [X] 移动位置订阅
     - [X] 移动位置通知处理
@@ -94,6 +95,7 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
     - [X] 目录订阅与通知
     - [X] 录像查看与播放
     - [X] GPS订阅与通知（直播推流）
+    - [X] 语音对讲
 - [X] 支持自动配置ZLM媒体服务, 减少因配置问题所出现的问题;  
 - [X] 多流媒体节点，自动选择负载最低的节点使用。
 - [X] 支持启用udp多端口模式, 提高udp模式下媒体传输性能;
@@ -134,4 +136,12 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
 [ydpd](https://github.com/ydpd) [szy833](https://github.com/szy833) [ydwxb](https://github.com/ydwxb) [Albertzhu666](https://github.com/Albertzhu666)
 [mk1990](https://github.com/mk1990) [SaltFish001](https://github.com/SaltFish001)
 
+
+ffmpeg -re -i 123.mp3 -acodec pcm_alaw -ar 8000 -ac 1  -f rtsp rtsp://192.168.1.3:30554/broadcast/34020000001320000101_34020000001310000001
+
+ffmpeg -re -i 123.mp3 -acodec pcm_alaw -ar 8000 -ac 1  -f rtsp rtsp://192.168.1.3:30554/talk/34020000001320000011_34020000001370000001
+
+
+
+ffmpeg -re -i 123.mp3 -acodec pcm_alaw -ar 8000 -ac 1  -f rtsp rtsp://192.168.1.3:30554/talk/34020000001320000101_34020000001310000001
 

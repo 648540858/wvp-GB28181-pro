@@ -206,6 +206,8 @@ public class Device {
 	public void setId(int id) {
 		this.id = id;
 	}
+	@Schema(description = "控制语音对讲流程，释放收到ACK后发流")
+	private boolean broadcastPushAfterAck;
 
 	public String getDeviceId() {
 		return deviceId;
@@ -468,6 +470,9 @@ public class Device {
 	public void setSipTransactionInfo(SipTransactionInfo sipTransactionInfo) {
 		this.sipTransactionInfo = sipTransactionInfo;
 	}
+    public boolean isBroadcastPushAfterAck() {
+        return broadcastPushAfterAck;
+    }
 
     public boolean isAutoSyncChannel() {
         return autoSyncChannel;
@@ -475,5 +480,8 @@ public class Device {
 
     public void setAutoSyncChannel(boolean autoSyncChannel) {
         this.autoSyncChannel = autoSyncChannel;
+    }
+    public void setBroadcastPushAfterAck(boolean broadcastPushAfterAck) {
+        this.broadcastPushAfterAck = broadcastPushAfterAck;
     }
 }

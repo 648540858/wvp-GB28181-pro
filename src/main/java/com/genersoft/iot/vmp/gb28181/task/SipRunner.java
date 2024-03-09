@@ -113,7 +113,7 @@ public class SipRunner implements CommandLineRunner {
                     Map<String, Object> param = new HashMap<>();
                     param.put("vhost","__defaultVhost__");
                     param.put("app",sendRtpItem.getApp());
-                    param.put("stream",sendRtpItem.getStreamId());
+                    param.put("stream",sendRtpItem.getStream());
                     param.put("ssrc",sendRtpItem.getSsrc());
                     JSONObject jsonObject = zlmresTfulUtils.stopSendRtp(mediaServerItem, param);
                     if (jsonObject != null && jsonObject.getInteger("code") == 0) {

@@ -6,9 +6,12 @@ import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
+import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.media.zlm.IStreamSendManager;
@@ -53,6 +56,9 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 	private ICommonGbChannelService commonGbChannelService;
 
 	@Autowired
+	private ISIPCommanderForPlatform commanderForPlatform;
+
+	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
 
 	@Autowired
@@ -63,6 +69,9 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 
 	@Autowired
 	private IDeviceService deviceService;
+
+	@Autowired
+	private AudioBroadcastManager audioBroadcastManager;
 
 	@Autowired
 	private IDeviceChannelService channelService;
@@ -81,6 +90,9 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 
 	@Autowired
 	private VideoStreamSessionManager streamSession;
+
+	@Autowired
+	private IPlayService playService;
 
 	@Autowired
 	private UserSetting userSetting;
@@ -117,7 +129,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			param.put("app",sendRtpItem.getApp());
 			param.put("stream",streamId);
 			param.put("ssrc",sendRtpItem.getSsrc());
-			logger.info("[收到bye] 停止向上级推流：{}", streamId);
+			logger.info("[收到bye] 停止推流：{}", streamId);
 			MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 			zlmServerFactory.stopSendRtpStream(mediaInfo, param);
 			streamSendManager.remove(sendRtpItem);
@@ -138,10 +150,35 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 					messageForPushChannel.setPlatFormIndex(platform.getId());
 					redisCatchStorage.sendPlatformStopPlayMsg(messageForPushChannel);
 				}else {
-					logger.info("[上级平台停止观看] 未找到平台{}的信息，发送redis消息失败", sendRtpItem.getDestId());
+					logger.info("[上级平台停止观看] 未找到平台{}的信息，发送redis消息失败", sendRtpItem.getPlatformId());
 				}
 			}
-		}else {
+
+			AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+			if (audioBroadcastCatch != null && audioBroadcastCatch.getSipTransactionInfo().getCallId().equals(callIdHeader.getCallId())) {
+				// 来自上级平台的停止对讲
+				logger.info("[停止对讲] 来自上级，平台：{}, 通道：{}", sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+				audioBroadcastManager.del(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+			}
+
+			int totalReaderCount = zlmServerFactory.totalReaderCount(mediaInfo, sendRtpItem.getApp(), streamId);
+			if (totalReaderCount <= 0) {
+				logger.info("[收到bye] {} 无其它观看者，通知设备停止推流", streamId);
+				if (sendRtpItem.getPlayType().equals(InviteStreamType.PLAY)) {
+					Device device = deviceService.getDevice(sendRtpItem.getDeviceId());
+					if (device == null) {
+						logger.info("[收到bye] {} 通知设备停止推流时未找到设备信息", streamId);
+					}
+					try {
+						logger.info("[停止点播] {}/{}", sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+						cmder.streamByeCmd(device, sendRtpItem.getChannelId(), streamId, null);
+					} catch (InvalidArgumentException | ParseException | SipException |
+							 SsrcTransactionNotFoundException e) {
+						logger.error("[收到bye] {} 无其它观看者，通知设备停止推流， 发送BYE失败 {}",streamId, e.getMessage());
+					}
+				}
+			}
+		}
 
 			// 可能是设备发送的停止
 			SsrcTransaction ssrcTransaction = streamSession.getSsrcTransactionByCallId(callIdHeader.getCallId());
@@ -150,6 +187,23 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			}
 			logger.info("[收到bye] 来自设备：{}, 通道已停止推流: {}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
 
+		ParentPlatform platform = platformService.queryPlatformByServerGBId(ssrcTransaction.getDeviceId());
+		if (platform != null ) {
+			if (ssrcTransaction.getType().equals(InviteSessionType.BROADCAST)) {
+				logger.info("[收到bye] 上级停止语音对讲，来自：{}, 通道已停止推流: {}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
+				DeviceChannel channel = storager.queryChannelInParentPlatform(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
+				if (channel == null) {
+					logger.info("[收到bye] 未找到通道，设备：{}， 通道：{}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
+					return;
+				}
+				String mediaServerId = ssrcTransaction.getMediaServerId();
+				platformService.stopBroadcast(platform, channel, ssrcTransaction.getStream(), false,
+						mediaServerService.getOne(mediaServerId));
+
+				playService.stopAudioBroadcast(channel.getDeviceId(), channel.getChannelId());
+			}
+
+		}else {
 			Device device = deviceService.getDevice(ssrcTransaction.getDeviceId());
 			if (device == null) {
 				logger.info("[收到bye] 未找到设备：{} ", ssrcTransaction.getDeviceId());
@@ -174,6 +228,19 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 				mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcTransaction.getSsrc());
 			}
 			streamSession.removeByCallId(device.getDeviceId(), channel.getChannelId(), ssrcTransaction.getCallId());
+			if (ssrcTransaction.getType() == InviteSessionType.BROADCAST) {
+				// 查找来源的对讲设备，发送停止
+				Device sourceDevice = storager.queryVideoDeviceByPlatformIdAndChannelId(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
+				if (sourceDevice != null) {
+					playService.stopAudioBroadcast(sourceDevice.getDeviceId(), channel.getChannelId());
+				}
+			}
+			AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(ssrcTransaction.getDeviceId(), channel.getChannelId());
+			if (audioBroadcastCatch != null) {
+				// 来自上级平台的停止对讲
+				logger.info("[停止对讲] 来自上级，平台：{}, 通道：{}", ssrcTransaction.getDeviceId(), channel.getChannelId());
+				audioBroadcastManager.del(ssrcTransaction.getDeviceId(), channel.getChannelId());
+			}
 		}
 	}
 }

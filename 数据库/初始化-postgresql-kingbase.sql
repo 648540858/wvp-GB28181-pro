@@ -93,6 +93,7 @@ create table wvp_device_channel (
                                     business_group_id character varying(50),
                                     gps_time character varying(50),
                                     common_gb_channel_id integer,
+                                    stream_identification character varying(50),
                                     constraint uk_wvp_device_channel_unique_device_channel unique (device_id, channel_id)
 );
 

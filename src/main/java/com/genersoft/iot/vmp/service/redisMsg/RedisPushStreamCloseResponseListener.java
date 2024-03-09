@@ -91,7 +91,7 @@ public class RedisPushStreamCloseResponseListener implements MessageListener {
                     }
                     if (push.isSelf()) {
                         // 停止向上级推流
-                        String streamId = sendRtpItem.getStreamId();
+                        String streamId = sendRtpItem.getStream();
                         Map<String, Object> param = new HashMap<>();
                         param.put("vhost","__defaultVhost__");
                         param.put("app",sendRtpItem.getApp());

@@ -40,6 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class CatalogResponseMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
     private Logger logger = LoggerFactory.getLogger(CatalogResponseMessageHandler.class);
+
     private final String cmdType = "Catalog";
 
     @Autowired

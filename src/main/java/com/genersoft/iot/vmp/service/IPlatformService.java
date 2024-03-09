@@ -1,11 +1,20 @@
 package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.bean.InviteTimeOutCallback;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
+
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
+import java.text.ParseException;
 
 /**
  * 国标平台的业务类
@@ -58,6 +67,22 @@ public interface IPlatformService {
      * @param platformId 平台
      */
     void sendNotifyMobilePosition(Integer platformId);
+
+    /**
+     * 向上级发送语音喊话的消息
+     * @param platform 平台
+     * @param channelId 通道
+     * @param hookEvent hook事件
+     * @param errorEvent 信令错误事件
+     * @param timeoutCallback 超时事件
+     */
+    void broadcastInvite(ParentPlatform platform, String channelId, MediaServerItem mediaServerItem,  ZlmHttpHookSubscribe.Event hookEvent,
+                         SipSubscribe.Event errorEvent, InviteTimeOutCallback timeoutCallback) throws InvalidArgumentException, ParseException, SipException;
+
+    /**
+     * 语音喊话回复BYE
+     */
+    void stopBroadcast(ParentPlatform platform, DeviceChannel channel, String stream,boolean sendBye, MediaServerItem mediaServerItem);
 
     void addSimulatedSubscribeInfo(ParentPlatform parentPlatform);
 

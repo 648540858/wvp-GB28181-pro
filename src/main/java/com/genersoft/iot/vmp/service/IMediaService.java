@@ -53,4 +53,5 @@ public interface IMediaService {
     boolean closeStream(MediaServerItem mediaInfo, String app, String stream);
 
     String getStreamType(String app, String stream);
+    StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream, Object tracks, String addr, String callId, boolean isPlay);
 }

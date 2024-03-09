@@ -24,6 +24,7 @@ import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.vmanager.bean.*;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
@@ -46,6 +47,10 @@ import java.text.ParseException;
 import java.util.List;
 import java.util.UUID;
 
+
+/**
+ * @author lin
+ */
 @Tag(name  = "国标设备点播")
 
 @RestController
@@ -249,68 +254,42 @@ public class PlayController {
 
 	@Operation(summary = "语音广播命令", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
-    @GetMapping("/broadcast/{deviceId}")
-    @PostMapping("/broadcast/{deviceId}")
-    public DeferredResult<String> broadcastApi(@PathVariable String deviceId) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("语音广播API调用");
-        }
-        Device device = storager.queryVideoDevice(deviceId);
-		DeferredResult<String> result = new DeferredResult<>(3 * 1000L);
-		String key  = DeferredResultHolder.CALLBACK_CMD_BROADCAST + deviceId;
-		if (resultHolder.exist(key, null)) {
-			result.setResult("设备使用中");
-			return result;
+	@Parameter(name = "deviceId", description = "通道国标编号", required = true)
+	@Parameter(name = "timeout", description = "推流超时时间(秒)", required = true)
+	@GetMapping("/broadcast/{deviceId}/{channelId}")
+	@PostMapping("/broadcast/{deviceId}/{channelId}")
+    public AudioBroadcastResult broadcastApi(@PathVariable String deviceId, @PathVariable String channelId, Integer timeout, Boolean broadcastMode) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("语音广播API调用");
 		}
-		String uuid  = UUID.randomUUID().toString();
-        if (device == null) {
-
-			resultHolder.put(key, key,  result);
-			RequestMessage msg = new RequestMessage();
-			msg.setKey(key);
-			msg.setId(uuid);
-			JSONObject json = new JSONObject();
-			json.put("DeviceID", deviceId);
-			json.put("CmdType", "Broadcast");
-			json.put("Result", "Failed");
-			json.put("Description", "Device 不存在");
-			msg.setData(json);
-			resultHolder.invokeResult(msg);
-			return result;
+		Device device = storager.queryVideoDevice(deviceId);
+		if (device == null) {
+			throw new ControllerException(ErrorCode.ERROR400.getCode(), "未找到设备： " + deviceId);
 		}
-		try {
-			cmder.audioBroadcastCmd(device, (event) -> {
-				RequestMessage msg = new RequestMessage();
-				msg.setKey(key);
-				msg.setId(uuid);
-				JSONObject json = new JSONObject();
-				json.put("DeviceID", deviceId);
-				json.put("CmdType", "Broadcast");
-				json.put("Result", "Failed");
-				json.put("Description", String.format("语音广播操作失败，错误码： %s, %s", event.statusCode, event.msg));
-				msg.setData(json);
-				resultHolder.invokeResult(msg);
-			});
-		} catch (InvalidArgumentException | SipException | ParseException e) {
-			logger.error("[命令发送失败] 语音广播: {}", e.getMessage());
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+		if (channelId == null) {
+			throw new ControllerException(ErrorCode.ERROR400.getCode(), "未找到通道： " + channelId);
 		}
 
-		result.onTimeout(() -> {
-			logger.warn("语音广播操作超时, 设备未返回应答指令");
-			RequestMessage msg = new RequestMessage();
-			msg.setKey(key);
-			msg.setId(uuid);
-			JSONObject json = new JSONObject();
-			json.put("DeviceID", deviceId);
-			json.put("CmdType", "Broadcast");
-			json.put("Result", "Failed");
-			json.put("Error", "Timeout. Device did not response to broadcast command.");
-			msg.setData(json);
-			resultHolder.invokeResult(msg);
-		});
-		resultHolder.put(key, uuid, result);
-		return result;
+		return playService.audioBroadcast(device, channelId, broadcastMode);
+
+	}
+
+	@Operation(summary = "停止语音广播")
+	@Parameter(name = "deviceId", description = "设备Id", required = true)
+	@Parameter(name = "channelId", description = "通道Id", required = true)
+	@GetMapping("/broadcast/stop/{deviceId}/{channelId}")
+	@PostMapping("/broadcast/stop/{deviceId}/{channelId}")
+	public void stopBroadcast(@PathVariable String deviceId, @PathVariable String channelId) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("停止语音广播API调用");
+		}
+//		try {
+//			playService.stopAudioBroadcast(deviceId, channelId);
+//		} catch (InvalidArgumentException | ParseException  | SipException e) {
+//			logger.error("[命令发送失败] 停止语音: {}", e.getMessage());
+//			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " +  e.getMessage());
+//		}
+		playService.stopAudioBroadcast(deviceId, channelId);
 	}
 
 	@Operation(summary = "获取所有的ssrc", security = @SecurityRequirement(name = JwtUtils.HEADER))

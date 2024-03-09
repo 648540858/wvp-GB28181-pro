@@ -97,6 +97,7 @@ public class ZLMRESTfulUtils {
             if (callback == null) {
                 try {
                     Response response = client.newCall(request).execute();
+
                     if (response.isSuccessful()) {
                         ResponseBody responseBody = response.body();
                         if (responseBody != null) {
@@ -104,6 +105,8 @@ public class ZLMRESTfulUtils {
                             responseJSON = JSON.parseObject(responseStr);
                         }
                     }else {
+                        System.out.println( 2222);
+                        System.out.println( response.code());
                         response.close();
                         Objects.requireNonNull(response.body()).close();
                     }
@@ -112,11 +115,11 @@ public class ZLMRESTfulUtils {
 
                     if(e instanceof SocketTimeoutException){
                         //读取超时超时异常
-                        logger.error(String.format("读取ZLM数据失败: %s, %s", url, e.getMessage()));
+                        logger.error(String.format("读取ZLM数据超时失败: %s, %s", url, e.getMessage()));
                     }
                     if(e instanceof ConnectException){
                         //判断连接异常，我这里是报Failed to connect to 10.7.5.144
-                        logger.error(String.format("连接ZLM失败: %s, %s", url, e.getMessage()));
+                        logger.error(String.format("连接ZLM连接失败: %s, %s", url, e.getMessage()));
                     }
 
                 }catch (Exception e){
@@ -322,6 +325,10 @@ public class ZLMRESTfulUtils {
 
     public JSONObject startSendRtpPassive(MediaServerItem mediaServerItem, Map<String, Object> param) {
         return sendPost(mediaServerItem, "startSendRtpPassive",param, null);
+    }
+
+    public JSONObject startSendRtpPassive(MediaServerItem mediaServerItem, Map<String, Object> param, RequestCallback callback) {
+        return sendPost(mediaServerItem, "startSendRtpPassive",param, callback);
     }
 
     public JSONObject stopSendRtp(MediaServerItem mediaServerItem, Map<String, Object> param) {

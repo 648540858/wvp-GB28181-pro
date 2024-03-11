@@ -7,7 +7,7 @@
                  v-if="Object.keys(this.player).length > 1">
           <el-tab-pane label="Jessibuca" name="jessibuca">
             <jessibucaPlayer v-if="activePlayer === 'jessibuca'" ref="jessibuca" :visible.sync="showVideoDialog"
-                             :videoUrl="videoUrl" :error="videoError" :message="videoError" height="100px"
+                             :videoUrl="videoUrl" :error="videoError" :message="videoError" style="height: 515px"
                              :hasAudio="hasAudio" fluent autoplay live></jessibucaPlayer>
           </el-tab-pane>
           <el-tab-pane label="WebRTC" name="webRTC">

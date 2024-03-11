@@ -1,6 +1,6 @@
 <template>
   <div ref="container" @dblclick="fullscreenSwich"
-       style="width:100%;height:518px; min-height: 200px;background-color: #000000;margin:0 auto;position: relative;">
+       style="width:100%; height: 100%; background-color: #000000;margin:0 auto;position: relative;">
     <div class="buttons-box" id="buttonsBox">
       <div class="buttons-box-left">
         <i v-if="!playing" class="iconfont icon-play jessibuca-btn" @click="playBtnClick"></i>
@@ -49,16 +49,23 @@ export default {
   created() {
     let paramUrl = decodeURIComponent(this.$route.params.url)
     this.$nextTick(() => {
+      console.log(2222)
       this.updatePlayerDomSize()
-      window.onresize = () => {
-        this.updatePlayerDomSize()
-      }
+      window.onresize = this.updatePlayerDomSize
       if (typeof (this.videoUrl) == "undefined") {
         this.videoUrl = paramUrl;
       }
       this.btnDom = document.getElementById("buttonsBox");
     })
   },
+  // mounted() {
+  //   const ro = new ResizeObserver(entries => {
+  //     entries.forEach(entry => {
+  //       this.updatePlayerDomSize()
+  //     });
+  //   });
+  //   ro.observe(this.$refs.container);
+  // },
   watch: {
     videoUrl: {
       handler(val, _) {
@@ -74,15 +81,18 @@ export default {
       let dom = this.$refs.container;
       let width = dom.parentNode.clientWidth
       let height = (9 / 16) * width
+      console.log(height)
 
-      const clientHeight = Math.min(document.body.clientHeight, document.documentElement.clientHeight)
-      if (height > clientHeight) {
-        height = clientHeight
+      console.log(dom.clientHeight)
+      if (height > dom.clientHeight) {
+        height = dom.clientHeight
         width = (16 / 9) * height
       }
       if (width > 0 && height > 0) {
         dom.style.width = width + 'px';
         dom.style.height = height + "px";
+        console.log(width)
+        console.log(height)
       }
     },
     create() {

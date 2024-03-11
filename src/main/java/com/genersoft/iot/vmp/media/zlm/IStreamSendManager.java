@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.media.zlm;
 
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 
 import java.util.List;
 
@@ -30,5 +29,4 @@ public interface IStreamSendManager {
     void remove(SendRtpItem sendRtpItem);
 
     void remove(List<SendRtpItem> sendRtpItemList);
-
 }

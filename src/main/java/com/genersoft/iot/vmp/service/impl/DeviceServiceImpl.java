@@ -12,16 +12,11 @@ import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.CatalogSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.CatalogResponseMessageHandler;
-import com.genersoft.iot.vmp.service.*;
-import com.genersoft.iot.vmp.service.bean.Group;
+import com.genersoft.iot.vmp.media.zlm.IStreamSendManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.service.IDeviceChannelService;
-import com.genersoft.iot.vmp.service.IDeviceService;
-import com.genersoft.iot.vmp.service.IInviteStreamService;
-import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
@@ -36,7 +31,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
@@ -56,8 +50,6 @@ public class DeviceServiceImpl implements IDeviceService {
 
     private final static Logger logger = LoggerFactory.getLogger(DeviceServiceImpl.class);
 
-    @Autowired
-    private SIPCommander cmder;
     @Autowired
     private DynamicTask dynamicTask;
 
@@ -109,6 +101,9 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;
+
+    @Autowired
+    private IStreamSendManager streamSendManager;
 
     @Override
     public void online(Device device, SipTransactionInfo sipTransactionInfo) {
@@ -250,13 +245,17 @@ public class DeviceServiceImpl implements IDeviceService {
         removeCatalogSubscribe(device, null);
         removeMobilePositionSubscribe(device, null);
 
+        // 清理语音对讲
         List<AudioBroadcastCatch> audioBroadcastCatches = audioBroadcastManager.get(deviceId);
-        if (audioBroadcastCatches.size() > 0) {
+        if (!audioBroadcastCatches.isEmpty()) {
             for (AudioBroadcastCatch audioBroadcastCatch : audioBroadcastCatches) {
-
-                SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(deviceId, audioBroadcastCatch.getChannelId(), null, null);
+                if (ObjectUtils.isEmpty(audioBroadcastCatch.getCallId())) {
+                    audioBroadcastManager.del(deviceId, audioBroadcastCatch.getChannelId());
+                    continue;
+                }
+                SendRtpItem sendRtpItem = streamSendManager.getByCallId(audioBroadcastCatch.getCallId());
                 if (sendRtpItem != null) {
-                    redisCatchStorage.deleteSendRTPServer(deviceId, sendRtpItem.getChannelId(), null, null);
+                    streamSendManager.remove(sendRtpItem);
                     MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
                     Map<String, Object> param = new HashMap<>();
                     param.put("vhost", "__defaultVhost__");
@@ -264,8 +263,8 @@ public class DeviceServiceImpl implements IDeviceService {
                     param.put("stream", sendRtpItem.getStream());
                     zlmresTfulUtils.stopSendRtp(mediaInfo, param);
                 }
-
                 audioBroadcastManager.del(deviceId, audioBroadcastCatch.getChannelId());
+
             }
         }
     }

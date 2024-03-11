@@ -932,7 +932,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             sipResponse = responseSdpAck(request, content.toString(), parentPlatform);
 
             AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(device.getDeviceId(), sendRtpItem.getChannelId());
-
+            audioBroadcastCatch.setCallId(request.getCallIdHeader().getCallId());
             audioBroadcastCatch.setStatus(AudioBroadcastCatchStatus.Ok);
             audioBroadcastCatch.setSipTransactionInfoByRequset(sipResponse);
             audioBroadcastManager.update(audioBroadcastCatch);

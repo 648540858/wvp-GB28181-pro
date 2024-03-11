@@ -395,9 +395,7 @@ public class ZLMHttpHookListener {
                     mediaServerService.removeCount(param.getMediaServerId());
                 }
 
-                int updateStatusResult = streamProxyService.updateStatus(param.isRegist(), param.getApp(), param.getStream());
-                if (updateStatusResult > 0) {
-                }
+                streamProxyService.updatePullingStatus(param.isRegist(), param.getApp(), param.getStream());
                 if ("rtp".equals(param.getApp())) {
                     if (!param.isRegist()) {
                         InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, param.getStream());

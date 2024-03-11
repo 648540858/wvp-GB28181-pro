@@ -1,11 +1,8 @@
 package com.genersoft.iot.vmp.media.zlm.impl;
 
-import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.media.zlm.IStreamSendManager;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -39,8 +36,8 @@ public class StreamSendManagerImpl implements IStreamSendManager {
         if (sendRtpItem.getCallId() != null) {
             redisTemplate.opsForValue().set(getCallIdKey(sendRtpItem.getCallId()), dateId);
         }
-        if (sendRtpItem.getApp() != null && sendRtpItem.getStreamId() != null) {
-            redisTemplate.opsForSet().add(getAppAndStreamKey(sendRtpItem.getApp(), sendRtpItem.getStreamId()), dateId);
+        if (sendRtpItem.getApp() != null && sendRtpItem.getStream() != null) {
+            redisTemplate.opsForSet().add(getAppAndStreamKey(sendRtpItem.getApp(), sendRtpItem.getStream()), dateId);
         }
         if (sendRtpItem.getMediaServerId() != null) {
             redisTemplate.opsForSet().add(getMediaServerIdKey(sendRtpItem.getMediaServerId()), dateId);
@@ -156,8 +153,8 @@ public class StreamSendManagerImpl implements IStreamSendManager {
         if (sendRtpItem.getCallId() != null) {
             redisTemplate.delete(getCallIdKey(sendRtpItem.getCallId()));
         }
-        if (sendRtpItem.getApp() != null && sendRtpItem.getStreamId() != null) {
-            redisTemplate.opsForSet().remove(getAppAndStreamKey(sendRtpItem.getApp(), sendRtpItem.getStreamId()), dateId);
+        if (sendRtpItem.getApp() != null && sendRtpItem.getStream() != null) {
+            redisTemplate.opsForSet().remove(getAppAndStreamKey(sendRtpItem.getApp(), sendRtpItem.getStream()), dateId);
         }
         if (sendRtpItem.getMediaServerId() != null) {
             redisTemplate.opsForSet().remove(getMediaServerIdKey(sendRtpItem.getMediaServerId()), dateId);

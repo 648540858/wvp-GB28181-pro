@@ -45,6 +45,12 @@ public class AudioBroadcastCatch {
      */
     private String channelId;
 
+
+    /**
+     * callId
+     */
+    private String callId;
+
     /**
      * 流媒体信息
      */
@@ -155,5 +161,13 @@ public class AudioBroadcastCatch {
 
     public void setSipTransactionInfoByRequset(SIPResponse sipResponse) {
         this.sipTransactionInfo = new SipTransactionInfo(sipResponse);
+    }
+
+    public String getCallId() {
+        return callId;
+    }
+
+    public void setCallId(String callId) {
+        this.callId = callId;
     }
 }

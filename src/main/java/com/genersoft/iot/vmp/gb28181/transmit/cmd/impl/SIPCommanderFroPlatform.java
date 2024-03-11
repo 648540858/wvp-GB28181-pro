@@ -93,6 +93,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     @Autowired
     private GitUtil gitUtil;
 
+    @Autowired
+    private SipLayer sipLayer;
+
     @Override
     public void register(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException {
         register(parentPlatform, null, null, errorEvent, okEvent, true);

@@ -11,7 +11,6 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.media.zlm.IStreamSendManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
@@ -20,6 +19,7 @@ import com.genersoft.iot.vmp.service.bean.RequestPushStreamMsg;
 import com.genersoft.iot.vmp.service.redisMsg.RedisGbPlayMsgListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -29,9 +29,6 @@ import org.springframework.stereotype.Component;
 import javax.sip.RequestEvent;
 import javax.sip.address.SipURI;
 import javax.sip.header.CallIdHeader;
-import javax.sip.header.FromHeader;
-import javax.sip.header.HeaderAddress;
-import javax.sip.header.ToHeader;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -92,7 +89,10 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 	public void process(RequestEvent evt) {
 		CallIdHeader callIdHeader = (CallIdHeader)evt.getRequest().getHeader(CallIdHeader.NAME);
 		dynamicTask.stop(callIdHeader.getCallId());
-		String channelId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getURI()).getUser();
+		SIPRequest sipRequest = (SIPRequest) evt.getRequest();
+		String toUserId = ((SipURI) sipRequest.getToHeader().getAddress().getURI()).getUser();
+		String fromUserId = ((SipURI) sipRequest.getFromHeader().getAddress().getURI()).getUser();
+
 		SendRtpItem sendRtpItem = streamSendManager.getByCallId(callIdHeader.getCallId());
 		if (sendRtpItem == null) {
 			logger.warn("[收到ACK]：未找到来自{}，目标为({})的推流信息",fromUserId, toUserId);

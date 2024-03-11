@@ -347,7 +347,7 @@ public class GB28181ResourceServiceImpl implements IResourceService {
                 DateUtil.urlFormatter.format(startTime) + "_" + DateUtil.urlFormatter.format(stopTime);
         MediaServerItem mediaServerItem = playService.getNewMediaServerItem(checkResult.device);
         SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, stream, null,
-                checkResult.device.isSsrcCheck(),  true, 0, false, checkResult.device.getStreamModeForParam());
+                checkResult.device.isSsrcCheck(),  true, 0, false, false, checkResult.device.getStreamModeForParam());
         playService.playBack(mediaServerItem, ssrcInfo, checkResult.channel.getDeviceId(), checkResult.channel.getChannelId(),
                 startTimeStr, endTimeStr, (code, msg, data) -> {
             if (code == InviteErrorCode.SUCCESS.getCode()) {
@@ -378,7 +378,7 @@ public class GB28181ResourceServiceImpl implements IResourceService {
                 DateUtil.urlFormatter.format(startTime) + "_" + DateUtil.urlFormatter.format(stopTime);
         MediaServerItem mediaServerItem = playService.getNewMediaServerItem(checkResult.device);
         SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, stream, null,
-                checkResult.device.isSsrcCheck(),  true, 0, false, checkResult.device.getStreamModeForParam());
+                checkResult.device.isSsrcCheck(),  true, 0, false, false, checkResult.device.getStreamModeForParam());
         playService.download(mediaServerItem, ssrcInfo, checkResult.channel.getDeviceId(), checkResult.channel.getChannelId(),
                 startTimeStr, endTimeStr, downloadSpeed, (code, msg, data) -> {
                     if (code == InviteErrorCode.SUCCESS.getCode()) {

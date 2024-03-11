@@ -7,10 +7,6 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.SipLayer;
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.bean.command.PTZCommand;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
@@ -38,11 +34,13 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
-import javax.sip.*;
+import javax.sip.InvalidArgumentException;
+import javax.sip.ResponseEvent;
+import javax.sip.SipException;
+import javax.sip.SipFactory;
 import javax.sip.header.CallIdHeader;
 import javax.sip.message.Request;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -85,8 +83,8 @@ public class SIPCommander implements ISIPCommander {
 
 
     @Override
-    public void ptzZoomCmd(Device device, String channelId, int inOut, int zoomSpeed) throws InvalidArgumentException, ParseException, SipException {
-        ptzCmd(device, channelId, 0, 0, inOut, 0, zoomSpeed);
+    public void ptzCmd(Device device, String channelId, PTZCommand ptzCommand) throws InvalidArgumentException, SipException, ParseException {
+
     }
 
     /**
@@ -118,39 +116,6 @@ public class SIPCommander implements ISIPCommander {
         strTmp = String.format("%02X", checkCode);
         builder.append(strTmp, 0, 2);
         return builder.toString();
-    }
-
-    /**
-     * 云台控制，支持方向与缩放控制
-     *
-     * @param device    控制设备
-     * @param channelId 预览通道
-     * @param leftRight 镜头左移右移 0:停止 1:左移 2:右移
-     * @param upDown    镜头上移下移 0:停止 1:上移 2:下移
-     * @param inOut     镜头放大缩小 0:停止 1:缩小 2:放大
-     * @param moveSpeed 镜头移动速度
-     * @param zoomSpeed 镜头缩放速度
-     */
-    @Override
-    public void ptzCmd(Device device, String channelId, int leftRight, int upDown, int inOut, int moveSpeed,
-                       int zoomSpeed) throws InvalidArgumentException, SipException, ParseException {
-        String cmdStr = SipUtils.cmdString(leftRight, upDown, inOut, moveSpeed, zoomSpeed);
-        StringBuilder ptzXml = new StringBuilder(200);
-        String charset = device.getCharset();
-        ptzXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
-        ptzXml.append("<Control>\r\n");
-        ptzXml.append("<CmdType>DeviceControl</CmdType>\r\n");
-        ptzXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
-        ptzXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
-        ptzXml.append("<PTZCmd>" + cmdStr + "</PTZCmd>\r\n");
-        ptzXml.append("<Info>\r\n");
-        ptzXml.append("<ControlPriority>5</ControlPriority>\r\n");
-        ptzXml.append("</Info>\r\n");
-        ptzXml.append("</Control>\r\n");
-
-        Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
-
-        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()),request);
     }
 
     /**
@@ -634,28 +599,7 @@ public class SIPCommander implements ISIPCommander {
      * @param device 视频设备
      */
     @Override
-    public void audioBroadcastCmd(Device device) throws InvalidArgumentException, SipException, ParseException {
-
-        StringBuffer broadcastXml = new StringBuffer(200);
-        String charset = device.getCharset();
-        broadcastXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
-        broadcastXml.append("<Notify>\r\n");
-        broadcastXml.append("<CmdType>Broadcast</CmdType>\r\n");
-        broadcastXml.append("<SN>" + SipUtils.getNewSn() + "</SN>\r\n");
-        broadcastXml.append("<SourceID>" + sipConfig.getId() + "</SourceID>\r\n");
-        broadcastXml.append("<TargetID>" + device.getDeviceId() + "</TargetID>\r\n");
-        broadcastXml.append("</Notify>\r\n");
-
-        
-
-        Request request = headerProvider.createMessageRequest(device, broadcastXml.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
-        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request);
-
-    }
-
-    @Override
-    public void audioBroadcastCmd(Device device, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
-
+    public void audioBroadcastCmd(Device device, String channelId, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
         StringBuffer broadcastXml = new StringBuffer(200);
         String charset = device.getCharset();
         broadcastXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");

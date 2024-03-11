@@ -18,20 +18,10 @@ import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
-import com.genersoft.iot.vmp.media.zlm.IStreamSendManager;
-import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
-import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.media.zlm.*;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForRecordMp4;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
@@ -39,30 +29,14 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.HookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRecordMp4HookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
-import com.genersoft.iot.vmp.service.IInviteStreamService;
-import com.genersoft.iot.vmp.service.IMediaServerService;
-import com.genersoft.iot.vmp.service.IMediaService;
-import com.genersoft.iot.vmp.service.IPlayService;
-import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
-import com.genersoft.iot.vmp.service.bean.ErrorCallback;
-import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
-import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.*;
-import com.genersoft.iot.vmp.service.bean.ErrorCallback;
-import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
-import com.genersoft.iot.vmp.service.bean.RequestPushStreamMsg;
-import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.service.redisMsg.RedisGbPlayMsgListener;
-import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
-import com.genersoft.iot.vmp.service.bean.ErrorCallback;
-import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
-import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.storager.dao.CloudRecordServiceMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
-import com.genersoft.iot.vmp.storager.dao.CloudRecordServiceMapper;
 import com.genersoft.iot.vmp.utils.CloudRecordUtils;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
@@ -265,8 +239,8 @@ public class PlayServiceImpl implements IPlayService {
         sendRtpItem.setApp("talk");
         sendRtpItem.setStream(stream);
         sendRtpItem.setSsrc(playSsrc);
-        sendRtpItem.setDeviceId(device.getDeviceId());
-        sendRtpItem.setPlatformId(device.getDeviceId());
+        sendRtpItem.setDestId(device.getDeviceId());
+        sendRtpItem.setSourceId(sipConfig.getId());
         sendRtpItem.setChannelId(channelId);
         sendRtpItem.setRtcp(false);
         sendRtpItem.setMediaServerId(mediaServerItem.getId());
@@ -352,7 +326,7 @@ public class PlayServiceImpl implements IPlayService {
                         sendRtpItem.setFromTag(response.getFromTag());
                         sendRtpItem.setToTag(response.getToTag());
                         sendRtpItem.setCallId(response.getCallIdHeader().getCallId());
-                        redisCatchStorage.updateSendRTPSever(sendRtpItem);
+                        streamSendManager.update(sendRtpItem);
 
                         streamSession.put(device.getDeviceId(), channelId, "talk",
                                 sendRtpItem.getStream(), sendRtpItem.getSsrc(), sendRtpItem.getMediaServerId(),
@@ -453,8 +427,8 @@ public class PlayServiceImpl implements IPlayService {
                     streamSession.remove(device.getDeviceId(), channel.getChannelId(), ssrcInfo.getStream());
                     mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                     // 取消订阅消息监听
-                    HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcInfo.getStream(), true, "rtsp", mediaServerItem.getId());
-                    subscribe.removeSubscribe(hookSubscribe);
+                    HookSubscribeForStreamChange hookSubscribeForStreamChange = HookSubscribeFactory.on_stream_changed("rtp", ssrcInfo.getStream(), true, "rtsp", mediaServerItem.getId());
+                    subscribe.removeSubscribe(hookSubscribeForStreamChange);
                 }
             }else {
                 logger.info("[点播超时] 收流超时 deviceId: {}, channelId: {},码流：{}，端口：{}, SSRC: {}",
@@ -517,8 +491,8 @@ public class PlayServiceImpl implements IPlayService {
                 // 释放ssrc
                 mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
 
-                streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
-                inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channelId);
+                streamSession.remove(device.getDeviceId(), channel.getChannelId(), ssrcInfo.getStream());
+                inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channel.getChannelId());
 
                 try {
                     callback.run(InviteErrorCode.ERROR_FOR_SIGNALLING_ERROR.getCode(),
@@ -527,7 +501,7 @@ public class PlayServiceImpl implements IPlayService {
                     logger.warn("[invite] 发送回调失败", e);
                 }
                 try {
-                    inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
+                    inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channel.getChannelId(), null,
                             InviteErrorCode.ERROR_FOR_RESET_SSRC.getCode(),
                             String.format("点播失败， 错误码： %s, %s", event.statusCode, event.msg), null);
                 }catch (Exception e) {
@@ -551,7 +525,7 @@ public class PlayServiceImpl implements IPlayService {
                 logger.warn("[invite] 发送回调失败", exception);
             }
             try {
-                inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
+                inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channel.getChannelId(), null,
                         InviteErrorCode.ERROR_FOR_SIP_SENDING_FAILED.getCode(),
                         InviteErrorCode.ERROR_FOR_SIP_SENDING_FAILED.getMsg(), null);
             }catch (Exception exception) {
@@ -1236,9 +1210,10 @@ public class PlayServiceImpl implements IPlayService {
             event.call("开启语音广播的时候未找到通道");
             return false;
         }
+        AudioBroadcastCatch audioBroadcastCatchInCatch = audioBroadcastManager.get(device.getDeviceId(), channelId);
         // 查询通道使用状态
-        if (audioBroadcastManager.exit(device.getDeviceId(), channelId)) {
-            SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(device.getDeviceId(), channelId, null, null);
+        if (audioBroadcastCatchInCatch != null && audioBroadcastCatchInCatch.getCallId() != null) {
+            SendRtpItem sendRtpItem = streamSendManager.getByCallId(audioBroadcastCatchInCatch.getCallId());
             if (sendRtpItem != null && sendRtpItem.isOnlyAudio()) {
                 // 查询流是否存在，不存在则认为是异常状态
                 Boolean streamReady = zlmServerFactory.isStreamReady(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStream());
@@ -1280,8 +1255,9 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public boolean audioBroadcastInUse(Device device, String channelId) {
-        if (audioBroadcastManager.exit(device.getDeviceId(), channelId)) {
-            SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(device.getDeviceId(), channelId, null, null);
+        AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(device.getDeviceId(), channelId);
+        if (audioBroadcastCatch != null) {
+            SendRtpItem sendRtpItem = streamSendManager.getByCallId(audioBroadcastCatch.getCallId());
             if (sendRtpItem != null && sendRtpItem.isOnlyAudio()) {
                 // 查询流是否存在，不存在则认为是异常状态
                 MediaServerItem mediaServerServiceOne = mediaServerService.getOne(sendRtpItem.getMediaServerId());
@@ -1300,34 +1276,38 @@ public class PlayServiceImpl implements IPlayService {
     public void stopAudioBroadcast(String deviceId, String channelId) {
         logger.info("[停止对讲] 设备：{}, 通道：{}", deviceId, channelId);
         List<AudioBroadcastCatch> audioBroadcastCatchList = new ArrayList<>();
+        Device device = deviceService.getDevice(deviceId);
+        if (device == null) {
+            return;
+        }
         if (channelId == null) {
             audioBroadcastCatchList.addAll(audioBroadcastManager.get(deviceId));
         } else {
             audioBroadcastCatchList.add(audioBroadcastManager.get(deviceId, channelId));
         }
-        if (audioBroadcastCatchList.size() > 0) {
+        if (!audioBroadcastCatchList.isEmpty()) {
             for (AudioBroadcastCatch audioBroadcastCatch : audioBroadcastCatchList) {
-                Device device = deviceService.getDevice(deviceId);
-                if (device == null || audioBroadcastCatch == null) {
-                    return;
+                if (audioBroadcastCatch == null) {
+                    continue;
                 }
-                SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(deviceId, audioBroadcastCatch.getChannelId(), null, null);
-                if (sendRtpItem != null) {
-                    redisCatchStorage.deleteSendRTPServer(deviceId, sendRtpItem.getChannelId(), null, null);
-                    MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-                    Map<String, Object> param = new HashMap<>();
-                    param.put("vhost", "__defaultVhost__");
-                    param.put("app", sendRtpItem.getApp());
-                    param.put("stream", sendRtpItem.getStream());
-                    zlmresTfulUtils.stopSendRtp(mediaInfo, param);
-                    try {
-                        cmder.streamByeCmdForDeviceInvite(device, sendRtpItem.getChannelId(), audioBroadcastCatch.getSipTransactionInfo(), null);
-                    } catch (InvalidArgumentException | ParseException | SipException |
-                             SsrcTransactionNotFoundException e) {
-                        logger.error("[消息发送失败] 发送语音喊话BYE失败");
+                if (audioBroadcastCatch.getCallId() != null) {
+                    SendRtpItem sendRtpItem = streamSendManager.getByCallId(audioBroadcastCatch.getCallId());
+                    if (sendRtpItem != null) {
+                        streamSendManager.remove(sendRtpItem);
+                        MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+                        Map<String, Object> param = new HashMap<>();
+                        param.put("vhost", "__defaultVhost__");
+                        param.put("app", sendRtpItem.getApp());
+                        param.put("stream", sendRtpItem.getStream());
+                        zlmresTfulUtils.stopSendRtp(mediaInfo, param);
+                        try {
+                            cmder.streamByeCmdForDeviceInvite(device, sendRtpItem.getChannelId(), audioBroadcastCatch.getSipTransactionInfo(), null);
+                        } catch (InvalidArgumentException | ParseException | SipException |
+                                 SsrcTransactionNotFoundException e) {
+                            logger.error("[消息发送失败] 发送语音喊话BYE失败");
+                        }
                     }
                 }
-
                 audioBroadcastManager.del(deviceId, channelId);
             }
         }
@@ -1513,8 +1493,8 @@ public class PlayServiceImpl implements IPlayService {
         } else {
             logger.error("RTP推流失败: {}, 参数：{}", jsonObject.getString("msg"), JSONObject.toJSONString(param));
             if (sendRtpItem.isOnlyAudio()) {
-                Device device = deviceService.getDevice(sendRtpItem.getDeviceId());
-                AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+                Device device = deviceService.getDevice(sendRtpItem.getDestId());
+                AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDestId(), sendRtpItem.getChannelId());
                 if (audioBroadcastCatch != null) {
                     try {
                         cmder.streamByeCmd(device, sendRtpItem.getChannelId(), audioBroadcastCatch.getSipTransactionInfo(), null);
@@ -1551,8 +1531,9 @@ public class PlayServiceImpl implements IPlayService {
             return;
         }
         // 查询通道使用状态
-        if (audioBroadcastManager.exit(device.getDeviceId(), channelId)) {
-            SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(device.getDeviceId(), channelId, null, null);
+        AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(device.getDeviceId(), channelId);
+        if (audioBroadcastCatch != null && audioBroadcastCatch.getCallId() != null) {
+            SendRtpItem sendRtpItem = streamSendManager.getByCallId(audioBroadcastCatch.getCallId());
             if (sendRtpItem != null && sendRtpItem.isOnlyAudio()) {
                 // 查询流是否存在，不存在则认为是异常状态
                 MediaServerItem mediaServer = mediaServerService.getOne(sendRtpItem.getMediaServerId());
@@ -1564,19 +1545,6 @@ public class PlayServiceImpl implements IPlayService {
                 } else {
                     stopAudioBroadcast(device.getDeviceId(), channelId);
                 }
-            }
-        }
-
-        SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(device.getDeviceId(), channelId, stream, null);
-        if (sendRtpItem != null) {
-            MediaServerItem mediaServer = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-            Boolean streamReady = zlmServerFactory.isStreamReady(mediaServer, "rtp", sendRtpItem.getReceiveStream());
-            if (streamReady) {
-                logger.warn("[语音对讲] 进行中： {}", channelId);
-                event.call("语音对讲进行中");
-                return;
-            } else {
-                stopTalk(device, channelId);
             }
         }
 
@@ -1603,7 +1571,11 @@ public class PlayServiceImpl implements IPlayService {
     @Override
     public void stopTalk(Device device, String channelId, Boolean streamIsReady) {
         logger.info("[语音对讲] 停止， {}/{}", device.getDeviceId(), channelId);
-        SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(device.getDeviceId(), channelId, null, null);
+        AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(device.getDeviceId(), channelId);
+        if (audioBroadcastCatch == null || audioBroadcastCatch.getCallId() == null) {
+            return;
+        }
+        SendRtpItem sendRtpItem = streamSendManager.getByCallId(audioBroadcastCatch.getCallId());
         if (sendRtpItem == null) {
             logger.info("[语音对讲] 停止失败， 未找到发送信息，可能已经停止");
             return;
@@ -1635,7 +1607,7 @@ public class PlayServiceImpl implements IPlayService {
                 logger.info("[语音对讲] 停止消息发送失败，可能已经停止");
             }
         }
-        redisCatchStorage.deleteSendRTPServer(device.getDeviceId(), channelId,null, null);
+        streamSendManager.remove(sendRtpItem);
     }
 
     @Override

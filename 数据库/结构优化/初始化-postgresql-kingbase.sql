@@ -31,7 +31,6 @@ create table wvp_device (
                             password character varying(255),
                             as_message_channel bool default false,
                             keepalive_interval_time integer,
-                            switch_primary_sub_stream bool default false,
                             broadcast_push_after_ack bool default false,
                             constraint uk_device_device unique (device_id)
 );
@@ -92,6 +91,7 @@ create table wvp_device_channel (
                                     latitude_wgs84 double precision,
                                     business_group_id character varying(50),
                                     gps_time character varying(50),
+                                    stream_identification character varying(50),
                                     common_gb_channel_id integer,
                                     constraint uk_wvp_device_channel_unique_device_channel unique (device_id, channel_id)
 );

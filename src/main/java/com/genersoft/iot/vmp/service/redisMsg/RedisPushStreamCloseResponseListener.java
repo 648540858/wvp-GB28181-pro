@@ -103,7 +103,7 @@ public class RedisPushStreamCloseResponseListener implements MessageListener {
                         zlmServerFactory.stopSendRtpStream(mediaInfo, param);
                         if (InviteStreamType.PUSH == sendRtpItem.getPlayType()) {
                             MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
-                                    sendRtpItem.getApp(), sendRtpItem.getStreamId(), sendRtpItem.getChannelId(),
+                                    sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getChannelId(),
                                     sendRtpItem.getDestId(), parentPlatform.getName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
                             messageForPushChannel.setPlatFormIndex(parentPlatform.getId());
                             redisCatchStorage.sendPlatformStopPlayMsg(messageForPushChannel);

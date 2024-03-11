@@ -11,19 +11,16 @@ import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
-import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.media.zlm.dto.HookType;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.*;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
@@ -539,11 +536,11 @@ public class ZLMHttpHookListener {
                                         cmder.streamByeCmd(device, sendRtpItem.getChannelId(), param.getStream(), sendRtpItem.getCallId());
                                         if (sendRtpItem.getPlayType().equals(InviteStreamType.BROADCAST)
                                                 || sendRtpItem.getPlayType().equals(InviteStreamType.TALK)) {
-                                            AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+                                            AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDestId(), sendRtpItem.getChannelId());
                                             if (audioBroadcastCatch != null) {
                                                 // 来自上级平台的停止对讲
-                                                logger.info("[停止对讲] 来自上级，平台：{}, 通道：{}", sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
-                                                audioBroadcastManager.del(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+                                                logger.info("[停止对讲] 来自上级，平台：{}, 通道：{}", sendRtpItem.getDestId(), sendRtpItem.getChannelId());
+                                                audioBroadcastManager.del(sendRtpItem.getDestId(), sendRtpItem.getChannelId());
                                             }
                                         }
                                     }
@@ -596,7 +593,7 @@ public class ZLMHttpHookListener {
                         streamSendManager.remove(sendRtpItem);
                         if (InviteStreamType.PUSH == sendRtpItem.getPlayType()) {
                             MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
-                                    sendRtpItem.getApp(), sendRtpItem.getStreamId(), sendRtpItem.getChannelId(),
+                                    sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getChannelId(),
                                     sendRtpItem.getDestId(), parentPlatform.getName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
                             messageForPushChannel.setPlatFormIndex(parentPlatform.getId());
                             redisCatchStorage.sendPlatformStopPlayMsg(messageForPushChannel);
@@ -628,10 +625,14 @@ public class ZLMHttpHookListener {
                 storager.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
                 return ret;
             }
-            SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(null, null, param.getStream(), null);
-            if (sendRtpItem != null && "talk".equals(sendRtpItem.getApp())) {
-                ret.put("close", false);
-                return ret;
+            List<SendRtpItem> sendRtpItemList = streamSendManager.getByAppAndStream(param.getApp(), param.getStream());
+            if (sendRtpItemList != null && !sendRtpItemList.isEmpty()) {
+                for (SendRtpItem sendRtpItem : sendRtpItemList) {
+                    if (sendRtpItem != null && "talk".equals(sendRtpItem.getApp())) {
+                        ret.put("close", false);
+                        return ret;
+                    }
+                }
             }
         } else if ("talk".equals(param.getApp()) || "broadcast".equals(param.getApp())) {
             ret.put("close", false);

@@ -2,8 +2,10 @@ package com.genersoft.iot.vmp.jt1078.config;
 
 import com.genersoft.iot.vmp.jt1078.cmd.JT1078Template;
 import com.genersoft.iot.vmp.jt1078.codec.netty.TcpServer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -18,9 +20,12 @@ import org.springframework.core.annotation.Order;
 @ConditionalOnProperty(value = "jt1078.enable", havingValue = "true")
 public class JT1078AutoConfiguration {
 
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
+
     @Bean(initMethod = "start", destroyMethod = "stop")
     public TcpServer jt1078Server(@Value("${jt1078.port}") Integer port) {
-        return new TcpServer(port);
+        return new TcpServer(port, applicationEventPublisher);
     }
 
     @Bean

@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.jt1078.session.Session;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.util.StringUtils;
 
 /**
@@ -37,4 +38,6 @@ public abstract class Re {
 
         return rs;
     }
+
+    public abstract ApplicationEvent getEvent();
 }

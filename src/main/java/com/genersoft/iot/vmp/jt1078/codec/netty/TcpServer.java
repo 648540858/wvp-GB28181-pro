@@ -19,6 +19,7 @@ import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.concurrent.TimeUnit;
 
@@ -35,11 +36,13 @@ public class TcpServer {
     private boolean isRunning = false;
     private EventLoopGroup bossGroup = null;
     private EventLoopGroup workerGroup = null;
+    private ApplicationEventPublisher applicationEventPublisher = null;
 
     private final ByteBuf DECODER_JT808 = Unpooled.wrappedBuffer(new byte[]{0x7e});
 
-    public TcpServer(Integer port) {
+    public TcpServer(Integer port, ApplicationEventPublisher applicationEventPublisher) {
         this.port = port;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     private void startTcpServer() {
@@ -60,7 +63,7 @@ public class TcpServer {
                             channel.pipeline()
                                     .addLast(new IdleStateHandler(10, 0, 0, TimeUnit.MINUTES))
                                     .addLast(new DelimiterBasedFrameDecoder(1024 * 2, DECODER_JT808))
-                                    .addLast(new Jt808Decoder())
+                                    .addLast(new Jt808Decoder(applicationEventPublisher))
                                     .addLast(new Jt808Encoder())
                                     .addLast(new Jt808EncoderCmd())
                                     .addLast(new Jt808Handler());

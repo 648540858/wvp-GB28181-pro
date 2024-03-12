@@ -13,6 +13,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +26,12 @@ import java.util.List;
  */
 public class Jt808Decoder extends ByteToMessageDecoder {
     private final static Logger log = LoggerFactory.getLogger(Jt808Decoder.class);
+
+    private ApplicationEventPublisher applicationEventPublisher = null;
+
+    public Jt808Decoder(ApplicationEventPublisher applicationEventPublisher) {
+        this.applicationEventPublisher = applicationEventPublisher;
+    }
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
@@ -51,6 +59,10 @@ public class Jt808Decoder extends ByteToMessageDecoder {
                 return;
             }
             Rs decode = handler.decode(buf, header, session);
+            ApplicationEvent applicationEvent = handler.getEvent();
+            if (applicationEvent != null) {
+                applicationEventPublisher.publishEvent(applicationEvent);
+            }
             if (decode != null) {
                 out.add(decode);
             }

@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.jt1078.session.Session;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
+import org.springframework.context.ApplicationEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -186,5 +187,10 @@ public class J1205 extends Re {
                 "respNo=" + respNo +
                 ", recordList=" + recordList +
                 '}';
+    }
+
+    @Override
+    public ApplicationEvent getEvent() {
+        return null;
     }
 }

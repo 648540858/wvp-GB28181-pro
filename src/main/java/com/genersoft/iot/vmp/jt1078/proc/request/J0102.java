@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.jt1078.proc.response.J8001;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import io.netty.buffer.ByteBuf;
+import org.springframework.context.ApplicationEvent;
 
 /**
  * 终端鉴权
@@ -31,6 +32,11 @@ public class J0102 extends Re {
         j8001.setRespId(header.getMsgId());
         j8001.setResult(J8001.SUCCESS);
         return j8001;
+    }
+
+    @Override
+    public ApplicationEvent getEvent() {
+        return null;
     }
 
 }

@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.jt1078.proc.Header;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import io.netty.buffer.ByteBuf;
+import org.springframework.context.ApplicationEvent;
 
 /**
  * 查询服务器时间
@@ -22,6 +23,11 @@ public class J0004 extends Re {
 
     @Override
     protected Rs handler(Header header, Session session) {
+        return null;
+    }
+
+    @Override
+    public ApplicationEvent getEvent() {
         return null;
     }
 }

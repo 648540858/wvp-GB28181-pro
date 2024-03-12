@@ -33,7 +33,7 @@ public class JT1078Controller {
     public WVPResult<?> startLive(@PathVariable String deviceId, @PathVariable String channelId) {
         J9101 j9101 = new J9101();
         j9101.setChannel(Integer.valueOf(channelId));
-        j9101.setIp("192.168.1.1");
+        j9101.setIp("192.168.1.3");
         j9101.setRate(1);
         j9101.setTcpPort(7618);
         j9101.setUdpPort(7618);

@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.jt1078.session.Session;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
+import org.springframework.context.ApplicationEvent;
 
 /**
  * 终端通用应答
@@ -46,5 +47,10 @@ public class J0001 extends Re {
 
     public int getResult() {
         return result;
+    }
+
+    @Override
+    public ApplicationEvent getEvent() {
+        return null;
     }
 }

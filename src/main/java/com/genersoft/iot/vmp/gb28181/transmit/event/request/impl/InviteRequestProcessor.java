@@ -977,7 +977,10 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         }
         if (device != null) {
             logger.info("收到设备" + requesterId + "的语音广播Invite请求");
-            String key = VideoManagerConstants.BROADCAST_WAITE_INVITE + device.getDeviceId() + broadcastCatch.getChannelId();
+            String key = VideoManagerConstants.BROADCAST_WAITE_INVITE + device.getDeviceId();
+            if (!SipUtils.isFrontEnd(device.getDeviceId())) {
+                key += broadcastCatch.getChannelId();
+            }
             dynamicTask.stop(key);
             try {
                 responseAck(request, Response.TRYING);

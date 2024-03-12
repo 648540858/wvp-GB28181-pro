@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import com.genersoft.iot.vmp.jt1078.proc.response.J8001;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
+import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import io.netty.buffer.ByteBuf;
 import org.springframework.context.ApplicationEvent;
@@ -23,7 +24,7 @@ public class J0002 extends Re {
     }
 
     @Override
-    protected Rs handler(Header header, Session session) {
+    protected Rs handler(Header header, Session session, Ijt1078Service service) {
         J8001 j8001 = new J8001();
         j8001.setRespNo(header.getSn());
         j8001.setRespId(header.getMsgId());

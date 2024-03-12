@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.jt1078.proc.Header;
 import com.genersoft.iot.vmp.jt1078.proc.factory.CodecFactory;
 import com.genersoft.iot.vmp.jt1078.proc.request.Re;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
+import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
@@ -28,9 +29,11 @@ public class Jt808Decoder extends ByteToMessageDecoder {
     private final static Logger log = LoggerFactory.getLogger(Jt808Decoder.class);
 
     private ApplicationEventPublisher applicationEventPublisher = null;
+    private Ijt1078Service service = null;
 
-    public Jt808Decoder(ApplicationEventPublisher applicationEventPublisher) {
+    public Jt808Decoder(ApplicationEventPublisher applicationEventPublisher, Ijt1078Service service ) {
         this.applicationEventPublisher = applicationEventPublisher;
+        this.service = service;
     }
 
     @Override
@@ -58,7 +61,7 @@ public class Jt808Decoder extends ByteToMessageDecoder {
                 log.error("get msgId is null {}", header.getMsgId());
                 return;
             }
-            Rs decode = handler.decode(buf, header, session);
+            Rs decode = handler.decode(buf, header, session, service);
             ApplicationEvent applicationEvent = handler.getEvent();
             if (applicationEvent != null) {
                 applicationEventPublisher.publishEvent(applicationEvent);

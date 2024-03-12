@@ -62,11 +62,30 @@ public class J0100 extends Re {
                 throw new RuntimeException(e);
             }
         } else {
-            int i = buf.readUnsignedShort();
             // decode as 2013
-        }
-        // 发送终端注册消息
+            cityId = buf.readUnsignedShort();
+            // decode as 2019
+            byte[] bytes5 = new byte[5];
+            buf.readBytes(bytes5);
+            makerId = new String(bytes5).trim();
 
+            byte[] bytes20 = new byte[20];
+            buf.readBytes(bytes20);
+            deviceModel = new String(bytes20).trim();
+
+            byte[] bytes7 = new byte[7];
+            buf.readBytes(bytes7);
+            deviceId = new String(bytes7).trim();
+
+            plateColor = buf.readByte();
+            byte[] plateColorBytes = new byte[buf.readableBytes()];
+            buf.readBytes(plateColorBytes);
+            try {
+                plateNo = new String(plateColorBytes, "GBK").trim();
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
+            }
+        }
         return null;
     }
 

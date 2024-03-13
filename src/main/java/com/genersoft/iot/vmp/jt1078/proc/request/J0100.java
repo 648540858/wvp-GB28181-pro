@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.jt1078.proc.request;
 
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
+import com.genersoft.iot.vmp.jt1078.codec.netty.Jt808Handler;
 import com.genersoft.iot.vmp.jt1078.event.RegisterEvent;
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import com.genersoft.iot.vmp.jt1078.proc.response.J8100;
@@ -9,6 +10,8 @@ import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import io.netty.buffer.ByteBuf;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEvent;
 
 import java.io.UnsupportedEncodingException;
@@ -24,6 +27,7 @@ import java.util.UUID;
 @MsgId(id = "0100")
 public class J0100 extends Re {
 
+    private final static Logger log = LoggerFactory.getLogger(J0100.class);
     private JTDevice device;
 
     @Override
@@ -92,10 +96,16 @@ public class J0100 extends Re {
             String authenticationCode = UUID.randomUUID().toString();
             j8100.setCode(authenticationCode);
             deviceInDb.setAuthenticationCode(authenticationCode);
+            deviceInDb.setStatus(true);
             service.updateDevice(deviceInDb);
+            log.info("[注册成功] 设备： {}", device.getDeviceId());
         }else {
+            log.info("[注册失败] 未授权设备： {}", device.getDeviceId());
             j8100.setResult(J8100.FAIL);
-            // TODO 断开连接，清理资源
+            // 断开连接，清理资源
+            if (session.isRegistered()) {
+                session.unregister();
+            }
         }
         return j8100;
     }

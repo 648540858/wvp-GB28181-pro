@@ -124,4 +124,7 @@ public enum SessionManager {
         return String.join("_", devId.replaceFirst("^0*", ""), respId, requestNo.toString());
     }
 
+    public void remove(String devId) {
+        sessionMap.remove(devId);
+    }
 }

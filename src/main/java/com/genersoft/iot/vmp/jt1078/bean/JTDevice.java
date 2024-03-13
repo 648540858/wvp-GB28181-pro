@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "jt808设备")
 public class JTDevice {
 
+    private int id;
+
     /**
      * 省域ID
      */
@@ -69,6 +71,14 @@ public class JTDevice {
     private Double latitude;
 
 
+    @Schema(description = "创建时间")
+    private String createTime;
+
+    @Schema(description = "更新时间")
+    private String updateTime;
+
+    @Schema(description = "状态")
+    private boolean status;
 
     public int getProvinceId() {
         return provinceId;
@@ -148,5 +158,37 @@ public class JTDevice {
 
     public void setLatitude(Double latitude) {
         this.latitude = latitude;
+    }
+
+    public String getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(String createTime) {
+        this.createTime = createTime;
+    }
+
+    public String getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(String updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }

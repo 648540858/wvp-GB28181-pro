@@ -3,8 +3,13 @@ package com.genersoft.iot.vmp.jt1078.service.impl;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
 import com.genersoft.iot.vmp.jt1078.dao.JTDeviceMapper;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
+import com.genersoft.iot.vmp.utils.DateUtil;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class jt1078ServiceImpl implements Ijt1078Service {
@@ -20,6 +25,14 @@ public class jt1078ServiceImpl implements Ijt1078Service {
 
     @Override
     public void updateDevice(JTDevice device) {
+        device.setUpdateTime(DateUtil.getNow());
         jtDeviceMapper.updateDevice(device);
+    }
+
+    @Override
+    public PageInfo<JTDevice> getDeviceList(int page, int count, String query, Boolean online) {
+        PageHelper.startPage(page, count);
+        List<JTDevice> all = jtDeviceMapper.getDeviceList(query, online);
+        return new PageInfo<>(all);
     }
 }

@@ -3,6 +3,8 @@ package com.genersoft.iot.vmp.jt1078.dao;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
 import org.apache.ibatis.annotations.*;
 
+import java.util.List;
+
 @Mapper
 public interface JTDeviceMapper {
 
@@ -25,4 +27,23 @@ public interface JTDeviceMapper {
             "WHERE device_id=#{deviceId}"+
             " </script>"})
     void updateDevice(JTDevice device);
+    @Select(value = {" <script>" +
+            "SELECT * " +
+            "from " +
+            "wvp_jt_device jd " +
+            "WHERE " +
+            "1=1" +
+            " <if test='query != null'> AND (" +
+            "jd.province_id LIKE concat('%',#{query},'%') " +
+            "OR jd.city_id LIKE concat('%',#{query},'%') " +
+            "OR jd.maker_id LIKE concat('%',#{query},'%') " +
+            "OR jd.device_model LIKE concat('%',#{query},'%') " +
+            "OR jd.device_id LIKE concat('%',#{query},'%') " +
+            "OR jd.plate_no LIKE concat('%',#{query},'%')" +
+            ")</if> " +
+            " <if test='online == true' > AND jd.status= true</if>" +
+            " <if test='online == false' > AND jd.status= false</if>" +
+            "ORDER BY jd.update_time " +
+            " </script>"})
+    List<JTDevice> getDeviceList(@Param("query") String query, @Param("online") Boolean online);
 }

@@ -111,4 +111,9 @@ public class Session {
                 ",ip=" + channel.remoteAddress() +
                 ']';
     }
+
+    public void unregister() {
+        channel.close();
+        SessionManager.INSTANCE.remove(this.devId);
+    }
 }

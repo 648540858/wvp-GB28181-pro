@@ -20,7 +20,7 @@ public class JT1078ServerTest {
 
     public static void main(String[] args) {
         System.out.println("Starting jt1078 server...");
-        TcpServer tcpServer = new TcpServer(21078, null);
+        TcpServer tcpServer = new TcpServer(21078, null, null);
         tcpServer.start();
         System.out.println("Start jt1078 server success!");
 

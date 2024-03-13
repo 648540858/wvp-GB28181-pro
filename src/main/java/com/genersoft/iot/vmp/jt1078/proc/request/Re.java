@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.jt1078.proc.request;
 
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
+import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
@@ -19,14 +20,14 @@ public abstract class Re {
 
     protected abstract Rs decode0(ByteBuf buf, Header header, Session session);
 
-    protected abstract Rs handler(Header header, Session session);
+    protected abstract Rs handler(Header header, Session session, Ijt1078Service service);
 
-    public Rs decode(ByteBuf buf, Header header, Session session) {
+    public Rs decode(ByteBuf buf, Header header, Session session, Ijt1078Service service) {
         if (session != null && !StringUtils.hasLength(session.getDevId())) {
             session.register(header.getDevId(), (int) header.getVersion(), header);
         }
         Rs rs = decode0(buf, header, session);
-        Rs rsHand = handler(header, session);
+        Rs rsHand = handler(header, session, service);
         if (rs == null && rsHand != null) {
             rs = rsHand;
         } else if (rs != null && rsHand != null) {

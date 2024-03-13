@@ -12,6 +12,13 @@ import io.netty.util.CharsetUtil;
  */
 @MsgId(id = "8100")
 public class J8100 extends Rs {
+    /**
+     * 0 成功
+     * 1 车辆已被注册
+     * 2 数据库中无该车辆
+     * 2 终端已被注册
+     * 2 数据库中无该终端
+     */
     public static final Integer SUCCESS = 0;
 
     Integer respNo;

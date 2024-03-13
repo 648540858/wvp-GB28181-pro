@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
+import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import io.netty.buffer.ByteBuf;
@@ -32,7 +33,7 @@ public class J0001 extends Re {
     }
 
     @Override
-    protected Rs handler(Header header, Session session) {
+    protected Rs handler(Header header, Session session, Ijt1078Service service) {
         SessionManager.INSTANCE.response(header.getDevId(), "0001", (long) respNo, JSON.toJSONString(this));
         return null;
     }

@@ -75,7 +75,7 @@ public class RedisPushStreamStatusListMsgListener implements MessageListener {
                             if (!contains) {
                                 if (allGBId.containsKey(streamPushItem.getGbId())) {
                                     GbStream gbStream = allGBId.get(streamPushItem.getGbId());
-                                    logger.warn("[REDIS消息-推流设备列表更新] 国标编号重复: {}, 已分配给{}/{}",
+                                    logger.warn("[REDIS消息-推流设备列表更新-INSERT] 国标编号重复: {}, 已分配给{}/{}",
                                             streamPushItem.getGbId(), gbStream.getApp(), gbStream.getStream());
                                     continue;
                                 }
@@ -88,6 +88,12 @@ public class RedisPushStreamStatusListMsgListener implements MessageListener {
                                 streamPushItemForSave.add(streamPushItem);
                                 allGBId.put(streamPushItem.getGbId(), streamPushItem);
                             } else {
+                                if (allGBId.containsKey(streamPushItem.getGbId())) {
+                                    GbStream gbStream = allGBId.get(streamPushItem.getGbId());
+                                    logger.warn("[REDIS消息-推流设备列表更新-UPDATE] 国标编号重复: {}, 已分配给{}/{}",
+                                            streamPushItem.getGbId(), gbStream.getApp(), gbStream.getStream());
+                                    continue;
+                                }
                                 //存在就只修改 name和gbId
                                 streamPushItemForUpdate.add(streamPushItem);
                             }

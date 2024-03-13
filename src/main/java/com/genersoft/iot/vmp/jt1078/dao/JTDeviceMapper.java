@@ -51,6 +51,7 @@ public interface JTDeviceMapper {
             "province_id,"+
             "city_id,"+
             "maker_id,"+
+            "device_id,"+
             "device_model,"+
             "plate_color,"+
             "plate_no,"+
@@ -63,6 +64,7 @@ public interface JTDeviceMapper {
             "#{provinceId}," +
             "#{cityId}," +
             "#{makerId}," +
+            "#{deviceId}," +
             "#{deviceModel}," +
             "#{plateColor}," +
             "#{plateNo}," +
@@ -73,4 +75,7 @@ public interface JTDeviceMapper {
             "#{updateTime}" +
             ")")
     void addDevice(JTDevice device);
+
+    @Delete("delete from wvp_jt_device where device_id = #{deviceId}")
+    void deleteDeviceByDeviceId(@Param("deviceId") String deviceId);
 }

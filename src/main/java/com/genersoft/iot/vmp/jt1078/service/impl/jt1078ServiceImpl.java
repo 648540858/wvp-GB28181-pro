@@ -42,4 +42,9 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         device.setUpdateTime(DateUtil.getNow());
         jtDeviceMapper.addDevice(device);
     }
+
+    @Override
+    public void deleteDeviceByDeviceId(String deviceId) {
+        jtDeviceMapper.deleteDeviceByDeviceId(deviceId);
+    }
 }

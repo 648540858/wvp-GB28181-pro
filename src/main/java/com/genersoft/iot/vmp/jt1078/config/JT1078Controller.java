@@ -86,6 +86,13 @@ public class JT1078Controller {
         assert device.getDeviceId() != null;
         service.addDevice(device);
     }
+    @Operation(summary = "删除设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备ID", required = true)
+    @DeleteMapping("/device/delete")
+    public void addDevice(String deviceId){
+        assert deviceId != null;
+        service.deleteDeviceByDeviceId(deviceId);
+    }
 
 }
 

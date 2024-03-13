@@ -59,7 +59,7 @@
 
 <script>
 import uiHeader from '../layout/UiHeader.vue'
-import deviceEdit from './dialog/deviceEdit.vue'
+import deviceEdit from './dialog/jtDeviceEdit.vue'
 import syncChannelProgress from './dialog/SyncChannelProgress.vue'
 
 export default {
@@ -121,7 +121,7 @@ export default {
       this.getDeviceListLoading = true;
       this.$axios({
         method: 'get',
-        url: `/api/jt1078/devices`,
+        url: `/api/jt1078/device/list`,
         params: {
           page: this.currentPage,
           count: this.count
@@ -138,11 +138,7 @@ export default {
       });
     },
     deleteDevice: function (row) {
-      let msg = "确定删除此设备？"
-      if (row.online !== 0) {
-        msg = "在线设备删除后仍可通过注册再次上线。<br/>如需彻底删除请先将设备离线。<br/><strong>确定删除此设备？</strong>"
-      }
-      this.$confirm(msg, '提示', {
+      this.$confirm("确定删除此设备？", '提示', {
         dangerouslyUseHTMLString: true,
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -151,7 +147,10 @@ export default {
       }).then(() => {
         this.$axios({
           method: 'delete',
-          url: `/api/device/query/devices/${row.deviceId}/delete`
+          url: '/api/jt1078/device/delete',
+          params: {
+            deviceId: row.deviceId
+          }
         }).then((res) => {
           this.getDeviceList();
         }).catch((error) => {
@@ -159,81 +158,6 @@ export default {
         });
       }).catch(() => {
 
-      });
-
-
-    },
-    showChannelList: function (row) {
-      this.$router.push(`/channelList/${row.deviceId}/0`);
-    },
-    showDevicePosition: function (row) {
-      this.$router.push(`/map?deviceId=${row.deviceId}`);
-    },
-
-    //gb28181平台对接
-    //刷新设备信息
-    refDevice: function (itemData) {
-      console.log("刷新对应设备:" + itemData.deviceId);
-      let that = this;
-      this.$axios({
-        method: 'get',
-        url: '/api/device/query/devices/' + itemData.deviceId + '/sync'
-      }).then((res) => {
-        console.log("刷新设备结果：" + JSON.stringify(res));
-        if (res.data.code !== 0) {
-          that.$message({
-            showClose: true,
-            message: res.data.msg,
-            type: 'error'
-          });
-        } else {
-          // that.$message({
-          // 	showClose: true,
-          // 	message: res.data.msg,
-          // 	type: 'success'
-          // });
-          this.$refs.syncChannelProgress.openDialog(itemData.deviceId)
-        }
-        that.initData()
-      }).catch((e) => {
-        console.error(e)
-        that.$message({
-          showClose: true,
-          message: e,
-          type: 'error'
-        });
-      });
-
-    },
-
-    getTooltipContent: async function (deviceId) {
-      let result = "";
-      await this.$axios({
-        method: 'get',
-        async: false,
-        url: `/api/device/query/${deviceId}/sync_status/`,
-      }).then((res) => {
-        if (res.data.code == 0) {
-          if (res.data.data.errorMsg !== null) {
-            result = res.data.data.errorMsg
-          } else if (res.data.msg !== null) {
-            result = res.data.msg
-          } else {
-            result = `同步中...[${res.data.data.current}/${res.data.data.total}]`;
-          }
-        }
-      })
-      return result;
-    },
-    transportChange: function (row) {
-      console.log(`修改传输方式为 ${row.streamMode}：${row.deviceId} `);
-      let that = this;
-      this.$axios({
-        method: 'post',
-        url: '/api/device/query/transport/' + row.deviceId + '/' + row.streamMode
-      }).then(function (res) {
-
-      }).catch(function (e) {
       });
     },
     edit: function (row) {

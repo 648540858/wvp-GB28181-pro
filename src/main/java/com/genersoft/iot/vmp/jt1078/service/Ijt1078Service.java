@@ -13,4 +13,6 @@ public interface Ijt1078Service {
     PageInfo<JTDevice> getDeviceList(int page, int count, String query, Boolean online);
 
     void addDevice(JTDevice device);
+
+    void deleteDeviceByDeviceId(String deviceId);
 }

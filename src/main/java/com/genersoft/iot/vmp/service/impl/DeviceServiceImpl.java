@@ -575,8 +575,8 @@ public class DeviceServiceImpl implements IDeviceService {
 
             }else if (device.getSubscribeCycleForMobilePosition() == 0) {
                 // 取消订阅
-                deviceInStore.setSubscribeCycleForCatalog(0);
-                removeCatalogSubscribe(deviceInStore, null);
+                deviceInStore.setSubscribeCycleForMobilePosition(0);
+                removeMobilePositionSubscribe(deviceInStore, null);
             }
         }
         if (deviceInStore.getGeoCoordSys() != null) {

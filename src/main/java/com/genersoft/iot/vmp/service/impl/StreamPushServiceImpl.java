@@ -548,4 +548,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
         return new ResourceBaseInfo(total, online);
     }
+
+    @Override
+    public Map<String, StreamPushItem> getAllAppAndStreamMap() {
+        return streamPushMapper.getAllAppAndStreamMap();
+    }
 }

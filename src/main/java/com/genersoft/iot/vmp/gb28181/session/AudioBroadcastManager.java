@@ -25,6 +25,7 @@ public class AudioBroadcastManager {
 
     public void update(AudioBroadcastCatch audioBroadcastCatch) {
         if (SipUtils.isFrontEnd(audioBroadcastCatch.getDeviceId())) {
+            audioBroadcastCatch.setChannelId(audioBroadcastCatch.getDeviceId());
             data.put(audioBroadcastCatch.getDeviceId(), audioBroadcastCatch);
         }else {
             data.put(audioBroadcastCatch.getDeviceId() + audioBroadcastCatch.getChannelId(), audioBroadcastCatch);

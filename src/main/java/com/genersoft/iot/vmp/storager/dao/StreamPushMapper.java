@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 @Repository
@@ -195,4 +196,12 @@ public interface StreamPushMapper {
             "</foreach>" +
             "</script>")
     List<StreamPushItem> getListIn(List<StreamPushItem> streamPushItems);
+
+    @MapKey("vhost")
+    @Select("SELECT CONCAT(wsp.app, wsp.stream) as vhost, wsp.app, wsp.stream, wgs.gb_id, wgs.name " +
+            " from wvp_stream_push wsp " +
+            " left join wvp_gb_stream  wgs  on wgs.app = wsp.app and wgs.stream = wsp.stream")
+    Map<String, StreamPushItem> getAllAppAndStreamMap();
+
+
 }

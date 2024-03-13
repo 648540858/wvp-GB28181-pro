@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 级联国标平台关联流业务接口
@@ -71,4 +72,7 @@ public interface IGbStreamService {
     void delAllPlatformInfo(String platformId, String catalogId);
 
     List<GbStream> getGbChannelWithGbid(String gbId);
+
+    Map<String, GbStream> getAllGBId();
+
 }

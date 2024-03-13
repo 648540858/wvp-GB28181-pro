@@ -12,6 +12,7 @@ import io.netty.buffer.ByteBuf;
 import org.springframework.context.ApplicationEvent;
 
 import java.io.UnsupportedEncodingException;
+import java.util.UUID;
 
 /**
  * 终端注册
@@ -82,11 +83,20 @@ public class J0100 extends Re {
 
     @Override
     protected Rs handler(Header header, Session session, Ijt1078Service service) {
-        // TODO 从数据库判断这个设备是否合法
         J8100 j8100 = new J8100();
         j8100.setRespNo(header.getSn());
-        j8100.setResult(J8100.SUCCESS);
-        j8100.setCode("WVP_YYDS");
+        // 从数据库判断这个设备是否合法
+        JTDevice deviceInDb = service.getDevice(header.getDevId());
+        if (deviceInDb != null) {
+            j8100.setResult(J8100.SUCCESS);
+            String authenticationCode = UUID.randomUUID().toString();
+            j8100.setCode(authenticationCode);
+            deviceInDb.setAuthenticationCode(authenticationCode);
+            service.updateDevice(deviceInDb);
+        }else {
+            j8100.setResult(J8100.FAIL);
+            // TODO 断开连接，清理资源
+        }
         return j8100;
     }
 

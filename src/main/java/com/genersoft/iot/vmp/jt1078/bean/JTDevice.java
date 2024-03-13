@@ -1,44 +1,74 @@
 package com.genersoft.iot.vmp.jt1078.bean;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * JT 设备
  */
+@Schema(description = "jt808设备")
 public class JTDevice {
 
     /**
      * 省域ID
      */
+    @Schema(description = "省域ID")
     private int provinceId;
 
     /**
      * 市县域ID
      */
+    @Schema(description = "市县域ID")
     private int cityId;
 
     /**
      * 制造商ID
      */
+    @Schema(description = "制造商ID")
     private String makerId;
 
     /**
      * 终端型号
      */
+    @Schema(description = "终端型号")
     private String deviceModel;
 
     /**
      * 终端ID
      */
+    @Schema(description = "终端ID")
     private String deviceId;
 
     /**
      * 车牌颜色
      */
+    @Schema(description = "车牌颜色")
     private int plateColor;
 
     /**
      * 车牌
      */
+    @Schema(description = "车牌")
     private String plateNo;
+
+    /**
+     * 鉴权码
+     */
+    @Schema(description = "鉴权码")
+    private String authenticationCode;
+
+    /**
+     * 经度
+     */
+    @Schema(description = "经度")
+    private Double longitude;
+
+    /**
+     * 纬度
+     */
+    @Schema(description = "纬度")
+    private Double latitude;
+
+
 
     public int getProvinceId() {
         return provinceId;
@@ -94,5 +124,29 @@ public class JTDevice {
 
     public void setPlateNo(String plateNo) {
         this.plateNo = plateNo;
+    }
+
+    public String getAuthenticationCode() {
+        return authenticationCode;
+    }
+
+    public void setAuthenticationCode(String authenticationCode) {
+        this.authenticationCode = authenticationCode;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
     }
 }

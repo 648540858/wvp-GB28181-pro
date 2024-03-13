@@ -10,6 +10,6 @@ public class RegisterEventListener implements ApplicationListener<RegisterEvent>
 
     @Override
     public void onApplicationEvent(RegisterEvent event) {
-        System.out.println("收到设备注册： "+ event.getDeviceId());
+        System.out.println("收到设备注册： "+ event.getDevice().getDeviceId());
     }
 }

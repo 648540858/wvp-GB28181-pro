@@ -19,11 +19,11 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @DS("master")
@@ -267,5 +267,10 @@ public class GbStreamServiceImpl implements IGbStreamService {
     @Override
     public List<GbStream> getGbChannelWithGbid(String gbId) {
         return gbStreamMapper.selectByGBId(gbId);
+    }
+
+    @Override
+    public Map<String, GbStream> getAllGBId() {
+        return gbStreamMapper.getAllGBId();
     }
 }

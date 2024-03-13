@@ -115,4 +115,7 @@ public interface IStreamPushService {
      */
     ResourceBaseInfo getOverview();
 
+    Map<String, StreamPushItem> getAllAppAndStreamMap();
+
+
 }

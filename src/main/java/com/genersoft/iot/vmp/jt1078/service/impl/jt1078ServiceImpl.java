@@ -35,4 +35,11 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         List<JTDevice> all = jtDeviceMapper.getDeviceList(query, online);
         return new PageInfo<>(all);
     }
+
+    @Override
+    public void addDevice(JTDevice device) {
+        device.setCreateTime(DateUtil.getNow());
+        device.setUpdateTime(DateUtil.getNow());
+        jtDeviceMapper.addDevice(device);
+    }
 }

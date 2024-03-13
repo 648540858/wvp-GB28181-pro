@@ -68,13 +68,23 @@ public class JT1078Controller {
         return service.getDeviceList(page, count, query, online);
     }
 
-    @Operation(summary = "更新设备信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "更新设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "device", description = "设备", required = true)
     @PostMapping("/device/update")
     public void updateDevice(JTDevice device){
         assert device.getId() > 0;
         assert device.getDeviceId() != null;
         service.updateDevice(device);
+    }
+
+
+
+    @Operation(summary = "新增设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "device", description = "设备", required = true)
+    @PostMapping("/device/add")
+    public void addDevice(JTDevice device){
+        assert device.getDeviceId() != null;
+        service.addDevice(device);
     }
 
 }

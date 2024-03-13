@@ -20,7 +20,7 @@ public interface JTDeviceMapper {
             "<if test=\"deviceModel != null\">, device_model=#{deviceModel}</if>" +
             "<if test=\"plateColor != null\">, plate_color=#{plateColor}</if>" +
             "<if test=\"plateNo != null\">, plate_no=#{plateNo}</if>" +
-            "<if test=\"authenticationCode != null\">, authenticationCode=#{localIp}</if>" +
+            "<if test=\"authenticationCode != null\">, authentication_code=#{localIp}</if>" +
             "<if test=\"longitude != null\">, longitude=#{longitude}</if>" +
             "<if test=\"latitude != null\">, latitude=#{latitude}</if>" +
             "<if test=\"status != null\">, status=#{status}</if>" +
@@ -46,4 +46,31 @@ public interface JTDeviceMapper {
             "ORDER BY jd.update_time " +
             " </script>"})
     List<JTDevice> getDeviceList(@Param("query") String query, @Param("online") Boolean online);
+
+    @Insert("INSERT INTO wvp_jt_device (" +
+            "province_id,"+
+            "city_id,"+
+            "maker_id,"+
+            "device_model,"+
+            "plate_color,"+
+            "plate_no,"+
+            "authentication_code,"+
+            "longitude,"+
+            "latitude,"+
+            "create_time,"+
+            "update_time"+
+            ") VALUES (" +
+            "#{provinceId}," +
+            "#{cityId}," +
+            "#{makerId}," +
+            "#{deviceModel}," +
+            "#{plateColor}," +
+            "#{plateNo}," +
+            "#{authenticationCode}," +
+            "#{longitude}," +
+            "#{latitude}," +
+            "#{createTime}," +
+            "#{updateTime}" +
+            ")")
+    void addDevice(JTDevice device);
 }

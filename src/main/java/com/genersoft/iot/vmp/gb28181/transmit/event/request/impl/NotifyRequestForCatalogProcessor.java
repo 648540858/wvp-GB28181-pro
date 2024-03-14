@@ -108,7 +108,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 					}else {
 						event = eventElement.getText().toUpperCase();
 					}
-					DeviceChannel channel = XmlUtil.channelContentHandler(itemDevice, device, event, civilCodeFileConf);
+					DeviceChannel channel = XmlUtil.channelContentHandler(itemDevice, device, event);
 					if (channel == null) {
 						logger.info("[收到目录订阅]：但是解析失败 {}", new String(evt.getRequest().getRawContent()));
 						continue;

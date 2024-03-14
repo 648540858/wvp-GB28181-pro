@@ -3,10 +3,10 @@ package com.genersoft.iot.vmp.gb28181.utils;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.CivilCodePo;
-import com.genersoft.iot.vmp.conf.CivilCodeFileConf;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
+import com.genersoft.iot.vmp.utils.CivilCodeUtil;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -240,7 +240,7 @@ public class XmlUtil {
         CivilCode, BusinessGroup,VirtualOrganization,Other
     }
 
-    public static DeviceChannel channelContentHandler(Element itemDevice, Device device, String event, CivilCodeFileConf civilCodeFileConf){
+    public static DeviceChannel channelContentHandler(Element itemDevice, Device device, String event){
         DeviceChannel deviceChannel = new DeviceChannel();
         deviceChannel.setDeviceId(device.getDeviceId());
         Element channdelIdElement = itemDevice.element("DeviceID");
@@ -267,7 +267,7 @@ public class XmlUtil {
         }
         if(channelId.length() <= 8) {
             deviceChannel.setHasAudio(false);
-            CivilCodePo parentCode = civilCodeFileConf.getParentCode(channelId);
+            CivilCodePo parentCode = CivilCodeUtil.INSTANCE.getParentCode(channelId);
             if (parentCode != null) {
                 deviceChannel.setParentId(parentCode.getCode());
                 deviceChannel.setCivilCode(parentCode.getCode());

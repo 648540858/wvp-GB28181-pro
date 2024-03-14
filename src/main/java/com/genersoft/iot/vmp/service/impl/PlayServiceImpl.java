@@ -17,6 +17,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
+import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
@@ -581,6 +582,14 @@ public class PlayServiceImpl implements IPlayService {
                                 String ssrcInResponse = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
                                 // 查询到ssrc不一致且开启了ssrc校验则需要针对处理
                                 if (ssrcInfo.getSsrc().equals(ssrcInResponse)) {
+                                    return;
+                                }
+                                if (ObjectUtils.isEmpty(ssrcInResponse)) {
+                                    logger.warn("[回放消息] 收到invite 200, 发现下级自定义了ssrc为空，按照上级ssrc处理");
+                                    return;
+                                }
+                                if (NumericUtil.isInteger(ssrcInResponse) && Integer.parseInt(ssrcInResponse) == 0) {
+                                    logger.warn("[回放消息] 收到invite 200, 发现下级自定义了ssrc为0，按照上级ssrc处理");
                                     return;
                                 }
                                 logger.info("[回放消息] 收到invite 200, 发现下级自定义了ssrc: {}", ssrcInResponse);

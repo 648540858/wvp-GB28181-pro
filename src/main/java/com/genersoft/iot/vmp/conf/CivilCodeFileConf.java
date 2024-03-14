@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.conf;
 
 import com.genersoft.iot.vmp.common.CivilCodePo;
-import org.ehcache.impl.internal.concurrent.ConcurrentHashMap;
+import com.genersoft.iot.vmp.utils.CivilCodeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,8 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 启动时读取行政区划表
@@ -27,8 +28,6 @@ import java.util.Map;
 public class CivilCodeFileConf implements CommandLineRunner {
 
     private final static Logger logger = LoggerFactory.getLogger(CivilCodeFileConf.class);
-
-    private final Map<String, CivilCodePo> civilCodeMap= new ConcurrentHashMap<>();
 
     @Autowired
     @Lazy
@@ -62,6 +61,7 @@ public class CivilCodeFileConf implements CommandLineRunner {
         BufferedReader inputStreamReader = new BufferedReader(new InputStreamReader(inputStream));
         int index = -1;
         String line;
+        List<CivilCodePo> civilCodePoList = new ArrayList<>();
         while ((line = inputStreamReader.readLine()) != null) {
             index ++;
             if (index == 0) {
@@ -69,36 +69,15 @@ public class CivilCodeFileConf implements CommandLineRunner {
             }
             String[] infoArray = line.split(",");
             CivilCodePo civilCodePo = CivilCodePo.getInstance(infoArray);
-            civilCodeMap.put(civilCodePo.getCode(), civilCodePo);
+            civilCodePoList.add(civilCodePo);
         }
+        CivilCodeUtil.INSTANCE.add(civilCodePoList);
         inputStreamReader.close();
         inputStream.close();
-        if (civilCodeMap.size() == 0) {
+        if (civilCodePoList.isEmpty()) {
             logger.warn("[行政区划] 文件内容为空，可能造成目录刷新结果不完整");
         }else {
-            logger.info("[行政区划] 加载成功，共加载数据{}条", civilCodeMap.size());
+            logger.info("[行政区划] 加载成功，共加载数据{}条", civilCodePoList.size());
         }
     }
-
-    public CivilCodePo getParentCode(String code) {
-        if (code.length() > 8) {
-            return null;
-        }
-        if (code.length() == 8) {
-            String parentCode = code.substring(0, 6);
-            return civilCodeMap.get(parentCode);
-        }else {
-            CivilCodePo civilCodePo = civilCodeMap.get(code);
-            if (civilCodePo == null){
-                return null;
-            }
-            String parentCode = civilCodePo.getParentCode();
-            if (parentCode == null) {
-                return null;
-            }
-            return civilCodeMap.get(parentCode);
-        }
-
-    }
-
 }

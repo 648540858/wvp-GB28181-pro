@@ -1,17 +1,14 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd;
 
-import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.gb28181.bean.AudioBroadcastCatch;
 import com.genersoft.iot.vmp.gb28181.bean.AudioBroadcastCatchStatus;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
-import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.service.IPlayService;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.Element;
@@ -77,15 +74,6 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
                 AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(device.getDeviceId(), channelId);
                 audioBroadcastCatch.setStatus(AudioBroadcastCatchStatus.WaiteInvite);
                 audioBroadcastManager.update(audioBroadcastCatch);
-                // 等待invite消息， 超时则结束
-                String key = VideoManagerConstants.BROADCAST_WAITE_INVITE +  device.getDeviceId();
-                if (!SipUtils.isFrontEnd(device.getDeviceId())) {
-                    key += audioBroadcastCatch.getChannelId();
-                }
-                dynamicTask.startDelay(key, ()->{
-                    logger.info("[语音广播]等待invite消息超时：{}/{}", device.getDeviceId(), channelId);
-                    playService.stopAudioBroadcast(device.getDeviceId(), channelId);
-                }, 2000);
             }else {
                 playService.stopAudioBroadcast(device.getDeviceId(), channelId);
             }

@@ -69,7 +69,7 @@ public class TcpServer {
                                     .addLast(new Jt808Decoder(applicationEventPublisher, service))
                                     .addLast(new Jt808Encoder())
                                     .addLast(new Jt808EncoderCmd())
-                                    .addLast(new Jt808Handler());
+                                    .addLast(new Jt808Handler(applicationEventPublisher));
                         }
                     });
             ChannelFuture channelFuture = bootstrap.bind(port).sync();

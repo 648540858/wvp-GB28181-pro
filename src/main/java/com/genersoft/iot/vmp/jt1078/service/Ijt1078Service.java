@@ -6,7 +6,7 @@ import com.github.pagehelper.PageInfo;
 import java.util.List;
 
 public interface Ijt1078Service {
-    JTDevice getDevice(String devId);
+    JTDevice getDevice(String terminalId);
 
     void updateDevice(JTDevice deviceInDb);
 

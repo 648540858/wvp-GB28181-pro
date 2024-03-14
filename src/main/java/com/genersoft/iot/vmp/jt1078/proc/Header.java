@@ -15,10 +15,11 @@ public class Header {
     Integer msgPro;
 
     // 标识
-    String devId;
+    String terminalId;
 
     // 消息体流水号
     Integer sn;
+
 
     // 协议版本号
     Short version = -1;
@@ -40,12 +41,12 @@ public class Header {
         this.msgPro = msgPro;
     }
 
-    public String getDevId() {
-        return devId;
+    public String getTerminalId() {
+        return terminalId;
     }
 
-    public void setDevId(String devId) {
-        this.devId = devId;
+    public void setTerminalId(String terminalId) {
+        this.terminalId = terminalId;
     }
 
     public Integer getSn() {

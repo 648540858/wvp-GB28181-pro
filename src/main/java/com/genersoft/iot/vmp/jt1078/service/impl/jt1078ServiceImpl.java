@@ -19,8 +19,8 @@ public class jt1078ServiceImpl implements Ijt1078Service {
 
 
     @Override
-    public JTDevice getDevice(String devId) {
-        return jtDeviceMapper.getDevice(devId);
+    public JTDevice getDevice(String terminalId) {
+        return jtDeviceMapper.getDevice(terminalId);
     }
 
     @Override
@@ -45,6 +45,6 @@ public class jt1078ServiceImpl implements Ijt1078Service {
 
     @Override
     public void deleteDeviceByDeviceId(String deviceId) {
-        jtDeviceMapper.deleteDeviceByDeviceId(deviceId);
+        jtDeviceMapper.deleteDeviceByTerminalId(deviceId);
     }
 }

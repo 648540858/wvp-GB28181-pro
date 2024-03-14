@@ -14,13 +14,25 @@ public class JTDevice {
      * 省域ID
      */
     @Schema(description = "省域ID")
-    private int provinceId;
+    private String provinceId;
+
+    /**
+     * 省域文字描述
+     */
+    @Schema(description = "省域文字描述")
+    private String provinceText;
 
     /**
      * 市县域ID
      */
     @Schema(description = "市县域ID")
-    private int cityId;
+    private String cityId;
+
+    /**
+     * 市县域文字描述
+     */
+    @Schema(description = "市县域文字描述")
+    private String cityText;
 
     /**
      * 制造商ID
@@ -38,6 +50,12 @@ public class JTDevice {
      * 终端ID
      */
     @Schema(description = "终端ID")
+    private String terminalId;
+
+    /**
+     * 设备ID
+     */
+    @Schema(description = "设备ID")
     private String deviceId;
 
     /**
@@ -80,20 +98,44 @@ public class JTDevice {
     @Schema(description = "状态")
     private boolean status;
 
-    public int getProvinceId() {
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getProvinceId() {
         return provinceId;
     }
 
-    public void setProvinceId(int provinceId) {
+    public void setProvinceId(String provinceId) {
         this.provinceId = provinceId;
     }
 
-    public int getCityId() {
+    public String getProvinceText() {
+        return provinceText;
+    }
+
+    public void setProvinceText(String provinceText) {
+        this.provinceText = provinceText;
+    }
+
+    public String getCityId() {
         return cityId;
     }
 
-    public void setCityId(int cityId) {
+    public void setCityId(String cityId) {
         this.cityId = cityId;
+    }
+
+    public String getCityText() {
+        return cityText;
+    }
+
+    public void setCityText(String cityText) {
+        this.cityText = cityText;
     }
 
     public String getMakerId() {
@@ -110,6 +152,14 @@ public class JTDevice {
 
     public void setDeviceModel(String deviceModel) {
         this.deviceModel = deviceModel;
+    }
+
+    public String getTerminalId() {
+        return terminalId;
+    }
+
+    public void setTerminalId(String terminalId) {
+        this.terminalId = terminalId;
     }
 
     public String getDeviceId() {
@@ -184,11 +234,21 @@ public class JTDevice {
         this.status = status;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
+    @Override
+    public String toString() {
+        return "JTDevice{" +
+                ", 省域ID='" + provinceId + '\'' +
+                ", 省域文字描述='" + provinceText + '\'' +
+                ", 市县域ID='" + cityId + '\'' +
+                ", 市县域文字描述='" + cityText + '\'' +
+                ", 制造商ID='" + makerId + '\'' +
+                ", 终端型号='" + deviceModel + '\'' +
+                ", 终端ID='" + terminalId + '\'' +
+                ", 设备ID='" + deviceId + '\'' +
+                ", 车牌颜色=" + plateColor +
+                ", 车牌='" + plateNo + '\'' +
+                ", 鉴权码='" + authenticationCode + '\'' +
+                ", status=" + status +
+                '}';
     }
 }

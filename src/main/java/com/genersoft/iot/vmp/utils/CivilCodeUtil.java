@@ -27,6 +27,10 @@ public enum CivilCodeUtil {
         }
     }
 
+    public CivilCodePo get(String code) {
+        return civilCodeMap.get(code);
+    }
+
     public CivilCodePo getParentCode(String code) {
         if (code.length() > 8) {
             return null;
@@ -45,6 +49,5 @@ public enum CivilCodeUtil {
             }
             return civilCodeMap.get(parentCode);
         }
-
     }
 }

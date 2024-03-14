@@ -9,17 +9,17 @@ import com.genersoft.iot.vmp.jt1078.session.Session;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEvent;
 
 /**
- * 终端通用应答
- *
- * @author QingtaiJiang
- * @date 2023/4/27 18:04
- * @email qingtaij@163.com
+ * 终端注销
  */
-@MsgId(id = "0001")
-public class J0001 extends Re {
+@MsgId(id = "0003")
+public class J0003 extends Re {
+
+    private final static Logger log = LoggerFactory.getLogger(J0003.class);
     int respNo;
     String respId;
     int result;
@@ -29,6 +29,7 @@ public class J0001 extends Re {
         respNo = buf.readUnsignedShort();
         respId = ByteBufUtil.hexDump(buf.readSlice(2));
         result = buf.readUnsignedByte();
+        log.info("[JT-注销] 设备： {}", header.getTerminalId());
         return null;
     }
 

@@ -50,9 +50,9 @@ public class Jt808Decoder extends ByteToMessageDecoder {
             if (header.is2019Version()) {
                 header.setVersion(buf.readUnsignedByte());
                 String devId = ByteBufUtil.hexDump(buf.readSlice(10));
-                header.setDevId(devId.replaceFirst("^0*", ""));
+                header.setTerminalId(devId.replaceFirst("^0*", ""));
             } else {
-                header.setDevId(ByteBufUtil.hexDump(buf.readSlice(6)).replaceFirst("^0*", ""));
+                header.setTerminalId(ByteBufUtil.hexDump(buf.readSlice(6)).replaceFirst("^0*", ""));
             }
             header.setSn(buf.readUnsignedShort());
 

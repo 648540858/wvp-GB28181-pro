@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.jt1078.proc.request;
 
+import com.genersoft.iot.vmp.common.CivilCodePo;
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
 import com.genersoft.iot.vmp.jt1078.codec.netty.Jt808Handler;
@@ -9,6 +10,7 @@ import com.genersoft.iot.vmp.jt1078.proc.response.J8100;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
+import com.genersoft.iot.vmp.utils.CivilCodeUtil;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,9 +36,9 @@ public class J0100 extends Re {
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
         Short version = header.getVersion();
         device = new JTDevice();
-        device.setProvinceId(buf.readUnsignedShort());
+        device.setProvinceId(buf.readUnsignedShort() + "");
         if (version >= 1) {
-            device.setCityId(buf.readUnsignedShort());
+            device.setCityId(buf.readUnsignedShort() + "");
             // decode as 2019
             byte[] bytes11 = new byte[11];
             buf.readBytes(bytes11);
@@ -59,7 +61,7 @@ public class J0100 extends Re {
             }
         } else {
             // decode as 2013
-            device.setCityId(buf.readUnsignedShort());
+            device.setCityId(buf.readUnsignedShort() + "");
             // decode as 2019
             byte[] bytes5 = new byte[5];
             buf.readBytes(bytes5);
@@ -90,17 +92,34 @@ public class J0100 extends Re {
         J8100 j8100 = new J8100();
         j8100.setRespNo(header.getSn());
         // 从数据库判断这个设备是否合法
-        JTDevice deviceInDb = service.getDevice(header.getDevId());
+        JTDevice deviceInDb = service.getDevice(header.getTerminalId());
         if (deviceInDb != null) {
             j8100.setResult(J8100.SUCCESS);
             String authenticationCode = UUID.randomUUID().toString();
             j8100.setCode(authenticationCode);
             deviceInDb.setAuthenticationCode(authenticationCode);
             deviceInDb.setStatus(true);
+            deviceInDb.setProvinceId(device.getProvinceId());
+            CivilCodePo provinceCivilCodePo = CivilCodeUtil.INSTANCE.get(device.getProvinceId());
+            if (provinceCivilCodePo != null) {
+                deviceInDb.setProvinceText(provinceCivilCodePo.getName());
+            }
+            deviceInDb.setCityId(device.getCityId());
+            CivilCodePo cityCivilCodePo = CivilCodeUtil.INSTANCE.get(device.getProvinceId() +
+                    String.format("%04d", Integer.parseInt(device.getCityId())));
+            if (cityCivilCodePo != null) {
+                deviceInDb.setCityText(cityCivilCodePo.getName());
+            }
+            deviceInDb.setDeviceModel(device.getDeviceModel());
+            deviceInDb.setMakerId(device.getMakerId());
+            deviceInDb.setDeviceId(device.getDeviceId());
+            // TODO 支持直接展示车牌颜色的描述
+            deviceInDb.setPlateColor(device.getPlateColor());
+            deviceInDb.setPlateNo(device.getPlateNo());
             service.updateDevice(deviceInDb);
-            log.info("[注册成功] 设备： {}", device.getDeviceId());
+            log.info("[JT-注册成功] 设备： {}", deviceInDb);
         }else {
-            log.info("[注册失败] 未授权设备： {}", device.getDeviceId());
+            log.info("[JT-注册失败] 未授权设备： {}", header.getTerminalId());
             j8100.setResult(J8100.FAIL);
             // 断开连接，清理资源
             if (session.isRegistered()) {

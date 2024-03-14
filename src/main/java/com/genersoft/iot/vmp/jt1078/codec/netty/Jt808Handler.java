@@ -10,6 +10,7 @@ import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * @author QingtaiJiang
@@ -19,6 +20,13 @@ import org.slf4j.LoggerFactory;
 public class Jt808Handler extends ChannelInboundHandlerAdapter {
 
     private final static Logger log = LoggerFactory.getLogger(Jt808Handler.class);
+
+    private ApplicationEventPublisher applicationEventPublisher = null;
+
+
+    public Jt808Handler(ApplicationEventPublisher applicationEventPublisher) {
+        this.applicationEventPublisher = applicationEventPublisher;
+    }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -42,6 +50,8 @@ public class Jt808Handler extends ChannelInboundHandlerAdapter {
         Session session = ctx.channel().attr(Session.KEY).get();
         log.info("< Tcp disconnect {}", session);
         ctx.close();
+
+        applicationEventPublisher.publishEvent();
     }
 
     @Override

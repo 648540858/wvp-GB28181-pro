@@ -8,23 +8,26 @@ import java.util.List;
 @Mapper
 public interface JTDeviceMapper {
 
-    @Select("SELECT * FROM wvp_device de where device_id=${devId}")
-    JTDevice getDevice(@Param("devId") String devId);
+    @Select("SELECT * FROM wvp_jt_device where terminal_id=#{terminalId}")
+    JTDevice getDevice(@Param("terminalId") String terminalId);
 
     @Update(value = {" <script>" +
             "UPDATE wvp_jt_device " +
             "SET update_time=#{updateTime}" +
+            "<if test=\"deviceId != null\">, device_id=#{deviceId}</if>" +
             "<if test=\"provinceId != null\">, province_id=#{provinceId}</if>" +
+            "<if test=\"provinceText != null\">, province_text=#{provinceText}</if>" +
             "<if test=\"cityId != null\">, city_id=#{cityId}</if>" +
+            "<if test=\"cityText != null\">, city_text=#{cityText}</if>" +
             "<if test=\"makerId != null\">, maker_id=#{makerId}</if>" +
             "<if test=\"deviceModel != null\">, device_model=#{deviceModel}</if>" +
             "<if test=\"plateColor != null\">, plate_color=#{plateColor}</if>" +
             "<if test=\"plateNo != null\">, plate_no=#{plateNo}</if>" +
-            "<if test=\"authenticationCode != null\">, authentication_code=#{localIp}</if>" +
+            "<if test=\"authenticationCode != null\">, authentication_code=#{authenticationCode}</if>" +
             "<if test=\"longitude != null\">, longitude=#{longitude}</if>" +
             "<if test=\"latitude != null\">, latitude=#{latitude}</if>" +
             "<if test=\"status != null\">, status=#{status}</if>" +
-            "WHERE device_id=#{deviceId}"+
+            "WHERE terminal_id=#{terminalId}"+
             " </script>"})
     void updateDevice(JTDevice device);
     @Select(value = {" <script>" +
@@ -34,6 +37,7 @@ public interface JTDeviceMapper {
             "WHERE " +
             "1=1" +
             " <if test='query != null'> AND (" +
+            "jd.terminal_id LIKE concat('%',#{query},'%') " +
             "jd.province_id LIKE concat('%',#{query},'%') " +
             "OR jd.city_id LIKE concat('%',#{query},'%') " +
             "OR jd.maker_id LIKE concat('%',#{query},'%') " +
@@ -48,8 +52,11 @@ public interface JTDeviceMapper {
     List<JTDevice> getDeviceList(@Param("query") String query, @Param("online") Boolean online);
 
     @Insert("INSERT INTO wvp_jt_device (" +
+            "terminal_id,"+
             "province_id,"+
+            "province_text,"+
             "city_id,"+
+            "city_text,"+
             "maker_id,"+
             "device_id,"+
             "device_model,"+
@@ -61,8 +68,11 @@ public interface JTDeviceMapper {
             "create_time,"+
             "update_time"+
             ") VALUES (" +
+            "#{terminalId}," +
             "#{provinceId}," +
+            "#{provinceText}," +
             "#{cityId}," +
+            "#{cityText}," +
             "#{makerId}," +
             "#{deviceId}," +
             "#{deviceModel}," +
@@ -76,6 +86,6 @@ public interface JTDeviceMapper {
             ")")
     void addDevice(JTDevice device);
 
-    @Delete("delete from wvp_jt_device where device_id = #{deviceId}")
-    void deleteDeviceByDeviceId(@Param("deviceId") String deviceId);
+    @Delete("delete from wvp_jt_device where terminal_id = #{terminalId}")
+    void deleteDeviceByTerminalId(@Param("terminalId") String terminalId);
 }

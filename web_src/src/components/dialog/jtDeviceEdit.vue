@@ -11,8 +11,8 @@
     >
       <div id="shared" style="margin-top: 1rem;margin-right: 100px;">
         <el-form ref="form" :rules="rules" :model="form" label-width="200px" >
-          <el-form-item label="设备编号" prop="deviceId">
-            <el-input v-model="form.deviceId" clearable></el-input>
+          <el-form-item label="终端ID" prop="terminalId">
+            <el-input v-model="form.terminalId" clearable></el-input>
           </el-form-item>
           <el-form-item>
             <div style="float: right;">

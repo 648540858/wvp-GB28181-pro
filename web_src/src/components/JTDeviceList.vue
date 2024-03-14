@@ -11,21 +11,23 @@
     </div>
     <!--设备列表-->
     <el-table :data="deviceList" style="width: 100%;font-size: 12px;" :height="winHeight" header-row-class-name="table-header">
-      <el-table-column prop="provinceId" label="省域ID" min-width="160">
+      <el-table-column prop="terminalId" label="终端ID" min-width="160">
       </el-table-column>
-      <el-table-column prop="cityId" label="市县域ID" min-width="200" >
+      <el-table-column prop="provinceText" label="省域" min-width="160">
       </el-table-column>
-      <el-table-column prop="makerId" label="制造商ID" min-width="200" >
+      <el-table-column prop="cityText" label="市县域" min-width="160" >
       </el-table-column>
-      <el-table-column prop="deviceModel" label="终端型号" min-width="200" >
+      <el-table-column prop="makerId" label="制造商ID" min-width="160" >
       </el-table-column>
-      <el-table-column prop="deviceId" label="终端ID" min-width="200" >
+      <el-table-column prop="deviceModel" label="终端型号" min-width="160" >
       </el-table-column>
-      <el-table-column prop="plateColor" label="车牌颜色" min-width="200" >
+      <el-table-column prop="deviceId" label="设备ID" min-width="160" >
       </el-table-column>
-      <el-table-column prop="plateNo" label="车牌" min-width="200" >
+      <el-table-column prop="plateColor" label="车牌颜色" min-width="160" >
       </el-table-column>
-      <el-table-column label="状态" min-width="120">
+      <el-table-column prop="plateNo" label="车牌" min-width="160" >
+      </el-table-column>
+      <el-table-column label="状态" min-width="160">
         <template slot-scope="scope">
           <div slot="reference" class="name-wrapper">
             <el-tag size="medium" v-if="scope.row.status">在线</el-tag>

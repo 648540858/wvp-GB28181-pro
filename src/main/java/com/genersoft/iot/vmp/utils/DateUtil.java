@@ -36,6 +36,11 @@ public class DateUtil {
     private static final String ISO8601_ZONE_PATTERN = "yyyy-MM-dd'T'HH:mm:ssXXX";
 
     /**
+     * 兼容的时间格式 iso8601时间格式带毫秒
+     */
+    private static final String ISO8601_MILLISECOND_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+
+    /**
      * wvp内部统一时间格式
      */
     public static final String PATTERN = "yyyy-MM-dd HH:mm:ss";
@@ -55,6 +60,8 @@ public class DateUtil {
     public static final DateTimeFormatter formatterCompatibleISO8601 = DateTimeFormatter.ofPattern(ISO8601_COMPATIBLE_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
     public static final DateTimeFormatter formatterISO8601 = DateTimeFormatter.ofPattern(ISO8601_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
     public static final DateTimeFormatter formatterZoneISO8601 = DateTimeFormatter.ofPattern(ISO8601_ZONE_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
+    public static final DateTimeFormatter formatterMillisecondISO8601 = DateTimeFormatter.ofPattern(ISO8601_MILLISECOND_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
+
     public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
     public static final DateTimeFormatter DateFormatter = DateTimeFormatter.ofPattern(date_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
     public static final DateTimeFormatter urlFormatter = DateTimeFormatter.ofPattern(URL_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
@@ -70,6 +77,8 @@ public class DateUtil {
             return formatter.format(formatterCompatibleISO8601.parse(formatTime));
         } else if (verification(formatTime, formatterZoneISO8601)) {
             return formatter.format(formatterZoneISO8601.parse(formatTime));
+        } else if (verification(formatTime, formatterMillisecondISO8601)) {
+            return formatter.format(formatterMillisecondISO8601.parse(formatTime));
         }
         return formatter.format(formatterISO8601.parse(formatTime));
     }

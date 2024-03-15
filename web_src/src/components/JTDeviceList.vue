@@ -23,7 +23,21 @@
       </el-table-column>
       <el-table-column prop="deviceId" label="设备ID" min-width="160" >
       </el-table-column>
-      <el-table-column prop="plateColor" label="车牌颜色" min-width="160" >
+      <el-table-column  label="车牌颜色" min-width="160" >
+        <template slot-scope="scope">
+          <div slot="reference" class="name-wrapper">
+            <span v-if="scope.row.plateColor === 1">蓝色</span>
+            <span v-else-if="scope.row.plateColor === 2">黄色</span>
+            <span v-else-if="scope.row.plateColor === 3">黑色</span>
+            <span v-else-if="scope.row.plateColor === 4">白色</span>
+            <span v-else-if="scope.row.plateColor === 5">绿色</span>
+            <span v-else-if="scope.row.plateColor === 91">农黄色</span>
+            <span v-else-if="scope.row.plateColor === 92">农绿色</span>
+            <span v-else-if="scope.row.plateColor === 93">黄绿色</span>
+            <span v-else-if="scope.row.plateColor === 94">渐变绿</span>
+            <span v-else >未上牌</span>
+          </div>
+        </template>
       </el-table-column>
       <el-table-column prop="plateNo" label="车牌" min-width="160" >
       </el-table-column>

@@ -12,7 +12,14 @@ import io.netty.buffer.Unpooled;
  */
 @MsgId(id = "8001")
 public class J8001 extends Rs {
+
     public static final Integer SUCCESS = 0;
+
+    public static final Integer FAIL = 1;
+
+    public static final Integer ERROR = 2;
+    public static final Integer NOT_SUPPORTED = 3;
+    public static final Integer ALARM_ACK = 3;
 
     Integer respNo;
     String respId;

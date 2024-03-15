@@ -20,6 +20,7 @@ import org.springframework.context.ApplicationEvent;
 public class J0200 extends Re {
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
+
         return null;
     }
 

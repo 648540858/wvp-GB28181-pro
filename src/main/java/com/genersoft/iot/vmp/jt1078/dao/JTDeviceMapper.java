@@ -88,4 +88,11 @@ public interface JTDeviceMapper {
 
     @Delete("delete from wvp_jt_device where terminal_id = #{terminalId}")
     void deleteDeviceByTerminalId(@Param("terminalId") String terminalId);
+
+    @Update(value = {" <script>" +
+            "UPDATE wvp_jt_device " +
+            "SET status=#{connected} " +
+            "WHERE terminal_id=#{terminalId}"+
+            " </script>"})
+    void updateDeviceStatus(@Param("connected") boolean connected, @Param("terminalId") String terminalId);
 }

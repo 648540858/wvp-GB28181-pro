@@ -47,4 +47,9 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     public void deleteDeviceByDeviceId(String deviceId) {
         jtDeviceMapper.deleteDeviceByTerminalId(deviceId);
     }
+
+    @Override
+    public void updateDeviceStatus(boolean connected, String terminalId) {
+        jtDeviceMapper.updateDeviceStatus(connected, terminalId);
+    }
 }

@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEvent;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.UUID;
 
 /**
@@ -40,25 +41,18 @@ public class J0100 extends Re {
         if (version >= 1) {
             device.setCityId(buf.readUnsignedShort() + "");
             // decode as 2019
-            byte[] bytes11 = new byte[11];
-            buf.readBytes(bytes11);
-            device.setMakerId(new String(bytes11).trim());
+            device.setMakerId(buf.readCharSequence(11, Charset.forName("GBK"))
+                    .toString().trim());
 
-            byte[] bytes30 = new byte[30];
-            buf.readBytes(bytes30);
-            device.setDeviceModel(new String(bytes30).trim());
+            device.setDeviceModel(buf.readCharSequence(30, Charset.forName("GBK"))
+                    .toString().trim());
 
-            buf.readBytes(bytes30);
-            device.setDeviceId(new String(bytes30).trim());
+            device.setDeviceId(buf.readCharSequence(30, Charset.forName("GBK"))
+                    .toString().trim());
 
             device.setPlateColor(buf.readByte());
-            byte[] plateColorBytes = new byte[buf.readableBytes()];
-            buf.readBytes(plateColorBytes);
-            try {
-                device.setPlateNo(new String(plateColorBytes, "GBK").trim());
-            } catch (UnsupportedEncodingException e) {
-                throw new RuntimeException(e);
-            }
+            device.setPlateNo(buf.readCharSequence(buf.readableBytes(), Charset.forName("GBK"))
+                    .toString().trim());
         } else {
             // decode as 2013
             device.setCityId(buf.readUnsignedShort() + "");

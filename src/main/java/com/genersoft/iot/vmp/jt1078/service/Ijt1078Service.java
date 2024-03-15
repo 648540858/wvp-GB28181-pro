@@ -15,4 +15,6 @@ public interface Ijt1078Service {
     void addDevice(JTDevice device);
 
     void deleteDeviceByDeviceId(String deviceId);
+
+    void updateDeviceStatus(boolean connected, String terminalId);
 }

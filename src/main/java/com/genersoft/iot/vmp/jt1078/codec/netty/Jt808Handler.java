@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.jt1078.codec.netty;
 
+import com.genersoft.iot.vmp.jt1078.event.ConnectChangeEvent;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
@@ -43,6 +44,13 @@ public class Jt808Handler extends ChannelInboundHandlerAdapter {
         Session session = SessionManager.INSTANCE.newSession(channel);
         channel.attr(Session.KEY).set(session);
         log.info("> Tcp connect {}", session);
+        if (session.getDevId() == null) {
+            return;
+        }
+        ConnectChangeEvent event = new ConnectChangeEvent(this);
+        event.setConnected(true);
+        event.setTerminalId(session.getDevId());
+        applicationEventPublisher.publishEvent(event);
     }
 
     @Override
@@ -50,8 +58,14 @@ public class Jt808Handler extends ChannelInboundHandlerAdapter {
         Session session = ctx.channel().attr(Session.KEY).get();
         log.info("< Tcp disconnect {}", session);
         ctx.close();
+        if (session.getDevId() == null) {
+            return;
+        }
+        ConnectChangeEvent event = new ConnectChangeEvent(this);
+        event.setConnected(false);
+        event.setTerminalId(session.getDevId());
+        applicationEventPublisher.publishEvent(event);
 
-        applicationEventPublisher.publishEvent();
     }
 
     @Override

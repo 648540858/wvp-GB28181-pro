@@ -116,4 +116,18 @@ public class JTPositionInfo {
     public void setTime(String time) {
         this.time = time;
     }
+
+    @Override
+    public String toString() {
+        return "位置汇报信息： " +
+                " \n 报警标志：" + alarmSign.toString() +
+                " \n 状态：" + status.toString() +
+                " \n 经度：" + longitude +
+                " \n 纬度：" + latitude +
+                " \n 高程： " + altitude +
+                " \n 速度： " + speed +
+                " \n 方向： " + direction +
+                " \n 时间： " + time +
+                " \n";
+    }
 }

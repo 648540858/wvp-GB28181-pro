@@ -70,7 +70,39 @@ public class JTStatus {
     private boolean gaLiLeo;
 
     @Schema(description = "false:车辆处于停止状态；true:车辆处于行驶状态")
-    private boolean Driving;
+    private boolean driving;
+
+    public JTStatus() {
+    }
+
+    public JTStatus(int statusInt) {
+        if (statusInt == 0) {
+            return;
+        }
+        this.acc = (statusInt & 1) == 1;
+        this.positioning = (statusInt >> 1 & 1) == 1;
+        this.southLatitude = (statusInt >> 2 & 1) == 1;
+        this.wesLongitude = (statusInt >> 3 & 1) == 1;
+        this.outage = (statusInt >> 4 & 1) == 1;
+        this.positionEncryption = (statusInt >> 5 & 1) == 1;
+        this.warningFrontCrash = (statusInt >> 6 & 1) == 1;
+        this.warningShifting = (statusInt >> 7 & 1) == 1;
+        this.load = (statusInt >> 8 & 3);
+        this.oilWayBreak = (statusInt >> 10 & 1) == 1;
+        this.circuitBreak = (statusInt >> 11 & 1) == 1;
+        this.doorLocking = (statusInt >> 12 & 1) == 1;
+        this.door1Open = (statusInt >> 13 & 1) == 1;
+        this.door2Open = (statusInt >> 14 & 1) == 1;
+        this.door3Open = (statusInt >> 15 & 1) == 1;
+        this.door4Open = (statusInt >> 16 & 1) == 1;
+        this.door5Open = (statusInt >> 17 & 1) == 1;
+        this.gps = (statusInt >> 18 & 1) == 1;
+        this.beidou = (statusInt >> 19 & 1) == 1;
+        this.glonass = (statusInt >> 20 & 1) == 1;
+        this.gaLiLeo = (statusInt >> 21 & 1) == 1;
+        this.driving = (statusInt >> 22 & 1) == 1;
+    }
+
 
     public boolean isAcc() {
         return acc;
@@ -241,10 +273,39 @@ public class JTStatus {
     }
 
     public boolean isDriving() {
-        return Driving;
+        return driving;
     }
 
     public void setDriving(boolean driving) {
-        Driving = driving;
+        this.driving = driving;
+    }
+
+    @Override
+    public String toString() {
+        return "状态位：" +
+                "\n      acc状态：" + (acc?"开":"关") +
+                "\n      定位状态：" + (positioning?"定位":"未定位") +
+                "\n      南北纬：" + (southLatitude?"南纬":"北纬") +
+                "\n      东西经：" + (wesLongitude?"西经":"东经") +
+                "\n      运营状态：" + (outage?"停运":"运营") +
+                "\n      经纬度保密：" + (positionEncryption?"加密":"未加密") +
+                "\n      前撞预警：" + (warningFrontCrash?"紧急刹车系统采集的前撞预警":"无") +
+                "\n      车道偏移预警：" + (warningShifting?"车道偏移预警":"无") +
+                "\n      空/半/满载状态：" + (load == 0?"空车":(load == 1?"半载":(load == 3?"满载":"未定义状态"))) +
+                "\n      车辆油路状态：" + (oilWayBreak?"车辆油路断开":"车辆油路正常") +
+                "\n      车辆电路状态：" + (circuitBreak?"车辆电路断开":"车辆电路正常") +
+                "\n      门锁状态：" + (doorLocking?"车门加锁":"车门解锁") +
+                "\n      门1(前门)状态：" + (door1Open?"开":"关") +
+                "\n      门2(中门)状态：" + (door2Open?"开":"关") +
+                "\n      门3(后门)状态：" + (door3Open?"开":"关") +
+                "\n      门4(驾驶席门)状态：" + (door4Open?"开":"关") +
+                "\n      门5(自定义)状态：" + (door5Open?"开":"关") +
+                "\n      GPS卫星定位状态： " + (gps?"使用":"未使用") +
+                "\n      北斗卫星定位状态： " + (beidou?"使用":"未使用") +
+                "\n      GLONASS卫星定位状态： " + (glonass?"使用":"未使用") +
+                "\n      GaLiLeo卫星定位状态： " + (gaLiLeo?"使用":"未使用") +
+                "\n      GaLiLeo卫星定位状态： " + (gaLiLeo?"使用":"未使用") +
+                "\n      车辆行驶状态： " + (driving?"车辆行驶":"车辆停止") +
+                "\n       ";
     }
 }

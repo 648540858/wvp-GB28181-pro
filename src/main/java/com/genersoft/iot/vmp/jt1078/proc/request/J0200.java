@@ -1,13 +1,19 @@
 package com.genersoft.iot.vmp.jt1078.proc.request;
 
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
+import com.genersoft.iot.vmp.jt1078.bean.JTAlarmSign;
+import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
 import com.genersoft.iot.vmp.jt1078.bean.JTPositionInfo;
+import com.genersoft.iot.vmp.jt1078.bean.JTStatus;
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import com.genersoft.iot.vmp.jt1078.proc.response.J8001;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
+import com.genersoft.iot.vmp.jt1078.util.BCDUtil;
 import io.netty.buffer.ByteBuf;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEvent;
 
 /**
@@ -20,50 +26,44 @@ import org.springframework.context.ApplicationEvent;
 @MsgId(id = "0200")
 public class J0200 extends Re {
 
+    private final static Logger log = LoggerFactory.getLogger(J0100.class);
     private JTPositionInfo positionInfo;
 
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
         positionInfo = new JTPositionInfo();
         int alarmSignInt = buf.readInt();
+        positionInfo.setAlarmSign(new JTAlarmSign(alarmSignInt));
+
         int statusInt = buf.readInt();
-        int latitudeInt = buf.readInt();
-        int longitudeInt = buf.readInt();
-        int altitudeInt = buf.readUnsignedShort();
-        int speedInt = buf.readUnsignedShort();
-        int directionInt = buf.readUnsignedShort();
+        positionInfo.setStatus(new JTStatus(statusInt));
+
+        positionInfo.setLatitude(buf.readInt() * 0.000001D);
+        positionInfo.setLongitude(buf.readInt() *  0.000001D);
+        positionInfo.setAltitude(buf.readUnsignedShort());
+        positionInfo.setSpeed(buf.readUnsignedShort());
+        positionInfo.setDirection(buf.readUnsignedShort());
         byte[] timeBytes = new byte[6];
         buf.readBytes(timeBytes);
-        System.out.println(alarmSignInt);
-        System.out.println(statusInt);
-        System.out.println(latitudeInt);
-        System.out.println(longitudeInt);
-        System.out.println(altitudeInt);
-        System.out.println(speedInt);
-        System.out.println(directionInt);
-        // TODO 解析时间
-//        for (byte timeByte : timeBytes) {
-//            for (int i = 0; i < 8; i++) {
-//                System.out.print(timeByte>>i & 1);
-//            }
-//        }
-        StringBuffer temp = new StringBuffer(timeBytes.length * 2);
-        for (int i = 0; i < timeBytes.length; i++) {
-            temp.append((byte) ((timeBytes[i] & 0xf0) >>> 4));
-            temp.append((byte) (timeBytes[i] & 0x0f));
-        }
-
-        System.out.println(temp.toString().substring(0, 1).equalsIgnoreCase("0") ? temp
-                .toString().substring(1) : temp.toString());
+        positionInfo.setTime(BCDUtil.transform(timeBytes));
+        log.info("[JT-位置汇报]: {}", positionInfo.toString());
         return null;
     }
 
     @Override
     protected Rs handler(Header header, Session session, Ijt1078Service service) {
+        JTDevice deviceInDb = service.getDevice(header.getTerminalId());
         J8001 j8001 = new J8001();
         j8001.setRespNo(header.getSn());
         j8001.setRespId(header.getMsgId());
-        j8001.setResult(J8001.SUCCESS);
+        if (deviceInDb == null) {
+            j8001.setResult(J8001.FAIL);
+        }else {
+            deviceInDb.setLongitude(positionInfo.getLongitude());
+            deviceInDb.setLatitude(positionInfo.getLatitude());
+            service.updateDevice(deviceInDb);
+            j8001.setResult(J8001.SUCCESS);
+        }
         return j8001;
     }
 

@@ -3,10 +3,7 @@ package com.genersoft.iot.vmp.service.impl;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.dynamic.datasource.annotation.DS;
-import com.genersoft.iot.vmp.common.InviteInfo;
-import com.genersoft.iot.vmp.common.InviteSessionStatus;
-import com.genersoft.iot.vmp.common.InviteSessionType;
-import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.*;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -18,19 +15,13 @@ import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
-import com.genersoft.iot.vmp.media.zlm.dto.*;
-import com.genersoft.iot.vmp.media.zlm.*;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForRecordMp4;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
@@ -40,15 +31,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRecordMp4HookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.*;
-import com.genersoft.iot.vmp.service.bean.ErrorCallback;
-import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
-import com.genersoft.iot.vmp.service.bean.RequestPushStreamMsg;
-import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.service.redisMsg.RedisGbPlayMsgListener;
-import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
-import com.genersoft.iot.vmp.service.bean.ErrorCallback;
-import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
-import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.CloudRecordServiceMapper;
@@ -1179,6 +1162,15 @@ public class PlayServiceImpl implements IPlayService {
             // 发送成功
             AudioBroadcastCatch audioBroadcastCatch = new AudioBroadcastCatch(device.getDeviceId(), channelId, mediaServerItem, app, stream, event, AudioBroadcastCatchStatus.Ready, isFromPlatform);
             audioBroadcastManager.update(audioBroadcastCatch);
+            // 等待invite消息， 超时则结束
+            String key = VideoManagerConstants.BROADCAST_WAITE_INVITE +  device.getDeviceId();
+            if (!SipUtils.isFrontEnd(device.getDeviceId())) {
+                key += audioBroadcastCatch.getChannelId();
+            }
+            dynamicTask.startDelay(key, ()->{
+                logger.info("[语音广播]等待invite消息超时：{}/{}", device.getDeviceId(), channelId);
+                stopAudioBroadcast(device.getDeviceId(), channelId);
+            }, 2000);
         }, eventResultForError -> {
             // 发送失败
             logger.error("语音广播发送失败： {}:{}", channelId, eventResultForError.msg);

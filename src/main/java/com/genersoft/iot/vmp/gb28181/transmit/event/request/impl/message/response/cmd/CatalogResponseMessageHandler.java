@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd;
 
-import com.genersoft.iot.vmp.conf.CivilCodeFileConf;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.CatalogDataCatch;
@@ -56,9 +55,6 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     @Qualifier("taskExecutor")
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
-
-    @Autowired
-    private CivilCodeFileConf civilCodeFileConf;
 
     @Autowired
     private SipConfig sipConfig;
@@ -118,7 +114,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                     if (channelDeviceElement == null) {
                                         continue;
                                     }
-                                    DeviceChannel channel = XmlUtil.channelContentHandler(itemDevice, device, null, civilCodeFileConf);
+                                    DeviceChannel channel = XmlUtil.channelContentHandler(itemDevice, device, null);
                                     if (channel == null) {
                                         logger.info("[收到目录订阅]：但是解析失败 {}", new String(evt.getRequest().getRawContent()));
                                         continue;

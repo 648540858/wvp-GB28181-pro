@@ -10,6 +10,7 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 @Repository
@@ -170,4 +171,7 @@ public interface GbStreamMapper {
     @Select("SELECT status FROM wvp_stream_push WHERE app=#{app} AND stream=#{stream}")
     Boolean selectStatusForPush(@Param("app") String app, @Param("stream") String stream);
 
+    @MapKey("gbId")
+    @Select("SELECT * from wvp_gb_stream")
+    Map<String, GbStream> getAllGBId();
 }

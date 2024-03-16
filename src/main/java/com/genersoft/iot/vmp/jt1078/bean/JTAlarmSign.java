@@ -82,36 +82,36 @@ public class JTAlarmSign {
         }
         // 解析alarm参数
         this.urgent = (alarmSignInt & 1) == 1;
-        this.alarmSpeeding = (alarmSignInt >> 1 & 1) == 1;
-        this.alarmTired = (alarmSignInt >> 2 & 1) == 1;
-        this.alarmDangerous = (alarmSignInt >> 3 & 1) == 1;
-        this.alarmGnssFault = (alarmSignInt >> 4 & 1) == 1;
-        this.alarmGnssBreak = (alarmSignInt >> 5 & 1) == 1;
-        this.alarmGnssShortCircuited = (alarmSignInt >> 6 & 1) == 1;
-        this.alarmUnderVoltage = (alarmSignInt >> 7 & 1) == 1;
-        this.alarmPowerOff = (alarmSignInt >> 8 & 1) == 1;
-        this.alarmLCD = (alarmSignInt >> 9 & 1) == 1;
-        this.alarmTtsFault = (alarmSignInt >> 10 & 1) == 1;
-        this.alarmCameraFault = (alarmSignInt >> 11 & 1) == 1;
-        this.alarmIcFault = (alarmSignInt >> 12 & 1) == 1;
-        this.warningSpeeding = (alarmSignInt >> 13 & 1) == 1;
-        this.warningTired = (alarmSignInt >> 14 & 1) == 1;
-        this.alarmwrong = (alarmSignInt >> 15 & 1) == 1;
-        this.warningTirePressure = (alarmSignInt >> 16 & 1) == 1;
-        this.alarmBlindZone = (alarmSignInt >> 17 & 1) == 1;
-        this.alarmDrivingTimeout = (alarmSignInt >> 18 & 1) == 1;
-        this.alarmParkingTimeout = (alarmSignInt >> 19 & 1) == 1;
-        this.alarmRegion = (alarmSignInt >> 20 & 1) == 1;
-        this.alarmRoute = (alarmSignInt >> 21 & 1) == 1;
-        this.alarmTravelTime = (alarmSignInt >> 22 & 1) == 1;
-        this.alarmRouteDeviation = (alarmSignInt >> 23 & 1) == 1;
-        this.alarmVSS = (alarmSignInt >> 24 & 1) == 1;
-        this.alarmOil = (alarmSignInt >> 25 & 1) == 1;
-        this.alarmStolen = (alarmSignInt >> 26 & 1) == 1;
-        this.alarmIllegalIgnition = (alarmSignInt >> 27 & 1) == 1;
-        this.alarmIllegalDisplacement = (alarmSignInt >> 28 & 1) == 1;
-        this.alarmRollover = (alarmSignInt >> 29 & 1) == 1;
-        this.warningRollover = (alarmSignInt >> 30 & 1) == 1;
+        this.alarmSpeeding = (alarmSignInt >>> 1 & 1) == 1;
+        this.alarmTired = (alarmSignInt >>> 2 & 1) == 1;
+        this.alarmDangerous = (alarmSignInt >>> 3 & 1) == 1;
+        this.alarmGnssFault = (alarmSignInt >>> 4 & 1) == 1;
+        this.alarmGnssBreak = (alarmSignInt >>> 5 & 1) == 1;
+        this.alarmGnssShortCircuited = (alarmSignInt >>> 6 & 1) == 1;
+        this.alarmUnderVoltage = (alarmSignInt >>> 7 & 1) == 1;
+        this.alarmPowerOff = (alarmSignInt >>> 8 & 1) == 1;
+        this.alarmLCD = (alarmSignInt >>> 9 & 1) == 1;
+        this.alarmTtsFault = (alarmSignInt >>> 10 & 1) == 1;
+        this.alarmCameraFault = (alarmSignInt >>> 11 & 1) == 1;
+        this.alarmIcFault = (alarmSignInt >>> 12 & 1) == 1;
+        this.warningSpeeding = (alarmSignInt >>> 13 & 1) == 1;
+        this.warningTired = (alarmSignInt >>> 14 & 1) == 1;
+        this.alarmwrong = (alarmSignInt >>> 15 & 1) == 1;
+        this.warningTirePressure = (alarmSignInt >>> 16 & 1) == 1;
+        this.alarmBlindZone = (alarmSignInt >>> 17 & 1) == 1;
+        this.alarmDrivingTimeout = (alarmSignInt >>> 18 & 1) == 1;
+        this.alarmParkingTimeout = (alarmSignInt >>> 19 & 1) == 1;
+        this.alarmRegion = (alarmSignInt >>> 20 & 1) == 1;
+        this.alarmRoute = (alarmSignInt >>> 21 & 1) == 1;
+        this.alarmTravelTime = (alarmSignInt >>> 22 & 1) == 1;
+        this.alarmRouteDeviation = (alarmSignInt >>> 23 & 1) == 1;
+        this.alarmVSS = (alarmSignInt >>> 24 & 1) == 1;
+        this.alarmOil = (alarmSignInt >>> 25 & 1) == 1;
+        this.alarmStolen = (alarmSignInt >>> 26 & 1) == 1;
+        this.alarmIllegalIgnition = (alarmSignInt >>> 27 & 1) == 1;
+        this.alarmIllegalDisplacement = (alarmSignInt >>> 28 & 1) == 1;
+        this.alarmRollover = (alarmSignInt >>> 29 & 1) == 1;
+        this.warningRollover = (alarmSignInt >>> 30 & 1) == 1;
 
     }
 

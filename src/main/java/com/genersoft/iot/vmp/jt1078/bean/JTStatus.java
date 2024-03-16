@@ -80,27 +80,27 @@ public class JTStatus {
             return;
         }
         this.acc = (statusInt & 1) == 1;
-        this.positioning = (statusInt >> 1 & 1) == 1;
-        this.southLatitude = (statusInt >> 2 & 1) == 1;
-        this.wesLongitude = (statusInt >> 3 & 1) == 1;
-        this.outage = (statusInt >> 4 & 1) == 1;
-        this.positionEncryption = (statusInt >> 5 & 1) == 1;
-        this.warningFrontCrash = (statusInt >> 6 & 1) == 1;
-        this.warningShifting = (statusInt >> 7 & 1) == 1;
-        this.load = (statusInt >> 8 & 3);
-        this.oilWayBreak = (statusInt >> 10 & 1) == 1;
-        this.circuitBreak = (statusInt >> 11 & 1) == 1;
-        this.doorLocking = (statusInt >> 12 & 1) == 1;
-        this.door1Open = (statusInt >> 13 & 1) == 1;
-        this.door2Open = (statusInt >> 14 & 1) == 1;
-        this.door3Open = (statusInt >> 15 & 1) == 1;
-        this.door4Open = (statusInt >> 16 & 1) == 1;
-        this.door5Open = (statusInt >> 17 & 1) == 1;
-        this.gps = (statusInt >> 18 & 1) == 1;
-        this.beidou = (statusInt >> 19 & 1) == 1;
-        this.glonass = (statusInt >> 20 & 1) == 1;
-        this.gaLiLeo = (statusInt >> 21 & 1) == 1;
-        this.driving = (statusInt >> 22 & 1) == 1;
+        this.positioning = (statusInt >>> 1 & 1) == 1;
+        this.southLatitude = (statusInt >>> 2 & 1) == 1;
+        this.wesLongitude = (statusInt >>> 3 & 1) == 1;
+        this.outage = (statusInt >>> 4 & 1) == 1;
+        this.positionEncryption = (statusInt >>> 5 & 1) == 1;
+        this.warningFrontCrash = (statusInt >>> 6 & 1) == 1;
+        this.warningShifting = (statusInt >>> 7 & 1) == 1;
+        this.load = (statusInt >>> 8 & 3);
+        this.oilWayBreak = (statusInt >>> 10 & 1) == 1;
+        this.circuitBreak = (statusInt >>> 11 & 1) == 1;
+        this.doorLocking = (statusInt >>> 12 & 1) == 1;
+        this.door1Open = (statusInt >>> 13 & 1) == 1;
+        this.door2Open = (statusInt >>> 14 & 1) == 1;
+        this.door3Open = (statusInt >>> 15 & 1) == 1;
+        this.door4Open = (statusInt >>> 16 & 1) == 1;
+        this.door5Open = (statusInt >>> 17 & 1) == 1;
+        this.gps = (statusInt >>> 18 & 1) == 1;
+        this.beidou = (statusInt >>> 19 & 1) == 1;
+        this.glonass = (statusInt >>> 20 & 1) == 1;
+        this.gaLiLeo = (statusInt >>> 21 & 1) == 1;
+        this.driving = (statusInt >>> 22 & 1) == 1;
     }
 
 

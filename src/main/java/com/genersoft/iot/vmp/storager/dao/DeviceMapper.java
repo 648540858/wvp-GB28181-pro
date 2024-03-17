@@ -269,7 +269,7 @@ public interface DeviceMapper {
             "charset,"+
             "ssrc_check,"+
             "as_message_channel,"+
-            "broadcastPushAfterAck,"+
+            "broadcast_push_after_ack,"+
             "geo_coord_sys,"+
             "on_line,"+
             "media_server_id"+

@@ -5,6 +5,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 
+import java.nio.charset.Charset;
+
 /**
  * 实时音视频传输请求
  *
@@ -41,7 +43,7 @@ public class J9101 extends Rs {
     public ByteBuf encode() {
         ByteBuf buffer = Unpooled.buffer();
         buffer.writeByte(ip.getBytes().length);
-        buffer.writeCharSequence(ip, CharsetUtil.UTF_8);
+        buffer.writeCharSequence(ip, Charset.forName("GBK"));
         buffer.writeShort(tcpPort);
         buffer.writeShort(udpPort);
         buffer.writeByte(channel);

@@ -142,13 +142,13 @@ public class DeviceChannel {
 	 * 云台类型
 	 */
 	@Schema(description = "云台类型")
-	private int PTZType;
+	private int ptzType;
 
 	/**
 	 * 云台类型描述字符串
 	 */
 	@Schema(description = "云台类型描述字符串")
-	private String PTZTypeText;
+	private String ptzTypeText;
 
 	/**
 	 * 创建时间
@@ -266,23 +266,23 @@ public class DeviceChannel {
 		this.deviceId = deviceId;
 	}
 
-	public void setPTZType(int PTZType) {
-		this.PTZType = PTZType;
-		switch (PTZType) {
+	public void setPtzType(int ptzType) {
+		this.ptzType = ptzType;
+		switch (ptzType) {
 			case 0:
-				this.PTZTypeText = "未知";
+				this.ptzTypeText = "未知";
 				break;
 			case 1:
-				this.PTZTypeText = "球机";
+				this.ptzTypeText = "球机";
 				break;
 			case 2:
-				this.PTZTypeText = "半球";
+				this.ptzTypeText = "半球";
 				break;
 			case 3:
-				this.PTZTypeText = "固定枪机";
+				this.ptzTypeText = "固定枪机";
 				break;
 			case 4:
-				this.PTZTypeText = "遥控枪机";
+				this.ptzTypeText = "遥控枪机";
 				break;
 		}
 	}
@@ -448,15 +448,15 @@ public class DeviceChannel {
 	}
 
 	public int getPTZType() {
-		return PTZType;
+		return ptzType;
 	}
 
 	public String getPTZTypeText() {
-		return PTZTypeText;
+		return ptzTypeText;
 	}
 
 	public void setPTZTypeText(String PTZTypeText) {
-		this.PTZTypeText = PTZTypeText;
+		this.ptzTypeText = PTZTypeText;
 	}
 
 	public boolean isStatus() {

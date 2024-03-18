@@ -100,9 +100,9 @@
               <span v-show="!scope.row.edit">{{ scope.row.location }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="ptztype" label="云台类型" min-width="100">
+          <el-table-column prop="ptzType" label="云台类型" min-width="100">
             <template v-slot:default="scope">
-              <el-select v-show="scope.row.edit" v-model="scope.row.ptztype"
+              <el-select v-show="scope.row.edit" v-model="scope.row.ptzType"
                          placeholder="云台类型" filterable>
                 <el-option
                   v-for="(value, key) in ptzTypes"
@@ -111,7 +111,7 @@
                   :value="key"
                 />
               </el-select>
-              <div v-show="!scope.row.edit">{{ scope.row.ptztypeText }}</div>
+              <div v-show="!scope.row.edit">{{ scope.row.ptzTypeText }}</div>
             </template>
           </el-table-column>
           <el-table-column label="开启音频" min-width="100">
@@ -312,7 +312,7 @@ export default {
           that.total = res.data.data.total;
           that.deviceChannelList = res.data.data.list;
           that.deviceChannelList.forEach(e => {
-            e.ptztype = e.ptztype + "";
+            e.ptzType = e.ptzType + "";
             that.$set(e, "edit", false);
             that.$set(e, "location", "");
             if (e.longitude && e.latitude) {
@@ -460,7 +460,7 @@ export default {
             this.total = res.data.data.total;
             this.deviceChannelList = res.data.data.list;
             this.deviceChannelList.forEach(e => {
-              e.ptztype = e.ptztype + "";
+              e.ptzType = e.ptzType + "";
               this.$set(e, "edit", false);
               this.$set(e, "location", "");
               if (e.longitude && e.latitude) {

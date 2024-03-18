@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.service.impl;
 
-import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
@@ -8,7 +7,7 @@ import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
-import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.media.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -23,18 +22,13 @@ public class MediaServiceImpl implements IMediaService {
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
-    private IVideoManagerStorage storager;
-
-    @Autowired
     private IMediaServerService mediaServerService;
-
 
     @Autowired
     private MediaConfig mediaConfig;
 
     @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;
-
 
 
     @Override

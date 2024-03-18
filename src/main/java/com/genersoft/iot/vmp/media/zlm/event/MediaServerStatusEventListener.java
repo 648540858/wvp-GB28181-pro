@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.media.zlm.event;
 
-import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.media.IMediaServerService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
@@ -20,9 +20,9 @@ import org.springframework.stereotype.Component;
  * @date: 2020年5月6日 下午1:51:23
  */
 @Component
-public class ZLMStatusEventListener {
+public class MediaServerStatusEventListener {
 	
-	private final static Logger logger = LoggerFactory.getLogger(ZLMStatusEventListener.class);
+	private final static Logger logger = LoggerFactory.getLogger(MediaServerStatusEventListener.class);
 
 	@Autowired
 	private IStreamPushService streamPushService;
@@ -38,7 +38,7 @@ public class ZLMStatusEventListener {
 
 	@Async("taskExecutor")
 	@EventListener
-	public void onApplicationEvent(ZLMOnlineEvent event) {
+	public void onApplicationEvent(MediaServerOnlineEvent event) {
 		logger.info("[ZLM] 上线 ID：" + event.getMediaServerId());
 		streamPushService.zlmServerOnline(event.getMediaServerId());
 		streamProxyService.zlmServerOnline(event.getMediaServerId());
@@ -47,7 +47,7 @@ public class ZLMStatusEventListener {
 
 	@Async("taskExecutor")
 	@EventListener
-	public void onApplicationEvent(ZLMOfflineEvent event) {
+	public void onApplicationEvent(MediaServerOfflineEvent event) {
 
 		logger.info("[ZLM] 离线，ID：" + event.getMediaServerId());
 		// 处理ZLM离线

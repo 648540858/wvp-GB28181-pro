@@ -85,6 +85,8 @@ public class MediaServerItem{
 
     @Schema(description = "录像存储路径")
     private String recordPath;
+    @Schema(description = "类型： zlm/abl")
+    private String type;
 
     public MediaServerItem() {
     }
@@ -317,5 +319,13 @@ public class MediaServerItem{
 
     public void setRecordPath(String recordPath) {
         this.recordPath = recordPath;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

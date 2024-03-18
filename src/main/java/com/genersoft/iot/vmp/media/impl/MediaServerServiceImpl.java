@@ -352,6 +352,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
             logger.info("[添加媒体节点] 失败, mediaServerItem的类型：为空");
             return;
         }
+        if (mediaServerMapper.queryOne(mediaServerItem.getId()) != null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(),"保存失败，媒体服务ID [ " + mediaServerItem.getId() + " ] 已存在，请修改媒体服务器配置");
+        }
         IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServerItem.getType());
         if (mediaNodeServerService == null) {
             logger.info("[添加媒体节点] 失败, mediaServerItem的类型： {}，未找到对应的实现类", mediaServerItem.getType());

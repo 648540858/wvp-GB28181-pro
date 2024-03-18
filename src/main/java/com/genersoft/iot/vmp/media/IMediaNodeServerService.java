@@ -10,9 +10,9 @@ public interface IMediaNodeServerService {
 
     void closeRtpServer(MediaServerItem mediaServerItem, String streamId, CommonCallback<Boolean> callback);
 
-    void closeStreams(MediaServerItem mediaServerItem, String rtp, String streamId);
+    void closeStreams(MediaServerItem mediaServerItem, String app, String stream);
 
-    Boolean updateRtpServerSSRC(MediaServerItem mediaServerItem, String streamId, String ssrc);
+    Boolean updateRtpServerSSRC(MediaServerItem mediaServerItem, String stream, String ssrc);
 
     boolean checkNodeId(MediaServerItem mediaServerItem);
 

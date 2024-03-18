@@ -107,6 +107,26 @@ public class DateUtil {
 	}
 
     /**
+     * yyyy_MM_dd_HH_mm_ss 转时间戳（毫秒）
+     *
+     * @param formatTime
+     * @return
+     */
+    public static long yyyy_MM_dd_HH_mm_ssToTimestampMs(String formatTime) {
+        TemporalAccessor temporalAccessor = formatter.parse(formatTime);
+        Instant instant = Instant.from(temporalAccessor);
+        return instant.toEpochMilli();
+    }
+
+    /**
+     * 时间戳（毫秒） 转 yyyy_MM_dd_HH_mm_ss
+     */
+    public static String timestampMsTo_yyyy_MM_dd_HH_mm_ss(long timestamp) {
+        Instant instant = Instant.ofEpochMilli(timestamp);
+        return formatter.format(LocalDateTime.ofInstant(instant, ZoneId.of(zoneStr)));
+    }
+
+    /**
      * 时间戳 转 yyyy_MM_dd
      */
     public static String timestampTo_yyyy_MM_dd(long timestamp) {

@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.media;
+package com.genersoft.iot.vmp.media.service;
 
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;

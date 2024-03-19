@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.media.zlm;
+package com.genersoft.iot.vmp.media;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
@@ -6,10 +6,13 @@ import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
+import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
+import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForServerStarted;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.media.IMediaServerService;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,14 +29,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @Order(value=12)
-public class ZLMRunner implements CommandLineRunner {
+public class MediaServerConfig implements CommandLineRunner {
 
-    private final static Logger logger = LoggerFactory.getLogger(ZLMRunner.class);
+    private final static Logger logger = LoggerFactory.getLogger(MediaServerConfig.class);
 
     private Map<String, Boolean> startGetMedia;
 
-    @Autowired
-    private ZLMRESTfulUtils zlmresTfulUtils;
+//    @Autowired
+//    private ZLMRESTfulUtils zlmresTfulUtils;
 
     @Autowired
     private ZlmHttpHookSubscribe hookSubscribe;
@@ -57,20 +60,27 @@ public class ZLMRunner implements CommandLineRunner {
         MediaServerItem defaultMediaServer = mediaServerService.getDefaultMediaServer();
         if (defaultMediaServer == null) {
             mediaServerService.addToDatabase(mediaConfig.getMediaSerItem());
+            // 发送媒体节点增加事件
         }else {
             MediaServerItem mediaSerItem = mediaConfig.getMediaSerItem();
             mediaServerService.updateToDatabase(mediaSerItem);
+            // 发送媒体节点更新事件
+
         }
         mediaServerService.syncCatchFromDatabase();
+
+
+
+
         HookSubscribeForServerStarted hookSubscribeForServerStarted = HookSubscribeFactory.on_server_started();
-        // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
+        // 订阅 媒体节点启动事件, 新的媒体节点也会从这里进入系统
         hookSubscribe.addSubscribe(hookSubscribeForServerStarted,
                 (mediaServerItem, hookParam)->{
             ZLMServerConfig zlmServerConfig = (ZLMServerConfig)hookParam;
             if (zlmServerConfig !=null ) {
                 if (startGetMedia != null) {
                     startGetMedia.remove(zlmServerConfig.getGeneralMediaServerId());
-                    if (startGetMedia.size() == 0) {
+                    if (startGetMedia.isEmpty()) {
                         hookSubscribe.removeSubscribe(HookSubscribeFactory.on_server_started());
                     }
                 }

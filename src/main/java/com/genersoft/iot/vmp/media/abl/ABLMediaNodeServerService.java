@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.media.abl;
 
 import com.genersoft.iot.vmp.common.CommonCallback;
-import com.genersoft.iot.vmp.media.IMediaNodeServerService;
+import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import org.springframework.stereotype.Service;
 

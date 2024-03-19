@@ -6,8 +6,8 @@ import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
-import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
+import com.genersoft.iot.vmp.media.event.MediaServerChangeEvent;
+import com.genersoft.iot.vmp.media.zlm.dto.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForServerStarted;
@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -35,8 +36,8 @@ public class MediaServerConfig implements CommandLineRunner {
 
     private Map<String, Boolean> startGetMedia;
 
-//    @Autowired
-//    private ZLMRESTfulUtils zlmresTfulUtils;
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
 
     @Autowired
     private ZlmHttpHookSubscribe hookSubscribe;
@@ -60,16 +61,15 @@ public class MediaServerConfig implements CommandLineRunner {
         MediaServerItem defaultMediaServer = mediaServerService.getDefaultMediaServer();
         if (defaultMediaServer == null) {
             mediaServerService.addToDatabase(mediaConfig.getMediaSerItem());
-            // 发送媒体节点增加事件
         }else {
             MediaServerItem mediaSerItem = mediaConfig.getMediaSerItem();
             mediaServerService.updateToDatabase(mediaSerItem);
-            // 发送媒体节点更新事件
-
         }
+        // 发送媒体节点变化事件
         mediaServerService.syncCatchFromDatabase();
-
-
+        MediaServerChangeEvent event = new MediaServerChangeEvent(this);
+        applicationEventPublisher.publishEvent(event);
+        // TODO 此处以下代码弃用
 
 
         HookSubscribeForServerStarted hookSubscribeForServerStarted = HookSubscribeFactory.on_server_started();

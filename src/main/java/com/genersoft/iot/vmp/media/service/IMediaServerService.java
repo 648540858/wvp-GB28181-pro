@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.media.service;
 
 import com.genersoft.iot.vmp.common.CommonCallback;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
+import com.genersoft.iot.vmp.media.zlm.dto.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.ServerKeepaliveData;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;

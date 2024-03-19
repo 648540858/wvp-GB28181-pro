@@ -264,6 +264,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerItemInDataBase.getId();
         redisTemplate.opsForValue().set(key, mediaServerItemInDataBase);
+        if (mediaSerItem.isStatus()) {
+            resetOnlineServerItem(mediaSerItem);
+        }
     }
 
     @Override
@@ -498,18 +501,16 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if (redisTemplate.opsForZSet().score(key, serverItem.getId()) == null) {  // 不存在则设置默认值 已存在则重置
             redisTemplate.opsForZSet().add(key, serverItem.getId(), 0L);
             // 查询服务流数量
-            zlmresTfulUtils.getMediaList(serverItem, null, null, "rtsp",(mediaList ->{
-                Integer code = mediaList.getInteger("code");
-                if (code == 0) {
-                    JSONArray data = mediaList.getJSONArray("data");
-                    if (data != null) {
-                        redisTemplate.opsForZSet().add(key, serverItem.getId(), data.size());
-                    }
-                }
-            }));
+            int count = getMediaList(serverItem);
+            redisTemplate.opsForZSet().add(key, serverItem.getId(), count);
         }else {
             clearRTPServer(serverItem);
         }
+    }
+
+    private int getMediaList(MediaServerItem serverItem) {
+
+        return 0;
     }
 
 

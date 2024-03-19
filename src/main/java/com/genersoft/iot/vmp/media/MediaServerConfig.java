@@ -57,6 +57,7 @@ public class MediaServerConfig implements CommandLineRunner {
 
     @Override
     public void run(String... strings) throws Exception {
+        // TODO 获取所有的离线节点信息
         mediaServerService.clearMediaServerForOnline();
         MediaServerItem defaultMediaServer = mediaServerService.getDefaultMediaServer();
         if (defaultMediaServer == null) {
@@ -67,7 +68,11 @@ public class MediaServerConfig implements CommandLineRunner {
         }
         // 发送媒体节点变化事件
         mediaServerService.syncCatchFromDatabase();
+        // 获取所有的zlm， 并开启主动连接
+        List<MediaServerItem> all = mediaServerService.getAllFromDatabase();
+
         MediaServerChangeEvent event = new MediaServerChangeEvent(this);
+        event.setMediaServerItem();
         applicationEventPublisher.publishEvent(event);
         // TODO 此处以下代码弃用
 

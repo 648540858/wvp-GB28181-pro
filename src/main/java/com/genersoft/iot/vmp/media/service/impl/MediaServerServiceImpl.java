@@ -749,6 +749,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             mediaServerItemMap.put(mediaServerItem.getId(), mediaServerItem);
         }
         for (MediaServerItem mediaServerItem : allInCatch) {
+            // 清除数据中不存在但redis缓存数据
             if (!mediaServerItemMap.containsKey(mediaServerItem.getId())) {
                 delete(mediaServerItem.getId());
             }

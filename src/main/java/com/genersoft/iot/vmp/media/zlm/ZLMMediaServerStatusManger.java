@@ -10,7 +10,6 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.event.HookZlmServerKeepaliveEvent;
 import com.genersoft.iot.vmp.media.zlm.event.HookZlmServerStartEvent;
-import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,14 +47,18 @@ public class ZLMMediaServerStatusManger {
     @Async("taskExecutor")
     @EventListener
     public void onApplicationEvent(MediaServerChangeEvent event) {
-        if (event.getMediaServerItem() == null
-                || !type.equals(event.getMediaServerItem().getType())
-                || event.getMediaServerItem().isStatus()) {
+        if (event.getMediaServerItemList() == null
+                || event.getMediaServerItemList().isEmpty()) {
             return;
         }
-        logger.info("[ZLM-添加待上线节点] ID：" + event.getMediaServerItem().getId());
-        offlineZlmPrimaryMap.put(event.getMediaServerItem().getId(), event.getMediaServerItem());
-        offlineZlmTimeMap.put(event.getMediaServerItem().getId(), System.currentTimeMillis());
+        for (MediaServerItem mediaServerItem : event.getMediaServerItemList()) {
+            if (!type.equals(mediaServerItem.getType())) {
+                continue;
+            }
+            logger.info("[ZLM-添加待上线节点] ID：" + mediaServerItem.getId());
+            offlineZlmPrimaryMap.put(mediaServerItem.getId(), mediaServerItem);
+            offlineZlmTimeMap.put(mediaServerItem.getId(), System.currentTimeMillis());
+        }
     }
 
     @Async("taskExecutor")
@@ -147,11 +150,11 @@ public class ZLMMediaServerStatusManger {
     }
 
     private void online(MediaServerItem mediaServerItem) {
-        logger.info("[ZLM-连接成功] ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
         offlineZlmPrimaryMap.remove(mediaServerItem.getId());
         offlineZlmsecondaryMap.remove(mediaServerItem.getId());
         offlineZlmTimeMap.remove(mediaServerItem.getId());
         if (!mediaServerItem.isStatus()) {
+            logger.info("[ZLM-连接成功] ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
             mediaServerItem.setStatus(true);
             mediaServerService.update(mediaServerItem);
         }

@@ -462,30 +462,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
                 zlmServerConfig.getGeneralMediaServerId(), zlmServerConfig.getIp(), zlmServerConfig.getHttpPort());
     }
 
-    class KeepAliveTimeoutRunnable implements Runnable{
-
-        private MediaServerItem serverItem;
-
-        public KeepAliveTimeoutRunnable(MediaServerItem serverItem) {
-            this.serverItem = serverItem;
-        }
-
-        @Override
-        public void run() {
-            logger.info("[媒体服务节点心跳到期]：" + serverItem.getId());
-            // 发起http请求验证zlm是否确实无法连接，如果确实无法连接则发送离线事件，否则不作处理
-            JSONObject mediaServerConfig = zlmresTfulUtils.getMediaServerConfig(serverItem);
-            if (mediaServerConfig != null && mediaServerConfig.getInteger("code") == 0) {
-                logger.info("[媒体服务节点心跳到期]：{}验证后媒体服务节点仍在线，恢复心跳信息,请检查媒体服务节点是否可以正常向wvp发送心跳", serverItem.getId());
-                // 添加媒体服务节点信息
-                updateMediaServerKeepalive(serverItem.getId(), null);
-            }else {
-                publisher.zlmOfflineEventPublish(serverItem.getId());
-            }
-        }
-    }
-
-
     @Override
     public void zlmServerOffline(String mediaServerId) {
         delete(mediaServerId);

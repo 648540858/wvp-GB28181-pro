@@ -18,6 +18,7 @@ import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.genersoft.iot.vmp.media.bean.Track;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
@@ -1048,7 +1049,41 @@ public class PlayServiceImpl implements IPlayService {
 
 
     public StreamInfo onPublishHandler(MediaServerItem mediaServerItem, OnStreamChangedHookParam hookParam, String deviceId, String channelId) {
-        StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(mediaServerItem, "rtp", hookParam.getStream(), hookParam.getTracks(), null);
+        List<OnStreamChangedHookParam.MediaTrack> tracks = hookParam.getTracks();
+        Track track = new Track();
+        track.setReaderCount(hookParam.getTotalReaderCount());
+        for (OnStreamChangedHookParam.MediaTrack mediaTrack : tracks) {
+            switch (mediaTrack.getCodec_id()) {
+                case 0:
+                    track.setVideoCodec("H264");
+                    break;
+                case 1:
+                    track.setVideoCodec("H265");
+                    break;
+                case 2:
+                    track.setAudioCodec("AAC");
+                    break;
+                case 3:
+                    track.setAudioCodec("G711A");
+                    break;
+                case 4:
+                    track.setAudioCodec("G711U");
+                    break;
+            }
+            if (mediaTrack.getSample_rate() > 0) {
+                track.setAudioSampleRate(mediaTrack.getSample_rate());
+            }
+            if (mediaTrack.getChannels() > 0) {
+                track.setAudioChannels(mediaTrack.getChannels());
+            }
+            if (mediaTrack.getHeight() > 0) {
+                track.setHeight(mediaTrack.getHeight());
+            }
+            if (mediaTrack.getWidth() > 0) {
+                track.setWidth(mediaTrack.getWidth());
+            }
+        }
+        StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(mediaServerItem, "rtp", hookParam.getStream(), track, null);
         streamInfo.setDeviceID(deviceId);
         streamInfo.setChannelId(channelId);
         return streamInfo;

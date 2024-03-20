@@ -1,7 +1,9 @@
 package com.genersoft.iot.vmp.media.service.impl;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.CommonCallback;
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
@@ -533,4 +535,33 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
 
+    @Override
+    public boolean stopSendRtp(MediaServerItem mediaInfo, String app, String stream, String ssrc) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaInfo.getType());
+        if (mediaNodeServerService == null) {
+            logger.info("[stopSendRtp] 失败, mediaServerItem的类型： {}，未找到对应的实现类", mediaInfo.getType());
+            return false;
+        }
+        return mediaNodeServerService.stopSendRtp(mediaInfo, app, stream, ssrc);
+    }
+
+    @Override
+    public boolean deleteRecordDirectory(MediaServerItem mediaServerItem, String app, String stream, String date, String fileName) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServerItem.getType());
+        if (mediaNodeServerService == null) {
+            logger.info("[stopSendRtp] 失败, mediaServerItem的类型： {}，未找到对应的实现类", mediaServerItem.getType());
+            return false;
+        }
+        return mediaNodeServerService.deleteRecordDirectory(mediaServerItem, app, stream, date, fileName);
+    }
+
+    @Override
+    public List<StreamInfo> getMediaList(MediaServerItem mediaServerItem, String app, String stream) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServerItem.getType());
+        if (mediaNodeServerService == null) {
+            logger.info("[getMediaList] 失败, mediaServerItem的类型： {}，未找到对应的实现类", mediaServerItem.getType());
+            return new ArrayList<>();
+        }
+        return mediaNodeServerService.getMediaList(mediaServerItem, app, stream);
+    }
 }

@@ -4,17 +4,30 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.CommonCallback;
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.media.bean.Track;
 import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.ZLMServerConfig;
+import com.genersoft.iot.vmp.service.impl.DeviceServiceImpl;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service("zlm")
 public class ZLMMediaNodeServerService implements IMediaNodeServerService {
+
+    private final static Logger logger = LoggerFactory.getLogger(ZLMMediaNodeServerService.class);
 
     @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;
@@ -105,5 +118,78 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         mediaServerItem.setSdpIp(ip);
         mediaServerItem.setType("zlm");
         return mediaServerItem;
+    }
+
+    @Override
+    public boolean stopSendRtp(MediaServerItem mediaInfo, String app, String stream, String ssrc) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("vhost", "__defaultVhost__");
+        param.put("app", app);
+        param.put("stream", stream);
+        if (!ObjectUtils.isEmpty(ssrc)) {
+            param.put("ssrc", ssrc);
+        }
+        JSONObject jsonObject = zlmresTfulUtils.stopSendRtp(mediaInfo, param);
+        return (jsonObject != null && jsonObject.getInteger("code") == 0);
+
+    }
+
+    @Override
+    public boolean deleteRecordDirectory(MediaServerItem mediaServerItem, String app, String stream, String date, String fileName) {
+        logger.info("[zlm-deleteRecordDirectory] 删除磁盘文件, server: {} {}:{}->{}/{}", mediaServerItem.getId(), app, stream, date, fileName);
+        JSONObject jsonObject = zlmresTfulUtils.deleteRecordDirectory(mediaServerItem, app,
+                stream, date, fileName);
+        if (jsonObject.getInteger("code") == 0) {
+            return true;
+        }else {
+            logger.info("[zlm-deleteRecordDirectory] 删除磁盘文件错误, server: {} {}:{}->{}/{}, 结果： {}", mediaServerItem.getId(), app, stream, date, fileName, jsonObject);
+            return false;
+        }
+    }
+
+    @Override
+    public List<StreamInfo> getMediaList(MediaServerItem mediaServerItem, String app, String stream) {
+        List<StreamInfo> streamInfoList = new ArrayList<>();
+        JSONObject mediaList = zlmresTfulUtils.getMediaList(mediaServerItem, app, stream);
+        if (mediaList != null) {
+            if (mediaList.getInteger("code") == 0) {
+                JSONArray data = mediaList.getJSONArray("data");
+                if (data == null) {
+                    return null;
+                }
+                JSONObject mediaJSON = data.getJSONObject(0);
+                JSONArray tracks = mediaJSON.getJSONArray("tracks");
+
+                if (authority) {
+                    streamInfo = getStreamInfoByAppAndStream(mediaServerItem, app, stream, tracks, null, calld, true);
+                }else {
+                    streamInfo = getStreamInfoByAppAndStream(mediaServerItem, app, stream, tracks, null,null, true);
+                }
+            }
+        }
+        return streamInfoList;
+    }
+
+    public StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream, Track track, String addr, String callId, boolean isPlay) {
+        StreamInfo streamInfoResult = new StreamInfo();
+        streamInfoResult.setStream(stream);
+        streamInfoResult.setApp(app);
+        if (addr == null) {
+            addr = mediaInfo.getStreamIp();
+        }
+
+        streamInfoResult.setIp(addr);
+        streamInfoResult.setMediaServerId(mediaInfo.getId());
+        String callIdParam = ObjectUtils.isEmpty(callId)?"":"?callId=" + callId;
+        streamInfoResult.setRtmp(addr, mediaInfo.getRtmpPort(),mediaInfo.getRtmpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setRtsp(addr, mediaInfo.getRtspPort(),mediaInfo.getRtspSSLPort(), app,  stream, callIdParam);
+        streamInfoResult.setFlv(addr, mediaInfo.getHttpPort(),mediaInfo.getHttpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setFmp4(addr, mediaInfo.getHttpPort(),mediaInfo.getHttpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setHls(addr, mediaInfo.getHttpPort(),mediaInfo.getHttpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setTs(addr, mediaInfo.getHttpPort(),mediaInfo.getHttpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setRtc(addr, mediaInfo.getHttpPort(),mediaInfo.getHttpSSlPort(), app,  stream, callIdParam, isPlay);
+
+        streamInfoResult.setTrack(track);
+        return streamInfoResult;
     }
 }

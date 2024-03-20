@@ -18,6 +18,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.media.bean.Track;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.*;
@@ -33,6 +34,7 @@ import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.OtherPsSendInfo;
 import com.genersoft.iot.vmp.vmanager.bean.OtherRtpSendInfo;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
+import org.apache.poi.ss.formula.functions.T;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -368,6 +370,39 @@ public class ZLMHttpHookListener {
             }
 
             List<OnStreamChangedHookParam.MediaTrack> tracks = param.getTracks();
+            Track track = new Track();
+            track.setReaderCount(param.getTotalReaderCount());
+            for (OnStreamChangedHookParam.MediaTrack mediaTrack : tracks) {
+                switch (mediaTrack.getCodec_id()) {
+                    case 0:
+                        track.setVideoCodec("H264");
+                        break;
+                    case 1:
+                        track.setVideoCodec("H265");
+                        break;
+                    case 2:
+                        track.setAudioCodec("AAC");
+                        break;
+                    case 3:
+                        track.setAudioCodec("G711A");
+                        break;
+                    case 4:
+                        track.setAudioCodec("G711U");
+                        break;
+                }
+                if (mediaTrack.getSample_rate() > 0) {
+                    track.setAudioSampleRate(mediaTrack.getSample_rate());
+                }
+                if (mediaTrack.getChannels() > 0) {
+                    track.setAudioChannels(mediaTrack.getChannels());
+                }
+                if (mediaTrack.getHeight() > 0) {
+                    track.setHeight(mediaTrack.getHeight());
+                }
+                if (mediaTrack.getWidth() > 0) {
+                    track.setWidth(mediaTrack.getWidth());
+                }
+            }
             // TODO 重构此处逻辑
             if (param.isRegist()) {
                 // 处理流注册的鉴权信息， 流注销这里不再删除鉴权信息，下次来了新的鉴权信息会对就的进行覆盖
@@ -471,7 +506,7 @@ public class ZLMHttpHookListener {
                                 callId = streamAuthorityInfo.getCallId();
                             }
                             StreamInfo streamInfoByAppAndStream = mediaService.getStreamInfoByAppAndStream(mediaInfo,
-                                    param.getApp(), param.getStream(), tracks, callId);
+                                    param.getApp(), param.getStream(), track, callId);
                             param.setStreamInfo(new StreamContent(streamInfoByAppAndStream));
                             redisCatchStorage.addStream(mediaInfo, type, param.getApp(), param.getStream(), param);
                             if (param.getOriginType() == OriginType.RTSP_PUSH.ordinal()

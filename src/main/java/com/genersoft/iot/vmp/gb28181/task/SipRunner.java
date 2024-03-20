@@ -54,9 +54,6 @@ public class SipRunner implements CommandLineRunner {
     private IDeviceService deviceService;
 
     @Autowired
-    private ZLMRESTfulUtils zlmresTfulUtils;
-
-    @Autowired
     private IMediaServerService mediaServerService;
 
     @Autowired
@@ -109,13 +106,8 @@ public class SipRunner implements CommandLineRunner {
                 redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(),sendRtpItem.getChannelId(), sendRtpItem.getCallId(),sendRtpItem.getStream());
                 if (mediaServerItem != null) {
                     ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
-                    Map<String, Object> param = new HashMap<>();
-                    param.put("vhost","__defaultVhost__");
-                    param.put("app",sendRtpItem.getApp());
-                    param.put("stream",sendRtpItem.getStream());
-                    param.put("ssrc",sendRtpItem.getSsrc());
-                    JSONObject jsonObject = zlmresTfulUtils.stopSendRtp(mediaServerItem, param);
-                    if (jsonObject != null && jsonObject.getInteger("code") == 0) {
+                    boolean stopResult = mediaServerService.stopSendRtp(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getSsrc());
+                    if (stopResult) {
                         ParentPlatform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
                         if (platform != null) {
                             try {

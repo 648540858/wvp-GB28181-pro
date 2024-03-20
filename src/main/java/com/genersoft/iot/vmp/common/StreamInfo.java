@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.common;
 
+import com.genersoft.iot.vmp.media.bean.Track;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -70,7 +71,7 @@ public class StreamInfo implements Serializable, Cloneable{
     @Schema(description = "流媒体ID")
     private String mediaServerId;
     @Schema(description = "流编码信息")
-    private Object tracks;
+    private Track track;
     @Schema(description = "开始时间")
     private String startTime;
     @Schema(description = "结束时间")
@@ -473,12 +474,12 @@ public class StreamInfo implements Serializable, Cloneable{
         this.mediaServerId = mediaServerId;
     }
 
-    public Object getTracks() {
-        return tracks;
+    public Track getTrack() {
+        return track;
     }
 
-    public void setTracks(Object tracks) {
-        this.tracks = tracks;
+    public void setTrack(Track track) {
+        this.track = track;
     }
 
     public String getStartTime() {

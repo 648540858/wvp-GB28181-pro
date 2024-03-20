@@ -7,7 +7,6 @@ import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
@@ -29,12 +28,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ZLMMediaListManager {
 
     private Logger logger = LoggerFactory.getLogger("ZLMMediaListManager");
-
-    @Autowired
-    private ZLMRESTfulUtils zlmresTfulUtils;
-
-    @Autowired
-    private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
     private IVideoManagerStorage storager;

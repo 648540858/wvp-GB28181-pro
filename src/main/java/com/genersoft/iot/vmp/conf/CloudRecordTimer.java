@@ -32,9 +32,6 @@ public class CloudRecordTimer {
     @Autowired
     private CloudRecordServiceMapper cloudRecordServiceMapper;
 
-    @Autowired
-    private ZLMRESTfulUtils zlmresTfulUtils;
-
     /**
      * 定时查询待删除的录像文件
      */
@@ -66,10 +63,10 @@ public class CloudRecordTimer {
                 // TODO 后续可以删除空了的过期日期文件夹
                 for (CloudRecordItem cloudRecordItem : cloudRecordItemList) {
                     String date = new File(cloudRecordItem.getFilePath()).getParentFile().getName();
-                    JSONObject jsonObject = zlmresTfulUtils.deleteRecordDirectory(mediaServerItem, cloudRecordItem.getApp(),
+                    boolean deleteResult = mediaServerService.deleteRecordDirectory(mediaServerItem, cloudRecordItem.getApp(),
                             cloudRecordItem.getStream(), date, cloudRecordItem.getFileName());
-                    if (jsonObject.getInteger("code") != 0) {
-                        logger.warn("[录像文件定时清理] 删除磁盘文件错误： {}:{}", cloudRecordItem.getFilePath(), jsonObject);
+                    if (deleteResult) {
+                        logger.warn("[录像文件定时清理] 删除磁盘文件成功： {}", cloudRecordItem.getFilePath());
                     }
                 }
                 result += cloudRecordServiceMapper.deleteList(cloudRecordItemList);

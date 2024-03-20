@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.media.service;
 
 import com.genersoft.iot.vmp.common.CommonCallback;
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
@@ -69,4 +70,10 @@ public interface IMediaServerService {
     List<MediaServerItem> getAllWithAssistPort();
 
     MediaServerItem getOneFromDatabase(String id);
+
+    boolean stopSendRtp(MediaServerItem mediaInfo, String app, String stream, String ssrc);
+
+    boolean deleteRecordDirectory(MediaServerItem mediaServerItem, String app, String stream, String date, String fileName);
+
+    List<StreamInfo> getMediaList(MediaServerItem mediaInfo, String app, String stream);
 }

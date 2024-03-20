@@ -17,7 +17,7 @@ import java.util.Map;
 @Component
 public class ZLMServerFactory {
 
-    private Logger logger = LoggerFactory.getLogger("ZLMRTPServerFactory");
+    private Logger logger = LoggerFactory.getLogger("ZLMServerFactory");
 
     @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;

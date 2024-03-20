@@ -24,14 +24,9 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -86,29 +81,22 @@ public class JwtUtils implements InitializingBean {
 
     /**
      * 创建密钥对
+     *
      * @throws JoseException JoseException
      */
     private RsaJsonWebKey generateRsaJsonWebKey() throws JoseException {
         RsaJsonWebKey rsaJsonWebKey = null;
-        try {
-            URL url = getClass().getClassLoader().getResource("jwk.json");
-            if (url != null) {
-                URI uri = url.toURI();
-                Path path = Paths.get(uri);
-                if (Files.exists(path)) {
-                    byte[] allBytes = Files.readAllBytes(path);
-                    String jwkJson = new String(allBytes, StandardCharsets.UTF_8);
-                    final JsonWebKeySet jsonWebKeySet = new JsonWebKeySet(jwkJson);
-                    List<JsonWebKey> jsonWebKeys = jsonWebKeySet.getJsonWebKeys();
-                    if (!jsonWebKeys.isEmpty()) {
-                        JsonWebKey jsonWebKey = jsonWebKeys.get(0);
-                        if (jsonWebKey instanceof RsaJsonWebKey) {
-                            rsaJsonWebKey = (RsaJsonWebKey) jsonWebKey;
-                        }
-                    }
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getClassLoader().getResourceAsStream("/jwk.json"), StandardCharsets.UTF_8))) {
+            String jwkJson = reader.readLine();
+            JsonWebKeySet jsonWebKeySet = new JsonWebKeySet(jwkJson);
+            List<JsonWebKey> jsonWebKeys = jsonWebKeySet.getJsonWebKeys();
+            if (!jsonWebKeys.isEmpty()) {
+                JsonWebKey jsonWebKey = jsonWebKeys.get(0);
+                if (jsonWebKey instanceof RsaJsonWebKey) {
+                    rsaJsonWebKey = (RsaJsonWebKey) jsonWebKey;
                 }
             }
-        } catch (URISyntaxException | IOException e) {
+        } catch (Exception e) {
             // ignored
         }
         if (rsaJsonWebKey == null) {

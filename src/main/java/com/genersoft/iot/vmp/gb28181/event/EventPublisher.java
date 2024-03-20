@@ -1,16 +1,18 @@
 package com.genersoft.iot.vmp.gb28181.event;
 
-import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.GbStream;
+import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
+import com.genersoft.iot.vmp.gb28181.event.alarm.AlarmEvent;
 import com.genersoft.iot.vmp.gb28181.event.device.RequestTimeoutEvent;
 import com.genersoft.iot.vmp.gb28181.event.record.RecordEndEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
-import com.genersoft.iot.vmp.media.zlm.event.MediaServerOfflineEvent;
-import com.genersoft.iot.vmp.media.zlm.event.MediaServerOnlineEvent;
+import com.genersoft.iot.vmp.media.event.MediaServerOfflineEvent;
+import com.genersoft.iot.vmp.media.event.MediaServerOnlineEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
-
-import com.genersoft.iot.vmp.gb28181.event.alarm.AlarmEvent;
 
 import javax.sip.TimeoutEvent;
 import java.util.ArrayList;
@@ -39,7 +41,7 @@ public class EventPublisher {
 		applicationEventPublisher.publishEvent(alarmEvent);
 	}
 
-	public void zlmOfflineEventPublish(String mediaServerId){
+	public void mediaServerOfflineEventPublish(String mediaServerId){
 		MediaServerOfflineEvent outEvent = new MediaServerOfflineEvent(this);
 		outEvent.setMediaServerId(mediaServerId);
 		applicationEventPublisher.publishEvent(outEvent);

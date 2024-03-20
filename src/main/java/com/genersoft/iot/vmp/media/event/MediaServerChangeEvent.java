@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.media.event;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import org.springframework.context.ApplicationEvent;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -23,6 +24,7 @@ public class MediaServerChangeEvent extends ApplicationEvent {
     }
 
     public void setMediaServerItemList(MediaServerItem... mediaServerItemArray) {
+        this.mediaServerItemList = new ArrayList<>();
         this.mediaServerItemList.addAll(Arrays.asList(mediaServerItemArray));
     }
 

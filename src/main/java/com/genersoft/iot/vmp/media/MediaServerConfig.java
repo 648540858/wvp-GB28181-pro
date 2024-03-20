@@ -38,11 +38,19 @@ public class MediaServerConfig implements CommandLineRunner {
         // 清理所有在线节点的缓存信息
         mediaServerService.clearMediaServerForOnline();
         MediaServerItem defaultMediaServer = mediaServerService.getDefaultMediaServer();
-        if (defaultMediaServer == null) {
-            mediaServerService.addToDatabase(mediaConfig.getMediaSerItem());
+        MediaServerItem mediaSerItemInConfig = mediaConfig.getMediaSerItem();
+        if (defaultMediaServer != null && mediaSerItemInConfig.getId().equals(defaultMediaServer.getId())) {
+            mediaServerService.update(mediaSerItemInConfig);
         }else {
-            MediaServerItem mediaSerItem = mediaConfig.getMediaSerItem();
-            mediaServerService.updateToDatabase(mediaSerItem);
+            if (defaultMediaServer != null) {
+                mediaServerService.delete(defaultMediaServer.getId());
+            }
+            MediaServerItem mediaServerItem = mediaServerService.getOneFromDatabase(mediaSerItemInConfig.getId());
+            if (mediaServerItem == null) {
+                mediaServerService.add(mediaSerItemInConfig);
+            }else {
+                mediaServerService.update(mediaSerItemInConfig);
+            }
         }
         // 发送媒体节点变化事件
         mediaServerService.syncCatchFromDatabase();

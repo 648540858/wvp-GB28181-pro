@@ -42,4 +42,9 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
     public void online(MediaServerItem mediaServerItem) {
 
     }
+
+    @Override
+    public MediaServerItem checkMediaServer(String ip, int port, String secret) {
+        return null;
+    }
 }

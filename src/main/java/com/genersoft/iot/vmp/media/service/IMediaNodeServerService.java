@@ -17,4 +17,6 @@ public interface IMediaNodeServerService {
     boolean checkNodeId(MediaServerItem mediaServerItem);
 
     void online(MediaServerItem mediaServerItem);
+
+    MediaServerItem checkMediaServer(String ip, int port, String secret);
 }

@@ -1,9 +1,7 @@
 package com.genersoft.iot.vmp.media.service;
 
 import com.genersoft.iot.vmp.common.CommonCallback;
-import com.genersoft.iot.vmp.media.zlm.dto.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.media.zlm.dto.ServerKeepaliveData;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 
@@ -13,6 +11,8 @@ import java.util.List;
  * 媒体服务节点
  */
 public interface IMediaServerService {
+
+    List<MediaServerItem> getAllOnlineList();
 
     List<MediaServerItem> getAll();
 
@@ -24,23 +24,7 @@ public interface IMediaServerService {
 
     void syncCatchFromDatabase();
 
-    /**
-     * 新的节点加入
-     * @param zlmServerConfig
-     * @return
-     */
-    void zlmServerOnline(ZLMServerConfig zlmServerConfig);
-
-    /**
-     * 节点离线
-     * @param mediaServerId
-     * @return
-     */
-    void zlmServerOffline(String mediaServerId);
-
     MediaServerItem getMediaServerForMinimumLoad(Boolean hasAssist);
-
-    void setZLMConfig(MediaServerItem mediaServerItem, boolean restart);
 
     void updateVmServer(List<MediaServerItem>  mediaServerItemList);
 
@@ -70,30 +54,19 @@ public interface IMediaServerService {
 
     void add(MediaServerItem mediaSerItem);
 
-    int addToDatabase(MediaServerItem mediaSerItem);
-
-    int updateToDatabase(MediaServerItem mediaSerItem);
-
     void resetOnlineServerItem(MediaServerItem serverItem);
 
-    MediaServerItem checkMediaServer(String ip, int port, String secret);
+    MediaServerItem checkMediaServer(String ip, int port, String secret, String type);
 
     boolean checkMediaRecordServer(String ip, int port);
 
     void delete(String id);
 
-    void deleteDb(String id);
-
     MediaServerItem getDefaultMediaServer();
 
-    void updateMediaServerKeepalive(String mediaServerId, ServerKeepaliveData data);
-
-    /**
-     * 获取负载信息
-     * @return
-     */
     MediaServerLoad getLoad(MediaServerItem mediaServerItem);
 
     List<MediaServerItem> getAllWithAssistPort();
 
+    MediaServerItem getOneFromDatabase(String id);
 }

@@ -76,7 +76,7 @@ public class CloudRecordController {
             }
             mediaServerItems.add(mediaServerItem);
         } else {
-            mediaServerItems = mediaServerService.getAll();
+            mediaServerItems = mediaServerService.getAllOnlineList();
         }
         if (mediaServerItems.isEmpty()) {
             return new ArrayList<>();
@@ -119,7 +119,7 @@ public class CloudRecordController {
             }
             mediaServerItems.add(mediaServerItem);
         } else {
-            mediaServerItems = mediaServerService.getAll();
+            mediaServerItems = mediaServerService.getAllOnlineList();
         }
         if (mediaServerItems.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "当前无流媒体");

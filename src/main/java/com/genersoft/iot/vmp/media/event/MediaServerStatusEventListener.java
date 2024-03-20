@@ -1,6 +1,5 @@
-package com.genersoft.iot.vmp.media.zlm.event;
+package com.genersoft.iot.vmp.media.event;
 
-import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
@@ -31,15 +30,12 @@ public class MediaServerStatusEventListener {
 	private IStreamProxyService streamProxyService;
 
 	@Autowired
-	private IMediaServerService mediaServerService;
-
-	@Autowired
 	private IPlayService playService;
 
 	@Async("taskExecutor")
 	@EventListener
 	public void onApplicationEvent(MediaServerOnlineEvent event) {
-		logger.info("[ZLM] 上线 ID：" + event.getMediaServerId());
+		logger.info("[媒体节点] 上线 ID：" + event.getMediaServerId());
 		streamPushService.zlmServerOnline(event.getMediaServerId());
 		streamProxyService.zlmServerOnline(event.getMediaServerId());
 		playService.zlmServerOnline(event.getMediaServerId());
@@ -49,9 +45,8 @@ public class MediaServerStatusEventListener {
 	@EventListener
 	public void onApplicationEvent(MediaServerOfflineEvent event) {
 
-		logger.info("[ZLM] 离线，ID：" + event.getMediaServerId());
+		logger.info("[媒体节点] 离线，ID：" + event.getMediaServerId());
 		// 处理ZLM离线
-		mediaServerService.zlmServerOffline(event.getMediaServerId());
 		streamProxyService.zlmServerOffline(event.getMediaServerId());
 		streamPushService.zlmServerOffline(event.getMediaServerId());
 		playService.zlmServerOffline(event.getMediaServerId());

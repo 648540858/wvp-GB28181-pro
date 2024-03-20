@@ -87,6 +87,9 @@ public class MediaConfig{
     @Value("${media.record-path:}")
     private String recordPath;
 
+    @Value("${media.type:zlm}")
+    private String type;
+
     public String getId() {
         return id;
     }
@@ -217,8 +220,10 @@ public class MediaConfig{
         mediaServerItem.setRtpPortRange(rtpPortRange);
         mediaServerItem.setSendRtpPortRange(rtpSendPortRange);
         mediaServerItem.setRecordAssistPort(recordAssistPort);
-        mediaServerItem.setHookAliveInterval(30.00f);
+        mediaServerItem.setHookAliveInterval(10f);
         mediaServerItem.setRecordDay(recordDay);
+        mediaServerItem.setStatus(false);
+        mediaServerItem.setType(type);
         if (recordPath != null) {
             mediaServerItem.setRecordPath(recordPath);
         }

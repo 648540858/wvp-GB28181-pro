@@ -83,6 +83,7 @@ public class SendRtpPortManager {
     }
 
     private synchronized int getSendPort(int startPort, int endPort, String sendIndexKey, Map<Integer, SendRtpItem> sendRtpItemMap){
+        // TODO 这里改为只取偶数端口
         RedisAtomicInteger redisAtomicInteger = new RedisAtomicInteger(sendIndexKey , redisTemplate.getConnectionFactory());
         if (redisAtomicInteger.get() < startPort) {
             redisAtomicInteger.set(startPort);

@@ -108,8 +108,8 @@ public class ServerController {
     @Parameter(name = "secret", description = "流媒体服务secret", required = true)
     @GetMapping(value = "/media_server/check")
     @ResponseBody
-    public MediaServerItem checkMediaServer(@RequestParam String ip, @RequestParam int port, @RequestParam String secret) {
-        return mediaServerService.checkMediaServer(ip, port, secret);
+    public MediaServerItem checkMediaServer(@RequestParam String ip, @RequestParam int port, @RequestParam String secret, @RequestParam String type) {
+        return mediaServerService.checkMediaServer(ip, port, secret, type);
     }
 
     @Operation(summary = "测试流媒体录像管理服务", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -129,7 +129,7 @@ public class ServerController {
     @PostMapping(value = "/media_server/save")
     @ResponseBody
     public void saveMediaServer(@RequestBody MediaServerItem mediaServerItem) {
-        MediaServerItem mediaServerItemInDatabase = mediaServerService.getOne(mediaServerItem.getId());
+        MediaServerItem mediaServerItemInDatabase = mediaServerService.getOneFromDatabase(mediaServerItem.getId());
 
         if (mediaServerItemInDatabase != null) {
             mediaServerService.update(mediaServerItem);
@@ -143,11 +143,7 @@ public class ServerController {
     @DeleteMapping(value = "/media_server/delete")
     @ResponseBody
     public void deleteMediaServer(@RequestParam String id) {
-        if (mediaServerService.getOne(id) == null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到此节点");
-        }
         mediaServerService.delete(id);
-        mediaServerService.deleteDb(id);
     }
 
 

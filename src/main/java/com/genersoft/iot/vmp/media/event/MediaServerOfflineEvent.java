@@ -1,4 +1,6 @@
-package com.genersoft.iot.vmp.media.zlm.event;
+package com.genersoft.iot.vmp.media.event;
+
+import com.genersoft.iot.vmp.media.event.MediaServerEventAbstract;
 
 /**
  * zlm离线事件类

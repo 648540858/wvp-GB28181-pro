@@ -10,8 +10,8 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
-import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
+import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
@@ -21,6 +21,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.*;
+import com.genersoft.iot.vmp.media.zlm.event.HookZlmServerKeepaliveEvent;
+import com.genersoft.iot.vmp.media.zlm.event.HookZlmServerStartEvent;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
@@ -35,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ObjectUtils;
@@ -69,9 +72,6 @@ public class ZLMHttpHookListener {
 
     @Autowired
     private AudioBroadcastManager audioBroadcastManager;
-
-    @Autowired
-    private ZLMServerFactory zlmServerFactory;
 
     @Autowired
     private IPlayService playService;
@@ -122,9 +122,6 @@ public class ZLMHttpHookListener {
     private VideoStreamSessionManager sessionManager;
 
     @Autowired
-    private AssistRESTfulUtils assistRESTfulUtils;
-
-    @Autowired
     private SSRCFactory ssrcFactory;
 
     @Qualifier("taskExecutor")
@@ -134,6 +131,9 @@ public class ZLMHttpHookListener {
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
 
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
+
     /**
      * 服务器定时上报时间，上报间隔可配置，默认10s上报一次
      */
@@ -141,8 +141,6 @@ public class ZLMHttpHookListener {
 
     @PostMapping(value = "/on_server_keepalive", produces = "application/json;charset=UTF-8")
     public HookResult onServerKeepalive(@RequestBody OnServerKeepaliveHookParam param) {
-
-
         taskExecutor.execute(() -> {
             List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_server_keepalive);
             if (subscribes != null && subscribes.size() > 0) {
@@ -151,8 +149,16 @@ public class ZLMHttpHookListener {
                 }
             }
         });
-        mediaServerService.updateMediaServerKeepalive(param.getMediaServerId(), param.getData());
-
+        try {
+            HookZlmServerKeepaliveEvent event = new HookZlmServerKeepaliveEvent(this);
+            MediaServerItem mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
+            if (mediaServerItem != null) {
+                event.setMediaServerItem(mediaServerItem);
+                applicationEventPublisher.publishEvent(event);
+            }
+        }catch (Exception e) {
+            logger.info("[ZLM-HOOK-心跳] 发送通知失败 ", e);
+        }
         return HookResult.SUCCESS();
     }
 
@@ -160,7 +166,6 @@ public class ZLMHttpHookListener {
      * 播放器鉴权事件，rtsp/rtmp/http-flv/ws-flv/hls的播放都将触发此鉴权事件。
      */
     @ResponseBody
-
     @PostMapping(value = "/on_play", produces = "application/json;charset=UTF-8")
     public HookResult onPlay(@RequestBody OnPlayHookParam param) {
         if (logger.isDebugEnabled()) {
@@ -199,6 +204,7 @@ public class ZLMHttpHookListener {
         JSONObject json = (JSONObject) JSON.toJSON(param);
 
         logger.info("[ZLM HOOK]推流鉴权：{}->{}", param.getMediaServerId(), param);
+        // TODO 加快处理速度
 
         String mediaServerId = json.getString("mediaServerId");
         MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
@@ -801,8 +807,17 @@ public class ZLMHttpHookListener {
                     subscribe.response(null, zlmServerConfig);
                 }
             }
-            mediaServerService.zlmServerOnline(zlmServerConfig);
         });
+        try {
+            HookZlmServerStartEvent event = new HookZlmServerStartEvent(this);
+            MediaServerItem mediaServerItem = mediaServerService.getOne(zlmServerConfig.getMediaServerId());
+            if (mediaServerItem != null) {
+                event.setMediaServerItem(mediaServerItem);
+                applicationEventPublisher.publishEvent(event);
+            }
+        }catch (Exception e) {
+            logger.info("[ZLM-HOOK-ZLM启动] 发送通知失败 ", e);
+        }
 
         return HookResult.SUCCESS();
     }

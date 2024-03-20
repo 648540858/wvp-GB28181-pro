@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.media.zlm.event;
+package com.genersoft.iot.vmp.media.event;
 
 import org.springframework.context.ApplicationEvent;
 

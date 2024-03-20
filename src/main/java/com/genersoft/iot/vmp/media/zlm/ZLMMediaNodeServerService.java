@@ -4,10 +4,13 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.CommonCallback;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.ZLMServerConfig;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service("zlm")
@@ -19,9 +22,12 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     @Autowired
     private ZLMServerFactory zlmServerFactory;
 
+    @Value("${sip.ip}")
+    private String sipIp;
+
     @Override
     public int createRTPServer(MediaServerItem mediaServerItem, String streamId, long ssrc, Integer port, Boolean onlyAuto, Boolean reUsePort, Integer tcpMode) {
-        return zlmServerFactory.createRTPServer(mediaServerItem, streamId, ssrc, port, onlyAuto, reUsePort, tcpMode);;
+        return zlmServerFactory.createRTPServer(mediaServerItem, streamId, ssrc, port, onlyAuto, reUsePort, tcpMode);
     }
 
     @Override
@@ -67,5 +73,37 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     @Override
     public void online(MediaServerItem mediaServerItem) {
 
+    }
+
+    @Override
+    public MediaServerItem checkMediaServer(String ip, int port, String secret) {
+        MediaServerItem mediaServerItem = new MediaServerItem();
+        mediaServerItem.setIp(ip);
+        mediaServerItem.setHttpPort(port);
+        mediaServerItem.setSecret(secret);
+        JSONObject responseJSON = zlmresTfulUtils.getMediaServerConfig(mediaServerItem);
+        if (responseJSON == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "连接失败");
+        }
+        JSONArray data = responseJSON.getJSONArray("data");
+        if (data == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "读取配置失败");
+        }
+        ZLMServerConfig zlmServerConfig = JSON.parseObject(JSON.toJSONString(data.get(0)), ZLMServerConfig.class);
+        if (zlmServerConfig == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "读取配置失败");
+        }
+        mediaServerItem.setId(zlmServerConfig.getGeneralMediaServerId());
+        mediaServerItem.setHttpSSlPort(zlmServerConfig.getHttpPort());
+        mediaServerItem.setRtmpPort(zlmServerConfig.getRtmpPort());
+        mediaServerItem.setRtmpSSlPort(zlmServerConfig.getRtmpSslPort());
+        mediaServerItem.setRtspPort(zlmServerConfig.getRtspPort());
+        mediaServerItem.setRtspSSLPort(zlmServerConfig.getRtspSSlport());
+        mediaServerItem.setRtpProxyPort(zlmServerConfig.getRtpProxyPort());
+        mediaServerItem.setStreamIp(ip);
+        mediaServerItem.setHookIp(sipIp.split(",")[0]);
+        mediaServerItem.setSdpIp(ip);
+        mediaServerItem.setType("zlm");
+        return mediaServerItem;
     }
 }

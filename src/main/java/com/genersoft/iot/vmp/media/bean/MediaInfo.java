@@ -11,7 +11,7 @@ import java.util.List;
  * 视频信息
  */
 @Schema(description = "视频信息")
-public class Track {
+public class MediaInfo {
     @Schema(description = "观看人数")
     private Integer readerCount;
     @Schema(description = "视频编码类型")
@@ -26,12 +26,14 @@ public class Track {
     private Integer audioChannels;
     @Schema(description = "音频采样率")
     private Integer audioSampleRate;
+    @Schema(description = "音频采样率")
+    private Long duration;
 
-    public static Track getInstance(JSONObject jsonObject) {
-        Track track = new Track();
+    public static MediaInfo getInstance(JSONObject jsonObject) {
+        MediaInfo mediaInfo = new MediaInfo();
         Integer totalReaderCount = jsonObject.getInteger("totalReaderCount");
         if (totalReaderCount != null) {
-            track.setReaderCount(totalReaderCount);
+            mediaInfo.setReaderCount(totalReaderCount);
         }
         JSONArray jsonArray = jsonObject.getJSONArray("tracks");
         if (jsonArray.isEmpty()) {
@@ -45,77 +47,81 @@ public class Track {
             Integer sampleRate = trackJson.getInteger("sample_rate");
             Integer height = trackJson.getInteger("height");
             Integer width = trackJson.getInteger("height");
+            Long duration = trackJson.getLongValue("duration");
             if (channels != null) {
-                track.setAudioChannels(channels);
+                mediaInfo.setAudioChannels(channels);
             }
             if (sampleRate != null) {
-                track.setAudioSampleRate(sampleRate);
+                mediaInfo.setAudioSampleRate(sampleRate);
             }
             if (height != null) {
-                track.setHeight(height);
+                mediaInfo.setHeight(height);
             }
             if (width != null) {
-                track.setWidth(width);
+                mediaInfo.setWidth(width);
+            }
+            if (duration > 0L) {
+                mediaInfo.setDuration(duration);
             }
             if (codecId != null) {
                 switch (codecId) {
                     case 0:
-                        track.setVideoCodec("H264");
+                        mediaInfo.setVideoCodec("H264");
                         break;
                     case 1:
-                        track.setVideoCodec("H265");
+                        mediaInfo.setVideoCodec("H265");
                         break;
                     case 2:
-                        track.setAudioCodec("AAC");
+                        mediaInfo.setAudioCodec("AAC");
                         break;
                     case 3:
-                        track.setAudioCodec("G711A");
+                        mediaInfo.setAudioCodec("G711A");
                         break;
                     case 4:
-                        track.setAudioCodec("G711U");
+                        mediaInfo.setAudioCodec("G711U");
                         break;
                 }
             }
         }
-        return track;
+        return mediaInfo;
     }
 
-    public static Track getInstance(OnStreamChangedHookParam param) {
+    public static MediaInfo getInstance(OnStreamChangedHookParam param) {
         List<OnStreamChangedHookParam.MediaTrack> tracks = param.getTracks();
-        Track track = new Track();
-        track.setReaderCount(param.getTotalReaderCount());
+        MediaInfo mediaInfo = new MediaInfo();
+        mediaInfo.setReaderCount(param.getTotalReaderCount());
         for (OnStreamChangedHookParam.MediaTrack mediaTrack : tracks) {
             switch (mediaTrack.getCodec_id()) {
                 case 0:
-                    track.setVideoCodec("H264");
+                    mediaInfo.setVideoCodec("H264");
                     break;
                 case 1:
-                    track.setVideoCodec("H265");
+                    mediaInfo.setVideoCodec("H265");
                     break;
                 case 2:
-                    track.setAudioCodec("AAC");
+                    mediaInfo.setAudioCodec("AAC");
                     break;
                 case 3:
-                    track.setAudioCodec("G711A");
+                    mediaInfo.setAudioCodec("G711A");
                     break;
                 case 4:
-                    track.setAudioCodec("G711U");
+                    mediaInfo.setAudioCodec("G711U");
                     break;
             }
             if (mediaTrack.getSample_rate() > 0) {
-                track.setAudioSampleRate(mediaTrack.getSample_rate());
+                mediaInfo.setAudioSampleRate(mediaTrack.getSample_rate());
             }
             if (mediaTrack.getChannels() > 0) {
-                track.setAudioChannels(mediaTrack.getChannels());
+                mediaInfo.setAudioChannels(mediaTrack.getChannels());
             }
             if (mediaTrack.getHeight() > 0) {
-                track.setHeight(mediaTrack.getHeight());
+                mediaInfo.setHeight(mediaTrack.getHeight());
             }
             if (mediaTrack.getWidth() > 0) {
-                track.setWidth(mediaTrack.getWidth());
+                mediaInfo.setWidth(mediaTrack.getWidth());
             }
         }
-        return track;
+        return mediaInfo;
     }
 
     public Integer getReaderCount() {
@@ -172,5 +178,13 @@ public class Track {
 
     public void setAudioSampleRate(Integer audioSampleRate) {
         this.audioSampleRate = audioSampleRate;
+    }
+
+    public Long getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Long duration) {
+        this.duration = duration;
     }
 }

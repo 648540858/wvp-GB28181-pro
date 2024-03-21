@@ -8,7 +8,7 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.media.event.MediaServerChangeEvent;
 import com.genersoft.iot.vmp.media.event.MediaServerDeleteEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.event.HookZlmServerKeepaliveEvent;
 import com.genersoft.iot.vmp.media.zlm.event.HookZlmServerStartEvent;
@@ -36,8 +36,8 @@ public class ZLMMediaServerStatusManger {
 
     private final static Logger logger = LoggerFactory.getLogger(ZLMMediaServerStatusManger.class);
 
-    private final Map<Object, MediaServerItem> offlineZlmPrimaryMap = new ConcurrentHashMap<>();
-    private final Map<Object, MediaServerItem> offlineZlmsecondaryMap = new ConcurrentHashMap<>();
+    private final Map<Object, MediaServer> offlineZlmPrimaryMap = new ConcurrentHashMap<>();
+    private final Map<Object, MediaServer> offlineZlmsecondaryMap = new ConcurrentHashMap<>();
     private final Map<Object, Long> offlineZlmTimeMap = new ConcurrentHashMap<>();
 
     @Autowired
@@ -67,7 +67,7 @@ public class ZLMMediaServerStatusManger {
                 || event.getMediaServerItemList().isEmpty()) {
             return;
         }
-        for (MediaServerItem mediaServerItem : event.getMediaServerItemList()) {
+        for (MediaServer mediaServerItem : event.getMediaServerItemList()) {
             if (!type.equals(mediaServerItem.getType())) {
                 continue;
             }
@@ -85,7 +85,7 @@ public class ZLMMediaServerStatusManger {
                 || event.getMediaServerItem().isStatus()) {
             return;
         }
-        MediaServerItem serverItem = mediaServerService.getOne(event.getMediaServerItem().getId());
+        MediaServer serverItem = mediaServerService.getOne(event.getMediaServerItem().getId());
         if (serverItem == null) {
             return;
         }
@@ -99,7 +99,7 @@ public class ZLMMediaServerStatusManger {
         if (event.getMediaServerItem() == null) {
             return;
         }
-        MediaServerItem serverItem = mediaServerService.getOne(event.getMediaServerItem().getId());
+        MediaServer serverItem = mediaServerService.getOne(event.getMediaServerItem().getId());
         if (serverItem == null) {
             return;
         }
@@ -126,7 +126,7 @@ public class ZLMMediaServerStatusManger {
             return;
         }
         if (!offlineZlmPrimaryMap.isEmpty()) {
-            for (MediaServerItem mediaServerItem : offlineZlmPrimaryMap.values()) {
+            for (MediaServer mediaServerItem : offlineZlmPrimaryMap.values()) {
                 if (offlineZlmTimeMap.get(mediaServerItem.getId()) <  System.currentTimeMillis() - 30*60*1000) {
                     offlineZlmsecondaryMap.put(mediaServerItem.getId(), mediaServerItem);
                     offlineZlmPrimaryMap.remove(mediaServerItem.getId());
@@ -150,7 +150,7 @@ public class ZLMMediaServerStatusManger {
             }
         }
         if (!offlineZlmsecondaryMap.isEmpty()) {
-            for (MediaServerItem mediaServerItem : offlineZlmsecondaryMap.values()) {
+            for (MediaServer mediaServerItem : offlineZlmsecondaryMap.values()) {
                 if (offlineZlmTimeMap.get(mediaServerItem.getId()) <  System.currentTimeMillis() - 30*60*1000) {
                     continue;
                 }
@@ -175,7 +175,7 @@ public class ZLMMediaServerStatusManger {
         }
     }
 
-    private void online(MediaServerItem mediaServerItem, ZLMServerConfig config) {
+    private void online(MediaServer mediaServerItem, ZLMServerConfig config) {
         offlineZlmPrimaryMap.remove(mediaServerItem.getId());
         offlineZlmsecondaryMap.remove(mediaServerItem.getId());
         offlineZlmTimeMap.remove(mediaServerItem.getId());
@@ -209,7 +209,7 @@ public class ZLMMediaServerStatusManger {
             mediaServerService.update(mediaServerItem);
         }, (int)(mediaServerItem.getHookAliveInterval() * 2 * 1000));
     }
-    private void initPort(MediaServerItem mediaServerItem, ZLMServerConfig zlmServerConfig) {
+    private void initPort(MediaServer mediaServerItem, ZLMServerConfig zlmServerConfig) {
         if (mediaServerItem.getHttpSSlPort() == 0) {
             mediaServerItem.setHttpSSlPort(zlmServerConfig.getHttpSSLport());
         }
@@ -231,7 +231,7 @@ public class ZLMMediaServerStatusManger {
         mediaServerItem.setHookAliveInterval(10F);
     }
 
-    public void setZLMConfig(MediaServerItem mediaServerItem, boolean restart) {
+    public void setZLMConfig(MediaServer mediaServerItem, boolean restart) {
         logger.info("[媒体服务节点] 正在设置 ：{} -> {}:{}",
                 mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
         String protocol = sslEnabled ? "https" : "http";

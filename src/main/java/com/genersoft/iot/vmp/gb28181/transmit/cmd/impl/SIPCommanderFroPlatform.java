@@ -17,7 +17,7 @@ import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.HookParam;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
@@ -844,7 +844,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         }
         logger.info("[向上级发送BYE]， {}/{}", platform.getServerGBId(), sendRtpItem.getChannelId());
         String mediaServerId = sendRtpItem.getMediaServerId();
-        MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+        MediaServer mediaServerItem = mediaServerService.getOne(mediaServerId);
         if (mediaServerItem != null) {
             mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpItem.getSsrc());
             zlmServerFactory.closeRtpServer(mediaServerItem, sendRtpItem.getStream());
@@ -895,7 +895,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public void broadcastInviteCmd(ParentPlatform platform, String channelId, MediaServerItem mediaServerItem,
+    public void broadcastInviteCmd(ParentPlatform platform, String channelId, MediaServer mediaServerItem,
                                    SSRCInfo ssrcInfo, ZlmHttpHookSubscribe.Event event, SipSubscribe.Event okEvent,
                                    SipSubscribe.Event errorEvent) throws ParseException, SipException, InvalidArgumentException {
         String stream = ssrcInfo.getStream();
@@ -906,7 +906,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
         logger.info("{} 分配的ZLM为: {} [{}:{}]", stream, mediaServerItem.getId(), mediaServerItem.getIp(), ssrcInfo.getPort());
         HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", stream, true, "rtsp", mediaServerItem.getId());
-        subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, HookParam hookParam) -> {
+        subscribe.addSubscribe(hookSubscribe, (MediaServer mediaServerItemInUse, HookParam hookParam) -> {
             if (event != null) {
                 event.response(mediaServerItemInUse, hookParam);
                 subscribe.removeSubscribe(hookSubscribe);

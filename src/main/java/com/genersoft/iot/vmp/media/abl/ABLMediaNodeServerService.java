@@ -2,8 +2,9 @@ package com.genersoft.iot.vmp.media.abl;
 
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,57 +13,72 @@ import java.util.List;
 public class ABLMediaNodeServerService implements IMediaNodeServerService {
 
     @Override
-    public int createRTPServer(MediaServerItem mediaServerItem, String streamId, long ssrc, Integer port, Boolean onlyAuto, Boolean reUsePort, Integer tcpMode) {
+    public int createRTPServer(MediaServer mediaServerItem, String streamId, long ssrc, Integer port, Boolean onlyAuto, Boolean reUsePort, Integer tcpMode) {
         return 0;
     }
 
     @Override
-    public void closeRtpServer(MediaServerItem mediaServerItem, String streamId) {
+    public void closeRtpServer(MediaServer mediaServerItem, String streamId) {
 
     }
 
     @Override
-    public void closeRtpServer(MediaServerItem mediaServerItem, String streamId, CommonCallback<Boolean> callback) {
+    public void closeRtpServer(MediaServer mediaServerItem, String streamId, CommonCallback<Boolean> callback) {
 
     }
 
     @Override
-    public void closeStreams(MediaServerItem mediaServerItem, String rtp, String streamId) {
+    public void closeStreams(MediaServer mediaServerItem, String rtp, String streamId) {
 
     }
 
     @Override
-    public Boolean updateRtpServerSSRC(MediaServerItem mediaServerItem, String streamId, String ssrc) {
+    public Boolean updateRtpServerSSRC(MediaServer mediaServerItem, String streamId, String ssrc) {
         return null;
     }
 
     @Override
-    public boolean checkNodeId(MediaServerItem mediaServerItem) {
+    public boolean checkNodeId(MediaServer mediaServerItem) {
         return false;
     }
 
     @Override
-    public void online(MediaServerItem mediaServerItem) {
+    public void online(MediaServer mediaServerItem) {
 
     }
 
     @Override
-    public MediaServerItem checkMediaServer(String ip, int port, String secret) {
+    public MediaServer checkMediaServer(String ip, int port, String secret) {
         return null;
     }
 
     @Override
-    public boolean stopSendRtp(MediaServerItem mediaInfo, String app, String stream, String ssrc) {
+    public boolean stopSendRtp(MediaServer mediaInfo, String app, String stream, String ssrc) {
         return false;
     }
 
     @Override
-    public boolean deleteRecordDirectory(MediaServerItem mediaServerItem, String app, String stream, String date, String fileName) {
+    public boolean deleteRecordDirectory(MediaServer mediaServerItem, String app, String stream, String date, String fileName) {
         return false;
     }
 
     @Override
-    public List<StreamInfo> getMediaList(MediaServerItem mediaServerItem, String app, String stream, String callId) {
+    public List<StreamInfo> getMediaList(MediaServer mediaServerItem, String app, String stream, String callId) {
+        return null;
+    }
+
+    @Override
+    public Boolean connectRtpServer(MediaServer mediaServerItem, String address, int port, String stream) {
+        return null;
+    }
+
+    @Override
+    public void getSnap(MediaServer mediaServerItem, String streamUrl, int timeoutSec, int expireSec, String path, String fileName) {
+
+    }
+
+    @Override
+    public MediaInfo getMediaInfo(MediaServer mediaServerItem, String app, String stream) {
         return null;
     }
 }

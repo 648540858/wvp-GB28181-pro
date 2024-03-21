@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.util.ObjectUtils;
 
 @Schema(description = "流媒体服务信息")
-public class MediaServerItem{
+public class MediaServer {
 
     @Schema(description = "ID")
     private String id;
@@ -87,10 +87,10 @@ public class MediaServerItem{
     @Schema(description = "类型： zlm/abl")
     private String type;
 
-    public MediaServerItem() {
+    public MediaServer() {
     }
 
-    public MediaServerItem(ZLMServerConfig zlmServerConfig, String sipIp) {
+    public MediaServer(ZLMServerConfig zlmServerConfig, String sipIp) {
         id = zlmServerConfig.getGeneralMediaServerId();
         ip = zlmServerConfig.getIp();
         hookIp = ObjectUtils.isEmpty(zlmServerConfig.getHookIp())? sipIp: zlmServerConfig.getHookIp();

@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.service;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.GeneralCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.github.pagehelper.PageInfo;
@@ -75,7 +75,7 @@ public interface IStreamProxyService {
      * 获取ffmpeg.cmd模板
      * @return
      */
-    JSONObject getFFmpegCMDs(MediaServerItem mediaServerItem);
+    JSONObject getFFmpegCMDs(MediaServer mediaServerItem);
 
     /**
      * 根据app与stream获取streamProxy

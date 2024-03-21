@@ -1,9 +1,8 @@
 package com.genersoft.iot.vmp.service;
 
-import com.alibaba.fastjson2.JSONArray;
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.media.bean.Track;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.bean.MediaInfo;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 
 /**
  * 媒体信息业务
@@ -33,7 +32,7 @@ public interface IMediaService {
      * @param stream
      * @return
      */
-    StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaServerItem, String app, String stream, Track track, String callId);
+    StreamInfo getStreamInfoByAppAndStream(MediaServer mediaServerItem, String app, String stream, MediaInfo mediaInfo, String callId);
 
     /**
      * 根据应用名和流ID获取播放地址, 只是地址拼接，返回的ip使用远程访问ip，适用与zlm与wvp在一台主机的情况
@@ -41,5 +40,5 @@ public interface IMediaService {
      * @param stream
      * @return
      */
-    StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream, Track track, String addr, String callId, boolean isPlay);
+    StreamInfo getStreamInfoByAppAndStream(MediaServer mediaServerItem, String app, String stream, MediaInfo mediaInfo, String addr, String callId, boolean isPlay);
 }

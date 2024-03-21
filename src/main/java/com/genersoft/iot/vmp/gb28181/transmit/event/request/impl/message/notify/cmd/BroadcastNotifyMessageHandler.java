@@ -8,7 +8,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
@@ -120,7 +120,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
                 return;
             }
 
-            MediaServerItem mediaServerForMinimumLoad = mediaServerService.getMediaServerForMinimumLoad(null);
+            MediaServer mediaServerForMinimumLoad = mediaServerService.getMediaServerForMinimumLoad(null);
             commanderForPlatform.broadcastResultCmd(platform, deviceChannel, sn, true,  eventResult->{
                 logger.info("[国标级联] 语音喊话 回复失败 platform： {}， 错误：{}/{}", platform.getServerGBId(), eventResult.statusCode, eventResult.msg);
             }, eventResult->{

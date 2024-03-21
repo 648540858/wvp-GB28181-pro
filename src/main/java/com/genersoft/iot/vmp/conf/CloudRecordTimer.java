@@ -1,9 +1,7 @@
 package com.genersoft.iot.vmp.conf;
 
 
-import com.alibaba.fastjson2.JSONObject;
-import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.storager.dao.CloudRecordServiceMapper;
@@ -40,12 +38,12 @@ public class CloudRecordTimer {
     public void execute(){
         logger.info("[录像文件定时清理] 开始清理过期录像文件");
         // 获取配置了assist的流媒体节点
-        List<MediaServerItem> mediaServerItemList =  mediaServerService.getAllOnline();
+        List<MediaServer> mediaServerItemList =  mediaServerService.getAllOnline();
         if (mediaServerItemList.isEmpty()) {
             return;
         }
         long result = 0;
-        for (MediaServerItem mediaServerItem : mediaServerItemList) {
+        for (MediaServer mediaServerItem : mediaServerItemList) {
 
             Calendar lastCalendar = Calendar.getInstance();
             if (mediaServerItem.getRecordDay() > 0) {

@@ -18,7 +18,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.media.bean.Track;
+import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.*;
@@ -34,7 +34,6 @@ import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.OtherPsSendInfo;
 import com.genersoft.iot.vmp.vmanager.bean.OtherRtpSendInfo;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
-import org.apache.poi.ss.formula.functions.T;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -153,7 +152,7 @@ public class ZLMHttpHookListener {
         });
         try {
             HookZlmServerKeepaliveEvent event = new HookZlmServerKeepaliveEvent(this);
-            MediaServerItem mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
+            MediaServer mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
             if (mediaServerItem != null) {
                 event.setMediaServerItem(mediaServerItem);
                 applicationEventPublisher.publishEvent(event);
@@ -179,7 +178,7 @@ public class ZLMHttpHookListener {
             JSONObject json = (JSONObject) JSON.toJSON(param);
             ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_play, json);
             if (subscribe != null) {
-                MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
+                MediaServer mediaInfo = mediaServerService.getOne(mediaServerId);
                 if (mediaInfo != null) {
                     subscribe.response(mediaInfo, param);
                 }
@@ -209,7 +208,7 @@ public class ZLMHttpHookListener {
         // TODO 加快处理速度
 
         String mediaServerId = json.getString("mediaServerId");
-        MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
+        MediaServer mediaInfo = mediaServerService.getOne(mediaServerId);
         if (mediaInfo == null) {
             return new HookResultForOnPublish(200, "success");
         }
@@ -360,7 +359,7 @@ public class ZLMHttpHookListener {
         JSONObject json = (JSONObject) JSON.toJSON(param);
         taskExecutor.execute(() -> {
             ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_stream_changed, json);
-            MediaServerItem mediaInfo = mediaServerService.getOne(param.getMediaServerId());
+            MediaServer mediaInfo = mediaServerService.getOne(param.getMediaServerId());
             if (mediaInfo == null) {
                 logger.info("[ZLM HOOK] 流变化未找到ZLM, {}", param.getMediaServerId());
                 return;
@@ -472,7 +471,7 @@ public class ZLMHttpHookListener {
                                 callId = streamAuthorityInfo.getCallId();
                             }
                             StreamInfo streamInfoByAppAndStream = mediaService.getStreamInfoByAppAndStream(mediaInfo,
-                                    param.getApp(), param.getStream(), Track.getInstance(param), callId);
+                                    param.getApp(), param.getStream(), MediaInfo.getInstance(param), callId);
                             param.setStreamInfo(new StreamContent(streamInfoByAppAndStream));
                             redisCatchStorage.addStream(mediaInfo, type, param.getApp(), param.getStream(), param);
                             if (param.getOriginType() == OriginType.RTSP_PUSH.ordinal()
@@ -680,7 +679,7 @@ public class ZLMHttpHookListener {
 
         DeferredResult<HookResult> defaultResult = new DeferredResult<>();
 
-        MediaServerItem mediaInfo = mediaServerService.getOne(param.getMediaServerId());
+        MediaServer mediaInfo = mediaServerService.getOne(param.getMediaServerId());
         if (!userSetting.isAutoApplyPlay() || mediaInfo == null) {
             defaultResult.setResult(new HookResult(ErrorCode.ERROR404.getCode(), ErrorCode.ERROR404.getMsg()));
             return defaultResult;
@@ -811,7 +810,7 @@ public class ZLMHttpHookListener {
         });
         try {
             HookZlmServerStartEvent event = new HookZlmServerStartEvent(this);
-            MediaServerItem mediaServerItem = mediaServerService.getOne(zlmServerConfig.getMediaServerId());
+            MediaServer mediaServerItem = mediaServerService.getOne(zlmServerConfig.getMediaServerId());
             if (mediaServerItem != null) {
                 event.setMediaServerItem(mediaServerItem);
                 applicationEventPublisher.publishEvent(event);

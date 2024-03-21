@@ -88,7 +88,7 @@ public class ZLMMediaListManager {
     }
 
     public void sendStreamEvent(String app, String stream, String mediaServerId) {
-        MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+        MediaServer mediaServerItem = mediaServerService.getOne(mediaServerId);
         // 查看推流状态
         Boolean streamReady = zlmServerFactory.isStreamReady(mediaServerItem, app, stream);
         if (streamReady != null && streamReady) {

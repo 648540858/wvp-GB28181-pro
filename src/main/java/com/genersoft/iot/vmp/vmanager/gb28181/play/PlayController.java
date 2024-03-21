@@ -17,7 +17,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMediaService;
@@ -104,7 +104,7 @@ public class PlayController {
 		logger.info("[开始点播] deviceId：{}, channelId：{}, ", deviceId, channelId);
 		// 获取可用的zlm
 		Device device = storager.queryVideoDevice(deviceId);
-		MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
+		MediaServer newMediaServerItem = playService.getNewMediaServerItem(device);
 
 		RequestMessage requestMessage = new RequestMessage();
 		String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId;
@@ -218,7 +218,7 @@ public class PlayController {
 			logger.warn("视频转码API调用失败！, 视频流已经停止!");
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到视频流信息, 视频流可能已经停止");
 		}
-		MediaServerItem mediaInfo = mediaServerService.getOne(inviteInfo.getStreamInfo().getMediaServerId());
+		MediaServer mediaInfo = mediaServerService.getOne(inviteInfo.getStreamInfo().getMediaServerId());
 		JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaInfo, streamId);
 		if (!rtpInfo.getBoolean("exist")) {
 			logger.warn("视频转码API调用失败！, 视频流已停止推流!");
@@ -257,7 +257,7 @@ public class PlayController {
 		if (mediaServerId == null) {
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), "流媒体：" + mediaServerId + "不存在" );
 		}
-		MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
+		MediaServer mediaInfo = mediaServerService.getOne(mediaServerId);
 		if (mediaInfo == null) {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "使用的流媒体已经停止运行" );
 		}else {

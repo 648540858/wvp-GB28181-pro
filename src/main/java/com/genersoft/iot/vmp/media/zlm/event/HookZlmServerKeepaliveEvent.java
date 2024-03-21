@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.media.zlm.event;
 
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import org.springframework.context.ApplicationEvent;
 
 /**
@@ -12,13 +12,13 @@ public class HookZlmServerKeepaliveEvent extends ApplicationEvent {
         super(source);
     }
 
-    private MediaServerItem mediaServerItem;
+    private MediaServer mediaServerItem;
 
-    public MediaServerItem getMediaServerItem() {
+    public MediaServer getMediaServerItem() {
         return mediaServerItem;
     }
 
-    public void setMediaServerItem(MediaServerItem mediaServerItem) {
+    public void setMediaServerItem(MediaServer mediaServerItem) {
         this.mediaServerItem = mediaServerItem;
     }
 }

@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.service;
 
 import com.alibaba.fastjson2.JSONArray;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRecordMp4HookParam;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
@@ -18,7 +18,7 @@ public interface ICloudRecordService {
     /**
      * 分页回去云端录像列表
      */
-    PageInfo<CloudRecordItem> getList(int page, int count, String query,  String app, String stream, String startTime, String endTime, List<MediaServerItem> mediaServerItems);
+    PageInfo<CloudRecordItem> getList(int page, int count, String query,  String app, String stream, String startTime, String endTime, List<MediaServer> mediaServerItems);
 
     /**
      * 根据hook消息增加一条记录
@@ -28,12 +28,12 @@ public interface ICloudRecordService {
     /**
      * 获取所有的日期
      */
-    List<String> getDateList(String app, String stream, int year, int month, List<MediaServerItem> mediaServerItems);
+    List<String> getDateList(String app, String stream, int year, int month, List<MediaServer> mediaServerItems);
 
     /**
      * 添加合并任务
      */
-    String addTask(String app, String stream, MediaServerItem mediaServerItem, String startTime,
+    String addTask(String app, String stream, MediaServer mediaServerItem, String startTime,
                    String endTime, String callId, String remoteHost, boolean filterMediaServer);
 
 

@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.service.bean;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 
 import java.util.EventObject;
 
@@ -15,7 +15,7 @@ public class PlayBackResult<T> {
 
     private String msg;
     private T data;
-    private MediaServerItem mediaServerItem;
+    private MediaServer mediaServerItem;
     private JSONObject response;
     private SipSubscribe.EventResult<EventObject> event;
 
@@ -35,11 +35,11 @@ public class PlayBackResult<T> {
         this.data = data;
     }
 
-    public MediaServerItem getMediaServerItem() {
+    public MediaServer getMediaServerItem() {
         return mediaServerItem;
     }
 
-    public void setMediaServerItem(MediaServerItem mediaServerItem) {
+    public void setMediaServerItem(MediaServer mediaServerItem) {
         this.mediaServerItem = mediaServerItem;
     }
 

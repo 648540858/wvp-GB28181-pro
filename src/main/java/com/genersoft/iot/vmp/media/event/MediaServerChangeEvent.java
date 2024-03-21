@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.media.event;
 
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import org.springframework.context.ApplicationEvent;
 
 import java.util.ArrayList;
@@ -13,22 +13,22 @@ public class MediaServerChangeEvent extends ApplicationEvent {
         super(source);
     }
 
-    private List<MediaServerItem> mediaServerItemList;
+    private List<MediaServer> mediaServerItemList;
 
-    public List<MediaServerItem> getMediaServerItemList() {
+    public List<MediaServer> getMediaServerItemList() {
         return mediaServerItemList;
     }
 
-    public void setMediaServerItemList(List<MediaServerItem> mediaServerItemList) {
+    public void setMediaServerItemList(List<MediaServer> mediaServerItemList) {
         this.mediaServerItemList = mediaServerItemList;
     }
 
-    public void setMediaServerItemList(MediaServerItem... mediaServerItemArray) {
+    public void setMediaServerItemList(MediaServer... mediaServerItemArray) {
         this.mediaServerItemList = new ArrayList<>();
         this.mediaServerItemList.addAll(Arrays.asList(mediaServerItemArray));
     }
 
-    public void setMediaServerItem(List<MediaServerItem> mediaServerItemList) {
+    public void setMediaServerItem(List<MediaServer> mediaServerItemList) {
         this.mediaServerItemList = mediaServerItemList;
     }
 }

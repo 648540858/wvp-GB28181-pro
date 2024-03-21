@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.storager.dao;
 
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
@@ -65,7 +65,7 @@ public interface MediaServerMapper {
             "#{createTime}, " +
             "#{updateTime}, " +
             "#{hookAliveInterval})")
-    int add(MediaServerItem mediaServerItem);
+    int add(MediaServer mediaServerItem);
 
     @Update(value = {" <script>" +
             "UPDATE wvp_media_server " +
@@ -93,7 +93,7 @@ public interface MediaServerMapper {
             "<if test=\"type != null\">, type=#{type}</if>" +
             "WHERE id=#{id}"+
             " </script>"})
-    int update(MediaServerItem mediaServerItem);
+    int update(MediaServer mediaServerItem);
 
     @Update(value = {" <script>" +
             "UPDATE wvp_media_server " +
@@ -120,13 +120,13 @@ public interface MediaServerMapper {
             "<if test=\"hookAliveInterval != null\">, hook_alive_interval=#{hookAliveInterval}</if>" +
             "WHERE ip=#{ip} and http_port=#{httpPort}"+
             " </script>"})
-    int updateByHostAndPort(MediaServerItem mediaServerItem);
+    int updateByHostAndPort(MediaServer mediaServerItem);
 
     @Select("SELECT * FROM wvp_media_server WHERE id=#{id}")
-    MediaServerItem queryOne(String id);
+    MediaServer queryOne(String id);
 
     @Select("SELECT * FROM wvp_media_server")
-    List<MediaServerItem> queryAll();
+    List<MediaServer> queryAll();
 
     @Delete("DELETE FROM wvp_media_server WHERE id=#{id}")
     void delOne(String id);
@@ -138,12 +138,12 @@ public interface MediaServerMapper {
     int delDefault();
 
     @Select("SELECT * FROM wvp_media_server WHERE ip=#{host} and http_port=#{port}")
-    MediaServerItem queryOneByHostAndPort(@Param("host") String host, @Param("port") int port);
+    MediaServer queryOneByHostAndPort(@Param("host") String host, @Param("port") int port);
 
     @Select("SELECT * FROM wvp_media_server WHERE default_server=true")
-    MediaServerItem queryDefault();
+    MediaServer queryDefault();
 
     @Select("SELECT * FROM wvp_media_server WHERE record_assist_port > 0")
-    List<MediaServerItem> queryAllWithAssistPort();
+    List<MediaServer> queryAllWithAssistPort();
 
 }

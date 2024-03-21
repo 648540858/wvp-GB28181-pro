@@ -12,7 +12,7 @@ import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForRtpServerTimeout;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRtpServerTimeoutHookParam;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
@@ -83,7 +83,7 @@ public class PsController {
         logger.info("[第三方PS服务对接->开启收流和获取发流信息] isSend->{}, ssrc->{}, callId->{}, stream->{}, tcpMode->{}, callBack->{}",
                 isSend, ssrc, callId, stream, tcpMode==0?"UDP":"TCP被动", callBack);
 
-        MediaServerItem mediaServerItem = mediaServerService.getDefaultMediaServer();
+        MediaServer mediaServerItem = mediaServerService.getDefaultMediaServer();
         if (mediaServerItem == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(),"没有可用的MediaServer");
         }
@@ -158,7 +158,7 @@ public class PsController {
     @Parameter(name = "stream", description = "流的ID", required = true)
     public void closeRtpServer(String stream) {
         logger.info("[第三方PS服务对接->关闭收流] stream->{}", stream);
-        MediaServerItem mediaServerItem = mediaServerService.getDefaultMediaServer();
+        MediaServer mediaServerItem = mediaServerService.getDefaultMediaServer();
         zlmServerFactory.closeRtpServer(mediaServerItem,stream);
         String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_PS_INFO + userSetting.getServerId() + "_*_"  + stream;
         List<Object> scan = RedisUtil.scan(redisTemplate, receiveKey);
@@ -201,7 +201,7 @@ public class PsController {
                         app,
                         stream,
                         callId);
-        MediaServerItem mediaServerItem = mediaServerService.getDefaultMediaServer();
+        MediaServer mediaServerItem = mediaServerService.getDefaultMediaServer();
         String key = VideoManagerConstants.WVP_OTHER_SEND_PS_INFO + userSetting.getServerId() + "_"  + callId;
         OtherPsSendInfo sendInfo = (OtherPsSendInfo)redisTemplate.opsForValue().get(key);
         if (sendInfo == null) {
@@ -290,7 +290,7 @@ public class PsController {
         param.put("app",sendInfo.getPushApp());
         param.put("stream",sendInfo.getPushStream());
         param.put("ssrc",sendInfo.getPushSSRC());
-        MediaServerItem mediaServerItem = mediaServerService.getDefaultMediaServer();
+        MediaServer mediaServerItem = mediaServerService.getDefaultMediaServer();
         Boolean result = zlmServerFactory.stopSendRtpStream(mediaServerItem, param);
         if (!result) {
             logger.info("[第三方PS服务对接->关闭发送流] 失败 callId->{}", callId);
@@ -305,7 +305,7 @@ public class PsController {
     @GetMapping(value = "/getTestPort")
     @ResponseBody
     public int getTestPort() {
-        MediaServerItem defaultMediaServer = mediaServerService.getDefaultMediaServer();
+        MediaServer defaultMediaServer = mediaServerService.getDefaultMediaServer();
 
 //        for (int i = 0; i <300; i++) {
 //            new Thread(() -> {

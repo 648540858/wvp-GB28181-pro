@@ -13,7 +13,7 @@ import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.IHookSubscribe;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -83,14 +83,14 @@ public class ServerController {
     @GetMapping(value = "/media_server/list")
     @ResponseBody
     @Operation(summary = "流媒体服务列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    public List<MediaServerItem> getMediaServerList() {
+    public List<MediaServer> getMediaServerList() {
         return mediaServerService.getAll();
     }
 
     @GetMapping(value = "/media_server/online/list")
     @ResponseBody
     @Operation(summary = "在线流媒体服务列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    public List<MediaServerItem> getOnlineMediaServerList() {
+    public List<MediaServer> getOnlineMediaServerList() {
         return mediaServerService.getAllOnline();
     }
 
@@ -98,7 +98,7 @@ public class ServerController {
     @ResponseBody
     @Operation(summary = "停止视频回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "id", description = "流媒体服务ID", required = true)
-    public MediaServerItem getMediaServer(@PathVariable String id) {
+    public MediaServer getMediaServer(@PathVariable String id) {
         return mediaServerService.getOne(id);
     }
 
@@ -108,7 +108,7 @@ public class ServerController {
     @Parameter(name = "secret", description = "流媒体服务secret", required = true)
     @GetMapping(value = "/media_server/check")
     @ResponseBody
-    public MediaServerItem checkMediaServer(@RequestParam String ip, @RequestParam int port, @RequestParam String secret, @RequestParam String type) {
+    public MediaServer checkMediaServer(@RequestParam String ip, @RequestParam int port, @RequestParam String secret, @RequestParam String type) {
         return mediaServerService.checkMediaServer(ip, port, secret, type);
     }
 
@@ -128,8 +128,8 @@ public class ServerController {
     @Parameter(name = "mediaServerItem", description = "流媒体信息", required = true)
     @PostMapping(value = "/media_server/save")
     @ResponseBody
-    public void saveMediaServer(@RequestBody MediaServerItem mediaServerItem) {
-        MediaServerItem mediaServerItemInDatabase = mediaServerService.getOneFromDatabase(mediaServerItem.getId());
+    public void saveMediaServer(@RequestBody MediaServer mediaServerItem) {
+        MediaServer mediaServerItemInDatabase = mediaServerService.getOneFromDatabase(mediaServerItem.getId());
 
         if (mediaServerItemInDatabase != null) {
             mediaServerService.update(mediaServerItem);
@@ -238,11 +238,11 @@ public class ServerController {
     @Operation(summary = "获取负载信息")
     public List<MediaServerLoad> getMediaLoad() {
         List<MediaServerLoad> result = new ArrayList<>();
-        List<MediaServerItem> allOnline = mediaServerService.getAllOnline();
+        List<MediaServer> allOnline = mediaServerService.getAllOnline();
         if (allOnline.size() == 0) {
             return result;
         }else {
-            for (MediaServerItem mediaServerItem : allOnline) {
+            for (MediaServer mediaServerItem : allOnline) {
                 result.add(mediaServerService.getLoad(mediaServerItem));
             }
         }

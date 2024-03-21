@@ -9,7 +9,7 @@ import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.IPlayService;
@@ -114,7 +114,7 @@ public class ApiStreamController {
             result.setResult(resultJSON);
             return result;
         }
-        MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
+        MediaServer newMediaServerItem = playService.getNewMediaServerItem(device);
 
         playService.play(newMediaServerItem, serial, code, null, (errorCode, msg, data) -> {
             if (errorCode == InviteErrorCode.SUCCESS.getCode()) {

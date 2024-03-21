@@ -2,7 +2,8 @@ package com.genersoft.iot.vmp.media.service;
 
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.bean.MediaInfo;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 
@@ -13,37 +14,37 @@ import java.util.List;
  */
 public interface IMediaServerService {
 
-    List<MediaServerItem> getAllOnlineList();
+    List<MediaServer> getAllOnlineList();
 
-    List<MediaServerItem> getAll();
+    List<MediaServer> getAll();
 
-    List<MediaServerItem> getAllFromDatabase();
+    List<MediaServer> getAllFromDatabase();
 
-    List<MediaServerItem> getAllOnline();
+    List<MediaServer> getAllOnline();
 
-    MediaServerItem getOne(String generalMediaServerId);
+    MediaServer getOne(String generalMediaServerId);
 
     void syncCatchFromDatabase();
 
-    MediaServerItem getMediaServerForMinimumLoad(Boolean hasAssist);
+    MediaServer getMediaServerForMinimumLoad(Boolean hasAssist);
 
-    void updateVmServer(List<MediaServerItem>  mediaServerItemList);
+    void updateVmServer(List<MediaServer>  mediaServerItemList);
 
-    SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, String presetSsrc, boolean ssrcCheck,
+    SSRCInfo openRTPServer(MediaServer mediaServerItem, String streamId, String presetSsrc, boolean ssrcCheck,
                            boolean isPlayback, Integer port, Boolean onlyAuto, Boolean reUsePort, Integer tcpMode);
 
-    SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, String ssrc, boolean ssrcCheck, boolean isPlayback, Integer port, Boolean onlyAuto);
+    SSRCInfo openRTPServer(MediaServer mediaServerItem, String streamId, String ssrc, boolean ssrcCheck, boolean isPlayback, Integer port, Boolean onlyAuto);
 
-    void closeRTPServer(MediaServerItem mediaServerItem, String streamId);
+    void closeRTPServer(MediaServer mediaServerItem, String streamId);
 
-    void closeRTPServer(MediaServerItem mediaServerItem, String streamId, CommonCallback<Boolean> callback);
-    Boolean updateRtpServerSSRC(MediaServerItem mediaServerItem, String streamId, String ssrc);
+    void closeRTPServer(MediaServer mediaServerItem, String streamId, CommonCallback<Boolean> callback);
+    Boolean updateRtpServerSSRC(MediaServer mediaServerItem, String streamId, String ssrc);
 
     void closeRTPServer(String mediaServerId, String streamId);
 
-    void clearRTPServer(MediaServerItem mediaServerItem);
+    void clearRTPServer(MediaServer mediaServerItem);
 
-    void update(MediaServerItem mediaSerItem);
+    void update(MediaServer mediaSerItem);
 
     void addCount(String mediaServerId);
 
@@ -53,27 +54,37 @@ public interface IMediaServerService {
 
     void clearMediaServerForOnline();
 
-    void add(MediaServerItem mediaSerItem);
+    void add(MediaServer mediaSerItem);
 
-    void resetOnlineServerItem(MediaServerItem serverItem);
+    void resetOnlineServerItem(MediaServer serverItem);
 
-    MediaServerItem checkMediaServer(String ip, int port, String secret, String type);
+    MediaServer checkMediaServer(String ip, int port, String secret, String type);
 
     boolean checkMediaRecordServer(String ip, int port);
 
     void delete(String id);
 
-    MediaServerItem getDefaultMediaServer();
+    MediaServer getDefaultMediaServer();
 
-    MediaServerLoad getLoad(MediaServerItem mediaServerItem);
+    MediaServerLoad getLoad(MediaServer mediaServerItem);
 
-    List<MediaServerItem> getAllWithAssistPort();
+    List<MediaServer> getAllWithAssistPort();
 
-    MediaServerItem getOneFromDatabase(String id);
+    MediaServer getOneFromDatabase(String id);
 
-    boolean stopSendRtp(MediaServerItem mediaInfo, String app, String stream, String ssrc);
+    boolean stopSendRtp(MediaServer mediaInfo, String app, String stream, String ssrc);
 
-    boolean deleteRecordDirectory(MediaServerItem mediaServerItem, String app, String stream, String date, String fileName);
+    boolean deleteRecordDirectory(MediaServer mediaServerItem, String app, String stream, String date, String fileName);
 
-    List<StreamInfo> getMediaList(MediaServerItem mediaInfo, String app, String stream, String callId);
+    List<StreamInfo> getMediaList(MediaServer mediaInfo, String app, String stream, String callId);
+
+    Boolean connectRtpServer(MediaServer mediaServerItem, String address, int port, String stream);
+
+    void getSnap(MediaServer mediaServerItemInuse, String streamUrl, int timeoutSec, int expireSec, String path, String fileName);
+
+    MediaInfo getMediaInfo(MediaServer mediaServerItem, String app, String stream);
+
+    Boolean pauseRtpCheck(MediaServer mediaServerItem, String streamKey);
+
+    boolean resumeRtpCheck(MediaServer mediaServerItem, String streamKey);
 }

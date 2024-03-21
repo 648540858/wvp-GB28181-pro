@@ -1,11 +1,11 @@
 package com.genersoft.iot.vmp.utils;
 
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 
 public class CloudRecordUtils {
 
-    public static DownloadFileInfo getDownloadFilePath(MediaServerItem mediaServerItem, String filePath) {
+    public static DownloadFileInfo getDownloadFilePath(MediaServer mediaServerItem, String filePath) {
         DownloadFileInfo downloadFileInfo = new DownloadFileInfo();
 
         String pathTemplate = "%s://%s:%s/index/api/downloadFile?file_path=" + filePath;

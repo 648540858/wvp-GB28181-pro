@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.utils.SSLSocketClientUtil;
 import okhttp3.*;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -70,7 +70,7 @@ public class AssistRESTfulUtils {
     }
 
 
-    public JSONObject sendGet(MediaServerItem mediaServerItem, String api, Map<String, Object> param, RequestCallback callback) {
+    public JSONObject sendGet(MediaServer mediaServerItem, String api, Map<String, Object> param, RequestCallback callback) {
         OkHttpClient client = getClient();
 
         if (mediaServerItem == null) {
@@ -155,7 +155,7 @@ public class AssistRESTfulUtils {
         return responseJSON;
     }
 
-    public JSONObject sendPost(MediaServerItem mediaServerItem, String url,
+    public JSONObject sendPost(MediaServer mediaServerItem, String url,
                                JSONObject param, ZLMRESTfulUtils.RequestCallback callback,
                                Integer readTimeOut) {
         OkHttpClient client = getClient(readTimeOut);
@@ -244,12 +244,12 @@ public class AssistRESTfulUtils {
         return responseJSON;
     }
 
-    public JSONObject getInfo(MediaServerItem mediaServerItem, RequestCallback callback){
+    public JSONObject getInfo(MediaServer mediaServerItem, RequestCallback callback){
         Map<String, Object> param = new HashMap<>();
         return sendGet(mediaServerItem, "api/record/info",param, callback);
     }
 
-    public JSONObject addTask(MediaServerItem mediaServerItem, String app, String stream, String startTime,
+    public JSONObject addTask(MediaServer mediaServerItem, String app, String stream, String startTime,
                               String endTime, String callId, List<String> filePathList, String remoteHost) {
 
         JSONObject videoTaskInfoJSON = new JSONObject();
@@ -266,7 +266,7 @@ public class AssistRESTfulUtils {
         return sendPost(mediaServerItem, urlStr, videoTaskInfoJSON, null, 30);
     }
 
-    public JSONObject queryTaskList(MediaServerItem mediaServerItem, String app, String stream, String callId,
+    public JSONObject queryTaskList(MediaServer mediaServerItem, String app, String stream, String callId,
                                     String taskId, Boolean isEnd, String scheme) {
         Map<String, Object> param = new HashMap<>();
         if (!ObjectUtils.isEmpty(app)) {

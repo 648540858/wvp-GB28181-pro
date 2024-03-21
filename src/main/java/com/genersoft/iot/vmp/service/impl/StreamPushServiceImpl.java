@@ -89,7 +89,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
 
     @Override
-    public List<StreamPushItem> handleJSON(String jsonData, MediaServerItem mediaServerItem) {
+    public List<StreamPushItem> handleJSON(String jsonData, MediaServer mediaServerItem) {
         if (jsonData == null) {
             return null;
         }
@@ -164,7 +164,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         gbStreamService.sendCatalogMsg(stream, CatalogEvent.DEL);
         platformGbStreamMapper.delByAppAndStream(stream.getApp(), stream.getStream());
         int del = gbStreamMapper.del(stream.getApp(), stream.getStream());
-        MediaServerItem mediaInfo = mediaServerService.getOne(stream.getMediaServerId());
+        MediaServer mediaInfo = mediaServerService.getOne(stream.getMediaServerId());
         JSONObject mediaList = zlmresTfulUtils.getMediaList(mediaInfo, stream.getApp(), stream.getStream());
         if (mediaList != null) {
             if (mediaList.getInteger("code") == 0) {
@@ -195,7 +195,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         gbStreamMapper.del(app, streamId);
         int delStream = streamPushMapper.del(app, streamId);
         if (delStream > 0) {
-            MediaServerItem mediaServerItem = mediaServerService.getOne(streamPushItem.getMediaServerId());
+            MediaServer mediaServerItem = mediaServerService.getOne(streamPushItem.getMediaServerId());
             zlmresTfulUtils.closeStreams(mediaServerItem,app, streamId);
         }
         return true;
@@ -204,7 +204,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Override
     public void zlmServerOnline(String mediaServerId) {
         // 同步zlm推流信息
-        MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+        MediaServer mediaServerItem = mediaServerService.getOne(mediaServerId);
         if (mediaServerItem == null) {
             return;
         }
@@ -470,7 +470,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         int delStream = streamPushMapper.delAllForGbStream(gbStreams);
         if (delStream > 0) {
             for (GbStream gbStream : gbStreams) {
-                MediaServerItem mediaServerItem = mediaServerService.getOne(gbStream.getMediaServerId());
+                MediaServer mediaServerItem = mediaServerService.getOne(gbStream.getMediaServerId());
                 zlmresTfulUtils.closeStreams(mediaServerItem, gbStream.getApp(), gbStream.getStream());
             }
 

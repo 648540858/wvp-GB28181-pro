@@ -36,7 +36,7 @@ public class MediaServerItemLite {
 
 
 
-    public MediaServerItemLite(MediaServerItem mediaServerItem) {
+    public MediaServerItemLite(MediaServer mediaServerItem) {
         this.id = mediaServerItem.getId();
         this.ip = mediaServerItem.getIp();
         this.hookIp = mediaServerItem.getHookIp();

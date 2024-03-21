@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.conf;
 
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -199,8 +199,8 @@ public class MediaConfig{
         return sipDomain;
     }
 
-    public MediaServerItem getMediaSerItem(){
-        MediaServerItem mediaServerItem = new MediaServerItem();
+    public MediaServer getMediaSerItem(){
+        MediaServer mediaServerItem = new MediaServer();
         mediaServerItem.setId(id);
         mediaServerItem.setIp(ip);
         mediaServerItem.setDefaultServer(true);

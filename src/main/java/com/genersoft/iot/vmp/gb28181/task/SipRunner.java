@@ -1,14 +1,12 @@
 package com.genersoft.iot.vmp.gb28181.task;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
-import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IPlatformService;
@@ -102,7 +100,7 @@ public class SipRunner implements CommandLineRunner {
         List<SendRtpItem> sendRtpItems = redisCatchStorage.queryAllSendRTPServer();
         if (sendRtpItems.size() > 0) {
             for (SendRtpItem sendRtpItem : sendRtpItems) {
-                MediaServerItem mediaServerItem = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+                MediaServer mediaServerItem = mediaServerService.getOne(sendRtpItem.getMediaServerId());
                 redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(),sendRtpItem.getChannelId(), sendRtpItem.getCallId(),sendRtpItem.getStream());
                 if (mediaServerItem != null) {
                     ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());

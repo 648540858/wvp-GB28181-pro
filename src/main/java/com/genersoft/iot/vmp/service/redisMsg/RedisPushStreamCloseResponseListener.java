@@ -7,7 +7,7 @@ import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
@@ -95,7 +95,7 @@ public class RedisPushStreamCloseResponseListener implements MessageListener {
                         param.put("stream",streamId);
                         param.put("ssrc",sendRtpItem.getSsrc());
                         logger.info("[REDIS消息-推流结束] 停止向上级推流：{}", streamId);
-                        MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+                        MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
                         redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(), sendRtpItem.getCallId(), sendRtpItem.getStream());
                         zlmServerFactory.stopSendRtpStream(mediaInfo, param);
                         if (InviteStreamType.PUSH == sendRtpItem.getPlayType()) {

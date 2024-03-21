@@ -14,7 +14,7 @@ import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.IGbStreamService;
@@ -108,7 +108,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Override
     public void save(StreamProxyItem param, GeneralCallback<StreamInfo> callback) {
-        MediaServerItem mediaInfo;
+        MediaServer mediaInfo;
         if (ObjectUtils.isEmpty(param.getMediaServerId()) || "auto".equals(param.getMediaServerId())){
             mediaInfo = mediaServerService.getMediaServerForMinimumLoad(null);
         }else {
@@ -310,7 +310,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public JSONObject addStreamProxyToZlm(StreamProxyItem param) {
         JSONObject result = null;
-        MediaServerItem mediaServerItem = null;
+        MediaServer mediaServerItem = null;
         if (param.getMediaServerId() == null) {
             logger.warn("添加代理时MediaServerId 为null");
             return null;
@@ -355,7 +355,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         if (param ==null) {
             return null;
         }
-        MediaServerItem mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
+        MediaServer mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
         JSONObject result = null;
         if ("ffmpeg".equalsIgnoreCase(param.getType())){
             result = zlmresTfulUtils.delFFmpegSource(mediaServerItem, param.getStreamKey());
@@ -428,7 +428,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     @Override
-    public JSONObject getFFmpegCMDs(MediaServerItem mediaServerItem) {
+    public JSONObject getFFmpegCMDs(MediaServer mediaServerItem) {
         JSONObject result = new JSONObject();
         JSONObject mediaServerConfigResuly = zlmresTfulUtils.getMediaServerConfig(mediaServerItem);
         if (mediaServerConfigResuly != null && mediaServerConfigResuly.getInteger("code") == 0
@@ -518,7 +518,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     private void syncPullStream(String mediaServerId){
-        MediaServerItem mediaServer = mediaServerService.getOne(mediaServerId);
+        MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
         if (mediaServer != null) {
             List<OnStreamChangedHookParam> allPullStream = redisCatchStorage.getStreams(mediaServerId, "PULL");
             if (allPullStream.size() > 0) {
@@ -571,13 +571,13 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Scheduled(cron = "* 0/10 * * * ?")
     public void asyncCheckStreamProxyStatus() {
 
-        List<MediaServerItem> all = mediaServerService.getAllOnline();
+        List<MediaServer> all = mediaServerService.getAllOnline();
 
         if (CollectionUtils.isEmpty(all)){
             return;
         }
 
-        Map<String, MediaServerItem> serverItemMap = all.stream().collect(Collectors.toMap(MediaServerItem::getId, Function.identity(), (m1, m2) -> m1));
+        Map<String, MediaServer> serverItemMap = all.stream().collect(Collectors.toMap(MediaServer::getId, Function.identity(), (m1, m2) -> m1));
 
         List<StreamProxyItem> list = videoManagerStorager.getStreamProxyListForEnable(true);
 
@@ -587,7 +587,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
         for (StreamProxyItem streamProxyItem : list) {
 
-            MediaServerItem mediaServerItem = serverItemMap.get(streamProxyItem.getMediaServerId());
+            MediaServer mediaServerItem = serverItemMap.get(streamProxyItem.getMediaServerId());
 
             // TODO 支持其他 schema
             JSONObject mediaInfo = zlmresTfulUtils.isMediaOnline(mediaServerItem, streamProxyItem.getApp(), streamProxyItem.getStream(), "rtsp");

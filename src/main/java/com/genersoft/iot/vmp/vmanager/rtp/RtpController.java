@@ -12,7 +12,7 @@ import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForRtpServerTimeout;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRtpServerTimeoutHookParam;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
@@ -83,7 +83,7 @@ public class RtpController {
         logger.info("[第三方服务对接->开启收流和获取发流信息] isSend->{}, ssrc->{}, callId->{}, stream->{}, tcpMode->{}, callBack->{}",
                 isSend, ssrc, callId, stream, tcpMode==0?"UDP":"TCP被动", callBack);
 
-        MediaServerItem mediaServerItem = mediaServerService.getDefaultMediaServer();
+        MediaServer mediaServerItem = mediaServerService.getDefaultMediaServer();
         if (mediaServerItem == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(),"没有可用的MediaServer");
         }
@@ -162,7 +162,7 @@ public class RtpController {
     @Parameter(name = "stream", description = "流的ID", required = true)
     public void closeRtpServer(String stream) {
         logger.info("[第三方服务对接->关闭收流] stream->{}", stream);
-        MediaServerItem mediaServerItem = mediaServerService.getDefaultMediaServer();
+        MediaServer mediaServerItem = mediaServerService.getDefaultMediaServer();
         zlmServerFactory.closeRtpServer(mediaServerItem,stream);
         zlmServerFactory.closeRtpServer(mediaServerItem,stream + "_a");
         String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "_*_"  + stream;
@@ -225,7 +225,7 @@ public class RtpController {
         if (!((dstPortForAudio > 0 && !ObjectUtils.isEmpty(dstPortForAudio) || (dstPortForVideo > 0 && !ObjectUtils.isEmpty(dstIpForVideo))))) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "至少应该存在一组音频或视频发送参数");
         }
-        MediaServerItem mediaServerItem = mediaServerService.getDefaultMediaServer();
+        MediaServer mediaServerItem = mediaServerService.getDefaultMediaServer();
         String key = VideoManagerConstants.WVP_OTHER_SEND_RTP_INFO + userSetting.getServerId() + "_"  + callId;
         OtherRtpSendInfo sendInfo = (OtherRtpSendInfo)redisTemplate.opsForValue().get(key);
         if (sendInfo == null) {
@@ -367,7 +367,7 @@ public class RtpController {
         param.put("app",sendInfo.getPushApp());
         param.put("stream",sendInfo.getPushStream());
         param.put("ssrc",sendInfo.getPushSSRC());
-        MediaServerItem mediaServerItem = mediaServerService.getDefaultMediaServer();
+        MediaServer mediaServerItem = mediaServerService.getDefaultMediaServer();
         Boolean result = zlmServerFactory.stopSendRtpStream(mediaServerItem, param);
         if (!result) {
             logger.info("[第三方服务对接->关闭发送流] 失败 callId->{}", callId);

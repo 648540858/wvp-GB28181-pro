@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.AudioBroadcastEvent;
 import gov.nist.javax.sip.message.SIPResponse;
 
@@ -15,7 +15,7 @@ public class AudioBroadcastCatch {
     public AudioBroadcastCatch(
             String deviceId,
             String channelId,
-            MediaServerItem mediaServerItem,
+            MediaServer mediaServerItem,
             String app,
             String stream,
             AudioBroadcastEvent event,
@@ -48,7 +48,7 @@ public class AudioBroadcastCatch {
     /**
      * 流媒体信息
      */
-    private MediaServerItem mediaServerItem;
+    private MediaServer mediaServerItem;
 
     /**
      * 关联的流APP
@@ -109,11 +109,11 @@ public class AudioBroadcastCatch {
         return sipTransactionInfo;
     }
 
-    public MediaServerItem getMediaServerItem() {
+    public MediaServer getMediaServerItem() {
         return mediaServerItem;
     }
 
-    public void setMediaServerItem(MediaServerItem mediaServerItem) {
+    public void setMediaServerItem(MediaServer mediaServerItem) {
         this.mediaServerItem = mediaServerItem;
     }
 

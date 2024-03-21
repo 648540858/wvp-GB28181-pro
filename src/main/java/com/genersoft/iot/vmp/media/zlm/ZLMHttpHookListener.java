@@ -581,7 +581,7 @@ public class ZLMHttpHookListener {
                 if (redisCatchStorage.isChannelSendingRTP(inviteInfo.getChannelId())) {
                     List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByChnnelId(
                             inviteInfo.getChannelId());
-                    if (sendRtpItems.size() > 0) {
+                    if (!sendRtpItems.isEmpty()) {
                         for (SendRtpItem sendRtpItem : sendRtpItems) {
                             ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
                             try {

@@ -115,7 +115,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 
 		// 收流端发送的停止
 		if (sendRtpItem != null){
-			logger.info("[收到bye] 来自{}，停止通道：{}, 类型： {}", sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(), sendRtpItem.getPlayType());
+			logger.info("[收到bye] 来自{}，停止通道：{}, 类型： {}, callId: {}", sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(), sendRtpItem.getPlayType(), callIdHeader.getCallId());
 
 			String streamId = sendRtpItem.getStream();
 			Map<String, Object> param = new HashMap<>();
@@ -123,7 +123,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			param.put("app",sendRtpItem.getApp());
 			param.put("stream",streamId);
 			param.put("ssrc",sendRtpItem.getSsrc());
-			logger.info("[收到bye] 停止推流：{}", streamId);
+			logger.info("[收到bye] 停止推流：{}, 媒体节点： {}", streamId, sendRtpItem.getMediaServerId());
 			MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 			redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(),
 					callIdHeader.getCallId(), null);

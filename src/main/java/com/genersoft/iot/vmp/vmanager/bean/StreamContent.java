@@ -171,7 +171,7 @@ public class StreamContent {
         }
 
         this.mediaServerId = streamInfo.getMediaServerId();
-        this.track = streamInfo.getTracks();
+        this.track = streamInfo.getTrack();
         this.startTime = streamInfo.getStartTime();
         this.endTime = streamInfo.getEndTime();
         this.progress = streamInfo.getProgress();
@@ -389,12 +389,12 @@ public class StreamContent {
         this.mediaServerId = mediaServerId;
     }
 
-    public Object getTracks() {
-        return tracks;
+    public Track getTrack() {
+        return track;
     }
 
-    public void setTracks(Object tracks) {
-        this.tracks = tracks;
+    public void setTrack(Track track) {
+        this.track = track;
     }
 
     public String getStartTime() {

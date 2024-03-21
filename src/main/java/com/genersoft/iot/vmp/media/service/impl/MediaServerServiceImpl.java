@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.media.service.impl;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
@@ -556,12 +555,12 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public List<StreamInfo> getMediaList(MediaServerItem mediaServerItem, String app, String stream) {
+    public List<StreamInfo> getMediaList(MediaServerItem mediaServerItem, String app, String stream, String callId) {
         IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServerItem.getType());
         if (mediaNodeServerService == null) {
             logger.info("[getMediaList] 失败, mediaServerItem的类型： {}，未找到对应的实现类", mediaServerItem.getType());
             return new ArrayList<>();
         }
-        return mediaNodeServerService.getMediaList(mediaServerItem, app, stream);
+        return mediaNodeServerService.getMediaList(mediaServerItem, app, stream, callId);
     }
 }

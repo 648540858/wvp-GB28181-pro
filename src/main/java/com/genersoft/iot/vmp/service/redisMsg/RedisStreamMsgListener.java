@@ -72,7 +72,7 @@ public class RedisStreamMsgListener implements MessageListener {
                         onStreamChangedHookParam.setMediaServerId(mediaServerId);
                         onStreamChangedHookParam.setCreateStamp(System.currentTimeMillis()/1000);
                         onStreamChangedHookParam.setAliveSecond(0L);
-                        onStreamChangedHookParam.setTotalReaderCount("0");
+                        onStreamChangedHookParam.setTotalReaderCount(0);
                         onStreamChangedHookParam.setOriginType(0);
                         onStreamChangedHookParam.setOriginTypeStr("0");
                         onStreamChangedHookParam.setOriginTypeStr("unknown");

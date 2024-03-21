@@ -148,7 +148,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public List<StreamInfo> getMediaList(MediaServerItem mediaServerItem, String app, String stream) {
+    public List<StreamInfo> getMediaList(MediaServerItem mediaServerItem, String app, String stream, String callId) {
         List<StreamInfo> streamInfoList = new ArrayList<>();
         JSONObject mediaList = zlmresTfulUtils.getMediaList(mediaServerItem, app, stream);
         if (mediaList != null) {
@@ -160,10 +160,9 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
                 JSONObject mediaJSON = data.getJSONObject(0);
                 JSONArray tracks = mediaJSON.getJSONArray("tracks");
 
-                if (authority) {
-                    streamInfo = getStreamInfoByAppAndStream(mediaServerItem, app, stream, tracks, null, calld, true);
-                }else {
-                    streamInfo = getStreamInfoByAppAndStream(mediaServerItem, app, stream, tracks, null,null, true);
+                StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServerItem, app, stream, tracks, null, callId, true);
+                if (streamInfo != null) {
+                    streamInfoList.add(streamInfo);
                 }
             }
         }

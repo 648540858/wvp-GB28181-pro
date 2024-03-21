@@ -122,7 +122,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         streamPushItem.setStream(item.getStream());
         streamPushItem.setAliveSecond(item.getAliveSecond());
         streamPushItem.setOriginSock(item.getOriginSock());
-        streamPushItem.setTotalReaderCount(item.getTotalReaderCount());
+        streamPushItem.setTotalReaderCount(item.getTotalReaderCount() + "");
         streamPushItem.setOriginType(item.getOriginType());
         streamPushItem.setOriginTypeStr(item.getOriginTypeStr());
         streamPushItem.setOriginUrl(item.getOriginUrl());

@@ -242,7 +242,7 @@ public class DeviceServiceImpl implements IDeviceService {
                 if (sendRtpItem != null) {
                     redisCatchStorage.deleteSendRTPServer(deviceId, sendRtpItem.getChannelId(), null, null);
                     MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-                    mediaServerService.stopSendRtp(mediaInfo, sendRtpItem.getApp(), sendRtpItem.getStream());
+                    mediaServerService.stopSendRtp(mediaInfo, sendRtpItem.getApp(), sendRtpItem.getStream(), null);
                 }
 
                 audioBroadcastManager.del(deviceId, audioBroadcastCatch.getChannelId());

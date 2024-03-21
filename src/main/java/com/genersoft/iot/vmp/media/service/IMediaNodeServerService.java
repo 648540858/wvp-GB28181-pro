@@ -27,5 +27,5 @@ public interface IMediaNodeServerService {
 
     boolean deleteRecordDirectory(MediaServerItem mediaServerItem, String app, String stream, String date, String fileName);
 
-    List<StreamInfo> getMediaList(MediaServerItem mediaServerItem, String app, String stream);
+    List<StreamInfo> getMediaList(MediaServerItem mediaServerItem, String app, String stream, String callId);
 }

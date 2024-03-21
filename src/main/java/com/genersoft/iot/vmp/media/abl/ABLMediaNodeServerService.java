@@ -1,9 +1,12 @@
 package com.genersoft.iot.vmp.media.abl;
 
 import com.genersoft.iot.vmp.common.CommonCallback;
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service("abl")
 public class ABLMediaNodeServerService implements IMediaNodeServerService {
@@ -45,6 +48,21 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
 
     @Override
     public MediaServerItem checkMediaServer(String ip, int port, String secret) {
+        return null;
+    }
+
+    @Override
+    public boolean stopSendRtp(MediaServerItem mediaInfo, String app, String stream, String ssrc) {
+        return false;
+    }
+
+    @Override
+    public boolean deleteRecordDirectory(MediaServerItem mediaServerItem, String app, String stream, String date, String fileName) {
+        return false;
+    }
+
+    @Override
+    public List<StreamInfo> getMediaList(MediaServerItem mediaServerItem, String app, String stream, String callId) {
         return null;
     }
 }

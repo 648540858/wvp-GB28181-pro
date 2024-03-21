@@ -158,9 +158,8 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
                     return null;
                 }
                 JSONObject mediaJSON = data.getJSONObject(0);
-                JSONArray tracks = mediaJSON.getJSONArray("tracks");
-
-                StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServerItem, app, stream, tracks, null, callId, true);
+                Track track = Track.getInstance(mediaJSON);
+                StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServerItem, app, stream, track, callId, true);
                 if (streamInfo != null) {
                     streamInfoList.add(streamInfo);
                 }
@@ -169,14 +168,11 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         return streamInfoList;
     }
 
-    public StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream, Track track, String addr, String callId, boolean isPlay) {
+    public StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream, Track track, String callId, boolean isPlay) {
         StreamInfo streamInfoResult = new StreamInfo();
         streamInfoResult.setStream(stream);
         streamInfoResult.setApp(app);
-        if (addr == null) {
-            addr = mediaInfo.getStreamIp();
-        }
-
+        String addr = mediaInfo.getStreamIp();
         streamInfoResult.setIp(addr);
         streamInfoResult.setMediaServerId(mediaInfo.getId());
         String callIdParam = ObjectUtils.isEmpty(callId)?"":"?callId=" + callId;

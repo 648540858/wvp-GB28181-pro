@@ -262,6 +262,8 @@ public class DeviceServiceImpl implements IDeviceService {
         int subscribeCycleForCatalog = Math.max(device.getSubscribeCycleForCatalog(),30);
         // 设置最小值为30
         dynamicTask.startCron(device.getDeviceId() + "catalog", catalogSubscribeTask, (subscribeCycleForCatalog -1) * 1000);
+
+        catalogSubscribeTask.run();
         return true;
     }
 
@@ -295,6 +297,7 @@ public class DeviceServiceImpl implements IDeviceService {
         int subscribeCycleForCatalog = Math.max(device.getSubscribeCycleForMobilePosition(),30);
         // 刷新订阅
         dynamicTask.startCron(device.getDeviceId() + "mobile_position" , mobilePositionSubscribeTask, subscribeCycleForCatalog * 1000);
+        mobilePositionSubscribeTask.run();
         return true;
     }
 

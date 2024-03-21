@@ -289,6 +289,10 @@ public class ZLMServerFactory {
      * 调用zlm RESTful API —— stopSendRtp
      */
     public Boolean stopSendRtpStream(MediaServerItem mediaServerItem, Map<String, Object>param) {
+        if (mediaServerItem == null) {
+            logger.error("[停止RTP推流] 失败: 媒体节点为NULL");
+            return false;
+        }
         Boolean result = false;
         JSONObject jsonObject = zlmresTfulUtils.stopSendRtp(mediaServerItem, param);
         if (jsonObject == null) {

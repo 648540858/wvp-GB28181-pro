@@ -73,7 +73,7 @@ public class RedisPushStreamCloseResponseListener implements MessageListener {
         MessageForPushChannel pushChannel = JSON.parseObject(message.getBody(), MessageForPushChannel.class);
         StreamPushItem push = streamPushService.getPush(pushChannel.getApp(), pushChannel.getStream());
         if (push != null) {
-            List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByChnnelId(
+            List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByChannelId(
                     push.getGbId());
             if (!sendRtpItems.isEmpty()) {
                 for (SendRtpItem sendRtpItem : sendRtpItems) {

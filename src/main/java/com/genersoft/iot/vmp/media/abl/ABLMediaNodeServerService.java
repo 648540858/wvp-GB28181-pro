@@ -5,9 +5,11 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service("abl")
 public class ABLMediaNodeServerService implements IMediaNodeServerService {
@@ -79,6 +81,46 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
 
     @Override
     public MediaInfo getMediaInfo(MediaServer mediaServerItem, String app, String stream) {
+        return null;
+    }
+
+    @Override
+    public Boolean pauseRtpCheck(MediaServer mediaServer, String streamKey) {
+        return null;
+    }
+
+    @Override
+    public Boolean resumeRtpCheck(MediaServer mediaServer, String streamKey) {
+        return null;
+    }
+
+    @Override
+    public String getFfmpegCmd(MediaServer mediaServer, String cmdKey) {
+        return null;
+    }
+
+    @Override
+    public WVPResult<String> addFFmpegSource(MediaServer mediaServer, String srcUrl, String dstUrl, int timeoutMs, boolean enableAudio, boolean enableMp4, String ffmpegCmdKey) {
+        return null;
+    }
+
+    @Override
+    public WVPResult<String> addStreamProxy(MediaServer mediaServer, String app, String stream, String url, boolean enableAudio, boolean enableMp4, String rtpType) {
+        return null;
+    }
+
+    @Override
+    public Boolean delFFmpegSource(MediaServer mediaServer, String streamKey) {
+        return null;
+    }
+
+    @Override
+    public Boolean delStreamProxy(MediaServer mediaServer, String streamKey) {
+        return null;
+    }
+
+    @Override
+    public Map<String, String> getFFmpegCMDs(MediaServer mediaServer) {
         return null;
     }
 }

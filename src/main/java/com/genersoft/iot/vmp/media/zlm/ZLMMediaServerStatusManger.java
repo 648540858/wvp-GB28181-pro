@@ -210,22 +210,22 @@ public class ZLMMediaServerStatusManger {
         }, (int)(mediaServerItem.getHookAliveInterval() * 2 * 1000));
     }
     private void initPort(MediaServer mediaServerItem, ZLMServerConfig zlmServerConfig) {
-        if (mediaServerItem.getHttpSSlPort() == 0) {
+        if (mediaServerItem.getHttpSSlPort() != 0) {
             mediaServerItem.setHttpSSlPort(zlmServerConfig.getHttpSSLport());
         }
-        if (mediaServerItem.getRtmpPort() == 0) {
+        if (mediaServerItem.getRtmpPort() != 0) {
             mediaServerItem.setRtmpPort(zlmServerConfig.getRtmpPort());
         }
-        if (mediaServerItem.getRtmpSSlPort() == 0) {
+        if (mediaServerItem.getRtmpSSlPort() != 0) {
             mediaServerItem.setRtmpSSlPort(zlmServerConfig.getRtmpSslPort());
         }
-        if (mediaServerItem.getRtspPort() == 0) {
+        if (mediaServerItem.getRtspPort() != 0) {
             mediaServerItem.setRtspPort(zlmServerConfig.getRtspPort());
         }
-        if (mediaServerItem.getRtspSSLPort() == 0) {
+        if (mediaServerItem.getRtspSSLPort() != 0) {
             mediaServerItem.setRtspSSLPort(zlmServerConfig.getRtspSSlport());
         }
-        if (mediaServerItem.getRtpProxyPort() == 0) {
+        if (mediaServerItem.getRtpProxyPort() != 0) {
             mediaServerItem.setRtpProxyPort(zlmServerConfig.getRtpProxyPort());
         }
         mediaServerItem.setHookAliveInterval(10F);

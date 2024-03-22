@@ -193,10 +193,12 @@ public class ZLMMediaServerStatusManger {
                     }
                 }
                 if (config != null) {
+                    initPort(mediaServerItem, config);
                     setZLMConfig(mediaServerItem, "0".equals(config.getHookEnable())
                             || !Objects.equals(mediaServerItem.getHookAliveInterval(), config.getHookAliveInterval()));
                 }
             }
+            mediaServerService.update(mediaServerItem);
         }
         // 设置两次心跳未收到则认为zlm离线
         String key = "zlm-keepalive-" + mediaServerItem.getId();
@@ -210,22 +212,23 @@ public class ZLMMediaServerStatusManger {
         }, (int)(mediaServerItem.getHookAliveInterval() * 2 * 1000));
     }
     private void initPort(MediaServer mediaServerItem, ZLMServerConfig zlmServerConfig) {
-        if (mediaServerItem.getHttpSSlPort() != 0) {
+        // 端口只会从配置中读取一次，一旦自己配置或者读取过了将不在配置
+        if (mediaServerItem.getHttpSSlPort() == 0) {
             mediaServerItem.setHttpSSlPort(zlmServerConfig.getHttpSSLport());
         }
-        if (mediaServerItem.getRtmpPort() != 0) {
+        if (mediaServerItem.getRtmpPort() == 0) {
             mediaServerItem.setRtmpPort(zlmServerConfig.getRtmpPort());
         }
-        if (mediaServerItem.getRtmpSSlPort() != 0) {
+        if (mediaServerItem.getRtmpSSlPort() == 0) {
             mediaServerItem.setRtmpSSlPort(zlmServerConfig.getRtmpSslPort());
         }
-        if (mediaServerItem.getRtspPort() != 0) {
+        if (mediaServerItem.getRtspPort() == 0) {
             mediaServerItem.setRtspPort(zlmServerConfig.getRtspPort());
         }
-        if (mediaServerItem.getRtspSSLPort() != 0) {
+        if (mediaServerItem.getRtspSSLPort() == 0) {
             mediaServerItem.setRtspSSLPort(zlmServerConfig.getRtspSSlport());
         }
-        if (mediaServerItem.getRtpProxyPort() != 0) {
+        if (mediaServerItem.getRtpProxyPort() == 0) {
             mediaServerItem.setRtpProxyPort(zlmServerConfig.getRtpProxyPort());
         }
         mediaServerItem.setHookAliveInterval(10F);

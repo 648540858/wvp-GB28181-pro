@@ -27,6 +27,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import java.util.Map;
 import java.util.UUID;
 
 @SuppressWarnings("rawtypes")
@@ -135,7 +136,7 @@ public class StreamProxyController {
     @ResponseBody
     @Operation(summary = "获取ffmpeg.cmd模板", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "mediaServerId", description = "流媒体ID", required = true)
-    public JSONObject getFFmpegCMDs(@RequestParam String mediaServerId){
+    public Map<String, String> getFFmpegCMDs(@RequestParam String mediaServerId){
         logger.debug("获取节点[ {} ]ffmpeg.cmd模板", mediaServerId );
 
         MediaServer mediaServerItem = mediaServerService.getOne(mediaServerId);

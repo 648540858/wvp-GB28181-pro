@@ -84,6 +84,9 @@ public class StreamInfo implements Serializable, Cloneable{
     @Schema(description = "是否暂停（录像回放使用）")
     private boolean pause;
 
+    @Schema(description = "产生源类型，包括 unknown = 0,rtmp_push=1,rtsp_push=2,rtp_push=3,pull=4,ffmpeg_pull=5,mp4_vod=6,device_chn=7")
+    private int originType;
+
     public void setFlv(StreamURL flv) {
         this.flv = flv;
     }
@@ -615,5 +618,13 @@ public class StreamInfo implements Serializable, Cloneable{
 
     public void setDownLoadFilePath(DownloadFileInfo downLoadFilePath) {
         this.downLoadFilePath = downLoadFilePath;
+    }
+
+    public int getOriginType() {
+        return originType;
+    }
+
+    public void setOriginType(int originType) {
+        this.originType = originType;
     }
 }

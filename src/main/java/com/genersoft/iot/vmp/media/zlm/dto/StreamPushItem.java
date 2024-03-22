@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.media.zlm.dto;
 
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -148,6 +149,27 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
     public int compareTo(@NotNull StreamPushItem streamPushItem) {
         return Long.valueOf(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(super.createTime)
                 - DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(streamPushItem.getCreateTime())).intValue();
+    }
+
+    public StreamPushItem instance(StreamInfo streamInfo) {
+        StreamPushItem streamPushItem = new StreamPushItem();
+        streamPushItem.setApp(streamInfo.getApp());
+        streamPushItem.setMediaServerId(streamInfo.getMediaServerId());
+        streamPushItem.setStream(streamInfo.getStream());
+        streamPushItem.setAliveSecond(streamInfo.getMediaInfo().getAliveSecond());
+//        streamPushItem.setOriginSock(streamInfo.getMediaInfo().getOriginSock());
+        streamPushItem.setTotalReaderCount(streamInfo.getMediaInfo().getReaderCount() + "");
+        streamPushItem.setOriginType(streamInfo.getOriginType());
+//        streamPushItem.setOriginTypeStr(streamInfo.getMediaInfo().getOriginTypeStr());
+//        streamPushItem.setOriginUrl(streamInfo.getMediaInfo().getOriginUrl());
+        streamPushItem.setCreateTime(DateUtil.getNow());
+        streamPushItem.setAliveSecond(streamInfo.getMediaInfo().getAliveSecond());
+        streamPushItem.setStatus(true);
+        streamPushItem.setStreamType("push");
+//        streamPushItem.setVhost(streamInfo.getVhost());
+        streamPushItem.setServerId(streamInfo.getMediaServerId());
+        return streamPushItem;
+
     }
 
     public static class MediaSchema {

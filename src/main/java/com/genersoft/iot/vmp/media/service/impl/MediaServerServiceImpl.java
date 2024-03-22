@@ -22,6 +22,7 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.JsonUtil;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -74,31 +75,31 @@ public class MediaServerServiceImpl implements IMediaServerService {
      * 初始化
      */
     @Override
-    public void updateVmServer(List<MediaServer> mediaServerItemList) {
+    public void updateVmServer(List<MediaServer> mediaServerList) {
         logger.info("[媒体服务节点] 缓存初始化 ");
-        for (MediaServer mediaServerItem : mediaServerItemList) {
-            if (ObjectUtils.isEmpty(mediaServerItem.getId())) {
+        for (MediaServer mediaServer : mediaServerList) {
+            if (ObjectUtils.isEmpty(mediaServer.getId())) {
                 continue;
             }
             // 更新
-            if (!ssrcFactory.hasMediaServerSSRC(mediaServerItem.getId())) {
-                ssrcFactory.initMediaServerSSRC(mediaServerItem.getId(), null);
+            if (!ssrcFactory.hasMediaServerSSRC(mediaServer.getId())) {
+                ssrcFactory.initMediaServerSSRC(mediaServer.getId(), null);
             }
             // 查询redis是否存在此mediaServer
-            String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerItem.getId();
+            String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServer.getId();
             Boolean hasKey = redisTemplate.hasKey(key);
             if (hasKey != null && ! hasKey) {
-                redisTemplate.opsForValue().set(key, mediaServerItem);
+                redisTemplate.opsForValue().set(key, mediaServer);
             }
         }
     }
 
 
     @Override
-    public SSRCInfo openRTPServer(MediaServer mediaServerItem, String streamId, String presetSsrc, boolean ssrcCheck,
+    public SSRCInfo openRTPServer(MediaServer mediaServer, String streamId, String presetSsrc, boolean ssrcCheck,
                                   boolean isPlayback, Integer port, Boolean onlyAuto, Boolean reUsePort, Integer tcpMode) {
-        if (mediaServerItem == null || mediaServerItem.getId() == null) {
-            logger.info("[openRTPServer] 失败, mediaServerItem == null || mediaServerItem.getId() == null");
+        if (mediaServer == null || mediaServer.getId() == null) {
+            logger.info("[openRTPServer] 失败, mediaServer == null || mediaServer.getId() == null");
             return null;
         }
         // 获取mediaServer可用的ssrc
@@ -107,9 +108,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
             ssrc = presetSsrc;
         }else {
             if (isPlayback) {
-                ssrc = ssrcFactory.getPlayBackSsrc(mediaServerItem.getId());
+                ssrc = ssrcFactory.getPlayBackSsrc(mediaServer.getId());
             }else {
-                ssrc = ssrcFactory.getPlaySsrc(mediaServerItem.getId());
+                ssrc = ssrcFactory.getPlaySsrc(mediaServer.getId());
             }
         }
 
@@ -121,97 +122,97 @@ public class MediaServerServiceImpl implements IMediaServerService {
             logger.warn("[openRTPServer] 平台对接时下级可能自定义ssrc，但是tcp模式zlm收流目前无法更新ssrc，可能收流超时，此时请使用udp收流或者关闭ssrc校验");
         }
         int rtpServerPort;
-        if (mediaServerItem.isRtpEnable()) {
-            IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServerItem.getType());
+        if (mediaServer.isRtpEnable()) {
+            IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
             if (mediaNodeServerService == null) {
-                logger.info("[openRTPServer] 失败, mediaServerItem的类型： {}，未找到对应的实现类", mediaServerItem.getType());
+                logger.info("[openRTPServer] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
                 return null;
             }
-            rtpServerPort = mediaNodeServerService.createRTPServer(mediaServerItem, streamId, ssrcCheck ? Long.parseLong(ssrc) : 0, port, onlyAuto, reUsePort, tcpMode);
+            rtpServerPort = mediaNodeServerService.createRTPServer(mediaServer, streamId, ssrcCheck ? Long.parseLong(ssrc) : 0, port, onlyAuto, reUsePort, tcpMode);
         } else {
-            rtpServerPort = mediaServerItem.getRtpProxyPort();
+            rtpServerPort = mediaServer.getRtpProxyPort();
         }
         return new SSRCInfo(rtpServerPort, ssrc, streamId);
     }
 
     @Override
-    public SSRCInfo openRTPServer(MediaServer mediaServerItem, String streamId, String ssrc, boolean ssrcCheck, boolean isPlayback, Integer port, Boolean onlyAuto) {
-        return openRTPServer(mediaServerItem, streamId, ssrc, ssrcCheck, isPlayback, port, onlyAuto, null, 0);
+    public SSRCInfo openRTPServer(MediaServer mediaServer, String streamId, String ssrc, boolean ssrcCheck, boolean isPlayback, Integer port, Boolean onlyAuto) {
+        return openRTPServer(mediaServer, streamId, ssrc, ssrcCheck, isPlayback, port, onlyAuto, null, 0);
     }
 
 
     @Override
-    public void closeRTPServer(MediaServer mediaServerItem, String streamId) {
-        if (mediaServerItem == null) {
+    public void closeRTPServer(MediaServer mediaServer, String streamId) {
+        if (mediaServer == null) {
             return;
         }
-        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServerItem.getType());
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
-            logger.info("[closeRTPServer] 失败, mediaServerItem的类型： {}，未找到对应的实现类", mediaServerItem.getType());
+            logger.info("[closeRTPServer] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             return;
         }
-        mediaNodeServerService.closeRtpServer(mediaServerItem, streamId);
+        mediaNodeServerService.closeRtpServer(mediaServer, streamId);
     }
 
     @Override
-    public void closeRTPServer(MediaServer mediaServerItem, String streamId, CommonCallback<Boolean> callback) {
-        if (mediaServerItem == null) {
+    public void closeRTPServer(MediaServer mediaServer, String streamId, CommonCallback<Boolean> callback) {
+        if (mediaServer == null) {
             callback.run(false);
             return;
         }
-        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServerItem.getType());
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
-            logger.info("[closeRTPServer] 失败, mediaServerItem的类型： {}，未找到对应的实现类", mediaServerItem.getType());
+            logger.info("[closeRTPServer] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             return;
         }
-        mediaNodeServerService.closeRtpServer(mediaServerItem, streamId, callback);
+        mediaNodeServerService.closeRtpServer(mediaServer, streamId, callback);
     }
 
     @Override
     public void closeRTPServer(String mediaServerId, String streamId) {
-        MediaServer mediaServerItem = this.getOne(mediaServerId);
-        if (mediaServerItem == null) {
+        MediaServer mediaServer = this.getOne(mediaServerId);
+        if (mediaServer == null) {
             return;
         }
-        if (mediaServerItem.isRtpEnable()) {
-            closeRTPServer(mediaServerItem, streamId);
+        if (mediaServer.isRtpEnable()) {
+            closeRTPServer(mediaServer, streamId);
         }
-        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServerItem.getType());
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
-            logger.info("[closeRTPServer] 失败, mediaServerItem的类型： {}，未找到对应的实现类", mediaServerItem.getType());
+            logger.info("[closeRTPServer] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             return;
         }
-        mediaNodeServerService.closeStreams(mediaServerItem, "rtp", streamId);
+        mediaNodeServerService.closeStreams(mediaServer, "rtp", streamId);
     }
 
     @Override
-    public Boolean updateRtpServerSSRC(MediaServer mediaServerItem, String streamId, String ssrc) {
-        if (mediaServerItem == null) {
+    public Boolean updateRtpServerSSRC(MediaServer mediaServer, String streamId, String ssrc) {
+        if (mediaServer == null) {
             return false;
         }
-        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServerItem.getType());
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
-            logger.info("[updateRtpServerSSRC] 失败, mediaServerItem的类型： {}，未找到对应的实现类", mediaServerItem.getType());
+            logger.info("[updateRtpServerSSRC] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             return false;
         }
-        return mediaNodeServerService.updateRtpServerSSRC(mediaServerItem, streamId, ssrc);
+        return mediaNodeServerService.updateRtpServerSSRC(mediaServer, streamId, ssrc);
     }
 
     @Override
-    public void releaseSsrc(String mediaServerItemId, String ssrc) {
-        MediaServer mediaServerItem = getOne(mediaServerItemId);
-        if (mediaServerItem == null || ssrc == null) {
+    public void releaseSsrc(String mediaServerId, String ssrc) {
+        MediaServer mediaServer = getOne(mediaServerId);
+        if (mediaServer == null || ssrc == null) {
             return;
         }
-        ssrcFactory.releaseSsrc(mediaServerItemId, ssrc);
+        ssrcFactory.releaseSsrc(mediaServerId, ssrc);
     }
 
     /**
      * 媒体服务节点 重启后重置他的推流信息， TODO 给正在使用的设备发送停止命令
      */
     @Override
-    public void clearRTPServer(MediaServer mediaServerItem) {
-        ssrcFactory.reset(mediaServerItem.getId());
+    public void clearRTPServer(MediaServer mediaServer) {
+        ssrcFactory.reset(mediaServer.getId());
     }
 
 
@@ -219,22 +220,22 @@ public class MediaServerServiceImpl implements IMediaServerService {
     public void update(MediaServer mediaSerItem) {
         mediaServerMapper.update(mediaSerItem);
         MediaServer mediaServerInRedis = getOne(mediaSerItem.getId());
-        MediaServer mediaServerItemInDataBase = mediaServerMapper.queryOne(mediaSerItem.getId());
-        if (mediaServerItemInDataBase == null) {
+        MediaServer mediaServerInDataBase = mediaServerMapper.queryOne(mediaSerItem.getId());
+        if (mediaServerInDataBase == null) {
             return;
         }
-        mediaServerItemInDataBase.setStatus(mediaSerItem.isStatus());
-        if (mediaServerInRedis == null || !ssrcFactory.hasMediaServerSSRC(mediaServerItemInDataBase.getId())) {
-            ssrcFactory.initMediaServerSSRC(mediaServerItemInDataBase.getId(),null);
+        mediaServerInDataBase.setStatus(mediaSerItem.isStatus());
+        if (mediaServerInRedis == null || !ssrcFactory.hasMediaServerSSRC(mediaServerInDataBase.getId())) {
+            ssrcFactory.initMediaServerSSRC(mediaServerInDataBase.getId(),null);
         }
-        String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerItemInDataBase.getId();
-        redisTemplate.opsForValue().set(key, mediaServerItemInDataBase);
-        if (mediaServerItemInDataBase.isStatus()) {
-            resetOnlineServerItem(mediaServerItemInDataBase);
+        String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerInDataBase.getId();
+        redisTemplate.opsForValue().set(key, mediaServerInDataBase);
+        if (mediaServerInDataBase.isStatus()) {
+            resetOnlineServerItem(mediaServerInDataBase);
         }else {
             // 发送事件
             MediaServerChangeEvent event = new MediaServerChangeEvent(this);
-            event.setMediaServerItemList(mediaServerItemInDataBase);
+            event.setMediaServerItemList(mediaServerInDataBase);
             applicationEventPublisher.publishEvent(event);
         }
     }
@@ -247,16 +248,16 @@ public class MediaServerServiceImpl implements IMediaServerService {
         String onlineKey = VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX + userSetting.getServerId();
         for (Object mediaServerKey : mediaServerKeys) {
             String key = (String) mediaServerKey;
-            MediaServer mediaServerItem = JsonUtil.redisJsonToObject(redisTemplate, key, MediaServer.class);
-            if (Objects.isNull(mediaServerItem)) {
+            MediaServer mediaServer = JsonUtil.redisJsonToObject(redisTemplate, key, MediaServer.class);
+            if (Objects.isNull(mediaServer)) {
                 continue;
             }
             // 检查状态
-            Double aDouble = redisTemplate.opsForZSet().score(onlineKey, mediaServerItem.getId());
+            Double aDouble = redisTemplate.opsForZSet().score(onlineKey, mediaServer.getId());
             if (aDouble != null) {
-                mediaServerItem.setStatus(true);
+                mediaServer.setStatus(true);
             }
-            result.add(mediaServerItem);
+            result.add(mediaServer);
         }
         result.sort((serverItem1, serverItem2)->{
             int sortResult = 0;
@@ -275,10 +276,10 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if (mediaServerList.isEmpty()) {
             return new ArrayList<>();
         }
-        for (MediaServer mediaServerItem : mediaServerList) {
-            MediaServer mediaServerItemInRedis = getOne(mediaServerItem.getId());
-            if (mediaServerItemInRedis != null) {
-                mediaServerItem.setStatus(mediaServerItemInRedis.isStatus());
+        for (MediaServer mediaServer : mediaServerList) {
+            MediaServer mediaServerInRedis = getOne(mediaServer.getId());
+            if (mediaServerInRedis != null) {
+                mediaServer.setStatus(mediaServerInRedis.isStatus());
             }
         }
         return mediaServerList;
@@ -310,7 +311,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     /**
      * 获取单个媒体服务节点服务器
      * @param mediaServerId 服务id
-     * @return MediaServerItem
+     * @return mediaServer
      */
     @Override
     public MediaServer getOne(String mediaServerId) {
@@ -334,32 +335,32 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public void add(MediaServer mediaServerItem) {
-        mediaServerItem.setCreateTime(DateUtil.getNow());
-        mediaServerItem.setUpdateTime(DateUtil.getNow());
-        if (mediaServerItem.getHookAliveInterval() == null || mediaServerItem.getHookAliveInterval() == 0F) {
-            mediaServerItem.setHookAliveInterval(10F);
+    public void add(MediaServer mediaServer) {
+        mediaServer.setCreateTime(DateUtil.getNow());
+        mediaServer.setUpdateTime(DateUtil.getNow());
+        if (mediaServer.getHookAliveInterval() == null || mediaServer.getHookAliveInterval() == 0F) {
+            mediaServer.setHookAliveInterval(10F);
         }
-        if (mediaServerItem.getType() == null) {
-            logger.info("[添加媒体节点] 失败, mediaServerItem的类型：为空");
+        if (mediaServer.getType() == null) {
+            logger.info("[添加媒体节点] 失败, mediaServer的类型：为空");
             return;
         }
-        if (mediaServerMapper.queryOne(mediaServerItem.getId()) != null) {
-            logger.info("[添加媒体节点] 失败, 媒体服务ID已存在，请修改媒体服务器配置, {}", mediaServerItem.getId());
-            throw new ControllerException(ErrorCode.ERROR100.getCode(),"保存失败，媒体服务ID [ " + mediaServerItem.getId() + " ] 已存在，请修改媒体服务器配置");
+        if (mediaServerMapper.queryOne(mediaServer.getId()) != null) {
+            logger.info("[添加媒体节点] 失败, 媒体服务ID已存在，请修改媒体服务器配置, {}", mediaServer.getId());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(),"保存失败，媒体服务ID [ " + mediaServer.getId() + " ] 已存在，请修改媒体服务器配置");
         }
-        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServerItem.getType());
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
-            logger.info("[添加媒体节点] 失败, mediaServerItem的类型： {}，未找到对应的实现类", mediaServerItem.getType());
+            logger.info("[添加媒体节点] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             return;
         }
-        mediaServerMapper.add(mediaServerItem);
-        if (mediaServerItem.isStatus()) {
-            mediaNodeServerService.online(mediaServerItem);
+        mediaServerMapper.add(mediaServer);
+        if (mediaServer.isStatus()) {
+            mediaNodeServerService.online(mediaServer);
         }else {
             // 发送事件
             MediaServerChangeEvent event = new MediaServerChangeEvent(this);
-            event.setMediaServerItemList(mediaServerItem);
+            event.setMediaServerItemList(mediaServer);
             applicationEventPublisher.publishEvent(event);
         }
     }
@@ -403,7 +404,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     /**
      * 获取负载最低的节点
-     * @return MediaServerItem
+     * @return mediaServer
      */
     @Override
     public MediaServer getMediaServerForMinimumLoad(Boolean hasAssist) {
@@ -417,16 +418,16 @@ public class MediaServerServiceImpl implements IMediaServerService {
         // 获取分数最低的，及并发最低的
         Set<Object> objects = redisTemplate.opsForZSet().range(key, 0, -1);
         ArrayList<Object> mediaServerObjectS = new ArrayList<>(objects);
-        MediaServer mediaServerItem = null;
+        MediaServer mediaServer = null;
         if (hasAssist == null) {
             String mediaServerId = (String)mediaServerObjectS.get(0);
-            mediaServerItem = getOne(mediaServerId);
+            mediaServer = getOne(mediaServerId);
         }else if (hasAssist) {
             for (Object mediaServerObject : mediaServerObjectS) {
                 String mediaServerId = (String)mediaServerObject;
                 MediaServer serverItem = getOne(mediaServerId);
                 if (serverItem.getRecordAssistPort() > 0) {
-                    mediaServerItem = serverItem;
+                    mediaServer = serverItem;
                     break;
                 }
             }
@@ -435,13 +436,13 @@ public class MediaServerServiceImpl implements IMediaServerService {
                 String mediaServerId = (String)mediaServerObject;
                 MediaServer serverItem = getOne(mediaServerId);
                 if (serverItem.getRecordAssistPort() == 0) {
-                    mediaServerItem = serverItem;
+                    mediaServer = serverItem;
                     break;
                 }
             }
         }
 
-        return mediaServerItem;
+        return mediaServer;
     }
 
     @Override
@@ -452,16 +453,16 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
         IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(type);
         if (mediaNodeServerService == null) {
-            logger.info("[closeRTPServer] 失败, mediaServerItem的类型： {}，未找到对应的实现类", type);
+            logger.info("[closeRTPServer] 失败, mediaServer的类型： {}，未找到对应的实现类", type);
             return null;
         }
-        MediaServer mediaServerItem = mediaNodeServerService.checkMediaServer(ip, port, secret);
-        if (mediaServerItem != null) {
-            if (mediaServerMapper.queryOne(mediaServerItem.getId()) != null) {
-                throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体服务ID [" + mediaServerItem.getId() + " ] 已存在，请修改媒体服务器配置");
+        MediaServer mediaServer = mediaNodeServerService.checkMediaServer(ip, port, secret);
+        if (mediaServer != null) {
+            if (mediaServerMapper.queryOne(mediaServer.getId()) != null) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体服务ID [" + mediaServer.getId() + " ] 已存在，请修改媒体服务器配置");
             }
         }
-        return mediaServerItem;
+        return mediaServer;
     }
 
     @Override
@@ -504,28 +505,28 @@ public class MediaServerServiceImpl implements IMediaServerService {
     public void syncCatchFromDatabase() {
         List<MediaServer> allInCatch = getAllOnlineList();
         List<MediaServer> allInDatabase = mediaServerMapper.queryAll();
-        Map<String, MediaServer> mediaServerItemMap = new HashMap<>();
+        Map<String, MediaServer> mediaServerMap = new HashMap<>();
 
-        for (MediaServer mediaServerItem : allInDatabase) {
-            mediaServerItemMap.put(mediaServerItem.getId(), mediaServerItem);
+        for (MediaServer mediaServer : allInDatabase) {
+            mediaServerMap.put(mediaServer.getId(), mediaServer);
         }
-        for (MediaServer mediaServerItem : allInCatch) {
+        for (MediaServer mediaServer : allInCatch) {
             // 清除数据中不存在但redis缓存数据
-            if (!mediaServerItemMap.containsKey(mediaServerItem.getId())) {
-                delete(mediaServerItem.getId());
+            if (!mediaServerMap.containsKey(mediaServer.getId())) {
+                delete(mediaServer.getId());
             }
         }
     }
 
     @Override
-    public MediaServerLoad getLoad(MediaServer mediaServerItem) {
+    public MediaServerLoad getLoad(MediaServer mediaServer) {
         MediaServerLoad result = new MediaServerLoad();
-        result.setId(mediaServerItem.getId());
-        result.setPush(redisCatchStorage.getPushStreamCount(mediaServerItem.getId()));
-        result.setProxy(redisCatchStorage.getProxyStreamCount(mediaServerItem.getId()));
+        result.setId(mediaServer.getId());
+        result.setPush(redisCatchStorage.getPushStreamCount(mediaServer.getId()));
+        result.setProxy(redisCatchStorage.getProxyStreamCount(mediaServer.getId()));
 
-        result.setGbReceive(inviteStreamService.getStreamInfoCount(mediaServerItem.getId()));
-        result.setGbSend(redisCatchStorage.getGbSendCount(mediaServerItem.getId()));
+        result.setGbReceive(inviteStreamService.getStreamInfoCount(mediaServer.getId()));
+        result.setGbSend(redisCatchStorage.getGbSendCount(mediaServer.getId()));
         return result;
     }
 
@@ -539,79 +540,149 @@ public class MediaServerServiceImpl implements IMediaServerService {
     public boolean stopSendRtp(MediaServer mediaInfo, String app, String stream, String ssrc) {
         IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaInfo.getType());
         if (mediaNodeServerService == null) {
-            logger.info("[stopSendRtp] 失败, mediaServerItem的类型： {}，未找到对应的实现类", mediaInfo.getType());
+            logger.info("[stopSendRtp] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaInfo.getType());
             return false;
         }
         return mediaNodeServerService.stopSendRtp(mediaInfo, app, stream, ssrc);
     }
 
     @Override
-    public boolean deleteRecordDirectory(MediaServer mediaServerItem, String app, String stream, String date, String fileName) {
-        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServerItem.getType());
+    public boolean deleteRecordDirectory(MediaServer mediaServer, String app, String stream, String date, String fileName) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
-            logger.info("[stopSendRtp] 失败, mediaServerItem的类型： {}，未找到对应的实现类", mediaServerItem.getType());
+            logger.info("[stopSendRtp] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             return false;
         }
-        return mediaNodeServerService.deleteRecordDirectory(mediaServerItem, app, stream, date, fileName);
+        return mediaNodeServerService.deleteRecordDirectory(mediaServer, app, stream, date, fileName);
     }
 
     @Override
-    public List<StreamInfo> getMediaList(MediaServer mediaServerItem, String app, String stream, String callId) {
-        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServerItem.getType());
+    public List<StreamInfo> getMediaList(MediaServer mediaServer, String app, String stream, String callId) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
-            logger.info("[getMediaList] 失败, mediaServerItem的类型： {}，未找到对应的实现类", mediaServerItem.getType());
+            logger.info("[getMediaList] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             return new ArrayList<>();
         }
-        return mediaNodeServerService.getMediaList(mediaServerItem, app, stream, callId);
+        return mediaNodeServerService.getMediaList(mediaServer, app, stream, callId);
     }
 
     @Override
-    public Boolean connectRtpServer(MediaServer mediaServerItem, String address, int port, String stream) {
-        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServerItem.getType());
+    public Boolean connectRtpServer(MediaServer mediaServer, String address, int port, String stream) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
-            logger.info("[connectRtpServer] 失败, mediaServerItem的类型： {}，未找到对应的实现类", mediaServerItem.getType());
+            logger.info("[connectRtpServer] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             return false;
         }
-        return mediaNodeServerService.connectRtpServer(mediaServerItem, address, port, stream);
+        return mediaNodeServerService.connectRtpServer(mediaServer, address, port, stream);
     }
 
     @Override
-    public void getSnap(MediaServer mediaServerItem, String streamUrl, int timeoutSec, int expireSec, String path, String fileName) {
-        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServerItem.getType());
+    public void getSnap(MediaServer mediaServer, String streamUrl, int timeoutSec, int expireSec, String path, String fileName) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
-            logger.info("[getSnap] 失败, mediaServerItem的类型： {}，未找到对应的实现类", mediaServerItem.getType());
+            logger.info("[getSnap] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             return;
         }
-        mediaNodeServerService.getSnap(mediaServerItem, streamUrl, timeoutSec, expireSec, path, fileName);
+        mediaNodeServerService.getSnap(mediaServer, streamUrl, timeoutSec, expireSec, path, fileName);
     }
 
     @Override
-    public MediaInfo getMediaInfo(MediaServer mediaServerItem, String app, String stream) {
-        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServerItem.getType());
+    public MediaInfo getMediaInfo(MediaServer mediaServer, String app, String stream) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
-            logger.info("[getMediaInfo] 失败, mediaServerItem的类型： {}，未找到对应的实现类", mediaServerItem.getType());
+            logger.info("[getMediaInfo] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             return null;
         }
-        return mediaNodeServerService.getMediaInfo(mediaServerItem, app, stream);
+        return mediaNodeServerService.getMediaInfo(mediaServer, app, stream);
     }
 
     @Override
-    public Boolean pauseRtpCheck(MediaServer mediaServerItem, String streamKey) {
-        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServerItem.getType());
+    public Boolean pauseRtpCheck(MediaServer mediaServer, String streamKey) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
-            logger.info("[pauseRtpCheck] 失败, mediaServerItem的类型： {}，未找到对应的实现类", mediaServerItem.getType());
+            logger.info("[pauseRtpCheck] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             return false;
         }
-        return mediaNodeServerService.pauseRtpCheck(mediaServerItem, streamKey);
+        return mediaNodeServerService.pauseRtpCheck(mediaServer, streamKey);
     }
 
     @Override
-    public boolean resumeRtpCheck(MediaServer mediaServerItem, String streamKey) {
-        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServerItem.getType());
+    public boolean resumeRtpCheck(MediaServer mediaServer, String streamKey) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
-            logger.info("[pauseRtpCheck] 失败, mediaServerItem的类型： {}，未找到对应的实现类", mediaServerItem.getType());
+            logger.info("[pauseRtpCheck] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             return false;
         }
-        return mediaNodeServerService.resumeRtpCheck(mediaServerItem, streamKey);
+        return mediaNodeServerService.resumeRtpCheck(mediaServer, streamKey);
+    }
+
+    @Override
+    public String getFfmpegCmd(MediaServer mediaServer, String cmdKey) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
+        if (mediaNodeServerService == null) {
+            logger.info("[getFfmpegCmd] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
+            return null;
+        }
+        return mediaNodeServerService.getFfmpegCmd(mediaServer, cmdKey);
+    }
+
+    @Override
+    public void closeStreams(MediaServer mediaServer, String app, String stream) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
+        if (mediaNodeServerService == null) {
+            logger.info("[closeStreams] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
+            return;
+        }
+        mediaNodeServerService.closeStreams(mediaServer, app, stream);
+    }
+
+    @Override
+    public WVPResult<String> addFFmpegSource(MediaServer mediaServer, String srcUrl, String dstUrl, int timeoutMs, boolean enableAudio, boolean enableMp4, String ffmpegCmdKey) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
+        if (mediaNodeServerService == null) {
+            logger.info("[addFFmpegSource] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
+            return WVPResult.fail(ErrorCode.ERROR400);
+        }
+        return mediaNodeServerService.addFFmpegSource(mediaServer, srcUrl, dstUrl, timeoutMs, enableAudio, enableMp4, ffmpegCmdKey);
+    }
+
+    @Override
+    public WVPResult<String> addStreamProxy(MediaServer mediaServer, String app, String stream, String url, boolean enableAudio, boolean enableMp4, String rtpType) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
+        if (mediaNodeServerService == null) {
+            logger.info("[addStreamProxy] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
+            return WVPResult.fail(ErrorCode.ERROR400);
+        }
+        return mediaNodeServerService.addStreamProxy(mediaServer, app, stream, url, enableAudio, enableMp4, rtpType);
+    }
+
+    @Override
+    public Boolean delFFmpegSource(MediaServer mediaServer, String streamKey) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
+        if (mediaNodeServerService == null) {
+            logger.info("[delFFmpegSource] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
+            return false;
+        }
+        return mediaNodeServerService.delFFmpegSource(mediaServer, streamKey);
+    }
+
+    @Override
+    public Boolean delStreamProxy(MediaServer mediaServerItem, String streamKey) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServerItem.getType());
+        if (mediaNodeServerService == null) {
+            logger.info("[delStreamProxy] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServerItem.getType());
+            return false;
+        }
+        return mediaNodeServerService.delStreamProxy(mediaServerItem, streamKey);
+    }
+
+    @Override
+    public Map<String, String> getFFmpegCMDs(MediaServer mediaServer) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
+        if (mediaNodeServerService == null) {
+            logger.info("[getFFmpegCMDs] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
+            return new HashMap<>();
+        }
+        return mediaNodeServerService.getFFmpegCMDs(mediaServer);
     }
 }

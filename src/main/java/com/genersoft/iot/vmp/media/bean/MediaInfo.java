@@ -28,12 +28,36 @@ public class MediaInfo {
     private Integer audioSampleRate;
     @Schema(description = "音频采样率")
     private Long duration;
+    @Schema(description = "在线")
+    private Boolean online;
+    @Schema(description = "unknown = 0,rtmp_push=1,rtsp_push=2,rtp_push=3,pull=4,ffmpeg_pull=5,mp4_vod=6,device_chn=7")
+    private Integer originType;
+    @Schema(description = "存活时间，单位秒")
+    private Long aliveSecond;
+    @Schema(description = "数据产生速度，单位byte/s")
+    private Long bytesSpeed;
 
     public static MediaInfo getInstance(JSONObject jsonObject) {
         MediaInfo mediaInfo = new MediaInfo();
         Integer totalReaderCount = jsonObject.getInteger("totalReaderCount");
+        Boolean online = jsonObject.getBoolean("online");
+        Integer originType = jsonObject.getInteger("originType");
+        Long aliveSecond = jsonObject.getLong("aliveSecond");
+        Long bytesSpeed = jsonObject.getLong("bytesSpeed");
         if (totalReaderCount != null) {
             mediaInfo.setReaderCount(totalReaderCount);
+        }
+        if (online != null) {
+            mediaInfo.setOnline(online);
+        }
+        if (originType != null) {
+            mediaInfo.setOriginType(originType);
+        }
+        if (aliveSecond != null) {
+            mediaInfo.setAliveSecond(aliveSecond);
+        }
+        if (bytesSpeed != null) {
+            mediaInfo.setBytesSpeed(bytesSpeed);
         }
         JSONArray jsonArray = jsonObject.getJSONArray("tracks");
         if (jsonArray.isEmpty()) {
@@ -90,6 +114,10 @@ public class MediaInfo {
         List<OnStreamChangedHookParam.MediaTrack> tracks = param.getTracks();
         MediaInfo mediaInfo = new MediaInfo();
         mediaInfo.setReaderCount(param.getTotalReaderCount());
+        mediaInfo.setOnline(param.isRegist());
+        mediaInfo.setOriginType(param.getOriginType());
+        mediaInfo.setAliveSecond(param.getAliveSecond());
+        mediaInfo.setBytesSpeed(param.getBytesSpeed());
         for (OnStreamChangedHookParam.MediaTrack mediaTrack : tracks) {
             switch (mediaTrack.getCodec_id()) {
                 case 0:
@@ -186,5 +214,37 @@ public class MediaInfo {
 
     public void setDuration(Long duration) {
         this.duration = duration;
+    }
+
+    public Boolean getOnline() {
+        return online;
+    }
+
+    public void setOnline(Boolean online) {
+        this.online = online;
+    }
+
+    public Integer getOriginType() {
+        return originType;
+    }
+
+    public void setOriginType(Integer originType) {
+        this.originType = originType;
+    }
+
+    public Long getAliveSecond() {
+        return aliveSecond;
+    }
+
+    public void setAliveSecond(Long aliveSecond) {
+        this.aliveSecond = aliveSecond;
+    }
+
+    public Long getBytesSpeed() {
+        return bytesSpeed;
+    }
+
+    public void setBytesSpeed(Long bytesSpeed) {
+        this.bytesSpeed = bytesSpeed;
     }
 }

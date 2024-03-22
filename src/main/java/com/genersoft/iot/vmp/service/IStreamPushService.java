@@ -1,9 +1,8 @@
 package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.github.pagehelper.PageInfo;
@@ -15,8 +14,6 @@ import java.util.Map;
  * @author lin
  */
 public interface IStreamPushService {
-
-    List<StreamPushItem> handleJSON(String json, MediaServer mediaServerItem);
 
     /**
      * 将应用名和流ID加入国标关联

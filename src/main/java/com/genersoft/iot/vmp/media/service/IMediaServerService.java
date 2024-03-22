@@ -6,8 +6,10 @@ import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 媒体服务节点
@@ -87,4 +89,19 @@ public interface IMediaServerService {
     Boolean pauseRtpCheck(MediaServer mediaServerItem, String streamKey);
 
     boolean resumeRtpCheck(MediaServer mediaServerItem, String streamKey);
+
+    String getFfmpegCmd(MediaServer mediaServer, String cmdKey);
+
+    void closeStreams(MediaServer mediaServerItem, String app, String stream);
+
+    WVPResult<String> addFFmpegSource(MediaServer mediaServerItem, String srcUrl, String dstUrl, int timeoutMs, boolean enableAudio, boolean enableMp4, String ffmpegCmdKey);
+
+    WVPResult<String> addStreamProxy(MediaServer mediaServerItem, String app, String stream, String url, boolean enableAudio, boolean enableMp4, String rtpType);
+
+    Boolean delFFmpegSource(MediaServer mediaServerItem, String streamKey);
+
+    Boolean delStreamProxy(MediaServer mediaServerItem, String streamKey);
+
+    Map<String, String> getFFmpegCMDs(MediaServer mediaServer);
+
 }

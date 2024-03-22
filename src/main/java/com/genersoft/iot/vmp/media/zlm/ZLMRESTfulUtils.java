@@ -269,7 +269,7 @@ public class ZLMRESTfulUtils {
         return sendPost(mediaServerItem, "getRtpInfo",param, null);
     }
 
-    public JSONObject addFFmpegSource(MediaServer mediaServerItem, String src_url, String dst_url, String timeout_ms,
+    public JSONObject addFFmpegSource(MediaServer mediaServerItem, String src_url, String dst_url, Integer timeout_ms,
                                       boolean enable_audio, boolean enable_mp4, String ffmpeg_cmd_key){
         logger.info(src_url);
         logger.info(dst_url);

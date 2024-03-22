@@ -144,7 +144,7 @@ public class ZLMHttpHookListener {
     public HookResult onServerKeepalive(@RequestBody OnServerKeepaliveHookParam param) {
         taskExecutor.execute(() -> {
             List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_server_keepalive);
-            if (subscribes != null && subscribes.size() > 0) {
+            if (subscribes != null && !subscribes.isEmpty()) {
                 for (ZlmHttpHookSubscribe.Event subscribe : subscribes) {
                     subscribe.response(null, param);
                 }
@@ -170,7 +170,7 @@ public class ZLMHttpHookListener {
     @PostMapping(value = "/on_play", produces = "application/json;charset=UTF-8")
     public HookResult onPlay(@RequestBody OnPlayHookParam param) {
         if (logger.isDebugEnabled()) {
-            logger.debug("[ZLM HOOK] 播放鉴权：{}->{}" + param.getMediaServerId(), param);
+            logger.debug("[ZLM HOOK] 播放鉴权：{}->{}", param.getMediaServerId(), param);
         }
         String mediaServerId = param.getMediaServerId();
 
@@ -257,11 +257,7 @@ public class ZLMHttpHookListener {
         taskExecutor.execute(() -> {
             ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_publish, json);
             if (subscribe != null) {
-                if (mediaInfo != null) {
-                    subscribe.response(mediaInfo, param);
-                } else {
-                    new HookResultForOnPublish(1, "zlm not register");
-                }
+                subscribe.response(mediaInfo, param);
             }
         });
 
@@ -802,7 +798,7 @@ public class ZLMHttpHookListener {
         logger.info("[ZLM HOOK] zlm 启动 " + zlmServerConfig.getGeneralMediaServerId());
         taskExecutor.execute(() -> {
             List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_server_started);
-            if (subscribes != null && subscribes.size() > 0) {
+            if (subscribes != null && !subscribes.isEmpty()) {
                 for (ZlmHttpHookSubscribe.Event subscribe : subscribes) {
                     subscribe.response(null, zlmServerConfig);
                 }
@@ -860,12 +856,11 @@ public class ZLMHttpHookListener {
      */
     @ResponseBody
     @PostMapping(value = "/on_rtp_server_timeout", produces = "application/json;charset=UTF-8")
-    public HookResult onRtpServerTimeout(HttpServletRequest request, @RequestBody OnRtpServerTimeoutHookParam
+    public HookResult onRtpServerTimeout(@RequestBody OnRtpServerTimeoutHookParam
             param) {
         logger.info("[ZLM HOOK] rtpServer收流超时：{}->{}({})", param.getMediaServerId(), param.getStream_id(), param.getSsrc());
 
         taskExecutor.execute(() -> {
-            JSONObject json = (JSONObject) JSON.toJSON(param);
             List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_rtp_server_timeout);
             if (subscribes != null && !subscribes.isEmpty()) {
                 for (ZlmHttpHookSubscribe.Event subscribe : subscribes) {

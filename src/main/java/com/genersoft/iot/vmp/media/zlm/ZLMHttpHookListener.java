@@ -142,14 +142,6 @@ public class ZLMHttpHookListener {
 
     @PostMapping(value = "/on_server_keepalive", produces = "application/json;charset=UTF-8")
     public HookResult onServerKeepalive(@RequestBody OnServerKeepaliveHookParam param) {
-        taskExecutor.execute(() -> {
-            List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_server_keepalive);
-            if (subscribes != null && !subscribes.isEmpty()) {
-                for (ZlmHttpHookSubscribe.Event subscribe : subscribes) {
-                    subscribe.response(null, param);
-                }
-            }
-        });
         try {
             HookZlmServerKeepaliveEvent event = new HookZlmServerKeepaliveEvent(this);
             MediaServer mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
@@ -184,6 +176,7 @@ public class ZLMHttpHookListener {
                 }
             }
         });
+        // TODO 此处逻辑适合迁移到MediaService中
         if (!"rtp".equals(param.getApp())) {
             Map<String, String> paramMap = urlParamToMap(param.getParams());
             StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(param.getApp(), param.getStream());
@@ -208,8 +201,8 @@ public class ZLMHttpHookListener {
         // TODO 加快处理速度
 
         String mediaServerId = json.getString("mediaServerId");
-        MediaServer mediaInfo = mediaServerService.getOne(mediaServerId);
-        if (mediaInfo == null) {
+        MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+        if (mediaServer == null) {
             return new HookResultForOnPublish(200, "success");
         }
         // 推流鉴权的处理
@@ -257,7 +250,7 @@ public class ZLMHttpHookListener {
         taskExecutor.execute(() -> {
             ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_publish, json);
             if (subscribe != null) {
-                subscribe.response(mediaInfo, param);
+                subscribe.response(mediaServer, param);
             }
         });
 
@@ -273,7 +266,7 @@ public class ZLMHttpHookListener {
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, param.getStream());
 
             // 单端口模式下修改流 ID
-            if (!mediaInfo.isRtpEnable() && inviteInfo == null) {
+            if (!mediaServer.isRtpEnable() && inviteInfo == null) {
                 String ssrc = String.format("%010d", Long.parseLong(param.getStream(), 16));
                 inviteInfo = inviteStreamService.getInviteInfoBySSRC(ssrc);
                 if (inviteInfo != null) {

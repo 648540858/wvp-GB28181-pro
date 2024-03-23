@@ -60,7 +60,7 @@ import java.util.UUID;
  * ABL服务Hook事件
  */
 @RestController
-@RequestMapping("/index/hook")
+@RequestMapping("/index/hook/abl")
 public class ABLHttpHookListener {
 
     private final static Logger logger = LoggerFactory.getLogger(ABLHttpHookListener.class);

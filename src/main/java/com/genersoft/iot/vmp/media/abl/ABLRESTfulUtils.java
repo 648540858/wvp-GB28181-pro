@@ -281,7 +281,7 @@ public class ABLRESTfulUtils {
         return sendPost(mediaServerItem, "delStreamProxy",param, null);
     }
 
-    public JSONObject getMediaServerConfig(MediaServer mediaServerItem){
+    public JSONObject getServerConfig(MediaServer mediaServerItem){
         return sendPost(mediaServerItem, "getServerConfig",null, null);
     }
 

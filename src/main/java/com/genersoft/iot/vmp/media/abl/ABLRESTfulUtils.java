@@ -116,15 +116,15 @@ public class ABLRESTfulUtils {
 
                     if(e instanceof SocketTimeoutException){
                         //读取超时超时异常
-                        logger.error(String.format("读取ZLM数据超时失败: %s, %s", url, e.getMessage()));
+                        logger.error(String.format("读取ABL数据超时失败: %s, %s", url, e.getMessage()));
                     }
                     if(e instanceof ConnectException){
                         //判断连接异常，我这里是报Failed to connect to 10.7.5.144
-                        logger.error(String.format("连接ZLM连接失败: %s, %s", url, e.getMessage()));
+                        logger.error(String.format("连接ABL连接失败: %s, %s", url, e.getMessage()));
                     }
 
                 }catch (Exception e){
-                    logger.error(String.format("访问ZLM失败: %s, %s", url, e.getMessage()));
+                    logger.error(String.format("访问ABL失败: %s, %s", url, e.getMessage()));
                 }
             }else {
                 client.newCall(request).enqueue(new Callback(){
@@ -147,19 +147,71 @@ public class ABLRESTfulUtils {
 
                     @Override
                     public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                        logger.error(String.format("连接ZLM失败: %s, %s", call.request().toString(), e.getMessage()));
+                        logger.error(String.format("连接ABL失败: %s, %s", call.request().toString(), e.getMessage()));
 
                         if(e instanceof SocketTimeoutException){
                             //读取超时超时异常
-                            logger.error(String.format("读取ZLM数据失败: %s, %s", call.request().toString(), e.getMessage()));
+                            logger.error(String.format("读取ABL数据失败: %s, %s", call.request().toString(), e.getMessage()));
                         }
                         if(e instanceof ConnectException){
                             //判断连接异常，我这里是报Failed to connect to 10.7.5.144
-                            logger.error(String.format("连接ZLM失败: %s, %s", call.request().toString(), e.getMessage()));
+                            logger.error(String.format("连接ABL失败: %s, %s", call.request().toString(), e.getMessage()));
                         }
                     }
                 });
             }
+
+
+
+        return responseJSON;
+    }
+
+    public JSONObject sendGet(MediaServer mediaServerItem, String api, Map<String, Object> param) {
+        OkHttpClient client = getClient();
+
+        if (mediaServerItem == null) {
+            return null;
+        }
+        JSONObject responseJSON = null;
+        StringBuilder stringBuffer = new StringBuilder();
+        stringBuffer.append(String.format("http://%s:%s/index/api/%s",  mediaServerItem.getIp(), mediaServerItem.getHttpPort(), api));
+        if (param != null && !param.keySet().isEmpty()) {
+            stringBuffer.append("?secret=").append(mediaServerItem.getSecret()).append("&");
+            int index = 1;
+            for (String key : param.keySet()){
+                if (param.get(key) != null) {
+                    stringBuffer.append(key + "=" + param.get(key));
+                    if (index < param.size()) {
+                        stringBuffer.append("&");
+                    }
+                }
+                index++;
+            }
+        }
+        String url = stringBuffer.toString();
+        logger.info("[访问ABL]： {}", url);
+        Request request = new Request.Builder()
+                .get()
+                .url(url)
+                .build();
+        try {
+            Response response = client.newCall(request).execute();
+            if (response.isSuccessful()) {
+                ResponseBody responseBody = response.body();
+                if (responseBody != null) {
+                    String responseStr = responseBody.string();
+                    responseJSON = JSON.parseObject(responseStr);
+                }
+            }else {
+                response.close();
+                Objects.requireNonNull(response.body()).close();
+            }
+        } catch (ConnectException e) {
+            logger.error(String.format("连接ABL失败: %s, %s", e.getCause().getMessage(), e.getMessage()));
+            logger.info("请检查media配置并确认ABL已启动...");
+        }catch (IOException e) {
+            logger.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
+        }
 
 
 
@@ -211,8 +263,8 @@ public class ABLRESTfulUtils {
             }
             Objects.requireNonNull(response.body()).close();
         } catch (ConnectException e) {
-            logger.error(String.format("连接ZLM失败: %s, %s", e.getCause().getMessage(), e.getMessage()));
-            logger.info("请检查media配置并确认ZLM已启动...");
+            logger.error(String.format("连接ABL失败: %s, %s", e.getCause().getMessage(), e.getMessage()));
+            logger.info("请检查media配置并确认ABL已启动...");
         } catch (IOException e) {
             logger.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
         }
@@ -286,7 +338,10 @@ public class ABLRESTfulUtils {
     }
 
     public JSONObject setConfigParamValue(MediaServer mediaServerItem, String key, Object value){
-        return sendPost(mediaServerItem,"setConfigParamValue", param, null);
+        Map<String, Object> param =  new HashMap<>();
+        param.put("key", key);
+        param.put("value", value);
+        return sendGet(mediaServerItem,"setConfigParamValue", param);
     }
 
     public JSONObject openRtpServer(MediaServer mediaServerItem, Map<String, Object> param){

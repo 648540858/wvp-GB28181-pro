@@ -126,6 +126,9 @@ public class AblServerConfig {
     @ConfigKeyId("on_stream_disconnect")
     private String onStreamDisconnect;
 
+    @ConfigKeyId("on_record_mp4")
+    private String onRecordMp4;
+
     @ConfigKeyId("on_delete_record_mp4")
     private String onDeleteRecordMp4;
 
@@ -143,6 +146,9 @@ public class AblServerConfig {
 
     @ConfigKeyId("captureReplayType")
     private Integer captureReplayType;
+
+    @ConfigKeyId("pictureMaxCount")
+    private Integer pictureMaxCount;
 
     @ConfigKeyId("videoFileFormat")
     private Integer videoFileFormat;
@@ -775,5 +781,21 @@ public class AblServerConfig {
 
     public void setRtcMaxPort(Integer rtcMaxPort) {
         this.rtcMaxPort = rtcMaxPort;
+    }
+
+    public String getOnRecordMp4() {
+        return onRecordMp4;
+    }
+
+    public void setOnRecordMp4(String onRecordMp4) {
+        this.onRecordMp4 = onRecordMp4;
+    }
+
+    public Integer getPictureMaxCount() {
+        return pictureMaxCount;
+    }
+
+    public void setPictureMaxCount(Integer pictureMaxCount) {
+        this.pictureMaxCount = pictureMaxCount;
     }
 }

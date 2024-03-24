@@ -285,8 +285,8 @@ public class ABLRESTfulUtils {
         return sendPost(mediaServerItem, "getServerConfig",null, null);
     }
 
-    public JSONObject setServerConfig(MediaServer mediaServerItem, Map<String, Object> param){
-        return sendPost(mediaServerItem,"setServerConfig",param, null);
+    public JSONObject setConfigParamValue(MediaServer mediaServerItem, String key, Object value){
+        return sendPost(mediaServerItem,"setConfigParamValue", param, null);
     }
 
     public JSONObject openRtpServer(MediaServer mediaServerItem, Map<String, Object> param){

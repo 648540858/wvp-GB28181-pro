@@ -41,4 +41,11 @@ public interface IMediaService {
      * @return
      */
     StreamInfo getStreamInfoByAppAndStream(MediaServer mediaServerItem, String app, String stream, MediaInfo mediaInfo, String addr, String callId, boolean isPlay);
+
+    /**
+     * 播放鉴权
+     */
+    boolean authenticatePlay(String app, String stream, String callId);
+
+    boolean authenticatePublish(String app, String stream, String callId, String sign);
 }

@@ -139,7 +139,6 @@ public class ZLMHttpHookListener {
      * 服务器定时上报时间，上报间隔可配置，默认10s上报一次
      */
     @ResponseBody
-
     @PostMapping(value = "/on_server_keepalive", produces = "application/json;charset=UTF-8")
     public HookResult onServerKeepalive(@RequestBody OnServerKeepaliveHookParam param) {
         try {
@@ -164,25 +163,11 @@ public class ZLMHttpHookListener {
         if (logger.isDebugEnabled()) {
             logger.debug("[ZLM HOOK] 播放鉴权：{}->{}", param.getMediaServerId(), param);
         }
-        String mediaServerId = param.getMediaServerId();
-
-        taskExecutor.execute(() -> {
-            JSONObject json = (JSONObject) JSON.toJSON(param);
-            ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_play, json);
-            if (subscribe != null) {
-                MediaServer mediaInfo = mediaServerService.getOne(mediaServerId);
-                if (mediaInfo != null) {
-                    subscribe.response(mediaInfo, param);
-                }
-            }
-        });
-        // TODO 此处逻辑适合迁移到MediaService中
-        if (!"rtp".equals(param.getApp())) {
-            Map<String, String> paramMap = urlParamToMap(param.getParams());
-            StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(param.getApp(), param.getStream());
-            if (streamAuthorityInfo != null && streamAuthorityInfo.getCallId() != null && !streamAuthorityInfo.getCallId().equals(paramMap.get("callId"))) {
-                return new HookResult(401, "Unauthorized");
-            }
+        Map<String, String> paramMap = urlParamToMap(param.getParams());
+        // 对于播放流进行鉴权
+        boolean authenticateResult = mediaService.authenticatePlay(param.getApp(), param.getStream(), paramMap.get("callId"));
+        if (!authenticateResult) {
+            return new HookResult(401, "Unauthorized");
         }
 
         return HookResult.SUCCESS();
@@ -215,12 +200,14 @@ public class ZLMHttpHookListener {
                 return result;
             }
             if (userSetting.getPushAuthority()) {
+                // 对于推流进行鉴权
+                Map<String, String> paramMap = urlParamToMap(param.getParams());
                 // 推流鉴权
                 if (param.getParams() == null) {
                     logger.info("推流鉴权失败： 缺少必要参数：sign=md5(user表的pushKey)");
                     return new HookResultForOnPublish(401, "Unauthorized");
                 }
-                Map<String, String> paramMap = urlParamToMap(param.getParams());
+
                 String sign = paramMap.get("sign");
                 if (sign == null) {
                     logger.info("推流鉴权失败： 缺少必要参数：sign=md5(user表的pushKey)");
@@ -648,12 +635,6 @@ public class ZLMHttpHookListener {
                 }
                 return ret;
             }
-            // TODO 推流具有主动性，暂时不做处理
-//			StreamPushItem streamPushItem = streamPushService.getPush(app, streamId);
-//			if (streamPushItem != null) {
-//				// TODO 发送停止
-//
-//			}
         }
         return ret;
     }

@@ -4,10 +4,14 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookListener;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.HookResultForOnPublish;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -16,6 +20,8 @@ import java.util.List;
 
 @Service
 public class MediaServiceImpl implements IMediaService {
+
+    private final static Logger logger = LoggerFactory.getLogger(MediaServiceImpl.class);
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -84,5 +90,17 @@ public class MediaServiceImpl implements IMediaService {
 
         streamInfoResult.setMediaInfo(mediaInfo);
         return streamInfoResult;
+    }
+
+    @Override
+    public boolean authenticatePlay(String app, String stream, String callId) {
+        if (app == null || stream == null) {
+            return false;
+        }
+        if ("rtp".equals(app)) {
+            return true;
+        }
+        StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(app, stream);
+        return (streamAuthorityInfo != null && streamAuthorityInfo.getCallId() != null && !streamAuthorityInfo.getCallId().equals(callId));
     }
 }

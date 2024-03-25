@@ -126,6 +126,9 @@ public class AblServerConfig {
     @ConfigKeyId("on_stream_disconnect")
     private String onStreamDisconnect;
 
+    @ConfigKeyId("on_stream_not_found")
+    private String onStreamNotFound;
+
     @ConfigKeyId("on_record_mp4")
     private String onRecordMp4;
 
@@ -797,5 +800,13 @@ public class AblServerConfig {
 
     public void setPictureMaxCount(Integer pictureMaxCount) {
         this.pictureMaxCount = pictureMaxCount;
+    }
+
+    public String getOnStreamNotFound() {
+        return onStreamNotFound;
+    }
+
+    public void setOnStreamNotFound(String onStreamNotFound) {
+        this.onStreamNotFound = onStreamNotFound;
     }
 }

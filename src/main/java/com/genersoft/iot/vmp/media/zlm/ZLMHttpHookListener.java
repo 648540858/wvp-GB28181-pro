@@ -19,6 +19,9 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
+import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
+import com.genersoft.iot.vmp.media.event.MediaArrivalEvent;
+import com.genersoft.iot.vmp.media.event.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.*;
@@ -190,50 +193,7 @@ public class ZLMHttpHookListener {
         if (mediaServer == null) {
             return new HookResultForOnPublish(200, "success");
         }
-        // 推流鉴权的处理
-        if (!"rtp".equals(param.getApp())) {
-            StreamProxyItem stream = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
-            if (stream != null) {
-                HookResultForOnPublish result = HookResultForOnPublish.SUCCESS();
-                result.setEnable_audio(stream.isEnableAudio());
-                result.setEnable_mp4(stream.isEnableMp4());
-                return result;
-            }
-            if (userSetting.getPushAuthority()) {
-                // 对于推流进行鉴权
-                Map<String, String> paramMap = urlParamToMap(param.getParams());
-                // 推流鉴权
-                if (param.getParams() == null) {
-                    logger.info("推流鉴权失败： 缺少必要参数：sign=md5(user表的pushKey)");
-                    return new HookResultForOnPublish(401, "Unauthorized");
-                }
 
-                String sign = paramMap.get("sign");
-                if (sign == null) {
-                    logger.info("推流鉴权失败： 缺少必要参数：sign=md5(user表的pushKey)");
-                    return new HookResultForOnPublish(401, "Unauthorized");
-                }
-                // 推流自定义播放鉴权码
-                String callId = paramMap.get("callId");
-                // 鉴权配置
-                boolean hasAuthority = userService.checkPushAuthority(callId, sign);
-                if (!hasAuthority) {
-                    logger.info("推流鉴权失败： sign 无权限: callId={}. sign={}", callId, sign);
-                    return new HookResultForOnPublish(401, "Unauthorized");
-                }
-                StreamAuthorityInfo streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(param);
-                streamAuthorityInfo.setCallId(callId);
-                streamAuthorityInfo.setSign(sign);
-                // 鉴权通过
-                redisCatchStorage.updateStreamAuthorityInfo(param.getApp(), param.getStream(), streamAuthorityInfo);
-            }
-        } else {
-            zlmMediaListManager.sendStreamEvent(param.getApp(), param.getStream(), param.getMediaServerId());
-        }
-
-
-        HookResultForOnPublish result = HookResultForOnPublish.SUCCESS();
-        result.setEnable_audio(true);
         taskExecutor.execute(() -> {
             ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_publish, json);
             if (subscribe != null) {
@@ -241,81 +201,16 @@ public class ZLMHttpHookListener {
             }
         });
 
-        // 是否录像
-        if ("rtp".equals(param.getApp())) {
-            result.setEnable_mp4(userSetting.getRecordSip());
-        } else {
-            result.setEnable_mp4(userSetting.isRecordPushLive());
+        ResultForOnPublish resultForOnPublish = mediaService.authenticatePublish(mediaServer, param.getApp(), param.getStream(), param.getParams());
+        if (resultForOnPublish != null) {
+            HookResultForOnPublish successResult = HookResultForOnPublish.getInstance(resultForOnPublish);
+            logger.info("[ZLM HOOK]推流鉴权 响应：{}->{}->>>>{}", param.getMediaServerId(), param, successResult);
+            return successResult;
+        }else {
+            HookResultForOnPublish fail = HookResultForOnPublish.Fail();
+            logger.info("[ZLM HOOK]推流鉴权 响应：{}->{}->>>>{}", param.getMediaServerId(), param, fail);
+            return fail;
         }
-        // 国标流
-        if ("rtp".equals(param.getApp())) {
-
-            InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, param.getStream());
-
-            // 单端口模式下修改流 ID
-            if (!mediaServer.isRtpEnable() && inviteInfo == null) {
-                String ssrc = String.format("%010d", Long.parseLong(param.getStream(), 16));
-                inviteInfo = inviteStreamService.getInviteInfoBySSRC(ssrc);
-                if (inviteInfo != null) {
-                    result.setStream_replace(inviteInfo.getStream());
-                    logger.info("[ZLM HOOK]推流鉴权 stream: {} 替换为 {}", param.getStream(), inviteInfo.getStream());
-                }
-            }
-
-            // 设置音频信息及录制信息
-            List<SsrcTransaction> ssrcTransactionForAll = sessionManager.getSsrcTransactionForAll(null, null, null, param.getStream());
-            if (ssrcTransactionForAll != null && ssrcTransactionForAll.size() == 1) {
-
-                // 为录制国标模拟一个鉴权信息, 方便后续写入录像文件时使用
-                StreamAuthorityInfo streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(param);
-                streamAuthorityInfo.setApp(param.getApp());
-                streamAuthorityInfo.setStream(ssrcTransactionForAll.get(0).getStream());
-                streamAuthorityInfo.setCallId(ssrcTransactionForAll.get(0).getSipTransactionInfo().getCallId());
-
-                redisCatchStorage.updateStreamAuthorityInfo(param.getApp(), ssrcTransactionForAll.get(0).getStream(), streamAuthorityInfo);
-
-                String deviceId = ssrcTransactionForAll.get(0).getDeviceId();
-                String channelId = ssrcTransactionForAll.get(0).getChannelId();
-                DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
-                if (deviceChannel != null) {
-                    result.setEnable_audio(deviceChannel.isHasAudio());
-                }
-                // 如果是录像下载就设置视频间隔十秒
-                if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.DOWNLOAD) {
-                    // 获取录像的总时长，然后设置为这个视频的时长
-                    InviteInfo inviteInfoForDownload = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, deviceId, channelId, param.getStream());
-                    if (inviteInfoForDownload != null && inviteInfoForDownload.getStreamInfo() != null) {
-                        String startTime = inviteInfoForDownload.getStreamInfo().getStartTime();
-                        String endTime = inviteInfoForDownload.getStreamInfo().getEndTime();
-                        long difference = DateUtil.getDifference(startTime, endTime) / 1000;
-                        result.setMp4_max_second((int) difference);
-                        result.setEnable_mp4(true);
-                        // 设置为2保证得到的mp4的时长是正常的
-                        result.setModify_stamp(2);
-                    }
-                }
-                // 如果是talk对讲，则默认获取声音
-                if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.TALK) {
-                    result.setEnable_audio(true);
-                }
-            }
-        } else if (param.getApp().equals("broadcast")) {
-            result.setEnable_audio(true);
-        } else if (param.getApp().equals("talk")) {
-            result.setEnable_audio(true);
-        }
-        if (param.getApp().equalsIgnoreCase("rtp")) {
-            String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "_" + param.getStream();
-            OtherRtpSendInfo otherRtpSendInfo = (OtherRtpSendInfo) redisTemplate.opsForValue().get(receiveKey);
-
-            String receiveKeyForPS = VideoManagerConstants.WVP_OTHER_RECEIVE_PS_INFO + userSetting.getServerId() + "_" + param.getStream();
-            OtherPsSendInfo otherPsSendInfo = (OtherPsSendInfo) redisTemplate.opsForValue().get(receiveKeyForPS);
-            if (otherRtpSendInfo != null || otherPsSendInfo != null) {
-                result.setEnable_mp4(true);
-            }
-        }
-        logger.info("[ZLM HOOK]推流鉴权 响应：{}->{}->>>>{}", param.getMediaServerId(), param, result);
-        return result;
     }
 
 
@@ -326,11 +221,20 @@ public class ZLMHttpHookListener {
     @PostMapping(value = "/on_stream_changed", produces = "application/json;charset=UTF-8")
     public HookResult onStreamChanged(@RequestBody OnStreamChangedHookParam param) {
 
+        MediaServer mediaServer = mediaServerService.getOne(param.getMediaServerId());
+
         if (param.isRegist()) {
             logger.info("[ZLM HOOK] 流注册, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
+            MediaArrivalEvent mediaArrivalEvent = MediaArrivalEvent.getInstance(this, param, mediaServer);
+            applicationEventPublisher.publishEvent(mediaArrivalEvent);
         } else {
             logger.info("[ZLM HOOK] 流注销, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
+            MediaDepartureEvent mediaArrivalEvent = MediaDepartureEvent.getInstance(this, param, mediaServer);
+            applicationEventPublisher.publishEvent(mediaArrivalEvent);
         }
+        return HookResult.SUCCESS();
+
+
 
         JSONObject json = (JSONObject) JSON.toJSON(param);
         taskExecutor.execute(() -> {

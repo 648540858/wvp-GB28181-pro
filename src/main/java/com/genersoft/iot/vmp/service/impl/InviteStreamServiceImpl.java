@@ -6,13 +6,18 @@ import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionStatus;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.genersoft.iot.vmp.media.event.MediaArrivalEvent;
+import com.genersoft.iot.vmp.media.event.MediaDepartureEvent;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,6 +35,35 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
+
+    @Autowired
+    private IVideoManagerStorage storage;
+
+    /**
+     * 流到来的处理
+     */
+    @Async("taskExecutor")
+    @org.springframework.context.event.EventListener
+    public void onApplicationEvent(MediaArrivalEvent event) {
+        if ("rtsp".equals(event.getSchema()) && "rtp".equals(event.getApp())) {
+
+        }
+    }
+
+    /**
+     * 流离开的处理
+     */
+    @Async("taskExecutor")
+    @EventListener
+    public void onApplicationEvent(MediaDepartureEvent event) {
+        if ("rtsp".equals(event.getSchema()) && "rtp".equals(event.getApp())) {
+            InviteInfo inviteInfo = getInviteInfoByStream(null, event.getStream());
+            if (inviteInfo != null && (inviteInfo.getType() == InviteSessionType.PLAY || inviteInfo.getType() == InviteSessionType.PLAYBACK)) {
+                removeInviteInfo(inviteInfo);
+                stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
+            }
+        }
+    }
 
     @Override
     public void updateInviteInfo(InviteInfo inviteInfo) {

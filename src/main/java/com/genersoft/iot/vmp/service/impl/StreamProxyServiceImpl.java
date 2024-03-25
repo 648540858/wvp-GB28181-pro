@@ -9,6 +9,8 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
+import com.genersoft.iot.vmp.media.event.MediaArrivalEvent;
+import com.genersoft.iot.vmp.media.event.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
@@ -33,7 +35,9 @@ import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
@@ -101,6 +105,28 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Autowired
     TransactionDefinition transactionDefinition;
+
+    /**
+     * 流到来的处理
+     */
+    @Async("taskExecutor")
+    @org.springframework.context.event.EventListener
+    public void onApplicationEvent(MediaArrivalEvent event) {
+        if ("rtsp".equals(event.getSchema())) {
+            updateStatus(true, event.getApp(), event.getStream());
+        }
+    }
+
+    /**
+     * 流离开的处理
+     */
+    @Async("taskExecutor")
+    @EventListener
+    public void onApplicationEvent(MediaDepartureEvent event) {
+        if ("rtsp".equals(event.getSchema())) {
+            updateStatus(true, event.getApp(), event.getStream());
+        }
+    }
 
 
     @Override

@@ -10,6 +10,10 @@ import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
+import com.genersoft.iot.vmp.media.bean.MediaInfo;
+import com.genersoft.iot.vmp.media.event.MediaArrivalEvent;
+import com.genersoft.iot.vmp.media.event.MediaDepartureEvent;
+import com.genersoft.iot.vmp.media.event.MediaServerChangeEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
@@ -28,7 +32,9 @@ import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
@@ -84,6 +90,42 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Autowired
     private MediaConfig mediaConfig;
+
+    /**
+     * 流到来的处理
+     */
+    @Async("taskExecutor")
+    @EventListener
+    public void onApplicationEvent(MediaArrivalEvent event) {
+        MediaInfo mediaInfo = event.getMediaInfo();
+        if (mediaInfo == null) {
+            return;
+        }
+        if (mediaInfo.getOriginType() != OriginType.RTMP_PUSH.ordinal()
+                && mediaInfo.getOriginType() != OriginType.RTSP_PUSH.ordinal()
+                && mediaInfo.getOriginType() != OriginType.RTC_PUSH.ordinal()) {
+            return;
+        }
+
+        StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(event.getApp(), event.getStream());
+        if (streamAuthorityInfo == null) {
+            streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(event);
+        } else {
+            streamAuthorityInfo.setOriginType(mediaInfo.getOriginType());
+        }
+        redisCatchStorage.updateStreamAuthorityInfo(event.getApp(), event.getStream(), streamAuthorityInfo);
+
+
+    }
+
+    /**
+     * 流离开的处理
+     */
+    @Async("taskExecutor")
+    @EventListener
+    public void onApplicationEvent(MediaDepartureEvent event) {
+
+    }
 
 
     private List<StreamPushItem> handleJSON(List<StreamInfo> streamInfoList) {

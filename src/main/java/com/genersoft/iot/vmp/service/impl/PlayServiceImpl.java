@@ -17,17 +17,17 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
+import com.genersoft.iot.vmp.media.event.MediaArrivalEvent;
+import com.genersoft.iot.vmp.media.event.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForRecordMp4;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
+import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.HookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRecordMp4HookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OriginType;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.service.redisMsg.RedisGbPlayMsgListener;
@@ -43,6 +43,8 @@ import gov.nist.javax.sip.message.SIPResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
@@ -120,6 +122,77 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private SSRCFactory ssrcFactory;
+
+    /**
+     * 流到来的处理
+     */
+    @Async("taskExecutor")
+    @org.springframework.context.event.EventListener
+    public void onApplicationEvent(MediaArrivalEvent event) {
+        if ("broadcast".equals(event.getApp())) {
+            if (event.getStream().indexOf("_") > 0) {
+                String[] streamArray = event.getStream().split("_");
+                if (streamArray.length == 2) {
+                    String deviceId = streamArray[0];
+                    String channelId = streamArray[1];
+                    Device device = deviceService.getDevice(deviceId);
+                    if (device == null) {
+                        logger.info("[语音对讲/喊话] 未找到设备：{}", deviceId);
+                        return;
+                    }
+                    if ("broadcast".equals(event.getApp())) {
+                        if (audioBroadcastManager.exit(deviceId, channelId)) {
+                            stopAudioBroadcast(deviceId, channelId);
+                        }
+                        // 开启语音对讲通道
+                        try {
+                            audioBroadcastCmd(device, channelId, event.getMediaServer(),
+                                    event.getApp(), event.getStream(), 60, false, (msg) -> {
+                                        logger.info("[语音对讲] 通道建立成功, device: {}, channel: {}", deviceId, channelId);
+                                    });
+                        } catch (InvalidArgumentException | ParseException | SipException e) {
+                            logger.error("[命令发送失败] 语音对讲: {}", e.getMessage());
+                        }
+                    }else if ("talk".equals(event.getApp())) {
+                        // 开启语音对讲通道
+                        talkCmd(device, channelId, event.getMediaServer(), event.getStream(), (msg) -> {
+                            logger.info("[语音对讲] 通道建立成功, device: {}, channel: {}", deviceId, channelId);
+                        });
+                    }
+                }
+            }
+        }
+
+
+    }
+
+    /**
+     * 流离开的处理
+     */
+    @Async("taskExecutor")
+    @EventListener
+    public void onApplicationEvent(MediaDepartureEvent event) {
+        if ("broadcast".equals(event.getApp()) || "talk".equals(event.getApp())) {
+            if (event.getStream().indexOf("_") > 0) {
+                String[] streamArray = event.getStream().split("_");
+                if (streamArray.length == 2) {
+                    String deviceId = streamArray[0];
+                    String channelId = streamArray[1];
+                    Device device = deviceService.getDevice(deviceId);
+                    if (device == null) {
+                        logger.info("[语音对讲/喊话] 未找到设备：{}", deviceId);
+                        return;
+                    }
+                    if ("broadcast".equals(event.getApp())) {
+                        stopAudioBroadcast(deviceId, channelId);
+                    }else if ("talk".equals(event.getApp())) {
+                        stopTalk(device, channelId, false);
+                    }
+
+                }
+            }
+        }
+    }
 
 
     @Override

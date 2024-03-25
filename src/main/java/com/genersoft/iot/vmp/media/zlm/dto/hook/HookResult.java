@@ -18,8 +18,8 @@ public class HookResult {
         return new HookResult(0, "success");
     }
 
-    public static HookResult Fail(){
-        return new HookResult(-1, "fail");
+    public static HookResultForOnPublish Fail(){
+        return new HookResultForOnPublish(-1, "fail");
     }
 
     public int getCode() {

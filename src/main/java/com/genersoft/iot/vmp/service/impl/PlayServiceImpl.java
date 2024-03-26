@@ -13,12 +13,15 @@ import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.event.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.MediaDepartureEvent;
+import com.genersoft.iot.vmp.media.event.MediaNotFoundEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
@@ -28,6 +31,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForRecordMp4;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.HookParam;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.HookResult;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRecordMp4HookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.*;
@@ -49,6 +53,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.sdp.*;
 import javax.sip.InvalidArgumentException;
@@ -192,6 +197,53 @@ public class PlayServiceImpl implements IPlayService {
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * 流未找到的处理
+     */
+    @Async("taskExecutor")
+    @EventListener
+    public void onApplicationEvent(MediaNotFoundEvent event) {
+        if (!"rtp".equals(event.getApp())) {
+            return;
+        }
+        String[] s = event.getStream().split("_");
+        if ((s.length != 2 && s.length != 4)) {
+            return;
+        }
+        String deviceId = s[0];
+        String channelId = s[1];
+        Device device = redisCatchStorage.getDevice(deviceId);
+        if (device == null || !device.isOnLine()) {
+            return;
+        }
+        DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
+        if (deviceChannel == null) {
+            return;
+        }
+        if (s.length == 2) {
+            logger.info("[ZLM HOOK] 预览流未找到, 发起自动点播：{}->{}->{}/{}", event.getMediaServer().getId(), event.getSchema(), event.getApp(), event.getStream());
+            play(event.getMediaServer(), deviceId, channelId, null, null);
+        } else if (s.length == 4) {
+            // 此时为录像回放， 录像回放格式为> 设备ID_通道ID_开始时间_结束时间
+            String startTimeStr = s[2];
+            String endTimeStr = s[3];
+            if (startTimeStr == null || endTimeStr == null || startTimeStr.length() != 14 || endTimeStr.length() != 14) {
+                return;
+            }
+            String startTime = DateUtil.urlToyyyy_MM_dd_HH_mm_ss(startTimeStr);
+            String endTime = DateUtil.urlToyyyy_MM_dd_HH_mm_ss(endTimeStr);
+            logger.info("[ZLM HOOK] 回放流未找到, 发起自动点播：{}->{}->{}/{}-{}-{}",
+                    event.getMediaServer().getId(), event.getSchema(),
+                    event.getApp(), event.getStream(),
+                    startTime, endTime
+            );
+
+            SSRCInfo ssrcInfo = mediaServerService.openRTPServer(event.getMediaServer(), event.getStream(), null,
+                    device.isSsrcCheck(), true, 0, false, false, device.getStreamModeForParam());
+            playBack(event.getMediaServer(), ssrcInfo, deviceId, channelId, startTime, endTime, null);
         }
     }
 

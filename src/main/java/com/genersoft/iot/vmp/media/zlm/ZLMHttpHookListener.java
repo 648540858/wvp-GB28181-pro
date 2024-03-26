@@ -277,14 +277,6 @@ public class ZLMHttpHookListener {
         ZLMServerConfig zlmServerConfig = JSON.to(ZLMServerConfig.class, jsonObject);
         zlmServerConfig.setIp(request.getRemoteAddr());
         logger.info("[ZLM HOOK] zlm 启动 " + zlmServerConfig.getGeneralMediaServerId());
-        taskExecutor.execute(() -> {
-            List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_server_started);
-            if (subscribes != null && !subscribes.isEmpty()) {
-                for (ZlmHttpHookSubscribe.Event subscribe : subscribes) {
-                    subscribe.response(null, zlmServerConfig);
-                }
-            }
-        });
         try {
             HookZlmServerStartEvent event = new HookZlmServerStartEvent(this);
             MediaServer mediaServerItem = mediaServerService.getOne(zlmServerConfig.getMediaServerId());

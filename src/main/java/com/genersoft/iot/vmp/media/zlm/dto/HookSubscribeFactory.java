@@ -49,14 +49,6 @@ public class HookSubscribeFactory {
         return hookSubscribe;
     }
 
-
-    public static HookSubscribeForServerStarted on_server_started() {
-        HookSubscribeForServerStarted hookSubscribe = new HookSubscribeForServerStarted();
-        hookSubscribe.setContent(new JSONObject());
-
-        return hookSubscribe;
-    }
-
     public static HookSubscribeForRecordMp4 on_record_mp4(String mediaServerId, String app, String stream) {
         HookSubscribeForRecordMp4 hookSubscribe = new HookSubscribeForRecordMp4();
         JSONObject subscribeKey = new com.alibaba.fastjson2.JSONObject();

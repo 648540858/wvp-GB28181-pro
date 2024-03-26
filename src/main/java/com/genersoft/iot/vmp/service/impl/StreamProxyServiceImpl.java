@@ -124,7 +124,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @EventListener
     public void onApplicationEvent(MediaDepartureEvent event) {
         if ("rtsp".equals(event.getSchema())) {
-            updateStatus(true, event.getApp(), event.getStream());
+            updateStatus(false, event.getApp(), event.getStream());
         }
     }
 

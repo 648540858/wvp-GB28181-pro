@@ -45,9 +45,9 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     @Async("taskExecutor")
     @org.springframework.context.event.EventListener
     public void onApplicationEvent(MediaArrivalEvent event) {
-        if ("rtsp".equals(event.getSchema()) && "rtp".equals(event.getApp())) {
-
-        }
+//        if ("rtsp".equals(event.getSchema()) && "rtp".equals(event.getApp())) {
+//
+//        }
     }
 
     /**
@@ -60,7 +60,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
             InviteInfo inviteInfo = getInviteInfoByStream(null, event.getStream());
             if (inviteInfo != null && (inviteInfo.getType() == InviteSessionType.PLAY || inviteInfo.getType() == InviteSessionType.PLAYBACK)) {
                 removeInviteInfo(inviteInfo);
-                stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
+                storage.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
             }
         }
     }

@@ -126,6 +126,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
             streamPushMapper.update(transform);
             gbStreamMapper.updateMediaServer(event.getApp(), event.getStream(), event.getMediaServer().getId());
         }
+        // TODO 相关的事件自行管理，不需要写入ZLMMediaListManager
 //        ChannelOnlineEvent channelOnlineEventLister = getChannelOnlineEventLister(transform.getApp(), transform.getStream());
 //        if ( channelOnlineEventLister != null)  {
 //            try {
@@ -137,6 +138,15 @@ public class StreamPushServiceImpl implements IStreamPushService {
 //        }
         // 冗余数据，自己系统中自用
         redisCatchStorage.addPushListItem(event.getApp(), event.getStream(), event);
+
+        // 发送流变化redis消息
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("serverId", userSetting.getServerId());
+        jsonObject.put("app", event.getApp());
+        jsonObject.put("stream", event.getStream());
+        jsonObject.put("register", true);
+        jsonObject.put("mediaServerId", event.getMediaServer().getId());
+        redisCatchStorage.sendStreamChangeMsg(OriginType.values()[event.getMediaInfo().getOriginType()].getType(), jsonObject);
     }
 
     /**
@@ -145,7 +155,36 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Async("taskExecutor")
     @EventListener
     public void onApplicationEvent(MediaDepartureEvent event) {
-
+        // 兼容流注销时类型从redis记录获取
+        OnStreamChangedHookParam onStreamChangedHookParam = redisCatchStorage.getStreamInfo(
+                event.getApp(), event.getStream(), event.getMediaServer().getId());
+        if (onStreamChangedHookParam != null) {
+            String type = OriginType.values()[onStreamChangedHookParam.getOriginType()].getType();
+            redisCatchStorage.removeStream(event.getMediaServer().getId(), type, event.getApp(), event.getStream());
+            if ("PUSH".equalsIgnoreCase(type)) {
+                // 冗余数据，自己系统中自用
+                redisCatchStorage.removePushListItem(event.getApp(), event.getStream(), event.getMediaServer().getId());
+            }
+            if (type != null) {
+                // 发送流变化redis消息
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("serverId", userSetting.getServerId());
+                jsonObject.put("app", event.getApp());
+                jsonObject.put("stream", event.getStream());
+                jsonObject.put("register", false);
+                jsonObject.put("mediaServerId", event.getMediaServer().getId());
+                redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
+            }
+        }
+        GbStream gbStream = storager.getGbStream(event.getApp(), event.getStream());
+        if (gbStream != null) {
+            if (userSetting.isUsePushingAsStatus()) {
+                storager.mediaOffline(event.getApp(), event.getStream());
+                eventPublisher.catalogEventPublishForStream(null, gbStream, CatalogEvent.OFF);
+            }
+        }else {
+            storager.removeMedia(event.getApp(), event.getStream());
+        }
     }
 
 

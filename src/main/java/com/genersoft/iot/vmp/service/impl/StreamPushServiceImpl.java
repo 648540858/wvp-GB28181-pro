@@ -13,7 +13,6 @@ import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.event.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.MediaDepartureEvent;
-import com.genersoft.iot.vmp.media.event.MediaServerChangeEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
@@ -114,8 +113,30 @@ public class StreamPushServiceImpl implements IStreamPushService {
             streamAuthorityInfo.setOriginType(mediaInfo.getOriginType());
         }
         redisCatchStorage.updateStreamAuthorityInfo(event.getApp(), event.getStream(), streamAuthorityInfo);
-
-
+        StreamPushItem transform = StreamPushItem.getInstance(event, userSetting.getServerId());
+        transform.setPushIng(true);
+        transform.setUpdateTime(DateUtil.getNow());
+        transform.setPushTime(DateUtil.getNow());
+        transform.setSelf(true);
+        StreamPushItem pushInDb = getPush(event.getApp(), event.getStream());
+        if (pushInDb == null) {
+            transform.setCreateTime(DateUtil.getNow());
+            streamPushMapper.add(transform);
+        }else {
+            streamPushMapper.update(transform);
+            gbStreamMapper.updateMediaServer(event.getApp(), event.getStream(), event.getMediaServer().getId());
+        }
+//        ChannelOnlineEvent channelOnlineEventLister = getChannelOnlineEventLister(transform.getApp(), transform.getStream());
+//        if ( channelOnlineEventLister != null)  {
+//            try {
+//                channelOnlineEventLister.run(transform.getApp(), transform.getStream(), transform.getServerId());;
+//            } catch (ParseException e) {
+//                logger.error("addPush: ", e);
+//            }
+//            removedChannelOnlineEventLister(transform.getApp(), transform.getStream());
+//        }
+        // 冗余数据，自己系统中自用
+        redisCatchStorage.addPushListItem(event.getApp(), event.getStream(), event);
     }
 
     /**
@@ -141,7 +162,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
                 String key = streamInfo.getApp() + "_" + streamInfo.getStream();
                 StreamPushItem streamPushItem = result.get(key);
                 if (streamPushItem == null) {
-                    streamPushItem = streamPushItem.instance(streamInfo);
+                    streamPushItem = streamPushItem.getInstance(streamInfo);
                     result.put(key, streamPushItem);
                 }
             }

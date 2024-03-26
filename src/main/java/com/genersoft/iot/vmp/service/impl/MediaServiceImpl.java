@@ -7,9 +7,11 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
+import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
@@ -22,6 +24,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.HookResultForOnPublish;
 import com.genersoft.iot.vmp.service.*;
+import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -35,6 +38,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +82,15 @@ public class MediaServiceImpl implements IMediaService {
 
     @Autowired
     private ZLMMediaListManager zlmMediaListManager;
+
+    @Autowired
+    private IDeviceService deviceService;
+
+    @Autowired
+    private ISIPCommanderForPlatform commanderForPlatform;
+
+    @Autowired
+    private ISIPCommander commander;
 
 
 
@@ -290,5 +305,99 @@ public class MediaServiceImpl implements IMediaService {
             }
         }
         return map;
+    }
+
+    @Override
+    public boolean closeStreamOnNoneReader(String mediaServerId, String app, String stream, String schema) {
+        boolean result = false;
+        // 国标类型的流
+        if ("rtp".equals(app)) {
+            result = userSetting.getStreamOnDemand();
+            // 国标流， 点播/录像回放/录像下载
+            InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, stream);
+            // 点播
+            if (inviteInfo != null) {
+                // 录像下载
+                if (inviteInfo.getType() == InviteSessionType.DOWNLOAD) {
+                    return false;
+                }
+                // 收到无人观看说明流也没有在往上级推送
+                if (redisCatchStorage.isChannelSendingRTP(inviteInfo.getChannelId())) {
+                    List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByChannelId(
+                            inviteInfo.getChannelId());
+                    if (!sendRtpItems.isEmpty()) {
+                        for (SendRtpItem sendRtpItem : sendRtpItems) {
+                            ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
+                            try {
+                                commanderForPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
+                            } catch (SipException | InvalidArgumentException | ParseException e) {
+                                logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+                            }
+                            redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
+                                    sendRtpItem.getCallId(), sendRtpItem.getStream());
+                            if (InviteStreamType.PUSH == sendRtpItem.getPlayType()) {
+                                MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
+                                        sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getChannelId(),
+                                        sendRtpItem.getPlatformId(), parentPlatform.getName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
+                                messageForPushChannel.setPlatFormIndex(parentPlatform.getId());
+                                redisCatchStorage.sendPlatformStopPlayMsg(messageForPushChannel);
+                            }
+                        }
+                    }
+                }
+                Device device = deviceService.getDevice(inviteInfo.getDeviceId());
+                if (device != null) {
+                    try {
+                        // 多查询一次防止已经被处理了
+                        InviteInfo info = inviteStreamService.getInviteInfo(inviteInfo.getType(),
+                                inviteInfo.getDeviceId(), inviteInfo.getChannelId(), inviteInfo.getStream());
+                        if (info != null) {
+                            commander.streamByeCmd(device, inviteInfo.getChannelId(),
+                                    inviteInfo.getStream(), null);
+                        } else {
+                            logger.info("[无人观看] 未找到设备的点播信息： {}， 流：{}", inviteInfo.getDeviceId(), stream);
+                        }
+                    } catch (InvalidArgumentException | ParseException | SipException |
+                             SsrcTransactionNotFoundException e) {
+                        logger.error("[无人观看]点播， 发送BYE失败 {}", e.getMessage());
+                    }
+                } else {
+                    logger.info("[无人观看] 未找到设备： {}，流：{}", inviteInfo.getDeviceId(), stream);
+                }
+
+                inviteStreamService.removeInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(),
+                        inviteInfo.getChannelId(), inviteInfo.getStream());
+                storager.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
+                return result;
+            }
+            SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(null, null, stream, null);
+            if (sendRtpItem != null && "talk".equals(sendRtpItem.getApp())) {
+                return false;
+            }
+        } else if ("talk".equals(app) || "broadcast".equals(app)) {
+            return false;
+        } else {
+            // 非国标流 推流/拉流代理
+            // 拉流代理
+            StreamProxyItem streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(app, stream);
+            if (streamProxyItem != null) {
+                if (streamProxyItem.isEnableRemoveNoneReader()) {
+                    // 无人观看自动移除
+                    result = true;
+                    streamProxyService.del(app, stream);
+                    String url = streamProxyItem.getUrl() != null ? streamProxyItem.getUrl() : streamProxyItem.getSrcUrl();
+                    logger.info("[{}/{}]<-[{}] 拉流代理无人观看已经移除", app, stream, url);
+                } else if (streamProxyItem.isEnableDisableNoneReader()) {
+                    // 无人观看停用
+                    result = true;
+                    // 修改数据
+                    streamProxyService.stop(app, stream);
+                } else {
+                    // 无人观看不做处理
+                    result = false;
+                }
+            }
+        }
+        return result;
     }
 }

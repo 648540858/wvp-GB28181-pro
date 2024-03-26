@@ -241,98 +241,9 @@ public class ZLMHttpHookListener {
         logger.info("[ZLM HOOK]流无人观看：{}->{}->{}/{}", param.getMediaServerId(), param.getSchema(),
                 param.getApp(), param.getStream());
         JSONObject ret = new JSONObject();
-        ret.put("code", 0);
-        // 国标类型的流
-        if ("rtp".equals(param.getApp())) {
-            ret.put("close", userSetting.getStreamOnDemand());
-            // 国标流， 点播/录像回放/录像下载
-            InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, param.getStream());
-            // 点播
-            if (inviteInfo != null) {
-                // 录像下载
-                if (inviteInfo.getType() == InviteSessionType.DOWNLOAD) {
-                    ret.put("close", false);
-                    return ret;
-                }
-                // 收到无人观看说明流也没有在往上级推送
-                if (redisCatchStorage.isChannelSendingRTP(inviteInfo.getChannelId())) {
-                    List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByChannelId(
-                            inviteInfo.getChannelId());
-                    if (!sendRtpItems.isEmpty()) {
-                        for (SendRtpItem sendRtpItem : sendRtpItems) {
-                            ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
-                            try {
-                                commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
-                            } catch (SipException | InvalidArgumentException | ParseException e) {
-                                logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
-                            }
-                            redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
-                                    sendRtpItem.getCallId(), sendRtpItem.getStream());
-                            if (InviteStreamType.PUSH == sendRtpItem.getPlayType()) {
-                                MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
-                                        sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getChannelId(),
-                                        sendRtpItem.getPlatformId(), parentPlatform.getName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
-                                messageForPushChannel.setPlatFormIndex(parentPlatform.getId());
-                                redisCatchStorage.sendPlatformStopPlayMsg(messageForPushChannel);
-                            }
-                        }
-                    }
-                }
-                Device device = deviceService.getDevice(inviteInfo.getDeviceId());
-                if (device != null) {
-                    try {
-                        // 多查询一次防止已经被处理了
-                        InviteInfo info = inviteStreamService.getInviteInfo(inviteInfo.getType(),
-                                inviteInfo.getDeviceId(), inviteInfo.getChannelId(), inviteInfo.getStream());
-                        if (info != null) {
-                            cmder.streamByeCmd(device, inviteInfo.getChannelId(),
-                                    inviteInfo.getStream(), null);
-                        } else {
-                            logger.info("[无人观看] 未找到设备的点播信息： {}， 流：{}", inviteInfo.getDeviceId(), param.getStream());
-                        }
-                    } catch (InvalidArgumentException | ParseException | SipException |
-                             SsrcTransactionNotFoundException e) {
-                        logger.error("[无人观看]点播， 发送BYE失败 {}", e.getMessage());
-                    }
-                } else {
-                    logger.info("[无人观看] 未找到设备： {}，流：{}", inviteInfo.getDeviceId(), param.getStream());
-                }
 
-                inviteStreamService.removeInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(),
-                        inviteInfo.getChannelId(), inviteInfo.getStream());
-                storager.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
-                return ret;
-            }
-            SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(null, null, param.getStream(), null);
-            if (sendRtpItem != null && "talk".equals(sendRtpItem.getApp())) {
-                ret.put("close", false);
-                return ret;
-            }
-        } else if ("talk".equals(param.getApp()) || "broadcast".equals(param.getApp())) {
-            ret.put("close", false);
-        } else {
-            // 非国标流 推流/拉流代理
-            // 拉流代理
-            StreamProxyItem streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
-            if (streamProxyItem != null) {
-                if (streamProxyItem.isEnableRemoveNoneReader()) {
-                    // 无人观看自动移除
-                    ret.put("close", true);
-                    streamProxyService.del(param.getApp(), param.getStream());
-                    String url = streamProxyItem.getUrl() != null ? streamProxyItem.getUrl() : streamProxyItem.getSrcUrl();
-                    logger.info("[{}/{}]<-[{}] 拉流代理无人观看已经移除", param.getApp(), param.getStream(), url);
-                } else if (streamProxyItem.isEnableDisableNoneReader()) {
-                    // 无人观看停用
-                    ret.put("close", true);
-                    // 修改数据
-                    streamProxyService.stop(param.getApp(), param.getStream());
-                } else {
-                    // 无人观看不做处理
-                    ret.put("close", false);
-                }
-                return ret;
-            }
-        }
+        boolean close = mediaService.closeStreamOnNoneReader(param.getMediaServerId(), param.getApp(), param.getStream(), param.getSchema());
+        ret.put("code", close);
         return ret;
     }
 
@@ -346,8 +257,8 @@ public class ZLMHttpHookListener {
 
         DeferredResult<HookResult> defaultResult = new DeferredResult<>();
 
-        MediaServer mediaInfo = mediaServerService.getOne(param.getMediaServerId());
-        if (!userSetting.isAutoApplyPlay() || mediaInfo == null) {
+        MediaServer mediaServer = mediaServerService.getOne(param.getMediaServerId());
+        if (!userSetting.isAutoApplyPlay() || mediaServer == null) {
             defaultResult.setResult(new HookResult(ErrorCode.ERROR404.getCode(), ErrorCode.ERROR404.getMsg()));
             return defaultResult;
         }
@@ -392,7 +303,7 @@ public class ZLMHttpHookListener {
                 resultHolder.put(key, uuid, result);
 
                 if (!exist) {
-                    playService.play(mediaInfo, deviceId, channelId, null, (code, message, data) -> {
+                    playService.play(mediaServer, deviceId, channelId, null, (code, message, data) -> {
                         msg.setData(new HookResult(code, message));
                         resultHolder.invokeResult(msg);
                     });
@@ -431,9 +342,9 @@ public class ZLMHttpHookListener {
                 resultHolder.put(key, uuid, result);
 
                 if (!exist) {
-                    SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaInfo, param.getStream(), null,
+                    SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServer, param.getStream(), null,
                             device.isSsrcCheck(), true, 0, false, false, device.getStreamModeForParam());
-                    playService.playBack(mediaInfo, ssrcInfo, deviceId, channelId, startTime, endTime, (code, message, data) -> {
+                    playService.playBack(mediaServer, ssrcInfo, deviceId, channelId, startTime, endTime, (code, message, data) -> {
                         msg.setData(new HookResult(code, message));
                         resultHolder.invokeResult(msg);
                     });

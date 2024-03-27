@@ -131,11 +131,11 @@ export default {
                   type = 2;
                 }
                 console.log(type)
-                if (item.basicData.ptztype === 1 ) { // 1-球机;2-半球;3-固定枪机;4-遥控枪机
+                if (item.basicData.ptzType === 1 ) { // 1-球机;2-半球;3-固定枪机;4-遥控枪机
                   type = 4;
-                }else if (item.basicData.ptztype === 2) {
+                }else if (item.basicData.ptzType === 2) {
                   type = 5;
-                }else if (item.basicData.ptztype === 3 || item.basicData.ptztype === 4) {
+                }else if (item.basicData.ptzType === 3 || item.basicData.ptzType === 4) {
                   type = 6;
                 }
               }else {

@@ -447,16 +447,16 @@ public class DeviceChannel {
 		this.password = password;
 	}
 
-	public int getPTZType() {
+	public int getPtzType() {
 		return ptzType;
 	}
 
-	public String getPTZTypeText() {
+	public String getPtzTypeText() {
 		return ptzTypeText;
 	}
 
-	public void setPTZTypeText(String PTZTypeText) {
-		this.ptzTypeText = PTZTypeText;
+	public void setPtzTypeText(String ptzTypeText) {
+		this.ptzTypeText = ptzTypeText;
 	}
 
 	public boolean isStatus() {

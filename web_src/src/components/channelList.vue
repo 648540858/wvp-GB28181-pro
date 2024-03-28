@@ -178,13 +178,24 @@
                          @click="changeSubchannel(scope.row)">查看
               </el-button>
               <el-divider v-if="scope.row.subCount > 0 || scope.row.parental === 1" direction="vertical"></el-divider>
-              <el-button size="medium" v-bind:disabled="device == null || device.online === 0"
-                         icon="el-icon-video-camera"
-                         type="text" @click="queryRecords(scope.row)">设备录像
-              </el-button>
-              <el-button size="medium" v-bind:disabled="device == null || device.online === 0" icon="el-icon-cloudy"
-                         type="text" @click="queryCloudRecords(scope.row)">云端录像
-              </el-button>
+<!--              <el-button size="medium" v-bind:disabled="device == null || device.online === 0"-->
+<!--                         icon="el-icon-video-camera"-->
+<!--                         type="text" @click="queryRecords(scope.row)">设备录像-->
+<!--              </el-button>-->
+<!--              <el-button size="medium" v-bind:disabled="device == null || device.online === 0" icon="el-icon-cloudy"-->
+<!--                         type="text" @click="queryCloudRecords(scope.row)">云端录像-->
+<!--              </el-button>-->
+              <el-dropdown @command="(command)=>{moreClick(command, scope.row)}">
+                <el-button size="medium" type="text" >
+                  更多功能<i class="el-icon-arrow-down el-icon--right"></i>
+                </el-button>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item command="records" v-bind:disabled="device == null || device.online === 0">
+                    设备录像</el-dropdown-item>
+                  <el-dropdown-item command="cloudRecords" v-bind:disabled="device == null || device.online === 0" >
+                    云端录像</el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
             </template>
           </el-table-column>
         </el-table>
@@ -371,6 +382,13 @@ export default {
         that.isLoging = false;
         // that.$message.error("请求超时");
       });
+    },
+    moreClick: function (command, itemData) {
+      if (command === "records") {
+        this.queryRecords(itemData)
+      }else if (command === "cloudRecords") {
+        this.queryCloudRecords(itemData)
+      }
     },
     queryRecords: function (itemData) {
       let deviceId = this.deviceId;

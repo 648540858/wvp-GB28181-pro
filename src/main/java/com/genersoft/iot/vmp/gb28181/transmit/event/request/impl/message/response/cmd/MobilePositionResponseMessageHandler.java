@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
@@ -131,11 +130,7 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
             mobilePosition.setLongitudeGcj02(deviceChannel.getLongitudeGcj02());
             mobilePosition.setLatitudeGcj02(deviceChannel.getLatitudeGcj02());
 
-            if (userSetting.getSavePositionHistory()) {
-                storager.insertMobilePosition(mobilePosition);
-            }
-
-            storager.updateChannelPosition(deviceChannel);
+            deviceChannelService.updateChannelGPS(device, deviceChannel, mobilePosition);
 
             String key = DeferredResultHolder.CALLBACK_CMD_MOBILE_POSITION + device.getDeviceId();
             RequestMessage msg = new RequestMessage();
@@ -143,17 +138,6 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
             msg.setData(mobilePosition);
             resultHolder.invokeAllResult(msg);
 
-            // 发送redis消息。 通知位置信息的变化
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("time", DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
-            jsonObject.put("serial", deviceChannel.getDeviceId());
-            jsonObject.put("code", deviceChannel.getChannelId());
-            jsonObject.put("longitude", mobilePosition.getLongitude());
-            jsonObject.put("latitude", mobilePosition.getLatitude());
-            jsonObject.put("altitude", mobilePosition.getAltitude());
-            jsonObject.put("direction", mobilePosition.getDirection());
-            jsonObject.put("speed", mobilePosition.getSpeed());
-            redisCatchStorage.sendMobilePositionMsg(jsonObject);
             //回复 200 OK
             try {
                 responseAck(request, Response.OK);

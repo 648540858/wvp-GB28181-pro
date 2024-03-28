@@ -10,6 +10,9 @@ import com.genersoft.iot.vmp.gb28181.event.record.RecordEndEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.event.MediaServerOfflineEvent;
 import com.genersoft.iot.vmp.media.event.MediaServerOnlineEvent;
+import com.genersoft.iot.vmp.gb28181.event.subscribe.mobilePosition.MobilePositionEvent;
+import com.genersoft.iot.vmp.media.zlm.event.ZLMOfflineEvent;
+import com.genersoft.iot.vmp.media.zlm.event.ZLMOnlineEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -93,6 +96,13 @@ public class EventPublisher {
 		outEvent.setType(type);
 		outEvent.setPlatformId(platformId);
 		applicationEventPublisher.publishEvent(outEvent);
+	}
+
+
+	public void mobilePositionEventPublish(MobilePosition mobilePosition) {
+		MobilePositionEvent event = new MobilePositionEvent(this);
+		event.setMobilePosition(mobilePosition);
+		applicationEventPublisher.publishEvent(event);
 	}
 
 

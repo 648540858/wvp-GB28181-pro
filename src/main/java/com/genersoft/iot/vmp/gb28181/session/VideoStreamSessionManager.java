@@ -50,7 +50,7 @@ public class VideoStreamSessionManager {
 		ssrcTransaction.setType(type);
 
 		redisTemplate.opsForValue().set(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId()
-				+ "_" +  deviceId + "_" + channelId + "_" + callId + "_" + stream, ssrcTransaction);
+				+ ":" +  deviceId + ":" + channelId + ":" + callId + ":" + stream, ssrcTransaction);
 	}
 
 	public SsrcTransaction getSsrcTransaction(String deviceId, String channelId, String callId, String stream){
@@ -67,7 +67,7 @@ public class VideoStreamSessionManager {
 		if (ObjectUtils.isEmpty(stream)) {
 			stream ="*";
 		}
-		String key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + "_" + deviceId + "_" + channelId + "_" + callId+ "_" + stream;
+		String key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + ":" + deviceId + ":" + channelId + ":" + callId+ ":" + stream;
 		List<Object> scanResult = RedisUtil.scan(redisTemplate, key);
 		if (scanResult.size() == 0) {
 			return null;
@@ -80,12 +80,12 @@ public class VideoStreamSessionManager {
 		if (ObjectUtils.isEmpty(callId)) {
 			return null;
 		}
-		String key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + "_*_*_" + callId+ "_*";
+		String key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + ":*:*:" + callId+ ":*";
 		List<Object> scanResult = RedisUtil.scan(redisTemplate, key);
 		if (!scanResult.isEmpty()) {
 			return (SsrcTransaction)redisTemplate.opsForValue().get(scanResult.get(0));
 		}else {
-			key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + "_*_*_play_*";
+			key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + ":*:*:play:*";
 			scanResult = RedisUtil.scan(redisTemplate, key);
 			if (scanResult.isEmpty()) {
 				return null;
@@ -115,7 +115,7 @@ public class VideoStreamSessionManager {
 		if (ObjectUtils.isEmpty(stream)) {
 			stream ="*";
 		}
-		String key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + "_" + deviceId + "_" + channelId + "_" + callId+ "_" + stream;
+		String key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + ":" + deviceId + ":" + channelId + ":" + callId+ ":" + stream;
 		List<Object> scanResult = RedisUtil.scan(redisTemplate, key);
 		if (scanResult.size() == 0) {
 			return null;
@@ -149,8 +149,8 @@ public class VideoStreamSessionManager {
 			return;
 		}
 		for (SsrcTransaction ssrcTransaction : ssrcTransactionList) {
-			redisTemplate.delete(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + "_"
-					+  deviceId + "_" + channelId + "_" + ssrcTransaction.getCallId() + "_" + ssrcTransaction.getStream());
+			redisTemplate.delete(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + ":"
+					+  deviceId + ":" + channelId + ":" + ssrcTransaction.getCallId() + ":" + ssrcTransaction.getStream());
 		}
 	}
 
@@ -159,8 +159,8 @@ public class VideoStreamSessionManager {
 		if (ssrcTransaction == null ) {
 			return;
 		}
-		redisTemplate.delete(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + "_"
-				+  deviceId + "_" + channelId + "_" + ssrcTransaction.getCallId() + "_" + ssrcTransaction.getStream());
+		redisTemplate.delete(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + ":"
+				+  deviceId + ":" + channelId + ":" + ssrcTransaction.getCallId() + ":" + ssrcTransaction.getStream());
 	}
 
 

@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.media.zlm.dto;
+package com.genersoft.iot.vmp.media.event.hook;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.alibaba.fastjson2.annotation.JSONField;

@@ -1,12 +1,12 @@
-package com.genersoft.iot.vmp.media.event;
+package com.genersoft.iot.vmp.media.event.hook;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.genersoft.iot.vmp.media.zlm.dto.HookType;
-import com.genersoft.iot.vmp.media.zlm.dto.IHookSubscribe;
+import com.genersoft.iot.vmp.media.event.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.HookParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -30,6 +30,19 @@ public class HookSubscribe {
         void response(MediaServer mediaServerItem, HookParam hookParam);
     }
 
+    /**
+     * 流到来的处理
+     */
+    @Async("taskExecutor")
+    @org.springframework.context.event.EventListener
+    public void onApplicationEvent(MediaArrivalEvent event) {
+        for (HookType hookType : allSubscribes.keySet()) {
+            if (hookType.equals(HookType.on_stream_changed)) {
+
+            }
+        }
+    }
+
     private Map<HookType, Map<IHookSubscribe, HookSubscribe.Event>> allSubscribes = new ConcurrentHashMap<>();
 
     public void addSubscribe(IHookSubscribe hookSubscribe, HookSubscribe.Event event) {
@@ -39,7 +52,6 @@ public class HookSubscribe {
             hookSubscribe.setExpires(expiresInstant);
         }
         allSubscribes.computeIfAbsent(hookSubscribe.getHookType(), k -> new ConcurrentHashMap<>()).put(hookSubscribe, event);
-        System.out.println(allSubscribes);
     }
 
     public HookSubscribe.Event sendNotify(HookType type, JSONObject hookResponse) {

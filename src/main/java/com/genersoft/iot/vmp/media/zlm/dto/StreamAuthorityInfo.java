@@ -1,8 +1,6 @@
 package com.genersoft.iot.vmp.media.zlm.dto;
 
 import com.genersoft.iot.vmp.media.event.MediaArrivalEvent;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnPublishHookParam;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 
 /**
  * 流的鉴权信息
@@ -110,7 +108,7 @@ public class StreamAuthorityInfo {
         StreamAuthorityInfo streamAuthorityInfo = new StreamAuthorityInfo();
         streamAuthorityInfo.setApp(event.getApp());
         streamAuthorityInfo.setStream(event.getStream());
-        streamAuthorityInfo.setId(event.getSeverId());
+        streamAuthorityInfo.setId(event.getMediaServer().getId());
         if (event.getMediaInfo() != null) {
             streamAuthorityInfo.setOriginType(event.getMediaInfo().getOriginType());
         }

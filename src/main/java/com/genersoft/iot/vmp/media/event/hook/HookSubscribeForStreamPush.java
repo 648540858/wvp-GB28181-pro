@@ -1,21 +1,20 @@
-package com.genersoft.iot.vmp.media.zlm.dto;
+package com.genersoft.iot.vmp.media.event.hook;
+
 
 import com.alibaba.fastjson2.JSONObject;
-import com.alibaba.fastjson2.annotation.JSONField;
 
 import java.time.Instant;
 
 /**
- * hook订阅-收流超时
+ * hook订阅-开始推流
  * @author lin
  */
-public class HookSubscribeForRtpServerTimeout implements IHookSubscribe{
+public class HookSubscribeForStreamPush implements IHookSubscribe{
 
-    private HookType hookType = HookType.on_rtp_server_timeout;
+    private HookType hookType = HookType.on_publish;
 
     private JSONObject content;
 
-    @JSONField(format="yyyy-MM-dd HH:mm:ss")
     private Instant expires;
 
     @Override

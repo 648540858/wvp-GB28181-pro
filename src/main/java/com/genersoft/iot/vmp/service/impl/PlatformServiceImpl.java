@@ -14,9 +14,10 @@ import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.media.event.MediaDepartureEvent;
+import com.genersoft.iot.vmp.media.event.MediaSendRtpStoppedEvent;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
-import com.genersoft.iot.vmp.media.event.HookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
@@ -124,6 +125,29 @@ public class PlatformServiceImpl implements IPlatformService {
                         logger.error("[命令发送失败] 发送BYE: {}", e.getMessage());
                     }
                 }
+            }
+        }
+    }
+
+
+    /**
+     * 发流停止
+     */
+    @Async("taskExecutor")
+    @EventListener
+    public void onApplicationEvent(MediaSendRtpStoppedEvent event) {
+        List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(event.getStream());
+        if (!sendRtpItems.isEmpty()) {
+            for (SendRtpItem sendRtpItem : sendRtpItems) {
+                ParentPlatform parentPlatform = platformMapper.getParentPlatByServerGBId(sendRtpItem.getPlatformId());
+                ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
+                try {
+                    commanderForPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+                }
+                redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
+                        sendRtpItem.getCallId(), sendRtpItem.getStream());
             }
         }
     }

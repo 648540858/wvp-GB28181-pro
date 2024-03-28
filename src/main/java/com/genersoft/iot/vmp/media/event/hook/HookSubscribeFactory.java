@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.media.zlm.dto;
+package com.genersoft.iot.vmp.media.event.hook;
 
 
 import com.alibaba.fastjson2.JSONObject;
@@ -31,7 +31,6 @@ public class HookSubscribeFactory {
         subscribeKey.put("ssrc", ssrc);
         subscribeKey.put("mediaServerId", mediaServerId);
         hookSubscribe.setContent(subscribeKey);
-
         return hookSubscribe;
     }
 

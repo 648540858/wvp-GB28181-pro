@@ -3,7 +3,6 @@ package com.genersoft.iot.vmp.media.zlm;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
@@ -12,12 +11,10 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
-import com.genersoft.iot.vmp.media.event.HookSubscribe;
-import com.genersoft.iot.vmp.media.event.MediaArrivalEvent;
-import com.genersoft.iot.vmp.media.event.MediaDepartureEvent;
-import com.genersoft.iot.vmp.media.event.MediaNotFoundEvent;
+import com.genersoft.iot.vmp.media.event.*;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
+import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.media.zlm.dto.HookType;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.*;
@@ -37,9 +34,6 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.sip.InvalidArgumentException;
-import javax.sip.SipException;
-import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -294,22 +288,16 @@ public class ZLMHttpHookListener {
         if (!"rtp".equals(param.getApp())) {
             return HookResult.SUCCESS();
         }
-        taskExecutor.execute(() -> {
-            List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(param.getStream());
-            if (sendRtpItems.size() > 0) {
-                for (SendRtpItem sendRtpItem : sendRtpItems) {
-                    ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
-                    ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
-                    try {
-                        commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
-                    } catch (SipException | InvalidArgumentException | ParseException e) {
-                        logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
-                    }
-                    redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
-                            sendRtpItem.getCallId(), sendRtpItem.getStream());
-                }
+        try {
+            MediaSendRtpStoppedEvent event = new MediaSendRtpStoppedEvent(this);
+            MediaServer mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
+            if (mediaServerItem != null) {
+                event.setMediaServer(mediaServerItem);
+                applicationEventPublisher.publishEvent(event);
             }
-        });
+        }catch (Exception e) {
+            logger.info("[ZLM-HOOK-rtp发送关闭] 发送通知失败 ", e);
+        }
 
         return HookResult.SUCCESS();
     }
@@ -323,6 +311,16 @@ public class ZLMHttpHookListener {
             param) {
         logger.info("[ZLM HOOK] rtpServer收流超时：{}->{}({})", param.getMediaServerId(), param.getStream_id(), param.getSsrc());
 
+        try {
+            MediaRtpServerTimeoutEvent event = new MediaRtpServerTimeoutEvent(this);
+            MediaServer mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
+            if (mediaServerItem != null) {
+                event.setMediaServer(mediaServerItem);
+                applicationEventPublisher.publishEvent(event);
+            }
+        }catch (Exception e) {
+            logger.info("[ZLM-HOOK-rtpServer收流超时] 发送通知失败 ", e);
+        }
         taskExecutor.execute(() -> {
             List<HookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_rtp_server_timeout);
             if (subscribes != null && !subscribes.isEmpty()) {

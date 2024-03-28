@@ -51,8 +51,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (StringUtils.isBlank(jwt)) {
             jwt = request.getParameter(JwtUtils.getHeader());
             if (StringUtils.isBlank(jwt)) {
-                chain.doFilter(request, response);
-                return;
+                jwt = request.getHeader(JwtUtils.getApiKeyHeader());
+                if (StringUtils.isBlank(jwt)) {
+                    chain.doFilter(request, response);
+                    return;
+                }
             }
         }
 

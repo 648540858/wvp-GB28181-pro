@@ -11,6 +11,8 @@ public interface IUserService {
 
     boolean changePassword(int id, String password);
 
+    User getUserById(int id);
+
     User getUserByUsername(String username);
 
     int addUser(User user);

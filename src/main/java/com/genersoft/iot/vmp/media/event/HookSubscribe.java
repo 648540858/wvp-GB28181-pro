@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.media.zlm;
+package com.genersoft.iot.vmp.media.event;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.media.zlm.dto.HookType;
@@ -21,18 +21,18 @@ import java.util.concurrent.TimeUnit;
  * @author lin
  */
 @Component
-public class ZlmHttpHookSubscribe {
+public class HookSubscribe {
 
-    private final static Logger logger = LoggerFactory.getLogger(ZlmHttpHookSubscribe.class);
+    private final static Logger logger = LoggerFactory.getLogger(HookSubscribe.class);
 
     @FunctionalInterface
     public interface Event{
         void response(MediaServer mediaServerItem, HookParam hookParam);
     }
 
-    private Map<HookType, Map<IHookSubscribe, ZlmHttpHookSubscribe.Event>> allSubscribes = new ConcurrentHashMap<>();
+    private Map<HookType, Map<IHookSubscribe, HookSubscribe.Event>> allSubscribes = new ConcurrentHashMap<>();
 
-    public void addSubscribe(IHookSubscribe hookSubscribe, ZlmHttpHookSubscribe.Event event) {
+    public void addSubscribe(IHookSubscribe hookSubscribe, HookSubscribe.Event event) {
         if (hookSubscribe.getExpires() == null) {
             // 默认5分钟过期
             Instant expiresInstant = Instant.now().plusSeconds(TimeUnit.MINUTES.toSeconds(5));
@@ -42,8 +42,8 @@ public class ZlmHttpHookSubscribe {
         System.out.println(allSubscribes);
     }
 
-    public ZlmHttpHookSubscribe.Event sendNotify(HookType type, JSONObject hookResponse) {
-        ZlmHttpHookSubscribe.Event event= null;
+    public HookSubscribe.Event sendNotify(HookType type, JSONObject hookResponse) {
+        HookSubscribe.Event event= null;
         Map<IHookSubscribe, Event> eventMap = allSubscribes.get(type);
         if (eventMap == null) {
             return null;
@@ -76,8 +76,8 @@ public class ZlmHttpHookSubscribe {
 
         Set<Map.Entry<IHookSubscribe, Event>> entries = eventMap.entrySet();
         if (entries.size() > 0) {
-            List<Map.Entry<IHookSubscribe, ZlmHttpHookSubscribe.Event>> entriesToRemove = new ArrayList<>();
-            for (Map.Entry<IHookSubscribe, ZlmHttpHookSubscribe.Event> entry : entries) {
+            List<Map.Entry<IHookSubscribe, HookSubscribe.Event>> entriesToRemove = new ArrayList<>();
+            for (Map.Entry<IHookSubscribe, HookSubscribe.Event> entry : entries) {
                 JSONObject content = entry.getKey().getContent();
                 if (content == null || content.size() == 0) {
                     entriesToRemove.add(entry);
@@ -100,7 +100,7 @@ public class ZlmHttpHookSubscribe {
             }
 
             if (!CollectionUtils.isEmpty(entriesToRemove)) {
-                for (Map.Entry<IHookSubscribe, ZlmHttpHookSubscribe.Event> entry : entriesToRemove) {
+                for (Map.Entry<IHookSubscribe, HookSubscribe.Event> entry : entriesToRemove) {
                     eventMap.remove(entry.getKey());
                 }
                 if (eventMap.size() == 0) {
@@ -116,12 +116,12 @@ public class ZlmHttpHookSubscribe {
      * @param type
      * @return
      */
-    public List<ZlmHttpHookSubscribe.Event> getSubscribes(HookType type) {
+    public List<HookSubscribe.Event> getSubscribes(HookType type) {
         Map<IHookSubscribe, Event> eventMap = allSubscribes.get(type);
         if (eventMap == null) {
             return null;
         }
-        List<ZlmHttpHookSubscribe.Event> result = new ArrayList<>();
+        List<HookSubscribe.Event> result = new ArrayList<>();
         for (IHookSubscribe key : eventMap.keySet()) {
             result.add(eventMap.get(key));
         }

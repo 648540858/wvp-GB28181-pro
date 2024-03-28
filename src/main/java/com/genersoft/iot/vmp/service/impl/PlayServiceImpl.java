@@ -13,8 +13,6 @@ import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
@@ -25,13 +23,12 @@ import com.genersoft.iot.vmp.media.event.MediaNotFoundEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
+import com.genersoft.iot.vmp.media.event.HookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForRecordMp4;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.HookParam;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.HookResult;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRecordMp4HookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.*;
@@ -53,7 +50,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
-import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.sdp.*;
 import javax.sip.InvalidArgumentException;
@@ -98,7 +94,7 @@ public class PlayServiceImpl implements IPlayService {
     private IInviteStreamService inviteStreamService;
 
     @Autowired
-    private ZlmHttpHookSubscribe subscribe;
+    private HookSubscribe subscribe;
 
     @Autowired
     private SendRtpPortManager sendRtpPortManager;
@@ -318,7 +314,7 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     private void talk(MediaServer mediaServerItem, Device device, String channelId, String stream,
-                      ZlmHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
+                      HookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
                       Runnable timeoutCallback, AudioBroadcastEvent audioEvent) {
 
         String playSsrc = ssrcFactory.getPlaySsrc(mediaServerItem.getId());
@@ -816,7 +812,7 @@ public class PlayServiceImpl implements IPlayService {
             inviteStreamService.removeInviteInfo(inviteInfo);
         };
 
-        ZlmHttpHookSubscribe.Event hookEvent = (mediaServerItemInuse, hookParam) -> {
+        HookSubscribe.Event hookEvent = (mediaServerItemInuse, hookParam) -> {
             logger.info("收到回放订阅消息： " + hookParam);
             dynamicTask.stop(playBackTimeOutTaskKey);
             StreamInfo streamInfo = onPublishHandlerForPlayback(mediaServerItemInuse, hookParam, deviceId, channelId, startTime, endTime);
@@ -1005,7 +1001,7 @@ public class PlayServiceImpl implements IPlayService {
             streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
             inviteStreamService.removeInviteInfo(inviteInfo);
         };
-        ZlmHttpHookSubscribe.Event hookEvent = (mediaServerItemInuse, hookParam) -> {
+        HookSubscribe.Event hookEvent = (mediaServerItemInuse, hookParam) -> {
             logger.info("[录像下载]收到订阅消息： " + hookParam);
             dynamicTask.stop(downLoadTimeOutTaskKey);
             StreamInfo streamInfo = onPublishHandlerForDownload(mediaServerItemInuse, hookParam, deviceId, channelId, startTime, endTime);
@@ -1026,7 +1022,7 @@ public class PlayServiceImpl implements IPlayService {
                                 downLoadTimeOutTaskKey, callback, inviteInfo, InviteSessionType.DOWNLOAD);
 
                         // 注册录像回调事件，录像下载结束后写入下载地址
-                        ZlmHttpHookSubscribe.Event hookEventForRecord = (mediaServerItemInuse, hookParam) -> {
+                        HookSubscribe.Event hookEventForRecord = (mediaServerItemInuse, hookParam) -> {
                             logger.info("[录像下载] 收到录像写入磁盘消息： ， {}/{}-{}",
                                     inviteInfo.getDeviceId(), inviteInfo.getChannelId(), ssrcInfo.getStream());
                             logger.info("[录像下载] 收到录像写入磁盘消息内容： " + hookParam);

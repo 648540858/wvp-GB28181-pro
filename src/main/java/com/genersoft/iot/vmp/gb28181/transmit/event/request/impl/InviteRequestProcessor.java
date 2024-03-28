@@ -21,7 +21,7 @@ import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.ZLMMediaListManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
+import com.genersoft.iot.vmp.media.event.HookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.*;
@@ -113,7 +113,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     private IMediaServerService mediaServerService;
 
     @Autowired
-    private ZlmHttpHookSubscribe zlmHttpHookSubscribe;
+    private HookSubscribe zlmHttpHookSubscribe;
 
     @Autowired
     private SIPProcessorObserver sipProcessorObserver;

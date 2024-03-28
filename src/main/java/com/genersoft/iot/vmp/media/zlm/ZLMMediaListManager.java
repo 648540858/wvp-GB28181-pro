@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.media.zlm;
 
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
+import com.genersoft.iot.vmp.media.event.HookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
@@ -48,7 +49,7 @@ public class ZLMMediaListManager {
     private StreamPushMapper streamPushMapper;
 
     @Autowired
-    private ZlmHttpHookSubscribe subscribe;
+    private HookSubscribe subscribe;
 
     @Autowired
     private UserSetting userSetting;

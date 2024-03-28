@@ -22,7 +22,7 @@ import com.genersoft.iot.vmp.media.abl.event.HookAblServerKeepaliveEvent;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.ZLMMediaListManager;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
+import com.genersoft.iot.vmp.media.event.HookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.*;
 import com.genersoft.iot.vmp.media.zlm.event.HookZlmServerStartEvent;
@@ -108,7 +108,7 @@ public class ABLHttpHookListener {
     private ZLMMediaListManager zlmMediaListManager;
 
     @Autowired
-    private ZlmHttpHookSubscribe subscribe;
+    private HookSubscribe subscribe;
 
     @Autowired
     private UserSetting userSetting;
@@ -168,7 +168,7 @@ public class ABLHttpHookListener {
 
         taskExecutor.execute(() -> {
             JSONObject json = (JSONObject) JSON.toJSON(param);
-            ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_play, json);
+            HookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_play, json);
             if (subscribe != null) {
                 MediaServer mediaInfo = mediaServerService.getOne(mediaServerId);
                 if (mediaInfo != null) {
@@ -247,7 +247,7 @@ public class ABLHttpHookListener {
         HookResultForOnPublish result = HookResultForOnPublish.SUCCESS();
         result.setEnable_audio(true);
         taskExecutor.execute(() -> {
-            ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_publish, json);
+            HookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_publish, json);
             if (subscribe != null) {
                 subscribe.response(mediaInfo, param);
             }
@@ -346,7 +346,7 @@ public class ABLHttpHookListener {
 
         JSONObject json = (JSONObject) JSON.toJSON(param);
         taskExecutor.execute(() -> {
-            ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_stream_changed, json);
+            HookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_stream_changed, json);
             MediaServer mediaInfo = mediaServerService.getOne(param.getMediaServerId());
             if (mediaInfo == null) {
                 logger.info("[ABL HOOK] 流变化未找到ABL, {}", param.getMediaServerId());
@@ -789,9 +789,9 @@ public class ABLHttpHookListener {
         zlmServerConfig.setIp(request.getRemoteAddr());
         logger.info("[ABL HOOK] ABL 启动 " + zlmServerConfig.getGeneralMediaServerId());
         taskExecutor.execute(() -> {
-            List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_server_started);
+            List<HookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_server_started);
             if (subscribes != null && !subscribes.isEmpty()) {
-                for (ZlmHttpHookSubscribe.Event subscribe : subscribes) {
+                for (HookSubscribe.Event subscribe : subscribes) {
                     subscribe.response(null, zlmServerConfig);
                 }
             }
@@ -853,9 +853,9 @@ public class ABLHttpHookListener {
         logger.info("[ABL HOOK] rtpServer收流超时：{}->{}({})", param.getMediaServerId(), param.getStream_id(), param.getSsrc());
 
         taskExecutor.execute(() -> {
-            List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_rtp_server_timeout);
+            List<HookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_rtp_server_timeout);
             if (subscribes != null && !subscribes.isEmpty()) {
-                for (ZlmHttpHookSubscribe.Event subscribe : subscribes) {
+                for (HookSubscribe.Event subscribe : subscribes) {
                     subscribe.response(null, param);
                 }
             }
@@ -873,9 +873,9 @@ public class ABLHttpHookListener {
         logger.info("[AB HOOK] 录像完成事件：{}->{}", param.getMediaServerId(), param.getFile_path());
 
         taskExecutor.execute(() -> {
-            List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_record_mp4);
+            List<HookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_record_mp4);
             if (subscribes != null && !subscribes.isEmpty()) {
-                for (ZlmHttpHookSubscribe.Event subscribe : subscribes) {
+                for (HookSubscribe.Event subscribe : subscribes) {
                     subscribe.response(null, param);
                 }
             }

@@ -13,7 +13,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderPlarformProvider;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
+import com.genersoft.iot.vmp.media.event.HookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
@@ -76,7 +76,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     private SIPSender sipSender;
 
     @Autowired
-    private ZlmHttpHookSubscribe subscribe;
+    private HookSubscribe subscribe;
 
     @Autowired
     private UserSetting userSetting;
@@ -896,7 +896,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
     @Override
     public void broadcastInviteCmd(ParentPlatform platform, String channelId, MediaServer mediaServerItem,
-                                   SSRCInfo ssrcInfo, ZlmHttpHookSubscribe.Event event, SipSubscribe.Event okEvent,
+                                   SSRCInfo ssrcInfo, HookSubscribe.Event event, SipSubscribe.Event okEvent,
                                    SipSubscribe.Event errorEvent) throws ParseException, SipException, InvalidArgumentException {
         String stream = ssrcInfo.getStream();
 

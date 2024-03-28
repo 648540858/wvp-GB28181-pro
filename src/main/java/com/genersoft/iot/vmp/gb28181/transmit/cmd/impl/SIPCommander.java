@@ -16,9 +16,10 @@ import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
+import com.genersoft.iot.vmp.media.event.HookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
+import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamPush;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.HookParam;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
@@ -71,7 +72,7 @@ public class SIPCommander implements ISIPCommander {
     private UserSetting userSetting;
 
     @Autowired
-    private ZlmHttpHookSubscribe subscribe;
+    private HookSubscribe subscribe;
 
     @Autowired
     private IMediaServerService mediaServerService;
@@ -270,7 +271,7 @@ public class SIPCommander implements ISIPCommander {
      */
     @Override
     public void playStreamCmd(MediaServer mediaServerItem, SSRCInfo ssrcInfo, Device device, DeviceChannel channel,
-                              ZlmHttpHookSubscribe.Event event, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+                              HookSubscribe.Event event, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
         String stream = ssrcInfo.getStream();
 
         if (device == null) {
@@ -379,7 +380,7 @@ public class SIPCommander implements ISIPCommander {
      */
     @Override
     public void playbackStreamCmd(MediaServer mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
-                                  String startTime, String endTime, ZlmHttpHookSubscribe.Event hookEvent,
+                                  String startTime, String endTime, HookSubscribe.Event hookEvent,
                                   SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
 
 
@@ -482,7 +483,7 @@ public class SIPCommander implements ISIPCommander {
     @Override
     public void downloadStreamCmd(MediaServer mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
                                   String startTime, String endTime, int downloadSpeed,
-                                  ZlmHttpHookSubscribe.Event hookEvent,
+                                  HookSubscribe.Event hookEvent,
                                   SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
 
         logger.info("{} 分配的ZLM为: {} [{}:{}]", ssrcInfo.getStream(), mediaServerItem.getId(), mediaServerItem.getSdpIp(), ssrcInfo.getPort());
@@ -589,7 +590,7 @@ public class SIPCommander implements ISIPCommander {
     }
 
     @Override
-    public void talkStreamCmd(MediaServer mediaServerItem, SendRtpItem sendRtpItem, Device device, String channelId, String callId, ZlmHttpHookSubscribe.Event event, ZlmHttpHookSubscribe.Event eventForPush, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void talkStreamCmd(MediaServer mediaServerItem, SendRtpItem sendRtpItem, Device device, String channelId, String callId, HookSubscribe.Event event, HookSubscribe.Event eventForPush, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
 
         String stream = sendRtpItem.getStream();
 
@@ -613,8 +614,8 @@ public class SIPCommander implements ISIPCommander {
 
         CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()), device.getTransport());
         callIdHeader.setCallId(callId);
-        HookSubscribeForStreamChange subscribeForStreamChange = HookSubscribeFactory.on_stream_changed("rtp", stream,  true,"rtsp", mediaServerItem.getId());
-        subscribe.addSubscribe(subscribeForStreamChange, (mediaServerItemInUse, hookParam) -> {
+        HookSubscribeForStreamPush hookSubscribeForStreamPush = HookSubscribeFactory.on_publish("rtp", stream,  null, mediaServerItem.getId());
+        subscribe.addSubscribe(hookSubscribeForStreamPush, (mediaServerItemInUse, hookParam) -> {
             if (eventForPush != null) {
                 eventForPush.response(mediaServerItemInUse, hookParam);
             }

@@ -112,6 +112,7 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
 
 # 非开源的内容
 - [X] ONVIF设备的接入，支持点播，云台控制，国标级联点播，自动点播。在[知识星球](https://t.zsxq.com/10WAnH2MP)放了试用安装包以及使用教程，没有使用时间限制，需要源码可以星球私信我或者邮箱联系。
+- [X] 支持国标28181-2022协议，支持巡航轨迹查询，PTZ精准控制，存储卡格式化，设备软件升级，OSD配置，h265+aac，支持辅码流，录像倒放等。具体的功能列表可在[知识星球](https://t.zsxq.com/18GXkpkqs)查看，需要源码和测试可以在星球私信联系或者发邮件给我
 
 
 # 授权协议
@@ -119,7 +120,7 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
 
 # 技术支持  
 
-[知识星球](https://t.zsxq.com/0d8VAD3Dm)专栏列表：
+[知识星球](https://t.zsxq.com/0d8VAD3Dm)专栏列表：，
 - [使用入门系列一：WVP-PRO能做什么](https://t.zsxq.com/0dLguVoSp)
 
 有偿技术支持，请发送邮件到648540858@qq.com

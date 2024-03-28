@@ -75,6 +75,9 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
 
+    @Autowired
+    private EventPublisher eventPublisher;
+
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -158,22 +161,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                                 mobilePosition.setLongitudeGcj02(deviceChannel.getLongitudeGcj02());
                                 mobilePosition.setLatitudeGcj02(deviceChannel.getLatitudeGcj02());
 
-                                if (userSetting.getSavePositionHistory()) {
-                                    storager.insertMobilePosition(mobilePosition);
-                                }
-                                storager.updateChannelPosition(deviceChannel);
-
-                                // 发送redis消息。 通知位置信息的变化
-                                JSONObject jsonObject = new JSONObject();
-                                jsonObject.put("time", DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
-                                jsonObject.put("serial", deviceChannel.getDeviceId());
-                                jsonObject.put("code", deviceChannel.getChannelId());
-                                jsonObject.put("longitude", mobilePosition.getLongitude());
-                                jsonObject.put("latitude", mobilePosition.getLatitude());
-                                jsonObject.put("altitude", mobilePosition.getAltitude());
-                                jsonObject.put("direction", mobilePosition.getDirection());
-                                jsonObject.put("speed", mobilePosition.getSpeed());
-                                redisCatchStorage.sendMobilePositionMsg(jsonObject);
+                                deviceChannelService.updateChannelGPS(device, deviceChannel, mobilePosition);
                             }
                         }
                         if (!ObjectUtils.isEmpty(deviceAlarm.getDeviceId())) {

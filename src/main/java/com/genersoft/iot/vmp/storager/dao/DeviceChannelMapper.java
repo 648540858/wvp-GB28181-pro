@@ -395,7 +395,7 @@ public interface DeviceChannelMapper {
             "WHERE device_id=#{deviceId} " +
             " <if test='channelId != null' >  AND channel_id=#{channelId}</if>" +
             " </script>"})
-    void updatePosition(DeviceChannel deviceChannel);
+    int updatePosition(DeviceChannel deviceChannel);
 
     @Select("SELECT * FROM wvp_device_channel WHERE length(trim(stream_id)) > 0")
     List<DeviceChannel> getAllChannelInPlay();

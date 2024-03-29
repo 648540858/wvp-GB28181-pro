@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.gb28181.bean.AlarmChannelMessage;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.media.event.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
@@ -651,9 +652,9 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void addPushListItem(String app, String stream, OnStreamChangedHookParam param) {
+    public void addPushListItem(String app, String stream, MediaArrivalEvent event) {
         String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
-        redisTemplate.opsForValue().set(key, param);
+        redisTemplate.opsForValue().set(key, event);
     }
 
     @Override

@@ -175,6 +175,33 @@ public class PlayServiceImpl implements IPlayService {
     @Async("taskExecutor")
     @EventListener
     public void onApplicationEvent(MediaDepartureEvent event) {
+        List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(event.getStream());
+        if (!sendRtpItems.isEmpty()) {
+            for (SendRtpItem sendRtpItem : sendRtpItems) {
+                if (sendRtpItem != null && sendRtpItem.getApp().equals(event.getApp())) {
+                    String platformId = sendRtpItem.getPlatformId();
+                    Device device = deviceService.getDevice(platformId);
+                    try {
+                        if (device != null) {
+                            cmder.streamByeCmd(device, sendRtpItem.getChannelId(), event.getStream(), sendRtpItem.getCallId());
+                            if (sendRtpItem.getPlayType().equals(InviteStreamType.BROADCAST)
+                                    || sendRtpItem.getPlayType().equals(InviteStreamType.TALK)) {
+                                AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+                                if (audioBroadcastCatch != null) {
+                                    // 来自上级平台的停止对讲
+                                    logger.info("[停止对讲] 来自上级，平台：{}, 通道：{}", sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+                                    audioBroadcastManager.del(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+                                }
+                            }
+                        }
+                    } catch (SipException | InvalidArgumentException | ParseException |
+                             SsrcTransactionNotFoundException e) {
+                        logger.error("[命令发送失败] 发送BYE: {}", e.getMessage());
+                    }
+                }
+            }
+        }
+
         if ("broadcast".equals(event.getApp()) || "talk".equals(event.getApp())) {
             if (event.getStream().indexOf("_") > 0) {
                 String[] streamArray = event.getStream().split("_");

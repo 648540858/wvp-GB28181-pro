@@ -38,50 +38,8 @@ public class AudioBroadcastManager {
     @Autowired
     private SipConfig config;
 
-    @Autowired
-    private SIPCommander cmder;
-
-    @Autowired
-    private IRedisCatchStorage redisCatchStorage;
-
-    @Autowired
-    private IDeviceService deviceService;
-
     public static Map<String, AudioBroadcastCatch> data = new ConcurrentHashMap<>();
 
-    /**
-     * 流离开的处理
-     */
-    @Async("taskExecutor")
-    @EventListener
-    public void onApplicationEvent(MediaDepartureEvent event) {
-        List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(event.getStream());
-        if (!sendRtpItems.isEmpty()) {
-            for (SendRtpItem sendRtpItem : sendRtpItems) {
-                if (sendRtpItem != null && sendRtpItem.getApp().equals(event.getApp())) {
-                    String platformId = sendRtpItem.getPlatformId();
-                    Device device = deviceService.getDevice(platformId);
-                    try {
-                        if (device != null) {
-                            cmder.streamByeCmd(device, sendRtpItem.getChannelId(), event.getStream(), sendRtpItem.getCallId());
-                            if (sendRtpItem.getPlayType().equals(InviteStreamType.BROADCAST)
-                                    || sendRtpItem.getPlayType().equals(InviteStreamType.TALK)) {
-                                AudioBroadcastCatch audioBroadcastCatch = get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
-                                if (audioBroadcastCatch != null) {
-                                    // 来自上级平台的停止对讲
-                                    logger.info("[停止对讲] 来自上级，平台：{}, 通道：{}", sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
-                                    del(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
-                                }
-                            }
-                        }
-                    } catch (SipException | InvalidArgumentException | ParseException |
-                             SsrcTransactionNotFoundException e) {
-                        logger.error("[命令发送失败] 发送BYE: {}", e.getMessage());
-                    }
-                }
-            }
-        }
-    }
 
     public void update(AudioBroadcastCatch audioBroadcastCatch) {
         if (SipUtils.isFrontEnd(audioBroadcastCatch.getDeviceId())) {

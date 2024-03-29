@@ -176,14 +176,14 @@ public class StreamPushServiceImpl implements IStreamPushService {
                 redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
             }
         }
-        GbStream gbStream = storager.getGbStream(event.getApp(), event.getStream());
+        GbStream gbStream = gbStreamMapper.selectOne(event.getApp(), event.getStream());
         if (gbStream != null) {
             if (userSetting.isUsePushingAsStatus()) {
-                storager.mediaOffline(event.getApp(), event.getStream());
+                streamPushMapper.updatePushStatus(event.getApp(), event.getStream(), false);
                 eventPublisher.catalogEventPublishForStream(null, gbStream, CatalogEvent.OFF);
             }
         }else {
-            storager.removeMedia(event.getApp(), event.getStream());
+            streamPushMapper.del(event.getApp(), event.getStream());
         }
     }
 

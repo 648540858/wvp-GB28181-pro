@@ -20,6 +20,7 @@ public class MediaArrivalEvent extends ApplicationEvent {
         mediaArrivalEvent.setStream(hookParam.getStream());
         mediaArrivalEvent.setMediaServer(mediaServer);
         mediaArrivalEvent.setSchema(hookParam.getSchema());
+        mediaArrivalEvent.setCallId(hookParam.getCallId());
         return mediaArrivalEvent;
     }
 
@@ -32,6 +33,8 @@ public class MediaArrivalEvent extends ApplicationEvent {
     private MediaServer mediaServer;
 
     private String schema;
+
+    private String callId;
 
     public MediaInfo getMediaInfo() {
         return mediaInfo;
@@ -71,5 +74,13 @@ public class MediaArrivalEvent extends ApplicationEvent {
 
     public void setSchema(String schema) {
         this.schema = schema;
+    }
+
+    public String getCallId() {
+        return callId;
+    }
+
+    public void setCallId(String callId) {
+        this.callId = callId;
     }
 }

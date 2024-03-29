@@ -208,7 +208,6 @@ public class MediaServiceImpl implements IMediaService {
         ResultForOnPublish result = new ResultForOnPublish();
         result.setEnable_audio(true);
 
-
         // 是否录像
         if ("rtp".equals(app)) {
             result.setEnable_mp4(userSetting.getRecordSip());

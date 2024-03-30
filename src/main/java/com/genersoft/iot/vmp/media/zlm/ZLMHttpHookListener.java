@@ -11,9 +11,10 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
-import com.genersoft.iot.vmp.media.event.*;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
+import com.genersoft.iot.vmp.media.event.media.*;
+import com.genersoft.iot.vmp.media.event.mediaServer.MediaSendRtpStoppedEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.ZLMServerConfig;
@@ -175,13 +176,6 @@ public class ZLMHttpHookListener {
             return new HookResultForOnPublish(200, "success");
         }
 
-        taskExecutor.execute(() -> {
-            HookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_publish, json);
-            if (subscribe != null) {
-                subscribe.response(mediaServer, param);
-            }
-        });
-
         ResultForOnPublish resultForOnPublish = mediaService.authenticatePublish(mediaServer, param.getApp(), param.getStream(), param.getParams());
         if (resultForOnPublish != null) {
             HookResultForOnPublish successResult = HookResultForOnPublish.getInstance(resultForOnPublish);
@@ -316,19 +310,12 @@ public class ZLMHttpHookListener {
             MediaServer mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
             if (mediaServerItem != null) {
                 event.setMediaServer(mediaServerItem);
+                event.setApp("rtp");
                 applicationEventPublisher.publishEvent(event);
             }
         }catch (Exception e) {
             logger.info("[ZLM-HOOK-rtpServer收流超时] 发送通知失败 ", e);
         }
-        taskExecutor.execute(() -> {
-            List<HookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_rtp_server_timeout);
-            if (subscribes != null && !subscribes.isEmpty()) {
-                for (HookSubscribe.Event subscribe : subscribes) {
-                    subscribe.response(null, param);
-                }
-            }
-        });
 
         return HookResult.SUCCESS();
     }
@@ -341,16 +328,16 @@ public class ZLMHttpHookListener {
     public HookResult onRecordMp4(HttpServletRequest request, @RequestBody OnRecordMp4HookParam param) {
         logger.info("[ZLM HOOK] 录像完成事件：{}->{}", param.getMediaServerId(), param.getFile_path());
 
-        taskExecutor.execute(() -> {
-            List<HookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_record_mp4);
-            if (subscribes != null && !subscribes.isEmpty()) {
-                for (HookSubscribe.Event subscribe : subscribes) {
-                    subscribe.response(null, param);
-                }
+        try {
+            MediaRecordMp4Event event = new MediaRecordMp4Event(this);
+            MediaServer mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
+            if (mediaServerItem != null) {
+                event.setMediaServer(mediaServerItem);
+                applicationEventPublisher.publishEvent(event);
             }
-            cloudRecordService.addRecord(param);
-
-        });
+        }catch (Exception e) {
+            logger.info("[ZLM-HOOK-rtpServer收流超时] 发送通知失败 ", e);
+        }
 
         return HookResult.SUCCESS();
     }

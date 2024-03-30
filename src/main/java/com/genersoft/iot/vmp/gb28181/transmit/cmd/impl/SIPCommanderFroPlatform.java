@@ -13,9 +13,9 @@ import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderPlarformProvider;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribeFactory;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribeForStreamChange;
+import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.HookParam;
@@ -905,11 +905,11 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         }
 
         logger.info("{} 分配的ZLM为: {} [{}:{}]", stream, mediaServerItem.getId(), mediaServerItem.getIp(), ssrcInfo.getPort());
-        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", stream, true, "rtsp", mediaServerItem.getId());
-        subscribe.addSubscribe(hookSubscribe, (MediaServer mediaServerItemInUse, HookParam hookParam) -> {
+        Hook hook = Hook.getInstance(HookType.on_media_arrival, "rtp", stream, mediaServerItem.getId());
+        subscribe.addSubscribe(hook, (hookData) -> {
             if (event != null) {
-                event.response(mediaServerItemInUse, hookParam);
-                subscribe.removeSubscribe(hookSubscribe);
+                event.response(hookData);
+                subscribe.removeSubscribe(hook);
             }
         });
         String sdpIp = mediaServerItem.getSdpIp();
@@ -949,7 +949,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         sipSender.transmitRequest(sipLayer.getLocalIp(platform.getDeviceIp()), request, (e -> {
             streamSession.remove(platform.getServerGBId(), channelId, ssrcInfo.getStream());
             mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
-            subscribe.removeSubscribe(hookSubscribe);
+            subscribe.removeSubscribe(hook);
             errorEvent.response(e);
         }), e -> {
             ResponseEvent responseEvent = (ResponseEvent) e.event;

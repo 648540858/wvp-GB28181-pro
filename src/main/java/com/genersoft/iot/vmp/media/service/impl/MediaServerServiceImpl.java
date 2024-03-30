@@ -4,17 +4,19 @@ import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
-import com.genersoft.iot.vmp.media.event.MediaArrivalEvent;
-import com.genersoft.iot.vmp.media.event.MediaDepartureEvent;
-import com.genersoft.iot.vmp.media.event.MediaServerChangeEvent;
-import com.genersoft.iot.vmp.media.event.MediaServerDeleteEvent;
+import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
+import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
+import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerChangeEvent;
+import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerDeleteEvent;
 import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
@@ -73,6 +75,10 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
+
+    @Autowired
+    private MediaConfig mediaConfig;
+
 
 
     /**
@@ -713,5 +719,64 @@ public class MediaServerServiceImpl implements IMediaServerService {
             return new HashMap<>();
         }
         return mediaNodeServerService.getFFmpegCMDs(mediaServer);
+    }
+
+    @Override
+    public StreamInfo getStreamInfoByAppAndStream(MediaServer mediaServerItem, String app, String stream, MediaInfo mediaInfo, String callId) {
+        return getStreamInfoByAppAndStream(mediaServerItem, app, stream, mediaInfo, null, callId, true);
+    }
+
+    @Override
+    public StreamInfo getStreamInfoByAppAndStreamWithCheck(String app, String stream, String mediaServerId, String addr, boolean authority) {
+        StreamInfo streamInfo = null;
+        if (mediaServerId == null) {
+            mediaServerId = mediaConfig.getId();
+        }
+        MediaServer mediaInfo = getOne(mediaServerId);
+        if (mediaInfo == null) {
+            return null;
+        }
+        String calld = null;
+        StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(app, stream);
+        if (streamAuthorityInfo != null) {
+            calld = streamAuthorityInfo.getCallId();
+        }
+        List<StreamInfo> streamInfoList = getMediaList(mediaInfo, app, stream, calld);
+        if (streamInfoList.isEmpty()) {
+            return null;
+        }else {
+            return streamInfoList.get(0);
+        }
+    }
+
+
+
+    @Override
+    public StreamInfo getStreamInfoByAppAndStreamWithCheck(String app, String stream, String mediaServerId, boolean authority) {
+        return getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, null, authority);
+    }
+
+    @Override
+    public StreamInfo getStreamInfoByAppAndStream(MediaServer mediaServer, String app, String stream, MediaInfo mediaInfo, String addr, String callId, boolean isPlay) {
+        StreamInfo streamInfoResult = new StreamInfo();
+        streamInfoResult.setStream(stream);
+        streamInfoResult.setApp(app);
+        if (addr == null) {
+            addr = mediaServer.getStreamIp();
+        }
+
+        streamInfoResult.setIp(addr);
+        streamInfoResult.setMediaServerId(mediaServer.getId());
+        String callIdParam = ObjectUtils.isEmpty(callId)?"":"?callId=" + callId;
+        streamInfoResult.setRtmp(addr, mediaServer.getRtmpPort(),mediaServer.getRtmpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setRtsp(addr, mediaServer.getRtspPort(),mediaServer.getRtspSSLPort(), app,  stream, callIdParam);
+        streamInfoResult.setFlv(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setFmp4(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setHls(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setTs(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setRtc(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam, isPlay);
+
+        streamInfoResult.setMediaInfo(mediaInfo);
+        return streamInfoResult;
     }
 }

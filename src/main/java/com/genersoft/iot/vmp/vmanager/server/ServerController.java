@@ -9,10 +9,9 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.VersionInfo;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
-import com.genersoft.iot.vmp.media.event.hook.IHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
@@ -40,8 +39,6 @@ import java.util.List;
 @RequestMapping("/api/server")
 public class ServerController {
 
-    @Autowired
-    private HookSubscribe zlmHttpHookSubscribe;
 
     @Autowired
     private IMediaServerService mediaServerService;
@@ -76,8 +73,6 @@ public class ServerController {
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
-    @Autowired
-    private SendRtpPortManager sendRtpPortManager;
 
 
     @GetMapping(value = "/media_server/list")
@@ -215,13 +210,6 @@ public class ServerController {
             }
         }
         return jsonObject;
-    }
-
-    @GetMapping(value = "/hooks")
-    @ResponseBody
-    @Operation(summary = "获取当前所有hook")
-    public List<IHookSubscribe> getHooks() {
-        return zlmHttpHookSubscribe.getAll();
     }
 
     @GetMapping(value = "/system/info")

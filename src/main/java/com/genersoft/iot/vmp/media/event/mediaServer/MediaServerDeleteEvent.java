@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.media.event;
+package com.genersoft.iot.vmp.media.event.mediaServer;
 
 /**
  * zlm在线事件

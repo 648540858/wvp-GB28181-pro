@@ -10,6 +10,6 @@ public enum HookType {
     on_publish,
     on_record_mp4,
     on_media_arrival,
-    on_stream_changed,
+    on_media_departure,
     on_rtp_server_timeout,
 }

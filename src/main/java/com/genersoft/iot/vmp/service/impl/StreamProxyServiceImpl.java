@@ -9,19 +9,18 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
-import com.genersoft.iot.vmp.media.event.MediaArrivalEvent;
-import com.genersoft.iot.vmp.media.event.MediaDepartureEvent;
-import com.genersoft.iot.vmp.media.event.MediaNotFoundEvent;
+import com.genersoft.iot.vmp.media.event.hook.Hook;
+import com.genersoft.iot.vmp.media.event.hook.HookType;
+import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
+import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
+import com.genersoft.iot.vmp.media.event.media.MediaNotFoundEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribeFactory;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.IGbStreamService;
-import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -64,9 +63,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Autowired
     private IVideoManagerStorage videoManagerStorager;
-
-    @Autowired
-    private IMediaService mediaService;
 
     @Autowired
     private ZLMServerFactory zlmServerFactory;
@@ -203,9 +199,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             callback.run(ErrorCode.ERROR100.getCode(), "保存失败", null);
             return;
         }
-        HookSubscribeForStreamChange hookSubscribeForStreamChange = HookSubscribeFactory.on_stream_changed(param.getApp(), param.getStream(), true, "rtsp", mediaServer.getId());
-        hookSubscribe.addSubscribe(hookSubscribeForStreamChange, (mediaServerItem, response) -> {
-            StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(
+        Hook hook = Hook.getInstance(HookType.on_media_arrival, param.getApp(), param.getStream(), mediaServer.getId());
+        hookSubscribe.addSubscribe(hook, (hookData) -> {
+            StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(
                     mediaServer, param.getApp(), param.getStream(), null, null);
             callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
         });
@@ -213,7 +209,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             String talkKey = UUID.randomUUID().toString();
             String delayTalkKey = UUID.randomUUID().toString();
             dynamicTask.startDelay(delayTalkKey, ()->{
-                StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(param.getApp(), param.getStream(), mediaServer.getId(), false);
+                StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStreamWithCheck(param.getApp(), param.getStream(), mediaServer.getId(), false);
                 if (streamInfo != null) {
                     callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
                 }else {
@@ -223,9 +219,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             }, 7000);
             WVPResult<String> result = addStreamProxyToZlm(param);
             if (result != null && result.getCode() == 0) {
-                hookSubscribe.removeSubscribe(hookSubscribeForStreamChange);
+                hookSubscribe.removeSubscribe(hook);
                 dynamicTask.stop(talkKey);
-                StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(
+                StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(
                         mediaServer, param.getApp(), param.getStream(), null, null);
                 callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
             }else {
@@ -244,7 +240,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             }
         }
         else{
-            StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(
+            StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(
                     mediaServer, param.getApp(), param.getStream(), null, null);
             callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
         }

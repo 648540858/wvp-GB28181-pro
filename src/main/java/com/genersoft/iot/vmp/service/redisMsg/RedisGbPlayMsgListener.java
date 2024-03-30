@@ -6,10 +6,10 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.media.event.hook.Hook;
+import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribeFactory;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.*;
@@ -61,9 +61,9 @@ public class RedisGbPlayMsgListener implements MessageListener {
      */
     public static final  int ERROR_CODE_TIMEOUT = -3;
 
-    private Map<String, PlayMsgCallback> callbacks = new ConcurrentHashMap<>();
-    private Map<String, PlayMsgCallbackForStartSendRtpStream> callbacksForStartSendRtpStream = new ConcurrentHashMap<>();
-    private Map<String, PlayMsgErrorCallback> callbacksForError = new ConcurrentHashMap<>();
+    private final Map<String, PlayMsgCallback> callbacks = new ConcurrentHashMap<>();
+    private final Map<String, PlayMsgCallbackForStartSendRtpStream> callbacksForStartSendRtpStream = new ConcurrentHashMap<>();
+    private final Map<String, PlayMsgErrorCallback> callbacksForError = new ConcurrentHashMap<>();
 
     @Autowired
     private UserSetting userSetting;
@@ -89,7 +89,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
     @Autowired
     private HookSubscribe subscribe;
 
-    private ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 
     @Qualifier("taskExecutor")
     @Autowired
@@ -297,9 +297,8 @@ public class RedisGbPlayMsgListener implements MessageListener {
             }, userSetting.getPlatformPlayTimeout());
 
             // 添加订阅
-            HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed(content.getApp(), content.getStream(), true, "rtsp", mediaServerItem.getId());
-
-            subscribe.addSubscribe(hookSubscribe, (mediaServerItemInUse, hookParam)->{
+            Hook hook = Hook.getInstance(HookType.on_media_arrival, content.getApp(), content.getStream(), content.getMediaServerId());
+            subscribe.addSubscribe(hook, (hookData)->{
                         dynamicTask.stop(taskKey);
                         responseSendItem(mediaServerItem, content, toId, serial);
                     });

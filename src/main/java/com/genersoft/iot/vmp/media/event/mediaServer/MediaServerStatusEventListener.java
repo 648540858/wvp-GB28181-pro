@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.media.event;
+package com.genersoft.iot.vmp.media.event.mediaServer;
 
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;

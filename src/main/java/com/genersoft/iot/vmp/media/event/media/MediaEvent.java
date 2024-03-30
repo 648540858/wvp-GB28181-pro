@@ -1,15 +1,16 @@
-package com.genersoft.iot.vmp.media.event;
+package com.genersoft.iot.vmp.media.event.media;
 
+import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamNotFoundHookParam;
 import org.springframework.context.ApplicationEvent;
 
 /**
- * 流未找到
+ * 流到来事件
  */
-public class MediaNotFoundEvent extends ApplicationEvent {
-    public MediaNotFoundEvent(Object source) {
+public class MediaEvent extends ApplicationEvent {
+
+    public MediaEvent(Object source) {
         super(source);
     }
 
@@ -21,14 +22,6 @@ public class MediaNotFoundEvent extends ApplicationEvent {
 
     private String schema;
 
-    public static MediaNotFoundEvent getInstance(Object source, OnStreamNotFoundHookParam hookParam, MediaServer mediaServer){
-        MediaNotFoundEvent mediaDepartureEven = new MediaNotFoundEvent(source);
-        mediaDepartureEven.setApp(hookParam.getApp());
-        mediaDepartureEven.setStream(hookParam.getStream());
-        mediaDepartureEven.setSchema(hookParam.getSchema());
-        mediaDepartureEven.setMediaServer(mediaServer);
-        return mediaDepartureEven;
-    }
 
     public String getApp() {
         return app;
@@ -61,4 +54,5 @@ public class MediaNotFoundEvent extends ApplicationEvent {
     public void setSchema(String schema) {
         this.schema = schema;
     }
+
 }

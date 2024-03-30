@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.media.bean;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -12,6 +13,15 @@ import java.util.List;
  */
 @Schema(description = "视频信息")
 public class MediaInfo {
+    @Schema(description = "应用名")
+    private String app;
+    @Schema(description = "流ID")
+    private String stream;
+    @Schema(description = "流媒体节点")
+    private MediaServer mediaServer;
+    @Schema(description = "协议")
+    private String schema;
+
     @Schema(description = "观看人数")
     private Integer readerCount;
     @Schema(description = "视频编码类型")
@@ -37,8 +47,15 @@ public class MediaInfo {
     @Schema(description = "数据产生速度，单位byte/s")
     private Long bytesSpeed;
 
-    public static MediaInfo getInstance(JSONObject jsonObject) {
+    public static MediaInfo getInstance(JSONObject jsonObject, MediaServer mediaServer) {
         MediaInfo mediaInfo = new MediaInfo();
+        mediaInfo.setMediaServer(mediaServer);
+        String app = jsonObject.getString("app");
+        mediaInfo.setApp(app);
+        String stream = jsonObject.getString("stream");
+        mediaInfo.setStream(stream);
+        String schema = jsonObject.getString("schema");
+        mediaInfo.setSchema(schema);
         Integer totalReaderCount = jsonObject.getInteger("totalReaderCount");
         Boolean online = jsonObject.getBoolean("online");
         Integer originType = jsonObject.getInteger("originType");
@@ -110,9 +127,13 @@ public class MediaInfo {
         return mediaInfo;
     }
 
-    public static MediaInfo getInstance(OnStreamChangedHookParam param) {
+    public static MediaInfo getInstance(OnStreamChangedHookParam param, MediaServer mediaServer) {
         List<OnStreamChangedHookParam.MediaTrack> tracks = param.getTracks();
         MediaInfo mediaInfo = new MediaInfo();
+        mediaInfo.setApp(param.getApp());
+        mediaInfo.setStream(param.getStream());
+        mediaInfo.setSchema(param.getSchema());
+        mediaInfo.setMediaServer(mediaServer);
         mediaInfo.setReaderCount(param.getTotalReaderCount());
         mediaInfo.setOnline(param.isRegist());
         mediaInfo.setOriginType(param.getOriginType());
@@ -246,5 +267,37 @@ public class MediaInfo {
 
     public void setBytesSpeed(Long bytesSpeed) {
         this.bytesSpeed = bytesSpeed;
+    }
+
+    public String getApp() {
+        return app;
+    }
+
+    public void setApp(String app) {
+        this.app = app;
+    }
+
+    public String getStream() {
+        return stream;
+    }
+
+    public void setStream(String stream) {
+        this.stream = stream;
+    }
+
+    public MediaServer getMediaServer() {
+        return mediaServer;
+    }
+
+    public void setMediaServer(MediaServer mediaServer) {
+        this.mediaServer = mediaServer;
+    }
+
+    public String getSchema() {
+        return schema;
+    }
+
+    public void setSchema(String schema) {
+        this.schema = schema;
     }
 }

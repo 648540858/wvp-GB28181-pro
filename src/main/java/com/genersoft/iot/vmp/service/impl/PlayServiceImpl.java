@@ -17,16 +17,17 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
-import com.genersoft.iot.vmp.media.event.MediaArrivalEvent;
-import com.genersoft.iot.vmp.media.event.MediaDepartureEvent;
-import com.genersoft.iot.vmp.media.event.MediaNotFoundEvent;
+import com.genersoft.iot.vmp.media.bean.RecordInfo;
+import com.genersoft.iot.vmp.media.event.hook.Hook;
+import com.genersoft.iot.vmp.media.event.hook.HookData;
+import com.genersoft.iot.vmp.media.event.hook.HookType;
+import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
+import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
+import com.genersoft.iot.vmp.media.event.media.MediaNotFoundEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribeFactory;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribeForRecordMp4;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.HookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRecordMp4HookParam;
@@ -98,9 +99,6 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private SendRtpPortManager sendRtpPortManager;
-
-    @Autowired
-    private IMediaService mediaService;
 
     @Autowired
     private IMediaServerService mediaServerService;
@@ -423,12 +421,12 @@ public class PlayServiceImpl implements IPlayService {
 
         // 查看设备是否已经在推流
         try {
-            cmder.talkStreamCmd(mediaServerItem, sendRtpItem, device, channelId, callId, (mediaServerItemInuse, hookParam) -> {
-                logger.info("[语音对讲] 流已生成， 开始推流： " + hookParam);
+            cmder.talkStreamCmd(mediaServerItem, sendRtpItem, device, channelId, callId, (hookData) -> {
+                logger.info("[语音对讲] 流已生成， 开始推流： " + hookData);
                 dynamicTask.stop(timeOutTaskKey);
                 // TODO 暂不做处理
-            }, (mediaServerItemInuse, hookParam) -> {
-                logger.info("[语音对讲] 设备开始推流： " + hookParam);
+            }, (hookData) -> {
+                logger.info("[语音对讲] 设备开始推流： " + hookData);
                 dynamicTask.stop(timeOutTaskKey);
 
             }, (event) -> {
@@ -538,8 +536,7 @@ public class PlayServiceImpl implements IPlayService {
                     streamSession.remove(device.getDeviceId(), channel.getChannelId(), ssrcInfo.getStream());
                     mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                     // 取消订阅消息监听
-                    HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcInfo.getStream(), true, "rtsp", mediaServerItem.getId());
-                    subscribe.removeSubscribe(hookSubscribe);
+                    subscribe.removeSubscribe(Hook.getInstance(HookType.on_media_arrival, "rtp", ssrcInfo.getStream(), mediaServerItem.getId()));
                 }
             }else {
                 logger.info("[点播超时] 收流超时 deviceId: {}, channelId: {},码流：{}，端口：{}, SSRC: {}",
@@ -554,11 +551,11 @@ public class PlayServiceImpl implements IPlayService {
         }, userSetting.getPlayTimeout());
 
         try {
-            cmder.playStreamCmd(mediaServerItem, ssrcInfo, device, channel, (mediaServerItemInuse, hookParam ) -> {
-                logger.info("收到订阅消息： " + hookParam);
+            cmder.playStreamCmd(mediaServerItem, ssrcInfo, device, channel, (hookData ) -> {
+                logger.info("收到订阅消息： " + hookData);
                 dynamicTask.stop(timeOutTaskKey);
                 // hook响应
-                StreamInfo streamInfo = onPublishHandlerForPlay(mediaServerItemInuse, hookParam, device.getDeviceId(), channel.getChannelId());
+                StreamInfo streamInfo = onPublishHandlerForPlay(hookData.getMediaServer(), hookData.getMediaInfo(), device.getDeviceId(), channel.getChannelId());
                 if (streamInfo == null){
                     callback.run(InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getCode(),
                             InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getMsg(), null);
@@ -574,7 +571,7 @@ public class PlayServiceImpl implements IPlayService {
                         streamInfo);
                 logger.info("[点播成功] deviceId: {}, channelId:{}, 码流类型：{}", device.getDeviceId(), channel.getChannelId(),
                         channel.getStreamIdentification());
-                snapOnPlay(mediaServerItemInuse, device.getDeviceId(), channel.getChannelId(), ssrcInfo.getStream());
+                snapOnPlay(hookData.getMediaServer(), device.getDeviceId(), channel.getChannelId(), ssrcInfo.getStream());
             }, (eventResult) -> {
                 // 处理收到200ok后的TCP主动连接以及SSRC不一致的问题
                 InviteOKHandler(eventResult, ssrcInfo, mediaServerItem, device, channel.getChannelId(),
@@ -700,11 +697,10 @@ public class PlayServiceImpl implements IPlayService {
         mediaServerService.getSnap(mediaServerItemInuse, streamUrl, 15, 1, path, fileName);
     }
 
-    public StreamInfo onPublishHandlerForPlay(MediaServer mediaServerItem, HookParam hookParam, String deviceId, String channelId) {
+    public StreamInfo onPublishHandlerForPlay(MediaServer mediaServerItem, MediaInfo mediaInfo, String deviceId, String channelId) {
         StreamInfo streamInfo = null;
         Device device = redisCatchStorage.getDevice(deviceId);
-        OnStreamChangedHookParam streamChangedHookParam = (OnStreamChangedHookParam)hookParam;
-        streamInfo = onPublishHandler(mediaServerItem, streamChangedHookParam, deviceId, channelId);
+        streamInfo = onPublishHandler(mediaServerItem, mediaInfo, deviceId, channelId);
         if (streamInfo != null) {
             DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
             if (deviceChannel != null) {
@@ -722,9 +718,8 @@ public class PlayServiceImpl implements IPlayService {
 
     }
 
-    private StreamInfo onPublishHandlerForPlayback(MediaServer mediaServerItem, HookParam param, String deviceId, String channelId, String startTime, String endTime) {
-        OnStreamChangedHookParam streamChangedHookParam = (OnStreamChangedHookParam) param;
-        StreamInfo streamInfo = onPublishHandler(mediaServerItem, streamChangedHookParam, deviceId, channelId);
+    private StreamInfo onPublishHandlerForPlayback(MediaServer mediaServerItem, MediaInfo mediaInfo, String deviceId, String channelId, String startTime, String endTime) {
+        StreamInfo streamInfo = onPublishHandler(mediaServerItem, mediaInfo, deviceId, channelId);
         if (streamInfo != null) {
             streamInfo.setStartTime(startTime);
             streamInfo.setEndTime(endTime);
@@ -733,7 +728,7 @@ public class PlayServiceImpl implements IPlayService {
                 deviceChannel.setStreamId(streamInfo.getStream());
                 storager.startPlay(deviceId, channelId, streamInfo.getStream());
             }
-            InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, ((OnStreamChangedHookParam) param).getStream());
+            InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, mediaInfo.getStream());
             if (inviteInfo != null) {
                 inviteInfo.setStatus(InviteSessionStatus.ok);
 
@@ -839,10 +834,10 @@ public class PlayServiceImpl implements IPlayService {
             inviteStreamService.removeInviteInfo(inviteInfo);
         };
 
-        HookSubscribe.Event hookEvent = (mediaServerItemInuse, hookParam) -> {
-            logger.info("收到回放订阅消息： " + hookParam);
+        HookSubscribe.Event hookEvent = (hookData) -> {
+            logger.info("收到回放订阅消息： " + hookData);
             dynamicTask.stop(playBackTimeOutTaskKey);
-            StreamInfo streamInfo = onPublishHandlerForPlayback(mediaServerItemInuse, hookParam, deviceId, channelId, startTime, endTime);
+            StreamInfo streamInfo = onPublishHandlerForPlayback(hookData.getMediaServer(), hookData.getMediaInfo(), deviceId, channelId, startTime, endTime);
             if (streamInfo == null) {
                 logger.warn("设备回放API调用失败！");
                 callback.run(InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getCode(),
@@ -1028,10 +1023,10 @@ public class PlayServiceImpl implements IPlayService {
             streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
             inviteStreamService.removeInviteInfo(inviteInfo);
         };
-        HookSubscribe.Event hookEvent = (mediaServerItemInuse, hookParam) -> {
-            logger.info("[录像下载]收到订阅消息： " + hookParam);
+        HookSubscribe.Event hookEvent = (hookData) -> {
+            logger.info("[录像下载]收到订阅消息： " + hookData);
             dynamicTask.stop(downLoadTimeOutTaskKey);
-            StreamInfo streamInfo = onPublishHandlerForDownload(mediaServerItemInuse, hookParam, deviceId, channelId, startTime, endTime);
+            StreamInfo streamInfo = onPublishHandlerForDownload(hookData.getMediaServer(), hookData.getMediaInfo(), deviceId, channelId, startTime, endTime);
             if (streamInfo == null) {
                 logger.warn("[录像下载] 获取流地址信息失败");
                 callback.run(InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getCode(),
@@ -1049,26 +1044,24 @@ public class PlayServiceImpl implements IPlayService {
                                 downLoadTimeOutTaskKey, callback, inviteInfo, InviteSessionType.DOWNLOAD);
 
                         // 注册录像回调事件，录像下载结束后写入下载地址
-                        HookSubscribe.Event hookEventForRecord = (mediaServerItemInuse, hookParam) -> {
+                        HookSubscribe.Event hookEventForRecord = (hookData) -> {
                             logger.info("[录像下载] 收到录像写入磁盘消息： ， {}/{}-{}",
                                     inviteInfo.getDeviceId(), inviteInfo.getChannelId(), ssrcInfo.getStream());
-                            logger.info("[录像下载] 收到录像写入磁盘消息内容： " + hookParam);
-                            OnRecordMp4HookParam recordMp4HookParam = (OnRecordMp4HookParam)hookParam;
-                            String filePath = recordMp4HookParam.getFile_path();
+                            logger.info("[录像下载] 收到录像写入磁盘消息内容： " + hookData);
+                            RecordInfo recordInfo = hookData.getRecordInfo();
+                            String filePath = recordInfo.getFilePath();
                             DownloadFileInfo downloadFileInfo = CloudRecordUtils.getDownloadFilePath(mediaServerItem, filePath);
                             InviteInfo inviteInfoForNew = inviteStreamService.getInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId()
                                     , inviteInfo.getChannelId(), inviteInfo.getStream());
                             inviteInfoForNew.getStreamInfo().setDownLoadFilePath(downloadFileInfo);
                             inviteStreamService.updateInviteInfo(inviteInfoForNew);
                         };
-                        HookSubscribeForRecordMp4 hookSubscribe = HookSubscribeFactory.on_record_mp4(
-                                mediaServerItem.getId(), "rtp", ssrcInfo.getStream());
-
+                        Hook hook = Hook.getInstance(HookType.on_record_mp4, "rtp", ssrcInfo.getStream(), mediaServerItem.getId());
                         // 设置过期时间，下载失败时自动处理订阅数据
 //                        long difference = DateUtil.getDifference(startTime, endTime)/1000;
 //                        Instant expiresInstant = Instant.now().plusSeconds(TimeUnit.MINUTES.toSeconds(difference * 2));
 //                        hookSubscribe.setExpires(expiresInstant);
-                        subscribe.addSubscribe(hookSubscribe, hookEventForRecord);
+                        subscribe.addSubscribe(hook, hookEventForRecord);
                     });
         } catch (InvalidArgumentException | SipException | ParseException e) {
             logger.error("[命令发送失败] 录像下载: {}", e.getMessage());
@@ -1134,9 +1127,8 @@ public class PlayServiceImpl implements IPlayService {
         return inviteInfo.getStreamInfo();
     }
 
-    private StreamInfo onPublishHandlerForDownload(MediaServer mediaServerItemInuse, HookParam hookParam, String deviceId, String channelId, String startTime, String endTime) {
-        OnStreamChangedHookParam streamChangedHookParam = (OnStreamChangedHookParam) hookParam;
-        StreamInfo streamInfo = onPublishHandler(mediaServerItemInuse, streamChangedHookParam, deviceId, channelId);
+    private StreamInfo onPublishHandlerForDownload(MediaServer mediaServerItemInuse, MediaInfo mediaInfo, String deviceId, String channelId, String startTime, String endTime) {
+        StreamInfo streamInfo = onPublishHandler(mediaServerItemInuse, mediaInfo, deviceId, channelId);
         if (streamInfo != null) {
             streamInfo.setProgress(0);
             streamInfo.setStartTime(startTime);
@@ -1153,9 +1145,8 @@ public class PlayServiceImpl implements IPlayService {
     }
 
 
-    public StreamInfo onPublishHandler(MediaServer mediaServerItem, OnStreamChangedHookParam hookParam, String deviceId, String channelId) {
-        MediaInfo mediaInfo = MediaInfo.getInstance(hookParam);
-        StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(mediaServerItem, "rtp", hookParam.getStream(), mediaInfo, null);
+    public StreamInfo onPublishHandler(MediaServer mediaServerItem, MediaInfo mediaInfo, String deviceId, String channelId) {
+        StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServerItem, "rtp", mediaInfo.getStream(), mediaInfo, null);
         streamInfo.setDeviceID(deviceId);
         streamInfo.setChannelId(channelId);
         return streamInfo;
@@ -1220,7 +1211,7 @@ public class PlayServiceImpl implements IPlayService {
         AudioBroadcastResult audioBroadcastResult = new AudioBroadcastResult();
         audioBroadcastResult.setApp(app);
         audioBroadcastResult.setStream(stream);
-        audioBroadcastResult.setStreamInfo(new StreamContent(mediaService.getStreamInfoByAppAndStream(mediaServerItem, app, stream, null, null, null, false)));
+        audioBroadcastResult.setStreamInfo(new StreamContent(mediaServerService.getStreamInfoByAppAndStream(mediaServerItem, app, stream, null, null, null, false)));
         audioBroadcastResult.setCodec("G.711");
         return audioBroadcastResult;
     }
@@ -1591,7 +1582,7 @@ public class PlayServiceImpl implements IPlayService {
             }
         }
 
-        talk(mediaServerItem, device, channelId, stream, (mediaServerItem1, hookParam) -> {
+        talk(mediaServerItem, device, channelId, stream, (hookData) -> {
             logger.info("[语音对讲] 收到设备发来的流");
         }, eventResult -> {
             logger.warn("[语音对讲] 失败，{}/{}, 错误码 {} {}", device.getDeviceId(), channelId, eventResult.statusCode, eventResult.msg);

@@ -50,12 +50,6 @@ public class MediaServiceImpl implements IMediaService {
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
-    private IMediaServerService mediaServerService;
-
-    @Autowired
-    private MediaConfig mediaConfig;
-
-    @Autowired
     private IStreamProxyService streamProxyService;
 
     @Autowired
@@ -87,67 +81,6 @@ public class MediaServiceImpl implements IMediaService {
 
     @Autowired
     private ISIPCommander commander;
-
-
-
-    @Override
-    public StreamInfo getStreamInfoByAppAndStream(MediaServer mediaServerItem, String app, String stream, MediaInfo mediaInfo, String callId) {
-        return getStreamInfoByAppAndStream(mediaServerItem, app, stream, mediaInfo, null, callId, true);
-    }
-
-    @Override
-    public StreamInfo getStreamInfoByAppAndStreamWithCheck(String app, String stream, String mediaServerId, String addr, boolean authority) {
-        StreamInfo streamInfo = null;
-        if (mediaServerId == null) {
-            mediaServerId = mediaConfig.getId();
-        }
-        MediaServer mediaInfo = mediaServerService.getOne(mediaServerId);
-        if (mediaInfo == null) {
-            return null;
-        }
-        String calld = null;
-        StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(app, stream);
-        if (streamAuthorityInfo != null) {
-            calld = streamAuthorityInfo.getCallId();
-        }
-        List<StreamInfo> streamInfoList = mediaServerService.getMediaList(mediaInfo, app, stream, calld);
-        if (streamInfoList.isEmpty()) {
-            return null;
-        }else {
-            return streamInfoList.get(0);
-        }
-    }
-
-
-
-    @Override
-    public StreamInfo getStreamInfoByAppAndStreamWithCheck(String app, String stream, String mediaServerId, boolean authority) {
-        return getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, null, authority);
-    }
-
-    @Override
-    public StreamInfo getStreamInfoByAppAndStream(MediaServer mediaServer, String app, String stream, MediaInfo mediaInfo, String addr, String callId, boolean isPlay) {
-        StreamInfo streamInfoResult = new StreamInfo();
-        streamInfoResult.setStream(stream);
-        streamInfoResult.setApp(app);
-        if (addr == null) {
-            addr = mediaServer.getStreamIp();
-        }
-
-        streamInfoResult.setIp(addr);
-        streamInfoResult.setMediaServerId(mediaServer.getId());
-        String callIdParam = ObjectUtils.isEmpty(callId)?"":"?callId=" + callId;
-        streamInfoResult.setRtmp(addr, mediaServer.getRtmpPort(),mediaServer.getRtmpSSlPort(), app,  stream, callIdParam);
-        streamInfoResult.setRtsp(addr, mediaServer.getRtspPort(),mediaServer.getRtspSSLPort(), app,  stream, callIdParam);
-        streamInfoResult.setFlv(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
-        streamInfoResult.setFmp4(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
-        streamInfoResult.setHls(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
-        streamInfoResult.setTs(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
-        streamInfoResult.setRtc(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam, isPlay);
-
-        streamInfoResult.setMediaInfo(mediaInfo);
-        return streamInfoResult;
-    }
 
     @Override
     public boolean authenticatePlay(String app, String stream, String callId) {

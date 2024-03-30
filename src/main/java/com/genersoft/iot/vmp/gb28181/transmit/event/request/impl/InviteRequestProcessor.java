@@ -18,8 +18,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribeFactory;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribeForStreamChange;
+import com.genersoft.iot.vmp.media.event.hook.Hook;
+import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.ZLMMediaListManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
@@ -115,7 +115,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     private IMediaServerService mediaServerService;
 
     @Autowired
-    private HookSubscribe zlmHttpHookSubscribe;
+    private HookSubscribe hookSubscribe;
 
     @Autowired
     private SIPProcessorObserver sipProcessorObserver;
@@ -723,17 +723,16 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             // TODO 控制启用以使设备上线
             logger.info("[ app={}, stream={} ]通道未推流，启用流后开始推流", gbStream.getApp(), gbStream.getStream());
             // 监听流上线
-            HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed(gbStream.getApp(), gbStream.getStream(), true, "rtsp", mediaServerItem.getId());
-            zlmHttpHookSubscribe.addSubscribe(hookSubscribe, (mediaServerItemInUSe, hookParam) -> {
-                OnStreamChangedHookParam streamChangedHookParam = (OnStreamChangedHookParam)hookParam;
-                logger.info("[上级点播]拉流代理已经就绪， {}/{}", streamChangedHookParam.getApp(), streamChangedHookParam.getStream());
+            Hook hook = Hook.getInstance(HookType.on_media_arrival, gbStream.getApp(), gbStream.getStream(), mediaServerItem.getId());
+            this.hookSubscribe.addSubscribe(hook, (hookData) -> {
+                logger.info("[上级点播]拉流代理已经就绪， {}/{}", hookData.getApp(), hookData.getStream());
                 dynamicTask.stop(callIdHeader.getCallId());
                 pushProxyStream(evt, request, gbStream, platform, callIdHeader, mediaServerItem, port, tcpActive,
                         mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
             });
             dynamicTask.startDelay(callIdHeader.getCallId(), () -> {
                 logger.info("[ app={}, stream={} ] 等待拉流代理流超时", gbStream.getApp(), gbStream.getStream());
-                zlmHttpHookSubscribe.removeSubscribe(hookSubscribe);
+                this.hookSubscribe.removeSubscribe(hook);
             }, userSetting.getPlatformPlayTimeout());
             boolean start = streamProxyService.start(gbStream.getApp(), gbStream.getStream());
             if (!start) {
@@ -742,7 +741,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 } catch (SipException | InvalidArgumentException | ParseException e) {
                     logger.error("[命令发送失败] invite 通道未推流: {}", e.getMessage());
                 }
-                zlmHttpHookSubscribe.removeSubscribe(hookSubscribe);
+                this.hookSubscribe.removeSubscribe(hook);
                 dynamicTask.stop(callIdHeader.getCallId());
             }
         } else if ("push".equals(gbStream.getStreamType())) {

@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.media.zlm.dto;
 
-import com.genersoft.iot.vmp.media.event.MediaArrivalEvent;
+import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 
 /**
  * 流的鉴权信息

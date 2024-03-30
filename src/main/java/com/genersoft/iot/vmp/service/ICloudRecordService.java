@@ -21,11 +21,6 @@ public interface ICloudRecordService {
     PageInfo<CloudRecordItem> getList(int page, int count, String query,  String app, String stream, String startTime, String endTime, List<MediaServer> mediaServerItems);
 
     /**
-     * 根据hook消息增加一条记录
-     */
-    void addRecord(OnRecordMp4HookParam param);
-
-    /**
      * 获取所有的日期
      */
     List<String> getDateList(String app, String stream, int year, int month, List<MediaServer> mediaServerItems);

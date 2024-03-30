@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.media;
 
 import com.genersoft.iot.vmp.conf.MediaConfig;
-import com.genersoft.iot.vmp.media.event.MediaServerChangeEvent;
+import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerChangeEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
 import org.slf4j.Logger;

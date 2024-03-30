@@ -1,9 +1,7 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.baomidou.dynamic.datasource.annotation.DS;
-import com.genersoft.iot.vmp.common.InviteInfo;
-import com.genersoft.iot.vmp.common.InviteSessionStatus;
-import com.genersoft.iot.vmp.common.InviteSessionType;
+import com.genersoft.iot.vmp.common.*;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
@@ -11,10 +9,12 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
-import com.genersoft.iot.vmp.media.event.MediaDepartureEvent;
-import com.genersoft.iot.vmp.media.event.MediaSendRtpStoppedEvent;
+import com.genersoft.iot.vmp.media.event.hook.Hook;
+import com.genersoft.iot.vmp.media.event.hook.HookData;
+import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
+import com.genersoft.iot.vmp.media.event.mediaServer.MediaSendRtpStoppedEvent;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
@@ -72,7 +72,7 @@ public class PlatformServiceImpl implements IPlatformService {
     private IMediaServerService mediaServerService;
 
     @Autowired
-    private SIPCommanderFroPlatform commanderForPlatform;
+    private ISIPCommanderForPlatform commanderForPlatform;
 
     @Autowired
     private DynamicTask dynamicTask;
@@ -520,11 +520,11 @@ public class PlatformServiceImpl implements IPlatformService {
                     inviteStreamService.removeInviteInfo(inviteInfoForOld);
                 }else {
                     // 流确实尚在推流，直接回调结果
-                    OnStreamChangedHookParam hookParam = new OnStreamChangedHookParam();
-                    hookParam.setApp(inviteInfoForOld.getStreamInfo().getApp());
-                    hookParam.setStream(inviteInfoForOld.getStreamInfo().getStream());
-
-                    hookEvent.response(mediaServerItemForStreamInfo, hookParam);
+                    HookData hookData = new HookData();
+                    hookData.setApp(inviteInfoForOld.getStreamInfo().getApp());
+                    hookData.setStream(inviteInfoForOld.getStreamInfo().getStream());
+                    hookData.setMediaServer(mediaServerItemForStreamInfo);
+                    hookEvent.response(hookData);
                     return;
                 }
             }
@@ -582,14 +582,14 @@ public class PlatformServiceImpl implements IPlatformService {
                 }
             }
         }, userSetting.getPlayTimeout());
-        commanderForPlatform.broadcastInviteCmd(platform, channelId, mediaServerItem, ssrcInfo, (mediaServerItemForInvite, hookParam)->{
+        commanderForPlatform.broadcastInviteCmd(platform, channelId, mediaServerItem, ssrcInfo, (hookData)->{
             logger.info("[国标级联] 发起语音喊话 收到上级推流 deviceId: {}, channelId: {}", platform.getServerGBId(), channelId);
             dynamicTask.stop(timeOutTaskKey);
             // hook响应
-            playService.onPublishHandlerForPlay(mediaServerItemForInvite, hookParam, platform.getServerGBId(), channelId);
+            playService.onPublishHandlerForPlay(hookData.getMediaServer(), hookData.getMediaInfo(), platform.getServerGBId(), channelId);
             // 收到流
             if (hookEvent != null) {
-                hookEvent.response(mediaServerItem, hookParam);
+                hookEvent.response(hookData);
             }
         }, event -> {
 

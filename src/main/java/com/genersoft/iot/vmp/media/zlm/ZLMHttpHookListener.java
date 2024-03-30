@@ -173,7 +173,7 @@ public class ZLMHttpHookListener {
         String mediaServerId = json.getString("mediaServerId");
         MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
         if (mediaServer == null) {
-            return new HookResultForOnPublish(200, "success");
+            return new HookResultForOnPublish(0, "success");
         }
 
         ResultForOnPublish resultForOnPublish = mediaService.authenticatePublish(mediaServer, param.getApp(), param.getStream(), param.getParams());
@@ -197,6 +197,9 @@ public class ZLMHttpHookListener {
     public HookResult onStreamChanged(@RequestBody OnStreamChangedHookParam param) {
 
         MediaServer mediaServer = mediaServerService.getOne(param.getMediaServerId());
+        if (mediaServer == null) {
+            return HookResult.SUCCESS();
+        }
 
         if (param.isRegist()) {
             logger.info("[ZLM HOOK] 流注册, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
@@ -329,9 +332,9 @@ public class ZLMHttpHookListener {
         logger.info("[ZLM HOOK] 录像完成事件：{}->{}", param.getMediaServerId(), param.getFile_path());
 
         try {
-            MediaRecordMp4Event event = new MediaRecordMp4Event(this);
             MediaServer mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
             if (mediaServerItem != null) {
+                MediaRecordMp4Event event = MediaRecordMp4Event.getInstance(this, param, mediaServerItem);
                 event.setMediaServer(mediaServerItem);
                 applicationEventPublisher.publishEvent(event);
             }

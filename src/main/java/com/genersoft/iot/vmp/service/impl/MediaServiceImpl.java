@@ -87,7 +87,10 @@ public class MediaServiceImpl implements IMediaService {
             return true;
         }
         StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(app, stream);
-        return (streamAuthorityInfo != null && streamAuthorityInfo.getCallId() != null && streamAuthorityInfo.getCallId().equals(callId));
+        if (streamAuthorityInfo == null || streamAuthorityInfo.getCallId() == null) {
+            return true;
+        }
+        return streamAuthorityInfo.getCallId().equals(callId);
     }
 
     @Override

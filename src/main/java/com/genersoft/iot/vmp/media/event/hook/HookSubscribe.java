@@ -22,7 +22,7 @@ public class HookSubscribe {
     /**
      * 订阅数据过期时间
      */
-    private final long subscribeExpire = 5 * 1000;
+    private final long subscribeExpire = 5 * 60 * 1000;
 
     @FunctionalInterface
     public interface Event{
@@ -36,10 +36,6 @@ public class HookSubscribe {
     @EventListener
     public void onApplicationEvent(MediaArrivalEvent event) {
         if ("rtsp".equals(event.getSchema())) {
-            System.out.println("流到来的处理: " + allSubscribes.size());
-            for (String s : allSubscribes.keySet()) {
-                System.out.println("key: " + s);
-            }
             sendNotify(HookType.on_media_arrival, event);
         }
 
@@ -70,7 +66,6 @@ public class HookSubscribe {
 
     private void sendNotify(HookType hookType, MediaEvent event) {
         Hook paramHook = Hook.getInstance(hookType, event.getApp(), event.getStream(), event.getMediaServer().getId());
-        System.out.println("sendNotify: " + paramHook.toString());
         Event hookSubscribeEvent = allSubscribes.get(paramHook.toString());
         if (hookSubscribeEvent != null) {
             HookData data = HookData.getInstance(event);
@@ -87,7 +82,6 @@ public class HookSubscribe {
     }
 
     public void removeSubscribe(Hook hook) {
-        System.out.println("removeSubscribe: " + hook.toString());
         allSubscribes.remove(hook.toString());
         allHook.remove(hook.toString());
     }
@@ -100,7 +94,6 @@ public class HookSubscribe {
         long expireTime = System.currentTimeMillis() - subscribeExpire;
         for (Hook hook : allHook.values()) {
             if (hook.getCreateTime() < expireTime) {
-                System.out.println("execute removeSubscribe: " + hook.toString());
                 allSubscribes.remove(hook.toString());
                 allHook.remove(hook.toString());
             }

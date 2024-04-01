@@ -42,11 +42,23 @@ public class MediaConfig{
     @Value("${media.stream-ip:${media.ip}}")
     private String streamIp;
 
-    @Value("${media.http-port}")
+    @Value("${media.http-port:0}")
     private Integer httpPort;
+
+    @Value("${media.flv-port:0}")
+    private Integer flvPort = 0;
+
+    @Value("${media.ws-flv-port:0}")
+    private Integer wsFlvPort = 0;
 
     @Value("${media.http-ssl-port:0}")
     private Integer httpSSlPort = 0;
+
+    @Value("${media.flv-ssl-port:0}")
+    private Integer flvSSlPort = 0;
+
+    @Value("${media.ws-flv-ssl-port:0}")
+    private Integer wsFlvSSlPort = 0;
 
     @Value("${media.rtmp-port:0}")
     private Integer rtmpPort = 0;
@@ -208,7 +220,11 @@ public class MediaConfig{
         mediaServerItem.setSdpIp(getSdpIp());
         mediaServerItem.setStreamIp(getStreamIp());
         mediaServerItem.setHttpPort(httpPort);
+        mediaServerItem.setFlvPort(flvPort);
+        mediaServerItem.setWsFlvPort(wsFlvPort);
         mediaServerItem.setHttpSSlPort(httpSSlPort);
+        mediaServerItem.setFlvSSLPort(flvSSlPort);
+        mediaServerItem.setWsFlvSSLPort(wsFlvSSlPort);
         mediaServerItem.setRtmpPort(rtmpPort);
         mediaServerItem.setRtmpSSlPort(rtmpSSlPort);
         mediaServerItem.setRtpProxyPort(getRtpProxyPort());

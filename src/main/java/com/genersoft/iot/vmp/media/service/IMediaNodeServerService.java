@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface IMediaNodeServerService {
-    int createRTPServer(MediaServer mediaServer, String streamId, long ssrc, Integer port, Boolean onlyAuto, Boolean reUsePort, Integer tcpMode);
+    int createRTPServer(MediaServer mediaServer, String streamId, long ssrc, Integer port, Boolean onlyAuto, Boolean disableAudio, Boolean reUsePort, Integer tcpMode);
 
     void closeRtpServer(MediaServer mediaServer, String streamId);
 

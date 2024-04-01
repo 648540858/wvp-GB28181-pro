@@ -195,14 +195,22 @@ public class StreamInfo implements Serializable, Cloneable{
         }
     }
 
-    public void setFlv(String host, int port, int sslPort, String app, String stream, String callIdParam) {
-        String file = String.format("%s/%s.live.flv%s", app, stream, callIdParam);
+    public void setFlv(String host, int port, int sslPort, String file) {
         if (port > 0) {
             this.flv = new StreamURL("http", host, port, file);
         }
         this.ws_flv = new StreamURL("ws", host, port, file);
         if (sslPort > 0) {
             this.https_flv = new StreamURL("https", host, sslPort, file);
+            this.wss_flv = new StreamURL("wss", host, sslPort, file);
+        }
+    }
+
+    public void setWsFlv(String host, int port, int sslPort, String file) {
+        if (port > 0) {
+            this.ws_flv = new StreamURL("ws", host, port, file);
+        }
+        if (sslPort > 0) {
             this.wss_flv = new StreamURL("wss", host, sslPort, file);
         }
     }

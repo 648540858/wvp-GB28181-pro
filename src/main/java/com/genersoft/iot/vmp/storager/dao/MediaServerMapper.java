@@ -24,6 +24,10 @@ public interface MediaServerMapper {
             "rtmp_ssl_port,"+
             "rtp_proxy_port,"+
             "rtsp_port,"+
+            "flv_port," +
+            "flv_ssl_port," +
+            "ws_flv_port," +
+            "ws_flv_ssl__port," +
             "rtsp_ssl_port,"+
             "auto_config,"+
             "secret,"+
@@ -51,6 +55,10 @@ public interface MediaServerMapper {
             "#{rtmpSSlPort}, " +
             "#{rtpProxyPort}, " +
             "#{rtspPort}, " +
+            "#{flvPort}, " +
+            "#{flvSSLPort}, " +
+            "#{wsFlvPort}, " +
+            "#{wsFlvSSLPort}, " +
             "#{rtspSSLPort}, " +
             "#{autoConfig}, " +
             "#{secret}, " +
@@ -81,6 +89,10 @@ public interface MediaServerMapper {
             "<if test=\"rtpProxyPort != null\">, rtp_proxy_port=#{rtpProxyPort}</if>" +
             "<if test=\"rtspPort != null\">, rtsp_port=#{rtspPort}</if>" +
             "<if test=\"rtspSSLPort != null\">, rtsp_ssl_port=#{rtspSSLPort}</if>" +
+            "<if test=\"flvPort != null\">, flv_port=#{flvPort}</if>" +
+            "<if test=\"flvSSLPort != null\">, flv_ssl_port=#{flvSSLPort}</if>" +
+            "<if test=\"wsFlvPort != null\">, ws_flv_port=#{wsFlvPort}</if>" +
+            "<if test=\"wsFlvSSLPort != null\">, ws_flv_ssl_port=#{wsFlvSSLPort}</if>" +
             "<if test=\"autoConfig != null\">, auto_config=#{autoConfig}</if>" +
             "<if test=\"rtpEnable != null\">, rtp_enable=#{rtpEnable}</if>" +
             "<if test=\"rtpPortRange != null\">, rtp_port_range=#{rtpPortRange}</if>" +
@@ -108,6 +120,10 @@ public interface MediaServerMapper {
             "<if test=\"rtpProxyPort != null\">, rtp_proxy_port=#{rtpProxyPort}</if>" +
             "<if test=\"rtspPort != null\">, rtsp_port=#{rtspPort}</if>" +
             "<if test=\"rtspSSLPort != null\">, rtsp_ssl_port=#{rtspSSLPort}</if>" +
+            "<if test=\"flvPort != null\">, flv_port=#{flvPort}</if>" +
+            "<if test=\"flvSSLPort != null\">, flv_ssl_port=#{flvSSLPort}</if>" +
+            "<if test=\"wsFlvPort != null\">, ws_flv_port=#{wsFlvPort}</if>" +
+            "<if test=\"wsFlvSSLPort != null\">, ws_flv_ssl_port=#{wsFlvSSLPort}</if>" +
             "<if test=\"autoConfig != null\">, auto_config=#{autoConfig}</if>" +
             "<if test=\"rtpEnable != null\">, rtp_enable=#{rtpEnable}</if>" +
             "<if test=\"rtpPortRange != null\">, rtp_port_range=#{rtpPortRange}</if>" +

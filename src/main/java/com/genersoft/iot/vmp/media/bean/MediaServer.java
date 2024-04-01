@@ -32,6 +32,18 @@ public class MediaServer {
     @Schema(description = "RTMP端口")
     private int rtmpPort;
 
+    @Schema(description = "flv端口")
+    private int flvPort;
+
+    @Schema(description = "https-flv端口")
+    private int flvSSLPort;
+
+    @Schema(description = "ws-flv端口")
+    private int wsFlvPort;
+
+    @Schema(description = "wss-flv端口")
+    private int wsFlvSSLPort;
+
     @Schema(description = "RTMPS端口")
     private int rtmpSSlPort;
 
@@ -98,7 +110,11 @@ public class MediaServer {
         sdpIp = ObjectUtils.isEmpty(zlmServerConfig.getSdpIp())? zlmServerConfig.getIp(): zlmServerConfig.getSdpIp();
         streamIp = ObjectUtils.isEmpty(zlmServerConfig.getStreamIp())? zlmServerConfig.getIp(): zlmServerConfig.getStreamIp();
         httpPort = zlmServerConfig.getHttpPort();
+        flvPort = zlmServerConfig.getHttpPort();
+        wsFlvPort = zlmServerConfig.getHttpPort();
         httpSSlPort = zlmServerConfig.getHttpSSLport();
+        flvSSLPort = zlmServerConfig.getHttpSSLport();
+        wsFlvSSLPort = zlmServerConfig.getHttpSSLport();
         rtmpPort = zlmServerConfig.getRtmpPort();
         rtmpSSlPort = zlmServerConfig.getRtmpSslPort();
         rtpProxyPort = zlmServerConfig.getRtpProxyPort();
@@ -327,5 +343,37 @@ public class MediaServer {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public int getFlvPort() {
+        return flvPort;
+    }
+
+    public void setFlvPort(int flvPort) {
+        this.flvPort = flvPort;
+    }
+
+    public int getFlvSSLPort() {
+        return flvSSLPort;
+    }
+
+    public void setFlvSSLPort(int flvSSLPort) {
+        this.flvSSLPort = flvSSLPort;
+    }
+
+    public int getWsFlvPort() {
+        return wsFlvPort;
+    }
+
+    public void setWsFlvPort(int wsFlvPort) {
+        this.wsFlvPort = wsFlvPort;
+    }
+
+    public int getWsFlvSSLPort() {
+        return wsFlvSSLPort;
+    }
+
+    public void setWsFlvSSLPort(int wsFlvSSLPort) {
+        this.wsFlvSSLPort = wsFlvSSLPort;
     }
 }

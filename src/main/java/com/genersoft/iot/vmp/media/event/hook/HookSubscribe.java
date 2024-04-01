@@ -35,7 +35,7 @@ public class HookSubscribe {
     @Async("taskExecutor")
     @EventListener
     public void onApplicationEvent(MediaArrivalEvent event) {
-        if ("rtsp".equals(event.getSchema())) {
+        if (event.getSchema() == null || "rtsp".equals(event.getSchema())) {
             sendNotify(HookType.on_media_arrival, event);
         }
 
@@ -47,7 +47,7 @@ public class HookSubscribe {
     @Async("taskExecutor")
     @EventListener
     public void onApplicationEvent(MediaDepartureEvent event) {
-        if ("rtsp".equals(event.getSchema())) {
+        if (event.getSchema() == null || "rtsp".equals(event.getSchema())) {
             sendNotify(HookType.on_media_departure, event);
         }
 

@@ -21,7 +21,7 @@ public class ABLHookParam {
     /**
      * 媒体流来源网络编号，可参考附表
      */
-    private String networkType;
+    private Integer networkType;
 
     public String getMediaServerId() {
         return mediaServerId;
@@ -55,11 +55,11 @@ public class ABLHookParam {
         this.key = key;
     }
 
-    public String getNetworkType() {
+    public Integer getNetworkType() {
         return networkType;
     }
 
-    public void setNetworkType(String networkType) {
+    public void setNetworkType(Integer networkType) {
         this.networkType = networkType;
     }
 }

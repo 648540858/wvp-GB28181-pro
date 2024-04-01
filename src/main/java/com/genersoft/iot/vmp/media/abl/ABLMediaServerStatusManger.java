@@ -212,14 +212,23 @@ public class ABLMediaServerStatusManger {
 //        if (mediaServerItem.getHttpSSlPort() == 0) {
 //            mediaServerItem.setHttpSSlPort(ablServerConfig.getHttpSSLport());
 //        }
-        if (mediaServerItem.getRtmpPort() == 0) {
+        if (mediaServerItem.getRtmpPort() == 0 && ablServerConfig.getRtmpPort() != null) {
             mediaServerItem.setRtmpPort(ablServerConfig.getRtmpPort());
         }
 //        if (mediaServerItem.getRtmpSSlPort() == 0) {
 //            mediaServerItem.setRtmpSSlPort(ablServerConfig.getRtmpSslPort());
 //        }
-        if (mediaServerItem.getRtspPort() == 0) {
+        if (mediaServerItem.getRtspPort() == 0 && ablServerConfig.getRtspPort() != null) {
             mediaServerItem.setRtspPort(ablServerConfig.getRtspPort());
+        }
+        if (mediaServerItem.getFlvPort() == 0 && ablServerConfig.getHttpFlvPort() != null) {
+            mediaServerItem.setFlvPort(ablServerConfig.getHttpFlvPort());
+        }
+        if (mediaServerItem.getWsFlvPort() == 0 && ablServerConfig.getWsPort() != null) {
+            mediaServerItem.setWsFlvPort(ablServerConfig.getWsPort());
+        }
+        if (mediaServerItem.getRtpProxyPort() == 0 && ablServerConfig.getPsTsRecvPort() != null) {
+            mediaServerItem.setRtpProxyPort(ablServerConfig.getPsTsRecvPort());
         }
 //        if (mediaServerItem.getRtspSSLPort() == 0) {
 //            mediaServerItem.setRtspSSLPort(ablServerConfig.getRtspSSlport());

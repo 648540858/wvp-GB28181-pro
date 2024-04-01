@@ -270,126 +270,29 @@ public class ABLRESTfulUtils {
         }
     }
 
-    public JSONObject getMediaList(MediaServer mediaServerItem, String app, String stream, String schema, RequestCallback callback){
+
+    public Integer openRtpServer(MediaServer mediaServer, String app, String stream, int payload, Integer port, Integer tcpMode, Integer disableAudio) {
         Map<String, Object> param = new HashMap<>();
-        if (app != null) {
-            param.put("app",app);
-        }
-        if (stream != null) {
-            param.put("stream",stream);
-        }
-        if (schema != null) {
-            param.put("schema",schema);
-        }
-        param.put("vhost","__defaultVhost__");
-        return sendPost(mediaServerItem, "getMediaList",param, callback);
-    }
-
-    public JSONObject getMediaList(MediaServer mediaServerItem, String app, String stream){
-        return getMediaList(mediaServerItem, app, stream,null,  null);
-    }
-
-    public JSONObject getMediaList(MediaServer mediaServerItem, RequestCallback callback){
-        return sendPost(mediaServerItem, "getMediaList",null, callback);
-    }
-
-    public JSONObject getMediaInfo(MediaServer mediaServerItem, String app, String schema, String stream){
-        Map<String, Object> param = new HashMap<>();
-        param.put("app",app);
-        param.put("schema",schema);
-        param.put("stream",stream);
-        param.put("vhost","__defaultVhost__");
-        return sendPost(mediaServerItem, "getMediaInfo",param, null);
-    }
-
-    public JSONObject getRtpInfo(MediaServer mediaServerItem, String stream_id){
-        Map<String, Object> param = new HashMap<>();
-        param.put("stream_id",stream_id);
-        return sendPost(mediaServerItem, "getRtpInfo",param, null);
-    }
-
-    public JSONObject addFFmpegSource(MediaServer mediaServerItem, String src_url, String dst_url, Integer timeout_ms,
-                                      boolean enable_audio, boolean enable_mp4, String ffmpeg_cmd_key){
-        logger.info(src_url);
-        logger.info(dst_url);
-        Map<String, Object> param = new HashMap<>();
-        param.put("src_url", src_url);
-        param.put("dst_url", dst_url);
-        param.put("timeout_ms", timeout_ms);
-        param.put("enable_mp4", enable_mp4);
-        param.put("ffmpeg_cmd_key", ffmpeg_cmd_key);
-        return sendPost(mediaServerItem, "addFFmpegSource",param, null);
-    }
-
-    public JSONObject delFFmpegSource(MediaServer mediaServerItem, String key){
-        Map<String, Object> param = new HashMap<>();
-        param.put("key", key);
-        return sendPost(mediaServerItem, "delFFmpegSource",param, null);
-    }
-
-    public JSONObject delStreamProxy(MediaServer mediaServerItem, String key){
-        Map<String, Object> param = new HashMap<>();
-        param.put("key", key);
-        return sendPost(mediaServerItem, "delStreamProxy",param, null);
-    }
-
-    public JSONObject getServerConfig(MediaServer mediaServerItem){
-        return sendPost(mediaServerItem, "getServerConfig",null, null);
-    }
-
-    public JSONObject setConfigParamValue(MediaServer mediaServerItem, String key, Object value){
-        Map<String, Object> param =  new HashMap<>();
-        param.put("key", key);
-        param.put("value", value);
-        return sendGet(mediaServerItem,"setConfigParamValue", param);
-    }
-
-    public JSONObject openRtpServer(MediaServer mediaServerItem, Map<String, Object> param){
-        return sendPost(mediaServerItem, "openRtpServer",param, null);
-    }
-
-    public JSONObject closeRtpServer(MediaServer mediaServerItem, Map<String, Object> param) {
-        return sendPost(mediaServerItem, "closeRtpServer",param, null);
-    }
-
-    public void closeRtpServer(MediaServer mediaServerItem, Map<String, Object> param, RequestCallback callback) {
-        sendPost(mediaServerItem, "closeRtpServer",param, callback);
-    }
-
-    public JSONObject listRtpServer(MediaServer mediaServerItem) {
-        return sendPost(mediaServerItem, "listRtpServer",null, null);
-    }
-
-    public JSONObject startSendRtp(MediaServer mediaServerItem, Map<String, Object> param) {
-        return sendPost(mediaServerItem, "startSendRtp",param, null);
-    }
-
-    public JSONObject startSendRtpPassive(MediaServer mediaServerItem, Map<String, Object> param) {
-        return sendPost(mediaServerItem, "startSendRtpPassive",param, null);
-    }
-
-    public JSONObject startSendRtpPassive(MediaServer mediaServerItem, Map<String, Object> param, RequestCallback callback) {
-        return sendPost(mediaServerItem, "startSendRtpPassive",param, callback);
-    }
-
-    public JSONObject stopSendRtp(MediaServer mediaServerItem, Map<String, Object> param) {
-        return sendPost(mediaServerItem, "stopSendRtp",param, null);
-    }
-
-    public JSONObject restartServer(MediaServer mediaServerItem) {
-        return sendPost(mediaServerItem, "restartServer",null, null);
-    }
-
-    public JSONObject addStreamProxy(MediaServer mediaServerItem, String app, String stream, String url, boolean enable_audio, boolean enable_mp4, String rtp_type) {
-        Map<String, Object> param = new HashMap<>();
-        param.put("vhost", "__defaultVhost__");
+        param.put("vhost", "_defaultVhost_");
         param.put("app", app);
-        param.put("stream", stream);
-        param.put("url", url);
-        param.put("enable_mp4", enable_mp4?1:0);
-        param.put("enable_audio", enable_audio?1:0);
-        param.put("rtp_type", rtp_type);
-        return sendPost(mediaServerItem, "addStreamProxy",param, null, 20);
+        param.put("stream_id", stream);
+        param.put("payload", payload);
+        if (port != null) {
+            param.put("port", port);
+        }
+        if (tcpMode != null) {
+            param.put("enable_tcp", tcpMode);
+        }
+        if (disableAudio != null) {
+            param.put("disableAudio", disableAudio);
+        }
+
+        JSONObject jsonObject = sendPost(mediaServer, "openRtpServer", param, null);
+        if (jsonObject.getInteger("code") == 0) {
+            return jsonObject.getInteger("port");
+        }else {
+            return 0;
+        }
     }
 
     public JSONObject closeStreams(MediaServer mediaServerItem, String app, String stream) {
@@ -401,58 +304,14 @@ public class ABLRESTfulUtils {
         return sendPost(mediaServerItem, "close_streams",param, null);
     }
 
-    public JSONObject getAllSession(MediaServer mediaServerItem) {
-        return sendPost(mediaServerItem, "getAllSession",null, null);
+    public JSONObject getServerConfig(MediaServer mediaServerItem){
+        return sendPost(mediaServerItem, "getServerConfig",null, null);
     }
 
-    public void kickSessions(MediaServer mediaServerItem, String localPortSStr) {
-        Map<String, Object> param = new HashMap<>();
-        param.put("local_port", localPortSStr);
-        sendPost(mediaServerItem, "kick_sessions",param, null);
-    }
-
-    public void getSnap(MediaServer mediaServerItem, String streamUrl, int timeout_sec, int expire_sec, String targetPath, String fileName) {
-        Map<String, Object> param = new HashMap<>(3);
-        param.put("url", streamUrl);
-        param.put("timeout_sec", timeout_sec);
-        param.put("expire_sec", expire_sec);
-        sendGetForImg(mediaServerItem, "getSnap", param, targetPath, fileName);
-    }
-
-    public JSONObject pauseRtpCheck(MediaServer mediaServerItem, String streamId) {
-        Map<String, Object> param = new HashMap<>(1);
-        param.put("stream_id", streamId);
-        return sendPost(mediaServerItem, "pauseRtpCheck",param, null);
-    }
-
-    public JSONObject resumeRtpCheck(MediaServer mediaServerItem, String streamId) {
-        Map<String, Object> param = new HashMap<>(1);
-        param.put("stream_id", streamId);
-        return sendPost(mediaServerItem, "resumeRtpCheck",param, null);
-    }
-
-    public JSONObject connectRtpServer(MediaServer mediaServerItem, String dst_url, int dst_port, String stream_id) {
-        Map<String, Object> param = new HashMap<>(1);
-        param.put("dst_url", dst_url);
-        param.put("dst_port", dst_port);
-        param.put("stream_id", stream_id);
-        return sendPost(mediaServerItem, "connectRtpServer",param, null);
-    }
-
-    public JSONObject updateRtpServerSSRC(MediaServer mediaServerItem, String streamId, String ssrc) {
-        Map<String, Object> param = new HashMap<>(1);
-        param.put("ssrc", ssrc);
-        param.put("stream_id", streamId);
-        return sendPost(mediaServerItem, "updateRtpServerSSRC",param, null);
-    }
-
-    public JSONObject deleteRecordDirectory(MediaServer mediaServerItem, String app, String stream, String date, String fileName) {
-        Map<String, Object> param = new HashMap<>(1);
-        param.put("vhost", "__defaultVhost__");
-        param.put("app", app);
-        param.put("stream", stream);
-        param.put("period", date);
-        param.put("name", fileName);
-        return sendPost(mediaServerItem, "deleteRecordDirectory",param, null);
+    public JSONObject setConfigParamValue(MediaServer mediaServerItem, String key, Object value){
+        Map<String, Object> param =  new HashMap<>();
+        param.put("key", key);
+        param.put("value", value);
+        return sendGet(mediaServerItem,"setConfigParamValue", param);
     }
 }

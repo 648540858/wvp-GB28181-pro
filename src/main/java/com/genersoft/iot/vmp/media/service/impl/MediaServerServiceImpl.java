@@ -132,7 +132,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Override
     public SSRCInfo openRTPServer(MediaServer mediaServer, String streamId, String presetSsrc, boolean ssrcCheck,
-                                  boolean isPlayback, Integer port, Boolean onlyAuto, Boolean reUsePort, Integer tcpMode) {
+                                  boolean isPlayback, Integer port, Boolean onlyAuto, Boolean disableAudio, Boolean reUsePort, Integer tcpMode) {
         if (mediaServer == null || mediaServer.getId() == null) {
             logger.info("[openRTPServer] 失败, mediaServer == null || mediaServer.getId() == null");
             return null;
@@ -163,18 +163,12 @@ public class MediaServerServiceImpl implements IMediaServerService {
                 logger.info("[openRTPServer] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
                 return null;
             }
-            rtpServerPort = mediaNodeServerService.createRTPServer(mediaServer, streamId, ssrcCheck ? Long.parseLong(ssrc) : 0, port, onlyAuto, reUsePort, tcpMode);
+            rtpServerPort = mediaNodeServerService.createRTPServer(mediaServer, streamId, ssrcCheck ? Long.parseLong(ssrc) : 0, port, onlyAuto, disableAudio, reUsePort, tcpMode);
         } else {
             rtpServerPort = mediaServer.getRtpProxyPort();
         }
         return new SSRCInfo(rtpServerPort, ssrc, streamId);
     }
-
-    @Override
-    public SSRCInfo openRTPServer(MediaServer mediaServer, String streamId, String ssrc, boolean ssrcCheck, boolean isPlayback, Integer port, Boolean onlyAuto) {
-        return openRTPServer(mediaServer, streamId, ssrc, ssrcCheck, isPlayback, port, onlyAuto, null, 0);
-    }
-
 
     @Override
     public void closeRTPServer(MediaServer mediaServer, String streamId) {
@@ -770,7 +764,18 @@ public class MediaServerServiceImpl implements IMediaServerService {
         String callIdParam = ObjectUtils.isEmpty(callId)?"":"?callId=" + callId;
         streamInfoResult.setRtmp(addr, mediaServer.getRtmpPort(),mediaServer.getRtmpSSlPort(), app,  stream, callIdParam);
         streamInfoResult.setRtsp(addr, mediaServer.getRtspPort(),mediaServer.getRtspSSLPort(), app,  stream, callIdParam);
-        streamInfoResult.setFlv(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
+
+
+        if ("abl".equals(mediaServer.getType())) {
+            String flvFile = String.format("%s/%s.flv%s", app, stream, callIdParam);
+            streamInfoResult.setFlv(addr, mediaServer.getFlvPort(),mediaServer.getFlvSSLPort(), flvFile);
+            streamInfoResult.setWsFlv(addr, mediaServer.getWsFlvPort(),mediaServer.getWsFlvSSLPort(), flvFile);
+        }else {
+            String flvFile = String.format("%s/%s.live.flv%s", app, stream, callIdParam);
+            streamInfoResult.setFlv(addr, mediaServer.getFlvPort(),mediaServer.getFlvSSLPort(), flvFile);
+            streamInfoResult.setWsFlv(addr, mediaServer.getWsFlvPort(),mediaServer.getWsFlvSSLPort(), flvFile);
+        }
+
         streamInfoResult.setFmp4(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
         streamInfoResult.setHls(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
         streamInfoResult.setTs(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam);

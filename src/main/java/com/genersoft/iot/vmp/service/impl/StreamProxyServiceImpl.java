@@ -361,8 +361,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             result = mediaServerService.addStreamProxy(mediaServer, param.getApp(), param.getStream(), param.getUrl().trim(),
                     param.isEnableAudio(), param.isEnableMp4(), param.getRtpType());
         }
-        System.out.println("addStreamProxyToZlm====");
-        System.out.println(result);
         if (result != null && result.getCode() == 0) {
             String key = result.getData();
             if (key == null) {
@@ -381,6 +379,13 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             return null;
         }
         MediaServer mediaServer = mediaServerService.getOne(param.getMediaServerId());
+        if (mediaServer == null) {
+            return null;
+        }
+        List<StreamInfo> mediaList = mediaServerService.getMediaList(mediaServer, param.getApp(), param.getStream(), null);
+        if (mediaList.isEmpty()) {
+            return true;
+        }
         Boolean result = false;
         if ("ffmpeg".equalsIgnoreCase(param.getType())){
             result = mediaServerService.delFFmpegSource(mediaServer, param.getStreamKey());

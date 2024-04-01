@@ -257,14 +257,13 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     public WVPResult<String> addStreamProxy(MediaServer mediaServer, String app, String stream, String url, boolean enableAudio, boolean enableMp4, String rtpType) {
         JSONObject jsonObject = zlmresTfulUtils.addStreamProxy(mediaServer, app, stream, url, enableAudio, enableMp4, rtpType);
         if (jsonObject.getInteger("code") != 0) {
-            logger.warn("[addStreamProxy] 添加代理失败");
             return WVPResult.fail(ErrorCode.ERROR100.getCode(), "添加代理失败");
         }else {
             JSONObject data = jsonObject.getJSONObject("data");
             if (data == null) {
                 return WVPResult.fail(ErrorCode.ERROR100.getCode(), "代理结果异常： " + jsonObject);
             }else {
-                return WVPResult.success("");
+                return WVPResult.success(data.getString("key"));
             }
         }
     }

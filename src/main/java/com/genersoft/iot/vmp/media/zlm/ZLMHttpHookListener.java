@@ -143,16 +143,15 @@ public class ZLMHttpHookListener {
     @ResponseBody
     @PostMapping(value = "/on_play", produces = "application/json;charset=UTF-8")
     public HookResult onPlay(@RequestBody OnPlayHookParam param) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("[ZLM HOOK] 播放鉴权：{}->{}", param.getMediaServerId(), param);
-        }
+
         Map<String, String> paramMap = urlParamToMap(param.getParams());
         // 对于播放流进行鉴权
         boolean authenticateResult = mediaService.authenticatePlay(param.getApp(), param.getStream(), paramMap.get("callId"));
         if (!authenticateResult) {
+            logger.info("[ZLM HOOK] 播放鉴权 失败：{}->{}", param.getMediaServerId(), param);
             return new HookResult(401, "Unauthorized");
         }
-
+        logger.info("[ZLM HOOK] 播放鉴权 成功：{}->{}", param.getMediaServerId(), param);
         return HookResult.SUCCESS();
     }
 

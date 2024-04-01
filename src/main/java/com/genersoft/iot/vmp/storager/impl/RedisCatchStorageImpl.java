@@ -447,6 +447,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public StreamAuthorityInfo getStreamAuthorityInfo(String app, String stream) {
         String key = VideoManagerConstants.MEDIA_STREAM_AUTHORITY + userSetting.getServerId() + "_" + app+ "_" + stream ;
+        System.out.println(key);
         return JsonUtil.redisJsonToObject(redisTemplate, key, StreamAuthorityInfo.class);
 
     }

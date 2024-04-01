@@ -1409,6 +1409,14 @@ public class PlayServiceImpl implements IPlayService {
             logger.info("调用ZLM推流接口, 结果： {}", jsonObject);
             logger.info("RTP推流成功[ {}/{} ]，{}->{}, ", param.get("app"), param.get("stream"), jsonObject.getString("local_port"),
                     sendRtpItem.isTcpActive()?"被动发流": param.get("dst_url") + ":" + param.get("dst_port"));
+            if (sendRtpItem.getPlayType() == InviteStreamType.PUSH && correlationInfo instanceof ParentPlatform) {
+                ParentPlatform platform = (ParentPlatform)correlationInfo;
+                MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0, sendRtpItem.getApp(), sendRtpItem.getStream(),
+                        sendRtpItem.getChannelId(), platform.getServerGBId(), platform.getName(), userSetting.getServerId(),
+                        sendRtpItem.getMediaServerId());
+                messageForPushChannel.setPlatFormIndex(platform.getId());
+                redisCatchStorage.sendPlatformStartPlayMsg(messageForPushChannel);
+            }
         } else {
             logger.error("RTP推流失败: {}, 参数：{}", jsonObject.getString("msg"), JSONObject.toJSONString(param));
             if (sendRtpItem.isOnlyAudio()) {

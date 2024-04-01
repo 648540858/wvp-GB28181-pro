@@ -13,7 +13,7 @@ import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,7 +45,7 @@ public class DeviceControl {
     private IVideoManagerStorage storager;
 
     @Autowired
-    private SIPCommander cmder;
+    private ISIPCommander cmder;
 
     @Autowired
     private DeferredResultHolder resultHolder;
@@ -254,15 +254,13 @@ public class DeviceControl {
 	@Operation(summary = "看守位控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
-	@Parameter(name = "enabled", description = "是否开启看守位 1:开启,0:关闭", required = true)
+	@Parameter(name = "enabled", description = "是否开启看守位", required = true)
 	@Parameter(name = "presetIndex", description = "调用预置位编号")
-	@Parameter(name = "resetTime", description = "自动归位时间间隔")
-	@GetMapping("/home_position/{deviceId}/{enabled}")
-	public DeferredResult<String> homePositionApi(@PathVariable String deviceId,
-																@PathVariable String enabled,
-																@RequestParam(required = false) String resetTime,
-																@RequestParam(required = false) String presetIndex,
-                                                                String channelId) {
+	@Parameter(name = "resetTime", description = "自动归位时间间隔 单位：秒")
+	@GetMapping("/home_position")
+	public DeferredResult<String> homePositionApi(String deviceId, String channelId, Boolean enabled,
+												  @RequestParam(required = false) Integer resetTime,
+												  @RequestParam(required = false) Integer presetIndex) {
         if (logger.isDebugEnabled()) {
 			logger.debug("报警复位API调用");
 		}

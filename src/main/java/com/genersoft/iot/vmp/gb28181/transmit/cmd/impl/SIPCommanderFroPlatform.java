@@ -358,8 +358,8 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                             }else {
                                 catalogXml.append("<Password></Password>\r\n");
                             }
-                            if (!ObjectUtils.isEmpty(channel.getPTZType())) {
-                                catalogXml.append("<PTZType>" + channel.getPTZType() + "</PTZType>\r\n");
+                            if (!ObjectUtils.isEmpty(channel.getPtzType())) {
+                                catalogXml.append("<PTZType>" + channel.getPtzType() + "</PTZType>\r\n");
                             }else {
                                 catalogXml.append("<PTZType></PTZType>\r\n");
                             }

@@ -103,6 +103,16 @@ public class SubscribeHolder {
         return platforms;
     }
 
+    public List<String> getAllMobilePositionSubscribePlatform() {
+        List<String> platforms = new ArrayList<>();
+        if(!mobilePositionMap.isEmpty()) {
+            for (String key : mobilePositionMap.keySet()) {
+                platforms.add(mobilePositionMap.get(key).getId());
+            }
+        }
+        return platforms;
+    }
+
     public void removeAllSubscribe(String platformId) {
         removeMobilePositionSubscribe(platformId);
         removeCatalogSubscribe(platformId);

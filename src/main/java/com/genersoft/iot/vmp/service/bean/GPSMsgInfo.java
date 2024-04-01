@@ -1,5 +1,8 @@
 package com.genersoft.iot.vmp.service.bean;
 
+import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
+import com.genersoft.iot.vmp.utils.DateUtil;
+
 public class GPSMsgInfo {
 
     /**
@@ -38,6 +41,18 @@ public class GPSMsgInfo {
     private String altitude;
 
     private boolean stored;
+
+    public static GPSMsgInfo getInstance(MobilePosition mobilePosition) {
+        GPSMsgInfo gpsMsgInfo = new GPSMsgInfo();
+        gpsMsgInfo.setId(mobilePosition.getChannelId());
+        gpsMsgInfo.setAltitude(mobilePosition.getAltitude() + "");
+        gpsMsgInfo.setLng(mobilePosition.getLongitude());
+        gpsMsgInfo.setLat(mobilePosition.getLatitude());
+        gpsMsgInfo.setSpeed(mobilePosition.getSpeed());
+        gpsMsgInfo.setDirection(mobilePosition.getDirection() + "");
+        gpsMsgInfo.setTime(DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
+        return gpsMsgInfo;
+    }
 
 
     public String getId() {

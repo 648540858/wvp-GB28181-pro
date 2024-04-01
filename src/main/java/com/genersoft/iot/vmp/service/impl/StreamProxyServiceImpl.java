@@ -383,7 +383,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             return null;
         }
         List<StreamInfo> mediaList = mediaServerService.getMediaList(mediaServer, param.getApp(), param.getStream(), null);
-        if (mediaList.isEmpty()) {
+        if (mediaList == null || mediaList.isEmpty()) {
             return true;
         }
         Boolean result = false;

@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.utils.SSLSocketClientUtil;
 import okhttp3.*;
 import okhttp3.logging.HttpLoggingInterceptor;

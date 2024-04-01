@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.service.bean;
 
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 
 /**
  * redis消息：下级回复推送信息

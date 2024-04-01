@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 
 public class InviteStreamInfo {
 

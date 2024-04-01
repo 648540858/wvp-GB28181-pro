@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.media.zlm;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;

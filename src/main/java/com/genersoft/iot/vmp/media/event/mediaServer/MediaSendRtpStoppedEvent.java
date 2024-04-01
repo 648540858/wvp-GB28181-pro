@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.media.event.mediaServer;
 
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamNotFoundHookParam;
 import org.springframework.context.ApplicationEvent;
 

@@ -1,9 +1,7 @@
 package com.genersoft.iot.vmp.service;
 
-import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 
 /**
  * 媒体信息业务

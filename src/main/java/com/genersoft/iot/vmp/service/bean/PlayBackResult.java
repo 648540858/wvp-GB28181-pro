@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.service.bean;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 
 import java.util.EventObject;
 

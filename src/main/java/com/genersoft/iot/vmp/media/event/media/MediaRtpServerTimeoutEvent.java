@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.media.event.media;
 
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 
 /**

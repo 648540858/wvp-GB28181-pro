@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.media.zlm.event;
 
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import org.springframework.context.ApplicationEvent;
 
 /**

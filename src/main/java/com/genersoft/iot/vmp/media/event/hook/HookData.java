@@ -6,7 +6,7 @@ import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaPublishEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaRecordMp4Event;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServer;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**

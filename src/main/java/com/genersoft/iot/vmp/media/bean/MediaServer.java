@@ -1,6 +1,7 @@
-package com.genersoft.iot.vmp.media.zlm.dto;
+package com.genersoft.iot.vmp.media.bean;
 
 
+import com.genersoft.iot.vmp.media.zlm.dto.ZLMServerConfig;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.util.ObjectUtils;
 

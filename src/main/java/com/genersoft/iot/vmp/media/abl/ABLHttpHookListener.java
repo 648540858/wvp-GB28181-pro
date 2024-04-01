@@ -14,11 +14,14 @@ import com.genersoft.iot.vmp.media.abl.event.HookAblServerStartEvent;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
-import com.genersoft.iot.vmp.media.event.media.*;
-import com.genersoft.iot.vmp.media.event.mediaServer.MediaSendRtpStoppedEvent;
+import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
+import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
+import com.genersoft.iot.vmp.media.event.media.MediaNotFoundEvent;
+import com.genersoft.iot.vmp.media.event.media.MediaRtpServerTimeoutEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.ZLMMediaListManager;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.*;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.HookResult;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.HookResultForOnPublish;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -214,7 +217,7 @@ public class ABLHttpHookListener {
     public HookResult onStreamNotArrive(@RequestBody ABLHookParam param) {
 
 
-        logger.info("[ABL HOOK] 码流不到达通知：{}->{}/{}->{}/{}", param.getMediaServerId(), param.getApp(), param.getStream(), param.getCurrentFileDuration(), param.getTotalVideoDuration());
+        logger.info("[ABL HOOK] 码流不到达通知：{}->{}/{}", param.getMediaServerId(), param.getApp(), param.getStream());
         try {
             if ("rtp".equals(param.getApp())) {
                 return HookResult.SUCCESS();
@@ -241,7 +244,7 @@ public class ABLHttpHookListener {
     public HookResult onDeleteRecordMp4(@RequestBody OnRecordMp4ABLHookParam param) {
 
 
-        logger.info("[ABL HOOK] MP4文件被删除通知：{}->{}/{}->{}/{}", param.getMediaServerId(), param.getApp(), param.getStream(), param.getCurrentFileDuration(), param.getTotalVideoDuration());
+        logger.info("[ABL HOOK] MP4文件被删除通知：{}->{}/{}", param.getMediaServerId(), param.getApp(), param.getStream());
 
 
         return HookResult.SUCCESS();

@@ -128,7 +128,7 @@ public class MediaInfo {
     }
 
     public static MediaInfo getInstance(OnStreamChangedHookParam param, MediaServer mediaServer) {
-        List<OnStreamChangedHookParam.MediaTrack> tracks = param.getTracks();
+
         MediaInfo mediaInfo = new MediaInfo();
         mediaInfo.setApp(param.getApp());
         mediaInfo.setStream(param.getStream());
@@ -139,6 +139,10 @@ public class MediaInfo {
         mediaInfo.setOriginType(param.getOriginType());
         mediaInfo.setAliveSecond(param.getAliveSecond());
         mediaInfo.setBytesSpeed(param.getBytesSpeed());
+        List<OnStreamChangedHookParam.MediaTrack> tracks = param.getTracks();
+        if (tracks == null || tracks.isEmpty()) {
+            return mediaInfo;
+        }
         for (OnStreamChangedHookParam.MediaTrack mediaTrack : tracks) {
             switch (mediaTrack.getCodec_id()) {
                 case 0:

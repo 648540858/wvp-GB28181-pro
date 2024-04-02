@@ -1693,4 +1693,26 @@ public class PlayServiceImpl implements IPlayService {
         });
     }
 
+    @Override
+    public void stopPlay(Device device, String channelId) {
+        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channelId);
+        if (inviteInfo == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "点播未找到");
+        }
+        if (InviteSessionStatus.ok == inviteInfo.getStatus()) {
+            try {
+                logger.info("[停止点播] {}/{}", device.getDeviceId(), channelId);
+                cmder.streamByeCmd(device, channelId, inviteInfo.getStream(), null, null);
+            } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
+                logger.error("[命令发送失败] 停止点播， 发送BYE: {}", e.getMessage());
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+            }
+        }
+        inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channelId);
+        storager.stopPlay(device.getDeviceId(), channelId);
+        channelService.stopPlay(device.getDeviceId(), channelId);
+        if (inviteInfo.getStreamInfo() != null) {
+            mediaServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServerId(), inviteInfo.getStream());
+        }
+    }
 }

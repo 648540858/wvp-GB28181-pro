@@ -1,19 +1,25 @@
 package com.genersoft.iot.vmp.media.abl;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
-import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service("abl")
 public class ABLMediaNodeServerService implements IMediaNodeServerService {
+
+    private final static Logger logger = LoggerFactory.getLogger(ABLMediaNodeServerService.class);
 
     @Autowired
     private ABLRESTfulUtils ablresTfulUtils;
@@ -24,13 +30,28 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public void closeRtpServer(MediaServer mediaServerItem, String streamId) {
-
+    public void closeRtpServer(MediaServer mediaServer, String streamId) {
+        closeRtpServer(mediaServer, streamId, null);
     }
 
     @Override
-    public void closeRtpServer(MediaServer mediaServerItem, String streamId, CommonCallback<Boolean> callback) {
-
+    public void closeRtpServer(MediaServer serverItem, String streamId, CommonCallback<Boolean> callback) {
+       if (serverItem == null) {
+           return;
+       }
+        Map<String, Object> param = new HashMap<>();
+        param.put("stream_id", streamId);
+        param.put("force", 1);
+        JSONObject jsonObject = ablresTfulUtils.closeStreams(serverItem, "rtp", streamId);
+        logger.info("关闭RTP Server " +  jsonObject);
+        if (jsonObject != null ) {
+            if (jsonObject.getInteger("code") != 0) {
+                logger.error("关闭RTP Server 失败: " + jsonObject.getString("msg"));
+            }
+        }else {
+            //  检查ZLM状态
+            logger.error("关闭RTP Server 失败: 请检查ZLM服务");
+        }
     }
 
     @Override

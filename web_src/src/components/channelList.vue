@@ -100,9 +100,9 @@
               <span v-show="!scope.row.edit">{{ scope.row.location }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="ptztype" label="云台类型" min-width="100">
+          <el-table-column prop="ptzType" label="云台类型" min-width="100">
             <template v-slot:default="scope">
-              <el-select v-show="scope.row.edit" v-model="scope.row.ptztype"
+              <el-select v-show="scope.row.edit" v-model="scope.row.ptzType"
                          placeholder="云台类型" filterable>
                 <el-option
                   v-for="(value, key) in ptzTypes"
@@ -111,7 +111,7 @@
                   :value="key"
                 />
               </el-select>
-              <div v-show="!scope.row.edit">{{ scope.row.ptztypeText }}</div>
+              <div v-show="!scope.row.edit">{{ scope.row.ptzTypeText }}</div>
             </template>
           </el-table-column>
           <el-table-column label="开启音频" min-width="100">
@@ -178,13 +178,24 @@
                          @click="changeSubchannel(scope.row)">查看
               </el-button>
               <el-divider v-if="scope.row.subCount > 0 || scope.row.parental === 1" direction="vertical"></el-divider>
-              <el-button size="medium" v-bind:disabled="device == null || device.online === 0"
-                         icon="el-icon-video-camera"
-                         type="text" @click="queryRecords(scope.row)">设备录像
-              </el-button>
-              <el-button size="medium" v-bind:disabled="device == null || device.online === 0" icon="el-icon-cloudy"
-                         type="text" @click="queryCloudRecords(scope.row)">云端录像
-              </el-button>
+<!--              <el-button size="medium" v-bind:disabled="device == null || device.online === 0"-->
+<!--                         icon="el-icon-video-camera"-->
+<!--                         type="text" @click="queryRecords(scope.row)">设备录像-->
+<!--              </el-button>-->
+<!--              <el-button size="medium" v-bind:disabled="device == null || device.online === 0" icon="el-icon-cloudy"-->
+<!--                         type="text" @click="queryCloudRecords(scope.row)">云端录像-->
+<!--              </el-button>-->
+              <el-dropdown @command="(command)=>{moreClick(command, scope.row)}">
+                <el-button size="medium" type="text" >
+                  更多功能<i class="el-icon-arrow-down el-icon--right"></i>
+                </el-button>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item command="records" v-bind:disabled="device == null || device.online === 0">
+                    设备录像</el-dropdown-item>
+                  <el-dropdown-item command="cloudRecords" v-bind:disabled="device == null || device.online === 0" >
+                    云端录像</el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
             </template>
           </el-table-column>
         </el-table>
@@ -312,7 +323,7 @@ export default {
           that.total = res.data.data.total;
           that.deviceChannelList = res.data.data.list;
           that.deviceChannelList.forEach(e => {
-            e.ptztype = e.ptztype + "";
+            e.ptzType = e.ptzType + "";
             that.$set(e, "edit", false);
             that.$set(e, "location", "");
             if (e.longitude && e.latitude) {
@@ -371,6 +382,13 @@ export default {
         that.isLoging = false;
         // that.$message.error("请求超时");
       });
+    },
+    moreClick: function (command, itemData) {
+      if (command === "records") {
+        this.queryRecords(itemData)
+      }else if (command === "cloudRecords") {
+        this.queryCloudRecords(itemData)
+      }
     },
     queryRecords: function (itemData) {
       let deviceId = this.deviceId;
@@ -460,7 +478,7 @@ export default {
             this.total = res.data.data.total;
             this.deviceChannelList = res.data.data.list;
             this.deviceChannelList.forEach(e => {
-              e.ptztype = e.ptztype + "";
+              e.ptzType = e.ptzType + "";
               this.$set(e, "edit", false);
               this.$set(e, "location", "");
               if (e.longitude && e.latitude) {

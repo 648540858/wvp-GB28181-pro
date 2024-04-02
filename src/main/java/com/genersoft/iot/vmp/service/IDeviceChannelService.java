@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 
@@ -92,4 +93,10 @@ public interface IDeviceChannelService {
      * 修改通道的码流类型
      */
     void updateChannelStreamIdentification(DeviceChannel channel);
+
+    List<DeviceChannel> queryChaneListByDeviceId(String deviceId);
+
+    void updateChannelGPS(Device device, DeviceChannel deviceChannel, MobilePosition mobilePosition);
+
+    void stopPlay(String deviceId, String channelId);
 }

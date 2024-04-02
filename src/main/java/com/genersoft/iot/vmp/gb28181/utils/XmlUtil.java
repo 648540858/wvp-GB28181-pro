@@ -568,14 +568,14 @@ public class XmlUtil {
                         String ptzTypeFromInfo = XmlUtil.getText(info, "PTZType");
                         if(!ObjectUtils.isEmpty(ptzTypeFromInfo)){
                             try {
-                                deviceChannel.setPTZType(Integer.parseInt(ptzTypeFromInfo));
+                                deviceChannel.setPtzType(Integer.parseInt(ptzTypeFromInfo));
                             }catch (NumberFormatException e){
                                 logger.warn("[xml解析] 从通道数据info中获取PTZType失败： {}", ptzTypeFromInfo);
                             }
                         }
                     } else {
                         try {
-                            deviceChannel.setPTZType(Integer.parseInt(ptzType));
+                            deviceChannel.setPtzType(Integer.parseInt(ptzType));
                         }catch (NumberFormatException e){
                             logger.warn("[xml解析] 从通道数据中获取PTZType失败： {}", ptzType);
                         }

@@ -41,8 +41,8 @@ export default {
                 zlmsdpUrl: url,//流地址
                 simulecast: false,
                 useCamera: false,
-                audioEnable: false,
-                videoEnable: false,
+                audioEnable: true,
+                videoEnable: true,
                 recvOnly: true,
             })
             webrtcPlayer.on(ZLMRTCClient.Events.WEBRTC_ICE_CANDIDATE_ERROR,(e)=>{// ICE 协商出错

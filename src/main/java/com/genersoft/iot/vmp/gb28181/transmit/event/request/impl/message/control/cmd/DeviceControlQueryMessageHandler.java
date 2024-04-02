@@ -248,7 +248,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             HomePositionRequest homePosition = loadElement(rootElement, HomePositionRequest.class);
             //获取整个消息主体，我们只需要修改请求头即可
             HomePositionRequest.HomePosition info = homePosition.getHomePosition();
-            cmder.homePositionCmd(device, channelId, info.getEnabled(), info.getResetTime(), info.getPresetIndex(),
+            cmder.homePositionCmd(device, channelId, !"0".equals(info.getEnabled()), Integer.parseInt(info.getResetTime()), Integer.parseInt(info.getPresetIndex()),
                     errorResult -> onError(request, errorResult),
                     okResult -> onOk(request, okResult));
         } catch (Exception e) {

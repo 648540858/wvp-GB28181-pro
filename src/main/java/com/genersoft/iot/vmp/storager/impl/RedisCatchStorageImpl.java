@@ -184,7 +184,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public List<SendRtpItem> querySendRTPServerByChnnelId(String channelId) {
+    public List<SendRtpItem> querySendRTPServerByChannelId(String channelId) {
         if (channelId == null) {
             return null;
         }

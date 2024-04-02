@@ -112,5 +112,5 @@ user-settings:
   device-status-notify: true
 # [可选] 日志配置, 一般不需要改
 logging:
-  config: classpath:logback-spring-local.xml
+  config: classpath:logback-spring.xml
 

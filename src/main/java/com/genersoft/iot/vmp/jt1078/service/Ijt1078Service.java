@@ -1,5 +1,8 @@
 package com.genersoft.iot.vmp.jt1078.service;
 
+import com.genersoft.iot.vmp.common.CommonCallback;
+import com.genersoft.iot.vmp.common.GeneralCallback;
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
 import com.github.pagehelper.PageInfo;
 
@@ -17,4 +20,8 @@ public interface Ijt1078Service {
     void deleteDeviceByDeviceId(String deviceId);
 
     void updateDeviceStatus(boolean connected, String terminalId);
+
+    void play(String deviceId, String channelId, GeneralCallback<StreamInfo> callback);
+
+    void stopPlay(String deviceId, String channelId);
 }

@@ -1,18 +1,28 @@
 package com.genersoft.iot.vmp.jt1078.config;
 
+import com.genersoft.iot.vmp.common.InviteSessionType;
+import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
 import com.genersoft.iot.vmp.jt1078.cmd.JT1078Template;
 import com.genersoft.iot.vmp.jt1078.proc.response.*;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
+import com.genersoft.iot.vmp.vmanager.gb28181.play.PlayController;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -29,31 +39,39 @@ import java.util.List;
 @RequestMapping("/api/jt1078")
 public class JT1078Controller {
 
+    private final static Logger logger = LoggerFactory.getLogger(JT1078Controller.class);
+
     @Resource
     JT1078Template jt1078Template;
 
     @Resource
     Ijt1078Service service;
 
+    @Autowired
+    UserSetting userSetting;
+
     /**
      * jt1078Template 调用示例
      */
     @GetMapping("/start/live/{deviceId}/{channelId}")
-    public WVPResult<?> startLive(@PathVariable String deviceId, @PathVariable String channelId) {
-        J9101 j9101 = new J9101();
-        j9101.setChannel(Integer.valueOf(channelId));
-        j9101.setIp("192.168.1.3");
-        j9101.setRate(1);
-        j9101.setTcpPort(7618);
-        j9101.setUdpPort(7618);
-        j9101.setType(0);
-        // TODO 分配ZLM,获取IP、端口
-        String s = jt1078Template.startLive(deviceId, j9101, 6);
-        // TODO 设备响应成功后,封装拉流结果集
-        WVPResult<String> wvpResult = new WVPResult<>();
-        wvpResult.setCode(200);
-        wvpResult.setData(String.format("http://192.168.1.1/rtp/%s_%s.live.mp4", deviceId, channelId));
-        return wvpResult;
+    public DeferredResult<WVPResult<StreamContent>> startLive(@PathVariable String deviceId, @PathVariable String channelId) {
+        DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
+
+        result.onTimeout(()->{
+            logger.info("[1078-点播等待超时] deviceId：{}, channelId：{}, ", deviceId, channelId);
+            // 释放rtpserver
+            WVPResult<StreamContent> wvpResult = new WVPResult<>();
+            wvpResult.setCode(ErrorCode.ERROR100.getCode());
+            wvpResult.setMsg("点播超时");
+            result.setResult(wvpResult);
+            service.stopPlay(deviceId, channelId);
+        });
+
+        service.play(deviceId, channelId, (code, msg, data) -> {
+
+        });
+
+        return result;
     }
 
     @Operation(summary = "分页查询部标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))

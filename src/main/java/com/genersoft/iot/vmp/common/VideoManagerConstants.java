@@ -175,4 +175,9 @@ public class VideoManagerConstants {
 	 */
 	public static final String REDIS_RECORD_INFO_RES_COUNT_PRE = "GB_RECORD_INFO_RES_COUNT:";
 
+	//**************************    1078  ****************************************
+
+
+	public static final String INVITE_INFO_1078 = "INVITE_INFO_1078:";
+
 }

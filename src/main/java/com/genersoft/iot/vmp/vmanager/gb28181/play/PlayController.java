@@ -181,6 +181,8 @@ public class PlayController {
 				throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
 			}
 		}
+		// 关闭收流
+
 		inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
 		storager.stopPlay(deviceId, channelId);
 

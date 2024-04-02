@@ -3,12 +3,10 @@ package com.genersoft.iot.vmp.vmanager.gb28181.play;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.InviteInfo;
-import com.genersoft.iot.vmp.common.InviteSessionStatus;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
@@ -26,7 +24,7 @@ import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
-import com.genersoft.iot.vmp.vmanager.bean.*;
+import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
@@ -41,11 +39,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.sip.InvalidArgumentException;
-import javax.sip.SipException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.ParseException;
 import java.util.List;
 import java.util.UUID;
 
@@ -165,9 +160,8 @@ public class PlayController {
 	@Operation(summary = "停止点播", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
-	@Parameter(name = "isSubStream", description = "是否子码流（true-子码流，false-主码流），默认为false", required = true)
 	@GetMapping("/stop/{deviceId}/{channelId}")
-	public JSONObject playStop(@PathVariable String deviceId, @PathVariable String channelId,boolean isSubStream) {
+	public JSONObject playStop(@PathVariable String deviceId, @PathVariable String channelId) {
 
 		logger.debug(String.format("设备预览/回放停止API调用，streamId：%s_%s", deviceId, channelId ));
 
@@ -180,26 +174,10 @@ public class PlayController {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备[" + deviceId + "]不存在");
 		}
 
-		InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
-		if (inviteInfo == null) {
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "点播未找到");
-		}
-		if (InviteSessionStatus.ok == inviteInfo.getStatus()) {
-			try {
-				logger.info("[停止点播] {}/{}", device.getDeviceId(), channelId);
-				cmder.streamByeCmd(device, channelId, inviteInfo.getStream(), null, null);
-			} catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
-				logger.error("[命令发送失败] 停止点播， 发送BYE: {}", e.getMessage());
-				throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
-			}
-		}
-		inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
-		storager.stopPlay(deviceId, channelId);
-
+		playService.stopPlay(device, channelId);
 		JSONObject json = new JSONObject();
 		json.put("deviceId", deviceId);
 		json.put("channelId", channelId);
-		json.put("isSubStream", isSubStream);
 		return json;
 	}
 

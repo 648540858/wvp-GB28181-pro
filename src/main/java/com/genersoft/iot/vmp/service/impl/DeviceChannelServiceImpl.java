@@ -353,4 +353,9 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             redisCatchStorage.sendMobilePositionMsg(jsonObject);
         }
     }
+
+    @Override
+    public void stopPlay(String deviceId, String channelId) {
+        channelMapper.stopPlay(deviceId, channelId);
+    }
 }

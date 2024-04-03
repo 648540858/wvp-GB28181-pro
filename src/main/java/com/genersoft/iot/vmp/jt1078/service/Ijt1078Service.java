@@ -24,4 +24,8 @@ public interface Ijt1078Service {
     void play(String deviceId, String channelId, GeneralCallback<StreamInfo> callback);
 
     void stopPlay(String deviceId, String channelId);
+
+    void pausePlay(String deviceId, String channelId);
+
+    void continueLivePlay(String deviceId, String channelId);
 }

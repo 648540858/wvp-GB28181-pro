@@ -205,6 +205,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j9102.setCloseType(0);
         j9102.setStreamType(1);
         jt1078Template.stopLive(deviceId, j9102, 6);
+        logger.info("[1078-停止点播] deviceId： {}， channelId： {}", deviceId, channelId);
         // 删除缓存数据
         if (streamInfo != null) {
             // 关闭rtpServer
@@ -217,5 +218,41 @@ public class jt1078ServiceImpl implements Ijt1078Service {
                 callback.run(InviteErrorCode.ERROR_FOR_FINISH.getCode(), InviteErrorCode.ERROR_FOR_FINISH.getMsg(), null);
             }
         }
+    }
+
+    @Override
+    public void pausePlay(String deviceId, String channelId) {
+        String playKey = VideoManagerConstants.INVITE_INFO_1078 + deviceId + ":" + channelId;
+        dynamicTask.stop(playKey);
+        StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
+        if (streamInfo == null) {
+            logger.info("[1078-暂停点播] 未找到点播信息 deviceId： {}， channelId： {}", deviceId, channelId);
+        }
+        logger.info("[1078-暂停点播] deviceId： {}， channelId： {}", deviceId, channelId);
+        // 发送暂停命令
+        J9102 j9102 = new J9102();
+        j9102.setChannel(Integer.valueOf(channelId));
+        j9102.setCommand(2);
+        j9102.setCloseType(0);
+        j9102.setStreamType(1);
+        jt1078Template.stopLive(deviceId, j9102, 6);
+    }
+
+    @Override
+    public void continueLivePlay(String deviceId, String channelId) {
+        String playKey = VideoManagerConstants.INVITE_INFO_1078 + deviceId + ":" + channelId;
+        dynamicTask.stop(playKey);
+        StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
+        if (streamInfo == null) {
+            logger.info("[1078-继续点播] 未找到点播信息 deviceId： {}， channelId： {}", deviceId, channelId);
+        }
+        logger.info("[1078-继续点播] deviceId： {}， channelId： {}", deviceId, channelId);
+        // 发送暂停命令
+        J9102 j9102 = new J9102();
+        j9102.setChannel(Integer.valueOf(channelId));
+        j9102.setCommand(2);
+        j9102.setCloseType(0);
+        j9102.setStreamType(1);
+        jt1078Template.stopLive(deviceId, j9102, 6);
     }
 }

@@ -120,6 +120,32 @@ public class JT1078Controller {
         service.stopPlay(deviceId, channelId);
     }
 
+    @Operation(summary = "1078-暂停点播", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
+    @GetMapping("/live/pause")
+    public void pauseLive(HttpServletRequest request,
+                         @Parameter(required = true) String deviceId,
+                         @Parameter(required = false) String channelId) {
+        if (ObjectUtils.isEmpty(channelId)) {
+            channelId = "1";
+        }
+        service.pausePlay(deviceId, channelId);
+    }
+
+    @Operation(summary = "1078-继续点播", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
+    @GetMapping("/live/continue")
+    public void continueLive(HttpServletRequest request,
+                          @Parameter(required = true) String deviceId,
+                          @Parameter(required = false) String channelId) {
+        if (ObjectUtils.isEmpty(channelId)) {
+            channelId = "1";
+        }
+        service.continueLivePlay(deviceId, channelId);
+    }
+
     @Operation(summary = "分页查询部标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页查询数量", required = true)

@@ -20,7 +20,11 @@ import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
 
@@ -30,7 +34,8 @@ import java.util.concurrent.TimeUnit;
  * @email qingtaij@163.com
  */
 
-public class TcpServer {
+
+public class TcpServer{
     private final static Logger log = LoggerFactory.getLogger(TcpServer.class);
 
     private final Integer port;

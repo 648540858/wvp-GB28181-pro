@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
 import com.genersoft.iot.vmp.jt1078.cmd.JT1078Template;
 import com.genersoft.iot.vmp.jt1078.proc.response.*;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
+import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
@@ -25,6 +26,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 
 /**
@@ -42,9 +46,6 @@ public class JT1078Controller {
     private final static Logger logger = LoggerFactory.getLogger(JT1078Controller.class);
 
     @Resource
-    JT1078Template jt1078Template;
-
-    @Resource
     Ijt1078Service service;
 
     @Autowired
@@ -54,7 +55,7 @@ public class JT1078Controller {
      * jt1078Template 调用示例
      */
     @GetMapping("/start/live/{deviceId}/{channelId}")
-    public DeferredResult<WVPResult<StreamContent>> startLive(@PathVariable String deviceId, @PathVariable String channelId) {
+    public DeferredResult<WVPResult<StreamContent>> startLive(HttpServletRequest request,  @PathVariable String deviceId, @PathVariable String channelId) {
         DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
 
         result.onTimeout(()->{
@@ -67,8 +68,33 @@ public class JT1078Controller {
             service.stopPlay(deviceId, channelId);
         });
 
-        service.play(deviceId, channelId, (code, msg, data) -> {
+        service.play(deviceId, channelId, (code, msg, streamInfo) -> {
+            WVPResult<StreamContent> wvpResult = new WVPResult<>();
+            if (code == InviteErrorCode.SUCCESS.getCode()) {
+                wvpResult.setCode(ErrorCode.SUCCESS.getCode());
+                wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
 
+                if (streamInfo != null) {
+                    if (userSetting.getUseSourceIpAsStreamIp()) {
+                        streamInfo=streamInfo.clone();//深拷贝
+                        String host;
+                        try {
+                            URL url=new URL(request.getRequestURL().toString());
+                            host=url.getHost();
+                        } catch (MalformedURLException e) {
+                            host=request.getLocalAddr();
+                        }
+                        streamInfo.channgeStreamIp(host);
+                    }
+                    wvpResult.setData(new StreamContent(streamInfo));
+                }else {
+                    wvpResult.setCode(code);
+                    wvpResult.setMsg(msg);
+                }
+            }else {
+                wvpResult.setCode(code);
+                wvpResult.setMsg(msg);
+            }
         });
 
         return result;

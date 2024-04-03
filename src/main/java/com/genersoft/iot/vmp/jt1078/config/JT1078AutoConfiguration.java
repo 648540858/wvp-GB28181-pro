@@ -31,9 +31,4 @@ public class JT1078AutoConfiguration {
     public TcpServer jt1078Server(@Value("${jt1078.port}") Integer port) {
         return new TcpServer(port, applicationEventPublisher, service);
     }
-
-    @Bean
-    public JT1078Template jt1078Template() {
-        return new JT1078Template();
-    }
 }

@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.jt1078.cmd;
 import com.genersoft.iot.vmp.jt1078.proc.entity.Cmd;
 import com.genersoft.iot.vmp.jt1078.proc.response.*;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
+import org.springframework.stereotype.Component;
 
 import java.util.Random;
 
@@ -11,6 +12,7 @@ import java.util.Random;
  * @date 2023/4/27 18:58
  * @email qingtaij@163.com
  */
+@Component
 public class JT1078Template {
 
     private final Random random = new Random();

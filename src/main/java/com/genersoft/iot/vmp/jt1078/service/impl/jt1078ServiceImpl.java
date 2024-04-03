@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.jt1078.service.impl;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.GeneralCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
@@ -12,6 +13,7 @@ import com.genersoft.iot.vmp.jt1078.config.JT1078Controller;
 import com.genersoft.iot.vmp.jt1078.dao.JTDeviceMapper;
 import com.genersoft.iot.vmp.jt1078.proc.response.J9101;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
+import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
@@ -51,8 +53,8 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     @Autowired
     private JTDeviceMapper jtDeviceMapper;
 
-    @Resource
-    JT1078Template jt1078Template;
+    @Autowired
+    private JT1078Template jt1078Template;
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
@@ -71,6 +73,9 @@ public class jt1078ServiceImpl implements Ijt1078Service {
 
     @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private ZLMRESTfulUtils zlmresTfulUtils;
 
 
     @Override
@@ -119,11 +124,24 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         errorCallbacks.add(callback);
         StreamInfo streamInfo = (StreamInfo)redisTemplate.opsForValue().get(playKey);
         if (streamInfo != null) {
-            logger.info("[1078-点播] 点播已经存在，直接返回， deviceId： {}， channelId： {}", deviceId, channelId);
-            for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
-                errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
+            String mediaServerId = streamInfo.getMediaServerId();
+            MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+            if (mediaServerItem != null) {
+                // 查询流是否存在，不存在则删除缓存数据
+                JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(mediaServerItem, "rtp", "rtsp", streamInfo.getStream());
+                if (mediaInfo != null && mediaInfo.getInteger("code") == 0 ) {
+                    Boolean online = mediaInfo.getBoolean("online");
+                    if (online != null && online) {
+                        logger.info("[1078-点播] 点播已经存在，直接返回， deviceId： {}， channelId： {}", deviceId, channelId);
+                        for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
+                            errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
+                        }
+                        return;
+                    }
+                }
             }
-            return;
+            // 清理数据
+            redisTemplate.delete(playKey);
         }
         String stream = deviceId + "-" + channelId;
         MediaServerItem mediaServerItem = mediaServerService.getMediaServerForMinimumLoad(null);
@@ -132,6 +150,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", stream, true, "rtsp", mediaServerItem.getId());
         subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, HookParam hookParam) -> {
             OnStreamChangedHookParam streamChangedHookParam = (OnStreamChangedHookParam) hookParam;
+            dynamicTask.stop(playKey);
             logger.info("[1078-点播] 点播成功， deviceId： {}， channelId： {}", deviceId, channelId);
             StreamInfo info = onPublishHandler(mediaServerItemInUse, streamChangedHookParam, deviceId, channelId);
 
@@ -139,6 +158,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
                 errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), info);
             }
             subscribe.removeSubscribe(hookSubscribe);
+            redisTemplate.opsForValue().set(playKey, info);
         });
         // 设置超时监听
         dynamicTask.startDelay(playKey, () -> {
@@ -151,7 +171,8 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         }, userSetting.getPlayTimeout());
 
         // 开启收流端口
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, stream, null, false, false, 0, false, false, 0);
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, stream, null, false, false, 0, false, false, 1);
+        logger.info("[1078-点播] deviceId： {}， channelId： {}， 端口： {}", deviceId, channelId, ssrcInfo.getPort());
         J9101 j9101 = new J9101();
         j9101.setChannel(Integer.valueOf(channelId));
         j9101.setIp(mediaServerItem.getSdpIp());
@@ -161,6 +182,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j9101.setType(0);
         String s = jt1078Template.startLive(deviceId, j9101, 6);
         System.out.println("ssss=== " + s);
+
     }
 
     public StreamInfo onPublishHandler(MediaServerItem mediaServerItem, OnStreamChangedHookParam hookParam, String deviceId, String channelId) {

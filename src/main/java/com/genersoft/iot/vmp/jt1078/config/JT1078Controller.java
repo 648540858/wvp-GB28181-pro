@@ -95,6 +95,7 @@ public class JT1078Controller {
                 wvpResult.setCode(code);
                 wvpResult.setMsg(msg);
             }
+            result.setResult(wvpResult);
         });
 
         return result;

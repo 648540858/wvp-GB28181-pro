@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.jt1078.cmd.JT1078Template;
 import com.genersoft.iot.vmp.jt1078.config.JT1078Controller;
 import com.genersoft.iot.vmp.jt1078.dao.JTDeviceMapper;
 import com.genersoft.iot.vmp.jt1078.proc.response.J9101;
+import com.genersoft.iot.vmp.jt1078.proc.response.J9102;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
@@ -194,6 +195,27 @@ public class jt1078ServiceImpl implements Ijt1078Service {
 
     @Override
     public void stopPlay(String deviceId, String channelId) {
-
+        String playKey = VideoManagerConstants.INVITE_INFO_1078 + deviceId + ":" + channelId;
+        dynamicTask.stop(playKey);
+        StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
+        // 发送停止命令
+        J9102 j9102 = new J9102();
+        j9102.setChannel(Integer.valueOf(channelId));
+        j9102.setCommand(0);
+        j9102.setCloseType(0);
+        j9102.setStreamType(1);
+        jt1078Template.stopLive(deviceId, j9102, 6);
+        // 删除缓存数据
+        if (streamInfo != null) {
+            // 关闭rtpServer
+            mediaServerService.closeRTPServer(streamInfo.getMediaServerId(), streamInfo.getStream());
+        }
+        // 清理回调
+        List<GeneralCallback<StreamInfo>> generalCallbacks = inviteErrorCallbackMap.get(playKey);
+        if (!generalCallbacks.isEmpty()) {
+            for (GeneralCallback<StreamInfo> callback : generalCallbacks) {
+                callback.run(InviteErrorCode.ERROR_FOR_FINISH.getCode(), InviteErrorCode.ERROR_FOR_FINISH.getMsg(), null);
+            }
+        }
     }
 }

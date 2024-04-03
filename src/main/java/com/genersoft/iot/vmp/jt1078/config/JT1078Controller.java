@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
@@ -51,21 +52,26 @@ public class JT1078Controller {
     @Autowired
     UserSetting userSetting;
 
-    /**
-     * jt1078Template 调用示例
-     */
-    @GetMapping("/start/live/{deviceId}/{channelId}")
-    public DeferredResult<WVPResult<StreamContent>> startLive(HttpServletRequest request,  @PathVariable String deviceId, @PathVariable String channelId) {
+    @Operation(summary = "1078-开始点播", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
+    @GetMapping("/live/start")
+    public DeferredResult<WVPResult<StreamContent>> startLive(HttpServletRequest request,
+                                                              @Parameter(required = true) String deviceId,
+                                                              @Parameter(required = false) String channelId) {
         DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
-
+        if (ObjectUtils.isEmpty(channelId)) {
+            channelId = "1";
+        }
+        String finalChannelId = channelId;
         result.onTimeout(()->{
-            logger.info("[1078-点播等待超时] deviceId：{}, channelId：{}, ", deviceId, channelId);
+            logger.info("[1078-点播等待超时] deviceId：{}, channelId：{}, ", deviceId, finalChannelId);
             // 释放rtpserver
             WVPResult<StreamContent> wvpResult = new WVPResult<>();
             wvpResult.setCode(ErrorCode.ERROR100.getCode());
             wvpResult.setMsg("点播超时");
             result.setResult(wvpResult);
-            service.stopPlay(deviceId, channelId);
+            service.stopPlay(deviceId, finalChannelId);
         });
 
         service.play(deviceId, channelId, (code, msg, streamInfo) -> {
@@ -99,6 +105,19 @@ public class JT1078Controller {
         });
 
         return result;
+    }
+
+    @Operation(summary = "1078-结束点播", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
+    @GetMapping("/live/stop")
+    public void stopLive(HttpServletRequest request,
+                                                              @Parameter(required = true) String deviceId,
+                                                              @Parameter(required = false) String channelId) {
+        if (ObjectUtils.isEmpty(channelId)) {
+            channelId = "1";
+        }
+        service.stopPlay(deviceId, channelId);
     }
 
     @Operation(summary = "分页查询部标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))

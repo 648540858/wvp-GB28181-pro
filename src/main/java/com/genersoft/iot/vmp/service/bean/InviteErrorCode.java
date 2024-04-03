@@ -17,7 +17,9 @@ public enum InviteErrorCode {
     ERROR_FOR_RESET_SSRC(-9, "重新设置收流信息失败"),
     ERROR_FOR_SIP_SENDING_FAILED(-10, "命令发送失败"),
     ERROR_FOR_ASSIST_NOT_READY(-11, "没有可用的assist服务"),
-    ERROR_FOR_PARAMETER_ERROR(-13, "参数异常");
+    ERROR_FOR_PARAMETER_ERROR(-13, "参数异常"),
+    ERROR_FOR_FINISH(-14, "已结束"),
+    ;
 
     private final int code;
     private final String msg;

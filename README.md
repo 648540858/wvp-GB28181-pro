@@ -138,4 +138,4 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
 
 同时感谢JetBrains对开源项目的支持，本项目使用IntelliJ IDEA开发与调试：
 
-[![JetBrains](https://resources.jetbrains.com/storage/products/company/brand/logos/IntelliJ_IDEA_icon.svg?_ga=2.143694769.529214288.1712023294-439039083.1711422571&_gl=1*102dv9n*_ga*NDM5MDM5MDgzLjE3MTE0MjI1NzE.*_ga_9J976DJZ68*MTcxMjEyNjg4NC45LjEuMTcxMjEyNzc2My4zMy4wLjA.)
+![JetBrains](https://resources.jetbrains.com/storage/products/company/brand/logos/IntelliJ_IDEA_icon.svg?_ga=2.143694769.529214288.1712023294-439039083.1711422571&_gl=1*102dv9n*_ga*NDM5MDM5MDgzLjE3MTE0MjI1NzE.*_ga_9J976DJZ68*MTcxMjEyNjg4NC45LjEuMTcxMjEyNzc2My4zMy4wLjA.)

@@ -1,19 +1,13 @@
 package com.genersoft.iot.vmp.jt1078.config;
 
-import com.genersoft.iot.vmp.common.InviteSessionType;
-import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
-import com.genersoft.iot.vmp.jt1078.cmd.JT1078Template;
-import com.genersoft.iot.vmp.jt1078.proc.response.*;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
-import com.genersoft.iot.vmp.vmanager.gb28181.play.PlayController;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -30,7 +24,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.List;
 
 /**
  * curl http://localhost:18080/api/jt1078/start/live/18864197066/1
@@ -144,6 +137,24 @@ public class JT1078Controller {
             channelId = "1";
         }
         service.continueLivePlay(deviceId, channelId);
+    }
+
+    @Operation(summary = "1078-回放-查询资源列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
+    @Parameter(name = "startTime", description = "开始时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
+    @Parameter(name = "endTime", description = "结束时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
+    @GetMapping("/record/list")
+    public void playbackList(HttpServletRequest request,
+                             @Parameter(required = true) String deviceId,
+                             @Parameter(required = false) String channelId,
+                             @Parameter(required = true) String startTime,
+                             @Parameter(required = true) String endTime
+    ) {
+        if (ObjectUtils.isEmpty(channelId)) {
+            channelId = "1";
+        }
+        service.getRecordList(deviceId, channelId, startTime, endTime);
     }
 
     @Operation(summary = "分页查询部标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))

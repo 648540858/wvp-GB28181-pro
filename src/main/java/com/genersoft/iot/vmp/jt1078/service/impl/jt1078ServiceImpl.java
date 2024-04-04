@@ -255,4 +255,9 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j9102.setStreamType(1);
         jt1078Template.stopLive(deviceId, j9102, 6);
     }
+
+    @Override
+    public void getRecordList(String deviceId, String channelId, String startTime, String endTime) {
+
+    }
 }

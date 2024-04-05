@@ -142,7 +142,12 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         }
         String stream = deviceId + "-" + channelId;
         MediaServerItem mediaServerItem = mediaServerService.getMediaServerForMinimumLoad(null);
-
+        if (mediaServerItem == null) {
+            for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
+                errorCallback.run(InviteErrorCode.FAIL.getCode(), "未找到可用的媒体节点", streamInfo);
+            }
+            return;
+        }
         // 设置hook监听
         HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", stream, true, "rtsp", mediaServerItem.getId());
         subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, HookParam hookParam) -> {
@@ -259,8 +264,8 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         // 发送请求录像列表命令
         J9205 j9205 = new J9205();
         j9205.setChannelId(Integer.parseInt(channelId));
-        j9205.setStartTime(DateUtil.yyyy_MM_dd_HH_mm_ssToUrl(startTime));
-        j9205.setEndTime(DateUtil.yyyy_MM_dd_HH_mm_ssToUrl(endTime));
+        j9205.setStartTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime));
+        j9205.setEndTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(endTime));
         j9205.setMediaType(0);
         j9205.setStreamType(0);
         j9205.setStorageType(0);
@@ -306,9 +311,16 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             // 清理数据
             redisTemplate.delete(playbackKey);
         }
-        String stream = deviceId + "-" + channelId + "-" + startTime + "-" + endTime;
+        String startTimeParam = DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime);
+        String endTimeParam = DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(endTime);
+        String stream = deviceId + "-" + channelId + "-" + startTimeParam + "-" + endTimeParam;
         MediaServerItem mediaServerItem = mediaServerService.getMediaServerForMinimumLoad(null);
-
+        if (mediaServerItem == null) {
+            for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
+                errorCallback.run(InviteErrorCode.FAIL.getCode(), "未找到可用的媒体节点", streamInfo);
+            }
+            return;
+        }
         // 设置hook监听
         HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", stream, true, "rtsp", mediaServerItem.getId());
         subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, HookParam hookParam) -> {
@@ -339,15 +351,15 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         J9201 j9201 = new J9201();
         j9201.setChannel(Integer.parseInt(channelId));
         j9201.setIp(mediaServerItem.getSdpIp());
-        j9201.setRate(1);
+        j9201.setRate(0);
         j9201.setPlaybackType(0);
         j9201.setPlaybackSpeed(0);
         j9201.setTcpPort(ssrcInfo.getPort());
         j9201.setUdpPort(ssrcInfo.getPort());
         j9201.setType(0);
-        j9201.setStartTime(DateUtil.yyyy_MM_dd_HH_mm_ssToUrl(startTime));
-        j9201.setEndTime(DateUtil.yyyy_MM_dd_HH_mm_ssToUrl(endTime));
-        String s = jt1078Template.startBackLive(deviceId, j9201, 6);
+        j9201.setStartTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime));
+        j9201.setEndTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(endTime));
+        String s = jt1078Template.startBackLive(deviceId, j9201, 20);
         System.out.println("111ssss=== " + s);
 
     }

@@ -49,6 +49,7 @@ public class DateUtil {
      * wvp内部统一时间格式
      */
     public static final String URL_PATTERN = "yyyyMMddHHmmss";
+    public static final String PATTERN1078 = "yyMMddHHmmss";
 
     /**
      * 日期格式
@@ -65,6 +66,7 @@ public class DateUtil {
     public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
     public static final DateTimeFormatter DateFormatter = DateTimeFormatter.ofPattern(date_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
     public static final DateTimeFormatter urlFormatter = DateTimeFormatter.ofPattern(URL_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
+    public static final DateTimeFormatter formatter1078 = DateTimeFormatter.ofPattern(PATTERN1078, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
 
 	public static String yyyy_MM_dd_HH_mm_ssToISO8601(String formatTime) {
 
@@ -86,8 +88,8 @@ public class DateUtil {
 	public static String urlToyyyy_MM_dd_HH_mm_ss(String formatTime) {
         return formatter.format(urlFormatter.parse(formatTime));
     }
-    public static String yyyy_MM_dd_HH_mm_ssToUrl(String formatTime) {
-        return urlFormatter.format(formatter.parse(formatTime));
+    public static String yyyy_MM_dd_HH_mm_ssTo1078(String formatTime) {
+        return formatter1078.format(formatter.parse(formatTime));
     }
 
     /**

@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.jt1078.config;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
+import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -24,6 +25,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 
 /**
  * curl http://localhost:18080/api/jt1078/start/live/18864197066/1
@@ -139,22 +141,98 @@ public class JT1078Controller {
         service.continueLivePlay(deviceId, channelId);
     }
 
-    @Operation(summary = "1078-回放-查询资源列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "1078-录像-查询资源列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "startTime", description = "开始时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
     @Parameter(name = "endTime", description = "结束时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
     @GetMapping("/record/list")
-    public void playbackList(HttpServletRequest request,
-                             @Parameter(required = true) String deviceId,
-                             @Parameter(required = false) String channelId,
-                             @Parameter(required = true) String startTime,
-                             @Parameter(required = true) String endTime
+    public WVPResult<List<J1205.JRecordItem>> playbackList(HttpServletRequest request,
+                                                                     @Parameter(required = true) String deviceId,
+                                                                     @Parameter(required = false) String channelId,
+                                                                     @Parameter(required = true) String startTime,
+                                                                     @Parameter(required = true) String endTime
     ) {
         if (ObjectUtils.isEmpty(channelId)) {
             channelId = "1";
         }
-        service.getRecordList(deviceId, channelId, startTime, endTime);
+        List<J1205.JRecordItem> recordList = service.getRecordList(deviceId, channelId, startTime, endTime);
+        if (recordList == null) {
+            return WVPResult.fail(ErrorCode.ERROR100);
+        }else {
+            return WVPResult.success(recordList);
+        }
+    }
+    @Operation(summary = "1078-开始回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
+    @Parameter(name = "startTime", description = "开始时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
+    @Parameter(name = "endTime", description = "结束时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
+    @GetMapping("/playback/start")
+    public DeferredResult<WVPResult<StreamContent>> recordLive(HttpServletRequest request,
+                                                              @Parameter(required = true) String deviceId,
+                                                              @Parameter(required = false) String channelId,
+                                                              @Parameter(required = true) String startTime,
+                                                              @Parameter(required = true) String endTime) {
+        DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
+        if (ObjectUtils.isEmpty(channelId)) {
+            channelId = "1";
+        }
+        String finalChannelId = channelId;
+        result.onTimeout(()->{
+            logger.info("[1078-回放-等待超时] deviceId：{}, channelId：{}, ", deviceId, finalChannelId);
+            // 释放rtpserver
+            WVPResult<StreamContent> wvpResult = new WVPResult<>();
+            wvpResult.setCode(ErrorCode.ERROR100.getCode());
+            wvpResult.setMsg("回放超时");
+            result.setResult(wvpResult);
+            service.stopPlay(deviceId, finalChannelId);
+        });
+
+        service.playback(deviceId, channelId, startTime, endTime, (code, msg, streamInfo) -> {
+            WVPResult<StreamContent> wvpResult = new WVPResult<>();
+            if (code == InviteErrorCode.SUCCESS.getCode()) {
+                wvpResult.setCode(ErrorCode.SUCCESS.getCode());
+                wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
+
+                if (streamInfo != null) {
+                    if (userSetting.getUseSourceIpAsStreamIp()) {
+                        streamInfo=streamInfo.clone();//深拷贝
+                        String host;
+                        try {
+                            URL url=new URL(request.getRequestURL().toString());
+                            host=url.getHost();
+                        } catch (MalformedURLException e) {
+                            host=request.getLocalAddr();
+                        }
+                        streamInfo.channgeStreamIp(host);
+                    }
+                    wvpResult.setData(new StreamContent(streamInfo));
+                }else {
+                    wvpResult.setCode(code);
+                    wvpResult.setMsg(msg);
+                }
+            }else {
+                wvpResult.setCode(code);
+                wvpResult.setMsg(msg);
+            }
+            result.setResult(wvpResult);
+        });
+
+        return result;
+    }
+
+    @Operation(summary = "1078-结束回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
+    @GetMapping("/playback/stop")
+    public void stopPlayback(HttpServletRequest request,
+                         @Parameter(required = true) String deviceId,
+                         @Parameter(required = false) String channelId) {
+        if (ObjectUtils.isEmpty(channelId)) {
+            channelId = "1";
+        }
+        service.stopPlayback(deviceId, channelId);
     }
 
     @Operation(summary = "分页查询部标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))

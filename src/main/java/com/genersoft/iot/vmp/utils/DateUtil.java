@@ -86,6 +86,9 @@ public class DateUtil {
 	public static String urlToyyyy_MM_dd_HH_mm_ss(String formatTime) {
         return formatter.format(urlFormatter.parse(formatTime));
     }
+    public static String yyyy_MM_dd_HH_mm_ssToUrl(String formatTime) {
+        return urlFormatter.format(formatter.parse(formatTime));
+    }
 
     /**
      * yyyy_MM_dd_HH_mm_ss 转时间戳

@@ -45,14 +45,12 @@ public class J1205 extends Re {
             item.setSize(buf.readUnsignedInt());
             recordList.add(item);
         }
-
         return null;
     }
 
     @Override
     protected Rs handler(Header header, Session session, Ijt1078Service service) {
         SessionManager.INSTANCE.response(header.getTerminalId(), "1205", (long) respNo, JSON.toJSONString(this));
-        service.notifyRecordList()
         J8001 j8001 = new J8001();
         j8001.setRespNo(header.getSn());
         j8001.setRespId(header.getMsgId());

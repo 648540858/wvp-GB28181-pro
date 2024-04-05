@@ -178,6 +178,10 @@ public class VideoManagerConstants {
 	//**************************    1078  ****************************************
 
 
-	public static final String INVITE_INFO_1078 = "INVITE_INFO_1078:";
+	public static final String INVITE_INFO_1078_PLAY = "INVITE_INFO_1078_PLAY:";
+	public static final String INVITE_INFO_1078_PLAYBACK = "INVITE_INFO_1078_PLAYBACK:";
+
+
+	public static final String RECORD_LIST_1078 = "RECORD_LIST_1078:";
 
 }

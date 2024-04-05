@@ -10,6 +10,7 @@ public enum ErrorCode {
     ERROR404(404, "资源未找到"),
     ERROR403(403, "无权限操作"),
     ERROR401(401, "请登录后重新请求"),
+    ERROR408(408, "请求超时"),
     ERROR500(500, "系统异常");
 
     private final int code;

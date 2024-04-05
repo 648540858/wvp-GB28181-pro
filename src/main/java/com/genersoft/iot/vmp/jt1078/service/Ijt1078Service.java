@@ -3,7 +3,10 @@ package com.genersoft.iot.vmp.jt1078.service;
 import com.genersoft.iot.vmp.common.GeneralCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
+import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
 import com.github.pagehelper.PageInfo;
+
+import java.util.List;
 
 public interface Ijt1078Service {
     JTDevice getDevice(String terminalId);
@@ -20,11 +23,15 @@ public interface Ijt1078Service {
 
     void play(String deviceId, String channelId, GeneralCallback<StreamInfo> callback);
 
+    void playback(String deviceId, String channelId, String startTime, String endTime, GeneralCallback<StreamInfo> callback);
+
     void stopPlay(String deviceId, String channelId);
 
     void pausePlay(String deviceId, String channelId);
 
     void continueLivePlay(String deviceId, String channelId);
 
-    void getRecordList(String deviceId, String channelId, String startTime, String endTime);
+    List<J1205.JRecordItem> getRecordList(String deviceId, String channelId, String startTime, String endTime);
+
+    void stopPlayback(String deviceId, String channelId);
 }

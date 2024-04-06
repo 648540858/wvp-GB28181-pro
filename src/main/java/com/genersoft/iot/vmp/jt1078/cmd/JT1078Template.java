@@ -184,6 +184,23 @@ public class JT1078Template {
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }
 
+    /**
+     * 云台控制指令-云台调整光圈控制
+     *
+     * @param devId 设备号
+     * @param j9303 云台光圈控制参数
+     */
+    public String ptzIris(String devId, J9303 j9303, Integer timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H9303)
+                .setRespId(H0001)
+                .setRs(j9303)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
     private Long randomInt() {
         return (long) random.nextInt(1000) + 1;
     }

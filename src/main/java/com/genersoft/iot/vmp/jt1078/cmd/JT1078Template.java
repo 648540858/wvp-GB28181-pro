@@ -25,6 +25,8 @@ public class JT1078Template {
     private static final String H9206 = "9206";
     private static final String H9207 = "9207";
     private static final String H9301 = "9301";
+    private static final String H9302 = "9302";
+    private static final String H9303 = "9303";
 
     private static final String H0001 = "0001";
     private static final String H1205 = "1205";
@@ -161,6 +163,23 @@ public class JT1078Template {
                 .setMsgId(H9301)
                 .setRespId(H0001)
                 .setRs(j9301)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    /**
+     * 云台控制指令-云台调整焦距控制
+     *
+     * @param devId 设备号
+     * @param j9302 云台焦距控制参数
+     */
+    public String ptzZoom(String devId, J9302 j9302, Integer timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H9302)
+                .setRespId(H0001)
+                .setRs(j9302)
                 .build();
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }

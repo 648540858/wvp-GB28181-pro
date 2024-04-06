@@ -24,6 +24,7 @@ public class JT1078Template {
     private static final String H9205 = "9205";
     private static final String H9206 = "9206";
     private static final String H9207 = "9207";
+    private static final String H9301 = "9301";
 
     private static final String H0001 = "0001";
     private static final String H1205 = "1205";
@@ -143,6 +144,23 @@ public class JT1078Template {
                 .setMsgId(H9207)
                 .setRespId(H0001)
                 .setRs(j9207)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    /**
+     * 云台控制指令-云台旋转
+     *
+     * @param devId 设备号
+     * @param j9301 云台旋转参数
+     */
+    public String ptzRotate(String devId, J9301 j9301, Integer timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H9301)
+                .setRespId(H0001)
+                .setRs(j9301)
                 .build();
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }

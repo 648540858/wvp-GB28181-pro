@@ -5,22 +5,22 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
 /**
- * 云台控制指令-光圈控制
+ * 云台控制指令-云台雨刷控制
  *
  */
-@MsgId(id = "9303")
-public class J9303 extends Rs {
+@MsgId(id = "9304")
+public class J9304 extends Rs {
     // 逻辑通道号
     private int channel;
 
-    // 调整方式: 0：调大； 1：调小
-    private int iris;
+    // 启停标识: 0：停止； 1：启动
+    private int on;
 
     @Override
     public ByteBuf encode() {
         ByteBuf buffer = Unpooled.buffer();
         buffer.writeByte(channel);
-        buffer.writeByte(iris);
+        buffer.writeByte(on);
         return buffer;
     }
 
@@ -32,19 +32,19 @@ public class J9303 extends Rs {
         this.channel = channel;
     }
 
-    public int getIris() {
-        return iris;
+    public int getOn() {
+        return on;
     }
 
-    public void setIris(int iris) {
-        this.iris = iris;
+    public void setOn(int on) {
+        this.on = on;
     }
 
     @Override
     public String toString() {
-        return "J9303{" +
+        return "J9304{" +
                 "channel=" + channel +
-                ", iris=" + iris +
+                ", on=" + on +
                 '}';
     }
 }

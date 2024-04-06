@@ -29,6 +29,7 @@ public class JT1078Template {
     private static final String H9303 = "9303";
     private static final String H9304 = "9304";
     private static final String H9305 = "9305";
+    private static final String H9306 = "9306";
 
     private static final String H0001 = "0001";
     private static final String H1205 = "1205";
@@ -233,6 +234,23 @@ public class JT1078Template {
                 .setMsgId(H9305)
                 .setRespId(H0001)
                 .setRs(j9305)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    /**
+     * 云台控制指令-变倍控制
+     *
+     * @param devId 设备号
+     * @param j9306 云台变倍控制参数
+     */
+    public String ptzZoom(String devId, J9306 j9306, Integer timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H9306)
+                .setRespId(H0001)
+                .setRs(j9306)
                 .build();
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }

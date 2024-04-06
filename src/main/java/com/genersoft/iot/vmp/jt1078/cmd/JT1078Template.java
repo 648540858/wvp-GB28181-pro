@@ -22,6 +22,7 @@ public class JT1078Template {
     private static final String H9201 = "9201";
     private static final String H9202 = "9202";
     private static final String H9205 = "9205";
+    private static final String H9206 = "9206";
 
     private static final String H0001 = "0001";
     private static final String H1205 = "1205";
@@ -107,6 +108,23 @@ public class JT1078Template {
                 .setMsgId(H9202)
                 .setRespId(H0001)
                 .setRs(j9202)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    /**
+     * 文件上传
+     *
+     * @param devId 设备号
+     * @param j9206 文件上传参数
+     */
+    public String fileUpload(String devId, J9206 j9206, Integer timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H9206)
+                .setRespId(H0001)
+                .setRs(j9206)
                 .build();
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }

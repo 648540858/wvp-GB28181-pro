@@ -220,6 +220,23 @@ public class JT1078Template {
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }
 
+    /**
+     * 云台控制指令-红外补光控制
+     *
+     * @param devId 设备号
+     * @param j9305 云台红外补光控制参数
+     */
+    public String ptzSupplementaryLight(String devId, J9305 j9305, Integer timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H9305)
+                .setRespId(H0001)
+                .setRs(j9305)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
     private Long randomInt() {
         return (long) random.nextInt(1000) + 1;
     }

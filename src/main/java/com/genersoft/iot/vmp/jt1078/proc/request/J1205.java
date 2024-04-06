@@ -50,6 +50,7 @@ public class J1205 extends Re {
 
     @Override
     protected Rs handler(Header header, Session session, Ijt1078Service service) {
+        // TODO 可能未处理分包的情况
         SessionManager.INSTANCE.response(header.getTerminalId(), "1205", (long) respNo, JSON.toJSONString(this));
         J8001 j8001 = new J8001();
         j8001.setRespNo(header.getSn());

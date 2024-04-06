@@ -175,7 +175,7 @@ public class JT1078Template {
      * @param devId 设备号
      * @param j9302 云台焦距控制参数
      */
-    public String ptzZoom(String devId, J9302 j9302, Integer timeOut) {
+    public String ptzFocal(String devId, J9302 j9302, Integer timeOut) {
         Cmd cmd = new Cmd.Builder()
                 .setDevId(devId)
                 .setPackageNo(randomInt())

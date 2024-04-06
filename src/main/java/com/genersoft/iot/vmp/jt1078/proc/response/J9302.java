@@ -14,13 +14,13 @@ public class J9302 extends Rs {
     private int channel;
 
     // 方向： 0：焦距调大； 1：焦距调小
-    private int zoomDirection;
+    private int focalDirection;
 
     @Override
     public ByteBuf encode() {
         ByteBuf buffer = Unpooled.buffer();
         buffer.writeByte(channel);
-        buffer.writeByte(zoomDirection);
+        buffer.writeByte(focalDirection);
         return buffer;
     }
 
@@ -32,19 +32,19 @@ public class J9302 extends Rs {
         this.channel = channel;
     }
 
-    public int getZoomDirection() {
-        return zoomDirection;
+    public int getFocalDirection() {
+        return focalDirection;
     }
 
-    public void setZoomDirection(int zoomDirection) {
-        this.zoomDirection = zoomDirection;
+    public void setFocalDirection(int focalDirection) {
+        this.focalDirection = focalDirection;
     }
 
     @Override
     public String toString() {
         return "J9302{" +
                 "channel=" + channel +
-                ", zoomDirection=" + zoomDirection +
+                ", zoomDirection=" + focalDirection +
                 '}';
     }
 }

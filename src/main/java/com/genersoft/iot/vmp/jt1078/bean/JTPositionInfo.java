@@ -53,6 +53,12 @@ public class JTPositionInfo {
     @Schema(description = "时间")
     private String time;
 
+    /**
+     * 视频报警
+     */
+    @Schema(description = "视频报警")
+    private JTVideoAlarm videoAlarm;
+
     public JTAlarmSign getAlarmSign() {
         return alarmSign;
     }
@@ -115,6 +121,14 @@ public class JTPositionInfo {
 
     public void setTime(String time) {
         this.time = time;
+    }
+
+    public JTVideoAlarm getVideoAlarm() {
+        return videoAlarm;
+    }
+
+    public void setVideoAlarm(JTVideoAlarm videoAlarm) {
+        this.videoAlarm = videoAlarm;
     }
 
     @Override

@@ -1,10 +1,7 @@
 package com.genersoft.iot.vmp.jt1078.proc.request;
 
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
-import com.genersoft.iot.vmp.jt1078.bean.JTAlarmSign;
-import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
-import com.genersoft.iot.vmp.jt1078.bean.JTPositionInfo;
-import com.genersoft.iot.vmp.jt1078.bean.JTStatus;
+import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import com.genersoft.iot.vmp.jt1078.proc.response.J8001;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
@@ -46,6 +43,15 @@ public class J0200 extends Re {
         byte[] timeBytes = new byte[6];
         buf.readBytes(timeBytes);
         positionInfo.setTime(BCDUtil.transform(timeBytes));
+
+        // 支持1078的视频报警上报
+        int alarm = buf.readInt();
+        int loss = buf.readInt();
+        int occlusion = buf.readInt();
+        short storageFault = buf.readShort();
+        short driving = buf.readShort();
+        JTVideoAlarm videoAlarm = JTVideoAlarm.getInstance(alarm, loss, occlusion, storageFault, driving);
+        positionInfo.setVideoAlarm(videoAlarm);
         log.info("[JT-位置汇报]: {}", positionInfo.toString());
         return null;
     }

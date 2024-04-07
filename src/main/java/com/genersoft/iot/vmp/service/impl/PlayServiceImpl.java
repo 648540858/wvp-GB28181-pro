@@ -1170,7 +1170,7 @@ public class PlayServiceImpl implements IPlayService {
             dynamicTask.startDelay(key, ()->{
                 logger.info("[语音广播]等待invite消息超时：{}/{}", device.getDeviceId(), channelId);
                 stopAudioBroadcast(device.getDeviceId(), channelId);
-            }, 2000);
+            }, 10*1000);
         }, eventResultForError -> {
             // 发送失败
             logger.error("语音广播发送失败： {}:{}", channelId, eventResultForError.msg);

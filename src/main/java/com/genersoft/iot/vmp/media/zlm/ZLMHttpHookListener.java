@@ -516,8 +516,11 @@ public class ZLMHttpHookListener {
                             if (sendRtpItem.getApp().equals(param.getApp())) {
                                 logger.info(sendRtpItem.toString());
                                 if (userSetting.getServerId().equals(sendRtpItem.getServerId())) {
+                                    MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
+                                            sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getChannelId(),
+                                            sendRtpItem.getPlatformId(), null, userSetting.getServerId(), param.getMediaServerId());
                                     // 通知其他wvp停止发流
-//                                    redisCatchStorage.sendRtp
+                                    redisCatchStorage.sendPushStreamClose(messageForPushChannel);
                                 }else {
                                     String platformId = sendRtpItem.getPlatformId();
                                     ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);

@@ -671,4 +671,11 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         }
 
     }
+
+    @Override
+    public void sendPushStreamClose(MessageForPushChannel msg) {
+        String key = VideoManagerConstants.VM_MSG_STREAM_PUSH_CLOSE_REQUESTED;
+        logger.info("[redis发送通知] 发送 停止向上级推流 {}: {}/{}->{}", key, msg.getApp(), msg.getStream(), msg.getPlatFormId());
+        redisTemplate.convertAndSend(key, JSON.toJSON(msg));
+    }
 }

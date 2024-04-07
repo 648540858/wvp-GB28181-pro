@@ -1,7 +1,9 @@
 package com.genersoft.iot.vmp.jt1078.config;
 
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
 import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
@@ -23,8 +25,11 @@ import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.ParseException;
 import java.util.List;
 
 /**
@@ -271,6 +276,28 @@ public class JT1078Controller {
     public void addDevice(String deviceId){
         assert deviceId != null;
         service.deleteDeviceByDeviceId(deviceId);
+    }
+
+    /***
+     * 云台控制
+     * @param deviceId 设备id
+     * @param channelId 通道id
+     * @param command	控制指令
+     */
+
+    @Operation(summary = "云台控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
+    @Parameter(name = "command", description = "控制指令,允许值: left, right, up, down, zoomin, zoomout, irisin, irisout, focusnear, focusfar, stop", required = true)
+    @Parameter(name = "speed", description = "速度(0-255)， command,值 left, right, up, down时有效", required = true)
+    @PostMapping("/ptz")
+    public void ptz(String deviceId, String channelId, String command, int speed){
+
+        if (ObjectUtils.isEmpty(channelId)) {
+            channelId = "1";
+        }
+        logger.info("[1078-云台控制] deviceId：{}, channelId：{}, command: {}, speed: {}", deviceId, channelId, command, speed);
+        service.ptzControl(deviceId, channelId, command, speed);
     }
 
 }

@@ -1,19 +1,14 @@
 package com.genersoft.iot.vmp.jt1078.config;
 
-import com.genersoft.iot.vmp.common.InviteSessionType;
-import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
-import com.genersoft.iot.vmp.jt1078.cmd.JT1078Template;
-import com.genersoft.iot.vmp.jt1078.proc.response.*;
+import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
-import com.genersoft.iot.vmp.vmanager.gb28181.play.PlayController;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -118,6 +113,126 @@ public class JT1078Controller {
             channelId = "1";
         }
         service.stopPlay(deviceId, channelId);
+    }
+
+    @Operation(summary = "1078-暂停点播", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
+    @GetMapping("/live/pause")
+    public void pauseLive(HttpServletRequest request,
+                         @Parameter(required = true) String deviceId,
+                         @Parameter(required = false) String channelId) {
+        if (ObjectUtils.isEmpty(channelId)) {
+            channelId = "1";
+        }
+        service.pausePlay(deviceId, channelId);
+    }
+
+    @Operation(summary = "1078-继续点播", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
+    @GetMapping("/live/continue")
+    public void continueLive(HttpServletRequest request,
+                          @Parameter(required = true) String deviceId,
+                          @Parameter(required = false) String channelId) {
+        if (ObjectUtils.isEmpty(channelId)) {
+            channelId = "1";
+        }
+        service.continueLivePlay(deviceId, channelId);
+    }
+
+    @Operation(summary = "1078-录像-查询资源列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
+    @Parameter(name = "startTime", description = "开始时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
+    @Parameter(name = "endTime", description = "结束时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
+    @GetMapping("/record/list")
+    public WVPResult<List<J1205.JRecordItem>> playbackList(HttpServletRequest request,
+                                                                     @Parameter(required = true) String deviceId,
+                                                                     @Parameter(required = false) String channelId,
+                                                                     @Parameter(required = true) String startTime,
+                                                                     @Parameter(required = true) String endTime
+    ) {
+        if (ObjectUtils.isEmpty(channelId)) {
+            channelId = "1";
+        }
+        List<J1205.JRecordItem> recordList = service.getRecordList(deviceId, channelId, startTime, endTime);
+        if (recordList == null) {
+            return WVPResult.fail(ErrorCode.ERROR100);
+        }else {
+            return WVPResult.success(recordList);
+        }
+    }
+    @Operation(summary = "1078-开始回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
+    @Parameter(name = "startTime", description = "开始时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
+    @Parameter(name = "endTime", description = "结束时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
+    @GetMapping("/playback/start")
+    public DeferredResult<WVPResult<StreamContent>> recordLive(HttpServletRequest request,
+                                                              @Parameter(required = true) String deviceId,
+                                                              @Parameter(required = false) String channelId,
+                                                              @Parameter(required = true) String startTime,
+                                                              @Parameter(required = true) String endTime) {
+        DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
+        if (ObjectUtils.isEmpty(channelId)) {
+            channelId = "1";
+        }
+        String finalChannelId = channelId;
+        result.onTimeout(()->{
+            logger.info("[1078-回放-等待超时] deviceId：{}, channelId：{}, ", deviceId, finalChannelId);
+            // 释放rtpserver
+            WVPResult<StreamContent> wvpResult = new WVPResult<>();
+            wvpResult.setCode(ErrorCode.ERROR100.getCode());
+            wvpResult.setMsg("回放超时");
+            result.setResult(wvpResult);
+            service.stopPlay(deviceId, finalChannelId);
+        });
+
+        service.playback(deviceId, channelId, startTime, endTime, (code, msg, streamInfo) -> {
+            WVPResult<StreamContent> wvpResult = new WVPResult<>();
+            if (code == InviteErrorCode.SUCCESS.getCode()) {
+                wvpResult.setCode(ErrorCode.SUCCESS.getCode());
+                wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
+
+                if (streamInfo != null) {
+                    if (userSetting.getUseSourceIpAsStreamIp()) {
+                        streamInfo=streamInfo.clone();//深拷贝
+                        String host;
+                        try {
+                            URL url=new URL(request.getRequestURL().toString());
+                            host=url.getHost();
+                        } catch (MalformedURLException e) {
+                            host=request.getLocalAddr();
+                        }
+                        streamInfo.channgeStreamIp(host);
+                    }
+                    wvpResult.setData(new StreamContent(streamInfo));
+                }else {
+                    wvpResult.setCode(code);
+                    wvpResult.setMsg(msg);
+                }
+            }else {
+                wvpResult.setCode(code);
+                wvpResult.setMsg(msg);
+            }
+            result.setResult(wvpResult);
+        });
+
+        return result;
+    }
+
+    @Operation(summary = "1078-结束回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
+    @GetMapping("/playback/stop")
+    public void stopPlayback(HttpServletRequest request,
+                         @Parameter(required = true) String deviceId,
+                         @Parameter(required = false) String channelId) {
+        if (ObjectUtils.isEmpty(channelId)) {
+            channelId = "1";
+        }
+        service.stopPlayback(deviceId, channelId);
     }
 
     @Operation(summary = "分页查询部标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))

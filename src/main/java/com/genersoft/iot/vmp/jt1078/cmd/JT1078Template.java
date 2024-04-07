@@ -22,6 +22,14 @@ public class JT1078Template {
     private static final String H9201 = "9201";
     private static final String H9202 = "9202";
     private static final String H9205 = "9205";
+    private static final String H9206 = "9206";
+    private static final String H9207 = "9207";
+    private static final String H9301 = "9301";
+    private static final String H9302 = "9302";
+    private static final String H9303 = "9303";
+    private static final String H9304 = "9304";
+    private static final String H9305 = "9305";
+    private static final String H9306 = "9306";
 
     private static final String H0001 = "0001";
     private static final String H1205 = "1205";
@@ -107,6 +115,142 @@ public class JT1078Template {
                 .setMsgId(H9202)
                 .setRespId(H0001)
                 .setRs(j9202)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    /**
+     * 文件上传
+     *
+     * @param devId 设备号
+     * @param j9206 文件上传参数
+     */
+    public String fileUpload(String devId, J9206 j9206, Integer timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H9206)
+                .setRespId(H0001)
+                .setRs(j9206)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    /**
+     * 文件上传控制
+     *
+     * @param devId 设备号
+     * @param j9207 文件上传控制参数
+     */
+    public String fileUploadControl(String devId, J9207 j9207, Integer timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H9207)
+                .setRespId(H0001)
+                .setRs(j9207)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    /**
+     * 云台控制指令-云台旋转
+     *
+     * @param devId 设备号
+     * @param j9301 云台旋转参数
+     */
+    public String ptzRotate(String devId, J9301 j9301, Integer timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H9301)
+                .setRespId(H0001)
+                .setRs(j9301)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    /**
+     * 云台控制指令-云台调整焦距控制
+     *
+     * @param devId 设备号
+     * @param j9302 云台焦距控制参数
+     */
+    public String ptzFocal(String devId, J9302 j9302, Integer timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H9302)
+                .setRespId(H0001)
+                .setRs(j9302)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    /**
+     * 云台控制指令-云台调整光圈控制
+     *
+     * @param devId 设备号
+     * @param j9303 云台光圈控制参数
+     */
+    public String ptzIris(String devId, J9303 j9303, Integer timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H9303)
+                .setRespId(H0001)
+                .setRs(j9303)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    /**
+     * 云台控制指令-云台雨刷控制
+     *
+     * @param devId 设备号
+     * @param j9304 云台雨刷控制参数
+     */
+    public String ptzWiper(String devId, J9304 j9304, Integer timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H9304)
+                .setRespId(H0001)
+                .setRs(j9304)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    /**
+     * 云台控制指令-红外补光控制
+     *
+     * @param devId 设备号
+     * @param j9305 云台红外补光控制参数
+     */
+    public String ptzSupplementaryLight(String devId, J9305 j9305, Integer timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H9305)
+                .setRespId(H0001)
+                .setRs(j9305)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    /**
+     * 云台控制指令-变倍控制
+     *
+     * @param devId 设备号
+     * @param j9306 云台变倍控制参数
+     */
+    public String ptzZoom(String devId, J9306 j9306, Integer timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H9306)
+                .setRespId(H0001)
+                .setRs(j9306)
                 .build();
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }

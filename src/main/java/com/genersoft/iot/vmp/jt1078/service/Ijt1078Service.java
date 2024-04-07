@@ -34,4 +34,10 @@ public interface Ijt1078Service {
     List<J1205.JRecordItem> getRecordList(String deviceId, String channelId, String startTime, String endTime);
 
     void stopPlayback(String deviceId, String channelId);
+
+    void ptzControl(String deviceId, String channelId, String command, int speed);
+
+    void supplementaryLight(String deviceId, String channelId, String command);
+
+    void wiper(String deviceId, String channelId, String command);
 }

@@ -32,13 +32,7 @@ import java.net.URL;
 import java.text.ParseException;
 import java.util.List;
 
-/**
- * curl http://localhost:18080/api/jt1078/start/live/18864197066/1
- *
- * @author QingtaiJiang
- * @date 2023/4/27 18:12
- * @email qingtaij@163.com
- */
+
 @ConditionalOnProperty(value = "jt1078.enable", havingValue = "true")
 @RestController
 @RequestMapping("/api/jt1078")
@@ -278,13 +272,6 @@ public class JT1078Controller {
         service.deleteDeviceByDeviceId(deviceId);
     }
 
-    /***
-     * 云台控制
-     * @param deviceId 设备id
-     * @param channelId 通道id
-     * @param command	控制指令
-     */
-
     @Operation(summary = "云台控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
@@ -298,6 +285,34 @@ public class JT1078Controller {
         }
         logger.info("[1078-云台控制] deviceId：{}, channelId：{}, command: {}, speed: {}", deviceId, channelId, command, speed);
         service.ptzControl(deviceId, channelId, command, speed);
+    }
+
+    @Operation(summary = "补光灯开关", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
+    @Parameter(name = "command", description = "控制指令,允许值: on off", required = true)
+    @PostMapping("/fill-light")
+    public void fillLight(String deviceId, String channelId, String command){
+
+        if (ObjectUtils.isEmpty(channelId)) {
+            channelId = "1";
+        }
+        logger.info("[1078-补光灯开关] deviceId：{}, channelId：{}, command: {}", deviceId, channelId, command);
+        service.supplementaryLight(deviceId, channelId, command);
+    }
+
+    @Operation(summary = "雨刷开关", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
+    @Parameter(name = "command", description = "控制指令,允许值: on off", required = true)
+    @PostMapping("/wiper")
+    public void wiper(String deviceId, String channelId, String command){
+
+        if (ObjectUtils.isEmpty(channelId)) {
+            channelId = "1";
+        }
+        logger.info("[1078-雨刷开关] deviceId：{}, channelId：{}, command: {}", deviceId, channelId, command);
+        service.wiper(deviceId, channelId, command);
     }
 
 }

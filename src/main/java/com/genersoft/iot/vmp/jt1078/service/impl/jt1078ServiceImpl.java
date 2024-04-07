@@ -391,4 +391,101 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         }
     }
 
+    @Override
+    public void ptzControl(String deviceId, String channelId, String command, int speed) {
+        // 发送停止命令
+
+        switch (command) {
+            case "left":
+            case "right":
+            case "up":
+            case "down":
+            case "stop":
+                J9301 j9301 = new J9301();
+                j9301.setChannel(Integer.parseInt(channelId));
+                switch (command) {
+                    case "left":
+                        j9301.setDirection(3);
+                        j9301.setSpeed(speed);
+                        break;
+                    case "right":
+                        j9301.setDirection(4);
+                        j9301.setSpeed(speed);
+                        break;
+                    case "up":
+                        j9301.setDirection(1);
+                        j9301.setSpeed(speed);
+                        break;
+                    case "down":
+                        j9301.setDirection(2);
+                        j9301.setSpeed(speed);
+                        break;
+                    case "stop":
+                        j9301.setDirection(0);
+                        j9301.setSpeed(0);
+                        break;
+                }
+                jt1078Template.ptzRotate(deviceId, j9301, 6);
+                break;
+
+            case "zoomin":
+            case "zoomout":
+                J9306 j9306 = new J9306();
+                j9306.setChannel(Integer.parseInt(channelId));
+                if (command.equals("zoomin")) {
+                    j9306.setZoom(0);
+                }else {
+                    j9306.setZoom(1);
+                }
+                jt1078Template.ptzZoom(deviceId, j9306, 6);
+                break;
+            case "irisin":
+            case "irisout":
+                J9303 j9303 = new J9303();
+                j9303.setChannel(Integer.parseInt(channelId));
+                if (command.equals("irisin")) {
+                    j9303.setIris(0);
+                }else {
+                    j9303.setIris(1);
+                }
+                jt1078Template.ptzIris(deviceId, j9303, 6);
+                break;
+            case "focusnear":
+            case "focusfar":
+                J9302 j9302 = new J9302();
+                j9302.setChannel(Integer.parseInt(channelId));
+                if (command.equals("focusfar")) {
+                    j9302.setFocalDirection(0);
+                }else {
+                    j9302.setFocalDirection(1);
+                }
+                jt1078Template.ptzFocal(deviceId, j9302, 6);
+                break;
+
+        }
+    }
+
+    @Override
+    public void supplementaryLight(String deviceId, String channelId, String command) {
+        J9305 j9305 = new J9305();
+        j9305.setChannel(Integer.parseInt(channelId));
+        if (command.equalsIgnoreCase("on")) {
+            j9305.setOn(1);
+        }else {
+            j9305.setOn(0);
+        }
+        jt1078Template.ptzSupplementaryLight(deviceId, j9305, 6);
+    }
+
+    @Override
+    public void wiper(String deviceId, String channelId, String command) {
+        J9304 j9304 = new J9304();
+        j9304.setChannel(Integer.parseInt(channelId));
+        if (command.equalsIgnoreCase("on")) {
+            j9304.setOn(1);
+        }else {
+            j9304.setOn(0);
+        }
+        jt1078Template.ptzWiper(deviceId, j9304, 6);
+    }
 }

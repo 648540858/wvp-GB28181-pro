@@ -211,5 +211,10 @@ public interface IRedisCatchStorage {
 
     void addPushListItem(String app, String stream, OnStreamChangedHookParam param);
 
+    OnStreamChangedHookParam getPushListItem(String app, String stream);
+
     void removePushListItem(String app, String stream, String mediaServerId);
+
+    void sendPushStreamClose(MessageForPushChannel messageForPushChannel);
+
 }

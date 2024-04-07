@@ -136,12 +136,6 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
 [ydpd](https://github.com/ydpd) [szy833](https://github.com/szy833) [ydwxb](https://github.com/ydwxb) [Albertzhu666](https://github.com/Albertzhu666)
 [mk1990](https://github.com/mk1990) [SaltFish001](https://github.com/SaltFish001)
 
+同时感谢JetBrains对开源项目的支持，本项目使用IntelliJ IDEA开发与调试：
 
-ffmpeg -re -i 123.mp3 -acodec pcm_alaw -ar 8000 -ac 1  -f rtsp rtsp://192.168.1.3:30554/broadcast/34020000001320000101_34020000001310000001
-
-ffmpeg -re -i 123.mp3 -acodec pcm_alaw -ar 8000 -ac 1  -f rtsp rtsp://192.168.1.3:30554/talk/34020000001320000011_34020000001370000001
-
-
-
-ffmpeg -re -i 123.mp3 -acodec pcm_alaw -ar 8000 -ac 1  -f rtsp rtsp://192.168.1.3:30554/talk/34020000001320000101_34020000001310000001
-
+![JetBrains](https://resources.jetbrains.com/storage/products/company/brand/logos/IntelliJ_IDEA_icon.svg?_ga=2.143694769.529214288.1712023294-439039083.1711422571&_gl=1*102dv9n*_ga*NDM5MDM5MDgzLjE3MTE0MjI1NzE.*_ga_9J976DJZ68*MTcxMjEyNjg4NC45LjEuMTcxMjEyNzc2My4zMy4wLjA.)

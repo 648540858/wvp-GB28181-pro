@@ -3,3 +3,6 @@ alter table wvp_device_channel
 
 alter table wvp_device
     drop switch_primary_sub_stream;
+
+alter table wvp_platform
+    add send_stream_ip character varying(50);

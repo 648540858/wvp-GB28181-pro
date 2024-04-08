@@ -37,8 +37,8 @@
               <el-form-item label="本地端口" prop="devicePort">
                 <el-input v-model="platform.devicePort" :disabled="true" type="number"></el-input>
               </el-form-item>
-              <el-form-item label="SIP认证用户名" prop="username">
-                <el-input v-model="platform.username"></el-input>
+              <el-form-item label="SDP发流IP" prop="sendStreamIp">
+                <el-input v-model="platform.sendStreamIp"></el-input>
               </el-form-item>
             </el-form>
           </el-col>
@@ -46,6 +46,9 @@
             <el-form ref="platform2" :rules="rules" :model="platform" label-width="160px">
               <el-form-item label="行政区划" prop="administrativeDivision">
                 <el-input v-model="platform.administrativeDivision" clearable></el-input>
+              </el-form-item>
+              <el-form-item label="SIP认证用户名" prop="username">
+                <el-input v-model="platform.username"></el-input>
               </el-form-item>
               <el-form-item label="SIP认证密码" prop="password">
                 <el-input v-model="platform.password" ></el-input>
@@ -159,7 +162,8 @@ export default {
         characterSet: "GB2312",
         startOfflinePush: false,
         catalogGroup: 1,
-        administrativeDivision: null,
+        administrativeDivision: "",
+        sendStreamIp: null,
       },
       rules: {
         name: [{ required: true, message: "请输入平台名称", trigger: "blur" }],
@@ -198,6 +202,7 @@ export default {
             that.platform.devicePort = res.data.data.devicePort;
             that.platform.username = res.data.data.username;
             that.platform.password = res.data.data.password;
+            that.platform.sendStreamIp = res.data.data.sendStreamIp;
             that.platform.administrativeDivision = res.data.data.username.substr(0, 6);
           }
 
@@ -228,6 +233,7 @@ export default {
         this.platform.catalogId = platform.catalogId;
         this.platform.startOfflinePush = platform.startOfflinePush;
         this.platform.catalogGroup = platform.catalogGroup;
+        this.platform.sendStreamIp = platform.sendStreamIp;
         this.platform.administrativeDivision = platform.administrativeDivision;
         this.onSubmit_text = "保存";
         this.saveUrl = "/api/platform/save";

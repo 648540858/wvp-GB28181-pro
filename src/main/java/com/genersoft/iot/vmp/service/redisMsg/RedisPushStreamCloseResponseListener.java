@@ -2,12 +2,14 @@ package com.genersoft.iot.vmp.service.redisMsg;
 
 import com.alibaba.fastjson2.JSON;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.gb28181.bean.InviteStreamType;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
-import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannelResponse;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Component;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -81,6 +84,26 @@ public class RedisPushStreamCloseResponseListener implements MessageListener {
                             commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem);
                         } catch (SipException | InvalidArgumentException | ParseException e) {
                             logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+                        }
+                    }
+                    if (push.isSelf()) {
+                        // 停止向上级推流
+                        String streamId = sendRtpItem.getStream();
+                        Map<String, Object> param = new HashMap<>();
+                        param.put("vhost","__defaultVhost__");
+                        param.put("app",sendRtpItem.getApp());
+                        param.put("stream",streamId);
+                        param.put("ssrc",sendRtpItem.getSsrc());
+                        logger.info("[REDIS消息-推流结束] 停止向上级推流：{}", streamId);
+                        MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+                        redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(), sendRtpItem.getCallId(), sendRtpItem.getStream());
+                        zlmServerFactory.stopSendRtpStream(mediaInfo, param);
+                        if (InviteStreamType.PUSH == sendRtpItem.getPlayType()) {
+                            MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
+                                    sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getChannelId(),
+                                    sendRtpItem.getPlatformId(), parentPlatform.getName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
+                            messageForPushChannel.setPlatFormIndex(parentPlatform.getId());
+                            redisCatchStorage.sendPlatformStopPlayMsg(messageForPushChannel);
                         }
                     }
                 }

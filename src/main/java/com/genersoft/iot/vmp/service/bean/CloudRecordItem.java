@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service.bean;
 
+import com.genersoft.iot.vmp.media.event.media.MediaRecordMp4Event;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRecordMp4HookParam;
 
 /**
@@ -76,18 +77,18 @@ public class CloudRecordItem {
      */
     private long timeLen;
 
-    public static CloudRecordItem getInstance(OnRecordMp4HookParam param) {
+    public static CloudRecordItem getInstance(MediaRecordMp4Event param) {
         CloudRecordItem cloudRecordItem = new CloudRecordItem();
         cloudRecordItem.setApp(param.getApp());
         cloudRecordItem.setStream(param.getStream());
-        cloudRecordItem.setStartTime(param.getStart_time()*1000);
-        cloudRecordItem.setFileName(param.getFile_name());
-        cloudRecordItem.setFolder(param.getFolder());
-        cloudRecordItem.setFileSize(param.getFile_size());
-        cloudRecordItem.setFilePath(param.getFile_path());
-        cloudRecordItem.setMediaServerId(param.getMediaServerId());
-        cloudRecordItem.setTimeLen((long) param.getTime_len() * 1000);
-        cloudRecordItem.setEndTime((param.getStart_time() + (long)param.getTime_len()) * 1000);
+        cloudRecordItem.setStartTime(param.getRecordInfo().getStartTime()*1000);
+        cloudRecordItem.setFileName(param.getRecordInfo().getFileName());
+        cloudRecordItem.setFolder(param.getRecordInfo().getFolder());
+        cloudRecordItem.setFileSize(param.getRecordInfo().getFileSize());
+        cloudRecordItem.setFilePath(param.getRecordInfo().getFilePath());
+        cloudRecordItem.setMediaServerId(param.getMediaServer().getId());
+        cloudRecordItem.setTimeLen((long) param.getRecordInfo().getTimeLen() * 1000);
+        cloudRecordItem.setEndTime((param.getRecordInfo().getStartTime() + (long)param.getRecordInfo().getTimeLen()) * 1000);
         return cloudRecordItem;
     }
 

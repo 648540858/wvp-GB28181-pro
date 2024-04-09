@@ -6,15 +6,13 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
+import com.genersoft.iot.vmp.media.event.hook.Hook;
+import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForRtpServerTimeout;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRtpServerTimeoutHookParam;
-import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.OtherPsSendInfo;
@@ -50,7 +48,7 @@ public class PsController {
     private ZLMServerFactory zlmServerFactory;
 
     @Autowired
-    private ZlmHttpHookSubscribe hookSubscribe;
+    private HookSubscribe hookSubscribe;
 
     @Autowired
     private IMediaServerService mediaServerService;
@@ -83,7 +81,7 @@ public class PsController {
         logger.info("[第三方PS服务对接->开启收流和获取发流信息] isSend->{}, ssrc->{}, callId->{}, stream->{}, tcpMode->{}, callBack->{}",
                 isSend, ssrc, callId, stream, tcpMode==0?"UDP":"TCP被动", callBack);
 
-        MediaServerItem mediaServerItem = mediaServerService.getDefaultMediaServer();
+        MediaServer mediaServerItem = mediaServerService.getDefaultMediaServer();
         if (mediaServerItem == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(),"没有可用的MediaServer");
         }
@@ -108,12 +106,11 @@ public class PsController {
         }
         // 注册回调如果rtp收流超时则通过回调发送通知
         if (callBack != null) {
-            HookSubscribeForRtpServerTimeout hookSubscribeForRtpServerTimeout = HookSubscribeFactory.on_rtp_server_timeout(stream, String.valueOf(ssrcInt), mediaServerItem.getId());
+            Hook hook = Hook.getInstance(HookType.on_rtp_server_timeout, "rtp", stream, mediaServerItem.getId());
             // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
-            hookSubscribe.addSubscribe(hookSubscribeForRtpServerTimeout,
-                    (mediaServerItemInUse, hookParam)->{
-                        OnRtpServerTimeoutHookParam serverTimeoutHookParam = (OnRtpServerTimeoutHookParam) hookParam;
-                        if (stream.equals(serverTimeoutHookParam.getStream_id())) {
+            hookSubscribe.addSubscribe(hook,
+                    (hookData)->{
+                        if (stream.equals(hookData.getStream())) {
                             logger.info("[第三方PS服务对接->开启收流和获取发流信息] 等待收流超时 callId->{}, 发送回调", callId);
                             // 将信息写入redis中，以备后用
                             redisTemplate.delete(receiveKey);
@@ -126,7 +123,7 @@ public class PsController {
                             } catch (IOException e) {
                                 logger.error("[第三方PS服务对接->开启收流和获取发流信息] 等待收流超时 callId->{}, 发送回调失败", callId, e);
                             }
-                            hookSubscribe.removeSubscribe(hookSubscribeForRtpServerTimeout);
+                            hookSubscribe.removeSubscribe(hook);
                         }
                     });
         }
@@ -158,7 +155,7 @@ public class PsController {
     @Parameter(name = "stream", description = "流的ID", required = true)
     public void closeRtpServer(String stream) {
         logger.info("[第三方PS服务对接->关闭收流] stream->{}", stream);
-        MediaServerItem mediaServerItem = mediaServerService.getDefaultMediaServer();
+        MediaServer mediaServerItem = mediaServerService.getDefaultMediaServer();
         zlmServerFactory.closeRtpServer(mediaServerItem,stream);
         String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_PS_INFO + userSetting.getServerId() + "_*_"  + stream;
         List<Object> scan = RedisUtil.scan(redisTemplate, receiveKey);
@@ -201,7 +198,7 @@ public class PsController {
                         app,
                         stream,
                         callId);
-        MediaServerItem mediaServerItem = mediaServerService.getDefaultMediaServer();
+        MediaServer mediaServerItem = mediaServerService.getDefaultMediaServer();
         String key = VideoManagerConstants.WVP_OTHER_SEND_PS_INFO + userSetting.getServerId() + "_"  + callId;
         OtherPsSendInfo sendInfo = (OtherPsSendInfo)redisTemplate.opsForValue().get(key);
         if (sendInfo == null) {
@@ -241,18 +238,18 @@ public class PsController {
         }else {
             logger.info("[第三方PS服务对接->发送流] 流不存在，等待流上线，callId->{}", callId);
             String uuid = UUID.randomUUID().toString();
-            HookSubscribeForStreamChange hookSubscribeForStreamChange = HookSubscribeFactory.on_stream_changed(app, stream, true, "rtsp", mediaServerItem.getId());
+            Hook hook = Hook.getInstance(HookType.on_media_arrival, app, stream, mediaServerItem.getId());
             dynamicTask.startDelay(uuid, ()->{
                 logger.info("[第三方PS服务对接->发送流] 等待流上线超时 callId->{}", callId);
                 redisTemplate.delete(key);
-                hookSubscribe.removeSubscribe(hookSubscribeForStreamChange);
+                hookSubscribe.removeSubscribe(hook);
             }, 10000);
 
             // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
             OtherPsSendInfo finalSendInfo = sendInfo;
-            hookSubscribe.removeSubscribe(hookSubscribeForStreamChange);
-            hookSubscribe.addSubscribe(hookSubscribeForStreamChange,
-                    (mediaServerItemInUse, response)->{
+            hookSubscribe.removeSubscribe(hook);
+            hookSubscribe.addSubscribe(hook,
+                    (hookData)->{
                         dynamicTask.stop(uuid);
                         logger.info("[第三方PS服务对接->发送流] 流上线，开始发流 callId->{}", callId);
                         try {
@@ -269,7 +266,7 @@ public class PsController {
                             logger.info("[第三方PS服务对接->发送流] 视频流发流失败，callId->{}, {}", callId, jsonObject.getString("msg"));
                             throw new ControllerException(ErrorCode.ERROR100.getCode(), "[视频流发流失败] " + jsonObject.getString("msg"));
                         }
-                        hookSubscribe.removeSubscribe(hookSubscribeForStreamChange);
+                        hookSubscribe.removeSubscribe(hook);
                     });
         }
     }
@@ -290,7 +287,7 @@ public class PsController {
         param.put("app",sendInfo.getPushApp());
         param.put("stream",sendInfo.getPushStream());
         param.put("ssrc",sendInfo.getPushSSRC());
-        MediaServerItem mediaServerItem = mediaServerService.getDefaultMediaServer();
+        MediaServer mediaServerItem = mediaServerService.getDefaultMediaServer();
         Boolean result = zlmServerFactory.stopSendRtpStream(mediaServerItem, param);
         if (!result) {
             logger.info("[第三方PS服务对接->关闭发送流] 失败 callId->{}", callId);
@@ -305,7 +302,7 @@ public class PsController {
     @GetMapping(value = "/getTestPort")
     @ResponseBody
     public int getTestPort() {
-        MediaServerItem defaultMediaServer = mediaServerService.getDefaultMediaServer();
+        MediaServer defaultMediaServer = mediaServerService.getDefaultMediaServer();
 
 //        for (int i = 0; i <300; i++) {
 //            new Thread(() -> {

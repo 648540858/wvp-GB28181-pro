@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.service.impl;
 
-import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.GeneralCallback;
@@ -9,17 +8,19 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
-import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
+import com.genersoft.iot.vmp.media.bean.MediaInfo;
+import com.genersoft.iot.vmp.media.event.hook.Hook;
+import com.genersoft.iot.vmp.media.event.hook.HookType;
+import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
+import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
+import com.genersoft.iot.vmp.media.event.media.MediaNotFoundEvent;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.IGbStreamService;
-import com.genersoft.iot.vmp.service.IMediaServerService;
-import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -29,11 +30,14 @@ import com.genersoft.iot.vmp.storager.dao.StreamProxyMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
@@ -59,12 +63,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Autowired
     private IVideoManagerStorage videoManagerStorager;
-
-    @Autowired
-    private IMediaService mediaService;
-
-    @Autowired
-    private ZLMRESTfulUtils zlmresTfulUtils;
 
     @Autowired
     private ZLMServerFactory zlmServerFactory;
@@ -94,7 +92,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     private IMediaServerService mediaServerService;
 
     @Autowired
-    private ZlmHttpHookSubscribe hookSubscribe;
+    private HookSubscribe hookSubscribe;
 
     @Autowired
     private DynamicTask dynamicTask;
@@ -105,31 +103,62 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Autowired
     TransactionDefinition transactionDefinition;
 
+    /**
+     * 流到来的处理
+     */
+    @Async("taskExecutor")
+    @org.springframework.context.event.EventListener
+    public void onApplicationEvent(MediaArrivalEvent event) {
+        if ("rtsp".equals(event.getSchema())) {
+            updateStatus(true, event.getApp(), event.getStream());
+        }
+    }
+
+    /**
+     * 流离开的处理
+     */
+    @Async("taskExecutor")
+    @EventListener
+    public void onApplicationEvent(MediaDepartureEvent event) {
+        if ("rtsp".equals(event.getSchema())) {
+            updateStatus(false, event.getApp(), event.getStream());
+        }
+    }
+
+    /**
+     * 流离开的处理
+     */
+    @Async("taskExecutor")
+    @EventListener
+    public void onApplicationEvent(MediaNotFoundEvent event) {
+        if ("rtp".equals(event.getApp())) {
+            return;
+        }
+        // 拉流代理
+        StreamProxyItem streamProxyByAppAndStream = getStreamProxyByAppAndStream(event.getApp(), event.getStream());
+        if (streamProxyByAppAndStream != null && streamProxyByAppAndStream.isEnableDisableNoneReader()) {
+            start(event.getApp(), event.getStream());
+        }
+    }
+
 
     @Override
     public void save(StreamProxyItem param, GeneralCallback<StreamInfo> callback) {
-        MediaServerItem mediaInfo;
+        MediaServer mediaServer;
         if (ObjectUtils.isEmpty(param.getMediaServerId()) || "auto".equals(param.getMediaServerId())){
-            mediaInfo = mediaServerService.getMediaServerForMinimumLoad(null);
+            mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
         }else {
-            mediaInfo = mediaServerService.getOne(param.getMediaServerId());
+            mediaServer = mediaServerService.getOne(param.getMediaServerId());
         }
-        if (mediaInfo == null) {
+        if (mediaServer == null) {
             logger.warn("保存代理未找到在线的ZLM...");
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "保存代理未找到在线的ZLM");
         }
         String dstUrl;
         if ("ffmpeg".equalsIgnoreCase(param.getType())) {
-            JSONObject jsonObject = zlmresTfulUtils.getMediaServerConfig(mediaInfo);
-            if (jsonObject.getInteger("code") != 0) {
-                throw new ControllerException(ErrorCode.ERROR100.getCode(), "获取流媒体配置失败");
-            }
-            JSONArray dataArray = jsonObject.getJSONArray("data");
-            JSONObject mediaServerConfig = dataArray.getJSONObject(0);
-            if (ObjectUtils.isEmpty(param.getFfmpegCmdKey())) {
-                param.setFfmpegCmdKey("ffmpeg.cmd");
-            }
-            String ffmpegCmd = mediaServerConfig.getString(param.getFfmpegCmdKey());
+
+            String ffmpegCmd = mediaServerService.getFfmpegCmd(mediaServer, param.getFfmpegCmdKey());
+
             if (ffmpegCmd == null) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), "ffmpeg拉流代理无法获取ffmpeg cmd");
             }
@@ -140,25 +169,25 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             int port;
             String schemaForUri;
             if (schema.equalsIgnoreCase("rtsp")) {
-                port = mediaInfo.getRtspPort();
+                port = mediaServer.getRtspPort();
                 schemaForUri = schema;
             }else if (schema.equalsIgnoreCase("flv")) {
-                port = mediaInfo.getRtmpPort();
+                port = mediaServer.getRtmpPort();
                 schemaForUri = schema;
             }else {
-                port = mediaInfo.getRtmpPort();
+                port = mediaServer.getRtmpPort();
                 schemaForUri = schema;
             }
 
             dstUrl = String.format("%s://%s:%s/%s/%s", schemaForUri, "127.0.0.1", port, param.getApp(),
                     param.getStream());
         }else {
-            dstUrl = String.format("rtsp://%s:%s/%s/%s", "127.0.0.1", mediaInfo.getRtspPort(), param.getApp(),
+            dstUrl = String.format("rtsp://%s:%s/%s/%s", "127.0.0.1", mediaServer.getRtspPort(), param.getApp(),
                     param.getStream());
         }
         param.setDstUrl(dstUrl);
         logger.info("[拉流代理] 输出地址为：{}", dstUrl);
-        param.setMediaServerId(mediaInfo.getId());
+        param.setMediaServerId(mediaServer.getId());
         boolean saveResult;
         // 更新
         if (videoManagerStorager.queryStreamProxy(param.getApp(), param.getStream()) != null) {
@@ -170,17 +199,17 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             callback.run(ErrorCode.ERROR100.getCode(), "保存失败", null);
             return;
         }
-        HookSubscribeForStreamChange hookSubscribeForStreamChange = HookSubscribeFactory.on_stream_changed(param.getApp(), param.getStream(), true, "rtsp", mediaInfo.getId());
-        hookSubscribe.addSubscribe(hookSubscribeForStreamChange, (mediaServerItem, response) -> {
-            StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(
-                    mediaInfo, param.getApp(), param.getStream(), null, null);
+        Hook hook = Hook.getInstance(HookType.on_media_arrival, param.getApp(), param.getStream(), mediaServer.getId());
+        hookSubscribe.addSubscribe(hook, (hookData) -> {
+            StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(
+                    mediaServer, param.getApp(), param.getStream(), null, null);
             callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
         });
         if (param.isEnable()) {
             String talkKey = UUID.randomUUID().toString();
             String delayTalkKey = UUID.randomUUID().toString();
             dynamicTask.startDelay(delayTalkKey, ()->{
-                StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(param.getApp(), param.getStream(), mediaInfo.getId(), false);
+                StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStreamWithCheck(param.getApp(), param.getStream(), mediaServer.getId(), false);
                 if (streamInfo != null) {
                     callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
                 }else {
@@ -188,12 +217,12 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                     callback.run(ErrorCode.ERROR100.getCode(), "超时", null);
                 }
             }, 7000);
-            JSONObject jsonObject = addStreamProxyToZlm(param);
-            if (jsonObject != null && jsonObject.getInteger("code") == 0) {
-                hookSubscribe.removeSubscribe(hookSubscribeForStreamChange);
+            WVPResult<String> result = addStreamProxyToZlm(param);
+            if (result != null && result.getCode() == 0) {
+                hookSubscribe.removeSubscribe(hook);
                 dynamicTask.stop(talkKey);
-                StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(
-                        mediaInfo, param.getApp(), param.getStream(), null, null);
+                StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(
+                        mediaServer, param.getApp(), param.getStream(), null, null);
                 callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
             }else {
                 param.setEnable(false);
@@ -203,16 +232,16 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 }else {
                     updateStreamProxy(param);
                 }
-                if (jsonObject == null){
+                if (result == null){
                     callback.run(ErrorCode.ERROR100.getCode(), "记录已保存，启用失败", null);
                 }else {
-                    callback.run(ErrorCode.ERROR100.getCode(), jsonObject.getString("msg"), null);
+                    callback.run(ErrorCode.ERROR100.getCode(), result.getMsg(), null);
                 }
             }
         }
         else{
-            StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(
-                    mediaInfo, param.getApp(), param.getStream(), null, null);
+            StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(
+                    mediaServer, param.getApp(), param.getStream(), null, null);
             callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
         }
     }
@@ -308,38 +337,34 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     @Override
-    public JSONObject addStreamProxyToZlm(StreamProxyItem param) {
-        JSONObject result = null;
-        MediaServerItem mediaServerItem = null;
+    public WVPResult<String> addStreamProxyToZlm(StreamProxyItem param) {
+        WVPResult<String> result = null;
+        MediaServer mediaServer = null;
         if (param.getMediaServerId() == null) {
             logger.warn("添加代理时MediaServerId 为null");
             return null;
         }else {
-            mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
+            mediaServer = mediaServerService.getOne(param.getMediaServerId());
         }
-        if (mediaServerItem == null) {
+        if (mediaServer == null) {
             return null;
         }
-        if (zlmServerFactory.isStreamReady(mediaServerItem, param.getApp(), param.getStream())) {
-            zlmresTfulUtils.closeStreams(mediaServerItem, param.getApp(), param.getStream());
+        if (zlmServerFactory.isStreamReady(mediaServer, param.getApp(), param.getStream())) {
+            mediaServerService.closeStreams(mediaServer, param.getApp(), param.getStream());
         }
+        String msgResult;
         if ("ffmpeg".equalsIgnoreCase(param.getType())){
-            result = zlmresTfulUtils.addFFmpegSource(mediaServerItem, param.getSrcUrl().trim(), param.getDstUrl(),
-                    param.getTimeoutMs() + "", param.isEnableAudio(), param.isEnableMp4(),
+            result = mediaServerService.addFFmpegSource(mediaServer, param.getSrcUrl().trim(), param.getDstUrl(),
+                    param.getTimeoutMs(), param.isEnableAudio(), param.isEnableMp4(),
                     param.getFfmpegCmdKey());
         }else {
-            result = zlmresTfulUtils.addStreamProxy(mediaServerItem, param.getApp(), param.getStream(), param.getUrl().trim(),
+            result = mediaServerService.addStreamProxy(mediaServer, param.getApp(), param.getStream(), param.getUrl().trim(),
                     param.isEnableAudio(), param.isEnableMp4(), param.getRtpType());
         }
-        if (result != null && result.getInteger("code") == 0) {
-            JSONObject data = result.getJSONObject("data");
-            if (data == null) {
-                logger.warn("[获取拉流代理的结果数据Data] 失败： {}", result );
-                return result;
-            }
-            String key = data.getString("key");
+        if (result != null && result.getCode() == 0) {
+            String key = result.getData();
             if (key == null) {
-                logger.warn("[获取拉流代理的结果数据Data中的KEY] 失败： {}", result );
+                logger.warn("[获取拉流代理的结果数据Data] 失败： {}", result );
                 return result;
             }
             param.setStreamKey(key);
@@ -349,16 +374,23 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     @Override
-    public JSONObject removeStreamProxyFromZlm(StreamProxyItem param) {
+    public Boolean removeStreamProxyFromZlm(StreamProxyItem param) {
         if (param ==null) {
             return null;
         }
-        MediaServerItem mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
-        JSONObject result = null;
+        MediaServer mediaServer = mediaServerService.getOne(param.getMediaServerId());
+        if (mediaServer == null) {
+            return null;
+        }
+        List<StreamInfo> mediaList = mediaServerService.getMediaList(mediaServer, param.getApp(), param.getStream(), null);
+        if (mediaList == null || mediaList.isEmpty()) {
+            return true;
+        }
+        Boolean result = false;
         if ("ffmpeg".equalsIgnoreCase(param.getType())){
-            result = zlmresTfulUtils.delFFmpegSource(mediaServerItem, param.getStreamKey());
+            result = mediaServerService.delFFmpegSource(mediaServer, param.getStreamKey());
         }else {
-            result = zlmresTfulUtils.delStreamProxy(mediaServerItem, param.getStreamKey());
+            result = mediaServerService.delStreamProxy(mediaServer, param.getStreamKey());
         }
         return result;
     }
@@ -379,8 +411,8 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             gbStreamMapper.del(app, stream);
             videoManagerStorager.deleteStreamProxy(app, stream);
             redisCatchStorage.removeStream(streamProxyItem.getMediaServerId(), "PULL", app, stream);
-            JSONObject jsonObject = removeStreamProxyFromZlm(streamProxyItem);
-            if (jsonObject != null && jsonObject.getInteger("code") == 0) {
+            Boolean result = removeStreamProxyFromZlm(streamProxyItem);
+            if (result != null && result) {
                 logger.info("[移除代理]： 代理： {}/{}, 从zlm移除成功", app, stream);
             }else {
                 logger.info("[移除代理]： 代理： {}/{}, 从zlm移除失败", app, stream);
@@ -393,16 +425,16 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         boolean result = false;
         StreamProxyItem streamProxy = videoManagerStorager.queryStreamProxy(app, stream);
         if (streamProxy != null && !streamProxy.isEnable() ) {
-            JSONObject jsonObject = addStreamProxyToZlm(streamProxy);
-            if (jsonObject == null) {
+            WVPResult<String> wvpResult = addStreamProxyToZlm(streamProxy);
+            if (wvpResult == null) {
                 return false;
             }
-            if (jsonObject.getInteger("code") == 0) {
+            if (wvpResult.getCode() == 0) {
                 result = true;
                 streamProxy.setEnable(true);
                 updateStreamProxy(streamProxy);
             }else {
-                logger.info("启用代理失败： {}/{}->{}({})", app, stream, jsonObject.getString("msg"),
+                logger.info("启用代理失败： {}/{}->{}({})", app, stream, wvpResult.getMsg(),
                         streamProxy.getSrcUrl() == null? streamProxy.getUrl():streamProxy.getSrcUrl());
             }
         } else if (streamProxy != null && streamProxy.isEnable()) {
@@ -416,8 +448,8 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         boolean result = false;
         StreamProxyItem streamProxyDto = videoManagerStorager.queryStreamProxy(app, stream);
         if (streamProxyDto != null && streamProxyDto.isEnable()) {
-            JSONObject jsonObject = removeStreamProxyFromZlm(streamProxyDto);
-            if (jsonObject != null && jsonObject.getInteger("code") == 0) {
+            Boolean removed = removeStreamProxyFromZlm(streamProxyDto);
+            if (removed != null && removed) {
                 streamProxyDto.setEnable(false);
                 result = updateStreamProxy(streamProxyDto);
             }
@@ -426,20 +458,8 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     @Override
-    public JSONObject getFFmpegCMDs(MediaServerItem mediaServerItem) {
-        JSONObject result = new JSONObject();
-        JSONObject mediaServerConfigResuly = zlmresTfulUtils.getMediaServerConfig(mediaServerItem);
-        if (mediaServerConfigResuly != null && mediaServerConfigResuly.getInteger("code") == 0
-                && mediaServerConfigResuly.getJSONArray("data").size() > 0){
-            JSONObject mediaServerConfig = mediaServerConfigResuly.getJSONArray("data").getJSONObject(0);
-
-            for (String key : mediaServerConfig.keySet()) {
-                if (key.startsWith("ffmpeg.cmd")){
-                    result.put(key, mediaServerConfig.getString(key));
-                }
-            }
-        }
-        return result;
+    public Map<String, String> getFFmpegCMDs(MediaServer mediaServer) {
+        return mediaServerService.getFFmpegCMDs(mediaServer);
     }
 
 
@@ -465,8 +485,8 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 mediaServerId, true);
         for (StreamProxyItem streamProxyDto : streamProxyListForEnable) {
             logger.info("恢复流代理，" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
-            JSONObject jsonObject = addStreamProxyToZlm(streamProxyDto);
-            if (jsonObject == null) {
+            WVPResult<String> wvpResult = addStreamProxyToZlm(streamProxyDto);
+            if (wvpResult == null) {
                 // 设置为离线
                 logger.info("恢复流代理失败" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
                 updateStatus(false, streamProxyDto.getApp(), streamProxyDto.getStream());
@@ -516,44 +536,30 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     private void syncPullStream(String mediaServerId){
-        MediaServerItem mediaServer = mediaServerService.getOne(mediaServerId);
+        MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
         if (mediaServer != null) {
             List<OnStreamChangedHookParam> allPullStream = redisCatchStorage.getStreams(mediaServerId, "PULL");
-            if (allPullStream.size() > 0) {
-                zlmresTfulUtils.getMediaList(mediaServer, jsonObject->{
-                    Map<String, StreamInfo> stringStreamInfoMap = new HashMap<>();
-                    if (jsonObject.getInteger("code") == 0) {
-                        JSONArray data = jsonObject.getJSONArray("data");
-                        if(data != null && data.size() > 0) {
-                            for (int i = 0; i < data.size(); i++) {
-                                JSONObject streamJSONObj = data.getJSONObject(i);
-                                if ("rtsp".equals(streamJSONObj.getString("schema"))) {
-                                    StreamInfo streamInfo = new StreamInfo();
-                                    String app = streamJSONObj.getString("app");
-                                    String stream = streamJSONObj.getString("stream");
-                                    streamInfo.setApp(app);
-                                    streamInfo.setStream(stream);
-                                    stringStreamInfoMap.put(app+stream, streamInfo);
-                                }
-                            }
+            if (!allPullStream.isEmpty()) {
+                List<StreamInfo> mediaList = mediaServerService.getMediaList(mediaServer, null, null, null);
+                Map<String, StreamInfo> stringStreamInfoMap = new HashMap<>();
+                if (mediaList != null && !mediaList.isEmpty()) {
+                    for (StreamInfo streamInfo : mediaList) {
+                        stringStreamInfoMap.put(streamInfo.getApp() + streamInfo.getStream(), streamInfo);
+                    }
+                }
+                if (stringStreamInfoMap.isEmpty()) {
+                    redisCatchStorage.removeStream(mediaServerId, "PULL");
+                }else {
+                    for (String key : stringStreamInfoMap.keySet()) {
+                        StreamInfo streamInfo = stringStreamInfoMap.get(key);
+                        if (stringStreamInfoMap.get(streamInfo.getApp() + streamInfo.getStream()) == null) {
+                            redisCatchStorage.removeStream(mediaServerId, "PULL", streamInfo.getApp(),
+                                    streamInfo.getStream());
                         }
                     }
-                    if (stringStreamInfoMap.size() == 0) {
-                        redisCatchStorage.removeStream(mediaServerId, "PULL");
-                    }else {
-                        for (String key : stringStreamInfoMap.keySet()) {
-                            StreamInfo streamInfo = stringStreamInfoMap.get(key);
-                            if (stringStreamInfoMap.get(streamInfo.getApp() + streamInfo.getStream()) == null) {
-                                redisCatchStorage.removeStream(mediaServerId, "PULL", streamInfo.getApp(),
-                                        streamInfo.getStream());
-                            }
-                        }
-                    }
-                });
+                }
             }
-
         }
-
     }
 
     @Override
@@ -569,13 +575,13 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Scheduled(cron = "* 0/10 * * * ?")
     public void asyncCheckStreamProxyStatus() {
 
-        List<MediaServerItem> all = mediaServerService.getAllOnline();
+        List<MediaServer> all = mediaServerService.getAllOnline();
 
         if (CollectionUtils.isEmpty(all)){
             return;
         }
 
-        Map<String, MediaServerItem> serverItemMap = all.stream().collect(Collectors.toMap(MediaServerItem::getId, Function.identity(), (m1, m2) -> m1));
+        Map<String, MediaServer> serverItemMap = all.stream().collect(Collectors.toMap(MediaServer::getId, Function.identity(), (m1, m2) -> m1));
 
         List<StreamProxyItem> list = videoManagerStorager.getStreamProxyListForEnable(true);
 
@@ -585,15 +591,14 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
         for (StreamProxyItem streamProxyItem : list) {
 
-            MediaServerItem mediaServerItem = serverItemMap.get(streamProxyItem.getMediaServerId());
+            MediaServer mediaServerItem = serverItemMap.get(streamProxyItem.getMediaServerId());
 
-            // TODO 支持其他 schema
-            JSONObject mediaInfo = zlmresTfulUtils.isMediaOnline(mediaServerItem, streamProxyItem.getApp(), streamProxyItem.getStream(), "rtsp");
+            MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServerItem, streamProxyItem.getApp(), streamProxyItem.getStream());
 
             if (mediaInfo == null){
                 streamProxyItem.setStatus(false);
             } else {
-                if (mediaInfo.getInteger("code") == 0 && mediaInfo.getBoolean("online")) {
+                if (mediaInfo.getOnline() != null && mediaInfo.getOnline()) {
                     streamProxyItem.setStatus(true);
                 } else {
                     streamProxyItem.setStatus(false);

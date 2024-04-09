@@ -3,8 +3,8 @@ package com.genersoft.iot.vmp.gb28181.transmit.cmd;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 
@@ -154,8 +154,8 @@ public interface ISIPCommanderForPlatform {
 
     void streamByeCmd(ParentPlatform platform, String channelId, String stream, String callId, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException;
 
-    void broadcastInviteCmd(ParentPlatform platform, String channelId, MediaServerItem mediaServerItem,
-                            SSRCInfo ssrcInfo, ZlmHttpHookSubscribe.Event event, SipSubscribe.Event okEvent,
+    void broadcastInviteCmd(ParentPlatform platform, String channelId, MediaServer mediaServerItem,
+                            SSRCInfo ssrcInfo, HookSubscribe.Event event, SipSubscribe.Event okEvent,
                             SipSubscribe.Event errorEvent) throws ParseException, SipException, InvalidArgumentException;
 
     void broadcastResultCmd(ParentPlatform platform, DeviceChannel deviceChannel, String sn, boolean result, SipSubscribe.Event errorEvent,  SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;

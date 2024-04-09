@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.conf;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,9 +12,6 @@ public class WVPTimerTask {
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
-
-    @Autowired
-    private IMediaServerService mediaServerService;
 
     @Value("${server.port}")
     private int serverPort;

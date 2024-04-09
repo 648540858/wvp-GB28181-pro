@@ -13,8 +13,9 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
@@ -145,7 +146,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 						redisGbPlayMsgListener.sendMsgForStopSendRtpStream(sendRtpItem.getServerId(), streamMsg);
 					}
 				}else {
-					MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+					MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 					redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(),
 							callIdHeader.getCallId(), null);
 					zlmServerFactory.stopSendRtpStream(mediaInfo, param);
@@ -165,7 +166,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 					}
 				}
 			}else {
-				MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+				MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 				redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(),
 						callIdHeader.getCallId(), null);
 				zlmServerFactory.stopSendRtpStream(mediaInfo, param);
@@ -173,7 +174,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 					mediaServerService.releaseSsrc(mediaInfo.getId(), sendRtpItem.getSsrc());
 				}
 			}
-			MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+			MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 			if (mediaInfo != null) {
 				AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
 				if (audioBroadcastCatch != null && audioBroadcastCatch.getSipTransactionInfo().getCallId().equals(callIdHeader.getCallId())) {
@@ -245,7 +246,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 				}
 			}
 			// 释放ssrc
-			MediaServerItem mediaServerItem = mediaServerService.getOne(ssrcTransaction.getMediaServerId());
+			MediaServer mediaServerItem = mediaServerService.getOne(ssrcTransaction.getMediaServerId());
 			if (mediaServerItem != null) {
 				mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcTransaction.getSsrc());
 			}

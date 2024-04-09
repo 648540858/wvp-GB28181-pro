@@ -13,7 +13,7 @@ import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
-import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.impl.StreamPushUploadFileHandler;
@@ -249,7 +249,7 @@ public class StreamPushController {
         if (push != null && !push.isSelf()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "来自其他平台的推流信息");
         }
-        StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, authority);
+        StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, authority);
         if (streamInfo == null){
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "获取播放地址失败");
         }

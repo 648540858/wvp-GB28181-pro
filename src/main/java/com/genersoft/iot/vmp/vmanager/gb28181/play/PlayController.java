@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.vmanager.gb28181.play;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -14,14 +13,11 @@ import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
-import com.genersoft.iot.vmp.service.IMediaServerService;
-import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
@@ -66,22 +62,13 @@ public class PlayController {
 	private IVideoManagerStorage storager;
 
 	@Autowired
-	private IRedisCatchStorage redisCatchStorage;
-
-	@Autowired
 	private IInviteStreamService inviteStreamService;
-
-	@Autowired
-	private ZLMRESTfulUtils zlmresTfulUtils;
 
 	@Autowired
 	private DeferredResultHolder resultHolder;
 
 	@Autowired
 	private IPlayService playService;
-
-	@Autowired
-	private IMediaService mediaService;
 
 	@Autowired
 	private IMediaServerService mediaServerService;
@@ -99,7 +86,7 @@ public class PlayController {
 		logger.info("[开始点播] deviceId：{}, channelId：{}, ", deviceId, channelId);
 		// 获取可用的zlm
 		Device device = storager.queryVideoDevice(deviceId);
-		MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
+		MediaServer newMediaServerItem = playService.getNewMediaServerItem(device);
 
 		RequestMessage requestMessage = new RequestMessage();
 		String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId;
@@ -181,50 +168,6 @@ public class PlayController {
 		json.put("channelId", channelId);
 		return json;
 	}
-
-	/**
-	 * 将不是h264的视频通过ffmpeg 转码为h264 + aac
-	 * @param streamId 流ID
-	 */
-	@Operation(summary = "将不是h264的视频通过ffmpeg 转码为h264 + aac", security = @SecurityRequirement(name = JwtUtils.HEADER))
-	@Parameter(name = "streamId", description = "视频流ID", required = true)
-	@PostMapping("/convert/{streamId}")
-	public JSONObject playConvert(@PathVariable String streamId) {
-//		StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
-
-		InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, streamId);
-		if (inviteInfo == null || inviteInfo.getStreamInfo() == null) {
-			logger.warn("视频转码API调用失败！, 视频流已经停止!");
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到视频流信息, 视频流可能已经停止");
-		}
-		MediaServerItem mediaInfo = mediaServerService.getOne(inviteInfo.getStreamInfo().getMediaServerId());
-		JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaInfo, streamId);
-		if (!rtpInfo.getBoolean("exist")) {
-			logger.warn("视频转码API调用失败！, 视频流已停止推流!");
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到视频流信息, 视频流可能已停止推流");
-		} else {
-			String dstUrl = String.format("rtmp://%s:%s/convert/%s", "127.0.0.1", mediaInfo.getRtmpPort(),
-					streamId );
-			String srcUrl = String.format("rtsp://%s:%s/rtp/%s", "127.0.0.1", mediaInfo.getRtspPort(), streamId);
-			JSONObject jsonObject = zlmresTfulUtils.addFFmpegSource(mediaInfo, srcUrl, dstUrl, "1000000", true, false, null);
-			logger.info(jsonObject.toJSONString());
-			if (jsonObject != null && jsonObject.getInteger("code") == 0) {
-				JSONObject data = jsonObject.getJSONObject("data");
-				if (data != null) {
-					JSONObject result = new JSONObject();
-					result.put("key", data.getString("key"));
-					StreamInfo streamInfoResult = mediaService.getStreamInfoByAppAndStreamWithCheck("convert", streamId, mediaInfo.getId(), false);
-					result.put("StreamInfo", streamInfoResult);
-					return result;
-				}else {
-					throw new ControllerException(ErrorCode.ERROR100.getCode(), "转码失败");
-				}
-			}else {
-				throw new ControllerException(ErrorCode.ERROR100.getCode(), "转码失败");
-			}
-		}
-	}
-
 	/**
 	 * 结束转码
 	 */
@@ -236,18 +179,12 @@ public class PlayController {
 		if (mediaServerId == null) {
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), "流媒体：" + mediaServerId + "不存在" );
 		}
-		MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
+		MediaServer mediaInfo = mediaServerService.getOne(mediaServerId);
 		if (mediaInfo == null) {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "使用的流媒体已经停止运行" );
 		}else {
-			JSONObject jsonObject = zlmresTfulUtils.delFFmpegSource(mediaInfo, key);
-			logger.info(jsonObject.toJSONString());
-			if (jsonObject != null && jsonObject.getInteger("code") == 0) {
-				JSONObject data = jsonObject.getJSONObject("data");
-				if (data == null || data.getBoolean("flag") == null || !data.getBoolean("flag")) {
-					throw new ControllerException(ErrorCode.ERROR100 );
-				}
-			}else {
+			Boolean deleted = mediaServerService.delFFmpegSource(mediaInfo, key);
+			if (!deleted) {
 				throw new ControllerException(ErrorCode.ERROR100 );
 			}
 		}

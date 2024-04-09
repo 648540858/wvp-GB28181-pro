@@ -10,10 +10,10 @@ import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.IDeviceService;
-import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.RequestPushStreamMsg;
 import com.genersoft.iot.vmp.service.redisMsg.RedisGbPlayMsgListener;
@@ -69,7 +69,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 	private ZLMServerFactory zlmServerFactory;
 
 	@Autowired
-	private ZlmHttpHookSubscribe hookSubscribe;
+	private HookSubscribe hookSubscribe;
 
 	@Autowired
 	private IMediaServerService mediaServerService;
@@ -104,7 +104,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			logger.info("收到ACK，rtp/{} TCP主动方式后续处理", sendRtpItem.getStream());
 			return;
 		}
-		MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+		MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 		logger.info("收到ACK，rtp/{}开始向上级推流, 目标={}:{}，SSRC={}, 协议:{}",
 				sendRtpItem.getStream(),
 				sendRtpItem.getIp(),
@@ -173,7 +173,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 		return param;
 	}
 
-	private JSONObject sendRtp(SendRtpItem sendRtpItem, MediaServerItem mediaInfo, Map<String, Object> param){
+	private JSONObject sendRtp(SendRtpItem sendRtpItem, MediaServer mediaInfo, Map<String, Object> param){
 		JSONObject startSendRtpStreamResult = null;
 		if (sendRtpItem.getLocalPort() != 0) {
 			if (sendRtpItem.isTcpActive()) {

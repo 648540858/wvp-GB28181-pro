@@ -1,12 +1,14 @@
 package com.genersoft.iot.vmp.service;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.GeneralCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
+
+import java.util.Map;
 
 public interface IStreamProxyService {
 
@@ -18,17 +20,19 @@ public interface IStreamProxyService {
 
     /**
      * 添加视频代理到zlm
+     *
      * @param param
      * @return
      */
-    JSONObject addStreamProxyToZlm(StreamProxyItem param);
+    WVPResult<String> addStreamProxyToZlm(StreamProxyItem param);
 
     /**
      * 从zlm移除视频代理
+     *
      * @param param
      * @return
      */
-    JSONObject removeStreamProxyFromZlm(StreamProxyItem param);
+    Boolean removeStreamProxyFromZlm(StreamProxyItem param);
 
     /**
      * 分页查询
@@ -73,9 +77,10 @@ public interface IStreamProxyService {
 
     /**
      * 获取ffmpeg.cmd模板
+     *
      * @return
      */
-    JSONObject getFFmpegCMDs(MediaServerItem mediaServerItem);
+    Map<String, String> getFFmpegCMDs(MediaServer mediaServerItem);
 
     /**
      * 根据app与stream获取streamProxy

@@ -133,7 +133,10 @@ public class RedisGbPlayMsgListener implements MessageListener {
                                 case WvpRedisMsgCmd.REQUEST_PUSH_STREAM:
                                     RequestPushStreamMsg param = JSON.to(RequestPushStreamMsg.class, wvpRedisMsg.getContent());
                                     requestPushStreamMsgHand(param, wvpRedisMsg.getFromId(), wvpRedisMsg.getSerial());
-
+                                    break;
+                                case WvpRedisMsgCmd.REQUEST_STOP_PUSH_STREAM:
+                                    RequestStopPushStreamMsg streamMsg = JSON.to(RequestStopPushStreamMsg.class, wvpRedisMsg.getContent());
+                                    requestStopPushStreamMsgHand(streamMsg, wvpRedisMsg.getFromId(), wvpRedisMsg.getSerial());
                                     break;
                                 default:
                                     break;
@@ -397,6 +400,19 @@ public class RedisGbPlayMsgListener implements MessageListener {
         redisTemplate.convertAndSend(WVP_PUSH_STREAM_KEY, jsonObject);
     }
 
+    /**
+     * 发送请求推流的消息
+     */
+    public void sendMsgForStopSendRtpStream(String serverId, RequestStopPushStreamMsg streamMsg) {
+        String key = UUID.randomUUID().toString();
+        WvpRedisMsg redisMsg = WvpRedisMsg.getRequestInstance(userSetting.getServerId(), serverId,
+                WvpRedisMsgCmd.REQUEST_STOP_PUSH_STREAM, key, JSON.toJSONString(streamMsg));
+
+        JSONObject jsonObject = (JSONObject)JSON.toJSON(redisMsg);
+        logger.info("[REDIS 请求其他平台停止推流] {}: {}", serverId, jsonObject);
+        redisTemplate.convertAndSend(WVP_PUSH_STREAM_KEY, jsonObject);
+    }
+
     private SendRtpItem querySendRTPServer(String platformGbId, String channelId, String streamId, String callId) {
         if (platformGbId == null) {
             platformGbId = "*";
@@ -422,5 +438,37 @@ public class RedisGbPlayMsgListener implements MessageListener {
         }else {
             return null;
         }
+    }
+
+    /**
+     * 处理收到的请求推流的请求
+     */
+    private void requestStopPushStreamMsgHand(RequestStopPushStreamMsg streamMsg, String fromId, String serial) {
+        SendRtpItem sendRtpItem = streamMsg.getSendRtpItem();
+        if (sendRtpItem == null) {
+            logger.info("[REDIS 执行其他平台的请求停止推流] 失败： sendRtpItem为NULL");
+            return;
+        }
+        MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+        if (mediaInfo == null) {
+            // TODO 回复错误
+            return;
+        }
+        Map<String, Object> param = new HashMap<>();
+        param.put("vhost","__defaultVhost__");
+        param.put("app",sendRtpItem.getApp());
+        param.put("stream",sendRtpItem.getStream());
+        param.put("ssrc", sendRtpItem.getSsrc());
+
+        if (zlmServerFactory.stopSendRtpStream(mediaInfo, param)) {
+            logger.info("[REDIS 执行其他平台的请求停止推流] 成功： {}/{}", sendRtpItem.getApp(), sendRtpItem.getStream());
+            // 发送redis消息
+            MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
+                    sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getChannelId(),
+                    sendRtpItem.getPlatformId(), streamMsg.getPlatformName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
+            messageForPushChannel.setPlatFormIndex(streamMsg.getPlatFormIndex());
+            redisCatchStorage.sendPlatformStopPlayMsg(messageForPushChannel);
+        }
+
     }
 }

@@ -189,6 +189,9 @@ public class ParentPlatform {
     @Schema(description = "是否作为消息通道")
     private boolean autoPushChannel;
 
+    @Schema(description = "点播回复200OK使用次IP")
+    private String sendStreamIp;
+
     public Integer getId() {
         return id;
     }
@@ -435,5 +438,13 @@ public class ParentPlatform {
 
     public void setAutoPushChannel(boolean autoPushChannel) {
         this.autoPushChannel = autoPushChannel;
+    }
+
+    public String getSendStreamIp() {
+        return sendStreamIp;
+    }
+
+    public void setSendStreamIp(String sendStreamIp) {
+        this.sendStreamIp = sendStreamIp;
     }
 }

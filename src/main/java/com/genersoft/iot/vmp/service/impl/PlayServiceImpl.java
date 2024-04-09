@@ -34,7 +34,6 @@ import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.service.redisMsg.RedisGbPlayMsgListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import com.genersoft.iot.vmp.storager.dao.CloudRecordServiceMapper;
 import com.genersoft.iot.vmp.utils.CloudRecordUtils;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
@@ -122,9 +121,6 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private DynamicTask dynamicTask;
-
-    @Autowired
-    private CloudRecordServiceMapper cloudRecordServiceMapper;
 
     @Autowired
     private ISIPCommanderForPlatform commanderForPlatform;
@@ -1170,7 +1166,7 @@ public class PlayServiceImpl implements IPlayService {
             dynamicTask.startDelay(key, ()->{
                 logger.info("[语音广播]等待invite消息超时：{}/{}", device.getDeviceId(), channelId);
                 stopAudioBroadcast(device.getDeviceId(), channelId);
-            }, 2000);
+            }, 10*1000);
         }, eventResultForError -> {
             // 发送失败
             logger.error("语音广播发送失败： {}:{}", channelId, eventResultForError.msg);
@@ -1409,6 +1405,14 @@ public class PlayServiceImpl implements IPlayService {
             logger.info("调用ZLM推流接口, 结果： {}", jsonObject);
             logger.info("RTP推流成功[ {}/{} ]，{}->{}, ", param.get("app"), param.get("stream"), jsonObject.getString("local_port"),
                     sendRtpItem.isTcpActive()?"被动发流": param.get("dst_url") + ":" + param.get("dst_port"));
+            if (sendRtpItem.getPlayType() == InviteStreamType.PUSH && correlationInfo instanceof ParentPlatform) {
+                ParentPlatform platform = (ParentPlatform)correlationInfo;
+                MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0, sendRtpItem.getApp(), sendRtpItem.getStream(),
+                        sendRtpItem.getChannelId(), platform.getServerGBId(), platform.getName(), userSetting.getServerId(),
+                        sendRtpItem.getMediaServerId());
+                messageForPushChannel.setPlatFormIndex(platform.getId());
+                redisCatchStorage.sendPlatformStartPlayMsg(messageForPushChannel);
+            }
         } else {
             logger.error("RTP推流失败: {}, 参数：{}", jsonObject.getString("msg"), JSONObject.toJSONString(param));
             if (sendRtpItem.isOnlyAudio()) {
@@ -1584,4 +1588,26 @@ public class PlayServiceImpl implements IPlayService {
         });
     }
 
+    @Override
+    public void stopPlay(Device device, String channelId) {
+        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channelId);
+        if (inviteInfo == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "点播未找到");
+        }
+        if (InviteSessionStatus.ok == inviteInfo.getStatus()) {
+            try {
+                logger.info("[停止点播] {}/{}", device.getDeviceId(), channelId);
+                cmder.streamByeCmd(device, channelId, inviteInfo.getStream(), null, null);
+            } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
+                logger.error("[命令发送失败] 停止点播， 发送BYE: {}", e.getMessage());
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+            }
+        }
+        inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channelId);
+        storager.stopPlay(device.getDeviceId(), channelId);
+        channelService.stopPlay(device.getDeviceId(), channelId);
+        if (inviteInfo.getStreamInfo() != null) {
+            mediaServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServerId(), inviteInfo.getStream());
+        }
+    }
 }

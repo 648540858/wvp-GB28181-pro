@@ -184,7 +184,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public List<SendRtpItem> querySendRTPServerByChnnelId(String channelId) {
+    public List<SendRtpItem> querySendRTPServerByChannelId(String channelId) {
         if (channelId == null) {
             return null;
         }
@@ -657,6 +657,12 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
+    public OnStreamChangedHookParam getPushListItem(String app, String stream) {
+        String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
+        return (OnStreamChangedHookParam)redisTemplate.opsForValue().get(key);
+    }
+
+    @Override
     public void removePushListItem(String app, String stream, String mediaServerId) {
         String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
         OnStreamChangedHookParam param = (OnStreamChangedHookParam)redisTemplate.opsForValue().get(key);
@@ -664,5 +670,12 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
             redisTemplate.delete(key);
         }
 
+    }
+
+    @Override
+    public void sendPushStreamClose(MessageForPushChannel msg) {
+        String key = VideoManagerConstants.VM_MSG_STREAM_PUSH_CLOSE_REQUESTED;
+        logger.info("[redis发送通知] 发送 停止向上级推流 {}: {}/{}->{}", key, msg.getApp(), msg.getStream(), msg.getPlatFormId());
+        redisTemplate.convertAndSend(key, JSON.toJSON(msg));
     }
 }

@@ -1,7 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
-import com.alibaba.fastjson2.JSONObject;
-import com.genersoft.iot.vmp.conf.CivilCodeFileConf;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -78,9 +76,6 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 	@Autowired
 	private NotifyRequestForCatalogProcessor notifyRequestForCatalogProcessor;
 
-	@Autowired
-	private CivilCodeFileConf civilCodeFileConf;
-
 	private ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
 
 	@Qualifier("taskExecutor")
@@ -98,7 +93,6 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 	@Override
 	public void process(RequestEvent evt) {
 		try {
-
 			if (taskQueue.size() >= userSetting.getMaxNotifyCountQueue()) {
 				responseAck((SIPRequest) evt.getRequest(), Response.BUSY_HERE, null, null);
 				logger.error("[notify] 待处理消息队列已满 {}，返回486 BUSY_HERE，消息不做处理", userSetting.getMaxNotifyCountQueue());
@@ -234,25 +228,8 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			mobilePosition.setLongitudeGcj02(deviceChannel.getLongitudeGcj02());
 			mobilePosition.setLatitudeGcj02(deviceChannel.getLatitudeGcj02());
 
-			if (userSetting.getSavePositionHistory()) {
-				storager.insertMobilePosition(mobilePosition);
-			}
+			deviceChannelService.updateChannelGPS(device, deviceChannel, mobilePosition);
 
-			storager.updateChannelPosition(deviceChannel);
-			// 向关联了该通道并且开启移动位置订阅的上级平台发送移动位置订阅消息
-
-
-			// 发送redis消息。 通知位置信息的变化
-			JSONObject jsonObject = new JSONObject();
-			jsonObject.put("time", DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
-			jsonObject.put("serial", deviceId);
-			jsonObject.put("code", channelId);
-			jsonObject.put("longitude", mobilePosition.getLongitude());
-			jsonObject.put("latitude", mobilePosition.getLatitude());
-			jsonObject.put("altitude", mobilePosition.getAltitude());
-			jsonObject.put("direction", mobilePosition.getDirection());
-			jsonObject.put("speed", mobilePosition.getSpeed());
-			redisCatchStorage.sendMobilePositionMsg(jsonObject);
 		} catch (DocumentException  e) {
 			logger.error("未处理的异常 ", e);
 		}
@@ -340,25 +317,8 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 				mobilePosition.setLongitudeGcj02(deviceChannel.getLongitudeGcj02());
 				mobilePosition.setLatitudeGcj02(deviceChannel.getLatitudeGcj02());
 
-				if (userSetting.getSavePositionHistory()) {
-					storager.insertMobilePosition(mobilePosition);
-				}
-
-				storager.updateChannelPosition(deviceChannel);
-				// 发送redis消息。 通知位置信息的变化
-				JSONObject jsonObject = new JSONObject();
-				jsonObject.put("time", DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
-				jsonObject.put("serial", deviceChannel.getDeviceId());
-				jsonObject.put("code", deviceChannel.getChannelId());
-				jsonObject.put("longitude", mobilePosition.getLongitude());
-				jsonObject.put("latitude", mobilePosition.getLatitude());
-				jsonObject.put("altitude", mobilePosition.getAltitude());
-				jsonObject.put("direction", mobilePosition.getDirection());
-				jsonObject.put("speed", mobilePosition.getSpeed());
-				redisCatchStorage.sendMobilePositionMsg(jsonObject);
-
+				deviceChannelService.updateChannelGPS(device, deviceChannel, mobilePosition);
 			}
-			// TODO: 需要实现存储报警信息、报警分类
 
 			// 回复200 OK
 			if (redisCatchStorage.deviceIsOnline(deviceId)) {

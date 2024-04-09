@@ -1,16 +1,21 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
+import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.utils.Coordtransform;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
+import com.genersoft.iot.vmp.storager.dao.DeviceMobilePositionMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
@@ -35,7 +40,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     private final static Logger logger = LoggerFactory.getLogger(DeviceChannelServiceImpl.class);
 
     @Autowired
-    private IRedisCatchStorage redisCatchStorage;
+    private EventPublisher eventPublisher;
 
     @Autowired
     private IInviteStreamService inviteStreamService;
@@ -45,6 +50,15 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Autowired
     private DeviceMapper deviceMapper;
+
+    @Autowired
+    private DeviceMobilePositionMapper deviceMobilePositionMapper;
+
+    @Autowired
+    private UserSetting userSetting;
+
+    @Autowired
+    private IRedisCatchStorage redisCatchStorage;
 
     @Override
     public DeviceChannel updateGps(DeviceChannel deviceChannel, Device device) {
@@ -84,7 +98,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     public void updateChannel(String deviceId, DeviceChannel channel) {
         String channelId = channel.getChannelId();
         channel.setDeviceId(deviceId);
-//        StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
         InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
         if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
             channel.setStreamId(inviteInfo.getStreamInfo().getStream());
@@ -279,5 +292,70 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     channel.getStreamIdentification());
         }
         channelMapper.updateChannelStreamIdentification(channel);
+    }
+
+    @Override
+    public List<DeviceChannel> queryChaneListByDeviceId(String deviceId) {
+        return channelMapper.queryAllChannels(deviceId);
+    }
+
+    @Override
+    public void updateChannelGPS(Device device, DeviceChannel deviceChannel, MobilePosition mobilePosition) {
+        if (userSetting.getSavePositionHistory()) {
+            deviceMobilePositionMapper.insertNewPosition(mobilePosition);
+        }
+
+        if (deviceChannel.getChannelId().equals(deviceChannel.getDeviceId())) {
+            deviceChannel.setChannelId(null);
+        }
+        if (deviceChannel.getGpsTime() == null) {
+            deviceChannel.setGpsTime(DateUtil.getNow());
+        }
+
+        int updated = channelMapper.updatePosition(deviceChannel);
+        if (updated == 0) {
+            return;
+        }
+
+        List<DeviceChannel> deviceChannels = new ArrayList<>();
+        if (deviceChannel.getChannelId() == null) {
+            // 有的设备这里上报的deviceId与通道Id是一样，这种情况更新设备下的全部通道
+            List<DeviceChannel> deviceChannelsInDb = queryChaneListByDeviceId(device.getDeviceId());
+            deviceChannels.addAll(deviceChannelsInDb);
+        }else {
+            deviceChannels.add(deviceChannel);
+        }
+        if (deviceChannels.isEmpty()) {
+            return;
+        }
+        if (deviceChannels.size() > 100) {
+            logger.warn("[更新通道位置信息后发送通知] 设备可能是平台，上报的位置信息未标明通道编号，" +
+                    "导致所有通道被更新位置， deviceId:{}", device.getDeviceId());
+        }
+        for (DeviceChannel channel : deviceChannels) {
+            // 向关联了该通道并且开启移动位置订阅的上级平台发送移动位置订阅消息
+            mobilePosition.setChannelId(channel.getChannelId());
+            try {
+                eventPublisher.mobilePositionEventPublish(mobilePosition);
+            }catch (Exception e) {
+                logger.error("[向上级转发移动位置失败] ", e);
+            }
+            // 发送redis消息。 通知位置信息的变化
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("time", DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
+            jsonObject.put("serial", mobilePosition.getDeviceId());
+            jsonObject.put("code", mobilePosition.getChannelId());
+            jsonObject.put("longitude", mobilePosition.getLongitude());
+            jsonObject.put("latitude", mobilePosition.getLatitude());
+            jsonObject.put("altitude", mobilePosition.getAltitude());
+            jsonObject.put("direction", mobilePosition.getDirection());
+            jsonObject.put("speed", mobilePosition.getSpeed());
+            redisCatchStorage.sendMobilePositionMsg(jsonObject);
+        }
+    }
+
+    @Override
+    public void stopPlay(String deviceId, String channelId) {
+        channelMapper.stopPlay(deviceId, channelId);
     }
 }

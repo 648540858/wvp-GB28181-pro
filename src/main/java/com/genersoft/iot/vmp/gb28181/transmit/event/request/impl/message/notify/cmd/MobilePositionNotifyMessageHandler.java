@@ -1,8 +1,8 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.cmd;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
@@ -56,6 +56,9 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
 
     @Autowired
     private IDeviceChannelService deviceChannelService;
+
+    @Autowired
+    private EventPublisher eventPublisher;
 
     private ConcurrentLinkedQueue<SipMsgInfo> taskQueue = new ConcurrentLinkedQueue<>();
 
@@ -137,22 +140,7 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
                         mobilePosition.setLongitudeGcj02(deviceChannel.getLongitudeGcj02());
                         mobilePosition.setLatitudeGcj02(deviceChannel.getLatitudeGcj02());
 
-                        if (userSetting.getSavePositionHistory()) {
-                            storager.insertMobilePosition(mobilePosition);
-                        }
-                        storager.updateChannelPosition(deviceChannel);
-
-                        // 发送redis消息。 通知位置信息的变化
-                        JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("time", DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
-                        jsonObject.put("serial", deviceChannel.getDeviceId());
-                        jsonObject.put("code", deviceChannel.getChannelId());
-                        jsonObject.put("longitude", mobilePosition.getLongitude());
-                        jsonObject.put("latitude", mobilePosition.getLatitude());
-                        jsonObject.put("altitude", mobilePosition.getAltitude());
-                        jsonObject.put("direction", mobilePosition.getDirection());
-                        jsonObject.put("speed", mobilePosition.getSpeed());
-                        redisCatchStorage.sendMobilePositionMsg(jsonObject);
+                        deviceChannelService.updateChannelGPS(device, deviceChannel, mobilePosition);
 
                     } catch (DocumentException e) {
                         logger.error("未处理的异常 ", e);

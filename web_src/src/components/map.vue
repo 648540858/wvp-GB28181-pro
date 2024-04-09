@@ -243,7 +243,7 @@ export default {
     },
     getImageByChannel: function (channel) {
       let src = "static/images/gis/camera.png"
-      switch (channel.ptztype) {
+      switch (channel.ptzType) {
         case 1:
           if (channel.status === 1) {
             src = "static/images/gis/camera1.png"

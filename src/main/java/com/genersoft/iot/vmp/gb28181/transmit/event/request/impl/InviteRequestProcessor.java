@@ -38,6 +38,7 @@ import gov.nist.javax.sdp.fields.TimeField;
 import gov.nist.javax.sdp.fields.URIField;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -404,12 +405,15 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         //     * 2 推流中
                         sendRtpItem.setStatus(1);
                         redisCatchStorage.updateSendRTPSever(sendRtpItem);
-
+                        String sdpIp = mediaServerItemInUSe.getSdpIp();
+                        if (!ObjectUtils.isEmpty(platform.getSendStreamIp())) {
+                            sdpIp = platform.getSendStreamIp();
+                        }
                         StringBuffer content = new StringBuffer(200);
                         content.append("v=0\r\n");
-                        content.append("o=" + channelId + " 0 0 IN IP4 " + mediaServerItemInUSe.getSdpIp() + "\r\n");
+                        content.append("o=" + channelId + " 0 0 IN IP4 " + sdpIp + "\r\n");
                         content.append("s=" + sessionName + "\r\n");
-                        content.append("c=IN IP4 " + mediaServerItemInUSe.getSdpIp() + "\r\n");
+                        content.append("c=IN IP4 " + sdpIp + "\r\n");
                         if ("Playback".equalsIgnoreCase(sessionName)) {
                             content.append("t=" + finalStartTime + " " + finalStopTime + "\r\n");
                         } else {
@@ -575,14 +579,20 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     }
 
                     if ("push".equals(gbStream.getStreamType())) {
-                        if (streamPushItem != null && streamPushItem.isPushIng()) {
-                            // 推流状态
-                            pushStream(evt, request, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
-                                    mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
-                        } else {
-                            // 未推流 拉起
-                            notifyStreamOnline(evt, request, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
-                                    mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
+                        if (streamPushItem != null) {
+                            // 从redis查询是否正在接收这个推流
+                            OnStreamChangedHookParam pushListItem = redisCatchStorage.getPushListItem(gbStream.getApp(), gbStream.getStream());
+                            if (pushListItem != null) {
+                                StreamPushItem transform = streamPushService.transform(pushListItem);
+                                transform.setSelf(userSetting.getServerId().equals(pushListItem.getSeverId()));
+                                // 推流状态
+                                pushStream(evt, request, gbStream, transform, platform, callIdHeader, mediaServerItem, port, tcpActive,
+                                        mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
+                            }else {
+                                // 未推流 拉起
+                                notifyStreamOnline(evt, request, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
+                                        mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
+                            }
                         }
                     } else if ("proxy".equals(gbStream.getStreamType())) {
                         if (null != proxyByAppAndStream) {
@@ -901,11 +911,15 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
     public SIPResponse sendStreamAck(MediaServerItem mediaServerItem, SIPRequest request, SendRtpItem sendRtpItem, ParentPlatform platform, RequestEvent evt) {
 
+        String sdpIp = mediaServerItem.getSdpIp();
+        if (!ObjectUtils.isEmpty(platform.getSendStreamIp())) {
+            sdpIp = platform.getSendStreamIp();
+        }
         StringBuffer content = new StringBuffer(200);
         content.append("v=0\r\n");
-        content.append("o=" + sendRtpItem.getChannelId() + " 0 0 IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
+        content.append("o=" + sendRtpItem.getChannelId() + " 0 0 IN IP4 " + sdpIp + "\r\n");
         content.append("s=Play\r\n");
-        content.append("c=IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
+        content.append("c=IN IP4 " + sdpIp + "\r\n");
         content.append("t=0 0\r\n");
         // 非严格模式端口不统一, 增加兼容性，修改为一个不为0的端口
         int localPort = sendRtpItem.getLocalPort();

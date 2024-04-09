@@ -135,7 +135,7 @@ public class PlatformServiceImpl implements IPlatformService {
     @EventListener
     public void onApplicationEvent(MediaSendRtpStoppedEvent event) {
         List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(event.getStream());
-        if (!sendRtpItems.isEmpty()) {
+        if (sendRtpItems != null && !sendRtpItems.isEmpty()) {
             for (SendRtpItem sendRtpItem : sendRtpItems) {
                 ParentPlatform parentPlatform = platformMapper.getParentPlatByServerGBId(sendRtpItem.getPlatformId());
                 ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());

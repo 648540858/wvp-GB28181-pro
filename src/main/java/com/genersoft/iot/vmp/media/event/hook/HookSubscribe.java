@@ -1,9 +1,6 @@
 package com.genersoft.iot.vmp.media.event.hook;
 
-import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
-import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
-import com.genersoft.iot.vmp.media.event.media.MediaEvent;
-import com.genersoft.iot.vmp.media.event.media.MediaPublishEvent;
+import com.genersoft.iot.vmp.media.event.media.*;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -59,6 +56,14 @@ public class HookSubscribe {
     @EventListener
     public void onApplicationEvent(MediaPublishEvent event) {
         sendNotify(HookType.on_publish, event);
+    }
+    /**
+     * 推流鉴权事件
+     */
+    @Async("taskExecutor")
+    @EventListener
+    public void onApplicationEvent(MediaRecordMp4Event event) {
+        sendNotify(HookType.on_record_mp4, event);
     }
 
     private final Map<String, Event> allSubscribes = new ConcurrentHashMap<>();

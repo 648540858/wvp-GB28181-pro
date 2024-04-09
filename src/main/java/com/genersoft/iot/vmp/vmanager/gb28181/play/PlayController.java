@@ -139,7 +139,8 @@ public class PlayController {
 				wvpResult.setMsg(msg);
 			}
 			requestMessage.setData(wvpResult);
-			resultHolder.invokeResult(requestMessage);
+			// 此处必须释放所有请求
+			resultHolder.invokeAllResult(requestMessage);
 		});
 		return result;
 	}

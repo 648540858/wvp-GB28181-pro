@@ -305,4 +305,33 @@ public class SendRtpItem {
     public void setReceiveStream(String receiveStream) {
         this.receiveStream = receiveStream;
     }
+
+    @Override
+    public String toString() {
+        return "SendRtpItem{" +
+                "ip='" + ip + '\'' +
+                ", port=" + port +
+                ", ssrc='" + ssrc + '\'' +
+                ", platformId='" + platformId + '\'' +
+                ", deviceId='" + deviceId + '\'' +
+                ", app='" + app + '\'' +
+                ", channelId='" + channelId + '\'' +
+                ", status=" + status +
+                ", stream='" + stream + '\'' +
+                ", tcp=" + tcp +
+                ", tcpActive=" + tcpActive +
+                ", localPort=" + localPort +
+                ", mediaServerId='" + mediaServerId + '\'' +
+                ", serverId='" + serverId + '\'' +
+                ", CallId='" + CallId + '\'' +
+                ", fromTag='" + fromTag + '\'' +
+                ", toTag='" + toTag + '\'' +
+                ", pt=" + pt +
+                ", usePs=" + usePs +
+                ", onlyAudio=" + onlyAudio +
+                ", rtcp=" + rtcp +
+                ", playType=" + playType +
+                ", receiveStream='" + receiveStream + '\'' +
+                '}';
+    }
 }

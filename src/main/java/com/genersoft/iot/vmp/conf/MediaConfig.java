@@ -212,41 +212,58 @@ public class MediaConfig{
     }
 
     public MediaServer getMediaSerItem(){
-        MediaServer mediaServerItem = new MediaServer();
-        mediaServerItem.setId(id);
-        mediaServerItem.setIp(ip);
-        mediaServerItem.setDefaultServer(true);
-        mediaServerItem.setHookIp(getHookIp());
-        mediaServerItem.setSdpIp(getSdpIp());
-        mediaServerItem.setStreamIp(getStreamIp());
-        mediaServerItem.setHttpPort(httpPort);
-        mediaServerItem.setFlvPort(flvPort);
-        mediaServerItem.setWsFlvPort(wsFlvPort);
-        mediaServerItem.setHttpSSlPort(httpSSlPort);
-        mediaServerItem.setFlvSSLPort(flvSSlPort);
-        mediaServerItem.setWsFlvSSLPort(wsFlvSSlPort);
-        mediaServerItem.setRtmpPort(rtmpPort);
-        mediaServerItem.setRtmpSSlPort(rtmpSSlPort);
-        mediaServerItem.setRtpProxyPort(getRtpProxyPort());
-        mediaServerItem.setRtspPort(rtspPort);
-        mediaServerItem.setRtspSSLPort(rtspSSLPort);
-        mediaServerItem.setAutoConfig(autoConfig);
-        mediaServerItem.setSecret(secret);
-        mediaServerItem.setRtpEnable(rtpEnable);
-        mediaServerItem.setRtpPortRange(rtpPortRange);
-        mediaServerItem.setSendRtpPortRange(rtpSendPortRange);
-        mediaServerItem.setRecordAssistPort(recordAssistPort);
-        mediaServerItem.setHookAliveInterval(10f);
-        mediaServerItem.setRecordDay(recordDay);
-        mediaServerItem.setStatus(false);
-        mediaServerItem.setType(type);
-        if (recordPath != null) {
-            mediaServerItem.setRecordPath(recordPath);
+        MediaServer mediaServer = new MediaServer();
+        mediaServer.setId(id);
+        mediaServer.setIp(ip);
+        mediaServer.setDefaultServer(true);
+        mediaServer.setHookIp(getHookIp());
+        mediaServer.setSdpIp(getSdpIp());
+        mediaServer.setStreamIp(getStreamIp());
+        mediaServer.setHttpPort(httpPort);
+        if (flvPort == 0) {
+            mediaServer.setFlvPort(httpPort);
+        }else {
+            mediaServer.setFlvPort(flvPort);
         }
-        mediaServerItem.setCreateTime(DateUtil.getNow());
-        mediaServerItem.setUpdateTime(DateUtil.getNow());
+        if (wsFlvPort == 0) {
+            mediaServer.setWsFlvPort(httpPort);
+        }else {
+            mediaServer.setWsFlvPort(wsFlvPort);
+        }
+        if (flvSSlPort == 0) {
+            mediaServer.setFlvSSLPort(httpSSlPort);
+        }else {
+            mediaServer.setFlvSSLPort(flvSSlPort);
+        }
+        if (wsFlvSSlPort == 0) {
+            mediaServer.setWsFlvSSLPort(httpSSlPort);
+        }else {
+            mediaServer.setWsFlvSSLPort(wsFlvSSlPort);
+        }
 
-        return mediaServerItem;
+        mediaServer.setHttpSSlPort(httpSSlPort);
+        mediaServer.setRtmpPort(rtmpPort);
+        mediaServer.setRtmpSSlPort(rtmpSSlPort);
+        mediaServer.setRtpProxyPort(getRtpProxyPort());
+        mediaServer.setRtspPort(rtspPort);
+        mediaServer.setRtspSSLPort(rtspSSLPort);
+        mediaServer.setAutoConfig(autoConfig);
+        mediaServer.setSecret(secret);
+        mediaServer.setRtpEnable(rtpEnable);
+        mediaServer.setRtpPortRange(rtpPortRange);
+        mediaServer.setSendRtpPortRange(rtpSendPortRange);
+        mediaServer.setRecordAssistPort(recordAssistPort);
+        mediaServer.setHookAliveInterval(10f);
+        mediaServer.setRecordDay(recordDay);
+        mediaServer.setStatus(false);
+        mediaServer.setType(type);
+        if (recordPath != null) {
+            mediaServer.setRecordPath(recordPath);
+        }
+        mediaServer.setCreateTime(DateUtil.getNow());
+        mediaServer.setUpdateTime(DateUtil.getNow());
+
+        return mediaServer;
     }
 
     public Integer getRecordDay() {

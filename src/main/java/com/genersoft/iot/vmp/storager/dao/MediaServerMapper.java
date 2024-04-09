@@ -27,7 +27,7 @@ public interface MediaServerMapper {
             "flv_port," +
             "flv_ssl_port," +
             "ws_flv_port," +
-            "ws_flv_ssl__port," +
+            "ws_flv_ssl_port," +
             "rtsp_ssl_port,"+
             "auto_config,"+
             "secret,"+

@@ -581,8 +581,7 @@ public class PlayServiceImpl implements IPlayService {
 
                 streamSession.remove(device.getDeviceId(), channel.getChannelId(), ssrcInfo.getStream());
 
-                callback.run(InviteErrorCode.ERROR_FOR_SIGNALLING_ERROR.getCode(),
-                        String.format("点播失败， 错误码： %s, %s", event.statusCode, event.msg), null);
+                callback.run(event.statusCode, event.msg, null);
                 inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channel.getChannelId(), null,
                         InviteErrorCode.ERROR_FOR_RESET_SSRC.getCode(),
                         String.format("点播失败， 错误码： %s, %s", event.statusCode, event.msg), null);

@@ -104,8 +104,6 @@ public class ZLMRESTfulUtils {
                             responseJSON = JSON.parseObject(responseStr);
                         }
                     }else {
-                        System.out.println( 2222);
-                        System.out.println( response.code());
                         response.close();
                         Objects.requireNonNull(response.body()).close();
                     }

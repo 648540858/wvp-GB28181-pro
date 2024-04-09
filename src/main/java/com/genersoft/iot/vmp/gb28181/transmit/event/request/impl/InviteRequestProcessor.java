@@ -27,7 +27,6 @@ import com.genersoft.iot.vmp.media.zlm.ZLMMediaListManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
@@ -493,12 +492,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         }
                     };
                     ErrorCallback<Object> errorEvent = ((statusCode, msg, data) -> {
+                        logger.info("[上级Invite] {}, 失败, 平台：{}， 通道：{}, code： {}， msg；{}", sessionName, username, channelId, statusCode, msg);
                         // 未知错误。直接转发设备点播的错误
                         try {
-                            if (statusCode > 0) {
-                                Response response = getMessageFactory().createResponse(statusCode, evt.getRequest());
-                                sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
-                            }
+                            Response response = getMessageFactory().createResponse(statusCode, evt.getRequest());
+                            sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
                         } catch (ParseException | SipException e) {
                             logger.error("未处理的异常 ", e);
                         }
@@ -589,12 +587,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     if ("push".equals(gbStream.getStreamType())) {
                         if (streamPushItem != null) {
                             // 从redis查询是否正在接收这个推流
-                            OnStreamChangedHookParam pushListItem = redisCatchStorage.getPushListItem(gbStream.getApp(), gbStream.getStream());
+                            StreamPushItem pushListItem = redisCatchStorage.getPushListItem(gbStream.getApp(), gbStream.getStream());
                             if (pushListItem != null) {
-                                StreamPushItem transform = streamPushService.transform(pushListItem);
-                                transform.setSelf(userSetting.getServerId().equals(pushListItem.getSeverId()));
+                                pushListItem.setSelf(userSetting.getServerId().equals(pushListItem.getServerId()));
                                 // 推流状态
-                                pushStream(evt, request, gbStream, transform, platform, callIdHeader, mediaServerItem, port, tcpActive,
+                                pushStream(evt, request, gbStream, pushListItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
                                         mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
                             }else {
                                 // 未推流 拉起

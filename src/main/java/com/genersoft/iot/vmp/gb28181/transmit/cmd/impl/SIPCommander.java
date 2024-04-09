@@ -278,7 +278,6 @@ public class SIPCommander implements ISIPCommander {
 
         logger.info("{} 分配的ZLM为: {} [{}:{}]", stream, mediaServerItem.getId(), mediaServerItem.getSdpIp(), ssrcInfo.getPort());
         Hook rtpHook = Hook.getInstance(HookType.on_media_arrival, "rtp", stream, mediaServerItem.getId());
-        System.out.println("rtpHook:  " + rtpHook.toString());
         subscribe.addSubscribe(rtpHook, (hookData) -> {
             if (event != null) {
                 event.response(hookData);

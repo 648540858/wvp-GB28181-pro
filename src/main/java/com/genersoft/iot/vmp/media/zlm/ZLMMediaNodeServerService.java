@@ -45,7 +45,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
 
     @Override
     public void closeRtpServer(MediaServer mediaServer, String streamId) {
-        zlmresTfulUtils.closeStreams(mediaServer, "rtp", streamId);
+        zlmServerFactory.closeRtpServer(mediaServer, streamId);
     }
 
     @Override

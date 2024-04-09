@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.media.abl.bean.AblServerConfig;
+import com.genersoft.iot.vmp.media.abl.bean.hook.OnStreamArriveABLHookParam;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
@@ -15,7 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -125,10 +128,50 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public List<StreamInfo> getMediaList(MediaServer mediaServerItem, String app, String stream, String callId) {
+    public List<StreamInfo> getMediaList(MediaServer mediaServer, String app, String stream, String callId) {
         logger.warn("[abl-getMediaList] 未实现");
+        JSONObject jsonObject = ablresTfulUtils.getMediaList(mediaServer, app, stream);
+        if (jsonObject == null || jsonObject.getInteger("code") != 0) {
+            return null;
+        }
+        JSONArray mediaList = jsonObject.getJSONArray("mediaList");
+        if (mediaList == null || mediaList.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<StreamInfo> streamInfoList = new ArrayList<>();
+        for (int i = 0; i < mediaList.size(); i++) {
+            JSONObject mediaJSON = mediaList.getJSONObject(i);
+            OnStreamArriveABLHookParam onStreamArriveABLHookParam = mediaJSON.to(OnStreamArriveABLHookParam.class);
+            MediaInfo mediaInfo = MediaInfo.getInstance(onStreamArriveABLHookParam, mediaServer);
+            StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServer, app, stream, mediaInfo, callId, true);
+            if (streamInfo != null) {
+                streamInfoList.add(streamInfo);
+            }
+        }
+        return streamInfoList;
+    }
 
-        return null;
+    public StreamInfo getStreamInfoByAppAndStream(MediaServer mediaServer, String app, String stream, MediaInfo mediaInfo, String callId, boolean isPlay) {
+        StreamInfo streamInfoResult = new StreamInfo();
+        streamInfoResult.setStream(stream);
+        streamInfoResult.setApp(app);
+        String addr = mediaServer.getStreamIp();
+        streamInfoResult.setIp(addr);
+        streamInfoResult.setMediaServerId(mediaServer.getId());
+        String callIdParam = ObjectUtils.isEmpty(callId)?"":"?callId=" + callId;
+        streamInfoResult.setRtmp(addr, mediaServer.getRtmpPort(),mediaServer.getRtmpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setRtsp(addr, mediaServer.getRtspPort(),mediaServer.getRtspSSLPort(), app,  stream, callIdParam);
+        String flvFile = String.format("%s/%s.flv%s", app, stream, callIdParam);
+        streamInfoResult.setFlv(addr, mediaServer.getFlvPort(),mediaServer.getHttpSSlPort(), flvFile);
+        streamInfoResult.setWsFlv(addr, mediaServer.getWsFlvPort(),mediaServer.getHttpSSlPort(), flvFile);
+        streamInfoResult.setFmp4(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setHls(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setTs(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setRtc(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam, isPlay);
+
+        streamInfoResult.setMediaInfo(mediaInfo);
+        streamInfoResult.setOriginType(mediaInfo.getOriginType());
+        return streamInfoResult;
     }
 
     @Override
@@ -143,9 +186,26 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public MediaInfo getMediaInfo(MediaServer mediaServerItem, String app, String stream) {
-        logger.warn("[abl-getMediaInfo] 未实现");
-        return null;
+    public MediaInfo getMediaInfo(MediaServer mediaServer, String app, String stream) {
+        JSONObject jsonObject = ablresTfulUtils.getMediaList(mediaServer, app, stream);
+        if (jsonObject == null || jsonObject.getInteger("code") != 0) {
+            return null;
+        }
+        JSONArray mediaList = jsonObject.getJSONArray("mediaList");
+        if (mediaList == null || mediaList.isEmpty()) {
+            return null;
+        }
+        MediaInfo mediaInfo = null;
+        for (int i = 0; i < mediaList.size(); i++) {
+            JSONObject mediaJSON = mediaList.getJSONObject(i);
+            OnStreamArriveABLHookParam onStreamArriveABLHookParam = mediaJSON.to(OnStreamArriveABLHookParam.class);
+            if (onStreamArriveABLHookParam == null) {
+                continue;
+            }
+            mediaInfo = MediaInfo.getInstance(onStreamArriveABLHookParam, mediaServer);
+
+        }
+        return mediaInfo;
     }
 
     @Override

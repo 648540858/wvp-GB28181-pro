@@ -214,6 +214,10 @@ public class MediaInfo {
         return mediaInfo;
     }
 
+    public static MediaInfo getInstanceForAblJson(JSONObject mediaJSON, MediaServer mediaServer) {
+        return null;
+    }
+
     public Integer getReaderCount() {
         return readerCount;
     }

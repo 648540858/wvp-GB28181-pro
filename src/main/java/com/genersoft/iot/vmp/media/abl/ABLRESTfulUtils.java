@@ -29,6 +29,7 @@ public class ABLRESTfulUtils {
 
 
 
+
     public interface RequestCallback{
         void run(JSONObject response);
     }
@@ -321,5 +322,12 @@ public class ABLRESTfulUtils {
         Map<String, Object> param =  new HashMap<>();
         param.put("key", key);
         sendPost(mediaServer,"stopSendRtp", param, null);
+    }
+
+    public JSONObject getMediaList(MediaServer mediaServer, String app, String stream) {
+        Map<String, Object> param =  new HashMap<>();
+        param.put("app", app);
+        param.put("stream", stream);
+        return sendPost(mediaServer,"getMediaList", param, null);
     }
 }

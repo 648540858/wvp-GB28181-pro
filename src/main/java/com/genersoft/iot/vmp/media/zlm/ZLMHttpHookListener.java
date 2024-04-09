@@ -260,7 +260,6 @@ public class ZLMHttpHookListener {
         if ("rtp".equals(param.getApp())) {
 
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, param.getStream());
-
             // 单端口模式下修改流 ID
             if (!mediaInfo.isRtpEnable() && inviteInfo == null) {
                 String ssrc = String.format("%010d", Long.parseLong(param.getStream(), 16));
@@ -268,6 +267,8 @@ public class ZLMHttpHookListener {
                 if (inviteInfo != null) {
                     result.setStream_replace(inviteInfo.getStream());
                     logger.info("[ZLM HOOK]推流鉴权 stream: {} 替换为 {}", param.getStream(), inviteInfo.getStream());
+                    // 单端口模式下修改流ID为目标流ID，不然其他地方可能都无法对应
+                    param.setStream(inviteInfo.getStream());
                 }
             }
 

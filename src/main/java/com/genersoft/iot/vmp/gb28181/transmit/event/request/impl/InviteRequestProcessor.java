@@ -641,7 +641,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             CallIdHeader callIdHeader, MediaServer mediaServerItem,
                             int port, Boolean tcpActive, boolean mediaTransmissionTCP,
                             String channelId, String addressStr, String ssrc, String requesterId) {
-            Boolean streamReady = zlmServerFactory.isStreamReady(mediaServerItem, gbStream.getApp(), gbStream.getStream());
+            Boolean streamReady = mediaServerService.isStreamReady(mediaServerItem, gbStream.getApp(), gbStream.getStream());
             if (streamReady != null && streamReady) {
                 // 自平台内容
                 SendRtpItem sendRtpItem = zlmServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
@@ -681,7 +681,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             String channelId, String addressStr, String ssrc, String requesterId) {
         // 推流
         if (streamPushItem.isSelf()) {
-            Boolean streamReady = zlmServerFactory.isStreamReady(mediaServerItem, gbStream.getApp(), gbStream.getStream());
+            Boolean streamReady = mediaServerService.isStreamReady(mediaServerItem, gbStream.getApp(), gbStream.getStream());
             if (streamReady != null && streamReady) {
                 // 自平台内容
                 SendRtpItem sendRtpItem = zlmServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
@@ -1108,7 +1108,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
                 redisCatchStorage.updateSendRTPSever(sendRtpItem);
 
-                Boolean streamReady = zlmServerFactory.isStreamReady(mediaServerItem, broadcastCatch.getApp(), broadcastCatch.getStream());
+                Boolean streamReady = mediaServerService.isStreamReady(mediaServerItem, broadcastCatch.getApp(), broadcastCatch.getStream());
                 if (streamReady) {
                     sendOk(device, sendRtpItem, sdp, request, mediaServerItem, mediaTransmissionTCP, gb28181Sdp.getSsrc());
                 } else {

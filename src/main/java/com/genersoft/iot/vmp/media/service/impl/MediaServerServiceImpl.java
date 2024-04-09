@@ -7,6 +7,9 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.gb28181.bean.InviteStreamType;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
@@ -19,6 +22,7 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
+import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.MediaServerMapper;
@@ -783,5 +787,51 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
         streamInfoResult.setMediaInfo(mediaInfo);
         return streamInfoResult;
+    }
+
+    @Override
+    public Boolean isStreamReady(MediaServer mediaServer, String rtp, String streamId) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
+        if (mediaNodeServerService == null) {
+            logger.info("[isStreamReady] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
+            return false;
+        }
+        MediaInfo mediaInfo = mediaNodeServerService.getMediaInfo(mediaServer, rtp, streamId);
+        return mediaInfo != null;
+    }
+
+    @Override
+    public void startSendRtpPassive(MediaServer mediaServer, ParentPlatform platform, SendRtpItem sendRtpItem, Integer timeout) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
+        if (mediaNodeServerService == null) {
+            logger.info("[startSendRtpPassive] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到mediaServer对应的实现类");
+        }
+        mediaNodeServerService.startSendRtpPassive(mediaServer, sendRtpItem, timeout);
+        sendPlatformStartPlayMsg(platform, sendRtpItem);
+    }
+
+    @Override
+    public void startSendRtpStream(MediaServer mediaServer, ParentPlatform platform, SendRtpItem sendRtpItem) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
+        if (mediaNodeServerService == null) {
+            logger.info("[startSendRtpStream] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到mediaServer对应的实现类");
+        }
+        logger.info("[开始推流] rtp/{}, 目标={}:{}，SSRC={}, RTCP={}", sendRtpItem.getStream(),
+                sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc(), sendRtpItem.isRtcp());
+        mediaNodeServerService.startSendRtpStream(mediaServer, sendRtpItem);
+        sendPlatformStartPlayMsg(platform, sendRtpItem);
+
+    }
+
+    private void sendPlatformStartPlayMsg(ParentPlatform platform, SendRtpItem sendRtpItem) {
+        if (sendRtpItem.getPlayType() == InviteStreamType.PUSH && platform  != null) {
+            MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0, sendRtpItem.getApp(), sendRtpItem.getStream(),
+                    sendRtpItem.getChannelId(), platform.getServerGBId(), platform.getName(), userSetting.getServerId(),
+                    sendRtpItem.getMediaServerId());
+            messageForPushChannel.setPlatFormIndex(platform.getId());
+            redisCatchStorage.sendPlatformStartPlayMsg(messageForPushChannel);
+        }
     }
 }

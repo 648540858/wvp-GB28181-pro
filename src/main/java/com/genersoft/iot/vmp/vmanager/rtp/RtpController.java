@@ -275,7 +275,7 @@ public class RtpController {
             paramForVideo = null;
         }
 
-        Boolean streamReady = zlmServerFactory.isStreamReady(mediaServer, app, stream);
+        Boolean streamReady = mediaServerService.isStreamReady(mediaServer, app, stream);
         if (streamReady) {
             if (paramForVideo != null) {
                 JSONObject jsonObject = zlmServerFactory.startSendRtpStream(mediaServer, paramForVideo);

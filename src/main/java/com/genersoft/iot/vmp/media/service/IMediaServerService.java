@@ -2,6 +2,8 @@ package com.genersoft.iot.vmp.media.service;
 
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
@@ -133,5 +135,11 @@ public interface IMediaServerService {
      * @param stream
      * @return
      */
-    StreamInfo getStreamInfoByAppAndStream(MediaServer mediaServerItem, String app, String stream, MediaInfo mediaInfo, String addr, String callId, boolean isPlay);
+    StreamInfo getStreamInfoByAppAndStream(MediaServer mediaServer, String app, String stream, MediaInfo mediaInfo, String addr, String callId, boolean isPlay);
+
+    Boolean isStreamReady(MediaServer mediaServer, String rtp, String streamId);
+
+    void startSendRtpPassive(MediaServer mediaServer, ParentPlatform platform, SendRtpItem sendRtpItem, Integer timeout);
+
+    void startSendRtpStream(MediaServer mediaServer, ParentPlatform platform, SendRtpItem sendRtpItem);
 }

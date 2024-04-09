@@ -274,7 +274,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
             return;
         }
         // 确定流是否在线
-        Boolean streamReady = zlmServerFactory.isStreamReady(mediaServerItem, content.getApp(), content.getStream());
+        Boolean streamReady = mediaServerService.isStreamReady(mediaServerItem, content.getApp(), content.getStream());
         if (streamReady != null && streamReady) {
             logger.info("[回复推流信息]  {}/{}", content.getApp(), content.getStream());
             responseSendItem(mediaServerItem, content, toId, serial);

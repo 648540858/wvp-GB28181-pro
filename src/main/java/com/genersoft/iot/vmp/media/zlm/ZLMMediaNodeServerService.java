@@ -6,6 +6,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -297,5 +298,52 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
             }
         }
         return result;
+    }
+
+    @Override
+    public void startSendRtpPassive(MediaServer mediaServer, SendRtpItem sendRtpItem, Integer timeout) {
+        Map<String, Object> param = new HashMap<>(12);
+        param.put("vhost","__defaultVhost__");
+        param.put("app", sendRtpItem.getApp());
+        param.put("stream", sendRtpItem.getStream());
+        param.put("ssrc", sendRtpItem.getSsrc());
+        param.put("src_port", sendRtpItem.getLocalPort());
+        param.put("pt", sendRtpItem.getPt());
+        param.put("use_ps", sendRtpItem.isUsePs() ? "1" : "0");
+        param.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
+        param.put("is_udp", sendRtpItem.isTcp() ? "0" : "1");
+        param.put("recv_stream_id", sendRtpItem.getReceiveStream());
+        if (timeout  != null) {
+            param.put("close_delay_ms", timeout);
+        }
+
+        JSONObject jsonObject = zlmServerFactory.startSendRtpPassive(mediaServer, param, null);
+        if (jsonObject == null || jsonObject.getInteger("code") != 0 ) {
+            throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
+        }
+    }
+
+    @Override
+    public void startSendRtpStream(MediaServer mediaServer, SendRtpItem sendRtpItem) {
+        Map<String, Object> param = new HashMap<>(12);
+        param.put("vhost", "__defaultVhost__");
+        param.put("app", sendRtpItem.getApp());
+        param.put("stream", sendRtpItem.getStream());
+        param.put("ssrc", sendRtpItem.getSsrc());
+        param.put("src_port", sendRtpItem.getLocalPort());
+        param.put("pt", sendRtpItem.getPt());
+        param.put("use_ps", sendRtpItem.isUsePs() ? "1" : "0");
+        param.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
+        param.put("is_udp", sendRtpItem.isTcp() ? "0" : "1");
+        if (!sendRtpItem.isTcp()) {
+            // udp模式下开启rtcp保活
+            param.put("udp_rtcp_timeout", sendRtpItem.isRtcp() ? "1" : "0");
+        }
+        param.put("dst_url", sendRtpItem.getIp());
+        param.put("dst_port", sendRtpItem.getPort());
+        JSONObject jsonObject = zlmServerFactory.startSendRtpStream(mediaServer, param);
+        if (jsonObject == null || jsonObject.getInteger("code") != 0 ) {
+            throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
+        }
     }
 }

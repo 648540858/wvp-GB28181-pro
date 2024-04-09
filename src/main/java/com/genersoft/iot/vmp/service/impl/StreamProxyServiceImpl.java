@@ -349,7 +349,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         if (mediaServer == null) {
             return null;
         }
-        if (zlmServerFactory.isStreamReady(mediaServer, param.getApp(), param.getStream())) {
+        if (mediaServerService.isStreamReady(mediaServer, param.getApp(), param.getStream())) {
             mediaServerService.closeStreams(mediaServer, param.getApp(), param.getStream());
         }
         String msgResult;

@@ -203,6 +203,7 @@ create table wvp_platform (
                               update_time character varying(50),
                               as_message_channel bool default false,
                               auto_push_channel bool default false,
+                              send_stream_ip character varying(50),
                               constraint uk_platform_unique_server_gb_id unique (server_gb_id)
 );
 
@@ -280,15 +281,15 @@ create table wvp_cloud_record (
                                   app character varying(255),
                                   stream character varying(255),
                                   call_id character varying(255),
-                                  start_time bigint,
-                                  end_time bigint,
+                                  start_time int8,
+                                  end_time int8,
                                   media_server_id character varying(50),
                                   file_name character varying(255),
                                   folder character varying(255),
                                   file_path character varying(255),
                                   collect bool default false,
-                                  file_size bigint,
-                                  time_len bigint,
+                                  file_size int8,
+                                  time_len int8,
                                   constraint uk_stream_push_app_stream_path unique (app, stream, file_path)
 );
 

@@ -158,6 +158,7 @@ public class MediaServiceImpl implements IMediaService {
                 if (inviteInfo != null) {
                     result.setStream_replace(inviteInfo.getStream());
                     logger.info("[ZLM HOOK]推流鉴权 stream: {} 替换为 {}", stream, inviteInfo.getStream());
+                    stream = inviteInfo.getStream();
                 }
             }
 

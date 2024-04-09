@@ -736,7 +736,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             calld = streamAuthorityInfo.getCallId();
         }
         List<StreamInfo> streamInfoList = getMediaList(mediaInfo, app, stream, calld);
-        if (streamInfoList.isEmpty()) {
+        if (streamInfoList == null || streamInfoList.isEmpty()) {
             return null;
         }else {
             return streamInfoList.get(0);

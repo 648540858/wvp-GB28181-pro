@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.media.event.media;
 
+import com.genersoft.iot.vmp.media.abl.ABLHttpHookListener;
+import com.genersoft.iot.vmp.media.abl.bean.hook.OnRecordMp4ABLHookParam;
 import com.genersoft.iot.vmp.media.bean.RecordInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRecordMp4HookParam;
@@ -15,6 +17,16 @@ public class MediaRecordMp4Event extends MediaEvent {
     private RecordInfo recordInfo;
 
     public static MediaRecordMp4Event getInstance(Object source, OnRecordMp4HookParam hookParam, MediaServer mediaServer){
+        MediaRecordMp4Event mediaRecordMp4Event = new MediaRecordMp4Event(source);
+        mediaRecordMp4Event.setApp(hookParam.getApp());
+        mediaRecordMp4Event.setStream(hookParam.getStream());
+        RecordInfo recordInfo = RecordInfo.getInstance(hookParam);
+        mediaRecordMp4Event.setRecordInfo(recordInfo);
+        mediaRecordMp4Event.setMediaServer(mediaServer);
+        return mediaRecordMp4Event;
+    }
+
+    public static MediaRecordMp4Event getInstance(ABLHttpHookListener source, OnRecordMp4ABLHookParam hookParam, MediaServer mediaServer) {
         MediaRecordMp4Event mediaRecordMp4Event = new MediaRecordMp4Event(source);
         mediaRecordMp4Event.setApp(hookParam.getApp());
         mediaRecordMp4Event.setStream(hookParam.getStream());

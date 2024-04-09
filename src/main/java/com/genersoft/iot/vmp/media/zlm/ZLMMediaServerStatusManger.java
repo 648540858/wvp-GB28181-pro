@@ -74,6 +74,7 @@ public class ZLMMediaServerStatusManger {
             logger.info("[ZLM-添加待上线节点] ID：" + mediaServerItem.getId());
             offlineZlmPrimaryMap.put(mediaServerItem.getId(), mediaServerItem);
             offlineZlmTimeMap.put(mediaServerItem.getId(), System.currentTimeMillis());
+            execute();
         }
     }
 

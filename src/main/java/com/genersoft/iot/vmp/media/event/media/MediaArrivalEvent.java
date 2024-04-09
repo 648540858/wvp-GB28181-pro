@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.media.event.media;
 
-import com.genersoft.iot.vmp.media.abl.bean.hook.OnStreamArriveABLHookParam;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
@@ -20,15 +19,6 @@ public class MediaArrivalEvent extends MediaEvent {
         mediaArrivalEvent.setStream(hookParam.getStream());
         mediaArrivalEvent.setMediaServer(mediaServer);
         mediaArrivalEvent.setSchema(hookParam.getSchema());
-        mediaArrivalEvent.setCallId(hookParam.getCallId());
-        return mediaArrivalEvent;
-    }
-    public static MediaArrivalEvent getInstance(Object source, OnStreamArriveABLHookParam hookParam, MediaServer mediaServer){
-        MediaArrivalEvent mediaArrivalEvent = new MediaArrivalEvent(source);
-        mediaArrivalEvent.setMediaInfo(MediaInfo.getInstance(hookParam, mediaServer));
-        mediaArrivalEvent.setApp(hookParam.getApp());
-        mediaArrivalEvent.setStream(hookParam.getStream());
-        mediaArrivalEvent.setMediaServer(mediaServer);
         mediaArrivalEvent.setCallId(hookParam.getCallId());
         return mediaArrivalEvent;
     }

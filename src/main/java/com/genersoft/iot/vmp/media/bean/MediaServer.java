@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.media.bean;
 
 
+import com.genersoft.iot.vmp.media.abl.bean.AblServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.ZLMServerConfig;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.util.ObjectUtils;
@@ -127,6 +128,32 @@ public class MediaServer {
         rtpPortRange = zlmServerConfig.getPortRange().replace("_",","); // 默认使用30000,30500作为级联时发送流的端口号
         recordAssistPort = 0; // 默认关闭
 
+    }
+
+    public MediaServer(AblServerConfig config, String sipIp) {
+        id = config.getMediaServerId();
+        ip = config.getServerIp();
+        hookIp = sipIp;
+        sdpIp = config.getServerIp();
+        streamIp = config.getServerIp();
+        httpPort = config.getHttpServerPort();
+        flvPort = config.getHttpFlvPort();
+        wsFlvPort = config.getWsPort();
+//        httpSSlPort = config.getHttpSSLport();
+//        flvSSLPort = config.getHttpSSLport();
+//        wsFlvSSLPort = config.getHttpSSLport();
+        rtmpPort = config.getRtmpPort();
+//        rtmpSSlPort = config.getRtmpSslPort();
+        rtpProxyPort = config.getPsTsRecvPort();
+        rtspPort = config.getRtspPort();
+//        rtspSSLPort = config.getRtspSSlport();
+        autoConfig = true; // 默认值true;
+        secret = config.getSecret();
+//        hookAliveInterval = config.getHookAliveInterval();
+        rtpEnable = false; // 默认使用单端口;直到用户自己设置开启多端口
+//        rtpPortRange = config.getPortRange().replace("_",","); // 默认使用30000,30500作为级联时发送流的端口号
+        rtpPortRange = "30000,30500"; // 默认使用30000,30500作为级联时发送流的端口号
+        recordAssistPort = 0; // 默认关闭
     }
 
     public String getId() {

@@ -59,8 +59,7 @@ public interface IPlayService {
 
     void startPushStream(SendRtpItem sendRtpItem, SIPResponse sipResponse, ParentPlatform platform, CallIdHeader callIdHeader);
 
-    void startSendRtpStreamHand(SendRtpItem sendRtpItem, Object correlationInfo,
-                                JSONObject jsonObject, Map<String, Object> param, CallIdHeader callIdHeader);
+    void startSendRtpStreamFailHand(SendRtpItem sendRtpItem,ParentPlatform platform, CallIdHeader callIdHeader);
 
     void talkCmd(Device device, String channelId, MediaServer mediaServerItem, String stream, AudioBroadcastEvent event);
 

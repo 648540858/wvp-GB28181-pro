@@ -224,7 +224,7 @@ public class PsController {
         param.put("src_port", sendInfo.getSendLocalPort());
 
 
-        Boolean streamReady = zlmServerFactory.isStreamReady(mediaServerItem, app, stream);
+        Boolean streamReady = mediaServerService.isStreamReady(mediaServerItem, app, stream);
         if (streamReady) {
             JSONObject jsonObject = zlmServerFactory.startSendRtpStream(mediaServerItem, param);
             if (jsonObject.getInteger("code") == 0) {

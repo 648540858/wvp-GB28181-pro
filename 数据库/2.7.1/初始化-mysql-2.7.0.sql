@@ -155,8 +155,13 @@ create table wvp_media_server (
                                   rtp_proxy_port integer,
                                   rtsp_port integer,
                                   rtsp_ssl_port integer,
+                                  flv_port integer,
+                                  flv_ssl_port integer,
+                                  ws_flv_port integer,
+                                  ws_flv_ssl_port integer,
                                   auto_config bool default false,
                                   secret character varying(50),
+                                  type character varying(50) default 'zlm',
                                   rtp_enable bool default false,
                                   rtp_port_range character varying(50),
                                   send_rtp_port_range character varying(50),
@@ -198,6 +203,7 @@ create table wvp_platform (
                               update_time character varying(50),
                               as_message_channel bool default false,
                               auto_push_channel bool default false,
+                              send_stream_ip character varying(50),
                               constraint uk_platform_unique_server_gb_id unique (server_gb_id)
 );
 
@@ -275,15 +281,15 @@ create table wvp_cloud_record (
                                   app character varying(255),
                                   stream character varying(255),
                                   call_id character varying(255),
-                                  start_time int8,
-                                  end_time int8,
+                                  start_time bigint,
+                                  end_time bigint,
                                   media_server_id character varying(50),
                                   file_name character varying(255),
                                   folder character varying(255),
                                   file_path character varying(255),
                                   collect bool default false,
-                                  file_size int8,
-                                  time_len int8,
+                                  file_size bigint,
+                                  time_len bigint,
                                   constraint uk_stream_push_app_stream_path unique (app, stream, file_path)
 );
 

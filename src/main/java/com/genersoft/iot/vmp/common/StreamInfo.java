@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.common;
 
+import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -70,7 +71,7 @@ public class StreamInfo implements Serializable, Cloneable{
     @Schema(description = "流媒体ID")
     private String mediaServerId;
     @Schema(description = "流编码信息")
-    private Object tracks;
+    private MediaInfo mediaInfo;
     @Schema(description = "开始时间")
     private String startTime;
     @Schema(description = "结束时间")
@@ -82,6 +83,9 @@ public class StreamInfo implements Serializable, Cloneable{
 
     @Schema(description = "是否暂停（录像回放使用）")
     private boolean pause;
+
+    @Schema(description = "产生源类型，包括 unknown = 0,rtmp_push=1,rtsp_push=2,rtp_push=3,pull=4,ffmpeg_pull=5,mp4_vod=6,device_chn=7")
+    private int originType;
 
     public void setFlv(StreamURL flv) {
         this.flv = flv;
@@ -191,14 +195,22 @@ public class StreamInfo implements Serializable, Cloneable{
         }
     }
 
-    public void setFlv(String host, int port, int sslPort, String app, String stream, String callIdParam) {
-        String file = String.format("%s/%s.live.flv%s", app, stream, callIdParam);
+    public void setFlv(String host, int port, int sslPort, String file) {
         if (port > 0) {
             this.flv = new StreamURL("http", host, port, file);
         }
         this.ws_flv = new StreamURL("ws", host, port, file);
         if (sslPort > 0) {
             this.https_flv = new StreamURL("https", host, sslPort, file);
+            this.wss_flv = new StreamURL("wss", host, sslPort, file);
+        }
+    }
+
+    public void setWsFlv(String host, int port, int sslPort, String file) {
+        if (port > 0) {
+            this.ws_flv = new StreamURL("ws", host, port, file);
+        }
+        if (sslPort > 0) {
             this.wss_flv = new StreamURL("wss", host, sslPort, file);
         }
     }
@@ -473,12 +485,12 @@ public class StreamInfo implements Serializable, Cloneable{
         this.mediaServerId = mediaServerId;
     }
 
-    public Object getTracks() {
-        return tracks;
+    public MediaInfo getMediaInfo() {
+        return mediaInfo;
     }
 
-    public void setTracks(Object tracks) {
-        this.tracks = tracks;
+    public void setMediaInfo(MediaInfo mediaInfo) {
+        this.mediaInfo = mediaInfo;
     }
 
     public String getStartTime() {
@@ -614,5 +626,13 @@ public class StreamInfo implements Serializable, Cloneable{
 
     public void setDownLoadFilePath(DownloadFileInfo downLoadFilePath) {
         this.downLoadFilePath = downLoadFilePath;
+    }
+
+    public int getOriginType() {
+        return originType;
+    }
+
+    public void setOriginType(int originType) {
+        this.originType = originType;
     }
 }

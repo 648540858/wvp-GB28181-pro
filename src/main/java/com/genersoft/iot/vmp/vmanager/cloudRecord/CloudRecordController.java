@@ -3,9 +3,9 @@ package com.genersoft.iot.vmp.vmanager.cloudRecord;
 import com.alibaba.fastjson2.JSONArray;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.ICloudRecordService;
-import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -67,16 +67,16 @@ public class CloudRecordController {
         if (ObjectUtils.isEmpty(month)) {
             month = calendar.get(Calendar.MONTH) + 1;
         }
-        List<MediaServerItem> mediaServerItems;
+        List<MediaServer> mediaServerItems;
         if (!ObjectUtils.isEmpty(mediaServerId)) {
             mediaServerItems = new ArrayList<>();
-            MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+            MediaServer mediaServerItem = mediaServerService.getOne(mediaServerId);
             if (mediaServerItem == null) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到流媒体: " + mediaServerId);
             }
             mediaServerItems.add(mediaServerItem);
         } else {
-            mediaServerItems = mediaServerService.getAll();
+            mediaServerItems = mediaServerService.getAllOnlineList();
         }
         if (mediaServerItems.isEmpty()) {
             return new ArrayList<>();
@@ -110,16 +110,16 @@ public class CloudRecordController {
         logger.info("[云端录像] 查询 app->{}, stream->{}, mediaServerId->{}, page->{}, count->{}, startTime->{}, endTime->{}",
                 app, stream, mediaServerId, page, count, startTime, endTime);
 
-        List<MediaServerItem> mediaServerItems;
+        List<MediaServer> mediaServerItems;
         if (!ObjectUtils.isEmpty(mediaServerId)) {
             mediaServerItems = new ArrayList<>();
-            MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+            MediaServer mediaServerItem = mediaServerService.getOne(mediaServerId);
             if (mediaServerItem == null) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到流媒体: " + mediaServerId);
             }
             mediaServerItems.add(mediaServerItem);
         } else {
-            mediaServerItems = mediaServerService.getAll();
+            mediaServerItems = mediaServerService.getAllOnlineList();
         }
         if (mediaServerItems.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "当前无流媒体");
@@ -162,7 +162,7 @@ public class CloudRecordController {
             @RequestParam(required = false) String callId,
             @RequestParam(required = false) String remoteHost
     ){
-        MediaServerItem mediaServerItem;
+        MediaServer mediaServerItem;
         if (mediaServerId == null) {
             mediaServerItem = mediaServerService.getDefaultMediaServer();
         }else {

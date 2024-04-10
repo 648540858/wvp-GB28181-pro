@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.storager.dao;
 
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
@@ -24,6 +24,10 @@ public interface MediaServerMapper {
             "rtmp_ssl_port,"+
             "rtp_proxy_port,"+
             "rtsp_port,"+
+            "flv_port," +
+            "flv_ssl_port," +
+            "ws_flv_port," +
+            "ws_flv_ssl_port," +
             "rtsp_ssl_port,"+
             "auto_config,"+
             "secret,"+
@@ -34,6 +38,7 @@ public interface MediaServerMapper {
             "record_day,"+
             "record_path,"+
             "default_server,"+
+            "type,"+
             "create_time,"+
             "update_time,"+
             "hook_alive_interval"+
@@ -50,6 +55,10 @@ public interface MediaServerMapper {
             "#{rtmpSSlPort}, " +
             "#{rtpProxyPort}, " +
             "#{rtspPort}, " +
+            "#{flvPort}, " +
+            "#{flvSSLPort}, " +
+            "#{wsFlvPort}, " +
+            "#{wsFlvSSLPort}, " +
             "#{rtspSSLPort}, " +
             "#{autoConfig}, " +
             "#{secret}, " +
@@ -60,10 +69,11 @@ public interface MediaServerMapper {
             "#{recordDay}, " +
             "#{recordPath}, " +
             "#{defaultServer}, " +
+            "#{type}, " +
             "#{createTime}, " +
             "#{updateTime}, " +
             "#{hookAliveInterval})")
-    int add(MediaServerItem mediaServerItem);
+    int add(MediaServer mediaServerItem);
 
     @Update(value = {" <script>" +
             "UPDATE wvp_media_server " +
@@ -79,6 +89,10 @@ public interface MediaServerMapper {
             "<if test=\"rtpProxyPort != null\">, rtp_proxy_port=#{rtpProxyPort}</if>" +
             "<if test=\"rtspPort != null\">, rtsp_port=#{rtspPort}</if>" +
             "<if test=\"rtspSSLPort != null\">, rtsp_ssl_port=#{rtspSSLPort}</if>" +
+            "<if test=\"flvPort != null\">, flv_port=#{flvPort}</if>" +
+            "<if test=\"flvSSLPort != null\">, flv_ssl_port=#{flvSSLPort}</if>" +
+            "<if test=\"wsFlvPort != null\">, ws_flv_port=#{wsFlvPort}</if>" +
+            "<if test=\"wsFlvSSLPort != null\">, ws_flv_ssl_port=#{wsFlvSSLPort}</if>" +
             "<if test=\"autoConfig != null\">, auto_config=#{autoConfig}</if>" +
             "<if test=\"rtpEnable != null\">, rtp_enable=#{rtpEnable}</if>" +
             "<if test=\"rtpPortRange != null\">, rtp_port_range=#{rtpPortRange}</if>" +
@@ -88,9 +102,10 @@ public interface MediaServerMapper {
             "<if test=\"hookAliveInterval != null\">, hook_alive_interval=#{hookAliveInterval}</if>" +
             "<if test=\"recordDay != null\">, record_day=#{recordDay}</if>" +
             "<if test=\"recordPath != null\">, record_path=#{recordPath}</if>" +
+            "<if test=\"type != null\">, type=#{type}</if>" +
             "WHERE id=#{id}"+
             " </script>"})
-    int update(MediaServerItem mediaServerItem);
+    int update(MediaServer mediaServerItem);
 
     @Update(value = {" <script>" +
             "UPDATE wvp_media_server " +
@@ -105,6 +120,10 @@ public interface MediaServerMapper {
             "<if test=\"rtpProxyPort != null\">, rtp_proxy_port=#{rtpProxyPort}</if>" +
             "<if test=\"rtspPort != null\">, rtsp_port=#{rtspPort}</if>" +
             "<if test=\"rtspSSLPort != null\">, rtsp_ssl_port=#{rtspSSLPort}</if>" +
+            "<if test=\"flvPort != null\">, flv_port=#{flvPort}</if>" +
+            "<if test=\"flvSSLPort != null\">, flv_ssl_port=#{flvSSLPort}</if>" +
+            "<if test=\"wsFlvPort != null\">, ws_flv_port=#{wsFlvPort}</if>" +
+            "<if test=\"wsFlvSSLPort != null\">, ws_flv_ssl_port=#{wsFlvSSLPort}</if>" +
             "<if test=\"autoConfig != null\">, auto_config=#{autoConfig}</if>" +
             "<if test=\"rtpEnable != null\">, rtp_enable=#{rtpEnable}</if>" +
             "<if test=\"rtpPortRange != null\">, rtp_port_range=#{rtpPortRange}</if>" +
@@ -113,16 +132,17 @@ public interface MediaServerMapper {
             "<if test=\"recordAssistPort != null\">, record_assist_port=#{recordAssistPort}</if>" +
             "<if test=\"recordDay != null\">, record_day=#{recordDay}</if>" +
             "<if test=\"recordPath != null\">, record_path=#{recordPath}</if>" +
+            "<if test=\"type != null\">, type=#{type}</if>" +
             "<if test=\"hookAliveInterval != null\">, hook_alive_interval=#{hookAliveInterval}</if>" +
             "WHERE ip=#{ip} and http_port=#{httpPort}"+
             " </script>"})
-    int updateByHostAndPort(MediaServerItem mediaServerItem);
+    int updateByHostAndPort(MediaServer mediaServerItem);
 
     @Select("SELECT * FROM wvp_media_server WHERE id=#{id}")
-    MediaServerItem queryOne(String id);
+    MediaServer queryOne(String id);
 
     @Select("SELECT * FROM wvp_media_server")
-    List<MediaServerItem> queryAll();
+    List<MediaServer> queryAll();
 
     @Delete("DELETE FROM wvp_media_server WHERE id=#{id}")
     void delOne(String id);
@@ -134,12 +154,12 @@ public interface MediaServerMapper {
     int delDefault();
 
     @Select("SELECT * FROM wvp_media_server WHERE ip=#{host} and http_port=#{port}")
-    MediaServerItem queryOneByHostAndPort(@Param("host") String host, @Param("port") int port);
+    MediaServer queryOneByHostAndPort(@Param("host") String host, @Param("port") int port);
 
     @Select("SELECT * FROM wvp_media_server WHERE default_server=true")
-    MediaServerItem queryDefault();
+    MediaServer queryDefault();
 
     @Select("SELECT * FROM wvp_media_server WHERE record_assist_port > 0")
-    List<MediaServerItem> queryAllWithAssistPort();
+    List<MediaServer> queryAllWithAssistPort();
 
 }

@@ -2,12 +2,13 @@ package com.genersoft.iot.vmp.media.zlm;
 
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
-import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
@@ -31,12 +32,6 @@ public class ZLMMediaListManager {
     private Logger logger = LoggerFactory.getLogger("ZLMMediaListManager");
 
     @Autowired
-    private ZLMRESTfulUtils zlmresTfulUtils;
-
-    @Autowired
-    private IRedisCatchStorage redisCatchStorage;
-
-    @Autowired
     private IVideoManagerStorage storager;
 
     @Autowired
@@ -55,7 +50,7 @@ public class ZLMMediaListManager {
     private StreamPushMapper streamPushMapper;
 
     @Autowired
-    private ZlmHttpHookSubscribe subscribe;
+    private HookSubscribe subscribe;
 
     @Autowired
     private UserSetting userSetting;
@@ -95,9 +90,9 @@ public class ZLMMediaListManager {
     }
 
     public void sendStreamEvent(String app, String stream, String mediaServerId) {
-        MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+        MediaServer mediaServerItem = mediaServerService.getOne(mediaServerId);
         // 查看推流状态
-        Boolean streamReady = zlmServerFactory.isStreamReady(mediaServerItem, app, stream);
+        Boolean streamReady = mediaServerService.isStreamReady(mediaServerItem, app, stream);
         if (streamReady != null && streamReady) {
             ChannelOnlineEvent channelOnlineEventLister = getChannelOnlineEventLister(app, stream);
             if (channelOnlineEventLister != null)  {

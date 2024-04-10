@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.service.bean;
 
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 
 /**
  * redis消息：下级回复推送信息
@@ -11,7 +11,7 @@ public class ResponseSendItemMsg {
 
     private SendRtpItem sendRtpItem;
 
-    private MediaServerItem mediaServerItem;
+    private MediaServer mediaServerItem;
 
     public SendRtpItem getSendRtpItem() {
         return sendRtpItem;
@@ -21,11 +21,11 @@ public class ResponseSendItemMsg {
         this.sendRtpItem = sendRtpItem;
     }
 
-    public MediaServerItem getMediaServerItem() {
+    public MediaServer getMediaServerItem() {
         return mediaServerItem;
     }
 
-    public void setMediaServerItem(MediaServerItem mediaServerItem) {
+    public void setMediaServerItem(MediaServer mediaServerItem) {
         this.mediaServerItem = mediaServerItem;
     }
 }

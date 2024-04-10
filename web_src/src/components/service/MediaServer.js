@@ -45,7 +45,8 @@ class MediaServer{
       params: {
         ip: param.ip,
         port: param.httpPort,
-        secret: param.secret
+        secret: param.secret,
+        type: param.type
       }
     }).then(function (res) {
       if (typeof (callback) == "function") callback(res.data)

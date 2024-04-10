@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.media.zlm;
+package com.genersoft.iot.vmp.media.zlm.dto;
 
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.HookParam;

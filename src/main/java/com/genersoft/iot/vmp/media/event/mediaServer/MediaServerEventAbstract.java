@@ -1,9 +1,8 @@
-package com.genersoft.iot.vmp.media.zlm.event;
+package com.genersoft.iot.vmp.media.event.mediaServer;
 
-import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import org.springframework.context.ApplicationEvent;
 
-public abstract class ZLMEventAbstract extends ApplicationEvent {
+public abstract class MediaServerEventAbstract extends ApplicationEvent {
 
 
     private static final long serialVersionUID = 1L;
@@ -11,7 +10,7 @@ public abstract class ZLMEventAbstract extends ApplicationEvent {
     private String mediaServerId;
 
 
-    public ZLMEventAbstract(Object source) {
+    public MediaServerEventAbstract(Object source) {
         super(source);
     }
 

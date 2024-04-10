@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.storager.dao;
 
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import org.apache.ibatis.annotations.*;
 
@@ -55,7 +55,7 @@ public interface CloudRecordServiceMapper {
             " </script>")
     List<CloudRecordItem> getList(@Param("query") String query, @Param("app") String app, @Param("stream") String stream,
                                   @Param("startTimeStamp")Long startTimeStamp, @Param("endTimeStamp")Long endTimeStamp,
-                                  @Param("callId")String callId, List<MediaServerItem> mediaServerItemList);
+                                  @Param("callId")String callId, List<MediaServer> mediaServerItemList);
 
 
     @Select(" <script>" +
@@ -73,7 +73,7 @@ public interface CloudRecordServiceMapper {
             " </script>")
     List<String> queryRecordFilePathList(@Param("app") String app, @Param("stream") String stream,
                                   @Param("startTimeStamp")Long startTimeStamp, @Param("endTimeStamp")Long endTimeStamp,
-                                  @Param("callId")String callId, List<MediaServerItem> mediaServerItemList);
+                                  @Param("callId")String callId, List<MediaServer> mediaServerItemList);
 
     @Update(" <script>" +
             "update wvp_cloud_record set collect = #{collect} where file_path in " +

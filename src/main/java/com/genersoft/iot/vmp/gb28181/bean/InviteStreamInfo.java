@@ -1,11 +1,11 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 
 public class InviteStreamInfo {
 
-    public InviteStreamInfo(MediaServerItem mediaServerItem, JSONObject response, String callId, String app, String stream) {
+    public InviteStreamInfo(MediaServer mediaServerItem, JSONObject response, String callId, String app, String stream) {
         this.mediaServerItem = mediaServerItem;
         this.response = response;
         this.callId = callId;
@@ -13,17 +13,17 @@ public class InviteStreamInfo {
         this.stream = stream;
     }
 
-    private MediaServerItem mediaServerItem;
+    private MediaServer mediaServerItem;
     private JSONObject response;
     private String callId;
     private String app;
     private String stream;
 
-    public MediaServerItem getMediaServerItem() {
+    public MediaServer getMediaServerItem() {
         return mediaServerItem;
     }
 
-    public void setMediaServerItem(MediaServerItem mediaServerItem) {
+    public void setMediaServerItem(MediaServer mediaServerItem) {
         this.mediaServerItem = mediaServerItem;
     }
 

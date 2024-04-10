@@ -75,7 +75,7 @@ public class UserApiKeyController {
         userApiKey.setApp(app);
         userApiKey.setApiKey(null);
         userApiKey.setRemark(remark);
-        userApiKey.setExpiredAt(expiresAt);
+        userApiKey.setExpiredAt(expirationTime != null ? expirationTime : 0);
         userApiKey.setEnable(enable != null ? enable : false);
         userApiKey.setCreateTime(DateUtil.getNow());
         userApiKey.setUpdateTime(DateUtil.getNow());
@@ -182,8 +182,8 @@ public class UserApiKeyController {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "用户不存在");
         }
         Long expirationTime = null;
-        if (userApiKey.getExpiredAt() != null) {
-            long timestamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(userApiKey.getExpiredAt());
+        if (userApiKey.getExpiredAt() > 0) {
+            long timestamp = userApiKey.getExpiredAt();
             expirationTime = (timestamp - System.currentTimeMillis()) / (60 * 1000);
             if (expirationTime < 0) {
                 throw new ControllerException(ErrorCode.ERROR400.getCode(), "ApiKey已失效");

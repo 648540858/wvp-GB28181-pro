@@ -38,7 +38,7 @@ public class UserApiKey implements Serializable {
      * 过期时间（null=永不过期）
      */
     @Schema(description = "过期时间（null=永不过期）")
-    private String expiredAt;
+    private long expiredAt;
 
     /**
      * 备注信息
@@ -101,11 +101,11 @@ public class UserApiKey implements Serializable {
         this.apiKey = apiKey;
     }
 
-    public String getExpiredAt() {
+    public long getExpiredAt() {
         return expiredAt;
     }
 
-    public void setExpiredAt(String expiredAt) {
+    public void setExpiredAt(long expiredAt) {
         this.expiredAt = expiredAt;
     }
 

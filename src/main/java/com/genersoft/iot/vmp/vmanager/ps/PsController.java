@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
@@ -44,9 +45,6 @@ import java.util.concurrent.TimeUnit;
 public class PsController {
 
     private final static Logger logger = LoggerFactory.getLogger(PsController.class);
-
-    @Autowired
-    private ZLMServerFactory zlmServerFactory;
 
     @Autowired
     private HookSubscribe hookSubscribe;
@@ -209,35 +207,12 @@ public class PsController {
         sendInfo.setPushApp(app);
         sendInfo.setPushStream(stream);
         sendInfo.setPushSSRC(ssrc);
-
-        Map<String, Object> param;
-
-
-        param = new HashMap<>();
-        param.put("vhost","__defaultVhost__");
-        param.put("app",app);
-        param.put("stream",stream);
-        param.put("ssrc", ssrc);
-
-        param.put("dst_url", dstIp);
-        param.put("dst_port", dstPort);
-        String is_Udp = isUdp ? "1" : "0";
-        param.put("is_udp", is_Udp);
-        param.put("src_port", sendInfo.getSendLocalPort());
-
-
+        SendRtpItem sendRtpItem = SendRtpItem.getInstance(app, stream, ssrc, dstIp, dstPort, !isUdp, sendInfo.getSendLocalPort(), null);
         Boolean streamReady = mediaServerService.isStreamReady(mediaServer, app, stream);
         if (streamReady) {
-            JSONObject jsonObject = zlmServerFactory.startSendRtpStream(mediaServer, param);
-//            mediaServerService.startSendRtp(mediaServer, );
-            if (jsonObject.getInteger("code") == 0) {
-                logger.info("[第三方PS服务对接->发送流] 视频流发流成功，callId->{}，param->{}", callId, param);
-                redisTemplate.opsForValue().set(key, sendInfo);
-            }else {
-                redisTemplate.delete(key);
-                logger.info("[第三方PS服务对接->发送流] 视频流发流失败，callId->{}, {}", callId, jsonObject.getString("msg"));
-                throw new ControllerException(ErrorCode.ERROR100.getCode(), "[视频流发流失败] " + jsonObject.getString("msg"));
-            }
+            mediaServerService.startSendRtp(mediaServer, null, sendRtpItem);
+            logger.info("[第三方PS服务对接->发送流] 视频流发流成功，callId->{}，param->{}", callId, sendRtpItem);
+            redisTemplate.opsForValue().set(key, sendInfo);
         }else {
             logger.info("[第三方PS服务对接->发送流] 流不存在，等待流上线，callId->{}", callId);
             String uuid = UUID.randomUUID().toString();
@@ -260,15 +235,9 @@ public class PsController {
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
                         }
-                        JSONObject jsonObject = zlmServerFactory.startSendRtpStream(mediaServer, param);
-                        if (jsonObject.getInteger("code") == 0) {
-                            logger.info("[第三方PS服务对接->发送流] 视频流发流成功，callId->{}，param->{}", callId, param);
-                            redisTemplate.opsForValue().set(key, finalSendInfo);
-                        }else {
-                            redisTemplate.delete(key);
-                            logger.info("[第三方PS服务对接->发送流] 视频流发流失败，callId->{}, {}", callId, jsonObject.getString("msg"));
-                            throw new ControllerException(ErrorCode.ERROR100.getCode(), "[视频流发流失败] " + jsonObject.getString("msg"));
-                        }
+                        mediaServerService.startSendRtp(mediaServer, null,  sendRtpItem);
+                        logger.info("[第三方PS服务对接->发送流] 视频流发流成功，callId->{}，param->{}", callId, sendRtpItem);
+                        redisTemplate.opsForValue().set(key, finalSendInfo);
                         hookSubscribe.removeSubscribe(hook);
                     });
         }
@@ -291,7 +260,7 @@ public class PsController {
         param.put("stream",sendInfo.getPushStream());
         param.put("ssrc",sendInfo.getPushSSRC());
         MediaServer mediaServerItem = mediaServerService.getDefaultMediaServer();
-        Boolean result = zlmServerFactory.stopSendRtpStream(mediaServerItem, param);
+        boolean result = mediaServerService.stopSendRtp(mediaServerItem, sendInfo.getPushApp(), sendInfo.getStream(), sendInfo.getPushSSRC());
         if (!result) {
             logger.info("[第三方PS服务对接->关闭发送流] 失败 callId->{}", callId);
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "停止发流失败");

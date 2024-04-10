@@ -353,7 +353,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         }
         param.put("dst_url", sendRtpItem.getIp());
         param.put("dst_port", sendRtpItem.getPort());
-        JSONObject jsonObject = zlmServerFactory.startSendRtpStream(mediaServer, param);
+        JSONObject jsonObject = zlmresTfulUtils.startSendRtp(mediaServer, param);
         if (jsonObject == null || jsonObject.getInteger("code") != 0 ) {
             throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
         }

@@ -272,6 +272,49 @@ public class ABLRESTfulUtils {
         }
     }
 
+    public void sendGetForImgForUrl(String url,  String targetPath, String fileName) {
+        HttpUrl parseUrl = HttpUrl.parse(url);
+        if (parseUrl == null) {
+            return;
+        }
+        HttpUrl.Builder httpBuilder = parseUrl.newBuilder();
+
+        Request request = new Request.Builder()
+                .url(httpBuilder.build())
+                .build();
+        logger.info(request.toString());
+        try {
+            OkHttpClient client = getClient();
+            Response response = client.newCall(request).execute();
+            if (response.isSuccessful()) {
+                if (targetPath != null) {
+                    File snapFolder = new File(targetPath);
+                    if (!snapFolder.exists()) {
+                        if (!snapFolder.mkdirs()) {
+                            logger.warn("{}路径创建失败", snapFolder.getAbsolutePath());
+                        }
+                    }
+                    File snapFile = new File(targetPath + File.separator + fileName);
+                    FileOutputStream outStream = new FileOutputStream(snapFile);
+
+                    outStream.write(Objects.requireNonNull(response.body()).bytes());
+                    outStream.flush();
+                    outStream.close();
+                } else {
+                    logger.error(String.format("[ %s ]请求失败: %s %s", url, response.code(), response.message()));
+                }
+            } else {
+                logger.error(String.format("[ %s ]请求失败: %s %s", url, response.code(), response.message()));
+            }
+            Objects.requireNonNull(response.body()).close();
+        } catch (ConnectException e) {
+            logger.error(String.format("连接ABL失败: %s, %s", e.getCause().getMessage(), e.getMessage()));
+            logger.info("请检查media配置并确认ABL已启动...");
+        } catch (IOException e) {
+            logger.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
+        }
+    }
+
 
     public Integer openRtpServer(MediaServer mediaServer, String app, String stream, int payload, Integer port, Integer tcpMode, Integer disableAudio) {
         Map<String, Object> param = new HashMap<>();
@@ -335,7 +378,11 @@ public class ABLRESTfulUtils {
         param.put("stream", stream);
         param.put("timeout_sec", timeoutSec);
         param.put("vhost", "_defaultVhost_");
-        sendGetForImg(mediaServer,"getSnap", param, path, fileName);
+        JSONObject jsonObject = sendPost(mediaServer, "getSnap", param, null);
+        if (jsonObject != null && jsonObject.getInteger("code") == 0) {
+            String url = jsonObject.getString("url");
+            sendGetForImgForUrl(url, path, fileName);
+        }
     }
 
 }

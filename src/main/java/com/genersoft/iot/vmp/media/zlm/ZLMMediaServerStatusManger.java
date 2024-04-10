@@ -55,6 +55,9 @@ public class ZLMMediaServerStatusManger {
     @Value("${server.port}")
     private Integer serverPort;
 
+    @Value("${server.servlet.context-path:}")
+    private String serverServletContextPath;
+
     @Autowired
     private UserSetting userSetting;
 
@@ -239,7 +242,7 @@ public class ZLMMediaServerStatusManger {
         logger.info("[媒体服务节点] 正在设置 ：{} -> {}:{}",
                 mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
         String protocol = sslEnabled ? "https" : "http";
-        String hookPrefix = String.format("%s://%s:%s/index/hook", protocol, mediaServerItem.getHookIp(), serverPort);
+        String hookPrefix = String.format("%s://%s:%s%s/index/hook", protocol, mediaServerItem.getHookIp(), serverPort, (serverServletContextPath == null || "/".equals(serverServletContextPath)) ? "" : serverServletContextPath);
 
         Map<String, Object> param = new HashMap<>();
         param.put("api.secret",mediaServerItem.getSecret()); // -profile:v Baseline

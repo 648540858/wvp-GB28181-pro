@@ -5,12 +5,12 @@ import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
-import com.genersoft.iot.vmp.media.event.hook.Hook;
-import com.genersoft.iot.vmp.media.event.hook.HookType;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.event.hook.Hook;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
+import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -27,7 +27,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -73,9 +72,6 @@ public class RedisGbPlayMsgListener implements MessageListener {
     private RedisTemplate<Object, Object> redisTemplate;
 
     @Autowired
-    private ZLMServerFactory zlmServerFactory;
-
-    @Autowired
     private IMediaServerService mediaServerService;
 
     @Autowired
@@ -101,7 +97,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
     }
 
     public interface PlayMsgCallbackForStartSendRtpStream{
-        void handler(JSONObject jsonObject);
+        void handler();
     }
 
     public interface PlayMsgErrorCallback{
@@ -181,11 +177,10 @@ public class RedisGbPlayMsgListener implements MessageListener {
                                     String serial = wvpRedisMsg.getSerial();
                                     switch (wvpResult.getCode()) {
                                         case 0:
-                                            JSONObject jsonObject = (JSONObject)wvpResult.getData();
                                             PlayMsgCallbackForStartSendRtpStream playMsgCallback = callbacksForStartSendRtpStream.get(serial);
                                             if (playMsgCallback != null) {
                                                 callbacksForError.remove(serial);
-                                                playMsgCallback.handler(jsonObject);
+                                                playMsgCallback.handler();
                                             }
                                             break;
                                         case ERROR_CODE_MEDIA_SERVER_NOT_FOUND:
@@ -219,36 +214,24 @@ public class RedisGbPlayMsgListener implements MessageListener {
      * 处理收到的请求推流的请求
      */
     private void requestPushStreamMsgHand(RequestPushStreamMsg requestPushStreamMsg, String fromId, String serial) {
-        MediaServer mediaInfo = mediaServerService.getOne(requestPushStreamMsg.getMediaServerId());
-        if (mediaInfo == null) {
+        MediaServer mediaServer = mediaServerService.getOne(requestPushStreamMsg.getMediaServerId());
+        if (mediaServer == null) {
             // TODO 回复错误
             return;
         }
-        String is_Udp = requestPushStreamMsg.isTcp() ? "0" : "1";
-        Map<String, Object> param = new HashMap<>();
-        param.put("vhost","__defaultVhost__");
-        param.put("app",requestPushStreamMsg.getApp());
-        param.put("stream",requestPushStreamMsg.getStream());
-        param.put("ssrc", requestPushStreamMsg.getSsrc());
-        param.put("dst_url",requestPushStreamMsg.getIp());
-        param.put("dst_port", requestPushStreamMsg.getPort());
-        param.put("is_udp", is_Udp);
-        param.put("src_port", requestPushStreamMsg.getSrcPort());
-        param.put("pt", requestPushStreamMsg.getPt());
-        param.put("use_ps", requestPushStreamMsg.isPs() ? "1" : "0");
-        param.put("only_audio", requestPushStreamMsg.isOnlyAudio() ? "1" : "0");
-        JSONObject jsonObject = zlmServerFactory.startSendRtpStream(mediaInfo, param);
+        SendRtpItem sendRtpItem = SendRtpItem.getInstance(requestPushStreamMsg);
+
+        try {
+            mediaServerService.startSendRtp(mediaServer, null, sendRtpItem);
+        }catch (ControllerException e) {
+            return;
+        }
+
         // 回复消息
-        responsePushStream(jsonObject, fromId, serial);
-    }
-
-    private void responsePushStream(JSONObject content, String toId, String serial) {
-
         WVPResult<JSONObject> result = new WVPResult<>();
         result.setCode(0);
-        result.setData(content);
 
-        WvpRedisMsg response = WvpRedisMsg.getResponseInstance(userSetting.getServerId(), toId,
+        WvpRedisMsg response = WvpRedisMsg.getResponseInstance(userSetting.getServerId(), fromId,
                 WvpRedisMsgCmd.REQUEST_PUSH_STREAM, serial, JSON.toJSONString(result));
         JSONObject jsonObject = (JSONObject)JSON.toJSON(response);
         redisTemplate.convertAndSend(WVP_PUSH_STREAM_KEY, jsonObject);
@@ -317,7 +300,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
      * 将获取到的sendItem发送出去
      */
     private void responseSendItem(MediaServer mediaServerItem, RequestSendItemMsg content, String toId, String serial) {
-        SendRtpItem sendRtpItem = zlmServerFactory.createSendRtpItem(mediaServerItem, content.getIp(),
+        SendRtpItem sendRtpItem = mediaServerService.createSendRtpItem(mediaServerItem, content.getIp(),
                 content.getPort(), content.getSsrc(), content.getPlatformId(),
                 content.getApp(), content.getStream(), content.getChannelId(),
                 content.getTcp(), content.getRtcp());
@@ -453,13 +436,8 @@ public class RedisGbPlayMsgListener implements MessageListener {
             // TODO 回复错误
             return;
         }
-        Map<String, Object> param = new HashMap<>();
-        param.put("vhost","__defaultVhost__");
-        param.put("app",sendRtpItem.getApp());
-        param.put("stream",sendRtpItem.getStream());
-        param.put("ssrc", sendRtpItem.getSsrc());
 
-        if (zlmServerFactory.stopSendRtpStream(mediaInfo, param)) {
+        if (mediaServerService.stopSendRtp(mediaInfo, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getSsrc())) {
             logger.info("[REDIS 执行其他平台的请求停止推流] 成功： {}/{}", sendRtpItem.getApp(), sendRtpItem.getStream());
             // 发送redis消息
             MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,

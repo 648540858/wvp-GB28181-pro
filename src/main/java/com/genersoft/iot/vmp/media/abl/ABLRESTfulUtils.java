@@ -250,7 +250,6 @@ public class ABLRESTfulUtils {
                         if (!snapFolder.mkdirs()) {
                             logger.warn("{}路径创建失败", snapFolder.getAbsolutePath());
                         }
-
                     }
                     File snapFile = new File(targetPath + File.separator + fileName);
                     FileOutputStream outStream = new FileOutputStream(snapFile);
@@ -330,4 +329,13 @@ public class ABLRESTfulUtils {
         param.put("stream", stream);
         return sendPost(mediaServer,"getMediaList", param, null);
     }
+    public void getSnap(MediaServer mediaServer, String app, String stream, int timeoutSec, String path, String fileName) {
+        Map<String, Object> param =  new HashMap<>();
+        param.put("app", app);
+        param.put("stream", stream);
+        param.put("timeout_sec", timeoutSec);
+        param.put("vhost", "_defaultVhost_");
+        sendGetForImg(mediaServer,"getSnap", param, path, fileName);
+    }
+
 }

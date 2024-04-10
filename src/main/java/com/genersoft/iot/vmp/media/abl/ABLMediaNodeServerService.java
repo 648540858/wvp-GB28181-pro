@@ -181,8 +181,8 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public void getSnap(MediaServer mediaServerItem, String streamUrl, int timeoutSec, int expireSec, String path, String fileName) {
-        logger.warn("[abl-getSnap] 未实现");
+    public void getSnap(MediaServer mediaServerItem, String app, String stream, int timeoutSec, int expireSec, String path, String fileName) {
+        ablresTfulUtils.getSnap(mediaServerItem, app, stream, timeoutSec, path, fileName);
     }
 
     @Override

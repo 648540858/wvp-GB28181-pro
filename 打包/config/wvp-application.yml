@@ -4,6 +4,8 @@ spring:
         multipart:
             max-file-size: 10MB
             max-request-size: 100MB
+    cache:
+        type: redis
     # REDIS数据库配置
     redis:
         # [可选] 超时时间

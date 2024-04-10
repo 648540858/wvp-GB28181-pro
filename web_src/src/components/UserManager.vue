@@ -23,6 +23,8 @@
           <el-divider direction="vertical"></el-divider>
           <el-button size="medium" icon="el-icon-edit" type="text" @click="changePushKey(scope.row)">修改pushkey</el-button>
           <el-divider direction="vertical"></el-divider>
+          <el-button size="medium" icon="el-icon-edit" type="text" @click="showUserApiKeyManager(scope.row)">管理ApiKey</el-button>
+          <el-divider direction="vertical"></el-divider>
           <el-button size="medium" icon="el-icon-delete" type="text" @click="deleteUser(scope.row)"
                      style="color: #f56c6c">删除
           </el-button>
@@ -178,7 +180,10 @@ export default {
         setTimeout(this.getUserList, 200)
 
       })
-    }
+    },
+    showUserApiKeyManager: function (row) {
+      this.$router.push(`/userApiKeyManager/${row.id}`)
+    },
   }
 }
 </script>

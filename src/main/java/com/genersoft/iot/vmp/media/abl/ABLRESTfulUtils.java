@@ -378,11 +378,13 @@ public class ABLRESTfulUtils {
         param.put("stream", stream);
         param.put("timeout_sec", timeoutSec);
         param.put("vhost", "_defaultVhost_");
-        JSONObject jsonObject = sendPost(mediaServer, "getSnap", param, null);
-        if (jsonObject != null && jsonObject.getInteger("code") == 0) {
-            String url = jsonObject.getString("url");
-            sendGetForImgForUrl(url, path, fileName);
-        }
+//        JSONObject jsonObject = sendPost(mediaServer, "getSnap", param, null);
+//        if (jsonObject != null && jsonObject.getInteger("code") == 0) {
+//            String url = jsonObject.getString("url");
+//            sendGetForImgForUrl(url, path, fileName);
+//        }
+        sendGetForImg(mediaServer, "getSnap", param, path, fileName);
+
     }
 
 }

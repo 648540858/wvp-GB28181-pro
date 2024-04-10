@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
+import com.genersoft.iot.vmp.service.bean.RequestPushStreamMsg;
+
 public class SendRtpItem {
 
     /**
@@ -121,6 +123,23 @@ public class SendRtpItem {
      * 发流的同时收流
      */
     private String receiveStream;
+
+    public static SendRtpItem getInstance(RequestPushStreamMsg requestPushStreamMsg) {
+        SendRtpItem sendRtpItem = new SendRtpItem();
+        sendRtpItem.setMediaServerId(requestPushStreamMsg.getMediaServerId());
+        sendRtpItem.setApp(requestPushStreamMsg.getApp());
+        sendRtpItem.setStream(requestPushStreamMsg.getStream());
+        sendRtpItem.setIp(requestPushStreamMsg.getIp());
+        sendRtpItem.setPort(requestPushStreamMsg.getPort());
+        sendRtpItem.setSsrc(requestPushStreamMsg.getSsrc());
+        sendRtpItem.setTcp(requestPushStreamMsg.isTcp());
+        sendRtpItem.setLocalPort(requestPushStreamMsg.getSrcPort());
+        sendRtpItem.setPt(requestPushStreamMsg.getPt());
+        sendRtpItem.setUsePs(requestPushStreamMsg.isPs());
+        sendRtpItem.setOnlyAudio(requestPushStreamMsg.isOnlyAudio());
+        return sendRtpItem;
+        
+    }
 
     public String getIp() {
         return ip;

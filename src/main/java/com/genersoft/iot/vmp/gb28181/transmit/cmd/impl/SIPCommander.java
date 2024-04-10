@@ -75,8 +75,6 @@ public class SIPCommander implements ISIPCommander {
     @Autowired
     private IMediaServerService mediaServerService;
 
-    @Autowired
-    private ZLMServerFactory zlmServerFactory;
 
 
     /**

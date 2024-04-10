@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
@@ -24,7 +25,6 @@ import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.ZLMMediaListManager;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
@@ -61,7 +61,6 @@ import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
@@ -112,9 +111,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
     @Autowired
     private AudioBroadcastManager audioBroadcastManager;
-
-    @Autowired
-    private ZLMServerFactory zlmServerFactory;
 
     @Autowired
     private IMediaServerService mediaServerService;
@@ -382,8 +378,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     } else {
                         streamTypeStr = "UDP";
                     }
-                    logger.info("[上级Invite] {}, 平台：{}， 通道：{}, 收流地址：{}:{}，收流方式：{}, ssrc：{}", sessionName, username, channelId, addressStr, port, streamTypeStr, ssrc);
-                    SendRtpItem sendRtpItem = zlmServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
+                    logger.info("[上级Invite] {}, 平台：{}， 通道：{}, 收流地址：{}:{}，收流方式：{}, ssrc：{}",
+                            sessionName, username, channelId, addressStr, port, streamTypeStr, ssrc);
+                    SendRtpItem sendRtpItem = mediaServerService.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
                             device.getDeviceId(), channelId, mediaTransmissionTCP, platform.isRtcp());
 
                     if (tcpActive != null) {
@@ -462,30 +459,10 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             responseSdpAck(request, content.toString(), platform);
                             // tcp主动模式，回复sdp后开启监听
                             if (sendRtpItem.isTcpActive()) {
-                                MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-                                Map<String, Object> param = new HashMap<>(12);
-                                param.put("vhost","__defaultVhost__");
-                                param.put("app",sendRtpItem.getApp());
-                                param.put("stream",sendRtpItem.getStream());
-                                param.put("ssrc", sendRtpItem.getSsrc());
-                                if (!sendRtpItem.isTcpActive()) {
-                                    param.put("dst_url",sendRtpItem.getIp());
-                                    param.put("dst_port", sendRtpItem.getPort());
-                                }
-                                String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
-                                param.put("is_udp", is_Udp);
-                                param.put("src_port", localPort);
-                                param.put("pt", sendRtpItem.getPt());
-                                param.put("use_ps", sendRtpItem.isUsePs() ? "1" : "0");
-                                param.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
-                                if (!sendRtpItem.isTcp()) {
-                                    // 开启rtcp保活
-                                    param.put("udp_rtcp_timeout", sendRtpItem.isRtcp()? "1":"0");
-                                }
-                                JSONObject startSendRtpStreamResult = zlmServerFactory.startSendRtpPassive(mediaInfo, param);
-                                if (startSendRtpStreamResult != null) {
-                                    startSendRtpStreamHand(evt, sendRtpItem, null, startSendRtpStreamResult, param, callIdHeader);
-                                }
+                                MediaServer mediaServer = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+                                try {
+                                    mediaServerService.startSendRtpPassive(mediaServer, platform, sendRtpItem, 5);
+                                }catch (ControllerException e) {}
                             }
                         } catch (SipException | InvalidArgumentException | ParseException e) {
                             logger.error("[命令发送失败] 国标级联 回复SdpAck", e);
@@ -638,13 +615,14 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
      * 安排推流
      */
     private void pushProxyStream(RequestEvent evt, SIPRequest request, GbStream gbStream, ParentPlatform platform,
-                            CallIdHeader callIdHeader, MediaServer mediaServerItem,
+                            CallIdHeader callIdHeader, MediaServer mediaServer,
                             int port, Boolean tcpActive, boolean mediaTransmissionTCP,
                             String channelId, String addressStr, String ssrc, String requesterId) {
-            Boolean streamReady = mediaServerService.isStreamReady(mediaServerItem, gbStream.getApp(), gbStream.getStream());
+            Boolean streamReady = mediaServerService.isStreamReady(mediaServer, gbStream.getApp(), gbStream.getStream());
             if (streamReady != null && streamReady) {
+
                 // 自平台内容
-                SendRtpItem sendRtpItem = zlmServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
+                SendRtpItem sendRtpItem = mediaServerService.createSendRtpItem(mediaServer, addressStr, port, ssrc, requesterId,
                         gbStream.getApp(), gbStream.getStream(), channelId, mediaTransmissionTCP, platform.isRtcp());
 
             if (sendRtpItem == null) {
@@ -665,7 +643,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             sendRtpItem.setCallId(callIdHeader.getCallId());
             sendRtpItem.setFromTag(request.getFromTag());
 
-            SIPResponse response = sendStreamAck(mediaServerItem, request, sendRtpItem, platform, evt);
+            SIPResponse response = sendStreamAck(mediaServer, request, sendRtpItem, platform, evt);
             if (response != null) {
                 sendRtpItem.setToTag(response.getToTag());
             }
@@ -684,7 +662,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             Boolean streamReady = mediaServerService.isStreamReady(mediaServerItem, gbStream.getApp(), gbStream.getStream());
             if (streamReady != null && streamReady) {
                 // 自平台内容
-                SendRtpItem sendRtpItem = zlmServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
+                SendRtpItem sendRtpItem = mediaServerService.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
                         gbStream.getApp(), gbStream.getStream(), channelId, mediaTransmissionTCP, platform.isRtcp());
 
                 if (sendRtpItem == null) {
@@ -794,7 +772,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 dynamicTask.stop(callIdHeader.getCallId());
                 redisPushStreamResponseListener.removeEvent(gbStream.getApp(), gbStream.getStream());
                 if (serverId.equals(userSetting.getServerId())) {
-                    SendRtpItem sendRtpItem = zlmServerFactory.createSendRtpItem(mediaServerItem, addressStr, finalPort, ssrc, requesterId,
+                    SendRtpItem sendRtpItem = mediaServerService.createSendRtpItem(mediaServerItem, addressStr, finalPort, ssrc, requesterId,
                             app, stream, channelId, mediaTransmissionTCP, platform.isRtcp());
 
                     if (sendRtpItem == null) {
@@ -1074,7 +1052,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         mediaTransmissionTCP ? (tcpActive ? "TCP主动" : "TCP被动") : "UDP", sdp.getSessionName().getValue());
                 CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
 
-                SendRtpItem sendRtpItem = zlmServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, gb28181Sdp.getSsrc(), requesterId,
+                SendRtpItem sendRtpItem = mediaServerService.createSendRtpItem(mediaServerItem, addressStr, port, gb28181Sdp.getSsrc(), requesterId,
                         device.getDeviceId(), broadcastCatch.getChannelId(),
                         mediaTransmissionTCP, false);
 

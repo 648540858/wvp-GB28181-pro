@@ -15,7 +15,14 @@
               header-row-class-name="table-header">
       <el-table-column prop="user.username" label="用户名" min-width="120"/>
       <el-table-column prop="app" label="应用名" min-width="160"/>
-      <el-table-column prop="apiKey" label="ApiKey" min-width="480"/>
+      <el-table-column label="ApiKey" :show-overflow-tooltip="true" min-width="300">
+        <template #default="scope">
+<!--          <el-button style="float: right;" type="primary" size="mini" icon="el-icon-document-copy"  title="点击拷贝" v-clipboard="scope.row.apiKey" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></el-button>-->
+          <i class="cpoy-btn el-icon-document-copy"  title="点击拷贝" v-clipboard="scope.row.apiKey" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></i>
+          <span>{{scope.row.apiKey}}</span>
+
+        </template>
+      </el-table-column>
       <el-table-column prop="enable" label="启用" width="120">
         <template #default="scope">
           <el-tag v-if="scope.row.enable">
@@ -28,7 +35,7 @@
       </el-table-column>
       <el-table-column prop="expiredAt" label="过期时间" width="160"/>
       <el-table-column prop="remark" label="备注信息" min-width="160"/>
-      <el-table-column label="操作" min-width="160" fixed="right">
+      <el-table-column label="操作" min-width="260" fixed="right">
         <template #default="scope">
           <el-button v-if="scope.row.enable"
                      size="medium" icon="el-icon-circle-close" type="text" @click="disableUserApiKey(scope.row)">

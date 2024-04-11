@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.media.abl;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
@@ -177,9 +178,13 @@ public class ABLHttpHookListener {
             return new HookResultForOnPublish(0, "success");
         }
 
-        ResultForOnPublish resultForOnPublish = mediaService.authenticatePublish(mediaServer, param.getApp(), param.getStream(), param.getParams());
-        if (resultForOnPublish == null) {
-            logger.info("[ABL HOOK]推流鉴权 拒绝 响应：{}->{}", param.getMediaServerId(), param);
+        try {
+            ResultForOnPublish resultForOnPublish = mediaService.authenticatePublish(mediaServer, param.getApp(), param.getStream(), param.getParams());
+            if (resultForOnPublish == null) {
+                logger.info("[ABL HOOK]推流鉴权 拒绝 响应：{}->{}", param.getMediaServerId(), param);
+                ablresTfulUtils.closeStreams(mediaServer, param.getApp(), param.getStream());
+            }
+        }catch (ControllerException e) {
             ablresTfulUtils.closeStreams(mediaServer, param.getApp(), param.getStream());
         }
         return HookResult.SUCCESS();

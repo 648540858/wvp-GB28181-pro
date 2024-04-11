@@ -129,7 +129,6 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
 
     @Override
     public List<StreamInfo> getMediaList(MediaServer mediaServer, String app, String stream, String callId) {
-        logger.warn("[abl-getMediaList] 未实现");
         JSONObject jsonObject = ablresTfulUtils.getMediaList(mediaServer, app, stream);
         if (jsonObject == null || jsonObject.getInteger("code") != 0) {
             return null;

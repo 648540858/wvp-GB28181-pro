@@ -14,7 +14,8 @@ public class Hook {
 
     private String mediaServerId;
 
-    private Long createTime;
+    private Long expireTime;
+
 
     public static Hook getInstance(HookType hookType, String app, String stream, String mediaServerId) {
         Hook hookSubscribe = new Hook();
@@ -22,7 +23,7 @@ public class Hook {
         hookSubscribe.setStream(stream);
         hookSubscribe.setHookType(hookType);
         hookSubscribe.setMediaServerId(mediaServerId);
-        hookSubscribe.setCreateTime(System.currentTimeMillis());
+        hookSubscribe.setExpireTime(System.currentTimeMillis() + 5 * 60 * 1000);
         return hookSubscribe;
     }
 
@@ -50,12 +51,13 @@ public class Hook {
         this.stream = stream;
     }
 
-    public Long getCreateTime() {
-        return createTime;
+
+    public Long getExpireTime() {
+        return expireTime;
     }
 
-    public void setCreateTime(Long createTime) {
-        this.createTime = createTime;
+    public void setExpireTime(Long expireTime) {
+        this.expireTime = expireTime;
     }
 
     public String getMediaServerId() {

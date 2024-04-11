@@ -43,18 +43,18 @@ public class J0200 extends Re {
         byte[] timeBytes = new byte[6];
         buf.readBytes(timeBytes);
         positionInfo.setTime(BCDUtil.transform(timeBytes));
-        boolean readable = buf.isReadable();
-        // 读取附加信息
-        if (buf.isReadable()) {
-            // 支持1078的视频报警上报
-            int alarm = buf.readInt();
-            int loss = buf.readInt();
-            int occlusion = buf.readInt();
-            short storageFault = buf.readShort();
-            short driving = buf.readShort();
-            JTVideoAlarm videoAlarm = JTVideoAlarm.getInstance(alarm, loss, occlusion, storageFault, driving);
-            positionInfo.setVideoAlarm(videoAlarm);
-        }
+//        boolean readable = buf.isReadable();
+//        // 读取附加信息
+//        if (buf.isReadable()) {
+//            // 支持1078的视频报警上报
+//            int alarm = buf.readInt();
+//            int loss = buf.readInt();
+//            int occlusion = buf.readInt();
+//            short storageFault = buf.readShort();
+//            short driving = buf.readShort();
+//            JTVideoAlarm videoAlarm = JTVideoAlarm.getInstance(alarm, loss, occlusion, storageFault, driving);
+//            positionInfo.setVideoAlarm(videoAlarm);
+//        }
         log.info("[JT-位置汇报]: {}", positionInfo.toString());
         return null;
     }

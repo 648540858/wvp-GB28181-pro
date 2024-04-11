@@ -37,7 +37,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
 
     private final String method = "MESSAGE";
 
-    private static Map<String, IMessageHandler> messageHandlerMap = new ConcurrentHashMap<>();
+    private static final Map<String, IMessageHandler> messageHandlerMap = new ConcurrentHashMap<>();
 
     @Autowired
     private SIPProcessorObserver sipProcessorObserver;
@@ -100,9 +100,9 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
                     deviceNotFoundEvent.setCallId(callIdHeader.getCallId());
                     SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(deviceNotFoundEvent);
                     sipSubscribe.getErrorSubscribe(callIdHeader.getCallId()).response(eventResult);
-                };
+                }
             }else {
-                Element rootElement = null;
+                Element rootElement;
                 try {
                     rootElement = getRootElement(evt);
                     if (rootElement == null) {
@@ -110,23 +110,23 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
                         responseAck(request, Response.BAD_REQUEST, "content is null");
                         return;
                     }
+                    String name = rootElement.getName();
+                    IMessageHandler messageHandler = messageHandlerMap.get(name);
+                    if (messageHandler != null) {
+                        if (device != null) {
+                            messageHandler.handForDevice(evt, device, rootElement);
+                        }else { // 由于上面已经判断都为null则直接返回，所以这里device和parentPlatform必有一个不为null
+                            messageHandler.handForPlatform(evt, parentPlatform, rootElement);
+                        }
+                    }else {
+                        // 不支持的message
+                        // 不存在则回复415
+                        responseAck(request, Response.UNSUPPORTED_MEDIA_TYPE, "Unsupported message type, must Control/Notify/Query/Response");
+                    }
                 } catch (DocumentException e) {
                     logger.warn("解析XML消息内容异常", e);
                     // 不存在则回复404
                     responseAck(request, Response.BAD_REQUEST, e.getMessage());
-                }
-                String name = rootElement.getName();
-                IMessageHandler messageHandler = messageHandlerMap.get(name);
-                if (messageHandler != null) {
-                    if (device != null) {
-                        messageHandler.handForDevice(evt, device, rootElement);
-                    }else { // 由于上面已经判断都为null则直接返回，所以这里device和parentPlatform必有一个不为null
-                        messageHandler.handForPlatform(evt, parentPlatform, rootElement);
-                    }
-                }else {
-                    // 不支持的message
-                    // 不存在则回复415
-                    responseAck(request, Response.UNSUPPORTED_MEDIA_TYPE, "Unsupported message type, must Control/Notify/Query/Response");
                 }
             }
         } catch (SipException e) {

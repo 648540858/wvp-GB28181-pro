@@ -44,6 +44,7 @@ export default {
                 audioEnable: true,
                 videoEnable: true,
                 recvOnly: true,
+                usedatachannel: false,
             })
             webrtcPlayer.on(ZLMRTCClient.Events.WEBRTC_ICE_CANDIDATE_ERROR,(e)=>{// ICE 协商出错
                 console.error('ICE 协商出错')

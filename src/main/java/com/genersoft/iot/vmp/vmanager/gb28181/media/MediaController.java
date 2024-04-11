@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.conf.security.SecurityUtils;
 import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
@@ -36,9 +37,10 @@ public class MediaController {
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
-    private IMediaService mediaService;
-    @Autowired
     private IStreamProxyService streamProxyService;
+
+    @Autowired
+    private IMediaServerService mediaServerService;
 
 
     /**
@@ -85,9 +87,9 @@ public class MediaController {
             String host = request.getHeader("Host");
             String localAddr = host.split(":")[0];
             logger.info("使用{}作为返回流的ip", localAddr);
-            streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, localAddr, authority);
+            streamInfo = mediaServerService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, localAddr, authority);
         }else {
-            streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, authority);
+            streamInfo = mediaServerService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, authority);
         }
 
         if (streamInfo != null){
@@ -105,9 +107,9 @@ public class MediaController {
                 String host = request.getHeader("Host");
                 String localAddr = host.split(":")[0];
                 logger.info("使用{}作为返回流的ip", localAddr);
-                streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, localAddr, authority);
+                streamInfo = mediaServerService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, localAddr, authority);
             }else {
-                streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, authority);
+                streamInfo = mediaServerService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, authority);
             }
             if (streamInfo != null){
                 return new StreamContent(streamInfo);

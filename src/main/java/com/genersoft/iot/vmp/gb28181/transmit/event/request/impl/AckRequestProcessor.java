@@ -1,19 +1,17 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IDeviceService;
-import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.RequestPushStreamMsg;
 import com.genersoft.iot.vmp.service.redisMsg.RedisGbPlayMsgListener;
@@ -31,8 +29,6 @@ import javax.sip.header.CallIdHeader;
 import javax.sip.header.FromHeader;
 import javax.sip.header.HeaderAddress;
 import javax.sip.header.ToHeader;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * SIP命令类型： ACK请求
@@ -64,12 +60,6 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 
 	@Autowired
 	private IDeviceService deviceService;
-
-	@Autowired
-	private ZLMServerFactory zlmServerFactory;
-
-	@Autowired
-	private ZlmHttpHookSubscribe hookSubscribe;
 
 	@Autowired
 	private IMediaServerService mediaServerService;
@@ -104,7 +94,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			logger.info("收到ACK，rtp/{} TCP主动方式后续处理", sendRtpItem.getStream());
 			return;
 		}
-		MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+		MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 		logger.info("收到ACK，rtp/{}开始向上级推流, 目标={}:{}，SSRC={}, 协议:{}",
 				sendRtpItem.getStream(),
 				sendRtpItem.getIp(),
@@ -115,19 +105,21 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 		ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(fromUserId);
 
 		if (parentPlatform != null) {
-			Map<String, Object> param = getSendRtpParam(sendRtpItem);
 			if (!userSetting.getServerId().equals(sendRtpItem.getServerId())) {
-				RequestPushStreamMsg requestPushStreamMsg = RequestPushStreamMsg.getInstance(
-						sendRtpItem.getMediaServerId(), sendRtpItem.getApp(), sendRtpItem.getStream(),
-						sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc(), sendRtpItem.isTcp(),
-						sendRtpItem.getLocalPort(), sendRtpItem.getPt(), sendRtpItem.isUsePs(), sendRtpItem.isOnlyAudio());
-				redisGbPlayMsgListener.sendMsgForStartSendRtpStream(sendRtpItem.getServerId(), requestPushStreamMsg, json -> {
-					playService.startSendRtpStreamHand(sendRtpItem, parentPlatform, json, param, callIdHeader);
+				RequestPushStreamMsg requestPushStreamMsg = RequestPushStreamMsg.getInstance(sendRtpItem);
+				redisGbPlayMsgListener.sendMsgForStartSendRtpStream(sendRtpItem.getServerId(), requestPushStreamMsg, () -> {
+					playService.startSendRtpStreamFailHand(sendRtpItem, parentPlatform, callIdHeader);
 				});
 			} else {
-				JSONObject startSendRtpStreamResult = sendRtp(sendRtpItem, mediaInfo, param);
-				if (startSendRtpStreamResult != null) {
-					playService.startSendRtpStreamHand(sendRtpItem, parentPlatform, startSendRtpStreamResult, param, callIdHeader);
+				try {
+					if (sendRtpItem.isTcpActive()) {
+						mediaServerService.startSendRtpPassive(mediaInfo, parentPlatform, sendRtpItem, null);
+					} else {
+						mediaServerService.startSendRtp(mediaInfo, parentPlatform, sendRtpItem);
+					}
+				}catch (ControllerException e) {
+					logger.error("RTP推流失败: {}", e.getMessage());
+					playService.startSendRtpStreamFailHand(sendRtpItem, parentPlatform, callIdHeader);
 				}
 			}
 		}else {
@@ -144,56 +136,17 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 				logger.warn("[收到ACK]：来自{}，目标为({})的推流信息为找到流体服务[{}]信息",fromUserId, toUserId, sendRtpItem.getMediaServerId());
 				return;
 			}
-			Map<String, Object> param = getSendRtpParam(sendRtpItem);
-			JSONObject startSendRtpStreamResult = sendRtp(sendRtpItem, mediaInfo, param);
-			if (startSendRtpStreamResult != null) {
-				playService.startSendRtpStreamHand(sendRtpItem, device, startSendRtpStreamResult, param, callIdHeader);
+			try {
+				if (sendRtpItem.isTcpActive()) {
+					mediaServerService.startSendRtpPassive(mediaInfo, null, sendRtpItem, null);
+				} else {
+					mediaServerService.startSendRtp(mediaInfo, null, sendRtpItem);
+				}
+			}catch (ControllerException e) {
+				logger.error("RTP推流失败: {}", e.getMessage());
+				playService.startSendRtpStreamFailHand(sendRtpItem, null, callIdHeader);
 			}
 		}
-	}
-
-	private Map<String, Object> getSendRtpParam(SendRtpItem sendRtpItem) {
-		String isUdp = sendRtpItem.isTcp() ? "0" : "1";
-		Map<String, Object> param = new HashMap<>(12);
-		param.put("vhost","__defaultVhost__");
-		param.put("app",sendRtpItem.getApp());
-		param.put("stream",sendRtpItem.getStream());
-		param.put("ssrc", sendRtpItem.getSsrc());
-		param.put("dst_url",sendRtpItem.getIp());
-		param.put("dst_port", sendRtpItem.getPort());
-		param.put("src_port", sendRtpItem.getLocalPort());
-		param.put("pt", sendRtpItem.getPt());
-		param.put("use_ps", sendRtpItem.isUsePs() ? "1" : "0");
-		param.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
-		param.put("is_udp", isUdp);
-		if (!sendRtpItem.isTcp()) {
-			// udp模式下开启rtcp保活
-			param.put("udp_rtcp_timeout", sendRtpItem.isRtcp()? "1":"0");
-		}
-		return param;
-	}
-
-	private JSONObject sendRtp(SendRtpItem sendRtpItem, MediaServerItem mediaInfo, Map<String, Object> param){
-		JSONObject startSendRtpStreamResult = null;
-		if (sendRtpItem.getLocalPort() != 0) {
-			if (sendRtpItem.isTcpActive()) {
-				startSendRtpStreamResult = zlmServerFactory.startSendRtpPassive(mediaInfo, param);
-			}else {
-				param.put("dst_url", sendRtpItem.getIp());
-				param.put("dst_port", sendRtpItem.getPort());
-				startSendRtpStreamResult = zlmServerFactory.startSendRtpStream(mediaInfo, param);
-			}
-		}else {
-			if (sendRtpItem.isTcpActive()) {
-				startSendRtpStreamResult = zlmServerFactory.startSendRtpPassive(mediaInfo, param);
-			}else {
-				param.put("dst_url", sendRtpItem.getIp());
-				param.put("dst_port", sendRtpItem.getPort());
-				startSendRtpStreamResult = zlmServerFactory.startSendRtpStream(mediaInfo, param);
-			}
-		}
-		return startSendRtpStreamResult;
-
 	}
 
 }

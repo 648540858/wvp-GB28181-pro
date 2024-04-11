@@ -7,6 +7,8 @@ package com.genersoft.iot.vmp.media.zlm.dto.hook;
 public class HookParam {
     private String mediaServerId;
 
+
+
     public String getMediaServerId() {
         return mediaServerId;
     }

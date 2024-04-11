@@ -10,7 +10,8 @@
     <el-row :gutter="12">
       <el-col :span="num" v-for="item in mediaServerList" :key="item.id">
         <el-card shadow="hover" :body-style="{ padding: '0px'}" class="server-card">
-          <div class="card-img-zlm"></div>
+          <div v-if="item.type === 'zlm'" class="card-img-zlm"></div>
+          <div v-if="item.type === 'abl'" class="card-img-abl"></div>
           <div style="padding: 14px;text-align: left">
             <span style="font-size: 16px">{{item.id}}</span>
             <el-button v-if="!item.defaultServer" icon="el-icon-edit" style="padding: 0;float: right;" type="text" @click="edit(item)">编辑</el-button>
@@ -150,6 +151,13 @@
   .card-img-zlm{
     width: 200px; height: 200px;
     background: url('~@static/images/zlm-logo.png') no-repeat center;
+    background-position: center;
+    background-size: contain;
+    margin: 0 auto;
+  }
+  .card-img-abl{
+    width: 200px; height: 200px;
+    background: url('~@static/images/abl-logo.jpg') no-repeat center;
     background-position: center;
     background-size: contain;
     margin: 0 auto;

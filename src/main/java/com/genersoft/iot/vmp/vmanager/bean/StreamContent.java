@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.bean;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -86,7 +87,7 @@ public class StreamContent {
     private String mediaServerId;
 
     @Schema(description = "流编码信息")
-    private Object tracks;
+    private MediaInfo mediaInfo;
 
     @Schema(description = "开始时间")
     private String startTime;
@@ -170,7 +171,7 @@ public class StreamContent {
         }
 
         this.mediaServerId = streamInfo.getMediaServerId();
-        this.tracks = streamInfo.getTracks();
+        this.mediaInfo = streamInfo.getMediaInfo();
         this.startTime = streamInfo.getStartTime();
         this.endTime = streamInfo.getEndTime();
         this.progress = streamInfo.getProgress();
@@ -388,12 +389,12 @@ public class StreamContent {
         this.mediaServerId = mediaServerId;
     }
 
-    public Object getTracks() {
-        return tracks;
+    public MediaInfo getMediaInfo() {
+        return mediaInfo;
     }
 
-    public void setTracks(Object tracks) {
-        this.tracks = tracks;
+    public void setMediaInfo(MediaInfo mediaInfo) {
+        this.mediaInfo = mediaInfo;
     }
 
     public String getStartTime() {

@@ -20,6 +20,12 @@
           <el-form-item label="SECRET" prop="secret">
             <el-input v-model="mediaServerForm.secret" placeholder="媒体服务SECRET"  clearable :disabled="mediaServerForm.defaultServer"></el-input>
           </el-form-item>
+          <el-form-item label="类型" prop="type">
+            <el-select v-model="mediaServerForm.type" style="float: left; width: 100%" >
+              <el-option key="zlm" label="ZLMediaKit" value="zlm"></el-option>
+              <el-option key="abl" label="ABLMediaServer" value="abl"></el-option>
+            </el-select>
+          </el-form-item>
           <el-form-item>
             <div style="float: right;">
               <el-button type="primary" v-if="currentStep === 1 && serverCheck === 1" @click="next" >下一步</el-button>
@@ -170,7 +176,7 @@ export default {
         hookIp: "",
         sdpIp: "",
         streamIp: "",
-        secret: "035c73f7-bb6b-4889-a715-d9eb2d1925cc",
+        secret: "",
         httpPort: "",
         httpSSlPort: "",
         recordAssistPort: "",
@@ -182,6 +188,7 @@ export default {
         rtpProxyPort: "",
         rtspPort: "",
         rtspSSLPort: "",
+        type: "zlm",
       },
       rtpPortRange1:30000,
       rtpPortRange2:30500,
@@ -330,7 +337,7 @@ export default {
         hookIp: "",
         sdpIp: "",
         streamIp: "",
-        secret: "035c73f7-bb6b-4889-a715-d9eb2d1925cc",
+        secret: "",
         httpPort: "",
         httpSSlPort: "",
         recordAssistPort: "",

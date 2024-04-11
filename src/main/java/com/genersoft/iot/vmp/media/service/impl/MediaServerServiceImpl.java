@@ -100,9 +100,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
             logger.info("流变化：注册 app->{}, stream->{}", event.getApp(), event.getStream());
             addCount(event.getMediaServer().getId());
             String type = OriginType.values()[event.getMediaInfo().getOriginType()].getType();
-            if (event.getApp().equals("onvif")) {
-                type = "onvif";
-            }
             redisCatchStorage.addStream(event.getMediaServer(), type, event.getApp(), event.getStream(), event.getMediaInfo());
         }
     }

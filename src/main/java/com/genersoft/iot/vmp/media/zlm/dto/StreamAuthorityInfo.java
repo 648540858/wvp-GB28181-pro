@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.media.zlm.dto;
 
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnPublishHookParam;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
+import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 
 /**
  * 流的鉴权信息
@@ -97,21 +96,23 @@ public class StreamAuthorityInfo {
         this.sign = sign;
     }
 
-    public static StreamAuthorityInfo getInstanceByHook(OnPublishHookParam hookParam) {
+    public static StreamAuthorityInfo getInstanceByHook(String app, String stream, String id) {
         StreamAuthorityInfo streamAuthorityInfo = new StreamAuthorityInfo();
-        streamAuthorityInfo.setApp(hookParam.getApp());
-        streamAuthorityInfo.setStream(hookParam.getStream());
-        streamAuthorityInfo.setId(hookParam.getId());
+        streamAuthorityInfo.setApp(app);
+        streamAuthorityInfo.setStream(stream);
+        streamAuthorityInfo.setId(id);
         return streamAuthorityInfo;
     }
 
-    public static StreamAuthorityInfo getInstanceByHook(OnStreamChangedHookParam onStreamChangedHookParam) {
+    public static StreamAuthorityInfo getInstanceByHook(MediaArrivalEvent event) {
         StreamAuthorityInfo streamAuthorityInfo = new StreamAuthorityInfo();
-        streamAuthorityInfo.setApp(onStreamChangedHookParam.getApp());
-        streamAuthorityInfo.setStream(onStreamChangedHookParam.getStream());
-        streamAuthorityInfo.setId(onStreamChangedHookParam.getMediaServerId());
-        streamAuthorityInfo.setOriginType(onStreamChangedHookParam.getOriginType());
-        streamAuthorityInfo.setOriginTypeStr(onStreamChangedHookParam.getOriginTypeStr());
+        streamAuthorityInfo.setApp(event.getApp());
+        streamAuthorityInfo.setStream(event.getStream());
+        streamAuthorityInfo.setId(event.getMediaServer().getId());
+        if (event.getMediaInfo() != null) {
+            streamAuthorityInfo.setOriginType(event.getMediaInfo().getOriginType());
+        }
+
         return streamAuthorityInfo;
     }
 }

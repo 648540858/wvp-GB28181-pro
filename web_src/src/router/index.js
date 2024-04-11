@@ -21,7 +21,7 @@ import media from '../components/setting/Media.vue'
 import live from '../components/live.vue'
 import deviceTree from '../components/common/DeviceTree.vue'
 import userManager from '../components/UserManager.vue'
-
+import userApiKeyManager from '../components/UserApiKeyManager.vue'
 import wasmPlayer from '../components/common/jessibuca.vue'
 import rtcPlayer from '../components/dialog/rtcPlayer.vue'
 
@@ -130,7 +130,13 @@ export default new VueRouter({
           path: '/userManager',
           name: 'userManager',
           component: userManager,
+        },
+        {
+          path: '/userApiKeyManager/:userId',
+          name: 'userApiKeyManager',
+          component: userApiKeyManager,
         }
+        ,
         ]
     },
     {

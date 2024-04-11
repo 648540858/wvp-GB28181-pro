@@ -6,15 +6,14 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.media.event.hook.Hook;
+import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForRtpServerTimeout;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRtpServerTimeoutHookParam;
-import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.OtherRtpSendInfo;
@@ -46,15 +45,12 @@ import java.util.concurrent.TimeUnit;
 public class RtpController {
 
     @Autowired
-    private ZLMServerFactory zlmServerFactory;
-
-    @Autowired
     private SendRtpPortManager sendRtpPortManager;
 
     private final static Logger logger = LoggerFactory.getLogger(RtpController.class);
 
     @Autowired
-    private ZlmHttpHookSubscribe hookSubscribe;
+    private HookSubscribe hookSubscribe;
 
     @Autowired
     private IMediaServerService mediaServerService;
@@ -83,8 +79,8 @@ public class RtpController {
         logger.info("[第三方服务对接->开启收流和获取发流信息] isSend->{}, ssrc->{}, callId->{}, stream->{}, tcpMode->{}, callBack->{}",
                 isSend, ssrc, callId, stream, tcpMode==0?"UDP":"TCP被动", callBack);
 
-        MediaServerItem mediaServerItem = mediaServerService.getDefaultMediaServer();
-        if (mediaServerItem == null) {
+        MediaServer mediaServer = mediaServerService.getDefaultMediaServer();
+        if (mediaServer == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(),"没有可用的MediaServer");
         }
         if (stream == null) {
@@ -102,19 +98,18 @@ public class RtpController {
             }
         }
         String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "_" + callId + "_"  + stream;
-        int localPortForVideo = zlmServerFactory.createRTPServer(mediaServerItem, stream, ssrcInt, null, false, false, tcpMode);
-        int localPortForAudio = zlmServerFactory.createRTPServer(mediaServerItem, stream + "_a" , ssrcInt, null, false, false, tcpMode);
-        if (localPortForVideo == 0 || localPortForAudio == 0) {
+        SSRCInfo ssrcInfoForVideo =  mediaServerService.openRTPServer(mediaServer, stream, ssrcInt + "",false,false, null, false, false, false, tcpMode);
+        SSRCInfo ssrcInfoForAudio =  mediaServerService.openRTPServer(mediaServer, stream + "_a", ssrcInt + "", false, false, null, false,false,false, tcpMode);
+        if (ssrcInfoForVideo.getPort() == 0 || ssrcInfoForAudio.getPort() == 0) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "获取端口失败");
         }
         // 注册回调如果rtp收流超时则通过回调发送通知
         if (callBack != null) {
-            HookSubscribeForRtpServerTimeout hookSubscribeForRtpServerTimeout = HookSubscribeFactory.on_rtp_server_timeout(stream, String.valueOf(ssrcInt), mediaServerItem.getId());
+            Hook hook = Hook.getInstance(HookType.on_rtp_server_timeout, "rtp", stream, mediaServer.getId());
             // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
-            hookSubscribe.addSubscribe(hookSubscribeForRtpServerTimeout,
-                    (mediaServerItemInUse, hookParam)->{
-                        OnRtpServerTimeoutHookParam serverTimeoutHookParam = (OnRtpServerTimeoutHookParam) hookParam;
-                        if (stream.equals(serverTimeoutHookParam.getStream_id())) {
+            hookSubscribe.addSubscribe(hook,
+                    (hookData)->{
+                        if (stream.equals(hookData.getStream())) {
                             logger.info("[开启收流和获取发流信息] 等待收流超时 callId->{}, 发送回调", callId);
                             OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
                             OkHttpClient client = httpClientBuilder.build();
@@ -125,15 +120,15 @@ public class RtpController {
                             } catch (IOException e) {
                                 logger.error("[第三方服务对接->开启收流和获取发流信息] 等待收流超时 callId->{}, 发送回调失败", callId, e);
                             }
-                            hookSubscribe.removeSubscribe(hookSubscribeForRtpServerTimeout);
+                            hookSubscribe.removeSubscribe(hook);
                         }
                     });
         }
         String key = VideoManagerConstants.WVP_OTHER_SEND_RTP_INFO + userSetting.getServerId() + "_"  + callId;
         OtherRtpSendInfo otherRtpSendInfo = new OtherRtpSendInfo();
-        otherRtpSendInfo.setReceiveIp(mediaServerItem.getSdpIp());
-        otherRtpSendInfo.setReceivePortForVideo(localPortForVideo);
-        otherRtpSendInfo.setReceivePortForAudio(localPortForAudio);
+        otherRtpSendInfo.setReceiveIp(mediaServer.getSdpIp());
+        otherRtpSendInfo.setReceivePortForVideo(ssrcInfoForVideo.getPort());
+        otherRtpSendInfo.setReceivePortForAudio(ssrcInfoForAudio.getPort());
         otherRtpSendInfo.setCallId(callId);
         otherRtpSendInfo.setStream(stream);
 
@@ -141,10 +136,10 @@ public class RtpController {
         redisTemplate.opsForValue().set(receiveKey, otherRtpSendInfo);
         if (isSend != null && isSend) {
             // 预创建发流信息
-            int portForVideo = sendRtpPortManager.getNextPort(mediaServerItem);
-            int portForAudio = sendRtpPortManager.getNextPort(mediaServerItem);
+            int portForVideo = sendRtpPortManager.getNextPort(mediaServer);
+            int portForAudio = sendRtpPortManager.getNextPort(mediaServer);
 
-            otherRtpSendInfo.setSendLocalIp(mediaServerItem.getSdpIp());
+            otherRtpSendInfo.setSendLocalIp(mediaServer.getSdpIp());
             otherRtpSendInfo.setSendLocalPortForVideo(portForVideo);
             otherRtpSendInfo.setSendLocalPortForAudio(portForAudio);
             // 将信息写入redis中，以备后用
@@ -162,9 +157,9 @@ public class RtpController {
     @Parameter(name = "stream", description = "流的ID", required = true)
     public void closeRtpServer(String stream) {
         logger.info("[第三方服务对接->关闭收流] stream->{}", stream);
-        MediaServerItem mediaServerItem = mediaServerService.getDefaultMediaServer();
-        zlmServerFactory.closeRtpServer(mediaServerItem,stream);
-        zlmServerFactory.closeRtpServer(mediaServerItem,stream + "_a");
+        MediaServer mediaServerItem = mediaServerService.getDefaultMediaServer();
+        mediaServerService.closeRTPServer(mediaServerItem, stream);
+        mediaServerService.closeRTPServer(mediaServerItem, stream+ "_a");
         String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "_*_"  + stream;
         List<Object> scan = RedisUtil.scan(redisTemplate, receiveKey);
         if (scan.size() > 0) {
@@ -225,7 +220,7 @@ public class RtpController {
         if (!((dstPortForAudio > 0 && !ObjectUtils.isEmpty(dstPortForAudio) || (dstPortForVideo > 0 && !ObjectUtils.isEmpty(dstIpForVideo))))) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "至少应该存在一组音频或视频发送参数");
         }
-        MediaServerItem mediaServerItem = mediaServerService.getDefaultMediaServer();
+        MediaServer mediaServer = mediaServerService.getDefaultMediaServer();
         String key = VideoManagerConstants.WVP_OTHER_SEND_RTP_INFO + userSetting.getServerId() + "_"  + callId;
         OtherRtpSendInfo sendInfo = (OtherRtpSendInfo)redisTemplate.opsForValue().get(key);
         if (sendInfo == null) {
@@ -235,88 +230,47 @@ public class RtpController {
         sendInfo.setPushStream(stream);
         sendInfo.setPushSSRC(ssrc);
 
-        Map<String, Object> paramForAudio;
-        Map<String, Object> paramForVideo;
+
+        SendRtpItem sendRtpItemForVideo;
+        SendRtpItem sendRtpItemForAudio;
         if (!ObjectUtils.isEmpty(dstIpForAudio) && dstPortForAudio > 0) {
-            paramForAudio = new HashMap<>();
-            paramForAudio.put("vhost","__defaultVhost__");
-            paramForAudio.put("app",app);
-            paramForAudio.put("stream",stream);
-            paramForAudio.put("ssrc", ssrc);
-
-            paramForAudio.put("dst_url", dstIpForAudio);
-            paramForAudio.put("dst_port", dstPortForAudio);
-            String is_Udp = isUdp ? "1" : "0";
-            paramForAudio.put("is_udp", is_Udp);
-            paramForAudio.put("src_port", sendInfo.getSendLocalPortForAudio());
-            paramForAudio.put("only_audio", "1");
-            if (ptForAudio != null) {
-                paramForAudio.put("pt", ptForAudio);
-            }
-
+            sendRtpItemForAudio = SendRtpItem.getInstance(app, stream, ssrc, dstIpForAudio, dstPortForAudio, !isUdp, sendInfo.getSendLocalPortForAudio(), ptForAudio);
         } else {
-            paramForAudio = null;
+            sendRtpItemForAudio = null;
         }
         if (!ObjectUtils.isEmpty(dstIpForVideo) && dstPortForVideo > 0) {
-            paramForVideo = new HashMap<>();
-            paramForVideo.put("vhost","__defaultVhost__");
-            paramForVideo.put("app",app);
-            paramForVideo.put("stream",stream);
-            paramForVideo.put("ssrc", ssrc);
-
-            paramForVideo.put("dst_url", dstIpForVideo);
-            paramForVideo.put("dst_port", dstPortForVideo);
-            String is_Udp = isUdp ? "1" : "0";
-            paramForVideo.put("is_udp", is_Udp);
-            paramForVideo.put("src_port", sendInfo.getSendLocalPortForVideo());
-            paramForVideo.put("only_audio", "0");
-            if (ptForVideo != null) {
-                paramForVideo.put("pt", ptForVideo);
-            }
-
+            sendRtpItemForVideo = SendRtpItem.getInstance(app, stream, ssrc, dstIpForAudio, dstPortForAudio, !isUdp, sendInfo.getSendLocalPortForVideo(), ptForVideo);
         } else {
-            paramForVideo = null;
+            sendRtpItemForVideo = null;
         }
 
-        Boolean streamReady = zlmServerFactory.isStreamReady(mediaServerItem, app, stream);
+        Boolean streamReady = mediaServerService.isStreamReady(mediaServer, app, stream);
         if (streamReady) {
-            if (paramForVideo != null) {
-                JSONObject jsonObject = zlmServerFactory.startSendRtpStream(mediaServerItem, paramForVideo);
-                if (jsonObject.getInteger("code") == 0) {
-                    logger.info("[第三方服务对接->发送流] 视频流发流成功，callId->{}，param->{}", callId, paramForVideo);
-                    redisTemplate.opsForValue().set(key, sendInfo);
-                }else {
-                    redisTemplate.delete(key);
-                    logger.info("[第三方服务对接->发送流] 视频流发流失败，callId->{}, {}", callId, jsonObject.getString("msg"));
-                    throw new ControllerException(ErrorCode.ERROR100.getCode(), "[视频流发流失败] " + jsonObject.getString("msg"));
-                }
+            if (sendRtpItemForVideo != null) {
+                mediaServerService.startSendRtp(mediaServer, null,  sendRtpItemForVideo);
+                logger.info("[第三方服务对接->发送流] 视频流发流成功，callId->{}，param->{}", callId, sendRtpItemForVideo);
+                redisTemplate.opsForValue().set(key, sendInfo);
             }
-            if(paramForAudio != null) {
-                JSONObject jsonObject = zlmServerFactory.startSendRtpStream(mediaServerItem, paramForAudio);
-                if (jsonObject.getInteger("code") == 0) {
-                    logger.info("[第三方服务对接->发送流] 音频流发流成功，callId->{}，param->{}", callId, paramForAudio);
-                    redisTemplate.opsForValue().set(key, sendInfo);
-                }else {
-                    redisTemplate.delete(key);
-                    logger.info("[第三方服务对接->发送流] 音频流发流失败，callId->{}, {}", callId, jsonObject.getString("msg"));
-                    throw new ControllerException(ErrorCode.ERROR100.getCode(), "[音频流发流失败] " + jsonObject.getString("msg"));
-                }
+            if(sendRtpItemForAudio != null) {
+                mediaServerService.startSendRtp(mediaServer, null,  sendRtpItemForAudio);
+                logger.info("[第三方服务对接->发送流] 音频流发流成功，callId->{}，param->{}", callId, sendRtpItemForAudio);
+                redisTemplate.opsForValue().set(key, sendInfo);
             }
         }else {
             logger.info("[第三方服务对接->发送流] 流不存在，等待流上线，callId->{}", callId);
             String uuid = UUID.randomUUID().toString();
-            HookSubscribeForStreamChange hookSubscribeForStreamChange = HookSubscribeFactory.on_stream_changed(app, stream, true, "rtsp", mediaServerItem.getId());
+            Hook hook = Hook.getInstance(HookType.on_media_arrival, app, stream, mediaServer.getId());
             dynamicTask.startDelay(uuid, ()->{
                 logger.info("[第三方服务对接->发送流] 等待流上线超时 callId->{}", callId);
                 redisTemplate.delete(key);
-                hookSubscribe.removeSubscribe(hookSubscribeForStreamChange);
+                hookSubscribe.removeSubscribe(hook);
             }, 10000);
 
             // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
+            hookSubscribe.removeSubscribe(hook);
             OtherRtpSendInfo finalSendInfo = sendInfo;
-            hookSubscribe.removeSubscribe(hookSubscribeForStreamChange);
-            hookSubscribe.addSubscribe(hookSubscribeForStreamChange,
-                    (mediaServerItemInUse, response)->{
+            hookSubscribe.addSubscribe(hook,
+                    (hookData)->{
                         dynamicTask.stop(uuid);
                         logger.info("[第三方服务对接->发送流] 流上线，开始发流 callId->{}", callId);
                         try {
@@ -324,29 +278,17 @@ public class RtpController {
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
                         }
-                        if (paramForVideo != null) {
-                            JSONObject jsonObject = zlmServerFactory.startSendRtpStream(mediaServerItem, paramForVideo);
-                            if (jsonObject.getInteger("code") == 0) {
-                                logger.info("[第三方服务对接->发送流] 视频流发流成功，callId->{}，param->{}", callId, paramForVideo);
-                                redisTemplate.opsForValue().set(key, finalSendInfo);
-                            }else {
-                                redisTemplate.delete(key);
-                                logger.info("[第三方服务对接->发送流] 视频流发流失败，callId->{}, {}", callId, jsonObject.getString("msg"));
-                                throw new ControllerException(ErrorCode.ERROR100.getCode(), "[视频流发流失败] " + jsonObject.getString("msg"));
-                            }
+                        if (sendRtpItemForVideo != null) {
+                            mediaServerService.startSendRtp(mediaServer, null,  sendRtpItemForVideo);
+                            logger.info("[第三方服务对接->发送流] 视频流发流成功，callId->{}，param->{}", callId, sendRtpItemForVideo);
+                            redisTemplate.opsForValue().set(key, finalSendInfo);
                         }
-                        if(paramForAudio != null) {
-                            JSONObject jsonObject = zlmServerFactory.startSendRtpStream(mediaServerItem, paramForAudio);
-                            if (jsonObject.getInteger("code") == 0) {
-                                logger.info("[第三方服务对接->发送流] 音频流发流成功，callId->{}，param->{}", callId, paramForAudio);
-                                redisTemplate.opsForValue().set(key, finalSendInfo);
-                            }else {
-                                redisTemplate.delete(key);
-                                logger.info("[第三方服务对接->发送流] 音频流发流失败，callId->{}, {}", callId, jsonObject.getString("msg"));
-                                throw new ControllerException(ErrorCode.ERROR100.getCode(), "[音频流发流失败] " + jsonObject.getString("msg"));
-                            }
+                        if(sendRtpItemForAudio != null) {
+                            mediaServerService.startSendRtp(mediaServer, null,  sendRtpItemForAudio);
+                            logger.info("[第三方服务对接->发送流] 音频流发流成功，callId->{}，param->{}", callId, sendRtpItemForAudio);
+                            redisTemplate.opsForValue().set(key, finalSendInfo);
                         }
-                        hookSubscribe.removeSubscribe(hookSubscribeForStreamChange);
+                        hookSubscribe.removeSubscribe(hook);
                     });
         }
     }
@@ -362,19 +304,9 @@ public class RtpController {
         if (sendInfo == null){
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未开启发流");
         }
-        Map<String, Object> param = new HashMap<>();
-        param.put("vhost","__defaultVhost__");
-        param.put("app",sendInfo.getPushApp());
-        param.put("stream",sendInfo.getPushStream());
-        param.put("ssrc",sendInfo.getPushSSRC());
-        MediaServerItem mediaServerItem = mediaServerService.getDefaultMediaServer();
-        Boolean result = zlmServerFactory.stopSendRtpStream(mediaServerItem, param);
-        if (!result) {
-            logger.info("[第三方服务对接->关闭发送流] 失败 callId->{}", callId);
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "停止发流失败");
-        }else {
-            logger.info("[第三方服务对接->关闭发送流] 成功 callId->{}", callId);
-        }
+        MediaServer mediaServerItem = mediaServerService.getDefaultMediaServer();
+        mediaServerService.stopSendRtp(mediaServerItem, sendInfo.getPushApp(), sendInfo.getPushStream(), sendInfo.getPushSSRC());
+        logger.info("[第三方服务对接->关闭发送流] 成功 callId->{}", callId);
         redisTemplate.delete(key);
     }
 

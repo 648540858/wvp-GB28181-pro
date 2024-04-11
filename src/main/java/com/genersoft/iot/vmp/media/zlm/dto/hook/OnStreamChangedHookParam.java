@@ -32,7 +32,7 @@ public class OnStreamChangedHookParam extends HookParam{
     /**
      * 观看总人数，包括hls/rtsp/rtmp/http-flv/ws-flv
      */
-    private String totalReaderCount;
+    private int totalReaderCount;
 
     /**
      * 协议 包括hls/rtsp/rtmp/http-flv/ws-flv
@@ -374,11 +374,11 @@ public class OnStreamChangedHookParam extends HookParam{
         this.stream = stream;
     }
 
-    public String getTotalReaderCount() {
+    public int getTotalReaderCount() {
         return totalReaderCount;
     }
 
-    public void setTotalReaderCount(String totalReaderCount) {
+    public void setTotalReaderCount(int totalReaderCount) {
         this.totalReaderCount = totalReaderCount;
     }
 

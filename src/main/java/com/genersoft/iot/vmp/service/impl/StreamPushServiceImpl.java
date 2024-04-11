@@ -1,21 +1,25 @@
 package com.genersoft.iot.vmp.service.impl;
 
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import com.alibaba.fastjson2.TypeReference;
 import com.baomidou.dynamic.datasource.annotation.DS;
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.bean.GbStream;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
-import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.dto.*;
+import com.genersoft.iot.vmp.media.bean.MediaInfo;
+import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
+import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OriginType;
 import com.genersoft.iot.vmp.service.IGbStreamService;
-import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -27,7 +31,9 @@ import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
@@ -67,9 +73,6 @@ public class StreamPushServiceImpl implements IStreamPushService {
     private EventPublisher eventPublisher;
 
     @Autowired
-    private ZLMRESTfulUtils zlmresTfulUtils;
-
-    @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
@@ -87,33 +90,125 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Autowired
     private MediaConfig mediaConfig;
 
-
-    @Override
-    public List<StreamPushItem> handleJSON(String jsonData, MediaServerItem mediaServerItem) {
-        if (jsonData == null) {
-            return null;
+    /**
+     * 流到来的处理
+     */
+    @Async("taskExecutor")
+    @EventListener
+    public void onApplicationEvent(MediaArrivalEvent event) {
+        MediaInfo mediaInfo = event.getMediaInfo();
+        if (mediaInfo == null) {
+            return;
+        }
+        if (mediaInfo.getOriginType() != OriginType.RTMP_PUSH.ordinal()
+                && mediaInfo.getOriginType() != OriginType.RTSP_PUSH.ordinal()
+                && mediaInfo.getOriginType() != OriginType.RTC_PUSH.ordinal()) {
+            return;
         }
 
+        StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(event.getApp(), event.getStream());
+        if (streamAuthorityInfo == null) {
+            streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(event);
+        } else {
+            streamAuthorityInfo.setOriginType(mediaInfo.getOriginType());
+        }
+        redisCatchStorage.updateStreamAuthorityInfo(event.getApp(), event.getStream(), streamAuthorityInfo);
+        StreamPushItem transform = StreamPushItem.getInstance(event, userSetting.getServerId());
+        transform.setPushIng(true);
+        transform.setUpdateTime(DateUtil.getNow());
+        transform.setPushTime(DateUtil.getNow());
+        transform.setSelf(true);
+        StreamPushItem pushInDb = getPush(event.getApp(), event.getStream());
+        if (pushInDb == null) {
+            transform.setCreateTime(DateUtil.getNow());
+            streamPushMapper.add(transform);
+        }else {
+            streamPushMapper.update(transform);
+            gbStreamMapper.updateMediaServer(event.getApp(), event.getStream(), event.getMediaServer().getId());
+        }
+        // TODO 相关的事件自行管理，不需要写入ZLMMediaListManager
+//        ChannelOnlineEvent channelOnlineEventLister = getChannelOnlineEventLister(transform.getApp(), transform.getStream());
+//        if ( channelOnlineEventLister != null)  {
+//            try {
+//                channelOnlineEventLister.run(transform.getApp(), transform.getStream(), transform.getServerId());;
+//            } catch (ParseException e) {
+//                logger.error("addPush: ", e);
+//            }
+//            removedChannelOnlineEventLister(transform.getApp(), transform.getStream());
+//        }
+        // 冗余数据，自己系统中自用
+        redisCatchStorage.addPushListItem(event.getApp(), event.getStream(), event);
+
+        // 发送流变化redis消息
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("serverId", userSetting.getServerId());
+        jsonObject.put("app", event.getApp());
+        jsonObject.put("stream", event.getStream());
+        jsonObject.put("register", true);
+        jsonObject.put("mediaServerId", event.getMediaServer().getId());
+        redisCatchStorage.sendStreamChangeMsg(OriginType.values()[event.getMediaInfo().getOriginType()].getType(), jsonObject);
+    }
+
+    /**
+     * 流离开的处理
+     */
+    @Async("taskExecutor")
+    @EventListener
+    public void onApplicationEvent(MediaDepartureEvent event) {
+        // 兼容流注销时类型从redis记录获取
+        OnStreamChangedHookParam onStreamChangedHookParam = redisCatchStorage.getStreamInfo(
+                event.getApp(), event.getStream(), event.getMediaServer().getId());
+        if (onStreamChangedHookParam != null) {
+            String type = OriginType.values()[onStreamChangedHookParam.getOriginType()].getType();
+            redisCatchStorage.removeStream(event.getMediaServer().getId(), type, event.getApp(), event.getStream());
+            if ("PUSH".equalsIgnoreCase(type)) {
+                // 冗余数据，自己系统中自用
+                redisCatchStorage.removePushListItem(event.getApp(), event.getStream(), event.getMediaServer().getId());
+            }
+            if (type != null) {
+                // 发送流变化redis消息
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("serverId", userSetting.getServerId());
+                jsonObject.put("app", event.getApp());
+                jsonObject.put("stream", event.getStream());
+                jsonObject.put("register", false);
+                jsonObject.put("mediaServerId", event.getMediaServer().getId());
+                redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
+            }
+        }
+        GbStream gbStream = gbStreamMapper.selectOne(event.getApp(), event.getStream());
+        if (gbStream != null) {
+            if (userSetting.isUsePushingAsStatus()) {
+                streamPushMapper.updatePushStatus(event.getApp(), event.getStream(), false);
+                eventPublisher.catalogEventPublishForStream(null, gbStream, CatalogEvent.OFF);
+            }
+        }else {
+            streamPushMapper.del(event.getApp(), event.getStream());
+        }
+    }
+
+
+    private List<StreamPushItem> handleJSON(List<StreamInfo> streamInfoList) {
+        if (streamInfoList == null || streamInfoList.isEmpty()) {
+            return null;
+        }
         Map<String, StreamPushItem> result = new HashMap<>();
-
-        List<OnStreamChangedHookParam> onStreamChangedHookParams = JSON.parseObject(jsonData, new TypeReference<List<OnStreamChangedHookParam>>() {});
-        for (OnStreamChangedHookParam item : onStreamChangedHookParams) {
-
+        for (StreamInfo streamInfo : streamInfoList) {
             // 不保存国标推理以及拉流代理的流
-            if (item.getOriginType() == OriginType.RTSP_PUSH.ordinal()
-                    || item.getOriginType() == OriginType.RTMP_PUSH.ordinal()
-                    || item.getOriginType() == OriginType.RTC_PUSH.ordinal() ) {
-                String key = item.getApp() + "_" + item.getStream();
+            if (streamInfo.getOriginType() == OriginType.RTSP_PUSH.ordinal()
+                    || streamInfo.getOriginType() == OriginType.RTMP_PUSH.ordinal()
+                    || streamInfo.getOriginType() == OriginType.RTC_PUSH.ordinal() ) {
+                String key = streamInfo.getApp() + "_" + streamInfo.getStream();
                 StreamPushItem streamPushItem = result.get(key);
                 if (streamPushItem == null) {
-                    streamPushItem = transform(item);
+                    streamPushItem = streamPushItem.getInstance(streamInfo);
                     result.put(key, streamPushItem);
                 }
             }
         }
-
         return new ArrayList<>(result.values());
     }
+
     @Override
     public StreamPushItem transform(OnStreamChangedHookParam item) {
         StreamPushItem streamPushItem = new StreamPushItem();
@@ -122,7 +217,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         streamPushItem.setStream(item.getStream());
         streamPushItem.setAliveSecond(item.getAliveSecond());
         streamPushItem.setOriginSock(item.getOriginSock());
-        streamPushItem.setTotalReaderCount(item.getTotalReaderCount());
+        streamPushItem.setTotalReaderCount(item.getTotalReaderCount() + "");
         streamPushItem.setOriginType(item.getOriginType());
         streamPushItem.setOriginTypeStr(item.getOriginTypeStr());
         streamPushItem.setOriginUrl(item.getOriginUrl());
@@ -164,15 +259,10 @@ public class StreamPushServiceImpl implements IStreamPushService {
         gbStreamService.sendCatalogMsg(stream, CatalogEvent.DEL);
         platformGbStreamMapper.delByAppAndStream(stream.getApp(), stream.getStream());
         int del = gbStreamMapper.del(stream.getApp(), stream.getStream());
-        MediaServerItem mediaInfo = mediaServerService.getOne(stream.getMediaServerId());
-        JSONObject mediaList = zlmresTfulUtils.getMediaList(mediaInfo, stream.getApp(), stream.getStream());
-        if (mediaList != null) {
-            if (mediaList.getInteger("code") == 0) {
-                JSONArray data = mediaList.getJSONArray("data");
-                if (data == null) {
-                    streamPushMapper.del(stream.getApp(), stream.getStream());
-                }
-            }
+        MediaServer mediaInfo = mediaServerService.getOne(stream.getMediaServerId());
+        List<StreamInfo> mediaList = mediaServerService.getMediaList(mediaInfo, stream.getApp(), stream.getStream(), null);
+        if (mediaList != null && mediaList.isEmpty()) {
+            streamPushMapper.del(stream.getApp(), stream.getStream());
         }
         return del > 0;
     }
@@ -195,8 +285,8 @@ public class StreamPushServiceImpl implements IStreamPushService {
         gbStreamMapper.del(app, streamId);
         int delStream = streamPushMapper.del(app, streamId);
         if (delStream > 0) {
-            MediaServerItem mediaServerItem = mediaServerService.getOne(streamPushItem.getMediaServerId());
-            zlmresTfulUtils.closeStreams(mediaServerItem,app, streamId);
+            MediaServer mediaServerItem = mediaServerService.getOne(streamPushItem.getMediaServerId());
+            mediaServerService.closeStreams(mediaServerItem,app, streamId);
         }
         return true;
     }
@@ -204,7 +294,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Override
     public void zlmServerOnline(String mediaServerId) {
         // 同步zlm推流信息
-        MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+        MediaServer mediaServerItem = mediaServerService.getOne(mediaServerId);
         if (mediaServerItem == null) {
             return;
         }
@@ -232,71 +322,61 @@ public class StreamPushServiceImpl implements IStreamPushService {
         for (StreamAuthorityInfo streamAuthorityInfo : allStreamAuthorityInfo) {
             streamAuthorityInfoInfoMap.put(streamAuthorityInfo.getApp() + streamAuthorityInfo.getStream(), streamAuthorityInfo);
         }
-        zlmresTfulUtils.getMediaList(mediaServerItem, (mediaList ->{
-            if (mediaList == null) {
-                return;
+        List<StreamInfo> mediaList = mediaServerService.getMediaList(mediaServerItem, null, null, null);
+        if (mediaList == null) {
+            return;
+        }
+        List<StreamPushItem> streamPushItems = handleJSON(mediaList);
+        if (streamPushItems != null) {
+            for (StreamPushItem streamPushItem : streamPushItems) {
+                pushItemMap.remove(streamPushItem.getApp() + streamPushItem.getStream());
+                streamInfoPushItemMap.remove(streamPushItem.getApp() + streamPushItem.getStream());
+                streamAuthorityInfoInfoMap.remove(streamPushItem.getApp() + streamPushItem.getStream());
             }
-            String dataStr = mediaList.getString("data");
-
-            Integer code = mediaList.getInteger("code");
-            List<StreamPushItem> streamPushItems = null;
-            if (code == 0 ) {
-                if (dataStr != null) {
-                    streamPushItems = handleJSON(dataStr, mediaServerItem);
-                }
-            }
-
-            if (streamPushItems != null) {
-                for (StreamPushItem streamPushItem : streamPushItems) {
-                    pushItemMap.remove(streamPushItem.getApp() + streamPushItem.getStream());
-                    streamInfoPushItemMap.remove(streamPushItem.getApp() + streamPushItem.getStream());
-                    streamAuthorityInfoInfoMap.remove(streamPushItem.getApp() + streamPushItem.getStream());
-                }
-            }
-            List<StreamPushItem> offlinePushItems = new ArrayList<>(pushItemMap.values());
-            if (offlinePushItems.size() > 0) {
-                String type = "PUSH";
-                int runLimit = 300;
-                if (offlinePushItems.size() > runLimit) {
-                    for (int i = 0; i < offlinePushItems.size(); i += runLimit) {
-                        int toIndex = i + runLimit;
-                        if (i + runLimit > offlinePushItems.size()) {
-                            toIndex = offlinePushItems.size();
-                        }
-                        List<StreamPushItem> streamPushItemsSub = offlinePushItems.subList(i, toIndex);
-                        streamPushMapper.delAll(streamPushItemsSub);
+        }
+        List<StreamPushItem> offlinePushItems = new ArrayList<>(pushItemMap.values());
+        if (offlinePushItems.size() > 0) {
+            String type = "PUSH";
+            int runLimit = 300;
+            if (offlinePushItems.size() > runLimit) {
+                for (int i = 0; i < offlinePushItems.size(); i += runLimit) {
+                    int toIndex = i + runLimit;
+                    if (i + runLimit > offlinePushItems.size()) {
+                        toIndex = offlinePushItems.size();
                     }
-                }else {
-                    streamPushMapper.delAll(offlinePushItems);
+                    List<StreamPushItem> streamPushItemsSub = offlinePushItems.subList(i, toIndex);
+                    streamPushMapper.delAll(streamPushItemsSub);
                 }
-
-            }
-            Collection<OnStreamChangedHookParam> offlineOnStreamChangedHookParamList = streamInfoPushItemMap.values();
-            if (offlineOnStreamChangedHookParamList.size() > 0) {
-                String type = "PUSH";
-                for (OnStreamChangedHookParam offlineOnStreamChangedHookParam : offlineOnStreamChangedHookParamList) {
-                    JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("serverId", userSetting.getServerId());
-                    jsonObject.put("app", offlineOnStreamChangedHookParam.getApp());
-                    jsonObject.put("stream", offlineOnStreamChangedHookParam.getStream());
-                    jsonObject.put("register", false);
-                    jsonObject.put("mediaServerId", mediaServerId);
-                    redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
-                    // 移除redis内流的信息
-                    redisCatchStorage.removeStream(mediaServerItem.getId(), "PUSH", offlineOnStreamChangedHookParam.getApp(), offlineOnStreamChangedHookParam.getStream());
-                    // 冗余数据，自己系统中自用
-                    redisCatchStorage.removePushListItem(offlineOnStreamChangedHookParam.getApp(), offlineOnStreamChangedHookParam.getStream(), mediaServerItem.getId());
-                }
+            }else {
+                streamPushMapper.delAll(offlinePushItems);
             }
 
-            Collection<StreamAuthorityInfo> streamAuthorityInfos = streamAuthorityInfoInfoMap.values();
-            if (streamAuthorityInfos.size() > 0) {
-                for (StreamAuthorityInfo streamAuthorityInfo : streamAuthorityInfos) {
-                    // 移除redis内流的信息
-                    redisCatchStorage.removeStreamAuthorityInfo(streamAuthorityInfo.getApp(), streamAuthorityInfo.getStream());
-                }
+        }
+        Collection<OnStreamChangedHookParam> offlineOnStreamChangedHookParamList = streamInfoPushItemMap.values();
+        if (offlineOnStreamChangedHookParamList.size() > 0) {
+            String type = "PUSH";
+            for (OnStreamChangedHookParam offlineOnStreamChangedHookParam : offlineOnStreamChangedHookParamList) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("serverId", userSetting.getServerId());
+                jsonObject.put("app", offlineOnStreamChangedHookParam.getApp());
+                jsonObject.put("stream", offlineOnStreamChangedHookParam.getStream());
+                jsonObject.put("register", false);
+                jsonObject.put("mediaServerId", mediaServerId);
+                redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
+                // 移除redis内流的信息
+                redisCatchStorage.removeStream(mediaServerItem.getId(), "PUSH", offlineOnStreamChangedHookParam.getApp(), offlineOnStreamChangedHookParam.getStream());
+                // 冗余数据，自己系统中自用
+                redisCatchStorage.removePushListItem(offlineOnStreamChangedHookParam.getApp(), offlineOnStreamChangedHookParam.getStream(), mediaServerItem.getId());
             }
-        }));
+        }
+
+        Collection<StreamAuthorityInfo> streamAuthorityInfos = streamAuthorityInfoInfoMap.values();
+        if (streamAuthorityInfos.size() > 0) {
+            for (StreamAuthorityInfo streamAuthorityInfo : streamAuthorityInfos) {
+                // 移除redis内流的信息
+                redisCatchStorage.removeStreamAuthorityInfo(streamAuthorityInfo.getApp(), streamAuthorityInfo.getStream());
+            }
+        }
     }
 
     @Override
@@ -470,8 +550,8 @@ public class StreamPushServiceImpl implements IStreamPushService {
         int delStream = streamPushMapper.delAllForGbStream(gbStreams);
         if (delStream > 0) {
             for (GbStream gbStream : gbStreams) {
-                MediaServerItem mediaServerItem = mediaServerService.getOne(gbStream.getMediaServerId());
-                zlmresTfulUtils.closeStreams(mediaServerItem, gbStream.getApp(), gbStream.getStream());
+                MediaServer mediaServerItem = mediaServerService.getOne(gbStream.getMediaServerId());
+                mediaServerService.closeStreams(mediaServerItem, gbStream.getApp(), gbStream.getStream());
             }
 
         }

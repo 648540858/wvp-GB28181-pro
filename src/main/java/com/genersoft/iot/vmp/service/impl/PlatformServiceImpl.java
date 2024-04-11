@@ -1,10 +1,9 @@
 package com.genersoft.iot.vmp.service.impl;
 
-import com.alibaba.fastjson2.JSONObject;
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionStatus;
 import com.genersoft.iot.vmp.common.InviteSessionType;
-import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
@@ -12,47 +11,40 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
-import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.event.hook.HookData;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
+import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
+import com.genersoft.iot.vmp.media.event.mediaServer.MediaSendRtpStoppedEvent;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
-import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IPlatformService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.dao.*;
+import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
+import com.genersoft.iot.vmp.storager.dao.ParentPlatformMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.sdp.*;
 import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
-import javax.sip.PeerUnavailableException;
 import javax.sip.SipException;
 import java.text.ParseException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.*;
+import java.util.Vector;
 
 /**
  * @author lin
@@ -81,13 +73,10 @@ public class PlatformServiceImpl implements IPlatformService {
     private IMediaServerService mediaServerService;
 
     @Autowired
-    private SIPCommanderFroPlatform commanderForPlatform;
+    private ISIPCommanderForPlatform commanderForPlatform;
 
     @Autowired
     private DynamicTask dynamicTask;
-
-    @Autowired
-    private ZLMServerFactory zlmServerFactory;
 
     @Autowired
     private SubscribeHolder subscribeHolder;
@@ -99,11 +88,7 @@ public class PlatformServiceImpl implements IPlatformService {
     private UserSetting userSetting;
 
     @Autowired
-    private ZlmHttpHookSubscribe subscribe;
-
-    @Autowired
     private VideoStreamSessionManager streamSession;
-
 
     @Autowired
     private IPlayService playService;
@@ -111,8 +96,56 @@ public class PlatformServiceImpl implements IPlatformService {
     @Autowired
     private IInviteStreamService inviteStreamService;
 
-    @Autowired
-    private ZLMRESTfulUtils zlmresTfulUtils;
+
+    /**
+     * 流离开的处理
+     */
+    @Async("taskExecutor")
+    @EventListener
+    public void onApplicationEvent(MediaDepartureEvent event) {
+        List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(event.getStream());
+        if (!sendRtpItems.isEmpty()) {
+            for (SendRtpItem sendRtpItem : sendRtpItems) {
+                if (sendRtpItem != null && sendRtpItem.getApp().equals(event.getApp())) {
+                    String platformId = sendRtpItem.getPlatformId();
+                    ParentPlatform platform = platformMapper.getParentPlatByServerGBId(platformId);
+
+                    try {
+                        if (platform != null) {
+                            commanderForPlatform.streamByeCmd(platform, sendRtpItem);
+                            redisCatchStorage.deleteSendRTPServer(platformId, sendRtpItem.getChannelId(),
+                                    sendRtpItem.getCallId(), sendRtpItem.getStream());
+                        }
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error("[命令发送失败] 发送BYE: {}", e.getMessage());
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     * 发流停止
+     */
+    @Async("taskExecutor")
+    @EventListener
+    public void onApplicationEvent(MediaSendRtpStoppedEvent event) {
+        List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(event.getStream());
+        if (sendRtpItems != null && !sendRtpItems.isEmpty()) {
+            for (SendRtpItem sendRtpItem : sendRtpItems) {
+                ParentPlatform parentPlatform = platformMapper.getParentPlatByServerGBId(sendRtpItem.getPlatformId());
+                ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
+                try {
+                    commanderForPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+                }
+                redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
+                        sendRtpItem.getCallId(), sendRtpItem.getStream());
+            }
+        }
+    }
 
 
     @Override
@@ -400,12 +433,8 @@ public class PlatformServiceImpl implements IPlatformService {
             for (SendRtpItem sendRtpItem : sendRtpItems) {
                 ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
                 redisCatchStorage.deleteSendRTPServer(platformId, sendRtpItem.getChannelId(), null, null);
-                MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-                Map<String, Object> param = new HashMap<>(3);
-                param.put("vhost", "__defaultVhost__");
-                param.put("app", sendRtpItem.getApp());
-                param.put("stream", sendRtpItem.getStream());
-                zlmServerFactory.stopSendRtpStream(mediaInfo, param);
+                MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+                mediaServerService.stopSendRtp(mediaInfo, sendRtpItem.getApp(), sendRtpItem.getStream(), null);
             }
         }
     }
@@ -463,7 +492,7 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public void broadcastInvite(ParentPlatform platform, String channelId, MediaServerItem mediaServerItem, ZlmHttpHookSubscribe.Event hookEvent,
+    public void broadcastInvite(ParentPlatform platform, String channelId, MediaServer mediaServerItem, HookSubscribe.Event hookEvent,
                                 SipSubscribe.Event errorEvent, InviteTimeOutCallback timeoutCallback) throws InvalidArgumentException, ParseException, SipException {
 
         if (mediaServerItem == null) {
@@ -474,19 +503,19 @@ public class PlatformServiceImpl implements IPlatformService {
 
         if (inviteInfoForOld != null && inviteInfoForOld.getStreamInfo() != null) {
             // 如果zlm不存在这个流，则删除数据即可
-            MediaServerItem mediaServerItemForStreamInfo = mediaServerService.getOne(inviteInfoForOld.getStreamInfo().getMediaServerId());
+            MediaServer mediaServerItemForStreamInfo = mediaServerService.getOne(inviteInfoForOld.getStreamInfo().getMediaServerId());
             if (mediaServerItemForStreamInfo != null) {
-                Boolean ready = zlmServerFactory.isStreamReady(mediaServerItemForStreamInfo, inviteInfoForOld.getStreamInfo().getApp(), inviteInfoForOld.getStreamInfo().getStream());
+                Boolean ready = mediaServerService.isStreamReady(mediaServerItemForStreamInfo, inviteInfoForOld.getStreamInfo().getApp(), inviteInfoForOld.getStreamInfo().getStream());
                 if (!ready) {
                     // 错误存在于redis中的数据
                     inviteStreamService.removeInviteInfo(inviteInfoForOld);
                 }else {
                     // 流确实尚在推流，直接回调结果
-                    OnStreamChangedHookParam hookParam = new OnStreamChangedHookParam();
-                    hookParam.setApp(inviteInfoForOld.getStreamInfo().getApp());
-                    hookParam.setStream(inviteInfoForOld.getStreamInfo().getStream());
-
-                    hookEvent.response(mediaServerItemForStreamInfo, hookParam);
+                    HookData hookData = new HookData();
+                    hookData.setApp(inviteInfoForOld.getStreamInfo().getApp());
+                    hookData.setStream(inviteInfoForOld.getStreamInfo().getStream());
+                    hookData.setMediaServer(mediaServerItemForStreamInfo);
+                    hookEvent.response(hookData);
                     return;
                 }
             }
@@ -506,7 +535,7 @@ public class PlatformServiceImpl implements IPlatformService {
         } else {
             tcpMode = 0;
         }
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, null, ssrcCheck, false, null, true, false, tcpMode);
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, null, ssrcCheck, false, null, true, false, false, tcpMode);
         if (ssrcInfo == null || ssrcInfo.getPort() < 0) {
             logger.info("[国标级联] 发起语音喊话 开启端口监听失败， platform: {}, channel： {}", platform.getServerGBId(), channelId);
             SipSubscribe.EventResult<Object> eventResult = new SipSubscribe.EventResult<>();
@@ -544,14 +573,14 @@ public class PlatformServiceImpl implements IPlatformService {
                 }
             }
         }, userSetting.getPlayTimeout());
-        commanderForPlatform.broadcastInviteCmd(platform, channelId, mediaServerItem, ssrcInfo, (mediaServerItemForInvite, hookParam)->{
+        commanderForPlatform.broadcastInviteCmd(platform, channelId, mediaServerItem, ssrcInfo, (hookData)->{
             logger.info("[国标级联] 发起语音喊话 收到上级推流 deviceId: {}, channelId: {}", platform.getServerGBId(), channelId);
             dynamicTask.stop(timeOutTaskKey);
             // hook响应
-            playService.onPublishHandlerForPlay(mediaServerItemForInvite, hookParam, platform.getServerGBId(), channelId);
+            playService.onPublishHandlerForPlay(hookData.getMediaServer(), hookData.getMediaInfo(), platform.getServerGBId(), channelId);
             // 收到流
             if (hookEvent != null) {
-                hookEvent.response(mediaServerItem, hookParam);
+                hookEvent.response(hookData);
             }
         }, event -> {
 
@@ -604,13 +633,12 @@ public class PlatformServiceImpl implements IPlatformService {
         });
     }
 
-    private void inviteOKHandler(SipSubscribe.EventResult eventResult, SSRCInfo ssrcInfo, int tcpMode, boolean ssrcCheck, MediaServerItem mediaServerItem,
+    private void inviteOKHandler(SipSubscribe.EventResult eventResult, SSRCInfo ssrcInfo, int tcpMode, boolean ssrcCheck, MediaServer mediaServerItem,
                                  ParentPlatform platform, String channelId, String timeOutTaskKey, ErrorCallback<Object> callback,
                                  InviteInfo inviteInfo, InviteSessionType inviteSessionType){
         inviteInfo.setStatus(InviteSessionStatus.ok);
         ResponseEvent responseEvent = (ResponseEvent) eventResult.event;
         String contentString = new String(responseEvent.getResponse().getRawContent());
-        System.out.println(1111);
         System.out.println(contentString);
         String ssrcInResponse = SipUtils.getSsrcFromSdp(contentString);
         // 兼容回复的消息中缺少ssrc(y字段)的情况
@@ -709,7 +737,7 @@ public class PlatformServiceImpl implements IPlatformService {
 
 
     private void tcpActiveHandler(ParentPlatform platform, String channelId, String contentString,
-                                  MediaServerItem mediaServerItem, int tcpMode, boolean ssrcCheck,
+                                  MediaServer mediaServerItem, int tcpMode, boolean ssrcCheck,
                                   String timeOutTaskKey, SSRCInfo ssrcInfo, ErrorCallback<Object> callback){
         if (tcpMode != 2) {
             return;
@@ -737,8 +765,8 @@ public class PlatformServiceImpl implements IPlatformService {
             }
             logger.info("[TCP主动连接对方] serverGbId: {}, channelId: {}, 连接对方的地址：{}:{}, SSRC: {}, SSRC校验：{}",
                     platform.getServerGBId(), channelId, sdp.getConnection().getAddress(), port, ssrcInfo.getSsrc(), ssrcCheck);
-            JSONObject jsonObject = zlmresTfulUtils.connectRtpServer(mediaServerItem, sdp.getConnection().getAddress(), port, ssrcInfo.getStream());
-            logger.info("[TCP主动连接对方] 结果： {}", jsonObject);
+            Boolean result = mediaServerService.connectRtpServer(mediaServerItem, sdp.getConnection().getAddress(), port, ssrcInfo.getStream());
+            logger.info("[TCP主动连接对方] 结果： {}", result);
         } catch (SdpException e) {
             logger.error("[TCP主动连接对方] serverGbId: {}, channelId: {}, 解析200OK的SDP信息失败", platform.getServerGBId(), channelId, e);
             dynamicTask.stop(timeOutTaskKey);
@@ -757,7 +785,7 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public void stopBroadcast(ParentPlatform platform, DeviceChannel channel, String stream, boolean sendBye, MediaServerItem mediaServerItem) {
+    public void stopBroadcast(ParentPlatform platform, DeviceChannel channel, String stream, boolean sendBye, MediaServer mediaServerItem) {
 
         try {
             if (sendBye) {

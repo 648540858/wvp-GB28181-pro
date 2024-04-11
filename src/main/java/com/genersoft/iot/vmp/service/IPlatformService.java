@@ -3,8 +3,8 @@ package com.genersoft.iot.vmp.service;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.InviteTimeOutCallback;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.github.pagehelper.PageInfo;
@@ -73,13 +73,13 @@ public interface IPlatformService {
      * @param errorEvent 信令错误事件
      * @param timeoutCallback 超时事件
      */
-    void broadcastInvite(ParentPlatform platform, String channelId, MediaServerItem mediaServerItem,  ZlmHttpHookSubscribe.Event hookEvent,
+    void broadcastInvite(ParentPlatform platform, String channelId, MediaServer mediaServerItem, HookSubscribe.Event hookEvent,
                          SipSubscribe.Event errorEvent, InviteTimeOutCallback timeoutCallback) throws InvalidArgumentException, ParseException, SipException;
 
     /**
      * 语音喊话回复BYE
      */
-    void stopBroadcast(ParentPlatform platform, DeviceChannel channel, String stream,boolean sendBye, MediaServerItem mediaServerItem);
+    void stopBroadcast(ParentPlatform platform, DeviceChannel channel, String stream,boolean sendBye, MediaServer mediaServerItem);
 
     void addSimulatedSubscribeInfo(ParentPlatform parentPlatform);
 }

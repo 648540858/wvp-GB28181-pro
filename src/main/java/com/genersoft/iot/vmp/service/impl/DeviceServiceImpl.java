@@ -14,12 +14,11 @@ import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.CatalogResponseMessageHandler;
-import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
-import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
@@ -54,6 +53,7 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Autowired
     private SIPCommander cmder;
+
     @Autowired
     private DynamicTask dynamicTask;
 
@@ -101,9 +101,6 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Autowired
     private AudioBroadcastManager audioBroadcastManager;
-
-    @Autowired
-    private ZLMRESTfulUtils zlmresTfulUtils;
 
     @Override
     public void online(Device device, SipTransactionInfo sipTransactionInfo) {
@@ -244,12 +241,8 @@ public class DeviceServiceImpl implements IDeviceService {
                 SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(deviceId, audioBroadcastCatch.getChannelId(), null, null);
                 if (sendRtpItem != null) {
                     redisCatchStorage.deleteSendRTPServer(deviceId, sendRtpItem.getChannelId(), null, null);
-                    MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-                    Map<String, Object> param = new HashMap<>();
-                    param.put("vhost", "__defaultVhost__");
-                    param.put("app", sendRtpItem.getApp());
-                    param.put("stream", sendRtpItem.getStream());
-                    zlmresTfulUtils.stopSendRtp(mediaInfo, param);
+                    MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+                    mediaServerService.stopSendRtp(mediaInfo, sendRtpItem.getApp(), sendRtpItem.getStream(), null);
                 }
 
                 audioBroadcastManager.del(deviceId, audioBroadcastCatch.getChannelId());

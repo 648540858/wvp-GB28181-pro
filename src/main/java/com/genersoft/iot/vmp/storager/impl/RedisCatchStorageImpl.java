@@ -9,8 +9,10 @@ import com.genersoft.iot.vmp.gb28181.bean.AlarmChannelMessage;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
@@ -313,7 +315,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void addStream(MediaServerItem mediaServerItem, String type, String app, String streamId, OnStreamChangedHookParam onStreamChangedHookParam) {
+    public void addStream(MediaServer mediaServerItem, String type, String app, String streamId, OnStreamChangedHookParam onStreamChangedHookParam) {
         // 查找是否使用了callID
         StreamAuthorityInfo streamAuthorityInfo = getStreamAuthorityInfo(app, streamId);
         String key = VideoManagerConstants.WVP_SERVER_STREAM_PREFIX  + userSetting.getServerId() + "_" + type + "_" + app + "_" + streamId + "_" + mediaServerItem.getId();
@@ -651,21 +653,22 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void addPushListItem(String app, String stream, OnStreamChangedHookParam param) {
+    public void addPushListItem(String app, String stream, MediaArrivalEvent event) {
         String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
-        redisTemplate.opsForValue().set(key, param);
+        StreamPushItem streamPushItem = StreamPushItem.getInstance(event, userSetting.getServerId());
+        redisTemplate.opsForValue().set(key, streamPushItem);
     }
 
     @Override
-    public OnStreamChangedHookParam getPushListItem(String app, String stream) {
+    public StreamPushItem getPushListItem(String app, String stream) {
         String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
-        return (OnStreamChangedHookParam)redisTemplate.opsForValue().get(key);
+        return (StreamPushItem)redisTemplate.opsForValue().get(key);
     }
 
     @Override
     public void removePushListItem(String app, String stream, String mediaServerId) {
         String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
-        OnStreamChangedHookParam param = (OnStreamChangedHookParam)redisTemplate.opsForValue().get(key);
+        StreamPushItem param = (StreamPushItem)redisTemplate.opsForValue().get(key);
         if (param != null && param.getMediaServerId().equalsIgnoreCase(mediaServerId)) {
             redisTemplate.delete(key);
         }

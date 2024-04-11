@@ -5,12 +5,12 @@ import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.media.event.media.MediaRecordMp4Event;
 import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRecordMp4HookParam;
 import com.genersoft.iot.vmp.service.ICloudRecordService;
-import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -24,6 +24,8 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.*;
@@ -51,7 +53,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     private VideoStreamSessionManager streamSession;
 
     @Override
-    public PageInfo<CloudRecordItem> getList(int page, int count, String query, String app, String stream, String startTime, String endTime, List<MediaServerItem> mediaServerItems) {
+    public PageInfo<CloudRecordItem> getList(int page, int count, String query, String app, String stream, String startTime, String endTime, List<MediaServer> mediaServerItems) {
         // 开始时间和结束时间在数据库中都是以秒为单位的
         Long startTimeStamp = null;
         Long endTimeStamp = null;
@@ -76,7 +78,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     }
 
     @Override
-    public List<String> getDateList(String app, String stream, int year, int month, List<MediaServerItem> mediaServerItems) {
+    public List<String> getDateList(String app, String stream, int year, int month, List<MediaServer> mediaServerItems) {
         LocalDate startDate = LocalDate.of(year, month, 1);
         LocalDate endDate;
         if (month == 12) {
@@ -99,19 +101,20 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         return new ArrayList<>(resultSet);
     }
 
-    @Override
-    public void addRecord(OnRecordMp4HookParam param) {
-        CloudRecordItem cloudRecordItem = CloudRecordItem.getInstance(param);
-        StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(param.getApp(), param.getStream());
+    @Async("taskExecutor")
+    @EventListener
+    public void onApplicationEvent(MediaRecordMp4Event event) {
+        CloudRecordItem cloudRecordItem = CloudRecordItem.getInstance(event);
+        StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(event.getApp(), event.getStream());
         if (streamAuthorityInfo != null) {
             cloudRecordItem.setCallId(streamAuthorityInfo.getCallId());
         }
-        logger.info("[添加录像记录] {}/{} 文件大小：{}, 时长： {}秒", param.getApp(), param.getStream(), param.getFile_size(),param.getTime_len());
+        logger.info("[添加录像记录] {}/{} 内容：{}", event.getApp(), event.getStream(), event.getRecordInfo());
         cloudRecordServiceMapper.add(cloudRecordItem);
     }
 
     @Override
-    public String addTask(String app, String stream, MediaServerItem mediaServerItem, String startTime, String endTime,
+    public String addTask(String app, String stream, MediaServer mediaServerItem, String startTime, String endTime,
                           String callId, String remoteHost, boolean filterMediaServer) {
         // 参数校验
         assert app != null;
@@ -128,7 +131,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
             endTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime);
         }
 
-        List<MediaServerItem> mediaServers = new ArrayList<>();
+        List<MediaServer> mediaServers = new ArrayList<>();
         mediaServers.add(mediaServerItem);
         // 检索相关的录像文件
         List<String> filePathList = cloudRecordServiceMapper.queryRecordFilePathList(app, stream, startTimeStamp,
@@ -146,7 +149,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     @Override
     public JSONArray queryTask(String app, String stream, String callId, String taskId, String mediaServerId,
                                Boolean isEnd, String scheme) {
-        MediaServerItem mediaServerItem = null;
+        MediaServer mediaServerItem = null;
         if (mediaServerId == null) {
             mediaServerItem = mediaServerService.getDefaultMediaServer();
         }else {
@@ -183,10 +186,10 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
 
         }
 
-        List<MediaServerItem> mediaServerItems;
+        List<MediaServer> mediaServerItems;
         if (!ObjectUtils.isEmpty(mediaServerId)) {
             mediaServerItems = new ArrayList<>();
-            MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+            MediaServer mediaServerItem = mediaServerService.getOne(mediaServerId);
             if (mediaServerItem == null) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到流媒体: " + mediaServerId);
             }
@@ -229,7 +232,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "资源不存在");
         }
         String filePath = recordItem.getFilePath();
-        MediaServerItem mediaServerItem = mediaServerService.getOne(recordItem.getMediaServerId());
+        MediaServer mediaServerItem = mediaServerService.getOne(recordItem.getMediaServerId());
         return CloudRecordUtils.getDownloadFilePath(mediaServerItem, filePath);
     }
 }

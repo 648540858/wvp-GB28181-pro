@@ -2,15 +2,14 @@ package com.genersoft.iot.vmp.media.zlm;
 
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
-import com.genersoft.iot.vmp.media.zlm.dto.*;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.media.zlm.dto.ChannelOnlineEvent;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
-import com.genersoft.iot.vmp.service.IMediaServerService;
-import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
-import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.StreamPushMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import org.slf4j.Logger;
@@ -19,7 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
-import java.util.*;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -31,37 +30,21 @@ public class ZLMMediaListManager {
     private Logger logger = LoggerFactory.getLogger("ZLMMediaListManager");
 
     @Autowired
-    private ZLMRESTfulUtils zlmresTfulUtils;
-
-    @Autowired
-    private IRedisCatchStorage redisCatchStorage;
-
-    @Autowired
     private IVideoManagerStorage storager;
 
     @Autowired
     private GbStreamMapper gbStreamMapper;
 
     @Autowired
-    private PlatformGbStreamMapper platformGbStreamMapper;
-
-    @Autowired
     private IStreamPushService streamPushService;
 
-    @Autowired
-    private IStreamProxyService streamProxyService;
 
     @Autowired
     private StreamPushMapper streamPushMapper;
 
     @Autowired
-    private ZlmHttpHookSubscribe subscribe;
-
-    @Autowired
     private UserSetting userSetting;
 
-    @Autowired
-    private ZLMServerFactory zlmServerFactory;
 
     @Autowired
     private IMediaServerService mediaServerService;
@@ -95,9 +78,9 @@ public class ZLMMediaListManager {
     }
 
     public void sendStreamEvent(String app, String stream, String mediaServerId) {
-        MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+        MediaServer mediaServerItem = mediaServerService.getOne(mediaServerId);
         // 查看推流状态
-        Boolean streamReady = zlmServerFactory.isStreamReady(mediaServerItem, app, stream);
+        Boolean streamReady = mediaServerService.isStreamReady(mediaServerItem, app, stream);
         if (streamReady != null && streamReady) {
             ChannelOnlineEvent channelOnlineEventLister = getChannelOnlineEventLister(app, stream);
             if (channelOnlineEventLister != null)  {

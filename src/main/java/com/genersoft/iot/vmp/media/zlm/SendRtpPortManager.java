@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.media.zlm;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
@@ -30,7 +30,7 @@ public class SendRtpPortManager {
 
     private final String KEY = "VM_MEDIA_SEND_RTP_PORT_";
 
-    public synchronized int getNextPort(MediaServerItem mediaServer) {
+    public synchronized int getNextPort(MediaServer mediaServer) {
         if (mediaServer == null) {
             logger.warn("[发送端口管理] 参数错误，mediaServer为NULL");
             return -1;
@@ -83,6 +83,7 @@ public class SendRtpPortManager {
     }
 
     private synchronized int getSendPort(int startPort, int endPort, String sendIndexKey, Map<Integer, SendRtpItem> sendRtpItemMap){
+        // TODO 这里改为只取偶数端口
         RedisAtomicInteger redisAtomicInteger = new RedisAtomicInteger(sendIndexKey , redisTemplate.getConnectionFactory());
         if (redisAtomicInteger.get() < startPort) {
             redisAtomicInteger.set(startPort);

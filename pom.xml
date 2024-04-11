@@ -11,7 +11,7 @@
 
     <groupId>com.genersoft</groupId>
     <artifactId>wvp-pro</artifactId>
-    <version>2.7.0</version>
+    <version>2.7.1</version>
     <name>web video platform</name>
     <description>国标28181视频平台</description>
     <packaging>${project.packaging}</packaging>
@@ -98,6 +98,10 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

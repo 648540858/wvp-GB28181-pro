@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.media.zlm.dto.hook;
 
+import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
+
 public class HookResultForOnPublish extends HookResult{
 
     private boolean enable_audio;
@@ -14,6 +16,17 @@ public class HookResultForOnPublish extends HookResult{
 
     public static HookResultForOnPublish SUCCESS(){
         return new HookResultForOnPublish(0, "success");
+    }
+
+    public static HookResultForOnPublish getInstance(ResultForOnPublish resultForOnPublish){
+        HookResultForOnPublish successResult = new HookResultForOnPublish(0, "success");
+        successResult.setEnable_audio(resultForOnPublish.isEnable_audio());
+        successResult.setEnable_mp4(resultForOnPublish.isEnable_mp4());
+        successResult.setModify_stamp(resultForOnPublish.getModify_stamp());
+        successResult.setStream_replace(resultForOnPublish.getStream_replace());
+        successResult.setMp4_max_second(resultForOnPublish.getMp4_max_second());
+        successResult.setMp4_save_path(resultForOnPublish.getMp4_save_path());
+        return successResult;
     }
 
     public HookResultForOnPublish(int code, String msg) {

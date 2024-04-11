@@ -21,6 +21,7 @@ import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OriginType;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
@@ -98,6 +99,11 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if ("rtsp".equals(event.getSchema())) {
             logger.info("流变化：注册 app->{}, stream->{}", event.getApp(), event.getStream());
             addCount(event.getMediaServer().getId());
+            String type = OriginType.values()[event.getMediaInfo().getOriginType()].getType();
+            if (event.getApp().equals("onvif")) {
+                type = "onvif";
+            }
+            redisCatchStorage.addStream(event.getMediaServer(), type, event.getApp(), event.getStream(), event.getMediaInfo());
         }
     }
 
@@ -110,7 +116,17 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if ("rtsp".equals(event.getSchema())) {
             logger.info("流变化：注销, app->{}, stream->{}", event.getApp(), event.getStream());
             removeCount(event.getMediaServer().getId());
+            String type;
+            MediaInfo mediaInfo = redisCatchStorage.getStreamInfo(
+                    event.getApp(), event.getStream(), event.getMediaServer().getId());
+            if (event.getApp().equals("onvif")) {
+                type = "onvif";
+            }else {
+                type = OriginType.values()[mediaInfo.getOriginType()].getType();
+            }
+            redisCatchStorage.removeStream(mediaInfo.getMediaServer().getId(), type, event.getApp(), event.getStream());
         }
+
     }
 
 

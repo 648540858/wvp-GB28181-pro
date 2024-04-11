@@ -58,7 +58,7 @@ public class HookSubscribe {
         sendNotify(HookType.on_publish, event);
     }
     /**
-     * 推流鉴权事件
+     * 生成录像文件事件
      */
     @Async("taskExecutor")
     @EventListener
@@ -79,8 +79,8 @@ public class HookSubscribe {
     }
 
     public void addSubscribe(Hook hook, HookSubscribe.Event event) {
-        if (hook.getCreateTime() == null) {
-            hook.setCreateTime(System.currentTimeMillis());
+        if (hook.getExpireTime() == null) {
+            hook.setExpireTime(System.currentTimeMillis() + subscribeExpire);
         }
         allSubscribes.put(hook.toString(), event);
         allHook.put(hook.toString(), hook);
@@ -96,9 +96,9 @@ public class HookSubscribe {
      */
     @Scheduled(fixedRate=subscribeExpire)   //每5分钟执行一次
     public void execute(){
-        long expireTime = System.currentTimeMillis() - subscribeExpire;
+        long expireTime = System.currentTimeMillis();
         for (Hook hook : allHook.values()) {
-            if (hook.getCreateTime() < expireTime) {
+            if (hook.getExpireTime() < expireTime) {
                 allSubscribes.remove(hook.toString());
                 allHook.remove(hook.toString());
             }

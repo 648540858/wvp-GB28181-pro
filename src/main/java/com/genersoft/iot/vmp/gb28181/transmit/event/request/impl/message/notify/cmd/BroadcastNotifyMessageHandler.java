@@ -1,16 +1,15 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.cmd;
 
-import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IPlatformService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -61,9 +60,6 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
 
     @Autowired
     private AudioBroadcastManager audioBroadcastManager;
-
-    @Autowired
-    private ZLMServerFactory zlmServerFactory;
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -155,12 +151,13 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
                                     }
                                 }else {
                                     // 发流
-                                    JSONObject jsonObject = zlmServerFactory.startSendRtp(hookData.getMediaServer(), sendRtpItem);
-                                    if (jsonObject != null && jsonObject.getInteger("code") == 0 ) {
-                                        logger.info("[语音喊话] 自动推流成功, device: {}, channel: {}", device.getDeviceId(), targetId);
-                                    }else {
-                                        logger.info("[语音喊话] 推流失败, 结果： {}", jsonObject);
+                                    try {
+                                        mediaServerService.startSendRtp(hookData.getMediaServer(),null, sendRtpItem);
+                                    }catch (ControllerException e) {
+                                        logger.info("[语音喊话] 推流失败, 结果： {}", e.getMessage());
+                                        return;
                                     }
+                                    logger.info("[语音喊话] 自动推流成功, device: {}, channel: {}", device.getDeviceId(), targetId);
                                 }
                             }
                         }else {

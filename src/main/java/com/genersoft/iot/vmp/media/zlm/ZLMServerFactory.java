@@ -5,7 +5,6 @@ import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +24,6 @@ public class ZLMServerFactory {
 
     @Autowired
     private UserSetting userSetting;
-
-    @Autowired
-    private HookSubscribe hookSubscribe;
 
     @Autowired
     private SendRtpPortManager sendRtpPortManager;
@@ -157,72 +153,6 @@ public class ZLMServerFactory {
 
 
     /**
-     * 创建一个国标推流
-     * @param ip 推流ip
-     * @param port 推流端口
-     * @param ssrc 推流唯一标识
-     * @param platformId 平台id
-     * @param channelId 通道id
-     * @param tcp 是否为tcp
-     * @return SendRtpItem
-     */
-    public SendRtpItem createSendRtpItem(MediaServer serverItem, String ip, int port, String ssrc, String platformId,
-                                         String deviceId, String channelId, boolean tcp, boolean rtcp){
-
-        int localPort = sendRtpPortManager.getNextPort(serverItem);
-        if (localPort == 0) {
-            return null;
-        }
-        SendRtpItem sendRtpItem = new SendRtpItem();
-        sendRtpItem.setIp(ip);
-        sendRtpItem.setPort(port);
-        sendRtpItem.setSsrc(ssrc);
-        sendRtpItem.setPlatformId(platformId);
-        sendRtpItem.setDeviceId(deviceId);
-        sendRtpItem.setChannelId(channelId);
-        sendRtpItem.setTcp(tcp);
-        sendRtpItem.setRtcp(rtcp);
-        sendRtpItem.setApp("rtp");
-        sendRtpItem.setLocalPort(localPort);
-        sendRtpItem.setServerId(userSetting.getServerId());
-        sendRtpItem.setMediaServerId(serverItem.getId());
-        return sendRtpItem;
-    }
-
-    /**
-     * 创建一个直播推流
-     * @param ip 推流ip
-     * @param port 推流端口
-     * @param ssrc 推流唯一标识
-     * @param platformId 平台id
-     * @param channelId 通道id
-     * @param tcp 是否为tcp
-     * @return SendRtpItem
-     */
-    public SendRtpItem createSendRtpItem(MediaServer serverItem, String ip, int port, String ssrc, String platformId,
-                                         String app, String stream, String channelId, boolean tcp, boolean rtcp){
-
-        int localPort = sendRtpPortManager.getNextPort(serverItem);
-        if (localPort == 0) {
-            return null;
-        }
-        SendRtpItem sendRtpItem = new SendRtpItem();
-        sendRtpItem.setIp(ip);
-        sendRtpItem.setPort(port);
-        sendRtpItem.setSsrc(ssrc);
-        sendRtpItem.setApp(app);
-        sendRtpItem.setStream(stream);
-        sendRtpItem.setPlatformId(platformId);
-        sendRtpItem.setChannelId(channelId);
-        sendRtpItem.setTcp(tcp);
-        sendRtpItem.setLocalPort(localPort);
-        sendRtpItem.setServerId(userSetting.getServerId());
-        sendRtpItem.setMediaServerId(serverItem.getId());
-        sendRtpItem.setRtcp(rtcp);
-        return sendRtpItem;
-    }
-
-    /**
      * 调用zlm RESTFUL API —— startSendRtp
      */
     public JSONObject startSendRtpStream(MediaServer mediaServerItem, Map<String, Object>param) {
@@ -238,17 +168,6 @@ public class ZLMServerFactory {
 
     public JSONObject startSendRtpPassive(MediaServer mediaServerItem, Map<String, Object>param, ZLMRESTfulUtils.RequestCallback callback) {
         return zlmresTfulUtils.startSendRtpPassive(mediaServerItem, param, callback);
-    }
-
-    /**
-     * 查询待转推的流是否就绪
-     */
-    public Boolean isRtpReady(MediaServer mediaServerItem, String streamId) {
-        JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(mediaServerItem,"rtp", "rtsp", streamId);
-        if (mediaInfo.getInteger("code") == -2) {
-            return null;
-        }
-        return (mediaInfo.getInteger("code") == 0 && mediaInfo.getBoolean("online"));
     }
 
     /**
@@ -284,27 +203,6 @@ public class ZLMServerFactory {
             return -1;
         }
         return mediaInfo.getInteger("totalReaderCount");
-    }
-
-    /**
-     * 调用zlm RESTful API —— stopSendRtp
-     */
-    public Boolean stopSendRtpStream(MediaServer mediaServerItem, Map<String, Object>param) {
-        if (mediaServerItem == null) {
-            logger.error("[停止RTP推流] 失败: 媒体节点为NULL");
-            return false;
-        }
-        Boolean result = false;
-        JSONObject jsonObject = zlmresTfulUtils.stopSendRtp(mediaServerItem, param);
-        if (jsonObject == null) {
-            logger.error("[停止RTP推流] 失败: 请检查ZLM服务");
-        } else if (jsonObject.getInteger("code") == 0) {
-            result= true;
-            logger.info("[停止RTP推流] 成功");
-        } else {
-            logger.warn("[停止RTP推流] 失败: {}, 参数：{}->\r\n{}",jsonObject.getString("msg"), JSON.toJSON(param), jsonObject);
-        }
-        return result;
     }
 
     public JSONObject startSendRtp(MediaServer mediaInfo, SendRtpItem sendRtpItem) {

@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.service.bean;
 
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+
 /**
  * redis消息：请求下级推送流信息
  * @author lin
@@ -77,6 +79,22 @@ public class RequestPushStreamMsg {
         requestPushStreamMsg.setPt(pt);
         requestPushStreamMsg.setPs(ps);
         requestPushStreamMsg.setOnlyAudio(onlyAudio);
+        return requestPushStreamMsg;
+    }
+
+    public static RequestPushStreamMsg getInstance(SendRtpItem sendRtpItem) {
+        RequestPushStreamMsg requestPushStreamMsg = new RequestPushStreamMsg();
+        requestPushStreamMsg.setMediaServerId(sendRtpItem.getMediaServerId());
+        requestPushStreamMsg.setApp(sendRtpItem.getApp());
+        requestPushStreamMsg.setStream(sendRtpItem.getStream());
+        requestPushStreamMsg.setIp(sendRtpItem.getIp());
+        requestPushStreamMsg.setPort(sendRtpItem.getPort());
+        requestPushStreamMsg.setSsrc(sendRtpItem.getSsrc());
+        requestPushStreamMsg.setTcp(sendRtpItem.isTcp());
+        requestPushStreamMsg.setSrcPort(sendRtpItem.getLocalPort());
+        requestPushStreamMsg.setPt(sendRtpItem.getPt());
+        requestPushStreamMsg.setPs(sendRtpItem.isUsePs());
+        requestPushStreamMsg.setOnlyAudio(sendRtpItem.isOnlyAudio());
         return requestPushStreamMsg;
     }
 

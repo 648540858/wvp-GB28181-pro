@@ -18,7 +18,6 @@ import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -75,8 +74,6 @@ public class SIPCommander implements ISIPCommander {
     @Autowired
     private IMediaServerService mediaServerService;
 
-    @Autowired
-    private ZLMServerFactory zlmServerFactory;
 
 
     /**

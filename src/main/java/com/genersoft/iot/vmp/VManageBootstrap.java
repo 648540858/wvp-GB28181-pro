@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -24,6 +25,7 @@ import java.util.Collections;
 @ServletComponentScan("com.genersoft.iot.vmp.conf")
 @SpringBootApplication
 @EnableScheduling
+@EnableCaching
 public class VManageBootstrap extends SpringBootServletInitializer {
 
 	private final static Logger logger = LoggerFactory.getLogger(VManageBootstrap.class);

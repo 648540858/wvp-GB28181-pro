@@ -1,22 +1,17 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
-import com.genersoft.iot.vmp.gb28181.bean.AudioBroadcastCatch;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.RequestPushStreamMsg;
 import com.genersoft.iot.vmp.service.redisMsg.RedisGbPlayMsgListener;
@@ -28,17 +23,12 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
-import javax.sip.SipException;
 import javax.sip.address.SipURI;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.FromHeader;
 import javax.sip.header.HeaderAddress;
 import javax.sip.header.ToHeader;
-import java.text.ParseException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * SIP命令类型： ACK请求
@@ -70,12 +60,6 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 
 	@Autowired
 	private IDeviceService deviceService;
-
-	@Autowired
-	private ZLMServerFactory zlmServerFactory;
-
-	@Autowired
-	private HookSubscribe hookSubscribe;
 
 	@Autowired
 	private IMediaServerService mediaServerService;
@@ -122,11 +106,8 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 
 		if (parentPlatform != null) {
 			if (!userSetting.getServerId().equals(sendRtpItem.getServerId())) {
-				RequestPushStreamMsg requestPushStreamMsg = RequestPushStreamMsg.getInstance(
-						sendRtpItem.getMediaServerId(), sendRtpItem.getApp(), sendRtpItem.getStream(),
-						sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc(), sendRtpItem.isTcp(),
-						sendRtpItem.getLocalPort(), sendRtpItem.getPt(), sendRtpItem.isUsePs(), sendRtpItem.isOnlyAudio());
-				redisGbPlayMsgListener.sendMsgForStartSendRtpStream(sendRtpItem.getServerId(), requestPushStreamMsg, json -> {
+				RequestPushStreamMsg requestPushStreamMsg = RequestPushStreamMsg.getInstance(sendRtpItem);
+				redisGbPlayMsgListener.sendMsgForStartSendRtpStream(sendRtpItem.getServerId(), requestPushStreamMsg, () -> {
 					playService.startSendRtpStreamFailHand(sendRtpItem, parentPlatform, callIdHeader);
 				});
 			} else {
@@ -134,7 +115,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 					if (sendRtpItem.isTcpActive()) {
 						mediaServerService.startSendRtpPassive(mediaInfo, parentPlatform, sendRtpItem, null);
 					} else {
-						mediaServerService.startSendRtpStream(mediaInfo, parentPlatform, sendRtpItem);
+						mediaServerService.startSendRtp(mediaInfo, parentPlatform, sendRtpItem);
 					}
 				}catch (ControllerException e) {
 					logger.error("RTP推流失败: {}", e.getMessage());
@@ -159,7 +140,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 				if (sendRtpItem.isTcpActive()) {
 					mediaServerService.startSendRtpPassive(mediaInfo, null, sendRtpItem, null);
 				} else {
-					mediaServerService.startSendRtpStream(mediaInfo, null, sendRtpItem);
+					mediaServerService.startSendRtp(mediaInfo, null, sendRtpItem);
 				}
 			}catch (ControllerException e) {
 				logger.error("RTP推流失败: {}", e.getMessage());

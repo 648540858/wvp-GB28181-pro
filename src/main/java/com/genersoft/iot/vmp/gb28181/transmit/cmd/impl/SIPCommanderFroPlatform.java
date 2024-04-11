@@ -13,11 +13,10 @@ import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderPlarformProvider;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
-import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
@@ -64,9 +63,6 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
     @Autowired
     private SipSubscribe sipSubscribe;
-
-    @Autowired
-    private ZLMServerFactory zlmServerFactory;
 
     @Autowired
     private SipLayer sipLayer;
@@ -846,7 +842,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         MediaServer mediaServerItem = mediaServerService.getOne(mediaServerId);
         if (mediaServerItem != null) {
             mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpItem.getSsrc());
-            zlmServerFactory.closeRtpServer(mediaServerItem, sendRtpItem.getStream());
+            mediaServerService.closeRTPServer(mediaServerItem, sendRtpItem.getStream());
         }
         SIPRequest byeRequest = headerProviderPlatformProvider.createByeRequest(platform, sendRtpItem);
         if (byeRequest == null) {

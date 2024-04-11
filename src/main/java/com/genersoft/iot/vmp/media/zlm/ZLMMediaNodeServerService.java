@@ -322,11 +322,23 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         if (timeout  != null) {
             param.put("close_delay_ms", timeout);
         }
+        if (!sendRtpItem.isTcp()) {
+            // 开启rtcp保活
+            param.put("udp_rtcp_timeout", sendRtpItem.isRtcp()? "1":"0");
+        }
+        if (!sendRtpItem.isTcpActive()) {
+            param.put("dst_url",sendRtpItem.getIp());
+            param.put("dst_port", sendRtpItem.getPort());
+        }
 
         JSONObject jsonObject = zlmServerFactory.startSendRtpPassive(mediaServer, param, null);
         if (jsonObject == null || jsonObject.getInteger("code") != 0 ) {
+            logger.error("启动监听TCP被动推流失败: {}, 参数：{}", jsonObject.getString("msg"), JSON.toJSONString(param));
             throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
         }
+        logger.info("调用ZLM-TCP被动推流接口, 结果： {}",  jsonObject);
+        logger.info("启动监听TCP被动推流成功[ {}/{} ]，{}->{}:{}, " , sendRtpItem.getApp(), sendRtpItem.getStream(),
+                jsonObject.getString("local_port"), param.get("dst_url"), param.get("dst_port"));
     }
 
     @Override
@@ -347,7 +359,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         }
         param.put("dst_url", sendRtpItem.getIp());
         param.put("dst_port", sendRtpItem.getPort());
-        JSONObject jsonObject = zlmServerFactory.startSendRtpStream(mediaServer, param);
+        JSONObject jsonObject = zlmresTfulUtils.startSendRtp(mediaServer, param);
         if (jsonObject == null || jsonObject.getInteger("code") != 0 ) {
             throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
         }

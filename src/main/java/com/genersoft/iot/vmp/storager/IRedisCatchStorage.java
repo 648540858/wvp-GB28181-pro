@@ -6,11 +6,11 @@ import com.genersoft.iot.vmp.gb28181.bean.AlarmChannelMessage;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
-import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
+import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.storager.dao.dto.PlatformRegisterInfo;
@@ -91,7 +91,7 @@ public interface IRedisCatchStorage {
      * @param app
      * @param streamId
      */
-    void addStream(MediaServer mediaServerItem, String type, String app, String streamId, OnStreamChangedHookParam item);
+    void addStream(MediaServer mediaServerItem, String type, String app, String streamId, MediaInfo item);
 
     /**
      * 移除流信息从redis
@@ -108,7 +108,7 @@ public interface IRedisCatchStorage {
      */
     void removeStream(String mediaServerId, String type);
 
-    List<OnStreamChangedHookParam> getStreams(String mediaServerId, String pull);
+    List<MediaInfo> getStreams(String mediaServerId, String pull);
 
     /**
      * 将device信息写入redis
@@ -134,7 +134,7 @@ public interface IRedisCatchStorage {
 
     void resetAllSN();
 
-    OnStreamChangedHookParam getStreamInfo(String app, String streamId, String mediaServerId);
+    MediaInfo getStreamInfo(String app, String streamId, String mediaServerId);
 
     void addCpuInfo(double cpuInfo);
 

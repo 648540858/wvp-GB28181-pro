@@ -12,14 +12,16 @@ import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerChangeEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerDeleteEvent;
 import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OriginType;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
@@ -83,6 +85,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Autowired
     private MediaConfig mediaConfig;
 
+    @Autowired
+    private SendRtpPortManager sendRtpPortManager;
+
 
 
     /**
@@ -94,6 +99,8 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if ("rtsp".equals(event.getSchema())) {
             logger.info("流变化：注册 app->{}, stream->{}", event.getApp(), event.getStream());
             addCount(event.getMediaServer().getId());
+            String type = OriginType.values()[event.getMediaInfo().getOriginType()].getType();
+            redisCatchStorage.addStream(event.getMediaServer(), type, event.getApp(), event.getStream(), event.getMediaInfo());
         }
     }
 
@@ -106,7 +113,12 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if ("rtsp".equals(event.getSchema())) {
             logger.info("流变化：注销, app->{}, stream->{}", event.getApp(), event.getStream());
             removeCount(event.getMediaServer().getId());
+            MediaInfo mediaInfo = redisCatchStorage.getStreamInfo(
+                    event.getApp(), event.getStream(), event.getMediaServer().getId());
+            String type = OriginType.values()[mediaInfo.getOriginType()].getType();
+            redisCatchStorage.removeStream(mediaInfo.getMediaServer().getId(), type, event.getApp(), event.getStream());
         }
+
     }
 
 
@@ -812,7 +824,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public void startSendRtpStream(MediaServer mediaServer, ParentPlatform platform, SendRtpItem sendRtpItem) {
+    public void startSendRtp(MediaServer mediaServer, ParentPlatform platform, SendRtpItem sendRtpItem) {
         IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
             logger.info("[startSendRtpStream] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
@@ -821,7 +833,10 @@ public class MediaServerServiceImpl implements IMediaServerService {
         logger.info("[开始推流] rtp/{}, 目标={}:{}，SSRC={}, RTCP={}", sendRtpItem.getStream(),
                 sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc(), sendRtpItem.isRtcp());
         mediaNodeServerService.startSendRtpStream(mediaServer, sendRtpItem);
-        sendPlatformStartPlayMsg(platform, sendRtpItem);
+        if (platform != null) {
+            sendPlatformStartPlayMsg(platform, sendRtpItem);
+        }
+
 
     }
 
@@ -833,5 +848,51 @@ public class MediaServerServiceImpl implements IMediaServerService {
             messageForPushChannel.setPlatFormIndex(platform.getId());
             redisCatchStorage.sendPlatformStartPlayMsg(messageForPushChannel);
         }
+    }
+
+    @Override
+    public SendRtpItem createSendRtpItem(MediaServer mediaServer, String ip, int port, String ssrc, String requesterId, String deviceId, String channelId, boolean isTcp, boolean rtcp) {
+        int localPort = sendRtpPortManager.getNextPort(mediaServer);
+        if (localPort == 0) {
+            return null;
+        }
+        SendRtpItem sendRtpItem = new SendRtpItem();
+        sendRtpItem.setIp(ip);
+        sendRtpItem.setPort(port);
+        sendRtpItem.setSsrc(ssrc);
+        sendRtpItem.setPlatformId(deviceId);
+        sendRtpItem.setDeviceId(deviceId);
+        sendRtpItem.setChannelId(channelId);
+        sendRtpItem.setTcp(isTcp);
+        sendRtpItem.setRtcp(rtcp);
+        sendRtpItem.setApp("rtp");
+        sendRtpItem.setLocalPort(localPort);
+        sendRtpItem.setServerId(userSetting.getServerId());
+        sendRtpItem.setMediaServerId(mediaServer.getId());
+        return sendRtpItem;
+    }
+
+    @Override
+    public SendRtpItem createSendRtpItem(MediaServer serverItem, String ip, int port, String ssrc, String platformId,
+                                         String app, String stream, String channelId, boolean tcp, boolean rtcp){
+
+        int localPort = sendRtpPortManager.getNextPort(serverItem);
+        if (localPort == 0) {
+            return null;
+        }
+        SendRtpItem sendRtpItem = new SendRtpItem();
+        sendRtpItem.setIp(ip);
+        sendRtpItem.setPort(port);
+        sendRtpItem.setSsrc(ssrc);
+        sendRtpItem.setApp(app);
+        sendRtpItem.setStream(stream);
+        sendRtpItem.setPlatformId(platformId);
+        sendRtpItem.setChannelId(channelId);
+        sendRtpItem.setTcp(tcp);
+        sendRtpItem.setLocalPort(localPort);
+        sendRtpItem.setServerId(userSetting.getServerId());
+        sendRtpItem.setMediaServerId(serverItem.getId());
+        sendRtpItem.setRtcp(rtcp);
+        return sendRtpItem;
     }
 }

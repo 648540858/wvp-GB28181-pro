@@ -30,6 +30,9 @@ import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.IPlayService;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.service.redisMsg.RedisGbPlayMsgListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -1044,9 +1047,7 @@ public class PlayServiceImpl implements IPlayService {
                         };
                         Hook hook = Hook.getInstance(HookType.on_record_mp4, "rtp", ssrcInfo.getStream(), mediaServerItem.getId());
                         // 设置过期时间，下载失败时自动处理订阅数据
-//                        long difference = DateUtil.getDifference(startTime, endTime)/1000;
-//                        Instant expiresInstant = Instant.now().plusSeconds(TimeUnit.MINUTES.toSeconds(difference * 2));
-//                        hookSubscribe.setExpires(expiresInstant);
+                        hook.setExpireTime(System.currentTimeMillis() + 24 * 60 * 60 * 1000);
                         subscribe.addSubscribe(hook, hookEventForRecord);
                     });
         } catch (InvalidArgumentException | SipException | ParseException e) {
@@ -1419,11 +1420,8 @@ public class PlayServiceImpl implements IPlayService {
         MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 
         if (mediaInfo == null) {
-            RequestPushStreamMsg requestPushStreamMsg = RequestPushStreamMsg.getInstance(
-                    sendRtpItem.getMediaServerId(), sendRtpItem.getApp(), sendRtpItem.getStream(),
-                    sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc(), sendRtpItem.isTcp(),
-                    sendRtpItem.getLocalPort(), sendRtpItem.getPt(), sendRtpItem.isUsePs(), sendRtpItem.isOnlyAudio());
-            redisGbPlayMsgListener.sendMsgForStartSendRtpStream(sendRtpItem.getServerId(), requestPushStreamMsg, json -> {
+            RequestPushStreamMsg requestPushStreamMsg = RequestPushStreamMsg.getInstance(sendRtpItem);
+            redisGbPlayMsgListener.sendMsgForStartSendRtpStream(sendRtpItem.getServerId(), requestPushStreamMsg, () -> {
                 startSendRtpStreamFailHand(sendRtpItem, platform, callIdHeader);
             });
         } else {
@@ -1431,7 +1429,7 @@ public class PlayServiceImpl implements IPlayService {
                 if (sendRtpItem.isTcpActive()) {
                     mediaServerService.startSendRtpPassive(mediaInfo, platform, sendRtpItem, null);
                 } else {
-                    mediaServerService.startSendRtpStream(mediaInfo, platform, sendRtpItem);
+                    mediaServerService.startSendRtp(mediaInfo, platform, sendRtpItem);
                 }
             }catch (ControllerException e) {
                 logger.error("RTP推流失败: {}", e.getMessage());

@@ -37,15 +37,14 @@ public class RecordEndEventListener implements ApplicationListener<RecordEndEven
                 event.getRecordInfo().getChannelId(), count,sumNum);
         if (!handlerMap.isEmpty()) {
             RecordEndEventHandler handler = handlerMap.get(deviceId + channelId);
+            logger.info("录像查询完成事件触发, 发送订阅，deviceId：{}, channelId: {}",
+                    event.getRecordInfo().getDeviceId(), event.getRecordInfo().getChannelId());
             if (handler !=null){
                 handler.handler(event.getRecordInfo());
                 if (count ==sumNum){
                     handlerMap.remove(deviceId + channelId);
                 }
             }
-        }else {
-            logger.info("录像查询完成事件触发, 但是订阅为空，取消发送，deviceId：{}, channelId: {}",
-                    event.getRecordInfo().getDeviceId(), event.getRecordInfo().getChannelId());
         }
     }
 

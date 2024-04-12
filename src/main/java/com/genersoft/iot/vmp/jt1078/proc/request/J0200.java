@@ -51,25 +51,10 @@ public class J0200 extends Re {
         buf.readBytes(timeBytes);
         positionInfo.setTime(BCDUtil.transform(timeBytes));
 
-        JTPositionAdditionalInfo positionAdditionalInfo = new JTPositionAdditionalInfo();
-        Map<Integer, byte[]> additionalMsg = new HashMap<>();
-        getAdditionalMsg(buf, positionAdditionalInfo);
-
-//        boolean readable = buf.isReadable();
-//        // 读取附加信息
-//        if (buf.isReadable()) {
-//            byte aByte = buf.getByte(0);
-//            int msgId = (aByte & 0xFF);
-//
-//            // 支持1078的视频报警上报
-//            int alarm = buf.readInt();
-//            int loss = buf.readInt();
-//            int occlusion = buf.readInt();
-//            short storageFault = buf.readShort();
-//            short driving = buf.readShort();
-//            JTVideoAlarm videoAlarm = JTVideoAlarm.getInstance(alarm, loss, occlusion, storageFault, driving);
-//            positionInfo.setVideoAlarm(videoAlarm);
-//        }
+        // 读取附加信息
+//        JTPositionAdditionalInfo positionAdditionalInfo = new JTPositionAdditionalInfo();
+//        Map<Integer, byte[]> additionalMsg = new HashMap<>();
+//        getAdditionalMsg(buf, positionAdditionalInfo);
         log.info("[JT-位置汇报]: {}", positionInfo.toString());
         return null;
     }

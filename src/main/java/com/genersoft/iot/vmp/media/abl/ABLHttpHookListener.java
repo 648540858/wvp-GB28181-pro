@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.media.abl;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
@@ -13,7 +12,6 @@ import com.genersoft.iot.vmp.media.abl.bean.hook.*;
 import com.genersoft.iot.vmp.media.abl.event.HookAblServerKeepaliveEvent;
 import com.genersoft.iot.vmp.media.abl.event.HookAblServerStartEvent;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
@@ -170,7 +168,7 @@ public class ABLHttpHookListener {
     public HookResult onPublish(@RequestBody OnPublishABLHookParam param) {
 
 
-        logger.info("[ABL HOOK] 推流鉴权：{}->{}", param.getMediaServerId(), param);
+        logger.info("[ABL HOOK] 推流鉴权：{}->{}/{}?{}", param.getMediaServerId(), param.getApp(), param.getStream(), param.getParams());
         // TODO 加快处理速度
 
         MediaServer mediaServer = mediaServerService.getOne(param.getMediaServerId());

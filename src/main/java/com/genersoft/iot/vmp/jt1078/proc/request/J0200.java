@@ -13,6 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEvent;
 
+import java.text.DecimalFormat;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * 实时消息上报
  *
@@ -28,6 +32,9 @@ public class J0200 extends Re {
 
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
+
+
+
         positionInfo = new JTPositionBaseInfo();
         int alarmSignInt = buf.readInt();
         positionInfo.setAlarmSign(new JTAlarmSign(alarmSignInt));
@@ -43,9 +50,17 @@ public class J0200 extends Re {
         byte[] timeBytes = new byte[6];
         buf.readBytes(timeBytes);
         positionInfo.setTime(BCDUtil.transform(timeBytes));
+
+        JTPositionAdditionalInfo positionAdditionalInfo = new JTPositionAdditionalInfo();
+        Map<Integer, byte[]> additionalMsg = new HashMap<>();
+        getAdditionalMsg(buf, positionAdditionalInfo);
+
 //        boolean readable = buf.isReadable();
 //        // 读取附加信息
 //        if (buf.isReadable()) {
+//            byte aByte = buf.getByte(0);
+//            int msgId = (aByte & 0xFF);
+//
 //            // 支持1078的视频报警上报
 //            int alarm = buf.readInt();
 //            int loss = buf.readInt();
@@ -57,6 +72,59 @@ public class J0200 extends Re {
 //        }
         log.info("[JT-位置汇报]: {}", positionInfo.toString());
         return null;
+    }
+
+    private void getAdditionalMsg(ByteBuf buf, JTPositionAdditionalInfo additionalInfo) {
+
+        if (buf.isReadable()) {
+            int msgId = buf.readUnsignedByte();
+            int length = buf.readUnsignedByte();
+            ByteBuf byteBuf = buf.readBytes(length);
+            switch (msgId) {
+                case 1:
+                    // 里程
+                    long mileage = byteBuf.readUnsignedInt();
+                    log.info("[JT-位置汇报]: 里程： {} km", (double)mileage/10);
+                    break;
+                case 2:
+                    // 油量
+                    int oil = byteBuf.readUnsignedShort();
+                    log.info("[JT-位置汇报]: 油量： {} L", (double)oil/10);
+                    break;
+                case 3:
+                    // 速度
+                    int speed = byteBuf.readUnsignedShort();
+                    log.info("[JT-位置汇报]: 速度： {} km/h", (double)speed/10);
+                    break;
+                case 4:
+                    // 需要人工确认报警事件的 ID
+                    int alarmId = byteBuf.readUnsignedShort();
+                    log.info("[JT-位置汇报]: 需要人工确认报警事件的 ID： {}", alarmId);
+                    break;
+                case 5:
+                    byte[] tirePressureBytes = new byte[30];
+                    // 胎压
+                    byteBuf.readBytes(tirePressureBytes);
+                    log.info("[JT-位置汇报]: 胎压 {}", tirePressureBytes);
+                    break;
+                case 6:
+                    // 车厢温度
+                    short carriageTemperature = byteBuf.readShort();
+                    log.info("[JT-位置汇报]: 车厢温度 {}摄氏度", carriageTemperature);
+                    break;
+                case 11:
+                    // 超速报警
+                    short positionType = byteBuf.readUnsignedByte();
+                    long positionId = byteBuf.readUnsignedInt();
+                    log.info("[JT-位置汇报]: 超速报警, 位置类型: {}, 区域或路段 ID: {}", positionType, positionId);
+                    break;
+                default:
+                    log.info("[JT-位置汇报]: 附加消息ID： {}， 消息长度： {}", msgId, length);
+                    break;
+
+            }
+            getAdditionalMsg(buf, additionalInfo);
+        }
     }
 
     @Override

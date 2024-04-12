@@ -14,14 +14,15 @@ import com.genersoft.iot.vmp.jt1078.event.CallbackManager;
 import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
 import com.genersoft.iot.vmp.jt1078.proc.response.*;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.event.hook.Hook;
+import com.genersoft.iot.vmp.media.event.hook.HookData;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
+import com.genersoft.iot.vmp.media.event.hook.HookType;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.HookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
-import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
@@ -54,7 +55,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     private RedisTemplate<Object, Object> redisTemplate;
 
     @Autowired
-    private ZlmHttpHookSubscribe subscribe;
+    private HookSubscribe subscribe;
 
     @Autowired
     private IMediaServerService mediaServerService;
@@ -122,10 +123,10 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         StreamInfo streamInfo = (StreamInfo)redisTemplate.opsForValue().get(playKey);
         if (streamInfo != null) {
             String mediaServerId = streamInfo.getMediaServerId();
-            MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
-            if (mediaServerItem != null) {
+            MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+            if (mediaServer != null) {
                 // 查询流是否存在，不存在则删除缓存数据
-                JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(mediaServerItem, "rtp", "rtsp", streamInfo.getStream());
+                JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(mediaServer, "rtp", "rtsp", streamInfo.getStream());
                 if (mediaInfo != null && mediaInfo.getInteger("code") == 0 ) {
                     Boolean online = mediaInfo.getBoolean("online");
                     if (online != null && online) {
@@ -141,25 +142,24 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             redisTemplate.delete(playKey);
         }
         String stream = deviceId + "-" + channelId;
-        MediaServerItem mediaServerItem = mediaServerService.getMediaServerForMinimumLoad(null);
-        if (mediaServerItem == null) {
+        MediaServer mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
+        if (mediaServer == null) {
             for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
                 errorCallback.run(InviteErrorCode.FAIL.getCode(), "未找到可用的媒体节点", streamInfo);
             }
             return;
         }
         // 设置hook监听
-        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", stream, true, "rtsp", mediaServerItem.getId());
-        subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, HookParam hookParam) -> {
-            OnStreamChangedHookParam streamChangedHookParam = (OnStreamChangedHookParam) hookParam;
+        Hook hook = Hook.getInstance(HookType.on_media_arrival, "rtp", stream, mediaServer.getId());
+        subscribe.addSubscribe(hook, (hookData) -> {
             dynamicTask.stop(playKey);
             logger.info("[1078-点播] 点播成功， deviceId： {}， channelId： {}", deviceId, channelId);
-            StreamInfo info = onPublishHandler(mediaServerItemInUse, streamChangedHookParam, deviceId, channelId);
+            StreamInfo info = onPublishHandler(mediaServer, hookData, deviceId, channelId);
 
             for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
                 errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), info);
             }
-            subscribe.removeSubscribe(hookSubscribe);
+            subscribe.removeSubscribe(hook);
             redisTemplate.opsForValue().set(playKey, info);
         });
         // 设置超时监听
@@ -173,11 +173,11 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         }, userSetting.getPlayTimeout());
 
         // 开启收流端口
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, stream, null, false, false, 0, false, false, 1);
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServer, stream, null, false, false, 0, false, false, false,1);
         logger.info("[1078-点播] deviceId： {}， channelId： {}， 端口： {}", deviceId, channelId, ssrcInfo.getPort());
         J9101 j9101 = new J9101();
         j9101.setChannel(Integer.valueOf(channelId));
-        j9101.setIp(mediaServerItem.getSdpIp());
+        j9101.setIp(mediaServer.getSdpIp());
         j9101.setRate(1);
         j9101.setTcpPort(ssrcInfo.getPort());
         j9101.setUdpPort(ssrcInfo.getPort());
@@ -187,8 +187,8 @@ public class jt1078ServiceImpl implements Ijt1078Service {
 
     }
 
-    public StreamInfo onPublishHandler(MediaServerItem mediaServerItem, OnStreamChangedHookParam hookParam, String deviceId, String channelId) {
-        StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(mediaServerItem, "rtp", hookParam.getStream(), hookParam.getTracks(), null);
+    public StreamInfo onPublishHandler(MediaServer mediaServerItem, HookData hookData, String deviceId, String channelId) {
+        StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServerItem, "rtp", hookData.getStream(), hookData.getMediaInfo(), null);
         streamInfo.setDeviceID(deviceId);
         streamInfo.setChannelId(channelId);
         return streamInfo;
@@ -293,10 +293,10 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         StreamInfo streamInfo = (StreamInfo)redisTemplate.opsForValue().get(playbackKey);
         if (streamInfo != null) {
             String mediaServerId = streamInfo.getMediaServerId();
-            MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
-            if (mediaServerItem != null) {
+            MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+            if (mediaServer != null) {
                 // 查询流是否存在，不存在则删除缓存数据
-                JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(mediaServerItem, "rtp", "rtsp", streamInfo.getStream());
+                JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(mediaServer, "rtp", "rtsp", streamInfo.getStream());
                 if (mediaInfo != null && mediaInfo.getInteger("code") == 0 ) {
                     Boolean online = mediaInfo.getBoolean("online");
                     if (online != null && online) {
@@ -314,20 +314,19 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         String startTimeParam = DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime);
         String endTimeParam = DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(endTime);
         String stream = deviceId + "-" + channelId + "-" + startTimeParam + "-" + endTimeParam;
-        MediaServerItem mediaServerItem = mediaServerService.getMediaServerForMinimumLoad(null);
-        if (mediaServerItem == null) {
+        MediaServer mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
+        if (mediaServer == null) {
             for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
                 errorCallback.run(InviteErrorCode.FAIL.getCode(), "未找到可用的媒体节点", streamInfo);
             }
             return;
         }
         // 设置hook监听
-        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", stream, true, "rtsp", mediaServerItem.getId());
-        subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, HookParam hookParam) -> {
-            OnStreamChangedHookParam streamChangedHookParam = (OnStreamChangedHookParam) hookParam;
+        Hook hookSubscribe = Hook.getInstance(HookType.on_media_arrival, "rtp", stream, mediaServer.getId());
+        subscribe.addSubscribe(hookSubscribe, (hookData) -> {
             dynamicTask.stop(playbackKey);
             logger.info("[1078-回放] 回放成功， logInfo： {}", logInfo);
-            StreamInfo info = onPublishHandler(mediaServerItemInUse, streamChangedHookParam, deviceId, channelId);
+            StreamInfo info = onPublishHandler(mediaServer, hookData, deviceId, channelId);
 
             for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
                 errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), info);
@@ -346,11 +345,11 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         }, userSetting.getPlayTimeout());
 
         // 开启收流端口
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, stream, null, false, false, 0, false, false, 1);
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServer, stream, null, false, false, 0, false, false, false, 1);
         logger.info("[1078-回放] logInfo： {}， 端口： {}", logInfo, ssrcInfo.getPort());
         J9201 j9201 = new J9201();
         j9201.setChannel(Integer.parseInt(channelId));
-        j9201.setIp(mediaServerItem.getSdpIp());
+        j9201.setIp(mediaServer.getSdpIp());
         j9201.setRate(0);
         j9201.setPlaybackType(0);
         j9201.setPlaybackSpeed(0);

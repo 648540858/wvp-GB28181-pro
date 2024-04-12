@@ -35,7 +35,7 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
      * 观看总人数，包括hls/rtsp/rtmp/http-flv/ws-flv
      */
     @Schema(description = "观看总人数")
-    private String totalReaderCount;
+    private Integer totalReaderCount;
 
     /**
      * 协议 包括hls/rtsp/rtmp/http-flv/ws-flv
@@ -159,7 +159,7 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
         streamPushItem.setStream(streamInfo.getStream());
         streamPushItem.setAliveSecond(streamInfo.getMediaInfo().getAliveSecond());
 //        streamPushItem.setOriginSock(streamInfo.getMediaInfo().getOriginSock());
-        streamPushItem.setTotalReaderCount(streamInfo.getMediaInfo().getReaderCount() + "");
+        streamPushItem.setTotalReaderCount(streamInfo.getMediaInfo().getReaderCount());
         streamPushItem.setOriginType(streamInfo.getOriginType());
 //        streamPushItem.setOriginTypeStr(streamInfo.getMediaInfo().getOriginTypeStr());
 //        streamPushItem.setOriginUrl(streamInfo.getMediaInfo().getOriginUrl());
@@ -180,7 +180,7 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
         streamPushItem.setStream(event.getStream());
         streamPushItem.setAliveSecond(event.getMediaInfo().getAliveSecond());
 //        streamPushItem.setOriginSock(streamInfo.getMediaInfo().getOriginSock());
-        streamPushItem.setTotalReaderCount(event.getMediaInfo().getReaderCount() + "");
+        streamPushItem.setTotalReaderCount(event.getMediaInfo().getReaderCount());
         streamPushItem.setOriginType(event.getMediaInfo().getOriginType());
 //        streamPushItem.setOriginTypeStr(streamInfo.getMediaInfo().getOriginTypeStr());
 //        streamPushItem.setOriginUrl(streamInfo.getMediaInfo().getOriginUrl());
@@ -242,11 +242,11 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
         this.stream = stream;
     }
 
-    public String getTotalReaderCount() {
+    public Integer getTotalReaderCount() {
         return totalReaderCount;
     }
 
-    public void setTotalReaderCount(String totalReaderCount) {
+    public void setTotalReaderCount(Integer totalReaderCount) {
         this.totalReaderCount = totalReaderCount;
     }
 

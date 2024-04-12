@@ -274,7 +274,7 @@ public class StreamPushController {
         stream.setStatus(false);
         stream.setPushIng(false);
         stream.setAliveSecond(0L);
-        stream.setTotalReaderCount("0");
+        stream.setTotalReaderCount(0);
         if (!streamPushService.add(stream)) {
             throw new ControllerException(ErrorCode.ERROR100);
         }

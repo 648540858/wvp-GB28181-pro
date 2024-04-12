@@ -86,8 +86,8 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         }else {
             endDate = LocalDate.of(year, month + 1, 1);
         }
-        long startTimeStamp = startDate.atStartOfDay().toInstant(ZoneOffset.ofHours(8)).getEpochSecond();
-        long endTimeStamp = endDate.atStartOfDay().toInstant(ZoneOffset.ofHours(8)).getEpochSecond();
+        long startTimeStamp = startDate.atStartOfDay().toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
+        long endTimeStamp = endDate.atStartOfDay().toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
         List<CloudRecordItem> cloudRecordItemList = cloudRecordServiceMapper.getList(null, app, stream, startTimeStamp,
                 endTimeStamp, null, mediaServerItems);
         if (cloudRecordItemList.isEmpty()) {

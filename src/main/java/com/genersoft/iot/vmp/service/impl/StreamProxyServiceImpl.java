@@ -18,7 +18,6 @@ import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaNotFoundEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -505,18 +504,18 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         String type = "PULL";
 
         // 发送redis消息
-        List<OnStreamChangedHookParam> onStreamChangedHookParams = redisCatchStorage.getStreams(mediaServerId, type);
-        if (onStreamChangedHookParams.size() > 0) {
-            for (OnStreamChangedHookParam onStreamChangedHookParam : onStreamChangedHookParams) {
+        List<MediaInfo> mediaInfoList = redisCatchStorage.getStreams(mediaServerId, type);
+        if (mediaInfoList.size() > 0) {
+            for (MediaInfo mediaInfo : mediaInfoList) {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("serverId", userSetting.getServerId());
-                jsonObject.put("app", onStreamChangedHookParam.getApp());
-                jsonObject.put("stream", onStreamChangedHookParam.getStream());
+                jsonObject.put("app", mediaInfo.getApp());
+                jsonObject.put("stream", mediaInfo.getStream());
                 jsonObject.put("register", false);
                 jsonObject.put("mediaServerId", mediaServerId);
                 redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
                 // 移除redis内流的信息
-                redisCatchStorage.removeStream(mediaServerId, type, onStreamChangedHookParam.getApp(), onStreamChangedHookParam.getStream());
+                redisCatchStorage.removeStream(mediaServerId, type, mediaInfo.getApp(), mediaInfo.getStream());
             }
         }
     }
@@ -534,8 +533,8 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     private void syncPullStream(String mediaServerId){
         MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
         if (mediaServer != null) {
-            List<OnStreamChangedHookParam> allPullStream = redisCatchStorage.getStreams(mediaServerId, "PULL");
-            if (!allPullStream.isEmpty()) {
+            List<MediaInfo> mediaInfoList = redisCatchStorage.getStreams(mediaServerId, "PULL");
+            if (!mediaInfoList.isEmpty()) {
                 List<StreamInfo> mediaList = mediaServerService.getMediaList(mediaServer, null, null, null);
                 Map<String, StreamInfo> stringStreamInfoMap = new HashMap<>();
                 if (mediaList != null && !mediaList.isEmpty()) {

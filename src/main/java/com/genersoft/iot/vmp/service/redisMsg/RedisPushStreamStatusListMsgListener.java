@@ -84,7 +84,7 @@ public class RedisPushStreamStatusListMsgListener implements MessageListener {
                                 streamPushItem.setMediaServerId(mediaServerService.getDefaultMediaServer().getId());
                                 streamPushItem.setOriginType(2);
                                 streamPushItem.setOriginTypeStr("rtsp_push");
-                                streamPushItem.setTotalReaderCount("0");
+                                streamPushItem.setTotalReaderCount(0);
                                 streamPushItemForSave.add(streamPushItem);
                                 allGBId.put(streamPushItem.getGbId(), streamPushItem);
                             } else {

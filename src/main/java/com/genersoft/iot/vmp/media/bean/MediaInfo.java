@@ -45,6 +45,8 @@ public class MediaInfo {
     private Long aliveSecond;
     @Schema(description = "数据产生速度，单位byte/s")
     private Long bytesSpeed;
+    @Schema(description = "鉴权参数")
+    private String callId;
 
     public static MediaInfo getInstance(JSONObject jsonObject, MediaServer mediaServer) {
         MediaInfo mediaInfo = new MediaInfo();
@@ -302,5 +304,13 @@ public class MediaInfo {
 
     public void setSchema(String schema) {
         this.schema = schema;
+    }
+
+    public String getCallId() {
+        return callId;
+    }
+
+    public void setCallId(String callId) {
+        this.callId = callId;
     }
 }

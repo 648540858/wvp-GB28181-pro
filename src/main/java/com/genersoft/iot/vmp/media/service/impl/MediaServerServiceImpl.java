@@ -115,6 +115,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
             removeCount(event.getMediaServer().getId());
             MediaInfo mediaInfo = redisCatchStorage.getStreamInfo(
                     event.getApp(), event.getStream(), event.getMediaServer().getId());
+            if (mediaInfo == null) {
+                return;
+            }
             String type = OriginType.values()[mediaInfo.getOriginType()].getType();
             redisCatchStorage.removeStream(mediaInfo.getMediaServer().getId(), type, event.getApp(), event.getStream());
         }

@@ -263,7 +263,24 @@ public class JT1078Template {
      *
      * @param devId 设备号
      */
-    public String getDeviceConfig(String devId, J8106 j8106, Integer timeOut) {
+    public String getDeviceConfig(String devId, J8104 j8104, Integer timeOut) {
+
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H8104)
+                .setRespId(H0104)
+                .setRs(j8104)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    /**
+     * 查询指定终端参数
+     *
+     * @param devId 设备号
+     */
+    public String getDeviceSpecifyConfig(String devId, J8106 j8106, Integer timeOut) {
 
         Cmd cmd = new Cmd.Builder()
                 .setDevId(devId)

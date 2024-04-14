@@ -501,25 +501,27 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             return;
         }
         if (params == null || params.length == 0) {
-            return;
-        }
-        byte[] paramBytes = new byte[params.length];
-        for (int i = 0; i < params.length; i++) {
-            try {
-                Field field = JTDeviceConfig.class.getDeclaredField(params[i]);
-                if (field.isAnnotationPresent(ConfigAttribute.class) ) {
-                    ConfigAttribute configAttribute = field.getAnnotation(ConfigAttribute.class);
-                    byte id = configAttribute.id();
-                    String description = configAttribute.description();
-                    System.out.println(description + ":  " + id);
-                    paramBytes[i] = configAttribute.id();
+            J8104 j8104 = new J8104();
+            jt1078Template.getDeviceConfig(deviceId, j8104, 6);
+        }else {
+            byte[] paramBytes = new byte[params.length];
+            for (int i = 0; i < params.length; i++) {
+                try {
+                    Field field = JTDeviceConfig.class.getDeclaredField(params[i]);
+                    if (field.isAnnotationPresent(ConfigAttribute.class) ) {
+                        ConfigAttribute configAttribute = field.getAnnotation(ConfigAttribute.class);
+                        byte id = configAttribute.id();
+                        String description = configAttribute.description();
+                        System.out.println(description + ":  " + id);
+                        paramBytes[i] = configAttribute.id();
+                    }
+                } catch (NoSuchFieldException e) {
+                    throw new RuntimeException(e);
                 }
-            } catch (NoSuchFieldException e) {
-                throw new RuntimeException(e);
             }
+            J8106 j8106 = new J8106();
+            j8106.setParams(paramBytes);
+            jt1078Template.getDeviceSpecifyConfig(deviceId, j8106, 6);
         }
-        J8106 j8106 = new J8106();
-        j8106.setParams(paramBytes);
-        jt1078Template.getDeviceConfig(deviceId, j8106, 6);
     }
 }

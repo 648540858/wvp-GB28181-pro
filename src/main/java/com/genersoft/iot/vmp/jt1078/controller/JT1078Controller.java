@@ -1,10 +1,9 @@
-package com.genersoft.iot.vmp.jt1078.config;
+package com.genersoft.iot.vmp.jt1078.controller;
 
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
+import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConfig;
 import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
@@ -25,11 +24,8 @@ import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import javax.sip.InvalidArgumentException;
-import javax.sip.SipException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.ParseException;
 import java.util.List;
 
 
@@ -313,6 +309,15 @@ public class JT1078Controller {
         }
         logger.info("[1078-雨刷开关] deviceId：{}, channelId：{}, command: {}", deviceId, channelId, command);
         service.wiper(deviceId, channelId, command);
+    }
+
+    @Operation(summary = "查询终端参数", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @GetMapping("/config")
+    public void config(String deviceId, String[] params){
+
+        logger.info("[1078-查询终端参数] deviceId：{}", deviceId);
+        service.config(deviceId, params, null);
     }
 
 }

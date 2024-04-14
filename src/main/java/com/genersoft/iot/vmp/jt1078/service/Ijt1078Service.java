@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.jt1078.service;
 import com.genersoft.iot.vmp.common.GeneralCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
+import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConfig;
 import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
 import com.github.pagehelper.PageInfo;
 
@@ -40,4 +41,6 @@ public interface Ijt1078Service {
     void supplementaryLight(String deviceId, String channelId, String command);
 
     void wiper(String deviceId, String channelId, String command);
+
+    void config(String deviceId, String[] params, GeneralCallback<StreamInfo> callback);
 }

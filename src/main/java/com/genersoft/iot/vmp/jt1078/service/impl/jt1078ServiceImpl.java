@@ -8,6 +8,8 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
+import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConfig;
+import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
 import com.genersoft.iot.vmp.jt1078.cmd.JT1078Template;
 import com.genersoft.iot.vmp.jt1078.dao.JTDeviceMapper;
 import com.genersoft.iot.vmp.jt1078.event.CallbackManager;
@@ -35,6 +37,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.beans.IntrospectionException;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -486,5 +493,33 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             j9304.setOn(0);
         }
         jt1078Template.ptzWiper(deviceId, j9304, 6);
+    }
+
+    @Override
+    public void config(String deviceId, String[] params, GeneralCallback<StreamInfo> callback) {
+        if (deviceId == null) {
+            return;
+        }
+        if (params == null || params.length == 0) {
+            return;
+        }
+        byte[] paramBytes = new byte[params.length];
+        for (int i = 0; i < params.length; i++) {
+            try {
+                Field field = JTDeviceConfig.class.getDeclaredField(params[i]);
+                if (field.isAnnotationPresent(ConfigAttribute.class) ) {
+                    ConfigAttribute configAttribute = field.getAnnotation(ConfigAttribute.class);
+                    byte id = configAttribute.id();
+                    String description = configAttribute.description();
+                    System.out.println(description + ":  " + id);
+                    paramBytes[i] = configAttribute.id();
+                }
+            } catch (NoSuchFieldException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        J8106 j8106 = new J8106();
+        j8106.setParams(paramBytes);
+        jt1078Template.getDeviceConfig(deviceId, j8106, 6);
     }
 }

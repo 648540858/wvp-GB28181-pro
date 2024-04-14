@@ -17,6 +17,8 @@ public class JT1078Template {
 
     private final Random random = new Random();
 
+    private static final String H8104 = "8104";
+    private static final String H8106 = "8106";
     private static final String H9101 = "9101";
     private static final String H9102 = "9102";
     private static final String H9201 = "9201";
@@ -32,6 +34,7 @@ public class JT1078Template {
     private static final String H9306 = "9306";
 
     private static final String H0001 = "0001";
+    private static final String H0104 = "0104";
     private static final String H1205 = "1205";
 
     /**
@@ -251,6 +254,23 @@ public class JT1078Template {
                 .setMsgId(H9306)
                 .setRespId(H0001)
                 .setRs(j9306)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    /**
+     * 查询终端参数
+     *
+     * @param devId 设备号
+     */
+    public String getDeviceConfig(String devId, J8106 j8106, Integer timeOut) {
+
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H8106)
+                .setRespId(H0104)
+                .setRs(j8106)
                 .build();
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }

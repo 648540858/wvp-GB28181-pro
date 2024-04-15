@@ -31,7 +31,6 @@ import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRecordMp4HookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.*;
-import com.genersoft.iot.vmp.service.redisMsg.RedisGbPlayMsgListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.CloudRecordServiceMapper;
@@ -133,9 +132,6 @@ public class PlayServiceImpl implements IPlayService {
     @Qualifier("taskExecutor")
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
-
-    @Autowired
-    private RedisGbPlayMsgListener redisGbPlayMsgListener;
 
     @Autowired
     private ZlmHttpHookSubscribe hookSubscribe;
@@ -1366,15 +1362,7 @@ public class PlayServiceImpl implements IPlayService {
             param.put("udp_rtcp_timeout", sendRtpItem.isRtcp() ? "1" : "0");
         }
 
-        if (mediaInfo == null) {
-            RequestPushStreamMsg requestPushStreamMsg = RequestPushStreamMsg.getInstance(
-                    sendRtpItem.getMediaServerId(), sendRtpItem.getApp(), sendRtpItem.getStream(),
-                    sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc(), sendRtpItem.isTcp(),
-                    sendRtpItem.getLocalPort(), sendRtpItem.getPt(), sendRtpItem.isUsePs(), sendRtpItem.isOnlyAudio());
-            redisGbPlayMsgListener.sendMsgForStartSendRtpStream(sendRtpItem.getServerId(), requestPushStreamMsg, json -> {
-                startSendRtpStreamHand(sendRtpItem, platform, json, param, callIdHeader);
-            });
-        } else {
+        if (mediaInfo != null) {
             // 如果是严格模式，需要关闭端口占用
             JSONObject startSendRtpStreamResult = null;
             if (sendRtpItem.getLocalPort() != 0) {

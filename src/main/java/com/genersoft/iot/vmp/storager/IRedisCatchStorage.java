@@ -219,5 +219,9 @@ public interface IRedisCatchStorage {
 
     void addWaiteSendRtpItem(SendRtpItem sendRtpItem, int platformPlayTimeout);
 
+    SendRtpItem getWaiteSendRtpItem(String app, String stream);
+
     void sendStartSendRtp(SendRtpItem sendRtpItem);
+
+    void sendPushStreamOnline(SendRtpItem sendRtpItem);
 }

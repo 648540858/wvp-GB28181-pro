@@ -553,4 +553,21 @@ public class StreamPushServiceImpl implements IStreamPushService {
     public Map<String, StreamPushItem> getAllAppAndStreamMap() {
         return streamPushMapper.getAllAppAndStreamMap();
     }
+
+    @Override
+    public void updatePush(OnStreamChangedHookParam param) {
+        StreamPushItem transform = transform(param);
+        StreamPushItem pushInDb = getPush(param.getApp(), param.getStream());
+        transform.setPushIng(param.isRegist());
+        transform.setUpdateTime(DateUtil.getNow());
+        transform.setPushTime(DateUtil.getNow());
+        transform.setSelf(userSetting.getServerId().equals(param.getSeverId()));
+        if (pushInDb == null) {
+            transform.setCreateTime(DateUtil.getNow());
+            streamPushMapper.add(transform);
+        }else {
+            streamPushMapper.update(transform);
+            gbStreamMapper.updateMediaServer(param.getApp(), param.getStream(), param.getMediaServerId());
+        }
+    }
 }

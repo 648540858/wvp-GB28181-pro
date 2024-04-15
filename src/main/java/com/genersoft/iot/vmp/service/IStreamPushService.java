@@ -118,4 +118,5 @@ public interface IStreamPushService {
     Map<String, StreamPushItem> getAllAppAndStreamMap();
 
 
+    void updatePush(OnStreamChangedHookParam param);
 }

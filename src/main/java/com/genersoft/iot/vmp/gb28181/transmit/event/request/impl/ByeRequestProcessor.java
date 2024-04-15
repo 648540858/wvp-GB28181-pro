@@ -19,7 +19,6 @@ import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.service.bean.RequestStopPushStreamMsg;
-import com.genersoft.iot.vmp.service.redisMsg.RedisGbPlayMsgListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -98,8 +97,6 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 	@Autowired
 	private IStreamPushService pushService;
 
-	@Autowired
-	private RedisGbPlayMsgListener redisGbPlayMsgListener;
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -142,7 +139,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 					ParentPlatform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
 					if (platform != null) {
 						RequestStopPushStreamMsg streamMsg = RequestStopPushStreamMsg.getInstance(sendRtpItem, platform.getName(), platform.getId());
-						redisGbPlayMsgListener.sendMsgForStopSendRtpStream(sendRtpItem.getServerId(), streamMsg);
+//						redisGbPlayMsgListener.sendMsgForStopSendRtpStream(sendRtpItem.getServerId(), streamMsg);
 					}
 				}else {
 					MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());

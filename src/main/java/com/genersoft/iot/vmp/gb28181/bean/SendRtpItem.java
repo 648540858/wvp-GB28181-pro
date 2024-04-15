@@ -132,6 +132,11 @@ public class SendRtpItem {
      */
     private String receiveStream;
 
+    /**
+     * 上级的点播类型
+     */
+    private String sessionName;
+
     public String getIp() {
         return ip;
     }
@@ -332,6 +337,14 @@ public class SendRtpItem {
         this.localIp = localIp;
     }
 
+    public String getSessionName() {
+        return sessionName;
+    }
+
+    public void setSessionName(String sessionName) {
+        this.sessionName = sessionName;
+    }
+
     @Override
     public String toString() {
         return "SendRtpItem{" +
@@ -347,7 +360,7 @@ public class SendRtpItem {
                 ", stream='" + stream + '\'' +
                 ", tcp=" + tcp +
                 ", tcpActive=" + tcpActive +
-                ", localIp=" + localIp +
+                ", localIp='" + localIp + '\'' +
                 ", localPort=" + localPort +
                 ", mediaServerId='" + mediaServerId + '\'' +
                 ", serverId='" + serverId + '\'' +
@@ -360,6 +373,7 @@ public class SendRtpItem {
                 ", rtcp=" + rtcp +
                 ", playType=" + playType +
                 ", receiveStream='" + receiveStream + '\'' +
+                ", sessionName='" + sessionName + '\'' +
                 '}';
     }
 }

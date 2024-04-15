@@ -16,7 +16,6 @@ import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.RequestPushStreamMsg;
-import com.genersoft.iot.vmp.service.redisMsg.RedisGbPlayMsgListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.slf4j.Logger;
@@ -78,9 +77,6 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 	private DynamicTask dynamicTask;
 
 	@Autowired
-	private RedisGbPlayMsgListener redisGbPlayMsgListener;
-
-	@Autowired
 	private IPlayService playService;
 
 
@@ -117,13 +113,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 		if (parentPlatform != null) {
 			Map<String, Object> param = getSendRtpParam(sendRtpItem);
 			if (!userSetting.getServerId().equals(sendRtpItem.getServerId())) {
-				RequestPushStreamMsg requestPushStreamMsg = RequestPushStreamMsg.getInstance(
-						sendRtpItem.getMediaServerId(), sendRtpItem.getApp(), sendRtpItem.getStream(),
-						sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc(), sendRtpItem.isTcp(),
-						sendRtpItem.getLocalPort(), sendRtpItem.getPt(), sendRtpItem.isUsePs(), sendRtpItem.isOnlyAudio());
-				redisGbPlayMsgListener.sendMsgForStartSendRtpStream(sendRtpItem.getServerId(), requestPushStreamMsg, json -> {
-					playService.startSendRtpStreamHand(sendRtpItem, parentPlatform, json, param, callIdHeader);
-				});
+				redisCatchStorage.sendStartSendRtp(sendRtpItem);
 			} else {
 				JSONObject startSendRtpStreamResult = sendRtp(sendRtpItem, mediaInfo, param);
 				if (startSendRtpStreamResult != null) {

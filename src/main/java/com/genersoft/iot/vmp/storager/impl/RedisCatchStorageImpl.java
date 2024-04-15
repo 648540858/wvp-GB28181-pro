@@ -686,8 +686,21 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
+    public SendRtpItem getWaiteSendRtpItem(String app, String stream) {
+        String key = VideoManagerConstants.WAITE_SEND_PUSH_STREAM + app + "_" + stream;
+        return (SendRtpItem)redisTemplate.opsForValue().get(key);
+    }
+
+    @Override
     public void sendStartSendRtp(SendRtpItem sendRtpItem) {
         String key = VideoManagerConstants.START_SEND_PUSH_STREAM + sendRtpItem.getApp() + "_" + sendRtpItem.getStream();
         redisTemplate.opsForValue().set(key, JSON.toJSONString(sendRtpItem));
+    }
+
+    @Override
+    public void sendPushStreamOnline(SendRtpItem sendRtpItem) {
+        String key = VideoManagerConstants.VM_MSG_STREAM_PUSH_CLOSE_REQUESTED;
+        logger.info("[redis发送通知] 流上线 {}: {}/{}->{}", key, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getPlatformId());
+        redisTemplate.convertAndSend(key, JSON.toJSON(sendRtpItem));
     }
 }

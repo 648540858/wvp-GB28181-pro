@@ -217,4 +217,7 @@ public interface IRedisCatchStorage {
 
     void sendPushStreamClose(MessageForPushChannel messageForPushChannel);
 
+    void addWaiteSendRtpItem(SendRtpItem sendRtpItem, int platformPlayTimeout);
+
+    void sendStartSendRtp(SendRtpItem sendRtpItem);
 }

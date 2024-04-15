@@ -22,6 +22,11 @@ public class SendRtpItem {
      */
     private String platformId;
 
+    /**
+     * 平台名称
+     */
+    private String platformName;
+
      /**
      * 对应设备id
      */
@@ -60,6 +65,11 @@ public class SendRtpItem {
      * 是否为tcp主动模式
      */
     private boolean tcpActive;
+
+    /**
+     * 自己推流使用的IP
+     */
+    private String localIp;
 
     /**
      * 自己推流使用的端口
@@ -306,6 +316,22 @@ public class SendRtpItem {
         this.receiveStream = receiveStream;
     }
 
+    public String getPlatformName() {
+        return platformName;
+    }
+
+    public void setPlatformName(String platformName) {
+        this.platformName = platformName;
+    }
+
+    public String getLocalIp() {
+        return localIp;
+    }
+
+    public void setLocalIp(String localIp) {
+        this.localIp = localIp;
+    }
+
     @Override
     public String toString() {
         return "SendRtpItem{" +
@@ -313,6 +339,7 @@ public class SendRtpItem {
                 ", port=" + port +
                 ", ssrc='" + ssrc + '\'' +
                 ", platformId='" + platformId + '\'' +
+                ", platformName='" + platformName + '\'' +
                 ", deviceId='" + deviceId + '\'' +
                 ", app='" + app + '\'' +
                 ", channelId='" + channelId + '\'' +
@@ -320,6 +347,7 @@ public class SendRtpItem {
                 ", stream='" + stream + '\'' +
                 ", tcp=" + tcp +
                 ", tcpActive=" + tcpActive +
+                ", localIp=" + localIp +
                 ", localPort=" + localPort +
                 ", mediaServerId='" + mediaServerId + '\'' +
                 ", serverId='" + serverId + '\'' +

@@ -61,6 +61,7 @@ public class MessageForPushChannel {
         messageForPushChannel.setGbId(gbId);
         messageForPushChannel.setApp(app);
         messageForPushChannel.setStream(stream);
+        messageForPushChannel.setServerId(serverId);
         messageForPushChannel.setMediaServerId(mediaServerId);
         messageForPushChannel.setPlatFormId(platFormId);
         messageForPushChannel.setPlatFormName(platFormName);

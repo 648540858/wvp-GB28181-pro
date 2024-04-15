@@ -678,4 +678,16 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         logger.info("[redis发送通知] 发送 停止向上级推流 {}: {}/{}->{}", key, msg.getApp(), msg.getStream(), msg.getPlatFormId());
         redisTemplate.convertAndSend(key, JSON.toJSON(msg));
     }
+
+    @Override
+    public void addWaiteSendRtpItem(SendRtpItem sendRtpItem, int platformPlayTimeout) {
+        String key = VideoManagerConstants.WAITE_SEND_PUSH_STREAM + sendRtpItem.getApp() + "_" + sendRtpItem.getStream();
+        redisTemplate.opsForValue().set(key, platformPlayTimeout);
+    }
+
+    @Override
+    public void sendStartSendRtp(SendRtpItem sendRtpItem) {
+        String key = VideoManagerConstants.START_SEND_PUSH_STREAM + sendRtpItem.getApp() + "_" + sendRtpItem.getStream();
+        redisTemplate.opsForValue().set(key, JSON.toJSONString(sendRtpItem));
+    }
 }

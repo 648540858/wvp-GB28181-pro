@@ -665,6 +665,8 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                                 .append("<Owner> " + channel.getOwner()+ "</Owner>\r\n")
                                 .append("<CivilCode>" + channel.getCivilCode() + "</CivilCode>\r\n")
                                 .append("<Address>" + channel.getAddress() + "</Address>\r\n");
+                        catalogXml.append("<Longitude>" + channel.getLongitude() + "</Longitude>\r\n");
+                        catalogXml.append("<Latitude>" + channel.getLatitude() + "</Latitude>\r\n");
                     }
                     if (!"presence".equals(subscribeInfo.getEventType())) {
                         catalogXml.append("<Event>" + type + "</Event>\r\n");

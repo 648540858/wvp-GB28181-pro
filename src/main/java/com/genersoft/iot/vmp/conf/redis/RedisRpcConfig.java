@@ -193,10 +193,8 @@ public class RedisRpcConfig implements MessageListener {
     }
 
     private void setCallback(long key, CommonCallback<RedisRpcResponse> callback)  {
-        if (!callbacks.containsKey(key)) {
-            callbacks.put(key, callback);
-        }
-
+        // TODO 如果多个上级点播同一个通道会有问题
+        callbacks.put(key, callback);
     }
 
     public void removeCallback(long key)  {

@@ -34,23 +34,13 @@ public class RedisMsgListenConfig {
 	@Autowired
 	private RedisPushStreamStatusListMsgListener redisPushStreamListMsgListener;
 
-	@Autowired
-	private RedisPushStreamResponseListener redisPushStreamResponseListener;
 
 	@Autowired
 	private RedisCloseStreamMsgListener redisCloseStreamMsgListener;
 
-	@Autowired
-	private RedisPushStreamCloseResponseListener redisPushStreamCloseResponseListener;
 
 	@Autowired
-	private RedisPlatformWaitPushStreamOnlineListener redisPlatformWaitPushStreamOnlineListener;
-
-	@Autowired
-	private RedisPlatformStartSendRtpListener redisPlatformStartSendRtpListener;
-
-	@Autowired
-	private RedisPlatformPushStreamOnlineLister redisPlatformPushStreamOnlineLister;
+	private RedisRpcConfig redisRpcConfig;
 
 
 	/**
@@ -69,12 +59,8 @@ public class RedisMsgListenConfig {
 		container.addMessageListener(redisAlarmMsgListener, new PatternTopic(VideoManagerConstants.VM_MSG_SUBSCRIBE_ALARM_RECEIVE));
 		container.addMessageListener(redisPushStreamStatusMsgListener, new PatternTopic(VideoManagerConstants.VM_MSG_PUSH_STREAM_STATUS_CHANGE));
 		container.addMessageListener(redisPushStreamListMsgListener, new PatternTopic(VideoManagerConstants.VM_MSG_PUSH_STREAM_LIST_CHANGE));
-		container.addMessageListener(redisPushStreamResponseListener, new PatternTopic(VideoManagerConstants.VM_MSG_STREAM_PUSH_RESPONSE));
 		container.addMessageListener(redisCloseStreamMsgListener, new PatternTopic(VideoManagerConstants.VM_MSG_STREAM_PUSH_CLOSE));
-		container.addMessageListener(redisPushStreamCloseResponseListener, new PatternTopic(VideoManagerConstants.VM_MSG_STREAM_PUSH_CLOSE_REQUESTED));
-		container.addMessageListener(redisPlatformStartSendRtpListener, new PatternTopic(VideoManagerConstants.START_SEND_PUSH_STREAM));
-		container.addMessageListener(redisPlatformWaitPushStreamOnlineListener, new PatternTopic(VideoManagerConstants.VM_MSG_STREAM_PUSH_REQUESTED));
-		container.addMessageListener(redisPlatformPushStreamOnlineLister, new PatternTopic(VideoManagerConstants.PUSH_STREAM_ONLINE));
+		container.addMessageListener(redisRpcConfig, new PatternTopic(RedisRpcConfig.REDIS_REQUEST_CHANNEL_KEY));
         return container;
     }
 }

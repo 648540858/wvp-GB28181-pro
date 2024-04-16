@@ -25,7 +25,6 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.JsonUtil;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.RecordFile;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -36,19 +35,15 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
-import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 import java.io.File;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 /**
  * 媒体服务器节点管理
@@ -751,6 +746,22 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Override
     public List<MediaServerItem> getAllWithAssistPort() {
+
         return mediaServerMapper.queryAllWithAssistPort();
+    }
+
+    @Override
+    public MediaServerItem getMediaServerByAppAndStream(String app, String stream) {
+        List<MediaServerItem> mediaServerItemList = getAllOnline();
+        if (mediaServerItemList.isEmpty()) {
+            return null;
+        }
+        for (MediaServerItem mediaServerItem : mediaServerItemList) {
+            Boolean streamReady = zlmServerFactory.isStreamReady(mediaServerItem, app, stream);
+            if (streamReady) {
+                return mediaServerItem;
+            }
+        }
+        return null;
     }
 }

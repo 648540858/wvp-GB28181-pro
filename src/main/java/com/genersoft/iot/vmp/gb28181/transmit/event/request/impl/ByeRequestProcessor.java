@@ -18,7 +18,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
-import com.genersoft.iot.vmp.service.bean.RequestStopPushStreamMsg;
+import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -97,6 +97,9 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 	@Autowired
 	private IStreamPushService pushService;
 
+	@Autowired
+	private IRedisRpcService redisRpcService;
+
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -134,13 +137,8 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			if (sendRtpItem.getPlayType().equals(InviteStreamType.PUSH)) {
 				// 查询这路流是否是本平台的
 				StreamPushItem push = pushService.getPush(sendRtpItem.getApp(), sendRtpItem.getStream());
-				if (push!= null && !push.isSelf()) {
-					// 不是本平台的就发送redis消息让其他wvp停止发流
-					ParentPlatform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
-					if (platform != null) {
-						RequestStopPushStreamMsg streamMsg = RequestStopPushStreamMsg.getInstance(sendRtpItem, platform.getName(), platform.getId());
-//						redisGbPlayMsgListener.sendMsgForStopSendRtpStream(sendRtpItem.getServerId(), streamMsg);
-					}
+				if (!userSetting.getServerId().equals(sendRtpItem.getServerId())) {
+					redisRpcService.stopSendRtp(sendRtpItem);
 				}else {
 					MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 					redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(),

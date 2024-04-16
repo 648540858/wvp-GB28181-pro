@@ -15,9 +15,11 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IPlayService;
-import com.genersoft.iot.vmp.service.bean.RequestPushStreamMsg;
+import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
+import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -54,6 +56,8 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 
 	@Autowired
     private IRedisCatchStorage redisCatchStorage;
+	@Autowired
+    private IRedisRpcService redisRpcService;
 
 	@Autowired
     private UserSetting userSetting;
@@ -113,7 +117,15 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 		if (parentPlatform != null) {
 			Map<String, Object> param = getSendRtpParam(sendRtpItem);
 			if (!userSetting.getServerId().equals(sendRtpItem.getServerId())) {
-				redisCatchStorage.sendStartSendRtp(sendRtpItem);
+//				redisCatchStorage.sendStartSendRtp(sendRtpItem);
+				WVPResult wvpResult = redisRpcService.startSendRtp(sendRtpItem);
+				if (wvpResult.getCode() == 0) {
+					MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0, sendRtpItem.getApp(), sendRtpItem.getStream(),
+							sendRtpItem.getChannelId(), parentPlatform.getServerGBId(), parentPlatform.getName(), userSetting.getServerId(),
+							sendRtpItem.getMediaServerId());
+					messageForPushChannel.setPlatFormIndex(parentPlatform.getId());
+					redisCatchStorage.sendPlatformStartPlayMsg(messageForPushChannel);
+				}
 			} else {
 				JSONObject startSendRtpStreamResult = sendRtp(sendRtpItem, mediaInfo, param);
 				if (startSendRtpStreamResult != null) {

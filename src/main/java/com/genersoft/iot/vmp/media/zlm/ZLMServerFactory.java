@@ -365,4 +365,13 @@ public class ZLMServerFactory {
         }
         return result;
     }
+
+    public JSONObject stopSendRtpStream(MediaServerItem mediaServerItem, SendRtpItem sendRtpItem) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("vhost", "__defaultVhost__");
+        param.put("app", sendRtpItem.getApp());
+        param.put("stream", sendRtpItem.getStream());
+        param.put("ssrc", sendRtpItem.getSsrc());
+        return zlmresTfulUtils.startSendRtp(mediaServerItem, param);
+    }
 }

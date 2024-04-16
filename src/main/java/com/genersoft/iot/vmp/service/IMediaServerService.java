@@ -6,7 +6,6 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.ServerKeepaliveData;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
-import com.genersoft.iot.vmp.vmanager.bean.RecordFile;
 
 import java.util.List;
 
@@ -97,4 +96,5 @@ public interface IMediaServerService {
 
     List<MediaServerItem> getAllWithAssistPort();
 
+    MediaServerItem getMediaServerByAppAndStream(String app, String stream);
 }

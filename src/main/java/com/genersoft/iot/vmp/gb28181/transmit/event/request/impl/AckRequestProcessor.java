@@ -117,7 +117,6 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 		if (parentPlatform != null) {
 			Map<String, Object> param = getSendRtpParam(sendRtpItem);
 			if (!userSetting.getServerId().equals(sendRtpItem.getServerId())) {
-//				redisCatchStorage.sendStartSendRtp(sendRtpItem);
 				WVPResult wvpResult = redisRpcService.startSendRtp(sendRtpItem);
 				if (wvpResult.getCode() == 0) {
 					MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0, sendRtpItem.getApp(), sendRtpItem.getStream(),

@@ -180,6 +180,13 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 				logger.warn("[mobilePosition移动位置Notify] 未找到通道{}所属的设备", channelId);
 				return;
 			}
+			// 兼容设备部分设备上报是通道编号与设备编号一致的情况
+			if(deviceId.equals(channelId)) {
+				List<DeviceChannel> deviceChannels = deviceChannelService.queryChaneListByDeviceId(deviceId);
+				if (deviceChannels.size() == 1) {
+					channelId = deviceChannels.get(0).getChannelId();
+				}
+			}
 			if (!ObjectUtils.isEmpty(device.getName())) {
 				mobilePosition.setDeviceName(device.getName());
 			}

@@ -775,7 +775,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         redisRpcService.waitePushStreamOnline(sendRtpItem, (sendRtpItemFromRedis) -> {
             dynamicTask.stop(sendRtpItem.getCallId());
             if (sendRtpItemFromRedis.getServerId().equals(userSetting.getServerId())) {
-
+                logger.info("[级联点播] 等待的推流在本平台上线 {}/{}", sendRtpItem.getApp(), sendRtpItem.getStream());
                 int localPort = sendRtpPortManager.getNextPort(mediaServerItem);
                 if (localPort == 0) {
                     logger.warn("上级点时创建sendRTPItem失败，可能是服务器端口资源不足");
@@ -827,7 +827,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
      * 来自其他wvp的推流
      */
     private void otherWvpPushStream(SendRtpItem sendRtpItem, SIPRequest request, ParentPlatform platform) {
-        logger.info("[级联点播]直播流来自其他平台，发送redis消息");
+        logger.info("[级联点播] 来自其他wvp的推流 {}/{}", sendRtpItem.getApp(), sendRtpItem.getStream());
         sendRtpItem = redisRpcService.getSendRtpItem(sendRtpItem);
         // 写入redis， 超时时回复
         sendRtpItem.setStatus(1);

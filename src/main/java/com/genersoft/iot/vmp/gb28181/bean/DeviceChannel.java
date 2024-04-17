@@ -187,6 +187,18 @@ public class DeviceChannel {
 	private double latitude;
 
 	/**
+	 * 经度
+	 */
+	@Schema(description = "自定义经度")
+	private double customLongitude;
+
+	/**
+	 * 纬度
+	 */
+	@Schema(description = "自定义纬度")
+	private double customLatitude;
+
+	/**
 	 * 经度 GCJ02
 	 */
 	@Schema(description = "GCJ02坐标系经度")
@@ -585,5 +597,21 @@ public class DeviceChannel {
 
 	public void setStreamIdentification(String streamIdentification) {
 		this.streamIdentification = streamIdentification;
+	}
+
+	public double getCustomLongitude() {
+		return customLongitude;
+	}
+
+	public void setCustomLongitude(double customLongitude) {
+		this.customLongitude = customLongitude;
+	}
+
+	public double getCustomLatitude() {
+		return customLatitude;
+	}
+
+	public void setCustomLatitude(double customLatitude) {
+		this.customLatitude = customLatitude;
 	}
 }

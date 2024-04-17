@@ -52,8 +52,8 @@ public interface DeviceChannelMapper {
             "<if test='status != null'>, status=#{status}</if>" +
             "<if test='streamId != null'>, stream_id=#{streamId}</if>" +
             "<if test='hasAudio != null'>, has_audio=#{hasAudio}</if>" +
-            ", custom_longitude=#{longitude}" +
-            ", custom_latitude=#{latitude}" +
+            "<if test='customLongitude != null'>, custom_longitude=#{customLongitude}</if>" +
+            "<if test='customLatitude != null'>, custom_latitude=#{customLatitude}</if>" +
             "<if test='longitudeGcj02 != null'>, longitude_gcj02=#{longitudeGcj02}</if>" +
             "<if test='latitudeGcj02 != null'>, latitude_gcj02=#{latitudeGcj02}</if>" +
             "<if test='longitudeWgs84 != null'>, longitude_wgs84=#{longitudeWgs84}</if>" +
@@ -89,8 +89,10 @@ public interface DeviceChannelMapper {
             "dc.password, " +
             "COALESCE(dc.custom_ptz_type, dc.ptz_type) AS ptz_type, " +
             "dc.status, " +
-            "COALESCE(dc.custom_longitude, dc.longitude) AS longitude, " +
-            "COALESCE(dc.custom_latitude, dc.latitude) AS latitude, " +
+            "dc.longitude, " +
+            "dc.latitude, " +
+            "dc.custom_longitude, " +
+            "dc.custom_latitude, " +
             "dc.stream_id, " +
             "dc.device_id, " +
             "dc.parental, " +
@@ -345,6 +347,8 @@ public interface DeviceChannelMapper {
             "<if test='item.hasAudio != null'>, has_audio=#{item.hasAudio}</if>" +
             "<if test='item.longitude != null'>, longitude=#{item.longitude}</if>" +
             "<if test='item.latitude != null'>, latitude=#{item.latitude}</if>" +
+            "<if test='customLongitude != null'>, custom_longitude=#{item.customLongitude}</if>" +
+            "<if test='custom_latitude != null'>, custom_latitude=#{item.customLatitude}</if>" +
             "<if test='item.longitudeGcj02 != null'>, longitude_gcj02=#{item.longitudeGcj02}</if>" +
             "<if test='item.latitudeGcj02 != null'>, latitude_gcj02=#{item.latitudeGcj02}</if>" +
             "<if test='item.longitudeWgs84 != null'>, longitude_wgs84=#{item.longitudeWgs84}</if>" +

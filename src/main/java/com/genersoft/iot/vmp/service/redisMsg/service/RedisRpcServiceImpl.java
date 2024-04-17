@@ -15,12 +15,15 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.HookParam;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class RedisRpcServiceImpl implements IRedisRpcService {
 
+    private final static Logger logger = LoggerFactory.getLogger(RedisRpcServiceImpl.class);
 
     @Autowired
     private RedisRpcConfig redisRpcConfig;
@@ -52,6 +55,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
 
     @Override
     public WVPResult startSendRtp(SendRtpItem sendRtpItem) {
+        logger.info("[请求其他WVP] 开始推流，wvp：{}， {}/{}", sendRtpItem.getServerId(), sendRtpItem.getApp(), sendRtpItem.getStream());
         RedisRpcRequest request = buildRequest("startSendRtp", sendRtpItem);
         request.setToId(sendRtpItem.getServerId());
         RedisRpcResponse response = redisRpcConfig.request(request, 10);
@@ -68,6 +72,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
 
     @Override
     public void waitePushStreamOnline(SendRtpItem sendRtpItem, CommonCallback<SendRtpItem> callback) {
+        logger.info("[请求所有WVP监听流上线] {}/{}", sendRtpItem.getApp(), sendRtpItem.getStream());
         // 监听流上线。 流上线直接发送sendRtpItem消息给实际的信令处理者
         HookSubscribeForStreamChange hook = HookSubscribeFactory.on_stream_changed(
                 sendRtpItem.getApp(), sendRtpItem.getStream(), true, "rtsp", null);
@@ -91,6 +96,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         request.setToId(sendRtpItem.getServerId());
         redisRpcConfig.request(request, response -> {
             SendRtpItem sendRtpItemFromOther = JSON.parseObject(response.getBody().toString(), SendRtpItem.class);
+            logger.info("[请求所有WVP监听流上线] 流上线 {}/{}->{}", sendRtpItemFromOther.getApp(), sendRtpItemFromOther.getStream(), sendRtpItemFromOther);
             if (callback != null) {
                 callback.run(sendRtpItemFromOther);
             }

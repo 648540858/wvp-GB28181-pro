@@ -153,6 +153,25 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
+    public List<SendRtpItem> querySendRTPServer(String platformGbId, String channelId, String streamId) {
+        String scanKey = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
+                + userSetting.getServerId() + "_*_"
+                + platformGbId + "_"
+                + channelId + "_"
+                + streamId + "_"
+                + "*";
+        List<SendRtpItem> result = new ArrayList<>();
+        List<Object> scan = RedisUtil.scan(redisTemplate, scanKey);
+        if (!scan.isEmpty()) {
+            for (Object o : scan) {
+                String key = (String) o;
+                result.add(JsonUtil.redisJsonToObject(redisTemplate, key, SendRtpItem.class));
+            }
+        }
+        return result;
+    }
+
+    @Override
     public SendRtpItem querySendRTPServer(String platformGbId, String channelId, String streamId, String callId) {
         if (platformGbId == null) {
             platformGbId = "*";
@@ -266,6 +285,14 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
                 redisTemplate.delete(keyStr);
             }
         }
+    }
+
+    /**
+     * 删除RTP推送信息缓存
+     */
+    @Override
+    public void deleteSendRTPServer(SendRtpItem sendRtpItem) {
+        deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(),sendRtpItem.getCallId(), sendRtpItem.getServerId());
     }
 
     @Override

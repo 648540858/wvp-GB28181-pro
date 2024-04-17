@@ -40,6 +40,8 @@ public interface IRedisCatchStorage {
 
     void updateSendRTPSever(SendRtpItem sendRtpItem);
 
+    List<SendRtpItem> querySendRTPServer(String platformGbId, String channelId, String streamId);
+
     /**
      * 查询RTP推送信息缓存
      * @param platformGbId
@@ -191,6 +193,8 @@ public interface IRedisCatchStorage {
     int getGbSendCount(String id);
 
     void addDiskInfo(List<Map<String, Object>> diskInfo);
+
+    void deleteSendRTPServer(SendRtpItem sendRtpItem);
 
     List<SendRtpItem> queryAllSendRTPServer();
 

@@ -54,10 +54,7 @@ import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.Vector;
+import java.util.*;
 
 /**
  * SIP命令类型： INVITE请求
@@ -589,7 +586,13 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     sendRtpItem.setOnlyAudio(false);
                     sendRtpItem.setStatus(0);
                     sendRtpItem.setSessionName(sessionName);
-
+                    // 清理可能存在的缓存避免用到旧的数据
+                    List<SendRtpItem> sendRtpItemList = redisCatchStorage.querySendRTPServer(platform.getServerGBId(), channelId, gbStream.getStream());
+                    if (!sendRtpItemList.isEmpty()) {
+                        for (SendRtpItem rtpItem : sendRtpItemList) {
+                            redisCatchStorage.deleteSendRTPServer(rtpItem);
+                        }
+                    }
                     if ("push".equals(gbStream.getStreamType())) {
                         sendRtpItem.setPlayType(InviteStreamType.PUSH);
                         if (streamPushItem != null) {

@@ -97,4 +97,21 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         });
 
     }
+
+    @Override
+    public void stopWaitePushStreamOnline(SendRtpItem sendRtpItem) {
+        HookSubscribeForStreamChange hook = HookSubscribeFactory.on_stream_changed(
+                sendRtpItem.getApp(), sendRtpItem.getStream(), true, "rtsp", null);
+        hookSubscribe.removeSubscribe(hook);
+        RedisRpcRequest request = buildRequest("stopWaitePushStreamOnline", sendRtpItem);
+        request.setToId(sendRtpItem.getServerId());
+        redisRpcConfig.request(request, 10);
+    }
+
+    @Override
+    public void rtpSendStopped(SendRtpItem sendRtpItem) {
+        RedisRpcRequest request = buildRequest("rtpSendStopped", sendRtpItem);
+        request.setToId(sendRtpItem.getServerId());
+        redisRpcConfig.request(request, 10);
+    }
 }

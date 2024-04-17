@@ -372,6 +372,6 @@ public class ZLMServerFactory {
         param.put("app", sendRtpItem.getApp());
         param.put("stream", sendRtpItem.getStream());
         param.put("ssrc", sendRtpItem.getSsrc());
-        return zlmresTfulUtils.startSendRtp(mediaServerItem, param);
+        return zlmresTfulUtils.stopSendRtp(mediaServerItem, param);
     }
 }

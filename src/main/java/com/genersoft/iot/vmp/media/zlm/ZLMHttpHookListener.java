@@ -10,19 +10,22 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
-import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
+import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.media.zlm.dto.*;
+import com.genersoft.iot.vmp.media.zlm.dto.HookType;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.*;
 import com.genersoft.iot.vmp.service.*;
-import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
+import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -77,6 +80,10 @@ public class ZLMHttpHookListener {
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+
+    @Autowired
+    private IRedisRpcService redisRpcService;
 
     @Autowired
     private IInviteStreamService inviteStreamService;
@@ -511,41 +518,33 @@ public class ZLMHttpHookListener {
                             }
 
                             if (sendRtpItem.getApp().equals(param.getApp())) {
-                                logger.info(sendRtpItem.toString());
-                                if (userSetting.getServerId().equals(sendRtpItem.getServerId())) {
-                                    MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
-                                            sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getChannelId(),
-                                            sendRtpItem.getPlatformId(), null, userSetting.getServerId(), param.getMediaServerId());
-                                    // 通知其他wvp停止发流
-                                    redisCatchStorage.sendPushStreamClose(messageForPushChannel);
-                                }else {
-                                    String platformId = sendRtpItem.getPlatformId();
-                                    ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
-                                    Device device = deviceService.getDevice(platformId);
-
-                                    try {
-                                        if (platform != null) {
-                                            commanderFroPlatform.streamByeCmd(platform, sendRtpItem);
-                                            redisCatchStorage.deleteSendRTPServer(platformId, sendRtpItem.getChannelId(),
-                                                    sendRtpItem.getCallId(), sendRtpItem.getStream());
-                                        } else {
-                                            cmder.streamByeCmd(device, sendRtpItem.getChannelId(), param.getStream(), sendRtpItem.getCallId());
-                                            if (sendRtpItem.getPlayType().equals(InviteStreamType.BROADCAST)
-                                                    || sendRtpItem.getPlayType().equals(InviteStreamType.TALK)) {
-                                                AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
-                                                if (audioBroadcastCatch != null) {
-                                                    // 来自上级平台的停止对讲
-                                                    logger.info("[停止对讲] 来自上级，平台：{}, 通道：{}", sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
-                                                    audioBroadcastManager.del(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
-                                                }
+                                ParentPlatform platform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
+                                Device device = deviceService.getDevice(sendRtpItem.getPlatformId());
+                                try {
+                                    if (platform != null) {
+                                        commanderFroPlatform.streamByeCmd(platform, sendRtpItem);
+                                        redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(),
+                                                sendRtpItem.getCallId(), sendRtpItem.getStream());
+                                        redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem, platform);
+                                    } else if (device != null) {
+                                        cmder.streamByeCmd(device, sendRtpItem.getChannelId(), param.getStream(), sendRtpItem.getCallId());
+                                        if (sendRtpItem.getPlayType().equals(InviteStreamType.BROADCAST)
+                                                || sendRtpItem.getPlayType().equals(InviteStreamType.TALK)) {
+                                            AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+                                            if (audioBroadcastCatch != null) {
+                                                // 来自上级平台的停止对讲
+                                                logger.info("[停止对讲] 来自上级，平台：{}, 通道：{}", sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+                                                audioBroadcastManager.del(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
                                             }
                                         }
-                                    } catch (SipException | InvalidArgumentException | ParseException |
-                                             SsrcTransactionNotFoundException e) {
-                                        logger.error("[命令发送失败] 发送BYE: {}", e.getMessage());
+                                    }else {
+                                        // 通知其他wvp停止发流
+                                        redisRpcService.rtpSendStopped(sendRtpItem);
                                     }
+                                } catch (SipException | InvalidArgumentException | ParseException |
+                                         SsrcTransactionNotFoundException e) {
+                                    logger.error("[命令发送失败] 发送BYE: {}", e.getMessage());
                                 }
-
                             }
                         }
                     }
@@ -593,11 +592,7 @@ public class ZLMHttpHookListener {
                             redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
                                     sendRtpItem.getCallId(), sendRtpItem.getStream());
                             if (InviteStreamType.PUSH == sendRtpItem.getPlayType()) {
-                                MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
-                                        sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getChannelId(),
-                                        sendRtpItem.getPlatformId(), parentPlatform.getName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
-                                messageForPushChannel.setPlatFormIndex(parentPlatform.getId());
-                                redisCatchStorage.sendPlatformStopPlayMsg(messageForPushChannel);
+                                redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem, parentPlatform);
                             }
                         }
                     }

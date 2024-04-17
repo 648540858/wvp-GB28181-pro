@@ -29,6 +29,7 @@ import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
+import com.genersoft.iot.vmp.service.redisMsg.RedisPushStreamResponseListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -125,6 +126,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
     @Autowired
     private SendRtpPortManager sendRtpPortManager;
+
+    @Autowired
+    private RedisPushStreamResponseListener redisPushStreamResponseListener;
 
 
     @Override
@@ -759,6 +763,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         redisCatchStorage.sendStreamPushRequestedMsg(messageForPushChannel);
         // 设置超时
         dynamicTask.startDelay(sendRtpItem.getCallId(), () -> {
+            redisRpcService.stopWaitePushStreamOnline(sendRtpItem);
             logger.info("[ app={}, stream={} ] 等待设备开始推流超时", sendRtpItem.getApp(), sendRtpItem.getStream());
             try {
                 responseAck(request, Response.REQUEST_TIMEOUT); // 超时
@@ -801,7 +806,18 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 // 其他平台内容
                 otherWvpPushStream(sendRtpItemFromRedis, request, platform);
             }
-
+        });
+        // 添加回复的拒绝或者错误的通知
+        redisPushStreamResponseListener.addEvent(sendRtpItem.getApp(), sendRtpItem.getStream(), response -> {
+            if (response.getCode() != 0) {
+                dynamicTask.stop(sendRtpItem.getCallId());
+                redisRpcService.stopWaitePushStreamOnline(sendRtpItem);
+                try {
+                    responseAck(request, Response.TEMPORARILY_UNAVAILABLE, response.getMsg());
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    logger.error("[命令发送失败] 国标级联 点播回复: {}", e.getMessage());
+                }
+            }
         });
     }
 

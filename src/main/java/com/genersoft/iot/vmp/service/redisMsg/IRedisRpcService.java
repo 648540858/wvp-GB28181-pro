@@ -13,4 +13,9 @@ public interface IRedisRpcService {
     void waitePushStreamOnline(SendRtpItem sendRtpItem, CommonCallback<SendRtpItem> callback);
 
     WVPResult stopSendRtp(SendRtpItem sendRtpItem);
+
+    void stopWaitePushStreamOnline(SendRtpItem sendRtpItem);
+
+    void rtpSendStopped(SendRtpItem sendRtpItem);
+
 }

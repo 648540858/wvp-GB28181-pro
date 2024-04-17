@@ -516,15 +516,15 @@ public class ZLMHttpHookListener {
                             if (sendRtpItem == null) {
                                 continue;
                             }
-
                             if (sendRtpItem.getApp().equals(param.getApp())) {
+                                // 在hook收到这个消息，说明发流一定是本级完成的。
+                                redisCatchStorage.deleteSendRTPServer(sendRtpItem);
+                                ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
                                 ParentPlatform platform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
                                 Device device = deviceService.getDevice(sendRtpItem.getPlatformId());
                                 try {
                                     if (platform != null) {
                                         commanderFroPlatform.streamByeCmd(platform, sendRtpItem);
-                                        redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(),
-                                                sendRtpItem.getCallId(), sendRtpItem.getStream());
                                         redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem, platform);
                                     } else if (device != null) {
                                         cmder.streamByeCmd(device, sendRtpItem.getChannelId(), param.getStream(), sendRtpItem.getCallId());
@@ -589,8 +589,8 @@ public class ZLMHttpHookListener {
                             } catch (SipException | InvalidArgumentException | ParseException e) {
                                 logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
                             }
-                            redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
-                                    sendRtpItem.getCallId(), sendRtpItem.getStream());
+                            redisCatchStorage.deleteSendRTPServer(sendRtpItem);
+                            ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
                             if (InviteStreamType.PUSH == sendRtpItem.getPlayType()) {
                                 redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem, parentPlatform);
                             }
@@ -820,17 +820,18 @@ public class ZLMHttpHookListener {
         }
         taskExecutor.execute(() -> {
             List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(param.getStream());
-            if (sendRtpItems.size() > 0) {
+            if (!sendRtpItems.isEmpty()) {
                 for (SendRtpItem sendRtpItem : sendRtpItems) {
                     ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
-                    ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
-                    try {
-                        commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
-                    } catch (SipException | InvalidArgumentException | ParseException e) {
-                        logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+                    if(parentPlatform != null) {
+                        try {
+                            commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
+                        } catch (SipException | InvalidArgumentException | ParseException e) {
+                            logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+                        }
                     }
-                    redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
-                            sendRtpItem.getCallId(), sendRtpItem.getStream());
+                    ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
+                    redisCatchStorage.deleteSendRTPServer(sendRtpItem);
                 }
             }
         });

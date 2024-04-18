@@ -13,23 +13,23 @@ import java.util.Arrays;
 @MsgId(id = "8106")
 public class J8106 extends Rs {
 
-    private byte[] params;
+    private long[] params;
 
     @Override
     public ByteBuf encode() {
         ByteBuf buffer = Unpooled.buffer();
         buffer.writeByte(params.length);
-        for (int param : params) {
-            buffer.writeByte(param);
+        for (long param : params) {
+            buffer.writeInt((int) param);
         }
         return buffer;
     }
 
-    public byte[] getParams() {
+    public long[] getParams() {
         return params;
     }
 
-    public void setParams(byte[] params) {
+    public void setParams(long[] params) {
         this.params = params;
     }
 

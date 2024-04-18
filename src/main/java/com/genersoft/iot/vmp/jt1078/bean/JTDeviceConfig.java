@@ -318,4 +318,38 @@ public class JTDeviceConfig {
     public void setReportingIntervalEmergencyAlarm(Long reportingIntervalEmergencyAlarm) {
         this.reportingIntervalEmergencyAlarm = reportingIntervalEmergencyAlarm;
     }
+
+    @Override
+    public String toString() {
+        return "JTDeviceConfig{" +
+                "keepaliveInterval=" + keepaliveInterval +
+                ", tcpResponseTimeout=" + tcpResponseTimeout +
+                ", tcpRetransmissionCount=" + tcpRetransmissionCount +
+                ", udpResponseTimeout=" + udpResponseTimeout +
+                ", udpRetransmissionCount=" + udpRetransmissionCount +
+                ", smsResponseTimeout=" + smsResponseTimeout +
+                ", smsRetransmissionCount=" + smsRetransmissionCount +
+                ", apnMaster='" + apnMaster + '\'' +
+                ", dialingUsernameMaster='" + dialingUsernameMaster + '\'' +
+                ", dialingPasswordMaster='" + dialingPasswordMaster + '\'' +
+                ", addressMaster='" + addressMaster + '\'' +
+                ", apnBackup='" + apnBackup + '\'' +
+                ", dialingUsernameBackup='" + dialingUsernameBackup + '\'' +
+                ", dialingPasswordBackup='" + dialingPasswordBackup + '\'' +
+                ", addressBackup='" + addressBackup + '\'' +
+                ", addressIcMaster='" + addressIcMaster + '\'' +
+                ", tcpPortIcMaster=" + tcpPortIcMaster +
+                ", udpPortIcMaster=" + udpPortIcMaster +
+                ", addressIcBackup='" + addressIcBackup + '\'' +
+                ", locationReportingStrategy=" + locationReportingStrategy +
+                ", locationReportingPlan=" + locationReportingPlan +
+                ", reportingIntervalOffline=" + reportingIntervalOffline +
+                ", apnSlave='" + apnSlave + '\'' +
+                ", dialingUsernameSlave='" + dialingUsernameSlave + '\'' +
+                ", dialingPasswordSlave='" + dialingPasswordSlave + '\'' +
+                ", addressSlave='" + addressSlave + '\'' +
+                ", reportingIntervalDormancy=" + reportingIntervalDormancy +
+                ", reportingIntervalEmergencyAlarm=" + reportingIntervalEmergencyAlarm +
+                '}';
+    }
 }

@@ -30,13 +30,14 @@ public class J0104 extends Re {
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
         respNo = buf.readUnsignedShort();
-        paramLength = (int)buf.readUnsignedByte();
+
+        paramLength = (int) buf.readUnsignedByte();
         if (paramLength <= 0) {
             return null;
         }
         JTDeviceConfig deviceConfig = new JTDeviceConfig();
-        Field[] fields = deviceConfig.getClass().getFields();
-        Map<Byte, Field> allFieldMap = new HashMap<>();
+        Field[] fields = deviceConfig.getClass().getDeclaredFields();
+        Map<Long, Field> allFieldMap = new HashMap<>();
         for (Field field : fields) {
             field.setAccessible(true);
             ConfigAttribute configAttribute = field.getAnnotation(ConfigAttribute.class);
@@ -44,9 +45,37 @@ public class J0104 extends Re {
                 allFieldMap.put(configAttribute.id(), field);
             }
         }
+        System.out.println("========");
+        for (int i = 0; i < paramLength; i++) {
+            long id = buf.readUnsignedInt();
+            System.out.println(id);
+            short length = buf.readUnsignedByte();
+            if (allFieldMap.containsKey(id)) {
+                Field field = allFieldMap.get(id);
+                field.setAccessible(true);
+                System.out.println(field.getGenericType());
+                try {
+                    switch (field.getGenericType().toString()) {
+                        case "class java.lang.Long":
+                            field.set(deviceConfig, buf.readUnsignedInt());
+                            continue;
+                        case "class java.lang.String":
+                            String val = buf.readCharSequence(length, Charset.forName("GBK")).toString().trim();
+                            field.set(deviceConfig, val);
+                            continue;
+                        default:
+                            System.err.println(field.getGenericType());
+                            continue;
+                    }
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
 
         System.out.println(respNo);
         System.out.println(paramLength);
+        System.out.println(deviceConfig.toString());
 
         return null;
     }

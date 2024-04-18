@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ConfigAttribute {
 
-    byte id();
+    long id();
 
     String description();
 }

@@ -504,13 +504,13 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             J8104 j8104 = new J8104();
             jt1078Template.getDeviceConfig(deviceId, j8104, 6);
         }else {
-            byte[] paramBytes = new byte[params.length];
+            long[] paramBytes = new long[params.length];
             for (int i = 0; i < params.length; i++) {
                 try {
                     Field field = JTDeviceConfig.class.getDeclaredField(params[i]);
                     if (field.isAnnotationPresent(ConfigAttribute.class) ) {
                         ConfigAttribute configAttribute = field.getAnnotation(ConfigAttribute.class);
-                        byte id = configAttribute.id();
+                        long id = configAttribute.id();
                         String description = configAttribute.description();
                         System.out.println(description + ":  " + id);
                         paramBytes[i] = configAttribute.id();

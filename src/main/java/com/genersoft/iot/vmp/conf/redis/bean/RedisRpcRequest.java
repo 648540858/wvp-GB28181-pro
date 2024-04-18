@@ -76,7 +76,7 @@ public class RedisRpcRequest {
         return "RedisRpcRequest{" +
                 "fromId='" + fromId + '\'' +
                 ", toId='" + toId + '\'' +
-                ", sn='" + sn + '\'' +
+                ", sn=" + sn +
                 ", uri='" + uri + '\'' +
                 ", param=" + param +
                 '}';

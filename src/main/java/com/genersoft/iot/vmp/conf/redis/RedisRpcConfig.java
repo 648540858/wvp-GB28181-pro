@@ -79,6 +79,7 @@ public class RedisRpcConfig implements MessageListener {
         if (userSetting.getServerId().equals(response.getToId())) {
             return;
         }
+        logger.info("[redis-rpc] << {}", response);
         response(response);
     }
 
@@ -87,6 +88,7 @@ public class RedisRpcConfig implements MessageListener {
             if (userSetting.getServerId().equals(request.getFromId())) {
                 return;
             }
+            logger.info("[redis-rpc] >> {}", request);
             Method method = getMethod(request.getUri());
             // 没有携带目标ID的可以理解为哪个wvp有结果就哪个回复，携带目标ID，但是如果是不存在的uri则直接回复404
             if (userSetting.getServerId().equals(request.getToId())) {

@@ -539,7 +539,7 @@ public class ZLMHttpHookListener {
                                         }
                                     }else {
                                         // 通知其他wvp停止发流
-                                        redisRpcService.rtpSendStopped(sendRtpItem);
+                                        redisRpcService.rtpSendStopped(sendRtpItem.getRedisKey());
                                     }
                                 } catch (SipException | InvalidArgumentException | ParseException |
                                          SsrcTransactionNotFoundException e) {

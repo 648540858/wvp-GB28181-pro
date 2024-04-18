@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
+import com.genersoft.iot.vmp.common.VideoManagerConstants;
+
 public class SendRtpItem {
 
     /**
@@ -89,7 +91,7 @@ public class SendRtpItem {
     /**
      *  invite 的 callId
      */
-    private String CallId;
+    private String callId;
 
     /**
      *  invite 的 fromTag
@@ -242,11 +244,11 @@ public class SendRtpItem {
     }
 
     public String getCallId() {
-        return CallId;
+        return callId;
     }
 
     public void setCallId(String callId) {
-        CallId = callId;
+        this.callId = callId;
     }
 
     public InviteStreamType getPlayType() {
@@ -364,7 +366,7 @@ public class SendRtpItem {
                 ", localPort=" + localPort +
                 ", mediaServerId='" + mediaServerId + '\'' +
                 ", serverId='" + serverId + '\'' +
-                ", CallId='" + CallId + '\'' +
+                ", CallId='" + callId + '\'' +
                 ", fromTag='" + fromTag + '\'' +
                 ", toTag='" + toTag + '\'' +
                 ", pt=" + pt +
@@ -375,5 +377,16 @@ public class SendRtpItem {
                 ", receiveStream='" + receiveStream + '\'' +
                 ", sessionName='" + sessionName + '\'' +
                 '}';
+    }
+
+    public String getRedisKey() {
+        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX +
+                serverId + "_"
+                + mediaServerId + "_"
+                + platformId + "_"
+                + channelId + "_"
+                + stream + "_"
+                + callId;
+        return key;
     }
 }

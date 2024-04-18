@@ -44,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.sdp.*;
@@ -84,6 +85,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
     @Autowired
     private IRedisRpcService redisRpcService;
+
+    @Autowired
+    private RedisTemplate<Object, Object> redisTemplate;
 
     @Autowired
     private SSRCFactory ssrcFactory;
@@ -604,6 +608,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
                                 StreamPushItem transform = streamPushService.transform(pushListItem);
                                 transform.setSelf(userSetting.getServerId().equals(pushListItem.getSeverId()));
+                                redisCatchStorage.updateSendRTPSever(sendRtpItem);
                                 // 开始推流
                                 sendPushStream(sendRtpItem, mediaServerItem, platform, request);
                             }else {
@@ -766,7 +771,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         redisCatchStorage.sendStreamPushRequestedMsg(messageForPushChannel);
         // 设置超时
         dynamicTask.startDelay(sendRtpItem.getCallId(), () -> {
-            redisRpcService.stopWaitePushStreamOnline(sendRtpItem);
+            redisRpcService.stopWaitePushStreamOnline(sendRtpItem.getRedisKey(), sendRtpItem);
             logger.info("[ app={}, stream={} ] 等待设备开始推流超时", sendRtpItem.getApp(), sendRtpItem.getStream());
             try {
                 responseAck(request, Response.REQUEST_TIMEOUT); // 超时
@@ -775,8 +780,27 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             }
         }, userSetting.getPlatformPlayTimeout());
         //
-        redisRpcService.waitePushStreamOnline(sendRtpItem, (sendRtpItemFromRedis) -> {
+        redisRpcService.waitePushStreamOnline(sendRtpItem, (sendRtpItemKey) -> {
             dynamicTask.stop(sendRtpItem.getCallId());
+            if (sendRtpItemKey == null) {
+                logger.warn("[级联点播] 等待推流得到结果未空： {}/{}", sendRtpItem.getApp(), sendRtpItem.getStream());
+                try {
+                    responseAck(request, Response.BUSY_HERE);
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    logger.error("未处理的异常 ", e);
+                }
+                return;
+            }
+            SendRtpItem sendRtpItemFromRedis = (SendRtpItem)redisTemplate.opsForValue().get(sendRtpItemKey);
+            if (sendRtpItemFromRedis == null) {
+                logger.warn("[级联点播] 等待推流, 未找到redis中缓存的发流信息： {}/{}", sendRtpItem.getApp(), sendRtpItem.getStream());
+                try {
+                    responseAck(request, Response.BUSY_HERE);
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    logger.error("未处理的异常 ", e);
+                }
+                return;
+            }
             if (sendRtpItemFromRedis.getServerId().equals(userSetting.getServerId())) {
                 logger.info("[级联点播] 等待的推流在本平台上线 {}/{}", sendRtpItem.getApp(), sendRtpItem.getStream());
                 int localPort = sendRtpPortManager.getNextPort(mediaServerItem);
@@ -784,11 +808,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     logger.warn("上级点时创建sendRTPItem失败，可能是服务器端口资源不足");
                     try {
                         responseAck(request, Response.BUSY_HERE);
-                    } catch (SipException e) {
-                        logger.error("未处理的异常 ", e);
-                    } catch (InvalidArgumentException e) {
-                        logger.error("未处理的异常 ", e);
-                    } catch (ParseException e) {
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
                         logger.error("未处理的异常 ", e);
                     }
                     return;
@@ -814,7 +834,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         redisPushStreamResponseListener.addEvent(sendRtpItem.getApp(), sendRtpItem.getStream(), response -> {
             if (response.getCode() != 0) {
                 dynamicTask.stop(sendRtpItem.getCallId());
-                redisRpcService.stopWaitePushStreamOnline(sendRtpItem);
+                redisRpcService.stopWaitePushStreamOnline(sendRtpItem.getRedisKey(), sendRtpItem);
                 try {
                     responseAck(request, Response.TEMPORARILY_UNAVAILABLE, response.getMsg());
                 } catch (SipException | InvalidArgumentException | ParseException e) {
@@ -831,7 +851,10 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
      */
     private void otherWvpPushStream(SendRtpItem sendRtpItem, SIPRequest request, ParentPlatform platform) {
         logger.info("[级联点播] 来自其他wvp的推流 {}/{}", sendRtpItem.getApp(), sendRtpItem.getStream());
-        sendRtpItem = redisRpcService.getSendRtpItem(sendRtpItem);
+        sendRtpItem = redisRpcService.getSendRtpItem(sendRtpItem.getRedisKey());
+        if (sendRtpItem == null) {
+            return;
+        }
         // 写入redis， 超时时回复
         sendRtpItem.setStatus(1);
         SIPResponse response = sendStreamAck(request, sendRtpItem, platform);

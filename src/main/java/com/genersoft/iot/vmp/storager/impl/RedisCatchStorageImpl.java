@@ -141,15 +141,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public void updateSendRTPSever(SendRtpItem sendRtpItem) {
-
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX +
-                userSetting.getServerId() + "_"
-                + sendRtpItem.getMediaServerId() + "_"
-                + sendRtpItem.getPlatformId() + "_"
-                + sendRtpItem.getChannelId() + "_"
-                + sendRtpItem.getStream() + "_"
-                + sendRtpItem.getCallId();
-        redisTemplate.opsForValue().set(key, sendRtpItem);
+        redisTemplate.opsForValue().set(sendRtpItem.getRedisKey(), sendRtpItem);
     }
 
     @Override
@@ -186,7 +178,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
             callId = "*";
         }
         String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
-                + userSetting.getServerId() + "_*_"
+                + "*_*_"
                 + platformGbId + "_"
                 + channelId + "_"
                 + streamId + "_"
@@ -292,7 +284,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
      */
     @Override
     public void deleteSendRTPServer(SendRtpItem sendRtpItem) {
-        deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(),sendRtpItem.getCallId(), sendRtpItem.getServerId());
+        deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(),sendRtpItem.getCallId(), sendRtpItem.getStream());
     }
 
     @Override

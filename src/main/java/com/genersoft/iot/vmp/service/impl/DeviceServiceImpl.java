@@ -15,20 +15,22 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.CatalogResponseMessageHandler;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
-import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
 import com.genersoft.iot.vmp.storager.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.utils.RequestSendUtil;
 import com.genersoft.iot.vmp.vmanager.bean.BaseTree;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
@@ -39,7 +41,9 @@ import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -50,6 +54,9 @@ import java.util.concurrent.TimeUnit;
 public class DeviceServiceImpl implements IDeviceService {
 
     private final static Logger logger = LoggerFactory.getLogger(DeviceServiceImpl.class);
+
+    @Value("${log}")
+    private String arm;
 
     @Autowired
     private SIPCommander cmder;
@@ -102,9 +109,17 @@ public class DeviceServiceImpl implements IDeviceService {
     @Autowired
     private AudioBroadcastManager audioBroadcastManager;
 
+    @Autowired
+    private RequestSendUtil requestSendUtil;
+
     @Override
     public void online(Device device, SipTransactionInfo sipTransactionInfo) {
         logger.info("[设备上线] deviceId：{}->{}:{}", device.getDeviceId(), device.getIp(), device.getPort());
+        logger.info(arm);
+        if ("1".equals(arm)){
+            requestSendUtil.send(21,device.getDeviceId(),null);
+            logger.info("已发送设备上线通知");
+        }
         Device deviceInRedis = redisCatchStorage.getDevice(device.getDeviceId());
         Device deviceInDb = deviceMapper.getDeviceByDeviceId(device.getDeviceId());
 
@@ -203,6 +218,12 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     public void offline(String deviceId, String reason) {
         logger.warn("[设备离线]，{}, device：{}", reason, deviceId);
+        logger.info(arm);
+        if ("1".equals(arm)){
+            requestSendUtil.send(22,deviceId,null);
+            logger.info("已发送设备离线通知");
+        }
+
         Device device = deviceMapper.getDeviceByDeviceId(deviceId);
         if (device == null) {
             return;

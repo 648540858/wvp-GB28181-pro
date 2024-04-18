@@ -15,13 +15,13 @@ spring:
   # REDIS数据库配置
   redis:
     # [必须修改] Redis服务器IP, REDIS安装在本机的,使用127.0.0.1
-    host: 127.0.0.1
+    host: 10.18.38.123
     # [必须修改] 端口号
     port: 6379
     # [可选] 数据库 DB
     database: 7
     # [可选] 访问密码,若你的redis服务器没有设置密码，就不需要用密码去连接
-    password: luna
+    password: spz_2021
     # [可选] 超时时间
     timeout: 10000
     # mysql数据源
@@ -32,9 +32,9 @@ spring:
         master:
           type: com.zaxxer.hikari.HikariDataSource
           driver-class-name: com.mysql.cj.jdbc.Driver
-          url: jdbc:mysql://127.0.0.1:3306/wvp2?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true
-          username: root
-          password: root123
+          url: jdbc:mysql://10.18.38.123:3306/wvp2?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true
+          username: dbadmin
+          password: spz_2024
           hikari:
             connection-timeout: 20000             # 是客户端等待连接池连接的最大毫秒数
             initialSize: 50                       # 连接池初始化连接数
@@ -44,25 +44,21 @@ spring:
             max-lifetime: 1200000                 # 是池中连接关闭后的最长生命周期（以毫秒为单位)
 #[可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
 server:
-  port: 8080
+  port: 8082
   # [可选] HTTPS配置， 默认不开启
-  ssl:
-    # [可选] 是否开启HTTPS访问
-    enabled: false
-    # [可选] 证书文件路径，放置在resource/目录下即可，修改xxx为文件名
-    key-store: classpath:test.monitor.89iot.cn.jks
-    # [可选] 证书密码
-    key-store-password: gpf64qmw
-    # [可选] 证书类型， 默认为jks，根据实际修改
-    key-store-type: JKS
+#  ssl:
+#    # [可选] 是否开启HTTPS访问
+#    enabled: false
+#    # [可选] 证书文件路径，放置在resource/目录下即可，修改xxx为文件名
+#    key-store: classpath:test.monitor.89iot.cn.jks
+#    # [可选] 证书密码
+#    key-store-password: gpf64qmw
+#    # [可选] 证书类型， 默认为jks，根据实际修改
+#    key-store-type: JKS
 
-# 作为28181服务器的配置
+# 国标服务配置
 sip:
-  # [必须修改] 本机的IP，对应你的网卡，监听什么ip就是使用什么网卡，
-  # 如果要监听多张网卡，可以使用逗号分隔多个IP， 例如： 192.168.1.4,10.0.0.4
-  # 如果不明白，就使用0.0.0.0，大部分情况都是可以的
-  # 请不要使用127.0.0.1，任何包括localhost在内的域名都是不可以的。
-  ip: 172.19.128.50
+  ip: 10.18.38.123
   # [可选] 28181服务监听的端口
   port: 8116
   # 根据国标6.1.2中规定，domain宜采用ID统一编码的前十位编码。国标附录D中定义前8位为中心编码（由省级、市级、区级、基层编号组成，参照GB/T 2260-2007）
@@ -79,40 +75,61 @@ sip:
 
 #zlm 默认服务器配置
 media:
-  id: zlmediakit-local
+  id: zlmedia-dev
   # [必须修改] zlm服务器的内网IP
-  ip: 172.19.128.50
+  ip: 10.18.38.123
   # [必须修改] zlm服务器的http.port
-  http-port: 9092
+  http-port: 8086
   # [可选] 返回流地址时的ip，置空使用 media.ip
-  stream-ip: 172.19.128.50
+  stream-ip:
   # [可选] wvp在国标信令中使用的ip，此ip为摄像机可以访问到的ip， 置空使用 media.ip
-  sdp-ip: 172.19.128.50
+  sdp-ip:
   # [可选] zlm服务器的hook所使用的IP, 默认使用sip.ip
-  hook-ip: 172.19.128.50
+  hook-ip:
   # [可选] zlm服务器的http.sslport, 置空使用zlm配置文件配置
-  http-ssl-port: 1443
+  http-ssl-port:
   # [可选] zlm服务器的hook.admin_params=secret
-  secret: 10000
+  secret: KBRaoeWrBK9FXXHe8h29DdpWJlU0TXBP
   # 启用多端口模式, 多端口模式使用端口区分每路流，兼容性更好。 单端口使用流的ssrc区分， 点播超时建议使用多端口测试
   rtp:
     # [可选] 是否启用多端口模式, 开启后会在portRange范围内选择端口用于媒体流传输
     enable: true
     # [可选] 在此范围内选择端口用于媒体流传输, 必须提前在zlm上配置该属性，不然自动配置此属性可能不成功
-    port-range: 50000,50300 # 端口范围
+    port-range: 60000,60300 # 端口范围
     # [可选] 国标级联在此范围内选择端口发送媒体流,
-    send-port-range: 50000,50300 # 端口范围
+    send-port-range: 60301,65535 # 端口范围
   # 录像辅助服务， 部署此服务可以实现zlm录像的管理与下载， 0 表示不使用
   record-assist-port: 18081
 # [根据业务需求配置]
 user-settings:
-  # 点播/录像回放 等待超时时间,单位：毫秒
-  play-timeout: 180000
   # [可选] 自动点播， 使用固定流地址进行播放时，如果未点播则自动进行点播, 需要rtp.enable=true
   auto-apply-play: true
+  # [可选] 部分设备需要扩展SDP，需要打开此设置
+  senior-sdp: true
+  # 点播/录像回放 等待超时时间,单位：毫秒
+  play-timeout: 5000
+  # 等待音视频编码信息再返回， true： 可以根据编码选择合适的播放器，false： 可以更快点播
+  wait-track: true
   # 设备/通道状态变化时发送消息
   device-status-notify: true
+  # 自动配置redis 可以过期事件
+  redis-config: true
+  # 推流直播是否录制(生产环境关闭)
+  record-push-live: false
+  # (生国标是否录制产环境关闭)
+  record-sip: false
+  # 是否将日志存储进数据库
+  logInDatabase: true
+  # 使用推流状态作为推流通道状态
+  use-pushing-as-status: true
+  # 设备上线时是否自动同步通道
+  sync-channel-on-device-online: true
+  # 是否开启sip日志(生产环境关闭)
+  sip-log: false
 # [可选] 日志配置, 一般不需要改
 logging:
   config: classpath:logback-spring.xml
-
+log: 1
+web:
+  ip: 10.18.38.123
+  port: 8088

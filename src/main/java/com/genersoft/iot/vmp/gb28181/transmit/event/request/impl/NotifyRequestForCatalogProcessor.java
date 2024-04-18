@@ -14,6 +14,7 @@ import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.utils.RequestSendUtil;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.slf4j.Logger;
@@ -67,6 +68,9 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 
 	@Autowired
 	private SipConfig sipConfig;
+
+	@Autowired
+	private RequestSendUtil requestSendUtil;
 
 	private final static String talkKey = "notify-request-for-catalog-task";
 
@@ -122,6 +126,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 						case CatalogEvent.ON:
 							// 上线
 							logger.info("[收到通道上线通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
+							requestSendUtil.send(1,device.getDeviceId(),channel.getChannelId());
 							updateChannelOnlineList.add(channel);
 							if (updateChannelOnlineList.size() > 300) {
 								executeSaveForOnline();
@@ -135,6 +140,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 						case CatalogEvent.OFF :
 							// 离线
 							logger.info("[收到通道离线通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
+							requestSendUtil.send(2,device.getDeviceId(),channel.getChannelId());
 							if (userSetting.getRefuseChannelStatusChannelFormNotify()) {
 								logger.info("[收到通道离线通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							}else {
@@ -151,6 +157,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 						case CatalogEvent.VLOST:
 							// 视频丢失
 							logger.info("[收到通道视频丢失通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
+							requestSendUtil.send(3,device.getDeviceId(),channel.getChannelId());
 							if (userSetting.getRefuseChannelStatusChannelFormNotify()) {
 								logger.info("[收到通道视频丢失通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							}else {
@@ -167,6 +174,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 						case CatalogEvent.DEFECT:
 							// 故障
 							logger.info("[收到通道视频故障通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
+							requestSendUtil.send(4,device.getDeviceId(),channel.getChannelId());
 							if (userSetting.getRefuseChannelStatusChannelFormNotify()) {
 								logger.info("[收到通道视频故障通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							}else {
@@ -183,6 +191,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 						case CatalogEvent.ADD:
 							// 增加
 							logger.info("[收到增加通道通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
+							requestSendUtil.send(5,device.getDeviceId(),channel.getChannelId());
 							// 判断此通道是否存在
 							DeviceChannel deviceChannel = deviceChannelService.getOne(deviceId, channel.getChannelId());
 							if (deviceChannel != null) {
@@ -208,6 +217,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 						case CatalogEvent.DEL:
 							// 删除
 							logger.info("[收到删除通道通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
+							requestSendUtil.send(6,device.getDeviceId(),channel.getChannelId());
 							deleteChannelList.add(channel);
 							if (userSetting.getDeviceStatusNotify()) {
 								// 发送redis消息
@@ -220,6 +230,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 						case CatalogEvent.UPDATE:
 							// 更新
 							logger.info("[收到更新通道通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
+							requestSendUtil.send(7,device.getDeviceId(),channel.getChannelId());
 							// 判断此通道是否存在
 							DeviceChannel deviceChannelForUpdate = deviceChannelService.getOne(deviceId, channel.getChannelId());
 							if (deviceChannelForUpdate != null) {

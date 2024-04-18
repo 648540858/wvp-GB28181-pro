@@ -202,4 +202,9 @@ public class RedisRpcConfig implements MessageListener {
     public void removeCallback(long key)  {
         callbacks.remove(key);
     }
+
+
+    public int getCallbackCount(){
+        return callbacks.size();
+    }
 }

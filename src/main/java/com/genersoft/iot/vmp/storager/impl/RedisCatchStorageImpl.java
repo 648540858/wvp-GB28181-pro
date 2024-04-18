@@ -271,10 +271,10 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
                 + channelId + "_"
                 + streamId + "_"
                 + callId;
-        logger.info("[删除 redis的SendRTP]： {}", key);
         List<Object> scan = RedisUtil.scan(redisTemplate, key);
         if (scan.size() > 0) {
             for (Object keyStr : scan) {
+                logger.info("[删除 redis的SendRTP]： {}", keyStr.toString());
                 redisTemplate.delete(keyStr);
             }
         }

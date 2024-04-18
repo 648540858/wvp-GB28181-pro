@@ -518,13 +518,13 @@ public class ZLMHttpHookListener {
                             }
                             if (sendRtpItem.getApp().equals(param.getApp())) {
                                 // 在hook收到这个消息，说明发流一定是本级完成的。
-                                redisCatchStorage.deleteSendRTPServer(sendRtpItem);
                                 ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
                                 ParentPlatform platform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
                                 Device device = deviceService.getDevice(sendRtpItem.getPlatformId());
                                 try {
                                     if (platform != null) {
                                         commanderFroPlatform.streamByeCmd(platform, sendRtpItem);
+                                        redisCatchStorage.deleteSendRTPServer(sendRtpItem);
                                         redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem, platform);
                                     } else if (device != null) {
                                         cmder.streamByeCmd(device, sendRtpItem.getChannelId(), param.getStream(), sendRtpItem.getCallId());

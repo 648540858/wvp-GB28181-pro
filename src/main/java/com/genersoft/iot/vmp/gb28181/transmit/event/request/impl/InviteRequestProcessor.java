@@ -780,7 +780,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             }
         }, userSetting.getPlatformPlayTimeout());
         //
-        redisRpcService.waitePushStreamOnline(sendRtpItem, (sendRtpItemKey) -> {
+        long key = redisRpcService.waitePushStreamOnline(sendRtpItem, (sendRtpItemKey) -> {
             dynamicTask.stop(sendRtpItem.getCallId());
             if (sendRtpItemKey == null) {
                 logger.warn("[级联点播] 等待推流得到结果未空： {}/{}", sendRtpItem.getApp(), sendRtpItem.getStream());
@@ -835,6 +835,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             if (response.getCode() != 0) {
                 dynamicTask.stop(sendRtpItem.getCallId());
                 redisRpcService.stopWaitePushStreamOnline(sendRtpItem.getRedisKey(), sendRtpItem);
+                redisRpcService.removeCallback(key);
                 try {
                     responseAck(request, Response.TEMPORARILY_UNAVAILABLE, response.getMsg());
                 } catch (SipException | InvalidArgumentException | ParseException e) {

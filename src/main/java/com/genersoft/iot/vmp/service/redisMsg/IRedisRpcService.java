@@ -12,10 +12,11 @@ public interface IRedisRpcService {
 
     WVPResult stopSendRtp(String sendRtpItemKey);
 
-    void waitePushStreamOnline(SendRtpItem sendRtpItem, CommonCallback<String> callback);
+    long waitePushStreamOnline(SendRtpItem sendRtpItem, CommonCallback<String> callback);
 
     void stopWaitePushStreamOnline(String sendRtpItemKey, SendRtpItem sendRtpItem);
 
     void rtpSendStopped(String sendRtpItemKey);
 
+    void removeCallback(long key);
 }

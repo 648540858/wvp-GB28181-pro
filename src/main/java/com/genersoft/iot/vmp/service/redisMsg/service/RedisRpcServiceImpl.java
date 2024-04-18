@@ -84,7 +84,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     }
 
     @Override
-    public void waitePushStreamOnline(SendRtpItem sendRtpItem, CommonCallback<String> callback) {
+    public long waitePushStreamOnline(SendRtpItem sendRtpItem, CommonCallback<String> callback) {
         logger.info("[请求所有WVP监听流上线] {}/{}", sendRtpItem.getApp(), sendRtpItem.getStream());
         // 监听流上线。 流上线直接发送sendRtpItem消息给实际的信令处理者
         HookSubscribeForStreamChange hook = HookSubscribeFactory.on_stream_changed(
@@ -122,7 +122,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
             }
             hookSubscribe.removeSubscribe(hook);
         });
-
+        return request.getSn();
     }
 
     @Override
@@ -146,5 +146,10 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         RedisRpcRequest request = buildRequest("rtpSendStopped", sendRtpItemKey);
         request.setToId(sendRtpItem.getServerId());
         redisRpcConfig.request(request, 10);
+    }
+
+    @Override
+    public void removeCallback(long key) {
+        redisRpcConfig.removeCallback(key);
     }
 }

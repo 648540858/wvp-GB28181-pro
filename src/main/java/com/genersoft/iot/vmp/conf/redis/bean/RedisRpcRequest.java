@@ -74,10 +74,10 @@ public class RedisRpcRequest {
     @Override
     public String toString() {
         return "RedisRpcRequest{" +
-                "fromId='" + fromId + '\'' +
+                "uri='" + uri + '\'' +
+                ", fromId='" + fromId + '\'' +
                 ", toId='" + toId + '\'' +
                 ", sn=" + sn +
-                ", uri='" + uri + '\'' +
                 ", param=" + param +
                 '}';
     }

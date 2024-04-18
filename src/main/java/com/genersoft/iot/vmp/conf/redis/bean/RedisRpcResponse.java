@@ -88,11 +88,11 @@ public class RedisRpcResponse {
     @Override
     public String toString() {
         return "RedisRpcResponse{" +
-                "fromId='" + fromId + '\'' +
+                "uri='" + uri + '\'' +
+                ", fromId='" + fromId + '\'' +
                 ", toId='" + toId + '\'' +
                 ", sn=" + sn +
                 ", statusCode=" + statusCode +
-                ", uri='" + uri + '\'' +
                 ", body=" + body +
                 '}';
     }

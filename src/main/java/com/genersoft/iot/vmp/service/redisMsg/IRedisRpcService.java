@@ -14,7 +14,7 @@ public interface IRedisRpcService {
 
     void waitePushStreamOnline(SendRtpItem sendRtpItem, CommonCallback<String> callback);
 
-    void stopWaitePushStreamOnline(String sendRtpItemKey, SendRtpItem sendRtpItem);
+    void stopWaitePushStreamOnline(SendRtpItem sendRtpItem);
 
     void rtpSendStopped(String sendRtpItemKey);
 

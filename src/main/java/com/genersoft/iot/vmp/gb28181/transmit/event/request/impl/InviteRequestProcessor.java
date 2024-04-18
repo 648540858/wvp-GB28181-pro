@@ -771,7 +771,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         redisCatchStorage.sendStreamPushRequestedMsg(messageForPushChannel);
         // 设置超时
         dynamicTask.startDelay(sendRtpItem.getCallId(), () -> {
-            redisRpcService.stopWaitePushStreamOnline(sendRtpItem.getRedisKey(), sendRtpItem);
+            redisRpcService.stopWaitePushStreamOnline(sendRtpItem);
             logger.info("[ app={}, stream={} ] 等待设备开始推流超时", sendRtpItem.getApp(), sendRtpItem.getStream());
             try {
                 responseAck(request, Response.REQUEST_TIMEOUT); // 超时
@@ -834,7 +834,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         redisPushStreamResponseListener.addEvent(sendRtpItem.getApp(), sendRtpItem.getStream(), response -> {
             if (response.getCode() != 0) {
                 dynamicTask.stop(sendRtpItem.getCallId());
-                redisRpcService.stopWaitePushStreamOnline(sendRtpItem.getRedisKey(), sendRtpItem);
+                redisRpcService.stopWaitePushStreamOnline(sendRtpItem);
                 try {
                     responseAck(request, Response.TEMPORARILY_UNAVAILABLE, response.getMsg());
                 } catch (SipException | InvalidArgumentException | ParseException e) {

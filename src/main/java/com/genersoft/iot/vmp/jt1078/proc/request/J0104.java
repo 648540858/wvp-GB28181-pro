@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import org.springframework.context.ApplicationEvent;
 
 import java.lang.reflect.Field;
@@ -30,8 +31,9 @@ public class J0104 extends Re {
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
         respNo = buf.readUnsignedShort();
-
+        System.err.println("应答流水号： " + respNo);
         paramLength = (int) buf.readUnsignedByte();
+        System.err.println("参数项个数： " + paramLength);
         if (paramLength <= 0) {
             return null;
         }
@@ -48,12 +50,10 @@ public class J0104 extends Re {
         System.out.println("========");
         for (int i = 0; i < paramLength; i++) {
             long id = buf.readUnsignedInt();
-            System.out.println(id);
             short length = buf.readUnsignedByte();
             if (allFieldMap.containsKey(id)) {
                 Field field = allFieldMap.get(id);
                 field.setAccessible(true);
-                System.out.println(field.getGenericType());
                 try {
                     switch (field.getGenericType().toString()) {
                         case "class java.lang.Long":
@@ -73,8 +73,6 @@ public class J0104 extends Re {
             }
         }
 
-        System.out.println(respNo);
-        System.out.println(paramLength);
         System.out.println(deviceConfig.toString());
 
         return null;

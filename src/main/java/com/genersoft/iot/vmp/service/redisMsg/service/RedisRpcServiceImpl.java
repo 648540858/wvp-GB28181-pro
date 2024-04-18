@@ -89,6 +89,8 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         // 监听流上线。 流上线直接发送sendRtpItem消息给实际的信令处理者
         HookSubscribeForStreamChange hook = HookSubscribeFactory.on_stream_changed(
                 sendRtpItem.getApp(), sendRtpItem.getStream(), true, "rtsp", null);
+        RedisRpcRequest request = buildRequest("waitePushStreamOnline", sendRtpItem);
+        request.setToId(sendRtpItem.getServerId());
         hookSubscribe.addSubscribe(hook, (MediaServerItem mediaServerItemInUse, HookParam hookParam) -> {
 
             // 读取redis中的上级点播信息，生成sendRtpItm发送出去
@@ -105,9 +107,9 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
                 callback.run(sendRtpItem.getRedisKey());
             }
             hookSubscribe.removeSubscribe(hook);
+            redisRpcConfig.removeCallback(request.getSn());
         });
-        RedisRpcRequest request = buildRequest("waitePushStreamOnline", sendRtpItem);
-        request.setToId(sendRtpItem.getServerId());
+
         redisRpcConfig.request(request, response -> {
             if (response.getBody() == null) {
                 logger.info("[请求所有WVP监听流上线] 流上线,但是未找到发流信息：{}/{}", sendRtpItem.getApp(), sendRtpItem.getStream());
@@ -118,6 +120,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
             if (callback != null) {
                 callback.run(response.getBody().toString());
             }
+            hookSubscribe.removeSubscribe(hook);
         });
 
     }

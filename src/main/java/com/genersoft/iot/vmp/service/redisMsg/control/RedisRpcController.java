@@ -164,6 +164,7 @@ public class RedisRpcController {
             response.setStatusCode(200);
             // 手动发送结果
             sendResponse(response);
+            hookSubscribe.removeSubscribe(hook);
 
         });
         return null;
@@ -300,6 +301,7 @@ public class RedisRpcController {
     }
 
     private void sendResponse(RedisRpcResponse response){
+        logger.info("[redis-rpc] >> {}", response);
         response.setToId(userSetting.getServerId());
         RedisRpcMessage message = new RedisRpcMessage();
         message.setResponse(response);

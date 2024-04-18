@@ -126,12 +126,12 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     }
 
     @Override
-    public void stopWaitePushStreamOnline(SendRtpItem sendRtpItem) {
-        logger.info("[停止WVP监听流上线] {}/{}， key：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem);
+    public void stopWaitePushStreamOnline(String sendRtpItemKey, SendRtpItem sendRtpItem) {
+        logger.info("[停止WVP监听流上线] {}/{}， key：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItemKey);
         HookSubscribeForStreamChange hook = HookSubscribeFactory.on_stream_changed(
                 sendRtpItem.getApp(), sendRtpItem.getStream(), true, "rtsp", null);
         hookSubscribe.removeSubscribe(hook);
-        RedisRpcRequest request = buildRequest("stopWaitePushStreamOnline", sendRtpItem);
+        RedisRpcRequest request = buildRequest("stopWaitePushStreamOnline", sendRtpItemKey);
         request.setToId(sendRtpItem.getServerId());
         redisRpcConfig.request(request, 10);
     }

@@ -174,7 +174,14 @@ public class RedisRpcController {
      * 停止监听流上线
      */
     public RedisRpcResponse stopWaitePushStreamOnline(RedisRpcRequest request) {
-        SendRtpItem sendRtpItem = JSONObject.parseObject(request.getParam().toString(), SendRtpItem.class);
+        String sendRtpItemKey = request.getParam().toString();
+        SendRtpItem sendRtpItem = (SendRtpItem) redisTemplate.opsForValue().get(sendRtpItemKey);
+        if (sendRtpItem == null) {
+            logger.info("[redis-rpc] 停止监听流上线, 未找到redis中的发流信息， key：{}", sendRtpItemKey);
+            RedisRpcResponse response = request.getResponse();
+            response.setStatusCode(200);
+            return response;
+        }
         logger.info("[redis-rpc] 停止监听流上线： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort() );
 
         // 监听流上线。 流上线直接发送sendRtpItem消息给实际的信令处理者

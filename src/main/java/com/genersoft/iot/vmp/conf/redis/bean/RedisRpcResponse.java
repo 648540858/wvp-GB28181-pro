@@ -84,4 +84,16 @@ public class RedisRpcResponse {
     public void setBody(Object body) {
         this.body = body;
     }
+
+    @Override
+    public String toString() {
+        return "RedisRpcResponse{" +
+                "fromId='" + fromId + '\'' +
+                ", toId='" + toId + '\'' +
+                ", sn=" + sn +
+                ", statusCode=" + statusCode +
+                ", uri='" + uri + '\'' +
+                ", body=" + body +
+                '}';
+    }
 }

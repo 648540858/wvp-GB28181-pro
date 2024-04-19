@@ -47,15 +47,25 @@ public class Jt808Decoder extends ByteToMessageDecoder {
             Header header = new Header();
             header.setMsgId(ByteBufUtil.hexDump(buf.readSlice(2)));
             header.setMsgPro(buf.readUnsignedShort());
+            // 从消息属性中读取是否存在分包
+            boolean isSubpackage = (header.getMsgPro() >>> 13 & 1) == 1;
+            System.out.println("是否存在分包： " + isSubpackage);
             if (header.is2019Version()) {
+
                 header.setVersion(buf.readUnsignedByte());
                 String devId = ByteBufUtil.hexDump(buf.readSlice(10));
                 header.setTerminalId(devId.replaceFirst("^0*", ""));
+
             } else {
                 header.setTerminalId(ByteBufUtil.hexDump(buf.readSlice(6)).replaceFirst("^0*", ""));
             }
             header.setSn(buf.readUnsignedShort());
-
+            if (isSubpackage) {
+                int packageCount = buf.readUnsignedShort();
+                int packageNumber = buf.readUnsignedShort();
+                System.out.println("消息总包数: " + packageCount);
+                System.out.println("包序号: " + packageNumber);
+            }
             Re handler = CodecFactory.getHandler(header.getMsgId());
             if (handler == null) {
                 log.error("get msgId is null {}", header.getMsgId());

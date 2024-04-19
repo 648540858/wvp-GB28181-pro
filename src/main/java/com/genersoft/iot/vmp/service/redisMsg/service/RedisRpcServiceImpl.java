@@ -14,18 +14,13 @@ import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.HookParam;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
-import com.genersoft.iot.vmp.utils.SystemInfoUtils;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Map;
 
 @Service
 public class RedisRpcServiceImpl implements IRedisRpcService {
@@ -131,12 +126,12 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     }
 
     @Override
-    public void stopWaitePushStreamOnline(String sendRtpItemKey, SendRtpItem sendRtpItem) {
-        logger.info("[停止WVP监听流上线] {}/{}， key：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItemKey);
+    public void stopWaitePushStreamOnline(SendRtpItem sendRtpItem) {
+        logger.info("[停止WVP监听流上线] {}/{}", sendRtpItem.getApp(), sendRtpItem.getStream());
         HookSubscribeForStreamChange hook = HookSubscribeFactory.on_stream_changed(
                 sendRtpItem.getApp(), sendRtpItem.getStream(), true, "rtsp", null);
         hookSubscribe.removeSubscribe(hook);
-        RedisRpcRequest request = buildRequest("stopWaitePushStreamOnline", sendRtpItemKey);
+        RedisRpcRequest request = buildRequest("stopWaitePushStreamOnline", sendRtpItem);
         request.setToId(sendRtpItem.getServerId());
         redisRpcConfig.request(request, 10);
     }

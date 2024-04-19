@@ -175,11 +175,11 @@ public class RedisRpcController {
      */
     public RedisRpcResponse stopWaitePushStreamOnline(RedisRpcRequest request) {
         SendRtpItem sendRtpItem = JSONObject.parseObject(request.getParam().toString(), SendRtpItem.class);
+        logger.info("[redis-rpc] 停止监听流上线： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort() );
         // 监听流上线。 流上线直接发送sendRtpItem消息给实际的信令处理者
         HookSubscribeForStreamChange hook = HookSubscribeFactory.on_stream_changed(
                 sendRtpItem.getApp(), sendRtpItem.getStream(), true, "rtsp", null);
         hookSubscribe.removeSubscribe(hook);
-        logger.info("[redis-rpc] 停止监听流上线： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort() );
         RedisRpcResponse response = request.getResponse();
         response.setStatusCode(200);
         return response;

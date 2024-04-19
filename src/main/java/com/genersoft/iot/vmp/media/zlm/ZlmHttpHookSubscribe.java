@@ -158,4 +158,8 @@ public class ZlmHttpHookSubscribe {
             }
         }
     }
+
+    public int size(){
+        return allSubscribes.size();
+    }
 }

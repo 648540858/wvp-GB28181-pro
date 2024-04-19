@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
@@ -151,6 +152,7 @@ public class RedisRpcConfig implements MessageListener {
     public RedisRpcResponse request(RedisRpcRequest request, int timeOut) {
         request.setSn((long) random.nextInt(1000) + 1);
         SynchronousQueue<RedisRpcResponse> subscribe = subscribe(request.getSn());
+
         try {
             sendRequest(request);
             return subscribe.poll(timeOut, TimeUnit.SECONDS);
@@ -208,5 +210,11 @@ public class RedisRpcConfig implements MessageListener {
 
     public int getCallbackCount(){
         return callbacks.size();
+    }
+
+    @Scheduled(fixedRate = 1000)   //每1秒执行一次
+    public void execute(){
+        System.out.println("callbacks的长度: " + callbacks.size());
+        System.out.println("队列的长度: " + topicSubscribers.size());
     }
 }

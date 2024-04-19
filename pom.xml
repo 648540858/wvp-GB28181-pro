@@ -393,19 +393,6 @@
             </plugin>
 
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.3.0</version>
-                <configuration>
-                    <excludes>
-                        <exclude>**/all-application.yml</exclude>
-                        <exclude>**/application.yml</exclude>
-                        <exclude>**/application-*.yml</exclude>
-                        <exclude>**/local.jks</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-            <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <executions>
                     <execution> <!-- 复制配置文件 -->

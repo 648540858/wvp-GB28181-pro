@@ -93,6 +93,27 @@ public class JTDeviceConfig {
     @ConfigAttribute(id = 0x28, description = "紧急报警时汇报时间间隔 单位为秒 值大于0")
     private Long reportingIntervalEmergencyAlarm;
 
+    @ConfigAttribute(id = 0x29, description = "缺省时间汇报间隔 单位为秒 值大于0")
+    private Long reportingIntervalDefault;
+
+    @ConfigAttribute(id = 0x2c, description = "缺省距离汇报间隔 单位为米 值大于0")
+    private Long reportingDistanceDefault;
+
+    @ConfigAttribute(id = 0x2d, description = "驾驶员未登录汇报距离间隔 单位为米 值大于0")
+    private Long reportingDistanceOffline;
+
+    @ConfigAttribute(id = 0x2e, description = "休眠时汇报距离间隔 单位为米 值大于0")
+    private Long reportingDistanceDormancy;
+
+    @ConfigAttribute(id = 0x2f, description = "紧急报警时汇报距离间隔 单位为米 值大于0")
+    private Long reportingDistanceEmergencyAlarm;
+
+    @ConfigAttribute(id = 0x30, description = "拐点补传角度 ,值小于180")
+    private Long inflectionPointAngle;
+
+    @ConfigAttribute(id = 0x31, description = "电子围栏半径(非法位移國值) ,单位为米(m)")
+    private Integer fenceRadius;
+
 
 
     // TODO 未完待续

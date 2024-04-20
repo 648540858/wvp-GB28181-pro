@@ -93,6 +93,8 @@ public class JTDeviceConfig {
     @ConfigAttribute(id = 0x28, description = "紧急报警时汇报时间间隔 单位为秒 值大于0")
     private Long reportingIntervalEmergencyAlarm;
 
+
+
     // TODO 未完待续
 
     public Long getKeepaliveInterval() {

@@ -31,9 +31,7 @@ public class J0104 extends Re {
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
         respNo = buf.readUnsignedShort();
-        System.err.println("应答流水号： " + respNo);
         paramLength = (int) buf.readUnsignedByte();
-        System.err.println("参数项个数： " + paramLength);
         if (paramLength <= 0) {
             return null;
         }
@@ -47,7 +45,6 @@ public class J0104 extends Re {
                 allFieldMap.put(configAttribute.id(), field);
             }
         }
-        System.out.println("========");
         for (int i = 0; i < paramLength; i++) {
             long id = buf.readUnsignedInt();
             short length = buf.readUnsignedByte();
@@ -72,8 +69,6 @@ public class J0104 extends Re {
                 }
             }
         }
-
-        System.out.println(deviceConfig.toString());
 
         return null;
     }

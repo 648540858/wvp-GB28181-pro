@@ -49,7 +49,6 @@ public class Jt808Decoder extends ByteToMessageDecoder {
             header.setMsgPro(buf.readUnsignedShort());
             // 从消息属性中读取是否存在分包
             boolean isSubpackage = (header.getMsgPro() >>> 13 & 1) == 1;
-            System.out.println("是否存在分包： " + isSubpackage);
             if (header.is2019Version()) {
 
                 header.setVersion(buf.readUnsignedByte());
@@ -63,8 +62,14 @@ public class Jt808Decoder extends ByteToMessageDecoder {
             if (isSubpackage) {
                 int packageCount = buf.readUnsignedShort();
                 int packageNumber = buf.readUnsignedShort();
-                System.out.println("消息总包数: " + packageCount);
-                System.out.println("包序号: " + packageNumber);
+                MultiPacket multiPacket = MultiPacket.getInstance(header, packageNumber, packageCount, buf);
+                ByteBuf intactBuf = MultiPacketManager.INSTANCE.add(multiPacket);
+                if (intactBuf != null) {
+                    buf = intactBuf;
+                }else {
+                    return;
+                }
+
             }
             Re handler = CodecFactory.getHandler(header.getMsgId());
             if (handler == null) {

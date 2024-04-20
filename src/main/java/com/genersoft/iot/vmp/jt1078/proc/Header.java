@@ -14,7 +14,7 @@ public class Header {
     // 消息体属性
     Integer msgPro;
 
-    // 标识
+    // 终端手机号
     String terminalId;
 
     // 消息体流水号

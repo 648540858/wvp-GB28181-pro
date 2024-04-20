@@ -479,6 +479,190 @@ public class JTDeviceConfig {
         this.illegalDrivingPeriods = illegalDrivingPeriods;
     }
 
+    public String getPlatformPhoneNumber() {
+        return platformPhoneNumber;
+    }
+
+    public void setPlatformPhoneNumber(String platformPhoneNumber) {
+        this.platformPhoneNumber = platformPhoneNumber;
+    }
+
+    public String getPhoneNumberForReset() {
+        return phoneNumberForReset;
+    }
+
+    public void setPhoneNumberForReset(String phoneNumberForReset) {
+        this.phoneNumberForReset = phoneNumberForReset;
+    }
+
+    public String getPhoneNumberForFactoryReset() {
+        return phoneNumberForFactoryReset;
+    }
+
+    public void setPhoneNumberForFactoryReset(String phoneNumberForFactoryReset) {
+        this.phoneNumberForFactoryReset = phoneNumberForFactoryReset;
+    }
+
+    public String getPhoneNumberForSms() {
+        return phoneNumberForSms;
+    }
+
+    public void setPhoneNumberForSms(String phoneNumberForSms) {
+        this.phoneNumberForSms = phoneNumberForSms;
+    }
+
+    public String getPhoneNumberForReceiveTextAlarm() {
+        return phoneNumberForReceiveTextAlarm;
+    }
+
+    public void setPhoneNumberForReceiveTextAlarm(String phoneNumberForReceiveTextAlarm) {
+        this.phoneNumberForReceiveTextAlarm = phoneNumberForReceiveTextAlarm;
+    }
+
+    public Long getPhoneAnsweringPolicy() {
+        return phoneAnsweringPolicy;
+    }
+
+    public void setPhoneAnsweringPolicy(Long phoneAnsweringPolicy) {
+        this.phoneAnsweringPolicy = phoneAnsweringPolicy;
+    }
+
+    public Long getLongestCallTimeForPerSession() {
+        return longestCallTimeForPerSession;
+    }
+
+    public void setLongestCallTimeForPerSession(Long longestCallTimeForPerSession) {
+        this.longestCallTimeForPerSession = longestCallTimeForPerSession;
+    }
+
+    public Long getLongestCallTimeInMonth() {
+        return longestCallTimeInMonth;
+    }
+
+    public void setLongestCallTimeInMonth(Long longestCallTimeInMonth) {
+        this.longestCallTimeInMonth = longestCallTimeInMonth;
+    }
+
+    public String getPhoneNumbersForListen() {
+        return phoneNumbersForListen;
+    }
+
+    public void setPhoneNumbersForListen(String phoneNumbersForListen) {
+        this.phoneNumbersForListen = phoneNumbersForListen;
+    }
+
+    public String getPrivilegedSMSNumber() {
+        return privilegedSMSNumber;
+    }
+
+    public void setPrivilegedSMSNumber(String privilegedSMSNumber) {
+        this.privilegedSMSNumber = privilegedSMSNumber;
+    }
+
+    public Long getAlarmMaskingWord() {
+        return alarmMaskingWord;
+    }
+
+    public void setAlarmMaskingWord(Long alarmMaskingWord) {
+        this.alarmMaskingWord = alarmMaskingWord;
+    }
+
+    public Long getAlarmSendsTextSmsSwitch() {
+        return alarmSendsTextSmsSwitch;
+    }
+
+    public void setAlarmSendsTextSmsSwitch(Long alarmSendsTextSmsSwitch) {
+        this.alarmSendsTextSmsSwitch = alarmSendsTextSmsSwitch;
+    }
+
+    public Long getAlarmShootingSwitch() {
+        return alarmShootingSwitch;
+    }
+
+    public void setAlarmShootingSwitch(Long alarmShootingSwitch) {
+        this.alarmShootingSwitch = alarmShootingSwitch;
+    }
+
+    public Long getAlarmShootingStorageFlags() {
+        return alarmShootingStorageFlags;
+    }
+
+    public void setAlarmShootingStorageFlags(Long alarmShootingStorageFlags) {
+        this.alarmShootingStorageFlags = alarmShootingStorageFlags;
+    }
+
+    public Long getKeySign() {
+        return KeySign;
+    }
+
+    public void setKeySign(Long keySign) {
+        KeySign = keySign;
+    }
+
+    public Long getTopSpeed() {
+        return topSpeed;
+    }
+
+    public void setTopSpeed(Long topSpeed) {
+        this.topSpeed = topSpeed;
+    }
+
+    public Long getOverSpeedDuration() {
+        return overSpeedDuration;
+    }
+
+    public void setOverSpeedDuration(Long overSpeedDuration) {
+        this.overSpeedDuration = overSpeedDuration;
+    }
+
+    public Long getContinuousDrivingTimeThreshold() {
+        return continuousDrivingTimeThreshold;
+    }
+
+    public void setContinuousDrivingTimeThreshold(Long continuousDrivingTimeThreshold) {
+        this.continuousDrivingTimeThreshold = continuousDrivingTimeThreshold;
+    }
+
+    public Long getCumulativeDrivingTimeThresholdForTheDay() {
+        return cumulativeDrivingTimeThresholdForTheDay;
+    }
+
+    public void setCumulativeDrivingTimeThresholdForTheDay(Long cumulativeDrivingTimeThresholdForTheDay) {
+        this.cumulativeDrivingTimeThresholdForTheDay = cumulativeDrivingTimeThresholdForTheDay;
+    }
+
+    public Long getMinimumBreakTime() {
+        return minimumBreakTime;
+    }
+
+    public void setMinimumBreakTime(Long minimumBreakTime) {
+        this.minimumBreakTime = minimumBreakTime;
+    }
+
+    public Long getMaximumParkingTime() {
+        return maximumParkingTime;
+    }
+
+    public void setMaximumParkingTime(Long maximumParkingTime) {
+        this.maximumParkingTime = maximumParkingTime;
+    }
+
+    public Long getOverSpeedWarningDifference() {
+        return overSpeedWarningDifference;
+    }
+
+    public void setOverSpeedWarningDifference(Long overSpeedWarningDifference) {
+        this.overSpeedWarningDifference = overSpeedWarningDifference;
+    }
+
+    public Long getDrowsyDrivingWarningDifference() {
+        return drowsyDrivingWarningDifference;
+    }
+
+    public void setDrowsyDrivingWarningDifference(Long drowsyDrivingWarningDifference) {
+        this.drowsyDrivingWarningDifference = drowsyDrivingWarningDifference;
+    }
+
     @Override
     public String toString() {
         return "JTDeviceConfig{" +

@@ -12,6 +12,8 @@ import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.util.StringUtil;
 import org.springframework.context.ApplicationEvent;
 
 import java.lang.reflect.Field;
@@ -57,25 +59,25 @@ public class J0104 extends Re {
             short length = buf.readUnsignedByte();
             Field field = allFieldMap.get(id);
             try {
-                Method method = deviceConfig.getClass().getMethod("set" + field.getName().toLowerCase());
+                Method method = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()));
                 switch (allConfigAttributeMap.get(id).type()) {
                     case "Long":
-                        field.set(deviceConfig, buf.readUnsignedInt());
                         method.invoke(deviceConfig, buf.readUnsignedInt());
                         continue;
                     case "String":
                         String val = buf.readCharSequence(length, Charset.forName("GBK")).toString().trim();
-                        field.set(deviceConfig, val);
+                        method.invoke(deviceConfig, val);
                         continue;
-                        case "IllegalDrivingPeriods":
-                            IllegalDrivingPeriods illegalDrivingPeriods = new IllegalDrivingPeriods();
-                            int startHour = buf.readUnsignedByte();
-                            int startMinute = buf.readUnsignedByte();
-                            int stopHour = buf.readUnsignedByte();
-                            int stopMinute = buf.readUnsignedByte();
-                            illegalDrivingPeriods.setStartTime(startHour + ":" + startMinute);
-                            illegalDrivingPeriods.setEndTime(stopHour + ":" + stopMinute);
-                            continue;
+                    case "IllegalDrivingPeriods":
+                        IllegalDrivingPeriods illegalDrivingPeriods = new IllegalDrivingPeriods();
+                        int startHour = buf.readUnsignedByte();
+                        int startMinute = buf.readUnsignedByte();
+                        int stopHour = buf.readUnsignedByte();
+                        int stopMinute = buf.readUnsignedByte();
+                        illegalDrivingPeriods.setStartTime(startHour + ":" + startMinute);
+                        illegalDrivingPeriods.setEndTime(stopHour + ":" + stopMinute);
+                        method.invoke(deviceConfig, illegalDrivingPeriods);
+                        continue;
                     default:
                             System.err.println(field.getGenericType().getTypeName());
                         continue;
@@ -88,6 +90,7 @@ public class J0104 extends Re {
                 throw new RuntimeException(e);
             }
         }
+        System.out.println(deviceConfig);
         return null;
     }
 

@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.jt1078.bean;
 
 import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
+import com.genersoft.iot.vmp.jt1078.bean.config.IllegalDrivingPeriods;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -113,6 +114,9 @@ public class JTDeviceConfig {
 
     @ConfigAttribute(id = 0x31, description = "电子围栏半径(非法位移國值) ,单位为米(m)")
     private Integer fenceRadius;
+
+    @ConfigAttribute(id = 0x32, description = "违规行驶时段范围 ,精确到分")
+    private IllegalDrivingPeriods illegalDrivingPeriods;
 
 
 

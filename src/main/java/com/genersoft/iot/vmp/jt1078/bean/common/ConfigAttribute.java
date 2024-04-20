@@ -8,5 +8,7 @@ public @interface ConfigAttribute {
 
     long id();
 
+    String type();
+
     String description();
 }

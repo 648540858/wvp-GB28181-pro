@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
 import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConfig;
 import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
+import com.genersoft.iot.vmp.jt1078.bean.config.IllegalDrivingPeriods;
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import com.genersoft.iot.vmp.jt1078.proc.response.J8001;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
@@ -14,6 +15,8 @@ import io.netty.buffer.ByteBufUtil;
 import org.springframework.context.ApplicationEvent;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,38 +41,53 @@ public class J0104 extends Re {
         JTDeviceConfig deviceConfig = new JTDeviceConfig();
         Field[] fields = deviceConfig.getClass().getDeclaredFields();
         Map<Long, Field> allFieldMap = new HashMap<>();
+        Map<Long, ConfigAttribute> allConfigAttributeMap = new HashMap<>();
         for (Field field : fields) {
-            field.setAccessible(true);
             ConfigAttribute configAttribute = field.getAnnotation(ConfigAttribute.class);
             if (configAttribute != null) {
                 allFieldMap.put(configAttribute.id(), field);
+                allConfigAttributeMap.put(configAttribute.id(), configAttribute);
             }
         }
         for (int i = 0; i < paramLength; i++) {
             long id = buf.readUnsignedInt();
+            if (!allFieldMap.containsKey(id)) {
+                continue;
+            }
             short length = buf.readUnsignedByte();
-            if (allFieldMap.containsKey(id)) {
-                Field field = allFieldMap.get(id);
-                field.setAccessible(true);
-                try {
-                    switch (field.getGenericType().toString()) {
-                        case "class java.lang.Long":
-                            field.set(deviceConfig, buf.readUnsignedInt());
+            Field field = allFieldMap.get(id);
+            try {
+                Method method = deviceConfig.getClass().getMethod("set" + field.getName().toLowerCase());
+                switch (allConfigAttributeMap.get(id).type()) {
+                    case "Long":
+                        field.set(deviceConfig, buf.readUnsignedInt());
+                        method.invoke(deviceConfig, buf.readUnsignedInt());
+                        continue;
+                    case "String":
+                        String val = buf.readCharSequence(length, Charset.forName("GBK")).toString().trim();
+                        field.set(deviceConfig, val);
+                        continue;
+                        case "IllegalDrivingPeriods":
+                            IllegalDrivingPeriods illegalDrivingPeriods = new IllegalDrivingPeriods();
+                            int startHour = buf.readUnsignedByte();
+                            int startMinute = buf.readUnsignedByte();
+                            int stopHour = buf.readUnsignedByte();
+                            int stopMinute = buf.readUnsignedByte();
+                            illegalDrivingPeriods.setStartTime(startHour + ":" + startMinute);
+                            illegalDrivingPeriods.setEndTime(stopHour + ":" + stopMinute);
                             continue;
-                        case "class java.lang.String":
-                            String val = buf.readCharSequence(length, Charset.forName("GBK")).toString().trim();
-                            field.set(deviceConfig, val);
-                            continue;
-                        default:
-                            System.err.println(field.getGenericType());
-                            continue;
-                    }
-                } catch (IllegalAccessException e) {
-                    throw new RuntimeException(e);
+                    default:
+                            System.err.println(field.getGenericType().getTypeName());
+                        continue;
                 }
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            } catch (InvocationTargetException e) {
+                throw new RuntimeException(e);
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
             }
         }
-
         return null;
     }
 

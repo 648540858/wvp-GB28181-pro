@@ -10,113 +10,182 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "JT终端参数设置")
 public class JTDeviceConfig {
 
-    @ConfigAttribute(id = 0x1, description = "终端心跳发送间隔 ,单位为秒(s)")
+    @ConfigAttribute(id = 0x1, type="Long", description = "终端心跳发送间隔,单位为秒(s)")
     private Long keepaliveInterval;
 
-    @ConfigAttribute(id = 0x2, description = "TCP消息应答超时时间 ,单位为秒(s)")
+    @ConfigAttribute(id = 0x2, type="Long", description = "TCP消息应答超时时间,单位为秒(s)")
     private Long tcpResponseTimeout;
 
-    @ConfigAttribute(id = 0x3, description = "TCP消息重传次数")
+    @ConfigAttribute(id = 0x3, type="Long", description = "TCP消息重传次数")
     private Long tcpRetransmissionCount;
 
-    @ConfigAttribute(id = 0x4, description = "UDP消息应答超时时间 ,单位为秒(s)")
+    @ConfigAttribute(id = 0x4, type="Long", description = "UDP消息应答超时时间,单位为秒(s)")
     private Long udpResponseTimeout;
 
-    @ConfigAttribute(id = 0x5, description = "UDP消息重传次数")
+    @ConfigAttribute(id = 0x5, type="Long", description = "UDP消息重传次数")
     private Long udpRetransmissionCount;
 
-    @ConfigAttribute(id = 0x6, description = "SMS 消息应答超时时间 ,单位为秒(s)")
+    @ConfigAttribute(id = 0x6, type="Long", description = "SMS 消息应答超时时间,单位为秒(s)")
     private Long smsResponseTimeout;
 
-    @ConfigAttribute(id = 0x7, description = "SMS 消息重传次数")
+    @ConfigAttribute(id = 0x7, type="Long", description = "SMS 消息重传次数")
     private Long smsRetransmissionCount;
 
-    @ConfigAttribute(id = 0x10, description = "主服务器 APN,无线通信拨号访问点 。若网络制式为 CDMA,则该处 为 PPP拨号号码")
+    @ConfigAttribute(id = 0x10, type="String", description = "主服务器APN无线通信拨号访问点,若网络制式为 CDMA,则该处 为 PPP拨号号码")
     private String apnMaster;
 
-    @ConfigAttribute(id = 0x11, description = "主服务器无线通信拨号用户名")
+    @ConfigAttribute(id = 0x11, type="String", description = "主服务器无线通信拨号用户名")
     private String dialingUsernameMaster;
 
-    @ConfigAttribute(id = 0x12, description = "主服务器无线通信拨号密码")
+    @ConfigAttribute(id = 0x12, type="String", description = "主服务器无线通信拨号密码")
     private String dialingPasswordMaster;
 
-    @ConfigAttribute(id = 0x13, description = "主服务器地址 !IP或域名 ! 以冒号分割主机和端口 !多个服务器使用 分号分割")
+    @ConfigAttribute(id = 0x13, type="String", description = "主服务器地址IP或域名,以冒号分割主机和端口 多个服务器使用分号分割")
     private String addressMaster;
 
-    @ConfigAttribute(id = 0x14, description = "备份服务器 APN")
+    @ConfigAttribute(id = 0x14, type="String", description = "备份服务器APN")
     private String apnBackup;
 
-    @ConfigAttribute(id = 0x15, description = "备份服务器无线通信拨号用户名")
+    @ConfigAttribute(id = 0x15, type="String", description = "备份服务器无线通信拨号用户名")
     private String dialingUsernameBackup;
 
-    @ConfigAttribute(id = 0x16, description = "备份服务器无线通信拨号密码")
+    @ConfigAttribute(id = 0x16, type="String", description = "备份服务器无线通信拨号密码")
     private String dialingPasswordBackup;
 
-    @ConfigAttribute(id = 0x17, description = "备用服务器备份地址 !IP或域名 ! 以冒号分割主机和端口 !多个服务 器使用分号分割")
+    @ConfigAttribute(id = 0x17, type="String", description = "备用服务器备份地址IP或域名,以冒号分割主机和端口 多个服务器使用分号分割")
     private String addressBackup;
 
-    @ConfigAttribute(id = 0x1a, description = "道路运输证 IC卡认证主服务器 IP地址或域名")
+    @ConfigAttribute(id = 0x1a, type="String", description = "道路运输证IC卡认证主服务器IP地址或域名")
     private String addressIcMaster;
 
-    @ConfigAttribute(id = 0x1b, description = "道路运输证 IC卡认证主服务器 TCP端口")
+    @ConfigAttribute(id = 0x1b, type="Long", description = "道路运输证IC卡认证主服务器TCP端口")
     private Long tcpPortIcMaster;
 
-    @ConfigAttribute(id = 0x1c, description = "道路运输证 IC卡认证主服务器 UDP端口")
+    @ConfigAttribute(id = 0x1c, type="Long", description = "道路运输证IC卡认证主服务器UDP端口")
     private Long udpPortIcMaster;
 
-    @ConfigAttribute(id = 0x1d, description = "道路运输证 IC卡认证备份服务器 IP地址或域名 !端口同主服务器")
+    @ConfigAttribute(id = 0x1d, type="Long", description = "道路运输证IC卡认证备份服务器IP地址或域名,端口同主服务器")
     private String addressIcBackup;
 
-    @ConfigAttribute(id = 0x20, description = "位置汇报策略 0定时汇报,1定距汇报,2定时和定距汇报")
+    @ConfigAttribute(id = 0x20, type="Long", description = "位置汇报策略, 0定时汇报 1定距汇报 2定时和定距汇报")
     private Long locationReportingStrategy;
 
-    @ConfigAttribute(id = 0x21, description = "位置汇报方案 0根据ACC状态, 1根据登录状态和ACC状态,先判断登录状态,若登录再根据ACC状态")
+    @ConfigAttribute(id = 0x21, type="Long", description = "位置汇报方案,0根据ACC状态 1根据登录状态和ACC状态,先判断登录状态,若登录再根据ACC状态")
     private Long locationReportingPlan;
 
-    @ConfigAttribute(id = 0x22, description = "驾驶员未登录汇报时间间隔,单位为秒,值大于零")
+    @ConfigAttribute(id = 0x22, type="Long", description = "驾驶员未登录汇报时间间隔,单位为秒,值大于零")
     private Long reportingIntervalOffline;
 
-    @ConfigAttribute(id = 0x23, description = "从服务器 APN# 该值为空时 !终端应使用主服务器相同配置")
+    @ConfigAttribute(id = 0x23, type="String", description = "从服务器 APN# 该值为空时 !终端应使用主服务器相同配置")
     private String apnSlave;
 
-    @ConfigAttribute(id = 0x24, description = "从服务器无线通信拨号密码 #  该值为空时 !终端应使用主服务器相 同配置")
+    @ConfigAttribute(id = 0x24, type="String", description = "从服务器无线通信拨号密码 #  该值为空时 !终端应使用主服务器相 同配置")
     private String dialingUsernameSlave;
 
-    @ConfigAttribute(id = 0x25, description = "从服务器备份地址 IP或域名 !主机和端口用冒号分割 !多个服务器 使用分号分割")
+    @ConfigAttribute(id = 0x25, type="String", description = "从服务器备份地址 IP或域名 !主机和端口用冒号分割 !多个服务器 使用分号分割")
     private String dialingPasswordSlave;
 
-    @ConfigAttribute(id = 0x26, description = "从服务器备份地址 IP或域名 !主机和端口用冒号分割 !多个服务器 使用分号分割")
+    @ConfigAttribute(id = 0x26, type="String", description = "从服务器备份地址 IP或域名 !主机和端口用冒号分割 !多个服务器 使用分号分割")
     private String addressSlave;
 
-    @ConfigAttribute(id = 0x27, description = "休眠时汇报时间间隔 单位为秒 值大于0")
+    @ConfigAttribute(id = 0x27, type="Long", description = "休眠时汇报时间间隔 单位为秒 值大于0")
     private Long reportingIntervalDormancy;
 
-    @ConfigAttribute(id = 0x28, description = "紧急报警时汇报时间间隔 单位为秒 值大于0")
+    @ConfigAttribute(id = 0x28, type="Long", description = "紧急报警时汇报时间间隔 单位为秒 值大于0")
     private Long reportingIntervalEmergencyAlarm;
 
-    @ConfigAttribute(id = 0x29, description = "缺省时间汇报间隔 单位为秒 值大于0")
+    @ConfigAttribute(id = 0x29, type="Long", description = "缺省时间汇报间隔 单位为秒 值大于0")
     private Long reportingIntervalDefault;
 
-    @ConfigAttribute(id = 0x2c, description = "缺省距离汇报间隔 单位为米 值大于0")
+    @ConfigAttribute(id = 0x2c, type="Long", description = "缺省距离汇报间隔 单位为米 值大于0")
     private Long reportingDistanceDefault;
 
-    @ConfigAttribute(id = 0x2d, description = "驾驶员未登录汇报距离间隔 单位为米 值大于0")
+    @ConfigAttribute(id = 0x2d, type="Long", description = "驾驶员未登录汇报距离间隔 单位为米 值大于0")
     private Long reportingDistanceOffline;
 
-    @ConfigAttribute(id = 0x2e, description = "休眠时汇报距离间隔 单位为米 值大于0")
+    @ConfigAttribute(id = 0x2e, type="Long", description = "休眠时汇报距离间隔 单位为米 值大于0")
     private Long reportingDistanceDormancy;
 
-    @ConfigAttribute(id = 0x2f, description = "紧急报警时汇报距离间隔 单位为米 值大于0")
+    @ConfigAttribute(id = 0x2f, type="Long", description = "紧急报警时汇报距离间隔 单位为米 值大于0")
     private Long reportingDistanceEmergencyAlarm;
 
-    @ConfigAttribute(id = 0x30, description = "拐点补传角度 ,值小于180")
+    @ConfigAttribute(id = 0x30, type="Long", description = "拐点补传角度 ,值小于180")
     private Long inflectionPointAngle;
 
-    @ConfigAttribute(id = 0x31, description = "电子围栏半径(非法位移國值) ,单位为米(m)")
+    @ConfigAttribute(id = 0x31, type="Long", description = "电子围栏半径(非法位移國值) ,单位为米(m)")
     private Integer fenceRadius;
 
-    @ConfigAttribute(id = 0x32, description = "违规行驶时段范围 ,精确到分")
+    @ConfigAttribute(id = 0x32, type="IllegalDrivingPeriods", description = "违规行驶时段范围 ,精确到分")
     private IllegalDrivingPeriods illegalDrivingPeriods;
+
+    @ConfigAttribute(id = 0x40, type="String", description = "监控平台电话号码")
+    private String platformPhoneNumber;
+
+    @ConfigAttribute(id = 0x41, type="String", description = "复位电话号码 ,可采用此电话号码拨打终端电话让终端复位")
+    private String phoneNumberForReset;
+
+    @ConfigAttribute(id = 0x42, type="String", description = "恢复出厂设置电话号码 ,可采用此电话号码拨打终端电话让终端恢 复出厂设置")
+    private String phoneNumberForFactoryReset;
+
+    @ConfigAttribute(id = 0x42, type="String", description = "监控平台 SMS 电话号码")
+    private String phoneNumberForSms;
+
+    @ConfigAttribute(id = 0x44, type="String", description = "接收终端 SMS 文本报警号码")
+    private String phoneNumberForReceiveTextAlarm;
+
+    @ConfigAttribute(id = 0x45, type="Long", description = "终端电话接听策略 。0:自动接听；1:ACCON时自动接听 ,OFF时手动接听")
+    private Long phoneAnsweringPolicy;
+
+    @ConfigAttribute(id = 0x46, type="Long", description = "每次最长通话时间 ,单位为秒(s) ,0 为不允许通话 ,0xFFFFFFFF为不限制")
+    private Long longestCallTimeForPerSession;
+
+    @ConfigAttribute(id = 0x47, type="Long", description = "当月最长通话时间 ,单位为秒(s) ,0 为不允许通话 ,0xFFFFFFFF为 不限制")
+    private Long longestCallTimeInMonth;
+
+    @ConfigAttribute(id = 0x48, type="String", description = "监听电话号码")
+    private String phoneNumbersForListen;
+
+    @ConfigAttribute(id = 0x49, type="String", description = "监管平台特权短信号码")
+    private String privilegedSMSNumber;
+
+    @ConfigAttribute(id = 0x50, type="Long", description = "报警屏蔽字 ,与位置信息汇报消息中的报警标志相对应 ,相应位为 1 则相应报警被屏蔽")
+    private Long alarmMaskingWord;
+
+    @ConfigAttribute(id = 0x51, type="Long", description = "报警发送文本 SMS 开关 , 与位置信息汇报消息中的报警标志相对 应 ,相应位为1 则相应报警时发送文本 SMS")
+    private Long alarmSendsTextSmsSwitch;
+
+    @ConfigAttribute(id = 0x52, type="Long", description = "报警拍摄开关 ,与位置信息汇报消息中的报警标志相对应 ,相应位为 1 则相应报警时摄像头拍摄")
+    private Long alarmShootingSwitch;
+
+    @ConfigAttribute(id = 0x53, type="Long", description = "报警拍摄存储标志 ,与位置信息汇报消息中的报警标志相对应 ,相应 位为1 则对相应报警时拍的照片进行存储 ,否则实时上传")
+    private Long alarmShootingStorageFlags;
+
+    @ConfigAttribute(id = 0x54, type="Long", description = "关键标志 ,与位置信息汇报消息中的报警标志相对应 ,相应位为 1 则 对相应报警为关键报警")
+    private Long KeySign;
+
+    @ConfigAttribute(id = 0x55, type="Long", description = "最高速度 ,单位为千米每小时(km/h)")
+    private Long topSpeed;
+
+    @ConfigAttribute(id = 0x56, type="Long", description = "超速持续时间 ,单位为秒(s)")
+    private Long overSpeedDuration;
+
+    @ConfigAttribute(id = 0x57, type="Long", description = "连续驾驶时间门限 单位为秒(s)")
+    private Long continuousDrivingTimeThreshold;
+
+    @ConfigAttribute(id = 0x58, type="Long", description = "当天累计驾驶时间门限 单位为秒(s)")
+    private Long cumulativeDrivingTimeThresholdForTheDay;
+
+    @ConfigAttribute(id = 0x59, type="Long", description = "最小休息时间 单位为秒(s)")
+    private Long minimumBreakTime;
+
+    @ConfigAttribute(id = 0x5a, type="Long", description = "最长停车时间 单位为秒(s)")
+    private Long maximumParkingTime;
+
+    @ConfigAttribute(id = 0x5b, type="Long", description = "超速预警差值 单位为1/10 千米每小时(1/10km/h)")
+    private Long overSpeedWarningDifference;
+
+    @ConfigAttribute(id = 0x5c, type="Long", description = "疲劳驾驶预警差值 单位为秒 值大于零")
+    private Long drowsyDrivingWarningDifference;
 
 
 
@@ -344,6 +413,70 @@ public class JTDeviceConfig {
 
     public void setReportingIntervalEmergencyAlarm(Long reportingIntervalEmergencyAlarm) {
         this.reportingIntervalEmergencyAlarm = reportingIntervalEmergencyAlarm;
+    }
+
+    public Long getReportingIntervalDefault() {
+        return reportingIntervalDefault;
+    }
+
+    public void setReportingIntervalDefault(Long reportingIntervalDefault) {
+        this.reportingIntervalDefault = reportingIntervalDefault;
+    }
+
+    public Long getReportingDistanceDefault() {
+        return reportingDistanceDefault;
+    }
+
+    public void setReportingDistanceDefault(Long reportingDistanceDefault) {
+        this.reportingDistanceDefault = reportingDistanceDefault;
+    }
+
+    public Long getReportingDistanceOffline() {
+        return reportingDistanceOffline;
+    }
+
+    public void setReportingDistanceOffline(Long reportingDistanceOffline) {
+        this.reportingDistanceOffline = reportingDistanceOffline;
+    }
+
+    public Long getReportingDistanceDormancy() {
+        return reportingDistanceDormancy;
+    }
+
+    public void setReportingDistanceDormancy(Long reportingDistanceDormancy) {
+        this.reportingDistanceDormancy = reportingDistanceDormancy;
+    }
+
+    public Long getReportingDistanceEmergencyAlarm() {
+        return reportingDistanceEmergencyAlarm;
+    }
+
+    public void setReportingDistanceEmergencyAlarm(Long reportingDistanceEmergencyAlarm) {
+        this.reportingDistanceEmergencyAlarm = reportingDistanceEmergencyAlarm;
+    }
+
+    public Long getInflectionPointAngle() {
+        return inflectionPointAngle;
+    }
+
+    public void setInflectionPointAngle(Long inflectionPointAngle) {
+        this.inflectionPointAngle = inflectionPointAngle;
+    }
+
+    public Integer getFenceRadius() {
+        return fenceRadius;
+    }
+
+    public void setFenceRadius(Integer fenceRadius) {
+        this.fenceRadius = fenceRadius;
+    }
+
+    public IllegalDrivingPeriods getIllegalDrivingPeriods() {
+        return illegalDrivingPeriods;
+    }
+
+    public void setIllegalDrivingPeriods(IllegalDrivingPeriods illegalDrivingPeriods) {
+        this.illegalDrivingPeriods = illegalDrivingPeriods;
     }
 
     @Override

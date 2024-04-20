@@ -353,4 +353,14 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             redisCatchStorage.sendMobilePositionMsg(jsonObject);
         }
     }
+
+    @Override
+    public void batchUpdateChannelGPS(List<DeviceChannel> channelList) {
+
+    }
+
+    @Override
+    public void batchAddMobilePosition(List<MobilePosition> mobilePositions) {
+
+    }
 }

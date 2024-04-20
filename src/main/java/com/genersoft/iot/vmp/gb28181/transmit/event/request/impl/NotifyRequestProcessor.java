@@ -228,12 +228,12 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			deviceChannel.setLongitude(mobilePosition.getLongitude());
 			deviceChannel.setLatitude(mobilePosition.getLatitude());
 			deviceChannel.setGpsTime(mobilePosition.getTime());
-			deviceChannel = deviceChannelService.updateGps(deviceChannel, device);
-
-			mobilePosition.setLongitudeWgs84(deviceChannel.getLongitudeWgs84());
-			mobilePosition.setLatitudeWgs84(deviceChannel.getLatitudeWgs84());
-			mobilePosition.setLongitudeGcj02(deviceChannel.getLongitudeGcj02());
-			mobilePosition.setLatitudeGcj02(deviceChannel.getLatitudeGcj02());
+//			deviceChannel = deviceChannelService.updateGps(deviceChannel, device);
+//
+//			mobilePosition.setLongitudeWgs84(deviceChannel.getLongitudeWgs84());
+//			mobilePosition.setLatitudeWgs84(deviceChannel.getLatitudeWgs84());
+//			mobilePosition.setLongitudeGcj02(deviceChannel.getLongitudeGcj02());
+//			mobilePosition.setLatitudeGcj02(deviceChannel.getLatitudeGcj02());
 
 			deviceChannelService.updateChannelGPS(device, deviceChannel, mobilePosition);
 

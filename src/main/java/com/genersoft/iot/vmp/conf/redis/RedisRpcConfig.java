@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
@@ -216,10 +215,11 @@ public class RedisRpcConfig implements MessageListener {
         return callbacks.size();
     }
 
-    @Scheduled(fixedRate = 1000)   //每1秒执行一次
-    public void execute(){
-        System.out.println("callbacks的长度: " + callbacks.size());
-        System.out.println("队列的长度: " + topicSubscribers.size());
-        System.out.println("HOOK监听的长度: " + hookSubscribe.size());
-    }
+//    @Scheduled(fixedRate = 1000)   //每1秒执行一次
+//    public void execute(){
+//        logger.info("callbacks的长度: " + callbacks.size());
+//        logger.info("队列的长度: " + topicSubscribers.size());
+//        logger.info("HOOK监听的长度: " + hookSubscribe.size());
+//        logger.info("");
+//    }
 }

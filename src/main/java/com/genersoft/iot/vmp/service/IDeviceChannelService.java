@@ -98,4 +98,8 @@ public interface IDeviceChannelService {
 
     void updateChannelGPS(Device device, DeviceChannel deviceChannel, MobilePosition mobilePosition);
 
+    void batchUpdateChannelGPS(List<DeviceChannel> channelList);
+
+    void batchAddMobilePosition(List<MobilePosition> addMobilePositionList);
+
 }

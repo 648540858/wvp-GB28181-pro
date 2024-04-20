@@ -295,9 +295,10 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 
 	private void executeSaveForUpdate(){
 		if (!updateChannelMap.values().isEmpty()) {
+			logger.info("[存储收到的更新通道], 数量： {}", updateChannelMap.size());
 			ArrayList<DeviceChannel> deviceChannels = new ArrayList<>(updateChannelMap.values());
-			updateChannelMap.clear();
 			deviceChannelService.batchUpdateChannel(deviceChannels);
+			updateChannelMap.clear();
 		}
 
 	}

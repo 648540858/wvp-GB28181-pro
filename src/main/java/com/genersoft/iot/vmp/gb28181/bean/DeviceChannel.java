@@ -238,7 +238,7 @@ public class DeviceChannel {
 	 *  是否含有音频
 	 */
 	@Schema(description = "是否含有音频")
-	private boolean hasAudio;
+	private Boolean hasAudio;
 
 	/**
 	 * 标记通道的类型，0->国标通道 1->直播流通道 2->业务分组/虚拟组织/行政区划

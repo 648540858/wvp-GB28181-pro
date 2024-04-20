@@ -831,6 +831,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             }
         });
         // 添加回复的拒绝或者错误的通知
+        // redis消息例如： PUBLISH VM_MSG_STREAM_PUSH_RESPONSE  '{"code":1,"msg":"失败","app":"1","stream":"2"}'
         redisPushStreamResponseListener.addEvent(sendRtpItem.getApp(), sendRtpItem.getStream(), response -> {
             if (response.getCode() != 0) {
                 dynamicTask.stop(sendRtpItem.getCallId());

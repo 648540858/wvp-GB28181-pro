@@ -1,0 +1,115 @@
+package com.genersoft.iot.vmp.jt1078.proc.response;
+
+import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
+import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConfig;
+import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
+import com.genersoft.iot.vmp.jt1078.bean.config.*;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import org.apache.commons.lang3.StringUtils;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * 查询指定终端参数
+ */
+@MsgId(id = "8106")
+public class J8103 extends Rs {
+
+    private JTDeviceConfig config;
+
+    @Override
+    public ByteBuf encode() {
+        ByteBuf buffer = Unpooled.buffer();
+        Class<? extends JTDeviceConfig> configClass = config.getClass();
+        Field[] declaredFields = configClass.getDeclaredFields();
+        Map<Field, ConfigAttribute> fieldConfigAttributeMap = new HashMap<>();
+        for (Field field : declaredFields) {
+            try{
+                Method method = configClass.getDeclaredMethod("get" + StringUtils.capitalize(field.getName()), String.class);
+                Object invoke = method.invoke(config);
+                if (invoke == null) {
+                    continue;
+                }
+                ConfigAttribute configAttribute = field.getAnnotation(ConfigAttribute.class);
+                if (configAttribute != null) {
+                    fieldConfigAttributeMap.put(field, configAttribute);
+                }
+            }catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+        buffer.writeByte(fieldConfigAttributeMap.size());
+
+        if (!fieldConfigAttributeMap.isEmpty()) {
+            for (Field field : fieldConfigAttributeMap.keySet()) {
+                try{
+                    ConfigAttribute configAttribute = fieldConfigAttributeMap.get(field);
+                    buffer.writeLong(configAttribute.id());
+                    switch (configAttribute.type()) {
+                        case "Long":
+                            buffer.writeByte(4);
+                            field.setAccessible(true);
+                            Long longval = (Long)field.get(config);
+                            buffer.writeLong(longval);
+                            continue;
+                        case "String":
+                            field.setAccessible(true);
+                            String stringVal = (String)field.get(config);
+                            buffer.writeByte(stringVal.getBytes().length);
+                            buffer.writeBytes(stringVal.getBytes());
+                            continue;
+                        case "Integer":
+                            buffer.writeByte(2);
+                            field.setAccessible(true);
+                            Integer integerVal = (Integer)field.get(config);
+                            buffer.writeInt(integerVal);
+                            continue;
+                        case "Short":
+                            buffer.writeByte(1);
+                            field.setAccessible(true);
+                            Short shortVal = (Short)field.get(config);
+                            buffer.writeShort(shortVal);
+                            continue;
+                        case "IllegalDrivingPeriods":
+                        case "CollisionAlarmParams":
+                        case "CameraTimer":
+                        case "GnssPositioningMode":
+                            field.setAccessible(true);
+                            JTDeviceSubConfig subConfig = (JTDeviceSubConfig)field.get(config);
+                            byte[] bytesForIllegalDrivingPeriods = subConfig.encode();
+                            buffer.writeByte(bytesForIllegalDrivingPeriods.length);
+                            buffer.writeBytes(bytesForIllegalDrivingPeriods);
+                            continue;
+                    }
+                }catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+
+            }
+        }
+        return buffer;
+    }
+
+    public JTDeviceConfig getConfig() {
+        return config;
+    }
+
+    public void setConfig(JTDeviceConfig config) {
+        this.config = config;
+    }
+
+    @Override
+    public String toString() {
+        return "J8103{" +
+                "config=" + config +
+                '}';
+    }
+}

@@ -4,6 +4,9 @@ import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
 import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConfig;
 import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
+import com.genersoft.iot.vmp.jt1078.bean.config.CameraTimer;
+import com.genersoft.iot.vmp.jt1078.bean.config.CollisionAlarmParams;
+import com.genersoft.iot.vmp.jt1078.bean.config.GnssPositioningMode;
 import com.genersoft.iot.vmp.jt1078.bean.config.IllegalDrivingPeriods;
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import com.genersoft.iot.vmp.jt1078.proc.response.J8001;
@@ -59,14 +62,24 @@ public class J0104 extends Re {
             short length = buf.readUnsignedByte();
             Field field = allFieldMap.get(id);
             try {
-                Method method = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()));
+
                 switch (allConfigAttributeMap.get(id).type()) {
                     case "Long":
-                        method.invoke(deviceConfig, buf.readUnsignedInt());
+                        Method methodForLong = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), Long.class);
+                        methodForLong.invoke(deviceConfig, buf.readUnsignedInt());
                         continue;
                     case "String":
+                        Method methodForString = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), String.class);
                         String val = buf.readCharSequence(length, Charset.forName("GBK")).toString().trim();
-                        method.invoke(deviceConfig, val);
+                        methodForString.invoke(deviceConfig, val);
+                        continue;
+                    case "Integer":
+                        Method methodForInteger = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), Integer.class);
+                        methodForInteger.invoke(deviceConfig, buf.readUnsignedShort());
+                        continue;
+                    case "Short":
+                        Method methodForShort = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), Short.class);
+                        methodForShort.invoke(deviceConfig, buf.readUnsignedByte());
                         continue;
                     case "IllegalDrivingPeriods":
                         IllegalDrivingPeriods illegalDrivingPeriods = new IllegalDrivingPeriods();
@@ -76,7 +89,43 @@ public class J0104 extends Re {
                         int stopMinute = buf.readUnsignedByte();
                         illegalDrivingPeriods.setStartTime(startHour + ":" + startMinute);
                         illegalDrivingPeriods.setEndTime(stopHour + ":" + stopMinute);
-                        method.invoke(deviceConfig, illegalDrivingPeriods);
+                        Method methodForIllegalDrivingPeriods = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), IllegalDrivingPeriods.class);
+                        methodForIllegalDrivingPeriods.invoke(deviceConfig, illegalDrivingPeriods);
+                        continue;
+                    case "CollisionAlarmParams":
+                        CollisionAlarmParams collisionAlarmParams = new CollisionAlarmParams();
+                        collisionAlarmParams.setCollisionAlarmTime(buf.readUnsignedByte());
+                        collisionAlarmParams.setCollisionAcceleration(buf.readUnsignedByte());
+                        Method methodForCollisionAlarmParams = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), CollisionAlarmParams.class);
+                        methodForCollisionAlarmParams.invoke(deviceConfig, collisionAlarmParams);
+                        continue;
+                    case "CameraTimer":
+                        CameraTimer cameraTimer = new CameraTimer();
+                        long cameraTimerContent = buf.readUnsignedInt();
+                        cameraTimer.setSwitchForChannel1((cameraTimerContent & 1) == 1);
+                        cameraTimer.setSwitchForChannel2((cameraTimerContent >>> 1 & 1) == 1);
+                        cameraTimer.setSwitchForChannel3((cameraTimerContent >>> 2 & 1) == 1);
+                        cameraTimer.setSwitchForChannel4((cameraTimerContent >>> 3 & 1) == 1);
+                        cameraTimer.setSwitchForChannel5((cameraTimerContent >>> 4 & 1) == 1);
+                        cameraTimer.setStorageFlagsForChannel1((cameraTimerContent >>> 7 & 1) == 1);
+                        cameraTimer.setStorageFlagsForChannel2((cameraTimerContent >>> 8 & 1) == 1);
+                        cameraTimer.setStorageFlagsForChannel3((cameraTimerContent >>> 9 & 1) == 1);
+                        cameraTimer.setStorageFlagsForChannel4((cameraTimerContent >>> 10 & 1) == 1);
+                        cameraTimer.setStorageFlagsForChannel5((cameraTimerContent >>> 11 & 1) == 1);
+                        cameraTimer.setTimeUnit((cameraTimerContent >>> 15 & 1) == 1);
+                        cameraTimer.setTimeInterval((int)cameraTimerContent >>> 16);
+                        Method methodForCameraTimer = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), CameraTimer.class);
+                        methodForCameraTimer.invoke(deviceConfig, cameraTimer);
+                        continue;
+                    case "GnssPositioningMode":
+                        GnssPositioningMode gnssPositioningMode = new GnssPositioningMode();
+                        short gnssPositioningModeContent = buf.readUnsignedByte();
+                        gnssPositioningMode.setGps((gnssPositioningModeContent& 1) == 1);
+                        gnssPositioningMode.setBeidou((gnssPositioningModeContent >>> 1 & 1) == 1);
+                        gnssPositioningMode.setGlonass((gnssPositioningModeContent >>> 2 & 1) == 1);
+                        gnssPositioningMode.setGaLiLeo((gnssPositioningModeContent >>> 3 & 1) == 1);
+                        Method methodForGnssPositioningMode = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), GnssPositioningMode.class);
+                        methodForGnssPositioningMode.invoke(deviceConfig, gnssPositioningMode);
                         continue;
                     default:
                             System.err.println(field.getGenericType().getTypeName());

@@ -1,7 +1,10 @@
 package com.genersoft.iot.vmp.jt1078.bean;
 
 import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
+import com.genersoft.iot.vmp.jt1078.bean.config.CollisionAlarmParams;
+import com.genersoft.iot.vmp.jt1078.bean.config.GnssPositioningMode;
 import com.genersoft.iot.vmp.jt1078.bean.config.IllegalDrivingPeriods;
+import com.genersoft.iot.vmp.jt1078.bean.config.CameraTimer;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -64,7 +67,7 @@ public class JTDeviceConfig {
     @ConfigAttribute(id = 0x1c, type="Long", description = "道路运输证IC卡认证主服务器UDP端口")
     private Long udpPortIcMaster;
 
-    @ConfigAttribute(id = 0x1d, type="Long", description = "道路运输证IC卡认证备份服务器IP地址或域名,端口同主服务器")
+    @ConfigAttribute(id = 0x1d, type="String", description = "道路运输证IC卡认证备份服务器IP地址或域名,端口同主服务器")
     private String addressIcBackup;
 
     @ConfigAttribute(id = 0x20, type="Long", description = "位置汇报策略, 0定时汇报 1定距汇报 2定时和定距汇报")
@@ -112,7 +115,7 @@ public class JTDeviceConfig {
     @ConfigAttribute(id = 0x30, type="Long", description = "拐点补传角度 ,值小于180")
     private Long inflectionPointAngle;
 
-    @ConfigAttribute(id = 0x31, type="Long", description = "电子围栏半径(非法位移國值) ,单位为米(m)")
+    @ConfigAttribute(id = 0x31, type="Integer", description = "电子围栏半径(非法位移國值) ,单位为米(m)")
     private Integer fenceRadius;
 
     @ConfigAttribute(id = 0x32, type="IllegalDrivingPeriods", description = "违规行驶时段范围 ,精确到分")
@@ -181,15 +184,92 @@ public class JTDeviceConfig {
     @ConfigAttribute(id = 0x5a, type="Long", description = "最长停车时间 单位为秒(s)")
     private Long maximumParkingTime;
 
-    @ConfigAttribute(id = 0x5b, type="Long", description = "超速预警差值 单位为1/10 千米每小时(1/10km/h)")
-    private Long overSpeedWarningDifference;
+    @ConfigAttribute(id = 0x5b, type="Integer", description = "超速预警差值 单位为1/10 千米每小时(1/10km/h)")
+    private Integer overSpeedWarningDifference;
 
-    @ConfigAttribute(id = 0x5c, type="Long", description = "疲劳驾驶预警差值 单位为秒 值大于零")
-    private Long drowsyDrivingWarningDifference;
+    @ConfigAttribute(id = 0x5c, type="Integer", description = "疲劳驾驶预警差值 单位为秒 值大于零")
+    private Integer drowsyDrivingWarningDifference;
 
+    @ConfigAttribute(id = 0x5d, type="CollisionAlarmParams", description = "碰撞报警参数设置")
+    private CollisionAlarmParams collisionAlarmParams;
 
+    @ConfigAttribute(id = 0x5e, type="Integer", description = "侧翻报警参数设置:侧翻角度,单位为度,默认为30")
+    private Integer rolloverAlarm;
 
-    // TODO 未完待续
+    @ConfigAttribute(id = 0x64, type="CameraTimer", description = "定时拍照控制")
+    private CameraTimer cameraTimer;
+
+    @ConfigAttribute(id = 0x70, type="Long", description = "图像/视频质量 设置范围为1~10 1表示最优质量")
+    private Long qualityForVideo;
+
+    @ConfigAttribute(id = 0x71, type="Long", description = "亮度，设置范围为0 ~ 255")
+    private Long brightness;
+
+    @ConfigAttribute(id = 0x72, type="Long", description = "对比度，设置范围为0 ~ 127")
+    private Long contrastRatio;
+
+    @ConfigAttribute(id = 0x73, type="Long", description = "饱和度，设置范围为0 ~ 127")
+    private Long saturation;
+
+    @ConfigAttribute(id = 0x74, type="Long", description = "色度，设置范围为0 ~ 255")
+    private Long chroma;
+
+    @ConfigAttribute(id = 0x80, type="Long", description = "车辆里程表读数，单位'1/10km")
+    private Long mileage;
+
+    @ConfigAttribute(id = 0x81, type="Integer", description = "车辆所在的省域ID")
+    private Integer provincialId;
+
+    @ConfigAttribute(id = 0x82, type="Integer", description = "车辆所在的市域ID")
+    private Integer cityId;
+
+    @ConfigAttribute(id = 0x83, type="String", description = "公安交通管理部门颁发的机动车号牌")
+    private String licensePlate;
+
+    @ConfigAttribute(id = 0x84, type="Short", description = "车牌颜色,值按照JT/T697-7.2014中的规定,未上牌车辆填0")
+    private Short licensePlateColor;
+
+    @ConfigAttribute(id = 0x90, type="Short", description = "GNSS定位模式")
+    private GnssPositioningMode gnssPositioningMode;
+
+    @ConfigAttribute(id = 0x91, type="Short", description = "GNSS 波特率,定义如下: 0: 4800, 1:9600,  2：19200, 3:38400,  4:57600, 5:115200")
+    private Short gnssBaudRate;
+
+    @ConfigAttribute(id = 0x92, type="Short", description = "GNSS 模块详细定位数据输出频率,定义如下: 0: 500ms, 1:1000ms(默认值),  2：2000ms, 3:3000ms,  4:4000ms")
+    private Short gnssOutputFrequency;
+
+    @ConfigAttribute(id = 0x93, type="Long", description = "GNSS 模块详细定位数据采集频率 ,单位为秒(s) ,默认为1")
+    private Long gnssCollectionFrequency;
+
+    @ConfigAttribute(id = 0x94, type="Short", description = "GNSS 模块详细定位数据上传方式:,定义如下: " +
+            "0: 本地存储 ,不上传(默认值) , " +
+            "1:按时间间隔上传,  " +
+            "2：按距离间隔上传, " +
+            "11:按累计时间上传 ,达到传输时间后自动停止上传,  " +
+            "12:按累计距离上传 ,达到距离后自动停止上传,  " +
+            "13:按累计条数上传 ,达到上传条数后自动停止上传")
+    private Short gnssDataUploadMethod;
+
+    @ConfigAttribute(id = 0x95, type="Long", description = "GNSS 模块详细定位数据上传设置:,定义如下: " +
+            "1:单位为秒(s),  " +
+            "2：单位为米(m) , " +
+            "11:单位为 秒(s),  " +
+            "12:单位为米(m),  " +
+            "13:单位 为条")
+    private Long gnssDataUploadMethodUnit;
+
+    @ConfigAttribute(id = 0x100, type="Long", description = "CAN总线通道1 采集时间间隔 ,单位为毫秒(ms) ,0 表示不采集")
+    private Long canCollectionTimeForChannel1;
+
+    @ConfigAttribute(id = 0x101, type="Integer", description = "CAN总线通道1 上传时间间隔 ,单位为秒(s) ,0 表示不上传")
+    private Integer canUploadIntervalForChannel1;
+
+    @ConfigAttribute(id = 0x102, type="Long", description = "CAN总线通道2 采集时间间隔 ,单位为毫秒(ms) ,0 表示不采集")
+    private Long canCollectionTimeForChannel2;
+
+    @ConfigAttribute(id = 0x103, type="Integer", description = "CAN总线通道2 上传时间间隔 ,单位为秒(s) ,0 表示不上传")
+    private Integer canUploadIntervalForChannel2;
+
 
     public Long getKeepaliveInterval() {
         return keepaliveInterval;
@@ -647,53 +727,291 @@ public class JTDeviceConfig {
         this.maximumParkingTime = maximumParkingTime;
     }
 
-    public Long getOverSpeedWarningDifference() {
+    public Integer getOverSpeedWarningDifference() {
         return overSpeedWarningDifference;
     }
 
-    public void setOverSpeedWarningDifference(Long overSpeedWarningDifference) {
+    public void setOverSpeedWarningDifference(Integer overSpeedWarningDifference) {
         this.overSpeedWarningDifference = overSpeedWarningDifference;
     }
 
-    public Long getDrowsyDrivingWarningDifference() {
+    public Integer getDrowsyDrivingWarningDifference() {
         return drowsyDrivingWarningDifference;
     }
 
-    public void setDrowsyDrivingWarningDifference(Long drowsyDrivingWarningDifference) {
+    public void setDrowsyDrivingWarningDifference(Integer drowsyDrivingWarningDifference) {
         this.drowsyDrivingWarningDifference = drowsyDrivingWarningDifference;
+    }
+
+    public CollisionAlarmParams getCollisionAlarmParams() {
+        return collisionAlarmParams;
+    }
+
+    public void setCollisionAlarmParams(CollisionAlarmParams collisionAlarmParams) {
+        this.collisionAlarmParams = collisionAlarmParams;
+    }
+
+    public Integer getRolloverAlarm() {
+        return rolloverAlarm;
+    }
+
+    public void setRolloverAlarm(Integer rolloverAlarm) {
+        this.rolloverAlarm = rolloverAlarm;
+    }
+
+    public CameraTimer getCameraTimer() {
+        return cameraTimer;
+    }
+
+    public void setCameraTimer(CameraTimer cameraTimer) {
+        this.cameraTimer = cameraTimer;
+    }
+
+    public Long getQualityForVideo() {
+        return qualityForVideo;
+    }
+
+    public void setQualityForVideo(Long qualityForVideo) {
+        this.qualityForVideo = qualityForVideo;
+    }
+
+    public Long getBrightness() {
+        return brightness;
+    }
+
+    public void setBrightness(Long brightness) {
+        this.brightness = brightness;
+    }
+
+    public Long getContrastRatio() {
+        return contrastRatio;
+    }
+
+    public void setContrastRatio(Long contrastRatio) {
+        this.contrastRatio = contrastRatio;
+    }
+
+    public Long getSaturation() {
+        return saturation;
+    }
+
+    public void setSaturation(Long saturation) {
+        this.saturation = saturation;
+    }
+
+    public Long getChroma() {
+        return chroma;
+    }
+
+    public void setChroma(Long chroma) {
+        this.chroma = chroma;
+    }
+
+    public Long getMileage() {
+        return mileage;
+    }
+
+    public void setMileage(Long mileage) {
+        this.mileage = mileage;
+    }
+
+    public Integer getProvincialId() {
+        return provincialId;
+    }
+
+    public void setProvincialId(Integer provincialId) {
+        this.provincialId = provincialId;
+    }
+
+    public Integer getCityId() {
+        return cityId;
+    }
+
+    public void setCityId(Integer cityId) {
+        this.cityId = cityId;
+    }
+
+    public String getLicensePlate() {
+        return licensePlate;
+    }
+
+    public void setLicensePlate(String licensePlate) {
+        this.licensePlate = licensePlate;
+    }
+
+    public Short getLicensePlateColor() {
+        return licensePlateColor;
+    }
+
+    public void setLicensePlateColor(Short licensePlateColor) {
+        this.licensePlateColor = licensePlateColor;
+    }
+
+    public GnssPositioningMode getGnssPositioningMode() {
+        return gnssPositioningMode;
+    }
+
+    public void setGnssPositioningMode(GnssPositioningMode gnssPositioningMode) {
+        this.gnssPositioningMode = gnssPositioningMode;
+    }
+
+    public Short getGnssBaudRate() {
+        return gnssBaudRate;
+    }
+
+    public void setGnssBaudRate(Short gnssBaudRate) {
+        this.gnssBaudRate = gnssBaudRate;
+    }
+
+    public Short getGnssOutputFrequency() {
+        return gnssOutputFrequency;
+    }
+
+    public void setGnssOutputFrequency(Short gnssOutputFrequency) {
+        this.gnssOutputFrequency = gnssOutputFrequency;
+    }
+
+    public Long getGnssCollectionFrequency() {
+        return gnssCollectionFrequency;
+    }
+
+    public void setGnssCollectionFrequency(Long gnssCollectionFrequency) {
+        this.gnssCollectionFrequency = gnssCollectionFrequency;
+    }
+
+    public Short getGnssDataUploadMethod() {
+        return gnssDataUploadMethod;
+    }
+
+    public void setGnssDataUploadMethod(Short gnssDataUploadMethod) {
+        this.gnssDataUploadMethod = gnssDataUploadMethod;
+    }
+
+    public Long getGnssDataUploadMethodUnit() {
+        return gnssDataUploadMethodUnit;
+    }
+
+    public void setGnssDataUploadMethodUnit(Long gnssDataUploadMethodUnit) {
+        this.gnssDataUploadMethodUnit = gnssDataUploadMethodUnit;
+    }
+
+    public Long getCanCollectionTimeForChannel1() {
+        return canCollectionTimeForChannel1;
+    }
+
+    public void setCanCollectionTimeForChannel1(Long canCollectionTimeForChannel1) {
+        this.canCollectionTimeForChannel1 = canCollectionTimeForChannel1;
+    }
+
+    public Integer getCanUploadIntervalForChannel1() {
+        return canUploadIntervalForChannel1;
+    }
+
+    public void setCanUploadIntervalForChannel1(Integer canUploadIntervalForChannel1) {
+        this.canUploadIntervalForChannel1 = canUploadIntervalForChannel1;
+    }
+
+    public Long getCanCollectionTimeForChannel2() {
+        return canCollectionTimeForChannel2;
+    }
+
+    public void setCanCollectionTimeForChannel2(Long canCollectionTimeForChannel2) {
+        this.canCollectionTimeForChannel2 = canCollectionTimeForChannel2;
+    }
+
+    public Integer getCanUploadIntervalForChannel2() {
+        return canUploadIntervalForChannel2;
+    }
+
+    public void setCanUploadIntervalForChannel2(Integer canUploadIntervalForChannel2) {
+        this.canUploadIntervalForChannel2 = canUploadIntervalForChannel2;
     }
 
     @Override
     public String toString() {
         return "JTDeviceConfig{" +
-                "keepaliveInterval=" + keepaliveInterval +
-                ", tcpResponseTimeout=" + tcpResponseTimeout +
-                ", tcpRetransmissionCount=" + tcpRetransmissionCount +
-                ", udpResponseTimeout=" + udpResponseTimeout +
-                ", udpRetransmissionCount=" + udpRetransmissionCount +
-                ", smsResponseTimeout=" + smsResponseTimeout +
-                ", smsRetransmissionCount=" + smsRetransmissionCount +
-                ", apnMaster='" + apnMaster + '\'' +
-                ", dialingUsernameMaster='" + dialingUsernameMaster + '\'' +
-                ", dialingPasswordMaster='" + dialingPasswordMaster + '\'' +
-                ", addressMaster='" + addressMaster + '\'' +
-                ", apnBackup='" + apnBackup + '\'' +
-                ", dialingUsernameBackup='" + dialingUsernameBackup + '\'' +
-                ", dialingPasswordBackup='" + dialingPasswordBackup + '\'' +
-                ", addressBackup='" + addressBackup + '\'' +
-                ", addressIcMaster='" + addressIcMaster + '\'' +
-                ", tcpPortIcMaster=" + tcpPortIcMaster +
-                ", udpPortIcMaster=" + udpPortIcMaster +
-                ", addressIcBackup='" + addressIcBackup + '\'' +
-                ", locationReportingStrategy=" + locationReportingStrategy +
-                ", locationReportingPlan=" + locationReportingPlan +
-                ", reportingIntervalOffline=" + reportingIntervalOffline +
-                ", apnSlave='" + apnSlave + '\'' +
-                ", dialingUsernameSlave='" + dialingUsernameSlave + '\'' +
-                ", dialingPasswordSlave='" + dialingPasswordSlave + '\'' +
-                ", addressSlave='" + addressSlave + '\'' +
-                ", reportingIntervalDormancy=" + reportingIntervalDormancy +
-                ", reportingIntervalEmergencyAlarm=" + reportingIntervalEmergencyAlarm +
+                "终端心跳发送间隔： " + keepaliveInterval + "秒" +
+                ", TCP消息应答超时时间：" + tcpResponseTimeout + "秒" +
+                ", TCP消息重传次数： " + tcpRetransmissionCount + "秒"  +
+                ", UDP消息应答超时时间： " + udpResponseTimeout +
+                ", UDP消息重传次数： " + udpRetransmissionCount +
+                ", SMS 消息应答超时时间： " + smsResponseTimeout  + "秒"  +
+                ", SMS 消息重传次数： " + smsRetransmissionCount +
+                ", 主服务器APN无线通信拨号访问点： " + apnMaster + '\'' +
+                ", 主服务器无线通信拨号用户名： " + dialingUsernameMaster  +
+                ", 主服务器无线通信拨号密码： " + dialingPasswordMaster  +
+                ", 主服务器地址IP或域名： " + addressMaster  +
+                ", 备份服务器APN： " + apnBackup  +
+                ", 备份服务器无线通信拨号用户名： " + dialingUsernameBackup  +
+                ", 备份服务器无线通信拨号密码： " + dialingPasswordBackup  +
+                ", 备用服务器备份地址IP或域名： " + addressBackup  +
+                ", 道路运输证IC卡认证主服务器IP地址或域名： " + addressIcMaster  +
+                ", 道路运输证IC卡认证主服务器TCP端口： " + tcpPortIcMaster +
+                ", 道路运输证IC卡认证主服务器UDP端口： " + udpPortIcMaster +
+                ", 道路运输证IC卡认证备份服务器IP地址或域名： " + addressIcBackup  +
+                ", 位置汇报策略： " + locationReportingStrategy +
+                ", 位置汇报方案： " + locationReportingPlan +
+                ", 驾驶员未登录汇报时间间隔： " + reportingIntervalOffline + "秒"   +
+                ", 从服务器 APN： " + apnSlave  +
+                ", 从服务器无线通信拨号密码： " + dialingUsernameSlave  +
+                ", 从服务器备份地址 IP或域名： " + dialingPasswordSlave  +
+                ", 从服务器备份地址 IP或域名： " + addressSlave  +
+                ", reportingIntervalDormancy： " + reportingIntervalDormancy +
+                ", reportingIntervalEmergencyAlarm： " + reportingIntervalEmergencyAlarm +
+                ", reportingIntervalDefault： " + reportingIntervalDefault +
+                ", reportingDistanceDefault： " + reportingDistanceDefault +
+                ", reportingDistanceOffline： " + reportingDistanceOffline +
+                ", reportingDistanceDormancy： " + reportingDistanceDormancy +
+                ", reportingDistanceEmergencyAlarm： " + reportingDistanceEmergencyAlarm +
+                ", inflectionPointAngle： " + inflectionPointAngle +
+                ", fenceRadius： " + fenceRadius +
+                ", illegalDrivingPeriods： " + illegalDrivingPeriods +
+                ", platformPhoneNumber： " + platformPhoneNumber  +
+                ", phoneNumberForReset： " + phoneNumberForReset  +
+                ", phoneNumberForFactoryReset： " + phoneNumberForFactoryReset  +
+                ", phoneNumberForSms： " + phoneNumberForSms  +
+                ", phoneNumberForReceiveTextAlarm： " + phoneNumberForReceiveTextAlarm  +
+                ", phoneAnsweringPolicy： " + phoneAnsweringPolicy +
+                ", longestCallTimeForPerSession： " + longestCallTimeForPerSession +
+                ", longestCallTimeInMonth： " + longestCallTimeInMonth +
+                ", phoneNumbersForListen： " + phoneNumbersForListen  +
+                ", privilegedSMSNumber： " + privilegedSMSNumber  +
+                ", alarmMaskingWord： " + alarmMaskingWord +
+                ", alarmSendsTextSmsSwitch： " + alarmSendsTextSmsSwitch +
+                ", alarmShootingSwitch： " + alarmShootingSwitch +
+                ", alarmShootingStorageFlags： " + alarmShootingStorageFlags +
+                ", KeySign： " + KeySign +
+                ", topSpeed： " + topSpeed +
+                ", overSpeedDuration： " + overSpeedDuration +
+                ", continuousDrivingTimeThreshold： " + continuousDrivingTimeThreshold +
+                ", cumulativeDrivingTimeThresholdForTheDay： " + cumulativeDrivingTimeThresholdForTheDay +
+                ", minimumBreakTime： " + minimumBreakTime +
+                ", maximumParkingTime： " + maximumParkingTime +
+                ", overSpeedWarningDifference： " + overSpeedWarningDifference +
+                ", drowsyDrivingWarningDifference： " + drowsyDrivingWarningDifference +
+                ", collisionAlarmParams： " + collisionAlarmParams +
+                ", rolloverAlarm： " + rolloverAlarm +
+                ", cameraTimer： " + cameraTimer +
+                ", qualityForVideo： " + qualityForVideo +
+                ", brightness： " + brightness +
+                ", contrastRatio： " + contrastRatio +
+                ", saturation： " + saturation +
+                ", chroma： " + chroma +
+                ", mileage： " + mileage +
+                ", provincialId： " + provincialId +
+                ", cityId： " + cityId +
+                ", licensePlate： " + licensePlate  +
+                ", licensePlateColor： " + licensePlateColor +
+                ", gnssPositioningMode： " + gnssPositioningMode +
+                ", gnssBaudRate： " + gnssBaudRate +
+                ", gnssOutputFrequency： " + gnssOutputFrequency +
+                ", gnssCollectionFrequency： " + gnssCollectionFrequency +
+                ", gnssDataUploadMethod： " + gnssDataUploadMethod +
+                ", gnssDataUploadMethodUnit： " + gnssDataUploadMethodUnit +
+                ", canCollectionTimeForChannel1： " + canCollectionTimeForChannel1 +
+                ", canUploadIntervalForChannel1： " + canUploadIntervalForChannel1 +
+                ", canCollectionTimeForChannel2： " + canCollectionTimeForChannel2 +
+                ", canUploadIntervalForChannel2： " + canUploadIntervalForChannel2 +
                 '}';
     }
 }

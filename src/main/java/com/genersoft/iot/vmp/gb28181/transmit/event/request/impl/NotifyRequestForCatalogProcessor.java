@@ -96,10 +96,6 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 				// 遍历DeviceList
 				while (deviceListIterator.hasNext()) {
 					Element itemDevice = deviceListIterator.next();
-					Element channelDeviceElement = itemDevice.element("DeviceID");
-					if (channelDeviceElement == null) {
-						continue;
-					}
 					Element eventElement = itemDevice.element("Event");
 					String event;
 					if (eventElement == null) {
@@ -264,21 +260,12 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 		}
 	}
 
+	// TODO 同一个通道如果先发送更新再发送离线可能无法正常离线
 	private void executeSave(){
 		try {
 			executeSaveForAdd();
 		} catch (Exception e) {
 			logger.error("[存储收到的增加通道] 异常： ", e );
-		}
-		try {
-			executeSaveForUpdate();
-		} catch (Exception e) {
-			logger.error("[存储收到的更新通道] 异常： ", e );
-		}
-		try {
-			executeSaveForDelete();
-		} catch (Exception e) {
-			logger.error("[存储收到的删除通道] 异常： ", e );
 		}
 		try {
 			executeSaveForOnline();
@@ -290,6 +277,17 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 		} catch (Exception e) {
 			logger.error("[存储收到的通道离线] 异常： ", e );
 		}
+		try {
+			executeSaveForUpdate();
+		} catch (Exception e) {
+			logger.error("[存储收到的更新通道] 异常： ", e );
+		}
+		try {
+			executeSaveForDelete();
+		} catch (Exception e) {
+			logger.error("[存储收到的删除通道] 异常： ", e );
+		}
+
 		dynamicTask.stop(talkKey);
 	}
 

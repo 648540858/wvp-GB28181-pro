@@ -100,32 +100,69 @@ media:
     send-port-range: 60301,65535 # 端口范围
   # 录像辅助服务， 部署此服务可以实现zlm录像的管理与下载， 0 表示不使用
   record-assist-port: 18081
+
 # [根据业务需求配置]
 user-settings:
   # [可选] 自动点播， 使用固定流地址进行播放时，如果未点播则自动进行点播, 需要rtp.enable=true
-  auto-apply-play: true
+  auto-apply-play: false
   # [可选] 部分设备需要扩展SDP，需要打开此设置
   senior-sdp: true
+  # 保存移动位置历史轨迹：true:保留历史数据，false:仅保留最后的位置(默认)
+  save-position-history: false
   # 点播/录像回放 等待超时时间,单位：毫秒
-  play-timeout: 5000
-  # 等待音视频编码信息再返回， true： 可以根据编码选择合适的播放器，false： 可以更快点播
-  wait-track: true
-  # 设备/通道状态变化时发送消息
-  device-status-notify: true
-  # 自动配置redis 可以过期事件
-  redis-config: true
-  # 推流直播是否录制(生产环境关闭)
+  play-timeout: 18000
+  # 上级点播等待超时时间,单位：毫秒
+  platform-play-timeout: 60000
+  # 是否开启接口鉴权
+  interface-authentication: true
+  # 接口鉴权例外的接口, 即不进行接口鉴权的接口,尽量详细书写，尽量不用/**，至少两级目录
+  interface-authentication-excludes:
+    - /api/v1/**
+  # 推流直播是否录制
   record-push-live: false
-  # (生国标是否录制产环境关闭)
-  record-sip: false
+  # 国标是否录制
+  record-sip: true
   # 是否将日志存储进数据库
   logInDatabase: true
   # 使用推流状态作为推流通道状态
   use-pushing-as-status: true
+  # 使用来源请求ip作为streamIp,当且仅当你只有zlm节点它与wvp在一起的情况下开启
+  use-source-ip-as-stream-ip: false
+  # 国标点播 按需拉流, true：有人观看拉流，无人观看释放， false：拉起后不自动释放
+  stream-on-demand: true
+  # 推流鉴权， 默认开启
+  push-authority: true
   # 设备上线时是否自动同步通道
   sync-channel-on-device-online: true
-  # 是否开启sip日志(生产环境关闭)
-  sip-log: false
+  # 国标级联语音喊话发流模式 * UDP:udp传输 TCP-ACTIVE：tcp主动模式 TCP-PASSIVE：tcp被动模式
+  broadcast-for-platform: UDP
+  # 是否使用设备来源Ip作为回复IP， 不设置则为 false
+  sip-use-source-ip-as-remote-address: false
+  # 是否开启sip日志
+  sip-log: true
+  # 是否开启sql日志
+  sql-log: true
+  # 收到ack消息后开始发流，默认false， 回复200ok后直接开始发流
+  push-stream-after-ack: false
+  # 消息通道功能-缺少国标ID是否给所有上级发送消息
+  send-to-platforms-when-id-lost: true
+  # 保持通道状态，不接受notify通道状态变化，兼容海康平台发送错误消息
+  refuse-channel-status-channel-form-notify: false
+  # 设置notify缓存队列最大长度，超过此长度的数据将返回486 BUSY_HERE，消息丢弃, 默认10000
+  max-notify-count-queue: 10000
+  # 设备/通道状态变化时发送消息
+  device-status-notify: true
+  # 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
+  use-custom-ssrc-for-parent-invite: true
+  # 国标级联离线后多久重试一次注册
+  register-again-after-time: 60
+  # 国标续订方式，true为续订，每次注册在同一个会话里，false为重新注册，每次使用新的会话
+  register-keep-int-dialog: false
+  # 跨域配置，不配置此项则允许所有跨域请求，配置后则只允许配置的页面的地址请求， 可以配置多个
+  allowed-origins:
+    - http://localhost:8008
+    - http://192.168.1.3:8008
+
 # [可选] 日志配置, 一般不需要改
 logging:
   config: classpath:logback-spring.xml

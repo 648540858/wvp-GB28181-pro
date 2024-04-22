@@ -141,7 +141,7 @@ user-settings:
   # 是否开启sip日志
   sip-log: true
   # 是否开启sql日志
-  sql-log: false
+  sql-log: true
   # 收到ack消息后开始发流，默认false， 回复200ok后直接开始发流
   push-stream-after-ack: false
   # 消息通道功能-缺少国标ID是否给所有上级发送消息

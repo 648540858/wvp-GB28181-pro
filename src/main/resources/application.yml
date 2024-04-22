@@ -1,5 +1,5 @@
 spring:
   application:
-    name: dev
+    name: wvp
   profiles:
-    active: local
+    active: dev

@@ -2,6 +2,8 @@ package com.genersoft.iot.vmp.gb28181.bean;
 
 import com.genersoft.iot.vmp.service.bean.RequestPushStreamMsg;
 
+import com.genersoft.iot.vmp.common.VideoManagerConstants;
+
 public class SendRtpItem {
 
     /**
@@ -23,6 +25,11 @@ public class SendRtpItem {
      * 平台id
      */
     private String platformId;
+
+    /**
+     * 平台名称
+     */
+    private String platformName;
 
      /**
      * 对应设备id
@@ -64,6 +71,11 @@ public class SendRtpItem {
     private boolean tcpActive;
 
     /**
+     * 自己推流使用的IP
+     */
+    private String localIp;
+
+    /**
      * 自己推流使用的端口
      */
     private int localPort;
@@ -81,7 +93,7 @@ public class SendRtpItem {
     /**
      *  invite 的 callId
      */
-    private String CallId;
+    private String callId;
 
     /**
      *  invite 的 fromTag
@@ -124,6 +136,11 @@ public class SendRtpItem {
      */
     private String receiveStream;
 
+    /**
+     * 上级的点播类型
+     */
+    private String sessionName;
+
     public static SendRtpItem getInstance(RequestPushStreamMsg requestPushStreamMsg) {
         SendRtpItem sendRtpItem = new SendRtpItem();
         sendRtpItem.setMediaServerId(requestPushStreamMsg.getMediaServerId());
@@ -138,7 +155,7 @@ public class SendRtpItem {
         sendRtpItem.setUsePs(requestPushStreamMsg.isPs());
         sendRtpItem.setOnlyAudio(requestPushStreamMsg.isOnlyAudio());
         return sendRtpItem;
-        
+
     }
 
     public static SendRtpItem getInstance(String app, String stream, String ssrc, String dstIp, Integer dstPort, boolean tcp, int sendLocalPort, Integer pt) {
@@ -262,11 +279,11 @@ public class SendRtpItem {
     }
 
     public String getCallId() {
-        return CallId;
+        return callId;
     }
 
     public void setCallId(String callId) {
-        CallId = callId;
+        this.callId = callId;
     }
 
     public InviteStreamType getPlayType() {
@@ -341,6 +358,30 @@ public class SendRtpItem {
         this.receiveStream = receiveStream;
     }
 
+    public String getPlatformName() {
+        return platformName;
+    }
+
+    public void setPlatformName(String platformName) {
+        this.platformName = platformName;
+    }
+
+    public String getLocalIp() {
+        return localIp;
+    }
+
+    public void setLocalIp(String localIp) {
+        this.localIp = localIp;
+    }
+
+    public String getSessionName() {
+        return sessionName;
+    }
+
+    public void setSessionName(String sessionName) {
+        this.sessionName = sessionName;
+    }
+
     @Override
     public String toString() {
         return "SendRtpItem{" +
@@ -348,6 +389,7 @@ public class SendRtpItem {
                 ", port=" + port +
                 ", ssrc='" + ssrc + '\'' +
                 ", platformId='" + platformId + '\'' +
+                ", platformName='" + platformName + '\'' +
                 ", deviceId='" + deviceId + '\'' +
                 ", app='" + app + '\'' +
                 ", channelId='" + channelId + '\'' +
@@ -355,10 +397,11 @@ public class SendRtpItem {
                 ", stream='" + stream + '\'' +
                 ", tcp=" + tcp +
                 ", tcpActive=" + tcpActive +
+                ", localIp='" + localIp + '\'' +
                 ", localPort=" + localPort +
                 ", mediaServerId='" + mediaServerId + '\'' +
                 ", serverId='" + serverId + '\'' +
-                ", CallId='" + CallId + '\'' +
+                ", CallId='" + callId + '\'' +
                 ", fromTag='" + fromTag + '\'' +
                 ", toTag='" + toTag + '\'' +
                 ", pt=" + pt +
@@ -367,6 +410,18 @@ public class SendRtpItem {
                 ", rtcp=" + rtcp +
                 ", playType=" + playType +
                 ", receiveStream='" + receiveStream + '\'' +
+                ", sessionName='" + sessionName + '\'' +
                 '}';
+    }
+
+    public String getRedisKey() {
+        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX +
+                serverId + "_"
+                + mediaServerId + "_"
+                + platformId + "_"
+                + channelId + "_"
+                + stream + "_"
+                + callId;
+        return key;
     }
 }

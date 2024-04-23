@@ -45,6 +45,8 @@ public interface IRedisCatchStorage {
 
     void updateSendRTPSever(SendRtpItem sendRtpItem);
 
+    List<SendRtpItem> querySendRTPServer(String platformGbId, String channelId, String streamId);
+
     /**
      * 查询RTP推送信息缓存
      * @param platformGbId
@@ -197,6 +199,8 @@ public interface IRedisCatchStorage {
 
     void addDiskInfo(List<Map<String, Object>> diskInfo);
 
+    void deleteSendRTPServer(SendRtpItem sendRtpItem);
+
     List<SendRtpItem> queryAllSendRTPServer();
 
     List<Device> getAllDevices();
@@ -209,7 +213,7 @@ public interface IRedisCatchStorage {
 
     void sendPlatformStartPlayMsg(MessageForPushChannel messageForPushChannel);
 
-    void sendPlatformStopPlayMsg(MessageForPushChannel messageForPushChannel);
+    void sendPlatformStopPlayMsg(SendRtpItem sendRtpItem, ParentPlatform platform);
 
     void addPushListItem(String app, String stream, MediaArrivalEvent param);
 
@@ -219,4 +223,11 @@ public interface IRedisCatchStorage {
 
     void sendPushStreamClose(MessageForPushChannel messageForPushChannel);
 
+    void addWaiteSendRtpItem(SendRtpItem sendRtpItem, int platformPlayTimeout);
+
+    SendRtpItem getWaiteSendRtpItem(String app, String stream);
+
+    void sendStartSendRtp(SendRtpItem sendRtpItem);
+
+    void sendPushStreamOnline(SendRtpItem sendRtpItem);
 }

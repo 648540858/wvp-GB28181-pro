@@ -66,7 +66,7 @@ public class UserSetting {
 
     private List<String> allowedOrigins = new ArrayList<>();
 
-    private int maxNotifyCountQueue = 10000;
+    private int maxNotifyCountQueue = 100000;
 
     private int registerAgainAfterTime = 60;
 

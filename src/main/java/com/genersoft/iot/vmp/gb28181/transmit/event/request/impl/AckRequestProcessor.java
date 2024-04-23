@@ -13,10 +13,11 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IPlayService;
-import com.genersoft.iot.vmp.service.bean.RequestPushStreamMsg;
-import com.genersoft.iot.vmp.service.redisMsg.RedisGbPlayMsgListener;
+import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
+import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -51,6 +52,8 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 
 	@Autowired
     private IRedisCatchStorage redisCatchStorage;
+	@Autowired
+    private IRedisRpcService redisRpcService;
 
 	@Autowired
     private UserSetting userSetting;
@@ -68,9 +71,6 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 	private DynamicTask dynamicTask;
 
 	@Autowired
-	private RedisGbPlayMsgListener redisGbPlayMsgListener;
-
-	@Autowired
 	private IPlayService playService;
 
 
@@ -86,7 +86,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 		logger.info("[收到ACK]： 来自->{}", fromUserId);
 		SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(null, null, null, callIdHeader.getCallId());
 		if (sendRtpItem == null) {
-			logger.warn("[收到ACK]：未找到来自{}，目标为({})的推流信息",fromUserId, toUserId);
+			logger.warn("[收到ACK]：未找到来自{}，callId: {}", fromUserId, callIdHeader.getCallId());
 			return;
 		}
 		// tcp主动时，此时是级联下级平台，在回复200ok时，本地已经请求zlm开启监听，跳过下面步骤
@@ -106,10 +106,13 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 
 		if (parentPlatform != null) {
 			if (!userSetting.getServerId().equals(sendRtpItem.getServerId())) {
-				RequestPushStreamMsg requestPushStreamMsg = RequestPushStreamMsg.getInstance(sendRtpItem);
-				redisGbPlayMsgListener.sendMsgForStartSendRtpStream(sendRtpItem.getServerId(), requestPushStreamMsg, () -> {
-					playService.startSendRtpStreamFailHand(sendRtpItem, parentPlatform, callIdHeader);
-				});
+				WVPResult wvpResult = redisRpcService.startSendRtp(sendRtpItem.getRedisKey(), sendRtpItem);
+				if (wvpResult.getCode() == 0) {
+                    RequestPushStreamMsg requestPushStreamMsg = RequestPushStreamMsg.getInstance(sendRtpItem);
+                    redisGbPlayMsgListener.sendMsgForStartSendRtpStream(sendRtpItem.getServerId(), requestPushStreamMsg, () -> {
+                        playService.startSendRtpStreamFailHand(sendRtpItem, parentPlatform, callIdHeader);
+                    });
+				}
 			} else {
 				try {
 					if (sendRtpItem.isTcpActive()) {

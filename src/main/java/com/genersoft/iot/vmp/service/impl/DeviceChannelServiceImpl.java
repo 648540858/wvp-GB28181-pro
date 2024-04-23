@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
@@ -248,8 +249,24 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
+    public void online(DeviceChannel channel) {
+        channelMapper.online(channel.getDeviceId(), channel.getChannelId());
+    }
+
+    @Override
     public int channelsOffline(List<DeviceChannel> channels) {
         return channelMapper.batchOffline(channels);
+    }
+
+
+    @Override
+    public void offline(DeviceChannel channel) {
+        channelMapper.offline(channel.getDeviceId(), channel.getChannelId());
+    }
+
+    @Override
+    public void delete(DeviceChannel channel) {
+        channelMapper.del(channel.getDeviceId(), channel.getChannelId());
     }
 
     @Override
@@ -355,12 +372,45 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
+    @Transactional
     public void batchUpdateChannelGPS(List<DeviceChannel> channelList) {
-        channelMapper.batchUpdate(channelList);
+        for (DeviceChannel deviceChannel : channelList) {
+            deviceChannel.setUpdateTime(DateUtil.getNow());
+            if (deviceChannel.getGpsTime() == null) {
+                deviceChannel.setGpsTime(DateUtil.getNow());
+            }
+        }
+        int count = 1000;
+        if (channelList.size() > count) {
+            for (int i = 0; i < channelList.size(); i+=count) {
+                int toIndex = i+count;
+                if ( i + count > channelList.size()) {
+                    toIndex = channelList.size();
+                }
+                List<DeviceChannel> channels = channelList.subList(i, toIndex);
+                channelMapper.batchUpdatePosition(channels);
+            }
+        }else {
+            channelMapper.batchUpdatePosition(channelList);
+        }
     }
 
     @Override
+    @Transactional
     public void batchAddMobilePosition(List<MobilePosition> mobilePositions) {
+//        int count = 500;
+//        if (mobilePositions.size() > count) {
+//            for (int i = 0; i < mobilePositions.size(); i+=count) {
+//                int toIndex = i+count;
+//                if ( i + count > mobilePositions.size()) {
+//                    toIndex = mobilePositions.size();
+//                }
+//                List<MobilePosition> mobilePositionsSub = mobilePositions.subList(i, toIndex);
+//                deviceMobilePositionMapper.batchadd(mobilePositionsSub);
+//            }
+//        }else {
+//            deviceMobilePositionMapper.batchadd(mobilePositions);
+//        }
         deviceMobilePositionMapper.batchadd(mobilePositions);
     }
 }

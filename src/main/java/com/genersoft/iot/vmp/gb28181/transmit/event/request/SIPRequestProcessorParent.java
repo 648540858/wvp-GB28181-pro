@@ -6,7 +6,6 @@ import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.google.common.primitives.Bytes;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
-import org.apache.commons.lang3.ArrayUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -172,6 +171,7 @@ public abstract class SIPRequestProcessorParent {
 		return getRootElement(evt, "gb2312");
 	}
 	public Element getRootElement(RequestEvent evt, String charset) throws DocumentException {
+
 		if (charset == null) {
 			charset = "gb2312";
 		}

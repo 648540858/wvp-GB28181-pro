@@ -25,6 +25,7 @@ import org.springframework.util.ObjectUtils;
 
 import javax.sip.RequestEvent;
 import javax.sip.header.FromHeader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -67,7 +68,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 
 	private final static String talkKey = "notify-request-for-mobile-position-task";
 
-//	@Async("taskExecutor")
+	@Async("taskExecutor")
 	public void process(RequestEvent evt) {
 		try {
 			FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
@@ -172,11 +173,11 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 			deviceChannel.setGpsTime(mobilePosition.getTime());
 			updateChannelMap.put(deviceId + channelId, deviceChannel);
 			addMobilePositionList.add(mobilePosition);
-			if(updateChannelMap.size() > 100) {
+			if(updateChannelMap.size() > 2000) {
 				executeSaveChannel();
 			}
 			if (userSetting.isSavePositionHistory()) {
-				if(addMobilePositionList.size() > 100) {
+				if(addMobilePositionList.size() > 2000) {
 					executeSaveMobilePosition();
 				}
 			}
@@ -212,8 +213,8 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 		dynamicTask.execute();
 		try {
 			logger.info("[移动位置订阅]更新通道位置： {}", updateChannelMap.size());
-//			ArrayList<DeviceChannel> deviceChannels = new ArrayList<>(updateChannelMap.values());
-//			deviceChannelService.batchUpdateChannelGPS(deviceChannels);
+			ArrayList<DeviceChannel> deviceChannels = new ArrayList<>(updateChannelMap.values());
+			deviceChannelService.batchUpdateChannelGPS(deviceChannels);
 			updateChannelMap.clear();
 		}catch (Exception e) {
 
@@ -223,8 +224,8 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 	public void executeSaveMobilePosition(){
 		if (userSetting.isSavePositionHistory()) {
 			try {
-//				logger.info("[移动位置订阅] 添加通道轨迹点位： {}", addMobilePositionList.size());
-//				deviceChannelService.batchAddMobilePosition(addMobilePositionList);
+				logger.info("[移动位置订阅] 添加通道轨迹点位： {}", addMobilePositionList.size());
+				deviceChannelService.batchAddMobilePosition(addMobilePositionList);
 				addMobilePositionList.clear();
 			}catch (Exception e) {
 				logger.info("[移动位置订阅] b添加通道轨迹点位保存失败： {}", addMobilePositionList.size());

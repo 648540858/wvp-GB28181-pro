@@ -136,9 +136,9 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 						} else if (CmdType.MOBILE_POSITION.equals(cmd)) {
 //							logger.info("接收到MobilePosition通知");
 //							processNotifyMobilePosition(take.getEvt());
-							taskExecutor.execute(() -> {
+//							taskExecutor.execute(() -> {
 								notifyRequestForMobilePositionProcessor.process(take.getEvt());
-							});
+//							});
 
 						} else {
 							logger.info("接收到消息：" + cmd);
@@ -226,8 +226,8 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			} else {
 				mobilePosition.setAltitude(0.0);
 			}
-			logger.info("[收到移动位置订阅通知]：{}/{}->{}.{}", mobilePosition.getDeviceId(), mobilePosition.getChannelId(),
-					mobilePosition.getLongitude(), mobilePosition.getLatitude());
+//			logger.info("[收到移动位置订阅通知]：{}/{}->{}.{}", mobilePosition.getDeviceId(), mobilePosition.getChannelId(),
+//					mobilePosition.getLongitude(), mobilePosition.getLatitude());
 			mobilePosition.setReportSource("Mobile Position");
 
 			// 更新device channel 的经纬度
@@ -370,8 +370,8 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 		this.redisCatchStorage = redisCatchStorage;
 	}
 
-	@Scheduled(fixedRate = 1000)   //每1秒执行一次
+	@Scheduled(fixedRate = 10000)   //每1秒执行一次
 	public void execute(){
-		System.out.println("待处理消息数量: " + taskQueue.size());
+		logger.info("[待处理Notify消息数量]: {}", taskQueue.size());
 	}
 }

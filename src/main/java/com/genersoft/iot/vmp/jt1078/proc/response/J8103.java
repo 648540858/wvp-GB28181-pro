@@ -5,8 +5,11 @@ import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConfig;
 import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
 import com.genersoft.iot.vmp.jt1078.bean.config.*;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -22,6 +25,8 @@ import java.util.Map;
 @MsgId(id = "8103")
 public class J8103 extends Rs {
 
+    private final static Logger log = LoggerFactory.getLogger(J8103.class);
+
     private JTDeviceConfig config;
 
     @Override
@@ -32,7 +37,7 @@ public class J8103 extends Rs {
         Map<Field, ConfigAttribute> fieldConfigAttributeMap = new HashMap<>();
         for (Field field : declaredFields) {
             try{
-                Method method = configClass.getDeclaredMethod("get" + StringUtils.capitalize(field.getName()), String.class);
+                Method method = configClass.getDeclaredMethod("get" + StringUtils.capitalize(field.getName()));
                 Object invoke = method.invoke(config);
                 if (invoke == null) {
                     continue;
@@ -42,7 +47,7 @@ public class J8103 extends Rs {
                     fieldConfigAttributeMap.put(field, configAttribute);
                 }
             }catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-                throw new RuntimeException(e);
+                log.error("[设置终端参数 ] 编码失败", e );
             }
 
         }
@@ -57,8 +62,8 @@ public class J8103 extends Rs {
                         case "Long":
                             buffer.writeByte(4);
                             field.setAccessible(true);
-                            Long longval = (Long)field.get(config);
-                            buffer.writeLong(longval);
+                            Long longVal = (Long)field.get(config);
+                            buffer.writeLong(longVal);
                             continue;
                         case "String":
                             field.setAccessible(true);
@@ -90,11 +95,12 @@ public class J8103 extends Rs {
                             continue;
                     }
                 }catch (Exception e) {
-                    throw new RuntimeException(e);
+                    log.error("[设置终端参数 ] 编码失败", e );
                 }
 
             }
         }
+        System.out.println(ByteBufUtil.hexDump(buffer));
         return buffer;
     }
 

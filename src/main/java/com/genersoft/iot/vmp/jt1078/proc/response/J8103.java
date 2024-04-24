@@ -17,9 +17,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 查询指定终端参数
+ * 设置终端参数
  */
-@MsgId(id = "8106")
+@MsgId(id = "8103")
 public class J8103 extends Rs {
 
     private JTDeviceConfig config;

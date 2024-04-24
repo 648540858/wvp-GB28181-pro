@@ -21,7 +21,7 @@ public enum SessionManager {
     private final static Logger log = LoggerFactory.getLogger(SessionManager.class);
 
     // 用与消息的缓存
-    private final Map<String, SynchronousQueue<String>> topicSubscribers = new ConcurrentHashMap<>();
+    private final Map<String, SynchronousQueue<Object>> topicSubscribers = new ConcurrentHashMap<>();
 
     // session的缓存
     private final Map<Object, Session> sessionMap;
@@ -66,20 +66,20 @@ public enum SessionManager {
      * 发送同步消息，接收响应
      * 默认超时时间6秒
      */
-    public String request(Cmd cmd) {
+    public Object request(Cmd cmd) {
         // 默认6秒
         int timeOut = 6000;
         return request(cmd, timeOut);
     }
 
-    public String request(Cmd cmd, Integer timeOut) {
+    public Object request(Cmd cmd, Integer timeOut) {
         Session session = this.get(cmd.getDevId());
         if (session == null) {
             log.error("DevId: {} not online!", cmd.getDevId());
             return null;
         }
         String requestKey = requestKey(cmd.getDevId(), cmd.getRespId(), cmd.getPackageNo());
-        SynchronousQueue<String> subscribe = subscribe(requestKey);
+        SynchronousQueue<Object> subscribe = subscribe(requestKey);
         if (subscribe == null) {
             log.error("DevId: {} key:{} send repaid", cmd.getDevId(), requestKey);
             return null;
@@ -95,9 +95,9 @@ public enum SessionManager {
         return null;
     }
 
-    public Boolean response(String devId, String respId, Long responseNo, String data) {
+    public Boolean response(String devId, String respId, Long responseNo, Object data) {
         String requestKey = requestKey(devId, respId, responseNo);
-        SynchronousQueue<String> queue = topicSubscribers.get(requestKey);
+        SynchronousQueue<Object> queue = topicSubscribers.get(requestKey);
         if (queue != null) {
             try {
                 return queue.offer(data, 2, TimeUnit.SECONDS);
@@ -113,10 +113,10 @@ public enum SessionManager {
         topicSubscribers.remove(key);
     }
 
-    private SynchronousQueue<String> subscribe(String key) {
-        SynchronousQueue<String> queue = null;
+    private SynchronousQueue<Object> subscribe(String key) {
+        SynchronousQueue<Object> queue = null;
         if (!topicSubscribers.containsKey(key))
-            topicSubscribers.put(key, queue = new SynchronousQueue<String>());
+            topicSubscribers.put(key, queue = new SynchronousQueue<>());
         return queue;
     }
 

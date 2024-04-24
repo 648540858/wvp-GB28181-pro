@@ -34,7 +34,7 @@ public class J0001 extends Re {
 
     @Override
     protected Rs handler(Header header, Session session, Ijt1078Service service) {
-        SessionManager.INSTANCE.response(header.getTerminalId(), "0001", (long) respNo, JSON.toJSONString(this));
+        SessionManager.INSTANCE.response(header.getTerminalId(), "0001", (long) respNo, result);
         return null;
     }
 

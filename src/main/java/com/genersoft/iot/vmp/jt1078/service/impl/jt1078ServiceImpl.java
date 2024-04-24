@@ -189,7 +189,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j9101.setTcpPort(ssrcInfo.getPort());
         j9101.setUdpPort(ssrcInfo.getPort());
         j9101.setType(0);
-        String s = jt1078Template.startLive(deviceId, j9101, 6);
+        Object s = jt1078Template.startLive(deviceId, j9101, 6);
         System.out.println("ssss=== " + s);
 
     }
@@ -276,17 +276,13 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j9205.setMediaType(0);
         j9205.setStreamType(0);
         j9205.setStorageType(0);
-        String J1205JSON = jt1078Template.queryBackTime(deviceId, j9205, 20);
-        if (J1205JSON == null) {
-            return null;
-        }
-        J1205 j1205 = JSON.parseObject(J1205JSON, J1205.class);
-        if (j1205 == null) {
+        List<J1205.JRecordItem> JRecordItemList = (List<J1205.JRecordItem>) jt1078Template.queryBackTime(deviceId, j9205, 20);
+        if (JRecordItemList == null || JRecordItemList.isEmpty()) {
             return null;
         }
         logger.info("[1078-查询录像列表] deviceId： {}， channelId： {}， startTime： {}， endTime： {}, 结果: {}条"
-                , deviceId, channelId, startTime, endTime, j1205.getRecordList().size() );
-        return j1205.getRecordList();
+                , deviceId, channelId, startTime, endTime, JRecordItemList.size() );
+        return JRecordItemList;
     }
 
     @Override
@@ -365,8 +361,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j9201.setType(0);
         j9201.setStartTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime));
         j9201.setEndTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(endTime));
-        String s = jt1078Template.startBackLive(deviceId, j9201, 20);
-        System.out.println("111ssss=== " + s);
+        jt1078Template.startBackLive(deviceId, j9201, 20);
 
     }
 
@@ -496,13 +491,13 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void config(String deviceId, String[] params, GeneralCallback<StreamInfo> callback) {
+    public JTDeviceConfig queryConfig(String deviceId, String[] params, GeneralCallback<StreamInfo> callback) {
         if (deviceId == null) {
-            return;
+            return null;
         }
         if (params == null || params.length == 0) {
             J8104 j8104 = new J8104();
-            jt1078Template.getDeviceConfig(deviceId, j8104, 6);
+            return (JTDeviceConfig)jt1078Template.getDeviceConfig(deviceId, j8104, 20);
         }else {
             long[] paramBytes = new long[params.length];
             for (int i = 0; i < params.length; i++) {
@@ -521,7 +516,14 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             }
             J8106 j8106 = new J8106();
             j8106.setParams(paramBytes);
-            jt1078Template.getDeviceSpecifyConfig(deviceId, j8106, 6);
+            return (JTDeviceConfig)jt1078Template.getDeviceSpecifyConfig(deviceId, j8106, 20);
         }
+    }
+
+    @Override
+    public void setConfig(String deviceId, JTDeviceConfig config) {
+        J8103 j8103 = new J8103();
+        j8103.setConfig(config);
+        jt1078Template.setDeviceSpecifyConfig(deviceId, j8103, 6);
     }
 }

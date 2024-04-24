@@ -42,5 +42,7 @@ public interface Ijt1078Service {
 
     void wiper(String deviceId, String channelId, String command);
 
-    void config(String deviceId, String[] params, GeneralCallback<StreamInfo> callback);
+    JTDeviceConfig queryConfig(String deviceId, String[] params, GeneralCallback<StreamInfo> callback);
+
+    void setConfig(String deviceId, JTDeviceConfig config);
 }

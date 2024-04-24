@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.jt1078.proc.request;
 
+import com.alibaba.fastjson2.JSON;
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
 import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConfig;
@@ -13,6 +14,7 @@ import com.genersoft.iot.vmp.jt1078.proc.response.J8001;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
+import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -131,15 +133,11 @@ public class J0104 extends Re {
                             System.err.println(field.getGenericType().getTypeName());
                         continue;
                 }
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            } catch (InvocationTargetException e) {
-                throw new RuntimeException(e);
-            } catch (NoSuchMethodException e) {
+            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 throw new RuntimeException(e);
             }
         }
-        System.out.println(deviceConfig);
+        SessionManager.INSTANCE.response(header.getTerminalId(), "0104", (long) respNo, deviceConfig);
         return null;
     }
 
@@ -156,5 +154,4 @@ public class J0104 extends Re {
     public ApplicationEvent getEvent() {
         return null;
     }
-
 }

@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.jt1078.controller;
 
+import com.alibaba.fastjson2.JSON;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
@@ -314,10 +315,20 @@ public class JT1078Controller {
     @Operation(summary = "查询终端参数", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @GetMapping("/config")
-    public void config(String deviceId, String[] params){
+    public JTDeviceConfig config(String deviceId, String[] params){
 
         logger.info("[1078-查询终端参数] deviceId：{}", deviceId);
-        service.config(deviceId, params, null);
+        return service.queryConfig(deviceId, params, null);
+    }
+
+    @Operation(summary = "设置终端参数", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "config", description = "终端参数", required = true)
+    @PostMapping("/set-config")
+    public void setConfig(@RequestBody SetConfigParam config){
+
+        logger.info("[1078-设置终端参数] 参数: {}", config.toString());
+        service.setConfig(config.getDeviceId(), config.getConfig());
     }
 
 }

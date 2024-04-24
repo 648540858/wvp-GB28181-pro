@@ -275,15 +275,23 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
-    public void batchUpdateChannel(List<DeviceChannel> channels) {
+    public synchronized void batchUpdateChannel(List<DeviceChannel> channels) {
         String now = DateUtil.getNow();
         for (DeviceChannel channel : channels) {
             channel.setUpdateTime(now);
         }
-        channelMapper.batchUpdate(channels);
-        for (DeviceChannel channel : channels) {
-            if (channel.getParentId() != null) {
-                channelMapper.updateChannelSubCount(channel.getDeviceId(), channel.getParentId());
+        int limitCount = 1000;
+        if (!channels.isEmpty()) {
+            if (channels.size() > limitCount) {
+                for (int i = 0; i < channels.size(); i += limitCount) {
+                    int toIndex = i + limitCount;
+                    if (i + limitCount > channels.size()) {
+                        toIndex = channels.size();
+                    }
+                    channelMapper.batchUpdate(channels.subList(i, toIndex));
+                }
+            }else {
+                channelMapper.batchUpdate(channels);
             }
         }
     }

@@ -289,7 +289,7 @@ public class ZLMHttpHookListener {
                 String channelId = ssrcTransactionForAll.get(0).getChannelId();
                 DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
                 if (deviceChannel != null) {
-                    result.setEnable_audio(deviceChannel.isHasAudio());
+                    result.setEnable_audio(deviceChannel.getHasAudio());
                 }
                 // 如果是录像下载就设置视频间隔十秒
                 if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.DOWNLOAD) {

@@ -535,11 +535,11 @@ public class DeviceChannel {
 		this.subCount = subCount;
 	}
 
-	public boolean isHasAudio() {
+	public Boolean getHasAudio() {
 		return hasAudio;
 	}
 
-	public void setHasAudio(boolean hasAudio) {
+	public void setHasAudio(Boolean hasAudio) {
 		this.hasAudio = hasAudio;
 	}
 

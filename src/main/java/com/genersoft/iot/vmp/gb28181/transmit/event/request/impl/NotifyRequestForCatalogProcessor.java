@@ -143,6 +143,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 							case CatalogEvent.UPDATE:
 								// 更新
 								channel.setUpdateTime(DateUtil.getNow());
+								channel.setHasAudio(null);
 								deviceChannelService.updateChannel(deviceId,channel);
 								if (userSetting.getDeviceStatusNotify()) {
 									// 发送redis消息

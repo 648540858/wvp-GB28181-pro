@@ -5,25 +5,22 @@ import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
-import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
-import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.media.*;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaSendRtpStoppedEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.*;
 import com.genersoft.iot.vmp.media.zlm.event.HookZlmServerKeepaliveEvent;
 import com.genersoft.iot.vmp.media.zlm.event.HookZlmServerStartEvent;
 import com.genersoft.iot.vmp.service.*;
-import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -180,54 +177,6 @@ public class ZLMHttpHookListener {
         if (mediaServer == null) {
             return new HookResultForOnPublish(0, "success");
         }
-        // 推流鉴权的处理
-        if (!"rtp".equals(param.getApp())) {
-            StreamProxyItem stream = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
-            if (stream != null) {
-                HookResultForOnPublish result = HookResultForOnPublish.SUCCESS();
-                result.setEnable_audio(stream.isEnableAudio());
-                result.setEnable_mp4(stream.isEnableMp4());
-                return result;
-            }
-            if (userSetting.getPushAuthority()) {
-                // 推流鉴权
-                if (param.getParams() == null) {
-                    logger.info("推流鉴权失败： 缺少必要参数：sign=md5(user表的pushKey)");
-                    return new HookResultForOnPublish(401, "Unauthorized");
-                }
-                Map<String, String> paramMap = urlParamToMap(param.getParams());
-                String sign = paramMap.get("sign");
-                if (sign == null) {
-                    logger.info("推流鉴权失败： 缺少必要参数：sign=md5(user表的pushKey)");
-                    return new HookResultForOnPublish(401, "Unauthorized");
-                }
-                // 推流自定义播放鉴权码
-                String callId = paramMap.get("callId");
-                // 鉴权配置
-                boolean hasAuthority = userService.checkPushAuthority(callId, sign);
-                if (!hasAuthority) {
-                    logger.info("推流鉴权失败： sign 无权限: callId={}. sign={}", callId, sign);
-                    return new HookResultForOnPublish(401, "Unauthorized");
-                }
-                StreamAuthorityInfo streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(param);
-                streamAuthorityInfo.setCallId(callId);
-                streamAuthorityInfo.setSign(sign);
-                // 鉴权通过
-                redisCatchStorage.updateStreamAuthorityInfo(param.getApp(), param.getStream(), streamAuthorityInfo);
-            }
-        } else {
-            zlmMediaListManager.sendStreamEvent(param.getApp(), param.getStream(), param.getMediaServerId());
-        }
-
-
-        HookResultForOnPublish result = HookResultForOnPublish.SUCCESS();
-        result.setEnable_audio(true);
-        taskExecutor.execute(() -> {
-            ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_publish, json);
-            if (subscribe != null) {
-                subscribe.response(mediaInfo, param);
-            }
-        });
 
         ResultForOnPublish resultForOnPublish = mediaService.authenticatePublish(mediaServer, param.getApp(), param.getStream(), param.getParams());
         if (resultForOnPublish != null) {
@@ -264,220 +213,6 @@ public class ZLMHttpHookListener {
             applicationEventPublisher.publishEvent(mediaDepartureEvent);
         }
 
-        JSONObject json = (JSONObject) JSON.toJSON(param);
-        taskExecutor.execute(() -> {
-            ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_stream_changed, json);
-            MediaServerItem mediaInfo = mediaServerService.getOne(param.getMediaServerId());
-            if (mediaInfo == null) {
-                logger.info("[ZLM HOOK] 流变化未找到ZLM, {}", param.getMediaServerId());
-                return;
-            }
-            if (subscribe != null) {
-                subscribe.response(mediaInfo, param);
-            }
-
-            List<OnStreamChangedHookParam.MediaTrack> tracks = param.getTracks();
-            // TODO 重构此处逻辑
-            if (param.isRegist()) {
-                // 处理流注册的鉴权信息， 流注销这里不再删除鉴权信息，下次来了新的鉴权信息会对就的进行覆盖
-                if (param.getOriginType() == OriginType.RTMP_PUSH.ordinal()
-                        || param.getOriginType() == OriginType.RTSP_PUSH.ordinal()
-                        || param.getOriginType() == OriginType.RTC_PUSH.ordinal()) {
-                    StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(param.getApp(), param.getStream());
-                    if (streamAuthorityInfo == null) {
-                        streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(param);
-                    } else {
-                        streamAuthorityInfo.setOriginType(param.getOriginType());
-                        streamAuthorityInfo.setOriginTypeStr(param.getOriginTypeStr());
-                    }
-                    redisCatchStorage.updateStreamAuthorityInfo(param.getApp(), param.getStream(), streamAuthorityInfo);
-                }
-            }
-            if ("rtsp".equals(param.getSchema())) {
-                logger.info("流变化：注册->{}, app->{}, stream->{}", param.isRegist(), param.getApp(), param.getStream());
-                if (param.isRegist()) {
-                    mediaServerService.addCount(param.getMediaServerId());
-                } else {
-                    mediaServerService.removeCount(param.getMediaServerId());
-                }
-
-                int updateStatusResult = streamProxyService.updateStatus(param.isRegist(), param.getApp(), param.getStream());
-                if (updateStatusResult > 0) {
-
-                }
-
-                if ("rtp".equals(param.getApp()) && !param.isRegist()) {
-                    InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, param.getStream());
-                    if (inviteInfo != null && (inviteInfo.getType() == InviteSessionType.PLAY || inviteInfo.getType() == InviteSessionType.PLAYBACK)) {
-                        inviteStreamService.removeInviteInfo(inviteInfo);
-                        storager.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
-                    }
-                } else if ("broadcast".equals(param.getApp())) {
-                    // 语音对讲推流  stream需要满足格式deviceId_channelId
-                    if (param.getStream().indexOf("_") > 0) {
-                        String[] streamArray = param.getStream().split("_");
-                        if (streamArray.length == 2) {
-                            String deviceId = streamArray[0];
-                            String channelId = streamArray[1];
-                            Device device = deviceService.getDevice(deviceId);
-                            if (device != null) {
-                                if (param.isRegist()) {
-                                    if (audioBroadcastManager.exit(deviceId, channelId)) {
-                                        playService.stopAudioBroadcast(deviceId, channelId);
-                                    }
-                                    // 开启语音对讲通道
-                                    try {
-                                        playService.audioBroadcastCmd(device, channelId, mediaInfo, param.getApp(), param.getStream(), 60, false, (msg) -> {
-                                            logger.info("[语音对讲] 通道建立成功, device: {}, channel: {}", deviceId, channelId);
-                                        });
-                                    } catch (InvalidArgumentException | ParseException | SipException e) {
-                                        logger.error("[命令发送失败] 语音对讲: {}", e.getMessage());
-                                    }
-                                } else {
-                                    // 流注销
-                                    playService.stopAudioBroadcast(deviceId, channelId);
-                                }
-                            } else {
-                                logger.info("[语音对讲] 未找到设备：{}", deviceId);
-                            }
-                        }
-                    }
-                } else if ("talk".equals(param.getApp())) {
-                    // 语音对讲推流  stream需要满足格式deviceId_channelId
-                    if (param.getStream().indexOf("_") > 0) {
-                        String[] streamArray = param.getStream().split("_");
-                        if (streamArray.length == 2) {
-                            String deviceId = streamArray[0];
-                            String channelId = streamArray[1];
-                            Device device = deviceService.getDevice(deviceId);
-                            if (device != null) {
-                                if (param.isRegist()) {
-                                    if (audioBroadcastManager.exit(deviceId, channelId)) {
-                                        playService.stopAudioBroadcast(deviceId, channelId);
-                                    }
-                                    // 开启语音对讲通道
-                                    playService.talkCmd(device, channelId, mediaInfo, param.getStream(), (msg) -> {
-                                        logger.info("[语音对讲] 通道建立成功, device: {}, channel: {}", deviceId, channelId);
-                                    });
-                                } else {
-                                    // 流注销
-                                    playService.stopTalk(device, channelId, param.isRegist());
-                                }
-                            } else {
-                                logger.info("[语音对讲] 未找到设备：{}", deviceId);
-                            }
-                        }
-                    }
-
-                } else {
-                    if (!"rtp".equals(param.getApp())) {
-                        String type = OriginType.values()[param.getOriginType()].getType();
-                        if (param.isRegist()) {
-                            StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(
-                                    param.getApp(), param.getStream());
-                            String callId = null;
-                            if (streamAuthorityInfo != null) {
-                                callId = streamAuthorityInfo.getCallId();
-                            }
-                            StreamInfo streamInfoByAppAndStream = mediaService.getStreamInfoByAppAndStream(mediaInfo,
-                                    param.getApp(), param.getStream(), tracks, callId);
-                            param.setStreamInfo(new StreamContent(streamInfoByAppAndStream));
-                            redisCatchStorage.addStream(mediaInfo, type, param.getApp(), param.getStream(), param);
-                            if (param.getOriginType() == OriginType.RTSP_PUSH.ordinal()
-                                    || param.getOriginType() == OriginType.RTMP_PUSH.ordinal()
-                                    || param.getOriginType() == OriginType.RTC_PUSH.ordinal()) {
-                                param.setSeverId(userSetting.getServerId());
-                                zlmMediaListManager.addPush(param);
-
-                                // 冗余数据，自己系统中自用
-                                redisCatchStorage.addPushListItem(param.getApp(), param.getStream(), param);
-                            }
-                        } else {
-                            // 兼容流注销时类型从redis记录获取
-                            OnStreamChangedHookParam onStreamChangedHookParam = redisCatchStorage.getStreamInfo(
-                                    param.getApp(), param.getStream(), param.getMediaServerId());
-                            if (onStreamChangedHookParam != null) {
-                                type = OriginType.values()[onStreamChangedHookParam.getOriginType()].getType();
-                                redisCatchStorage.removeStream(mediaInfo.getId(), type, param.getApp(), param.getStream());
-                                if ("PUSH".equalsIgnoreCase(type)) {
-                                    // 冗余数据，自己系统中自用
-                                    redisCatchStorage.removePushListItem(param.getApp(), param.getStream(), param.getMediaServerId());
-                                }
-                            }
-                            GbStream gbStream = storager.getGbStream(param.getApp(), param.getStream());
-                            if (gbStream != null) {
-//									eventPublisher.catalogEventPublishForStream(null, gbStream, CatalogEvent.OFF);
-                            }
-                            zlmMediaListManager.removeMedia(param.getApp(), param.getStream());
-                        }
-                        GbStream gbStream = storager.getGbStream(param.getApp(), param.getStream());
-                        if (gbStream != null) {
-                            if (userSetting.isUsePushingAsStatus()) {
-                                eventPublisher.catalogEventPublishForStream(null, gbStream, param.isRegist() ? CatalogEvent.ON : CatalogEvent.OFF);
-                            }
-                        }
-                        if (type != null) {
-                            // 发送流变化redis消息
-                            JSONObject jsonObject = new JSONObject();
-                            jsonObject.put("serverId", userSetting.getServerId());
-                            jsonObject.put("app", param.getApp());
-                            jsonObject.put("stream", param.getStream());
-                            jsonObject.put("register", param.isRegist());
-                            jsonObject.put("mediaServerId", param.getMediaServerId());
-                            redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
-                        }
-                    }
-                }
-                if (!param.isRegist()) {
-                    List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(param.getStream());
-                    if (!sendRtpItems.isEmpty()) {
-                        for (SendRtpItem sendRtpItem : sendRtpItems) {
-                            if (sendRtpItem == null) {
-                                continue;
-                            }
-
-                            if (sendRtpItem.getApp().equals(param.getApp())) {
-                                logger.info(sendRtpItem.toString());
-                                if (userSetting.getServerId().equals(sendRtpItem.getServerId())) {
-                                    MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
-                                            sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getChannelId(),
-                                            sendRtpItem.getPlatformId(), null, userSetting.getServerId(), param.getMediaServerId());
-                                    // 通知其他wvp停止发流
-                                    redisCatchStorage.sendPushStreamClose(messageForPushChannel);
-                                }else {
-                                    String platformId = sendRtpItem.getPlatformId();
-                                    ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
-                                    Device device = deviceService.getDevice(platformId);
-
-                                    try {
-                                        if (platform != null) {
-                                            commanderFroPlatform.streamByeCmd(platform, sendRtpItem);
-                                            redisCatchStorage.deleteSendRTPServer(platformId, sendRtpItem.getChannelId(),
-                                                    sendRtpItem.getCallId(), sendRtpItem.getStream());
-                                        } else {
-                                            cmder.streamByeCmd(device, sendRtpItem.getChannelId(), param.getStream(), sendRtpItem.getCallId());
-                                            if (sendRtpItem.getPlayType().equals(InviteStreamType.BROADCAST)
-                                                    || sendRtpItem.getPlayType().equals(InviteStreamType.TALK)) {
-                                                AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
-                                                if (audioBroadcastCatch != null) {
-                                                    // 来自上级平台的停止对讲
-                                                    logger.info("[停止对讲] 来自上级，平台：{}, 通道：{}", sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
-                                                    audioBroadcastManager.del(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
-                                                }
-                                            }
-                                        }
-                                    } catch (SipException | InvalidArgumentException | ParseException |
-                                             SsrcTransactionNotFoundException e) {
-                                        logger.error("[命令发送失败] 发送BYE: {}", e.getMessage());
-                                    }
-                                }
-
-                            }
-                        }
-                    }
-                }
-            }
-        });
         return HookResult.SUCCESS();
     }
 
@@ -491,63 +226,6 @@ public class ZLMHttpHookListener {
         logger.info("[ZLM HOOK]流无人观看：{}->{}->{}/{}", param.getMediaServerId(), param.getSchema(),
                 param.getApp(), param.getStream());
         JSONObject ret = new JSONObject();
-        ret.put("code", 0);
-        // 国标类型的流
-        if ("rtp".equals(param.getApp())) {
-            ret.put("close", userSetting.getStreamOnDemand());
-            // 国标流， 点播/录像回放/录像下载
-            InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, param.getStream());
-            // 点播
-            if (inviteInfo != null) {
-                // 录像下载
-                if (inviteInfo.getType() == InviteSessionType.DOWNLOAD) {
-                    ret.put("close", false);
-                    return ret;
-                }
-                // 收到无人观看说明流也没有在往上级推送
-                if (redisCatchStorage.isChannelSendingRTP(inviteInfo.getChannelId())) {
-                    List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByChannelId(
-                            inviteInfo.getChannelId());
-                    if (!sendRtpItems.isEmpty()) {
-                        for (SendRtpItem sendRtpItem : sendRtpItems) {
-                            ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
-                            try {
-                                commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
-                            } catch (SipException | InvalidArgumentException | ParseException e) {
-                                logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
-                            }
-                            redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
-                                    sendRtpItem.getCallId(), sendRtpItem.getStream());
-                            if (InviteStreamType.PUSH == sendRtpItem.getPlayType()) {
-                                MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
-                                        sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getChannelId(),
-                                        sendRtpItem.getPlatformId(), parentPlatform.getName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
-                                messageForPushChannel.setPlatFormIndex(parentPlatform.getId());
-                                redisCatchStorage.sendPlatformStopPlayMsg(messageForPushChannel);
-                            }
-                        }
-                    }
-                }
-                Device device = deviceService.getDevice(inviteInfo.getDeviceId());
-                if (device != null) {
-                    try {
-                        // 多查询一次防止已经被处理了
-                        InviteInfo info = inviteStreamService.getInviteInfo(inviteInfo.getType(),
-                                inviteInfo.getDeviceId(), inviteInfo.getChannelId(), inviteInfo.getStream());
-                        if (info != null) {
-                            cmder.streamByeCmd(device, inviteInfo.getChannelId(),
-                                    inviteInfo.getStream(), null);
-                        } else {
-                            logger.info("[无人观看] 未找到设备的点播信息： {}， 流：{}", inviteInfo.getDeviceId(), param.getStream());
-                        }
-                    } catch (InvalidArgumentException | ParseException | SipException |
-                             SsrcTransactionNotFoundException e) {
-                        logger.error("[无人观看]点播， 发送BYE失败 {}", e.getMessage());
-                    }
-                } else {
-                    logger.info("[无人观看] 未找到设备： {}，流：{}", inviteInfo.getDeviceId(), param.getStream());
-                }
-
         boolean close = mediaService.closeStreamOnNoneReader(param.getMediaServerId(), param.getApp(), param.getStream(), param.getSchema());
         ret.put("code", close);
         return ret;
@@ -609,22 +287,16 @@ public class ZLMHttpHookListener {
         if (!"rtp".equals(param.getApp())) {
             return HookResult.SUCCESS();
         }
-        taskExecutor.execute(() -> {
-            List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(param.getStream());
-            if (sendRtpItems.size() > 0) {
-                for (SendRtpItem sendRtpItem : sendRtpItems) {
-                    ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
-                    ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
-                    try {
-                        commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
-                    } catch (SipException | InvalidArgumentException | ParseException e) {
-                        logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
-                    }
-                    redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
-                            sendRtpItem.getCallId(), sendRtpItem.getStream());
-                }
+        try {
+            MediaSendRtpStoppedEvent event = new MediaSendRtpStoppedEvent(this);
+            MediaServer mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
+            if (mediaServerItem != null) {
+                event.setMediaServer(mediaServerItem);
+                applicationEventPublisher.publishEvent(event);
             }
-        });
+        }catch (Exception e) {
+            logger.info("[ZLM-HOOK-rtp发送关闭] 发送通知失败 ", e);
+        }
 
         return HookResult.SUCCESS();
     }

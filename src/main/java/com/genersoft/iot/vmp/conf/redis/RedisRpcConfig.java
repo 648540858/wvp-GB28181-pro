@@ -6,7 +6,6 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcMessage;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.service.redisMsg.control.RedisRpcController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,9 +43,6 @@ public class RedisRpcConfig implements MessageListener {
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
-
-    @Autowired
-    private ZlmHttpHookSubscribe hookSubscribe;
 
     private ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 

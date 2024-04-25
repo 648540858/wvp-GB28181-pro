@@ -898,4 +898,16 @@ public class MediaServerServiceImpl implements IMediaServerService {
         sendRtpItem.setRtcp(rtcp);
         return sendRtpItem;
     }
+
+    @Override
+    public MediaServer getMediaServerByAppAndStream(String app, String stream) {
+        List<MediaServer> mediaServerList = getAll();
+        for (MediaServer mediaServer : mediaServerList) {
+            MediaInfo mediaInfo = getMediaInfo(mediaServer, app, stream);
+            if (mediaInfo != null) {
+                return mediaServer;
+            }
+        }
+        return null;
+    }
 }

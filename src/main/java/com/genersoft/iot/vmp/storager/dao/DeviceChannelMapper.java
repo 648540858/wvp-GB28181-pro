@@ -357,7 +357,8 @@ public interface DeviceChannelMapper {
             "<if test='item.gpsTime != null'>, gps_time=#{item.gpsTime}</if>" +
             "<if test='item.streamIdentification != null'>, stream_identification=#{item.streamIdentification}</if>" +
             "<if test='item.id > 0'>WHERE id=#{item.id}</if>" +
-            "<if test='item.id == 0'>WHERE device_id=#{item.deviceId} AND channel_id=#{item.channelId}</if>" +
+            "<if test='item.id == 0 and item.channelId != null '>WHERE device_id=#{item.deviceId} AND channel_id=#{item.channelId}</if>" +
+            "<if test='item.id == 0 and item.channelId == null '>WHERE device_id=#{item.deviceId}</if>" +
             "</foreach>" +
             "</script>"})
     int batchUpdate(List<DeviceChannel> updateChannels);

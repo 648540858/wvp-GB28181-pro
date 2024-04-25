@@ -131,7 +131,11 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
             param.put("ssrc", ssrc);
         }
         JSONObject jsonObject = zlmresTfulUtils.stopSendRtp(mediaInfo, param);
-        return (jsonObject != null && jsonObject.getInteger("code") == 0);
+        if (jsonObject == null || jsonObject.getInteger("code") != 0 ) {
+            logger.error("停止发流失败: {}, 参数：{}", jsonObject.getString("msg"), JSON.toJSONString(param));
+            throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
+        }
+        return true;
 
     }
 

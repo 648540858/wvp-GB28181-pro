@@ -15,9 +15,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.*;
-import com.genersoft.iot.vmp.service.bean.RequestStopPushStreamMsg;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -121,22 +119,20 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			logger.info("[收到bye] 停止推流：{}, 媒体节点： {}", streamId, sendRtpItem.getMediaServerId());
 
 			if (sendRtpItem.getPlayType().equals(InviteStreamType.PUSH)) {
-				// 查询这路流是否是本平台的
-				StreamPushItem push = pushService.getPush(sendRtpItem.getApp(), sendRtpItem.getStream());
-				if (push!= null && !push.isSelf()) {
-					// 不是本平台的就发送redis消息让其他wvp停止发流
-					ParentPlatform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
-					if (platform != null) {
-						RequestStopPushStreamMsg streamMsg = RequestStopPushStreamMsg.getInstance(sendRtpItem, platform.getName(), platform.getId());
-						redisGbPlayMsgListener.sendMsgForStopSendRtpStream(sendRtpItem.getServerId(), streamMsg);
-					}
-				}else {
-					MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-					redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(),
-							callIdHeader.getCallId(), null);
-					mediaServerService.stopSendRtp(mediaInfo, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getSsrc());
-					if (userSetting.getUseCustomSsrcForParentInvite()) {
-						mediaServerService.releaseSsrc(mediaInfo.getId(), sendRtpItem.getSsrc());
+				// 不是本平台的就发送redis消息让其他wvp停止发流
+				ParentPlatform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
+				if (platform != null) {
+					redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem, platform);
+					if (!userSetting.getServerId().equals(sendRtpItem.getServerId())) {
+						redisRpcService.stopSendRtp(sendRtpItem.getRedisKey());
+						redisCatchStorage.deleteSendRTPServer(null, null, sendRtpItem.getCallId(), null);
+					}else {
+						MediaServer mediaServer = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+						redisCatchStorage.deleteSendRTPServer(null, null, callIdHeader.getCallId(), null);
+						mediaServerService.stopSendRtp(mediaServer, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getSsrc());
+						if (userSetting.getUseCustomSsrcForParentInvite()) {
+							mediaServerService.releaseSsrc(mediaServer.getId(), sendRtpItem.getSsrc());
+						}
 					}
 				}else {
 					logger.info("[上级平台停止观看] 未找到平台{}的信息，发送redis消息失败", sendRtpItem.getPlatformId());

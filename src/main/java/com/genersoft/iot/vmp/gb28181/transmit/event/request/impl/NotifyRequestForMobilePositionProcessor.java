@@ -166,7 +166,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 				}catch (Exception e) {
 					logger.error("[向上级转发移动位置失败] ", e);
 				}
-				if (mobilePosition.getChannelId().equals(mobilePosition.getDeviceId()) || mobilePosition.getChannelId() == null) {
+				if (mobilePosition.getChannelId() == null || mobilePosition.getChannelId().equals(mobilePosition.getDeviceId())) {
 					List<DeviceChannel> channels = deviceChannelService.queryChaneListByDeviceId(mobilePosition.getDeviceId());
 					channels.forEach(channel -> {
 						// 发送redis消息。 通知位置信息的变化

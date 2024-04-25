@@ -2,10 +2,7 @@ package com.genersoft.iot.vmp.storager;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.SystemAllInfo;
-import com.genersoft.iot.vmp.gb28181.bean.AlarmChannelMessage;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;

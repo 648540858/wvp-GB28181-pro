@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -63,7 +62,7 @@ public class UserApiKeyController {
         }
 
         Long expirationTime = null;
-        if (StringUtils.isNotBlank(expiresAt)) {
+        if (expiresAt != null) {
             long timestamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(expiresAt);
             expirationTime = (timestamp - System.currentTimeMillis()) / (60 * 1000);
             if (expirationTime < 0) {

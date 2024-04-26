@@ -108,10 +108,11 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			if (!userSetting.getServerId().equals(sendRtpItem.getServerId())) {
 				WVPResult wvpResult = redisRpcService.startSendRtp(sendRtpItem.getRedisKey(), sendRtpItem);
 				if (wvpResult.getCode() == 0) {
-                    RequestPushStreamMsg requestPushStreamMsg = RequestPushStreamMsg.getInstance(sendRtpItem);
-                    redisGbPlayMsgListener.sendMsgForStartSendRtpStream(sendRtpItem.getServerId(), requestPushStreamMsg, () -> {
-                        playService.startSendRtpStreamFailHand(sendRtpItem, parentPlatform, callIdHeader);
-                    });
+					MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0, sendRtpItem.getApp(), sendRtpItem.getStream(),
+							sendRtpItem.getChannelId(), parentPlatform.getServerGBId(), parentPlatform.getName(), userSetting.getServerId(),
+							sendRtpItem.getMediaServerId());
+					messageForPushChannel.setPlatFormIndex(parentPlatform.getId());
+                    redisCatchStorage.sendPlatformStartPlayMsg(messageForPushChannel);
 				}
 			} else {
 				try {

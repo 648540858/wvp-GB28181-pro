@@ -1413,12 +1413,7 @@ public class PlayServiceImpl implements IPlayService {
         // 开始发流
         MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 
-        if (mediaInfo == null) {
-            RequestPushStreamMsg requestPushStreamMsg = RequestPushStreamMsg.getInstance(sendRtpItem);
-            redisGbPlayMsgListener.sendMsgForStartSendRtpStream(sendRtpItem.getServerId(), requestPushStreamMsg, () -> {
-                startSendRtpStreamFailHand(sendRtpItem, platform, callIdHeader);
-            });
-        } else {
+        if (mediaInfo != null) {
             try {
                 if (sendRtpItem.isTcpActive()) {
                     mediaServerService.startSendRtpPassive(mediaInfo, platform, sendRtpItem, null);

@@ -27,16 +27,11 @@ import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
-import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.*;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
-import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
@@ -598,8 +593,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                 sendRtpItem.setServerId(pushListItem.getServerId());
                                 sendRtpItem.setMediaServerId(pushListItem.getMediaServerId());
 
-                                StreamPushItem transform = streamPushService.transform(pushListItem);
-                                transform.setSelf(userSetting.getServerId().equals(pushListItem.getServerId()));
+                                pushListItem.setSelf(userSetting.getServerId().equals(pushListItem.getServerId()));
                                 redisCatchStorage.updateSendRTPSever(sendRtpItem);
                                 // 开始推流
                                 sendPushStream(sendRtpItem, mediaServerItem, platform, request);
@@ -677,7 +671,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             sendRtpItem.setStatus(1);
             sendRtpItem.setLocalIp(mediaServerItem.getSdpIp());
 
-            SIPResponse response = sendStreamAck(mediaServerItem, request, sendRtpItem, platform);
+            SIPResponse response = sendStreamAck(request, sendRtpItem, platform);
             if (response != null) {
                 sendRtpItem.setToTag(response.getToTag());
             }
@@ -703,7 +697,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 }
                 // 写入redis， 超时时回复
                 sendRtpItem.setStatus(1);
-                SIPResponse response = sendStreamAck(mediaServerItem, request, sendRtpItem, platform);
+                SIPResponse response = sendStreamAck(request, sendRtpItem, platform);
                 if (response != null) {
                     sendRtpItem.setToTag(response.getToTag());
                 }
@@ -859,7 +853,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         redisCatchStorage.updateSendRTPSever(sendRtpItem);
     }
 
-    public SIPResponse sendStreamAck(MediaServer mediaServerItem, SIPRequest request, SendRtpItem sendRtpItem, ParentPlatform platform) {
+    public SIPResponse sendStreamAck(SIPRequest request, SendRtpItem sendRtpItem, ParentPlatform platform) {
 
         String sdpIp = sendRtpItem.getLocalIp();
         if (!ObjectUtils.isEmpty(platform.getSendStreamIp())) {
@@ -1005,7 +999,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 logger.info("设备{}请求语音流，地址：{}:{}，ssrc：{}, {}", requesterId, addressStr, port, gb28181Sdp.getSsrc(),
                         mediaTransmissionTCP ? (tcpActive ? "TCP主动" : "TCP被动") : "UDP");
 
-                MediaServer mediaServerItem = broadcastCatch.getMediaServer();
+                MediaServer mediaServerItem = broadcastCatch.getMediaServerItem();
                 if (mediaServerItem == null) {
                     logger.warn("未找到语音喊话使用的zlm");
                     try {

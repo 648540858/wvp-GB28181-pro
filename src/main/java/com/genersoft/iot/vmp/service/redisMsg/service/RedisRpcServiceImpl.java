@@ -8,10 +8,7 @@ import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.HookParam;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -34,7 +31,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     private UserSetting userSetting;
 
     @Autowired
-    private ZlmHttpHookSubscribe hookSubscribe;
+    private HookSubscribe hookSubscribe;
 
     @Autowired
     private SSRCFactory ssrcFactory;

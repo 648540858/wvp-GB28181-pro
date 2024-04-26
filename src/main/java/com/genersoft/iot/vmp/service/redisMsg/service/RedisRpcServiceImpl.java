@@ -8,8 +8,9 @@ import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
+import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.HookParam;
+import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
@@ -84,20 +85,19 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     public long waitePushStreamOnline(SendRtpItem sendRtpItem, CommonCallback<String> callback) {
         logger.info("[请求所有WVP监听流上线] {}/{}", sendRtpItem.getApp(), sendRtpItem.getStream());
         // 监听流上线。 流上线直接发送sendRtpItem消息给实际的信令处理者
-        HookSubscribeForStreamChange hook = HookSubscribeFactory.on_stream_changed(
-                sendRtpItem.getApp(), sendRtpItem.getStream(), true, "rtsp", null);
+        Hook hook = Hook.getInstance(HookType.on_media_arrival, sendRtpItem.getApp(), sendRtpItem.getStream(), null);
         RedisRpcRequest request = buildRequest("waitePushStreamOnline", sendRtpItem);
         request.setToId(sendRtpItem.getServerId());
-        hookSubscribe.addSubscribe(hook, (MediaServerItem mediaServerItemInUse, HookParam hookParam) -> {
+        hookSubscribe.addSubscribe(hook, (hookData) -> {
 
             // 读取redis中的上级点播信息，生成sendRtpItm发送出去
             if (sendRtpItem.getSsrc() == null) {
                 // 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
-                String ssrc = "Play".equalsIgnoreCase(sendRtpItem.getSessionName()) ? ssrcFactory.getPlaySsrc(mediaServerItemInUse.getId()) : ssrcFactory.getPlayBackSsrc(mediaServerItemInUse.getId());
+                String ssrc = "Play".equalsIgnoreCase(sendRtpItem.getSessionName()) ? ssrcFactory.getPlaySsrc(hookData.getMediaServer().getId()) : ssrcFactory.getPlayBackSsrc(hookData.getMediaServer().getId());
                 sendRtpItem.setSsrc(ssrc);
             }
-            sendRtpItem.setMediaServerId(mediaServerItemInUse.getId());
-            sendRtpItem.setLocalIp(mediaServerItemInUse.getSdpIp());
+            sendRtpItem.setMediaServerId(hookData.getMediaServer().getId());
+            sendRtpItem.setLocalIp(hookData.getMediaServer().getSdpIp());
             sendRtpItem.setServerId(userSetting.getServerId());
             redisTemplate.opsForValue().set(sendRtpItem.getRedisKey(), sendRtpItem);
             if (callback != null) {
@@ -125,8 +125,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     @Override
     public void stopWaitePushStreamOnline(SendRtpItem sendRtpItem) {
         logger.info("[停止WVP监听流上线] {}/{}", sendRtpItem.getApp(), sendRtpItem.getStream());
-        HookSubscribeForStreamChange hook = HookSubscribeFactory.on_stream_changed(
-                sendRtpItem.getApp(), sendRtpItem.getStream(), true, "rtsp", null);
+        Hook hook = Hook.getInstance(HookType.on_media_arrival, sendRtpItem.getApp(), sendRtpItem.getStream(), null);
         hookSubscribe.removeSubscribe(hook);
         RedisRpcRequest request = buildRequest("stopWaitePushStreamOnline", sendRtpItem);
         request.setToId(sendRtpItem.getServerId());

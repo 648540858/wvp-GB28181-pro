@@ -109,17 +109,6 @@ public class PlayServiceImpl implements IPlayService {
     private ISIPCommanderForPlatform commanderForPlatform;
 
     @Autowired
-    private RedisGbPlayMsgListener redisGbPlayMsgListener;
-
-
-    @Qualifier("taskExecutor")
-    @Autowired
-    private ThreadPoolTaskExecutor taskExecutor;
-
-    @Autowired
-    private ZlmHttpHookSubscribe hookSubscribe;
-
-    @Autowired
     private SSRCFactory ssrcFactory;
 
     /**
@@ -261,7 +250,7 @@ public class PlayServiceImpl implements IPlayService {
             );
 
             SSRCInfo ssrcInfo = mediaServerService.openRTPServer(event.getMediaServer(), event.getStream(), null,
-                    device.isSsrcCheck(), true, 0, false, !deviceChannel.isHasAudio(), false, device.getStreamModeForParam());
+                    device.isSsrcCheck(), true, 0, false, !deviceChannel.getHasAudio(), false, device.getStreamModeForParam());
             playBack(event.getMediaServer(), ssrcInfo, deviceId, channelId, startTime, endTime, null);
         }
     }
@@ -323,7 +312,7 @@ public class PlayServiceImpl implements IPlayService {
             }
         }
         String streamId = String.format("%s_%s", device.getDeviceId(), channelId);
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, ssrc, device.isSsrcCheck(),  false, 0, false, !channel.isHasAudio(), false, device.getStreamModeForParam());
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, ssrc, device.isSsrcCheck(),  false, 0, false, !channel.getHasAudio(), false, device.getStreamModeForParam());
         if (ssrcInfo == null) {
             callback.run(InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode(), InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getMsg(), null);
             inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
@@ -768,7 +757,7 @@ public class PlayServiceImpl implements IPlayService {
                 .replace(":", "")
                 .replace(" ", "");
         String stream = deviceId + "_" + channelId + "_" + startTimeStr + "_" + endTimeTimeStr;
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, stream, null, device.isSsrcCheck(),  true, 0, false,  !channel.isHasAudio(),  false, device.getStreamModeForParam());
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, stream, null, device.isSsrcCheck(),  true, 0, false,  !channel.getHasAudio(),  false, device.getStreamModeForParam());
         playBack(newMediaServerItem, ssrcInfo, deviceId, channelId, startTime, endTime, callback);
     }
 
@@ -965,7 +954,7 @@ public class PlayServiceImpl implements IPlayService {
             return;
         }
         // 录像下载不使用固定流地址，固定流地址会导致如果开始时间与结束时间一致时文件错误的叠加在一起
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, null, device.isSsrcCheck(),  true, 0, false,!channel.isHasAudio(), false, device.getStreamModeForParam());
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, null, device.isSsrcCheck(),  true, 0, false,!channel.getHasAudio(), false, device.getStreamModeForParam());
         download(newMediaServerItem, ssrcInfo, deviceId, channelId, startTime, endTime, downloadSpeed, callback);
     }
 

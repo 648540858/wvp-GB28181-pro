@@ -222,7 +222,8 @@ public class ZLMHttpHookListener {
         JSONObject ret = new JSONObject();
 
         boolean close = mediaService.closeStreamOnNoneReader(param.getMediaServerId(), param.getApp(), param.getStream(), param.getSchema());
-        ret.put("code", close);
+        ret.put("code", 0);
+        ret.put("close", close);
         return ret;
     }
 

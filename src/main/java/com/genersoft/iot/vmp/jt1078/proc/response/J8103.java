@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -57,13 +58,13 @@ public class J8103 extends Rs {
             for (Field field : fieldConfigAttributeMap.keySet()) {
                 try{
                     ConfigAttribute configAttribute = fieldConfigAttributeMap.get(field);
-                    buffer.writeLong(configAttribute.id());
+                    buffer.writeInt((int) (configAttribute.id() & 0xffff));
                     switch (configAttribute.type()) {
                         case "Long":
                             buffer.writeByte(4);
                             field.setAccessible(true);
-                            Long longVal = (Long)field.get(config);
-                            buffer.writeLong(longVal);
+                            long longVal = (long)field.get(config);
+                            buffer.writeInt((int) (longVal & 0xffffffffL));
                             continue;
                         case "String":
                             field.setAccessible(true);
@@ -75,13 +76,13 @@ public class J8103 extends Rs {
                             buffer.writeByte(2);
                             field.setAccessible(true);
                             Integer integerVal = (Integer)field.get(config);
-                            buffer.writeInt(integerVal);
+                            buffer.writeShort((short)(integerVal & 0xffff));
                             continue;
                         case "Short":
                             buffer.writeByte(1);
                             field.setAccessible(true);
                             Short shortVal = (Short)field.get(config);
-                            buffer.writeShort(shortVal);
+                            buffer.writeByte((int) (shortVal & 0xff));
                             continue;
                         case "IllegalDrivingPeriods":
                         case "CollisionAlarmParams":

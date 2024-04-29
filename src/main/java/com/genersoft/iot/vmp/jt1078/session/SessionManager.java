@@ -5,6 +5,8 @@ import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.SynchronousQueue;
@@ -107,6 +109,23 @@ public enum SessionManager {
         }
         log.warn("Not find response,key:{} data:{} ", requestKey, data);
         return false;
+    }
+
+    public Boolean response(String key, Object data) {
+        SynchronousQueue<Object> queue = topicSubscribers.get(key);
+        if (queue != null) {
+            try {
+                return queue.offer(data, 2, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                log.error("{}", e.getMessage(), e);
+            }
+        }
+        log.warn("Not find response,key:{} data:{} ", key, data);
+        return false;
+    }
+
+    public List<String> getAllRequestKey() {
+        return new ArrayList<>(topicSubscribers.keySet());
     }
 
     private void unsubscribe(String key) {

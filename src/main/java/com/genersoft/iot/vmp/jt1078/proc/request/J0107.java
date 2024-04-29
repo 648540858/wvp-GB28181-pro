@@ -27,6 +27,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -89,7 +90,14 @@ public class J0107 extends Re {
         deviceAttribute.setGnssAttribute(JGnssAttribute.getInstance(buf.getUnsignedByte(79 + n + m)));
         deviceAttribute.setCommunicationModuleAttribute(JCommunicationModuleAttribute.getInstance(buf.getUnsignedByte(80 + n + m)));
         System.out.println(deviceAttribute);
-        SessionManager.INSTANCE.response(header.getTerminalId(), "0107", (long) respNo, deviceAttribute);
+        List<String> allRequestKey = SessionManager.INSTANCE.getAllRequestKey();
+        String prefix = String.join("_", header.getTerminalId().replaceFirst("^0*", ""), "0107");
+        for (String key : allRequestKey) {
+            if (key.startsWith(prefix)) {
+                SessionManager.INSTANCE.response(key, deviceAttribute);
+            }
+        }
+
         return null;
     }
 

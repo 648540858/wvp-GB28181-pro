@@ -332,13 +332,31 @@ public class JT1078Controller {
         service.setConfig(config.getDeviceId(), config.getConfig());
     }
 
-    @Operation(summary = "终端控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "终端控制-连接", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "control", description = "终端控制参数", required = true)
     @PostMapping("/control/connection")
     public void connectionControl(@RequestBody ConnectionControlParam control){
 
         logger.info("[1078-终端控制] 参数: {}", control.toString());
         service.connectionControl(control.getDeviceId(), control.getControl());
+    }
+
+    @Operation(summary = "终端控制-复位", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "control", description = "终端控制参数", required = true)
+    @PostMapping("/control/reset")
+    public void resetControl(String deviceId){
+
+        logger.info("[1078-复位] deviceId: {}", deviceId);
+        service.resetControl(deviceId);
+    }
+
+    @Operation(summary = "终端控制-恢复出厂设置", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "control", description = "终端控制参数", required = true)
+    @PostMapping("/control/factory-reset")
+    public void factoryResetControl(String deviceId){
+
+        logger.info("[1078-恢复出厂设置] deviceId: {}", deviceId);
+        service.factoryResetControl(deviceId);
     }
 
 }

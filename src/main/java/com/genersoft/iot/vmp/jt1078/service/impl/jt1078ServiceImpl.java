@@ -534,4 +534,18 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j8105.setConnectionControl(control);
         jt1078Template.deviceControl(deviceId, j8105, 6);
     }
+
+    @Override
+    public void resetControl(String deviceId) {
+        J8105 j8105 = new J8105();
+        j8105.setReset(true);
+        jt1078Template.deviceControl(deviceId, j8105, 6);
+    }
+
+    @Override
+    public void factoryResetControl(String deviceId) {
+        J8105 j8105 = new J8105();
+        j8105.setFactoryReset(true);
+        jt1078Template.deviceControl(deviceId, j8105, 6);
+    }
 }

@@ -98,7 +98,6 @@ public class J8103 extends Rs {
                 }catch (Exception e) {
                     log.error("[设置终端参数 ] 编码失败", e );
                 }
-
             }
         }
         System.out.println(ByteBufUtil.hexDump(buffer));

@@ -48,4 +48,8 @@ public interface Ijt1078Service {
     void setConfig(String deviceId, JTDeviceConfig config);
 
     void connectionControl(String deviceId, JTDeviceConnectionControl control);
+
+    void resetControl(String deviceId);
+
+    void factoryResetControl(String deviceId);
 }

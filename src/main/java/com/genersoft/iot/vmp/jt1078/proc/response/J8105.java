@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConnectionControl;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
+import java.nio.charset.Charset;
 import java.util.Arrays;
 
 /**
@@ -40,11 +41,17 @@ public class J8105 extends Rs {
                     stringBuffer.append("1");
                 }else {
                     stringBuffer.append("0");
-
+                    stringBuffer.append(";" + connectionControl.getAuthentication())
+                            .append(";" + connectionControl.getName())
+                            .append(";" + connectionControl.getUsername())
+                            .append(";" + connectionControl.getPassword())
+                            .append(";" + connectionControl.getAddress())
+                            .append(";" + connectionControl.getTcpPort())
+                            .append(";" + connectionControl.getUdpPort())
+                            .append(";" + connectionControl.getTimeLimit());
                 }
-
             }
-            stringBuffer.append()
+            byteBuf.writeCharSequence(stringBuffer.toString(), Charset.forName("GBK"));
         }
         return byteBuf;
     }
@@ -75,8 +82,10 @@ public class J8105 extends Rs {
 
     @Override
     public String toString() {
-        return "J8106{" +
-                "params=" + Arrays.toString(params) +
+        return "J8105{" +
+                "connectionControl=" + connectionControl +
+                ", reset=" + reset +
+                ", factoryReset=" + factoryReset +
                 '}';
     }
 }

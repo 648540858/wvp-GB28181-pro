@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
 import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConfig;
+import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConnectionControl;
 import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
@@ -329,6 +330,15 @@ public class JT1078Controller {
 
         logger.info("[1078-设置终端参数] 参数: {}", config.toString());
         service.setConfig(config.getDeviceId(), config.getConfig());
+    }
+
+    @Operation(summary = "终端控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "control", description = "终端控制参数", required = true)
+    @PostMapping("/control/connection")
+    public void connectionControl(@RequestBody ConnectionControlParam control){
+
+        logger.info("[1078-终端控制] 参数: {}", control.toString());
+        service.connectionControl(, config.getConfig());
     }
 
 }

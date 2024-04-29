@@ -128,4 +128,19 @@ public class JTDeviceConnectionControl {
     public void setTimeLimit(Long timeLimit) {
         this.timeLimit = timeLimit;
     }
+
+    @Override
+    public String toString() {
+        return "JTDeviceConnectionControl{" +
+                "switchOn=" + switchOn +
+                ", authentication='" + authentication + '\'' +
+                ", name='" + name + '\'' +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", address='" + address + '\'' +
+                ", tcpPort=" + tcpPort +
+                ", udpPort=" + udpPort +
+                ", timeLimit=" + timeLimit +
+                '}';
+    }
 }

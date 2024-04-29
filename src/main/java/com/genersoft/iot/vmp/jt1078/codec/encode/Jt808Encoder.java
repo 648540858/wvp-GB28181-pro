@@ -10,6 +10,8 @@ import io.netty.handler.codec.MessageToByteEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 /**
  * @author QingtaiJiang
  * @date 2023/4/27 18:10
@@ -22,12 +24,12 @@ public class Jt808Encoder extends MessageToByteEncoder<Rs> {
     protected void encode(ChannelHandlerContext ctx, Rs msg, ByteBuf out) throws Exception {
         Session session = ctx.channel().attr(Session.KEY).get();
 
-        ByteBuf encode = Jt808EncoderCmd.encode(msg, session, session.nextSerialNo());
-        if(encode!=null){
-            log.info("< {} hex:{}", session, ByteBufUtil.hexDump(encode));
-            out.writeBytes(encode);
+        List<ByteBuf> encodeList =  Jt808EncoderCmd.encode(msg, session, session.nextSerialNo());
+        if(encodeList!=null && !encodeList.isEmpty()){
+            for (ByteBuf byteBuf : encodeList) {
+                log.info("< {} hex:{}", session, ByteBufUtil.hexDump(byteBuf));
+                out.writeBytes(byteBuf);
+            }
         }
     }
-
-
 }

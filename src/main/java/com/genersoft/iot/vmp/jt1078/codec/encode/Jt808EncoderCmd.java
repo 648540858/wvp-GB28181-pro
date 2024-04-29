@@ -52,17 +52,17 @@ public class Jt808EncoderCmd extends MessageToByteEncoder<Cmd> {
         Header header = msg.getHeader();
 
         List<ByteBuf> byteBufList = new LinkedList<>();
-
-        if (encode.readableBytes() > 1024) {
+        if (encode.readableBytes() > 1000) {
             int index = 1;
-            int total = encode.readableBytes()/1024 + 1;
+            int total = encode.readableBytes()%1000 == 0 ? encode.readableBytes()/1000 : (encode.readableBytes()/1000 + 1);
             while (encode.isReadable()) {
                 ByteBuf byteBuf;
                 if (index == total) {
-                    byteBuf = buildMsgByte(header, id, session, packageNo, encode.readRetainedSlice(encode.readableBytes() - index * 1024), index, total);
+                    byteBuf = buildMsgByte(header, id, session, packageNo, encode.readRetainedSlice(encode.readableBytes()), index, total);
                 }else {
-                    byteBuf = buildMsgByte(header, id, session, packageNo, encode.readBytes(1024), index, total);
+                    byteBuf = buildMsgByte(header, id, session, packageNo, encode.readRetainedSlice(1000), index, total);
                 }
+
                 byteBufList.add(byteBuf);
                 index ++;
             }

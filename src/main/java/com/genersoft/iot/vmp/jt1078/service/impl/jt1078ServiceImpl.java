@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
+import com.genersoft.iot.vmp.jt1078.bean.JTDeviceAttribute;
 import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConfig;
 import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConnectionControl;
 import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
@@ -547,5 +548,11 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         J8105 j8105 = new J8105();
         j8105.setFactoryReset(true);
         jt1078Template.deviceControl(deviceId, j8105, 6);
+    }
+
+    @Override
+    public JTDeviceAttribute attribute(String deviceId) {
+        J8107 j8107 = new J8107();
+        return (JTDeviceAttribute)jt1078Template.deviceAttribute(deviceId, j8107, 20);
     }
 }

@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.jt1078.cmd;
 
+import com.genersoft.iot.vmp.jt1078.bean.JTDeviceAttribute;
 import com.genersoft.iot.vmp.jt1078.proc.entity.Cmd;
 import com.genersoft.iot.vmp.jt1078.proc.response.*;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
@@ -21,6 +22,7 @@ public class JT1078Template {
     private static final String H8104 = "8104";
     private static final String H8105 = "8105";
     private static final String H8106 = "8106";
+    private static final String H8107 = "8107";
     private static final String H9101 = "9101";
     private static final String H9102 = "9102";
     private static final String H9201 = "9201";
@@ -37,6 +39,7 @@ public class JT1078Template {
 
     private static final String H0001 = "0001";
     private static final String H0104 = "0104";
+    private static final String H0107 = "0107";
     private static final String H1205 = "1205";
 
     /**
@@ -322,6 +325,17 @@ public class JT1078Template {
                 .setMsgId(H8105)
                 .setRespId(H0001)
                 .setRs(j8105)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    public Object deviceAttribute(String devId, J8107 j8107, int timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H8107)
+                .setRespId(H0107)
+                .setRs(j8107)
                 .build();
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }

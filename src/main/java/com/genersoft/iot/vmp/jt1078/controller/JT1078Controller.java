@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
+import com.genersoft.iot.vmp.jt1078.bean.JTDeviceAttribute;
 import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConfig;
 import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConnectionControl;
 import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
@@ -357,6 +358,15 @@ public class JT1078Controller {
 
         logger.info("[1078-恢复出厂设置] deviceId: {}", deviceId);
         service.factoryResetControl(deviceId);
+    }
+
+    @Operation(summary = "查询终端属性", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "control", description = "终端控制参数", required = true)
+    @GetMapping("/attribute")
+    public JTDeviceAttribute attribute(String deviceId){
+
+        logger.info("[1078-查询终端属性] deviceId: {}", deviceId);
+        return service.attribute(deviceId);
     }
 
 }

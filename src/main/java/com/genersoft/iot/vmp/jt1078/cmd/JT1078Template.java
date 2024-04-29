@@ -19,6 +19,7 @@ public class JT1078Template {
 
     private static final String H8103 = "8103";
     private static final String H8104 = "8104";
+    private static final String H8105 = "8105";
     private static final String H8106 = "8106";
     private static final String H9101 = "9101";
     private static final String H9102 = "9102";
@@ -312,5 +313,16 @@ public class JT1078Template {
 
     private Long randomInt() {
         return (long) random.nextInt(1000) + 1;
+    }
+
+    public Object deviceControl(String devId, J8105 j8105, int timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H8105)
+                .setRespId(H0001)
+                .setRs(j8105)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
     }
 }

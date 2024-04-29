@@ -338,7 +338,7 @@ public class JT1078Controller {
     public void connectionControl(@RequestBody ConnectionControlParam control){
 
         logger.info("[1078-终端控制] 参数: {}", control.toString());
-        service.connectionControl(, config.getConfig());
+        service.connectionControl(control.getDeviceId(), control.getControl());
     }
 
 }

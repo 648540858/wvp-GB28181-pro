@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
 import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConfig;
+import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConnectionControl;
 import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
 import com.genersoft.iot.vmp.jt1078.cmd.JT1078Template;
 import com.genersoft.iot.vmp.jt1078.dao.JTDeviceMapper;
@@ -525,5 +526,12 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         J8103 j8103 = new J8103();
         j8103.setConfig(config);
         jt1078Template.setDeviceSpecifyConfig(deviceId, j8103, 6);
+    }
+
+    @Override
+    public void connectionControl(String deviceId, JTDeviceConnectionControl control) {
+        J8105 j8105 = new J8105();
+        j8105.setConnectionControl(control);
+        jt1078Template.deviceControl(deviceId, j8105, 6);
     }
 }

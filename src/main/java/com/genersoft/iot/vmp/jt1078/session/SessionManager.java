@@ -99,33 +99,38 @@ public enum SessionManager {
 
     public Boolean response(String devId, String respId, Long responseNo, Object data) {
         String requestKey = requestKey(devId, respId, responseNo);
-        SynchronousQueue<Object> queue = topicSubscribers.get(requestKey);
-        if (queue != null) {
-            try {
-                return queue.offer(data, 2, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                log.error("{}", e.getMessage(), e);
+
+        boolean result = false;
+        if (responseNo == null) {
+            for (String key : topicSubscribers.keySet()) {
+                if (key.startsWith(requestKey)) {
+                    System.out.println(key);
+                    SynchronousQueue<Object> queue = topicSubscribers.get(key);
+                    if (queue != null) {
+                        result = true;
+                        try {
+                            queue.offer(data, 2, TimeUnit.SECONDS);
+                        } catch (InterruptedException e) {
+                            log.error("{}", e.getMessage(), e);
+                        }
+                    }
+                }
+            }
+        }else {
+            SynchronousQueue<Object> queue = topicSubscribers.get(requestKey);
+            if (queue != null) {
+                result = true;
+                try {
+                    queue.offer(data, 2, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    log.error("{}", e.getMessage(), e);
+                }
             }
         }
-        log.warn("Not find response,key:{} data:{} ", requestKey, data);
-        return false;
-    }
-
-    public Boolean response(String key, Object data) {
-        SynchronousQueue<Object> queue = topicSubscribers.get(key);
-        if (queue != null) {
-            try {
-                return queue.offer(data, 2, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                log.error("{}", e.getMessage(), e);
-            }
+        if (!result) {
+            log.warn("Not find response,key:{} data:{} ", requestKey, data);
         }
-        log.warn("Not find response,key:{} data:{} ", key, data);
-        return false;
-    }
-
-    public List<String> getAllRequestKey() {
-        return new ArrayList<>(topicSubscribers.keySet());
+        return result;
     }
 
     private void unsubscribe(String key) {
@@ -140,7 +145,8 @@ public enum SessionManager {
     }
 
     private String requestKey(String devId, String respId, Long requestNo) {
-        return String.join("_", devId.replaceFirst("^0*", ""), respId, requestNo.toString());
+        return String.join("_", devId.replaceFirst("^0*", ""), respId, requestNo == null?"":requestNo.toString());
+
     }
 
     public void remove(String devId) {

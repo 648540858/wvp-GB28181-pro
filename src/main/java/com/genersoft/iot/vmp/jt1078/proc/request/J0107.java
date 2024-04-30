@@ -16,6 +16,7 @@ import com.genersoft.iot.vmp.jt1078.session.Session;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import com.genersoft.iot.vmp.jt1078.util.BCDUtil;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,60 +45,37 @@ public class J0107 extends Re {
 
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
-        respNo = buf.readUnsignedShort();
-        paramLength = (int) buf.readUnsignedByte();
-        if (paramLength <= 0) {
-            return null;
-        }
+//        respNo = buf.readUnsignedShort();
+//        paramLength = (int) buf.readUnsignedByte();
+//        if (paramLength <= 0) {
+//            return null;
+//        }
         JTDeviceAttribute deviceAttribute = new JTDeviceAttribute();
 
-        deviceAttribute.setType(JTDeviceType.getInstance(buf.getUnsignedShort(0)));
+        deviceAttribute.setType(JTDeviceType.getInstance(buf.readUnsignedShort()));
 
-        byte[] bytes5 = new byte[5];
-        buf.getBytes(2, bytes5);
-        deviceAttribute.setMakerId(new String(bytes5).trim());
+        deviceAttribute.setMakerId(buf.readCharSequence(5, Charset.forName("GBK")).toString().trim());
 
-        byte[] bytes20 = new byte[20];
-        buf.getBytes(7, bytes20);
-        deviceAttribute.setDeviceModel(new String(bytes20).trim());
+        deviceAttribute.setDeviceModel(buf.readCharSequence(20, Charset.forName("GBK")).toString().trim());
+        buf.readCharSequence(10, Charset.forName("GBK"));
 
-        byte[] bytes7 = new byte[7];
-        buf.getBytes(37, bytes7);
-        deviceAttribute.setTerminalId(new String(bytes7).trim());
+        deviceAttribute.setTerminalId(buf.readCharSequence(7, Charset.forName("GBK")).toString().trim());
+        buf.readCharSequence(23, Charset.forName("GBK"));
 
-        byte[] iccIdBytes = new byte[10];
-        buf.getBytes(67, iccIdBytes);
-        deviceAttribute.setIccId(BCDUtil.transform(iccIdBytes));
+        byte[] bytes = new byte[10];
+        buf.readBytes(bytes);
+        deviceAttribute.setIccId(BCDUtil.transform(bytes));
 
-        int n = buf.getUnsignedByte(77);
-        byte[] hardwareVersionBytes = new byte[n];
-        buf.getBytes(78, hardwareVersionBytes);
-        try {
-            deviceAttribute.setHardwareVersion(new String(hardwareVersionBytes, "GBK").trim());
-        } catch (UnsupportedEncodingException e) {
-            logger.error("[查询终端属性应答] 读取硬件版本失败" , e);
-        }
+        int hardwareVersionLength = buf.readUnsignedByte();
+        deviceAttribute.setHardwareVersion(buf.readCharSequence(hardwareVersionLength, Charset.forName("GBK")).toString().trim());
 
-        int m = buf.getUnsignedByte(78 + n);
-        byte[] firmwareVersionBytes = new byte[m];
-        buf.getBytes(79 + n, firmwareVersionBytes);
-        try {
-            deviceAttribute.setFirmwareVersion(new String(firmwareVersionBytes, "GBK").trim());
-        } catch (UnsupportedEncodingException e) {
-            logger.error("[查询终端属性应答] 读取固件版本失败" , e);
-        }
+        int firmwareVersionLength = buf.readUnsignedByte();
+        deviceAttribute.setFirmwareVersion(buf.readCharSequence(firmwareVersionLength, Charset.forName("GBK")).toString().trim());
 
-        deviceAttribute.setGnssAttribute(JGnssAttribute.getInstance(buf.getUnsignedByte(79 + n + m)));
-        deviceAttribute.setCommunicationModuleAttribute(JCommunicationModuleAttribute.getInstance(buf.getUnsignedByte(80 + n + m)));
-        System.out.println(deviceAttribute);
-        List<String> allRequestKey = SessionManager.INSTANCE.getAllRequestKey();
-        String prefix = String.join("_", header.getTerminalId().replaceFirst("^0*", ""), "0107");
-        for (String key : allRequestKey) {
-            if (key.startsWith(prefix)) {
-                SessionManager.INSTANCE.response(key, deviceAttribute);
-            }
-        }
+        deviceAttribute.setGnssAttribute(JGnssAttribute.getInstance(buf.readUnsignedByte()));
+        deviceAttribute.setCommunicationModuleAttribute(JCommunicationModuleAttribute.getInstance(buf.readUnsignedByte()));
 
+        SessionManager.INSTANCE.response(header.getTerminalId(), "0107", null, deviceAttribute);
         return null;
     }
 

@@ -1,16 +1,12 @@
 package com.genersoft.iot.vmp.jt1078.service.impl;
 
-import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.GeneralCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
-import com.genersoft.iot.vmp.jt1078.bean.JTDeviceAttribute;
-import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConfig;
-import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConnectionControl;
+import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
 import com.genersoft.iot.vmp.jt1078.cmd.JT1078Template;
 import com.genersoft.iot.vmp.jt1078.dao.JTDeviceMapper;
@@ -25,8 +21,6 @@ import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.HookParam;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
@@ -39,11 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.beans.IntrospectionException;
-import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -554,5 +544,19 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     public JTDeviceAttribute attribute(String deviceId) {
         J8107 j8107 = new J8107();
         return (JTDeviceAttribute)jt1078Template.deviceAttribute(deviceId, j8107, 20);
+    }
+
+    @Override
+    public JTPositionBaseInfo queryPositionInfo(String deviceId) {
+        J8201 j8201 = new J8201();
+        return (JTPositionBaseInfo)jt1078Template.queryPositionInfo(deviceId, j8201, 20);
+    }
+
+    @Override
+    public void tempPositionTrackingControl(String deviceId, Integer timeInterval, Long validityPeriod) {
+        J8202 j8202 = new J8202();
+        j8202.setTimeInterval(timeInterval);
+        j8202.setValidityPeriod(validityPeriod);
+        jt1078Template.tempPositionTrackingControl(deviceId, j8202, 20);
     }
 }

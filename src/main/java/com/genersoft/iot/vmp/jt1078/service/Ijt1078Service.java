@@ -2,10 +2,7 @@ package com.genersoft.iot.vmp.jt1078.service;
 
 import com.genersoft.iot.vmp.common.GeneralCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
-import com.genersoft.iot.vmp.jt1078.bean.JTDeviceAttribute;
-import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConfig;
-import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConnectionControl;
+import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
 import com.github.pagehelper.PageInfo;
 
@@ -55,4 +52,8 @@ public interface Ijt1078Service {
     void factoryResetControl(String deviceId);
 
     JTDeviceAttribute attribute(String deviceId);
+
+    JTPositionBaseInfo queryPositionInfo(String deviceId);
+
+    void tempPositionTrackingControl(String deviceId, Integer timeInterval, Long validityPeriod);
 }

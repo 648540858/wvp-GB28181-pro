@@ -1,12 +1,8 @@
 package com.genersoft.iot.vmp.jt1078.controller;
 
-import com.alibaba.fastjson2.JSON;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
-import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
-import com.genersoft.iot.vmp.jt1078.bean.JTDeviceAttribute;
-import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConfig;
-import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConnectionControl;
+import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
@@ -324,7 +320,7 @@ public class JT1078Controller {
     }
 
     @Operation(summary = "设置终端参数", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "deviceId", description = "设备编号", required = true)
     @Parameter(name = "config", description = "终端参数", required = true)
     @PostMapping("/set-config")
     public void setConfig(@RequestBody SetConfigParam config){
@@ -343,7 +339,7 @@ public class JT1078Controller {
     }
 
     @Operation(summary = "终端控制-复位", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "control", description = "终端控制参数", required = true)
+    @Parameter(name = "deviceId", description = "设备编号", required = true)
     @PostMapping("/control/reset")
     public void resetControl(String deviceId){
 
@@ -352,7 +348,7 @@ public class JT1078Controller {
     }
 
     @Operation(summary = "终端控制-恢复出厂设置", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "control", description = "终端控制参数", required = true)
+    @Parameter(name = "deviceId", description = "设备编号", required = true)
     @PostMapping("/control/factory-reset")
     public void factoryResetControl(String deviceId){
 
@@ -361,12 +357,32 @@ public class JT1078Controller {
     }
 
     @Operation(summary = "查询终端属性", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "control", description = "终端控制参数", required = true)
+    @Parameter(name = "deviceId", description = "设备编号", required = true)
     @GetMapping("/attribute")
     public JTDeviceAttribute attribute(String deviceId){
 
         logger.info("[1078-查询终端属性] deviceId: {}", deviceId);
         return service.attribute(deviceId);
+    }
+
+    @Operation(summary = "查询位置信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @GetMapping("/position-info")
+    public JTPositionBaseInfo queryPositionInfo(String deviceId){
+
+        logger.info("[1078-查询位置信息] deviceId: {}", deviceId);
+        return service.queryPositionInfo(deviceId);
+    }
+
+    @Operation(summary = "临时位置跟踪控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "timeInterval", description = "时间间隔,单位为秒,时间间隔为0 时停止跟踪,停止跟踪无需带后继字段", required = true)
+    @Parameter(name = "validityPeriod", description = "位置跟踪有效期, 单位为秒,终端在接收到位置跟踪控制消息后,在有效期截止时间之前依据消息中的时间间隔发送位置汇报", required = true)
+    @GetMapping("/control/temp-position-tracking")
+    public void tempPositionTrackingControl(String deviceId, Integer timeInterval, Long validityPeriod){
+
+        logger.info("[1078-临时位置跟踪控制] deviceId: {}, 时间间隔 {}秒, 位置跟踪有效期 {}秒", deviceId, timeInterval, validityPeriod);
+        service.tempPositionTrackingControl(deviceId, timeInterval, validityPeriod);
     }
 
 }

@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.jt1078.cmd;
 
-import com.genersoft.iot.vmp.jt1078.bean.JTDeviceAttribute;
 import com.genersoft.iot.vmp.jt1078.proc.entity.Cmd;
 import com.genersoft.iot.vmp.jt1078.proc.response.*;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
@@ -23,6 +22,8 @@ public class JT1078Template {
     private static final String H8105 = "8105";
     private static final String H8106 = "8106";
     private static final String H8107 = "8107";
+    private static final String H8201 = "8201";
+    private static final String H8202 = "8202";
     private static final String H9101 = "9101";
     private static final String H9102 = "9102";
     private static final String H9201 = "9201";
@@ -40,6 +41,7 @@ public class JT1078Template {
     private static final String H0001 = "0001";
     private static final String H0104 = "0104";
     private static final String H0107 = "0107";
+    private static final String H0201 = "0201";
     private static final String H1205 = "1205";
 
     /**
@@ -318,6 +320,9 @@ public class JT1078Template {
         return (long) random.nextInt(1000) + 1;
     }
 
+    /**
+     * 设备控制
+     */
     public Object deviceControl(String devId, J8105 j8105, int timeOut) {
         Cmd cmd = new Cmd.Builder()
                 .setDevId(devId)
@@ -329,6 +334,9 @@ public class JT1078Template {
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }
 
+    /**
+     * 查询终端属性
+     */
     public Object deviceAttribute(String devId, J8107 j8107, int timeOut) {
         Cmd cmd = new Cmd.Builder()
                 .setDevId(devId)
@@ -336,6 +344,31 @@ public class JT1078Template {
                 .setMsgId(H8107)
                 .setRespId(H0107)
                 .setRs(j8107)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    /**
+     * 位置信息查询
+     */
+    public Object queryPositionInfo(String devId, J8201 j8201, int timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H8201)
+                .setRespId(H0201)
+                .setRs(j8201)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    public Object tempPositionTrackingControl(String devId, J8202 j8202, int timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H8202)
+                .setRespId(H0001)
+                .setRs(j8202)
                 .build();
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }

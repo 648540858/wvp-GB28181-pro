@@ -7,33 +7,34 @@ import com.genersoft.iot.vmp.jt1078.proc.response.J8001;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
+import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import com.genersoft.iot.vmp.jt1078.util.BCDUtil;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEvent;
 
-import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.Map;
-
 /**
- * 位置信息汇报
+ * 位置信息查询应答
  *
+ * @author QingtaiJiang
+ * @date 2023/4/27 18:06
+ * @email qingtaij@163.com
  */
-@MsgId(id = "0200")
-public class J0200 extends Re {
+@MsgId(id = "0201")
+public class J0201 extends Re {
 
     private final static Logger log = LoggerFactory.getLogger(J0100.class);
     private JTPositionBaseInfo positionInfo;
 
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
+
+        int respNo = buf.readUnsignedShort();
+
         positionInfo = new JTPositionBaseInfo();
         positionInfo.setAlarmSign(new JTAlarmSign(buf.readInt()));
-
         positionInfo.setStatus(new JTStatus(buf.readInt()));
-
         positionInfo.setLatitude(buf.readInt() * 0.000001D);
         positionInfo.setLongitude(buf.readInt() *  0.000001D);
         positionInfo.setAltitude(buf.readUnsignedShort());
@@ -47,7 +48,8 @@ public class J0200 extends Re {
 //        JTPositionAdditionalInfo positionAdditionalInfo = new JTPositionAdditionalInfo();
 //        Map<Integer, byte[]> additionalMsg = new HashMap<>();
 //        getAdditionalMsg(buf, positionAdditionalInfo);
-        log.info("[JT-位置汇报]: {}", positionInfo.toString());
+        log.info("[JT-位置信息查询应答]: {}", positionInfo.toString());
+        SessionManager.INSTANCE.response(header.getTerminalId(), "0201", (long) respNo, positionInfo);
         return null;
     }
 

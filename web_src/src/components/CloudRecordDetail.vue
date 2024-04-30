@@ -45,8 +45,7 @@
                   <i class="el-icon-video-camera"  ></i>
                   {{ getFileShowName(item) }}
                 </el-tag>
-                <a class="el-icon-download" style="color: #409EFF;font-weight: 600;margin-left: 10px;"
-                   :href="`${getFileBasePath(item)}/download.html?url=download/${app}/${stream}/${chooseDate}/${item.fileName}`"
+                <a class="el-icon-download" @click="downloadFile(item)" style="color: #409EFF;font-weight: 600;margin-left: 10px;"
                    target="_blank"/>
               </li>
             </ul>
@@ -335,12 +334,31 @@
           }).catch((error) => {
             console.log(error);
           });
-          //
-          //
-          // this.videoUrl = `${this.getFileBasePath(file)}/download/${this.app}/${this.stream}/${this.chooseDate}/${file.fileName}`
-          // console.log(this.videoUrl)
         }
-
+      },
+      downloadFile(file){
+        console.log(file)
+        this.$axios({
+          method: 'get',
+          url: `/api/cloud/record/play/path`,
+          params: {
+            recordId: file.id,
+          }
+        }).then((res) => {
+          console.log(res)
+          const link = document.createElement('a');
+          link.target = "_blank";
+          if (res.data.code === 0) {
+            if (location.protocol === "https:") {
+              link.href = res.data.data.httpsPath + "&save_name=" + file.fileName;
+            }else {
+              link.href = res.data.data.httpPath + "&save_name=" + file.fileName;
+            }
+            link.click();
+          }
+        }).catch((error) => {
+          console.log(error);
+        });
       },
       backToList() {
         this.$router.back()

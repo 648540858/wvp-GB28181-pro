@@ -314,13 +314,34 @@
         });
       },
       chooseFile(file){
+        console.log(file)
 			  if (file == null) {
           this.videoUrl = "";
           this.choosedFile = "";
         }else {
           this.choosedFile = file.fileName;
-          this.videoUrl = `${this.getFileBasePath(file)}/download/${this.app}/${this.stream}/${this.chooseDate}/${file.fileName}`
-          console.log(this.videoUrl)
+          this.$axios({
+            method: 'get',
+            url: `/api/cloud/record/play/path`,
+            params: {
+              recordId: file.id,
+            }
+          }).then((res) => {
+            console.log(res)
+            if (res.data.code === 0) {
+              if (location.protocol === "https:") {
+                this.videoUrl = res.data.data.httpsPath;
+              }else {
+                this.videoUrl = res.data.data.httpPath;
+              }
+            }
+          }).catch((error) => {
+            console.log(error);
+          });
+          //
+          //
+          // this.videoUrl = `${this.getFileBasePath(file)}/download/${this.app}/${this.stream}/${this.chooseDate}/${file.fileName}`
+          // console.log(this.videoUrl)
         }
 
       },

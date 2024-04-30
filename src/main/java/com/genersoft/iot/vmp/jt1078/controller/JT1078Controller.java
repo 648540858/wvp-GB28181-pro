@@ -3,6 +3,8 @@ package com.genersoft.iot.vmp.jt1078.controller;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.jt1078.bean.*;
+import com.genersoft.iot.vmp.jt1078.controller.bean.ConfirmationAlarmMessageParam;
+import com.genersoft.iot.vmp.jt1078.controller.bean.ConnectionControlParam;
 import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
@@ -383,6 +385,17 @@ public class JT1078Controller {
 
         logger.info("[1078-临时位置跟踪控制] deviceId: {}, 时间间隔 {}秒, 位置跟踪有效期 {}秒", deviceId, timeInterval, validityPeriod);
         service.tempPositionTrackingControl(deviceId, timeInterval, validityPeriod);
+    }
+
+    @Operation(summary = "人工确认报警消息", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "timeInterval", description = "时间间隔,单位为秒,时间间隔为0 时停止跟踪,停止跟踪无需带后继字段", required = true)
+    @Parameter(name = "validityPeriod", description = "位置跟踪有效期, 单位为秒,终端在接收到位置跟踪控制消息后,在有效期截止时间之前依据消息中的时间间隔发送位置汇报", required = true)
+    @PostMapping("/confirmation-alarm-message")
+    public void confirmationAlarmMessage(@RequestBody ConfirmationAlarmMessageParam param){
+
+        logger.info("[1078-人工确认报警消息] deviceId: {}, 时间间隔 {}秒, 位置跟踪有效期 {}秒", deviceId, timeInterval, validityPeriod);
+        service.confirmationAlarmMessage(param.getDeviceId(), param.getAlarmMessageType());
     }
 
 }

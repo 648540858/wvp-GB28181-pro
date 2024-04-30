@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.jt1078.controller;
+package com.genersoft.iot.vmp.jt1078.controller.bean;
 
 import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConnectionControl;
 

@@ -230,9 +230,6 @@
 		mounted() {
       this.recordListStyle.height = this.winHeight + "px";
       this.playerStyle["height"] = this.winHeight + "px";
-      console.log(this.app)
-      console.log(this.stream)
-      console.log(this.mediaServerId)
       // 查询当年有视频的日期
       this.getDateInYear(()=>{
         if (Object.values(this.dateFilesObj).length > 0){
@@ -349,9 +346,6 @@
         this.$router.back()
       },
       getFileShowName(item) {
-        console.log("getFileShowName")
-        console.log(item.startTime)
-        console.log(item.endTime)
           return  moment(item.startTime).format('HH:mm:ss') + "-" + moment(item.endTime).format('HH:mm:ss')
       },
       chooseMediaChange() {

@@ -29,7 +29,18 @@ public class J0200 extends Re {
 
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
-        positionInfo = new JTPositionBaseInfo();
+        positionInfo = J0200.getPositionInfo(buf);
+
+        // 读取附加信息
+//        JTPositionAdditionalInfo positionAdditionalInfo = new JTPositionAdditionalInfo();
+//        Map<Integer, byte[]> additionalMsg = new HashMap<>();
+//        getAdditionalMsg(buf, positionAdditionalInfo);
+        log.info("[JT-位置汇报]: {}", positionInfo.toString());
+        return null;
+    }
+
+    public static JTPositionBaseInfo getPositionInfo(ByteBuf buf) {
+        JTPositionBaseInfo positionInfo = new JTPositionBaseInfo();
         positionInfo.setAlarmSign(new JTAlarmSign(buf.readInt()));
 
         positionInfo.setStatus(new JTStatus(buf.readInt()));
@@ -42,13 +53,7 @@ public class J0200 extends Re {
         byte[] timeBytes = new byte[6];
         buf.readBytes(timeBytes);
         positionInfo.setTime(BCDUtil.transform(timeBytes));
-
-        // 读取附加信息
-//        JTPositionAdditionalInfo positionAdditionalInfo = new JTPositionAdditionalInfo();
-//        Map<Integer, byte[]> additionalMsg = new HashMap<>();
-//        getAdditionalMsg(buf, positionAdditionalInfo);
-        log.info("[JT-位置汇报]: {}", positionInfo.toString());
-        return null;
+        return positionInfo;
     }
 
     private void getAdditionalMsg(ByteBuf buf, JTPositionAdditionalInfo additionalInfo) {

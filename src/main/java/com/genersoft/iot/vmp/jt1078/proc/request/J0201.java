@@ -32,78 +32,10 @@ public class J0201 extends Re {
 
         int respNo = buf.readUnsignedShort();
 
-        positionInfo = new JTPositionBaseInfo();
-        positionInfo.setAlarmSign(new JTAlarmSign(buf.readInt()));
-        positionInfo.setStatus(new JTStatus(buf.readInt()));
-        positionInfo.setLatitude(buf.readInt() * 0.000001D);
-        positionInfo.setLongitude(buf.readInt() *  0.000001D);
-        positionInfo.setAltitude(buf.readUnsignedShort());
-        positionInfo.setSpeed(buf.readUnsignedShort());
-        positionInfo.setDirection(buf.readUnsignedShort());
-        byte[] timeBytes = new byte[6];
-        buf.readBytes(timeBytes);
-        positionInfo.setTime(BCDUtil.transform(timeBytes));
-
-        // 读取附加信息
-//        JTPositionAdditionalInfo positionAdditionalInfo = new JTPositionAdditionalInfo();
-//        Map<Integer, byte[]> additionalMsg = new HashMap<>();
-//        getAdditionalMsg(buf, positionAdditionalInfo);
+        positionInfo = J0200.getPositionInfo(buf);
         log.info("[JT-位置信息查询应答]: {}", positionInfo.toString());
         SessionManager.INSTANCE.response(header.getTerminalId(), "0201", (long) respNo, positionInfo);
         return null;
-    }
-
-    private void getAdditionalMsg(ByteBuf buf, JTPositionAdditionalInfo additionalInfo) {
-
-        if (buf.isReadable()) {
-            int msgId = buf.readUnsignedByte();
-            int length = buf.readUnsignedByte();
-            ByteBuf byteBuf = buf.readBytes(length);
-            switch (msgId) {
-                case 1:
-                    // 里程
-                    long mileage = byteBuf.readUnsignedInt();
-                    log.info("[JT-位置汇报]: 里程： {} km", (double)mileage/10);
-                    break;
-                case 2:
-                    // 油量
-                    int oil = byteBuf.readUnsignedShort();
-                    log.info("[JT-位置汇报]: 油量： {} L", (double)oil/10);
-                    break;
-                case 3:
-                    // 速度
-                    int speed = byteBuf.readUnsignedShort();
-                    log.info("[JT-位置汇报]: 速度： {} km/h", (double)speed/10);
-                    break;
-                case 4:
-                    // 需要人工确认报警事件的 ID
-                    int alarmId = byteBuf.readUnsignedShort();
-                    log.info("[JT-位置汇报]: 需要人工确认报警事件的 ID： {}", alarmId);
-                    break;
-                case 5:
-                    byte[] tirePressureBytes = new byte[30];
-                    // 胎压
-                    byteBuf.readBytes(tirePressureBytes);
-                    log.info("[JT-位置汇报]: 胎压 {}", tirePressureBytes);
-                    break;
-                case 6:
-                    // 车厢温度
-                    short carriageTemperature = byteBuf.readShort();
-                    log.info("[JT-位置汇报]: 车厢温度 {}摄氏度", carriageTemperature);
-                    break;
-                case 11:
-                    // 超速报警
-                    short positionType = byteBuf.readUnsignedByte();
-                    long positionId = byteBuf.readUnsignedInt();
-                    log.info("[JT-位置汇报]: 超速报警, 位置类型: {}, 区域或路段 ID: {}", positionType, positionId);
-                    break;
-                default:
-                    log.info("[JT-位置汇报]: 附加消息ID： {}， 消息长度： {}", msgId, length);
-                    break;
-
-            }
-            getAdditionalMsg(buf, additionalInfo);
-        }
     }
 
     @Override

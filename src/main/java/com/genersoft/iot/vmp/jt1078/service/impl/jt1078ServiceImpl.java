@@ -583,4 +583,19 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         return (int)jt1078Template.textMessage(deviceId, j8300, 6);
     }
 
+    @Override
+    public int telephoneCallback(String deviceId, Integer sign, String phoneNumber) {
+        J8400 j8400 = new J8400();
+        j8400.setSign(sign);
+        j8400.setPhoneNumber(phoneNumber);
+        return (int)jt1078Template.telephoneCallback(deviceId, j8400, 6);
+    }
+
+    @Override
+    public int setPhoneBook(String deviceId, int type, List<JTPhoneBookContact> phoneBookContactList) {
+        J8401 j8401 = new J8401();
+        j8401.setType(type);
+        j8401.setPhoneBookContactList(phoneBookContactList);
+        return (int)jt1078Template.setPhoneBook(deviceId, j8401, 6);
+    }
 }

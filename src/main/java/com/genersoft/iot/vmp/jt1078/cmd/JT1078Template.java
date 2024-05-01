@@ -27,6 +27,8 @@ public class JT1078Template {
     private static final String H8203 = "8203";
     private static final String H8204 = "8204";
     private static final String H8300 = "8300";
+    private static final String H8400 = "8400";
+    private static final String H8401 = "8401";
     private static final String H9101 = "9101";
     private static final String H9102 = "9102";
     private static final String H9201 = "9201";
@@ -405,6 +407,28 @@ public class JT1078Template {
                 .setMsgId(H8300)
                 .setRespId(H0001)
                 .setRs(j8300)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    public Object telephoneCallback(String devId, J8400 j8400, int timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H8400)
+                .setRespId(H0001)
+                .setRs(j8400)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    public Object setPhoneBook(String devId, J8401 j8401, int timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H8401)
+                .setRespId(H0001)
+                .setRs(j8401)
                 .build();
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }

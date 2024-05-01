@@ -63,4 +63,9 @@ public interface Ijt1078Service {
     int linkDetection(String deviceId);
 
     int textMessage(String deviceId,JTTextSign sign, int textType, String content);
+
+    int telephoneCallback(String deviceId, Integer sign, String phoneNumber);
+
+    int setPhoneBook(String deviceId, int type, List<JTPhoneBookContact> phoneBookContactList);
+
 }

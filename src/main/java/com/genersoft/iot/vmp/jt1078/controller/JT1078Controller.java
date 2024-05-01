@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.controller.bean.ConfirmationAlarmMessageParam;
 import com.genersoft.iot.vmp.jt1078.controller.bean.ConnectionControlParam;
+import com.genersoft.iot.vmp.jt1078.controller.bean.SetPhoneBookParam;
 import com.genersoft.iot.vmp.jt1078.controller.bean.TextMessageParam;
 import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
@@ -422,6 +423,40 @@ public class JT1078Controller {
 
         logger.info("[1078-文本信息下发] textMessageParam: {}", textMessageParam);
         int result = service.textMessage(textMessageParam.getDeviceId(), textMessageParam.getSign(), textMessageParam.getTextType(), textMessageParam.getContent());
+        if (result == 0) {
+            return WVPResult.success(result);
+        }else {
+            WVPResult<Integer> fail = WVPResult.fail(ErrorCode.ERROR100);
+            fail.setData(result);
+            return fail;
+        }
+    }
+
+    @Operation(summary = "电话回拨", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "sign", description = "标志: 0:普通通话,1:监听", required = true)
+    @Parameter(name = "phoneNumber", description = "电话号码", required = true)
+    @GetMapping("/telephone-callback")
+    public WVPResult<Integer> telephoneCallback(String deviceId, Integer sign, String phoneNumber){
+
+        logger.info("[1078-电话回拨] deviceId: {}, sign: {}, phoneNumber: {},", deviceId, sign, phoneNumber);
+        int result = service.telephoneCallback(deviceId, sign, phoneNumber);
+        if (result == 0) {
+            return WVPResult.success(result);
+        }else {
+            WVPResult<Integer> fail = WVPResult.fail(ErrorCode.ERROR100);
+            fail.setData(result);
+            return fail;
+        }
+    }
+
+    @Operation(summary = "设置电话本", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "setPhoneBookParam", description = "设置电话本参数", required = true)
+    @PostMapping("/set-phone-book")
+    public WVPResult<Integer> setPhoneBook(@RequestBody SetPhoneBookParam setPhoneBookParam){
+
+        logger.info("[1078-设置电话本] setPhoneBookParam: {}", setPhoneBookParam);
+        int result = service.setPhoneBook(setPhoneBookParam.getDeviceId(), setPhoneBookParam.getType(), setPhoneBookParam.getPhoneBookContactList());
         if (result == 0) {
             return WVPResult.success(result);
         }else {

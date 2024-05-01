@@ -68,4 +68,5 @@ public interface Ijt1078Service {
 
     int setPhoneBook(String deviceId, int type, List<JTPhoneBookContact> phoneBookContactList);
 
+    JTPositionBaseInfo controlDoor(String deviceId, Boolean open);
 }

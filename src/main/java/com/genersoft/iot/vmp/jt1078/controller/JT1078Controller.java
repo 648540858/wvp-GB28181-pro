@@ -468,5 +468,21 @@ public class JT1078Controller {
         }
     }
 
+    @Operation(summary = "1078-车门控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "open", description = "开启车门", required = true)
+    @GetMapping("/control/door")
+    public WVPResult<Integer> controlDoor(String deviceId, Boolean open){
+
+        logger.info("[1078-车门控制] deviceId: {}, open: {},", deviceId, open);
+        JTPositionBaseInfo positionBaseInfo = service.controlDoor(deviceId, open);
+
+        if (open == !positionBaseInfo.getStatus().isDoorLocking()) {
+            return WVPResult.success(null);
+        }else {
+            return WVPResult.fail(ErrorCode.ERROR100);
+        }
+    }
+
 }
 

@@ -29,6 +29,7 @@ public class JT1078Template {
     private static final String H8300 = "8300";
     private static final String H8400 = "8400";
     private static final String H8401 = "8401";
+    private static final String H8500 = "8500";
     private static final String H9101 = "9101";
     private static final String H9102 = "9102";
     private static final String H9201 = "9201";
@@ -47,6 +48,7 @@ public class JT1078Template {
     private static final String H0104 = "0104";
     private static final String H0107 = "0107";
     private static final String H0201 = "0201";
+    private static final String H0500 = "0500";
     private static final String H1205 = "1205";
 
     /**
@@ -429,6 +431,17 @@ public class JT1078Template {
                 .setMsgId(H8401)
                 .setRespId(H0001)
                 .setRs(j8401)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    public Object vehicleControl(String devId, J8500 j8500, int timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H8500)
+                .setRespId(H0500)
+                .setRs(j8500)
                 .build();
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }

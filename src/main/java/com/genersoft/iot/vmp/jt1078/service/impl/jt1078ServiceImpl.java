@@ -600,4 +600,13 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         }
         return (int)jt1078Template.setPhoneBook(deviceId, j8401, 6);
     }
+
+    @Override
+    public JTPositionBaseInfo controlDoor(String deviceId, Boolean open) {
+        J8500 j8500 = new J8500();
+        JTVehicleControl jtVehicleControl = new JTVehicleControl();
+        jtVehicleControl.setControlCarDoor(open?1:0);
+        j8500.setVehicleControl(jtVehicleControl);
+        return (JTPositionBaseInfo)jt1078Template.vehicleControl(deviceId, j8500, 20);
+    }
 }

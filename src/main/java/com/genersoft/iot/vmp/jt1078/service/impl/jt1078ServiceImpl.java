@@ -595,7 +595,9 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     public int setPhoneBook(String deviceId, int type, List<JTPhoneBookContact> phoneBookContactList) {
         J8401 j8401 = new J8401();
         j8401.setType(type);
-        j8401.setPhoneBookContactList(phoneBookContactList);
+        if (phoneBookContactList != null) {
+            j8401.setPhoneBookContactList(phoneBookContactList);
+        }
         return (int)jt1078Template.setPhoneBook(deviceId, j8401, 6);
     }
 }

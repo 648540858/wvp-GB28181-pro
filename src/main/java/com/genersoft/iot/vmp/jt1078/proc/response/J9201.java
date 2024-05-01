@@ -6,6 +6,8 @@ import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 
+import java.nio.charset.Charset;
+
 /**
  * 回放请求
  *
@@ -51,8 +53,8 @@ public class J9201 extends Rs {
     @Override
     public ByteBuf encode() {
         ByteBuf buffer = Unpooled.buffer();
-        buffer.writeByte(ip.getBytes().length);
-        buffer.writeCharSequence(ip, CharsetUtil.UTF_8);
+        buffer.writeByte(ip.getBytes(Charset.forName("GBK")).length);
+        buffer.writeCharSequence(ip, Charset.forName("GBK"));
         buffer.writeShort(tcpPort);
         buffer.writeShort(udpPort);
         buffer.writeByte(channel);

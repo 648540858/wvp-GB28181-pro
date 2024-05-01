@@ -32,9 +32,13 @@ public class J8401 extends Rs {
     public ByteBuf encode() {
         ByteBuf buffer = Unpooled.buffer();
         buffer.writeByte(type);
-        buffer.writeByte(phoneBookContactList.size());
-        for (JTPhoneBookContact jtPhoneBookContact : phoneBookContactList) {
-            buffer.writeBytes(jtPhoneBookContact.encode());
+        if (phoneBookContactList != null && !phoneBookContactList.isEmpty()) {
+            buffer.writeByte(phoneBookContactList.size());
+            for (JTPhoneBookContact jtPhoneBookContact : phoneBookContactList) {
+                buffer.writeBytes(jtPhoneBookContact.encode());
+            }
+        }else {
+            buffer.writeByte(0);
         }
         return buffer;
     }

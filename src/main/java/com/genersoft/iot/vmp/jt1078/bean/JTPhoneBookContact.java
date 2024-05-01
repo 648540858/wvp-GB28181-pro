@@ -21,9 +21,9 @@ public class JTPhoneBookContact {
     public ByteBuf encode(){
         ByteBuf buffer = Unpooled.buffer();
         buffer.writeByte(sign);
-        buffer.writeByte(phoneNumber.getBytes().length);
+        buffer.writeByte(phoneNumber.getBytes(Charset.forName("GBK")).length);
         buffer.writeCharSequence(phoneNumber, Charset.forName("GBK"));
-        buffer.writeByte(contactName.getBytes().length);
+        buffer.writeByte(contactName.getBytes(Charset.forName("GBK")).length);
         buffer.writeCharSequence(contactName, Charset.forName("GBK"));
         return buffer;
     }

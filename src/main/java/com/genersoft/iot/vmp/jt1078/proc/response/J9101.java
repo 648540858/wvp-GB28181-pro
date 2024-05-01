@@ -42,7 +42,7 @@ public class J9101 extends Rs {
     @Override
     public ByteBuf encode() {
         ByteBuf buffer = Unpooled.buffer();
-        buffer.writeByte(ip.getBytes().length);
+        buffer.writeByte(ip.getBytes(Charset.forName("GBK")).length);
         buffer.writeCharSequence(ip, Charset.forName("GBK"));
         buffer.writeShort(tcpPort);
         buffer.writeShort(udpPort);

@@ -6,6 +6,8 @@ import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 
+import java.nio.charset.Charset;
+
 /**
  * 文件上传指令
  *
@@ -58,15 +60,15 @@ public class J9206 extends Rs {
     public ByteBuf encode() {
         ByteBuf buffer = Unpooled.buffer();
 
-        buffer.writeByte(serverIp.getBytes().length);
-        buffer.writeCharSequence(serverIp, CharsetUtil.UTF_8);
+        buffer.writeByte(serverIp.getBytes(Charset.forName("GBK")).length);
+        buffer.writeCharSequence(serverIp, Charset.forName("GBK"));
         buffer.writeByte(port);
-        buffer.writeByte(user.getBytes().length);
-        buffer.writeCharSequence(user, CharsetUtil.UTF_8);
-        buffer.writeByte(password.getBytes().length);
-        buffer.writeCharSequence(password, CharsetUtil.UTF_8);
-        buffer.writeByte(path.getBytes().length);
-        buffer.writeCharSequence(path, CharsetUtil.UTF_8);
+        buffer.writeByte(user.getBytes(Charset.forName("GBK")).length);
+        buffer.writeCharSequence(user, Charset.forName("GBK"));
+        buffer.writeByte(password.getBytes(Charset.forName("GBK")).length);
+        buffer.writeCharSequence(password, Charset.forName("GBK"));
+        buffer.writeByte(path.getBytes(Charset.forName("GBK")).length);
+        buffer.writeCharSequence(path, Charset.forName("GBK"));
         buffer.writeByte(channelId);
         buffer.writeBytes(ByteBufUtil.decodeHexDump(startTime));
         buffer.writeBytes(ByteBufUtil.decodeHexDump(endTime));

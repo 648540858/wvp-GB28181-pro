@@ -69,7 +69,7 @@ public class J8103 extends Rs {
                         case "String":
                             field.setAccessible(true);
                             String stringVal = (String)field.get(config);
-                            buffer.writeByte(stringVal.getBytes().length);
+                            buffer.writeByte(stringVal.getBytes(Charset.forName("GBK")).length);
                             buffer.writeCharSequence(stringVal, Charset.forName("GBK"));
                             continue;
                         case "Integer":

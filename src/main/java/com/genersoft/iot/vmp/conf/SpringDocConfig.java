@@ -48,7 +48,7 @@ public class SpringDocConfig {
     public GroupedOpenApi publicApi() {
         return GroupedOpenApi.builder()
                 .group("1. 全部")
-                .packagesToScan("com.genersoft.iot.vmp.vmanager")
+                .packagesToScan("com.genersoft.iot.vmp.vmanager", "com.genersoft.iot.vmp.jt1078.controller")
                 .build();
     }
 
@@ -89,6 +89,14 @@ public class SpringDocConfig {
         return GroupedOpenApi.builder()
                 .group("5. 用户管理")
                 .packagesToScan("com.genersoft.iot.vmp.vmanager.user")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi publicApi7() {
+        return GroupedOpenApi.builder()
+                .group("6. 部标设备")
+                .packagesToScan("com.genersoft.iot.vmp.jt1078.controller")
                 .build();
     }
 }

@@ -17,6 +17,7 @@ import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,7 @@ import java.util.List;
 
 @ConditionalOnProperty(value = "jt1078.enable", havingValue = "true")
 @RestController
+@Tag(name  = "部标设备")
 @RequestMapping("/api/jt1078")
 public class JT1078Controller {
 
@@ -233,7 +235,7 @@ public class JT1078Controller {
         service.stopPlayback(deviceId, channelId);
     }
 
-    @Operation(summary = "分页查询部标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "1078-分页查询部标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页查询数量", required = true)
     @Parameter(name = "query", description = "查询内容")
@@ -256,7 +258,7 @@ public class JT1078Controller {
 
 
 
-    @Operation(summary = "新增设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "1078-新增设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "device", description = "设备", required = true)
     @PostMapping("/device/add")
     public void addDevice(JTDevice device){
@@ -271,7 +273,7 @@ public class JT1078Controller {
         service.deleteDeviceByDeviceId(deviceId);
     }
 
-    @Operation(summary = "云台控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "1078-云台控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "command", description = "控制指令,允许值: left, right, up, down, zoomin, zoomout, irisin, irisout, focusnear, focusfar, stop", required = true)
@@ -286,7 +288,7 @@ public class JT1078Controller {
         service.ptzControl(deviceId, channelId, command, speed);
     }
 
-    @Operation(summary = "补光灯开关", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "1078-补光灯开关", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "command", description = "控制指令,允许值: on off", required = true)
@@ -300,7 +302,7 @@ public class JT1078Controller {
         service.supplementaryLight(deviceId, channelId, command);
     }
 
-    @Operation(summary = "雨刷开关", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "1078-雨刷开关", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "command", description = "控制指令,允许值: on off", required = true)
@@ -314,7 +316,7 @@ public class JT1078Controller {
         service.wiper(deviceId, channelId, command);
     }
 
-    @Operation(summary = "查询终端参数", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "1078-查询终端参数", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @GetMapping("/config")
     public JTDeviceConfig config(String deviceId, String[] params){
@@ -323,7 +325,7 @@ public class JT1078Controller {
         return service.queryConfig(deviceId, params, null);
     }
 
-    @Operation(summary = "设置终端参数", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "1078-设置终端参数", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备编号", required = true)
     @Parameter(name = "config", description = "终端参数", required = true)
     @PostMapping("/set-config")
@@ -342,7 +344,7 @@ public class JT1078Controller {
         service.connectionControl(control.getDeviceId(), control.getControl());
     }
 
-    @Operation(summary = "终端控制-复位", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "1078-终端控制-复位", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备编号", required = true)
     @PostMapping("/control/reset")
     public void resetControl(String deviceId){
@@ -351,7 +353,7 @@ public class JT1078Controller {
         service.resetControl(deviceId);
     }
 
-    @Operation(summary = "终端控制-恢复出厂设置", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "1078-终端控制-恢复出厂设置", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备编号", required = true)
     @PostMapping("/control/factory-reset")
     public void factoryResetControl(String deviceId){
@@ -360,7 +362,7 @@ public class JT1078Controller {
         service.factoryResetControl(deviceId);
     }
 
-    @Operation(summary = "查询终端属性", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "1078-查询终端属性", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备编号", required = true)
     @GetMapping("/attribute")
     public JTDeviceAttribute attribute(String deviceId){
@@ -369,7 +371,7 @@ public class JT1078Controller {
         return service.attribute(deviceId);
     }
 
-    @Operation(summary = "查询位置信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "1078-查询位置信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备编号", required = true)
     @GetMapping("/position-info")
     public JTPositionBaseInfo queryPositionInfo(String deviceId){
@@ -378,7 +380,7 @@ public class JT1078Controller {
         return service.queryPositionInfo(deviceId);
     }
 
-    @Operation(summary = "临时位置跟踪控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "1078-临时位置跟踪控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备编号", required = true)
     @Parameter(name = "timeInterval", description = "时间间隔,单位为秒,时间间隔为0 时停止跟踪,停止跟踪无需带后继字段", required = true)
     @Parameter(name = "validityPeriod", description = "位置跟踪有效期, 单位为秒,终端在接收到位置跟踪控制消息后,在有效期截止时间之前依据消息中的时间间隔发送位置汇报", required = true)
@@ -389,7 +391,7 @@ public class JT1078Controller {
         service.tempPositionTrackingControl(deviceId, timeInterval, validityPeriod);
     }
 
-    @Operation(summary = "人工确认报警消息", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "1078-人工确认报警消息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备编号", required = true)
     @Parameter(name = "timeInterval", description = "时间间隔,单位为秒,时间间隔为0 时停止跟踪,停止跟踪无需带后继字段", required = true)
     @Parameter(name = "validityPeriod", description = "位置跟踪有效期, 单位为秒,终端在接收到位置跟踪控制消息后,在有效期截止时间之前依据消息中的时间间隔发送位置汇报", required = true)
@@ -400,7 +402,7 @@ public class JT1078Controller {
         service.confirmationAlarmMessage(param.getDeviceId(), param.getAlarmPackageNo(), param.getAlarmMessageType());
     }
 
-    @Operation(summary = "链路检测", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "1078-链路检测", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备编号", required = true)
     @GetMapping("/link-detection")
     public WVPResult<Integer> linkDetection(String deviceId){
@@ -416,7 +418,7 @@ public class JT1078Controller {
         }
     }
 
-    @Operation(summary = "文本信息下发", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "1078-文本信息下发", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "textMessageParam", description = "文本信息下发参数", required = true)
     @PostMapping("/text-msg")
     public WVPResult<Integer> textMessage(@RequestBody TextMessageParam textMessageParam){
@@ -432,7 +434,7 @@ public class JT1078Controller {
         }
     }
 
-    @Operation(summary = "电话回拨", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "1078-电话回拨", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备编号", required = true)
     @Parameter(name = "sign", description = "标志: 0:普通通话,1:监听", required = true)
     @Parameter(name = "phoneNumber", description = "电话号码", required = true)
@@ -450,7 +452,7 @@ public class JT1078Controller {
         }
     }
 
-    @Operation(summary = "设置电话本", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "1078-设置电话本", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "setPhoneBookParam", description = "设置电话本参数", required = true)
     @PostMapping("/set-phone-book")
     public WVPResult<Integer> setPhoneBook(@RequestBody SetPhoneBookParam setPhoneBookParam){

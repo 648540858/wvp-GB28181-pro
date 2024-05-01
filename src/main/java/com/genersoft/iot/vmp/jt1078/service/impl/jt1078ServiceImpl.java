@@ -573,4 +573,14 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         J8204 j8204 = new J8204();
         return (int)jt1078Template.linkDetection(deviceId, j8204, 6);
     }
+
+    @Override
+    public int textMessage(String deviceId, JTTextSign sign, int textType, String content) {
+        J8300 j8300 = new J8300();
+        j8300.setSign(sign);
+        j8300.setTextType(textType);
+        j8300.setContent(content);
+        return (int)jt1078Template.textMessage(deviceId, j8300, 6);
+    }
+
 }

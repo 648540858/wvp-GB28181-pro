@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.controller.bean.ConfirmationAlarmMessageParam;
 import com.genersoft.iot.vmp.jt1078.controller.bean.ConnectionControlParam;
+import com.genersoft.iot.vmp.jt1078.controller.bean.TextMessageParam;
 import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
@@ -405,6 +406,22 @@ public class JT1078Controller {
 
         logger.info("[1078-链路检测] deviceId: {}", deviceId);
         int result = service.linkDetection(deviceId);
+        if (result == 0) {
+            return WVPResult.success(result);
+        }else {
+            WVPResult<Integer> fail = WVPResult.fail(ErrorCode.ERROR100);
+            fail.setData(result);
+            return fail;
+        }
+    }
+
+    @Operation(summary = "文本信息下发", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "textMessageParam", description = "文本信息下发参数", required = true)
+    @PostMapping("/text-msg")
+    public WVPResult<Integer> textMessage(@RequestBody TextMessageParam textMessageParam){
+
+        logger.info("[1078-文本信息下发] textMessageParam: {}", textMessageParam);
+        int result = service.textMessage(textMessageParam.getDeviceId(), textMessageParam.getSign(), textMessageParam.getTextType(), textMessageParam.getContent());
         if (result == 0) {
             return WVPResult.success(result);
         }else {

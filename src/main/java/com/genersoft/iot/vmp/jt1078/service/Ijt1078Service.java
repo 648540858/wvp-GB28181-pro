@@ -61,4 +61,6 @@ public interface Ijt1078Service {
     void confirmationAlarmMessage(String deviceId, int alarmPackageNo, JConfirmationAlarmMessageType alarmMessageType);
 
     int linkDetection(String deviceId);
+
+    int textMessage(String deviceId,JTTextSign sign, int textType, String content);
 }

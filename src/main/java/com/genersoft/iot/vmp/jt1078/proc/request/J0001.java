@@ -22,6 +22,9 @@ import org.springframework.context.ApplicationEvent;
 public class J0001 extends Re {
     int respNo;
     String respId;
+    /**
+     * 0：成功/确认；1：失败；2：消息有误；3：不支持
+     */
     int result;
 
     @Override

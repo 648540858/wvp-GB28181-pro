@@ -394,8 +394,24 @@ public class JT1078Controller {
     @PostMapping("/confirmation-alarm-message")
     public void confirmationAlarmMessage(@RequestBody ConfirmationAlarmMessageParam param){
 
-        logger.info("[1078-人工确认报警消息] deviceId: {}, 时间间隔 {}秒, 位置跟踪有效期 {}秒", deviceId, timeInterval, validityPeriod);
-        service.confirmationAlarmMessage(param.getDeviceId(), param.getAlarmMessageType());
+        logger.info("[1078-人工确认报警消息] 参数: {}", param);
+        service.confirmationAlarmMessage(param.getDeviceId(), param.getAlarmPackageNo(), param.getAlarmMessageType());
+    }
+
+    @Operation(summary = "链路检测", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @GetMapping("/link-detection")
+    public WVPResult<Integer> linkDetection(String deviceId){
+
+        logger.info("[1078-链路检测] deviceId: {}", deviceId);
+        int result = service.linkDetection(deviceId);
+        if (result == 0) {
+            return WVPResult.success(result);
+        }else {
+            WVPResult<Integer> fail = WVPResult.fail(ErrorCode.ERROR100);
+            fail.setData(result);
+            return fail;
+        }
     }
 
 }

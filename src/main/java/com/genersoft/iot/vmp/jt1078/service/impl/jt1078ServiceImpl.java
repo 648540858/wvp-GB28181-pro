@@ -559,4 +559,18 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j8202.setValidityPeriod(validityPeriod);
         jt1078Template.tempPositionTrackingControl(deviceId, j8202, 20);
     }
+
+    @Override
+    public void confirmationAlarmMessage(String deviceId, int alarmPackageNo, JConfirmationAlarmMessageType alarmMessageType) {
+        J8203 j8203 = new J8203();
+        j8203.setAlarmMessageType(alarmMessageType);
+        j8203.setAlarmPackageNo(alarmPackageNo);
+        jt1078Template.confirmationAlarmMessage(deviceId, j8203, 6);
+    }
+
+    @Override
+    public int linkDetection(String deviceId) {
+        J8204 j8204 = new J8204();
+        return (int)jt1078Template.linkDetection(deviceId, j8204, 6);
+    }
 }

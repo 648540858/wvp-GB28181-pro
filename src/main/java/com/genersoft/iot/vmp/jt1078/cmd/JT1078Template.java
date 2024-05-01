@@ -24,6 +24,8 @@ public class JT1078Template {
     private static final String H8107 = "8107";
     private static final String H8201 = "8201";
     private static final String H8202 = "8202";
+    private static final String H8203 = "8203";
+    private static final String H8204 = "8204";
     private static final String H9101 = "9101";
     private static final String H9102 = "9102";
     private static final String H9201 = "9201";
@@ -369,6 +371,28 @@ public class JT1078Template {
                 .setMsgId(H8202)
                 .setRespId(H0001)
                 .setRs(j8202)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    public Object confirmationAlarmMessage(String devId, J8203 j8203, int timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H8203)
+                .setRespId(H0001)
+                .setRs(j8203)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    public Object linkDetection(String devId, J8204 j8204, int timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H8204)
+                .setRespId(H0001)
+                .setRs(j8204)
                 .build();
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }

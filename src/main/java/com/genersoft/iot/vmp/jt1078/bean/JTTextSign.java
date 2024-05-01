@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "文本信息标志")
 public class JTTextSign {
 
-    @Schema(description = "01服务,2紧急,3通知")
+    @Schema(description = "1紧急,2服务,3通知")
     private int type;
 
     @Schema(description = "1终端显示器显示")
@@ -21,18 +21,18 @@ public class JTTextSign {
     private boolean source;
 
     public byte encode(){
-        byte bytes = 0;
-        bytes |= (byte) type;
+        byte byteSign = 0;
+        byteSign |= (byte) type;
         if (terminalDisplay) {
-            bytes |= (0x1 << 2);
+            byteSign |= (0x1 << 2);
         }
         if (tts) {
-            bytes |= (0x1 << 3);
+            byteSign |= (0x1 << 3);
         }
         if (source) {
-            bytes |= (0x1 << 5);
+            byteSign |= (0x1 << 5);
         }
-        return bytes;
+        return byteSign;
     }
 
     public int getType() {

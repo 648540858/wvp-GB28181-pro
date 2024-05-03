@@ -1,8 +1,13 @@
 package com.genersoft.iot.vmp.jt1078.bean;
 
+import com.genersoft.iot.vmp.jt1078.util.BCDUtil;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.swagger.v3.oas.annotations.media.Schema;
+
+import java.nio.charset.Charset;
+import java.util.Date;
 
 @Schema(description = "圆形区域")
 public class JTCircleArea {
@@ -22,10 +27,10 @@ public class JTCircleArea {
     @Schema(description = "半径,单位为米(m)")
     private long radius;
 
-    @Schema(description = "起始时间, YY-MM-DD hh-mm-ss")
+    @Schema(description = "起始时间, yyyy-MM-dd HH:mm:ss")
     private String startTime;
 
-    @Schema(description = "结束时间, YY-MM-DD hh-mm-ss")
+    @Schema(description = "结束时间, yyyy-MM-dd HH:mm:ss")
     private String endTime;
 
     @Schema(description = "最高速度, 单位为千米每小时(km/h)")
@@ -43,10 +48,23 @@ public class JTCircleArea {
      public ByteBuf encode(){
          ByteBuf byteBuf = Unpooled.buffer();
          byteBuf.writeInt((int) (id & 0xffffffffL));
+         System.out.println("attribute: " + attribute.encode().readableBytes());
          byteBuf.writeBytes(attribute.encode());
          byteBuf.writeInt((int) (Math.round((latitude * 1000000)) & 0xffffffffL));
          byteBuf.writeInt((int) (Math.round((longitude * 1000000)) & 0xffffffffL));
          byteBuf.writeInt((int) (radius & 0xffffffffL));
+         ByteBuf transform = BCDUtil.transform(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime));
+         ByteBuf transform1 = BCDUtil.transform(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime));
+         System.out.println("startTime: " + transform.readableBytes());
+         System.out.println("endTime: " + transform1.readableBytes());
+         byteBuf.writeBytes(BCDUtil.transform(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime)));
+         byteBuf.writeBytes(BCDUtil.transform(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime)));
+         byteBuf.writeShort((short)(maxSpeed & 0xffff));
+         byteBuf.writeByte(overSpeedDuration);
+         byteBuf.writeShort((short)(name.getBytes(Charset.forName("GBK")).length & 0xffff));
+         byteBuf.writeCharSequence(name, Charset.forName("GBK"));
+         System.out.println(byteBuf.readableBytes());
+         return byteBuf;
      }
 
     public long getId() {

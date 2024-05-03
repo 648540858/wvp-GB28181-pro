@@ -3,10 +3,7 @@ package com.genersoft.iot.vmp.jt1078.controller;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.jt1078.bean.*;
-import com.genersoft.iot.vmp.jt1078.controller.bean.ConfirmationAlarmMessageParam;
-import com.genersoft.iot.vmp.jt1078.controller.bean.ConnectionControlParam;
-import com.genersoft.iot.vmp.jt1078.controller.bean.SetPhoneBookParam;
-import com.genersoft.iot.vmp.jt1078.controller.bean.TextMessageParam;
+import com.genersoft.iot.vmp.jt1078.controller.bean.*;
 import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
@@ -481,6 +478,54 @@ public class JT1078Controller {
             return WVPResult.success(null);
         }else {
             return WVPResult.fail(ErrorCode.ERROR100);
+        }
+    }
+
+    @Operation(summary = "1078-更新圆形区域", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "areaParam", description = "设置区域参数", required = true)
+    @PostMapping("/area/circle/update")
+    public WVPResult<Integer> updateAreaForCircle(@RequestBody SetAreaParam areaParam){
+
+        logger.info("[1078-更新圆形区域] areaParam: {},", areaParam);
+        int result = service.setAreaForCircle(0, areaParam.getDeviceId(), areaParam.getCircleAreaList());
+        if (result == 0) {
+            return WVPResult.success(result);
+        }else {
+            WVPResult<Integer> fail = WVPResult.fail(ErrorCode.ERROR100);
+            fail.setData(result);
+            return fail;
+        }
+    }
+
+    @Operation(summary = "1078-追加圆形区域", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "areaParam", description = "设置区域参数", required = true)
+    @PostMapping("/area/circle/add")
+    public WVPResult<Integer> addAreaForCircle(@RequestBody SetAreaParam areaParam){
+
+        logger.info("[1078-追加圆形区域] areaParam: {},", areaParam);
+        int result = service.setAreaForCircle(1, areaParam.getDeviceId(), areaParam.getCircleAreaList());
+        if (result == 0) {
+            return WVPResult.success(result);
+        }else {
+            WVPResult<Integer> fail = WVPResult.fail(ErrorCode.ERROR100);
+            fail.setData(result);
+            return fail;
+        }
+    }
+
+    @Operation(summary = "1078-修改圆形区域", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "areaParam", description = "设置区域参数", required = true)
+    @PostMapping("/area/circle/edit")
+    public WVPResult<Integer> editAreaForCircle(@RequestBody SetAreaParam areaParam){
+
+        logger.info("[1078-修改圆形区域] areaParam: {},", areaParam);
+        int result = service.setAreaForCircle(2, areaParam.getDeviceId(), areaParam.getCircleAreaList());
+        if (result == 0) {
+            return WVPResult.success(result);
+        }else {
+            WVPResult<Integer> fail = WVPResult.fail(ErrorCode.ERROR100);
+            fail.setData(result);
+            return fail;
         }
     }
 

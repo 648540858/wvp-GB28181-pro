@@ -609,4 +609,12 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j8500.setVehicleControl(jtVehicleControl);
         return (JTPositionBaseInfo)jt1078Template.vehicleControl(deviceId, j8500, 20);
     }
+
+    @Override
+    public int setAreaForCircle(int attribute, String deviceId, List<JTCircleArea> circleAreaList) {
+        J8600 j8600 = new J8600();
+        j8600.setAttribute(attribute);
+        j8600.setCircleAreaList(circleAreaList);
+        return (int)jt1078Template.setAreaForCircle(deviceId, j8600, 20);
+    }
 }

@@ -617,4 +617,11 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j8600.setCircleAreaList(circleAreaList);
         return (int)jt1078Template.setAreaForCircle(deviceId, j8600, 20);
     }
+
+    @Override
+    public int deleteAreaForCircle(String deviceId, List<Long> ids) {
+        J8601 j8601 = new J8601();
+        j8601.setIdList(ids);
+        return (int)jt1078Template.deleteAreaForCircle(deviceId, j8601, 20);
+    }
 }

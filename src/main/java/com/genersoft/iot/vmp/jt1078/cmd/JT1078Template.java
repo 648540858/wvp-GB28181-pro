@@ -31,6 +31,7 @@ public class JT1078Template {
     private static final String H8401 = "8401";
     private static final String H8500 = "8500";
     private static final String H8600 = "8600";
+    private static final String H8601 = "8601";
     private static final String H9101 = "9101";
     private static final String H9102 = "9102";
     private static final String H9201 = "9201";
@@ -454,6 +455,17 @@ public class JT1078Template {
                 .setMsgId(H8600)
                 .setRespId(H0001)
                 .setRs(j8600)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    public Object deleteAreaForCircle(String devId, J8601 j8601, int timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H8601)
+                .setRespId(H0001)
+                .setRs(j8601)
                 .build();
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }

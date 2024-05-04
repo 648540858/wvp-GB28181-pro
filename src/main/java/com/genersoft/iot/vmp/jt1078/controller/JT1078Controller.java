@@ -645,5 +645,38 @@ public class JT1078Controller {
         }
     }
 
+    @Operation(summary = "1078-设置路线", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "areaParam", description = "设置区域参数", required = true)
+    @PostMapping("/route/set")
+    public WVPResult<Integer> setRoute(@RequestBody SetAreaParam areaParam){
+
+        logger.info("[1078-设置路线] areaParam: {},", areaParam);
+        int result = service.setRoute(areaParam.getDeviceId(), areaParam.getRoute());
+        if (result == 0) {
+            return WVPResult.success(result);
+        }else {
+            WVPResult<Integer> fail = WVPResult.fail(ErrorCode.ERROR100);
+            fail.setData(result);
+            return fail;
+        }
+    }
+
+    @Operation(summary = "1078-删除路线", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "ids", description = "待删除圆形区域的id，例如1,2,3", required = true)
+    @GetMapping("/route/delete")
+    public WVPResult<Integer> deleteRoute(String deviceId, @RequestParam(value = "ids", required = false) List<Long> ids){
+
+        logger.info("[1078-删除路线] deviceId: {}, ids:{}", deviceId, ids);
+        int result = service.deleteRoute(deviceId, ids);
+        if (result == 0) {
+            return WVPResult.success(result);
+        }else {
+            WVPResult<Integer> fail = WVPResult.fail(ErrorCode.ERROR100);
+            fail.setData(result);
+            return fail;
+        }
+    }
+
 }
 

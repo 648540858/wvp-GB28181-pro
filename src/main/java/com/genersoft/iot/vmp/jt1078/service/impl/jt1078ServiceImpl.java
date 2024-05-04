@@ -653,4 +653,18 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j8605.setIdList(ids);
         return (int)jt1078Template.deleteAreaForPolygon(deviceId, j8605, 20);
     }
+
+    @Override
+    public int setRoute(String deviceId, JTRoute route) {
+        J8606 j8606 = new J8606();
+        j8606.setRoute(route);
+        return (int)jt1078Template.setRoute(deviceId, j8606, 20);
+    }
+
+    @Override
+    public int deleteRoute(String deviceId, List<Long> ids) {
+        J8607 j8607 = new J8607();
+        j8607.setIdList(ids);
+        return (int)jt1078Template.deleteRoute(deviceId, j8607, 20);
+    }
 }

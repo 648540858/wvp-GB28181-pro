@@ -81,4 +81,8 @@ public interface Ijt1078Service {
     int setAreaForPolygon(String deviceId, JTPolygonArea polygonArea);
 
     int deleteAreaForPolygon(String deviceId, List<Long> ids);
+
+    int setRoute(String deviceId, JTRoute route);
+
+    int deleteRoute(String deviceId, List<Long> ids);
 }

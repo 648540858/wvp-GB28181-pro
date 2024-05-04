@@ -36,6 +36,8 @@ public class JT1078Template {
     private static final String H8603 = "8603";
     private static final String H8604 = "8604";
     private static final String H8605 = "8605";
+    private static final String H8606 = "8606";
+    private static final String H8607 = "8607";
     private static final String H9101 = "9101";
     private static final String H9102 = "9102";
     private static final String H9201 = "9201";
@@ -514,6 +516,28 @@ public class JT1078Template {
                 .setMsgId(H8605)
                 .setRespId(H0001)
                 .setRs(j8605)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    public Object setRoute(String devId, J8606 j8606, int timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H8606)
+                .setRespId(H0001)
+                .setRs(j8606)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    public Object deleteRoute(String devId, J8607 j8607, int timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H8607)
+                .setRespId(H0001)
+                .setRs(j8607)
                 .build();
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }

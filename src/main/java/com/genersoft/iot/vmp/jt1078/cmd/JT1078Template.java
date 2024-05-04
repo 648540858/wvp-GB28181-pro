@@ -34,6 +34,8 @@ public class JT1078Template {
     private static final String H8601 = "8601";
     private static final String H8602 = "8602";
     private static final String H8603 = "8603";
+    private static final String H8604 = "8604";
+    private static final String H8605 = "8605";
     private static final String H9101 = "9101";
     private static final String H9102 = "9102";
     private static final String H9201 = "9201";
@@ -490,6 +492,28 @@ public class JT1078Template {
                 .setMsgId(H8603)
                 .setRespId(H0001)
                 .setRs(j8603)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    public Object setAreaForPolygon(String devId, J8604 j8604, int timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H8604)
+                .setRespId(H0001)
+                .setRs(j8604)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    public Object deleteAreaForPolygon(String devId, J8605 j8605, int timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H8605)
+                .setRespId(H0001)
+                .setRs(j8605)
                 .build();
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }

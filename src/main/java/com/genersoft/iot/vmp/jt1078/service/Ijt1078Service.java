@@ -77,4 +77,8 @@ public interface Ijt1078Service {
     int setAreaForRectangle(int i, String deviceId, List<JTRectangleArea> rectangleAreas);
 
     int deleteAreaForRectangle(String deviceId, List<Long> ids);
+
+    int setAreaForPolygon(String deviceId, JTPolygonArea polygonArea);
+
+    int deleteAreaForPolygon(String deviceId, List<Long> ids);
 }

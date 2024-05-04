@@ -639,4 +639,18 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j8603.setIdList(ids);
         return (int)jt1078Template.deleteAreaForRectangle(deviceId, j8603, 20);
     }
+
+    @Override
+    public int setAreaForPolygon(String deviceId, JTPolygonArea polygonArea) {
+        J8604 j8604 = new J8604();
+        j8604.setPolygonArea(polygonArea);
+        return (int)jt1078Template.setAreaForPolygon(deviceId, j8604, 20);
+    }
+
+    @Override
+    public int deleteAreaForPolygon(String deviceId, List<Long> ids) {
+        J8605 j8605 = new J8605();
+        j8605.setIdList(ids);
+        return (int)jt1078Template.deleteAreaForPolygon(deviceId, j8605, 20);
+    }
 }

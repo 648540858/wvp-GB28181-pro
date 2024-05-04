@@ -612,5 +612,38 @@ public class JT1078Controller {
         }
     }
 
+    @Operation(summary = "1078-设置多边形区域", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "areaParam", description = "设置区域参数", required = true)
+    @PostMapping("/area/polygon/set")
+    public WVPResult<Integer> setAreaForPolygon(@RequestBody SetAreaParam areaParam){
+
+        logger.info("[1078-设置多边形区域] areaParam: {},", areaParam);
+        int result = service.setAreaForPolygon(areaParam.getDeviceId(), areaParam.getPolygonArea());
+        if (result == 0) {
+            return WVPResult.success(result);
+        }else {
+            WVPResult<Integer> fail = WVPResult.fail(ErrorCode.ERROR100);
+            fail.setData(result);
+            return fail;
+        }
+    }
+
+    @Operation(summary = "1078-删除多边形区域", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "ids", description = "待删除圆形区域的id，例如1,2,3", required = true)
+    @GetMapping("/area/polygon/delete")
+    public WVPResult<Integer> deleteAreaForPolygon(String deviceId, @RequestParam(value = "ids", required = false) List<Long> ids){
+
+        logger.info("[1078-删除多边形区域] deviceId: {}, ids:{}", deviceId, ids);
+        int result = service.deleteAreaForPolygon(deviceId, ids);
+        if (result == 0) {
+            return WVPResult.success(result);
+        }else {
+            WVPResult<Integer> fail = WVPResult.fail(ErrorCode.ERROR100);
+            fail.setData(result);
+            return fail;
+        }
+    }
+
 }
 

@@ -32,6 +32,8 @@ public class JT1078Template {
     private static final String H8500 = "8500";
     private static final String H8600 = "8600";
     private static final String H8601 = "8601";
+    private static final String H8602 = "8602";
+    private static final String H8603 = "8603";
     private static final String H9101 = "9101";
     private static final String H9102 = "9102";
     private static final String H9201 = "9201";
@@ -466,6 +468,28 @@ public class JT1078Template {
                 .setMsgId(H8601)
                 .setRespId(H0001)
                 .setRs(j8601)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    public Object setAreaForRectangle(String devId, J8602 j8602, int timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H8602)
+                .setRespId(H0001)
+                .setRs(j8602)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    public Object deleteAreaForRectangle(String devId, J8603 j8603, int timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H8603)
+                .setRespId(H0001)
+                .setRs(j8603)
                 .build();
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }

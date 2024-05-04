@@ -624,4 +624,19 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j8601.setIdList(ids);
         return (int)jt1078Template.deleteAreaForCircle(deviceId, j8601, 20);
     }
+
+    @Override
+    public int setAreaForRectangle(int attribute, String deviceId, List<JTRectangleArea> rectangleAreas) {
+        J8602 j8602 = new J8602();
+        j8602.setAttribute(attribute);
+        j8602.setRectangleAreas(rectangleAreas);
+        return (int)jt1078Template.setAreaForRectangle(deviceId, j8602, 20);
+    }
+
+    @Override
+    public int deleteAreaForRectangle(String deviceId, List<Long> ids) {
+        J8603 j8603 = new J8603();
+        j8603.setIdList(ids);
+        return (int)jt1078Template.deleteAreaForRectangle(deviceId, j8603, 20);
+    }
 }

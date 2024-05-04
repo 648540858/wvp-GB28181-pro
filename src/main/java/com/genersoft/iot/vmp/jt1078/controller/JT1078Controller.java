@@ -546,5 +546,71 @@ public class JT1078Controller {
         }
     }
 
+
+    @Operation(summary = "1078-更新矩形区域", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "areaParam", description = "设置区域参数", required = true)
+    @PostMapping("/area/rectangle/update")
+    public WVPResult<Integer> updateAreaForRectangle(@RequestBody SetAreaParam areaParam){
+
+        logger.info("[1078-更新矩形区域] areaParam: {},", areaParam);
+        int result = service.setAreaForRectangle(0, areaParam.getDeviceId(), areaParam.getRectangleAreas());
+        if (result == 0) {
+            return WVPResult.success(result);
+        }else {
+            WVPResult<Integer> fail = WVPResult.fail(ErrorCode.ERROR100);
+            fail.setData(result);
+            return fail;
+        }
+    }
+
+    @Operation(summary = "1078-追加矩形区域", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "areaParam", description = "设置区域参数", required = true)
+    @PostMapping("/area/rectangle/add")
+    public WVPResult<Integer> addAreaForRectangle(@RequestBody SetAreaParam areaParam){
+
+        logger.info("[1078-追加矩形区域] areaParam: {},", areaParam);
+        int result = service.setAreaForRectangle(1, areaParam.getDeviceId(), areaParam.getRectangleAreas());
+        if (result == 0) {
+            return WVPResult.success(result);
+        }else {
+            WVPResult<Integer> fail = WVPResult.fail(ErrorCode.ERROR100);
+            fail.setData(result);
+            return fail;
+        }
+    }
+
+    @Operation(summary = "1078-修改矩形区域", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "areaParam", description = "设置区域参数", required = true)
+    @PostMapping("/area/rectangle/edit")
+    public WVPResult<Integer> editAreaForRectangle(@RequestBody SetAreaParam areaParam){
+
+        logger.info("[1078-修改矩形区域] areaParam: {},", areaParam);
+        int result = service.setAreaForRectangle(2, areaParam.getDeviceId(), areaParam.getRectangleAreas());
+        if (result == 0) {
+            return WVPResult.success(result);
+        }else {
+            WVPResult<Integer> fail = WVPResult.fail(ErrorCode.ERROR100);
+            fail.setData(result);
+            return fail;
+        }
+    }
+
+    @Operation(summary = "1078-删除矩形区域", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "ids", description = "待删除圆形区域的id，例如1,2,3", required = true)
+    @GetMapping("/area/rectangle/delete")
+    public WVPResult<Integer> deleteAreaForRectangle(String deviceId, @RequestParam(value = "ids", required = false) List<Long> ids){
+
+        logger.info("[1078-删除矩形区域] deviceId: {}, ids:{}", deviceId, ids);
+        int result = service.deleteAreaForRectangle(deviceId, ids);
+        if (result == 0) {
+            return WVPResult.success(result);
+        }else {
+            WVPResult<Integer> fail = WVPResult.fail(ErrorCode.ERROR100);
+            fail.setData(result);
+            return fail;
+        }
+    }
+
 }
 

@@ -73,4 +73,8 @@ public interface Ijt1078Service {
     int setAreaForCircle(int attribute, String deviceId, List<JTCircleArea> circleAreaList);
 
     int deleteAreaForCircle(String deviceId, List<Long> ids);
+
+    int setAreaForRectangle(int i, String deviceId, List<JTRectangleArea> rectangleAreas);
+
+    int deleteAreaForRectangle(String deviceId, List<Long> ids);
 }

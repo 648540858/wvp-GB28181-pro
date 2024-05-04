@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.jt1078.controller.bean;
 
 import com.genersoft.iot.vmp.jt1078.bean.JTCircleArea;
 import com.genersoft.iot.vmp.jt1078.bean.JTPhoneBookContact;
+import com.genersoft.iot.vmp.jt1078.bean.JTRectangleArea;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
@@ -14,6 +15,9 @@ public class SetAreaParam {
 
     @Schema(description = "圆形区域项")
     private List<JTCircleArea> circleAreaList;
+
+    @Schema(description = "矩形区域项")
+    private List<JTRectangleArea> rectangleAreas;
 
 
     public String getDeviceId() {
@@ -32,11 +36,20 @@ public class SetAreaParam {
         this.circleAreaList = circleAreaList;
     }
 
+    public List<JTRectangleArea> getRectangleAreas() {
+        return rectangleAreas;
+    }
+
+    public void setRectangleAreas(List<JTRectangleArea> rectangleAreas) {
+        this.rectangleAreas = rectangleAreas;
+    }
+
     @Override
     public String toString() {
         return "SetAreaParam{" +
                 "deviceId='" + deviceId + '\'' +
                 ", circleAreaList=" + circleAreaList +
+                ", rectangleAreas=" + rectangleAreas +
                 '}';
     }
 }

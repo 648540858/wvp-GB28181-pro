@@ -10,7 +10,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 
 @Schema(description = "多边形区域")
-public class JTPolygonArea {
+public class JTPolygonArea implements JTAreaOrRoute{
 
     @Schema(description = "区域 ID")
     private long id;

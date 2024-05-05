@@ -10,7 +10,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 
 @Schema(description = "路线")
-public class JTRoute {
+public class JTRoute implements JTAreaOrRoute{
 
     @Schema(description = "路线 ID")
     private long id;

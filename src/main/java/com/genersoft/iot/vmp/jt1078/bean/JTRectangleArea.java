@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.nio.charset.Charset;
 
 @Schema(description = "矩形区域")
-public class JTRectangleArea {
+public class JTRectangleArea implements JTAreaOrRoute{
 
     @Schema(description = "区域 ID")
     private long id;

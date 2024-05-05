@@ -10,7 +10,7 @@ import java.nio.charset.Charset;
 import java.util.Date;
 
 @Schema(description = "圆形区域")
-public class JTCircleArea {
+public class JTCircleArea implements JTAreaOrRoute{
 
     @Schema(description = "区域 ID")
     private long id;

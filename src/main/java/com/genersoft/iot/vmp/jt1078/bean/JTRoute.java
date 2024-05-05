@@ -36,13 +36,12 @@ public class JTRoute {
          byteBuf.writeBytes(attribute.encode());
          byteBuf.writeBytes(BCDUtil.transform(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime)));
          byteBuf.writeBytes(BCDUtil.transform(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime)));
-//         byteBuf.writeShort((short)(routePointList.size() & 0xffff));
-         byteBuf.writeShort((short)(0 & 0xffff));
-//         if (!routePointList.isEmpty()){
-//             for (JTRoutePoint jtRoutePoint : routePointList) {
-//                 byteBuf.writeBytes(jtRoutePoint.encode());
-//             }
-//         }
+         byteBuf.writeShort((short)(routePointList.size() & 0xffff));
+         if (!routePointList.isEmpty()){
+             for (JTRoutePoint jtRoutePoint : routePointList) {
+                 byteBuf.writeBytes(jtRoutePoint.encode());
+             }
+         }
          byteBuf.writeShort((short)(name.getBytes(Charset.forName("GBK")).length & 0xffff));
          byteBuf.writeCharSequence(name, Charset.forName("GBK"));
          return byteBuf;

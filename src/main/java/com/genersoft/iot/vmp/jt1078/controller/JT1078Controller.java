@@ -546,6 +546,20 @@ public class JT1078Controller {
         }
     }
 
+    @Operation(summary = "1078-查询圆形区域", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @GetMapping("/area/circle/query")
+    public WVPResult<List<JTAreaOrRoute>> queryAreaForCircle(String deviceId, @RequestParam(value = "ids", required = false) List<Long> ids){
+
+        logger.info("[1078-查询圆形区域] deviceId: {}, ids:{}", deviceId, ids);
+        List<JTAreaOrRoute> result = service.queryAreaForCircle(deviceId, ids);
+        if (result != null) {
+            return WVPResult.success(result);
+        }else {
+            return WVPResult.fail(ErrorCode.ERROR100);
+        }
+    }
+
 
     @Operation(summary = "1078-更新矩形区域", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "areaParam", description = "设置区域参数", required = true)
@@ -612,6 +626,20 @@ public class JT1078Controller {
         }
     }
 
+    @Operation(summary = "1078-查询矩形区域", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @GetMapping("/area/rectangle/query")
+    public WVPResult<List<JTAreaOrRoute>> queryAreaForRectangle(String deviceId, @RequestParam(value = "ids", required = false) List<Long> ids){
+
+        logger.info("[1078-查询矩形区域] deviceId: {}, ids:{}", deviceId, ids);
+        List<JTAreaOrRoute> result = service.queryAreaForRectangle(deviceId, ids);
+        if (result != null) {
+            return WVPResult.success(result);
+        }else {
+            return WVPResult.fail(ErrorCode.ERROR100);
+        }
+    }
+
     @Operation(summary = "1078-设置多边形区域", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "areaParam", description = "设置区域参数", required = true)
     @PostMapping("/area/polygon/set")
@@ -642,6 +670,20 @@ public class JT1078Controller {
             WVPResult<Integer> fail = WVPResult.fail(ErrorCode.ERROR100);
             fail.setData(result);
             return fail;
+        }
+    }
+
+    @Operation(summary = "1078-查询多边形区域", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @GetMapping("/area/polygon/query")
+    public WVPResult<List<JTAreaOrRoute>> queryAreaForPolygon(String deviceId, @RequestParam(value = "ids", required = false) List<Long> ids){
+
+        logger.info("[1078-查询多边形区域] deviceId: {}, ids:{}", deviceId, ids);
+        List<JTAreaOrRoute> result = service.queryAreaForPolygon(deviceId, ids);
+        if (result != null) {
+            return WVPResult.success(result);
+        }else {
+            return WVPResult.fail(ErrorCode.ERROR100);
         }
     }
 
@@ -681,18 +723,15 @@ public class JT1078Controller {
     @Operation(summary = "1078-查询路线", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备编号", required = true)
     @GetMapping("/route/query")
-    public WVPResult<Integer> queryRoute(String deviceId, @RequestParam(value = "ids", required = false) List<Long> ids){
+    public WVPResult<List<JTAreaOrRoute>> queryRoute(String deviceId, @RequestParam(value = "ids", required = false) List<Long> ids){
 
         logger.info("[1078-查询路线] deviceId: {}, ids:{}", deviceId, ids);
-        int result = service.queryRoute(deviceId, ids);
-        if (result == 0) {
+        List<JTAreaOrRoute> result = service.queryRoute(deviceId, ids);
+        if (result != null) {
             return WVPResult.success(result);
         }else {
-            WVPResult<Integer> fail = WVPResult.fail(ErrorCode.ERROR100);
-            fail.setData(result);
-            return fail;
+            return WVPResult.fail(ErrorCode.ERROR100);
         }
     }
-
 }
 

@@ -1,17 +1,21 @@
 package com.genersoft.iot.vmp.jt1078.bean;
 
+import com.genersoft.iot.vmp.jt1078.util.BCDUtil;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.swagger.v3.oas.annotations.media.Schema;
+
+import java.nio.charset.Charset;
 
 @Schema(description = "路线拐点")
 public class JTRoutePoint {
 
     @Schema(description = "拐点 ID")
-    private int id;
+    private long id;
 
     @Schema(description = "路段 ID")
-    private int routeSectionId;
+    private long routeSectionId;
 
     @Schema(description = "拐点纬度")
     private Double latitude;
@@ -56,6 +60,25 @@ public class JTRoutePoint {
         return byteBuf;
     }
 
+    public static JTRoutePoint decode(ByteBuf buf) {
+        JTRoutePoint point = new JTRoutePoint();
+        point.setId(buf.readUnsignedInt());
+        point.setRouteSectionId(buf.readUnsignedInt());
+        point.setLatitude(buf.readUnsignedInt()/1000000D);
+        point.setLongitude(buf.readUnsignedInt()/1000000D);
+        point.setRouteSectionAttributeWidth(buf.readUnsignedByte());
+
+        JTRouteSectionAttribute areaAttribute = JTRouteSectionAttribute.decode(buf.readUnsignedByte());
+        point.setRouteSectionAttribute(areaAttribute);
+
+        point.setRouteSectionMaxLength(buf.readUnsignedShort());
+        point.setRouteSectionMinLength(buf.readUnsignedShort());
+        point.setRouteSectionMaxSpeed(buf.readUnsignedShort());
+        point.setRouteSectionOverSpeedDuration(buf.readUnsignedByte());
+        point.setRouteSectionNighttimeMaxSpeed(buf.readUnsignedShort());
+        return point;
+    }
+
     public Double getLatitude() {
         return latitude;
     }
@@ -72,19 +95,19 @@ public class JTRoutePoint {
         this.longitude = longitude;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
-    public int getRouteSectionId() {
+    public long getRouteSectionId() {
         return routeSectionId;
     }
 
-    public void setRouteSectionId(int routeSectionId) {
+    public void setRouteSectionId(long routeSectionId) {
         this.routeSectionId = routeSectionId;
     }
 

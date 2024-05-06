@@ -38,8 +38,10 @@ public class J0608 extends Re {
         }
         switch (type) {
             case 1:
+                buf.readUnsignedByte();
+                int areaLengthForCircleArea = buf.readUnsignedByte();
                 List<JTCircleArea> jtCircleAreas = new ArrayList<>();
-                for (int i = 0; i < dataLength; i++) {
+                for (int i = 0; i < areaLengthForCircleArea; i++) {
                     // 查询圆形区域数据
                     JTCircleArea jtCircleArea = JTCircleArea.decode(buf);
                     jtCircleAreas.add(jtCircleArea);
@@ -47,9 +49,11 @@ public class J0608 extends Re {
                 SessionManager.INSTANCE.response(header.getTerminalId(), "0608", null, jtCircleAreas);
                 break;
             case 2:
+                buf.readUnsignedByte();
+                int areaLengthForRectangleArea = buf.readUnsignedByte();
                 // 查询矩形区域数据
                 List<JTRectangleArea> jtRectangleAreas = new ArrayList<>();
-                for (int i = 0; i < dataLength; i++) {
+                for (int i = 0; i < areaLengthForRectangleArea; i++) {
                     // 查询圆形区域数据
                     JTRectangleArea jtRectangleArea = JTRectangleArea.decode(buf);
                     jtRectangleAreas.add(jtRectangleArea);
@@ -68,9 +72,13 @@ public class J0608 extends Re {
                 break;
             case 4:
                 // 查询线路数据
-                // 查询多 边形区域数据
-                JTPolygonArea jtPolygonArea = JTPolygonArea.decode(buf);
-                SessionManager.INSTANCE.response(header.getTerminalId(), "0608", null, jtPolygonArea);
+                List<JTRoute> jtRoutes = new ArrayList<>();
+                for (int i = 0; i < dataLength; i++) {
+                    // 查询圆形区域数据
+                    JTRoute jtRoute = JTRoute.decode(buf);
+                    jtRoutes.add(jtRoute);
+                }
+                SessionManager.INSTANCE.response(header.getTerminalId(), "0608", null, jtRoutes);
                 break;
             default:
                 break;
@@ -81,19 +89,9 @@ public class J0608 extends Re {
 
     @Override
     protected Rs handler(Header header, Session session, Ijt1078Service service) {
-        JTDevice deviceInDb = service.getDevice(header.getTerminalId());
         J8001 j8001 = new J8001();
         j8001.setRespNo(header.getSn());
         j8001.setRespId(header.getMsgId());
-        if (deviceInDb == null) {
-            j8001.setResult(J8001.FAIL);
-        }else {
-            // TODO 优化为发送异步事件，定时读取队列写入数据库
-            deviceInDb.setLongitude(positionInfo.getLongitude());
-            deviceInDb.setLatitude(positionInfo.getLatitude());
-            service.updateDevice(deviceInDb);
-            j8001.setResult(J8001.SUCCESS);
-        }
         return j8001;
     }
 

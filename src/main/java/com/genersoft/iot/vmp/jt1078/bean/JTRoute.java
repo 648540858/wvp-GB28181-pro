@@ -7,6 +7,7 @@ import io.netty.buffer.Unpooled;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 
 @Schema(description = "路线")
@@ -30,7 +31,7 @@ public class JTRoute implements JTAreaOrRoute{
     @Schema(description = "区域的名称")
     private String name;
 
-     public ByteBuf encode(){
+    public ByteBuf encode(){
          ByteBuf byteBuf = Unpooled.buffer();
          byteBuf.writeInt((int) (id & 0xffffffffL));
          byteBuf.writeBytes(attribute.encode());
@@ -46,6 +47,30 @@ public class JTRoute implements JTAreaOrRoute{
          byteBuf.writeCharSequence(name, Charset.forName("GBK"));
          return byteBuf;
      }
+
+    public static JTRoute decode(ByteBuf buf) {
+        JTRoute route = new JTRoute();
+        route.setId(buf.readUnsignedInt());
+        int attributeInt = buf.readUnsignedShort();
+        JTRouteAttribute routeAttribute = JTRouteAttribute.decode(attributeInt);
+        route.setAttribute(routeAttribute);
+        byte[] startTimeBytes = new byte[6];
+        buf.readBytes(startTimeBytes);
+        route.setStartTime(DateUtil.jt1078Toyyyy_MM_dd_HH_mm_ss(BCDUtil.transform(startTimeBytes)));
+        byte[] endTimeBytes = new byte[6];
+        buf.readBytes(endTimeBytes);
+        route.setEndTime(DateUtil.jt1078Toyyyy_MM_dd_HH_mm_ss(BCDUtil.transform(endTimeBytes)));
+
+        int routePointsSize = buf.readUnsignedShort();
+        List<JTRoutePoint> jtRoutePoints = new ArrayList<>(routePointsSize);
+        for (int i = 0; i < routePointsSize; i++) {
+            jtRoutePoints.add(JTRoutePoint.decode(buf));
+        }
+        route.setRoutePointList(jtRoutePoints);
+        int nameLength = buf.readUnsignedShort();
+        route.setName(buf.readCharSequence(nameLength, Charset.forName("GBK")).toString().trim());
+        return route;
+    }
 
     public long getId() {
         return id;

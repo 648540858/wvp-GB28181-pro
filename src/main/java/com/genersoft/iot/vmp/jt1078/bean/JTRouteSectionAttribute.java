@@ -18,7 +18,7 @@ public class JTRouteSectionAttribute {
 
     @Schema(description = "false：东经；true：西经")
     private boolean westLongitude;
-    
+
     public byte encode(){
         byte attributeByte = 0;
         if (ruleForTimeLimit) {
@@ -34,6 +34,15 @@ public class JTRouteSectionAttribute {
             attributeByte |= (1 << 3);
         }
         return attributeByte;
+    }
+
+    public static JTRouteSectionAttribute decode(short attributeShort) {
+        JTRouteSectionAttribute attribute = new JTRouteSectionAttribute();
+        attribute.setRuleForTimeLimit((attributeShort & 1) == 1);
+        attribute.setRuleForSpeedLimit((attributeShort >> 1 & 1) == 1);
+        attribute.setSouthLatitude((attributeShort >> 2 & 1) == 1);
+        attribute.setWestLongitude((attributeShort >> 3 & 1) == 1);
+        return attribute;
     }
 
     public boolean isRuleForTimeLimit() {

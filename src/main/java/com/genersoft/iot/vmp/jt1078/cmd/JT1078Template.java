@@ -538,7 +538,7 @@ public class JT1078Template {
                 .setDevId(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8607)
-                .setRespId(H0608)
+                .setRespId(H0001)
                 .setRs(j8607)
                 .build();
         return SessionManager.INSTANCE.request(cmd, timeOut);
@@ -549,7 +549,7 @@ public class JT1078Template {
                 .setDevId(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8608)
-                .setRespId(H0001)
+                .setRespId(H0608)
                 .setRs(j8608)
                 .build();
         return SessionManager.INSTANCE.request(cmd, timeOut);

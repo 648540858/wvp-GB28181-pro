@@ -43,6 +43,17 @@ public class JTRouteAttribute {
         byteBuf.writeShort((short)(content & 0xffff));
         return byteBuf;
     }
+
+    public static JTRouteAttribute decode(int attributeInt) {
+        JTRouteAttribute attribute = new JTRouteAttribute();
+        attribute.setRuleForTimeLimit((attributeInt & 1) == 1);
+        attribute.setRuleForAlarmToDriverWhenEnter((attributeInt >> 2 & 1) == 1);
+        attribute.setRuleForAlarmToPlatformWhenEnter((attributeInt >> 3 & 1) == 1);
+        attribute.setRuleForAlarmToDriverWhenExit((attributeInt >> 4 & 1) == 1);
+        attribute.setRuleForAlarmToPlatformWhenExit((attributeInt >> 5 & 1) == 1);
+        return attribute;
+    }
+
     public boolean isRuleForTimeLimit() {
         return ruleForTimeLimit;
     }

@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * 删除路线
  */
-@MsgId(id = "8605")
+@MsgId(id = "8607")
 public class J8607 extends Rs {
 
 

@@ -52,8 +52,8 @@ public class JTCircleArea implements JTAreaOrRoute{
          byteBuf.writeInt((int) (Math.round((latitude * 1000000)) & 0xffffffffL));
          byteBuf.writeInt((int) (Math.round((longitude * 1000000)) & 0xffffffffL));
          byteBuf.writeInt((int) (radius & 0xffffffffL));
-         byteBuf.writeBytes(BCDUtil.transform(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime)));
-         byteBuf.writeBytes(BCDUtil.transform(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime)));
+         byteBuf.writeBytes(BCDUtil.strToBcd(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime)));
+         byteBuf.writeBytes(BCDUtil.strToBcd(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(endTime)));
          byteBuf.writeShort((short)(maxSpeed & 0xffff));
          byteBuf.writeByte(overSpeedDuration);
          byteBuf.writeShort((short)(nighttimeMaxSpeed & 0xffff));

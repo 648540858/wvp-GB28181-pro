@@ -80,6 +80,22 @@ public class JTAreaAttribute {
         return byteBuf;
     }
 
+    public static JTAreaAttribute decode(int attributeInt) {
+        JTAreaAttribute attribute = new JTAreaAttribute();
+        attribute.setRuleForTimeLimit((attributeInt & 1) == 1);
+        attribute.setRuleForSpeedLimit((attributeInt >> 1 & 1) == 1);
+        attribute.setRuleForAlarmToDriverWhenEnter((attributeInt >> 2 & 1) == 1);
+        attribute.setRuleForAlarmToPlatformWhenEnter((attributeInt >> 3 & 1) == 1);
+        attribute.setRuleForAlarmToDriverWhenExit((attributeInt >> 4 & 1) == 1);
+        attribute.setRuleForAlarmToPlatformWhenExit((attributeInt >> 5 & 1) == 1);
+        attribute.setSouthLatitude((attributeInt >> 6 & 1) == 1);
+        attribute.setWestLongitude((attributeInt >> 7 & 1) == 1);
+        attribute.setProhibitOpeningDoors((attributeInt >> 8 & 1) == 1);
+        attribute.setRuleForTurnOffCommunicationWhenEnter((attributeInt >> 9 & 1) == 1);
+        attribute.setRuleForGnssWhenEnter((attributeInt >> 10 & 1) == 1);
+        return attribute;
+    }
+
     public boolean isRuleForTimeLimit() {
         return ruleForTimeLimit;
     }

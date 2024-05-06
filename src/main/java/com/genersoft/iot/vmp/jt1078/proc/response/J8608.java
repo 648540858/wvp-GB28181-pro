@@ -30,10 +30,10 @@ public class J8608 extends Rs {
         ByteBuf buffer = Unpooled.buffer();
         buffer.writeByte(type);
         if (idList == null || idList.isEmpty()) {
-            buffer.writeByte(0);
+            buffer.writeInt(0);
             return buffer;
         }else {
-            buffer.writeByte(idList.size());
+            buffer.writeInt(idList.size());
         }
         for (Long id : idList) {
             buffer.writeInt((int) (id & 0xffffffffL));

@@ -626,6 +626,14 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
+    public int queryAreaForCircle(String deviceId, List<Long> ids) {
+        J8608 j8608 = new J8608();
+        j8608.setType(1);
+        j8608.setIdList(ids);
+        return (int)jt1078Template.queryAreaOrRoute(deviceId, j8608, 20);
+    }
+
+    @Override
     public int setAreaForRectangle(int attribute, String deviceId, List<JTRectangleArea> rectangleAreas) {
         J8602 j8602 = new J8602();
         j8602.setAttribute(attribute);
@@ -638,6 +646,14 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         J8603 j8603 = new J8603();
         j8603.setIdList(ids);
         return (int)jt1078Template.deleteAreaForRectangle(deviceId, j8603, 20);
+    }
+
+    @Override
+    public int queryAreaForRectangle(String deviceId, List<Long> ids) {
+        J8608 j8608 = new J8608();
+        j8608.setType(2);
+        j8608.setIdList(ids);
+        return (int)jt1078Template.queryAreaOrRoute(deviceId, j8608, 20);
     }
 
     @Override
@@ -655,6 +671,14 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
+    public int queryAreaForPolygon(String deviceId, List<Long> ids) {
+        J8608 j8608 = new J8608();
+        j8608.setType(3);
+        j8608.setIdList(ids);
+        return (int)jt1078Template.queryAreaOrRoute(deviceId, j8608, 20);
+    }
+
+    @Override
     public int setRoute(String deviceId, JTRoute route) {
         J8606 j8606 = new J8606();
         j8606.setRoute(route);
@@ -666,5 +690,13 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         J8607 j8607 = new J8607();
         j8607.setIdList(ids);
         return (int)jt1078Template.deleteRoute(deviceId, j8607, 20);
+    }
+
+    @Override
+    public int queryRoute(String deviceId, List<Long> ids) {
+        J8608 j8608 = new J8608();
+        j8608.setType(4);
+        j8608.setIdList(ids);
+        return (int)jt1078Template.queryAreaOrRoute(deviceId, j8608, 20);
     }
 }

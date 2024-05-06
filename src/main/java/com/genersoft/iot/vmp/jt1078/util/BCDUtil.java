@@ -69,32 +69,4 @@ public class BCDUtil {
         }
         return bbt;
     }
-
-    /**
-     * 时间使用按照YY-MM-DD-hh-mm-ss，转换为byte数据
-     */
-    public static ByteBuf transform(long time) {
-        ByteBuf byteBuf = Unpooled.buffer();
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(time);
-        int year = calendar.get(Calendar.YEAR);
-        int month = calendar.get(Calendar.MONTH) + 1 ;
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
-        int hour = calendar.get(Calendar.HOUR_OF_DAY);
-        int minute = calendar.get(Calendar.MINUTE);
-        int second = calendar.get(Calendar.SECOND);
-        System.out.println("year== " + year);
-        System.out.println("month== " + month);
-        System.out.println("day== " + day);
-        System.out.println("hour== " + hour);
-        System.out.println("minute== " + minute);
-        System.out.println("second== " + second);
-        byteBuf.writeByte(year);
-        byteBuf.writeByte(month);
-        byteBuf.writeByte(day);
-        byteBuf.writeByte(hour);
-        byteBuf.writeByte(minute);
-        byteBuf.writeByte(second);
-        return byteBuf;
-    }
 }

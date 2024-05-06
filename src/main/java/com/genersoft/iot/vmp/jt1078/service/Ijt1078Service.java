@@ -74,15 +74,23 @@ public interface Ijt1078Service {
 
     int deleteAreaForCircle(String deviceId, List<Long> ids);
 
+    int queryAreaForCircle(String deviceId, List<Long> ids);
+
     int setAreaForRectangle(int i, String deviceId, List<JTRectangleArea> rectangleAreas);
 
     int deleteAreaForRectangle(String deviceId, List<Long> ids);
+
+    int queryAreaForRectangle(String deviceId, List<Long> ids);
 
     int setAreaForPolygon(String deviceId, JTPolygonArea polygonArea);
 
     int deleteAreaForPolygon(String deviceId, List<Long> ids);
 
+    int queryAreaForPolygon(String deviceId, List<Long> ids);
+
     int setRoute(String deviceId, JTRoute route);
 
     int deleteRoute(String deviceId, List<Long> ids);
+
+    int queryRoute(String deviceId, List<Long> ids);
 }

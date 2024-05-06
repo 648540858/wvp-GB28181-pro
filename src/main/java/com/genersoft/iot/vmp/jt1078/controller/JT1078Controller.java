@@ -678,5 +678,21 @@ public class JT1078Controller {
         }
     }
 
+    @Operation(summary = "1078-查询路线", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @GetMapping("/route/query")
+    public WVPResult<Integer> queryRoute(String deviceId, @RequestParam(value = "ids", required = false) List<Long> ids){
+
+        logger.info("[1078-查询路线] deviceId: {}, ids:{}", deviceId, ids);
+        int result = service.queryRoute(deviceId, ids);
+        if (result == 0) {
+            return WVPResult.success(result);
+        }else {
+            WVPResult<Integer> fail = WVPResult.fail(ErrorCode.ERROR100);
+            fail.setData(result);
+            return fail;
+        }
+    }
+
 }
 

@@ -1,9 +1,7 @@
 package com.genersoft.iot.vmp.jt1078.proc.request;
 
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
-import com.genersoft.iot.vmp.jt1078.bean.JTAreaOrRoute;
-import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
-import com.genersoft.iot.vmp.jt1078.bean.JTPositionBaseInfo;
+import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import com.genersoft.iot.vmp.jt1078.proc.response.J8001;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
@@ -38,29 +36,46 @@ public class J0608 extends Re {
             SessionManager.INSTANCE.response(header.getTerminalId(), "0608", null, areaOrRoutes);
             return null;
         }
-        for (int i = 0; i < dataLength; i++) {
-            switch (type) {
-                case 1:
+        switch (type) {
+            case 1:
+                List<JTCircleArea> jtCircleAreas = new ArrayList<>();
+                for (int i = 0; i < dataLength; i++) {
                     // 查询圆形区域数据
-                    break;
-                case 2:
-                    // 查询矩形区域数据
-                    break;
-                case 3:
-                    // 查询多 边形区域数据
-                    break;
-                case 4:
-                    // 查询线路数据
-                    break;
-                default:
-                    break;
-            }
+                    JTCircleArea jtCircleArea = JTCircleArea.decode(buf);
+                    jtCircleAreas.add(jtCircleArea);
+                }
+                SessionManager.INSTANCE.response(header.getTerminalId(), "0608", null, jtCircleAreas);
+                break;
+            case 2:
+                // 查询矩形区域数据
+                List<JTRectangleArea> jtRectangleAreas = new ArrayList<>();
+                for (int i = 0; i < dataLength; i++) {
+                    // 查询圆形区域数据
+                    JTRectangleArea jtRectangleArea = JTRectangleArea.decode(buf);
+                    jtRectangleAreas.add(jtRectangleArea);
+                }
+                SessionManager.INSTANCE.response(header.getTerminalId(), "0608", null, jtRectangleAreas);
+                break;
+            case 3:
+                // 查询多 边形区域数据
+                List<JTPolygonArea> jtPolygonAreas = new ArrayList<>();
+                for (int i = 0; i < dataLength; i++) {
+                    // 查询圆形区域数据
+                    JTPolygonArea jtRectangleArea = JTPolygonArea.decode(buf);
+                    jtPolygonAreas.add(jtRectangleArea);
+                }
+                SessionManager.INSTANCE.response(header.getTerminalId(), "0608", null, jtPolygonAreas);
+                break;
+            case 4:
+                // 查询线路数据
+                // 查询多 边形区域数据
+                JTPolygonArea jtPolygonArea = JTPolygonArea.decode(buf);
+                SessionManager.INSTANCE.response(header.getTerminalId(), "0608", null, jtPolygonArea);
+                break;
+            default:
+                break;
         }
 
-        int respNo = buf.readUnsignedShort();
-        positionInfo = J0200.getPositionInfo(buf);
-        log.info("[JT-车辆控制应答]: {}", positionInfo.toString());
-        SessionManager.INSTANCE.response(header.getTerminalId(), "0500", (long) respNo, positionInfo);
         return null;
     }
 

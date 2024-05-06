@@ -91,6 +91,9 @@ public class DateUtil {
     public static String yyyy_MM_dd_HH_mm_ssTo1078(String formatTime) {
         return formatter1078.format(formatter.parse(formatTime));
     }
+    public static String jt1078Toyyyy_MM_dd_HH_mm_ss(String formatTime) {
+        return formatter.format(formatter1078.parse(formatTime));
+    }
 
     /**
      * yyyy_MM_dd_HH_mm_ss 转时间戳

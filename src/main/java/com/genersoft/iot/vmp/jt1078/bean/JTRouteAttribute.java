@@ -24,23 +24,23 @@ public class JTRouteAttribute {
 
     public ByteBuf encode(){
         ByteBuf byteBuf = Unpooled.buffer();
-        byte[] bytes = new byte[2];
+        short content = 0;
         if (ruleForTimeLimit) {
-            bytes[0] |= 1;
+            content |= 1;
         }
         if (ruleForAlarmToDriverWhenEnter) {
-            bytes[0] |= (1 << 2);
+            content |= (1 << 2);
         }
         if (ruleForAlarmToPlatformWhenEnter) {
-            bytes[0] |= (1 << 3);
+            content |= (1 << 3);
         }
         if (ruleForAlarmToDriverWhenExit) {
-            bytes[0] |= (1 << 4);
+            content |= (1 << 4);
         }
         if (ruleForAlarmToPlatformWhenExit) {
-            bytes[0] |= (1 << 5);
+            content |= (1 << 5);
         }
-        byteBuf.writeBytes(bytes);
+        byteBuf.writeShort((short)(content & 0xffff));
         return byteBuf;
     }
     public boolean isRuleForTimeLimit() {

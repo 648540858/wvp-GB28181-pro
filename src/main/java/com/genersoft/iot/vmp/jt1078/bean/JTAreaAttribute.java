@@ -42,41 +42,41 @@ public class JTAreaAttribute {
 
     public ByteBuf encode(){
         ByteBuf byteBuf = Unpooled.buffer();
-        byte[] bytes = new byte[2];
+        short content = 0 ;
         if (ruleForTimeLimit) {
-            bytes[0] |= 1;
+            content |= 1;
         }
         if (ruleForSpeedLimit) {
-            bytes[0] |= (1 << 1);
+            content |= (1 << 1);
         }
         if (ruleForAlarmToDriverWhenEnter) {
-            bytes[0] |= (1 << 2);
+            content |= (1 << 2);
         }
         if (ruleForAlarmToPlatformWhenEnter) {
-            bytes[0] |= (1 << 3);
+            content |= (1 << 3);
         }
         if (ruleForAlarmToDriverWhenExit) {
-            bytes[0] |= (1 << 4);
+            content |= (1 << 4);
         }
         if (ruleForAlarmToPlatformWhenExit) {
-            bytes[0] |= (1 << 5);
+            content |= (1 << 5);
         }
         if (southLatitude) {
-            bytes[0] |= (1 << 6);
+            content |= (1 << 6);
         }
         if (westLongitude) {
-            bytes[0] |= (byte) (1 << 7);
+            content |= (byte) (1 << 7);
         }
         if (prohibitOpeningDoors) {
-            bytes[1] |= 1;
+            content |= (1 << (0 + 8));
         }
         if (ruleForTurnOffCommunicationWhenEnter) {
-            bytes[1] |= (1 << 1);
+            content |= (1 << (1 + 8));
         }
         if (ruleForGnssWhenEnter) {
-            bytes[1] |= (1 << 2);
+            content |= (1 << (2 + 8));
         }
-        byteBuf.writeBytes(bytes);
+        byteBuf.writeShort((short)(content & 0xffff));
         return byteBuf;
     }
 

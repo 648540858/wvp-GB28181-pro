@@ -34,8 +34,8 @@ public class JTRoute implements JTAreaOrRoute{
          ByteBuf byteBuf = Unpooled.buffer();
          byteBuf.writeInt((int) (id & 0xffffffffL));
          byteBuf.writeBytes(attribute.encode());
-         byteBuf.writeBytes(BCDUtil.transform(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime)));
-         byteBuf.writeBytes(BCDUtil.transform(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime)));
+         byteBuf.writeBytes(BCDUtil.strToBcd(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime)));
+         byteBuf.writeBytes(BCDUtil.strToBcd(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(endTime)));
          byteBuf.writeShort((short)(routePointList.size() & 0xffff));
          if (!routePointList.isEmpty()){
              for (JTRoutePoint jtRoutePoint : routePointList) {

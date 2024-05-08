@@ -39,6 +39,7 @@ public class JT1078Template {
     private static final String H8606 = "8606";
     private static final String H8607 = "8607";
     private static final String H8608 = "8608";
+    private static final String H8702 = "8702";
     private static final String H9101 = "9101";
     private static final String H9102 = "9102";
     private static final String H9201 = "9201";
@@ -59,6 +60,7 @@ public class JT1078Template {
     private static final String H0201 = "0201";
     private static final String H0500 = "0500";
     private static final String H0608 = "0608";
+    private static final String H0702 = "0702";
     private static final String H1205 = "1205";
 
     /**
@@ -551,6 +553,17 @@ public class JT1078Template {
                 .setMsgId(H8608)
                 .setRespId(H0608)
                 .setRs(j8608)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    public Object queryDriverInformation(String devId, J8702 j8702, int timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H8702)
+                .setRespId(H0702)
+                .setRs(j8702)
                 .build();
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }

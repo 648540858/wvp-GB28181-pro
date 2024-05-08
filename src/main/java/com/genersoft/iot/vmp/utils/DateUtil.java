@@ -50,6 +50,7 @@ public class DateUtil {
      */
     public static final String URL_PATTERN = "yyyyMMddHHmmss";
     public static final String PATTERN1078 = "yyMMddHHmmss";
+    public static final String PATTERN1078Date = "yyyyMMdd";
 
     /**
      * 日期格式
@@ -67,6 +68,7 @@ public class DateUtil {
     public static final DateTimeFormatter DateFormatter = DateTimeFormatter.ofPattern(date_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
     public static final DateTimeFormatter urlFormatter = DateTimeFormatter.ofPattern(URL_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
     public static final DateTimeFormatter formatter1078 = DateTimeFormatter.ofPattern(PATTERN1078, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
+    public static final DateTimeFormatter formatter1078date = DateTimeFormatter.ofPattern(PATTERN1078Date, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
 
 	public static String yyyy_MM_dd_HH_mm_ssToISO8601(String formatTime) {
 
@@ -93,6 +95,9 @@ public class DateUtil {
     }
     public static String jt1078Toyyyy_MM_dd_HH_mm_ss(String formatTime) {
         return formatter.format(formatter1078.parse(formatTime));
+    }
+    public static String jt1078dateToyyyy_MM_dd(String formatTime) {
+        return DateFormatter.format(formatter1078date.parse(formatTime));
     }
 
     /**

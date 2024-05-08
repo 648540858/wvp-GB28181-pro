@@ -699,4 +699,10 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j8608.setIdList(ids);
         return (List<JTAreaOrRoute>)jt1078Template.queryAreaOrRoute(deviceId, j8608, 20);
     }
+
+    @Override
+    public JTDriverInformation queryDriverInformation(String deviceId) {
+        J8702 j8702 = new J8702();
+        return (JTDriverInformation)jt1078Template.queryDriverInformation(deviceId, j8702, 20);
+    }
 }

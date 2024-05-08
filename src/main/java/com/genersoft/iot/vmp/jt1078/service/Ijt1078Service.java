@@ -93,4 +93,6 @@ public interface Ijt1078Service {
     int deleteRoute(String deviceId, List<Long> ids);
 
     List<JTAreaOrRoute> queryRoute(String deviceId, List<Long> ids);
+
+    JTDriverInformation queryDriverInformation(String deviceId);
 }

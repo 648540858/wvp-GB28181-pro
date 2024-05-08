@@ -733,5 +733,21 @@ public class JT1078Controller {
             return WVPResult.fail(ErrorCode.ERROR100);
         }
     }
+
+    // TODO 待实现 行驶记录数据采集命令 行驶记录数据上传 行驶记录参数下传命令 电子运单上报
+
+    @Operation(summary = "1078-上报驾驶员身份信息请求", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @GetMapping("/driver-information")
+    public WVPResult<JTDriverInformation> queryDriverInformation(String deviceId){
+
+        logger.info("[1078-上报驾驶员身份信息请求] deviceId: {}", deviceId);
+        JTDriverInformation jtDriverInformation = service.queryDriverInformation(deviceId);
+        if (jtDriverInformation != null) {
+            return WVPResult.success(jtDriverInformation);
+        }else {
+            return WVPResult.fail(ErrorCode.ERROR100);
+        }
+    }
 }
 

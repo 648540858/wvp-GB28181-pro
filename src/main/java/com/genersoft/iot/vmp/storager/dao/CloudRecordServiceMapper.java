@@ -50,12 +50,15 @@ public interface CloudRecordServiceMapper {
             " <if test= 'mediaServerItemList != null  ' > and media_server_id in " +
             " <foreach collection='mediaServerItemList'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
             " </if>" +
+            " <if test= 'ids != null  ' > and id in " +
+            " <foreach collection='ids'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
+            " </if>" +
             " order by start_time DESC" +
-
             " </script>")
     List<CloudRecordItem> getList(@Param("query") String query, @Param("app") String app, @Param("stream") String stream,
                                   @Param("startTimeStamp")Long startTimeStamp, @Param("endTimeStamp")Long endTimeStamp,
-                                  @Param("callId")String callId, List<MediaServerItem> mediaServerItemList);
+                                  @Param("callId")String callId, List<MediaServerItem> mediaServerItemList,
+                                  List<Integer> ids);
 
 
     @Select(" <script>" +

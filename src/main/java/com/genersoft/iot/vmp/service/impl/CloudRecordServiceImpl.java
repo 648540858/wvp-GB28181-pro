@@ -51,7 +51,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     private VideoStreamSessionManager streamSession;
 
     @Override
-    public PageInfo<CloudRecordItem> getList(int page, int count, String query, String app, String stream, String startTime, String endTime, List<MediaServerItem> mediaServerItems) {
+    public PageInfo<CloudRecordItem> getList(int page, int count, String query, String app, String stream, String startTime, String endTime, List<MediaServerItem> mediaServerItems, String callId) {
         // 开始时间和结束时间在数据库中都是以秒为单位的
         Long startTimeStamp = null;
         Long endTimeStamp = null;
@@ -71,7 +71,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         }
         PageHelper.startPage(page, count);
         List<CloudRecordItem> all = cloudRecordServiceMapper.getList(query, app, stream, startTimeStamp, endTimeStamp,
-                null, mediaServerItems);
+                callId, mediaServerItems, null);
         return new PageInfo<>(all);
     }
 
@@ -87,7 +87,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         long startTimeStamp = startDate.atStartOfDay().toInstant(ZoneOffset.ofHours(8)).getEpochSecond();
         long endTimeStamp = endDate.atStartOfDay().toInstant(ZoneOffset.ofHours(8)).getEpochSecond();
         List<CloudRecordItem> cloudRecordItemList = cloudRecordServiceMapper.getList(null, app, stream, startTimeStamp,
-                endTimeStamp, null, mediaServerItems);
+                endTimeStamp, null, mediaServerItems, null);
         if (cloudRecordItemList.isEmpty()) {
             return new ArrayList<>();
         }
@@ -196,7 +196,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         }
 
         List<CloudRecordItem> all = cloudRecordServiceMapper.getList(null, app, stream, startTimeStamp, endTimeStamp,
-                callId, mediaServerItems);
+                callId, mediaServerItems, null);
         if (all.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到待收藏的视频");
         }
@@ -231,5 +231,28 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         String filePath = recordItem.getFilePath();
         MediaServerItem mediaServerItem = mediaServerService.getOne(recordItem.getMediaServerId());
         return CloudRecordUtils.getDownloadFilePath(mediaServerItem, filePath);
+    }
+
+    @Override
+    public List<CloudRecordItem> getAllList(String query, String app, String stream, String startTime, String endTime, List<MediaServerItem> mediaServerItems, String callId, List<Integer> ids) {
+        // 开始时间和结束时间在数据库中都是以秒为单位的
+        Long startTimeStamp = null;
+        Long endTimeStamp = null;
+        if (startTime != null ) {
+            if (!DateUtil.verification(startTime, DateUtil.formatter)) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "开始时间格式错误，正确格式为： " + DateUtil.formatter);
+            }
+            startTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(startTime);
+
+        }
+        if (endTime != null ) {
+            if (!DateUtil.verification(endTime, DateUtil.formatter)) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "结束时间格式错误，正确格式为： " + DateUtil.formatter);
+            }
+            endTimeStamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(endTime);
+
+        }
+        return cloudRecordServiceMapper.getList(query, app, stream, startTimeStamp, endTimeStamp,
+                callId, mediaServerItems, ids);
     }
 }

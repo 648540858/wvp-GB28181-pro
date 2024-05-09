@@ -402,6 +402,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             logger.info("[添加媒体节点] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             return;
         }
+
         mediaServerMapper.add(mediaServer);
         if (mediaServer.isStatus()) {
             mediaNodeServerService.online(mediaServer);

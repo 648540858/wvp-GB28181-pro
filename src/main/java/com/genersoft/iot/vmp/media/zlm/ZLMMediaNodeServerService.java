@@ -94,6 +94,8 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         MediaServer mediaServer = new MediaServer();
         mediaServer.setIp(ip);
         mediaServer.setHttpPort(port);
+        mediaServer.setFlvPort(port);
+        mediaServer.setWsFlvPort(port);
         mediaServer.setSecret(secret);
         JSONObject responseJSON = zlmresTfulUtils.getMediaServerConfig(mediaServer);
         if (responseJSON == null) {
@@ -109,12 +111,15 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         }
         mediaServer.setId(zlmServerConfig.getGeneralMediaServerId());
         mediaServer.setHttpSSlPort(zlmServerConfig.getHttpPort());
+        mediaServer.setFlvSSLPort(zlmServerConfig.getHttpPort());
+        mediaServer.setWsFlvSSLPort(zlmServerConfig.getHttpPort());
         mediaServer.setRtmpPort(zlmServerConfig.getRtmpPort());
         mediaServer.setRtmpSSlPort(zlmServerConfig.getRtmpSslPort());
         mediaServer.setRtspPort(zlmServerConfig.getRtspPort());
         mediaServer.setRtspSSLPort(zlmServerConfig.getRtspSSlport());
         mediaServer.setRtpProxyPort(zlmServerConfig.getRtpProxyPort());
         mediaServer.setStreamIp(ip);
+
         mediaServer.setHookIp(sipIp.split(",")[0]);
         mediaServer.setSdpIp(ip);
         mediaServer.setType("zlm");

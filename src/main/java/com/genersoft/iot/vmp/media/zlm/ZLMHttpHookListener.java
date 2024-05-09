@@ -202,15 +202,16 @@ public class ZLMHttpHookListener {
         if (mediaServer == null) {
             return HookResult.SUCCESS();
         }
-
-        if (param.isRegist()) {
-            logger.info("[ZLM HOOK] 流注册, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
-            MediaArrivalEvent mediaArrivalEvent = MediaArrivalEvent.getInstance(this, param, mediaServer);
-            applicationEventPublisher.publishEvent(mediaArrivalEvent);
-        } else {
-            logger.info("[ZLM HOOK] 流注销, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
-            MediaDepartureEvent mediaDepartureEvent = MediaDepartureEvent.getInstance(this, param, mediaServer);
-            applicationEventPublisher.publishEvent(mediaDepartureEvent);
+        if (param.getSchema().equalsIgnoreCase("rtsp")) {
+            if (param.isRegist()) {
+                logger.info("[ZLM HOOK] 流注册, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
+                MediaArrivalEvent mediaArrivalEvent = MediaArrivalEvent.getInstance(this, param, mediaServer);
+                applicationEventPublisher.publishEvent(mediaArrivalEvent);
+            } else {
+                logger.info("[ZLM HOOK] 流注销, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
+                MediaDepartureEvent mediaDepartureEvent = MediaDepartureEvent.getInstance(this, param, mediaServer);
+                applicationEventPublisher.publishEvent(mediaDepartureEvent);
+            }
         }
 
         return HookResult.SUCCESS();

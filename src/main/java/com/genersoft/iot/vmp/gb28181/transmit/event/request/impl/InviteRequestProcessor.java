@@ -335,8 +335,12 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     return;
                 }
                 String username = sdp.getOrigin().getUsername();
-                String addressStr = sdp.getConnection().getAddress();
-
+                String addressStr;
+                if(StringUtils.isEmpty(platform.getSendStreamIp())){
+                    addressStr = sdp.getConnection().getAddress();
+                }else {
+                    addressStr = platform.getSendStreamIp();
+                }
 
                 Device device = null;
                 // 通过 channel 和 gbStream 是否为null 值判断来源是直播流合适国标

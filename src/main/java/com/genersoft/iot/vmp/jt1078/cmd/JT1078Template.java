@@ -40,6 +40,7 @@ public class JT1078Template {
     private static final String H8607 = "8607";
     private static final String H8608 = "8608";
     private static final String H8702 = "8702";
+    private static final String H8801 = "8801";
     private static final String H9101 = "9101";
     private static final String H9102 = "9102";
     private static final String H9201 = "9201";
@@ -61,6 +62,7 @@ public class JT1078Template {
     private static final String H0500 = "0500";
     private static final String H0608 = "0608";
     private static final String H0702 = "0702";
+    private static final String H0805 = "0805";
     private static final String H1205 = "1205";
 
     /**
@@ -564,6 +566,17 @@ public class JT1078Template {
                 .setMsgId(H8702)
                 .setRespId(H0702)
                 .setRs(j8702)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    public Object shooting(String devId, J8801 j8801, int timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H8801)
+                .setRespId(H0805)
+                .setRs(j8801)
                 .build();
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }

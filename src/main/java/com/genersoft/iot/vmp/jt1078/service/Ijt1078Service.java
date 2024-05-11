@@ -95,4 +95,7 @@ public interface Ijt1078Service {
     List<JTAreaOrRoute> queryRoute(String deviceId, List<Long> ids);
 
     JTDriverInformation queryDriverInformation(String deviceId);
+
+    List<Long> shooting(String deviceId, JTShootingCommand shootingCommand);
+
 }

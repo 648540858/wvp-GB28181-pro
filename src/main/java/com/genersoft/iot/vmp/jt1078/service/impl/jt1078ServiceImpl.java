@@ -35,6 +35,7 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -704,5 +705,12 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     public JTDriverInformation queryDriverInformation(String deviceId) {
         J8702 j8702 = new J8702();
         return (JTDriverInformation)jt1078Template.queryDriverInformation(deviceId, j8702, 20);
+    }
+
+    @Override
+    public List<Long> shooting(String deviceId, JTShootingCommand shootingCommand) {
+        J8801 j8801 = new J8801();
+        j8801.setCommand(shootingCommand);
+        return (List<Long>)jt1078Template.shooting(deviceId, j8801, 20);
     }
 }

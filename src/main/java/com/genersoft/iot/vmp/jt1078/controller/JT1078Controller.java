@@ -749,5 +749,19 @@ public class JT1078Controller {
             return WVPResult.fail(ErrorCode.ERROR100);
         }
     }
+
+    @Operation(summary = "1078-摄像头立即拍摄命令", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @PostMapping("/shooting")
+    public WVPResult<List<Long>> shooting(@RequestBody ShootingParam param){
+
+        logger.info("[1078-摄像头立即拍摄命令] param: {}", param );
+        List<Long> ids = service.shooting(param.getDeviceId(), param.getShootingCommand());
+        if (ids != null) {
+            return WVPResult.success(ids);
+        }else {
+            return WVPResult.fail(ErrorCode.ERROR100);
+        }
+    }
 }
 

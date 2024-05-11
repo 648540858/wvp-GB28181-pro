@@ -49,6 +49,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
         ParentPlatform parentPlatform = null;
 
         Map<String, List<ParentPlatform>> parentPlatformMap = new HashMap<>();
+        Map<String, DeviceChannel> channelMap = new HashMap<>();
         if (!ObjectUtils.isEmpty(event.getPlatformId())) {
             subscribe = subscribeHolder.getCatalogSubscribe(event.getPlatformId());
             if (subscribe == null) {
@@ -67,6 +68,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                     for (DeviceChannel deviceChannel : event.getDeviceChannels()) {
                         List<ParentPlatform> parentPlatformsForGB = storager.queryPlatFormListForGBWithGBId(deviceChannel.getChannelId(), platforms);
                         parentPlatformMap.put(deviceChannel.getChannelId(), parentPlatformsForGB);
+                        channelMap.put(deviceChannel.getChannelId(), deviceChannel);
                     }
                 }
             }else if (event.getGbStreams() != null) {
@@ -174,7 +176,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                                 }
                                 logger.info("[Catalog事件: {}]平台：{}，影响通道{}", event.getType(), platform.getServerGBId(), gbId);
                                 List<DeviceChannel> deviceChannelList = new ArrayList<>();
-                                DeviceChannel deviceChannel = storager.queryChannelInParentPlatform(platform.getServerGBId(), gbId);
+                                DeviceChannel deviceChannel = channelMap.get(gbId);
                                 deviceChannelList.add(deviceChannel);
                                 GbStream gbStream = storager.queryStreamInParentPlatform(platform.getServerGBId(), gbId);
                                 if(gbStream != null){

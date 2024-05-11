@@ -74,6 +74,8 @@
         <template slot-scope="scope">
           <el-button size="medium" icon="el-icon-video-play" type="text" @click="play(scope.row)">播放
           </el-button>
+          <el-button size="medium" icon="el-icon-download" type="text" @click="downloadFile(scope.row)">下载
+          </el-button>
           <!--            <el-button size="medium" icon="el-icon-delete" type="text" style="color: #f56c6c"-->
           <!--                       @click="deleteRecord(scope.row)">删除-->
           <!--            </el-button>-->
@@ -234,15 +236,30 @@ export default {
         console.log(error);
       });
     },
-      getFileBasePath(item) {
-          let basePath = ""
-          if (axios.defaults.baseURL.startsWith("http")) {
-              basePath = `${axios.defaults.baseURL}/record_proxy/${item.mediaServerId}`
+    downloadFile(file){
+      console.log(file)
+      this.$axios({
+        method: 'get',
+        url: `/api/cloud/record/play/path`,
+        params: {
+          recordId: file.id,
+        }
+      }).then((res) => {
+        console.log(res)
+        const link = document.createElement('a');
+        link.target = "_blank";
+        if (res.data.code === 0) {
+          if (location.protocol === "https:") {
+            link.href = res.data.data.httpsPath + "&save_name=" + file.fileName;
           }else {
-              basePath = `${window.location.origin}${axios.defaults.baseURL}/record_proxy/${item.mediaServerId}`
+            link.href = res.data.data.httpPath + "&save_name=" + file.fileName;
           }
-          return basePath;
-      },
+          link.click();
+        }
+      }).catch((error) => {
+        console.log(error);
+      });
+    },
     deleteRecord() {
       // TODO
       let that = this;

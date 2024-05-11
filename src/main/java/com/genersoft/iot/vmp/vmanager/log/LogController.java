@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.vmanager.log;
 
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.redis.RedisRpcConfig;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.service.ILogService;
 import com.genersoft.iot.vmp.storager.dao.dto.LogDto;
@@ -91,5 +92,15 @@ public class LogController {
     public void clear() {
         logService.clear();
     }
+
+    @Autowired
+    private RedisRpcConfig redisRpcConfig;
+
+    @GetMapping("/test/count")
+    public Object count() {
+        return redisRpcConfig.getCallbackCount();
+    }
+
+
 
 }

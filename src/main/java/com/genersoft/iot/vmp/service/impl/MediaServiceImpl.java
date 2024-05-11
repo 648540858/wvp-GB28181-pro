@@ -10,13 +10,11 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
-import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
-import com.genersoft.iot.vmp.media.zlm.ZLMMediaListManager;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.service.*;
-import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -65,9 +63,6 @@ public class MediaServiceImpl implements IMediaService {
 
     @Autowired
     private IVideoManagerStorage storager;
-
-    @Autowired
-    private ZLMMediaListManager zlmMediaListManager;
 
     @Autowired
     private IDeviceService deviceService;
@@ -132,8 +127,6 @@ public class MediaServiceImpl implements IMediaService {
                 // 鉴权通过
                 redisCatchStorage.updateStreamAuthorityInfo(app, stream, streamAuthorityInfo);
             }
-        } else {
-            zlmMediaListManager.sendStreamEvent(app, stream, mediaServer.getId());
         }
 
 
@@ -178,7 +171,7 @@ public class MediaServiceImpl implements IMediaService {
                 String channelId = ssrcTransactionForAll.get(0).getChannelId();
                 DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
                 if (deviceChannel != null) {
-                    result.setEnable_audio(deviceChannel.isHasAudio());
+                    result.setEnable_audio(deviceChannel.getHasAudio());
                 }
                 // 如果是录像下载就设置视频间隔十秒
                 if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.DOWNLOAD) {
@@ -264,11 +257,7 @@ public class MediaServiceImpl implements IMediaService {
                             redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
                                     sendRtpItem.getCallId(), sendRtpItem.getStream());
                             if (InviteStreamType.PUSH == sendRtpItem.getPlayType()) {
-                                MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
-                                        sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getChannelId(),
-                                        sendRtpItem.getPlatformId(), parentPlatform.getName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
-                                messageForPushChannel.setPlatFormIndex(parentPlatform.getId());
-                                redisCatchStorage.sendPlatformStopPlayMsg(messageForPushChannel);
+                                redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem,parentPlatform);
                             }
                         }
                     }

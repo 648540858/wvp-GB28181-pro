@@ -558,6 +558,7 @@ public class DeviceServiceImpl implements IDeviceService {
                     removeMobilePositionSubscribe(deviceInStore, result->{
                         // 开启订阅
                         deviceInStore.setSubscribeCycleForMobilePosition(device.getSubscribeCycleForMobilePosition());
+                        deviceInStore.setMobilePositionSubmissionInterval(device.getMobilePositionSubmissionInterval());
                         addMobilePositionSubscribe(deviceInStore);
                         // 因为是异步执行，需要在这里更新下数据
                         deviceMapper.updateCustom(deviceInStore);
@@ -566,12 +567,14 @@ public class DeviceServiceImpl implements IDeviceService {
                 }else {
                     // 开启订阅
                     deviceInStore.setSubscribeCycleForMobilePosition(device.getSubscribeCycleForMobilePosition());
+                    deviceInStore.setMobilePositionSubmissionInterval(device.getMobilePositionSubmissionInterval());
                     addMobilePositionSubscribe(deviceInStore);
                 }
 
             }else if (device.getSubscribeCycleForMobilePosition() == 0) {
                 // 取消订阅
                 deviceInStore.setSubscribeCycleForMobilePosition(0);
+                deviceInStore.setMobilePositionSubmissionInterval(0);
                 removeMobilePositionSubscribe(deviceInStore, null);
             }
         }

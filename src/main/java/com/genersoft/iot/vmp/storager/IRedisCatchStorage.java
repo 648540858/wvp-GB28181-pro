@@ -2,10 +2,7 @@ package com.genersoft.iot.vmp.storager;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.SystemAllInfo;
-import com.genersoft.iot.vmp.gb28181.bean.AlarmChannelMessage;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
@@ -44,6 +41,8 @@ public interface IRedisCatchStorage {
     void delPlatformRegisterInfo(String callId);
 
     void updateSendRTPSever(SendRtpItem sendRtpItem);
+
+    List<SendRtpItem> querySendRTPServer(String platformGbId, String channelId, String streamId);
 
     /**
      * 查询RTP推送信息缓存
@@ -197,6 +196,8 @@ public interface IRedisCatchStorage {
 
     void addDiskInfo(List<Map<String, Object>> diskInfo);
 
+    void deleteSendRTPServer(SendRtpItem sendRtpItem);
+
     List<SendRtpItem> queryAllSendRTPServer();
 
     List<Device> getAllDevices();
@@ -209,7 +210,7 @@ public interface IRedisCatchStorage {
 
     void sendPlatformStartPlayMsg(MessageForPushChannel messageForPushChannel);
 
-    void sendPlatformStopPlayMsg(MessageForPushChannel messageForPushChannel);
+    void sendPlatformStopPlayMsg(SendRtpItem sendRtpItem, ParentPlatform platform);
 
     void addPushListItem(String app, String stream, MediaArrivalEvent param);
 
@@ -219,4 +220,11 @@ public interface IRedisCatchStorage {
 
     void sendPushStreamClose(MessageForPushChannel messageForPushChannel);
 
+    void addWaiteSendRtpItem(SendRtpItem sendRtpItem, int platformPlayTimeout);
+
+    SendRtpItem getWaiteSendRtpItem(String app, String stream);
+
+    void sendStartSendRtp(SendRtpItem sendRtpItem);
+
+    void sendPushStreamOnline(SendRtpItem sendRtpItem);
 }

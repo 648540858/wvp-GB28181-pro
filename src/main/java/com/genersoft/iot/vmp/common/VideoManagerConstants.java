@@ -72,6 +72,9 @@ public class VideoManagerConstants {
 
 	public static final String REGISTER_EXPIRE_TASK_KEY_PREFIX = "VMP_device_register_expire_";
 	public static final String PUSH_STREAM_LIST = "VMP_PUSH_STREAM_LIST_";
+	public static final String WAITE_SEND_PUSH_STREAM = "VMP_WAITE_SEND_PUSH_STREAM:";
+	public static final String START_SEND_PUSH_STREAM = "VMP_START_SEND_PUSH_STREAM:";
+	public static final String PUSH_STREAM_ONLINE = "VMP_PUSH_STREAM_ONLINE:";
 
 
 

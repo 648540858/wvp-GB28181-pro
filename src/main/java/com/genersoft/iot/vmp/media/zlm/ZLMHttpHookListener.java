@@ -10,17 +10,18 @@ import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.media.*;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaSendRtpStoppedEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.*;
 import com.genersoft.iot.vmp.media.zlm.event.HookZlmServerKeepaliveEvent;
 import com.genersoft.iot.vmp.media.zlm.event.HookZlmServerStartEvent;
 import com.genersoft.iot.vmp.service.*;
+import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.slf4j.Logger;
@@ -66,6 +67,10 @@ public class ZLMHttpHookListener {
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
+
+    @Autowired
+    private IRedisRpcService redisRpcService;
+
     @Autowired
     private IInviteStreamService inviteStreamService;
 
@@ -86,9 +91,6 @@ public class ZLMHttpHookListener {
 
     @Autowired
     private EventPublisher eventPublisher;
-
-    @Autowired
-    private ZLMMediaListManager zlmMediaListManager;
 
     @Autowired
     private HookSubscribe subscribe;
@@ -117,6 +119,9 @@ public class ZLMHttpHookListener {
 
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
+
+    @Autowired
+    private IStreamPushService streamPushService;
 
     /**
      * 服务器定时上报时间，上报间隔可配置，默认10s上报一次
@@ -197,16 +202,18 @@ public class ZLMHttpHookListener {
         if (mediaServer == null) {
             return HookResult.SUCCESS();
         }
-
-        if (param.isRegist()) {
-            logger.info("[ZLM HOOK] 流注册, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
-            MediaArrivalEvent mediaArrivalEvent = MediaArrivalEvent.getInstance(this, param, mediaServer);
-            applicationEventPublisher.publishEvent(mediaArrivalEvent);
-        } else {
-            logger.info("[ZLM HOOK] 流注销, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
-            MediaDepartureEvent mediaDepartureEvent = MediaDepartureEvent.getInstance(this, param, mediaServer);
-            applicationEventPublisher.publishEvent(mediaDepartureEvent);
+        if (param.getSchema().equalsIgnoreCase("rtsp")) {
+            if (param.isRegist()) {
+                logger.info("[ZLM HOOK] 流注册, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
+                MediaArrivalEvent mediaArrivalEvent = MediaArrivalEvent.getInstance(this, param, mediaServer);
+                applicationEventPublisher.publishEvent(mediaArrivalEvent);
+            } else {
+                logger.info("[ZLM HOOK] 流注销, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
+                MediaDepartureEvent mediaDepartureEvent = MediaDepartureEvent.getInstance(this, param, mediaServer);
+                applicationEventPublisher.publishEvent(mediaDepartureEvent);
+            }
         }
+
         return HookResult.SUCCESS();
     }
 
@@ -220,9 +227,9 @@ public class ZLMHttpHookListener {
         logger.info("[ZLM HOOK]流无人观看：{}->{}->{}/{}", param.getMediaServerId(), param.getSchema(),
                 param.getApp(), param.getStream());
         JSONObject ret = new JSONObject();
-
         boolean close = mediaService.closeStreamOnNoneReader(param.getMediaServerId(), param.getApp(), param.getStream(), param.getSchema());
-        ret.put("code", close);
+        ret.put("code", 0);
+        ret.put("close", close);
         return ret;
     }
 

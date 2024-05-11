@@ -32,7 +32,14 @@
                 <el-input v-model="platform.deviceGBId" clearable @input="deviceGBIdChange"></el-input>
               </el-form-item>
               <el-form-item label="本地IP" prop="deviceIp">
-                <el-input v-model="platform.deviceIp" :disabled="true"></el-input>
+                <el-select v-model="platform.deviceIp" placeholder="请选择与上级相通的网卡" style="width: 100%">
+                  <el-option
+                    v-for="ip in deviceIp"
+                    :key="ip"
+                    :label="ip"
+                    :value="ip">
+                  </el-option>
+                </el-select>
               </el-form-item>
               <el-form-item label="本地端口" prop="devicePort">
                 <el-input v-model="platform.devicePort" :disabled="true" type="number"></el-input>
@@ -165,6 +172,7 @@ export default {
         administrativeDivision: "",
         sendStreamIp: null,
       },
+      deviceIp: [], // 存储用户选择的设备IP
       rules: {
         name: [{ required: true, message: "请输入平台名称", trigger: "blur" }],
         serverGBId: [
@@ -198,7 +206,7 @@ export default {
           console.log(res);
           if (res.data.code === 0) {
             that.platform.deviceGBId = res.data.data.username;
-            that.platform.deviceIp = res.data.data.deviceIp;
+            that.deviceIp = res.data.data.deviceIp.split(',');
             that.platform.devicePort = res.data.data.devicePort;
             that.platform.username = res.data.data.username;
             that.platform.password = res.data.data.password;
@@ -222,7 +230,7 @@ export default {
         this.platform.serverIP = platform.serverIP;
         this.platform.serverPort = platform.serverPort;
         this.platform.deviceGBId = platform.deviceGBId;
-        this.platform.deviceIp = platform.deviceIp;
+        this.deviceIp = platform.deviceIp.split(',');
         this.platform.devicePort = platform.devicePort;
         this.platform.username = platform.username;
         this.platform.password = platform.password;

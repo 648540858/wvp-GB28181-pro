@@ -111,7 +111,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 			if (!ObjectUtils.isEmpty(device.getName())) {
 				mobilePosition.setDeviceName(device.getName());
 			}
-
+			mobilePosition.setDeviceName(device.getName());
 			mobilePosition.setDeviceId(device.getDeviceId());
 			mobilePosition.setChannelId(channelId);
 			String time = XmlUtil.getText(rootElement, "Time");

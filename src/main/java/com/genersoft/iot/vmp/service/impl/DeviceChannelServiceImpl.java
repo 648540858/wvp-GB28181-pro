@@ -356,11 +356,14 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public void batchUpdateChannelGPS(List<DeviceChannel> channelList) {
-
+        channelMapper.batchUpdatePosition(channelList);
     }
 
     @Override
     public void batchAddMobilePosition(List<MobilePosition> mobilePositions) {
-
+        deviceMobilePositionMapper.batchInsert(mobilePositions);
     }
+
+
+
 }

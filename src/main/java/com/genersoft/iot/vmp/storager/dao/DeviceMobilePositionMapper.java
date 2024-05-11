@@ -13,7 +13,8 @@ import java.util.List;
 public interface DeviceMobilePositionMapper {
 
     @Insert("INSERT INTO wvp_device_mobile_position (device_id,channel_id, device_name,time,longitude,latitude,altitude,speed,direction,report_source,longitude_gcj02,latitude_gcj02,longitude_wgs84,latitude_wgs84,create_time)"+
-            "VALUES (#{deviceId}, #{channelId}, #{deviceName}, #{time}, #{longitude}, #{latitude}, #{altitude}, #{speed}, #{direction}, #{reportSource}, #{longitudeGcj02}, #{latitudeGcj02}, #{longitudeWgs84}, #{latitudeWgs84}, #{createTime})")
+            "VALUES (#{deviceId}, #{channelId}, #{deviceName}, #{time}, #{longitude}, #{latitude}, #{altitude}, " +
+            "#{speed}, #{direction}, #{reportSource}, #{longitudeGcj02}, #{latitudeGcj02}, #{longitudeWgs84}, #{latitudeWgs84}, #{createTime})")
     int insertNewPosition(MobilePosition mobilePosition);
 
     @Select(value = {" <script>" +
@@ -33,4 +34,19 @@ public interface DeviceMobilePositionMapper {
     @Delete("DELETE FROM wvp_device_mobile_position WHERE device_id = #{deviceId}")
     int clearMobilePositionsByDeviceId(String deviceId);
 
+    @Insert("<script> " +
+            "insert into wvp_device_mobile_position " +
+            "(device_id,channel_id, device_name,time,longitude," +
+            "latitude,altitude,speed,direction," +
+            "report_source,longitude_gcj02,latitude_gcj02," +
+            "longitude_wgs84,latitude_wgs84,create_time)"+
+            "values " +
+            "<foreach collection='mobilePositions' index='index' item='item' separator=','> " +
+            "(#{item.deviceId}, #{item.channelId}, #{item.deviceName}, #{item.time}, #{item.longitude}, " +
+            "#{item.latitude}, #{item.altitude}, #{item.speed},#{item.direction}," +
+            "#{item.reportSource}, #{item.longitudeGcj02}, #{item.latitudeGcj02}, " +
+            "#{item.longitudeWgs84}, #{item.latitudeWgs84}, #{item.createTime}) " +
+            "</foreach> " +
+            "</script>")
+    void batchInsert(List<MobilePosition> mobilePositions);
 }

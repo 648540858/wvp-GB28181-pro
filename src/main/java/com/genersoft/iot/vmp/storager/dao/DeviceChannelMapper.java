@@ -554,4 +554,24 @@ public interface DeviceChannelMapper {
             " <if test='channelId != null'> and channel_id = #{channelId} </if>" +
             "</script>")
     void updateChannelStreamIdentification(DeviceChannel channel);
+
+
+    @Update({"<script>" +
+            "<foreach collection='channelList' item='item' separator=';'>" +
+            " UPDATE" +
+            " wvp_device_channel" +
+            " SET update_time=#{item.updateTime}" +
+            "<if test='item.longitude != null'>, longitude=#{item.longitude}</if>" +
+            "<if test='item.latitude != null'>, latitude=#{item.latitude}</if>" +
+            "<if test='item.longitudeGcj02 != null'>, longitude_gcj02=#{item.longitudeGcj02}</if>" +
+            "<if test='item.latitudeGcj02 != null'>, latitude_gcj02=#{item.latitudeGcj02}</if>" +
+            "<if test='item.longitudeWgs84 != null'>, longitude_wgs84=#{item.longitudeWgs84}</if>" +
+            "<if test='item.latitudeWgs84 != null'>, latitude_wgs84=#{item.latitudeWgs84}</if>" +
+            "<if test='item.gpsTime != null'>, gps_time=#{item.gpsTime}</if>" +
+            "<if test='item.id > 0'>WHERE id=#{item.id}</if>" +
+            "<if test='item.id == 0'>WHERE device_id=#{item.deviceId} AND channel_id=#{item.channelId}</if>" +
+            "</foreach>" +
+            "</script>"})
+    void batchUpdatePosition(List<DeviceChannel> channelList);
+
 }

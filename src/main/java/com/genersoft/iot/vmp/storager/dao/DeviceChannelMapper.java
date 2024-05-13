@@ -401,23 +401,6 @@ public interface DeviceChannelMapper {
             " </script>"})
     int updatePosition(DeviceChannel deviceChannel);
 
-    @Update({"<script>" +
-            "<foreach collection='deviceChannelList' item='item' separator=';'>" +
-            " UPDATE" +
-            " wvp_device_channel" +
-            " SET gps_time=#{item.gpsTime}" +
-            "<if test='item.longitude != null'>, longitude=#{item.longitude}</if>" +
-            "<if test='item.latitude != null'>, latitude=#{item.latitude}</if>" +
-            "<if test='item.longitudeGcj02 != null'>, longitude_gcj02=#{item.longitudeGcj02}</if>" +
-            "<if test='item.latitudeGcj02 != null'>, latitude_gcj02=#{item.latitudeGcj02}</if>" +
-            "<if test='item.longitudeWgs84 != null'>, longitude_wgs84=#{item.longitudeWgs84}</if>" +
-            "<if test='item.latitudeWgs84 != null'>, latitude_wgs84=#{item.latitudeWgs84}</if>" +
-            "WHERE device_id=#{item.deviceId} " +
-            " <if test='item.channelId != null' > AND channel_id=#{item.channelId}</if>" +
-            "</foreach>" +
-            "</script>"})
-    int batchUpdatePosition(List<DeviceChannel> deviceChannelList);
-
     @Select("SELECT * FROM wvp_device_channel WHERE length(trim(stream_id)) > 0")
     List<DeviceChannel> getAllChannelInPlay();
 

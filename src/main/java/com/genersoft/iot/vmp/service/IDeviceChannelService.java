@@ -102,4 +102,9 @@ public interface IDeviceChannelService {
 
     void batchAddMobilePosition(List<MobilePosition> addMobilePositionList);
 
+    void online(DeviceChannel channel);
+
+    void offline(DeviceChannel channel);
+
+    void delete(DeviceChannel channel);
 }

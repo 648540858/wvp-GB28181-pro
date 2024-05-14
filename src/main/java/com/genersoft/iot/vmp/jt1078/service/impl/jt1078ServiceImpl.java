@@ -711,6 +711,6 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     public List<Long> shooting(String deviceId, JTShootingCommand shootingCommand) {
         J8801 j8801 = new J8801();
         j8801.setCommand(shootingCommand);
-        return (List<Long>)jt1078Template.shooting(deviceId, j8801, 20);
+        return (List<Long>)jt1078Template.shooting(deviceId, j8801, 300);
     }
 }

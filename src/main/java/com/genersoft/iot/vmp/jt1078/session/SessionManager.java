@@ -81,6 +81,7 @@ public enum SessionManager {
             return null;
         }
         String requestKey = requestKey(cmd.getDevId(), cmd.getRespId(), cmd.getPackageNo());
+        System.out.println("requestKey==" + requestKey);
         SynchronousQueue<Object> subscribe = subscribe(requestKey);
         if (subscribe == null) {
             log.error("DevId: {} key:{} send repaid", cmd.getDevId(), requestKey);

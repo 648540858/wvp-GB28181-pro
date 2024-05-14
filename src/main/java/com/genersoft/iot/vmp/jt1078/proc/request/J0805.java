@@ -10,6 +10,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import org.springframework.context.ApplicationEvent;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -27,17 +28,19 @@ public class J0805 extends Re {
     /**
      * 表示拍摄成功的多媒体个数
      */
-    private List<Long> ids;
+    private List<Long> ids = new ArrayList<>();
 
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
         respNo = buf.readUnsignedShort();
         result = buf.readUnsignedByte();
-        int length = buf.readUnsignedByte();
-        for (int i = 0; i < length; i++) {
-            ids.add(buf.readUnsignedInt());
+        if (result == 0) {
+            int length = buf.readUnsignedShort();
+            for (int i = 0; i < length; i++) {
+                ids.add(buf.readUnsignedInt());
+            }
         }
-        SessionManager.INSTANCE.response(header.getTerminalId(), "0805", (long) respNo, ids);
+        SessionManager.INSTANCE.response(header.getTerminalId(), "0805", null, ids);
         return null;
     }
 

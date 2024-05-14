@@ -32,7 +32,7 @@ public class J0201 extends Re {
 
         int respNo = buf.readUnsignedShort();
 
-        positionInfo = J0200.getPositionInfo(buf);
+        positionInfo = JTPositionBaseInfo.decode(buf);
         log.info("[JT-位置信息查询应答]: {}", positionInfo.toString());
         SessionManager.INSTANCE.response(header.getTerminalId(), "0201", (long) respNo, positionInfo);
         return null;

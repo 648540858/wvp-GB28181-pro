@@ -1,6 +1,10 @@
 package com.genersoft.iot.vmp.jt1078.bean;
 
+import com.genersoft.iot.vmp.jt1078.util.BCDUtil;
+import io.netty.buffer.ByteBuf;
 import io.swagger.v3.oas.annotations.media.Schema;
+
+import java.nio.ByteBuffer;
 
 @Schema(description = "位置基本信息")
 public class JTPositionBaseInfo {
@@ -58,6 +62,23 @@ public class JTPositionBaseInfo {
      */
     @Schema(description = "视频报警")
     private JTVideoAlarm videoAlarm;
+
+    public static JTPositionBaseInfo decode(ByteBuf buf) {
+        JTPositionBaseInfo positionInfo = new JTPositionBaseInfo();
+        positionInfo.setAlarmSign(new JTAlarmSign(buf.readInt()));
+
+        positionInfo.setStatus(new JTStatus(buf.readInt()));
+
+        positionInfo.setLatitude(buf.readInt() * 0.000001D);
+        positionInfo.setLongitude(buf.readInt() *  0.000001D);
+        positionInfo.setAltitude(buf.readUnsignedShort());
+        positionInfo.setSpeed(buf.readUnsignedShort());
+        positionInfo.setDirection(buf.readUnsignedShort());
+        byte[] timeBytes = new byte[6];
+        buf.readBytes(timeBytes);
+        positionInfo.setTime(BCDUtil.transform(timeBytes));
+        return positionInfo;
+    }
 
     public JTAlarmSign getAlarmSign() {
         return alarmSign;

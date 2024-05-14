@@ -1,7 +1,8 @@
 package com.genersoft.iot.vmp.jt1078.proc.request;
 
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
-import com.genersoft.iot.vmp.jt1078.bean.JTDriverInformation;
+import com.genersoft.iot.vmp.jt1078.bean.JTMediaDataInfo;
+import com.genersoft.iot.vmp.jt1078.bean.JTMediaEventInfo;
 import com.genersoft.iot.vmp.jt1078.bean.JTPositionBaseInfo;
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import com.genersoft.iot.vmp.jt1078.proc.response.J8001;
@@ -14,31 +15,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEvent;
 
-import java.util.ArrayList;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.List;
 
 /**
- * 定位数据批量上传
+ * 存储多媒体数据检索应答
  *
  */
-@MsgId(id = "0704")
-public class J0704 extends Re {
+@MsgId(id = "0802")
+public class J0802 extends Re {
 
-    private final static Logger log = LoggerFactory.getLogger(J0704.class);
-    private List<JTPositionBaseInfo> positionBaseInfoList = new ArrayList<>();
-    private int type;
+    private final static Logger log = LoggerFactory.getLogger(J0802.class);
+
+    private int respNo;
+    private List<JTMediaDataInfo> mediaDataInfoList;
 
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
+        respNo = buf.readUnsignedShort();
         int length = buf.readUnsignedShort();
-        type = buf.readUnsignedByte();
         for (int i = 0; i < length; i++) {
-            int dateLength = buf.readUnsignedShort();
-            ByteBuf byteBuf = buf.readBytes(dateLength);
-            JTPositionBaseInfo positionInfo = JTPositionBaseInfo.decode(byteBuf);
-            positionBaseInfoList.add(positionInfo);
+            mediaDataInfoList.add(JTMediaDataInfo.decode(buf));
         }
-        log.info("[JT-定位数据批量上传]: 共{}条", positionBaseInfoList.size());
+        log.info("[JT-存储多媒体数据检索应答]: {}", mediaDataInfoList.size());
+        SessionManager.INSTANCE.response(header.getTerminalId(), "0802", (long) respNo, mediaDataInfoList);
         return null;
     }
 

@@ -27,7 +27,7 @@ public class J0500 extends Re {
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
         int respNo = buf.readUnsignedShort();
-        positionInfo = J0200.getPositionInfo(buf);
+        positionInfo = JTPositionBaseInfo.decode(buf);
         log.info("[JT-车辆控制应答]: {}", positionInfo.toString());
         SessionManager.INSTANCE.response(header.getTerminalId(), "0500", (long) respNo, positionInfo);
         return null;

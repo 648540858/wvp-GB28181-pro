@@ -33,7 +33,7 @@ public class J0801 extends Re {
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
         mediaEventInfo = JTMediaEventInfo.decode(buf);
         ByteBuf byteBuf = buf.readSlice(28);
-        positionBaseInfo = J0200.getPositionInfo(byteBuf);
+        positionBaseInfo = JTPositionBaseInfo.decode(byteBuf);
         String fileName = "mediaEvent/" + mediaEventInfo.getId() + ".";
         switch (mediaEventInfo.getCode()){
             case 0:

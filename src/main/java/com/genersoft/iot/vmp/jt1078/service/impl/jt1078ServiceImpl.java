@@ -713,4 +713,11 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j8801.setCommand(shootingCommand);
         return (List<Long>)jt1078Template.shooting(deviceId, j8801, 300);
     }
+
+    @Override
+    public List<JTMediaDataInfo> queryMediaData(String deviceId, JTQueryMediaDataCommand queryMediaDataCommand) {
+        J8802 j8802 = new J8802();
+        j8802.setCommand(queryMediaDataCommand);
+        return (List<JTMediaDataInfo>)jt1078Template.queryMediaData(deviceId, j8802, 300);
+    }
 }

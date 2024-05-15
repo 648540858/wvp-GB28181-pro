@@ -763,5 +763,19 @@ public class JT1078Controller {
             return WVPResult.fail(ErrorCode.ERROR100);
         }
     }
+
+    @Operation(summary = "1078-存储多媒体数据检索", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "param", description = "存储多媒体数据参数", required = true)
+    @PostMapping("/shooting")
+    public WVPResult<List<JTMediaDataInfo>> queryMediaData(@RequestBody QueryMediaDataParam param){
+
+        logger.info("[1078-存储多媒体数据检索] param: {}", param );
+        List<JTMediaDataInfo> ids = service.queryMediaData(param.getDeviceId(), param.getQueryMediaDataCommand());
+        if (ids != null) {
+            return WVPResult.success(ids);
+        }else {
+            return WVPResult.fail(ErrorCode.ERROR100);
+        }
+    }
 }
 

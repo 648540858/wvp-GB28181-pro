@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.jt1078.controller.bean;
 
 import com.genersoft.iot.vmp.jt1078.bean.JTShootingCommand;
 import io.swagger.v3.oas.annotations.media.Schema;
-@Schema(description = "设备")
+@Schema(description = "摄像头立即拍摄命令参数")
 public class ShootingParam {
 
     @Schema(description = "设备")

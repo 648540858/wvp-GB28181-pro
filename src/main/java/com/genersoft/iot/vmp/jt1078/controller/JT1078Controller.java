@@ -766,7 +766,7 @@ public class JT1078Controller {
 
     @Operation(summary = "1078-存储多媒体数据检索", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "param", description = "存储多媒体数据参数", required = true)
-    @PostMapping("/shooting")
+    @PostMapping("/media-data-info")
     public WVPResult<List<JTMediaDataInfo>> queryMediaData(@RequestBody QueryMediaDataParam param){
 
         logger.info("[1078-存储多媒体数据检索] param: {}", param );

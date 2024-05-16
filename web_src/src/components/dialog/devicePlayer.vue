@@ -7,7 +7,7 @@
                  v-if="Object.keys(this.player).length > 1">
           <el-tab-pane label="Jessibuca" name="jessibuca">
             <jessibucaPlayer v-if="activePlayer === 'jessibuca'" ref="jessibuca" :visible.sync="showVideoDialog"
-                             :videoUrl="videoUrl" :error="videoError" :message="videoError" style="height: 515px"
+                             :videoUrl="videoUrl" :error="videoError" :message="videoError" 
                              :hasAudio="hasAudio" fluent autoplay live></jessibucaPlayer>
           </el-tab-pane>
           <el-tab-pane label="WebRTC" name="webRTC">
@@ -19,7 +19,7 @@
         </el-tabs>
         <jessibucaPlayer v-if="Object.keys(this.player).length == 1 && this.player.jessibuca" ref="jessibuca"
                          :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError"
-                         height="100px" :hasAudio="hasAudio" fluent autoplay live></jessibucaPlayer>
+                         :hasAudio="hasAudio" fluent autoplay live></jessibucaPlayer>
         <rtc-player v-if="Object.keys(this.player).length == 1 && this.player.webRTC" ref="jessibuca"
                     :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError"
                     height="100px" :hasAudio="hasAudio" fluent autoplay live></rtc-player>

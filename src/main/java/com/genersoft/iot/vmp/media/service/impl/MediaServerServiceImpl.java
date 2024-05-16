@@ -596,6 +596,16 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
+    public boolean initStopSendRtp(MediaServer mediaInfo, String app, String stream, String ssrc) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaInfo.getType());
+        if (mediaNodeServerService == null) {
+            logger.info("[stopSendRtp] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaInfo.getType());
+            return false;
+        }
+        return mediaNodeServerService.initStopSendRtp(mediaInfo, app, stream, ssrc);
+    }
+
+    @Override
     public boolean deleteRecordDirectory(MediaServer mediaServer, String app, String stream, String date, String fileName) {
         IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {

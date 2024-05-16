@@ -76,6 +76,8 @@ public interface IMediaServerService {
 
     boolean stopSendRtp(MediaServer mediaInfo, String app, String stream, String ssrc);
 
+    boolean initStopSendRtp(MediaServer mediaInfo, String app, String stream, String ssrc);
+
     boolean deleteRecordDirectory(MediaServer mediaServerItem, String app, String stream, String date, String fileName);
 
     List<StreamInfo> getMediaList(MediaServer mediaInfo, String app, String stream, String callId);

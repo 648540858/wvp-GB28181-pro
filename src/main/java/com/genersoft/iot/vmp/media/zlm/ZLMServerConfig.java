@@ -331,6 +331,9 @@ public class ZLMServerConfig extends HookParam {
     @JSONField(name = "shell.shell")
     private String shellPhell;
 
+    @JSONField(name = "transcode.suffix")
+    private String transcodeSuffix;
+
 
     public String getHookIp() {
         return hookIp;
@@ -1210,5 +1213,13 @@ public class ZLMServerConfig extends HookParam {
 
     public void setHookOnRtpServerTimeout(String hookOnRtpServerTimeout) {
         this.hookOnRtpServerTimeout = hookOnRtpServerTimeout;
+    }
+
+    public String getTranscodeSuffix() {
+        return transcodeSuffix;
+    }
+
+    public void setTranscodeSuffix(String transcodeSuffix) {
+        this.transcodeSuffix = transcodeSuffix;
     }
 }

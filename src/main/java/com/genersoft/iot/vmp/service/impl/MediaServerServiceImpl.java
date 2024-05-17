@@ -410,6 +410,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if (serverItem.getRtpProxyPort() == 0) {
             serverItem.setRtpProxyPort(zlmServerConfig.getRtpProxyPort());
         }
+        serverItem.setTranscodeSuffix(zlmServerConfig.getTranscodeSuffix());
         serverItem.setStatus(true);
 
         if (ObjectUtils.isEmpty(serverItem.getId())) {
@@ -423,7 +424,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         redisTemplate.opsForValue().set(key, serverItem);
         resetOnlineServerItem(serverItem);
-
 
         if (serverItem.isAutoConfig()) {
             setZLMConfig(serverItem, "0".equals(zlmServerConfig.getHookEnable()));

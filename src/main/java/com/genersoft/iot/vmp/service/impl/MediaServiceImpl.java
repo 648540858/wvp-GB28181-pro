@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.service.impl;
 
-import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
@@ -90,6 +89,10 @@ public class MediaServiceImpl implements IMediaService {
         streamInfoResult.setApp(app);
         if (addr == null) {
             addr = mediaInfo.getStreamIp();
+        }
+        if (!"broadcast".equalsIgnoreCase(app) && !ObjectUtils.isEmpty(mediaInfo.getTranscodeSuffix()) && !"null".equalsIgnoreCase(mediaInfo.getTranscodeSuffix())) {
+            stream = stream + "_" + mediaInfo.getTranscodeSuffix();
+            streamInfoResult.setStream(stream);
         }
 
         streamInfoResult.setIp(addr);

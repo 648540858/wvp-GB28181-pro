@@ -86,6 +86,9 @@ public class MediaServerItem{
     @Schema(description = "录像存储路径")
     private String recordPath;
 
+    @Schema(description = "转码的前缀")
+    private String transcodeSuffix;
+
     public MediaServerItem() {
     }
 
@@ -108,6 +111,7 @@ public class MediaServerItem{
         rtpEnable = false; // 默认使用单端口;直到用户自己设置开启多端口
         rtpPortRange = zlmServerConfig.getPortRange().replace("_",","); // 默认使用30000,30500作为级联时发送流的端口号
         recordAssistPort = 0; // 默认关闭
+        transcodeSuffix = zlmServerConfig.getTranscodeSuffix();
 
     }
 
@@ -317,5 +321,13 @@ public class MediaServerItem{
 
     public void setRecordPath(String recordPath) {
         this.recordPath = recordPath;
+    }
+
+    public String getTranscodeSuffix() {
+        return transcodeSuffix;
+    }
+
+    public void setTranscodeSuffix(String transcodeSuffix) {
+        this.transcodeSuffix = transcodeSuffix;
     }
 }

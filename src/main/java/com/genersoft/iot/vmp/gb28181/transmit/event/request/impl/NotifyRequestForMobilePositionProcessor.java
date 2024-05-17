@@ -143,8 +143,8 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 					}
 				}
 
-//			logger.info("[收到移动位置订阅通知]：{}/{}->{}.{}, 时间： {}", mobilePosition.getDeviceId(), mobilePosition.getChannelId(),
-//					mobilePosition.getLongitude(), mobilePosition.getLatitude(), System.currentTimeMillis() - startTime);
+			logger.debug("[收到移动位置订阅通知]：{}/{}->{}.{}, 时间： {}", mobilePosition.getDeviceId(), mobilePosition.getChannelId(),
+					mobilePosition.getLongitude(), mobilePosition.getLatitude(), System.currentTimeMillis() - startTime);
 				mobilePosition.setReportSource("Mobile Position");
 
 				mobilePositionService.add(mobilePosition);

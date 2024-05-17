@@ -777,5 +777,19 @@ public class JT1078Controller {
             return WVPResult.fail(ErrorCode.ERROR100);
         }
     }
+
+    @Operation(summary = "1078-存储多媒体数据上传命令", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "param", description = "存储多媒体数据参数", required = true)
+    @PostMapping("/media-data-update")
+    public WVPResult<List<JTMediaDataInfo>> updateMediaData(@RequestBody QueryMediaDataParam param){
+
+        logger.info("[1078-存储多媒体数据上传命令] param: {}", param );
+        List<JTMediaDataInfo> ids = service.updateMediaData(param.getDeviceId(), param.getQueryMediaDataCommand());
+        if (ids != null) {
+            return WVPResult.success(ids);
+        }else {
+            return WVPResult.fail(ErrorCode.ERROR100);
+        }
+    }
 }
 

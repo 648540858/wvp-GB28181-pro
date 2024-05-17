@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEvent;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -35,6 +36,10 @@ public class J0801 extends Re {
         ByteBuf byteBuf = buf.readSlice(28);
         positionBaseInfo = JTPositionBaseInfo.decode(byteBuf);
         String fileName = "mediaEvent/" + mediaEventInfo.getId() + ".";
+        File mediaEventFile = new File("mediaEvent");
+        if (!mediaEventFile.exists()) {
+            mediaEventFile.mkdirs();
+        }
         switch (mediaEventInfo.getCode()){
             case 0:
                 fileName += "jpg";
@@ -54,6 +59,10 @@ public class J0801 extends Re {
         }
         try {
             ByteBuf dst = buf.readBytes(buf.readableBytes());
+            File file = new File(fileName);
+            if (!file.exists()) {
+                file.createNewFile();
+            }
             FileOutputStream fileOutputStream = new FileOutputStream(fileName);
             fileOutputStream.write(dst.array());
             fileOutputStream.close();

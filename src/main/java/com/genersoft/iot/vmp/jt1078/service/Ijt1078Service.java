@@ -99,4 +99,7 @@ public interface Ijt1078Service {
     List<Long> shooting(String deviceId, JTShootingCommand shootingCommand);
 
     List<JTMediaDataInfo> queryMediaData(String deviceId, JTQueryMediaDataCommand queryMediaDataCommand);
+
+    List<JTMediaDataInfo> updateMediaData(String deviceId, JTQueryMediaDataCommand queryMediaDataCommand);
+
 }

@@ -24,6 +24,9 @@ public class JTQueryMediaDataCommand {
     @Schema(description = "结束时间")
     private String endTime;
 
+    @Schema(description = "删除标志, 0:保留；1:删除, 存储多媒体数据上传命令中使用")
+    private Integer delete;
+
 
     public ByteBuf decode() {
         ByteBuf byteBuf = Unpooled.buffer();
@@ -32,6 +35,9 @@ public class JTQueryMediaDataCommand {
         byteBuf.writeByte(event);
         byteBuf.writeBytes(BCDUtil.strToBcd(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime)));
         byteBuf.writeBytes(BCDUtil.strToBcd(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(endTime)));
+        if (delete != null) {
+            byteBuf.writeByte(delete);
+        }
         return byteBuf;
     }
 
@@ -75,6 +81,14 @@ public class JTQueryMediaDataCommand {
         this.endTime = endTime;
     }
 
+    public Integer getDelete() {
+        return delete;
+    }
+
+    public void setDelete(Integer delete) {
+        this.delete = delete;
+    }
+
     @Override
     public String toString() {
         return "JTQueryMediaDataCommand{" +
@@ -83,6 +97,7 @@ public class JTQueryMediaDataCommand {
                 ", event=" + event +
                 ", startTime='" + startTime + '\'' +
                 ", endTime='" + endTime + '\'' +
+                ", delete='" + delete + '\'' +
                 '}';
     }
 }

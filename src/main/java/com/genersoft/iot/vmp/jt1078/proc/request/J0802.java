@@ -17,6 +17,7 @@ import org.springframework.context.ApplicationEvent;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -35,6 +36,12 @@ public class J0802 extends Re {
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
         respNo = buf.readUnsignedShort();
         int length = buf.readUnsignedShort();
+        if (length == 0) {
+            log.info("[JT-存储多媒体数据检索应答]: {}", length);
+            SessionManager.INSTANCE.response(header.getTerminalId(), "0802", (long) respNo, new ArrayList<>());
+            return null;
+        }
+        mediaDataInfoList = new ArrayList<>(length);
         for (int i = 0; i < length; i++) {
             mediaDataInfoList.add(JTMediaDataInfo.decode(buf));
         }

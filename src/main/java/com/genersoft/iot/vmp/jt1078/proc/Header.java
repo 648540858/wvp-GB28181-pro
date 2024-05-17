@@ -74,4 +74,14 @@ public class Header {
         return Bin.get(msgPro, 14);
     }
 
+    @Override
+    public String toString() {
+        return "Header{" +
+                "消息ID='" + msgId + '\'' +
+                ", 消息体属性=" + msgPro +
+                ", 终端手机号='" + terminalId + '\'' +
+                ", 消息体流水号=" + sn +
+                ", 协议版本号=" + version +
+                '}';
+    }
 }

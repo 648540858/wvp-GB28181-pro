@@ -82,4 +82,13 @@ public class MultiPacket {
     public void setByteBuf(ByteBuf byteBuf) {
         this.byteBuf = byteBuf;
     }
+
+    @Override
+    public String toString() {
+        return "MultiPacket{" +
+                "消息头=" + header +
+                ", 包序号=" + number +
+                ", 分包数量=" + count +
+                '}';
+    }
 }

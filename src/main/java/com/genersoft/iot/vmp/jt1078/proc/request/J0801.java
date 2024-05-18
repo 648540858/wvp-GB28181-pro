@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.jt1078.proc.response.J8001;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
+import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,7 @@ public class J0801 extends Re {
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
         mediaEventInfo = JTMediaEventInfo.decode(buf);
+        System.out.println(mediaEventInfo.getId());
         ByteBuf byteBuf = buf.readSlice(28);
         positionBaseInfo = JTPositionBaseInfo.decode(byteBuf);
         String fileName = "mediaEvent/" + mediaEventInfo.getId() + ".";
@@ -58,18 +60,19 @@ public class J0801 extends Re {
                 break;
         }
         try {
-            ByteBuf dst = buf.readBytes(buf.readableBytes());
             File file = new File(fileName);
-            if (!file.exists()) {
-                file.createNewFile();
-            }
-            FileOutputStream fileOutputStream = new FileOutputStream(fileName);
-            fileOutputStream.write(dst.array());
+            file.deleteOnExit();
+            file.createNewFile();
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+            byte[] bytes = new byte[buf.readableBytes()];
+            buf.readBytes(bytes);
+            fileOutputStream.write(bytes);
             fileOutputStream.close();
         } catch (IOException e) {
             log.info("[JT-多媒体数据上传] 写入文件失败", e);
         }
         log.info("[JT-多媒体数据上传]: {}", mediaEventInfo);
+//        SessionManager.INSTANCE.response(header.getTerminalId(), "0801", null, mediaEventInfo);
         return null;
     }
 

@@ -64,6 +64,7 @@ public class JT1078Template {
     private static final String H0500 = "0500";
     private static final String H0608 = "0608";
     private static final String H0702 = "0702";
+    private static final String H0801 = "0801";
     private static final String H0802 = "0802";
     private static final String H0805 = "0805";
     private static final String H1205 = "1205";
@@ -595,12 +596,12 @@ public class JT1078Template {
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }
 
-    public Object updateMediaData(String devId, J8803 j8803, int timeOut) {
+    public Object uploadMediaData(String devId, J8803 j8803, int timeOut) {
         Cmd cmd = new Cmd.Builder()
                 .setDevId(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8803)
-                .setRespId(H0802)
+                .setRespId(H0801)
                 .setRs(j8803)
                 .build();
         return SessionManager.INSTANCE.request(cmd, timeOut);

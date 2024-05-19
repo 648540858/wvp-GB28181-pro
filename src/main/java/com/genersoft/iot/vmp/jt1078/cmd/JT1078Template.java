@@ -44,6 +44,7 @@ public class JT1078Template {
     private static final String H8802 = "8802";
     private static final String H8803 = "8803";
     private static final String H8804 = "8804";
+    private static final String H8805 = "8805";
     private static final String H9101 = "9101";
     private static final String H9102 = "9102";
     private static final String H9201 = "9201";
@@ -615,6 +616,17 @@ public class JT1078Template {
                 .setMsgId(H8804)
                 .setRespId(H0001)
                 .setRs(j8804)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    public Object uploadMediaDataForSingle(String devId, J8805 j8805, int timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H8805)
+                .setRespId(H0801)
+                .setRs(j8805)
                 .build();
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }

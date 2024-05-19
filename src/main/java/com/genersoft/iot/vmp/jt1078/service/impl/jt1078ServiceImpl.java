@@ -736,4 +736,12 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j8804.setSamplingRate(samplingRate);
         jt1078Template.record(deviceId, j8804, 10);
     }
+
+    @Override
+    public void uploadMediaDataForSingle(String deviceId, Long mediaId, Integer delete) {
+        J8805 j8805 = new J8805();
+        j8805.setMediaId(mediaId);
+        j8805.setDelete(delete);
+        jt1078Template.uploadMediaDataForSingle(deviceId, j8805, 10);
+    }
 }

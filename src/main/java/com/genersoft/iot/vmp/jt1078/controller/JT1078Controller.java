@@ -808,7 +808,15 @@ public class JT1078Controller {
             fail.setData(resultList);
             deferredResult.setResult(fail);
         });
-        List<JTMediaDataInfo> ids = service.queryMediaData(param.getDeviceId(), param.getQueryMediaDataCommand());
+        List<JTMediaDataInfo> ids;
+        if (param.getMediaId() != null) {
+            ids = new ArrayList<>();
+            JTMediaDataInfo mediaDataInfo = new JTMediaDataInfo();
+            mediaDataInfo.setId(param.getMediaId());
+            ids.add(mediaDataInfo);
+        }else {
+            ids = service.queryMediaData(param.getDeviceId(), param.getQueryMediaDataCommand());
+        }
         if (ids.isEmpty()) {
             deferredResult.setResult(WVPResult.fail(ErrorCode.ERROR100));
             return deferredResult;
@@ -840,7 +848,12 @@ public class JT1078Controller {
             return deferredResult;
         }
         taskExecutor.execute(()->{
-            service.uploadMediaData(param.getDeviceId(), param.getQueryMediaDataCommand());
+            if (param.getMediaId() != null) {
+                service.uploadMediaDataForSingle(param.getDeviceId(), param.getMediaId(), param.getDelete());
+            }else {
+                service.uploadMediaData(param.getDeviceId(), param.getQueryMediaDataCommand());
+            }
+
         });
         return deferredResult;
     }

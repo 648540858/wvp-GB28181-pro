@@ -721,9 +721,9 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public List<JTMediaEventInfo> uploadMediaData(String deviceId, JTQueryMediaDataCommand queryMediaDataCommand) {
+    public void uploadMediaData(String deviceId, JTQueryMediaDataCommand queryMediaDataCommand) {
         J8803 j8803 = new J8803();
         j8803.setCommand(queryMediaDataCommand);
-        return (List<JTMediaEventInfo>)jt1078Template.uploadMediaData(deviceId, j8803, 300);
+        jt1078Template.uploadMediaData(deviceId, j8803, 10);
     }
 }

@@ -15,19 +15,29 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.io.monitor.FileAlterationListener;
+import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
+import org.apache.commons.io.monitor.FileAlterationMonitor;
+import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @ConditionalOnProperty(value = "jt1078.enable", havingValue = "true")
@@ -43,6 +53,10 @@ public class JT1078Controller {
 
     @Autowired
     UserSetting userSetting;
+
+    @Qualifier("taskExecutor")
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor;
 
     @Operation(summary = "1078-开始点播", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
@@ -781,15 +795,54 @@ public class JT1078Controller {
     @Operation(summary = "1078-存储多媒体数据上传命令", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "param", description = "存储多媒体数据参数", required = true)
     @PostMapping("/media-data-upload")
-    public WVPResult<List<JTMediaEventInfo>> updateMediaData(@RequestBody QueryMediaDataParam param){
+    public DeferredResult<WVPResult<List<String>>> updateMediaData(@RequestBody QueryMediaDataParam param){
 
         logger.info("[1078-存储多媒体数据上传命令] param: {}", param );
-        List<JTMediaEventInfo> ids = service.uploadMediaData(param.getDeviceId(), param.getQueryMediaDataCommand());
-        if (ids != null) {
-            return WVPResult.success(ids);
-        }else {
-            return WVPResult.fail(ErrorCode.ERROR100);
+        DeferredResult<WVPResult<List<String>>> deferredResult = new DeferredResult<>(30000L);
+        List<String> resultList = new ArrayList<>();
+
+        deferredResult.onTimeout(()->{
+            logger.info("[1078-存储多媒体数据上传命令超时] param: {}", param );
+            WVPResult<List<String>> fail = WVPResult.fail(ErrorCode.ERROR100);
+            fail.setMsg("超时");
+            fail.setData(resultList);
+            deferredResult.setResult(fail);
+        });
+        List<JTMediaDataInfo> ids = service.queryMediaData(param.getDeviceId(), param.getQueryMediaDataCommand());
+        if (ids.isEmpty()) {
+            deferredResult.setResult(WVPResult.fail(ErrorCode.ERROR100));
+            return deferredResult;
         }
+        Map<String, JTMediaDataInfo> idMap= new HashMap<>();
+        for (JTMediaDataInfo mediaDataInfo : ids) {
+            idMap.put(mediaDataInfo.getId() + ".jpg", mediaDataInfo);
+        }
+        // 开启文件监听
+        FileAlterationObserver observer = new FileAlterationObserver(new File("mediaEvent"));
+        observer.addListener(new FileAlterationListenerAdaptor() {
+            @Override
+            public void onFileCreate(File file) {
+               if (idMap.containsKey(file.getName())) {
+                   idMap.remove(file.getName());
+                   resultList.add("mediaEvent" + File.separator + file.getName());
+                   if (idMap.isEmpty()) {
+                       deferredResult.setResult(WVPResult.success(resultList));
+                   }
+               }
+            }
+        });
+        FileAlterationMonitor monitor = new FileAlterationMonitor(5, observer);
+        try {
+            monitor.start();
+        } catch (Exception e) {
+            logger.info("[1078-存储多媒体数据上传命令监听文件失败] param: {}", param );
+            deferredResult.setResult(null);
+            return deferredResult;
+        }
+        taskExecutor.execute(()->{
+            service.uploadMediaData(param.getDeviceId(), param.getQueryMediaDataCommand());
+        });
+        return deferredResult;
     }
 }
 

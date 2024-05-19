@@ -100,6 +100,6 @@ public interface Ijt1078Service {
 
     List<JTMediaDataInfo> queryMediaData(String deviceId, JTQueryMediaDataCommand queryMediaDataCommand);
 
-    List<JTMediaEventInfo> uploadMediaData(String deviceId, JTQueryMediaDataCommand queryMediaDataCommand);
+    void uploadMediaData(String deviceId, JTQueryMediaDataCommand queryMediaDataCommand);
 
 }

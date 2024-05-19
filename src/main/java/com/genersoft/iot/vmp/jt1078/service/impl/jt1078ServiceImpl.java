@@ -726,4 +726,14 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j8803.setCommand(queryMediaDataCommand);
         jt1078Template.uploadMediaData(deviceId, j8803, 10);
     }
+
+    @Override
+    public void record(String deviceId, int command, Integer time, Integer save, Integer samplingRate) {
+        J8804 j8804 = new J8804();
+        j8804.setCommond(command);
+        j8804.setDuration(time);
+        j8804.setSave(save);
+        j8804.setSamplingRate(samplingRate);
+        jt1078Template.record(deviceId, j8804, 10);
+    }
 }

@@ -844,5 +844,53 @@ public class JT1078Controller {
         });
         return deferredResult;
     }
+
+    @Operation(summary = "1078-开始录音", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "time", description = "录音时间，单位为秒(s) ,0 表示一直录音", required = false)
+    @Parameter(name = "save", description = "0:实时上传；1:保存", required = false)
+    @Parameter(name = "samplingRate", description = "音频采样率， 0:8K；1:11K；2:23K；3:32K", required = false)
+    @GetMapping("/record/start")
+    public void startRecord(HttpServletRequest request,
+                         @Parameter(required = true) String deviceId,
+                         @Parameter(required = false) Integer time,
+                         @Parameter(required = false) Integer save,
+                         @Parameter(required = false) Integer samplingRate
+                            ) {
+        if (ObjectUtils.isEmpty(time)) {
+            time = 0;
+        }
+        if (ObjectUtils.isEmpty(save)) {
+            save = 0;
+        }
+        if (ObjectUtils.isEmpty(samplingRate)) {
+            samplingRate = 0;
+        }
+        service.record(deviceId, 1, time, save, samplingRate);
+    }
+
+    @Operation(summary = "1078-停止录音", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "time", description = "录音时间，单位为秒(s) ,0 表示一直录音", required = false)
+    @Parameter(name = "save", description = "0:实时上传；1:保存", required = false)
+    @Parameter(name = "samplingRate", description = "音频采样率， 0:8K；1:11K；2:23K；3:32K", required = false)
+    @GetMapping("/record/stop")
+    public void stopRecord(HttpServletRequest request,
+                            @Parameter(required = true) String deviceId,
+                            @Parameter(required = false) Integer time,
+                            @Parameter(required = false) Integer save,
+                            @Parameter(required = false) Integer samplingRate
+    ) {
+        if (ObjectUtils.isEmpty(time)) {
+            time = 0;
+        }
+        if (ObjectUtils.isEmpty(save)) {
+            save = 0;
+        }
+        if (ObjectUtils.isEmpty(samplingRate)) {
+            samplingRate = 0;
+        }
+        service.record(deviceId, 0, time, save, samplingRate);
+    }
 }
 

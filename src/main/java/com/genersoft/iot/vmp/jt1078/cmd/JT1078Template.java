@@ -43,6 +43,7 @@ public class JT1078Template {
     private static final String H8801 = "8801";
     private static final String H8802 = "8802";
     private static final String H8803 = "8803";
+    private static final String H8804 = "8804";
     private static final String H9101 = "9101";
     private static final String H9102 = "9102";
     private static final String H9201 = "9201";
@@ -603,6 +604,17 @@ public class JT1078Template {
                 .setMsgId(H8803)
                 .setRespId(H0801)
                 .setRs(j8803)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    public Object record(String devId, J8804 j8804, int timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H8804)
+                .setRespId(H0001)
+                .setRs(j8804)
                 .build();
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }

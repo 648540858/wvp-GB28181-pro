@@ -102,4 +102,5 @@ public interface Ijt1078Service {
 
     void uploadMediaData(String deviceId, JTQueryMediaDataCommand queryMediaDataCommand);
 
+    void record(String deviceId, int command, Integer time, Integer save, Integer samplingRate);
 }

@@ -92,7 +92,7 @@ public class MediaServiceImpl implements IMediaService {
         }
         if (!"broadcast".equalsIgnoreCase(app) && !ObjectUtils.isEmpty(mediaInfo.getTranscodeSuffix()) && !"null".equalsIgnoreCase(mediaInfo.getTranscodeSuffix())) {
             stream = stream + "_" + mediaInfo.getTranscodeSuffix();
-            streamInfoResult.setStream(stream);
+//            streamInfoResult.setStream(stream);
         }
 
         streamInfoResult.setIp(addr);

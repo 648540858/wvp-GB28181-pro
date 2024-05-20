@@ -351,6 +351,11 @@ public class ZLMHttpHookListener {
                 logger.info("[ZLM HOOK] 流变化未找到ZLM, {}", param.getMediaServerId());
                 return;
             }
+            if (!ObjectUtils.isEmpty(mediaInfo.getTranscodeSuffix())
+                    && !"null".equalsIgnoreCase(mediaInfo.getTranscodeSuffix())
+                    && param.getStream().endsWith(mediaInfo.getTranscodeSuffix())  ) {
+                return;
+            }
             if (subscribe != null) {
                 subscribe.response(mediaInfo, param);
             }
@@ -563,6 +568,19 @@ public class ZLMHttpHookListener {
 
         logger.info("[ZLM HOOK]流无人观看：{}->{}->{}/{}", param.getMediaServerId(), param.getSchema(),
                 param.getApp(), param.getStream());
+
+        MediaServerItem mediaInfo = mediaServerService.getOne(param.getMediaServerId());
+        if (mediaInfo == null) {
+            JSONObject ret = new JSONObject();
+            ret.put("code", 0);
+            return ret;
+        }
+        if (!ObjectUtils.isEmpty(mediaInfo.getTranscodeSuffix())
+                && !"null".equalsIgnoreCase(mediaInfo.getTranscodeSuffix())
+                && param.getStream().endsWith(mediaInfo.getTranscodeSuffix())  ) {
+            param.setStream(param.getStream().substring(0, param.getStream().lastIndexOf(mediaInfo.getTranscodeSuffix()) -1 ));
+        }
+
         JSONObject ret = new JSONObject();
         ret.put("code", 0);
         // 国标类型的流

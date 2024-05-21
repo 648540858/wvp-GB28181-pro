@@ -930,6 +930,22 @@ public class JTDeviceConfig {
         this.canUploadIntervalForChannel2 = canUploadIntervalForChannel2;
     }
 
+    public VideoParam getVideoParam() {
+        return videoParam;
+    }
+
+    public void setVideoParam(VideoParam videoParam) {
+        this.videoParam = videoParam;
+    }
+
+    public ChannelListParam getChannelListParam() {
+        return channelListParam;
+    }
+
+    public void setChannelListParam(ChannelListParam channelListParam) {
+        this.channelListParam = channelListParam;
+    }
+
     @Override
     public String toString() {
         return "JTDeviceConfig{" +

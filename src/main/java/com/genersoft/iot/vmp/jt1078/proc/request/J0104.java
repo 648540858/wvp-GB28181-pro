@@ -131,6 +131,11 @@ public class J0104 extends Re {
                         Method methodForVideoParam = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), VideoParam.class);
                         methodForVideoParam.invoke(deviceConfig, videoParam);
                         continue;
+                    case "ChannelListParam":
+                        ChannelListParam channelListParam = ChannelListParam.decode(buf);
+                        Method methodForChannelListParam = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), ChannelListParam.class);
+                        methodForChannelListParam.invoke(deviceConfig, channelListParam);
+                        continue;
                     default:
                             System.err.println(field.getGenericType().getTypeName());
                         continue;

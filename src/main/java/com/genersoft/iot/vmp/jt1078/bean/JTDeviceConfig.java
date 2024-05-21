@@ -1,10 +1,7 @@
 package com.genersoft.iot.vmp.jt1078.bean;
 
 import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
-import com.genersoft.iot.vmp.jt1078.bean.config.CollisionAlarmParams;
-import com.genersoft.iot.vmp.jt1078.bean.config.GnssPositioningMode;
-import com.genersoft.iot.vmp.jt1078.bean.config.IllegalDrivingPeriods;
-import com.genersoft.iot.vmp.jt1078.bean.config.CameraTimer;
+import com.genersoft.iot.vmp.jt1078.bean.config.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -213,6 +210,12 @@ public class JTDeviceConfig {
 
     @ConfigAttribute(id = 0x74, type="Long", description = "色度，设置范围为0 ~ 255")
     private Long chroma;
+
+    @ConfigAttribute(id = 0x75, type="VideoParam", description = "音视频参数设置")
+    private VideoParam videoParam;
+
+    @ConfigAttribute(id = 0x76, type="ChannelListParam", description = "音视频通道列表设置")
+    private ChannelListParam channelListParam;
 
     @ConfigAttribute(id = 0x80, type="Long", description = "车辆里程表读数，单位'1/10km")
     private Long mileage;

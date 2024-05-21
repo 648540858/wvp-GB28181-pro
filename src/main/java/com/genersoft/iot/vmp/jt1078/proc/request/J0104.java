@@ -5,10 +5,7 @@ import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
 import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConfig;
 import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
-import com.genersoft.iot.vmp.jt1078.bean.config.CameraTimer;
-import com.genersoft.iot.vmp.jt1078.bean.config.CollisionAlarmParams;
-import com.genersoft.iot.vmp.jt1078.bean.config.GnssPositioningMode;
-import com.genersoft.iot.vmp.jt1078.bean.config.IllegalDrivingPeriods;
+import com.genersoft.iot.vmp.jt1078.bean.config.*;
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import com.genersoft.iot.vmp.jt1078.proc.response.J8001;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
@@ -128,6 +125,11 @@ public class J0104 extends Re {
                         gnssPositioningMode.setGaLiLeo((gnssPositioningModeContent >>> 3 & 1) == 1);
                         Method methodForGnssPositioningMode = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), GnssPositioningMode.class);
                         methodForGnssPositioningMode.invoke(deviceConfig, gnssPositioningMode);
+                        continue;
+                    case "VideoParam":
+                        VideoParam videoParam = VideoParam.decode(buf);
+                        Method methodForVideoParam = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), VideoParam.class);
+                        methodForVideoParam.invoke(deviceConfig, videoParam);
                         continue;
                     default:
                             System.err.println(field.getGenericType().getTypeName());

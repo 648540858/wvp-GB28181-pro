@@ -1,5 +1,8 @@
 package com.genersoft.iot.vmp.jt1078.bean.config;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+
 /**
  * GNSS 定位模式
  */
@@ -55,7 +58,8 @@ public class GnssPositioningMode implements JTDeviceSubConfig{
     }
 
     @Override
-    public byte[] encode() {
+    public ByteBuf encode() {
+        ByteBuf byteBuf = Unpooled.buffer();
         byte[] bytes = new byte[1];
         bytes[0] = 0;
         if (gps) {
@@ -70,6 +74,7 @@ public class GnssPositioningMode implements JTDeviceSubConfig{
         if (gaLiLeo) {
             bytes[0] = (byte)(bytes[0] | 8);
         }
-        return bytes;
+        byteBuf.writeBytes(bytes);
+        return byteBuf;
     }
 }

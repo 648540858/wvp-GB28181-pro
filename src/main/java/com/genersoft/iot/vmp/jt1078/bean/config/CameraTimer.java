@@ -1,5 +1,8 @@
 package com.genersoft.iot.vmp.jt1078.bean.config;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+
 /**
  * 定时拍照控制
  */
@@ -157,7 +160,8 @@ public class CameraTimer implements JTDeviceSubConfig{
     }
 
     @Override
-    public byte[] encode() {
+    public ByteBuf encode() {
+        ByteBuf byteBuf = Unpooled.buffer();
         byte[] bytes = new byte[4];
         bytes[0] = 0;
         if (switchForChannel1) {
@@ -195,6 +199,7 @@ public class CameraTimer implements JTDeviceSubConfig{
         if (timeUnit) {
             bytes[3] = (byte)(bytes[3] | 1);
         }
-        return bytes;
+        byteBuf.writeBytes(bytes);
+        return byteBuf;
     }
 }

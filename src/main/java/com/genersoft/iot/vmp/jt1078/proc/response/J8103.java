@@ -88,10 +88,11 @@ public class J8103 extends Rs {
                         case "CollisionAlarmParams":
                         case "CameraTimer":
                         case "GnssPositioningMode":
+                        case "VideoParam":
                             field.setAccessible(true);
                             JTDeviceSubConfig subConfig = (JTDeviceSubConfig)field.get(config);
-                            byte[] bytesForIllegalDrivingPeriods = subConfig.encode();
-                            buffer.writeByte(bytesForIllegalDrivingPeriods.length);
+                            ByteBuf bytesForIllegalDrivingPeriods = subConfig.encode();
+                            buffer.writeByte(bytesForIllegalDrivingPeriods.readableBytes());
                             buffer.writeBytes(bytesForIllegalDrivingPeriods);
                             continue;
                     }

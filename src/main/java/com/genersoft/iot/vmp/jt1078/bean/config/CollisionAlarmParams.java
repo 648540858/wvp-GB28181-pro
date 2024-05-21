@@ -1,5 +1,8 @@
 package com.genersoft.iot.vmp.jt1078.bean.config;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+
 /**
  * 碰撞报警参数设置
  */
@@ -32,10 +35,12 @@ public class CollisionAlarmParams implements JTDeviceSubConfig{
     }
 
     @Override
-    public byte[] encode() {
+    public ByteBuf encode() {
+        ByteBuf byteBuf = Unpooled.buffer();
         byte[] bytes = new byte[2];
         bytes[0] = (byte) (collisionAlarmTime & 0xff);
         bytes[1] = (byte) (collisionAcceleration & 0xff);
-        return bytes;
+        byteBuf.writeBytes(bytes);
+        return byteBuf;
     }
 }

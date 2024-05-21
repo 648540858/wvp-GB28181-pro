@@ -1,5 +1,8 @@
 package com.genersoft.iot.vmp.jt1078.bean.config;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+
 /**
  * 违规行驶时段范围 ,精确到分
  */
@@ -31,7 +34,8 @@ public class IllegalDrivingPeriods implements JTDeviceSubConfig{
     }
 
     @Override
-    public byte[] encode() {
+    public ByteBuf encode() {
+        ByteBuf byteBuf = Unpooled.buffer();
         byte[] bytes = new byte[4];
         String[] startTimeArray = startTime.split(":");
         String[] endTimeArray = endTime.split(":");
@@ -39,6 +43,7 @@ public class IllegalDrivingPeriods implements JTDeviceSubConfig{
         bytes[1] = (byte)Integer.parseInt(startTimeArray[1]);
         bytes[2] = (byte)Integer.parseInt(endTimeArray[0]);
         bytes[3] = (byte)Integer.parseInt(endTimeArray[1]);
-        return bytes;
+        byteBuf.writeBytes(bytes);
+        return byteBuf;
     }
 }

@@ -217,6 +217,15 @@ public class JTDeviceConfig {
     @ConfigAttribute(id = 0x76, type="ChannelListParam", description = "音视频通道列表设置")
     private ChannelListParam channelListParam;
 
+    @ConfigAttribute(id = 0x77, type="ChannelParam", description = "音视频通道列表设置")
+    private ChannelParam channelParam;
+
+    @ConfigAttribute(id = 0x79, type="AlarmRecordingParam", description = "特殊报警录像参数设置")
+    private AlarmRecordingParam alarmRecordingParam;
+
+    @ConfigAttribute(id = 0x79, type="VideoAlarmBit", description = "视频相关报警屏蔽字")
+    private VideoAlarmBit videoAlarmBit;
+
     @ConfigAttribute(id = 0x80, type="Long", description = "车辆里程表读数，单位'1/10km")
     private Long mileage;
 
@@ -944,6 +953,22 @@ public class JTDeviceConfig {
 
     public void setChannelListParam(ChannelListParam channelListParam) {
         this.channelListParam = channelListParam;
+    }
+
+    public ChannelParam getChannelParam() {
+        return channelParam;
+    }
+
+    public void setChannelParam(ChannelParam channelParam) {
+        this.channelParam = channelParam;
+    }
+
+    public AlarmRecordingParam getAlarmRecordingParam() {
+        return alarmRecordingParam;
+    }
+
+    public void setAlarmRecordingParam(AlarmRecordingParam alarmRecordingParam) {
+        this.alarmRecordingParam = alarmRecordingParam;
     }
 
     @Override

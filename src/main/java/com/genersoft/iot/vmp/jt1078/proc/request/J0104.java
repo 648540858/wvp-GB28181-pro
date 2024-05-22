@@ -135,6 +135,20 @@ public class J0104 extends Re {
                         ChannelListParam channelListParam = ChannelListParam.decode(buf);
                         Method methodForChannelListParam = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), ChannelListParam.class);
                         methodForChannelListParam.invoke(deviceConfig, channelListParam);
+                    case "ChannelParam":
+                        ChannelParam channelParam = ChannelParam.decode(buf);
+                        Method methodForChannelParam = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), ChannelParam.class);
+                        methodForChannelParam.invoke(deviceConfig, channelParam);
+                        continue;
+                    case "alarmRecordingParam":
+                        AlarmRecordingParam alarmRecordingParam = AlarmRecordingParam.decode(buf);
+                        Method methodForAlarmRecordingParam = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), AlarmRecordingParam.class);
+                        methodForAlarmRecordingParam.invoke(deviceConfig, alarmRecordingParam);
+                        continue;
+                    case "VideoAlarmBit":
+                        VideoAlarmBit videoAlarmBit = VideoAlarmBit.decode(buf);
+                        Method methodForVideoAlarmBit = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), VideoAlarmBit.class);
+                        methodForVideoAlarmBit.invoke(deviceConfig, videoAlarmBit);
                         continue;
                     default:
                             System.err.println(field.getGenericType().getTypeName());

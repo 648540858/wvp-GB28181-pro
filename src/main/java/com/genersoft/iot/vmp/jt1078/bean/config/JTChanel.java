@@ -11,7 +11,7 @@ import java.util.Stack;
 public class JTChanel implements JTDeviceSubConfig{
 
     /**
-     * 物理通道号
+     * 物理通道号 单独
      */
     private int physicalChannelId;
 

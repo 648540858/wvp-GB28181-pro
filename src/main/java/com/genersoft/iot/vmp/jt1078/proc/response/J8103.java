@@ -90,6 +90,10 @@ public class J8103 extends Rs {
                         case "GnssPositioningMode":
                         case "VideoParam":
                         case "ChannelListParam":
+                        case "ChannelParam":
+                        case "AlarmRecordingParam":
+                        case "AlarmShielding":
+                        case "VideoAlarmBit":
                             field.setAccessible(true);
                             JTDeviceSubConfig subConfig = (JTDeviceSubConfig)field.get(config);
                             ByteBuf bytesForIllegalDrivingPeriods = subConfig.encode();

@@ -166,6 +166,7 @@ create table wvp_media_server (
                                   hook_alive_interval integer,
                                   record_path character varying(255),
                                   record_day integer default 7,
+                                  transcode_suffix character varying(255),
                                   constraint uk_media_server_unique_ip_http_port unique (ip, http_port)
 );
 

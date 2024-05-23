@@ -29,6 +29,7 @@ import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.utils.MediaServerUtils;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.OtherPsSendInfo;
 import com.genersoft.iot.vmp.vmanager.bean.OtherRtpSendInfo;
@@ -47,7 +48,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -179,7 +179,7 @@ public class ZLMHttpHookListener {
             }
         });
         if (!"rtp".equals(param.getApp())) {
-            Map<String, String> paramMap = urlParamToMap(param.getParams());
+            Map<String, String> paramMap = MediaServerUtils.urlParamToMap(param.getParams());
             StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(param.getApp(), param.getStream());
             if (streamAuthorityInfo != null && streamAuthorityInfo.getCallId() != null && !streamAuthorityInfo.getCallId().equals(paramMap.get("callId"))) {
                 return new HookResult(401, "Unauthorized");
@@ -220,7 +220,7 @@ public class ZLMHttpHookListener {
                     logger.info("推流鉴权失败： 缺少必要参数：sign=md5(user表的pushKey)");
                     return new HookResultForOnPublish(401, "Unauthorized");
                 }
-                Map<String, String> paramMap = urlParamToMap(param.getParams());
+                Map<String, String> paramMap = MediaServerUtils.urlParamToMap(param.getParams());
                 String sign = paramMap.get("sign");
                 if (sign == null) {
                     logger.info("推流鉴权失败： 缺少必要参数：sign=md5(user表的pushKey)");
@@ -898,23 +898,5 @@ public class ZLMHttpHookListener {
         });
 
         return HookResult.SUCCESS();
-    }
-
-    private Map<String, String> urlParamToMap(String params) {
-        HashMap<String, String> map = new HashMap<>();
-        if (ObjectUtils.isEmpty(params)) {
-            return map;
-        }
-        String[] paramsArray = params.split("&");
-        if (paramsArray.length == 0) {
-            return map;
-        }
-        for (String param : paramsArray) {
-            String[] paramArray = param.split("=");
-            if (paramArray.length == 2) {
-                map.put(paramArray[0], paramArray[1]);
-            }
-        }
-        return map;
     }
 }

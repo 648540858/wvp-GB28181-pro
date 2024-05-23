@@ -7,7 +7,6 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRecordMp4HookParam;
 import com.genersoft.iot.vmp.service.ICloudRecordService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
@@ -26,8 +25,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.*;
-import java.util.*;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Service
 @DS("share")
@@ -102,11 +105,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     @Override
     public void addRecord(OnRecordMp4HookParam param) {
         CloudRecordItem cloudRecordItem = CloudRecordItem.getInstance(param);
-        StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(param.getApp(), param.getStream());
-        if (streamAuthorityInfo != null) {
-            cloudRecordItem.setCallId(streamAuthorityInfo.getCallId());
-        }
-        logger.info("[添加录像记录] {}/{} 文件大小：{}, 时长： {}秒", param.getApp(), param.getStream(), param.getFile_size(),param.getTime_len());
+        logger.info("[添加录像记录] {}/{}, callId: {}, 文件大小：{}, 时长： {}秒", param.getApp(), param.getStream(),cloudRecordItem.getCallId(), param.getFile_size(),param.getTime_len());
         cloudRecordServiceMapper.add(cloudRecordItem);
     }
 

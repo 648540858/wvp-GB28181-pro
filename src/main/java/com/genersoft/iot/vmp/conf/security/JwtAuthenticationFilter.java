@@ -35,10 +35,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // 忽略登录请求的token验证
         String requestURI = request.getRequestURI();
+        System.out.println(requestURI);
+        if ((requestURI.startsWith("/doc.html") || requestURI.startsWith("/swagger-ui") ) && !userSetting.getDocEnable()) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
         if (requestURI.equalsIgnoreCase("/api/user/login")) {
             chain.doFilter(request, response);
             return;
         }
+
         if (!userSetting.isInterfaceAuthentication()) {
             UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(null, null, new ArrayList<>() );
             SecurityContextHolder.getContext().setAuthentication(token);

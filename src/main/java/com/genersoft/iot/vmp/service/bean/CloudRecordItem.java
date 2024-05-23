@@ -1,6 +1,9 @@
 package com.genersoft.iot.vmp.service.bean;
 
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRecordMp4HookParam;
+import com.genersoft.iot.vmp.utils.MediaServerUtils;
+
+import java.util.Map;
 
 /**
  * 云端录像数据
@@ -88,6 +91,10 @@ public class CloudRecordItem {
         cloudRecordItem.setMediaServerId(param.getMediaServerId());
         cloudRecordItem.setTimeLen((long) param.getTime_len() * 1000);
         cloudRecordItem.setEndTime((param.getStart_time() + (long)param.getTime_len()) * 1000);
+        Map<String, String> paramsMap = MediaServerUtils.urlParamToMap(param.getParams());
+        if (paramsMap.get("callId") != null) {
+            cloudRecordItem.setCallId(paramsMap.get("callId"));
+        }
         return cloudRecordItem;
     }
 

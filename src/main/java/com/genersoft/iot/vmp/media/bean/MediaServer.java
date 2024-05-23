@@ -100,6 +100,9 @@ public class MediaServer {
     @Schema(description = "类型： zlm/abl")
     private String type;
 
+    @Schema(description = "转码的前缀")
+    private String transcodeSuffix;
+
     public MediaServer() {
     }
 
@@ -126,6 +129,7 @@ public class MediaServer {
         rtpEnable = false; // 默认使用单端口;直到用户自己设置开启多端口
         rtpPortRange = zlmServerConfig.getPortRange().replace("_",","); // 默认使用30000,30500作为级联时发送流的端口号
         recordAssistPort = 0; // 默认关闭
+        transcodeSuffix = zlmServerConfig.getTranscodeSuffix();
 
     }
 
@@ -375,5 +379,13 @@ public class MediaServer {
 
     public void setWsFlvSSLPort(int wsFlvSSLPort) {
         this.wsFlvSSLPort = wsFlvSSLPort;
+    }
+
+    public String getTranscodeSuffix() {
+        return transcodeSuffix;
+    }
+
+    public void setTranscodeSuffix(String transcodeSuffix) {
+        this.transcodeSuffix = transcodeSuffix;
     }
 }

@@ -41,6 +41,7 @@ public interface MediaServerMapper {
             "type,"+
             "create_time,"+
             "update_time,"+
+            "transcode_suffix,"+
             "hook_alive_interval"+
             ") VALUES " +
             "(" +
@@ -72,6 +73,7 @@ public interface MediaServerMapper {
             "#{type}, " +
             "#{createTime}, " +
             "#{updateTime}, " +
+            "#{transcodeSuffix}, " +
             "#{hookAliveInterval})")
     int add(MediaServer mediaServerItem);
 
@@ -102,6 +104,7 @@ public interface MediaServerMapper {
             "<if test=\"hookAliveInterval != null\">, hook_alive_interval=#{hookAliveInterval}</if>" +
             "<if test=\"recordDay != null\">, record_day=#{recordDay}</if>" +
             "<if test=\"recordPath != null\">, record_path=#{recordPath}</if>" +
+            "<if test=\"transcodeSuffix != null\">, transcode_suffix=#{transcodeSuffix}</if>" +
             "<if test=\"type != null\">, type=#{type}</if>" +
             "WHERE id=#{id}"+
             " </script>"})
@@ -133,6 +136,7 @@ public interface MediaServerMapper {
             "<if test=\"recordDay != null\">, record_day=#{recordDay}</if>" +
             "<if test=\"recordPath != null\">, record_path=#{recordPath}</if>" +
             "<if test=\"type != null\">, type=#{type}</if>" +
+            "<if test=\"transcodeSuffix != null\">, transcode_suffix=#{transcodeSuffix}</if>" +
             "<if test=\"hookAliveInterval != null\">, hook_alive_interval=#{hookAliveInterval}</if>" +
             "WHERE ip=#{ip} and http_port=#{httpPort}"+
             " </script>"})

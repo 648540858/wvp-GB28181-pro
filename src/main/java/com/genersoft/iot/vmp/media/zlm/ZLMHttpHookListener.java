@@ -24,6 +24,12 @@ import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.utils.MediaServerUtils;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.OtherPsSendInfo;
+import com.genersoft.iot.vmp.vmanager.bean.OtherRtpSendInfo;
+import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +42,10 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
+import java.text.ParseException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -202,6 +212,11 @@ public class ZLMHttpHookListener {
         if (mediaServer == null) {
             return HookResult.SUCCESS();
         }
+        if (!ObjectUtils.isEmpty(mediaServer.getTranscodeSuffix())
+                && !"null".equalsIgnoreCase(mediaServer.getTranscodeSuffix())
+                && param.getStream().endsWith(mediaServer.getTranscodeSuffix())  ) {
+            return;
+        }
         if (param.getSchema().equalsIgnoreCase("rtsp")) {
             if (param.isRegist()) {
                 logger.info("[ZLM HOOK] 流注册, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
@@ -226,6 +241,19 @@ public class ZLMHttpHookListener {
 
         logger.info("[ZLM HOOK]流无人观看：{}->{}->{}/{}", param.getMediaServerId(), param.getSchema(),
                 param.getApp(), param.getStream());
+
+        MediaServerItem mediaInfo = mediaServerService.getOne(param.getMediaServerId());
+        if (mediaInfo == null) {
+            JSONObject ret = new JSONObject();
+            ret.put("code", 0);
+            return ret;
+        }
+        if (!ObjectUtils.isEmpty(mediaInfo.getTranscodeSuffix())
+                && !"null".equalsIgnoreCase(mediaInfo.getTranscodeSuffix())
+                && param.getStream().endsWith(mediaInfo.getTranscodeSuffix())  ) {
+            param.setStream(param.getStream().substring(0, param.getStream().lastIndexOf(mediaInfo.getTranscodeSuffix()) -1 ));
+        }
+
         JSONObject ret = new JSONObject();
         boolean close = mediaService.closeStreamOnNoneReader(param.getMediaServerId(), param.getApp(), param.getStream(), param.getSchema());
         ret.put("code", 0);
@@ -347,23 +375,5 @@ public class ZLMHttpHookListener {
         }
 
         return HookResult.SUCCESS();
-    }
-
-    private Map<String, String> urlParamToMap(String params) {
-        HashMap<String, String> map = new HashMap<>();
-        if (ObjectUtils.isEmpty(params)) {
-            return map;
-        }
-        String[] paramsArray = params.split("&");
-        if (paramsArray.length == 0) {
-            return map;
-        }
-        for (String param : paramsArray) {
-            String[] paramArray = param.split("=");
-            if (paramArray.length == 2) {
-                map.put(paramArray[0], paramArray[1]);
-            }
-        }
-        return map;
     }
 }

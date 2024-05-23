@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRecordMp4HookParam;
 import com.genersoft.iot.vmp.service.ICloudRecordService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
@@ -105,6 +106,12 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     @Override
     public void addRecord(OnRecordMp4HookParam param) {
         CloudRecordItem cloudRecordItem = CloudRecordItem.getInstance(param);
+        if (ObjectUtils.isEmpty(cloudRecordItem.getCallId())) {
+            StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(param.getApp(), param.getStream());
+            if (streamAuthorityInfo != null) {
+                cloudRecordItem.setCallId(streamAuthorityInfo.getCallId());
+            }
+        }
         logger.info("[添加录像记录] {}/{}, callId: {}, 文件大小：{}, 时长： {}秒", param.getApp(), param.getStream(),cloudRecordItem.getCallId(), param.getFile_size(),param.getTime_len());
         cloudRecordServiceMapper.add(cloudRecordItem);
     }

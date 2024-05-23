@@ -5,14 +5,12 @@ import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
-import com.genersoft.iot.vmp.media.event.media.MediaRecordMp4Event;
-import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRecordMp4HookParam;
-import com.genersoft.iot.vmp.service.ICloudRecordService;
+import com.genersoft.iot.vmp.media.event.media.MediaRecordMp4Event;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
+import com.genersoft.iot.vmp.service.ICloudRecordService;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -41,6 +39,7 @@ import java.util.Set;
 @DS("share")
 public class CloudRecordServiceImpl implements ICloudRecordService {
 
+
     private final static Logger logger = LoggerFactory.getLogger(CloudRecordServiceImpl.class);
 
     @Autowired
@@ -59,7 +58,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     private VideoStreamSessionManager streamSession;
 
     @Override
-    public PageInfo<CloudRecordItem> getList(int page, int count, String query, String app, String stream, String startTime, String endTime, List<MediaServerItem> mediaServerItems, String callId) {
+    public PageInfo<CloudRecordItem> getList(int page, int count, String query, String app, String stream, String startTime, String endTime, List<MediaServer> mediaServerItems, String callId) {
         // 开始时间和结束时间在数据库中都是以秒为单位的
         Long startTimeStamp = null;
         Long endTimeStamp = null;
@@ -111,7 +110,13 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     @EventListener
     public void onApplicationEvent(MediaRecordMp4Event event) {
         CloudRecordItem cloudRecordItem = CloudRecordItem.getInstance(event);
-        logger.info("[添加录像记录] {}/{} 内容：{}", event.getApp(), event.getStream(), event.getRecordInfo());
+        if (ObjectUtils.isEmpty(cloudRecordItem.getCallId())) {
+            StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(event.getApp(), event.getStream());
+            if (streamAuthorityInfo != null) {
+                cloudRecordItem.setCallId(streamAuthorityInfo.getCallId());
+            }
+        }
+        logger.info("[添加录像记录] {}/{}, callId: {}, 内容：{}", event.getApp(), event.getStream(), cloudRecordItem.getCallId(), event.getRecordInfo());
         cloudRecordServiceMapper.add(cloudRecordItem);
     }
 
@@ -239,7 +244,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     }
 
     @Override
-    public List<CloudRecordItem> getAllList(String query, String app, String stream, String startTime, String endTime, List<MediaServerItem> mediaServerItems, String callId, List<Integer> ids) {
+    public List<CloudRecordItem> getAllList(String query, String app, String stream, String startTime, String endTime, List<MediaServer> mediaServerItems, String callId, List<Integer> ids) {
         // 开始时间和结束时间在数据库中都是以秒为单位的
         Long startTimeStamp = null;
         Long endTimeStamp = null;

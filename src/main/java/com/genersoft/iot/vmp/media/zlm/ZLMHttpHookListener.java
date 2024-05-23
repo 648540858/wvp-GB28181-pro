@@ -24,12 +24,7 @@ import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.MediaServerUtils;
-import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.OtherPsSendInfo;
-import com.genersoft.iot.vmp.vmanager.bean.OtherRtpSendInfo;
-import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,11 +36,6 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
-import javax.sip.InvalidArgumentException;
-import javax.sip.SipException;
-import java.text.ParseException;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -159,7 +149,7 @@ public class ZLMHttpHookListener {
     @PostMapping(value = "/on_play", produces = "application/json;charset=UTF-8")
     public HookResult onPlay(@RequestBody OnPlayHookParam param) {
 
-        Map<String, String> paramMap = urlParamToMap(param.getParams());
+        Map<String, String> paramMap = MediaServerUtils.urlParamToMap(param.getParams());
         // 对于播放流进行鉴权
         boolean authenticateResult = mediaService.authenticatePlay(param.getApp(), param.getStream(), paramMap.get("callId"));
         if (!authenticateResult) {
@@ -215,7 +205,7 @@ public class ZLMHttpHookListener {
         if (!ObjectUtils.isEmpty(mediaServer.getTranscodeSuffix())
                 && !"null".equalsIgnoreCase(mediaServer.getTranscodeSuffix())
                 && param.getStream().endsWith(mediaServer.getTranscodeSuffix())  ) {
-            return;
+            return HookResult.SUCCESS();
         }
         if (param.getSchema().equalsIgnoreCase("rtsp")) {
             if (param.isRegist()) {
@@ -242,7 +232,7 @@ public class ZLMHttpHookListener {
         logger.info("[ZLM HOOK]流无人观看：{}->{}->{}/{}", param.getMediaServerId(), param.getSchema(),
                 param.getApp(), param.getStream());
 
-        MediaServerItem mediaInfo = mediaServerService.getOne(param.getMediaServerId());
+        MediaServer mediaInfo = mediaServerService.getOne(param.getMediaServerId());
         if (mediaInfo == null) {
             JSONObject ret = new JSONObject();
             ret.put("code", 0);

@@ -75,22 +75,22 @@ public class CloudRecordController {
         if (ObjectUtils.isEmpty(month)) {
             month = calendar.get(Calendar.MONTH) + 1;
         }
-        List<MediaServer> mediaServerItems;
+        List<MediaServer> mediaServers;
         if (!ObjectUtils.isEmpty(mediaServerId)) {
-            mediaServerItems = new ArrayList<>();
-            MediaServer mediaServerItem = mediaServerService.getOne(mediaServerId);
-            if (mediaServerItem == null) {
+            mediaServers = new ArrayList<>();
+            MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+            if (mediaServer == null) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到流媒体: " + mediaServerId);
             }
-            mediaServerItems.add(mediaServerItem);
+            mediaServers.add(mediaServer);
         } else {
-            mediaServerItems = mediaServerService.getAllOnlineList();
+            mediaServers = mediaServerService.getAllOnlineList();
         }
-        if (mediaServerItems.isEmpty()) {
+        if (mediaServers.isEmpty()) {
             return new ArrayList<>();
         }
 
-        return cloudRecordService.getDateList(app, stream, year, month, mediaServerItems);
+        return cloudRecordService.getDateList(app, stream, year, month, mediaServers);
     }
 
     @ResponseBody
@@ -120,18 +120,18 @@ public class CloudRecordController {
         logger.info("[云端录像] 查询 app->{}, stream->{}, mediaServerId->{}, page->{}, count->{}, startTime->{}, endTime->{}, callId->{}",
                 app, stream, mediaServerId, page, count, startTime, endTime, callId);
 
-        List<MediaServer> mediaServerItems;
+        List<MediaServer> mediaServers;
         if (!ObjectUtils.isEmpty(mediaServerId)) {
-            mediaServerItems = new ArrayList<>();
-            MediaServer mediaServerItem = mediaServerService.getOne(mediaServerId);
-            if (mediaServerItem == null) {
+            mediaServers = new ArrayList<>();
+            MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+            if (mediaServer == null) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到流媒体: " + mediaServerId);
             }
-            mediaServerItems.add(mediaServerItem);
+            mediaServers.add(mediaServer);
         } else {
-            mediaServerItems = mediaServerService.getAllOnlineList();
+            mediaServers = mediaServerService.getAllOnlineList();
         }
-        if (mediaServerItems.isEmpty()) {
+        if (mediaServers.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "当前无流媒体");
         }
         if (query != null && ObjectUtils.isEmpty(query.trim())) {
@@ -152,7 +152,7 @@ public class CloudRecordController {
         if (callId != null && ObjectUtils.isEmpty(callId.trim())) {
             callId = null;
         }
-        return cloudRecordService.getList(page, count, query, app, stream, startTime, endTime, mediaServerItems, callId);
+        return cloudRecordService.getList(page, count, query, app, stream, startTime, endTime, mediaServers, callId);
     }
 
     @ResponseBody
@@ -175,20 +175,20 @@ public class CloudRecordController {
             @RequestParam(required = false) String callId,
             @RequestParam(required = false) String remoteHost
     ){
-        MediaServer mediaServerItem;
+        MediaServer mediaServer;
         if (mediaServerId == null) {
-            mediaServerItem = mediaServerService.getDefaultMediaServer();
+            mediaServer = mediaServerService.getDefaultMediaServer();
         }else {
-            mediaServerItem = mediaServerService.getOne(mediaServerId);
+            mediaServer = mediaServerService.getOne(mediaServerId);
         }
-        if (mediaServerItem == null) {
+        if (mediaServer == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的流媒体");
         }else {
             if (remoteHost == null) {
-                remoteHost = request.getScheme() + "://" + mediaServerItem.getIp() + ":" + mediaServerItem.getRecordAssistPort();
+                remoteHost = request.getScheme() + "://" + mediaServer.getIp() + ":" + mediaServer.getRecordAssistPort();
             }
         }
-        return cloudRecordService.addTask(app, stream, mediaServerItem, startTime, endTime, callId, remoteHost, mediaServerId != null);
+        return cloudRecordService.addTask(app, stream, mediaServer, startTime, endTime, callId, remoteHost, mediaServerId != null);
     }
 
     @ResponseBody
@@ -309,18 +309,18 @@ public class CloudRecordController {
         logger.info("[下载指定录像文件的压缩包] 查询 app->{}, stream->{}, mediaServerId->{}, startTime->{}, endTime->{}, callId->{}",
                 app, stream, mediaServerId, startTime, endTime, callId);
 
-        List<MediaServerItem> mediaServerItems;
+        List<MediaServer> mediaServers;
         if (!ObjectUtils.isEmpty(mediaServerId)) {
-            mediaServerItems = new ArrayList<>();
-            MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
-            if (mediaServerItem == null) {
+            mediaServers = new ArrayList<>();
+            MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+            if (mediaServer == null) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到流媒体: " + mediaServerId);
             }
-            mediaServerItems.add(mediaServerItem);
+            mediaServers.add(mediaServer);
         } else {
-            mediaServerItems = mediaServerService.getAll();
+            mediaServers = mediaServerService.getAll();
         }
-        if (mediaServerItems.isEmpty()) {
+        if (mediaServers.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "当前无流媒体");
         }
         if (query != null && ObjectUtils.isEmpty(query.trim())) {
@@ -344,7 +344,7 @@ public class CloudRecordController {
         if (stream != null && callId != null) {
             response.addHeader( "Content-Disposition", "attachment;filename=" + stream + "_" + callId + ".zip" );
         }
-        List<CloudRecordItem> cloudRecordItemList = cloudRecordService.getAllList(query, app, stream, startTime, endTime, mediaServerItems, callId, ids);
+        List<CloudRecordItem> cloudRecordItemList = cloudRecordService.getAllList(query, app, stream, startTime, endTime, mediaServers, callId, ids);
         if (ObjectUtils.isEmpty(cloudRecordItemList)) {
             return;
         }
@@ -412,18 +412,18 @@ public class CloudRecordController {
         logger.info("[云端录像] 查询URL app->{}, stream->{}, mediaServerId->{}, page->{}, count->{}, startTime->{}, endTime->{}, callId->{}",
                 app, stream, mediaServerId, page, count, startTime, endTime, callId);
 
-        List<MediaServerItem> mediaServerItems;
+        List<MediaServer> mediaServers;
         if (!ObjectUtils.isEmpty(mediaServerId)) {
-            mediaServerItems = new ArrayList<>();
-            MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
-            if (mediaServerItem == null) {
+            mediaServers = new ArrayList<>();
+            MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+            if (mediaServer == null) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到流媒体: " + mediaServerId);
             }
-            mediaServerItems.add(mediaServerItem);
+            mediaServers.add(mediaServer);
         } else {
-            mediaServerItems = mediaServerService.getAll();
+            mediaServers = mediaServerService.getAll();
         }
-        if (mediaServerItems.isEmpty()) {
+        if (mediaServers.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "当前无流媒体");
         }
         if (query != null && ObjectUtils.isEmpty(query.trim())) {
@@ -444,15 +444,15 @@ public class CloudRecordController {
         if (callId != null && ObjectUtils.isEmpty(callId.trim())) {
             callId = null;
         }
-        MediaServerItem mediaServerItem = mediaServerService.getDefaultMediaServer();
-        if (mediaServerItem == null) {
+        MediaServer mediaServer = mediaServerService.getDefaultMediaServer();
+        if (mediaServer == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到流媒体节点");
         }
         if (remoteHost == null) {
             remoteHost = request.getScheme() + "://" + request.getLocalAddr() + ":" +
-                    (request.getScheme().equals("https")? mediaServerItem.getHttpSSlPort() : mediaServerItem.getHttpPort());
+                    (request.getScheme().equals("https")? mediaServer.getHttpSSlPort() : mediaServer.getHttpPort());
         }
-        PageInfo<CloudRecordItem> cloudRecordItemPageInfo = cloudRecordService.getList(page, count, query, app, stream, startTime, endTime, mediaServerItems, callId);
+        PageInfo<CloudRecordItem> cloudRecordItemPageInfo = cloudRecordService.getList(page, count, query, app, stream, startTime, endTime, mediaServers, callId);
         PageInfo<CloudRecordUrl> cloudRecordUrlPageInfo = new PageInfo<>();
         if (!ObjectUtils.isEmpty(cloudRecordItemPageInfo)) {
             cloudRecordUrlPageInfo.setPageNum(cloudRecordItemPageInfo.getPageNum());

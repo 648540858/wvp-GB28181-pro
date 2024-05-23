@@ -223,8 +223,14 @@ public class JTDeviceConfig {
     @ConfigAttribute(id = 0x79, type="AlarmRecordingParam", description = "特殊报警录像参数设置")
     private AlarmRecordingParam alarmRecordingParam;
 
-    @ConfigAttribute(id = 0x79, type="VideoAlarmBit", description = "视频相关报警屏蔽字")
+    @ConfigAttribute(id = 0x7a, type="VideoAlarmBit", description = "视频相关报警屏蔽字")
     private VideoAlarmBit videoAlarmBit;
+
+    @ConfigAttribute(id = 0x7b, type="AnalyzeAlarmParam", description = "图像分析报警参数设置")
+    private AnalyzeAlarmParam analyzeAlarmParam;
+
+    @ConfigAttribute(id = 0x7c, type="AwakenParam", description = "终端休眠唤醒模式设置")
+    private AwakenParam awakenParam;
 
     @ConfigAttribute(id = 0x80, type="Long", description = "车辆里程表读数，单位'1/10km")
     private Long mileage;
@@ -282,6 +288,14 @@ public class JTDeviceConfig {
     @ConfigAttribute(id = 0x103, type="Integer", description = "CAN总线通道2 上传时间间隔 ,单位为秒(s) ,0 表示不上传")
     private Integer canUploadIntervalForChannel2;
 
+
+    public AnalyzeAlarmParam getAnalyzeAlarmParam() {
+        return analyzeAlarmParam;
+    }
+
+    public void setAnalyzeAlarmParam(AnalyzeAlarmParam analyzeAlarmParam) {
+        this.analyzeAlarmParam = analyzeAlarmParam;
+    }
 
     public Long getKeepaliveInterval() {
         return keepaliveInterval;
@@ -969,6 +983,14 @@ public class JTDeviceConfig {
 
     public void setAlarmRecordingParam(AlarmRecordingParam alarmRecordingParam) {
         this.alarmRecordingParam = alarmRecordingParam;
+    }
+
+    public VideoAlarmBit getVideoAlarmBit() {
+        return videoAlarmBit;
+    }
+
+    public void setVideoAlarmBit(VideoAlarmBit videoAlarmBit) {
+        this.videoAlarmBit = videoAlarmBit;
     }
 
     @Override

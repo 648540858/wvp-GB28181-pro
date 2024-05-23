@@ -150,6 +150,11 @@ public class J0104 extends Re {
                         Method methodForVideoAlarmBit = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), VideoAlarmBit.class);
                         methodForVideoAlarmBit.invoke(deviceConfig, videoAlarmBit);
                         continue;
+                    case "AnalyzeAlarmParam":
+                        AnalyzeAlarmParam analyzeAlarmParam = AnalyzeAlarmParam.decode(buf);
+                        Method methodForAnalyzeAlarmParam = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), AnalyzeAlarmParam.class);
+                        methodForAnalyzeAlarmParam.invoke(deviceConfig, analyzeAlarmParam);
+                        continue;
                     default:
                             System.err.println(field.getGenericType().getTypeName());
                         continue;

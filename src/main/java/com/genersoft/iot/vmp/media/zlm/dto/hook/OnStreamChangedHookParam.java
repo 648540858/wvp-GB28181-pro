@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.media.zlm.dto.hook;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author lin
@@ -97,6 +98,16 @@ public class OnStreamChangedHookParam extends HookParam{
      * 音视频轨道
      */
     private String vhost;
+
+    /**
+     * 额外的参数字符串
+     */
+    private String params;
+
+    /**
+     * 额外的参数
+     */
+    private Map<String, String> paramMap;
 
     public boolean isRegist() {
         return regist;
@@ -494,6 +505,23 @@ public class OnStreamChangedHookParam extends HookParam{
 
     public void setCallId(String callId) {
         this.callId = callId;
+    }
+
+
+    public Map<String, String> getParamMap() {
+        return paramMap;
+    }
+
+    public void setParamMap(Map<String, String> paramMap) {
+        this.paramMap = paramMap;
+    }
+
+    public String getParams() {
+        return params;
+    }
+
+    public void setParams(String params) {
+        this.params = params;
     }
 
     @Override

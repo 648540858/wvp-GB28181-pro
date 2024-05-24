@@ -457,15 +457,12 @@ public class ZLMHttpHookListener {
                     if (!"rtp".equals(param.getApp())) {
                         String type = OriginType.values()[param.getOriginType()].getType();
                         if (param.isRegist()) {
-                            StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(
-                                    param.getApp(), param.getStream());
-                            String callId = null;
-                            if (streamAuthorityInfo != null) {
-                                callId = streamAuthorityInfo.getCallId();
-                            }
+                            Map<String, String> params = MediaServerUtils.urlParamToMap(param.getParams());
+                            param.setParamMap(params);
                             StreamInfo streamInfoByAppAndStream = mediaService.getStreamInfoByAppAndStream(mediaInfo,
-                                    param.getApp(), param.getStream(), tracks, callId);
+                                    param.getApp(), param.getStream(), tracks, params.get("callId"));
                             param.setStreamInfo(new StreamContent(streamInfoByAppAndStream));
+
                             redisCatchStorage.addStream(mediaInfo, type, param.getApp(), param.getStream(), param);
                             if (param.getOriginType() == OriginType.RTSP_PUSH.ordinal()
                                     || param.getOriginType() == OriginType.RTMP_PUSH.ordinal()

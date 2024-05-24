@@ -11,12 +11,16 @@ import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 @Service
 public class MediaServiceImpl implements IMediaService {
+
+    private final static Logger logger = LoggerFactory.getLogger(MediaServiceImpl.class);
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -57,6 +61,7 @@ public class MediaServiceImpl implements IMediaService {
             calld = streamAuthorityInfo.getCallId();
         }
         JSONObject mediaList = zlmresTfulUtils.getMediaList(mediaInfo, app, stream);
+        logger.info("[zlm getMediaList]结果： /n {}", mediaList);
         if (mediaList != null) {
             if (mediaList.getInteger("code") == 0) {
                 JSONArray data = mediaList.getJSONArray("data");

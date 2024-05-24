@@ -209,49 +209,6 @@ public class PlayController {
 	}
 
 	/**
-	 * 将不是h264的视频通过ffmpeg 转码为h264 + aac
-	 * @param streamId 流ID
-	 */
-	@Operation(summary = "将不是h264的视频通过ffmpeg 转码为h264 + aac", security = @SecurityRequirement(name = JwtUtils.HEADER))
-	@Parameter(name = "streamId", description = "视频流ID", required = true)
-	@PostMapping("/convert/{streamId}")
-	public JSONObject playConvert(@PathVariable String streamId) {
-//		StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
-
-		InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, streamId);
-		if (inviteInfo == null || inviteInfo.getStreamInfo() == null) {
-			logger.warn("视频转码API调用失败！, 视频流已经停止!");
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到视频流信息, 视频流可能已经停止");
-		}
-		MediaServerItem mediaInfo = mediaServerService.getOne(inviteInfo.getStreamInfo().getMediaServerId());
-		JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaInfo, streamId);
-		if (!rtpInfo.getBoolean("exist")) {
-			logger.warn("视频转码API调用失败！, 视频流已停止推流!");
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到视频流信息, 视频流可能已停止推流");
-		} else {
-			String dstUrl = String.format("rtmp://%s:%s/convert/%s", "127.0.0.1", mediaInfo.getRtmpPort(),
-					streamId );
-			String srcUrl = String.format("rtsp://%s:%s/rtp/%s", "127.0.0.1", mediaInfo.getRtspPort(), streamId);
-			JSONObject jsonObject = zlmresTfulUtils.addFFmpegSource(mediaInfo, srcUrl, dstUrl, "1000000", true, false, null);
-			logger.info(jsonObject.toJSONString());
-			if (jsonObject != null && jsonObject.getInteger("code") == 0) {
-				JSONObject data = jsonObject.getJSONObject("data");
-				if (data != null) {
-					JSONObject result = new JSONObject();
-					result.put("key", data.getString("key"));
-					StreamInfo streamInfoResult = mediaService.getStreamInfoByAppAndStreamWithCheck("convert", streamId, mediaInfo.getId(), false);
-					result.put("StreamInfo", streamInfoResult);
-					return result;
-				}else {
-					throw new ControllerException(ErrorCode.ERROR100.getCode(), "转码失败");
-				}
-			}else {
-				throw new ControllerException(ErrorCode.ERROR100.getCode(), "转码失败");
-			}
-		}
-	}
-
-	/**
 	 * 结束转码
 	 */
 	@Operation(summary = "结束转码", security = @SecurityRequirement(name = JwtUtils.HEADER))

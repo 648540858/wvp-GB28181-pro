@@ -914,5 +914,9 @@ public class JT1078Controller {
     ) {
         return service.queryMediaAttribute(deviceId);
     }
+
+    // TODO 视频报警上报
+
+
 }
 

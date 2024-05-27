@@ -45,6 +45,7 @@ public class JT1078Template {
     private static final String H8803 = "8803";
     private static final String H8804 = "8804";
     private static final String H8805 = "8805";
+    private static final String H9003 = "9003";
     private static final String H9101 = "9101";
     private static final String H9102 = "9102";
     private static final String H9201 = "9201";
@@ -69,6 +70,7 @@ public class JT1078Template {
     private static final String H0801 = "0801";
     private static final String H0802 = "0802";
     private static final String H0805 = "0805";
+    private static final String H1003 = "1003";
     private static final String H1205 = "1205";
 
     /**
@@ -627,6 +629,17 @@ public class JT1078Template {
                 .setMsgId(H8805)
                 .setRespId(H0801)
                 .setRs(j8805)
+                .build();
+        return SessionManager.INSTANCE.request(cmd, timeOut);
+    }
+
+    public Object queryMediaAttribute(String devId, J9003 j9003, int timeOut) {
+        Cmd cmd = new Cmd.Builder()
+                .setDevId(devId)
+                .setPackageNo(randomInt())
+                .setMsgId(H9003)
+                .setRespId(H1003)
+                .setRs(j9003)
                 .build();
         return SessionManager.INSTANCE.request(cmd, timeOut);
     }

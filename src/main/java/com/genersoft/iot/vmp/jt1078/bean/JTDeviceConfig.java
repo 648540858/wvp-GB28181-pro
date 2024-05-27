@@ -116,7 +116,7 @@ public class JTDeviceConfig {
     private Integer fenceRadius;
 
     @ConfigAttribute(id = 0x32, type="IllegalDrivingPeriods", description = "违规行驶时段范围 ,精确到分")
-    private IllegalDrivingPeriods illegalDrivingPeriods;
+    private JTIllegalDrivingPeriods illegalDrivingPeriods;
 
     @ConfigAttribute(id = 0x40, type="String", description = "监控平台电话号码")
     private String platformPhoneNumber;
@@ -188,13 +188,13 @@ public class JTDeviceConfig {
     private Integer drowsyDrivingWarningDifference;
 
     @ConfigAttribute(id = 0x5d, type="CollisionAlarmParams", description = "碰撞报警参数设置")
-    private CollisionAlarmParams collisionAlarmParams;
+    private JTCollisionAlarmParams collisionAlarmParams;
 
     @ConfigAttribute(id = 0x5e, type="Integer", description = "侧翻报警参数设置:侧翻角度,单位为度,默认为30")
     private Integer rolloverAlarm;
 
     @ConfigAttribute(id = 0x64, type="CameraTimer", description = "定时拍照控制")
-    private CameraTimer cameraTimer;
+    private JTCameraTimer cameraTimer;
 
     @ConfigAttribute(id = 0x70, type="Long", description = "图像/视频质量 设置范围为1~10 1表示最优质量")
     private Long qualityForVideo;
@@ -212,25 +212,25 @@ public class JTDeviceConfig {
     private Long chroma;
 
     @ConfigAttribute(id = 0x75, type="VideoParam", description = "音视频参数设置")
-    private VideoParam videoParam;
+    private JTVideoParam videoParam;
 
     @ConfigAttribute(id = 0x76, type="ChannelListParam", description = "音视频通道列表设置")
-    private ChannelListParam channelListParam;
+    private JTChannelListParam channelListParam;
 
     @ConfigAttribute(id = 0x77, type="ChannelParam", description = "音视频通道列表设置")
-    private ChannelParam channelParam;
+    private JTChannelParam channelParam;
 
     @ConfigAttribute(id = 0x79, type="AlarmRecordingParam", description = "特殊报警录像参数设置")
-    private AlarmRecordingParam alarmRecordingParam;
+    private JTAlarmRecordingParam alarmRecordingParam;
 
     @ConfigAttribute(id = 0x7a, type="VideoAlarmBit", description = "视频相关报警屏蔽字")
-    private VideoAlarmBit videoAlarmBit;
+    private JTVideoAlarmBit videoAlarmBit;
 
     @ConfigAttribute(id = 0x7b, type="AnalyzeAlarmParam", description = "图像分析报警参数设置")
-    private AnalyzeAlarmParam analyzeAlarmParam;
+    private JTAnalyzeAlarmParam analyzeAlarmParam;
 
     @ConfigAttribute(id = 0x7c, type="AwakenParam", description = "终端休眠唤醒模式设置")
-    private AwakenParam awakenParam;
+    private JTAwakenParam awakenParam;
 
     @ConfigAttribute(id = 0x80, type="Long", description = "车辆里程表读数，单位'1/10km")
     private Long mileage;
@@ -248,7 +248,7 @@ public class JTDeviceConfig {
     private Short licensePlateColor;
 
     @ConfigAttribute(id = 0x90, type="Short", description = "GNSS定位模式")
-    private GnssPositioningMode gnssPositioningMode;
+    private JTGnssPositioningMode gnssPositioningMode;
 
     @ConfigAttribute(id = 0x91, type="Short", description = "GNSS 波特率,定义如下: 0: 4800, 1:9600,  2：19200, 3:38400,  4:57600, 5:115200")
     private Short gnssBaudRate;
@@ -289,11 +289,11 @@ public class JTDeviceConfig {
     private Integer canUploadIntervalForChannel2;
 
 
-    public AnalyzeAlarmParam getAnalyzeAlarmParam() {
+    public JTAnalyzeAlarmParam getAnalyzeAlarmParam() {
         return analyzeAlarmParam;
     }
 
-    public void setAnalyzeAlarmParam(AnalyzeAlarmParam analyzeAlarmParam) {
+    public void setAnalyzeAlarmParam(JTAnalyzeAlarmParam analyzeAlarmParam) {
         this.analyzeAlarmParam = analyzeAlarmParam;
     }
 
@@ -577,11 +577,11 @@ public class JTDeviceConfig {
         this.fenceRadius = fenceRadius;
     }
 
-    public IllegalDrivingPeriods getIllegalDrivingPeriods() {
+    public JTIllegalDrivingPeriods getIllegalDrivingPeriods() {
         return illegalDrivingPeriods;
     }
 
-    public void setIllegalDrivingPeriods(IllegalDrivingPeriods illegalDrivingPeriods) {
+    public void setIllegalDrivingPeriods(JTIllegalDrivingPeriods illegalDrivingPeriods) {
         this.illegalDrivingPeriods = illegalDrivingPeriods;
     }
 
@@ -769,11 +769,11 @@ public class JTDeviceConfig {
         this.drowsyDrivingWarningDifference = drowsyDrivingWarningDifference;
     }
 
-    public CollisionAlarmParams getCollisionAlarmParams() {
+    public JTCollisionAlarmParams getCollisionAlarmParams() {
         return collisionAlarmParams;
     }
 
-    public void setCollisionAlarmParams(CollisionAlarmParams collisionAlarmParams) {
+    public void setCollisionAlarmParams(JTCollisionAlarmParams collisionAlarmParams) {
         this.collisionAlarmParams = collisionAlarmParams;
     }
 
@@ -785,11 +785,11 @@ public class JTDeviceConfig {
         this.rolloverAlarm = rolloverAlarm;
     }
 
-    public CameraTimer getCameraTimer() {
+    public JTCameraTimer getCameraTimer() {
         return cameraTimer;
     }
 
-    public void setCameraTimer(CameraTimer cameraTimer) {
+    public void setCameraTimer(JTCameraTimer cameraTimer) {
         this.cameraTimer = cameraTimer;
     }
 
@@ -873,11 +873,11 @@ public class JTDeviceConfig {
         this.licensePlateColor = licensePlateColor;
     }
 
-    public GnssPositioningMode getGnssPositioningMode() {
+    public JTGnssPositioningMode getGnssPositioningMode() {
         return gnssPositioningMode;
     }
 
-    public void setGnssPositioningMode(GnssPositioningMode gnssPositioningMode) {
+    public void setGnssPositioningMode(JTGnssPositioningMode gnssPositioningMode) {
         this.gnssPositioningMode = gnssPositioningMode;
     }
 
@@ -953,44 +953,53 @@ public class JTDeviceConfig {
         this.canUploadIntervalForChannel2 = canUploadIntervalForChannel2;
     }
 
-    public VideoParam getVideoParam() {
+    public JTVideoParam getVideoParam() {
         return videoParam;
     }
 
-    public void setVideoParam(VideoParam videoParam) {
+    public void setVideoParam(JTVideoParam videoParam) {
         this.videoParam = videoParam;
     }
 
-    public ChannelListParam getChannelListParam() {
+    public JTChannelListParam getChannelListParam() {
         return channelListParam;
     }
 
-    public void setChannelListParam(ChannelListParam channelListParam) {
+    public void setChannelListParam(JTChannelListParam channelListParam) {
         this.channelListParam = channelListParam;
     }
 
-    public ChannelParam getChannelParam() {
+    public JTChannelParam getChannelParam() {
         return channelParam;
     }
 
-    public void setChannelParam(ChannelParam channelParam) {
+    public void setChannelParam(JTChannelParam channelParam) {
         this.channelParam = channelParam;
     }
 
-    public AlarmRecordingParam getAlarmRecordingParam() {
+    public JTAlarmRecordingParam getAlarmRecordingParam() {
         return alarmRecordingParam;
     }
 
-    public void setAlarmRecordingParam(AlarmRecordingParam alarmRecordingParam) {
+    public void setAlarmRecordingParam(JTAlarmRecordingParam alarmRecordingParam) {
         this.alarmRecordingParam = alarmRecordingParam;
     }
 
-    public VideoAlarmBit getVideoAlarmBit() {
+    public JTVideoAlarmBit getVideoAlarmBit() {
         return videoAlarmBit;
     }
 
-    public void setVideoAlarmBit(VideoAlarmBit videoAlarmBit) {
+    public void setVideoAlarmBit(JTVideoAlarmBit videoAlarmBit) {
         this.videoAlarmBit = videoAlarmBit;
+    }
+
+
+    public JTAwakenParam getAwakenParam() {
+        return awakenParam;
+    }
+
+    public void setAwakenParam(JTAwakenParam awakenParam) {
+        this.awakenParam = awakenParam;
     }
 
     @Override

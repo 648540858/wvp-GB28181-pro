@@ -6,7 +6,7 @@ import io.netty.buffer.Unpooled;
 /**
  * 视频报警标志位
  */
-public class VideoAlarmBit implements JTDeviceSubConfig{
+public class JTVideoAlarmBit implements JTDeviceSubConfig{
 
     /**
      * 视频信号丢失报警
@@ -125,8 +125,8 @@ public class VideoAlarmBit implements JTDeviceSubConfig{
         return byteBuf;
     }
 
-    public static VideoAlarmBit decode(ByteBuf byteBuf) {
-        VideoAlarmBit videoAlarmBit = new VideoAlarmBit();
+    public static JTVideoAlarmBit decode(ByteBuf byteBuf) {
+        JTVideoAlarmBit videoAlarmBit = new JTVideoAlarmBit();
         byte content = byteBuf.readByte();
         videoAlarmBit.setLossSignal((content & 1) == 1);
         videoAlarmBit.setOcclusionSignal((content >>> 1 & 1) == 1);

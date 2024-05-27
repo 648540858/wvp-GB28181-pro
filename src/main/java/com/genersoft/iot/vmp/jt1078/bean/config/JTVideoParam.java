@@ -6,7 +6,7 @@ import io.netty.buffer.Unpooled;
 /**
  * 违规行驶时段范围 ,精确到分
  */
-public class VideoParam implements JTDeviceSubConfig{
+public class JTVideoParam implements JTDeviceSubConfig{
     /**
      * 实时流编码模式
      * 0:CBR( 固定码率) ;
@@ -85,7 +85,7 @@ public class VideoParam implements JTDeviceSubConfig{
     /**
      * 字幕叠加设置
      */
-    private OSDConfig osd;
+    private JTOSDConfig osd;
 
     /**
      * 是否启用音频输出, 0:不启用;1:启用
@@ -173,11 +173,11 @@ public class VideoParam implements JTDeviceSubConfig{
         this.storageStreamCodeRate = storageStreamCodeRate;
     }
 
-    public OSDConfig getOsd() {
+    public JTOSDConfig getOsd() {
         return osd;
     }
 
-    public void setOsd(OSDConfig osd) {
+    public void setOsd(JTOSDConfig osd) {
         this.osd = osd;
     }
 
@@ -208,8 +208,8 @@ public class VideoParam implements JTDeviceSubConfig{
         return byteBuf;
     }
 
-    public static VideoParam decode(ByteBuf buf) {
-        VideoParam videoParam = new VideoParam();
+    public static JTVideoParam decode(ByteBuf buf) {
+        JTVideoParam videoParam = new JTVideoParam();
         videoParam.setLiveStreamCodeRateType(buf.readByte());
         videoParam.setLiveStreamResolving(buf.readByte());
         videoParam.setLiveStreamIInterval(buf.readUnsignedShort());
@@ -221,7 +221,7 @@ public class VideoParam implements JTDeviceSubConfig{
         videoParam.setStorageStreamIInterval(buf.readUnsignedShort());
         videoParam.setStorageStreamFrameRate(buf.readByte());
         videoParam.setStorageStreamCodeRate(buf.readUnsignedInt());
-        videoParam.setOsd(OSDConfig.decode(buf));
+        videoParam.setOsd(JTOSDConfig.decode(buf));
         videoParam.setAudioEnable(buf.readByte());
         return null;
     }

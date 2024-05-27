@@ -1,8 +1,6 @@
 package com.genersoft.iot.vmp.jt1078.proc.request;
 
-import com.alibaba.fastjson2.JSON;
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
-import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
 import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConfig;
 import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
 import com.genersoft.iot.vmp.jt1078.bean.config.*;
@@ -13,9 +11,7 @@ import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.util.StringUtil;
 import org.springframework.context.ApplicationEvent;
 
 import java.lang.reflect.Field;
@@ -81,25 +77,25 @@ public class J0104 extends Re {
                         methodForShort.invoke(deviceConfig, buf.readUnsignedByte());
                         continue;
                     case "IllegalDrivingPeriods":
-                        IllegalDrivingPeriods illegalDrivingPeriods = new IllegalDrivingPeriods();
+                        JTIllegalDrivingPeriods illegalDrivingPeriods = new JTIllegalDrivingPeriods();
                         int startHour = buf.readUnsignedByte();
                         int startMinute = buf.readUnsignedByte();
                         int stopHour = buf.readUnsignedByte();
                         int stopMinute = buf.readUnsignedByte();
                         illegalDrivingPeriods.setStartTime(startHour + ":" + startMinute);
                         illegalDrivingPeriods.setEndTime(stopHour + ":" + stopMinute);
-                        Method methodForIllegalDrivingPeriods = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), IllegalDrivingPeriods.class);
+                        Method methodForIllegalDrivingPeriods = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), JTIllegalDrivingPeriods.class);
                         methodForIllegalDrivingPeriods.invoke(deviceConfig, illegalDrivingPeriods);
                         continue;
                     case "CollisionAlarmParams":
-                        CollisionAlarmParams collisionAlarmParams = new CollisionAlarmParams();
+                        JTCollisionAlarmParams collisionAlarmParams = new JTCollisionAlarmParams();
                         collisionAlarmParams.setCollisionAlarmTime(buf.readUnsignedByte());
                         collisionAlarmParams.setCollisionAcceleration(buf.readUnsignedByte());
-                        Method methodForCollisionAlarmParams = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), CollisionAlarmParams.class);
+                        Method methodForCollisionAlarmParams = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), JTCollisionAlarmParams.class);
                         methodForCollisionAlarmParams.invoke(deviceConfig, collisionAlarmParams);
                         continue;
                     case "CameraTimer":
-                        CameraTimer cameraTimer = new CameraTimer();
+                        JTCameraTimer cameraTimer = new JTCameraTimer();
                         long cameraTimerContent = buf.readUnsignedInt();
                         cameraTimer.setSwitchForChannel1((cameraTimerContent & 1) == 1);
                         cameraTimer.setSwitchForChannel2((cameraTimerContent >>> 1 & 1) == 1);
@@ -113,47 +109,52 @@ public class J0104 extends Re {
                         cameraTimer.setStorageFlagsForChannel5((cameraTimerContent >>> 11 & 1) == 1);
                         cameraTimer.setTimeUnit((cameraTimerContent >>> 15 & 1) == 1);
                         cameraTimer.setTimeInterval((int)cameraTimerContent >>> 16);
-                        Method methodForCameraTimer = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), CameraTimer.class);
+                        Method methodForCameraTimer = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), JTCameraTimer.class);
                         methodForCameraTimer.invoke(deviceConfig, cameraTimer);
                         continue;
                     case "GnssPositioningMode":
-                        GnssPositioningMode gnssPositioningMode = new GnssPositioningMode();
+                        JTGnssPositioningMode gnssPositioningMode = new JTGnssPositioningMode();
                         short gnssPositioningModeContent = buf.readUnsignedByte();
                         gnssPositioningMode.setGps((gnssPositioningModeContent& 1) == 1);
                         gnssPositioningMode.setBeidou((gnssPositioningModeContent >>> 1 & 1) == 1);
                         gnssPositioningMode.setGlonass((gnssPositioningModeContent >>> 2 & 1) == 1);
                         gnssPositioningMode.setGaLiLeo((gnssPositioningModeContent >>> 3 & 1) == 1);
-                        Method methodForGnssPositioningMode = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), GnssPositioningMode.class);
+                        Method methodForGnssPositioningMode = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), JTGnssPositioningMode.class);
                         methodForGnssPositioningMode.invoke(deviceConfig, gnssPositioningMode);
                         continue;
                     case "VideoParam":
-                        VideoParam videoParam = VideoParam.decode(buf);
-                        Method methodForVideoParam = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), VideoParam.class);
+                        JTVideoParam videoParam = JTVideoParam.decode(buf);
+                        Method methodForVideoParam = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), JTVideoParam.class);
                         methodForVideoParam.invoke(deviceConfig, videoParam);
                         continue;
                     case "ChannelListParam":
-                        ChannelListParam channelListParam = ChannelListParam.decode(buf);
-                        Method methodForChannelListParam = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), ChannelListParam.class);
+                        JTChannelListParam channelListParam = JTChannelListParam.decode(buf);
+                        Method methodForChannelListParam = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), JTChannelListParam.class);
                         methodForChannelListParam.invoke(deviceConfig, channelListParam);
                     case "ChannelParam":
-                        ChannelParam channelParam = ChannelParam.decode(buf);
-                        Method methodForChannelParam = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), ChannelParam.class);
+                        JTChannelParam channelParam = JTChannelParam.decode(buf);
+                        Method methodForChannelParam = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), JTChannelParam.class);
                         methodForChannelParam.invoke(deviceConfig, channelParam);
                         continue;
                     case "alarmRecordingParam":
-                        AlarmRecordingParam alarmRecordingParam = AlarmRecordingParam.decode(buf);
-                        Method methodForAlarmRecordingParam = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), AlarmRecordingParam.class);
+                        JTAlarmRecordingParam alarmRecordingParam = JTAlarmRecordingParam.decode(buf);
+                        Method methodForAlarmRecordingParam = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), JTAlarmRecordingParam.class);
                         methodForAlarmRecordingParam.invoke(deviceConfig, alarmRecordingParam);
                         continue;
                     case "VideoAlarmBit":
-                        VideoAlarmBit videoAlarmBit = VideoAlarmBit.decode(buf);
-                        Method methodForVideoAlarmBit = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), VideoAlarmBit.class);
+                        JTVideoAlarmBit videoAlarmBit = JTVideoAlarmBit.decode(buf);
+                        Method methodForVideoAlarmBit = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), JTVideoAlarmBit.class);
                         methodForVideoAlarmBit.invoke(deviceConfig, videoAlarmBit);
                         continue;
                     case "AnalyzeAlarmParam":
-                        AnalyzeAlarmParam analyzeAlarmParam = AnalyzeAlarmParam.decode(buf);
-                        Method methodForAnalyzeAlarmParam = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), AnalyzeAlarmParam.class);
+                        JTAnalyzeAlarmParam analyzeAlarmParam = JTAnalyzeAlarmParam.decode(buf);
+                        Method methodForAnalyzeAlarmParam = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), JTAnalyzeAlarmParam.class);
                         methodForAnalyzeAlarmParam.invoke(deviceConfig, analyzeAlarmParam);
+                        continue;
+                    case "AwakenParam":
+                        JTAwakenParam awakenParamParam = JTAwakenParam.decode(buf);
+                        Method methodForAwakenParam = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), JTAwakenParam.class);
+                        methodForAwakenParam.invoke(deviceConfig, awakenParamParam);
                         continue;
                     default:
                             System.err.println(field.getGenericType().getTypeName());

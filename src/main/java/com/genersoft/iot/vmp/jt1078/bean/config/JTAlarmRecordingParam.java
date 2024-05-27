@@ -6,7 +6,7 @@ import io.netty.buffer.Unpooled;
 /**
  * 特殊报警录像参数
  */
-public class AlarmRecordingParam implements  JTDeviceSubConfig{
+public class JTAlarmRecordingParam implements  JTDeviceSubConfig{
 
     /**
      * 特殊报警录像存储阈值, 分比,取值 特殊报警录像占用主存储器存储阈值百 1 ~ 99,默认值为 20
@@ -56,8 +56,8 @@ public class AlarmRecordingParam implements  JTDeviceSubConfig{
         return byteBuf;
     }
 
-    public static AlarmRecordingParam decode(ByteBuf byteBuf) {
-        AlarmRecordingParam alarmRecordingParam = new AlarmRecordingParam();
+    public static JTAlarmRecordingParam decode(ByteBuf byteBuf) {
+        JTAlarmRecordingParam alarmRecordingParam = new JTAlarmRecordingParam();
         alarmRecordingParam.setStorageLimit(byteBuf.readUnsignedByte());
         alarmRecordingParam.setDuration(byteBuf.readUnsignedByte());
         alarmRecordingParam.setStartTime(byteBuf.readUnsignedByte());

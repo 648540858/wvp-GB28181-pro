@@ -6,7 +6,7 @@ import io.netty.buffer.Unpooled;
 /**
  * 违规行驶时段范围 ,精确到分
  */
-public class IllegalDrivingPeriods implements JTDeviceSubConfig{
+public class JTIllegalDrivingPeriods implements JTDeviceSubConfig{
     /**
      * 违规行驶时段-开始时间 HH:mm
      */

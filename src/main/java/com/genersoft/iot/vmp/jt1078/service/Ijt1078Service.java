@@ -4,7 +4,6 @@ import com.genersoft.iot.vmp.common.GeneralCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
-import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
@@ -58,7 +57,7 @@ public interface Ijt1078Service {
 
     void tempPositionTrackingControl(String deviceId, Integer timeInterval, Long validityPeriod);
 
-    void confirmationAlarmMessage(String deviceId, int alarmPackageNo, JConfirmationAlarmMessageType alarmMessageType);
+    void confirmationAlarmMessage(String deviceId, int alarmPackageNo, JTConfirmationAlarmMessageType alarmMessageType);
 
     int linkDetection(String deviceId);
 
@@ -105,4 +104,6 @@ public interface Ijt1078Service {
     void record(String deviceId, int command, Integer time, Integer save, Integer samplingRate);
 
     void uploadMediaDataForSingle(String deviceId, Long mediaId, Integer delete);
+
+    JTMediaAttribute queryMediaAttribute(String deviceId);
 }

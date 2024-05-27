@@ -1,10 +1,9 @@
 package com.genersoft.iot.vmp.jt1078.proc.response;
 
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
-import com.genersoft.iot.vmp.jt1078.bean.JConfirmationAlarmMessageType;
+import com.genersoft.iot.vmp.jt1078.bean.JTConfirmationAlarmMessageType;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * 人工确认报警消息
@@ -19,7 +18,7 @@ public class J8203 extends Rs {
     /**
      * 人工确认报警类型
      */
-    private JConfirmationAlarmMessageType alarmMessageType;
+    private JTConfirmationAlarmMessageType alarmMessageType;
 
     @Override
     public ByteBuf encode() {
@@ -39,11 +38,11 @@ public class J8203 extends Rs {
         this.alarmPackageNo = alarmPackageNo;
     }
 
-    public JConfirmationAlarmMessageType getAlarmMessageType() {
+    public JTConfirmationAlarmMessageType getAlarmMessageType() {
         return alarmMessageType;
     }
 
-    public void setAlarmMessageType(JConfirmationAlarmMessageType alarmMessageType) {
+    public void setAlarmMessageType(JTConfirmationAlarmMessageType alarmMessageType) {
         this.alarmMessageType = alarmMessageType;
     }
 }

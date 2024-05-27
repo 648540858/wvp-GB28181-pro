@@ -6,7 +6,7 @@ import io.netty.buffer.Unpooled;
 /**
  * 视频分析报警参数
  */
-public class AnalyzeAlarmParam implements JTDeviceSubConfig{
+public class JTAnalyzeAlarmParam implements JTDeviceSubConfig{
 
     /**
      * 车辆核载人数
@@ -44,8 +44,8 @@ public class AnalyzeAlarmParam implements JTDeviceSubConfig{
         return byteBuf;
     }
 
-    public static AnalyzeAlarmParam decode(ByteBuf byteBuf) {
-        AnalyzeAlarmParam analyzeAlarmParam = new AnalyzeAlarmParam();
+    public static JTAnalyzeAlarmParam decode(ByteBuf byteBuf) {
+        JTAnalyzeAlarmParam analyzeAlarmParam = new JTAnalyzeAlarmParam();
         analyzeAlarmParam.setNumberForPeople(byteBuf.readUnsignedByte());
         analyzeAlarmParam.setFatigueThreshold(byteBuf.readUnsignedByte());
         return analyzeAlarmParam;

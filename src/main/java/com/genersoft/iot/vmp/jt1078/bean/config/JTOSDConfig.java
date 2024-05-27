@@ -6,7 +6,7 @@ import io.netty.buffer.Unpooled;
 /**
  * OSD字幕叠加设置
  */
-public class OSDConfig {
+public class JTOSDConfig {
 
     /**
      * 日期和时间
@@ -129,8 +129,8 @@ public class OSDConfig {
 
     }
 
-    public static OSDConfig decode(ByteBuf buf) {
-        OSDConfig config = new OSDConfig();
+    public static JTOSDConfig decode(ByteBuf buf) {
+        JTOSDConfig config = new JTOSDConfig();
         int content = buf.readUnsignedShort();
         config.setTime((content & 1) == 1);
         config.setLicensePlate((content >>> 1 & 1) == 1);

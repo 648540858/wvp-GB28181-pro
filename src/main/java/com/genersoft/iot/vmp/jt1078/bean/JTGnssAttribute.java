@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * JT GNSS 模块属性
  */
 @Schema(description = "JTGNSS 模块属性")
-public class JGnssAttribute {
+public class JTGnssAttribute {
 
     private boolean gps;
 
@@ -16,15 +16,15 @@ public class JGnssAttribute {
 
     private boolean gaLiLeo;
 
-    public static JGnssAttribute getInstance(short content) {
+    public static JTGnssAttribute getInstance(short content) {
         boolean gps = (content & 1) == 1;
         boolean beidou = (content >>> 1 & 1) == 1;
         boolean glonass = (content >>> 2 & 1) == 1;
         boolean gaLiLeo = (content >>> 3 & 1) == 1;
-        return new JGnssAttribute(gps, beidou, glonass, gaLiLeo);
+        return new JTGnssAttribute(gps, beidou, glonass, gaLiLeo);
     }
 
-    public JGnssAttribute(boolean gps, boolean beidou, boolean glonass, boolean gaLiLeo) {
+    public JTGnssAttribute(boolean gps, boolean beidou, boolean glonass, boolean gaLiLeo) {
         this.gps = gps;
         this.beidou = beidou;
         this.glonass = glonass;

@@ -2,12 +2,6 @@ package com.genersoft.iot.vmp.jt1078.proc.request;
 
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.bean.*;
-import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
-import com.genersoft.iot.vmp.jt1078.bean.config.CameraTimer;
-import com.genersoft.iot.vmp.jt1078.bean.config.CollisionAlarmParams;
-import com.genersoft.iot.vmp.jt1078.bean.config.GnssPositioningMode;
-import com.genersoft.iot.vmp.jt1078.bean.config.IllegalDrivingPeriods;
-import com.genersoft.iot.vmp.jt1078.controller.JT1078Controller;
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import com.genersoft.iot.vmp.jt1078.proc.response.J8001;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
@@ -16,20 +10,11 @@ import com.genersoft.iot.vmp.jt1078.session.Session;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import com.genersoft.iot.vmp.jt1078.util.BCDUtil;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEvent;
 
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * 查询终端属性应答
@@ -72,8 +57,8 @@ public class J0107 extends Re {
         int firmwareVersionLength = buf.readUnsignedByte();
         deviceAttribute.setFirmwareVersion(buf.readCharSequence(firmwareVersionLength, Charset.forName("GBK")).toString().trim());
 
-        deviceAttribute.setGnssAttribute(JGnssAttribute.getInstance(buf.readUnsignedByte()));
-        deviceAttribute.setCommunicationModuleAttribute(JCommunicationModuleAttribute.getInstance(buf.readUnsignedByte()));
+        deviceAttribute.setGnssAttribute(JTGnssAttribute.getInstance(buf.readUnsignedByte()));
+        deviceAttribute.setCommunicationModuleAttribute(JTCommunicationModuleAttribute.getInstance(buf.readUnsignedByte()));
 
         SessionManager.INSTANCE.response(header.getTerminalId(), "0107", null, deviceAttribute);
         return null;

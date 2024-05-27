@@ -905,5 +905,14 @@ public class JT1078Controller {
         }
         service.record(deviceId, 0, time, save, samplingRate);
     }
+
+    @Operation(summary = "1078-查询终端音视频属性", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @GetMapping("/media/attribute")
+    public JTMediaAttribute queryMediaAttribute(HttpServletRequest request,
+                           @Parameter(required = true) String deviceId
+    ) {
+        return service.queryMediaAttribute(deviceId);
+    }
 }
 

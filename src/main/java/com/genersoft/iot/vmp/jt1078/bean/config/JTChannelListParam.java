@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * 音视频通道列表设置
  */
-public class ChannelListParam implements JTDeviceSubConfig{
+public class JTChannelListParam implements JTDeviceSubConfig{
 
     /**
      * 音视频通道总数
@@ -73,8 +73,8 @@ public class ChannelListParam implements JTDeviceSubConfig{
         return byteBuf;
     }
 
-    public static ChannelListParam decode(ByteBuf byteBuf) {
-        ChannelListParam channelListParam = new ChannelListParam();
+    public static JTChannelListParam decode(ByteBuf byteBuf) {
+        JTChannelListParam channelListParam = new JTChannelListParam();
         channelListParam.setVideoAndAudioCount(byteBuf.readUnsignedByte());
         channelListParam.setAudioCount(byteBuf.readUnsignedByte());
         channelListParam.setVideoCount(byteBuf.readUnsignedByte());

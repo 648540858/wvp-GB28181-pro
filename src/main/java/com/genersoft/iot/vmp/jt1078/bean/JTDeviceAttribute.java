@@ -1,10 +1,5 @@
 package com.genersoft.iot.vmp.jt1078.bean;
 
-import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
-import com.genersoft.iot.vmp.jt1078.bean.config.CameraTimer;
-import com.genersoft.iot.vmp.jt1078.bean.config.CollisionAlarmParams;
-import com.genersoft.iot.vmp.jt1078.bean.config.GnssPositioningMode;
-import com.genersoft.iot.vmp.jt1078.bean.config.IllegalDrivingPeriods;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -35,10 +30,10 @@ public class JTDeviceAttribute {
     private String firmwareVersion ;
 
     @Schema(description = "GNSS 模块属性")
-    private JGnssAttribute gnssAttribute ;
+    private JTGnssAttribute gnssAttribute ;
 
     @Schema(description = "通信模块属性")
-    private JCommunicationModuleAttribute communicationModuleAttribute ;
+    private JTCommunicationModuleAttribute communicationModuleAttribute ;
 
     public JTDeviceType getType() {
         return type;
@@ -96,19 +91,19 @@ public class JTDeviceAttribute {
         this.firmwareVersion = firmwareVersion;
     }
 
-    public JGnssAttribute getGnssAttribute() {
+    public JTGnssAttribute getGnssAttribute() {
         return gnssAttribute;
     }
 
-    public void setGnssAttribute(JGnssAttribute gnssAttribute) {
+    public void setGnssAttribute(JTGnssAttribute gnssAttribute) {
         this.gnssAttribute = gnssAttribute;
     }
 
-    public JCommunicationModuleAttribute getCommunicationModuleAttribute() {
+    public JTCommunicationModuleAttribute getCommunicationModuleAttribute() {
         return communicationModuleAttribute;
     }
 
-    public void setCommunicationModuleAttribute(JCommunicationModuleAttribute communicationModuleAttribute) {
+    public void setCommunicationModuleAttribute(JTCommunicationModuleAttribute communicationModuleAttribute) {
         this.communicationModuleAttribute = communicationModuleAttribute;
     }
 

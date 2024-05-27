@@ -561,7 +561,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void confirmationAlarmMessage(String deviceId, int alarmPackageNo, JConfirmationAlarmMessageType alarmMessageType) {
+    public void confirmationAlarmMessage(String deviceId, int alarmPackageNo, JTConfirmationAlarmMessageType alarmMessageType) {
         J8203 j8203 = new J8203();
         j8203.setAlarmMessageType(alarmMessageType);
         j8203.setAlarmPackageNo(alarmPackageNo);
@@ -743,5 +743,11 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j8805.setMediaId(mediaId);
         j8805.setDelete(delete);
         jt1078Template.uploadMediaDataForSingle(deviceId, j8805, 10);
+    }
+
+    @Override
+    public JTMediaAttribute queryMediaAttribute(String deviceId) {
+        J9003 j9003 = new J9003();
+        return (JTMediaAttribute)jt1078Template.queryMediaAttribute(deviceId, j9003, 300);
     }
 }

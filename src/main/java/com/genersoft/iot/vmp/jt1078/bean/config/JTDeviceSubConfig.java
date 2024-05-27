@@ -4,5 +4,4 @@ import io.netty.buffer.ByteBuf;
 
 public interface JTDeviceSubConfig {
     ByteBuf encode();
-
 }

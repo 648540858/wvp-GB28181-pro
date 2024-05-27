@@ -6,7 +6,7 @@ import io.netty.buffer.Unpooled;
 /**
  * 定时拍照控制
  */
-public class CameraTimer implements JTDeviceSubConfig{
+public class JTCameraTimer implements JTDeviceSubConfig{
     /**
      * 摄像通道1 定时拍照开关标志
      */

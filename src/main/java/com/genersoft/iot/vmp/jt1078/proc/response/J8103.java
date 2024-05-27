@@ -95,6 +95,7 @@ public class J8103 extends Rs {
                         case "AlarmShielding":
                         case "VideoAlarmBit":
                         case "AnalyzeAlarmParam":
+                        case "AwakenParam":
                             field.setAccessible(true);
                             JTDeviceSubConfig subConfig = (JTDeviceSubConfig)field.get(config);
                             ByteBuf bytesForIllegalDrivingPeriods = subConfig.encode();

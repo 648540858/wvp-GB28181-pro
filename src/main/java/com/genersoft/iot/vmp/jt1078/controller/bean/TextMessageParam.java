@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.jt1078.controller.bean;
 
-import com.genersoft.iot.vmp.jt1078.bean.JConfirmationAlarmMessageType;
 import com.genersoft.iot.vmp.jt1078.bean.JTTextSign;
 import io.swagger.v3.oas.annotations.media.Schema;
 

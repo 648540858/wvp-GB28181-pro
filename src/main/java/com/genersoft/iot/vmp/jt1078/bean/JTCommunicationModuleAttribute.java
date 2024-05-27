@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * JT 通信模块属性
  */
 @Schema(description = "JT通信模块属性")
-public class JCommunicationModuleAttribute {
+public class JTCommunicationModuleAttribute {
 
     private boolean gprs ;
     private boolean cdma ;
@@ -17,7 +17,7 @@ public class JCommunicationModuleAttribute {
     private boolean other  ;
 
 
-    public static JCommunicationModuleAttribute getInstance(short content) {
+    public static JTCommunicationModuleAttribute getInstance(short content) {
         boolean gprs = (content & 1) == 1;
         boolean cdma = (content >>> 1 & 1) == 1;
         boolean tdScdma = (content >>> 2 & 1) == 1;
@@ -25,10 +25,10 @@ public class JCommunicationModuleAttribute {
         boolean cdma2000 = (content >>> 4 & 1) == 1;
         boolean tdLte = (content >>> 5 & 1) == 1;
         boolean other = (content >>> 7 & 1) == 1;
-        return new JCommunicationModuleAttribute(gprs, cdma, tdScdma, wcdma, cdma2000, tdLte, other);
+        return new JTCommunicationModuleAttribute(gprs, cdma, tdScdma, wcdma, cdma2000, tdLte, other);
     }
 
-    public JCommunicationModuleAttribute(boolean gprs, boolean cdma, boolean tdScdma, boolean wcdma, boolean cdma2000, boolean tdLte, boolean other) {
+    public JTCommunicationModuleAttribute(boolean gprs, boolean cdma, boolean tdScdma, boolean wcdma, boolean cdma2000, boolean tdLte, boolean other) {
         this.gprs = gprs;
         this.cdma = cdma;
         this.tdScdma = tdScdma;

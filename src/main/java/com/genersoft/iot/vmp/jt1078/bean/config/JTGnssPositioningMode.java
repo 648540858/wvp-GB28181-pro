@@ -6,7 +6,7 @@ import io.netty.buffer.Unpooled;
 /**
  * GNSS 定位模式
  */
-public class GnssPositioningMode implements JTDeviceSubConfig{
+public class JTGnssPositioningMode implements JTDeviceSubConfig{
 
     /**
      * GPS 定位 true: 开启， false： 关闭

@@ -6,7 +6,7 @@ import io.netty.buffer.Unpooled;
 /**
  * 碰撞报警参数设置
  */
-public class CollisionAlarmParams implements JTDeviceSubConfig{
+public class JTCollisionAlarmParams implements JTDeviceSubConfig{
 
     /**
      * 碰撞时间 单位为毫秒(ms)

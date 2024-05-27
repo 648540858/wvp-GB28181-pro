@@ -91,7 +91,7 @@ public class JTAloneChanel implements JTDeviceSubConfig{
     /**
      * 字幕叠加设置
      */
-    private OSDConfig osd;
+    private JTOSDConfig osd;
 
     public int getLogicChannelId() {
         return logicChannelId;
@@ -181,11 +181,11 @@ public class JTAloneChanel implements JTDeviceSubConfig{
         this.storageStreamCodeRate = storageStreamCodeRate;
     }
 
-    public OSDConfig getOsd() {
+    public JTOSDConfig getOsd() {
         return osd;
     }
 
-    public void setOsd(OSDConfig osd) {
+    public void setOsd(JTOSDConfig osd) {
         this.osd = osd;
     }
 
@@ -222,7 +222,7 @@ public class JTAloneChanel implements JTDeviceSubConfig{
         jtAloneChanel.setStorageStreamIInterval(buf.readUnsignedShort());
         jtAloneChanel.setStorageStreamFrameRate(buf.readByte());
         jtAloneChanel.setStorageStreamCodeRate(buf.readUnsignedInt());
-        jtAloneChanel.setOsd(OSDConfig.decode(buf));
+        jtAloneChanel.setOsd(JTOSDConfig.decode(buf));
         return null;
     }
 }

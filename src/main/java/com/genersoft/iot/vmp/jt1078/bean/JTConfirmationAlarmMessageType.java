@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.jt1078.bean;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "人工确认报警类型")
-public class JConfirmationAlarmMessageType {
+public class JTConfirmationAlarmMessageType {
     @Schema(description = "确认紧急报警")
     private boolean urgent;
     @Schema(description = "确认危险预警")

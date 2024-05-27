@@ -1,10 +1,5 @@
 package com.genersoft.iot.vmp.jt1078.bean;
 
-import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
-import com.genersoft.iot.vmp.jt1078.bean.config.CameraTimer;
-import com.genersoft.iot.vmp.jt1078.bean.config.CollisionAlarmParams;
-import com.genersoft.iot.vmp.jt1078.bean.config.GnssPositioningMode;
-import com.genersoft.iot.vmp.jt1078.bean.config.IllegalDrivingPeriods;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**

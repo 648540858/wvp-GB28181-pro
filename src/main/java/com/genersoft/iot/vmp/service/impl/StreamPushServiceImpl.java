@@ -217,7 +217,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         streamPushItem.setStream(item.getStream());
         streamPushItem.setAliveSecond(item.getAliveSecond());
         streamPushItem.setOriginSock(item.getOriginSock());
-        streamPushItem.setTotalReaderCount(item.getTotalReaderCount() + "");
+        streamPushItem.setTotalReaderCount(item.getTotalReaderCount());
         streamPushItem.setOriginType(item.getOriginType());
         streamPushItem.setOriginTypeStr(item.getOriginTypeStr());
         streamPushItem.setOriginUrl(item.getOriginUrl());
@@ -632,5 +632,22 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Override
     public Map<String, StreamPushItem> getAllAppAndStreamMap() {
         return streamPushMapper.getAllAppAndStreamMap();
+    }
+
+    @Override
+    public void updatePush(OnStreamChangedHookParam param) {
+        StreamPushItem transform = transform(param);
+        StreamPushItem pushInDb = getPush(param.getApp(), param.getStream());
+        transform.setPushIng(param.isRegist());
+        transform.setUpdateTime(DateUtil.getNow());
+        transform.setPushTime(DateUtil.getNow());
+        transform.setSelf(userSetting.getServerId().equals(param.getSeverId()));
+        if (pushInDb == null) {
+            transform.setCreateTime(DateUtil.getNow());
+            streamPushMapper.add(transform);
+        }else {
+            streamPushMapper.update(transform);
+            gbStreamMapper.updateMediaServer(param.getApp(), param.getStream(), param.getMediaServerId());
+        }
     }
 }

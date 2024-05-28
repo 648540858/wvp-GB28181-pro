@@ -99,4 +99,13 @@ public interface IDeviceChannelService {
     void updateChannelGPS(Device device, DeviceChannel deviceChannel, MobilePosition mobilePosition);
 
     void stopPlay(String deviceId, String channelId);
+    void batchUpdateChannelGPS(List<DeviceChannel> channelList);
+
+    void batchAddMobilePosition(List<MobilePosition> addMobilePositionList);
+
+    void online(DeviceChannel channel);
+
+    void offline(DeviceChannel channel);
+
+    void delete(DeviceChannel channel);
 }

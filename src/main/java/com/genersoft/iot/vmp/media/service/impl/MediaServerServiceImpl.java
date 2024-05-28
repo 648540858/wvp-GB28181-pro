@@ -115,6 +115,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
             removeCount(event.getMediaServer().getId());
             MediaInfo mediaInfo = redisCatchStorage.getStreamInfo(
                     event.getApp(), event.getStream(), event.getMediaServer().getId());
+            if (mediaInfo == null) {
+                return;
+            }
             String type = OriginType.values()[mediaInfo.getOriginType()].getType();
             redisCatchStorage.removeStream(mediaInfo.getMediaServer().getId(), type, event.getApp(), event.getStream());
         }
@@ -399,6 +402,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             logger.info("[添加媒体节点] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             return;
         }
+
         mediaServerMapper.add(mediaServer);
         if (mediaServer.isStatus()) {
             mediaNodeServerService.online(mediaServer);
@@ -589,6 +593,16 @@ public class MediaServerServiceImpl implements IMediaServerService {
             return false;
         }
         return mediaNodeServerService.stopSendRtp(mediaInfo, app, stream, ssrc);
+    }
+
+    @Override
+    public boolean initStopSendRtp(MediaServer mediaInfo, String app, String stream, String ssrc) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaInfo.getType());
+        if (mediaNodeServerService == null) {
+            logger.info("[stopSendRtp] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaInfo.getType());
+            return false;
+        }
+        return mediaNodeServerService.initStopSendRtp(mediaInfo, app, stream, ssrc);
     }
 
     @Override
@@ -894,5 +908,17 @@ public class MediaServerServiceImpl implements IMediaServerService {
         sendRtpItem.setMediaServerId(serverItem.getId());
         sendRtpItem.setRtcp(rtcp);
         return sendRtpItem;
+    }
+
+    @Override
+    public MediaServer getMediaServerByAppAndStream(String app, String stream) {
+        List<MediaServer> mediaServerList = getAll();
+        for (MediaServer mediaServer : mediaServerList) {
+            MediaInfo mediaInfo = getMediaInfo(mediaServer, app, stream);
+            if (mediaInfo != null) {
+                return mediaServer;
+            }
+        }
+        return null;
     }
 }

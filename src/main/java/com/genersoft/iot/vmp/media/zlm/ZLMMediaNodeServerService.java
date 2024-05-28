@@ -94,6 +94,8 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         MediaServer mediaServer = new MediaServer();
         mediaServer.setIp(ip);
         mediaServer.setHttpPort(port);
+        mediaServer.setFlvPort(port);
+        mediaServer.setWsFlvPort(port);
         mediaServer.setSecret(secret);
         JSONObject responseJSON = zlmresTfulUtils.getMediaServerConfig(mediaServer);
         if (responseJSON == null) {
@@ -109,12 +111,15 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         }
         mediaServer.setId(zlmServerConfig.getGeneralMediaServerId());
         mediaServer.setHttpSSlPort(zlmServerConfig.getHttpPort());
+        mediaServer.setFlvSSLPort(zlmServerConfig.getHttpPort());
+        mediaServer.setWsFlvSSLPort(zlmServerConfig.getHttpPort());
         mediaServer.setRtmpPort(zlmServerConfig.getRtmpPort());
         mediaServer.setRtmpSSlPort(zlmServerConfig.getRtmpSslPort());
         mediaServer.setRtspPort(zlmServerConfig.getRtspPort());
         mediaServer.setRtspSSLPort(zlmServerConfig.getRtspSSlport());
         mediaServer.setRtpProxyPort(zlmServerConfig.getRtpProxyPort());
         mediaServer.setStreamIp(ip);
+
         mediaServer.setHookIp(sipIp.split(",")[0]);
         mediaServer.setSdpIp(ip);
         mediaServer.setType("zlm");
@@ -131,8 +136,29 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
             param.put("ssrc", ssrc);
         }
         JSONObject jsonObject = zlmresTfulUtils.stopSendRtp(mediaInfo, param);
-        return (jsonObject != null && jsonObject.getInteger("code") == 0);
+        if (jsonObject == null || jsonObject.getInteger("code") != 0 ) {
+            logger.error("停止发流失败: {}, 参数：{}", jsonObject.getString("msg"), JSON.toJSONString(param));
+            throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
+        }
+        return true;
 
+    }
+
+    @Override
+    public boolean initStopSendRtp(MediaServer mediaInfo, String app, String stream, String ssrc) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("vhost", "__defaultVhost__");
+        param.put("app", app);
+        param.put("stream", stream);
+        if (!ObjectUtils.isEmpty(ssrc)) {
+            param.put("ssrc", ssrc);
+        }
+        JSONObject jsonObject = zlmresTfulUtils.stopSendRtp(mediaInfo, param);
+        if (jsonObject == null || jsonObject.getInteger("code") != 0 ) {
+            logger.error("停止发流失败: {}, 参数：{}", jsonObject.getString("msg"), JSON.toJSONString(param));
+            return false;
+        }
+        return true;
     }
 
     @Override

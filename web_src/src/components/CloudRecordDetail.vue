@@ -45,8 +45,7 @@
                   <i class="el-icon-video-camera"  ></i>
                   {{ getFileShowName(item) }}
                 </el-tag>
-                <a class="el-icon-download" style="color: #409EFF;font-weight: 600;margin-left: 10px;"
-                   :href="`${getFileBasePath(item)}/download.html?url=download/${app}/${stream}/${chooseDate}/${item.fileName}`"
+                <a class="el-icon-download" @click="downloadFile(item)" style="color: #409EFF;font-weight: 600;margin-left: 10px;"
                    target="_blank"/>
               </li>
             </ul>
@@ -230,9 +229,6 @@
 		mounted() {
       this.recordListStyle.height = this.winHeight + "px";
       this.playerStyle["height"] = this.winHeight + "px";
-      console.log(this.app)
-      console.log(this.stream)
-      console.log(this.mediaServerId)
       // 查询当年有视频的日期
       this.getDateInYear(()=>{
         if (Object.values(this.dateFilesObj).length > 0){
@@ -314,21 +310,61 @@
         });
       },
       chooseFile(file){
+        console.log(file)
 			  if (file == null) {
           this.videoUrl = "";
           this.choosedFile = "";
         }else {
           this.choosedFile = file.fileName;
-          this.videoUrl = `${this.getFileBasePath(file)}/download/${this.app}/${this.stream}/${this.chooseDate}/${file.fileName}`
-          console.log(this.videoUrl)
+          this.$axios({
+            method: 'get',
+            url: `/api/cloud/record/play/path`,
+            params: {
+              recordId: file.id,
+            }
+          }).then((res) => {
+            console.log(res)
+            if (res.data.code === 0) {
+              if (location.protocol === "https:") {
+                this.videoUrl = res.data.data.httpsPath;
+              }else {
+                this.videoUrl = res.data.data.httpPath;
+              }
+            }
+          }).catch((error) => {
+            console.log(error);
+          });
         }
-
+      },
+      downloadFile(file){
+        console.log(file)
+        this.$axios({
+          method: 'get',
+          url: `/api/cloud/record/play/path`,
+          params: {
+            recordId: file.id,
+          }
+        }).then((res) => {
+          console.log(res)
+          const link = document.createElement('a');
+          link.target = "_blank";
+          if (res.data.code === 0) {
+            if (location.protocol === "https:") {
+              link.href = res.data.data.httpsPath + "&save_name=" + file.fileName;
+            }else {
+              link.href = res.data.data.httpPath + "&save_name=" + file.fileName;
+            }
+            link.click();
+          }
+        }).catch((error) => {
+          console.log(error);
+        });
       },
       backToList() {
         this.$router.back()
       },
       getFileShowName(item) {
-          return  moment.unix(item.startTime).format('HH:mm:ss') + "-" + moment.unix(item.endTime).format('HH:mm:ss')
+          return  moment(item.startTime).format('HH:mm:ss') + "-" + moment(item.endTime).format('HH:mm:ss')
       },
       chooseMediaChange() {
 

@@ -349,6 +349,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }
         String msgResult;
         if ("ffmpeg".equalsIgnoreCase(param.getType())){
+            if (param.getTimeoutMs() == 0) {
+                param.setTimeoutMs(15);
+            }
             result = mediaServerService.addFFmpegSource(mediaServer, param.getSrcUrl().trim(), param.getDstUrl(),
                     param.getTimeoutMs(), param.isEnableAudio(), param.isEnableMp4(),
                     param.getFfmpegCmdKey());
@@ -406,6 +409,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             gbStreamMapper.del(app, stream);
             videoManagerStorager.deleteStreamProxy(app, stream);
             redisCatchStorage.removeStream(streamProxyItem.getMediaServerId(), "PULL", app, stream);
+            redisCatchStorage.removeStream(streamProxyItem.getMediaServerId(), "PUSH", app, stream);
             Boolean result = removeStreamProxyFromZlm(streamProxyItem);
             if (result != null && result) {
                 logger.info("[移除代理]： 代理： {}/{}, 从zlm移除成功", app, stream);

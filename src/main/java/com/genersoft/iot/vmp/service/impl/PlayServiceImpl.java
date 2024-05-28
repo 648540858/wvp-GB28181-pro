@@ -34,7 +34,6 @@ import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.*;
-import com.genersoft.iot.vmp.service.redisMsg.RedisGbPlayMsgListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.CloudRecordUtils;
@@ -117,9 +116,6 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private ISIPCommanderForPlatform commanderForPlatform;
-
-    @Autowired
-    private RedisGbPlayMsgListener redisGbPlayMsgListener;
 
     @Autowired
     private SSRCFactory ssrcFactory;
@@ -263,7 +259,7 @@ public class PlayServiceImpl implements IPlayService {
             );
 
             SSRCInfo ssrcInfo = mediaServerService.openRTPServer(event.getMediaServer(), event.getStream(), null,
-                    device.isSsrcCheck(), true, 0, false, !deviceChannel.isHasAudio(), false, device.getStreamModeForParam());
+                    device.isSsrcCheck(), true, 0, false, !deviceChannel.getHasAudio(), false, device.getStreamModeForParam());
             playBack(event.getMediaServer(), ssrcInfo, deviceId, channelId, startTime, endTime, null);
         }
     }
@@ -275,7 +271,6 @@ public class PlayServiceImpl implements IPlayService {
             logger.warn("[点播] 未找到可用的zlm deviceId: {},channelId:{}", deviceId, channelId);
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的zlm");
         }
-
         Device device = redisCatchStorage.getDevice(deviceId);
         if (device.getStreamMode().equalsIgnoreCase("TCP-ACTIVE") && !mediaServerItem.isRtpEnable()) {
             logger.warn("[点播] 单端口收流时不支持TCP主动方式收流 deviceId: {},channelId:{}", deviceId, channelId);
@@ -289,6 +284,8 @@ public class PlayServiceImpl implements IPlayService {
         InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
         if (inviteInfo != null ) {
             if (inviteInfo.getStreamInfo() == null) {
+                // 释放生成的ssrc，使用上一次申请的
+                ssrcFactory.releaseSsrc(mediaServerItem.getId(), ssrc);
                 // 点播发起了但是尚未成功, 仅注册回调等待结果即可
                 inviteStreamService.once(InviteSessionType.PLAY, deviceId, channelId, null, callback);
                 logger.info("[点播开始] 已经请求中，等待结果， deviceId: {}, channelId: {}", device.getDeviceId(), channelId);
@@ -324,7 +321,7 @@ public class PlayServiceImpl implements IPlayService {
             }
         }
         String streamId = String.format("%s_%s", device.getDeviceId(), channelId);
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, ssrc, device.isSsrcCheck(),  false, 0, false, !channel.isHasAudio(), false, device.getStreamModeForParam());
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, ssrc, device.isSsrcCheck(),  false, 0, false, !channel.getHasAudio(), false, device.getStreamModeForParam());
         if (ssrcInfo == null) {
             callback.run(InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode(), InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getMsg(), null);
             inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
@@ -763,7 +760,7 @@ public class PlayServiceImpl implements IPlayService {
                 .replace(":", "")
                 .replace(" ", "");
         String stream = deviceId + "_" + channelId + "_" + startTimeStr + "_" + endTimeTimeStr;
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, stream, null, device.isSsrcCheck(),  true, 0, false,  !channel.isHasAudio(),  false, device.getStreamModeForParam());
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, stream, null, device.isSsrcCheck(),  true, 0, false,  !channel.getHasAudio(),  false, device.getStreamModeForParam());
         playBack(newMediaServerItem, ssrcInfo, deviceId, channelId, startTime, endTime, callback);
     }
 
@@ -960,7 +957,7 @@ public class PlayServiceImpl implements IPlayService {
             return;
         }
         // 录像下载不使用固定流地址，固定流地址会导致如果开始时间与结束时间一致时文件错误的叠加在一起
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, null, device.isSsrcCheck(),  true, 0, false,!channel.isHasAudio(), false, device.getStreamModeForParam());
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, null, device.isSsrcCheck(),  true, 0, false,!channel.getHasAudio(), false, device.getStreamModeForParam());
         download(newMediaServerItem, ssrcInfo, deviceId, channelId, startTime, endTime, downloadSpeed, callback);
     }
 
@@ -1419,12 +1416,7 @@ public class PlayServiceImpl implements IPlayService {
         // 开始发流
         MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 
-        if (mediaInfo == null) {
-            RequestPushStreamMsg requestPushStreamMsg = RequestPushStreamMsg.getInstance(sendRtpItem);
-            redisGbPlayMsgListener.sendMsgForStartSendRtpStream(sendRtpItem.getServerId(), requestPushStreamMsg, () -> {
-                startSendRtpStreamFailHand(sendRtpItem, platform, callIdHeader);
-            });
-        } else {
+        if (mediaInfo != null) {
             try {
                 if (sendRtpItem.isTcpActive()) {
                     mediaServerService.startSendRtpPassive(mediaInfo, platform, sendRtpItem, null);

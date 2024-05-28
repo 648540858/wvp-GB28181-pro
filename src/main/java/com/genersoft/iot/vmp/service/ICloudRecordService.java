@@ -17,7 +17,7 @@ public interface ICloudRecordService {
     /**
      * 分页回去云端录像列表
      */
-    PageInfo<CloudRecordItem> getList(int page, int count, String query,  String app, String stream, String startTime, String endTime, List<MediaServer> mediaServerItems);
+    PageInfo<CloudRecordItem> getList(int page, int count, String query,  String app, String stream, String startTime, String endTime, List<MediaServer> mediaServerItems, String callId);
 
     /**
      * 获取所有的日期
@@ -50,4 +50,6 @@ public interface ICloudRecordService {
      * 获取播放地址
      */
     DownloadFileInfo getPlayUrlPath(Integer recordId);
+
+    List<CloudRecordItem> getAllList(String query, String app, String stream, String startTime, String endTime, List<MediaServer> mediaServerItems, String callId, List<Integer> ids);
 }

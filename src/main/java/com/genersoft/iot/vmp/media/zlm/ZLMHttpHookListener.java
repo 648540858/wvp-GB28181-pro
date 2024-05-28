@@ -10,19 +10,21 @@ import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.media.*;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaSendRtpStoppedEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.*;
 import com.genersoft.iot.vmp.media.zlm.event.HookZlmServerKeepaliveEvent;
 import com.genersoft.iot.vmp.media.zlm.event.HookZlmServerStartEvent;
 import com.genersoft.iot.vmp.service.*;
+import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.utils.MediaServerUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +36,6 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -66,6 +67,10 @@ public class ZLMHttpHookListener {
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
+
+    @Autowired
+    private IRedisRpcService redisRpcService;
+
     @Autowired
     private IInviteStreamService inviteStreamService;
 
@@ -86,9 +91,6 @@ public class ZLMHttpHookListener {
 
     @Autowired
     private EventPublisher eventPublisher;
-
-    @Autowired
-    private ZLMMediaListManager zlmMediaListManager;
 
     @Autowired
     private HookSubscribe subscribe;
@@ -118,6 +120,9 @@ public class ZLMHttpHookListener {
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
 
+    @Autowired
+    private IStreamPushService streamPushService;
+
     /**
      * 服务器定时上报时间，上报间隔可配置，默认10s上报一次
      */
@@ -144,7 +149,7 @@ public class ZLMHttpHookListener {
     @PostMapping(value = "/on_play", produces = "application/json;charset=UTF-8")
     public HookResult onPlay(@RequestBody OnPlayHookParam param) {
 
-        Map<String, String> paramMap = urlParamToMap(param.getParams());
+        Map<String, String> paramMap = MediaServerUtils.urlParamToMap(param.getParams());
         // 对于播放流进行鉴权
         boolean authenticateResult = mediaService.authenticatePlay(param.getApp(), param.getStream(), paramMap.get("callId"));
         if (!authenticateResult) {
@@ -197,16 +202,23 @@ public class ZLMHttpHookListener {
         if (mediaServer == null) {
             return HookResult.SUCCESS();
         }
-
-        if (param.isRegist()) {
-            logger.info("[ZLM HOOK] 流注册, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
-            MediaArrivalEvent mediaArrivalEvent = MediaArrivalEvent.getInstance(this, param, mediaServer);
-            applicationEventPublisher.publishEvent(mediaArrivalEvent);
-        } else {
-            logger.info("[ZLM HOOK] 流注销, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
-            MediaDepartureEvent mediaDepartureEvent = MediaDepartureEvent.getInstance(this, param, mediaServer);
-            applicationEventPublisher.publishEvent(mediaDepartureEvent);
+        if (!ObjectUtils.isEmpty(mediaServer.getTranscodeSuffix())
+                && !"null".equalsIgnoreCase(mediaServer.getTranscodeSuffix())
+                && param.getStream().endsWith(mediaServer.getTranscodeSuffix())  ) {
+            return HookResult.SUCCESS();
         }
+        if (param.getSchema().equalsIgnoreCase("rtsp")) {
+            if (param.isRegist()) {
+                logger.info("[ZLM HOOK] 流注册, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
+                MediaArrivalEvent mediaArrivalEvent = MediaArrivalEvent.getInstance(this, param, mediaServer);
+                applicationEventPublisher.publishEvent(mediaArrivalEvent);
+            } else {
+                logger.info("[ZLM HOOK] 流注销, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
+                MediaDepartureEvent mediaDepartureEvent = MediaDepartureEvent.getInstance(this, param, mediaServer);
+                applicationEventPublisher.publishEvent(mediaDepartureEvent);
+            }
+        }
+
         return HookResult.SUCCESS();
     }
 
@@ -219,10 +231,23 @@ public class ZLMHttpHookListener {
 
         logger.info("[ZLM HOOK]流无人观看：{}->{}->{}/{}", param.getMediaServerId(), param.getSchema(),
                 param.getApp(), param.getStream());
-        JSONObject ret = new JSONObject();
 
+        MediaServer mediaInfo = mediaServerService.getOne(param.getMediaServerId());
+        if (mediaInfo == null) {
+            JSONObject ret = new JSONObject();
+            ret.put("code", 0);
+            return ret;
+        }
+        if (!ObjectUtils.isEmpty(mediaInfo.getTranscodeSuffix())
+                && !"null".equalsIgnoreCase(mediaInfo.getTranscodeSuffix())
+                && param.getStream().endsWith(mediaInfo.getTranscodeSuffix())  ) {
+            param.setStream(param.getStream().substring(0, param.getStream().lastIndexOf(mediaInfo.getTranscodeSuffix()) -1 ));
+        }
+
+        JSONObject ret = new JSONObject();
         boolean close = mediaService.closeStreamOnNoneReader(param.getMediaServerId(), param.getApp(), param.getStream(), param.getSchema());
-        ret.put("code", close);
+        ret.put("code", 0);
+        ret.put("close", close);
         return ret;
     }
 
@@ -340,23 +365,5 @@ public class ZLMHttpHookListener {
         }
 
         return HookResult.SUCCESS();
-    }
-
-    private Map<String, String> urlParamToMap(String params) {
-        HashMap<String, String> map = new HashMap<>();
-        if (ObjectUtils.isEmpty(params)) {
-            return map;
-        }
-        String[] paramsArray = params.split("&");
-        if (paramsArray.length == 0) {
-            return map;
-        }
-        for (String param : paramsArray) {
-            String[] paramArray = param.split("=");
-            if (paramArray.length == 2) {
-                map.put(paramArray[0], paramArray[1]);
-            }
-        }
-        return map;
     }
 }

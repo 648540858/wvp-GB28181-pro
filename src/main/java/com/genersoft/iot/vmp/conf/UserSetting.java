@@ -54,6 +54,8 @@ public class UserSetting {
     private Boolean deviceStatusNotify = Boolean.TRUE;
     private Boolean useCustomSsrcForParentInvite = Boolean.TRUE;
 
+    private Boolean docEnable = Boolean.TRUE;
+
     private String serverId = "000000";
 
     private String thirdPartyGBIdReg = "[\\s\\S]*";
@@ -66,7 +68,7 @@ public class UserSetting {
 
     private List<String> allowedOrigins = new ArrayList<>();
 
-    private int maxNotifyCountQueue = 10000;
+    private int maxNotifyCountQueue = 100000;
 
     private int registerAgainAfterTime = 60;
 
@@ -314,5 +316,13 @@ public class UserSetting {
 
     public void setRegisterKeepIntDialog(boolean registerKeepIntDialog) {
         this.registerKeepIntDialog = registerKeepIntDialog;
+    }
+
+    public Boolean getDocEnable() {
+        return docEnable;
+    }
+
+    public void setDocEnable(Boolean docEnable) {
+        this.docEnable = docEnable;
     }
 }

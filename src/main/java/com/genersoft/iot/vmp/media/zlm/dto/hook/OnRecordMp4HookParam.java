@@ -15,6 +15,7 @@ public class OnRecordMp4HookParam extends HookParam{
     private String vhost;
     private long start_time;
     private double time_len;
+    private String params;
 
     public String getApp() {
         return app;
@@ -96,6 +97,14 @@ public class OnRecordMp4HookParam extends HookParam{
         this.time_len = time_len;
     }
 
+    public String getParams() {
+        return params;
+    }
+
+    public void setParams(String params) {
+        this.params = params;
+    }
+
     @Override
     public String toString() {
         return "OnRecordMp4HookParam{" +
@@ -109,6 +118,7 @@ public class OnRecordMp4HookParam extends HookParam{
                 ", vhost='" + vhost + '\'' +
                 ", start_time=" + start_time +
                 ", time_len=" + time_len +
+                ", params=" + params +
                 '}';
     }
 }

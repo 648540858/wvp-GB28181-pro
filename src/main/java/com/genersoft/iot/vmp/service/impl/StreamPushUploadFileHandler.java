@@ -137,7 +137,7 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
         streamPushItem.setName(streamPushExcelDto.getName());
         streamPushItem.setOriginType(2);
         streamPushItem.setOriginTypeStr("rtsp_push");
-        streamPushItem.setTotalReaderCount("0");
+        streamPushItem.setTotalReaderCount(0);
         streamPushItem.setPlatformId(streamPushExcelDto.getPlatformId());
         streamPushItem.setCatalogId(streamPushExcelDto.getCatalogId());
 

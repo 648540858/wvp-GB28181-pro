@@ -11,6 +11,7 @@ public class RecordInfo {
     private String url;
     private long startTime;
     private double timeLen;
+    private String params;
 
     public static RecordInfo getInstance(OnRecordMp4HookParam hookParam) {
         RecordInfo recordInfo = new RecordInfo();
@@ -86,6 +87,14 @@ public class RecordInfo {
         this.timeLen = timeLen;
     }
 
+    public String getParams() {
+        return params;
+    }
+
+    public void setParams(String params) {
+        this.params = params;
+    }
+
     @Override
     public String toString() {
         return "RecordInfo{" +
@@ -94,6 +103,7 @@ public class RecordInfo {
                 ", 文件大小=" + fileSize +
                 ", 开始时间=" + startTime +
                 ", 时长=" + timeLen +
+                ", params=" + params +
                 '}';
     }
 }

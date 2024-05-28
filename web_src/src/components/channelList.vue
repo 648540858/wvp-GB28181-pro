@@ -326,7 +326,9 @@ export default {
             e.ptzType = e.ptzType + "";
             that.$set(e, "edit", false);
             that.$set(e, "location", "");
-            if (e.longitude && e.latitude) {
+            if (e.customLongitude && e.customLatitude) {
+              that.$set(e, "location", e.customLongitude + "," + e.customLatitude);
+            }else if (e.longitude && e.latitude) {
               that.$set(e, "location", e.longitude + "," + e.latitude);
             }
           });
@@ -481,7 +483,9 @@ export default {
               e.ptzType = e.ptzType + "";
               this.$set(e, "edit", false);
               this.$set(e, "location", "");
-              if (e.longitude && e.latitude) {
+              if (e.customLongitude && e.customLatitude) {
+                this.$set(e, "location", e.customLongitude + "," + e.customLatitude);
+              }else if (e.longitude && e.latitude) {
                 this.$set(e, "location", e.longitude + "," + e.latitude);
               }
             });
@@ -603,8 +607,8 @@ export default {
           this.$message.warning("位置信息格式有误，例：117.234,36.378");
           return;
         } else {
-          row.longitude = parseFloat(segements[0]);
-          row.latitude = parseFloat(segements[1]);
+          row.customLongitude = parseFloat(segements[0]);
+          row.custom_latitude = parseFloat(segements[1]);
           if (!(row.longitude && row.latitude)) {
             this.$message.warning("位置信息格式有误，例：117.234,36.378");
             return;

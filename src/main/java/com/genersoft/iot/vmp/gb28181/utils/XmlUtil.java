@@ -532,16 +532,17 @@ public class XmlUtil {
                     String status = getText(itemDevice, "Status");
                     if (status != null) {
                         // ONLINE OFFLINE HIKVISION DS-7716N-E4 NVR的兼容性处理
-                        if (status.equals("ON") || status.equals("On") || status.equals("ONLINE") || status.equals("OK")) {
+                        if (status.equalsIgnoreCase("ON") || status.equalsIgnoreCase("On") || status.equalsIgnoreCase("ONLINE") || status.equalsIgnoreCase("OK")) {
                             deviceChannel.setStatus(true);
                         }
-                        if (status.equals("OFF") || status.equals("Off") || status.equals("OFFLINE")) {
+                        if (status.equalsIgnoreCase("OFF") || status.equalsIgnoreCase("Off") || status.equalsIgnoreCase("OFFLINE")) {
                             deviceChannel.setStatus(false);
                         }
                     }else {
                         deviceChannel.setStatus(true);
                     }
-
+//                    logger.info("状态字符串： {}", status);
+//                    logger.info("状态结果： {}", deviceChannel.isStatus());
                     // 经度
                     String longitude = getText(itemDevice, "Longitude");
                     if (NumericUtil.isDouble(longitude)) {

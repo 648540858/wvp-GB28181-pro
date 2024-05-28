@@ -10,16 +10,15 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
-import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
-import com.genersoft.iot.vmp.media.zlm.ZLMMediaListManager;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.service.*;
-import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.utils.MediaServerUtils;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.OtherPsSendInfo;
 import com.genersoft.iot.vmp.vmanager.bean.OtherRtpSendInfo;
@@ -28,12 +27,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -65,9 +62,6 @@ public class MediaServiceImpl implements IMediaService {
 
     @Autowired
     private IVideoManagerStorage storager;
-
-    @Autowired
-    private ZLMMediaListManager zlmMediaListManager;
 
     @Autowired
     private IDeviceService deviceService;
@@ -106,7 +100,7 @@ public class MediaServiceImpl implements IMediaService {
             }
             if (userSetting.getPushAuthority()) {
                 // 对于推流进行鉴权
-                Map<String, String> paramMap = urlParamToMap(params);
+                Map<String, String> paramMap = MediaServerUtils.urlParamToMap(params);
                 // 推流鉴权
                 if (params == null) {
                     logger.info("推流鉴权失败： 缺少必要参数：sign=md5(user表的pushKey)");
@@ -132,8 +126,6 @@ public class MediaServiceImpl implements IMediaService {
                 // 鉴权通过
                 redisCatchStorage.updateStreamAuthorityInfo(app, stream, streamAuthorityInfo);
             }
-        } else {
-            zlmMediaListManager.sendStreamEvent(app, stream, mediaServer.getId());
         }
 
 
@@ -178,7 +170,7 @@ public class MediaServiceImpl implements IMediaService {
                 String channelId = ssrcTransactionForAll.get(0).getChannelId();
                 DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
                 if (deviceChannel != null) {
-                    result.setEnable_audio(deviceChannel.isHasAudio());
+                    result.setEnable_audio(deviceChannel.getHasAudio());
                 }
                 // 如果是录像下载就设置视频间隔十秒
                 if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.DOWNLOAD) {
@@ -217,24 +209,6 @@ public class MediaServiceImpl implements IMediaService {
         return result;
     }
 
-    private Map<String, String> urlParamToMap(String params) {
-        HashMap<String, String> map = new HashMap<>();
-        if (ObjectUtils.isEmpty(params)) {
-            return map;
-        }
-        String[] paramsArray = params.split("&");
-        if (paramsArray.length == 0) {
-            return map;
-        }
-        for (String param : paramsArray) {
-            String[] paramArray = param.split("=");
-            if (paramArray.length == 2) {
-                map.put(paramArray[0], paramArray[1]);
-            }
-        }
-        return map;
-    }
-
     @Override
     public boolean closeStreamOnNoneReader(String mediaServerId, String app, String stream, String schema) {
         boolean result = false;
@@ -264,11 +238,7 @@ public class MediaServiceImpl implements IMediaService {
                             redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
                                     sendRtpItem.getCallId(), sendRtpItem.getStream());
                             if (InviteStreamType.PUSH == sendRtpItem.getPlayType()) {
-                                MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
-                                        sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getChannelId(),
-                                        sendRtpItem.getPlatformId(), parentPlatform.getName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
-                                messageForPushChannel.setPlatFormIndex(parentPlatform.getId());
-                                redisCatchStorage.sendPlatformStopPlayMsg(messageForPushChannel);
+                                redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem,parentPlatform);
                             }
                         }
                     }

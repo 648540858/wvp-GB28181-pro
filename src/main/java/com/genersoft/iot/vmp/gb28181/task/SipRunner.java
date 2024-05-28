@@ -104,7 +104,7 @@ public class SipRunner implements CommandLineRunner {
                 redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(),sendRtpItem.getChannelId(), sendRtpItem.getCallId(),sendRtpItem.getStream());
                 if (mediaServerItem != null) {
                     ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
-                    boolean stopResult = mediaServerService.stopSendRtp(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getSsrc());
+                    boolean stopResult = mediaServerService.initStopSendRtp(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getSsrc());
                     if (stopResult) {
                         ParentPlatform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
                         if (platform != null) {

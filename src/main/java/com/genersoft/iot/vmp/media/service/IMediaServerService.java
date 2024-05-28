@@ -151,4 +151,6 @@ public interface IMediaServerService {
                                   String app, String stream, String channelId, boolean tcp, boolean rtcp);
 
     MediaServer getMediaServerByAppAndStream(String app, String stream);
+
+    Long updateDownloadProcess(MediaServer mediaServerItem, String app, String stream);
 }

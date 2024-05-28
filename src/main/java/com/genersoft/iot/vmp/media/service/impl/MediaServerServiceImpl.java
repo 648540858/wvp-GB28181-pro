@@ -921,4 +921,14 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         return null;
     }
+
+    @Override
+    public Long updateDownloadProcess(MediaServer mediaServer, String app, String stream) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
+        if (mediaNodeServerService == null) {
+            logger.info("[updateDownloadProcess] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到mediaServer对应的实现类");
+        }
+        return mediaNodeServerService.updateDownloadProcess(mediaServer, app, stream);
+    }
 }

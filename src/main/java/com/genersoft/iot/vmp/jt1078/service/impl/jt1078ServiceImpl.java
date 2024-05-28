@@ -113,7 +113,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     private final Map<String, List<GeneralCallback<StreamInfo>>> inviteErrorCallbackMap = new ConcurrentHashMap<>();
 
     @Override
-    public void play(String deviceId, String channelId, GeneralCallback<StreamInfo> callback) {
+    public void play(String deviceId, String channelId, int type, GeneralCallback<StreamInfo> callback) {
 
         // 检查流是否已经存在，存在则返回
         String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + deviceId + ":" + channelId;
@@ -180,7 +180,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j9101.setRate(1);
         j9101.setTcpPort(ssrcInfo.getPort());
         j9101.setUdpPort(ssrcInfo.getPort());
-        j9101.setType(0);
+        j9101.setType(type);
         Object s = jt1078Template.startLive(deviceId, j9101, 6);
         System.out.println("ssss=== " + s);
 

@@ -61,10 +61,15 @@ public class JT1078Controller {
     @Operation(summary = "1078-开始点播", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
+    @Parameter(name = "type", description = "类型：0:音视频,1:视频,2:音频", required = true)
     @GetMapping("/live/start")
     public DeferredResult<WVPResult<StreamContent>> startLive(HttpServletRequest request,
                                                               @Parameter(required = true) String deviceId,
-                                                              @Parameter(required = false) String channelId) {
+                                                              @Parameter(required = false) String channelId,
+                                                              @Parameter(required = false) Integer type) {
+        if (type == null || (type != 0 && type != 1 && type != 2)) {
+            type = 0;
+        }
         DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
         if (ObjectUtils.isEmpty(channelId)) {
             channelId = "1";
@@ -80,7 +85,7 @@ public class JT1078Controller {
             service.stopPlay(deviceId, finalChannelId);
         });
 
-        service.play(deviceId, channelId, (code, msg, streamInfo) -> {
+        service.play(deviceId, channelId, type, (code, msg, streamInfo) -> {
             WVPResult<StreamContent> wvpResult = new WVPResult<>();
             if (code == InviteErrorCode.SUCCESS.getCode()) {
                 wvpResult.setCode(ErrorCode.SUCCESS.getCode());

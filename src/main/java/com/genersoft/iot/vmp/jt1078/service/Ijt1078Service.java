@@ -21,7 +21,7 @@ public interface Ijt1078Service {
 
     void updateDeviceStatus(boolean connected, String terminalId);
 
-    void play(String deviceId, String channelId, GeneralCallback<StreamInfo> callback);
+    void play(String deviceId, String channelId, int type, GeneralCallback<StreamInfo> callback);
 
     void playback(String deviceId, String channelId, String startTime, String endTime, GeneralCallback<StreamInfo> callback);
 

@@ -61,13 +61,13 @@ public class JT1078Controller {
     @Operation(summary = "1078-开始点播", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
-    @Parameter(name = "type", description = "类型：0:音视频,1:视频,2:音频", required = true)
+    @Parameter(name = "type", description = "类型：0:音视频,1:视频,3:音频", required = true)
     @GetMapping("/live/start")
     public DeferredResult<WVPResult<StreamContent>> startLive(HttpServletRequest request,
                                                               @Parameter(required = true) String deviceId,
                                                               @Parameter(required = false) String channelId,
                                                               @Parameter(required = false) Integer type) {
-        if (type == null || (type != 0 && type != 1 && type != 2)) {
+        if (type == null || (type != 0 && type != 1 && type != 3)) {
             type = 0;
         }
         DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
@@ -80,7 +80,7 @@ public class JT1078Controller {
             // 释放rtpserver
             WVPResult<StreamContent> wvpResult = new WVPResult<>();
             wvpResult.setCode(ErrorCode.ERROR100.getCode());
-            wvpResult.setMsg("点播超时");
+            wvpResult.setMsg("超时");
             result.setResult(wvpResult);
             service.stopPlay(deviceId, finalChannelId);
         });
@@ -130,6 +130,68 @@ public class JT1078Controller {
         }
         service.stopPlay(deviceId, channelId);
     }
+
+    @Operation(summary = "1078-语音对讲", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
+    @Parameter(name = "app", description = "推流应用名", required = true)
+    @Parameter(name = "stream", description = "推流ID", required = true)
+    @Parameter(name = "mediaServerId", description = "流媒体ID", required = true)
+    @GetMapping("/broadcast")
+    public DeferredResult<WVPResult<StreamContent>> broadcast(HttpServletRequest request,
+                         @Parameter(required = true) String deviceId,
+                         @Parameter(required = true) String channelId,
+                         @Parameter(required = true) String app,
+                         @Parameter(required = true) String stream,
+                         @Parameter(required = true) String mediaServerId) {
+        DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
+        if (ObjectUtils.isEmpty(channelId)) {
+            channelId = "1";
+        }
+        String finalChannelId = channelId;
+        result.onTimeout(()->{
+            logger.info("[1078-语音对讲超时] deviceId：{}, channelId：{}, ", deviceId, finalChannelId);
+            // 释放rtpserver
+            WVPResult<StreamContent> wvpResult = new WVPResult<>();
+            wvpResult.setCode(ErrorCode.ERROR100.getCode());
+            wvpResult.setMsg("超时");
+            result.setResult(wvpResult);
+            service.stopPlay(deviceId, finalChannelId);
+        });
+
+        service.broadcast(deviceId, channelId, app, stream, mediaServerId, (code, msg, streamInfo) -> {
+            WVPResult<StreamContent> wvpResult = new WVPResult<>();
+            if (code == InviteErrorCode.SUCCESS.getCode()) {
+                wvpResult.setCode(ErrorCode.SUCCESS.getCode());
+                wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
+
+                if (streamInfo != null) {
+                    if (userSetting.getUseSourceIpAsStreamIp()) {
+                        streamInfo=streamInfo.clone();//深拷贝
+                        String host;
+                        try {
+                            URL url=new URL(request.getRequestURL().toString());
+                            host=url.getHost();
+                        } catch (MalformedURLException e) {
+                            host=request.getLocalAddr();
+                        }
+                        streamInfo.channgeStreamIp(host);
+                    }
+                    wvpResult.setData(new StreamContent(streamInfo));
+                }else {
+                    wvpResult.setCode(code);
+                    wvpResult.setMsg(msg);
+                }
+            }else {
+                wvpResult.setCode(code);
+                wvpResult.setMsg(msg);
+            }
+            result.setResult(wvpResult);
+        });
+
+        return result;
+    }
+
 
     @Operation(summary = "1078-暂停点播", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)

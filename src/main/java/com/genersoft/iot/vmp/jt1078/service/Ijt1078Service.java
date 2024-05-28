@@ -106,4 +106,6 @@ public interface Ijt1078Service {
     void uploadMediaDataForSingle(String deviceId, Long mediaId, Integer delete);
 
     JTMediaAttribute queryMediaAttribute(String deviceId);
+
+    void broadcast(String deviceId, String channelId, String app, String stream, String mediaServerId, GeneralCallback<StreamInfo> callback);
 }

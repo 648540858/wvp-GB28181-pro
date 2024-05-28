@@ -140,7 +140,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             // 清理数据
             redisTemplate.delete(playKey);
         }
-        String stream = deviceId + "-" + channelId;
+        String stream = deviceId + "_" + channelId;
         MediaServer mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
         if (mediaServer == null) {
             for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
@@ -749,5 +749,77 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     public JTMediaAttribute queryMediaAttribute(String deviceId) {
         J9003 j9003 = new J9003();
         return (JTMediaAttribute)jt1078Template.queryMediaAttribute(deviceId, j9003, 300);
+    }
+
+    @Override
+    public void broadcast(String deviceId, String channelId, String app, String stream, String mediaServerId, GeneralCallback<StreamInfo> callback) {
+        // 检查流是否已经存在，存在则返回
+        String playKey = VideoManagerConstants.INVITE_INFO_1078_BROADCAST + deviceId + ":" + channelId;
+        List<GeneralCallback<StreamInfo>> errorCallbacks = inviteErrorCallbackMap.computeIfAbsent(playKey, k -> new ArrayList<>());
+        errorCallbacks.add(callback);
+        StreamInfo streamInfo = (StreamInfo)redisTemplate.opsForValue().get(playKey);
+        if (streamInfo != null) {
+            String mediaServerId = streamInfo.getMediaServerId();
+            MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+            if (mediaServer != null) {
+                // 查询流是否存在，不存在则删除缓存数据
+                JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(mediaServer, "rtp", "rtsp", streamInfo.getStream());
+                if (mediaInfo != null && mediaInfo.getInteger("code") == 0 ) {
+                    Boolean online = mediaInfo.getBoolean("online");
+                    if (online != null && online) {
+                        logger.info("[1078-点播] 点播已经存在，直接返回， deviceId： {}， channelId： {}", deviceId, channelId);
+                        for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
+                            errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
+                        }
+                        return;
+                    }
+                }
+            }
+            // 清理数据
+            redisTemplate.delete(playKey);
+        }
+        String stream = deviceId + "_" + channelId;
+        MediaServer mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
+        if (mediaServer == null) {
+            for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
+                errorCallback.run(InviteErrorCode.FAIL.getCode(), "未找到可用的媒体节点", streamInfo);
+            }
+            return;
+        }
+        // 设置hook监听
+        Hook hook = Hook.getInstance(HookType.on_media_arrival, "rtp", stream, mediaServer.getId());
+        subscribe.addSubscribe(hook, (hookData) -> {
+            dynamicTask.stop(playKey);
+            logger.info("[1078-点播] 点播成功， deviceId： {}， channelId： {}", deviceId, channelId);
+            StreamInfo info = onPublishHandler(mediaServer, hookData, deviceId, channelId);
+
+            for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
+                errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), info);
+            }
+            subscribe.removeSubscribe(hook);
+            redisTemplate.opsForValue().set(playKey, info);
+        });
+        // 设置超时监听
+        dynamicTask.startDelay(playKey, () -> {
+            logger.info("[1078-点播] 超时， deviceId： {}， channelId： {}", deviceId, channelId);
+            for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
+                errorCallback.run(InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode(),
+                        InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getMsg(), null);
+            }
+
+        }, userSetting.getPlayTimeout());
+
+        // 开启收流端口
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServer, stream, null, false, false, 0, false, false, false,1);
+        logger.info("[1078-点播] deviceId： {}， channelId： {}， 端口： {}", deviceId, channelId, ssrcInfo.getPort());
+        J9101 j9101 = new J9101();
+        j9101.setChannel(Integer.valueOf(channelId));
+        j9101.setIp(mediaServer.getSdpIp());
+        j9101.setRate(1);
+        j9101.setTcpPort(ssrcInfo.getPort());
+        j9101.setUdpPort(ssrcInfo.getPort());
+        j9101.setType(type);
+        Object s = jt1078Template.startLive(deviceId, j9101, 6);
+        System.out.println("ssss=== " + s);
     }
 }

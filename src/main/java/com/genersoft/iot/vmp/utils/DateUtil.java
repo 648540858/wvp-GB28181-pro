@@ -120,6 +120,14 @@ public class DateUtil {
 	}
 
     /**
+     * 时间戳 转 yyyy_MM_dd_HH_mm_ss
+     */
+	public static String timestampMsToUrlToyyyy_MM_dd_HH_mm_ss(long timestamp) {
+        Instant instant = Instant.ofEpochMilli(timestamp);
+        return urlFormatter.format(LocalDateTime.ofInstant(instant, ZoneId.of(zoneStr)));
+	}
+
+    /**
      * yyyy_MM_dd_HH_mm_ss 转时间戳（毫秒）
      *
      * @param formatTime

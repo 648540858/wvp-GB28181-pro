@@ -34,7 +34,7 @@
               <el-form-item label="本地IP" prop="deviceIp">
                 <el-select v-model="platform.deviceIp" placeholder="请选择与上级相通的网卡" style="width: 100%">
                   <el-option
-                    v-for="ip in deviceIp"
+                    v-for="ip in deviceIps"
                     :key="ip"
                     :label="ip"
                     :value="ip">
@@ -58,7 +58,7 @@
                 <el-input v-model="platform.username"></el-input>
               </el-form-item>
               <el-form-item label="SIP认证密码" prop="password">
-                <el-input v-model="platform.password" ></el-input>
+                <el-input v-model="platform.password"></el-input>
               </el-form-item>
               <el-form-item label="注册周期(秒)" prop="expires">
                 <el-input v-model="platform.expires"></el-input>
@@ -100,16 +100,17 @@
               </el-form-item>
               <el-form-item label="其他选项">
                 <el-checkbox label="启用" v-model="platform.enable" @change="checkExpires"></el-checkbox>
-<!--                <el-checkbox label="云台控制" v-model="platform.ptz"></el-checkbox>-->
+                <!--                <el-checkbox label="云台控制" v-model="platform.ptz"></el-checkbox>-->
                 <el-checkbox label="拉起推流" v-model="platform.startOfflinePush"></el-checkbox>
                 <el-checkbox label="RTCP保活" v-model="platform.rtcp" @change="rtcpCheckBoxChange"></el-checkbox>
-                <el-checkbox label="消息通道" v-model="platform.asMessageChannel" ></el-checkbox>
-                <el-checkbox label="推送通道" v-model="platform.autoPushChannel" ></el-checkbox>
+                <el-checkbox label="消息通道" v-model="platform.asMessageChannel"></el-checkbox>
+                <el-checkbox label="推送通道" v-model="platform.autoPushChannel"></el-checkbox>
               </el-form-item>
               <el-form-item>
                 <el-button type="primary" @click="onSubmit">{{
-                  onSubmit_text
-                }}</el-button>
+                    onSubmit_text
+                  }}
+                </el-button>
                 <el-button @click="close">取消</el-button>
               </el-form-item>
             </el-form>
@@ -172,52 +173,56 @@ export default {
         administrativeDivision: "",
         sendStreamIp: null,
       },
-      deviceIp: [], // 存储用户选择的设备IP
+      deviceIps: [], // 存储用户设备IP数组
       rules: {
-        name: [{ required: true, message: "请输入平台名称", trigger: "blur" }],
+        name: [{required: true, message: "请输入平台名称", trigger: "blur"}],
         serverGBId: [
-          { required: true, message: "请输入SIP服务国标编码", trigger: "blur" },
+          {required: true, message: "请输入SIP服务国标编码", trigger: "blur"},
         ],
         serverGBDomain: [
-          { required: true, message: "请输入SIP服务国标域", trigger: "blur" },
+          {required: true, message: "请输入SIP服务国标域", trigger: "blur"},
         ],
-        serverIP: [{ required: true, message: "请输入SIP服务IP", trigger: "blur" }],
-        serverPort: [{ required: true, message: "请输入SIP服务端口", trigger: "blur" }],
-        deviceGBId: [{ validator: deviceGBIdRules, trigger: "blur" }],
-        username: [{ required: false, message: "请输入SIP认证用户名", trigger: "blur" }],
-        password: [{ required: false, message: "请输入SIP认证密码", trigger: "blur" }],
-        expires: [{ required: true, message: "请输入注册周期", trigger: "blur" }],
-        keepTimeout: [{ required: true, message: "请输入心跳周期", trigger: "blur" }],
-        transport: [{ required: true, message: "请选择信令传输", trigger: "blur" }],
-        characterSet: [{ required: true, message: "请选择编码字符集", trigger: "blur" }],
+        serverIP: [{required: true, message: "请输入SIP服务IP", trigger: "blur"}],
+        serverPort: [{required: true, message: "请输入SIP服务端口", trigger: "blur"}],
+        deviceGBId: [{validator: deviceGBIdRules, trigger: "blur"}],
+        username: [{required: false, message: "请输入SIP认证用户名", trigger: "blur"}],
+        password: [{required: false, message: "请输入SIP认证密码", trigger: "blur"}],
+        expires: [{required: true, message: "请输入注册周期", trigger: "blur"}],
+        keepTimeout: [{required: true, message: "请输入心跳周期", trigger: "blur"}],
+        transport: [{required: true, message: "请选择信令传输", trigger: "blur"}],
+        characterSet: [{required: true, message: "请选择编码字符集", trigger: "blur"}],
+        deviceIp: [{required: true, message: "请选择本地IP", trigger: "blur"}],
       },
     };
   },
   methods: {
     openDialog: function (platform, callback) {
       var that = this;
-      if (platform == null) {
-        this.onSubmit_text = "立即创建";
-        this.saveUrl = "/api/platform/add";
-        this.$axios({
-          method: 'get',
-          url:`/api/platform/server_config`
-        }).then(function (res) {
-          console.log(res);
+      this.$axios({
+        method: 'get',
+        url: `/api/platform/server_config`
+      }).then(function (res) {
+        if (platform == null) {
           if (res.data.code === 0) {
             that.platform.deviceGBId = res.data.data.username;
-            that.deviceIp = res.data.data.deviceIp.split(',');
+            that.deviceIps = res.data.data.deviceIp.split(',');
+            that.platform.deviceIp = that.deviceIps[0];
             that.platform.devicePort = res.data.data.devicePort;
             that.platform.username = res.data.data.username;
             that.platform.password = res.data.data.password;
             that.platform.sendStreamIp = res.data.data.sendStreamIp;
             that.platform.administrativeDivision = res.data.data.username.substr(0, 6);
           }
-
-        }).catch(function (error) {
-          console.log(error);
-        });
-      }else {
+        } else {
+          that.deviceIps = res.data.data.deviceIp.split(',');
+        }
+      }).catch(function (error) {
+        console.log(error);
+      });
+      if (platform == null) {
+        this.onSubmit_text = "立即创建";
+        this.saveUrl = "/api/platform/add";
+      } else {
         this.platform.id = platform.id;
         this.platform.enable = platform.enable;
         this.platform.ptz = platform.ptz;
@@ -230,7 +235,7 @@ export default {
         this.platform.serverIP = platform.serverIP;
         this.platform.serverPort = platform.serverPort;
         this.platform.deviceGBId = platform.deviceGBId;
-        this.deviceIp = platform.deviceIp.split(',');
+        this.platform.deviceIp = platform.deviceIp;
         this.platform.devicePort = platform.devicePort;
         this.platform.username = platform.username;
         this.platform.password = platform.password;
@@ -256,7 +261,7 @@ export default {
     },
     deviceGBIdChange: function () {
 
-      this.platform.username = this.platform.deviceGBId ;
+      this.platform.username = this.platform.deviceGBId;
       if (this.platform.administrativeDivision == null) {
         this.platform.administrativeDivision = this.platform.deviceGBId.substr(0, 6);
       }
@@ -264,12 +269,12 @@ export default {
     onSubmit: function () {
       this.saveForm()
     },
-    saveForm: function (){
+    saveForm: function () {
       this.$axios({
         method: 'post',
         url: this.saveUrl,
         data: this.platform
-      }).then((res) =>{
+      }).then((res) => {
         if (res.data.code === 0) {
           this.$message({
             showClose: true,
@@ -280,14 +285,14 @@ export default {
           if (this.listChangeCallback != null) {
             this.listChangeCallback();
           }
-        }else {
+        } else {
           this.$message({
             showClose: true,
             message: res.data.msg,
             type: "error",
           });
         }
-      }).catch((error)=> {
+      }).catch((error) => {
         console.log(error);
       });
     },
@@ -325,24 +330,25 @@ export default {
       var result = false;
       var that = this;
       await that.$axios({
-                method: 'get',
-                url:`/api/platform/exit/${deviceGbId}`})
+        method: 'get',
+        url: `/api/platform/exit/${deviceGbId}`
+      })
         .then(function (res) {
-            if (res.data.code === 0) {
-              result = res.data.data;
-            }
+          if (res.data.code === 0) {
+            result = res.data.data;
+          }
         })
         .catch(function (error) {
           console.log(error);
         });
       return result;
     },
-    checkExpires: function() {
+    checkExpires: function () {
       if (this.platform.enable && this.platform.expires === "0") {
         this.platform.expires = "3600";
       }
     },
-    rtcpCheckBoxChange: function (result){
+    rtcpCheckBoxChange: function (result) {
       if (result) {
         this.$message({
           showClose: true,
@@ -363,10 +369,12 @@ input::-webkit-inner-spin-button {
   appearance: none;
   margin: 0;
 }
+
 /* 火狐 */
-input{
-  -moz-appearance:textfield;
+input {
+  -moz-appearance: textfield;
 }
+
 .control-wrapper-not-used {
   position: relative;
   width: 6.25rem;

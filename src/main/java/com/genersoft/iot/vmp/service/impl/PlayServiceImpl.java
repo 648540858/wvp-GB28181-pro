@@ -1081,12 +1081,8 @@ public class PlayServiceImpl implements IPlayService {
             return null;
         }
         String app = "rtp";
-        MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServerItem, app, stream);
-        if (mediaInfo == null) {
-            logger.warn("[获取下载进度] 查询进度失败, 节点Id： {}， {}/{}", mediaServerId, app, stream);
-            return null;
-        }
-        if (mediaInfo.getDuration() == 0) {
+        Long duration  = mediaServerService.updateDownloadProcess(mediaServerItem, app, stream);
+        if (duration == null || duration == 0) {
             inviteInfo.getStreamInfo().setProgress(0);
         } else {
             String startTime = inviteInfo.getStreamInfo().getStartTime();
@@ -1095,7 +1091,7 @@ public class PlayServiceImpl implements IPlayService {
             long start = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime);
             long end = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime);
 
-            BigDecimal currentCount = new BigDecimal(mediaInfo.getDuration());
+            BigDecimal currentCount = new BigDecimal(duration);
             BigDecimal totalCount = new BigDecimal((end - start) * 1000);
             BigDecimal divide = currentCount.divide(totalCount, 2, RoundingMode.HALF_UP);
             double process = divide.doubleValue();

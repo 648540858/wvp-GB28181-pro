@@ -29,6 +29,8 @@ public interface IMediaNodeServerService {
 
     boolean stopSendRtp(MediaServer mediaInfo, String app, String stream, String ssrc);
 
+    boolean initStopSendRtp(MediaServer mediaInfo, String app, String stream, String ssrc);
+
     boolean deleteRecordDirectory(MediaServer mediaServer, String app, String stream, String date, String fileName);
 
     List<StreamInfo> getMediaList(MediaServer mediaServer, String app, String stream, String callId);
@@ -58,4 +60,6 @@ public interface IMediaNodeServerService {
     void startSendRtpPassive(MediaServer mediaServer, SendRtpItem sendRtpItem, Integer timeout);
 
     void startSendRtpStream(MediaServer mediaServer, SendRtpItem sendRtpItem);
+
+    Long updateDownloadProcess(MediaServer mediaServer, String app, String stream);
 }

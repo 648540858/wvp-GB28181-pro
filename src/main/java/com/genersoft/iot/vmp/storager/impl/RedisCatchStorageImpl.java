@@ -82,12 +82,8 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public void resetAllCSEQ() {
-        String scanKey = VideoManagerConstants.SIP_CSEQ_PREFIX  + userSetting.getServerId() + "_*";
-        List<Object> keys = RedisUtil.scan(redisTemplate, scanKey);
-        for (Object o : keys) {
-            String key = (String) o;
-            redisTemplate.opsForValue().set(key, 1);
-        }
+        String key = VideoManagerConstants.SIP_CSEQ_PREFIX  + userSetting.getServerId();
+        redisTemplate.opsForValue().set(key, 1);
     }
 
     @Override
@@ -576,7 +572,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void sendMobilePositionMsg(JSONObject jsonObject) {
         String key = VideoManagerConstants.VM_MSG_SUBSCRIBE_MOBILE_POSITION;
-//        logger.info("[redis发送通知] 发送 移动位置 {}: {}", key, jsonObject.toString());
+        logger.debug("[redis发送通知] 发送 移动位置 {}: {}", key, jsonObject.toString());
         redisTemplate.convertAndSend(key, jsonObject);
     }
 

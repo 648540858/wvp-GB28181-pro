@@ -18,6 +18,7 @@ import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.utils.MediaServerUtils;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.OtherPsSendInfo;
 import com.genersoft.iot.vmp.vmanager.bean.OtherRtpSendInfo;
@@ -26,12 +27,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -101,7 +100,7 @@ public class MediaServiceImpl implements IMediaService {
             }
             if (userSetting.getPushAuthority()) {
                 // 对于推流进行鉴权
-                Map<String, String> paramMap = urlParamToMap(params);
+                Map<String, String> paramMap = MediaServerUtils.urlParamToMap(params);
                 // 推流鉴权
                 if (params == null) {
                     logger.info("推流鉴权失败： 缺少必要参数：sign=md5(user表的pushKey)");
@@ -208,24 +207,6 @@ public class MediaServiceImpl implements IMediaService {
             }
         }
         return result;
-    }
-
-    private Map<String, String> urlParamToMap(String params) {
-        HashMap<String, String> map = new HashMap<>();
-        if (ObjectUtils.isEmpty(params)) {
-            return map;
-        }
-        String[] paramsArray = params.split("&");
-        if (paramsArray.length == 0) {
-            return map;
-        }
-        for (String param : paramsArray) {
-            String[] paramArray = param.split("=");
-            if (paramArray.length == 2) {
-                map.put(paramArray[0], paramArray[1]);
-            }
-        }
-        return map;
     }
 
     @Override

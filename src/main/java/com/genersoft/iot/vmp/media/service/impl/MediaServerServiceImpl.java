@@ -596,6 +596,16 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
+    public boolean initStopSendRtp(MediaServer mediaInfo, String app, String stream, String ssrc) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaInfo.getType());
+        if (mediaNodeServerService == null) {
+            logger.info("[stopSendRtp] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaInfo.getType());
+            return false;
+        }
+        return mediaNodeServerService.initStopSendRtp(mediaInfo, app, stream, ssrc);
+    }
+
+    @Override
     public boolean deleteRecordDirectory(MediaServer mediaServer, String app, String stream, String date, String fileName) {
         IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
@@ -910,5 +920,15 @@ public class MediaServerServiceImpl implements IMediaServerService {
             }
         }
         return null;
+    }
+
+    @Override
+    public Long updateDownloadProcess(MediaServer mediaServer, String app, String stream) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
+        if (mediaNodeServerService == null) {
+            logger.info("[updateDownloadProcess] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到mediaServer对应的实现类");
+        }
+        return mediaNodeServerService.updateDownloadProcess(mediaServer, app, stream);
     }
 }

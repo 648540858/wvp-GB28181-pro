@@ -145,6 +145,23 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
+    public boolean initStopSendRtp(MediaServer mediaInfo, String app, String stream, String ssrc) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("vhost", "__defaultVhost__");
+        param.put("app", app);
+        param.put("stream", stream);
+        if (!ObjectUtils.isEmpty(ssrc)) {
+            param.put("ssrc", ssrc);
+        }
+        JSONObject jsonObject = zlmresTfulUtils.stopSendRtp(mediaInfo, param);
+        if (jsonObject == null || jsonObject.getInteger("code") != 0 ) {
+            logger.error("停止发流失败: {}, 参数：{}", jsonObject.getString("msg"), JSON.toJSONString(param));
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public boolean deleteRecordDirectory(MediaServer mediaServer, String app, String stream, String date, String fileName) {
         logger.info("[zlm-deleteRecordDirectory] 删除磁盘文件, server: {} {}:{}->{}/{}", mediaServer.getId(), app, stream, date, fileName);
         JSONObject jsonObject = zlmresTfulUtils.deleteRecordDirectory(mediaServer, app,
@@ -366,5 +383,15 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         if (jsonObject == null || jsonObject.getInteger("code") != 0 ) {
             throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
         }
+    }
+
+    @Override
+    public Long updateDownloadProcess(MediaServer mediaServer, String app, String stream) {
+        MediaInfo mediaInfo = getMediaInfo(mediaServer, app, stream);
+        if (mediaInfo == null) {
+            logger.warn("[获取下载进度] 查询进度失败, 节点Id： {}， {}/{}", mediaServer.getId(), app, stream);
+            return null;
+        }
+        return mediaInfo.getDuration();
     }
 }

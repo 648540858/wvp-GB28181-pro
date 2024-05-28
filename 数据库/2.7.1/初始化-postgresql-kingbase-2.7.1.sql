@@ -154,8 +154,13 @@ create table wvp_media_server (
                                   rtp_proxy_port integer,
                                   rtsp_port integer,
                                   rtsp_ssl_port integer,
+                                  flv_port integer,
+                                  flv_ssl_port integer,
+                                  ws_flv_port integer,
+                                  ws_flv_ssl_port integer,
                                   auto_config bool default false,
                                   secret character varying(50),
+                                  type character varying(50) default 'zlm',
                                   rtp_enable bool default false,
                                   rtp_port_range character varying(50),
                                   send_rtp_port_range character varying(50),
@@ -314,6 +319,18 @@ create table wvp_resources_tree (
                                     name character varying(255),
                                     parentId integer,
                                     path character varying(255)
+);
+
+create table wvp_user_api_key (
+                                  id serial primary key ,
+                                  user_id bigint,
+                                  app character varying(255) ,
+                                  api_key text,
+                                  expired_at bigint,
+                                  remark character varying(255),
+                                  enable bool default true,
+                                  create_time character varying(50),
+                                  update_time character varying(50)
 );
 
 

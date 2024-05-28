@@ -1,4 +1,7 @@
 alter table wvp_media_server
+    add transcode_suffix character varying(255);
+
+alter table wvp_media_server
     add  type character varying(50) default 'zlm';
 
 alter table wvp_media_server

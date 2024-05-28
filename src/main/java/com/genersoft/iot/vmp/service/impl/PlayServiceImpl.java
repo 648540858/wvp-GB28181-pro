@@ -30,10 +30,10 @@ import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.IPlayService;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
-import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.service.*;
-import com.genersoft.iot.vmp.service.bean.*;
+import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
+import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
+import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.CloudRecordUtils;
@@ -1084,12 +1084,13 @@ public class PlayServiceImpl implements IPlayService {
             return null;
         }
         String app = "rtp";
+
         MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServerItem, app, stream);
         if (mediaInfo == null) {
             logger.warn("[获取下载进度] 查询进度失败, 节点Id： {}， {}/{}", mediaServerId, app, stream);
             return null;
         }
-        if (mediaInfo.getDuration() == 0) {
+        if (mediaInfo.getDuration() == null || mediaInfo.getDuration() == 0) {
             inviteInfo.getStreamInfo().setProgress(0);
         } else {
             String startTime = inviteInfo.getStreamInfo().getStartTime();

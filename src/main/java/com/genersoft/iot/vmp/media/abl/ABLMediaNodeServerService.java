@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.SipConfig;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.media.abl.bean.AblServerConfig;
 import com.genersoft.iot.vmp.media.abl.bean.hook.OnStreamArriveABLHookParam;
@@ -34,9 +35,18 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
     @Autowired
     private SipConfig sipConfig;
 
+    @Autowired
+    private UserSetting userSetting;
+
+    @Override
+    public boolean initStopSendRtp(MediaServer mediaInfo, String app, String stream, String ssrc) {
+        return false;
+    }
+
     @Override
     public int createRTPServer(MediaServer mediaServer, String stream, long ssrc, Integer port, Boolean onlyAuto, Boolean disableAudio, Boolean reUsePort, Integer tcpMode) {
-        return ablresTfulUtils.openRtpServer(mediaServer, "rtp", stream, 96, port, tcpMode, disableAudio?1:0);
+        Boolean recordSip = userSetting.getRecordSip();
+        return ablresTfulUtils.openRtpServer(mediaServer, "rtp", stream, 96, port, tcpMode, disableAudio?1:0, recordSip);
     }
 
     @Override

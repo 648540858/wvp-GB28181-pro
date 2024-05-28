@@ -12,10 +12,7 @@ import com.genersoft.iot.vmp.media.abl.event.HookAblServerKeepaliveEvent;
 import com.genersoft.iot.vmp.media.abl.event.HookAblServerStartEvent;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
-import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
-import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
-import com.genersoft.iot.vmp.media.event.media.MediaNotFoundEvent;
-import com.genersoft.iot.vmp.media.event.media.MediaRtpServerTimeoutEvent;
+import com.genersoft.iot.vmp.media.event.media.*;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.HookResult;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.HookResultForOnPublish;
@@ -177,17 +174,16 @@ public class ABLHttpHookListener {
 
         logger.info("[ABL HOOK] 录像进度通知：{}->{}/{}->{}/{}", param.getMediaServerId(), param.getApp(), param.getStream(), param.getCurrentFileDuration(), param.getTotalVideoDuration());
 
-        // TODO 这里用来做录像进度
-//        MediaServer mediaServer = mediaServerService.getOne(param.getMediaServerId());
-//        if (mediaServer == null) {
-//            return new HookResultForOnPublish(0, "success");
-//        }
-//
-//        ResultForOnPublish resultForOnPublish = mediaService.authenticatePublish(mediaServer, param.getApp(), param.getStream(), param.getParams());
-//        if (resultForOnPublish == null) {
-//            logger.info("[ABL HOOK]推流鉴权 拒绝 响应：{}->{}", param.getMediaServerId(), param);
-//            ablresTfulUtils.closeStreams(mediaServer, param.getApp(), param.getStream());
-//        }
+        try {
+            MediaServer mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
+            if (mediaServerItem != null) {
+                MediaRecordMp4Event event = MediaRecordMp4Event.getInstance(this, param, mediaServerItem);
+                event.setMediaServer(mediaServerItem);
+                applicationEventPublisher.publishEvent(event);
+            }
+        }catch (Exception e) {
+            logger.info("[ZLM-HOOK-rtpServer收流超时] 发送通知失败 ", e);
+        }
         return HookResult.SUCCESS();
     }
 
@@ -273,9 +269,8 @@ public class ABLHttpHookListener {
     @ResponseBody
     @PostMapping(value = "/on_stream_not_found", produces = "application/json;charset=UTF-8")
     public HookResult onStreamNotFound(@RequestBody ABLHookParam param) {
+
         logger.info("[ABL HOOK] 流未找到：{}->{}/{}", param.getMediaServerId(), param.getApp(), param.getStream());
-
-
         MediaServer mediaServer = mediaServerService.getOne(param.getMediaServerId());
         if (!userSetting.isAutoApplyPlay() || mediaServer == null) {
             return HookResult.SUCCESS();
@@ -341,7 +336,6 @@ public class ABLHttpHookListener {
     @PostMapping(value = "/on_record_mp4", produces = "application/json;charset=UTF-8")
     public HookResult onRecordMp4(HttpServletRequest request, @RequestBody OnRecordMp4ABLHookParam param) {
         logger.info("[ABL HOOK] 录像完成事件：{}->{}", param.getMediaServerId(), param.getFileName());
-
 //        try {
 //            MediaServer mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
 //            if (mediaServerItem != null) {

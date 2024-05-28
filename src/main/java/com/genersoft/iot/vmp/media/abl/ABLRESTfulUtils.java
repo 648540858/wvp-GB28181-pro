@@ -316,7 +316,7 @@ public class ABLRESTfulUtils {
     }
 
 
-    public Integer openRtpServer(MediaServer mediaServer, String app, String stream, int payload, Integer port, Integer tcpMode, Integer disableAudio) {
+    public Integer openRtpServer(MediaServer mediaServer, String app, String stream, int payload, Integer port, Integer tcpMode, Integer disableAudio, Boolean record) {
         Map<String, Object> param = new HashMap<>();
         param.put("vhost", "_defaultVhost_");
         param.put("app", app);
@@ -330,6 +330,9 @@ public class ABLRESTfulUtils {
         }
         if (disableAudio != null) {
             param.put("disableAudio", disableAudio);
+        }
+        if (record != null && record) {
+            param.put("enable_mp4", 1);
         }
 
         JSONObject jsonObject = sendPost(mediaServer, "openRtpServer", param, null);

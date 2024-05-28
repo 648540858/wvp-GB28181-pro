@@ -122,4 +122,16 @@ public interface CloudRecordServiceMapper {
             "where id = #{id}" +
             " </script>")
     CloudRecordItem queryOne(@Param("id") Integer id);
+
+    @Select(" <script>" +
+            "select *" +
+            " from wvp_cloud_record " +
+            " where app=#{app} and stream=#{stream} and file_name = #{fileName} " +
+            " </script>")
+    CloudRecordItem getListByFileName(@Param("app") String app, @Param("stream") String stream, @Param("fileName") String fileName);
+
+    @Update(" <script>" +
+            "update wvp_cloud_record set time_len = #{currentFileDuration} where id = #{id} " +
+            " </script>")
+    void updateTimeLen(int id, Long currentFileDuration);
 }

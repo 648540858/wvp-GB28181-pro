@@ -177,12 +177,12 @@ public class ABLHttpHookListener {
         try {
             MediaServer mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
             if (mediaServerItem != null) {
-                MediaRecordMp4Event event = MediaRecordMp4Event.getInstance(this, param, mediaServerItem);
+                MediaRecordProcessEvent event = MediaRecordProcessEvent.getInstance(this, param, mediaServerItem);
                 event.setMediaServer(mediaServerItem);
                 applicationEventPublisher.publishEvent(event);
             }
         }catch (Exception e) {
-            logger.info("[ZLM-HOOK-rtpServer收流超时] 发送通知失败 ", e);
+            logger.info("[ZLM-HOOK-录像进度通知] 发送通知失败 ", e);
         }
         return HookResult.SUCCESS();
     }
@@ -336,16 +336,17 @@ public class ABLHttpHookListener {
     @PostMapping(value = "/on_record_mp4", produces = "application/json;charset=UTF-8")
     public HookResult onRecordMp4(HttpServletRequest request, @RequestBody OnRecordMp4ABLHookParam param) {
         logger.info("[ABL HOOK] 录像完成事件：{}->{}", param.getMediaServerId(), param.getFileName());
-//        try {
-//            MediaServer mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
-//            if (mediaServerItem != null) {
-//                MediaRecordMp4Event event = MediaRecordMp4Event.getInstance(this, param, mediaServerItem);
-//                event.setMediaServer(mediaServerItem);
-//                applicationEventPublisher.publishEvent(event);
-//            }
-//        }catch (Exception e) {
-//            logger.info("[ZLM-HOOK-rtpServer收流超时] 发送通知失败 ", e);
-//        }
+
+        try {
+            MediaServer mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
+            if (mediaServerItem != null) {
+                MediaRecordMp4Event event = MediaRecordMp4Event.getInstance(this, param, mediaServerItem);
+                event.setMediaServer(mediaServerItem);
+                applicationEventPublisher.publishEvent(event);
+            }
+        }catch (Exception e) {
+            logger.info("[ZLM-HOOK-rtpServer收流超时] 发送通知失败 ", e);
+        }
 
         return HookResult.SUCCESS();
     }

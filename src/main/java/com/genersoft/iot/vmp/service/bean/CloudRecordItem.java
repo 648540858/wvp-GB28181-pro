@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.service.bean;
 
 import com.genersoft.iot.vmp.media.event.media.MediaRecordMp4Event;
+import com.genersoft.iot.vmp.media.event.media.MediaRecordProcessEvent;
 import com.genersoft.iot.vmp.utils.MediaServerUtils;
 
 import java.util.Map;
@@ -95,6 +96,16 @@ public class CloudRecordItem {
         if (paramsMap.get("callId") != null) {
             cloudRecordItem.setCallId(paramsMap.get("callId"));
         }
+        return cloudRecordItem;
+    }
+
+    public static CloudRecordItem getInstance(MediaRecordProcessEvent event) {
+        CloudRecordItem cloudRecordItem = new CloudRecordItem();
+        cloudRecordItem.setApp(event.getApp());
+        cloudRecordItem.setStream(event.getStream());
+        cloudRecordItem.setFileName(event.getFileName());
+        cloudRecordItem.setMediaServerId(event.getMediaServer().getId());
+        cloudRecordItem.setTimeLen(event.getCurrentFileDuration() * 1000);
         return cloudRecordItem;
     }
 

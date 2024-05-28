@@ -11,11 +11,15 @@ import com.genersoft.iot.vmp.media.abl.bean.AblServerConfig;
 import com.genersoft.iot.vmp.media.abl.bean.hook.OnStreamArriveABLHookParam;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.event.media.MediaRecordProcessEvent;
 import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
+import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
+import com.genersoft.iot.vmp.storager.dao.CloudRecordServiceMapper;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
@@ -37,6 +41,9 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
 
     @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private CloudRecordServiceMapper cloudRecordServiceMapper;
 
     @Override
     public boolean initStopSendRtp(MediaServer mediaInfo, String app, String stream, String ssrc) {
@@ -273,5 +280,30 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
     @Override
     public void startSendRtpStream(MediaServer mediaServer, SendRtpItem sendRtpItem) {
         logger.warn("[abl-startSendRtpStream] 未实现");
+    }
+
+    // 接受进度通知
+    @EventListener
+    public void onApplicationEvent(MediaRecordProcessEvent event) {
+        CloudRecordItem cloudRecordItem = cloudRecordServiceMapper.getListByFileName(event.getApp(), event.getStream(), event.getFileName());
+        if (cloudRecordItem == null) {
+            cloudRecordItem = CloudRecordItem.getInstance(event);
+            cloudRecordServiceMapper.add(cloudRecordItem);
+        }else {
+            cloudRecordServiceMapper.updateTimeLen(cloudRecordItem.getId(), (long)event.getCurrentFileDuration() * 1000);
+        }
+    }
+
+    @Override
+    public Long updateDownloadProcess(MediaServer mediaServer, String app, String stream) {
+        List<CloudRecordItem> list = cloudRecordServiceMapper.getList(null, app, stream, null, null, null, null, null);
+        if (list.isEmpty()) {
+            return null;
+        }
+        Long downloadProcess = 0L;
+        for (CloudRecordItem cloudRecordItem : list) {
+            downloadProcess += cloudRecordItem.getTimeLen();
+        }
+        return downloadProcess;
     }
 }

@@ -390,4 +390,14 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
             throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
         }
     }
+
+    @Override
+    public Long updateDownloadProcess(MediaServer mediaServer, String app, String stream) {
+        MediaInfo mediaInfo = getMediaInfo(mediaServer, app, stream);
+        if (mediaInfo == null) {
+            logger.warn("[获取下载进度] 查询进度失败, 节点Id： {}， {}/{}", mediaServer.getId(), app, stream);
+            return null;
+        }
+        return mediaInfo.getDuration();
+    }
 }

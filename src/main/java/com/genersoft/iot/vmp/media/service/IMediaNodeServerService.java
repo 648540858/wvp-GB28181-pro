@@ -60,4 +60,6 @@ public interface IMediaNodeServerService {
     void startSendRtpPassive(MediaServer mediaServer, SendRtpItem sendRtpItem, Integer timeout);
 
     void startSendRtpStream(MediaServer mediaServer, SendRtpItem sendRtpItem);
+
+    Long updateDownloadProcess(MediaServer mediaServer, String app, String stream);
 }

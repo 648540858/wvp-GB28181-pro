@@ -82,12 +82,8 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public void resetAllCSEQ() {
-        String scanKey = VideoManagerConstants.SIP_CSEQ_PREFIX  + userSetting.getServerId() + "_*";
-        List<Object> keys = RedisUtil.scan(redisTemplate, scanKey);
-        for (Object o : keys) {
-            String key = (String) o;
-            redisTemplate.opsForValue().set(key, 1);
-        }
+        String key = VideoManagerConstants.SIP_CSEQ_PREFIX  + userSetting.getServerId();
+        redisTemplate.opsForValue().set(key, 1);
     }
 
     @Override

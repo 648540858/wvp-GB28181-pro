@@ -107,7 +107,7 @@ public interface Ijt1078Service {
 
     JTMediaAttribute queryMediaAttribute(String deviceId);
 
-    void startTalk(String deviceId, String channelId, String app, String stream, String mediaServerId, GeneralCallback<StreamInfo> callback);
+    void startTalk(String deviceId, String channelId, String app, String stream, String mediaServerId, Boolean onlySend, GeneralCallback<StreamInfo> callback);
 
     void stopTalk(String deviceId, String channelId);
 }

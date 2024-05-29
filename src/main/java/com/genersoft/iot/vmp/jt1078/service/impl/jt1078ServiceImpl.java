@@ -790,7 +790,8 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void startTalk(String deviceId, String channelId, String app, String stream, String mediaServerId, GeneralCallback<StreamInfo> callback) {
+    public void startTalk(String deviceId, String channelId, String app, String stream, String mediaServerId, Boolean onlySend,
+                          GeneralCallback<StreamInfo> callback) {
         // 检查流是否已经存在，存在则返回
         String playKey = VideoManagerConstants.INVITE_INFO_1078_TALK + deviceId + ":" + channelId;
         List<GeneralCallback<StreamInfo>> errorCallbacks = inviteErrorCallbackMap.computeIfAbsent(playKey, k -> new ArrayList<>());
@@ -828,39 +829,41 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         sendRtpItem.setTcpActive(true);
         sendRtpItem.setUsePs(false);
         sendRtpItem.setOnlyAudio(true);
-        sendRtpItem.setReceiveStream(receiveStream);
+        if (onlySend == null || !onlySend) {
+            sendRtpItem.setReceiveStream(receiveStream);
+        }
         sendRtpItem.setPlatformId(deviceId);
+        if (onlySend != null && onlySend) {
+            // 设置hook监听
+            Hook hook = Hook.getInstance(HookType.on_media_arrival, "rtp", receiveStream, mediaServer.getId());
+            subscribe.addSubscribe(hook, (hookData) -> {
+                dynamicTask.stop(playKey);
+                logger.info("[1078-对讲] 对讲成功， deviceId： {}， channelId： {}", deviceId, channelId);
+                StreamInfo info = onPublishHandler(mediaServer, hookData, deviceId, channelId);
 
-        // 设置hook监听
-        Hook hook = Hook.getInstance(HookType.on_media_arrival, "rtp", receiveStream, mediaServer.getId());
-        subscribe.addSubscribe(hook, (hookData) -> {
-            dynamicTask.stop(playKey);
-            logger.info("[1078-对讲] 对讲成功， deviceId： {}， channelId： {}", deviceId, channelId);
-            StreamInfo info = onPublishHandler(mediaServer, hookData, deviceId, channelId);
+                for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
+                    errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), info);
+                }
+                subscribe.removeSubscribe(hook);
+                redisTemplate.opsForValue().set(playKey, info);
+                // 存储发流信息
+                redisCatchStorage.updateSendRTPSever(sendRtpItem);
+            });
+            Hook hookForDeparture = Hook.getInstance(HookType.on_media_departure, "rtp", receiveStream, mediaServer.getId());
+            subscribe.addSubscribe(hookForDeparture, (hookData) -> {
+                logger.info("[1078-对讲] 对讲时源流注销， app: {}. stream: {}, deviceId： {}， channelId： {}",app, stream, deviceId, channelId);
+                stopTalk(deviceId, channelId);
+            });
+            // 设置超时监听
+            dynamicTask.startDelay(playKey, () -> {
+                logger.info("[1078-对讲] 超时， deviceId： {}， channelId： {}", deviceId, channelId);
+                for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
+                    errorCallback.run(InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode(),
+                            InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getMsg(), null);
+                }
 
-            for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
-                errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), info);
-            }
-            subscribe.removeSubscribe(hook);
-            redisTemplate.opsForValue().set(playKey, info);
-            // 存储发流信息
-            redisCatchStorage.updateSendRTPSever(sendRtpItem);
-        });
-        Hook hookForDeparture = Hook.getInstance(HookType.on_media_departure, "rtp", receiveStream, mediaServer.getId());
-        subscribe.addSubscribe(hookForDeparture, (hookData) -> {
-            logger.info("[1078-对讲] 对讲时源流注销， app: {}. stream: {}, deviceId： {}， channelId： {}",app, stream, deviceId, channelId);
-            stopTalk(deviceId, channelId);
-        });
-
-        // 设置超时监听
-        dynamicTask.startDelay(playKey, () -> {
-            logger.info("[1078-对讲] 超时， deviceId： {}， channelId： {}", deviceId, channelId);
-            for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
-                errorCallback.run(InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode(),
-                        InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getMsg(), null);
-            }
-
-        }, userSetting.getPlayTimeout());
+            }, userSetting.getPlayTimeout());
+        }
 
         Integer localPort = mediaServerService.startSendRtpPassive(mediaServer, sendRtpItem, 15000);
 
@@ -873,8 +876,15 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j9101.setTcpPort(localPort);
         j9101.setUdpPort(localPort);
         j9101.setType(2);
-        Object s = jt1078Template.startLive(deviceId, j9101, 6);
-        System.out.println("ssss=== " + s);
+        jt1078Template.startLive(deviceId, j9101, 6);
+        if (onlySend != null && onlySend) {
+            logger.info("[1078-对讲] 对讲成功， deviceId： {}， channelId： {}", deviceId, channelId);
+            for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
+                errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), null);
+            }
+            // 存储发流信息
+            redisCatchStorage.updateSendRTPSever(sendRtpItem);
+        }
     }
 
     @Override

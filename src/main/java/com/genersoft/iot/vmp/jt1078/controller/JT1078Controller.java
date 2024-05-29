@@ -136,13 +136,15 @@ public class JT1078Controller {
     @Parameter(name = "app", description = "推流应用名", required = true)
     @Parameter(name = "stream", description = "推流ID", required = true)
     @Parameter(name = "mediaServerId", description = "流媒体ID", required = true)
+    @Parameter(name = "onlySend", description = "是否只发送", required = false)
     @GetMapping("/talk/start")
     public DeferredResult<WVPResult<StreamContent>> startTalk(HttpServletRequest request,
                          @Parameter(required = true) String deviceId,
                          @Parameter(required = true) String channelId,
                          @Parameter(required = true) String app,
                          @Parameter(required = true) String stream,
-                         @Parameter(required = true) String mediaServerId) {
+                         @Parameter(required = true) String mediaServerId,
+                         @Parameter(required = false) Boolean onlySend) {
         DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
         if (ObjectUtils.isEmpty(channelId)) {
             channelId = "1";
@@ -158,7 +160,7 @@ public class JT1078Controller {
             service.stopPlay(deviceId, finalChannelId);
         });
 
-        service.startTalk(deviceId, channelId, app, stream, mediaServerId, (code, msg, streamInfo) -> {
+        service.startTalk(deviceId, channelId, app, stream, mediaServerId, onlySend, (code, msg, streamInfo) -> {
             WVPResult<StreamContent> wvpResult = new WVPResult<>();
             if (code == InviteErrorCode.SUCCESS.getCode()) {
                 wvpResult.setCode(ErrorCode.SUCCESS.getCode());

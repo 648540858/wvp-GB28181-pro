@@ -327,7 +327,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public void startSendRtpPassive(MediaServer mediaServer, SendRtpItem sendRtpItem, Integer timeout) {
+    public Integer startSendRtpPassive(MediaServer mediaServer, SendRtpItem sendRtpItem, Integer timeout) {
         Map<String, Object> param = new HashMap<>(12);
         param.put("vhost","__defaultVhost__");
         param.put("app", sendRtpItem.getApp());
@@ -359,6 +359,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         logger.info("调用ZLM-TCP被动推流接口, 结果： {}",  jsonObject);
         logger.info("启动监听TCP被动推流成功[ {}/{} ]，{}->{}:{}, " , sendRtpItem.getApp(), sendRtpItem.getStream(),
                 jsonObject.getString("local_port"), param.get("dst_url"), param.get("dst_port"));
+        return jsonObject.getInteger("local_port");
     }
 
     @Override

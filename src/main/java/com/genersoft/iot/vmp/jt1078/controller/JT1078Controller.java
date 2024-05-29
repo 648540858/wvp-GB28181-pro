@@ -15,7 +15,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.commons.io.monitor.FileAlterationListener;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
@@ -137,8 +136,8 @@ public class JT1078Controller {
     @Parameter(name = "app", description = "推流应用名", required = true)
     @Parameter(name = "stream", description = "推流ID", required = true)
     @Parameter(name = "mediaServerId", description = "流媒体ID", required = true)
-    @GetMapping("/broadcast")
-    public DeferredResult<WVPResult<StreamContent>> broadcast(HttpServletRequest request,
+    @GetMapping("/talk/start")
+    public DeferredResult<WVPResult<StreamContent>> startTalk(HttpServletRequest request,
                          @Parameter(required = true) String deviceId,
                          @Parameter(required = true) String channelId,
                          @Parameter(required = true) String app,
@@ -159,7 +158,7 @@ public class JT1078Controller {
             service.stopPlay(deviceId, finalChannelId);
         });
 
-        service.broadcast(deviceId, channelId, app, stream, mediaServerId, (code, msg, streamInfo) -> {
+        service.startTalk(deviceId, channelId, app, stream, mediaServerId, (code, msg, streamInfo) -> {
             WVPResult<StreamContent> wvpResult = new WVPResult<>();
             if (code == InviteErrorCode.SUCCESS.getCode()) {
                 wvpResult.setCode(ErrorCode.SUCCESS.getCode());
@@ -190,6 +189,19 @@ public class JT1078Controller {
         });
 
         return result;
+    }
+
+    @Operation(summary = "1078-结束对讲", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
+    @GetMapping("/talk/stop")
+    public void stopTalk(HttpServletRequest request,
+                         @Parameter(required = true) String deviceId,
+                         @Parameter(required = false) String channelId) {
+        if (ObjectUtils.isEmpty(channelId)) {
+            channelId = "1";
+        }
+        service.stopTalk(deviceId, channelId);
     }
 
 

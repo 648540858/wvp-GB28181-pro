@@ -268,8 +268,11 @@ public class MediaServiceImpl implements IMediaService {
                 storager.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
                 return result;
             }
+            if (stream.startsWith("1078")) {
+                return false;
+            }
             SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(null, null, stream, null);
-            if (sendRtpItem != null && "talk".equals(sendRtpItem.getApp())) {
+            if (sendRtpItem != null && "talk".equals(sendRtpItem.getApp() )) {
                 return false;
             }
         } else if ("talk".equals(app) || "broadcast".equals(app)) {

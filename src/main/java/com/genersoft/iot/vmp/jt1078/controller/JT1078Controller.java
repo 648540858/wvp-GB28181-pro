@@ -64,24 +64,20 @@ public class JT1078Controller {
     @GetMapping("/live/start")
     public DeferredResult<WVPResult<StreamContent>> startLive(HttpServletRequest request,
                                                               @Parameter(required = true) String deviceId,
-                                                              @Parameter(required = false) String channelId,
+                                                              @Parameter(required = true) String channelId,
                                                               @Parameter(required = false) Integer type) {
         if (type == null || (type != 0 && type != 1 && type != 3)) {
             type = 0;
         }
         DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
-        if (ObjectUtils.isEmpty(channelId)) {
-            channelId = "1";
-        }
-        String finalChannelId = channelId;
         result.onTimeout(()->{
-            logger.info("[1078-点播等待超时] deviceId：{}, channelId：{}, ", deviceId, finalChannelId);
+            logger.info("[1078-点播等待超时] deviceId：{}, channelId：{}, ", deviceId, channelId);
             // 释放rtpserver
             WVPResult<StreamContent> wvpResult = new WVPResult<>();
             wvpResult.setCode(ErrorCode.ERROR100.getCode());
             wvpResult.setMsg("超时");
             result.setResult(wvpResult);
-            service.stopPlay(deviceId, finalChannelId);
+            service.stopPlay(deviceId, channelId);
         });
 
         service.play(deviceId, channelId, type, (code, msg, streamInfo) -> {
@@ -123,10 +119,7 @@ public class JT1078Controller {
     @GetMapping("/live/stop")
     public void stopLive(HttpServletRequest request,
                                                               @Parameter(required = true) String deviceId,
-                                                              @Parameter(required = false) String channelId) {
-        if (ObjectUtils.isEmpty(channelId)) {
-            channelId = "1";
-        }
+                                                              @Parameter(required = true) String channelId) {
         service.stopPlay(deviceId, channelId);
     }
 
@@ -199,10 +192,7 @@ public class JT1078Controller {
     @GetMapping("/talk/stop")
     public void stopTalk(HttpServletRequest request,
                          @Parameter(required = true) String deviceId,
-                         @Parameter(required = false) String channelId) {
-        if (ObjectUtils.isEmpty(channelId)) {
-            channelId = "1";
-        }
+                         @Parameter(required = true) String channelId) {
         service.stopTalk(deviceId, channelId);
     }
 
@@ -213,10 +203,7 @@ public class JT1078Controller {
     @GetMapping("/live/pause")
     public void pauseLive(HttpServletRequest request,
                          @Parameter(required = true) String deviceId,
-                         @Parameter(required = false) String channelId) {
-        if (ObjectUtils.isEmpty(channelId)) {
-            channelId = "1";
-        }
+                         @Parameter(required = true) String channelId) {
         service.pausePlay(deviceId, channelId);
     }
 
@@ -226,11 +213,21 @@ public class JT1078Controller {
     @GetMapping("/live/continue")
     public void continueLive(HttpServletRequest request,
                           @Parameter(required = true) String deviceId,
-                          @Parameter(required = false) String channelId) {
-        if (ObjectUtils.isEmpty(channelId)) {
-            channelId = "1";
-        }
+                          @Parameter(required = true) String channelId) {
+
         service.continueLivePlay(deviceId, channelId);
+    }
+
+    @Operation(summary = "1078-切换码流类型", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
+    @Parameter(name = "streamType", description = "0:主码流; 1:子码流", required = true)
+    @GetMapping("/live/continue")
+    public void changeStreamType(HttpServletRequest request,
+                             @Parameter(required = true) String deviceId,
+                             @Parameter(required = true) String channelId,
+                             @Parameter(required = true) Integer streamType) {
+        service.changeStreamType(deviceId, channelId, streamType);
     }
 
     @Operation(summary = "1078-录像-查询资源列表", security = @SecurityRequirement(name = JwtUtils.HEADER))

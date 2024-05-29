@@ -895,7 +895,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         // 发送停止命令
         J9102 j9102 = new J9102();
         j9102.setChannel(Integer.valueOf(channelId));
-        j9102.setCommand(0);
+        j9102.setCommand(4);
         j9102.setCloseType(0);
         j9102.setStreamType(1);
         jt1078Template.stopLive(deviceId, j9102, 6);
@@ -913,5 +913,23 @@ public class jt1078ServiceImpl implements Ijt1078Service {
                 callback.run(InviteErrorCode.ERROR_FOR_FINISH.getCode(), InviteErrorCode.ERROR_FOR_FINISH.getMsg(), null);
             }
         }
+    }
+
+    @Override
+    public void changeStreamType(String deviceId, String channelId, Integer streamType) {
+        String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + deviceId + ":" + channelId;
+        dynamicTask.stop(playKey);
+        StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
+        if (streamInfo == null) {
+            logger.info("[1078-切换码流类型] 未找到点播信息 deviceId： {}， channelId： {}, streamType: {}", deviceId, channelId, streamType);
+        }
+        logger.info("[1078-切换码流类型] deviceId： {}， channelId： {}, streamType: {}", deviceId, channelId, streamType);
+        // 发送暂停命令
+        J9102 j9102 = new J9102();
+        j9102.setChannel(Integer.valueOf(channelId));
+        j9102.setCommand(1);
+        j9102.setCloseType(0);
+        j9102.setStreamType(streamType);
+        jt1078Template.stopLive(deviceId, j9102, 6);
     }
 }

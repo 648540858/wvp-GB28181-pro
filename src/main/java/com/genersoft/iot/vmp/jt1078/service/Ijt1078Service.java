@@ -110,4 +110,6 @@ public interface Ijt1078Service {
     void startTalk(String deviceId, String channelId, String app, String stream, String mediaServerId, Boolean onlySend, GeneralCallback<StreamInfo> callback);
 
     void stopTalk(String deviceId, String channelId);
+
+    void changeStreamType(String deviceId, String channelId, Integer streamType);
 }

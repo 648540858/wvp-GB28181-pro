@@ -257,12 +257,22 @@ public class JT1078Controller {
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "startTime", description = "开始时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
     @Parameter(name = "endTime", description = "结束时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
+    @Parameter(name = "type", description = "0.音视频 1.音频 2.视频 3.视频或音视频", required = true)
+    @Parameter(name = "rate", description = "0.所有码流 1.主码流 2.子码流(如果此通道只传输音频,此字段置0)", required = true)
+    @Parameter(name = "playbackType", description = "0.正常回放 1.快进回放 2.关键帧快退回放 3.关键帧播放 4.单帧上传", required = true)
+    @Parameter(name = "playbackSpeed", description = "0.无效 1.1倍 2.2倍 3.4倍 4.8倍 5.16倍 (回放控制为1和2时,此字段内容有效,否则置0)", required = true)
     @GetMapping("/playback/start")
     public DeferredResult<WVPResult<StreamContent>> recordLive(HttpServletRequest request,
                                                               @Parameter(required = true) String deviceId,
                                                               @Parameter(required = false) String channelId,
                                                               @Parameter(required = true) String startTime,
-                                                              @Parameter(required = true) String endTime) {
+                                                              @Parameter(required = true) String endTime,
+                                                              @Parameter(required = false) Integer type,
+                                                              @Parameter(required = false) Integer rate,
+                                                              @Parameter(required = false) Integer playbackType,
+                                                              @Parameter(required = false) Integer playbackSpeed
+
+    ) {
         DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
         if (ObjectUtils.isEmpty(channelId)) {
             channelId = "1";
@@ -278,7 +288,7 @@ public class JT1078Controller {
             service.stopPlay(deviceId, finalChannelId);
         });
 
-        service.playback(deviceId, channelId, startTime, endTime, (code, msg, streamInfo) -> {
+        service.playback(deviceId, channelId, startTime, endTime,type, rate, playbackType, playbackSpeed,  (code, msg, streamInfo) -> {
             WVPResult<StreamContent> wvpResult = new WVPResult<>();
             if (code == InviteErrorCode.SUCCESS.getCode()) {
                 wvpResult.setCode(ErrorCode.SUCCESS.getCode());
@@ -309,6 +319,23 @@ public class JT1078Controller {
         });
 
         return result;
+    }
+
+    @Operation(summary = "1078-回放控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
+    @Parameter(name = "command", description = "0:开始回放; 1:暂停回放; 2:结束回放; 3:快进回放; 4:关键帧快退回放; 5:拖动回放; 6:关键帧播放", required = true)
+    @Parameter(name = "playbackSpeed", description = "0.无效 1.1倍 2.2倍 3.4倍 4.8倍 5.16倍 (回放控制为1和2时,此字段内容有效,否则置0)", required = true)
+    @Parameter(name = "time", description = "拖动回放位置(时间)", required = true)
+    @GetMapping("/playback/control")
+    public void recordControl(@Parameter(required = true) String deviceId,
+                              @Parameter(required = true) String channelId,
+                              @Parameter(required = false) Integer command,
+                              @Parameter(required = false) String time,
+                              @Parameter(required = false) Integer playbackSpeed
+
+    ) {
+        service.playbackControl(deviceId, channelId, command, playbackSpeed,time);
     }
 
     @Operation(summary = "1078-结束回放", security = @SecurityRequirement(name = JwtUtils.HEADER))

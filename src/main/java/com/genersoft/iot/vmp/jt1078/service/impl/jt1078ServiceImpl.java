@@ -296,8 +296,10 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void playback(String deviceId, String channelId, String startTime, String endTime, GeneralCallback<StreamInfo> callback) {
-
+    public void playback(String deviceId, String channelId, String startTime, String endTime, Integer type,
+                         Integer rate, Integer playbackType, Integer playbackSpeed, GeneralCallback<StreamInfo> callback) {
+        logger.info("[1078-回放] 回放，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {}， 音视频类型： {}， 码流类型： {}， " +
+                "回放方式： {}， 快进或快退倍数： {}", deviceId, channelId, startTime, endTime, type, rate, playbackType, playbackSpeed);
         // 检查流是否已经存在，存在则返回
         String playbackKey = VideoManagerConstants.INVITE_INFO_1078_PLAYBACK + deviceId + ":" + channelId;
         List<GeneralCallback<StreamInfo>> errorCallbacks = inviteErrorCallbackMap.computeIfAbsent(playbackKey, k -> new ArrayList<>());
@@ -363,12 +365,12 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         J9201 j9201 = new J9201();
         j9201.setChannel(Integer.parseInt(channelId));
         j9201.setIp(mediaServer.getSdpIp());
-        j9201.setRate(0);
-        j9201.setPlaybackType(0);
-        j9201.setPlaybackSpeed(0);
+        j9201.setRate(rate);
+        j9201.setPlaybackType(playbackType);
+        j9201.setPlaybackSpeed(playbackSpeed);
         j9201.setTcpPort(ssrcInfo.getPort());
         j9201.setUdpPort(ssrcInfo.getPort());
-        j9201.setType(0);
+        j9201.setType(type);
         j9201.setStartTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime));
         j9201.setEndTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(endTime));
         jt1078Template.startBackLive(deviceId, j9201, 20);
@@ -376,30 +378,43 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void stopPlayback(String deviceId, String channelId) {
+    public void playbackControl(String deviceId, String channelId, Integer command, Integer playbackSpeed, String time) {
+        logger.info("[1078-回放控制] deviceId： {}， channelId： {}， command： {}， playbackSpeed： {}， time： {}",
+                deviceId, channelId, command, playbackSpeed, time);
         String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAYBACK + deviceId + ":" + channelId;
         dynamicTask.stop(playKey);
-        StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
+        if (command == 2) {
+            // 结束回放
+            StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
+            // 删除缓存数据
+            if (streamInfo != null) {
+                // 关闭rtpServer
+                mediaServerService.closeRTPServer(streamInfo.getMediaServerId(), streamInfo.getStream());
+            }
+            // 清理回调
+            List<GeneralCallback<StreamInfo>> generalCallbacks = inviteErrorCallbackMap.get(playKey);
+            if (generalCallbacks != null && !generalCallbacks.isEmpty()) {
+                for (GeneralCallback<StreamInfo> callback : generalCallbacks) {
+                    callback.run(InviteErrorCode.ERROR_FOR_FINISH.getCode(), InviteErrorCode.ERROR_FOR_FINISH.getMsg(), null);
+                }
+            }
+        }
         // 发送停止命令
         J9202 j9202 = new J9202();
         j9202.setChannel(Integer.parseInt(channelId));
-        j9202.setPlaybackType(0);
-        j9202.setPlaybackSpeed(0);
-        j9202.setPlaybackTime("");
+        j9202.setPlaybackType(command);
+        if (playbackSpeed != null) {
+            j9202.setPlaybackSpeed(playbackSpeed);
+        }
+        if (!ObjectUtils.isEmpty(time)) {
+            j9202.setPlaybackTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(time));
+        }
         jt1078Template.controlBackLive(deviceId, j9202, 6);
-        logger.info("[1078-停止回放] deviceId： {}， channelId： {}", deviceId, channelId);
-        // 删除缓存数据
-        if (streamInfo != null) {
-            // 关闭rtpServer
-            mediaServerService.closeRTPServer(streamInfo.getMediaServerId(), streamInfo.getStream());
-        }
-        // 清理回调
-        List<GeneralCallback<StreamInfo>> generalCallbacks = inviteErrorCallbackMap.get(playKey);
-        if (generalCallbacks != null && !generalCallbacks.isEmpty()) {
-            for (GeneralCallback<StreamInfo> callback : generalCallbacks) {
-                callback.run(InviteErrorCode.ERROR_FOR_FINISH.getCode(), InviteErrorCode.ERROR_FOR_FINISH.getMsg(), null);
-            }
-        }
+    }
+
+    @Override
+    public void stopPlayback(String deviceId, String channelId) {
+        playbackControl(deviceId, channelId, 2, null, String.valueOf(0));
     }
 
     @Override

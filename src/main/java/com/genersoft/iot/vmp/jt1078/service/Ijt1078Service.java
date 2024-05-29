@@ -23,7 +23,8 @@ public interface Ijt1078Service {
 
     void play(String deviceId, String channelId, int type, GeneralCallback<StreamInfo> callback);
 
-    void playback(String deviceId, String channelId, String startTime, String endTime, GeneralCallback<StreamInfo> callback);
+    void playback(String deviceId, String channelId, String startTime, String endTime, Integer type,
+                  Integer rate, Integer playbackType, Integer playbackSpeed, GeneralCallback<StreamInfo> callback);
 
     void stopPlay(String deviceId, String channelId);
 
@@ -112,4 +113,6 @@ public interface Ijt1078Service {
     void stopTalk(String deviceId, String channelId);
 
     void changeStreamType(String deviceId, String channelId, Integer streamType);
+
+    void playbackControl(String deviceId, String channelId, Integer command, Integer playbackSpeed, String time);
 }

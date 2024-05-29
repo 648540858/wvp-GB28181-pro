@@ -170,6 +170,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         subscribe.addSubscribe(hook, (hookData) -> {
             dynamicTask.stop(playKey);
             logger.info("[1078-点播] 点播成功， deviceId： {}， channelId： {}", deviceId, channelId);
+            // TODO 发送9105 实时音视频传输状态通知， 通知丢包率
             StreamInfo info = onPublishHandler(mediaServer, hookData, deviceId, channelId);
 
             for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {

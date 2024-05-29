@@ -3,6 +3,8 @@ package com.genersoft.iot.vmp.media.abl;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.CommonCallback;
+import com.genersoft.iot.vmp.common.InviteInfo;
+import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -11,10 +13,14 @@ import com.genersoft.iot.vmp.media.abl.bean.AblServerConfig;
 import com.genersoft.iot.vmp.media.abl.bean.hook.OnStreamArriveABLHookParam;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaRecordProcessEvent;
 import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
+import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
+import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import com.genersoft.iot.vmp.storager.dao.CloudRecordServiceMapper;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +50,9 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
 
     @Autowired
     private CloudRecordServiceMapper cloudRecordServiceMapper;
+
+    @Autowired
+    private IInviteStreamService inviteStreamService;
 
     @Override
     public boolean initStopSendRtp(MediaServer mediaInfo, String app, String stream, String ssrc) {
@@ -288,10 +297,40 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
         CloudRecordItem cloudRecordItem = cloudRecordServiceMapper.getListByFileName(event.getApp(), event.getStream(), event.getFileName());
         if (cloudRecordItem == null) {
             cloudRecordItem = CloudRecordItem.getInstance(event);
+            cloudRecordItem.setStartTime(System.currentTimeMillis() - event.getCurrentFileDuration() * 1000);
+            cloudRecordItem.setEndTime(System.currentTimeMillis());
             cloudRecordServiceMapper.add(cloudRecordItem);
         }else {
-            cloudRecordServiceMapper.updateTimeLen(cloudRecordItem.getId(), (long)event.getCurrentFileDuration() * 1000);
+            cloudRecordServiceMapper.updateTimeLen(cloudRecordItem.getId(), (long)event.getCurrentFileDuration() * 1000, System.currentTimeMillis());
         }
+    }
+    // 收流结束
+    @EventListener
+    public void onApplicationEvent(MediaDepartureEvent event) {
+        InviteInfo inviteInfo = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, null, null, event.getStream());
+        if (inviteInfo == null || inviteInfo.getStreamInfo() == null) {
+            return;
+        }
+        List<CloudRecordItem> cloudRecordItemList = cloudRecordServiceMapper.getList(null, event.getApp(), event.getStream(), null, null, null, null, null);
+        if (cloudRecordItemList.isEmpty()) {
+            return;
+        }
+        long startTime = cloudRecordItemList.get(cloudRecordItemList.size() - 1).getStartTime();
+        long endTime = cloudRecordItemList.get(0).getEndTime();
+        JSONObject jsonObject = ablresTfulUtils.queryRecordList(event.getMediaServer(), event.getApp(), event.getStream(), DateUtil.timestampMsToUrlToyyyy_MM_dd_HH_mm_ss(startTime),
+                DateUtil.timestampMsToUrlToyyyy_MM_dd_HH_mm_ss(endTime));
+        if (jsonObject == null || jsonObject.getInteger("code") != 0) {
+            return;
+        }
+        JSONObject urlJson = jsonObject.getJSONObject("url");
+        if (urlJson == null) {
+            return;
+        }
+        String download = urlJson.getString("download");
+        DownloadFileInfo downloadFileInfo = new DownloadFileInfo();
+        downloadFileInfo.setHttpPath(download);
+        downloadFileInfo.setHttpsPath(download);
+        inviteInfo.getStreamInfo().setDownLoadFilePath(downloadFileInfo);
     }
 
     @Override

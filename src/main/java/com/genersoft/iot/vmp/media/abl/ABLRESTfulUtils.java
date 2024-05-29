@@ -27,9 +27,6 @@ public class ABLRESTfulUtils {
 
     private OkHttpClient client;
 
-
-
-
     public interface RequestCallback{
         void run(JSONObject response);
     }
@@ -375,6 +372,16 @@ public class ABLRESTfulUtils {
         param.put("stream", stream);
         return sendPost(mediaServer,"getMediaList", param, null);
     }
+
+    public JSONObject queryRecordList(MediaServer mediaServer, String app, String stream, String startTime, String endTime) {
+        Map<String, Object> param =  new HashMap<>();
+        param.put("app", app);
+        param.put("stream", stream);
+        param.put("starttime", startTime);
+        param.put("endtime", endTime);
+        return sendPost(mediaServer,"queryRecordList", param, null);
+    }
+
     public void getSnap(MediaServer mediaServer, String app, String stream, int timeoutSec, String path, String fileName) {
         Map<String, Object> param =  new HashMap<>();
         param.put("app", app);

@@ -131,7 +131,7 @@ public interface CloudRecordServiceMapper {
     CloudRecordItem getListByFileName(@Param("app") String app, @Param("stream") String stream, @Param("fileName") String fileName);
 
     @Update(" <script>" +
-            "update wvp_cloud_record set time_len = #{currentFileDuration} where id = #{id} " +
+            "update wvp_cloud_record set time_len = #{time}, end_time = #{endTime}  where id = #{id} " +
             " </script>")
-    void updateTimeLen(int id, Long currentFileDuration);
+    void updateTimeLen(@Param("id") int id, @Param("time") Long time, @Param("endTime") long endTime);
 }

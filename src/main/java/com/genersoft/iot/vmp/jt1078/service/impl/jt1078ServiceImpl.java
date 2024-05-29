@@ -833,7 +833,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             sendRtpItem.setReceiveStream(receiveStream);
         }
         sendRtpItem.setPlatformId(deviceId);
-        if (onlySend != null && onlySend) {
+        if (onlySend == null || !onlySend) {
             // 设置hook监听
             Hook hook = Hook.getInstance(HookType.on_media_arrival, "rtp", receiveStream, mediaServer.getId());
             subscribe.addSubscribe(hook, (hookData) -> {

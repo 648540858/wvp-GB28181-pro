@@ -209,7 +209,7 @@ public class RedisRpcController {
             return response;
         }
         try {
-            mediaServerService.startSendRtp(mediaServer, null, sendRtpItem);
+            mediaServerService.startSendRtp(mediaServer, sendRtpItem);
         }catch (ControllerException exception) {
             logger.info("[redis-rpc] 发流失败： {}/{}, 目标地址： {}：{}， {}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort(), exception.getMsg());
             WVPResult wvpResult = WVPResult.fail(exception.getCode(), exception.getMsg());

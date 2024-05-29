@@ -466,7 +466,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             if (sendRtpItem.isTcpActive()) {
                                 MediaServer mediaServer = mediaServerService.getOne(sendRtpItem.getMediaServerId());
                                 try {
-                                    mediaServerService.startSendRtpPassive(mediaServer, platform, sendRtpItem, 5);
+                                    mediaServerService.startSendRtpPassive(mediaServer, sendRtpItem, 5);
+                                    redisCatchStorage.sendPlatformStartPlayMsg(sendRtpItem, platform);
                                 }catch (ControllerException e) {}
                             }
                         } catch (SipException | InvalidArgumentException | ParseException e) {

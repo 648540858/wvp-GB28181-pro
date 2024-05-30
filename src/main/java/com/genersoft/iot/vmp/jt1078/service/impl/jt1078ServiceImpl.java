@@ -365,9 +365,16 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         J9201 j9201 = new J9201();
         j9201.setChannel(Integer.parseInt(channelId));
         j9201.setIp(mediaServer.getSdpIp());
-        j9201.setRate(rate);
-        j9201.setPlaybackType(playbackType);
-        j9201.setPlaybackSpeed(playbackSpeed);
+        if (rate != null) {
+            j9201.setRate(rate);
+        }
+        if (playbackType != null) {
+            j9201.setPlaybackType(playbackType);
+        }
+        if (playbackSpeed != null) {
+            j9201.setPlaybackSpeed(playbackSpeed);
+        }
+
         j9201.setTcpPort(ssrcInfo.getPort());
         j9201.setUdpPort(ssrcInfo.getPort());
         j9201.setType(type);

@@ -222,7 +222,7 @@ public class JT1078Controller {
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "streamType", description = "0:主码流; 1:子码流", required = true)
-    @GetMapping("/live/continue")
+    @GetMapping("/live/switch")
     public void changeStreamType(HttpServletRequest request,
                              @Parameter(required = true) String deviceId,
                              @Parameter(required = true) String channelId,

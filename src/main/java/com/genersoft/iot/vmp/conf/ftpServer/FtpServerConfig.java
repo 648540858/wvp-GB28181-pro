@@ -33,26 +33,18 @@ public class FtpServerConfig {
 //        //1、设置服务端口
         listenerFactory.setPort(3131);
         //2、设置被动模式数据上传的接口范围,云服务器需要开放对应区间的端口给客户端
-//        DataConnectionConfigurationFactory dataConnectionConfFactory = new DataConnectionConfigurationFactory();
-//        dataConnectionConfFactory.setPassivePorts("10000-10500");
-//        listenerFactory.setDataConnectionConfiguration(dataConnectionConfFactory.createDataConnectionConfiguration());
+        DataConnectionConfigurationFactory dataConnectionConfFactory = new DataConnectionConfigurationFactory();
+        dataConnectionConfFactory.setPassivePorts("10000-10500");
+        listenerFactory.setDataConnectionConfiguration(dataConnectionConfFactory.createDataConnectionConfiguration());
         //4、替换默认的监听器
         Listener listener = listenerFactory.createListener();
         serverFactory.addListener("default", listener);
         //5、配置自定义用户事件
-//        Map<String, Ftplet> ftpLets = new HashMap();
-//        ftpLets.put("ftpService", ftpPlet);
-//        serverFactory.setFtplets(ftpLets);
+        Map<String, Ftplet> ftpLets = new HashMap();
+        ftpLets.put("ftpService", ftpPlet);
+        serverFactory.setFtplets(ftpLets);
         //6、读取用户的配置信息
         //6.2、设置用信息
-        ConnectionConfigFactory connectionConfigFactory = new ConnectionConfigFactory();
-        connectionConfigFactory.setAnonymousLoginEnabled(true);
-//        connectionConfigFactory.setLoginFailureDelay(1000);
-//        connectionConfigFactory.setMaxAnonymousLogins(100);
-//        connectionConfigFactory.setMaxLoginFailures(30);
-//        connectionConfigFactory.setMaxThreads(10);
-        ConnectionConfig connectionConfig = connectionConfigFactory.createConnectionConfig();
-        serverFactory.setConnectionConfig(connectionConfig);
         serverFactory.setUserManager(userManager);
         //7、实例化FTP Server
         FtpServer server = serverFactory.createServer();

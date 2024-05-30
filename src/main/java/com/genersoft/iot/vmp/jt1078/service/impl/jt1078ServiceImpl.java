@@ -328,7 +328,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         }
         String startTimeParam = DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime);
         String endTimeParam = DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(endTime);
-        String stream = deviceId + "-" + channelId + "-" + startTimeParam + "-" + endTimeParam;
+        String stream = deviceId + "_" + channelId + "_" + startTimeParam + "_" + endTimeParam;
         MediaServer mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
         if (mediaServer == null) {
             for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {

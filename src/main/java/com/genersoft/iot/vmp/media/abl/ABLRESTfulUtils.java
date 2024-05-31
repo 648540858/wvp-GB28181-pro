@@ -379,6 +379,8 @@ public class ABLRESTfulUtils {
         param.put("stream", stream);
         param.put("starttime", startTime);
         param.put("endtime", endTime);
+        System.out.println("starttime: "+  startTime);
+        System.out.println("endtime: "+  endTime);
         return sendPost(mediaServer,"queryRecordList", param, null);
     }
 

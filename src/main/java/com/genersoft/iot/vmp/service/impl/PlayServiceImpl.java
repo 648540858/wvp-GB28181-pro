@@ -1025,24 +1025,25 @@ public class PlayServiceImpl implements IPlayService {
                         // 处理收到200ok后的TCP主动连接以及SSRC不一致的问题
                         InviteOKHandler(eventResult, ssrcInfo, mediaServerItem, device, channelId,
                                 downLoadTimeOutTaskKey, callback, inviteInfo, InviteSessionType.DOWNLOAD);
-
-                        // 注册录像回调事件，录像下载结束后写入下载地址
-                        HookSubscribe.Event hookEventForRecord = (hookData) -> {
-                            logger.info("[录像下载] 收到录像写入磁盘消息： ， {}/{}-{}",
-                                    inviteInfo.getDeviceId(), inviteInfo.getChannelId(), ssrcInfo.getStream());
-                            logger.info("[录像下载] 收到录像写入磁盘消息内容： " + hookData);
-                            RecordInfo recordInfo = hookData.getRecordInfo();
-                            String filePath = recordInfo.getFilePath();
-                            DownloadFileInfo downloadFileInfo = CloudRecordUtils.getDownloadFilePath(mediaServerItem, filePath);
-                            InviteInfo inviteInfoForNew = inviteStreamService.getInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId()
-                                    , inviteInfo.getChannelId(), inviteInfo.getStream());
-                            inviteInfoForNew.getStreamInfo().setDownLoadFilePath(downloadFileInfo);
-                            inviteStreamService.updateInviteInfo(inviteInfoForNew);
-                        };
-                        Hook hook = Hook.getInstance(HookType.on_record_mp4, "rtp", ssrcInfo.getStream(), mediaServerItem.getId());
-                        // 设置过期时间，下载失败时自动处理订阅数据
-                        hook.setExpireTime(System.currentTimeMillis() + 24 * 60 * 60 * 1000);
-                        subscribe.addSubscribe(hook, hookEventForRecord);
+                        if (mediaServerItem.getType().equals("zlm")) {
+                            // 注册录像回调事件，录像下载结束后写入下载地址
+                            HookSubscribe.Event hookEventForRecord = (hookData) -> {
+                                logger.info("[录像下载] 收到录像写入磁盘消息： ， {}/{}-{}",
+                                        inviteInfo.getDeviceId(), inviteInfo.getChannelId(), ssrcInfo.getStream());
+                                logger.info("[录像下载] 收到录像写入磁盘消息内容： " + hookData);
+                                RecordInfo recordInfo = hookData.getRecordInfo();
+                                String filePath = recordInfo.getFilePath();
+                                DownloadFileInfo downloadFileInfo = CloudRecordUtils.getDownloadFilePath(mediaServerItem, filePath);
+                                InviteInfo inviteInfoForNew = inviteStreamService.getInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId()
+                                        , inviteInfo.getChannelId(), inviteInfo.getStream());
+                                inviteInfoForNew.getStreamInfo().setDownLoadFilePath(downloadFileInfo);
+                                inviteStreamService.updateInviteInfo(inviteInfoForNew);
+                            };
+                            Hook hook = Hook.getInstance(HookType.on_record_mp4, "rtp", ssrcInfo.getStream(), mediaServerItem.getId());
+                            // 设置过期时间，下载失败时自动处理订阅数据
+                            hook.setExpireTime(System.currentTimeMillis() + 24 * 60 * 60 * 1000);
+                            subscribe.addSubscribe(hook, hookEventForRecord);
+                        }
                     });
         } catch (InvalidArgumentException | SipException | ParseException e) {
             logger.error("[命令发送失败] 录像下载: {}", e.getMessage());

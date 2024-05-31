@@ -14,6 +14,7 @@ import com.genersoft.iot.vmp.media.abl.bean.hook.OnStreamArriveABLHookParam;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
+import com.genersoft.iot.vmp.media.event.media.MediaRecordMp4Event;
 import com.genersoft.iot.vmp.media.event.media.MediaRecordProcessEvent;
 import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
@@ -297,16 +298,15 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
         CloudRecordItem cloudRecordItem = cloudRecordServiceMapper.getListByFileName(event.getApp(), event.getStream(), event.getFileName());
         if (cloudRecordItem == null) {
             cloudRecordItem = CloudRecordItem.getInstance(event);
-            cloudRecordItem.setStartTime(System.currentTimeMillis() - event.getCurrentFileDuration() * 1000);
-            cloudRecordItem.setEndTime(System.currentTimeMillis());
+            cloudRecordItem.setStartTime(event.getStartTime());
+            cloudRecordItem.setEndTime(event.getEndTime());
             cloudRecordServiceMapper.add(cloudRecordItem);
         }else {
             cloudRecordServiceMapper.updateTimeLen(cloudRecordItem.getId(), (long)event.getCurrentFileDuration() * 1000, System.currentTimeMillis());
         }
     }
-    // 收流结束
     @EventListener
-    public void onApplicationEvent(MediaDepartureEvent event) {
+    public void onApplicationEvent(MediaRecordMp4Event event) {
         InviteInfo inviteInfo = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, null, null, event.getStream());
         if (inviteInfo == null || inviteInfo.getStreamInfo() == null) {
             return;
@@ -319,6 +319,7 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
         long endTime = cloudRecordItemList.get(0).getEndTime();
         JSONObject jsonObject = ablresTfulUtils.queryRecordList(event.getMediaServer(), event.getApp(), event.getStream(), DateUtil.timestampMsToUrlToyyyy_MM_dd_HH_mm_ss(startTime),
                 DateUtil.timestampMsToUrlToyyyy_MM_dd_HH_mm_ss(endTime));
+        System.err.println(jsonObject);
         if (jsonObject == null || jsonObject.getInteger("code") != 0) {
             return;
         }
@@ -326,11 +327,12 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
         if (urlJson == null) {
             return;
         }
-        String download = urlJson.getString("download");
+        String download = urlJson.getString("http-mp4") + "?download_speed=6";
         DownloadFileInfo downloadFileInfo = new DownloadFileInfo();
         downloadFileInfo.setHttpPath(download);
         downloadFileInfo.setHttpsPath(download);
         inviteInfo.getStreamInfo().setDownLoadFilePath(downloadFileInfo);
+        inviteStreamService.updateInviteInfo(inviteInfo);
     }
 
     @Override

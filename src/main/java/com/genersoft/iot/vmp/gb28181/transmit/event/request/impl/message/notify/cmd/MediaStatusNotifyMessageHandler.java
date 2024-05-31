@@ -95,7 +95,7 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
             if (ssrcTransaction != null) {
                 logger.info("[录像流]推送完毕，关流通知， device: {}, channelId: {}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
                 InviteInfo inviteInfo = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
-                if (inviteInfo.getStreamInfo() != null) {
+                if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
                     inviteInfo.getStreamInfo().setProgress(1);
                     inviteStreamService.updateInviteInfo(inviteInfo);
                 }

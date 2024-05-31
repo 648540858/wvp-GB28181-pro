@@ -3,6 +3,9 @@ package com.genersoft.iot.vmp.media.event.media;
 import com.genersoft.iot.vmp.media.abl.ABLHttpHookListener;
 import com.genersoft.iot.vmp.media.abl.bean.hook.OnRecordProgressABLHookParam;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.utils.DateUtil;
+
+import java.util.Date;
 
 /**
  * 录像文件进度通知事件
@@ -12,6 +15,8 @@ public class MediaRecordProcessEvent extends MediaEvent {
     private Integer currentFileDuration;
     private Integer TotalVideoDuration;
     private String fileName;
+    private long startTime;
+    private long endTime;
 
     public MediaRecordProcessEvent(Object source) {
         super(source);
@@ -25,6 +30,8 @@ public class MediaRecordProcessEvent extends MediaEvent {
         mediaRecordMp4Event.setTotalVideoDuration(hookParam.getTotalVideoDuration());
         mediaRecordMp4Event.setMediaServer(mediaServer);
         mediaRecordMp4Event.setFileName(hookParam.getFileName());
+        mediaRecordMp4Event.setStartTime(DateUtil.urlToTimestampMs(hookParam.getStartTime()));
+        mediaRecordMp4Event.setEndTime(DateUtil.urlToTimestampMs(hookParam.getEndTime()));
         return mediaRecordMp4Event;
     }
 
@@ -50,5 +57,21 @@ public class MediaRecordProcessEvent extends MediaEvent {
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
+    }
+
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(long startTime) {
+        this.startTime = startTime;
+    }
+
+    public long getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(long endTime) {
+        this.endTime = endTime;
     }
 }

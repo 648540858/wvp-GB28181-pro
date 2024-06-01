@@ -4,7 +4,6 @@ import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
-import io.netty.util.CharsetUtil;
 
 import java.nio.charset.Charset;
 
@@ -20,7 +19,7 @@ public class J9206 extends Rs {
     // 服务器端口
     private int port;
     // 用户名
-    private String user;
+    private String username;
     // 密码
     private String password;
     // 文件上传路径
@@ -62,9 +61,9 @@ public class J9206 extends Rs {
 
         buffer.writeByte(serverIp.getBytes(Charset.forName("GBK")).length);
         buffer.writeCharSequence(serverIp, Charset.forName("GBK"));
-        buffer.writeByte(port);
-        buffer.writeByte(user.getBytes(Charset.forName("GBK")).length);
-        buffer.writeCharSequence(user, Charset.forName("GBK"));
+        buffer.writeShort(port);
+        buffer.writeByte(username.getBytes(Charset.forName("GBK")).length);
+        buffer.writeCharSequence(username, Charset.forName("GBK"));
         buffer.writeByte(password.getBytes(Charset.forName("GBK")).length);
         buffer.writeCharSequence(password, Charset.forName("GBK"));
         buffer.writeByte(path.getBytes(Charset.forName("GBK")).length);
@@ -77,7 +76,6 @@ public class J9206 extends Rs {
         buffer.writeByte(streamType);
         buffer.writeByte(storageType);
         buffer.writeByte(taskConditions);
-
         return buffer;
     }
 
@@ -98,12 +96,12 @@ public class J9206 extends Rs {
         this.port = port;
     }
 
-    public String getUser() {
-        return user;
+    public String getUsername() {
+        return username;
     }
 
-    public void setUser(String user) {
-        this.user = user;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getPassword() {
@@ -187,7 +185,7 @@ public class J9206 extends Rs {
         return "J9206{" +
                 "serverIp='" + serverIp + '\'' +
                 ", port=" + port +
-                ", user='" + user + '\'' +
+                ", user='" + username + '\'' +
                 ", password='" + password + '\'' +
                 ", path='" + path + '\'' +
                 ", channelId=" + channelId +

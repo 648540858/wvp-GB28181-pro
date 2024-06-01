@@ -1,6 +1,8 @@
 package com.genersoft.iot.vmp.jt1078.controller;
 
+import com.genersoft.iot.vmp.conf.ftpServer.FtpSetting;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.controller.bean.*;
@@ -29,8 +31,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.annotation.Resource;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -52,6 +57,9 @@ public class JT1078Controller {
 
     @Autowired
     UserSetting userSetting;
+
+    @Autowired
+    private FtpSetting ftpSetting;
 
     @Qualifier("taskExecutor")
     @Autowired
@@ -252,7 +260,7 @@ public class JT1078Controller {
             return WVPResult.success(recordList);
         }
     }
-    @Operation(summary = "1078-开始回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "1078-录像-开始回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "startTime", description = "开始时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
@@ -321,7 +329,7 @@ public class JT1078Controller {
         return result;
     }
 
-    @Operation(summary = "1078-回放控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "1078-录像-回放控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "command", description = "0:开始回放; 1:暂停回放; 2:结束回放; 3:快进回放; 4:关键帧快退回放; 5:拖动回放; 6:关键帧播放", required = true)
@@ -338,7 +346,7 @@ public class JT1078Controller {
         service.playbackControl(deviceId, channelId, command, playbackSpeed,time);
     }
 
-    @Operation(summary = "1078-结束回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "1078-录像-结束回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @GetMapping("/playback/stop")
@@ -349,6 +357,33 @@ public class JT1078Controller {
             channelId = "1";
         }
         service.stopPlayback(deviceId, channelId);
+    }
+
+    @Operation(summary = "1078-录像-下载", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
+    @Parameter(name = "startTime", description = "开始时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
+    @Parameter(name = "endTime", description = "结束时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
+    @Parameter(name = "type", description = "0.音视频 1.音频 2.视频 3.视频或音视频", required = true)
+    @Parameter(name = "rate", description = "0.所有码流 1.主码流 2.子码流(如果此通道只传输音频,此字段置0)", required = true)
+    @GetMapping("/playback/download")
+    public void recordDownload(HttpServletRequest request,
+                                                               HttpServletResponse response,
+                                                               @Parameter(required = true) String deviceId,
+                                                               @Parameter(required = false) String channelId,
+                                                               @Parameter(required = true) String startTime,
+                                                               @Parameter(required = true) String endTime,
+                                                               @Parameter(required = false) Integer type,
+                                                               @Parameter(required = false) Integer rate
+
+    ) throws IOException {
+        logger.info("[1078-录像] 下载，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {}， 音视频类型： {}， 码流类型： {}， ",
+                deviceId, channelId, startTime, endTime, type, rate);
+        if (!ftpSetting.getEnable()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未启用ftp服务，无法下载录像");
+        }
+        ServletOutputStream outputStream = response.getOutputStream();
+        service.recordDownload(deviceId, channelId, startTime, endTime, type, rate, outputStream);
     }
 
     @Operation(summary = "1078-分页查询部标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))

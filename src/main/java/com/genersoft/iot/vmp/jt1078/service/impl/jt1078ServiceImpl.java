@@ -5,19 +5,19 @@ import com.genersoft.iot.vmp.common.GeneralCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.ftpServer.FtpSetting;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
 import com.genersoft.iot.vmp.jt1078.cmd.JT1078Template;
 import com.genersoft.iot.vmp.jt1078.dao.JTDeviceMapper;
 import com.genersoft.iot.vmp.jt1078.event.CallbackManager;
+import com.genersoft.iot.vmp.jt1078.event.FtpUploadEvent;
 import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
 import com.genersoft.iot.vmp.jt1078.proc.response.*;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
-import com.genersoft.iot.vmp.jt1078.util.SSRCUtil;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
@@ -35,22 +35,19 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import javax.sip.InvalidArgumentException;
-import javax.sip.SipException;
+import javax.servlet.ServletOutputStream;
+import java.io.*;
 import java.lang.reflect.Field;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -90,6 +87,9 @@ public class jt1078ServiceImpl implements Ijt1078Service {
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private FtpSetting ftpSetting;
 
 
     @Override
@@ -136,14 +136,14 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + deviceId + ":" + channelId;
         List<GeneralCallback<StreamInfo>> errorCallbacks = inviteErrorCallbackMap.computeIfAbsent(playKey, k -> new ArrayList<>());
         errorCallbacks.add(callback);
-        StreamInfo streamInfo = (StreamInfo)redisTemplate.opsForValue().get(playKey);
+        StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
         if (streamInfo != null) {
             String mediaServerId = streamInfo.getMediaServerId();
             MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
             if (mediaServer != null) {
                 // 查询流是否存在，不存在则删除缓存数据
                 JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(mediaServer, "rtp", "rtsp", streamInfo.getStream());
-                if (mediaInfo != null && mediaInfo.getInteger("code") == 0 ) {
+                if (mediaInfo != null && mediaInfo.getInteger("code") == 0) {
                     Boolean online = mediaInfo.getBoolean("online");
                     if (online != null && online) {
                         logger.info("[1078-点播] 点播已经存在，直接返回， deviceId： {}， channelId： {}", deviceId, channelId);
@@ -190,7 +190,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         }, userSetting.getPlayTimeout());
 
         // 开启收流端口
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServer, stream, null, false, false, 0, false, false, false,1);
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServer, stream, null, false, false, 0, false, false, false, 1);
         logger.info("[1078-点播] deviceId： {}， channelId： {}， 端口： {}", deviceId, channelId, ssrcInfo.getPort());
         J9101 j9101 = new J9101();
         j9101.setChannel(Integer.valueOf(channelId));
@@ -291,7 +291,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             return null;
         }
         logger.info("[1078-查询录像列表] deviceId： {}， channelId： {}， startTime： {}， endTime： {}, 结果: {}条"
-                , deviceId, channelId, startTime, endTime, JRecordItemList.size() );
+                , deviceId, channelId, startTime, endTime, JRecordItemList.size());
         return JRecordItemList;
     }
 
@@ -305,14 +305,14 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         List<GeneralCallback<StreamInfo>> errorCallbacks = inviteErrorCallbackMap.computeIfAbsent(playbackKey, k -> new ArrayList<>());
         errorCallbacks.add(callback);
         String logInfo = String.format("deviceId:%s, channelId:%s, startTime:%s, endTime:%s", deviceId, channelId, startTime, endTime);
-        StreamInfo streamInfo = (StreamInfo)redisTemplate.opsForValue().get(playbackKey);
+        StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playbackKey);
         if (streamInfo != null) {
             String mediaServerId = streamInfo.getMediaServerId();
             MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
             if (mediaServer != null) {
                 // 查询流是否存在，不存在则删除缓存数据
                 JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(mediaServer, "rtp", "rtsp", streamInfo.getStream());
-                if (mediaInfo != null && mediaInfo.getInteger("code") == 0 ) {
+                if (mediaInfo != null && mediaInfo.getInteger("code") == 0) {
                     Boolean online = mediaInfo.getBoolean("online");
                     if (online != null && online) {
                         logger.info("[1078-回放] 回放已经存在，直接返回， logInfo： {}", logInfo);
@@ -424,6 +424,67 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         playbackControl(deviceId, channelId, 2, null, String.valueOf(0));
     }
 
+    private Map<String, ServletOutputStream> fileUploadMap = new ConcurrentHashMap<>();
+
+    @EventListener
+    public void onApplicationEvent(FtpUploadEvent event) {
+        if (fileUploadMap.isEmpty()) {
+            return;
+        }
+        fileUploadMap.keySet().forEach(key -> {
+            if (!event.getFileName().contains(key)) {
+                return;
+            }
+            ServletOutputStream servletOutputStream = fileUploadMap.get(event.getFileName());
+            String filePath = "ftp" + event.getFileName();
+            File file = new File(filePath);
+            if (!file.exists()) {
+                logger.warn("[下载录像] 收到通知时未找到录像文件: {}", filePath);
+                return;
+            }
+            try {
+                FileInputStream fileInputStream = new FileInputStream(file);
+                IOUtils.copy(fileInputStream, servletOutputStream);
+                fileInputStream.close();
+                servletOutputStream.close();
+            } catch (IOException e) {
+                logger.warn("[下载录像] 读取文件异常: {}", filePath, e);
+                return;
+            } finally {
+                try {
+                    servletOutputStream.close();
+                } catch (IOException ignored) {
+                }
+            }
+        });
+    }
+
+    @Override
+    public void recordDownload(String deviceId, String channelId, String startTime, String endTime, Integer type, Integer rate, ServletOutputStream outputStream) {
+        String filePath = UUID.randomUUID().toString();
+        fileUploadMap.put(filePath, outputStream);
+        logger.info("[1078-录像] 下载，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {}，等待上传文件路径： {} ",
+                deviceId, channelId, startTime, endTime, filePath);
+        // 发送停止命令
+        J9206 j92026 = new J9206();
+        j92026.setChannelId(Integer.parseInt(channelId));
+        j92026.setStartTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime));
+        j92026.setEndTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(endTime));
+        j92026.setServerIp(ftpSetting.getIp());
+        j92026.setPort(ftpSetting.getPort());
+        j92026.setUsername(ftpSetting.getUsername());
+        j92026.setPassword(ftpSetting.getPassword());
+        j92026.setPath(filePath);
+
+        if (type != null) {
+            j92026.setMediaType(type);
+        }
+        if (rate != null) {
+            j92026.setStreamType(rate);
+        }
+        jt1078Template.fileUpload(deviceId, j92026, 7200);
+    }
+
     @Override
     public void ptzControl(String deviceId, String channelId, String command, int speed) {
         // 发送停止命令
@@ -467,7 +528,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
                 j9306.setChannel(Integer.parseInt(channelId));
                 if (command.equals("zoomin")) {
                     j9306.setZoom(0);
-                }else {
+                } else {
                     j9306.setZoom(1);
                 }
                 jt1078Template.ptzZoom(deviceId, j9306, 6);
@@ -478,7 +539,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
                 j9303.setChannel(Integer.parseInt(channelId));
                 if (command.equals("irisin")) {
                     j9303.setIris(0);
-                }else {
+                } else {
                     j9303.setIris(1);
                 }
                 jt1078Template.ptzIris(deviceId, j9303, 6);
@@ -489,7 +550,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
                 j9302.setChannel(Integer.parseInt(channelId));
                 if (command.equals("focusfar")) {
                     j9302.setFocalDirection(0);
-                }else {
+                } else {
                     j9302.setFocalDirection(1);
                 }
                 jt1078Template.ptzFocal(deviceId, j9302, 6);
@@ -504,7 +565,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j9305.setChannel(Integer.parseInt(channelId));
         if (command.equalsIgnoreCase("on")) {
             j9305.setOn(1);
-        }else {
+        } else {
             j9305.setOn(0);
         }
         jt1078Template.ptzSupplementaryLight(deviceId, j9305, 6);
@@ -516,7 +577,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j9304.setChannel(Integer.parseInt(channelId));
         if (command.equalsIgnoreCase("on")) {
             j9304.setOn(1);
-        }else {
+        } else {
             j9304.setOn(0);
         }
         jt1078Template.ptzWiper(deviceId, j9304, 6);
@@ -529,13 +590,13 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         }
         if (params == null || params.length == 0) {
             J8104 j8104 = new J8104();
-            return (JTDeviceConfig)jt1078Template.getDeviceConfig(deviceId, j8104, 20);
-        }else {
+            return (JTDeviceConfig) jt1078Template.getDeviceConfig(deviceId, j8104, 20);
+        } else {
             long[] paramBytes = new long[params.length];
             for (int i = 0; i < params.length; i++) {
                 try {
                     Field field = JTDeviceConfig.class.getDeclaredField(params[i]);
-                    if (field.isAnnotationPresent(ConfigAttribute.class) ) {
+                    if (field.isAnnotationPresent(ConfigAttribute.class)) {
                         ConfigAttribute configAttribute = field.getAnnotation(ConfigAttribute.class);
                         long id = configAttribute.id();
                         String description = configAttribute.description();
@@ -548,7 +609,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             }
             J8106 j8106 = new J8106();
             j8106.setParams(paramBytes);
-            return (JTDeviceConfig)jt1078Template.getDeviceSpecifyConfig(deviceId, j8106, 20);
+            return (JTDeviceConfig) jt1078Template.getDeviceSpecifyConfig(deviceId, j8106, 20);
         }
     }
 
@@ -583,13 +644,13 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     @Override
     public JTDeviceAttribute attribute(String deviceId) {
         J8107 j8107 = new J8107();
-        return (JTDeviceAttribute)jt1078Template.deviceAttribute(deviceId, j8107, 20);
+        return (JTDeviceAttribute) jt1078Template.deviceAttribute(deviceId, j8107, 20);
     }
 
     @Override
     public JTPositionBaseInfo queryPositionInfo(String deviceId) {
         J8201 j8201 = new J8201();
-        return (JTPositionBaseInfo)jt1078Template.queryPositionInfo(deviceId, j8201, 20);
+        return (JTPositionBaseInfo) jt1078Template.queryPositionInfo(deviceId, j8201, 20);
     }
 
     @Override
@@ -611,7 +672,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     @Override
     public int linkDetection(String deviceId) {
         J8204 j8204 = new J8204();
-        return (int)jt1078Template.linkDetection(deviceId, j8204, 6);
+        return (int) jt1078Template.linkDetection(deviceId, j8204, 6);
     }
 
     @Override
@@ -620,7 +681,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j8300.setSign(sign);
         j8300.setTextType(textType);
         j8300.setContent(content);
-        return (int)jt1078Template.textMessage(deviceId, j8300, 6);
+        return (int) jt1078Template.textMessage(deviceId, j8300, 6);
     }
 
     @Override
@@ -628,7 +689,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         J8400 j8400 = new J8400();
         j8400.setSign(sign);
         j8400.setPhoneNumber(phoneNumber);
-        return (int)jt1078Template.telephoneCallback(deviceId, j8400, 6);
+        return (int) jt1078Template.telephoneCallback(deviceId, j8400, 6);
     }
 
     @Override
@@ -638,16 +699,16 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         if (phoneBookContactList != null) {
             j8401.setPhoneBookContactList(phoneBookContactList);
         }
-        return (int)jt1078Template.setPhoneBook(deviceId, j8401, 6);
+        return (int) jt1078Template.setPhoneBook(deviceId, j8401, 6);
     }
 
     @Override
     public JTPositionBaseInfo controlDoor(String deviceId, Boolean open) {
         J8500 j8500 = new J8500();
         JTVehicleControl jtVehicleControl = new JTVehicleControl();
-        jtVehicleControl.setControlCarDoor(open?1:0);
+        jtVehicleControl.setControlCarDoor(open ? 1 : 0);
         j8500.setVehicleControl(jtVehicleControl);
-        return (JTPositionBaseInfo)jt1078Template.vehicleControl(deviceId, j8500, 20);
+        return (JTPositionBaseInfo) jt1078Template.vehicleControl(deviceId, j8500, 20);
     }
 
     @Override
@@ -655,14 +716,14 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         J8600 j8600 = new J8600();
         j8600.setAttribute(attribute);
         j8600.setCircleAreaList(circleAreaList);
-        return (int)jt1078Template.setAreaForCircle(deviceId, j8600, 20);
+        return (int) jt1078Template.setAreaForCircle(deviceId, j8600, 20);
     }
 
     @Override
     public int deleteAreaForCircle(String deviceId, List<Long> ids) {
         J8601 j8601 = new J8601();
         j8601.setIdList(ids);
-        return (int)jt1078Template.deleteAreaForCircle(deviceId, j8601, 20);
+        return (int) jt1078Template.deleteAreaForCircle(deviceId, j8601, 20);
     }
 
     @Override
@@ -670,7 +731,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         J8608 j8608 = new J8608();
         j8608.setType(1);
         j8608.setIdList(ids);
-        return (List<JTAreaOrRoute>)jt1078Template.queryAreaOrRoute(deviceId, j8608, 20);
+        return (List<JTAreaOrRoute>) jt1078Template.queryAreaOrRoute(deviceId, j8608, 20);
     }
 
     @Override
@@ -678,14 +739,14 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         J8602 j8602 = new J8602();
         j8602.setAttribute(attribute);
         j8602.setRectangleAreas(rectangleAreas);
-        return (int)jt1078Template.setAreaForRectangle(deviceId, j8602, 20);
+        return (int) jt1078Template.setAreaForRectangle(deviceId, j8602, 20);
     }
 
     @Override
     public int deleteAreaForRectangle(String deviceId, List<Long> ids) {
         J8603 j8603 = new J8603();
         j8603.setIdList(ids);
-        return (int)jt1078Template.deleteAreaForRectangle(deviceId, j8603, 20);
+        return (int) jt1078Template.deleteAreaForRectangle(deviceId, j8603, 20);
     }
 
     @Override
@@ -693,21 +754,21 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         J8608 j8608 = new J8608();
         j8608.setType(2);
         j8608.setIdList(ids);
-        return (List<JTAreaOrRoute>)jt1078Template.queryAreaOrRoute(deviceId, j8608, 20);
+        return (List<JTAreaOrRoute>) jt1078Template.queryAreaOrRoute(deviceId, j8608, 20);
     }
 
     @Override
     public int setAreaForPolygon(String deviceId, JTPolygonArea polygonArea) {
         J8604 j8604 = new J8604();
         j8604.setPolygonArea(polygonArea);
-        return (int)jt1078Template.setAreaForPolygon(deviceId, j8604, 20);
+        return (int) jt1078Template.setAreaForPolygon(deviceId, j8604, 20);
     }
 
     @Override
     public int deleteAreaForPolygon(String deviceId, List<Long> ids) {
         J8605 j8605 = new J8605();
         j8605.setIdList(ids);
-        return (int)jt1078Template.deleteAreaForPolygon(deviceId, j8605, 20);
+        return (int) jt1078Template.deleteAreaForPolygon(deviceId, j8605, 20);
     }
 
     @Override
@@ -715,21 +776,21 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         J8608 j8608 = new J8608();
         j8608.setType(3);
         j8608.setIdList(ids);
-        return (List<JTAreaOrRoute>)jt1078Template.queryAreaOrRoute(deviceId, j8608, 20);
+        return (List<JTAreaOrRoute>) jt1078Template.queryAreaOrRoute(deviceId, j8608, 20);
     }
 
     @Override
     public int setRoute(String deviceId, JTRoute route) {
         J8606 j8606 = new J8606();
         j8606.setRoute(route);
-        return (int)jt1078Template.setRoute(deviceId, j8606, 20);
+        return (int) jt1078Template.setRoute(deviceId, j8606, 20);
     }
 
     @Override
     public int deleteRoute(String deviceId, List<Long> ids) {
         J8607 j8607 = new J8607();
         j8607.setIdList(ids);
-        return (int)jt1078Template.deleteRoute(deviceId, j8607, 20);
+        return (int) jt1078Template.deleteRoute(deviceId, j8607, 20);
     }
 
     @Override
@@ -737,27 +798,27 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         J8608 j8608 = new J8608();
         j8608.setType(4);
         j8608.setIdList(ids);
-        return (List<JTAreaOrRoute>)jt1078Template.queryAreaOrRoute(deviceId, j8608, 20);
+        return (List<JTAreaOrRoute>) jt1078Template.queryAreaOrRoute(deviceId, j8608, 20);
     }
 
     @Override
     public JTDriverInformation queryDriverInformation(String deviceId) {
         J8702 j8702 = new J8702();
-        return (JTDriverInformation)jt1078Template.queryDriverInformation(deviceId, j8702, 20);
+        return (JTDriverInformation) jt1078Template.queryDriverInformation(deviceId, j8702, 20);
     }
 
     @Override
     public List<Long> shooting(String deviceId, JTShootingCommand shootingCommand) {
         J8801 j8801 = new J8801();
         j8801.setCommand(shootingCommand);
-        return (List<Long>)jt1078Template.shooting(deviceId, j8801, 300);
+        return (List<Long>) jt1078Template.shooting(deviceId, j8801, 300);
     }
 
     @Override
     public List<JTMediaDataInfo> queryMediaData(String deviceId, JTQueryMediaDataCommand queryMediaDataCommand) {
         J8802 j8802 = new J8802();
         j8802.setCommand(queryMediaDataCommand);
-        return (List<JTMediaDataInfo>)jt1078Template.queryMediaData(deviceId, j8802, 300);
+        return (List<JTMediaDataInfo>) jt1078Template.queryMediaData(deviceId, j8802, 300);
     }
 
     @Override
@@ -788,7 +849,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     @Override
     public JTMediaAttribute queryMediaAttribute(String deviceId) {
         J9003 j9003 = new J9003();
-        return (JTMediaAttribute)jt1078Template.queryMediaAttribute(deviceId, j9003, 300);
+        return (JTMediaAttribute) jt1078Template.queryMediaAttribute(deviceId, j9003, 300);
     }
 
     /**
@@ -819,7 +880,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         String playKey = VideoManagerConstants.INVITE_INFO_1078_TALK + deviceId + ":" + channelId;
         List<GeneralCallback<StreamInfo>> errorCallbacks = inviteErrorCallbackMap.computeIfAbsent(playKey, k -> new ArrayList<>());
         errorCallbacks.add(callback);
-        StreamInfo streamInfo = (StreamInfo)redisTemplate.opsForValue().get(playKey);
+        StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
         if (streamInfo != null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "对讲进行中");
         }
@@ -874,7 +935,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             });
             Hook hookForDeparture = Hook.getInstance(HookType.on_media_departure, "rtp", receiveStream, mediaServer.getId());
             subscribe.addSubscribe(hookForDeparture, (hookData) -> {
-                logger.info("[1078-对讲] 对讲时源流注销， app: {}. stream: {}, deviceId： {}， channelId： {}",app, stream, deviceId, channelId);
+                logger.info("[1078-对讲] 对讲时源流注销， app: {}. stream: {}, deviceId： {}， channelId： {}", app, stream, deviceId, channelId);
                 stopTalk(deviceId, channelId);
             });
             // 设置超时监听

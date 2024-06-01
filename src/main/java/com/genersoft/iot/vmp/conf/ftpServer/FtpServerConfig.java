@@ -21,7 +21,7 @@ public class FtpServerConfig {
     private UserManager userManager;
 
     @Autowired
-    private FtpPlet ftpPlet;
+    private ftplet ftpPlet;
 
     /**
      * ftp server init

@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
 import com.github.pagehelper.PageInfo;
 
+import javax.servlet.ServletOutputStream;
 import java.util.List;
 
 public interface Ijt1078Service {
@@ -115,4 +116,6 @@ public interface Ijt1078Service {
     void changeStreamType(String deviceId, String channelId, Integer streamType);
 
     void playbackControl(String deviceId, String channelId, Integer command, Integer playbackSpeed, String time);
+
+    void recordDownload(String deviceId, String channelId, String startTime, String endTime, Integer type, Integer rate, ServletOutputStream outputStream);
 }

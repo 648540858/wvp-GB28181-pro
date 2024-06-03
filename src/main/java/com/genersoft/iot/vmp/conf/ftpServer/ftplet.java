@@ -45,6 +45,19 @@ public class ftplet extends DefaultFtplet {
     @Override
     public FtpletResult onAppendEnd(FtpSession session, FtpRequest request) throws FtpException, IOException {
         FtpUploadEvent event = new FtpUploadEvent(this);
+        String argument = request.getArgument();
+        FileSystemView fileSystemView = session.getFileSystemView();
+        FtpFile file = fileSystemView.getFile(request.getArgument());
+        event.setFileName(session.getFileSystemView().getFile(request.getArgument()).getAbsolutePath());
+        applicationEventPublisher.publishEvent(event);
+
+        logger.info("[文件已上传]: {}", session.getFileSystemView().getFile(request.getArgument()).getAbsolutePath());
+        return super.onUploadEnd(session, request);
+    }
+
+    @Override
+    public FtpletResult onUploadUniqueEnd(FtpSession session, FtpRequest request) throws FtpException, IOException {
+        FtpUploadEvent event = new FtpUploadEvent(this);
         event.setFileName(session.getFileSystemView().getFile(request.getArgument()).getAbsolutePath());
         applicationEventPublisher.publishEvent(event);
 

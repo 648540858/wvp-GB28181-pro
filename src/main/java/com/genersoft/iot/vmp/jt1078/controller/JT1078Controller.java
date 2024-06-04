@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -36,8 +38,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -367,7 +372,7 @@ public class JT1078Controller {
     @Parameter(name = "type", description = "0.音视频 1.音频 2.视频 3.视频或音视频", required = true)
     @Parameter(name = "rate", description = "0.所有码流 1.主码流 2.子码流(如果此通道只传输音频,此字段置0)", required = true)
     @GetMapping("/playback/download")
-    public void recordDownload(HttpServletRequest request,
+    public DeferredResult<Void> recordDownload(HttpServletRequest request,
                                                                HttpServletResponse response,
                                                                @Parameter(required = true) String deviceId,
                                                                @Parameter(required = false) String channelId,
@@ -382,9 +387,37 @@ public class JT1078Controller {
         if (!ftpSetting.getEnable()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未启用ftp服务，无法下载录像");
         }
+        DeferredResult<Void> result = new DeferredResult<>();
         ServletOutputStream outputStream = response.getOutputStream();
-        service.recordDownload(deviceId, channelId, startTime, endTime, type, rate, outputStream);
+        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+        response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(deviceId + "_" + channelId + ".mp4", "UTF-8"));
+        response.setStatus(HttpServletResponse.SC_OK);
+        service.recordDownload(deviceId, channelId, startTime, endTime, type, rate, (code, msg, data) -> {
+            String filePath = "ftp" + data;
+            File file = new File(filePath);
+            if (!file.exists()) {
+                logger.warn("[下载录像] 收到通知时未找到录像文件: {}", filePath);
+                return;
+            }
+            try {
+                final InputStream in = Files.newInputStream(file.toPath());
+                IOUtils.copy(in, outputStream);
+                outputStream.flush();
+                in.close();
+            } catch (IOException e) {
+                logger.warn("[下载录像] 读取文件异常: {}", filePath, e);
+                return;
+            } finally {
+                try {
+                    outputStream.close();
+                    result.setResult(null);
+                } catch (IOException ignored) {
+                }
+            }
+        });
+        return result;
     }
+
 
     @Operation(summary = "1078-分页查询部标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页", required = true)

@@ -117,5 +117,5 @@ public interface Ijt1078Service {
 
     void playbackControl(String deviceId, String channelId, Integer command, Integer playbackSpeed, String time);
 
-    void recordDownload(String deviceId, String channelId, String startTime, String endTime, Integer type, Integer rate, ServletOutputStream outputStream);
+    void recordDownload(String deviceId, String channelId, String startTime, String endTime, Integer type, Integer rate, GeneralCallback<String> fileCallback);
 }

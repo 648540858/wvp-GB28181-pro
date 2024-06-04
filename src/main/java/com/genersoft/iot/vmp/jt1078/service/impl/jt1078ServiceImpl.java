@@ -47,6 +47,7 @@ import org.springframework.stereotype.Service;
 import javax.servlet.ServletOutputStream;
 import java.io.*;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -424,7 +425,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         playbackControl(deviceId, channelId, 2, null, String.valueOf(0));
     }
 
-    private Map<String, ServletOutputStream> fileUploadMap = new ConcurrentHashMap<>();
+    private Map<String, GeneralCallback<String>> fileUploadMap = new ConcurrentHashMap<>();
 
     @EventListener
     public void onApplicationEvent(FtpUploadEvent event) {
@@ -435,34 +436,21 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             if (!event.getFileName().contains(key)) {
                 return;
             }
-            ServletOutputStream servletOutputStream = fileUploadMap.get(event.getFileName());
-            String filePath = "ftp" + event.getFileName();
-            File file = new File(filePath);
-            if (!file.exists()) {
-                logger.warn("[下载录像] 收到通知时未找到录像文件: {}", filePath);
-                return;
-            }
-            try {
-                FileInputStream fileInputStream = new FileInputStream(file);
-                IOUtils.copy(fileInputStream, servletOutputStream);
-                fileInputStream.close();
-                servletOutputStream.close();
-            } catch (IOException e) {
-                logger.warn("[下载录像] 读取文件异常: {}", filePath, e);
-                return;
-            } finally {
-                try {
-                    servletOutputStream.close();
-                } catch (IOException ignored) {
-                }
+            GeneralCallback<String> callback = fileUploadMap.get(key);
+            if (callback != null) {
+                callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), event.getFileName());
+                fileUploadMap.remove(key);
             }
         });
     }
 
     @Override
-    public void recordDownload(String deviceId, String channelId, String startTime, String endTime, Integer type, Integer rate, ServletOutputStream outputStream) {
+    public void recordDownload(String deviceId, String channelId, String startTime, String endTime, Integer type, Integer rate, GeneralCallback<String> fileCallback) {
         String filePath = UUID.randomUUID().toString();
-        fileUploadMap.put(filePath, outputStream);
+        fileUploadMap.put(filePath, fileCallback);
+        dynamicTask.startDelay(filePath, ()->{
+            fileUploadMap.remove(filePath);
+        }, 2*60*60*1000);
         logger.info("[1078-录像] 下载，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {}，等待上传文件路径： {} ",
                 deviceId, channelId, startTime, endTime, filePath);
         // 发送停止命令

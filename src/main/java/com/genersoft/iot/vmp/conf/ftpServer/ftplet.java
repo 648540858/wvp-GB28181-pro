@@ -34,39 +34,38 @@ public class ftplet extends DefaultFtplet {
 
     @Override
     public FtpletResult onUploadEnd(FtpSession session, FtpRequest request) throws FtpException, IOException {
-        FtpUploadEvent event = new FtpUploadEvent(this);
-        event.setFileName(session.getFileSystemView().getFile(request.getArgument()).getAbsolutePath());
-        applicationEventPublisher.publishEvent(event);
-
-        logger.info("[文件已上传]: {}", session.getFileSystemView().getFile(request.getArgument()).getAbsolutePath());
-        return super.onUploadEnd(session, request);
+        FtpFile file = session.getFileSystemView().getFile(request.getArgument());
+        if (file == null) {
+            return super.onUploadEnd(session, request);
+        }
+        sendEvent(file.getAbsolutePath());
+        return super.onUploadUniqueEnd(session, request);
     }
 
     @Override
     public FtpletResult onAppendEnd(FtpSession session, FtpRequest request) throws FtpException, IOException {
-        FtpUploadEvent event = new FtpUploadEvent(this);
-        String argument = request.getArgument();
-        FileSystemView fileSystemView = session.getFileSystemView();
-        FtpFile file = fileSystemView.getFile(request.getArgument());
-        event.setFileName(session.getFileSystemView().getFile(request.getArgument()).getAbsolutePath());
-        applicationEventPublisher.publishEvent(event);
-
-        logger.info("[文件已上传]: {}", session.getFileSystemView().getFile(request.getArgument()).getAbsolutePath());
-        return super.onUploadEnd(session, request);
+        FtpFile file = session.getFileSystemView().getFile(request.getArgument());
+        if (file == null) {
+            return super.onUploadEnd(session, request);
+        }
+        sendEvent(file.getAbsolutePath());
+        return super.onUploadUniqueEnd(session, request);
     }
 
     @Override
     public FtpletResult onUploadUniqueEnd(FtpSession session, FtpRequest request) throws FtpException, IOException {
-        FtpUploadEvent event = new FtpUploadEvent(this);
-        event.setFileName(session.getFileSystemView().getFile(request.getArgument()).getAbsolutePath());
-        applicationEventPublisher.publishEvent(event);
-
-        logger.info("[文件已上传]: {}", session.getFileSystemView().getFile(request.getArgument()).getAbsolutePath());
-        return super.onUploadEnd(session, request);
+        FtpFile file = session.getFileSystemView().getFile(request.getArgument());
+        if (file == null) {
+            return super.onUploadEnd(session, request);
+        }
+        sendEvent(file.getAbsolutePath());
+        return super.onUploadUniqueEnd(session, request);
     }
 
-    @Override
-    public FtpletResult onDownloadStart(FtpSession session, FtpRequest request) throws FtpException, IOException {
-        return super.onDownloadStart(session, request);
+    private void sendEvent(String filePath){
+        FtpUploadEvent event = new FtpUploadEvent(this);
+        logger.info("[文件已上传]: {}", filePath);
+        event.setFileName(filePath);
+        applicationEventPublisher.publishEvent(event);
     }
 }

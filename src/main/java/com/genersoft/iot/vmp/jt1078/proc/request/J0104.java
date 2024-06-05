@@ -164,7 +164,7 @@ public class J0104 extends Re {
                 throw new RuntimeException(e);
             }
         }
-        SessionManager.INSTANCE.response(header.getTerminalId(), "0104", (long) respNo, deviceConfig);
+        SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "0104", (long) respNo, deviceConfig);
         return null;
     }
 

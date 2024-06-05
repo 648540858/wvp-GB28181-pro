@@ -1,9 +1,7 @@
 package com.genersoft.iot.vmp.jt1078.proc.request;
 
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
-import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
 import com.genersoft.iot.vmp.jt1078.bean.JTDriverInformation;
-import com.genersoft.iot.vmp.jt1078.bean.JTPositionBaseInfo;
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import com.genersoft.iot.vmp.jt1078.proc.response.J8001;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
@@ -29,7 +27,7 @@ public class J0702 extends Re {
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
         driverInformation = JTDriverInformation.decode(buf);
         log.info("[JT-驾驶员身份信息采集上报]: {}", driverInformation.toString());
-        SessionManager.INSTANCE.response(header.getTerminalId(), "0702", null, driverInformation);
+        SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "0702", null, driverInformation);
         return null;
     }
 

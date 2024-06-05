@@ -9,8 +9,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "人工确认报警消息参数")
 public class TextMessageParam {
 
-    @Schema(description = "设备")
-    private String deviceId;
+    @Schema(description = "设备手机号")
+    private String phoneNumber;
     @Schema(description = "标志")
     private JTTextSign sign;
     @Schema(description = "文本类型,1 = 通知 ，2 = 服务")
@@ -18,12 +18,12 @@ public class TextMessageParam {
     @Schema(description = "消息内容，最长为1024字节")
     private String content;
 
-    public String getDeviceId() {
-        return deviceId;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setDeviceId(String deviceId) {
-        this.deviceId = deviceId;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public int getTextType() {
@@ -53,7 +53,7 @@ public class TextMessageParam {
     @Override
     public String toString() {
         return "TextMessageParam{" +
-                "deviceId='" + deviceId + '\'' +
+                "phoneNumber='" + phoneNumber + '\'' +
                 ", sign=" + sign +
                 ", textType=" + textType +
                 ", content='" + content + '\'' +

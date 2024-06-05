@@ -15,7 +15,7 @@ public class Header {
     Integer msgPro;
 
     // 终端手机号
-    String terminalId;
+    String terminalPhoneNumber;
 
     // 消息体流水号
     Integer sn;
@@ -41,12 +41,12 @@ public class Header {
         this.msgPro = msgPro;
     }
 
-    public String getTerminalId() {
-        return terminalId;
+    public String getTerminalPhoneNumber() {
+        return terminalPhoneNumber;
     }
 
-    public void setTerminalId(String terminalId) {
-        this.terminalId = terminalId;
+    public void setTerminalPhoneNumber(String terminalPhoneNumber) {
+        this.terminalPhoneNumber = terminalPhoneNumber;
     }
 
     public Integer getSn() {
@@ -79,7 +79,7 @@ public class Header {
         return "Header{" +
                 "消息ID='" + msgId + '\'' +
                 ", 消息体属性=" + msgPro +
-                ", 终端手机号='" + terminalId + '\'' +
+                ", 终端手机号='" + terminalPhoneNumber + '\'' +
                 ", 消息体流水号=" + sn +
                 ", 协议版本号=" + version +
                 '}';

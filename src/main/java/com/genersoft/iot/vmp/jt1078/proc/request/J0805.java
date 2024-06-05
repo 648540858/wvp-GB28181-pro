@@ -7,7 +7,6 @@ import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
 import org.springframework.context.ApplicationEvent;
 
 import java.util.ArrayList;
@@ -40,13 +39,13 @@ public class J0805 extends Re {
                 ids.add(buf.readUnsignedInt());
             }
         }
-        SessionManager.INSTANCE.response(header.getTerminalId(), "0805", null, ids);
+        SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "0805", null, ids);
         return null;
     }
 
     @Override
     protected Rs handler(Header header, Session session, Ijt1078Service service) {
-        SessionManager.INSTANCE.response(header.getTerminalId(), "0001", (long) respNo, result);
+        SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "0001", (long) respNo, result);
         return null;
     }
 

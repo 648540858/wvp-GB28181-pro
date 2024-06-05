@@ -53,10 +53,10 @@ public class Jt808Decoder extends ByteToMessageDecoder {
 
                 header.setVersion(buf.readUnsignedByte());
                 String devId = ByteBufUtil.hexDump(buf.readSlice(10));
-                header.setTerminalId(devId.replaceFirst("^0*", ""));
+                header.setTerminalPhoneNumber(devId.replaceFirst("^0*", ""));
 
             } else {
-                header.setTerminalId(ByteBufUtil.hexDump(buf.readSlice(6)).replaceFirst("^0*", ""));
+                header.setTerminalPhoneNumber(ByteBufUtil.hexDump(buf.readSlice(6)).replaceFirst("^0*", ""));
             }
             header.setSn(buf.readUnsignedShort());
             if (isSubpackage) {

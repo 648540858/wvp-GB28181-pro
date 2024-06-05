@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.jt1078.proc.request;
 
-import com.alibaba.fastjson2.JSON;
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
@@ -29,13 +28,13 @@ public class J0003 extends Re {
         respNo = buf.readUnsignedShort();
         respId = ByteBufUtil.hexDump(buf.readSlice(2));
         result = buf.readUnsignedByte();
-        log.info("[JT-注销] 设备： {}", header.getTerminalId());
+        log.info("[JT-注销] 设备： {}", header.getTerminalPhoneNumber());
         return null;
     }
 
     @Override
     protected Rs handler(Header header, Session session, Ijt1078Service service) {
-        SessionManager.INSTANCE.response(header.getTerminalId(), "0001", (long) respNo, result);
+        SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "0001", (long) respNo, result);
         return null;
     }
 

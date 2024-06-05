@@ -4,15 +4,15 @@ import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConnectionControl;
 
 public class ConnectionControlParam {
 
-    private String deviceId;
+    private String phoneNumber;
     private JTDeviceConnectionControl control;
 
-    public String getDeviceId() {
-        return deviceId;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setDeviceId(String deviceId) {
-        this.deviceId = deviceId;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public JTDeviceConnectionControl getControl() {
@@ -26,7 +26,7 @@ public class ConnectionControlParam {
     @Override
     public String toString() {
         return "ConnectionControlParam{" +
-                "deviceId='" + deviceId + '\'' +
+                "deviceId='" + phoneNumber + '\'' +
                 ", control=" + control +
                 '}';
     }

@@ -9,7 +9,7 @@ import java.util.List;
 public class SetAreaParam {
 
     @Schema(description = "设备")
-    private String deviceId;
+    private String phoneNumber;
 
     @Schema(description = "圆形区域项")
     private List<JTCircleArea> circleAreaList;
@@ -24,12 +24,12 @@ public class SetAreaParam {
     private JTRoute route;
 
 
-    public String getDeviceId() {
-        return deviceId;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setDeviceId(String deviceId) {
-        this.deviceId = deviceId;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public List<JTCircleArea> getCircleAreaList() {
@@ -67,7 +67,7 @@ public class SetAreaParam {
     @Override
     public String toString() {
         return "SetAreaParam{" +
-                "deviceId='" + deviceId + '\'' +
+                "设备手机号='" + phoneNumber + '\'' +
                 ", circleAreaList=" + circleAreaList +
                 ", rectangleAreas=" + rectangleAreas +
                 ", polygonArea=" + polygonArea +

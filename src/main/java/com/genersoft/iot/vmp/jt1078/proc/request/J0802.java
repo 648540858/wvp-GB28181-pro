@@ -2,8 +2,6 @@ package com.genersoft.iot.vmp.jt1078.proc.request;
 
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.bean.JTMediaDataInfo;
-import com.genersoft.iot.vmp.jt1078.bean.JTMediaEventInfo;
-import com.genersoft.iot.vmp.jt1078.bean.JTPositionBaseInfo;
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import com.genersoft.iot.vmp.jt1078.proc.response.J8001;
 import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
@@ -15,8 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEvent;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +34,7 @@ public class J0802 extends Re {
         int length = buf.readUnsignedShort();
         if (length == 0) {
             log.info("[JT-存储多媒体数据检索应答]: {}", length);
-            SessionManager.INSTANCE.response(header.getTerminalId(), "0802", (long) respNo, new ArrayList<>());
+            SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "0802", (long) respNo, new ArrayList<>());
             return null;
         }
         mediaDataInfoList = new ArrayList<>(length);
@@ -46,7 +42,7 @@ public class J0802 extends Re {
             mediaDataInfoList.add(JTMediaDataInfo.decode(buf));
         }
         log.info("[JT-存储多媒体数据检索应答]: {}", mediaDataInfoList.size());
-        SessionManager.INSTANCE.response(header.getTerminalId(), "0802", (long) respNo, mediaDataInfoList);
+        SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "0802", (long) respNo, mediaDataInfoList);
         return null;
     }
 

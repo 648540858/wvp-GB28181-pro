@@ -3,7 +3,6 @@ package com.genersoft.iot.vmp.jt1078.proc.request;
 import com.genersoft.iot.vmp.common.CivilCodePo;
 import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
-import com.genersoft.iot.vmp.jt1078.codec.netty.Jt808Handler;
 import com.genersoft.iot.vmp.jt1078.event.RegisterEvent;
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import com.genersoft.iot.vmp.jt1078.proc.response.J8100;
@@ -86,7 +85,7 @@ public class J0100 extends Re {
         J8100 j8100 = new J8100();
         j8100.setRespNo(header.getSn());
         // 从数据库判断这个设备是否合法
-        JTDevice deviceInDb = service.getDevice(header.getTerminalId());
+        JTDevice deviceInDb = service.getDevice(header.getTerminalPhoneNumber());
         if (deviceInDb != null) {
             j8100.setResult(J8100.SUCCESS);
             String authenticationCode = UUID.randomUUID().toString();
@@ -113,7 +112,7 @@ public class J0100 extends Re {
             service.updateDevice(deviceInDb);
             log.info("[JT-注册成功] 设备： {}", deviceInDb);
         }else {
-            log.info("[JT-注册失败] 未授权设备： {}", header.getTerminalId());
+            log.info("[JT-注册失败] 未授权设备： {}", header.getTerminalPhoneNumber());
             j8100.setResult(J8100.FAIL);
             // 断开连接，清理资源
             if (session.isRegistered()) {

@@ -10,18 +10,18 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class ConfirmationAlarmMessageParam {
 
     @Schema(description = "设备")
-    private String deviceId;
+    private String phoneNumber;
     @Schema(description = "报警消息流水号")
     private int alarmPackageNo;
     @Schema(description = "人工确认报警类型")
     private JTConfirmationAlarmMessageType alarmMessageType;
 
-    public String getDeviceId() {
-        return deviceId;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setDeviceId(String deviceId) {
-        this.deviceId = deviceId;
+    public void setPhoneNumber(String PhoneNumber) {
+        this.phoneNumber = PhoneNumber;
     }
 
     public JTConfirmationAlarmMessageType getAlarmMessageType() {
@@ -43,7 +43,7 @@ public class ConfirmationAlarmMessageParam {
     @Override
     public String toString() {
         return "ConfirmationAlarmMessageParam{" +
-                "deviceId='" + deviceId + '\'' +
+                "PhoneNumber='" + phoneNumber + '\'' +
                 ", alarmPackageNo=" + alarmPackageNo +
                 ", alarmMessageType=" + alarmMessageType +
                 '}';

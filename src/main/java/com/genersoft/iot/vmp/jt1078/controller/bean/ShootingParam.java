@@ -6,17 +6,17 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class ShootingParam {
 
     @Schema(description = "设备")
-    private String deviceId;
+    private String phoneNumber;
 
     @Schema(description = "拍摄命令参数")
     private JTShootingCommand shootingCommand;
 
-    public String getDeviceId() {
-        return deviceId;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setDeviceId(String deviceId) {
-        this.deviceId = deviceId;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public JTShootingCommand getShootingCommand() {
@@ -30,7 +30,7 @@ public class ShootingParam {
     @Override
     public String toString() {
         return "ShootingParam{" +
-                "deviceId='" + deviceId + '\'' +
+                "设备手机号='" + phoneNumber + '\'' +
                 ", shootingCommand=" + shootingCommand +
                 '}';
     }

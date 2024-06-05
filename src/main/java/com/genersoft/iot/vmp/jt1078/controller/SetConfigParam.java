@@ -4,15 +4,15 @@ import com.genersoft.iot.vmp.jt1078.bean.JTDeviceConfig;
 
 public class SetConfigParam {
 
-    private String deviceId;
+    private String phoneNumber;
     private JTDeviceConfig config;
 
-    public String getDeviceId() {
-        return deviceId;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setDeviceId(String deviceId) {
-        this.deviceId = deviceId;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public JTDeviceConfig getConfig() {
@@ -26,7 +26,7 @@ public class SetConfigParam {
     @Override
     public String toString() {
         return "SetConfigParam{" +
-                "deviceId='" + deviceId + '\'' +
+                "phoneNumber='" + phoneNumber + '\'' +
                 ", config=" + config +
                 '}';
     }

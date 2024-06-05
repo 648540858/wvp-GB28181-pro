@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class QueryMediaDataParam {
 
     @Schema(description = "设备")
-    private String deviceId;
+    private String phoneNumber;
 
     @Schema(description = "多媒体 ID, 单条存储多媒体数据检索上传时有效")
     private Long mediaId;
@@ -19,12 +19,12 @@ public class QueryMediaDataParam {
     @Schema(description = "存储多媒体数据参数")
     private JTQueryMediaDataCommand queryMediaDataCommand;
 
-    public String getDeviceId() {
-        return deviceId;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setDeviceId(String deviceId) {
-        this.deviceId = deviceId;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public JTQueryMediaDataCommand getQueryMediaDataCommand() {
@@ -54,7 +54,7 @@ public class QueryMediaDataParam {
     @Override
     public String toString() {
         return "QueryMediaDataParam{" +
-                "deviceId='" + deviceId + '\'' +
+                "设备手机号='" + phoneNumber + '\'' +
                 ", mediaId=" + mediaId +
                 ", queryMediaDataCommand=" + queryMediaDataCommand +
                 '}';

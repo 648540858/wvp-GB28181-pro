@@ -23,7 +23,7 @@ public class J1003 extends Re {
     @Override
     protected Rs decode0(ByteBuf buf, Header header, Session session) {
         mediaAttribute = JTMediaAttribute.decode(buf);
-        SessionManager.INSTANCE.response(header.getTerminalId(), "1003", null, mediaAttribute);
+        SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "1003", null, mediaAttribute);
         return null;
     }
 

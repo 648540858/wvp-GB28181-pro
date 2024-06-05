@@ -8,7 +8,6 @@ import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
-import com.genersoft.iot.vmp.jt1078.util.BCDUtil;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,13 +33,13 @@ public class J0201 extends Re {
 
         positionInfo = JTPositionBaseInfo.decode(buf);
         log.info("[JT-位置信息查询应答]: {}", positionInfo.toString());
-        SessionManager.INSTANCE.response(header.getTerminalId(), "0201", (long) respNo, positionInfo);
+        SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "0201", (long) respNo, positionInfo);
         return null;
     }
 
     @Override
     protected Rs handler(Header header, Session session, Ijt1078Service service) {
-        JTDevice deviceInDb = service.getDevice(header.getTerminalId());
+        JTDevice deviceInDb = service.getDevice(header.getTerminalPhoneNumber());
         J8001 j8001 = new J8001();
         j8001.setRespNo(header.getSn());
         j8001.setRespId(header.getMsgId());

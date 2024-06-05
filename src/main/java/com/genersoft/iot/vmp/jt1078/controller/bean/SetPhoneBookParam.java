@@ -9,8 +9,8 @@ import java.util.List;
 @Schema(description = "设置电话本")
 public class SetPhoneBookParam {
 
-    @Schema(description = "设备")
-    private String deviceId;
+    @Schema(description = "设备手机号")
+    private String phoneNumber;
 
     @Schema(description = "设置类型:\n" +
             "0: 删除终端上所有存储的联系人,\n" +
@@ -22,12 +22,12 @@ public class SetPhoneBookParam {
     @Schema(description = "联系人")
     private List<JTPhoneBookContact> phoneBookContactList;
 
-    public String getDeviceId() {
-        return deviceId;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setDeviceId(String deviceId) {
-        this.deviceId = deviceId;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public int getType() {
@@ -49,7 +49,7 @@ public class SetPhoneBookParam {
     @Override
     public String toString() {
         return "SetPhoneBookParam{" +
-                "deviceId='" + deviceId + '\'' +
+                "设备手机号='" + phoneNumber + '\'' +
                 ", type=" + type +
                 ", phoneBookContactList=" + phoneBookContactList +
                 '}';

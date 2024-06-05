@@ -8,7 +8,6 @@ import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import io.netty.buffer.ByteBuf;
-import io.netty.util.CharsetUtil;
 import org.springframework.context.ApplicationEvent;
 
 import java.nio.charset.Charset;
@@ -38,7 +37,7 @@ public class J0102 extends Re {
 
     @Override
     protected Rs handler(Header header, Session session, Ijt1078Service service) {
-        JTDevice device = service.getDevice(header.getTerminalId());
+        JTDevice device = service.getDevice(header.getTerminalPhoneNumber());
         J8001 j8001 = new J8001();
         j8001.setRespNo(header.getSn());
         j8001.setRespId(header.getMsgId());

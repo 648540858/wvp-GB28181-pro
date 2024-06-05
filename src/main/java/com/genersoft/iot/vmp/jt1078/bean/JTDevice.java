@@ -47,10 +47,10 @@ public class JTDevice {
     private String deviceModel;
 
     /**
-     * 终端ID
+     * 终端手机号
      */
-    @Schema(description = "终端ID")
-    private String terminalId;
+    @Schema(description = "终端手机号")
+    private Integer phoneNumber;
 
     /**
      * 设备ID
@@ -154,12 +154,12 @@ public class JTDevice {
         this.deviceModel = deviceModel;
     }
 
-    public String getTerminalId() {
-        return terminalId;
+    public Integer getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setTerminalId(String terminalId) {
-        this.terminalId = terminalId;
+    public void setPhoneNumber(Integer phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public String getDeviceId() {
@@ -243,7 +243,7 @@ public class JTDevice {
                 ", 市县域文字描述='" + cityText + '\'' +
                 ", 制造商ID='" + makerId + '\'' +
                 ", 终端型号='" + deviceModel + '\'' +
-                ", 终端ID='" + terminalId + '\'' +
+                ", 终端手机号='" + phoneNumber + '\'' +
                 ", 设备ID='" + deviceId + '\'' +
                 ", 车牌颜色=" + plateColor +
                 ", 车牌='" + plateNo + '\'' +

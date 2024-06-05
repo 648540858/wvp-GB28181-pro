@@ -1,15 +1,26 @@
 package com.genersoft.iot.vmp.jt1078.dao;
 
+import com.genersoft.iot.vmp.jt1078.bean.JTChannel;
 import com.genersoft.iot.vmp.jt1078.bean.JTDevice;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
 @Mapper
-public interface JTDeviceMapper {
+public interface JTChannelMapper {
 
-    @Select("SELECT * FROM wvp_jt_device where terminal_id=#{terminalId}")
-    JTDevice getDevice(@Param("terminalId") Integer terminalId);
+    @Select(value = {" <script>" +
+            "SELECT * " +
+            "from " +
+            "wvp_jt_channel jc " +
+            "WHERE " +
+            "device_id = #{deviceId}" +
+            " <if test='query != null'> AND " +
+            "jc.name LIKE concat('%',#{query},'%') " +
+            "</if> " +
+            "ORDER BY jc.update_time " +
+            " </script>"})
+    List<JTChannel> getAll(@Param("deviceId") int deviceId, @Param("query") String query);
 
     @Update(value = {" <script>" +
             "UPDATE wvp_jt_device " +
@@ -87,12 +98,12 @@ public interface JTDeviceMapper {
     void addDevice(JTDevice device);
 
     @Delete("delete from wvp_jt_device where terminal_id = #{terminalId}")
-    void deleteDeviceByTerminalId(@Param("terminalId") Integer terminalId);
+    void deleteDeviceByTerminalId(@Param("terminalId") String terminalId);
 
     @Update(value = {" <script>" +
             "UPDATE wvp_jt_device " +
             "SET status=#{connected} " +
             "WHERE terminal_id=#{terminalId}"+
             " </script>"})
-    void updateDeviceStatus(@Param("connected") boolean connected, @Param("terminalId") Integer terminalId);
+    void updateDeviceStatus(@Param("connected") boolean connected, @Param("terminalId") String terminalId);
 }

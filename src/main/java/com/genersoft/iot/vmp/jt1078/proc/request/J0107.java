@@ -60,7 +60,7 @@ public class J0107 extends Re {
         deviceAttribute.setGnssAttribute(JTGnssAttribute.getInstance(buf.readUnsignedByte()));
         deviceAttribute.setCommunicationModuleAttribute(JTCommunicationModuleAttribute.getInstance(buf.readUnsignedByte()));
 
-        SessionManager.INSTANCE.response(header.getTerminalId(), "0107", null, deviceAttribute);
+        SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "0107", null, deviceAttribute);
         return null;
     }
 

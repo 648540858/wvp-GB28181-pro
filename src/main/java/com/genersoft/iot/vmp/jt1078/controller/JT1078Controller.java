@@ -51,7 +51,7 @@ import java.util.Map;
 
 @ConditionalOnProperty(value = "jt1078.enable", havingValue = "true")
 @RestController
-@Tag(name  = "部标设备")
+@Tag(name  = "部标设备控制")
 @RequestMapping("/api/jt1078")
 public class JT1078Controller {
 
@@ -71,12 +71,12 @@ public class JT1078Controller {
     private ThreadPoolTaskExecutor taskExecutor;
 
     @Operation(summary = "1078-开始点播", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "type", description = "类型：0:音视频,1:视频,3:音频", required = true)
     @GetMapping("/live/start")
     public DeferredResult<WVPResult<StreamContent>> startLive(HttpServletRequest request,
-                                                              @Parameter(required = true) String deviceId,
+                                                              @Parameter(required = true) String phoneNumber,
                                                               @Parameter(required = true) String channelId,
                                                               @Parameter(required = false) Integer type) {
         if (type == null || (type != 0 && type != 1 && type != 3)) {
@@ -84,16 +84,16 @@ public class JT1078Controller {
         }
         DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
         result.onTimeout(()->{
-            logger.info("[1078-点播等待超时] deviceId：{}, channelId：{}, ", deviceId, channelId);
+            logger.info("[1078-点播等待超时] phoneNumber：{}, channelId：{}, ", phoneNumber, channelId);
             // 释放rtpserver
             WVPResult<StreamContent> wvpResult = new WVPResult<>();
             wvpResult.setCode(ErrorCode.ERROR100.getCode());
             wvpResult.setMsg("超时");
             result.setResult(wvpResult);
-            service.stopPlay(deviceId, channelId);
+            service.stopPlay(phoneNumber, channelId);
         });
 
-        service.play(deviceId, channelId, type, (code, msg, streamInfo) -> {
+        service.play(phoneNumber, channelId, type, (code, msg, streamInfo) -> {
             WVPResult<StreamContent> wvpResult = new WVPResult<>();
             if (code == InviteErrorCode.SUCCESS.getCode()) {
                 wvpResult.setCode(ErrorCode.SUCCESS.getCode());
@@ -127,17 +127,17 @@ public class JT1078Controller {
     }
 
     @Operation(summary = "1078-结束点播", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @GetMapping("/live/stop")
     public void stopLive(HttpServletRequest request,
-                                                              @Parameter(required = true) String deviceId,
+                                                              @Parameter(required = true) String phoneNumber,
                                                               @Parameter(required = true) String channelId) {
-        service.stopPlay(deviceId, channelId);
+        service.stopPlay(phoneNumber, channelId);
     }
 
     @Operation(summary = "1078-语音对讲", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "app", description = "推流应用名", required = true)
     @Parameter(name = "stream", description = "推流ID", required = true)
@@ -145,7 +145,7 @@ public class JT1078Controller {
     @Parameter(name = "onlySend", description = "是否只发送", required = false)
     @GetMapping("/talk/start")
     public DeferredResult<WVPResult<StreamContent>> startTalk(HttpServletRequest request,
-                         @Parameter(required = true) String deviceId,
+                         @Parameter(required = true) String phoneNumber,
                          @Parameter(required = true) String channelId,
                          @Parameter(required = true) String app,
                          @Parameter(required = true) String stream,
@@ -157,16 +157,16 @@ public class JT1078Controller {
         }
         String finalChannelId = channelId;
         result.onTimeout(()->{
-            logger.info("[1078-语音对讲超时] deviceId：{}, channelId：{}, ", deviceId, finalChannelId);
+            logger.info("[1078-语音对讲超时] phoneNumber：{}, channelId：{}, ", phoneNumber, finalChannelId);
             // 释放rtpserver
             WVPResult<StreamContent> wvpResult = new WVPResult<>();
             wvpResult.setCode(ErrorCode.ERROR100.getCode());
             wvpResult.setMsg("超时");
             result.setResult(wvpResult);
-            service.stopPlay(deviceId, finalChannelId);
+            service.stopPlay(phoneNumber, finalChannelId);
         });
 
-        service.startTalk(deviceId, channelId, app, stream, mediaServerId, onlySend, (code, msg, streamInfo) -> {
+        service.startTalk(phoneNumber, channelId, app, stream, mediaServerId, onlySend, (code, msg, streamInfo) -> {
             WVPResult<StreamContent> wvpResult = new WVPResult<>();
             if (code == InviteErrorCode.SUCCESS.getCode()) {
                 wvpResult.setCode(ErrorCode.SUCCESS.getCode());
@@ -200,57 +200,57 @@ public class JT1078Controller {
     }
 
     @Operation(summary = "1078-结束对讲", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @GetMapping("/talk/stop")
     public void stopTalk(HttpServletRequest request,
-                         @Parameter(required = true) String deviceId,
+                         @Parameter(required = true) String phoneNumber,
                          @Parameter(required = true) String channelId) {
-        service.stopTalk(deviceId, channelId);
+        service.stopTalk(phoneNumber, channelId);
     }
 
 
     @Operation(summary = "1078-暂停点播", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @GetMapping("/live/pause")
     public void pauseLive(HttpServletRequest request,
-                         @Parameter(required = true) String deviceId,
+                         @Parameter(required = true) String phoneNumber,
                          @Parameter(required = true) String channelId) {
-        service.pausePlay(deviceId, channelId);
+        service.pausePlay(phoneNumber, channelId);
     }
 
     @Operation(summary = "1078-继续点播", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @GetMapping("/live/continue")
     public void continueLive(HttpServletRequest request,
-                          @Parameter(required = true) String deviceId,
+                          @Parameter(required = true) String phoneNumber,
                           @Parameter(required = true) String channelId) {
 
-        service.continueLivePlay(deviceId, channelId);
+        service.continueLivePlay(phoneNumber, channelId);
     }
 
     @Operation(summary = "1078-切换码流类型", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "streamType", description = "0:主码流; 1:子码流", required = true)
     @GetMapping("/live/switch")
     public void changeStreamType(HttpServletRequest request,
-                             @Parameter(required = true) String deviceId,
+                             @Parameter(required = true) String phoneNumber,
                              @Parameter(required = true) String channelId,
                              @Parameter(required = true) Integer streamType) {
-        service.changeStreamType(deviceId, channelId, streamType);
+        service.changeStreamType(phoneNumber, channelId, streamType);
     }
 
     @Operation(summary = "1078-录像-查询资源列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "startTime", description = "开始时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
     @Parameter(name = "endTime", description = "结束时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
     @GetMapping("/record/list")
     public WVPResult<List<J1205.JRecordItem>> playbackList(HttpServletRequest request,
-                                                                     @Parameter(required = true) String deviceId,
+                                                                     @Parameter(required = true) String phoneNumber,
                                                                      @Parameter(required = false) String channelId,
                                                                      @Parameter(required = true) String startTime,
                                                                      @Parameter(required = true) String endTime
@@ -258,7 +258,7 @@ public class JT1078Controller {
         if (ObjectUtils.isEmpty(channelId)) {
             channelId = "1";
         }
-        List<J1205.JRecordItem> recordList = service.getRecordList(deviceId, channelId, startTime, endTime);
+        List<J1205.JRecordItem> recordList = service.getRecordList(phoneNumber, channelId, startTime, endTime);
         if (recordList == null) {
             return WVPResult.fail(ErrorCode.ERROR100);
         }else {
@@ -266,7 +266,7 @@ public class JT1078Controller {
         }
     }
     @Operation(summary = "1078-录像-开始回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "startTime", description = "开始时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
     @Parameter(name = "endTime", description = "结束时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
@@ -276,7 +276,7 @@ public class JT1078Controller {
     @Parameter(name = "playbackSpeed", description = "0.无效 1.1倍 2.2倍 3.4倍 4.8倍 5.16倍 (回放控制为1和2时,此字段内容有效,否则置0)", required = true)
     @GetMapping("/playback/start")
     public DeferredResult<WVPResult<StreamContent>> recordLive(HttpServletRequest request,
-                                                              @Parameter(required = true) String deviceId,
+                                                              @Parameter(required = true) String phoneNumber,
                                                               @Parameter(required = false) String channelId,
                                                               @Parameter(required = true) String startTime,
                                                               @Parameter(required = true) String endTime,
@@ -292,16 +292,16 @@ public class JT1078Controller {
         }
         String finalChannelId = channelId;
         result.onTimeout(()->{
-            logger.info("[1078-回放-等待超时] deviceId：{}, channelId：{}, ", deviceId, finalChannelId);
+            logger.info("[1078-回放-等待超时] phoneNumber：{}, channelId：{}, ", phoneNumber, finalChannelId);
             // 释放rtpserver
             WVPResult<StreamContent> wvpResult = new WVPResult<>();
             wvpResult.setCode(ErrorCode.ERROR100.getCode());
             wvpResult.setMsg("回放超时");
             result.setResult(wvpResult);
-            service.stopPlay(deviceId, finalChannelId);
+            service.stopPlay(phoneNumber, finalChannelId);
         });
 
-        service.playback(deviceId, channelId, startTime, endTime,type, rate, playbackType, playbackSpeed,  (code, msg, streamInfo) -> {
+        service.playback(phoneNumber, channelId, startTime, endTime,type, rate, playbackType, playbackSpeed,  (code, msg, streamInfo) -> {
             WVPResult<StreamContent> wvpResult = new WVPResult<>();
             if (code == InviteErrorCode.SUCCESS.getCode()) {
                 wvpResult.setCode(ErrorCode.SUCCESS.getCode());
@@ -335,37 +335,37 @@ public class JT1078Controller {
     }
 
     @Operation(summary = "1078-录像-回放控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "command", description = "0:开始回放; 1:暂停回放; 2:结束回放; 3:快进回放; 4:关键帧快退回放; 5:拖动回放; 6:关键帧播放", required = true)
     @Parameter(name = "playbackSpeed", description = "0.无效 1.1倍 2.2倍 3.4倍 4.8倍 5.16倍 (回放控制为1和2时,此字段内容有效,否则置0)", required = true)
     @Parameter(name = "time", description = "拖动回放位置(时间)", required = true)
     @GetMapping("/playback/control")
-    public void recordControl(@Parameter(required = true) String deviceId,
+    public void recordControl(@Parameter(required = true) String phoneNumber,
                               @Parameter(required = true) String channelId,
                               @Parameter(required = false) Integer command,
                               @Parameter(required = false) String time,
                               @Parameter(required = false) Integer playbackSpeed
 
     ) {
-        service.playbackControl(deviceId, channelId, command, playbackSpeed,time);
+        service.playbackControl(phoneNumber, channelId, command, playbackSpeed,time);
     }
 
     @Operation(summary = "1078-录像-结束回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @GetMapping("/playback/stop")
     public void stopPlayback(HttpServletRequest request,
-                         @Parameter(required = true) String deviceId,
+                         @Parameter(required = true) String phoneNumber,
                          @Parameter(required = false) String channelId) {
         if (ObjectUtils.isEmpty(channelId)) {
             channelId = "1";
         }
-        service.stopPlayback(deviceId, channelId);
+        service.stopPlayback(phoneNumber, channelId);
     }
 
     @Operation(summary = "1078-录像-下载", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "startTime", description = "开始时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
     @Parameter(name = "endTime", description = "结束时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
@@ -374,7 +374,7 @@ public class JT1078Controller {
     @GetMapping("/playback/download")
     public DeferredResult<Void> recordDownload(HttpServletRequest request,
                                                                HttpServletResponse response,
-                                                               @Parameter(required = true) String deviceId,
+                                                               @Parameter(required = true) String phoneNumber,
                                                                @Parameter(required = false) String channelId,
                                                                @Parameter(required = true) String startTime,
                                                                @Parameter(required = true) String endTime,
@@ -383,16 +383,16 @@ public class JT1078Controller {
 
     ) throws IOException {
         logger.info("[1078-录像] 下载，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {}， 音视频类型： {}， 码流类型： {}， ",
-                deviceId, channelId, startTime, endTime, type, rate);
+                phoneNumber, channelId, startTime, endTime, type, rate);
         if (!ftpSetting.getEnable()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未启用ftp服务，无法下载录像");
         }
         DeferredResult<Void> result = new DeferredResult<>();
         ServletOutputStream outputStream = response.getOutputStream();
         response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-        response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(deviceId + "_" + channelId + ".mp4", "UTF-8"));
+        response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(phoneNumber + "_" + channelId + ".mp4", "UTF-8"));
         response.setStatus(HttpServletResponse.SC_OK);
-        service.recordDownload(deviceId, channelId, startTime, endTime, type, rate, (code, msg, data) -> {
+        service.recordDownload(phoneNumber, channelId, startTime, endTime, type, rate, (code, msg, data) -> {
             String filePath = "ftp" + data;
             File file = new File(filePath);
             if (!file.exists()) {
@@ -418,105 +418,66 @@ public class JT1078Controller {
         return result;
     }
 
-
-    @Operation(summary = "1078-分页查询部标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "page", description = "当前页", required = true)
-    @Parameter(name = "count", description = "每页查询数量", required = true)
-    @Parameter(name = "query", description = "查询内容")
-    @Parameter(name = "online", description = "是否在线")
-    @GetMapping("/device/list")
-    public PageInfo<JTDevice> getDevices(int page, int count,
-                                         @RequestParam(required = false) String query,
-                                         @RequestParam(required = false) Boolean online) {
-        return service.getDeviceList(page, count, query, online);
-    }
-
-    @Operation(summary = "更新设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "device", description = "设备", required = true)
-    @PostMapping("/device/update")
-    public void updateDevice(JTDevice device){
-        assert device.getId() > 0;
-        assert device.getDeviceId() != null;
-        service.updateDevice(device);
-    }
-
-
-
-    @Operation(summary = "1078-新增设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "device", description = "设备", required = true)
-    @PostMapping("/device/add")
-    public void addDevice(JTDevice device){
-        assert device.getDeviceId() != null;
-        service.addDevice(device);
-    }
-    @Operation(summary = "删除设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备ID", required = true)
-    @DeleteMapping("/device/delete")
-    public void addDevice(String deviceId){
-        assert deviceId != null;
-        service.deleteDeviceByDeviceId(deviceId);
-    }
-
     @Operation(summary = "1078-云台控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "command", description = "控制指令,允许值: left, right, up, down, zoomin, zoomout, irisin, irisout, focusnear, focusfar, stop", required = true)
     @Parameter(name = "speed", description = "速度(0-255)， command,值 left, right, up, down时有效", required = true)
     @PostMapping("/ptz")
-    public void ptz(String deviceId, String channelId, String command, int speed){
+    public void ptz(String phoneNumber, String channelId, String command, int speed){
 
         if (ObjectUtils.isEmpty(channelId)) {
             channelId = "1";
         }
-        logger.info("[1078-云台控制] deviceId：{}, channelId：{}, command: {}, speed: {}", deviceId, channelId, command, speed);
-        service.ptzControl(deviceId, channelId, command, speed);
+        logger.info("[1078-云台控制] phoneNumber：{}, channelId：{}, command: {}, speed: {}", phoneNumber, channelId, command, speed);
+        service.ptzControl(phoneNumber, channelId, command, speed);
     }
 
     @Operation(summary = "1078-补光灯开关", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "command", description = "控制指令,允许值: on off", required = true)
     @PostMapping("/fill-light")
-    public void fillLight(String deviceId, String channelId, String command){
+    public void fillLight(String phoneNumber, String channelId, String command){
 
         if (ObjectUtils.isEmpty(channelId)) {
             channelId = "1";
         }
-        logger.info("[1078-补光灯开关] deviceId：{}, channelId：{}, command: {}", deviceId, channelId, command);
-        service.supplementaryLight(deviceId, channelId, command);
+        logger.info("[1078-补光灯开关] phoneNumber：{}, channelId：{}, command: {}", phoneNumber, channelId, command);
+        service.supplementaryLight(phoneNumber, channelId, command);
     }
 
     @Operation(summary = "1078-雨刷开关", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "command", description = "控制指令,允许值: on off", required = true)
     @PostMapping("/wiper")
-    public void wiper(String deviceId, String channelId, String command){
+    public void wiper(String phoneNumber, String channelId, String command){
 
         if (ObjectUtils.isEmpty(channelId)) {
             channelId = "1";
         }
-        logger.info("[1078-雨刷开关] deviceId：{}, channelId：{}, command: {}", deviceId, channelId, command);
-        service.wiper(deviceId, channelId, command);
+        logger.info("[1078-雨刷开关] phoneNumber：{}, channelId：{}, command: {}", phoneNumber, channelId, command);
+        service.wiper(phoneNumber, channelId, command);
     }
 
     @Operation(summary = "1078-查询终端参数", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @GetMapping("/config")
-    public JTDeviceConfig config(String deviceId, String[] params){
+    public JTDeviceConfig config(String phoneNumber, String[] params){
 
-        logger.info("[1078-查询终端参数] deviceId：{}", deviceId);
-        return service.queryConfig(deviceId, params, null);
+        logger.info("[1078-查询终端参数] phoneNumber：{}", phoneNumber);
+        return service.queryConfig(phoneNumber, params, null);
     }
 
     @Operation(summary = "1078-设置终端参数", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @Parameter(name = "config", description = "终端参数", required = true)
     @PostMapping("/set-config")
     public void setConfig(@RequestBody SetConfigParam config){
 
         logger.info("[1078-设置终端参数] 参数: {}", config.toString());
-        service.setConfig(config.getDeviceId(), config.getConfig());
+        service.setConfig(config.getPhoneNumber(), config.getConfig());
     }
 
     @Operation(summary = "终端控制-连接", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -525,74 +486,74 @@ public class JT1078Controller {
     public void connectionControl(@RequestBody ConnectionControlParam control){
 
         logger.info("[1078-终端控制] 参数: {}", control.toString());
-        service.connectionControl(control.getDeviceId(), control.getControl());
+        service.connectionControl(control.getPhoneNumber(), control.getControl());
     }
 
     @Operation(summary = "1078-终端控制-复位", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @PostMapping("/control/reset")
-    public void resetControl(String deviceId){
+    public void resetControl(String phoneNumber){
 
-        logger.info("[1078-复位] deviceId: {}", deviceId);
-        service.resetControl(deviceId);
+        logger.info("[1078-复位] phoneNumber: {}", phoneNumber);
+        service.resetControl(phoneNumber);
     }
 
     @Operation(summary = "1078-终端控制-恢复出厂设置", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @PostMapping("/control/factory-reset")
-    public void factoryResetControl(String deviceId){
+    public void factoryResetControl(String phoneNumber){
 
-        logger.info("[1078-恢复出厂设置] deviceId: {}", deviceId);
-        service.factoryResetControl(deviceId);
+        logger.info("[1078-恢复出厂设置] phoneNumber: {}", phoneNumber);
+        service.factoryResetControl(phoneNumber);
     }
 
     @Operation(summary = "1078-查询终端属性", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @GetMapping("/attribute")
-    public JTDeviceAttribute attribute(String deviceId){
+    public JTDeviceAttribute attribute(String phoneNumber){
 
-        logger.info("[1078-查询终端属性] deviceId: {}", deviceId);
-        return service.attribute(deviceId);
+        logger.info("[1078-查询终端属性] phoneNumber: {}", phoneNumber);
+        return service.attribute(phoneNumber);
     }
 
     @Operation(summary = "1078-查询位置信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @GetMapping("/position-info")
-    public JTPositionBaseInfo queryPositionInfo(String deviceId){
+    public JTPositionBaseInfo queryPositionInfo(String phoneNumber){
 
-        logger.info("[1078-查询位置信息] deviceId: {}", deviceId);
-        return service.queryPositionInfo(deviceId);
+        logger.info("[1078-查询位置信息] phoneNumber: {}", phoneNumber);
+        return service.queryPositionInfo(phoneNumber);
     }
 
     @Operation(summary = "1078-临时位置跟踪控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @Parameter(name = "timeInterval", description = "时间间隔,单位为秒,时间间隔为0 时停止跟踪,停止跟踪无需带后继字段", required = true)
     @Parameter(name = "validityPeriod", description = "位置跟踪有效期, 单位为秒,终端在接收到位置跟踪控制消息后,在有效期截止时间之前依据消息中的时间间隔发送位置汇报", required = true)
     @GetMapping("/control/temp-position-tracking")
-    public void tempPositionTrackingControl(String deviceId, Integer timeInterval, Long validityPeriod){
+    public void tempPositionTrackingControl(String phoneNumber, Integer timeInterval, Long validityPeriod){
 
-        logger.info("[1078-临时位置跟踪控制] deviceId: {}, 时间间隔 {}秒, 位置跟踪有效期 {}秒", deviceId, timeInterval, validityPeriod);
-        service.tempPositionTrackingControl(deviceId, timeInterval, validityPeriod);
+        logger.info("[1078-临时位置跟踪控制] phoneNumber: {}, 时间间隔 {}秒, 位置跟踪有效期 {}秒", phoneNumber, timeInterval, validityPeriod);
+        service.tempPositionTrackingControl(phoneNumber, timeInterval, validityPeriod);
     }
 
     @Operation(summary = "1078-人工确认报警消息", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @Parameter(name = "timeInterval", description = "时间间隔,单位为秒,时间间隔为0 时停止跟踪,停止跟踪无需带后继字段", required = true)
     @Parameter(name = "validityPeriod", description = "位置跟踪有效期, 单位为秒,终端在接收到位置跟踪控制消息后,在有效期截止时间之前依据消息中的时间间隔发送位置汇报", required = true)
     @PostMapping("/confirmation-alarm-message")
     public void confirmationAlarmMessage(@RequestBody ConfirmationAlarmMessageParam param){
 
         logger.info("[1078-人工确认报警消息] 参数: {}", param);
-        service.confirmationAlarmMessage(param.getDeviceId(), param.getAlarmPackageNo(), param.getAlarmMessageType());
+        service.confirmationAlarmMessage(param.getPhoneNumber(), param.getAlarmPackageNo(), param.getAlarmMessageType());
     }
 
     @Operation(summary = "1078-链路检测", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @GetMapping("/link-detection")
-    public WVPResult<Integer> linkDetection(String deviceId){
+    public WVPResult<Integer> linkDetection(String phoneNumber){
 
-        logger.info("[1078-链路检测] deviceId: {}", deviceId);
-        int result = service.linkDetection(deviceId);
+        logger.info("[1078-链路检测] phoneNumber: {}", phoneNumber);
+        int result = service.linkDetection(phoneNumber);
         if (result == 0) {
             return WVPResult.success(result);
         }else {
@@ -608,7 +569,7 @@ public class JT1078Controller {
     public WVPResult<Integer> textMessage(@RequestBody TextMessageParam textMessageParam){
 
         logger.info("[1078-文本信息下发] textMessageParam: {}", textMessageParam);
-        int result = service.textMessage(textMessageParam.getDeviceId(), textMessageParam.getSign(), textMessageParam.getTextType(), textMessageParam.getContent());
+        int result = service.textMessage(textMessageParam.getPhoneNumber(), textMessageParam.getSign(), textMessageParam.getTextType(), textMessageParam.getContent());
         if (result == 0) {
             return WVPResult.success(result);
         }else {
@@ -619,14 +580,14 @@ public class JT1078Controller {
     }
 
     @Operation(summary = "1078-电话回拨", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @Parameter(name = "sign", description = "标志: 0:普通通话,1:监听", required = true)
-    @Parameter(name = "phoneNumber", description = "电话号码", required = true)
+    @Parameter(name = "destPhoneNumber", description = "回拨电话号码", required = true)
     @GetMapping("/telephone-callback")
-    public WVPResult<Integer> telephoneCallback(String deviceId, Integer sign, String phoneNumber){
+    public WVPResult<Integer> telephoneCallback(String phoneNumber, Integer sign, String destPhoneNumber){
 
-        logger.info("[1078-电话回拨] deviceId: {}, sign: {}, phoneNumber: {},", deviceId, sign, phoneNumber);
-        int result = service.telephoneCallback(deviceId, sign, phoneNumber);
+        logger.info("[1078-电话回拨] phoneNumber: {}, sign: {}, phoneNumber: {},", phoneNumber, sign, phoneNumber);
+        int result = service.telephoneCallback(phoneNumber, sign, destPhoneNumber);
         if (result == 0) {
             return WVPResult.success(result);
         }else {
@@ -642,7 +603,7 @@ public class JT1078Controller {
     public WVPResult<Integer> setPhoneBook(@RequestBody SetPhoneBookParam setPhoneBookParam){
 
         logger.info("[1078-设置电话本] setPhoneBookParam: {}", setPhoneBookParam);
-        int result = service.setPhoneBook(setPhoneBookParam.getDeviceId(), setPhoneBookParam.getType(), setPhoneBookParam.getPhoneBookContactList());
+        int result = service.setPhoneBook(setPhoneBookParam.getPhoneNumber(), setPhoneBookParam.getType(), setPhoneBookParam.getPhoneBookContactList());
         if (result == 0) {
             return WVPResult.success(result);
         }else {
@@ -653,13 +614,13 @@ public class JT1078Controller {
     }
 
     @Operation(summary = "1078-车门控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @Parameter(name = "open", description = "开启车门", required = true)
     @GetMapping("/control/door")
-    public WVPResult<Integer> controlDoor(String deviceId, Boolean open){
+    public WVPResult<Integer> controlDoor(String phoneNumber, Boolean open){
 
-        logger.info("[1078-车门控制] deviceId: {}, open: {},", deviceId, open);
-        JTPositionBaseInfo positionBaseInfo = service.controlDoor(deviceId, open);
+        logger.info("[1078-车门控制] phoneNumber: {}, open: {},", phoneNumber, open);
+        JTPositionBaseInfo positionBaseInfo = service.controlDoor(phoneNumber, open);
 
         if (open == !positionBaseInfo.getStatus().isDoorLocking()) {
             return WVPResult.success(null);
@@ -674,7 +635,7 @@ public class JT1078Controller {
     public WVPResult<Integer> updateAreaForCircle(@RequestBody SetAreaParam areaParam){
 
         logger.info("[1078-更新圆形区域] areaParam: {},", areaParam);
-        int result = service.setAreaForCircle(0, areaParam.getDeviceId(), areaParam.getCircleAreaList());
+        int result = service.setAreaForCircle(0, areaParam.getPhoneNumber(), areaParam.getCircleAreaList());
         if (result == 0) {
             return WVPResult.success(result);
         }else {
@@ -690,7 +651,7 @@ public class JT1078Controller {
     public WVPResult<Integer> addAreaForCircle(@RequestBody SetAreaParam areaParam){
 
         logger.info("[1078-追加圆形区域] areaParam: {},", areaParam);
-        int result = service.setAreaForCircle(1, areaParam.getDeviceId(), areaParam.getCircleAreaList());
+        int result = service.setAreaForCircle(1, areaParam.getPhoneNumber(), areaParam.getCircleAreaList());
         if (result == 0) {
             return WVPResult.success(result);
         }else {
@@ -706,7 +667,7 @@ public class JT1078Controller {
     public WVPResult<Integer> editAreaForCircle(@RequestBody SetAreaParam areaParam){
 
         logger.info("[1078-修改圆形区域] areaParam: {},", areaParam);
-        int result = service.setAreaForCircle(2, areaParam.getDeviceId(), areaParam.getCircleAreaList());
+        int result = service.setAreaForCircle(2, areaParam.getPhoneNumber(), areaParam.getCircleAreaList());
         if (result == 0) {
             return WVPResult.success(result);
         }else {
@@ -717,13 +678,13 @@ public class JT1078Controller {
     }
 
     @Operation(summary = "1078-删除圆形区域", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @Parameter(name = "ids", description = "待删除圆形区域的id，例如1,2,3", required = true)
     @GetMapping("/area/circle/delete")
-    public WVPResult<Integer> deleteAreaForCircle(String deviceId, @RequestParam(value = "ids", required = false) List<Long> ids){
+    public WVPResult<Integer> deleteAreaForCircle(String phoneNumber, @RequestParam(value = "ids", required = false) List<Long> ids){
 
-        logger.info("[1078-删除圆形区域] deviceId: {}, ids:{}", deviceId, ids);
-        int result = service.deleteAreaForCircle(deviceId, ids);
+        logger.info("[1078-删除圆形区域] phoneNumber: {}, ids:{}", phoneNumber, ids);
+        int result = service.deleteAreaForCircle(phoneNumber, ids);
         if (result == 0) {
             return WVPResult.success(result);
         }else {
@@ -734,12 +695,12 @@ public class JT1078Controller {
     }
 
     @Operation(summary = "1078-查询圆形区域", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @GetMapping("/area/circle/query")
-    public WVPResult<List<JTAreaOrRoute>> queryAreaForCircle(String deviceId, @RequestParam(value = "ids", required = false) List<Long> ids){
+    public WVPResult<List<JTAreaOrRoute>> queryAreaForCircle(String phoneNumber, @RequestParam(value = "ids", required = false) List<Long> ids){
 
-        logger.info("[1078-查询圆形区域] deviceId: {}, ids:{}", deviceId, ids);
-        List<JTAreaOrRoute> result = service.queryAreaForCircle(deviceId, ids);
+        logger.info("[1078-查询圆形区域] phoneNumber: {}, ids:{}", phoneNumber, ids);
+        List<JTAreaOrRoute> result = service.queryAreaForCircle(phoneNumber, ids);
         if (result != null) {
             return WVPResult.success(result);
         }else {
@@ -754,7 +715,7 @@ public class JT1078Controller {
     public WVPResult<Integer> updateAreaForRectangle(@RequestBody SetAreaParam areaParam){
 
         logger.info("[1078-更新矩形区域] areaParam: {},", areaParam);
-        int result = service.setAreaForRectangle(0, areaParam.getDeviceId(), areaParam.getRectangleAreas());
+        int result = service.setAreaForRectangle(0, areaParam.getPhoneNumber(), areaParam.getRectangleAreas());
         if (result == 0) {
             return WVPResult.success(result);
         }else {
@@ -770,7 +731,7 @@ public class JT1078Controller {
     public WVPResult<Integer> addAreaForRectangle(@RequestBody SetAreaParam areaParam){
 
         logger.info("[1078-追加矩形区域] areaParam: {},", areaParam);
-        int result = service.setAreaForRectangle(1, areaParam.getDeviceId(), areaParam.getRectangleAreas());
+        int result = service.setAreaForRectangle(1, areaParam.getPhoneNumber(), areaParam.getRectangleAreas());
         if (result == 0) {
             return WVPResult.success(result);
         }else {
@@ -786,7 +747,7 @@ public class JT1078Controller {
     public WVPResult<Integer> editAreaForRectangle(@RequestBody SetAreaParam areaParam){
 
         logger.info("[1078-修改矩形区域] areaParam: {},", areaParam);
-        int result = service.setAreaForRectangle(2, areaParam.getDeviceId(), areaParam.getRectangleAreas());
+        int result = service.setAreaForRectangle(2, areaParam.getPhoneNumber(), areaParam.getRectangleAreas());
         if (result == 0) {
             return WVPResult.success(result);
         }else {
@@ -797,13 +758,13 @@ public class JT1078Controller {
     }
 
     @Operation(summary = "1078-删除矩形区域", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @Parameter(name = "ids", description = "待删除圆形区域的id，例如1,2,3", required = true)
     @GetMapping("/area/rectangle/delete")
-    public WVPResult<Integer> deleteAreaForRectangle(String deviceId, @RequestParam(value = "ids", required = false) List<Long> ids){
+    public WVPResult<Integer> deleteAreaForRectangle(String phoneNumber, @RequestParam(value = "ids", required = false) List<Long> ids){
 
-        logger.info("[1078-删除矩形区域] deviceId: {}, ids:{}", deviceId, ids);
-        int result = service.deleteAreaForRectangle(deviceId, ids);
+        logger.info("[1078-删除矩形区域] phoneNumber: {}, ids:{}", phoneNumber, ids);
+        int result = service.deleteAreaForRectangle(phoneNumber, ids);
         if (result == 0) {
             return WVPResult.success(result);
         }else {
@@ -814,12 +775,12 @@ public class JT1078Controller {
     }
 
     @Operation(summary = "1078-查询矩形区域", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @GetMapping("/area/rectangle/query")
-    public WVPResult<List<JTAreaOrRoute>> queryAreaForRectangle(String deviceId, @RequestParam(value = "ids", required = false) List<Long> ids){
+    public WVPResult<List<JTAreaOrRoute>> queryAreaForRectangle(String phoneNumber, @RequestParam(value = "ids", required = false) List<Long> ids){
 
-        logger.info("[1078-查询矩形区域] deviceId: {}, ids:{}", deviceId, ids);
-        List<JTAreaOrRoute> result = service.queryAreaForRectangle(deviceId, ids);
+        logger.info("[1078-查询矩形区域] phoneNumber: {}, ids:{}", phoneNumber, ids);
+        List<JTAreaOrRoute> result = service.queryAreaForRectangle(phoneNumber, ids);
         if (result != null) {
             return WVPResult.success(result);
         }else {
@@ -833,7 +794,7 @@ public class JT1078Controller {
     public WVPResult<Integer> setAreaForPolygon(@RequestBody SetAreaParam areaParam){
 
         logger.info("[1078-设置多边形区域] areaParam: {},", areaParam);
-        int result = service.setAreaForPolygon(areaParam.getDeviceId(), areaParam.getPolygonArea());
+        int result = service.setAreaForPolygon(areaParam.getPhoneNumber(), areaParam.getPolygonArea());
         if (result == 0) {
             return WVPResult.success(result);
         }else {
@@ -844,13 +805,13 @@ public class JT1078Controller {
     }
 
     @Operation(summary = "1078-删除多边形区域", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @Parameter(name = "ids", description = "待删除圆形区域的id，例如1,2,3", required = true)
     @GetMapping("/area/polygon/delete")
-    public WVPResult<Integer> deleteAreaForPolygon(String deviceId, @RequestParam(value = "ids", required = false) List<Long> ids){
+    public WVPResult<Integer> deleteAreaForPolygon(String phoneNumber, @RequestParam(value = "ids", required = false) List<Long> ids){
 
-        logger.info("[1078-删除多边形区域] deviceId: {}, ids:{}", deviceId, ids);
-        int result = service.deleteAreaForPolygon(deviceId, ids);
+        logger.info("[1078-删除多边形区域] phoneNumber: {}, ids:{}", phoneNumber, ids);
+        int result = service.deleteAreaForPolygon(phoneNumber, ids);
         if (result == 0) {
             return WVPResult.success(result);
         }else {
@@ -861,12 +822,12 @@ public class JT1078Controller {
     }
 
     @Operation(summary = "1078-查询多边形区域", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @GetMapping("/area/polygon/query")
-    public WVPResult<List<JTAreaOrRoute>> queryAreaForPolygon(String deviceId, @RequestParam(value = "ids", required = false) List<Long> ids){
+    public WVPResult<List<JTAreaOrRoute>> queryAreaForPolygon(String phoneNumber, @RequestParam(value = "ids", required = false) List<Long> ids){
 
-        logger.info("[1078-查询多边形区域] deviceId: {}, ids:{}", deviceId, ids);
-        List<JTAreaOrRoute> result = service.queryAreaForPolygon(deviceId, ids);
+        logger.info("[1078-查询多边形区域] phoneNumber: {}, ids:{}", phoneNumber, ids);
+        List<JTAreaOrRoute> result = service.queryAreaForPolygon(phoneNumber, ids);
         if (result != null) {
             return WVPResult.success(result);
         }else {
@@ -880,7 +841,7 @@ public class JT1078Controller {
     public WVPResult<Integer> setRoute(@RequestBody SetAreaParam areaParam){
 
         logger.info("[1078-设置路线] areaParam: {},", areaParam);
-        int result = service.setRoute(areaParam.getDeviceId(), areaParam.getRoute());
+        int result = service.setRoute(areaParam.getPhoneNumber(), areaParam.getRoute());
         if (result == 0) {
             return WVPResult.success(result);
         }else {
@@ -891,13 +852,13 @@ public class JT1078Controller {
     }
 
     @Operation(summary = "1078-删除路线", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @Parameter(name = "ids", description = "待删除圆形区域的id，例如1,2,3", required = true)
     @GetMapping("/route/delete")
-    public WVPResult<Integer> deleteRoute(String deviceId, @RequestParam(value = "ids", required = false) List<Long> ids){
+    public WVPResult<Integer> deleteRoute(String phoneNumber, @RequestParam(value = "ids", required = false) List<Long> ids){
 
-        logger.info("[1078-删除路线] deviceId: {}, ids:{}", deviceId, ids);
-        int result = service.deleteRoute(deviceId, ids);
+        logger.info("[1078-删除路线] phoneNumber: {}, ids:{}", phoneNumber, ids);
+        int result = service.deleteRoute(phoneNumber, ids);
         if (result == 0) {
             return WVPResult.success(result);
         }else {
@@ -908,12 +869,12 @@ public class JT1078Controller {
     }
 
     @Operation(summary = "1078-查询路线", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @GetMapping("/route/query")
-    public WVPResult<List<JTAreaOrRoute>> queryRoute(String deviceId, @RequestParam(value = "ids", required = false) List<Long> ids){
+    public WVPResult<List<JTAreaOrRoute>> queryRoute(String phoneNumber, @RequestParam(value = "ids", required = false) List<Long> ids){
 
-        logger.info("[1078-查询路线] deviceId: {}, ids:{}", deviceId, ids);
-        List<JTAreaOrRoute> result = service.queryRoute(deviceId, ids);
+        logger.info("[1078-查询路线] phoneNumber: {}, ids:{}", phoneNumber, ids);
+        List<JTAreaOrRoute> result = service.queryRoute(phoneNumber, ids);
         if (result != null) {
             return WVPResult.success(result);
         }else {
@@ -924,12 +885,12 @@ public class JT1078Controller {
     // TODO 待实现 行驶记录数据采集命令 行驶记录数据上传 行驶记录参数下传命令 电子运单上报 CAN总线数据上传
 
     @Operation(summary = "1078-上报驾驶员身份信息请求", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @GetMapping("/driver-information")
-    public WVPResult<JTDriverInformation> queryDriverInformation(String deviceId){
+    public WVPResult<JTDriverInformation> queryDriverInformation(String phoneNumber){
 
-        logger.info("[1078-上报驾驶员身份信息请求] deviceId: {}", deviceId);
-        JTDriverInformation jtDriverInformation = service.queryDriverInformation(deviceId);
+        logger.info("[1078-上报驾驶员身份信息请求] phoneNumber: {}", phoneNumber);
+        JTDriverInformation jtDriverInformation = service.queryDriverInformation(phoneNumber);
         if (jtDriverInformation != null) {
             return WVPResult.success(jtDriverInformation);
         }else {
@@ -938,12 +899,12 @@ public class JT1078Controller {
     }
 
     @Operation(summary = "1078-摄像头立即拍摄命令", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备编号", required = true)
     @PostMapping("/shooting")
     public WVPResult<List<Long>> shooting(@RequestBody ShootingParam param){
 
         logger.info("[1078-摄像头立即拍摄命令] param: {}", param );
-        List<Long> ids = service.shooting(param.getDeviceId(), param.getShootingCommand());
+        List<Long> ids = service.shooting(param.getPhoneNumber(), param.getShootingCommand());
         if (ids != null) {
             return WVPResult.success(ids);
         }else {
@@ -957,7 +918,7 @@ public class JT1078Controller {
     public WVPResult<List<JTMediaDataInfo>> queryMediaData(@RequestBody QueryMediaDataParam param){
 
         logger.info("[1078-存储多媒体数据检索] param: {}", param );
-        List<JTMediaDataInfo> ids = service.queryMediaData(param.getDeviceId(), param.getQueryMediaDataCommand());
+        List<JTMediaDataInfo> ids = service.queryMediaData(param.getPhoneNumber(), param.getQueryMediaDataCommand());
         if (ids != null) {
             return WVPResult.success(ids);
         }else {
@@ -988,7 +949,7 @@ public class JT1078Controller {
             mediaDataInfo.setId(param.getMediaId());
             ids.add(mediaDataInfo);
         }else {
-            ids = service.queryMediaData(param.getDeviceId(), param.getQueryMediaDataCommand());
+            ids = service.queryMediaData(param.getPhoneNumber(), param.getQueryMediaDataCommand());
         }
         if (ids.isEmpty()) {
             deferredResult.setResult(WVPResult.fail(ErrorCode.ERROR100));
@@ -1022,9 +983,9 @@ public class JT1078Controller {
         }
         taskExecutor.execute(()->{
             if (param.getMediaId() != null) {
-                service.uploadMediaDataForSingle(param.getDeviceId(), param.getMediaId(), param.getDelete());
+                service.uploadMediaDataForSingle(param.getPhoneNumber(), param.getMediaId(), param.getDelete());
             }else {
-                service.uploadMediaData(param.getDeviceId(), param.getQueryMediaDataCommand());
+                service.uploadMediaData(param.getPhoneNumber(), param.getQueryMediaDataCommand());
             }
 
         });
@@ -1032,13 +993,13 @@ public class JT1078Controller {
     }
 
     @Operation(summary = "1078-开始录音", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @Parameter(name = "time", description = "录音时间，单位为秒(s) ,0 表示一直录音", required = false)
     @Parameter(name = "save", description = "0:实时上传；1:保存", required = false)
     @Parameter(name = "samplingRate", description = "音频采样率， 0:8K；1:11K；2:23K；3:32K", required = false)
     @GetMapping("/record/start")
     public void startRecord(HttpServletRequest request,
-                         @Parameter(required = true) String deviceId,
+                         @Parameter(required = true) String phoneNumber,
                          @Parameter(required = false) Integer time,
                          @Parameter(required = false) Integer save,
                          @Parameter(required = false) Integer samplingRate
@@ -1052,17 +1013,17 @@ public class JT1078Controller {
         if (ObjectUtils.isEmpty(samplingRate)) {
             samplingRate = 0;
         }
-        service.record(deviceId, 1, time, save, samplingRate);
+        service.record(phoneNumber, 1, time, save, samplingRate);
     }
 
     @Operation(summary = "1078-停止录音", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @Parameter(name = "time", description = "录音时间，单位为秒(s) ,0 表示一直录音", required = false)
     @Parameter(name = "save", description = "0:实时上传；1:保存", required = false)
     @Parameter(name = "samplingRate", description = "音频采样率， 0:8K；1:11K；2:23K；3:32K", required = false)
     @GetMapping("/record/stop")
     public void stopRecord(HttpServletRequest request,
-                            @Parameter(required = true) String deviceId,
+                            @Parameter(required = true) String phoneNumber,
                             @Parameter(required = false) Integer time,
                             @Parameter(required = false) Integer save,
                             @Parameter(required = false) Integer samplingRate
@@ -1076,16 +1037,16 @@ public class JT1078Controller {
         if (ObjectUtils.isEmpty(samplingRate)) {
             samplingRate = 0;
         }
-        service.record(deviceId, 0, time, save, samplingRate);
+        service.record(phoneNumber, 0, time, save, samplingRate);
     }
 
     @Operation(summary = "1078-查询终端音视频属性", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @GetMapping("/media/attribute")
     public JTMediaAttribute queryMediaAttribute(HttpServletRequest request,
-                           @Parameter(required = true) String deviceId
+                           @Parameter(required = true) String phoneNumber
     ) {
-        return service.queryMediaAttribute(deviceId);
+        return service.queryMediaAttribute(phoneNumber);
     }
 
     // TODO 视频报警上报

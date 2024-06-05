@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
 import com.genersoft.iot.vmp.jt1078.cmd.JT1078Template;
+import com.genersoft.iot.vmp.jt1078.dao.JTChannelMapper;
 import com.genersoft.iot.vmp.jt1078.dao.JTDeviceMapper;
 import com.genersoft.iot.vmp.jt1078.event.CallbackManager;
 import com.genersoft.iot.vmp.jt1078.event.FtpUploadEvent;
@@ -60,6 +61,9 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     private JTDeviceMapper jtDeviceMapper;
 
     @Autowired
+    private JTChannelMapper jtChannelMapper;
+
+    @Autowired
     private JT1078Template jt1078Template;
 
     @Autowired
@@ -94,7 +98,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
 
 
     @Override
-    public JTDevice getDevice(String terminalId) {
+    public JTDevice getDevice(Integer terminalId) {
         return jtDeviceMapper.getDevice(terminalId);
     }
 
@@ -119,22 +123,22 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void deleteDeviceByDeviceId(String deviceId) {
-        jtDeviceMapper.deleteDeviceByTerminalId(deviceId);
+    public void deleteDeviceByPhoneNumber(Integer phoneNumber) {
+        jtDeviceMapper.deleteDeviceByTerminalId(phoneNumber);
     }
 
     @Override
-    public void updateDeviceStatus(boolean connected, String terminalId) {
+    public void updateDeviceStatus(boolean connected, Integer terminalId) {
         jtDeviceMapper.updateDeviceStatus(connected, terminalId);
     }
 
     private final Map<String, List<GeneralCallback<StreamInfo>>> inviteErrorCallbackMap = new ConcurrentHashMap<>();
 
     @Override
-    public void play(String deviceId, String channelId, int type, GeneralCallback<StreamInfo> callback) {
+    public void play(String phoneNumber, String channelId, int type, GeneralCallback<StreamInfo> callback) {
 
         // 检查流是否已经存在，存在则返回
-        String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + deviceId + ":" + channelId;
+        String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + phoneNumber + ":" + channelId;
         List<GeneralCallback<StreamInfo>> errorCallbacks = inviteErrorCallbackMap.computeIfAbsent(playKey, k -> new ArrayList<>());
         errorCallbacks.add(callback);
         StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
@@ -147,7 +151,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
                 if (mediaInfo != null && mediaInfo.getInteger("code") == 0) {
                     Boolean online = mediaInfo.getBoolean("online");
                     if (online != null && online) {
-                        logger.info("[1078-点播] 点播已经存在，直接返回， deviceId： {}， channelId： {}", deviceId, channelId);
+                        logger.info("[1078-点播] 点播已经存在，直接返回， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
                         for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
                             errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
                         }
@@ -158,7 +162,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             // 清理数据
             redisTemplate.delete(playKey);
         }
-        String stream = deviceId + "_" + channelId;
+        String stream = phoneNumber + "_" + channelId;
         MediaServer mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
         if (mediaServer == null) {
             for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
@@ -170,9 +174,9 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         Hook hook = Hook.getInstance(HookType.on_media_arrival, "rtp", stream, mediaServer.getId());
         subscribe.addSubscribe(hook, (hookData) -> {
             dynamicTask.stop(playKey);
-            logger.info("[1078-点播] 点播成功， deviceId： {}， channelId： {}", deviceId, channelId);
+            logger.info("[1078-点播] 点播成功， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
             // TODO 发送9105 实时音视频传输状态通知， 通知丢包率
-            StreamInfo info = onPublishHandler(mediaServer, hookData, deviceId, channelId);
+            StreamInfo info = onPublishHandler(mediaServer, hookData, phoneNumber, channelId);
 
             for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
                 errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), info);
@@ -182,7 +186,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         });
         // 设置超时监听
         dynamicTask.startDelay(playKey, () -> {
-            logger.info("[1078-点播] 超时， deviceId： {}， channelId： {}", deviceId, channelId);
+            logger.info("[1078-点播] 超时， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
             for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
                 errorCallback.run(InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode(),
                         InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getMsg(), null);
@@ -192,7 +196,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
 
         // 开启收流端口
         SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServer, stream, null, false, false, 0, false, false, false, 1);
-        logger.info("[1078-点播] deviceId： {}， channelId： {}， 端口： {}", deviceId, channelId, ssrcInfo.getPort());
+        logger.info("[1078-点播] phoneNumber： {}， channelId： {}， 端口： {}", phoneNumber, channelId, ssrcInfo.getPort());
         J9101 j9101 = new J9101();
         j9101.setChannel(Integer.valueOf(channelId));
         j9101.setIp(mediaServer.getSdpIp());
@@ -200,21 +204,21 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j9101.setTcpPort(ssrcInfo.getPort());
         j9101.setUdpPort(ssrcInfo.getPort());
         j9101.setType(type);
-        Object s = jt1078Template.startLive(deviceId, j9101, 6);
+        Object s = jt1078Template.startLive(phoneNumber, j9101, 6);
         System.out.println("ssss=== " + s);
 
     }
 
-    public StreamInfo onPublishHandler(MediaServer mediaServerItem, HookData hookData, String deviceId, String channelId) {
+    public StreamInfo onPublishHandler(MediaServer mediaServerItem, HookData hookData, String phoneNumber, String channelId) {
         StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServerItem, "rtp", hookData.getStream(), hookData.getMediaInfo(), null);
-        streamInfo.setDeviceID(deviceId);
+        streamInfo.setDeviceID(phoneNumber);
         streamInfo.setChannelId(channelId);
         return streamInfo;
     }
 
     @Override
-    public void stopPlay(String deviceId, String channelId) {
-        String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + deviceId + ":" + channelId;
+    public void stopPlay(String phoneNumber, String channelId) {
+        String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + phoneNumber + ":" + channelId;
         dynamicTask.stop(playKey);
         StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
         // 发送停止命令
@@ -223,8 +227,8 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j9102.setCommand(0);
         j9102.setCloseType(0);
         j9102.setStreamType(1);
-        jt1078Template.stopLive(deviceId, j9102, 6);
-        logger.info("[1078-停止点播] deviceId： {}， channelId： {}", deviceId, channelId);
+        jt1078Template.stopLive(phoneNumber, j9102, 6);
+        logger.info("[1078-停止点播] phoneNumber： {}， channelId： {}", phoneNumber, channelId);
         // 删除缓存数据
         if (streamInfo != null) {
             // 关闭rtpServer
@@ -240,45 +244,45 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void pausePlay(String deviceId, String channelId) {
-        String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + deviceId + ":" + channelId;
+    public void pausePlay(String phoneNumber, String channelId) {
+        String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + phoneNumber + ":" + channelId;
         dynamicTask.stop(playKey);
         StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
         if (streamInfo == null) {
-            logger.info("[1078-暂停点播] 未找到点播信息 deviceId： {}， channelId： {}", deviceId, channelId);
+            logger.info("[1078-暂停点播] 未找到点播信息 phoneNumber： {}， channelId： {}", phoneNumber, channelId);
         }
-        logger.info("[1078-暂停点播] deviceId： {}， channelId： {}", deviceId, channelId);
+        logger.info("[1078-暂停点播] phoneNumber： {}， channelId： {}", phoneNumber, channelId);
         // 发送暂停命令
         J9102 j9102 = new J9102();
         j9102.setChannel(Integer.valueOf(channelId));
         j9102.setCommand(2);
         j9102.setCloseType(0);
         j9102.setStreamType(1);
-        jt1078Template.stopLive(deviceId, j9102, 6);
+        jt1078Template.stopLive(phoneNumber, j9102, 6);
     }
 
     @Override
-    public void continueLivePlay(String deviceId, String channelId) {
-        String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + deviceId + ":" + channelId;
+    public void continueLivePlay(String phoneNumber, String channelId) {
+        String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + phoneNumber + ":" + channelId;
         dynamicTask.stop(playKey);
         StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
         if (streamInfo == null) {
-            logger.info("[1078-继续点播] 未找到点播信息 deviceId： {}， channelId： {}", deviceId, channelId);
+            logger.info("[1078-继续点播] 未找到点播信息 phoneNumber： {}， channelId： {}", phoneNumber, channelId);
         }
-        logger.info("[1078-继续点播] deviceId： {}， channelId： {}", deviceId, channelId);
+        logger.info("[1078-继续点播] phoneNumber： {}， channelId： {}", phoneNumber, channelId);
         // 发送暂停命令
         J9102 j9102 = new J9102();
         j9102.setChannel(Integer.valueOf(channelId));
         j9102.setCommand(2);
         j9102.setCloseType(0);
         j9102.setStreamType(1);
-        jt1078Template.stopLive(deviceId, j9102, 6);
+        jt1078Template.stopLive(phoneNumber, j9102, 6);
     }
 
     @Override
-    public List<J1205.JRecordItem> getRecordList(String deviceId, String channelId, String startTime, String endTime) {
-        logger.info("[1078-查询录像列表] deviceId： {}， channelId： {}， startTime： {}， endTime： {}"
-                , deviceId, channelId, startTime, endTime);
+    public List<J1205.JRecordItem> getRecordList(String phoneNumber, String channelId, String startTime, String endTime) {
+        logger.info("[1078-查询录像列表] phoneNumber： {}， channelId： {}， startTime： {}， endTime： {}"
+                , phoneNumber, channelId, startTime, endTime);
         // 发送请求录像列表命令
         J9205 j9205 = new J9205();
         j9205.setChannelId(Integer.parseInt(channelId));
@@ -287,25 +291,25 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j9205.setMediaType(0);
         j9205.setStreamType(0);
         j9205.setStorageType(0);
-        List<J1205.JRecordItem> JRecordItemList = (List<J1205.JRecordItem>) jt1078Template.queryBackTime(deviceId, j9205, 20);
+        List<J1205.JRecordItem> JRecordItemList = (List<J1205.JRecordItem>) jt1078Template.queryBackTime(phoneNumber, j9205, 20);
         if (JRecordItemList == null || JRecordItemList.isEmpty()) {
             return null;
         }
-        logger.info("[1078-查询录像列表] deviceId： {}， channelId： {}， startTime： {}， endTime： {}, 结果: {}条"
-                , deviceId, channelId, startTime, endTime, JRecordItemList.size());
+        logger.info("[1078-查询录像列表] phoneNumber： {}， channelId： {}， startTime： {}， endTime： {}, 结果: {}条"
+                , phoneNumber, channelId, startTime, endTime, JRecordItemList.size());
         return JRecordItemList;
     }
 
     @Override
-    public void playback(String deviceId, String channelId, String startTime, String endTime, Integer type,
+    public void playback(String phoneNumber, String channelId, String startTime, String endTime, Integer type,
                          Integer rate, Integer playbackType, Integer playbackSpeed, GeneralCallback<StreamInfo> callback) {
         logger.info("[1078-回放] 回放，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {}， 音视频类型： {}， 码流类型： {}， " +
-                "回放方式： {}， 快进或快退倍数： {}", deviceId, channelId, startTime, endTime, type, rate, playbackType, playbackSpeed);
+                "回放方式： {}， 快进或快退倍数： {}", phoneNumber, channelId, startTime, endTime, type, rate, playbackType, playbackSpeed);
         // 检查流是否已经存在，存在则返回
-        String playbackKey = VideoManagerConstants.INVITE_INFO_1078_PLAYBACK + deviceId + ":" + channelId;
+        String playbackKey = VideoManagerConstants.INVITE_INFO_1078_PLAYBACK + phoneNumber + ":" + channelId;
         List<GeneralCallback<StreamInfo>> errorCallbacks = inviteErrorCallbackMap.computeIfAbsent(playbackKey, k -> new ArrayList<>());
         errorCallbacks.add(callback);
-        String logInfo = String.format("deviceId:%s, channelId:%s, startTime:%s, endTime:%s", deviceId, channelId, startTime, endTime);
+        String logInfo = String.format("phoneNumber:%s, channelId:%s, startTime:%s, endTime:%s", phoneNumber, channelId, startTime, endTime);
         StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playbackKey);
         if (streamInfo != null) {
             String mediaServerId = streamInfo.getMediaServerId();
@@ -329,7 +333,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         }
         String startTimeParam = DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime);
         String endTimeParam = DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(endTime);
-        String stream = deviceId + "_" + channelId + "_" + startTimeParam + "_" + endTimeParam;
+        String stream = phoneNumber + "_" + channelId + "_" + startTimeParam + "_" + endTimeParam;
         MediaServer mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
         if (mediaServer == null) {
             for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
@@ -342,7 +346,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         subscribe.addSubscribe(hookSubscribe, (hookData) -> {
             dynamicTask.stop(playbackKey);
             logger.info("[1078-回放] 回放成功， logInfo： {}", logInfo);
-            StreamInfo info = onPublishHandler(mediaServer, hookData, deviceId, channelId);
+            StreamInfo info = onPublishHandler(mediaServer, hookData, phoneNumber, channelId);
 
             for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
                 errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), info);
@@ -381,15 +385,15 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j9201.setType(type);
         j9201.setStartTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime));
         j9201.setEndTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(endTime));
-        jt1078Template.startBackLive(deviceId, j9201, 20);
+        jt1078Template.startBackLive(phoneNumber, j9201, 20);
 
     }
 
     @Override
-    public void playbackControl(String deviceId, String channelId, Integer command, Integer playbackSpeed, String time) {
-        logger.info("[1078-回放控制] deviceId： {}， channelId： {}， command： {}， playbackSpeed： {}， time： {}",
-                deviceId, channelId, command, playbackSpeed, time);
-        String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAYBACK + deviceId + ":" + channelId;
+    public void playbackControl(String phoneNumber, String channelId, Integer command, Integer playbackSpeed, String time) {
+        logger.info("[1078-回放控制] phoneNumber： {}， channelId： {}， command： {}， playbackSpeed： {}， time： {}",
+                phoneNumber, channelId, command, playbackSpeed, time);
+        String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAYBACK + phoneNumber + ":" + channelId;
         dynamicTask.stop(playKey);
         if (command == 2) {
             // 结束回放
@@ -417,12 +421,12 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         if (!ObjectUtils.isEmpty(time)) {
             j9202.setPlaybackTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(time));
         }
-        jt1078Template.controlBackLive(deviceId, j9202, 6);
+        jt1078Template.controlBackLive(phoneNumber, j9202, 6);
     }
 
     @Override
-    public void stopPlayback(String deviceId, String channelId) {
-        playbackControl(deviceId, channelId, 2, null, String.valueOf(0));
+    public void stopPlayback(String phoneNumber, String channelId) {
+        playbackControl(phoneNumber, channelId, 2, null, String.valueOf(0));
     }
 
     private Map<String, GeneralCallback<String>> fileUploadMap = new ConcurrentHashMap<>();
@@ -445,14 +449,14 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void recordDownload(String deviceId, String channelId, String startTime, String endTime, Integer type, Integer rate, GeneralCallback<String> fileCallback) {
+    public void recordDownload(String phoneNumber, String channelId, String startTime, String endTime, Integer type, Integer rate, GeneralCallback<String> fileCallback) {
         String filePath = UUID.randomUUID().toString();
         fileUploadMap.put(filePath, fileCallback);
         dynamicTask.startDelay(filePath, ()->{
             fileUploadMap.remove(filePath);
         }, 2*60*60*1000);
         logger.info("[1078-录像] 下载，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {}，等待上传文件路径： {} ",
-                deviceId, channelId, startTime, endTime, filePath);
+                phoneNumber, channelId, startTime, endTime, filePath);
         // 发送停止命令
         J9206 j92026 = new J9206();
         j92026.setChannelId(Integer.parseInt(channelId));
@@ -470,11 +474,11 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         if (rate != null) {
             j92026.setStreamType(rate);
         }
-        jt1078Template.fileUpload(deviceId, j92026, 7200);
+        jt1078Template.fileUpload(phoneNumber, j92026, 7200);
     }
 
     @Override
-    public void ptzControl(String deviceId, String channelId, String command, int speed) {
+    public void ptzControl(String phoneNumber, String channelId, String command, int speed) {
         // 发送停止命令
 
         switch (command) {
@@ -507,7 +511,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
                         j9301.setSpeed(0);
                         break;
                 }
-                jt1078Template.ptzRotate(deviceId, j9301, 6);
+                jt1078Template.ptzRotate(phoneNumber, j9301, 6);
                 break;
 
             case "zoomin":
@@ -519,7 +523,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
                 } else {
                     j9306.setZoom(1);
                 }
-                jt1078Template.ptzZoom(deviceId, j9306, 6);
+                jt1078Template.ptzZoom(phoneNumber, j9306, 6);
                 break;
             case "irisin":
             case "irisout":
@@ -530,7 +534,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
                 } else {
                     j9303.setIris(1);
                 }
-                jt1078Template.ptzIris(deviceId, j9303, 6);
+                jt1078Template.ptzIris(phoneNumber, j9303, 6);
                 break;
             case "focusnear":
             case "focusfar":
@@ -541,14 +545,14 @@ public class jt1078ServiceImpl implements Ijt1078Service {
                 } else {
                     j9302.setFocalDirection(1);
                 }
-                jt1078Template.ptzFocal(deviceId, j9302, 6);
+                jt1078Template.ptzFocal(phoneNumber, j9302, 6);
                 break;
 
         }
     }
 
     @Override
-    public void supplementaryLight(String deviceId, String channelId, String command) {
+    public void supplementaryLight(String phoneNumber, String channelId, String command) {
         J9305 j9305 = new J9305();
         j9305.setChannel(Integer.parseInt(channelId));
         if (command.equalsIgnoreCase("on")) {
@@ -556,11 +560,11 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         } else {
             j9305.setOn(0);
         }
-        jt1078Template.ptzSupplementaryLight(deviceId, j9305, 6);
+        jt1078Template.ptzSupplementaryLight(phoneNumber, j9305, 6);
     }
 
     @Override
-    public void wiper(String deviceId, String channelId, String command) {
+    public void wiper(String phoneNumber, String channelId, String command) {
         J9304 j9304 = new J9304();
         j9304.setChannel(Integer.parseInt(channelId));
         if (command.equalsIgnoreCase("on")) {
@@ -568,17 +572,17 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         } else {
             j9304.setOn(0);
         }
-        jt1078Template.ptzWiper(deviceId, j9304, 6);
+        jt1078Template.ptzWiper(phoneNumber, j9304, 6);
     }
 
     @Override
-    public JTDeviceConfig queryConfig(String deviceId, String[] params, GeneralCallback<StreamInfo> callback) {
-        if (deviceId == null) {
+    public JTDeviceConfig queryConfig(String phoneNumber, String[] params, GeneralCallback<StreamInfo> callback) {
+        if (phoneNumber == null) {
             return null;
         }
         if (params == null || params.length == 0) {
             J8104 j8104 = new J8104();
-            return (JTDeviceConfig) jt1078Template.getDeviceConfig(deviceId, j8104, 20);
+            return (JTDeviceConfig) jt1078Template.getDeviceConfig(phoneNumber, j8104, 20);
         } else {
             long[] paramBytes = new long[params.length];
             for (int i = 0; i < params.length; i++) {
@@ -597,247 +601,247 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             }
             J8106 j8106 = new J8106();
             j8106.setParams(paramBytes);
-            return (JTDeviceConfig) jt1078Template.getDeviceSpecifyConfig(deviceId, j8106, 20);
+            return (JTDeviceConfig) jt1078Template.getDeviceSpecifyConfig(phoneNumber, j8106, 20);
         }
     }
 
     @Override
-    public void setConfig(String deviceId, JTDeviceConfig config) {
+    public void setConfig(String phoneNumber, JTDeviceConfig config) {
         J8103 j8103 = new J8103();
         j8103.setConfig(config);
-        jt1078Template.setDeviceSpecifyConfig(deviceId, j8103, 6);
+        jt1078Template.setDeviceSpecifyConfig(phoneNumber, j8103, 6);
     }
 
     @Override
-    public void connectionControl(String deviceId, JTDeviceConnectionControl control) {
+    public void connectionControl(String phoneNumber, JTDeviceConnectionControl control) {
         J8105 j8105 = new J8105();
         j8105.setConnectionControl(control);
-        jt1078Template.deviceControl(deviceId, j8105, 6);
+        jt1078Template.deviceControl(phoneNumber, j8105, 6);
     }
 
     @Override
-    public void resetControl(String deviceId) {
+    public void resetControl(String phoneNumber) {
         J8105 j8105 = new J8105();
         j8105.setReset(true);
-        jt1078Template.deviceControl(deviceId, j8105, 6);
+        jt1078Template.deviceControl(phoneNumber, j8105, 6);
     }
 
     @Override
-    public void factoryResetControl(String deviceId) {
+    public void factoryResetControl(String phoneNumber) {
         J8105 j8105 = new J8105();
         j8105.setFactoryReset(true);
-        jt1078Template.deviceControl(deviceId, j8105, 6);
+        jt1078Template.deviceControl(phoneNumber, j8105, 6);
     }
 
     @Override
-    public JTDeviceAttribute attribute(String deviceId) {
+    public JTDeviceAttribute attribute(String phoneNumber) {
         J8107 j8107 = new J8107();
-        return (JTDeviceAttribute) jt1078Template.deviceAttribute(deviceId, j8107, 20);
+        return (JTDeviceAttribute) jt1078Template.deviceAttribute(phoneNumber, j8107, 20);
     }
 
     @Override
-    public JTPositionBaseInfo queryPositionInfo(String deviceId) {
+    public JTPositionBaseInfo queryPositionInfo(String phoneNumber) {
         J8201 j8201 = new J8201();
-        return (JTPositionBaseInfo) jt1078Template.queryPositionInfo(deviceId, j8201, 20);
+        return (JTPositionBaseInfo) jt1078Template.queryPositionInfo(phoneNumber, j8201, 20);
     }
 
     @Override
-    public void tempPositionTrackingControl(String deviceId, Integer timeInterval, Long validityPeriod) {
+    public void tempPositionTrackingControl(String phoneNumber, Integer timeInterval, Long validityPeriod) {
         J8202 j8202 = new J8202();
         j8202.setTimeInterval(timeInterval);
         j8202.setValidityPeriod(validityPeriod);
-        jt1078Template.tempPositionTrackingControl(deviceId, j8202, 20);
+        jt1078Template.tempPositionTrackingControl(phoneNumber, j8202, 20);
     }
 
     @Override
-    public void confirmationAlarmMessage(String deviceId, int alarmPackageNo, JTConfirmationAlarmMessageType alarmMessageType) {
+    public void confirmationAlarmMessage(String phoneNumber, int alarmPackageNo, JTConfirmationAlarmMessageType alarmMessageType) {
         J8203 j8203 = new J8203();
         j8203.setAlarmMessageType(alarmMessageType);
         j8203.setAlarmPackageNo(alarmPackageNo);
-        jt1078Template.confirmationAlarmMessage(deviceId, j8203, 6);
+        jt1078Template.confirmationAlarmMessage(phoneNumber, j8203, 6);
     }
 
     @Override
-    public int linkDetection(String deviceId) {
+    public int linkDetection(String phoneNumber) {
         J8204 j8204 = new J8204();
-        return (int) jt1078Template.linkDetection(deviceId, j8204, 6);
+        return (int) jt1078Template.linkDetection(phoneNumber, j8204, 6);
     }
 
     @Override
-    public int textMessage(String deviceId, JTTextSign sign, int textType, String content) {
+    public int textMessage(String phoneNumber, JTTextSign sign, int textType, String content) {
         J8300 j8300 = new J8300();
         j8300.setSign(sign);
         j8300.setTextType(textType);
         j8300.setContent(content);
-        return (int) jt1078Template.textMessage(deviceId, j8300, 6);
+        return (int) jt1078Template.textMessage(phoneNumber, j8300, 6);
     }
 
     @Override
-    public int telephoneCallback(String deviceId, Integer sign, String phoneNumber) {
+    public int telephoneCallback(String phoneNumber, Integer sign, String destPhoneNumber) {
         J8400 j8400 = new J8400();
         j8400.setSign(sign);
-        j8400.setPhoneNumber(phoneNumber);
-        return (int) jt1078Template.telephoneCallback(deviceId, j8400, 6);
+        j8400.setPhoneNumber(destPhoneNumber);
+        return (int) jt1078Template.telephoneCallback(phoneNumber, j8400, 6);
     }
 
     @Override
-    public int setPhoneBook(String deviceId, int type, List<JTPhoneBookContact> phoneBookContactList) {
+    public int setPhoneBook(String phoneNumber, int type, List<JTPhoneBookContact> phoneBookContactList) {
         J8401 j8401 = new J8401();
         j8401.setType(type);
         if (phoneBookContactList != null) {
             j8401.setPhoneBookContactList(phoneBookContactList);
         }
-        return (int) jt1078Template.setPhoneBook(deviceId, j8401, 6);
+        return (int) jt1078Template.setPhoneBook(phoneNumber, j8401, 6);
     }
 
     @Override
-    public JTPositionBaseInfo controlDoor(String deviceId, Boolean open) {
+    public JTPositionBaseInfo controlDoor(String phoneNumber, Boolean open) {
         J8500 j8500 = new J8500();
         JTVehicleControl jtVehicleControl = new JTVehicleControl();
         jtVehicleControl.setControlCarDoor(open ? 1 : 0);
         j8500.setVehicleControl(jtVehicleControl);
-        return (JTPositionBaseInfo) jt1078Template.vehicleControl(deviceId, j8500, 20);
+        return (JTPositionBaseInfo) jt1078Template.vehicleControl(phoneNumber, j8500, 20);
     }
 
     @Override
-    public int setAreaForCircle(int attribute, String deviceId, List<JTCircleArea> circleAreaList) {
+    public int setAreaForCircle(int attribute, String phoneNumber, List<JTCircleArea> circleAreaList) {
         J8600 j8600 = new J8600();
         j8600.setAttribute(attribute);
         j8600.setCircleAreaList(circleAreaList);
-        return (int) jt1078Template.setAreaForCircle(deviceId, j8600, 20);
+        return (int) jt1078Template.setAreaForCircle(phoneNumber, j8600, 20);
     }
 
     @Override
-    public int deleteAreaForCircle(String deviceId, List<Long> ids) {
+    public int deleteAreaForCircle(String phoneNumber, List<Long> ids) {
         J8601 j8601 = new J8601();
         j8601.setIdList(ids);
-        return (int) jt1078Template.deleteAreaForCircle(deviceId, j8601, 20);
+        return (int) jt1078Template.deleteAreaForCircle(phoneNumber, j8601, 20);
     }
 
     @Override
-    public List<JTAreaOrRoute> queryAreaForCircle(String deviceId, List<Long> ids) {
+    public List<JTAreaOrRoute> queryAreaForCircle(String phoneNumber, List<Long> ids) {
         J8608 j8608 = new J8608();
         j8608.setType(1);
         j8608.setIdList(ids);
-        return (List<JTAreaOrRoute>) jt1078Template.queryAreaOrRoute(deviceId, j8608, 20);
+        return (List<JTAreaOrRoute>) jt1078Template.queryAreaOrRoute(phoneNumber, j8608, 20);
     }
 
     @Override
-    public int setAreaForRectangle(int attribute, String deviceId, List<JTRectangleArea> rectangleAreas) {
+    public int setAreaForRectangle(int attribute, String phoneNumber, List<JTRectangleArea> rectangleAreas) {
         J8602 j8602 = new J8602();
         j8602.setAttribute(attribute);
         j8602.setRectangleAreas(rectangleAreas);
-        return (int) jt1078Template.setAreaForRectangle(deviceId, j8602, 20);
+        return (int) jt1078Template.setAreaForRectangle(phoneNumber, j8602, 20);
     }
 
     @Override
-    public int deleteAreaForRectangle(String deviceId, List<Long> ids) {
+    public int deleteAreaForRectangle(String phoneNumber, List<Long> ids) {
         J8603 j8603 = new J8603();
         j8603.setIdList(ids);
-        return (int) jt1078Template.deleteAreaForRectangle(deviceId, j8603, 20);
+        return (int) jt1078Template.deleteAreaForRectangle(phoneNumber, j8603, 20);
     }
 
     @Override
-    public List<JTAreaOrRoute> queryAreaForRectangle(String deviceId, List<Long> ids) {
+    public List<JTAreaOrRoute> queryAreaForRectangle(String phoneNumber, List<Long> ids) {
         J8608 j8608 = new J8608();
         j8608.setType(2);
         j8608.setIdList(ids);
-        return (List<JTAreaOrRoute>) jt1078Template.queryAreaOrRoute(deviceId, j8608, 20);
+        return (List<JTAreaOrRoute>) jt1078Template.queryAreaOrRoute(phoneNumber, j8608, 20);
     }
 
     @Override
-    public int setAreaForPolygon(String deviceId, JTPolygonArea polygonArea) {
+    public int setAreaForPolygon(String phoneNumber, JTPolygonArea polygonArea) {
         J8604 j8604 = new J8604();
         j8604.setPolygonArea(polygonArea);
-        return (int) jt1078Template.setAreaForPolygon(deviceId, j8604, 20);
+        return (int) jt1078Template.setAreaForPolygon(phoneNumber, j8604, 20);
     }
 
     @Override
-    public int deleteAreaForPolygon(String deviceId, List<Long> ids) {
+    public int deleteAreaForPolygon(String phoneNumber, List<Long> ids) {
         J8605 j8605 = new J8605();
         j8605.setIdList(ids);
-        return (int) jt1078Template.deleteAreaForPolygon(deviceId, j8605, 20);
+        return (int) jt1078Template.deleteAreaForPolygon(phoneNumber, j8605, 20);
     }
 
     @Override
-    public List<JTAreaOrRoute> queryAreaForPolygon(String deviceId, List<Long> ids) {
+    public List<JTAreaOrRoute> queryAreaForPolygon(String phoneNumber, List<Long> ids) {
         J8608 j8608 = new J8608();
         j8608.setType(3);
         j8608.setIdList(ids);
-        return (List<JTAreaOrRoute>) jt1078Template.queryAreaOrRoute(deviceId, j8608, 20);
+        return (List<JTAreaOrRoute>) jt1078Template.queryAreaOrRoute(phoneNumber, j8608, 20);
     }
 
     @Override
-    public int setRoute(String deviceId, JTRoute route) {
+    public int setRoute(String phoneNumber, JTRoute route) {
         J8606 j8606 = new J8606();
         j8606.setRoute(route);
-        return (int) jt1078Template.setRoute(deviceId, j8606, 20);
+        return (int) jt1078Template.setRoute(phoneNumber, j8606, 20);
     }
 
     @Override
-    public int deleteRoute(String deviceId, List<Long> ids) {
+    public int deleteRoute(String phoneNumber, List<Long> ids) {
         J8607 j8607 = new J8607();
         j8607.setIdList(ids);
-        return (int) jt1078Template.deleteRoute(deviceId, j8607, 20);
+        return (int) jt1078Template.deleteRoute(phoneNumber, j8607, 20);
     }
 
     @Override
-    public List<JTAreaOrRoute> queryRoute(String deviceId, List<Long> ids) {
+    public List<JTAreaOrRoute> queryRoute(String phoneNumber, List<Long> ids) {
         J8608 j8608 = new J8608();
         j8608.setType(4);
         j8608.setIdList(ids);
-        return (List<JTAreaOrRoute>) jt1078Template.queryAreaOrRoute(deviceId, j8608, 20);
+        return (List<JTAreaOrRoute>) jt1078Template.queryAreaOrRoute(phoneNumber, j8608, 20);
     }
 
     @Override
-    public JTDriverInformation queryDriverInformation(String deviceId) {
+    public JTDriverInformation queryDriverInformation(String phoneNumber) {
         J8702 j8702 = new J8702();
-        return (JTDriverInformation) jt1078Template.queryDriverInformation(deviceId, j8702, 20);
+        return (JTDriverInformation) jt1078Template.queryDriverInformation(phoneNumber, j8702, 20);
     }
 
     @Override
-    public List<Long> shooting(String deviceId, JTShootingCommand shootingCommand) {
+    public List<Long> shooting(String phoneNumber, JTShootingCommand shootingCommand) {
         J8801 j8801 = new J8801();
         j8801.setCommand(shootingCommand);
-        return (List<Long>) jt1078Template.shooting(deviceId, j8801, 300);
+        return (List<Long>) jt1078Template.shooting(phoneNumber, j8801, 300);
     }
 
     @Override
-    public List<JTMediaDataInfo> queryMediaData(String deviceId, JTQueryMediaDataCommand queryMediaDataCommand) {
+    public List<JTMediaDataInfo> queryMediaData(String phoneNumber, JTQueryMediaDataCommand queryMediaDataCommand) {
         J8802 j8802 = new J8802();
         j8802.setCommand(queryMediaDataCommand);
-        return (List<JTMediaDataInfo>) jt1078Template.queryMediaData(deviceId, j8802, 300);
+        return (List<JTMediaDataInfo>) jt1078Template.queryMediaData(phoneNumber, j8802, 300);
     }
 
     @Override
-    public void uploadMediaData(String deviceId, JTQueryMediaDataCommand queryMediaDataCommand) {
+    public void uploadMediaData(String phoneNumber, JTQueryMediaDataCommand queryMediaDataCommand) {
         J8803 j8803 = new J8803();
         j8803.setCommand(queryMediaDataCommand);
-        jt1078Template.uploadMediaData(deviceId, j8803, 10);
+        jt1078Template.uploadMediaData(phoneNumber, j8803, 10);
     }
 
     @Override
-    public void record(String deviceId, int command, Integer time, Integer save, Integer samplingRate) {
+    public void record(String phoneNumber, int command, Integer time, Integer save, Integer samplingRate) {
         J8804 j8804 = new J8804();
         j8804.setCommond(command);
         j8804.setDuration(time);
         j8804.setSave(save);
         j8804.setSamplingRate(samplingRate);
-        jt1078Template.record(deviceId, j8804, 10);
+        jt1078Template.record(phoneNumber, j8804, 10);
     }
 
     @Override
-    public void uploadMediaDataForSingle(String deviceId, Long mediaId, Integer delete) {
+    public void uploadMediaDataForSingle(String phoneNumber, Long mediaId, Integer delete) {
         J8805 j8805 = new J8805();
         j8805.setMediaId(mediaId);
         j8805.setDelete(delete);
-        jt1078Template.uploadMediaDataForSingle(deviceId, j8805, 10);
+        jt1078Template.uploadMediaDataForSingle(phoneNumber, j8805, 10);
     }
 
     @Override
-    public JTMediaAttribute queryMediaAttribute(String deviceId) {
+    public JTMediaAttribute queryMediaAttribute(String phoneNumber) {
         J9003 j9003 = new J9003();
-        return (JTMediaAttribute) jt1078Template.queryMediaAttribute(deviceId, j9003, 300);
+        return (JTMediaAttribute) jt1078Template.queryMediaAttribute(phoneNumber, j9003, 300);
     }
 
     /**
@@ -862,10 +866,10 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void startTalk(String deviceId, String channelId, String app, String stream, String mediaServerId, Boolean onlySend,
+    public void startTalk(String phoneNumber, String channelId, String app, String stream, String mediaServerId, Boolean onlySend,
                           GeneralCallback<StreamInfo> callback) {
         // 检查流是否已经存在，存在则返回
-        String playKey = VideoManagerConstants.INVITE_INFO_1078_TALK + deviceId + ":" + channelId;
+        String playKey = VideoManagerConstants.INVITE_INFO_1078_TALK + phoneNumber + ":" + channelId;
         List<GeneralCallback<StreamInfo>> errorCallbacks = inviteErrorCallbackMap.computeIfAbsent(playKey, k -> new ArrayList<>());
         errorCallbacks.add(callback);
         StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
@@ -873,7 +877,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "对讲进行中");
         }
 
-        String receiveStream = "1078" + "_" + deviceId + "_" + channelId;
+        String receiveStream = "1078" + "_" + phoneNumber + "_" + channelId;
         MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
         if (mediaServer == null) {
             for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
@@ -887,12 +891,12 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), app + "/" + stream + "流不存在");
         }
         // 开启收流端口, zlm发送1078的rtp流需要将ssrc字段设置为 imei_channel格式
-        String ssrc = deviceId + "_" + channelId;
+        String ssrc = phoneNumber + "_" + channelId;
         SendRtpItem sendRtpItem = new SendRtpItem();
         sendRtpItem.setMediaServerId(mediaServerId);
         sendRtpItem.setPort(0);
         sendRtpItem.setSsrc(ssrc);
-        sendRtpItem.setDeviceId(deviceId);
+        sendRtpItem.setDeviceId(phoneNumber);
         sendRtpItem.setChannelId(channelId);
         sendRtpItem.setRtcp(false);
         sendRtpItem.setApp(app);
@@ -904,14 +908,14 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         if (onlySend == null || !onlySend) {
             sendRtpItem.setReceiveStream(receiveStream);
         }
-        sendRtpItem.setPlatformId(deviceId);
+        sendRtpItem.setPlatformId(phoneNumber);
         if (onlySend == null || !onlySend) {
             // 设置hook监听
             Hook hook = Hook.getInstance(HookType.on_media_arrival, "rtp", receiveStream, mediaServer.getId());
             subscribe.addSubscribe(hook, (hookData) -> {
                 dynamicTask.stop(playKey);
-                logger.info("[1078-对讲] 对讲成功， deviceId： {}， channelId： {}", deviceId, channelId);
-                StreamInfo info = onPublishHandler(mediaServer, hookData, deviceId, channelId);
+                logger.info("[1078-对讲] 对讲成功， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
+                StreamInfo info = onPublishHandler(mediaServer, hookData, phoneNumber, channelId);
 
                 for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
                     errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), info);
@@ -923,12 +927,12 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             });
             Hook hookForDeparture = Hook.getInstance(HookType.on_media_departure, "rtp", receiveStream, mediaServer.getId());
             subscribe.addSubscribe(hookForDeparture, (hookData) -> {
-                logger.info("[1078-对讲] 对讲时源流注销， app: {}. stream: {}, deviceId： {}， channelId： {}", app, stream, deviceId, channelId);
-                stopTalk(deviceId, channelId);
+                logger.info("[1078-对讲] 对讲时源流注销， app: {}. stream: {}, phoneNumber： {}， channelId： {}", app, stream, phoneNumber, channelId);
+                stopTalk(phoneNumber, channelId);
             });
             // 设置超时监听
             dynamicTask.startDelay(playKey, () -> {
-                logger.info("[1078-对讲] 超时， deviceId： {}， channelId： {}", deviceId, channelId);
+                logger.info("[1078-对讲] 超时， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
                 for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
                     errorCallback.run(InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode(),
                             InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getMsg(), null);
@@ -939,8 +943,8 @@ public class jt1078ServiceImpl implements Ijt1078Service {
 
         Integer localPort = mediaServerService.startSendRtpPassive(mediaServer, sendRtpItem, 15000);
 
-        logger.info("[1078-对讲] deviceId： {}， channelId： {}， 收发端口： {}， app: {}, stream: {}",
-                deviceId, channelId, localPort, app, stream);
+        logger.info("[1078-对讲] phoneNumber： {}， channelId： {}， 收发端口： {}， app: {}, stream: {}",
+                phoneNumber, channelId, localPort, app, stream);
         J9101 j9101 = new J9101();
         j9101.setChannel(Integer.valueOf(channelId));
         j9101.setIp(mediaServer.getSdpIp());
@@ -948,9 +952,9 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j9101.setTcpPort(localPort);
         j9101.setUdpPort(localPort);
         j9101.setType(2);
-        jt1078Template.startLive(deviceId, j9101, 6);
+        jt1078Template.startLive(phoneNumber, j9101, 6);
         if (onlySend != null && onlySend) {
-            logger.info("[1078-对讲] 对讲成功， deviceId： {}， channelId： {}", deviceId, channelId);
+            logger.info("[1078-对讲] 对讲成功， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
             for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
                 errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), null);
             }
@@ -960,8 +964,8 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void stopTalk(String deviceId, String channelId) {
-        String playKey = VideoManagerConstants.INVITE_INFO_1078_TALK + deviceId + ":" + channelId;
+    public void stopTalk(String phoneNumber, String channelId) {
+        String playKey = VideoManagerConstants.INVITE_INFO_1078_TALK + phoneNumber + ":" + channelId;
         dynamicTask.stop(playKey);
         StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
         // 发送停止命令
@@ -970,8 +974,8 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j9102.setCommand(4);
         j9102.setCloseType(0);
         j9102.setStreamType(1);
-        jt1078Template.stopLive(deviceId, j9102, 6);
-        logger.info("[1078-停止对讲] deviceId： {}， channelId： {}", deviceId, channelId);
+        jt1078Template.stopLive(phoneNumber, j9102, 6);
+        logger.info("[1078-停止对讲] phoneNumber： {}， channelId： {}", phoneNumber, channelId);
         // 删除缓存数据
         if (streamInfo != null) {
             redisTemplate.delete(playKey);
@@ -988,20 +992,25 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void changeStreamType(String deviceId, String channelId, Integer streamType) {
-        String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + deviceId + ":" + channelId;
+    public void changeStreamType(String phoneNumber, String channelId, Integer streamType) {
+        String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + phoneNumber + ":" + channelId;
         dynamicTask.stop(playKey);
         StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
         if (streamInfo == null) {
-            logger.info("[1078-切换码流类型] 未找到点播信息 deviceId： {}， channelId： {}, streamType: {}", deviceId, channelId, streamType);
+            logger.info("[1078-切换码流类型] 未找到点播信息 phoneNumber： {}， channelId： {}, streamType: {}", phoneNumber, channelId, streamType);
         }
-        logger.info("[1078-切换码流类型] deviceId： {}， channelId： {}, streamType: {}", deviceId, channelId, streamType);
+        logger.info("[1078-切换码流类型] phoneNumber： {}， channelId： {}, streamType: {}", phoneNumber, channelId, streamType);
         // 发送暂停命令
         J9102 j9102 = new J9102();
         j9102.setChannel(Integer.valueOf(channelId));
         j9102.setCommand(1);
         j9102.setCloseType(0);
         j9102.setStreamType(streamType);
-        jt1078Template.stopLive(deviceId, j9102, 6);
+        jt1078Template.stopLive(phoneNumber, j9102, 6);
+    }
+
+    @Override
+    public List<JTChannel> getChannelList(int deviceId, String query) {
+        return jtChannelMapper.getAll(deviceId, query);
     }
 }

@@ -33,7 +33,7 @@ public class J0608 extends Re {
         log.info("[JT-查询区域或线路数据应答]: 类型： {}， 数量： {}", type, dataLength);
         List<JTAreaOrRoute> areaOrRoutes = new ArrayList<>();
         if (dataLength == 0) {
-            SessionManager.INSTANCE.response(header.getTerminalId(), "0608", null, areaOrRoutes);
+            SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "0608", null, areaOrRoutes);
             return null;
         }
         switch (type) {
@@ -46,7 +46,7 @@ public class J0608 extends Re {
                     JTCircleArea jtCircleArea = JTCircleArea.decode(buf);
                     jtCircleAreas.add(jtCircleArea);
                 }
-                SessionManager.INSTANCE.response(header.getTerminalId(), "0608", null, jtCircleAreas);
+                SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "0608", null, jtCircleAreas);
                 break;
             case 2:
                 buf.readUnsignedByte();
@@ -58,7 +58,7 @@ public class J0608 extends Re {
                     JTRectangleArea jtRectangleArea = JTRectangleArea.decode(buf);
                     jtRectangleAreas.add(jtRectangleArea);
                 }
-                SessionManager.INSTANCE.response(header.getTerminalId(), "0608", null, jtRectangleAreas);
+                SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "0608", null, jtRectangleAreas);
                 break;
             case 3:
                 // 查询多 边形区域数据
@@ -68,7 +68,7 @@ public class J0608 extends Re {
                     JTPolygonArea jtRectangleArea = JTPolygonArea.decode(buf);
                     jtPolygonAreas.add(jtRectangleArea);
                 }
-                SessionManager.INSTANCE.response(header.getTerminalId(), "0608", null, jtPolygonAreas);
+                SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "0608", null, jtPolygonAreas);
                 break;
             case 4:
                 // 查询线路数据
@@ -78,7 +78,7 @@ public class J0608 extends Re {
                     JTRoute jtRoute = JTRoute.decode(buf);
                     jtRoutes.add(jtRoute);
                 }
-                SessionManager.INSTANCE.response(header.getTerminalId(), "0608", null, jtRoutes);
+                SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "0608", null, jtRoutes);
                 break;
             default:
                 break;

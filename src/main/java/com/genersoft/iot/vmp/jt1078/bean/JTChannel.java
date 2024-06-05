@@ -22,6 +22,12 @@ public class JTChannel {
     @Schema(description = "设备的数据库ID")
     private int deviceId;
 
+    /**
+     * 通道ID
+     */
+    @Schema(description = "通道ID")
+    private Integer channelId;
+
 
     @Schema(description = "创建时间")
     private String createTime;
@@ -69,12 +75,21 @@ public class JTChannel {
         this.updateTime = updateTime;
     }
 
+    public Integer getChannelId() {
+        return channelId;
+    }
+
+    public void setChannelId(Integer channelId) {
+        this.channelId = channelId;
+    }
+
     @Override
     public String toString() {
         return "JTChannel{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", deviceId=" + deviceId +
+                ", channelId=" + channelId +
                 ", createTime='" + createTime + '\'' +
                 ", updateTime='" + updateTime + '\'' +
                 '}';

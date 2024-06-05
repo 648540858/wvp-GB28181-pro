@@ -50,13 +50,13 @@ public class JTDevice {
      * 终端手机号
      */
     @Schema(description = "终端手机号")
-    private Integer phoneNumber;
+    private String phoneNumber;
 
     /**
-     * 设备ID
+     * 终端ID
      */
-    @Schema(description = "设备ID")
-    private String deviceId;
+    @Schema(description = "终端ID")
+    private String terminalId;
 
     /**
      * 车牌颜色
@@ -154,20 +154,20 @@ public class JTDevice {
         this.deviceModel = deviceModel;
     }
 
-    public Integer getPhoneNumber() {
+    public String getPhoneNumber() {
         return phoneNumber;
     }
 
-    public void setPhoneNumber(Integer phoneNumber) {
+    public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
 
-    public String getDeviceId() {
-        return deviceId;
+    public String getTerminalId() {
+        return terminalId;
     }
 
-    public void setDeviceId(String deviceId) {
-        this.deviceId = deviceId;
+    public void setTerminalId(String deviceId) {
+        this.terminalId = deviceId;
     }
 
     public int getPlateColor() {
@@ -244,7 +244,7 @@ public class JTDevice {
                 ", 制造商ID='" + makerId + '\'' +
                 ", 终端型号='" + deviceModel + '\'' +
                 ", 终端手机号='" + phoneNumber + '\'' +
-                ", 设备ID='" + deviceId + '\'' +
+                ", 设备ID='" + terminalId + '\'' +
                 ", 车牌颜色=" + plateColor +
                 ", 车牌='" + plateNo + '\'' +
                 ", 鉴权码='" + authenticationCode + '\'' +

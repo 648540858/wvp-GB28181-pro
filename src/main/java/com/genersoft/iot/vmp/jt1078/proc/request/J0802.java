@@ -34,7 +34,7 @@ public class J0802 extends Re {
         int length = buf.readUnsignedShort();
         if (length == 0) {
             log.info("[JT-存储多媒体数据检索应答]: {}", length);
-            SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "0802", (long) respNo, new ArrayList<>());
+            SessionManager.INSTANCE.response(header.getPhoneNumber(), "0802", (long) respNo, new ArrayList<>());
             return null;
         }
         mediaDataInfoList = new ArrayList<>(length);
@@ -42,7 +42,7 @@ public class J0802 extends Re {
             mediaDataInfoList.add(JTMediaDataInfo.decode(buf));
         }
         log.info("[JT-存储多媒体数据检索应答]: {}", mediaDataInfoList.size());
-        SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "0802", (long) respNo, mediaDataInfoList);
+        SessionManager.INSTANCE.response(header.getPhoneNumber(), "0802", (long) respNo, mediaDataInfoList);
         return null;
     }
 

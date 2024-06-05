@@ -28,13 +28,13 @@ public class J0500 extends Re {
         int respNo = buf.readUnsignedShort();
         positionInfo = JTPositionBaseInfo.decode(buf);
         log.info("[JT-车辆控制应答]: {}", positionInfo.toString());
-        SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "0500", (long) respNo, positionInfo);
+        SessionManager.INSTANCE.response(header.getPhoneNumber(), "0500", (long) respNo, positionInfo);
         return null;
     }
 
     @Override
     protected Rs handler(Header header, Session session, Ijt1078Service service) {
-        JTDevice deviceInDb = service.getDevice(header.getTerminalPhoneNumber());
+        JTDevice deviceInDb = service.getDevice(header.getPhoneNumber());
         J8001 j8001 = new J8001();
         j8001.setRespNo(header.getSn());
         j8001.setRespId(header.getMsgId());

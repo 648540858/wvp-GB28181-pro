@@ -1,7 +1,7 @@
-create table wvp_jt_device (
+create table wvp_jt_terminal (
                                id serial primary key,
                                device_id character varying(50),
-                               phone_number character varying(50) not null,
+                               phone_number character varying(50),
                                province_id character varying(50),
                                province_text character varying(100),
                                city_id character varying(50),
@@ -17,7 +17,7 @@ create table wvp_jt_device (
                                register_time character varying(50) not null,
                                update_time character varying(50) not null,
                                create_time character varying(50) not null,
-                               constraint uk_jt_device_id_device_id unique (id, terminal_id)
+                               constraint uk_jt_device_id_device_id unique (id, phone_number)
 );
 create table wvp_jt_channel (
                                 id serial primary key,

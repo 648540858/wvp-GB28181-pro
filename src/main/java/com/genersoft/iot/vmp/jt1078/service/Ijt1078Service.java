@@ -9,7 +9,7 @@ import com.github.pagehelper.PageInfo;
 import java.util.List;
 
 public interface Ijt1078Service {
-    JTDevice getDevice(Integer terminalId);
+    JTDevice getDevice(String phoneNumber);
 
     void updateDevice(JTDevice deviceInDb);
 
@@ -17,9 +17,9 @@ public interface Ijt1078Service {
 
     void addDevice(JTDevice device);
 
-    void deleteDeviceByPhoneNumber(Integer phoneNumber);
+    void deleteDeviceByPhoneNumber(String phoneNumber);
 
-    void updateDeviceStatus(boolean connected, Integer terminalId);
+    void updateDeviceStatus(boolean connected, String phoneNumber);
 
     void play(String phoneNumber, String channelId, int type, GeneralCallback<StreamInfo> callback);
 
@@ -118,5 +118,11 @@ public interface Ijt1078Service {
 
     void recordDownload(String phoneNumber, String channelId, String startTime, String endTime, Integer type, Integer rate, GeneralCallback<String> fileCallback);
 
-    List<JTChannel> getChannelList(int phoneNumber, String query);
+    List<JTChannel> getChannelList(int deviceId, String query);
+
+    void updateChannel(JTChannel channel);
+
+    void addChannel(JTChannel channel);
+
+    void deleteChannelById(Integer id);
 }

@@ -46,7 +46,7 @@ public class J0100 extends Re {
             device.setDeviceModel(buf.readCharSequence(30, Charset.forName("GBK"))
                     .toString().trim());
 
-            device.setDeviceId(buf.readCharSequence(30, Charset.forName("GBK"))
+            device.setTerminalId(buf.readCharSequence(30, Charset.forName("GBK"))
                     .toString().trim());
 
             device.setPlateColor(buf.readByte());
@@ -66,7 +66,7 @@ public class J0100 extends Re {
 
             byte[] bytes7 = new byte[7];
             buf.readBytes(bytes7);
-            device.setDeviceId(new String(bytes7).trim());
+            device.setTerminalId(new String(bytes7).trim());
 
             device.setPlateColor(buf.readByte());
             byte[] plateColorBytes = new byte[buf.readableBytes()];
@@ -85,7 +85,7 @@ public class J0100 extends Re {
         J8100 j8100 = new J8100();
         j8100.setRespNo(header.getSn());
         // 从数据库判断这个设备是否合法
-        JTDevice deviceInDb = service.getDevice(header.getTerminalPhoneNumber());
+        JTDevice deviceInDb = service.getDevice(header.getPhoneNumber());
         if (deviceInDb != null) {
             j8100.setResult(J8100.SUCCESS);
             String authenticationCode = UUID.randomUUID().toString();
@@ -105,14 +105,14 @@ public class J0100 extends Re {
             }
             deviceInDb.setDeviceModel(device.getDeviceModel());
             deviceInDb.setMakerId(device.getMakerId());
-            deviceInDb.setDeviceId(device.getDeviceId());
+            deviceInDb.setTerminalId(device.getTerminalId());
             // TODO 支持直接展示车牌颜色的描述
             deviceInDb.setPlateColor(device.getPlateColor());
             deviceInDb.setPlateNo(device.getPlateNo());
             service.updateDevice(deviceInDb);
             log.info("[JT-注册成功] 设备： {}", deviceInDb);
         }else {
-            log.info("[JT-注册失败] 未授权设备： {}", header.getTerminalPhoneNumber());
+            log.info("[JT-注册失败] 未授权设备： {}", header.getPhoneNumber());
             j8100.setResult(J8100.FAIL);
             // 断开连接，清理资源
             if (session.isRegistered()) {

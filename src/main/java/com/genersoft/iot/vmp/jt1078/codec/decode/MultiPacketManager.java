@@ -24,7 +24,7 @@ public enum MultiPacketManager {
      * 增加待合并的分包，如果分包接受完毕会返回完整的数据包
      */
     public ByteBuf add(MultiPacket packet) {
-        String key = packet.getHeader().getMsgId() + "/" + packet.getHeader().getTerminalPhoneNumber();
+        String key = packet.getHeader().getMsgId() + "/" + packet.getHeader().getPhoneNumber();
         logger.debug("分包消息： \n{}", packet);
         List<MultiPacket> multiPackets = packetMap.computeIfAbsent(key, k -> new ArrayList<>(packet.getCount()));
         multiPackets.add(packet);

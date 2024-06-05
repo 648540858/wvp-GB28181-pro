@@ -49,7 +49,7 @@ public class Jt808Handler extends ChannelInboundHandlerAdapter {
         }
         ConnectChangeEvent event = new ConnectChangeEvent(this);
         event.setConnected(true);
-        event.setTerminalId(session.getDevId());
+        event.setPhoneNumber(session.getDevId());
         applicationEventPublisher.publishEvent(event);
     }
 
@@ -63,7 +63,7 @@ public class Jt808Handler extends ChannelInboundHandlerAdapter {
         }
         ConnectChangeEvent event = new ConnectChangeEvent(this);
         event.setConnected(false);
-        event.setTerminalId(session.getDevId());
+        event.setPhoneNumber(session.getDevId());
         applicationEventPublisher.publishEvent(event);
 
     }

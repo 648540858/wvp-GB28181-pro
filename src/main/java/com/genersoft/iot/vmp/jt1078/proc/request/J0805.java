@@ -39,13 +39,13 @@ public class J0805 extends Re {
                 ids.add(buf.readUnsignedInt());
             }
         }
-        SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "0805", null, ids);
+        SessionManager.INSTANCE.response(header.getPhoneNumber(), "0805", null, ids);
         return null;
     }
 
     @Override
     protected Rs handler(Header header, Session session, Ijt1078Service service) {
-        SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "0001", (long) respNo, result);
+        SessionManager.INSTANCE.response(header.getPhoneNumber(), "0001", (long) respNo, result);
         return null;
     }
 

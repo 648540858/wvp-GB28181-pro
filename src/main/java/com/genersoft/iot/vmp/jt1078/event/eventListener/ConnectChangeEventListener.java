@@ -22,13 +22,13 @@ public class ConnectChangeEventListener implements ApplicationListener<ConnectCh
     @Override
     public void onApplicationEvent(ConnectChangeEvent event) {
         if (event.isConnected()) {
-            log.info("[JT-设备已连接] 终端ID： {}", event.getTerminalId());
+            log.info("[JT-设备已连接] 终端ID： {}", event.getPhoneNumber());
         }else{
-            log.info("[JT-设备连接已断开] 终端ID： {}", event.getTerminalId());
+            log.info("[JT-设备连接已断开] 终端ID： {}", event.getPhoneNumber());
         }
-        JTDevice device = service.getDevice(event.getTerminalId());
+        JTDevice device = service.getDevice(event.getPhoneNumber());
         if (device != null) {
-            service.updateDeviceStatus(event.isConnected(), event.getTerminalId());
+            service.updateDeviceStatus(event.isConnected(), event.getPhoneNumber());
         }
     }
 }

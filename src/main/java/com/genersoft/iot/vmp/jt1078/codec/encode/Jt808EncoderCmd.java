@@ -94,12 +94,12 @@ public class Jt808EncoderCmd extends MessageToByteEncoder<Cmd> {
             byteBuf.writeByte(header.getVersion());
 
             // 终端手机号
-            byteBuf.writeBytes(ByteBufUtil.decodeHexDump(Bin.strHexPaddingLeft(header.getTerminalPhoneNumber(), 20)));
+            byteBuf.writeBytes(ByteBufUtil.decodeHexDump(Bin.strHexPaddingLeft(header.getPhoneNumber(), 20)));
         } else {
             // 消息体属性
             byteBuf.writeShort(encode.readableBytes());
 
-            byteBuf.writeBytes(ByteBufUtil.decodeHexDump(Bin.strHexPaddingLeft(header.getTerminalPhoneNumber(), 12)));
+            byteBuf.writeBytes(ByteBufUtil.decodeHexDump(Bin.strHexPaddingLeft(header.getPhoneNumber(), 12)));
         }
 
         // 消息体流水号

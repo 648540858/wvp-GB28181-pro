@@ -64,20 +64,43 @@ public class JT1078DeviceController {
     @Operation(summary = "删除设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @DeleteMapping("/delete")
-    public void addDevice(Integer phoneNumber){
+    public void addDevice(String phoneNumber){
         assert phoneNumber != null;
         service.deleteDeviceByPhoneNumber(phoneNumber);
     }
 
 
     @Operation(summary = "1078-查询部标通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
+    @Parameter(name = "deviceId", description = "设备ID", required = true)
     @Parameter(name = "query", description = "查询内容")
     @GetMapping("/channel/list")
-    public List<JTChannel> getChannels(@RequestParam(required = true) Integer phoneNumber,
+    public List<JTChannel> getChannels(@RequestParam(required = true) Integer deviceId,
                                        @RequestParam(required = false) String query) {
-        assert phoneNumber != null;
-        return service.getChannelList(phoneNumber, query);
+        assert deviceId != null;
+        return service.getChannelList(deviceId, query);
+    }
+
+    @Operation(summary = "1078-更新通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "channel", description = "通道", required = true)
+    @PostMapping("/update")
+    public void updateChannel(JTChannel channel){
+        assert channel.getId() > 0;
+        assert channel.getChannelId() != null;
+        service.updateChannel(channel);
+    }
+
+    @Operation(summary = "1078-新增通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "channel", description = "通道", required = true)
+    @PostMapping("/add")
+    public void addChannel(JTChannel channel){
+        assert channel.getChannelId() != null;
+        service.addChannel(channel);
+    }
+    @Operation(summary = "1078-删除通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "id", description = "通道的数据库ID", required = true)
+    @DeleteMapping("/delete")
+    public void deleteChannel(Integer id){
+        service.deleteChannelById(id);
     }
 }
 

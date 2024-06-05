@@ -33,13 +33,13 @@ public class J0201 extends Re {
 
         positionInfo = JTPositionBaseInfo.decode(buf);
         log.info("[JT-位置信息查询应答]: {}", positionInfo.toString());
-        SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "0201", (long) respNo, positionInfo);
+        SessionManager.INSTANCE.response(header.getPhoneNumber(), "0201", (long) respNo, positionInfo);
         return null;
     }
 
     @Override
     protected Rs handler(Header header, Session session, Ijt1078Service service) {
-        JTDevice deviceInDb = service.getDevice(header.getTerminalPhoneNumber());
+        JTDevice deviceInDb = service.getDevice(header.getPhoneNumber());
         J8001 j8001 = new J8001();
         j8001.setRespNo(header.getSn());
         j8001.setRespId(header.getMsgId());

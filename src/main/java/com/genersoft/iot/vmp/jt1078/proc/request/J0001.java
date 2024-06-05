@@ -36,7 +36,7 @@ public class J0001 extends Re {
 
     @Override
     protected Rs handler(Header header, Session session, Ijt1078Service service) {
-        SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "0001", (long) respNo, result);
+        SessionManager.INSTANCE.response(header.getPhoneNumber(), "0001", (long) respNo, result);
         return null;
     }
 

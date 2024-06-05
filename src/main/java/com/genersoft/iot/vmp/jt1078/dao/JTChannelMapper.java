@@ -23,87 +23,31 @@ public interface JTChannelMapper {
     List<JTChannel> getAll(@Param("deviceId") int deviceId, @Param("query") String query);
 
     @Update(value = {" <script>" +
-            "UPDATE wvp_jt_device " +
+            "UPDATE wvp_jt_channel " +
             "SET update_time=#{updateTime}" +
             "<if test=\"deviceId != null\">, device_id=#{deviceId}</if>" +
-            "<if test=\"provinceId != null\">, province_id=#{provinceId}</if>" +
-            "<if test=\"provinceText != null\">, province_text=#{provinceText}</if>" +
-            "<if test=\"cityId != null\">, city_id=#{cityId}</if>" +
-            "<if test=\"cityText != null\">, city_text=#{cityText}</if>" +
-            "<if test=\"makerId != null\">, maker_id=#{makerId}</if>" +
-            "<if test=\"deviceModel != null\">, device_model=#{deviceModel}</if>" +
-            "<if test=\"plateColor != null\">, plate_color=#{plateColor}</if>" +
-            "<if test=\"plateNo != null\">, plate_no=#{plateNo}</if>" +
-            "<if test=\"authenticationCode != null\">, authentication_code=#{authenticationCode}</if>" +
-            "<if test=\"longitude != null\">, longitude=#{longitude}</if>" +
-            "<if test=\"latitude != null\">, latitude=#{latitude}</if>" +
-            "<if test=\"status != null\">, status=#{status}</if>" +
-            "WHERE terminal_id=#{terminalId}"+
+            "<if test=\"name != null\">, name=#{name}</if>" +
+            "<if test=\"channelId != null\">, channelId=#{channelId}</if>" +
+            "WHERE id=#{id}"+
             " </script>"})
-    void updateDevice(JTDevice device);
-    @Select(value = {" <script>" +
-            "SELECT * " +
-            "from " +
-            "wvp_jt_device jd " +
-            "WHERE " +
-            "1=1" +
-            " <if test='query != null'> AND (" +
-            "jd.terminal_id LIKE concat('%',#{query},'%') " +
-            "jd.province_id LIKE concat('%',#{query},'%') " +
-            "OR jd.city_id LIKE concat('%',#{query},'%') " +
-            "OR jd.maker_id LIKE concat('%',#{query},'%') " +
-            "OR jd.device_model LIKE concat('%',#{query},'%') " +
-            "OR jd.device_id LIKE concat('%',#{query},'%') " +
-            "OR jd.plate_no LIKE concat('%',#{query},'%')" +
-            ")</if> " +
-            " <if test='online == true' > AND jd.status= true</if>" +
-            " <if test='online == false' > AND jd.status= false</if>" +
-            "ORDER BY jd.update_time " +
-            " </script>"})
-    List<JTDevice> getDeviceList(@Param("query") String query, @Param("online") Boolean online);
+    void update(JTChannel channel);
 
-    @Insert("INSERT INTO wvp_jt_device (" +
-            "terminal_id,"+
-            "province_id,"+
-            "province_text,"+
-            "city_id,"+
-            "city_text,"+
-            "maker_id,"+
+    @Insert("INSERT INTO wvp_jt_channel (" +
             "device_id,"+
-            "device_model,"+
-            "plate_color,"+
-            "plate_no,"+
-            "authentication_code,"+
-            "longitude,"+
-            "latitude,"+
+            "channel_id,"+
+            "name,"+
             "create_time,"+
             "update_time"+
             ") VALUES (" +
-            "#{terminalId}," +
-            "#{provinceId}," +
-            "#{provinceText}," +
-            "#{cityId}," +
-            "#{cityText}," +
-            "#{makerId}," +
             "#{deviceId}," +
-            "#{deviceModel}," +
-            "#{plateColor}," +
-            "#{plateNo}," +
-            "#{authenticationCode}," +
-            "#{longitude}," +
-            "#{latitude}," +
+            "#{channelId}," +
+            "#{name}," +
             "#{createTime}," +
             "#{updateTime}" +
             ")")
-    void addDevice(JTDevice device);
+    void add(JTChannel channel);
 
-    @Delete("delete from wvp_jt_device where terminal_id = #{terminalId}")
-    void deleteDeviceByTerminalId(@Param("terminalId") String terminalId);
+    @Delete("delete from wvp_jt_channel where id = #{id}")
+    void delete(@Param("id") int id);
 
-    @Update(value = {" <script>" +
-            "UPDATE wvp_jt_device " +
-            "SET status=#{connected} " +
-            "WHERE terminal_id=#{terminalId}"+
-            " </script>"})
-    void updateDeviceStatus(@Param("connected") boolean connected, @Param("terminalId") String terminalId);
 }

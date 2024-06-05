@@ -28,13 +28,13 @@ public class J0003 extends Re {
         respNo = buf.readUnsignedShort();
         respId = ByteBufUtil.hexDump(buf.readSlice(2));
         result = buf.readUnsignedByte();
-        log.info("[JT-注销] 设备： {}", header.getTerminalPhoneNumber());
+        log.info("[JT-注销] 设备： {}", header.getPhoneNumber());
         return null;
     }
 
     @Override
     protected Rs handler(Header header, Session session, Ijt1078Service service) {
-        SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "0001", (long) respNo, result);
+        SessionManager.INSTANCE.response(header.getPhoneNumber(), "0001", (long) respNo, result);
         return null;
     }
 

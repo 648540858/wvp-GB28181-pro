@@ -22,7 +22,7 @@ public class ConnectChangeEvent extends ApplicationEvent {
 
     private boolean connected;
 
-    private String terminalId;
+    private String phoneNumber;
 
     public boolean isConnected() {
         return connected;
@@ -32,11 +32,11 @@ public class ConnectChangeEvent extends ApplicationEvent {
         this.connected = connected;
     }
 
-    public String getTerminalId() {
-        return terminalId;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setTerminalId(String terminalId) {
-        this.terminalId = terminalId;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 }

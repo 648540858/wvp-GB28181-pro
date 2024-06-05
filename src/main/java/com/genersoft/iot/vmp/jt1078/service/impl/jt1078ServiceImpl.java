@@ -13,7 +13,7 @@ import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
 import com.genersoft.iot.vmp.jt1078.cmd.JT1078Template;
 import com.genersoft.iot.vmp.jt1078.dao.JTChannelMapper;
-import com.genersoft.iot.vmp.jt1078.dao.JTDeviceMapper;
+import com.genersoft.iot.vmp.jt1078.dao.JTTerminalMapper;
 import com.genersoft.iot.vmp.jt1078.event.CallbackManager;
 import com.genersoft.iot.vmp.jt1078.event.FtpUploadEvent;
 import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
@@ -36,7 +36,6 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,10 +44,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.ServletOutputStream;
-import java.io.*;
 import java.lang.reflect.Field;
-import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -58,7 +54,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     private final static Logger logger = LoggerFactory.getLogger(jt1078ServiceImpl.class);
 
     @Autowired
-    private JTDeviceMapper jtDeviceMapper;
+    private JTTerminalMapper jtDeviceMapper;
 
     @Autowired
     private JTChannelMapper jtChannelMapper;
@@ -98,8 +94,8 @@ public class jt1078ServiceImpl implements Ijt1078Service {
 
 
     @Override
-    public JTDevice getDevice(Integer terminalId) {
-        return jtDeviceMapper.getDevice(terminalId);
+    public JTDevice getDevice(String phoneNumber) {
+        return jtDeviceMapper.getDevice(phoneNumber);
     }
 
     @Override
@@ -123,13 +119,13 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void deleteDeviceByPhoneNumber(Integer phoneNumber) {
-        jtDeviceMapper.deleteDeviceByTerminalId(phoneNumber);
+    public void deleteDeviceByPhoneNumber(String phoneNumber) {
+        jtDeviceMapper.deleteDeviceByPhoneNumber(phoneNumber);
     }
 
     @Override
-    public void updateDeviceStatus(boolean connected, Integer terminalId) {
-        jtDeviceMapper.updateDeviceStatus(connected, terminalId);
+    public void updateDeviceStatus(boolean connected, String phoneNumber) {
+        jtDeviceMapper.updateDeviceStatus(connected, phoneNumber);
     }
 
     private final Map<String, List<GeneralCallback<StreamInfo>>> inviteErrorCallbackMap = new ConcurrentHashMap<>();
@@ -1012,5 +1008,20 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     @Override
     public List<JTChannel> getChannelList(int deviceId, String query) {
         return jtChannelMapper.getAll(deviceId, query);
+    }
+
+    @Override
+    public void updateChannel(JTChannel channel) {
+        jtChannelMapper.update(channel);
+    }
+
+    @Override
+    public void addChannel(JTChannel channel) {
+        jtChannelMapper.add(channel);
+    }
+
+    @Override
+    public void deleteChannelById(Integer id) {
+        jtChannelMapper.delete(id);
     }
 }

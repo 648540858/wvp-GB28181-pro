@@ -70,7 +70,7 @@ public class J0801 extends Re {
             log.info("[JT-多媒体数据上传] 写入文件失败", e);
         }
         log.info("[JT-多媒体数据上传]: {}", mediaEventInfo);
-        SessionManager.INSTANCE.response(header.getTerminalPhoneNumber(), "0801", null, mediaEventInfo);
+        SessionManager.INSTANCE.response(header.getPhoneNumber(), "0801", null, mediaEventInfo);
         return null;
     }
 

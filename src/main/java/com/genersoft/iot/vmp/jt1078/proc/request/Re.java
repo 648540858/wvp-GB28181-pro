@@ -24,7 +24,7 @@ public abstract class Re {
 
     public Rs decode(ByteBuf buf, Header header, Session session, Ijt1078Service service) {
         if (session != null && !StringUtils.hasLength(session.getDevId())) {
-            session.register(header.getTerminalPhoneNumber(), (int) header.getVersion(), header);
+            session.register(header.getPhoneNumber(), (int) header.getVersion(), header);
         }
         Rs rs = decode0(buf, header, session);
         Rs rsHand = handler(header, session, service);

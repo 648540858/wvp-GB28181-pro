@@ -89,7 +89,7 @@ public class J0200 extends Re {
 
     @Override
     protected Rs handler(Header header, Session session, Ijt1078Service service) {
-        JTDevice deviceInDb = service.getDevice(header.getTerminalPhoneNumber());
+        JTDevice deviceInDb = service.getDevice(header.getPhoneNumber());
         J8001 j8001 = new J8001();
         j8001.setRespNo(header.getSn());
         j8001.setRespId(header.getMsgId());

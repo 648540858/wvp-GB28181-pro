@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "存储多媒体数据参数")
 public class QueryMediaDataParam {
 
-    @Schema(description = "设备")
+    @Schema(description = "终端手机号")
     private String phoneNumber;
 
     @Schema(description = "多媒体 ID, 单条存储多媒体数据检索上传时有效")

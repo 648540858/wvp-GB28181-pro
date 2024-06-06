@@ -5,8 +5,6 @@ import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.SynchronousQueue;
@@ -75,16 +73,16 @@ public enum SessionManager {
     }
 
     public Object request(Cmd cmd, Integer timeOut) {
-        Session session = this.get(cmd.getDevId());
+        Session session = this.get(cmd.getPhoneNumber());
         if (session == null) {
-            log.error("DevId: {} not online!", cmd.getDevId());
+            log.error("DevId: {} not online!", cmd.getPhoneNumber());
             return null;
         }
-        String requestKey = requestKey(cmd.getDevId(), cmd.getRespId(), cmd.getPackageNo());
+        String requestKey = requestKey(cmd.getPhoneNumber(), cmd.getRespId(), cmd.getPackageNo());
         System.out.println("requestKey==" + requestKey);
         SynchronousQueue<Object> subscribe = subscribe(requestKey);
         if (subscribe == null) {
-            log.error("DevId: {} key:{} send repaid", cmd.getDevId(), requestKey);
+            log.error("DevId: {} key:{} send repaid", cmd.getPhoneNumber(), requestKey);
             return null;
         }
         session.writeObject(cmd);

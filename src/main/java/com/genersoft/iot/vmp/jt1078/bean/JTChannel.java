@@ -20,7 +20,7 @@ public class JTChannel {
      * 设备的数据库ID
      */
     @Schema(description = "设备的数据库ID")
-    private int deviceId;
+    private int terminalId;
 
     /**
      * 通道ID
@@ -51,12 +51,12 @@ public class JTChannel {
         this.name = name;
     }
 
-    public int getDeviceId() {
-        return deviceId;
+    public int getTerminalId() {
+        return terminalId;
     }
 
-    public void setDeviceId(int deviceId) {
-        this.deviceId = deviceId;
+    public void setTerminalId(int terminalId) {
+        this.terminalId = terminalId;
     }
 
     public String getCreateTime() {
@@ -88,7 +88,7 @@ public class JTChannel {
         return "JTChannel{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", deviceId=" + deviceId +
+                ", terminalId=" + terminalId +
                 ", channelId=" + channelId +
                 ", createTime='" + createTime + '\'' +
                 ", updateTime='" + updateTime + '\'' +

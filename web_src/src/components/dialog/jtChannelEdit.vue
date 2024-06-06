@@ -1,7 +1,7 @@
 <template>
   <div id="deviceEdit" v-loading="isLoging">
     <el-dialog
-      title="设备编辑"
+      title="通道编辑"
       width="40%"
       top="2rem"
       :close-on-click-modal="false"
@@ -10,9 +10,12 @@
       @close="close()"
     >
       <div id="shared" style="margin-top: 1rem;margin-right: 100px;">
-        <el-form ref="form" :rules="rules" :model="form" label-width="200px" >
-          <el-form-item label="终端手机号" prop="phoneNumber">
-            <el-input v-model="form.phoneNumber" clearable></el-input>
+        <el-form ref="form" :rules="rules" :model="form" label-width="100px" >
+          <el-form-item label="编号" prop="channelId">
+            <el-input v-model="form.channelId" clearable></el-input>
+          </el-form-item>
+          <el-form-item label="名称" prop="name">
+            <el-input v-model="form.name" clearable></el-input>
           </el-form-item>
           <el-form-item>
             <div style="float: right;">
@@ -38,6 +41,7 @@ export default {
       showDialog: false,
       isLoging: false,
       form: {},
+      deviceId: "",
       isEdit: false,
       rules: {
         deviceId: [{ required: true, message: "请输入设备编号", trigger: "blur" }]
@@ -45,7 +49,7 @@ export default {
     };
   },
   methods: {
-    openDialog: function (row, callback) {
+    openDialog: function (row, deviceId, callback) {
       console.log(row)
       this.showDialog = true;
       this.isEdit = false;
@@ -53,6 +57,7 @@ export default {
         this.isEdit = true;
       }
       this.form = {};
+      this.deviceId = deviceId;
       this.listChangeCallback = callback;
       if (row != null) {
         this.form = row;
@@ -62,8 +67,12 @@ export default {
       console.log("onSubmit");
       this.$axios({
         method: 'post',
-        url:`/api/jt1078/terminal/${this.isEdit?'update':'add'}/`,
-        params: this.form
+        url:`/api/jt1078/terminal/channel/${this.isEdit?'update':'add'}/`,
+        params: {
+          terminalId: this.deviceId,
+          name: this.form.name,
+          channelId: this.form.channelId,
+        }
       }).then((res) => {
         console.log(res.data)
         if (res.data.code === 0) {

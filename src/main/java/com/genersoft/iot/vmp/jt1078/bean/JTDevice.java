@@ -44,7 +44,7 @@ public class JTDevice {
      * 终端型号
      */
     @Schema(description = "终端型号")
-    private String deviceModel;
+    private String model;
 
     /**
      * 终端手机号
@@ -87,6 +87,10 @@ public class JTDevice {
      */
     @Schema(description = "纬度")
     private Double latitude;
+
+
+    @Schema(description = "注册时间")
+    private String registerTime;
 
 
     @Schema(description = "创建时间")
@@ -146,12 +150,12 @@ public class JTDevice {
         this.makerId = makerId;
     }
 
-    public String getDeviceModel() {
-        return deviceModel;
+    public String getModel() {
+        return model;
     }
 
-    public void setDeviceModel(String deviceModel) {
-        this.deviceModel = deviceModel;
+    public void setModel(String model) {
+        this.model = model;
     }
 
     public String getPhoneNumber() {
@@ -234,6 +238,14 @@ public class JTDevice {
         this.status = status;
     }
 
+    public String getRegisterTime() {
+        return registerTime;
+    }
+
+    public void setRegisterTime(String registerTime) {
+        this.registerTime = registerTime;
+    }
+
     @Override
     public String toString() {
         return "JTDevice{" +
@@ -242,11 +254,12 @@ public class JTDevice {
                 ", 市县域ID='" + cityId + '\'' +
                 ", 市县域文字描述='" + cityText + '\'' +
                 ", 制造商ID='" + makerId + '\'' +
-                ", 终端型号='" + deviceModel + '\'' +
+                ", 终端型号='" + model + '\'' +
                 ", 终端手机号='" + phoneNumber + '\'' +
                 ", 设备ID='" + terminalId + '\'' +
                 ", 车牌颜色=" + plateColor +
                 ", 车牌='" + plateNo + '\'' +
+                ", 注册时间='" + registerTime + '\'' +
                 ", 鉴权码='" + authenticationCode + '\'' +
                 ", status=" + status +
                 '}';

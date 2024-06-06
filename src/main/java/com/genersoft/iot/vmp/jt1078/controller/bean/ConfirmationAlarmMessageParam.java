@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "人工确认报警消息参数")
 public class ConfirmationAlarmMessageParam {
 
-    @Schema(description = "设备")
+    @Schema(description = "终端手机号")
     private String phoneNumber;
     @Schema(description = "报警消息流水号")
     private int alarmPackageNo;

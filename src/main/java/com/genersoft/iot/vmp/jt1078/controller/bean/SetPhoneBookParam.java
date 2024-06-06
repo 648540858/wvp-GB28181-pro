@@ -9,7 +9,7 @@ import java.util.List;
 @Schema(description = "设置电话本")
 public class SetPhoneBookParam {
 
-    @Schema(description = "设备手机号")
+    @Schema(description = "终端手机号")
     private String phoneNumber;
 
     @Schema(description = "设置类型:\n" +

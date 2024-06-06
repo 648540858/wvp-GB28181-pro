@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import com.genersoft.iot.vmp.utils.CivilCodeUtil;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +44,7 @@ public class J0100 extends Re {
             device.setMakerId(buf.readCharSequence(11, Charset.forName("GBK"))
                     .toString().trim());
 
-            device.setDeviceModel(buf.readCharSequence(30, Charset.forName("GBK"))
+            device.setModel(buf.readCharSequence(30, Charset.forName("GBK"))
                     .toString().trim());
 
             device.setTerminalId(buf.readCharSequence(30, Charset.forName("GBK"))
@@ -62,7 +63,7 @@ public class J0100 extends Re {
 
             byte[] bytes20 = new byte[20];
             buf.readBytes(bytes20);
-            device.setDeviceModel(new String(bytes20).trim());
+            device.setModel(new String(bytes20).trim());
 
             byte[] bytes7 = new byte[7];
             buf.readBytes(bytes7);
@@ -93,6 +94,7 @@ public class J0100 extends Re {
             deviceInDb.setAuthenticationCode(authenticationCode);
             deviceInDb.setStatus(true);
             deviceInDb.setProvinceId(device.getProvinceId());
+            deviceInDb.setRegisterTime(DateUtil.getNow());
             CivilCodePo provinceCivilCodePo = CivilCodeUtil.INSTANCE.get(device.getProvinceId());
             if (provinceCivilCodePo != null) {
                 deviceInDb.setProvinceText(provinceCivilCodePo.getName());
@@ -103,7 +105,7 @@ public class J0100 extends Re {
             if (cityCivilCodePo != null) {
                 deviceInDb.setCityText(cityCivilCodePo.getName());
             }
-            deviceInDb.setDeviceModel(device.getDeviceModel());
+            deviceInDb.setModel(device.getModel());
             deviceInDb.setMakerId(device.getMakerId());
             deviceInDb.setTerminalId(device.getTerminalId());
             // TODO 支持直接展示车牌颜色的描述

@@ -20,7 +20,6 @@ public class Header {
     // 消息体流水号
     Integer sn;
 
-
     // 协议版本号
     Short version = -1;
 

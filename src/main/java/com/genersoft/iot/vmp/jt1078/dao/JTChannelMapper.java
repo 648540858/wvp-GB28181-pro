@@ -14,18 +14,18 @@ public interface JTChannelMapper {
             "from " +
             "wvp_jt_channel jc " +
             "WHERE " +
-            "device_id = #{deviceId}" +
+            "terminal_id = #{terminalId}" +
             " <if test='query != null'> AND " +
             "jc.name LIKE concat('%',#{query},'%') " +
             "</if> " +
             "ORDER BY jc.update_time " +
             " </script>"})
-    List<JTChannel> getAll(@Param("deviceId") int deviceId, @Param("query") String query);
+    List<JTChannel> getAll(@Param("terminalId") int terminalId, @Param("query") String query);
 
     @Update(value = {" <script>" +
             "UPDATE wvp_jt_channel " +
             "SET update_time=#{updateTime}" +
-            "<if test=\"deviceId != null\">, device_id=#{deviceId}</if>" +
+            "<if test=\"terminalId != null\">, terminal_id=#{terminalId}</if>" +
             "<if test=\"name != null\">, name=#{name}</if>" +
             "<if test=\"channelId != null\">, channelId=#{channelId}</if>" +
             "WHERE id=#{id}"+
@@ -33,13 +33,13 @@ public interface JTChannelMapper {
     void update(JTChannel channel);
 
     @Insert("INSERT INTO wvp_jt_channel (" +
-            "device_id,"+
+            "terminal_id,"+
             "channel_id,"+
             "name,"+
             "create_time,"+
             "update_time"+
             ") VALUES (" +
-            "#{deviceId}," +
+            "#{terminalId}," +
             "#{channelId}," +
             "#{name}," +
             "#{createTime}," +

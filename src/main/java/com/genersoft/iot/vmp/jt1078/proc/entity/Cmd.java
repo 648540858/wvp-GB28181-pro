@@ -8,7 +8,7 @@ import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
  * @email qingtaij@163.com
  */
 public class Cmd {
-    String devId;
+    String phoneNumber;
     Long packageNo;
     String msgId;
     String respId;
@@ -18,19 +18,19 @@ public class Cmd {
     }
 
     public Cmd(Builder builder) {
-        this.devId = builder.devId;
+        this.phoneNumber = builder.phoneNumber;
         this.packageNo = builder.packageNo;
         this.msgId = builder.msgId;
         this.respId = builder.respId;
         this.rs = builder.rs;
     }
 
-    public String getDevId() {
-        return devId;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setDevId(String devId) {
-        this.devId = devId;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public Long getPackageNo() {
@@ -66,14 +66,14 @@ public class Cmd {
     }
 
     public static class Builder {
-        String devId;
+        String phoneNumber;
         Long packageNo;
         String msgId;
         String respId;
         Rs rs;
 
-        public Builder setDevId(String devId) {
-            this.devId = devId.replaceFirst("^0*", "");
+        public Builder setPhoneNumber(String phoneNumber) {
+            this.phoneNumber = phoneNumber.replaceFirst("^0*", "");
             return this;
         }
 
@@ -106,7 +106,7 @@ public class Cmd {
     @Override
     public String toString() {
         return "Cmd{" +
-                "devId='" + devId + '\'' +
+                "devId='" + phoneNumber + '\'' +
                 ", packageNo=" + packageNo +
                 ", msgId='" + msgId + '\'' +
                 ", respId='" + respId + '\'' +

@@ -3,25 +3,25 @@
     <div class="page-header">
       <div class="page-title">设备列表</div>
       <div class="page-header-btn">
-        <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="add">添加设备
+        <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="add">接入新设备
         </el-button>
-        <el-button icon="el-icon-refresh-right" circle size="mini" :loading="getDeviceListLoading"
-                   @click="getDeviceList()"></el-button>
+        <el-button icon="el-icon-refresh-right" circle size="mini" :loading="getListLoading"
+                   @click="getList()"></el-button>
       </div>
     </div>
     <!--设备列表-->
     <el-table :data="deviceList" style="width: 100%;font-size: 12px;" :height="winHeight" header-row-class-name="table-header">
-      <el-table-column prop="terminalId" label="终端ID" min-width="160">
+      <el-table-column prop="phoneNumber" label="终端手机号" min-width="160">
+      </el-table-column>
+      <el-table-column prop="terminalId" label="终端ID" min-width="160" >
       </el-table-column>
       <el-table-column prop="provinceText" label="省域" min-width="160">
       </el-table-column>
       <el-table-column prop="cityText" label="市县域" min-width="160" >
       </el-table-column>
-      <el-table-column prop="makerId" label="制造商ID" min-width="160" >
+      <el-table-column prop="makerId" label="制造商" min-width="160" >
       </el-table-column>
-      <el-table-column prop="deviceModel" label="终端型号" min-width="160" >
-      </el-table-column>
-      <el-table-column prop="deviceId" label="设备ID" min-width="160" >
+      <el-table-column prop="model" label="型号" min-width="160" >
       </el-table-column>
       <el-table-column  label="车牌颜色" min-width="160" >
         <template slot-scope="scope">
@@ -41,6 +41,8 @@
       </el-table-column>
       <el-table-column prop="plateNo" label="车牌" min-width="160" >
       </el-table-column>
+      <el-table-column prop="registerTime" label="注册时间" min-width="160" >
+      </el-table-column>
       <el-table-column label="状态" min-width="160">
         <template slot-scope="scope">
           <div slot="reference" class="name-wrapper">
@@ -51,6 +53,10 @@
       </el-table-column>
       <el-table-column label="操作" min-width="450" fixed="right">
         <template slot-scope="scope">
+          <el-divider direction="vertical"></el-divider>
+          <el-button type="text" size="medium" icon="el-icon-video-camera"
+                     @click="showChannelList(scope.row)">通道
+          </el-button>
           <el-divider direction="vertical"></el-divider>
           <el-button size="medium" icon="el-icon-edit" type="text" @click="edit(scope.row)">编辑</el-button>
           <el-divider direction="vertical"></el-divider>
@@ -97,7 +103,7 @@ export default {
       currentPage: 1,
       count: 15,
       total: 0,
-      getDeviceListLoading: false,
+      getListLoading: false,
     };
   },
   computed: {
@@ -123,21 +129,21 @@ export default {
   },
   methods: {
     initData: function () {
-      this.getDeviceList();
+      this.getList();
     },
     currentChange: function (val) {
       this.currentPage = val;
-      this.getDeviceList();
+      this.getList();
     },
     handleSizeChange: function (val) {
       this.count = val;
-      this.getDeviceList();
+      this.getList();
     },
-    getDeviceList: function () {
-      this.getDeviceListLoading = true;
+    getList: function () {
+      this.getListLoading = true;
       this.$axios({
         method: 'get',
-        url: `/api/jt1078/device/list`,
+        url: `/api/jt1078/terminal/list`,
         params: {
           page: this.currentPage,
           count: this.count
@@ -147,10 +153,10 @@ export default {
           this.total = res.data.data.total;
           this.deviceList = res.data.data.list;
         }
-        this.getDeviceListLoading = false;
+        this.getListLoading = false;
       }).catch( (error)=> {
         console.error(error);
-        this.getDeviceListLoading = false;
+        this.getListLoading = false;
       });
     },
     deleteDevice: function (row) {
@@ -163,12 +169,12 @@ export default {
       }).then(() => {
         this.$axios({
           method: 'delete',
-          url: '/api/jt1078/device/delete',
+          url: '/api/jt1078/terminal/delete',
           params: {
             deviceId: row.deviceId
           }
         }).then((res) => {
-          this.getDeviceList();
+          this.getList();
         }).catch((error) => {
           console.error(error);
         });
@@ -184,9 +190,12 @@ export default {
           message: "设备修改成功，通道字符集将在下次更新生效",
           type: "success",
         });
-        setTimeout(this.getDeviceList, 200)
+        setTimeout(this.getList, 200)
 
       })
+    },
+    showChannelList: function (row) {
+      this.$router.push(`/jtChannelList/${row.id}`);
     },
     add: function () {
       this.$refs.deviceEdit.openDialog(null, () => {
@@ -196,7 +205,7 @@ export default {
           message: "添加成功",
           type: "success",
         });
-        setTimeout(this.getDeviceList, 200)
+        setTimeout(this.getList, 200)
 
       })
     }

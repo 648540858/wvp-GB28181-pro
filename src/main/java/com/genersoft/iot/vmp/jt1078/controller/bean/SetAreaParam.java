@@ -8,7 +8,7 @@ import java.util.List;
 @Schema(description = "设置区域参数")
 public class SetAreaParam {
 
-    @Schema(description = "设备")
+    @Schema(description = "终端手机号")
     private String phoneNumber;
 
     @Schema(description = "圆形区域项")

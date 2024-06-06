@@ -21,11 +21,11 @@ import java.util.List;
 
 @ConditionalOnProperty(value = "jt1078.enable", havingValue = "true")
 @RestController
-@Tag(name  = "部标设备管理")
-@RequestMapping("/api/jt1078/device")
-public class JT1078DeviceController {
+@Tag(name  = "部标终端以及通道管理")
+@RequestMapping("/api/jt1078/terminal")
+public class JT1078TerminalController {
 
-    private final static Logger logger = LoggerFactory.getLogger(JT1078DeviceController.class);
+    private final static Logger logger = LoggerFactory.getLogger(JT1078TerminalController.class);
 
     @Resource
     Ijt1078Service service;
@@ -71,18 +71,21 @@ public class JT1078DeviceController {
 
 
     @Operation(summary = "1078-查询部标通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "page", description = "当前页", required = true)
+    @Parameter(name = "count", description = "每页查询数量", required = true)
     @Parameter(name = "deviceId", description = "设备ID", required = true)
     @Parameter(name = "query", description = "查询内容")
     @GetMapping("/channel/list")
-    public List<JTChannel> getChannels(@RequestParam(required = true) Integer deviceId,
-                                       @RequestParam(required = false) String query) {
+    public PageInfo<JTChannel> getChannels(int page, int count,
+                                           @RequestParam(required = true) Integer deviceId,
+                                           @RequestParam(required = false) String query) {
         assert deviceId != null;
-        return service.getChannelList(deviceId, query);
+        return service.getChannelList(page, count, deviceId, query);
     }
 
     @Operation(summary = "1078-更新通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "channel", description = "通道", required = true)
-    @PostMapping("/update")
+    @PostMapping("/channel/update")
     public void updateChannel(JTChannel channel){
         assert channel.getId() > 0;
         assert channel.getChannelId() != null;
@@ -91,14 +94,14 @@ public class JT1078DeviceController {
 
     @Operation(summary = "1078-新增通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "channel", description = "通道", required = true)
-    @PostMapping("/add")
+    @PostMapping("/channel/add")
     public void addChannel(JTChannel channel){
         assert channel.getChannelId() != null;
         service.addChannel(channel);
     }
     @Operation(summary = "1078-删除通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "id", description = "通道的数据库ID", required = true)
-    @DeleteMapping("/delete")
+    @DeleteMapping("/channel/delete")
     public void deleteChannel(Integer id){
         service.deleteChannelById(id);
     }

@@ -113,6 +113,10 @@ public class jt1078ServiceImpl implements Ijt1078Service {
 
     @Override
     public void addDevice(JTDevice device) {
+        JTDevice deviceInDb = jtDeviceMapper.getDevice(device.getPhoneNumber());
+        if (deviceInDb != null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备" + device.getPhoneNumber() + "已存在");
+        }
         device.setCreateTime(DateUtil.getNow());
         device.setUpdateTime(DateUtil.getNow());
         jtDeviceMapper.addDevice(device);
@@ -1006,17 +1010,22 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public List<JTChannel> getChannelList(int deviceId, String query) {
-        return jtChannelMapper.getAll(deviceId, query);
+    public PageInfo<JTChannel> getChannelList(int page, int count, int deviceId, String query) {
+        PageHelper.startPage(page, count);
+        List<JTChannel> all = jtChannelMapper.getAll(deviceId, query);
+        return new PageInfo<>(all);
     }
 
     @Override
     public void updateChannel(JTChannel channel) {
+        channel.setUpdateTime(DateUtil.getNow());
         jtChannelMapper.update(channel);
     }
 
     @Override
     public void addChannel(JTChannel channel) {
+        channel.setCreateTime(DateUtil.getNow());
+        channel.setUpdateTime(DateUtil.getNow());
         jtChannelMapper.add(channel);
     }
 

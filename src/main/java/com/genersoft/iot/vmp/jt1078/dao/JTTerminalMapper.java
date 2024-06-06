@@ -14,18 +14,19 @@ public interface JTTerminalMapper {
     @Update(value = {" <script>" +
             "UPDATE wvp_jt_terminal " +
             "SET update_time=#{updateTime}" +
-            "<if test=\"terminalId != null\">, terminal_id=#{terminalId}</if>" +
             "<if test=\"provinceId != null\">, province_id=#{provinceId}</if>" +
+            "<if test=\"terminalId != null\">, terminal_id=#{terminalId}</if>" +
             "<if test=\"provinceText != null\">, province_text=#{provinceText}</if>" +
             "<if test=\"cityId != null\">, city_id=#{cityId}</if>" +
             "<if test=\"cityText != null\">, city_text=#{cityText}</if>" +
             "<if test=\"makerId != null\">, maker_id=#{makerId}</if>" +
-            "<if test=\"deviceModel != null\">, device_model=#{deviceModel}</if>" +
+            "<if test=\"model != null\">, model=#{model}</if>" +
             "<if test=\"plateColor != null\">, plate_color=#{plateColor}</if>" +
             "<if test=\"plateNo != null\">, plate_no=#{plateNo}</if>" +
             "<if test=\"authenticationCode != null\">, authentication_code=#{authenticationCode}</if>" +
             "<if test=\"longitude != null\">, longitude=#{longitude}</if>" +
             "<if test=\"latitude != null\">, latitude=#{latitude}</if>" +
+            "<if test=\"registerTime != null\">, register_time=#{registerTime}</if>" +
             "<if test=\"status != null\">, status=#{status}</if>" +
             "WHERE phone_number=#{phoneNumber}"+
             " </script>"})
@@ -38,11 +39,12 @@ public interface JTTerminalMapper {
             "1=1" +
             " <if test='query != null'> AND (" +
             "jd.phone_number LIKE concat('%',#{query},'%') " +
+            "jd.terminal_id LIKE concat('%',#{query},'%') " +
             "jd.province_id LIKE concat('%',#{query},'%') " +
             "OR jd.city_id LIKE concat('%',#{query},'%') " +
             "OR jd.maker_id LIKE concat('%',#{query},'%') " +
-            "OR jd.device_model LIKE concat('%',#{query},'%') " +
-            "OR jd.terminal_id LIKE concat('%',#{query},'%') " +
+            "OR jd.model LIKE concat('%',#{query},'%') " +
+            "OR jd.phone_number LIKE concat('%',#{query},'%') " +
             "OR jd.plate_no LIKE concat('%',#{query},'%')" +
             ")</if> " +
             " <if test='online == true' > AND jd.status= true</if>" +
@@ -52,36 +54,38 @@ public interface JTTerminalMapper {
     List<JTDevice> getDeviceList(@Param("query") String query, @Param("online") Boolean online);
 
     @Insert("INSERT INTO wvp_jt_terminal (" +
-            "phone_number,"+
+            "terminal_id,"+
             "province_id,"+
             "province_text,"+
             "city_id,"+
             "city_text,"+
             "maker_id,"+
-            "terminal_id,"+
-            "device_model,"+
+            "phone_number,"+
+            "model,"+
             "plate_color,"+
             "plate_no,"+
             "authentication_code,"+
             "longitude,"+
             "latitude,"+
             "create_time,"+
+            "register_time,"+
             "update_time"+
             ") VALUES (" +
-            "#{phoneNumber}," +
+            "#{terminalId}," +
             "#{provinceId}," +
             "#{provinceText}," +
             "#{cityId}," +
             "#{cityText}," +
             "#{makerId}," +
-            "#{terminalId}," +
-            "#{deviceModel}," +
+            "#{phoneNumber}," +
+            "#{model}," +
             "#{plateColor}," +
             "#{plateNo}," +
             "#{authenticationCode}," +
             "#{longitude}," +
             "#{latitude}," +
             "#{createTime}," +
+            "#{registerTime}," +
             "#{updateTime}" +
             ")")
     void addDevice(JTDevice device);

@@ -5,6 +5,7 @@ import Layout from "../layout/index.vue"
 import console from '../components/console.vue'
 import deviceList from '../components/DeviceList.vue'
 import jtDeviceList from '../components/JTDeviceList.vue'
+import jtChannelList from '../components/JTChannelList.vue'
 import channelList from '../components/channelList.vue'
 import gbRecordDetail from '../components/GBRecordDetail.vue'
 import pushVideoList from '../components/PushVideoList.vue'
@@ -57,6 +58,10 @@ export default new VueRouter({
         {
           path: '/jtDeviceList',
           component: jtDeviceList,
+        },
+        {
+          path: '/jtChannelList/:deviceId',
+          component: jtChannelList,
         },
         {
           path: '/pushVideoList',

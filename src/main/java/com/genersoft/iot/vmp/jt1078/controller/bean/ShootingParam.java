@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "摄像头立即拍摄命令参数")
 public class ShootingParam {
 
-    @Schema(description = "设备")
+    @Schema(description = "终端手机号")
     private String phoneNumber;
 
     @Schema(description = "拍摄命令参数")

@@ -81,7 +81,7 @@ public class JT1078Template {
      */
     public Object startLive(String devId, J9101 j9101, Integer timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H9101)
                 .setRespId(H0001)
@@ -98,7 +98,7 @@ public class JT1078Template {
      */
     public Object stopLive(String devId, J9102 j9102, Integer timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H9102)
                 .setRespId(H0001)
@@ -115,7 +115,7 @@ public class JT1078Template {
      */
     public Object queryBackTime(String devId, J9205 j9205, Integer timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H9205)
                 .setRespId(H1205)
@@ -132,7 +132,7 @@ public class JT1078Template {
      */
     public Object startBackLive(String devId, J9201 j9201, Integer timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H9201)
                 .setRespId(H1205)
@@ -149,7 +149,7 @@ public class JT1078Template {
      */
     public Object controlBackLive(String devId, J9202 j9202, Integer timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H9202)
                 .setRespId(H0001)
@@ -166,7 +166,7 @@ public class JT1078Template {
      */
     public Object fileUpload(String devId, J9206 j9206, Integer timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H9206)
                 .setRespId(H0001)
@@ -183,7 +183,7 @@ public class JT1078Template {
      */
     public Object fileUploadControl(String devId, J9207 j9207, Integer timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H9207)
                 .setRespId(H0001)
@@ -200,7 +200,7 @@ public class JT1078Template {
      */
     public Object ptzRotate(String devId, J9301 j9301, Integer timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H9301)
                 .setRespId(H0001)
@@ -217,7 +217,7 @@ public class JT1078Template {
      */
     public Object ptzFocal(String devId, J9302 j9302, Integer timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H9302)
                 .setRespId(H0001)
@@ -234,7 +234,7 @@ public class JT1078Template {
      */
     public Object ptzIris(String devId, J9303 j9303, Integer timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H9303)
                 .setRespId(H0001)
@@ -251,7 +251,7 @@ public class JT1078Template {
      */
     public Object ptzWiper(String devId, J9304 j9304, Integer timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H9304)
                 .setRespId(H0001)
@@ -268,7 +268,7 @@ public class JT1078Template {
      */
     public Object ptzSupplementaryLight(String devId, J9305 j9305, Integer timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H9305)
                 .setRespId(H0001)
@@ -285,7 +285,7 @@ public class JT1078Template {
      */
     public Object ptzZoom(String devId, J9306 j9306, Integer timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H9306)
                 .setRespId(H0001)
@@ -302,7 +302,7 @@ public class JT1078Template {
     public Object getDeviceConfig(String devId, J8104 j8104, Integer timeOut) {
 
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8104)
                 .setRespId(H0104)
@@ -319,7 +319,7 @@ public class JT1078Template {
     public Object getDeviceSpecifyConfig(String devId, J8106 j8106, Integer timeOut) {
 
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8106)
                 .setRespId(H0104)
@@ -336,7 +336,7 @@ public class JT1078Template {
     public Object setDeviceSpecifyConfig(String devId, J8103 j8103, Integer timeOut) {
 
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8103)
                 .setRespId(H0001)
@@ -354,7 +354,7 @@ public class JT1078Template {
      */
     public Object deviceControl(String devId, J8105 j8105, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8105)
                 .setRespId(H0001)
@@ -368,7 +368,7 @@ public class JT1078Template {
      */
     public Object deviceAttribute(String devId, J8107 j8107, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8107)
                 .setRespId(H0107)
@@ -382,7 +382,7 @@ public class JT1078Template {
      */
     public Object queryPositionInfo(String devId, J8201 j8201, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8201)
                 .setRespId(H0201)
@@ -393,7 +393,7 @@ public class JT1078Template {
 
     public Object tempPositionTrackingControl(String devId, J8202 j8202, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8202)
                 .setRespId(H0001)
@@ -404,7 +404,7 @@ public class JT1078Template {
 
     public Object confirmationAlarmMessage(String devId, J8203 j8203, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8203)
                 .setRespId(H0001)
@@ -415,7 +415,7 @@ public class JT1078Template {
 
     public Object linkDetection(String devId, J8204 j8204, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8204)
                 .setRespId(H0001)
@@ -426,7 +426,7 @@ public class JT1078Template {
 
     public Object textMessage(String devId, J8300 j8300, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8300)
                 .setRespId(H0001)
@@ -437,7 +437,7 @@ public class JT1078Template {
 
     public Object telephoneCallback(String devId, J8400 j8400, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8400)
                 .setRespId(H0001)
@@ -448,7 +448,7 @@ public class JT1078Template {
 
     public Object setPhoneBook(String devId, J8401 j8401, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8401)
                 .setRespId(H0001)
@@ -459,7 +459,7 @@ public class JT1078Template {
 
     public Object vehicleControl(String devId, J8500 j8500, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8500)
                 .setRespId(H0500)
@@ -470,7 +470,7 @@ public class JT1078Template {
 
     public Object setAreaForCircle(String devId, J8600 j8600, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8600)
                 .setRespId(H0001)
@@ -481,7 +481,7 @@ public class JT1078Template {
 
     public Object deleteAreaForCircle(String devId, J8601 j8601, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8601)
                 .setRespId(H0001)
@@ -492,7 +492,7 @@ public class JT1078Template {
 
     public Object setAreaForRectangle(String devId, J8602 j8602, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8602)
                 .setRespId(H0001)
@@ -503,7 +503,7 @@ public class JT1078Template {
 
     public Object deleteAreaForRectangle(String devId, J8603 j8603, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8603)
                 .setRespId(H0001)
@@ -514,7 +514,7 @@ public class JT1078Template {
 
     public Object setAreaForPolygon(String devId, J8604 j8604, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8604)
                 .setRespId(H0001)
@@ -525,7 +525,7 @@ public class JT1078Template {
 
     public Object deleteAreaForPolygon(String devId, J8605 j8605, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8605)
                 .setRespId(H0001)
@@ -536,7 +536,7 @@ public class JT1078Template {
 
     public Object setRoute(String devId, J8606 j8606, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8606)
                 .setRespId(H0001)
@@ -547,7 +547,7 @@ public class JT1078Template {
 
     public Object deleteRoute(String devId, J8607 j8607, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8607)
                 .setRespId(H0001)
@@ -558,7 +558,7 @@ public class JT1078Template {
 
     public Object queryAreaOrRoute(String devId, J8608 j8608, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8608)
                 .setRespId(H0608)
@@ -569,7 +569,7 @@ public class JT1078Template {
 
     public Object queryDriverInformation(String devId, J8702 j8702, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8702)
                 .setRespId(H0702)
@@ -580,7 +580,7 @@ public class JT1078Template {
 
     public Object shooting(String devId, J8801 j8801, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8801)
                 .setRespId(H0805)
@@ -591,7 +591,7 @@ public class JT1078Template {
 
     public Object queryMediaData(String devId, J8802 j8802, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8802)
                 .setRespId(H0802)
@@ -602,7 +602,7 @@ public class JT1078Template {
 
     public Object uploadMediaData(String devId, J8803 j8803, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8803)
                 .setRespId(H0801)
@@ -613,7 +613,7 @@ public class JT1078Template {
 
     public Object record(String devId, J8804 j8804, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8804)
                 .setRespId(H0001)
@@ -624,7 +624,7 @@ public class JT1078Template {
 
     public Object uploadMediaDataForSingle(String devId, J8805 j8805, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H8805)
                 .setRespId(H0801)
@@ -635,7 +635,7 @@ public class JT1078Template {
 
     public Object queryMediaAttribute(String devId, J9003 j9003, int timeOut) {
         Cmd cmd = new Cmd.Builder()
-                .setDevId(devId)
+                .setPhoneNumber(devId)
                 .setPackageNo(randomInt())
                 .setMsgId(H9003)
                 .setRespId(H1003)

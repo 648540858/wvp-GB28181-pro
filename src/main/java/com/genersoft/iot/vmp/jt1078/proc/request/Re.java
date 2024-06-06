@@ -23,7 +23,7 @@ public abstract class Re {
     protected abstract Rs handler(Header header, Session session, Ijt1078Service service);
 
     public Rs decode(ByteBuf buf, Header header, Session session, Ijt1078Service service) {
-        if (session != null && !StringUtils.hasLength(session.getDevId())) {
+        if (session != null && !StringUtils.hasLength(session.getPhoneNumber())) {
             session.register(header.getPhoneNumber(), (int) header.getVersion(), header);
         }
         Rs rs = decode0(buf, header, session);

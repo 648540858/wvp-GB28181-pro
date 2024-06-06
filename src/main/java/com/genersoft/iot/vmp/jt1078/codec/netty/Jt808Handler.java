@@ -44,12 +44,12 @@ public class Jt808Handler extends ChannelInboundHandlerAdapter {
         Session session = SessionManager.INSTANCE.newSession(channel);
         channel.attr(Session.KEY).set(session);
         log.info("> Tcp connect {}", session);
-        if (session.getDevId() == null) {
+        if (session.getPhoneNumber() == null) {
             return;
         }
         ConnectChangeEvent event = new ConnectChangeEvent(this);
         event.setConnected(true);
-        event.setPhoneNumber(session.getDevId());
+        event.setPhoneNumber(session.getPhoneNumber());
         applicationEventPublisher.publishEvent(event);
     }
 
@@ -58,12 +58,12 @@ public class Jt808Handler extends ChannelInboundHandlerAdapter {
         Session session = ctx.channel().attr(Session.KEY).get();
         log.info("< Tcp disconnect {}", session);
         ctx.close();
-        if (session.getDevId() == null) {
+        if (session.getPhoneNumber() == null) {
             return;
         }
         ConnectChangeEvent event = new ConnectChangeEvent(this);
         event.setConnected(false);
-        event.setPhoneNumber(session.getDevId());
+        event.setPhoneNumber(session.getPhoneNumber());
         applicationEventPublisher.publishEvent(event);
 
     }

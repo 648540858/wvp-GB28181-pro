@@ -18,7 +18,7 @@ public interface JTChannelMapper {
             " <if test='query != null'> AND " +
             "jc.name LIKE concat('%',#{query},'%') " +
             "</if> " +
-            "ORDER BY jc.update_time " +
+            "ORDER BY jc.channel_id " +
             " </script>"})
     List<JTChannel> getAll(@Param("terminalId") int terminalId, @Param("query") String query);
 
@@ -28,7 +28,7 @@ public interface JTChannelMapper {
             "<if test=\"terminalId != null\">, terminal_id=#{terminalId}</if>" +
             "<if test=\"hasAudio != null\">, has_audio=#{hasAudio}</if>" +
             "<if test=\"name != null\">, name=#{name}</if>" +
-            "<if test=\"channelId != null\">, channelId=#{channelId}</if>" +
+            "<if test=\"channelId != null\">, channel_id=#{channelId}</if>" +
             "WHERE id=#{id}"+
             " </script>"})
     void update(JTChannel channel);

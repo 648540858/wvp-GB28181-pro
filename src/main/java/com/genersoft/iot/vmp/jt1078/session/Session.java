@@ -27,8 +27,8 @@ public class Session {
     // 是否注册成功
     private boolean registered = false;
 
-    // 设备ID
-    private String devId;
+    // 设备手机号
+    private String phoneNumber;
 
     // 创建时间
     private final long creationTime;
@@ -69,7 +69,7 @@ public class Session {
      * @param devId 设备ID
      */
     public void register(String devId, Integer version, Header header) {
-        this.devId = devId;
+        this.phoneNumber = devId;
         this.registered = true;
         this.protocolVersion = version;
         this.header = header;
@@ -81,8 +81,8 @@ public class Session {
      *
      * @return 设备号
      */
-    public String getDevId() {
-        return devId;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
 
@@ -105,7 +105,7 @@ public class Session {
     @Override
     public String toString() {
         return "[" +
-                "devId=" + devId +
+                "phoneNumber=" + phoneNumber +
                 ", reg=" + registered +
                 ", version=" + protocolVersion +
                 ",ip=" + channel.remoteAddress() +
@@ -114,6 +114,6 @@ public class Session {
 
     public void unregister() {
         channel.close();
-        SessionManager.INSTANCE.remove(this.devId);
+        SessionManager.INSTANCE.remove(this.phoneNumber);
     }
 }

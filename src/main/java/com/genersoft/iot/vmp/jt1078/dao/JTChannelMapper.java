@@ -26,6 +26,7 @@ public interface JTChannelMapper {
             "UPDATE wvp_jt_channel " +
             "SET update_time=#{updateTime}" +
             "<if test=\"terminalId != null\">, terminal_id=#{terminalId}</if>" +
+            "<if test=\"hasAudio != null\">, has_audio=#{hasAudio}</if>" +
             "<if test=\"name != null\">, name=#{name}</if>" +
             "<if test=\"channelId != null\">, channelId=#{channelId}</if>" +
             "WHERE id=#{id}"+
@@ -36,12 +37,14 @@ public interface JTChannelMapper {
             "terminal_id,"+
             "channel_id,"+
             "name,"+
+            "has_audio,"+
             "create_time,"+
             "update_time"+
             ") VALUES (" +
             "#{terminalId}," +
             "#{channelId}," +
             "#{name}," +
+            "#{hasAudio}," +
             "#{createTime}," +
             "#{updateTime}" +
             ")")

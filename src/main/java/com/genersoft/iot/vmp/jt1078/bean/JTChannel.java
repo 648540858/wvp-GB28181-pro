@@ -28,6 +28,12 @@ public class JTChannel {
     @Schema(description = "通道ID")
     private Integer channelId;
 
+    /**
+     * 是否含有音频
+     */
+    @Schema(description = "是否含有音频")
+    private Boolean hasAudio;
+
 
     @Schema(description = "创建时间")
     private String createTime;
@@ -83,6 +89,14 @@ public class JTChannel {
         this.channelId = channelId;
     }
 
+    public Boolean getHasAudio() {
+        return hasAudio;
+    }
+
+    public void setHasAudio(Boolean hasAudio) {
+        this.hasAudio = hasAudio;
+    }
+
     @Override
     public String toString() {
         return "JTChannel{" +
@@ -92,6 +106,7 @@ public class JTChannel {
                 ", channelId=" + channelId +
                 ", createTime='" + createTime + '\'' +
                 ", updateTime='" + updateTime + '\'' +
+                ", hasAudio='" + hasAudio + '\'' +
                 '}';
     }
 }

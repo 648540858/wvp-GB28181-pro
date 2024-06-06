@@ -359,7 +359,7 @@ export default {
     updateChannel: function (row) {
       this.$axios({
         method: 'post',
-        url: `/api/device/query/channel/update/${this.deviceId}`,
+        url: `/api/jt1078/terminal/channel/update`,
         params: row
       }).then(function (res) {
         console.log(JSON.stringify(res));
@@ -414,7 +414,6 @@ export default {
           type: "success",
         });
         setTimeout(this.getList, 200)
-
       })
     },
     treeNodeClickEvent: function (device, data, isCatalog) {

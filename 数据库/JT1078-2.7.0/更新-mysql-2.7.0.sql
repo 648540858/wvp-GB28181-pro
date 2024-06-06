@@ -24,6 +24,7 @@ create table wvp_jt_channel (
                                id serial primary key,
                                terminal_id integer,
                                channel_id integer,
+                               has_audio bool default false,
                                name character varying(255),
                                update_time character varying(50) not null,
                                create_time character varying(50) not null

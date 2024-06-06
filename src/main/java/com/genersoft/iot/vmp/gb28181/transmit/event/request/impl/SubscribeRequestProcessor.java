@@ -147,7 +147,9 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 				subscribeHolder.removeMobilePositionSubscribe(platformId);
 			}else {
 				subscribeInfo.setResponse(response);
-				subscribeHolder.putMobilePositionSubscribe(platformId, subscribeInfo);
+				subscribeHolder.putMobilePositionSubscribe(platformId, subscribeInfo, ()->{
+					platformService.sendNotifyMobilePosition(platformId);
+				});
 			}
 
 		} catch (SipException | InvalidArgumentException | ParseException e) {

@@ -24,9 +24,6 @@ public class SubscribeHolder {
     @Autowired
     private UserSetting userSetting;
 
-    @Autowired
-    private IPlatformService platformService;
-
     private final String taskOverduePrefix = "subscribe_overdue_";
 
     private static ConcurrentHashMap<String, SubscribeInfo> catalogMap = new ConcurrentHashMap<>();
@@ -61,13 +58,11 @@ public class SubscribeHolder {
         dynamicTask.stop(taskOverdueKey);
     }
 
-    public void putMobilePositionSubscribe(String platformId, SubscribeInfo subscribeInfo) {
+    public void putMobilePositionSubscribe(String platformId, SubscribeInfo subscribeInfo, Runnable gpsTask) {
         mobilePositionMap.put(platformId, subscribeInfo);
         String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetting.getServerId() + "MobilePosition_" + platformId;
         // 添加任务处理GPS定时推送
-        dynamicTask.startCron(key, ()->{
-                    platformService.sendNotifyMobilePosition(platformId);
-                },
+        dynamicTask.startCron(key, gpsTask,
                 subscribeInfo.getGpsInterval() * 1000);
         String taskOverdueKey = taskOverduePrefix +  "MobilePosition_" + platformId;
         if (subscribeInfo.getExpires() > 0) {

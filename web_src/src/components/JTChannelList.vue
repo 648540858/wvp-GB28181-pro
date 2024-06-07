@@ -129,15 +129,11 @@ export default {
       deviceService: new JTDeviceService(),
       device: null,
       deviceId: this.$route.params.deviceId,
-      parentChannelId: this.$route.params.parentChannelId,
       deviceChannelList: [],
-      videoComponentList: [],
-      currentPlayerInfo: {}, //当前播放对象
       updateLooper: 0, //数据刷新轮训标志
       searchSrt: "",
       channelType: "",
       online: "",
-      subStream: "",
       winHeight: window.innerHeight - 200,
       currentPage: 1,
       count: 15,
@@ -145,26 +141,11 @@ export default {
       beforeUrl: "/jtDeviceList",
       isLoging: false,
       loadSnap: {},
-      ptzTypes: {
-        0: "未知",
-        1: "球机",
-        2: "半球",
-        3: "固定枪机",
-        4: "遥控枪机"
-      }
     };
   },
 
   mounted() {
-    if (this.deviceId) {
-      this.deviceService.getDevice(this.deviceId, (result) => {
-        this.device = result;
-
-      }, (error) => {
-        console.log("获取设备信息失败")
-        console.error(error)
-      })
-    }
+    this.initParam();
     this.initData();
 
   },
@@ -178,13 +159,15 @@ export default {
     },
     initParam: function () {
       this.deviceId = this.$route.params.deviceId;
-      this.parentChannelId = this.$route.params.parentChannelId;
       this.currentPage = 1;
       this.count = 15;
-      if (this.parentChannelId == "" || this.parentChannelId == 0) {
-        this.beforeUrl = "/deviceList"
-      }
+      this.deviceService.getDevice(this.deviceId, (result) => {
+        this.device = result;
 
+      }, (error) => {
+        console.log("获取设备信息失败")
+        console.error(error)
+      })
     },
     currentChange: function (val) {
       this.currentPage = val;
@@ -195,30 +178,17 @@ export default {
       this.getDeviceChannelList();
     },
     getDeviceChannelList: function () {
-      let that = this;
-      if (typeof (this.$route.params.deviceId) == "undefined") return;
-      this.$axios({
-        method: 'get',
-        url: `/api/jt1078/terminal/channel/list`,
-        params: {
-          page: that.currentPage,
-          count: that.count,
-          query: that.searchSrt,
-          deviceId: this.$route.params.deviceId,
-        }
-      }).then(function (res) {
-        if (res.data.code === 0) {
-          that.total = res.data.data.total;
-          that.deviceChannelList = res.data.data.list;
+      if (typeof (this.deviceId) == "undefined") return;
+      this.deviceService.getAllChannel(this.currentPage, this.count, this.searchSrt, this.deviceId, (data)=>{
+        if (data.code === 0) {
+          this.total = data.data.total;
+          this.deviceChannelList = data.data.list;
           // 防止出现表格错位
-          that.$nextTick(() => {
-            that.$refs.channelListTable.doLayout();
+          this.$nextTick(() => {
+            this.$refs.channelListTable.doLayout();
           })
         }
-
-      }).catch(function (error) {
-        console.log(error);
-      });
+      })
     },
 
     //通知设备上传媒体流
@@ -230,9 +200,9 @@ export default {
       let that = this;
       this.$axios({
         method: 'get',
-        url: '/api/jt1078/live/start' + deviceId + '/' + channelId,
+        url: '/api/jt1078/live/start',
         params: {
-          phoneNumber: deviceId,
+          phoneNumber: this.device.phoneNumber,
           channelId: channelId,
           type: 0,
         }

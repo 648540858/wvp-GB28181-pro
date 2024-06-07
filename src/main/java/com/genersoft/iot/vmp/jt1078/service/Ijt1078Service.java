@@ -125,4 +125,7 @@ public interface Ijt1078Service {
     void addChannel(JTChannel channel);
 
     void deleteChannelById(Integer id);
+
+    JTDevice getDeviceById(Integer deviceId);
+
 }

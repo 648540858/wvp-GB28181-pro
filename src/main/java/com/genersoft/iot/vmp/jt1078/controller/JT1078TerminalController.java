@@ -68,6 +68,12 @@ public class JT1078TerminalController {
         assert phoneNumber != null;
         service.deleteDeviceByPhoneNumber(phoneNumber);
     }
+    @Operation(summary = "查询设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
+    @GetMapping("/query")
+    public JTDevice getDevice(Integer deviceId){
+        return service.getDeviceById(deviceId);
+    }
 
 
     @Operation(summary = "1078-查询部标通道", security = @SecurityRequirement(name = JwtUtils.HEADER))

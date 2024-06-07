@@ -1033,4 +1033,9 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     public void deleteChannelById(Integer id) {
         jtChannelMapper.delete(id);
     }
+
+    @Override
+    public JTDevice getDeviceById(Integer deviceId) {
+        return jtDeviceMapper.getDeviceById(deviceId);
+    }
 }

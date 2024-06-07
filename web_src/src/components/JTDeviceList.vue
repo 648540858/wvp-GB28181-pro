@@ -10,20 +10,21 @@
       </div>
     </div>
     <!--设备列表-->
-    <el-table :data="deviceList" style="width: 100%;font-size: 12px;" :height="winHeight" header-row-class-name="table-header">
+    <el-table :data="deviceList" style="width: 100%;font-size: 12px;" :height="winHeight"
+              header-row-class-name="table-header">
       <el-table-column prop="phoneNumber" label="终端手机号" min-width="160">
       </el-table-column>
-      <el-table-column prop="terminalId" label="终端ID" min-width="160" >
+      <el-table-column prop="terminalId" label="终端ID" min-width="160">
       </el-table-column>
       <el-table-column prop="provinceText" label="省域" min-width="160">
       </el-table-column>
-      <el-table-column prop="cityText" label="市县域" min-width="160" >
+      <el-table-column prop="cityText" label="市县域" min-width="160">
       </el-table-column>
-      <el-table-column prop="makerId" label="制造商" min-width="160" >
+      <el-table-column prop="makerId" label="制造商" min-width="160">
       </el-table-column>
-      <el-table-column prop="model" label="型号" min-width="160" >
+      <el-table-column prop="model" label="型号" min-width="160">
       </el-table-column>
-      <el-table-column  label="车牌颜色" min-width="160" >
+      <el-table-column label="车牌颜色" min-width="160">
         <template slot-scope="scope">
           <div slot="reference" class="name-wrapper">
             <span v-if="scope.row.plateColor === 1">蓝色</span>
@@ -35,13 +36,13 @@
             <span v-else-if="scope.row.plateColor === 92">农绿色</span>
             <span v-else-if="scope.row.plateColor === 93">黄绿色</span>
             <span v-else-if="scope.row.plateColor === 94">渐变绿</span>
-            <span v-else >未上牌</span>
+            <span v-else>未上牌</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="plateNo" label="车牌" min-width="160" >
+      <el-table-column prop="plateNo" label="车牌" min-width="160">
       </el-table-column>
-      <el-table-column prop="registerTime" label="注册时间" min-width="160" >
+      <el-table-column prop="registerTime" label="注册时间" min-width="160">
       </el-table-column>
       <el-table-column label="状态" min-width="160">
         <template slot-scope="scope">
@@ -51,7 +52,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="操作" min-width="450" fixed="right">
+      <el-table-column label="操作" min-width="280" fixed="right">
         <template slot-scope="scope">
           <el-divider direction="vertical"></el-divider>
           <el-button type="text" size="medium" icon="el-icon-video-camera"
@@ -60,7 +61,9 @@
           <el-divider direction="vertical"></el-divider>
           <el-button size="medium" icon="el-icon-edit" type="text" @click="edit(scope.row)">编辑</el-button>
           <el-divider direction="vertical"></el-divider>
-          <el-button size="medium" icon="el-icon-delete" type="text" @click="deleteDevice(scope.row)" style="color: #f56c6c">删除</el-button>
+          <el-button size="medium" icon="el-icon-delete" type="text" @click="deleteDevice(scope.row)"
+                     style="color: #f56c6c">删除
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -83,6 +86,7 @@
 import uiHeader from '../layout/UiHeader.vue'
 import deviceEdit from './dialog/jtDeviceEdit.vue'
 import syncChannelProgress from './dialog/SyncChannelProgress.vue'
+import JTDeviceService from "./service/JTDeviceService";
 
 export default {
   name: 'app',
@@ -93,31 +97,15 @@ export default {
   },
   data() {
     return {
+      deviceService: new JTDeviceService(),
       deviceList: [], //设备列表
-      currentDevice: {}, //当前操作设备对象
-
-      videoComponentList: [],
       updateLooper: 0, //数据刷新轮训标志
-      currentDeviceChannelsLenth: 0,
       winHeight: window.innerHeight - 200,
       currentPage: 1,
       count: 15,
       total: 0,
       getListLoading: false,
     };
-  },
-  computed: {
-    getcurrentDeviceChannels: function () {
-      let data = this.currentDevice['channelMap'];
-      let channels = null;
-      if (data) {
-        channels = Object.keys(data).map(key => {
-          return data[key];
-        });
-        this.currentDeviceChannelsLenth = channels.length;
-      }
-      return channels;
-    }
   },
   mounted() {
     this.initData();
@@ -141,23 +129,16 @@ export default {
     },
     getList: function () {
       this.getListLoading = true;
-      this.$axios({
-        method: 'get',
-        url: `/api/jt1078/terminal/list`,
-        params: {
-          page: this.currentPage,
-          count: this.count
+      this.deviceService.getDeviceList(this.currentPage, this.count, (data) => {
+          if (data.code === 0) {
+            this.total = data.data.total;
+            this.deviceList = data.data.list;
+          }
+          this.getListLoading = false;
+        }, () => {
+          this.getListLoading = false;
         }
-      }).then( (res)=> {
-        if (res.data.code === 0) {
-          this.total = res.data.data.total;
-          this.deviceList = res.data.data.list;
-        }
-        this.getListLoading = false;
-      }).catch( (error)=> {
-        console.error(error);
-        this.getListLoading = false;
-      });
+      )
     },
     deleteDevice: function (row) {
       this.$confirm("确定删除此设备？", '提示', {
@@ -167,17 +148,9 @@ export default {
         center: true,
         type: 'warning'
       }).then(() => {
-        this.$axios({
-          method: 'delete',
-          url: '/api/jt1078/terminal/delete',
-          params: {
-            deviceId: row.deviceId
-          }
-        }).then((res) => {
+        this.deviceService.deleteDevice(row.id, (data) => {
           this.getList();
-        }).catch((error) => {
-          console.error(error);
-        });
+        })
       }).catch(() => {
 
       });

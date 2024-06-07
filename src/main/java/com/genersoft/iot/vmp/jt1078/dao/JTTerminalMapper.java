@@ -99,4 +99,8 @@ public interface JTTerminalMapper {
             "WHERE phone_number=#{phoneNumber}"+
             " </script>"})
     void updateDeviceStatus(@Param("connected") boolean connected, @Param("phoneNumber") String phoneNumber);
+
+    @Select("SELECT * FROM wvp_jt_terminal where id=#{deviceId}")
+    JTDevice getDeviceById(@Param("deviceId") Integer deviceId);
+
 }

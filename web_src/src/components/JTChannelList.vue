@@ -57,16 +57,6 @@
               </el-button>
               <el-divider direction="vertical"></el-divider>
               <el-button
-                v-if="scope.row.edit"
-                size="medium"
-                type="text"
-                icon="el-icon-edit-outline"
-                @click="handleSave(scope.row)"
-              >
-                保存
-              </el-button>
-              <el-button
-                v-else
                 size="medium"
                 type="text"
                 icon="el-icon-edit"
@@ -122,9 +112,9 @@
 <script>
 import devicePlayer from './dialog/devicePlayer.vue'
 import uiHeader from '../layout/UiHeader.vue'
-import DeviceService from "./service/DeviceService";
 import DeviceTree from "./common/DeviceTree";
 import channelEdit from "./dialog/jtChannelEdit.vue";
+import JTDeviceService from "./service/JTDeviceService";
 
 export default {
   name: 'channelList',
@@ -136,7 +126,7 @@ export default {
   },
   data() {
     return {
-      deviceService: new DeviceService(),
+      deviceService: new JTDeviceService(),
       device: null,
       deviceId: this.$route.params.deviceId,
       parentChannelId: this.$route.params.parentChannelId,
@@ -240,9 +230,11 @@ export default {
       let that = this;
       this.$axios({
         method: 'get',
-        url: '/api/play/start/' + deviceId + '/' + channelId,
+        url: '/api/jt1078/live/start' + deviceId + '/' + channelId,
         params: {
-          isSubStream: this.isSubStream
+          phoneNumber: deviceId,
+          channelId: channelId,
+          type: 0,
         }
       }).then(function (res) {
         console.log(res)

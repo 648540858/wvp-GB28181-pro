@@ -166,7 +166,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             // 清理数据
             redisTemplate.delete(playKey);
         }
-        String stream = phoneNumber + "_" + channelId;
+        String stream = "jt_play_" + phoneNumber + "_" + channelId;
         MediaServer mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
         if (mediaServer == null) {
             for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {

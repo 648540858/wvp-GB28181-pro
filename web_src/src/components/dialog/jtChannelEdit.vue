@@ -69,7 +69,7 @@ export default {
         method: 'post',
         url:`/api/jt1078/terminal/channel/${this.isEdit?'update':'add'}/`,
         params: {
-          terminalId: this.deviceId,
+          terminalDbId: this.deviceId,
           name: this.form.name,
           channelId: this.form.channelId,
         }

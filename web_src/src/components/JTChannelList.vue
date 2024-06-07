@@ -52,7 +52,7 @@
               </el-button>
               <el-button size="medium" v-bind:disabled="device == null || device.online === 0"
                          icon="el-icon-switch-button"
-                         type="text" style="color: #f56c6c" v-if="!!scope.row.streamId"
+                         type="text" style="color: #f56c6c" v-if="!!scope.row.stream"
                          @click="stopDevicePush(scope.row)">停止
               </el-button>
               <el-divider direction="vertical"></el-divider>
@@ -162,8 +162,9 @@ export default {
       this.currentPage = 1;
       this.count = 15;
       this.deviceService.getDevice(this.deviceId, (result) => {
-        this.device = result;
-
+        if (result.code === 0) {
+          this.device = result.data;
+        }
       }, (error) => {
         console.log("获取设备信息失败")
         console.error(error)
@@ -180,6 +181,7 @@ export default {
     getDeviceChannelList: function () {
       if (typeof (this.deviceId) == "undefined") return;
       this.deviceService.getAllChannel(this.currentPage, this.count, this.searchSrt, this.deviceId, (data)=>{
+        console.log(data)
         if (data.code === 0) {
           this.total = data.data.total;
           this.deviceChannelList = data.data.list;
@@ -197,6 +199,7 @@ export default {
       this.isLoging = true;
       let channelId = itemData.channelId;
       console.log("通知设备推流1：" + deviceId + " : " + channelId);
+      console.log(this.device);
       let that = this;
       this.$axios({
         method: 'get',

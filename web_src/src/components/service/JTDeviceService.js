@@ -30,6 +30,8 @@ class JTDeviceService{
         deviceId: deviceId
       },
     }).then((res) => {
+      console.log(11)
+      console.log(res)
       if (typeof (callback) == "function") callback(res.data)
     }).catch((error) => {
       console.log(error);
@@ -53,7 +55,7 @@ class JTDeviceService{
 
 
 
-  getAllChannel(currentPage, count, searchSrt, deviceId, callback, endCallback, errorCallback) {
+  getAllChannel(currentPage, count, searchSrt, deviceId, endCallback, errorCallback) {
     this.$axios({
       method: 'get',
       url: `/api/jt1078/terminal/channel/list`,

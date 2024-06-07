@@ -338,13 +338,13 @@ create table wvp_jt_terminal (
 );
 create table wvp_jt_channel (
                                 id serial primary key,
+                                terminal_db_id integer,
                                 channel_id integer,
-                                terminal_id integer,
                                 has_audio bool default false,
                                 name character varying(255),
                                 update_time character varying(50) not null,
                                 create_time character varying(50) not null,
-                                constraint uk_jt_device_id_device_id unique (id, terminal_id)
+                                constraint uk_jt_device_id_device_id unique (terminal_db_id, channel_id)
 );
 
 /*初始数据*/

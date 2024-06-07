@@ -20,7 +20,7 @@ public class JTChannel {
      * 设备的数据库ID
      */
     @Schema(description = "设备的数据库ID")
-    private int terminalId;
+    private int terminalDbId;
 
     /**
      * 通道ID
@@ -41,6 +41,9 @@ public class JTChannel {
     @Schema(description = "更新时间")
     private String updateTime;
 
+    @Schema(description = "流信息")
+    private String stream;
+
     public int getId() {
         return id;
     }
@@ -57,12 +60,12 @@ public class JTChannel {
         this.name = name;
     }
 
-    public int getTerminalId() {
-        return terminalId;
+    public int getTerminalDbId() {
+        return terminalDbId;
     }
 
-    public void setTerminalId(int terminalId) {
-        this.terminalId = terminalId;
+    public void setTerminalDbId(int terminalDbId) {
+        this.terminalDbId = terminalDbId;
     }
 
     public String getCreateTime() {
@@ -97,12 +100,20 @@ public class JTChannel {
         this.hasAudio = hasAudio;
     }
 
+    public String getStream() {
+        return stream;
+    }
+
+    public void setStream(String stream) {
+        this.stream = stream;
+    }
+
     @Override
     public String toString() {
         return "JTChannel{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", terminalId=" + terminalId +
+                ", terminalDbId=" + terminalDbId +
                 ", channelId=" + channelId +
                 ", createTime='" + createTime + '\'' +
                 ", updateTime='" + updateTime + '\'' +

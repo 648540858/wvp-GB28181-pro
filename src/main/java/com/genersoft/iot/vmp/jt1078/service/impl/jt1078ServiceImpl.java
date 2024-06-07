@@ -19,6 +19,7 @@ import com.genersoft.iot.vmp.jt1078.event.FtpUploadEvent;
 import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
 import com.genersoft.iot.vmp.jt1078.proc.response.*;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
+import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
@@ -136,7 +137,13 @@ public class jt1078ServiceImpl implements Ijt1078Service {
 
     @Override
     public void play(String phoneNumber, String channelId, int type, GeneralCallback<StreamInfo> callback) {
-
+        JTDevice device = getDevice(phoneNumber);
+        if (device == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备不存在");
+        }
+        if (SessionManager.INSTANCE.get(phoneNumber) == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备离线");
+        }
         // 检查流是否已经存在，存在则返回
         String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + phoneNumber + ":" + channelId;
         List<GeneralCallback<StreamInfo>> errorCallbacks = inviteErrorCallbackMap.computeIfAbsent(playKey, k -> new ArrayList<>());
@@ -149,14 +156,11 @@ public class jt1078ServiceImpl implements Ijt1078Service {
                 // 查询流是否存在，不存在则删除缓存数据
                 JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(mediaServer, "rtp", "rtsp", streamInfo.getStream());
                 if (mediaInfo != null && mediaInfo.getInteger("code") == 0) {
-                    Boolean online = mediaInfo.getBoolean("online");
-                    if (online != null && online) {
-                        logger.info("[1078-点播] 点播已经存在，直接返回， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
-                        for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
-                            errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
-                        }
-                        return;
+                    logger.info("[1078-点播] 点播已经存在，直接返回， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
+                    for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
+                        errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
                     }
+                    return;
                 }
             }
             // 清理数据
@@ -174,7 +178,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         Hook hook = Hook.getInstance(HookType.on_media_arrival, "rtp", stream, mediaServer.getId());
         subscribe.addSubscribe(hook, (hookData) -> {
             dynamicTask.stop(playKey);
-            logger.info("[1078-点播] 点播成功， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
+            logger.info("[1078-点播] 点播成功， 手机号： {}， 通道： {}", phoneNumber, channelId);
             // TODO 发送9105 实时音视频传输状态通知， 通知丢包率
             StreamInfo info = onPublishHandler(mediaServer, hookData, phoneNumber, channelId);
 
@@ -184,6 +188,8 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             subscribe.removeSubscribe(hook);
             redisTemplate.opsForValue().set(playKey, info);
         });
+        // 开启收流端口
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServer, stream, "000", false, false, 0, false, false, false, 1);
         // 设置超时监听
         dynamicTask.startDelay(playKey, () -> {
             logger.info("[1078-点播] 超时， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
@@ -191,11 +197,10 @@ public class jt1078ServiceImpl implements Ijt1078Service {
                 errorCallback.run(InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode(),
                         InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getMsg(), null);
             }
-
+            mediaServerService.closeRTPServer(mediaServer, stream);
+            subscribe.removeSubscribe(hook);
         }, userSetting.getPlayTimeout());
 
-        // 开启收流端口
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServer, stream, null, false, false, 0, false, false, false, 1);
         logger.info("[1078-点播] phoneNumber： {}， channelId： {}， 端口： {}", phoneNumber, channelId, ssrcInfo.getPort());
         J9101 j9101 = new J9101();
         j9101.setChannel(Integer.valueOf(channelId));
@@ -204,9 +209,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j9101.setTcpPort(ssrcInfo.getPort());
         j9101.setUdpPort(ssrcInfo.getPort());
         j9101.setType(type);
-        Object s = jt1078Template.startLive(phoneNumber, j9101, 6);
-        System.out.println("ssss=== " + s);
-
+        jt1078Template.startLive(phoneNumber, j9101, 6);
     }
 
     public StreamInfo onPublishHandler(MediaServer mediaServerItem, HookData hookData, String phoneNumber, String channelId) {
@@ -1011,8 +1014,21 @@ public class jt1078ServiceImpl implements Ijt1078Service {
 
     @Override
     public PageInfo<JTChannel> getChannelList(int page, int count, int deviceId, String query) {
+
+        JTDevice device = getDeviceById(deviceId);
+        if (device == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备不存在");
+        }
         PageHelper.startPage(page, count);
         List<JTChannel> all = jtChannelMapper.getAll(deviceId, query);
+        PageInfo<JTChannel> jtChannelPageInfo = new PageInfo<>(all);
+        for (JTChannel jtChannel : jtChannelPageInfo.getList()) {
+            String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + device.getPhoneNumber() + ":" + jtChannel.getChannelId();
+            StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
+            if (streamInfo != null) {
+                jtChannel.setStream(streamInfo.getStream());
+            }
+        }
         return new PageInfo<>(all);
     }
 
@@ -1024,6 +1040,10 @@ public class jt1078ServiceImpl implements Ijt1078Service {
 
     @Override
     public void addChannel(JTChannel channel) {
+        JTChannel channelInDb = jtChannelMapper.getChannel(channel.getTerminalDbId(), channel.getChannelId());
+        if (channelInDb != null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "通道已存在");
+        }
         channel.setCreateTime(DateUtil.getNow());
         channel.setUpdateTime(DateUtil.getNow());
         jtChannelMapper.add(channel);

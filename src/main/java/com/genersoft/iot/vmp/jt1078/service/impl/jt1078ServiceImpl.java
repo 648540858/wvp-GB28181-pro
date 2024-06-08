@@ -193,6 +193,18 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             }
             subscribe.removeSubscribe(hook);
             redisTemplate.opsForValue().set(playKey, info);
+            // 截图
+            String streamUrl;
+            if (mediaServer.getRtspPort() != 0) {
+                streamUrl = String.format("rtsp://127.0.0.1:%s/%s/%s", mediaServer.getRtspPort(), "rtp", stream);
+            } else {
+                streamUrl = String.format("http://127.0.0.1:%s/%s/%s.live.mp4", mediaServer.getHttpPort(), "rtp", stream);
+            }
+            String path = "snap";
+            String fileName = phoneNumber + "_" + channelId + ".jpg";
+            // 请求截图
+            logger.info("[请求截图]: " + fileName);
+            mediaServerService.getSnap(mediaServer, streamUrl, 15, 1, path, fileName);
         });
         // 开启收流端口
         SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServer, stream, "000", false, false, 0, false, !channel.getHasAudio(), false, 1);

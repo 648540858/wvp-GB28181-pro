@@ -195,12 +195,10 @@ export default {
 
     //通知设备上传媒体流
     sendDevicePush: function (itemData) {
-      let deviceId = this.deviceId;
       this.isLoging = true;
       let channelId = itemData.channelId;
-      console.log("通知设备推流1：" + deviceId + " : " + channelId);
+      console.log("通知设备推流1：" + this.device.phoneNumber + " : " + channelId);
       console.log(this.device);
-      let that = this;
       this.$axios({
         method: 'get',
         url: '/api/jt1078/live/start',
@@ -209,32 +207,32 @@ export default {
           channelId: channelId,
           type: 0,
         }
-      }).then(function (res) {
+      }).then((res)=> {
         console.log(res)
-        that.isLoging = false;
+        this.isLoging = false;
         if (res.data.code === 0) {
 
           setTimeout(() => {
 
-            let snapId = deviceId + "_" + channelId;
-            that.loadSnap[deviceId + channelId] = 0;
-            that.getSnapErrorEvent(snapId)
+            let snapId = this.device.phoneNumber + "_" + channelId;
+            this.loadSnap[this.device.phoneNumber + channelId] = 0;
+            this.getSnapErrorEvent(snapId)
           }, 5000)
           itemData.streamId = res.data.data.stream;
-          that.$refs.devicePlayer.openDialog("media", deviceId, channelId, {
+          this.$refs.devicePlayer.openDialog("media", this.device.phoneNumber, channelId, {
             streamInfo: res.data.data,
             hasAudio: itemData.hasAudio
           });
           setTimeout(() => {
-            that.initData();
+            this.initData();
           }, 1000)
 
         } else {
-          that.$message.error(res.data.msg);
+          this.$message.error(res.data.msg);
         }
       }).catch(function (e) {
         console.error(e)
-        that.isLoging = false;
+        this.isLoging = false;
         // that.$message.error("请求超时");
       });
     },
@@ -278,7 +276,7 @@ export default {
     },
     getSnap: function (row) {
       let baseUrl = window.baseUrl ? window.baseUrl : "";
-      return ((process.env.NODE_ENV === 'development') ? process.env.BASE_API : baseUrl) + '/api/device/query/snap/' + row.deviceId + '/' + row.channelId;
+      return ((process.env.NODE_ENV === 'development') ? process.env.BASE_API : baseUrl) + '/api/device/query/snap/' + this.device.phoneNumber + '/' + row.channelId;
     },
     getBigSnap: function (row) {
       return [this.getSnap(row)]
@@ -327,43 +325,6 @@ export default {
         method: 'post',
         url: `/api/jt1078/terminal/channel/update`,
         params: row
-      }).then(function (res) {
-        console.log(JSON.stringify(res));
-      });
-    },
-    subStreamChange: function () {
-      this.$confirm('确定重置所有通道的码流类型?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.$axios({
-          method: 'post',
-          url: `/api/device/query/channel/stream/identification/update/`,
-          params: {
-            deviceId: this.deviceId,
-            streamIdentification: this.subStream
-          }
-        }).then((res)=> {
-          console.log(JSON.stringify(res));
-          this.initData()
-        }).finally(()=>{
-          this.subStream = ""
-        })
-      }).catch(() => {
-        this.subStream = ""
-      });
-
-    },
-    channelSubStreamChange: function (row) {
-      this.$axios({
-        method: 'post',
-        url: `/api/device/query/channel/stream/identification/update/`,
-        params: {
-          deviceId: this.deviceId,
-          channelId: row.channelId,
-          streamIdentification: row.streamIdentification
-        }
       }).then(function (res) {
         console.log(JSON.stringify(res));
       });

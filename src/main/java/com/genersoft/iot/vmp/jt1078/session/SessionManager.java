@@ -59,6 +59,7 @@ public enum SessionManager {
      */
     protected void put(Object clientId, Session newSession) {
         sessionMap.put(clientId, newSession);
+        System.out.println(sessionMap.size());
     }
 
 

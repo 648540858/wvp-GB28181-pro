@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.jt1078.event.ConnectChangeEvent;
 import com.genersoft.iot.vmp.jt1078.event.RegisterEvent;
 import com.genersoft.iot.vmp.jt1078.proc.request.J0003;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
+import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,9 @@ public class ConnectChangeEventListener implements ApplicationListener<ConnectCh
             log.info("[JT-设备已连接] 终端ID： {}", event.getPhoneNumber());
         }else{
             log.info("[JT-设备连接已断开] 终端ID： {}", event.getPhoneNumber());
+            if(SessionManager.INSTANCE.get(event.getPhoneNumber()) != null) {
+                SessionManager.INSTANCE.get(event.getPhoneNumber()).unregister();
+            }
         }
         JTDevice device = service.getDevice(event.getPhoneNumber());
         if (device != null) {

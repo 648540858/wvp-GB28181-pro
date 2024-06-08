@@ -141,9 +141,6 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         if (device == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备不存在");
         }
-        if (SessionManager.INSTANCE.get(phoneNumber) == null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备离线");
-        }
         // 检查流是否已经存在，存在则返回
         String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + phoneNumber + ":" + channelId;
         List<GeneralCallback<StreamInfo>> errorCallbacks = inviteErrorCallbackMap.computeIfAbsent(playKey, k -> new ArrayList<>());
@@ -236,6 +233,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         if (streamInfo != null) {
             // 关闭rtpServer
             mediaServerService.closeRTPServer(streamInfo.getMediaServerId(), streamInfo.getStream());
+            redisTemplate.delete(playKey);
         }
         // 清理回调
         List<GeneralCallback<StreamInfo>> generalCallbacks = inviteErrorCallbackMap.get(playKey);

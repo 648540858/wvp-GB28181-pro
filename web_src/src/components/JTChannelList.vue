@@ -261,9 +261,10 @@ export default {
       var that = this;
       this.$axios({
         method: 'get',
-        url: '/api/play/stop/' + this.deviceId + "/" + itemData.channelId,
+        url: '/api/jt1078/live/stop',
         params: {
-          isSubStream: this.isSubStream
+          phoneNumber: this.device.phoneNumber,
+          channelId: itemData.channelId,
         }
       }).then(function (res) {
         that.initData();

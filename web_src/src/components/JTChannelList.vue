@@ -98,7 +98,7 @@
 </template>
 
 <script>
-import devicePlayer from './dialog/devicePlayer.vue'
+import devicePlayer from './dialog/jtDevicePlayer.vue'
 import uiHeader from '../layout/UiHeader.vue'
 import DeviceTree from "./common/DeviceTree";
 import channelEdit from "./dialog/jtChannelEdit.vue";

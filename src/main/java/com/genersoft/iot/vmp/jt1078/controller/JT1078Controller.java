@@ -408,7 +408,7 @@ public class JT1078Controller {
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "command", description = "控制指令,允许值: left, right, up, down, zoomin, zoomout, irisin, irisout, focusnear, focusfar, stop", required = true)
     @Parameter(name = "speed", description = "速度(0-255)， command,值 left, right, up, down时有效", required = true)
-    @PostMapping("/ptz")
+    @GetMapping("/ptz")
     public void ptz(String phoneNumber, Integer channelId, String command, int speed){
 
         logger.info("[1078-云台控制] phoneNumber：{}, channelId：{}, command: {}, speed: {}", phoneNumber, channelId, command, speed);
@@ -419,7 +419,7 @@ public class JT1078Controller {
     @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "command", description = "控制指令,允许值: on off", required = true)
-    @PostMapping("/fill-light")
+    @GetMapping("/fill-light")
     public void fillLight(String phoneNumber, Integer channelId, String command){
 
         logger.info("[1078-补光灯开关] phoneNumber：{}, channelId：{}, command: {}", phoneNumber, channelId, command);
@@ -430,7 +430,7 @@ public class JT1078Controller {
     @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "command", description = "控制指令,允许值: on off", required = true)
-    @PostMapping("/wiper")
+    @GetMapping("/wiper")
     public void wiper(String phoneNumber, Integer channelId, String command){
 
         logger.info("[1078-雨刷开关] phoneNumber：{}, channelId：{}, command: {}", phoneNumber, channelId, command);

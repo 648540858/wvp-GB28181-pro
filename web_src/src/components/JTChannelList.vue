@@ -65,18 +65,6 @@
                 编辑
               </el-button>
               <el-divider direction="vertical"></el-divider>
-              <el-button size="medium" icon="el-icon-s-open" type="text"
-                         v-if="scope.row.subCount > 0 || scope.row.parental === 1"
-                         @click="changeSubchannel(scope.row)">查看
-              </el-button>
-              <el-divider v-if="scope.row.subCount > 0 || scope.row.parental === 1" direction="vertical"></el-divider>
-              <!--              <el-button size="medium" v-bind:disabled="device == null || device.online === 0"-->
-              <!--                         icon="el-icon-video-camera"-->
-              <!--                         type="text" @click="queryRecords(scope.row)">设备录像-->
-              <!--              </el-button>-->
-              <!--              <el-button size="medium" v-bind:disabled="device == null || device.online === 0" icon="el-icon-cloudy"-->
-              <!--                         type="text" @click="queryCloudRecords(scope.row)">云端录像-->
-              <!--              </el-button>-->
               <el-dropdown @command="(command)=>{moreClick(command, scope.row)}">
                 <el-button size="medium" type="text" >
                   更多功能<i class="el-icon-arrow-down el-icon--right"></i>
@@ -230,7 +218,7 @@ export default {
         } else {
           this.$message.error(res.data.msg);
         }
-      }).catch(function (e) {
+      }).catch((e)=> {
         console.error(e)
         this.isLoging = false;
         // that.$message.error("请求超时");
@@ -405,11 +393,15 @@ export default {
     },
     // 编辑
     handleEdit(row) {
-      if (this.isEdit()) {
-        this.$message.warning('请保存当前编辑项！');
-      } else {
-        row.edit = true;
-      }
+      this.$refs.channelEdit.openDialog(row, this.deviceId, () => {
+        this.$refs.channelEdit.close();
+        this.$message({
+          showClose: true,
+          message: "修改成功",
+          type: "success",
+        });
+        setTimeout(this.getList, 200)
+      })
     }
   }
 };

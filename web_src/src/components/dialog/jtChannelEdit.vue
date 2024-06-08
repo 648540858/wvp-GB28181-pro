@@ -41,6 +41,7 @@ export default {
       showDialog: false,
       isLoging: false,
       form: {},
+      row: "",
       deviceId: "",
       isEdit: false,
       rules: {
@@ -53,26 +54,21 @@ export default {
       console.log(row)
       this.showDialog = true;
       this.isEdit = false;
+      this.form = {};
       if (row) {
         this.isEdit = true;
-      }
-      this.form = {};
-      this.deviceId = deviceId;
-      this.listChangeCallback = callback;
-      if (row != null) {
         this.form = row;
       }
+      this.deviceId = deviceId;
+      this.listChangeCallback = callback;
     },
     onSubmit: function () {
       console.log("onSubmit");
+      let params = this.form
       this.$axios({
         method: 'post',
         url:`/api/jt1078/terminal/channel/${this.isEdit?'update':'add'}/`,
-        params: {
-          terminalDbId: this.deviceId,
-          name: this.form.name,
-          channelId: this.form.channelId,
-        }
+        params: params
       }).then((res) => {
         console.log(res.data)
         if (res.data.code === 0) {

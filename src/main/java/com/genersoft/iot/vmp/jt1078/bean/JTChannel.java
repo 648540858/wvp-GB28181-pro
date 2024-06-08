@@ -32,7 +32,7 @@ public class JTChannel {
      * 是否含有音频
      */
     @Schema(description = "是否含有音频")
-    private Boolean hasAudio;
+    private boolean hasAudio;
 
 
     @Schema(description = "创建时间")
@@ -92,11 +92,11 @@ public class JTChannel {
         this.channelId = channelId;
     }
 
-    public Boolean getHasAudio() {
+    public boolean getHasAudio() {
         return hasAudio;
     }
 
-    public void setHasAudio(Boolean hasAudio) {
+    public void setHasAudio(boolean hasAudio) {
         this.hasAudio = hasAudio;
     }
 

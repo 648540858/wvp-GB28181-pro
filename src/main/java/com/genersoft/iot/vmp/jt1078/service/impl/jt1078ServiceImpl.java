@@ -19,7 +19,6 @@ import com.genersoft.iot.vmp.jt1078.event.FtpUploadEvent;
 import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
 import com.genersoft.iot.vmp.jt1078.proc.response.*;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
-import com.genersoft.iot.vmp.jt1078.session.SessionManager;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
@@ -100,6 +99,11 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
+    public JTChannel getChannel(Integer terminalDbId, Integer channelId) {
+        return jtChannelMapper.getChannel(terminalDbId, channelId);
+    }
+
+    @Override
     public void updateDevice(JTDevice device) {
         device.setUpdateTime(DateUtil.getNow());
         jtDeviceMapper.updateDevice(device);
@@ -136,10 +140,15 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     private final Map<String, List<GeneralCallback<StreamInfo>>> inviteErrorCallbackMap = new ConcurrentHashMap<>();
 
     @Override
-    public void play(String phoneNumber, String channelId, int type, GeneralCallback<StreamInfo> callback) {
+    public void play(String phoneNumber, Integer channelId, int type, GeneralCallback<StreamInfo> callback) {
         JTDevice device = getDevice(phoneNumber);
         if (device == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备不存在");
+        }
+        jt1078Template.checkTerminalStatus(phoneNumber);
+        JTChannel channel = getChannel(device.getId(), channelId);
+        if (channel == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "通道不存在");
         }
         // 检查流是否已经存在，存在则返回
         String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + phoneNumber + ":" + channelId;
@@ -151,8 +160,8 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
             if (mediaServer != null) {
                 // 查询流是否存在，不存在则删除缓存数据
-                JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(mediaServer, "rtp", "rtsp", streamInfo.getStream());
-                if (mediaInfo != null && mediaInfo.getInteger("code") == 0) {
+                MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, "rtp", streamInfo.getStream());
+                if (mediaInfo != null) {
                     logger.info("[1078-点播] 点播已经存在，直接返回， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
                     for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
                         errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
@@ -186,7 +195,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             redisTemplate.opsForValue().set(playKey, info);
         });
         // 开启收流端口
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServer, stream, "000", false, false, 0, false, false, false, 1);
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServer, stream, "000", false, false, 0, false, !channel.getHasAudio(), false, 1);
         // 设置超时监听
         dynamicTask.startDelay(playKey, () -> {
             logger.info("[1078-点播] 超时， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
@@ -209,15 +218,15 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         jt1078Template.startLive(phoneNumber, j9101, 6);
     }
 
-    public StreamInfo onPublishHandler(MediaServer mediaServerItem, HookData hookData, String phoneNumber, String channelId) {
+    public StreamInfo onPublishHandler(MediaServer mediaServerItem, HookData hookData, String phoneNumber, Integer channelId) {
         StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServerItem, "rtp", hookData.getStream(), hookData.getMediaInfo(), null);
         streamInfo.setDeviceID(phoneNumber);
-        streamInfo.setChannelId(channelId);
+        streamInfo.setChannelId(channelId + "");
         return streamInfo;
     }
 
     @Override
-    public void stopPlay(String phoneNumber, String channelId) {
+    public void stopPlay(String phoneNumber, Integer channelId) {
         String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + phoneNumber + ":" + channelId;
         dynamicTask.stop(playKey);
         StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
@@ -245,7 +254,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void pausePlay(String phoneNumber, String channelId) {
+    public void pausePlay(String phoneNumber, Integer channelId) {
         String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + phoneNumber + ":" + channelId;
         dynamicTask.stop(playKey);
         StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
@@ -263,7 +272,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void continueLivePlay(String phoneNumber, String channelId) {
+    public void continueLivePlay(String phoneNumber, Integer channelId) {
         String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + phoneNumber + ":" + channelId;
         dynamicTask.stop(playKey);
         StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
@@ -281,12 +290,12 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public List<J1205.JRecordItem> getRecordList(String phoneNumber, String channelId, String startTime, String endTime) {
+    public List<J1205.JRecordItem> getRecordList(String phoneNumber, Integer channelId, String startTime, String endTime) {
         logger.info("[1078-查询录像列表] phoneNumber： {}， channelId： {}， startTime： {}， endTime： {}"
                 , phoneNumber, channelId, startTime, endTime);
         // 发送请求录像列表命令
         J9205 j9205 = new J9205();
-        j9205.setChannelId(Integer.parseInt(channelId));
+        j9205.setChannelId(channelId);
         j9205.setStartTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime));
         j9205.setEndTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(endTime));
         j9205.setMediaType(0);
@@ -302,7 +311,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void playback(String phoneNumber, String channelId, String startTime, String endTime, Integer type,
+    public void playback(String phoneNumber, Integer channelId, String startTime, String endTime, Integer type,
                          Integer rate, Integer playbackType, Integer playbackSpeed, GeneralCallback<StreamInfo> callback) {
         logger.info("[1078-回放] 回放，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {}， 音视频类型： {}， 码流类型： {}， " +
                 "回放方式： {}， 快进或快退倍数： {}", phoneNumber, channelId, startTime, endTime, type, rate, playbackType, playbackSpeed);
@@ -317,16 +326,13 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
             if (mediaServer != null) {
                 // 查询流是否存在，不存在则删除缓存数据
-                JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(mediaServer, "rtp", "rtsp", streamInfo.getStream());
-                if (mediaInfo != null && mediaInfo.getInteger("code") == 0) {
-                    Boolean online = mediaInfo.getBoolean("online");
-                    if (online != null && online) {
-                        logger.info("[1078-回放] 回放已经存在，直接返回， logInfo： {}", logInfo);
-                        for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
-                            errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
-                        }
-                        return;
+                MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, "rtp", streamInfo.getStream());
+                if (mediaInfo != null) {
+                    logger.info("[1078-回放] 回放已经存在，直接返回， logInfo： {}", logInfo);
+                    for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
+                        errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
                     }
+                    return;
                 }
             }
             // 清理数据
@@ -369,7 +375,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServer, stream, null, false, false, 0, false, false, false, 1);
         logger.info("[1078-回放] logInfo： {}， 端口： {}", logInfo, ssrcInfo.getPort());
         J9201 j9201 = new J9201();
-        j9201.setChannel(Integer.parseInt(channelId));
+        j9201.setChannel(channelId);
         j9201.setIp(mediaServer.getSdpIp());
         if (rate != null) {
             j9201.setRate(rate);
@@ -391,7 +397,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void playbackControl(String phoneNumber, String channelId, Integer command, Integer playbackSpeed, String time) {
+    public void playbackControl(String phoneNumber, Integer channelId, Integer command, Integer playbackSpeed, String time) {
         logger.info("[1078-回放控制] phoneNumber： {}， channelId： {}， command： {}， playbackSpeed： {}， time： {}",
                 phoneNumber, channelId, command, playbackSpeed, time);
         String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAYBACK + phoneNumber + ":" + channelId;
@@ -414,7 +420,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         }
         // 发送停止命令
         J9202 j9202 = new J9202();
-        j9202.setChannel(Integer.parseInt(channelId));
+        j9202.setChannel(channelId);
         j9202.setPlaybackType(command);
         if (playbackSpeed != null) {
             j9202.setPlaybackSpeed(playbackSpeed);
@@ -426,7 +432,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void stopPlayback(String phoneNumber, String channelId) {
+    public void stopPlayback(String phoneNumber, Integer channelId) {
         playbackControl(phoneNumber, channelId, 2, null, String.valueOf(0));
     }
 
@@ -450,7 +456,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void recordDownload(String phoneNumber, String channelId, String startTime, String endTime, Integer type, Integer rate, GeneralCallback<String> fileCallback) {
+    public void recordDownload(String phoneNumber, Integer channelId, String startTime, String endTime, Integer type, Integer rate, GeneralCallback<String> fileCallback) {
         String filePath = UUID.randomUUID().toString();
         fileUploadMap.put(filePath, fileCallback);
         dynamicTask.startDelay(filePath, ()->{
@@ -460,7 +466,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
                 phoneNumber, channelId, startTime, endTime, filePath);
         // 发送停止命令
         J9206 j92026 = new J9206();
-        j92026.setChannelId(Integer.parseInt(channelId));
+        j92026.setChannelId(channelId);
         j92026.setStartTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime));
         j92026.setEndTime(DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(endTime));
         j92026.setServerIp(ftpSetting.getIp());
@@ -479,7 +485,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void ptzControl(String phoneNumber, String channelId, String command, int speed) {
+    public void ptzControl(String phoneNumber, Integer channelId, String command, int speed) {
         // 发送停止命令
 
         switch (command) {
@@ -489,7 +495,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             case "down":
             case "stop":
                 J9301 j9301 = new J9301();
-                j9301.setChannel(Integer.parseInt(channelId));
+                j9301.setChannel(channelId);
                 switch (command) {
                     case "left":
                         j9301.setDirection(3);
@@ -518,7 +524,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             case "zoomin":
             case "zoomout":
                 J9306 j9306 = new J9306();
-                j9306.setChannel(Integer.parseInt(channelId));
+                j9306.setChannel(channelId);
                 if (command.equals("zoomin")) {
                     j9306.setZoom(0);
                 } else {
@@ -529,7 +535,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             case "irisin":
             case "irisout":
                 J9303 j9303 = new J9303();
-                j9303.setChannel(Integer.parseInt(channelId));
+                j9303.setChannel(channelId);
                 if (command.equals("irisin")) {
                     j9303.setIris(0);
                 } else {
@@ -540,7 +546,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             case "focusnear":
             case "focusfar":
                 J9302 j9302 = new J9302();
-                j9302.setChannel(Integer.parseInt(channelId));
+                j9302.setChannel(channelId);
                 if (command.equals("focusfar")) {
                     j9302.setFocalDirection(0);
                 } else {
@@ -553,9 +559,9 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void supplementaryLight(String phoneNumber, String channelId, String command) {
+    public void supplementaryLight(String phoneNumber, Integer channelId, String command) {
         J9305 j9305 = new J9305();
-        j9305.setChannel(Integer.parseInt(channelId));
+        j9305.setChannel(channelId);
         if (command.equalsIgnoreCase("on")) {
             j9305.setOn(1);
         } else {
@@ -565,9 +571,9 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void wiper(String phoneNumber, String channelId, String command) {
+    public void wiper(String phoneNumber, Integer channelId, String command) {
         J9304 j9304 = new J9304();
-        j9304.setChannel(Integer.parseInt(channelId));
+        j9304.setChannel(channelId);
         if (command.equalsIgnoreCase("on")) {
             j9304.setOn(1);
         } else {
@@ -867,7 +873,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void startTalk(String phoneNumber, String channelId, String app, String stream, String mediaServerId, Boolean onlySend,
+    public void startTalk(String phoneNumber, Integer channelId, String app, String stream, String mediaServerId, Boolean onlySend,
                           GeneralCallback<StreamInfo> callback) {
         // 检查流是否已经存在，存在则返回
         String playKey = VideoManagerConstants.INVITE_INFO_1078_TALK + phoneNumber + ":" + channelId;
@@ -898,7 +904,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         sendRtpItem.setPort(0);
         sendRtpItem.setSsrc(ssrc);
         sendRtpItem.setDeviceId(phoneNumber);
-        sendRtpItem.setChannelId(channelId);
+        sendRtpItem.setChannelId(channelId + "");
         sendRtpItem.setRtcp(false);
         sendRtpItem.setApp(app);
         sendRtpItem.setStream(stream);
@@ -965,7 +971,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void stopTalk(String phoneNumber, String channelId) {
+    public void stopTalk(String phoneNumber, Integer channelId) {
         String playKey = VideoManagerConstants.INVITE_INFO_1078_TALK + phoneNumber + ":" + channelId;
         dynamicTask.stop(playKey);
         StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
@@ -993,7 +999,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void changeStreamType(String phoneNumber, String channelId, Integer streamType) {
+    public void changeStreamType(String phoneNumber, Integer channelId, Integer streamType) {
         String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + phoneNumber + ":" + channelId;
         dynamicTask.stop(playKey);
         StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);

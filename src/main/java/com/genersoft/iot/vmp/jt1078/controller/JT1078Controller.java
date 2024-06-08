@@ -76,7 +76,7 @@ public class JT1078Controller {
     @GetMapping("/live/start")
     public DeferredResult<WVPResult<StreamContent>> startLive(HttpServletRequest request,
                                                               @Parameter(required = true) String phoneNumber,
-                                                              @Parameter(required = true) String channelId,
+                                                              @Parameter(required = true) Integer channelId,
                                                               @Parameter(required = false) Integer type) {
         if (type == null || (type != 0 && type != 1 && type != 3)) {
             type = 0;
@@ -131,7 +131,7 @@ public class JT1078Controller {
     @GetMapping("/live/stop")
     public void stopLive(HttpServletRequest request,
                                                               @Parameter(required = true) String phoneNumber,
-                                                              @Parameter(required = true) String channelId) {
+                                                              @Parameter(required = true) Integer channelId) {
         service.stopPlay(phoneNumber, channelId);
     }
 
@@ -145,24 +145,20 @@ public class JT1078Controller {
     @GetMapping("/talk/start")
     public DeferredResult<WVPResult<StreamContent>> startTalk(HttpServletRequest request,
                          @Parameter(required = true) String phoneNumber,
-                         @Parameter(required = true) String channelId,
+                         @Parameter(required = true) Integer channelId,
                          @Parameter(required = true) String app,
                          @Parameter(required = true) String stream,
                          @Parameter(required = true) String mediaServerId,
                          @Parameter(required = false) Boolean onlySend) {
         DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
-        if (ObjectUtils.isEmpty(channelId)) {
-            channelId = "1";
-        }
-        String finalChannelId = channelId;
         result.onTimeout(()->{
-            logger.info("[1078-语音对讲超时] phoneNumber：{}, channelId：{}, ", phoneNumber, finalChannelId);
+            logger.info("[1078-语音对讲超时] phoneNumber：{}, channelId：{}, ", phoneNumber, channelId);
             // 释放rtpserver
             WVPResult<StreamContent> wvpResult = new WVPResult<>();
             wvpResult.setCode(ErrorCode.ERROR100.getCode());
             wvpResult.setMsg("超时");
             result.setResult(wvpResult);
-            service.stopPlay(phoneNumber, finalChannelId);
+            service.stopPlay(phoneNumber, channelId);
         });
 
         service.startTalk(phoneNumber, channelId, app, stream, mediaServerId, onlySend, (code, msg, streamInfo) -> {
@@ -204,7 +200,7 @@ public class JT1078Controller {
     @GetMapping("/talk/stop")
     public void stopTalk(HttpServletRequest request,
                          @Parameter(required = true) String phoneNumber,
-                         @Parameter(required = true) String channelId) {
+                         @Parameter(required = true) Integer channelId) {
         service.stopTalk(phoneNumber, channelId);
     }
 
@@ -215,7 +211,7 @@ public class JT1078Controller {
     @GetMapping("/live/pause")
     public void pauseLive(HttpServletRequest request,
                          @Parameter(required = true) String phoneNumber,
-                         @Parameter(required = true) String channelId) {
+                         @Parameter(required = true) Integer channelId) {
         service.pausePlay(phoneNumber, channelId);
     }
 
@@ -225,7 +221,7 @@ public class JT1078Controller {
     @GetMapping("/live/continue")
     public void continueLive(HttpServletRequest request,
                           @Parameter(required = true) String phoneNumber,
-                          @Parameter(required = true) String channelId) {
+                          @Parameter(required = true) Integer channelId) {
 
         service.continueLivePlay(phoneNumber, channelId);
     }
@@ -237,7 +233,7 @@ public class JT1078Controller {
     @GetMapping("/live/switch")
     public void changeStreamType(HttpServletRequest request,
                              @Parameter(required = true) String phoneNumber,
-                             @Parameter(required = true) String channelId,
+                             @Parameter(required = true) Integer channelId,
                              @Parameter(required = true) Integer streamType) {
         service.changeStreamType(phoneNumber, channelId, streamType);
     }
@@ -250,13 +246,10 @@ public class JT1078Controller {
     @GetMapping("/record/list")
     public WVPResult<List<J1205.JRecordItem>> playbackList(HttpServletRequest request,
                                                                      @Parameter(required = true) String phoneNumber,
-                                                                     @Parameter(required = false) String channelId,
+                                                                     @Parameter(required = true) Integer channelId,
                                                                      @Parameter(required = true) String startTime,
                                                                      @Parameter(required = true) String endTime
     ) {
-        if (ObjectUtils.isEmpty(channelId)) {
-            channelId = "1";
-        }
         List<J1205.JRecordItem> recordList = service.getRecordList(phoneNumber, channelId, startTime, endTime);
         if (recordList == null) {
             return WVPResult.fail(ErrorCode.ERROR100);
@@ -276,7 +269,7 @@ public class JT1078Controller {
     @GetMapping("/playback/start")
     public DeferredResult<WVPResult<StreamContent>> recordLive(HttpServletRequest request,
                                                               @Parameter(required = true) String phoneNumber,
-                                                              @Parameter(required = false) String channelId,
+                                                              @Parameter(required = true) Integer channelId,
                                                               @Parameter(required = true) String startTime,
                                                               @Parameter(required = true) String endTime,
                                                               @Parameter(required = false) Integer type,
@@ -286,18 +279,14 @@ public class JT1078Controller {
 
     ) {
         DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
-        if (ObjectUtils.isEmpty(channelId)) {
-            channelId = "1";
-        }
-        String finalChannelId = channelId;
         result.onTimeout(()->{
-            logger.info("[1078-回放-等待超时] phoneNumber：{}, channelId：{}, ", phoneNumber, finalChannelId);
+            logger.info("[1078-回放-等待超时] phoneNumber：{}, channelId：{}, ", phoneNumber, channelId);
             // 释放rtpserver
             WVPResult<StreamContent> wvpResult = new WVPResult<>();
             wvpResult.setCode(ErrorCode.ERROR100.getCode());
             wvpResult.setMsg("回放超时");
             result.setResult(wvpResult);
-            service.stopPlay(phoneNumber, finalChannelId);
+            service.stopPlay(phoneNumber, channelId);
         });
 
         service.playback(phoneNumber, channelId, startTime, endTime,type, rate, playbackType, playbackSpeed,  (code, msg, streamInfo) -> {
@@ -341,7 +330,7 @@ public class JT1078Controller {
     @Parameter(name = "time", description = "拖动回放位置(时间)", required = true)
     @GetMapping("/playback/control")
     public void recordControl(@Parameter(required = true) String phoneNumber,
-                              @Parameter(required = true) String channelId,
+                              @Parameter(required = true) Integer channelId,
                               @Parameter(required = false) Integer command,
                               @Parameter(required = false) String time,
                               @Parameter(required = false) Integer playbackSpeed
@@ -356,10 +345,7 @@ public class JT1078Controller {
     @GetMapping("/playback/stop")
     public void stopPlayback(HttpServletRequest request,
                          @Parameter(required = true) String phoneNumber,
-                         @Parameter(required = false) String channelId) {
-        if (ObjectUtils.isEmpty(channelId)) {
-            channelId = "1";
-        }
+                         @Parameter(required = true) Integer channelId) {
         service.stopPlayback(phoneNumber, channelId);
     }
 
@@ -374,7 +360,7 @@ public class JT1078Controller {
     public DeferredResult<Void> recordDownload(HttpServletRequest request,
                                                                HttpServletResponse response,
                                                                @Parameter(required = true) String phoneNumber,
-                                                               @Parameter(required = false) String channelId,
+                                                               @Parameter(required = true) Integer channelId,
                                                                @Parameter(required = true) String startTime,
                                                                @Parameter(required = true) String endTime,
                                                                @Parameter(required = false) Integer type,
@@ -423,11 +409,8 @@ public class JT1078Controller {
     @Parameter(name = "command", description = "控制指令,允许值: left, right, up, down, zoomin, zoomout, irisin, irisout, focusnear, focusfar, stop", required = true)
     @Parameter(name = "speed", description = "速度(0-255)， command,值 left, right, up, down时有效", required = true)
     @PostMapping("/ptz")
-    public void ptz(String phoneNumber, String channelId, String command, int speed){
+    public void ptz(String phoneNumber, Integer channelId, String command, int speed){
 
-        if (ObjectUtils.isEmpty(channelId)) {
-            channelId = "1";
-        }
         logger.info("[1078-云台控制] phoneNumber：{}, channelId：{}, command: {}, speed: {}", phoneNumber, channelId, command, speed);
         service.ptzControl(phoneNumber, channelId, command, speed);
     }
@@ -437,11 +420,8 @@ public class JT1078Controller {
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "command", description = "控制指令,允许值: on off", required = true)
     @PostMapping("/fill-light")
-    public void fillLight(String phoneNumber, String channelId, String command){
+    public void fillLight(String phoneNumber, Integer channelId, String command){
 
-        if (ObjectUtils.isEmpty(channelId)) {
-            channelId = "1";
-        }
         logger.info("[1078-补光灯开关] phoneNumber：{}, channelId：{}, command: {}", phoneNumber, channelId, command);
         service.supplementaryLight(phoneNumber, channelId, command);
     }
@@ -451,11 +431,8 @@ public class JT1078Controller {
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "command", description = "控制指令,允许值: on off", required = true)
     @PostMapping("/wiper")
-    public void wiper(String phoneNumber, String channelId, String command){
+    public void wiper(String phoneNumber, Integer channelId, String command){
 
-        if (ObjectUtils.isEmpty(channelId)) {
-            channelId = "1";
-        }
         logger.info("[1078-雨刷开关] phoneNumber：{}, channelId：{}, command: {}", phoneNumber, channelId, command);
         service.wiper(phoneNumber, channelId, command);
     }

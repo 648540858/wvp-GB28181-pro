@@ -11,6 +11,8 @@ import java.util.List;
 public interface Ijt1078Service {
     JTDevice getDevice(String phoneNumber);
 
+    JTChannel getChannel(Integer terminalDbId, Integer channelId);
+
     void updateDevice(JTDevice deviceInDb);
 
     PageInfo<JTDevice> getDeviceList(int page, int count, String query, Boolean online);
@@ -21,26 +23,26 @@ public interface Ijt1078Service {
 
     void updateDeviceStatus(boolean connected, String phoneNumber);
 
-    void play(String phoneNumber, String channelId, int type, GeneralCallback<StreamInfo> callback);
+    void play(String phoneNumber, Integer channelId, int type, GeneralCallback<StreamInfo> callback);
 
-    void playback(String phoneNumber, String channelId, String startTime, String endTime, Integer type,
+    void playback(String phoneNumber, Integer channelId, String startTime, String endTime, Integer type,
                   Integer rate, Integer playbackType, Integer playbackSpeed, GeneralCallback<StreamInfo> callback);
 
-    void stopPlay(String phoneNumber, String channelId);
+    void stopPlay(String phoneNumber, Integer channelId);
 
-    void pausePlay(String phoneNumber, String channelId);
+    void pausePlay(String phoneNumber, Integer channelId);
 
-    void continueLivePlay(String phoneNumber, String channelId);
+    void continueLivePlay(String phoneNumber, Integer channelId);
 
-    List<J1205.JRecordItem> getRecordList(String phoneNumber, String channelId, String startTime, String endTime);
+    List<J1205.JRecordItem> getRecordList(String phoneNumber, Integer channelId, String startTime, String endTime);
 
-    void stopPlayback(String phoneNumber, String channelId);
+    void stopPlayback(String phoneNumber, Integer channelId);
 
-    void ptzControl(String phoneNumber, String channelId, String command, int speed);
+    void ptzControl(String phoneNumber, Integer channelId, String command, int speed);
 
-    void supplementaryLight(String phoneNumber, String channelId, String command);
+    void supplementaryLight(String phoneNumber, Integer channelId, String command);
 
-    void wiper(String phoneNumber, String channelId, String command);
+    void wiper(String phoneNumber, Integer channelId, String command);
 
     JTDeviceConfig queryConfig(String phoneNumber, String[] params, GeneralCallback<StreamInfo> callback);
 
@@ -108,15 +110,15 @@ public interface Ijt1078Service {
 
     JTMediaAttribute queryMediaAttribute(String phoneNumber);
 
-    void startTalk(String phoneNumber, String channelId, String app, String stream, String mediaServerId, Boolean onlySend, GeneralCallback<StreamInfo> callback);
+    void startTalk(String phoneNumber, Integer channelId, String app, String stream, String mediaServerId, Boolean onlySend, GeneralCallback<StreamInfo> callback);
 
-    void stopTalk(String phoneNumber, String channelId);
+    void stopTalk(String phoneNumber, Integer channelId);
 
-    void changeStreamType(String phoneNumber, String channelId, Integer streamType);
+    void changeStreamType(String phoneNumber, Integer channelId, Integer streamType);
 
-    void playbackControl(String phoneNumber, String channelId, Integer command, Integer playbackSpeed, String time);
+    void playbackControl(String phoneNumber, Integer channelId, Integer command, Integer playbackSpeed, String time);
 
-    void recordDownload(String phoneNumber, String channelId, String startTime, String endTime, Integer type, Integer rate, GeneralCallback<String> fileCallback);
+    void recordDownload(String phoneNumber, Integer channelId, String startTime, String endTime, Integer type, Integer rate, GeneralCallback<String> fileCallback);
 
     PageInfo<JTChannel> getChannelList(int page, int count, int deviceId, String query);
 

@@ -39,7 +39,7 @@ public class ZLMServerFactory {
      * @param tcpMode 0/null udp 模式，1 tcp 被动模式, 2 tcp 主动模式。
      * @return
      */
-    public int createRTPServer(MediaServer mediaServerItem, String streamId, long ssrc, Integer port, Boolean onlyAuto, Boolean reUsePort, Integer tcpMode) {
+    public int createRTPServer(MediaServer mediaServerItem, String streamId, long ssrc, Integer port, Boolean onlyAuto, Boolean disableAudio, Boolean reUsePort, Integer tcpMode) {
         int result = -1;
         // 查询此rtp server 是否已经存在
         JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaServerItem, streamId);
@@ -55,7 +55,7 @@ public class ZLMServerFactory {
                     JSONObject jsonObject = zlmresTfulUtils.closeRtpServer(mediaServerItem, param);
                     if (jsonObject != null ) {
                         if (jsonObject.getInteger("code") == 0) {
-                            return createRTPServer(mediaServerItem, streamId, ssrc, port,onlyAuto, reUsePort, tcpMode);
+                            return createRTPServer(mediaServerItem, streamId, ssrc, port,onlyAuto, reUsePort,disableAudio, tcpMode);
                         }else {
                             logger.warn("[开启rtpServer], 重启RtpServer错误");
                         }
@@ -74,6 +74,10 @@ public class ZLMServerFactory {
         }
         param.put("tcp_mode", tcpMode);
         param.put("stream_id", streamId);
+        if (disableAudio != null) {
+            param.put("only_track", disableAudio?2:0);
+        }
+
         if (reUsePort != null) {
             param.put("re_use_port", reUsePort?"1":"0");
         }

@@ -31,7 +31,6 @@ create table wvp_device (
                             password character varying(255),
                             as_message_channel bool default false,
                             keepalive_interval_time integer,
-                            switch_primary_sub_stream bool default false,
                             broadcast_push_after_ack bool default false,
                             constraint uk_device_device unique (device_id)
 );
@@ -155,8 +154,13 @@ create table wvp_media_server (
                                   rtp_proxy_port integer,
                                   rtsp_port integer,
                                   rtsp_ssl_port integer,
+                                  flv_port integer,
+                                  flv_ssl_port integer,
+                                  ws_flv_port integer,
+                                  ws_flv_ssl_port integer,
                                   auto_config bool default false,
                                   secret character varying(50),
+                                  type character varying(50) default 'zlm',
                                   rtp_enable bool default false,
                                   rtp_port_range character varying(50),
                                   send_rtp_port_range character varying(50),
@@ -167,6 +171,7 @@ create table wvp_media_server (
                                   hook_alive_interval integer,
                                   record_path character varying(255),
                                   record_day integer default 7,
+                                  transcode_suffix character varying(255),
                                   constraint uk_media_server_unique_ip_http_port unique (ip, http_port)
 );
 
@@ -198,6 +203,7 @@ create table wvp_platform (
                               update_time character varying(50),
                               as_message_channel bool default false,
                               auto_push_channel bool default false,
+                              send_stream_ip character varying(50),
                               constraint uk_platform_unique_server_gb_id unique (server_gb_id)
 );
 
@@ -275,15 +281,15 @@ create table wvp_cloud_record (
                                   app character varying(255),
                                   stream character varying(255),
                                   call_id character varying(255),
-                                  start_time bigint,
-                                  end_time bigint,
+                                  start_time int8,
+                                  end_time int8,
                                   media_server_id character varying(50),
                                   file_name character varying(255),
                                   folder character varying(255),
                                   file_path character varying(255),
                                   collect bool default false,
-                                  file_size bigint,
-                                  time_len bigint,
+                                  file_size int8,
+                                  time_len int8,
                                   constraint uk_stream_push_app_stream_path unique (app, stream, file_path)
 );
 
@@ -315,27 +321,40 @@ create table wvp_resources_tree (
                                     path character varying(255)
 );
 
-create table wvp_jt_terminal (
-                               id serial primary key,
-                               phone_number character varying(50),
-                               terminal_id character varying(50),
-                               province_id character varying(50),
-                               province_text character varying(100),
-                               city_id character varying(50),
-                               city_text character varying(100),
-                               maker_id character varying(50),
-                               model character varying(50),
-                               plate_color character varying(50),
-                               plate_no character varying(50),
-                               authentication_code character varying(255),
-                               longitude double precision,
-                               latitude double precision,
-                               status bool default false,
-                               register_time character varying(50) default null,
-                               update_time character varying(50) not null,
-                               create_time character varying(50) not null,
-                               constraint uk_jt_device_id_device_id unique (id, phone_number)
+create table wvp_user_api_key (
+                                  id serial primary key ,
+                                  user_id bigint,
+                                  app character varying(255) ,
+                                  api_key text,
+                                  expired_at bigint,
+                                  remark character varying(255),
+                                  enable bool default true,
+                                  create_time character varying(50),
+                                  update_time character varying(50)
 );
+
+create table wvp_jt_terminal (
+                                 id serial primary key,
+                                 phone_number character varying(50),
+                                 terminal_id character varying(50),
+                                 province_id character varying(50),
+                                 province_text character varying(100),
+                                 city_id character varying(50),
+                                 city_text character varying(100),
+                                 maker_id character varying(50),
+                                 model character varying(50),
+                                 plate_color character varying(50),
+                                 plate_no character varying(50),
+                                 authentication_code character varying(255),
+                                 longitude double precision,
+                                 latitude double precision,
+                                 status bool default false,
+                                 register_time character varying(50) default null,
+                                 update_time character varying(50) not null,
+                                 create_time character varying(50) not null,
+                                 constraint uk_jt_device_id_device_id unique (id, phone_number)
+);
+
 create table wvp_jt_channel (
                                 id serial primary key,
                                 terminal_db_id integer,
@@ -346,7 +365,6 @@ create table wvp_jt_channel (
                                 create_time character varying(50) not null,
                                 constraint uk_jt_device_id_device_id unique (terminal_db_id, channel_id)
 );
-
 /*初始数据*/
 INSERT INTO wvp_user VALUES (1, 'admin','21232f297a57a5a743894a0e4a801fc3',1,'2021-04-13 14:14:57','2021-04-13 14:14:57','3e80d1762a324d5b0ff636e0bd16f1e3');
 INSERT INTO wvp_user_role VALUES (1, 'admin','0','2021-04-13 14:14:57','2021-04-13 14:14:57');

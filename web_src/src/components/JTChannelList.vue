@@ -74,6 +74,8 @@
                     设备录像</el-dropdown-item>
                   <el-dropdown-item command="cloudRecords" v-bind:disabled="device == null || device.online === 0" >
                     云端录像</el-dropdown-item>
+                  <el-dropdown-item command="shooting" v-bind:disabled="device == null || device.online === 0" >
+                    立即拍摄</el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
             </template>
@@ -225,6 +227,8 @@ export default {
         this.queryRecords(itemData)
       }else if (command === "cloudRecords") {
         this.queryCloudRecords(itemData)
+      }else {
+        this.$message.info("尚不支持");
       }
     },
     queryRecords: function (itemData) {

@@ -57,18 +57,24 @@
             </el-button-group>
 
             <el-button-group >
-              <el-button size="mini" class="iconfont icon-zanting" title="开始" @click="gbPause()"></el-button>
-              <el-button size="mini" class="iconfont icon-kaishi" title="暂停" @click="gbPlay()"></el-button>
-              <el-dropdown size="mini" title="播放倍速"  @command="gbScale">
+              <el-button size="mini" class="iconfont icon-zanting" title="开始" @click="control(0, 0)"></el-button>
+              <el-button size="mini" class="iconfont icon-kaishi" title="暂停" @click="control(1, 0)"></el-button>
+              <el-button size="mini" class="iconfont icon-stop" title="结束" @click="control(2, 0)"></el-button>
+              <el-dropdown size="mini" title="播放倍速"  @command="scale">
                 <el-button size="mini">
-                  倍速 <i class="el-icon-arrow-down el-icon--right"></i>
+                  快进/快退 <i class="el-icon-arrow-down el-icon--right"></i>
                 </el-button>
                 <el-dropdown-menu  slot="dropdown">
-                  <el-dropdown-item command="0.25">0.25倍速</el-dropdown-item>
-                  <el-dropdown-item command="0.5">0.5倍速</el-dropdown-item>
-                  <el-dropdown-item command="1.0">1倍速</el-dropdown-item>
-                  <el-dropdown-item command="2.0">2倍速</el-dropdown-item>
-                  <el-dropdown-item command="4.0">4倍速</el-dropdown-item>
+                  <el-dropdown-item :command="[3, 1]">正常快进</el-dropdown-item>
+                  <el-dropdown-item :command="[3, 2]">2倍速快进</el-dropdown-item>
+                  <el-dropdown-item :command="[3, 4]">4倍速快进</el-dropdown-item>
+                  <el-dropdown-item :command="[3, 8]">8倍速快进</el-dropdown-item>
+                  <el-dropdown-item :command="[3, 16]">16倍速快进</el-dropdown-item>
+                  <el-dropdown-item :command="[4, 1]">正常快退</el-dropdown-item>
+                  <el-dropdown-item :command="[4, 2]">2倍速快退</el-dropdown-item>
+                  <el-dropdown-item :command="[4, 4]">4倍速快退</el-dropdown-item>
+                  <el-dropdown-item :command="[4, 8]">8倍速快退</el-dropdown-item>
+                  <el-dropdown-item :command="[4, 16]">16倍速快退</el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
               <el-button size="mini" class="iconfont icon-xiazai1" title="下载选定录像" @click="downloadRecord()"></el-button>
@@ -297,19 +303,21 @@
           this.$refs["recordVideoPlayer"].play(this.videoUrl)
         });
       },
-      gbPause(){
-        console.log('前端控制：暂停');
+      control(command, playbackSpeed, time){
         this.$axios({
           method: 'get',
-          url: '/api/playback/pause/' + this.streamId
+          url: '/api/jt1078/playback/control',
+          params: {
+            phoneNumber: this.phoneNumber,
+            channelId: this.channelId,
+            command: command,
+            playbackSpeed: playbackSpeed,
+            time: time
+          }
         }).then(function (res) {});
       },
-      gbScale(command){
-        console.log('前端控制：倍速 ' + command);
-        this.$axios({
-          method: 'get',
-          url: `/api/playback/speed/${this.streamId }/${command}`
-        }).then(function (res) {});
+      scale(command){
+        this.control(command[0], command[1])
       },
       downloadRecord: function (row) {
         if (!row) {

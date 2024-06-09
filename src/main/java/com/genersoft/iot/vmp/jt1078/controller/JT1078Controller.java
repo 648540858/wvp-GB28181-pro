@@ -326,8 +326,8 @@ public class JT1078Controller {
     @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "command", description = "0:开始回放; 1:暂停回放; 2:结束回放; 3:快进回放; 4:关键帧快退回放; 5:拖动回放; 6:关键帧播放", required = true)
-    @Parameter(name = "playbackSpeed", description = "0.无效 1.1倍 2.2倍 3.4倍 4.8倍 5.16倍 (回放控制为1和2时,此字段内容有效,否则置0)", required = true)
-    @Parameter(name = "time", description = "拖动回放位置(时间)", required = true)
+    @Parameter(name = "playbackSpeed", description = "0.无效 1.1倍 2.2倍 3.4倍 4.8倍 5.16倍 (回放控制为3和4时,此字段内容有效,否则置0)", required = false)
+    @Parameter(name = "time", description = "拖动回放位置(时间)", required = false)
     @GetMapping("/playback/control")
     public void recordControl(@Parameter(required = true) String phoneNumber,
                               @Parameter(required = true) Integer channelId,

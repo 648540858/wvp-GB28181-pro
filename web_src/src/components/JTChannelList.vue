@@ -186,7 +186,6 @@ export default {
       this.isLoging = true;
       let channelId = itemData.channelId;
       console.log("通知设备推流1：" + this.device.phoneNumber + " : " + channelId);
-      console.log(this.device);
       this.$axios({
         method: 'get',
         url: '/api/jt1078/live/start',
@@ -196,12 +195,9 @@ export default {
           type: 0,
         }
       }).then((res)=> {
-        console.log(res)
         this.isLoging = false;
         if (res.data.code === 0) {
-
           setTimeout(() => {
-
             let snapId = this.device.phoneNumber + "_" + channelId;
             this.loadSnap[this.device.phoneNumber + channelId] = 0;
             this.getSnapErrorEvent(snapId)
@@ -232,10 +228,7 @@ export default {
       }
     },
     queryRecords: function (itemData) {
-      let deviceId = this.deviceId;
-      let channelId = itemData.channelId;
-
-      this.$router.push(`/gbRecordDetail/${deviceId}/${channelId}`)
+      this.$router.push(`/jtRecordDetail/${this.device.phoneNumber}/${itemData.channelId}`)
     },
     queryCloudRecords: function (itemData) {
       let deviceId = this.deviceId;
@@ -244,7 +237,6 @@ export default {
       this.$router.push(`/cloudRecordDetail/rtp/${deviceId}_${channelId}`)
     },
     stopDevicePush: function (itemData) {
-      var that = this;
       this.$axios({
         method: 'get',
         url: '/api/jt1078/live/stop',
@@ -252,14 +244,15 @@ export default {
           phoneNumber: this.device.phoneNumber,
           channelId: itemData.channelId,
         }
-      }).then(function (res) {
-        that.initData();
-      }).catch(function (error) {
-        if (error.response.status === 402) { // 已经停止过
-          that.initData();
-        } else {
-          console.log(error)
+      }).then((res)=> {
+        console.log(res)
+        if (res.data.code === 0) {
+          this.initData();
+        }else {
+          this.$message.error(res.data.msg);
         }
+      }).catch(function (error) {
+        console.error(error)
       });
     },
     getSnap: function (row) {
@@ -287,18 +280,6 @@ export default {
     },
     showDevice: function () {
       this.$router.push(this.beforeUrl).then(() => {
-        this.initParam();
-        this.initData();
-      })
-    },
-    changeSubchannel(itemData) {
-      this.beforeUrl = this.$router.currentRoute.path;
-
-      var url = `/${this.$router.currentRoute.name}/${this.$router.currentRoute.params.deviceId}/${itemData.channelId}`
-      this.$router.push(url).then(() => {
-        this.searchSrt = "";
-        this.channelType = "";
-        this.online = "";
         this.initParam();
         this.initData();
       })
@@ -331,66 +312,6 @@ export default {
         setTimeout(this.getList, 200)
       })
     },
-    treeNodeClickEvent: function (device, data, isCatalog) {
-      console.log(device)
-      if (!!!data.channelId) {
-        this.parentChannelId = device.deviceId;
-      } else {
-        this.parentChannelId = data.channelId;
-      }
-      this.initData();
-    },
-    // 保存
-    handleSave(row) {
-      if (row.location) {
-        const segements = row.location.split(",");
-        if (segements.length !== 2) {
-          this.$message.warning("位置信息格式有误，例：117.234,36.378");
-          return;
-        } else {
-          row.customLongitude = parseFloat(segements[0]);
-          row.custom_latitude = parseFloat(segements[1]);
-          if (!(row.longitude && row.latitude)) {
-            this.$message.warning("位置信息格式有误，例：117.234,36.378");
-            return;
-          }
-        }
-      } else {
-        delete row.longitude;
-        delete row.latitude;
-      }
-      Object.keys(row).forEach(key => {
-        const value = row[key];
-        if (value === null || value === undefined || (typeof value === "string" && value.trim() === "")) {
-          delete row[key];
-        }
-      });
-      this.$axios({
-        method: 'post',
-        url: `/api/device/query/channel/update/${this.deviceId}`,
-        params: row
-      }).then(response => {
-        if (response.data.code === 0) {
-          this.$message.success("修改成功！");
-          this.initData();
-        } else {
-          this.$message.error("修改失败！");
-        }
-      }).catch(_ => {
-        this.$message.error("修改失败！");
-      })
-    },
-    // 是否正在编辑
-    isEdit() {
-      let editing = false;
-      this.deviceChannelList.forEach(e => {
-        if (e.edit) {
-          editing = true;
-        }
-      });
-
-      return editing;
-    },
     // 编辑
     handleEdit(row) {
       this.$refs.channelEdit.openDialog(row, this.deviceId, () => {
@@ -406,57 +327,3 @@ export default {
   }
 };
 </script>
-
-<style>
-.videoList {
-  display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
-}
-
-.video-item {
-  position: relative;
-  width: 15rem;
-  height: 10rem;
-  margin-right: 1rem;
-  background-color: #000000;
-}
-
-.video-item-img {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  margin: auto;
-  width: 100%;
-  height: 100%;
-}
-
-.video-item-img:after {
-  content: "";
-  display: inline-block;
-  position: absolute;
-  z-index: 2;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  margin: auto;
-  width: 3rem;
-  height: 3rem;
-  background-image: url("../assets/loading.png");
-  background-size: cover;
-  background-color: #000000;
-}
-
-.video-item-title {
-  position: absolute;
-  bottom: 0;
-  color: #000000;
-  background-color: #ffffff;
-  line-height: 1.5rem;
-  padding: 0.3rem;
-  width: 14.4rem;
-}
-</style>

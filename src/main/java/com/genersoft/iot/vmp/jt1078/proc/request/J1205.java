@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import org.springframework.context.ApplicationEvent;
@@ -35,8 +36,10 @@ public class J1205 extends Re {
         for (int i = 0; i < size; i++) {
             JRecordItem item = new JRecordItem();
             item.setChannelId(buf.readUnsignedByte());
-            item.setStartTime(ByteBufUtil.hexDump(buf.readSlice(6)));
-            item.setEndTime(ByteBufUtil.hexDump(buf.readSlice(6)));
+            String startTime = ByteBufUtil.hexDump(buf.readSlice(6));
+            item.setStartTime(DateUtil.jt1078Toyyyy_MM_dd_HH_mm_ss(startTime));
+            String endTime = ByteBufUtil.hexDump(buf.readSlice(6));
+            item.setEndTime(DateUtil.jt1078Toyyyy_MM_dd_HH_mm_ss(endTime));
             item.setWarn(buf.readLong());
             item.setMediaType(buf.readUnsignedByte());
             item.setStreamType(buf.readUnsignedByte());

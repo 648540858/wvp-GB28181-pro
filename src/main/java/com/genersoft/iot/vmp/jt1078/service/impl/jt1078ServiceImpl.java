@@ -241,6 +241,14 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     public void stopPlay(String phoneNumber, Integer channelId) {
         String playKey = VideoManagerConstants.INVITE_INFO_1078_PLAY + phoneNumber + ":" + channelId;
         dynamicTask.stop(playKey);
+        // 清理回调
+        List<GeneralCallback<StreamInfo>> generalCallbacks = inviteErrorCallbackMap.get(playKey);
+        if (generalCallbacks != null && !generalCallbacks.isEmpty()) {
+            for (GeneralCallback<StreamInfo> callback : generalCallbacks) {
+                callback.run(InviteErrorCode.ERROR_FOR_FINISH.getCode(), InviteErrorCode.ERROR_FOR_FINISH.getMsg(), null);
+            }
+        }
+        jt1078Template.checkTerminalStatus(phoneNumber);
         StreamInfo streamInfo = (StreamInfo) redisTemplate.opsForValue().get(playKey);
         // 发送停止命令
         J9102 j9102 = new J9102();
@@ -256,13 +264,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             mediaServerService.closeRTPServer(streamInfo.getMediaServerId(), streamInfo.getStream());
             redisTemplate.delete(playKey);
         }
-        // 清理回调
-        List<GeneralCallback<StreamInfo>> generalCallbacks = inviteErrorCallbackMap.get(playKey);
-        if (generalCallbacks != null && !generalCallbacks.isEmpty()) {
-            for (GeneralCallback<StreamInfo> callback : generalCallbacks) {
-                callback.run(InviteErrorCode.ERROR_FOR_FINISH.getCode(), InviteErrorCode.ERROR_FOR_FINISH.getMsg(), null);
-            }
-        }
+
     }
 
     @Override
@@ -445,7 +447,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
 
     @Override
     public void stopPlayback(String phoneNumber, Integer channelId) {
-        playbackControl(phoneNumber, channelId, 2, null, String.valueOf(0));
+        playbackControl(phoneNumber, channelId, 2, null, null);
     }
 
     private Map<String, GeneralCallback<String>> fileUploadMap = new ConcurrentHashMap<>();

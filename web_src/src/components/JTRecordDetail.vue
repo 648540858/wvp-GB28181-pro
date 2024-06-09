@@ -101,7 +101,6 @@
 
 			</el-main>
 		</el-container>
-    <recordDownload ref="recordDownload"></recordDownload>
 	</div>
 </template>
 
@@ -110,12 +109,11 @@
 	import uiHeader from '../layout/UiHeader.vue'
   import player from './common/jessibuca.vue'
   import moment  from 'moment'
-  import recordDownload from './dialog/recordDownload.vue'
   import JTDeviceService from "./service/JTDeviceService";
 	export default {
 		name: 'app',
 		components: {
-			uiHeader, player,recordDownload
+			uiHeader, player
 		},
 		data() {
 			return {
@@ -320,48 +318,22 @@
         this.control(command[0], command[1])
       },
       downloadRecord: function (row) {
-        if (!row) {
-          let startTimeStr = moment(new Date(this.chooseDate + " 00:00:00").getTime() + this.playTime[0]*1000).format("YYYY-MM-DD HH:mm:ss");
-          let endTimeStr = moment(new Date(this.chooseDate + " 00:00:00").getTime() + this.playTime[1]*1000).format("YYYY-MM-DD HH:mm:ss");
-          console.log(startTimeStr);
-          console.log(endTimeStr);
-          row = {
-            startTime: startTimeStr,
-            endTime: endTimeStr
-          }
+        let baseUrl = window.baseUrl ? window.baseUrl : "";
+        let downloadFile = ((process.env.NODE_ENV === 'development') ? process.env.BASE_API : baseUrl) +
+          `/api/jt1078/playback/download?phoneNumber=${this.phoneNumber}&channelId=${this.channelId}&startTime=${row.startTime}&endTime=${row.endTime}`+
+          `&alarmSign=${row.alarmSign}&mediaType=${row.mediaType}&streamType=${row.streamType}&storageType=${row.storageType}`
+        console.log(downloadFile)
+        let x = new XMLHttpRequest();
+        x.open("GET", downloadFile, true);
+        x.responseType = 'blob';
+        x.onload=(e)=> {
+          let url = window.URL.createObjectURL(x.response)
+          let a = document.createElement('a');
+          a.href = url
+          a.download = this.phoneNumber + "-" + this.channelId + ".mp4";
+          a.click()
         }
-        if (this.streamId !== "") {
-          this.stopPlayRecord(()=> {
-            this.streamId = "";
-            this.downloadRecord(row);
-          })
-        }else {
-          this.$axios({
-            method: 'get',
-            url: '/api/jt1078/playback/start/',
-            params: {
-              phoneNumber: this.phoneNumber,
-              channelId: this.channelId,
-              startTime: this.startTime,
-              endTime: this.endTime,
-              type: 0,
-              rate: 0,
-              playbackType: 0,
-              playbackSpeed: 0
-            }
-          }).then( (res)=> {
-            if (res.data.code === 0) {
-              let streamInfo = res.data.data;
-              this.$refs.recordDownload.openDialog(this.deviceId, this.channelId, streamInfo.app, streamInfo.stream, streamInfo.mediaServerId);
-            }else {
-              this.$message({
-                showClose: true,
-                message: res.data.msg,
-                type: "error",
-              });
-            }
-          });
-        }
+        x.send();
       },
       stopDownloadRecord: function (callback) {
         this.$refs["recordVideoPlayer"].pause();

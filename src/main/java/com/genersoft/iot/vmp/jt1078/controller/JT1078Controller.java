@@ -354,8 +354,10 @@ public class JT1078Controller {
     @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "startTime", description = "开始时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
     @Parameter(name = "endTime", description = "结束时间,格式： yyyy-MM-dd HH:mm:ss", required = true)
-    @Parameter(name = "type", description = "0.音视频 1.音频 2.视频 3.视频或音视频", required = true)
-    @Parameter(name = "rate", description = "0.所有码流 1.主码流 2.子码流(如果此通道只传输音频,此字段置0)", required = true)
+    @Parameter(name = "alarmSign", description = "报警标志", required = true)
+    @Parameter(name = "mediaType", description = "音视频资源类型： 0.音视频 1.音频 2.视频 3.视频或音视频", required = true)
+    @Parameter(name = "streamType", description = "码流类型：0.所有码流 1.主码流 2.子码流(如果此通道只传输音频,此字段置0)", required = true)
+    @Parameter(name = "storageType", description = "存储器类型", required = true)
     @GetMapping("/playback/download")
     public DeferredResult<Void> recordDownload(HttpServletRequest request,
                                                                HttpServletResponse response,
@@ -363,21 +365,23 @@ public class JT1078Controller {
                                                                @Parameter(required = true) Integer channelId,
                                                                @Parameter(required = true) String startTime,
                                                                @Parameter(required = true) String endTime,
-                                                               @Parameter(required = false) Integer type,
-                                                               @Parameter(required = false) Integer rate
+                                                               @Parameter(required = false) Integer alarmSign,
+                                                               @Parameter(required = false) Integer mediaType,
+                                                               @Parameter(required = false) Integer streamType,
+                                                               @Parameter(required = false) Integer storageType
 
     ) throws IOException {
-        logger.info("[1078-录像] 下载，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {}， 音视频类型： {}， 码流类型： {}， ",
-                phoneNumber, channelId, startTime, endTime, type, rate);
+        logger.info("[1078-录像] 下载，设备:{}， 通道： {}， 开始时间： {}， 结束时间： {}，报警标志: {}, 音视频类型： {}， 码流类型： {}，存储器类型： {}， ",
+                phoneNumber, channelId, startTime, endTime, alarmSign, mediaType, streamType, storageType);
         if (!ftpSetting.getEnable()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未启用ftp服务，无法下载录像");
         }
-        DeferredResult<Void> result = new DeferredResult<>();
+        DeferredResult<Void> result = new DeferredResult<>(600000L);
         ServletOutputStream outputStream = response.getOutputStream();
         response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
         response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(phoneNumber + "_" + channelId + ".mp4", "UTF-8"));
         response.setStatus(HttpServletResponse.SC_OK);
-        service.recordDownload(phoneNumber, channelId, startTime, endTime, type, rate, (code, msg, data) -> {
+        service.recordDownload(phoneNumber, channelId, startTime, endTime, alarmSign, mediaType, streamType, storageType, (code, msg, data) -> {
             String filePath = "ftp" + data;
             File file = new File(filePath);
             if (!file.exists()) {

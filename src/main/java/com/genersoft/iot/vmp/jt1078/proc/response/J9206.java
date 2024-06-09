@@ -34,7 +34,7 @@ public class J9206 extends Rs {
     private String endTime;
 
     // 报警标志
-    private final int warnType = 0;
+    private int alarmSign = 0;
 
     // 音视频资源类型：0.音视频 1.音频 2.视频 3.视频或音视频
     private int mediaType;
@@ -71,7 +71,7 @@ public class J9206 extends Rs {
         buffer.writeByte(channelId);
         buffer.writeBytes(ByteBufUtil.decodeHexDump(startTime));
         buffer.writeBytes(ByteBufUtil.decodeHexDump(endTime));
-        buffer.writeLong(warnType);
+        buffer.writeLong(alarmSign);
         buffer.writeByte(mediaType);
         buffer.writeByte(streamType);
         buffer.writeByte(storageType);
@@ -144,8 +144,8 @@ public class J9206 extends Rs {
         this.endTime = endTime;
     }
 
-    public int getWarnType() {
-        return warnType;
+    public int getAlarmSign() {
+        return alarmSign;
     }
 
     public int getMediaType() {
@@ -180,6 +180,10 @@ public class J9206 extends Rs {
         this.taskConditions = taskConditions;
     }
 
+    public void setAlarmSign(int alarmSign) {
+        this.alarmSign = alarmSign;
+    }
+
     @Override
     public String toString() {
         return "J9206{" +
@@ -191,7 +195,7 @@ public class J9206 extends Rs {
                 ", channelId=" + channelId +
                 ", startTime='" + startTime + '\'' +
                 ", endTime='" + endTime + '\'' +
-                ", warnType=" + warnType +
+                ", warnType=" + alarmSign +
                 ", mediaType=" + mediaType +
                 ", streamType=" + streamType +
                 ", storageType=" + storageType +

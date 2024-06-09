@@ -40,7 +40,7 @@ public class J1205 extends Re {
             item.setStartTime(DateUtil.jt1078Toyyyy_MM_dd_HH_mm_ss(startTime));
             String endTime = ByteBufUtil.hexDump(buf.readSlice(6));
             item.setEndTime(DateUtil.jt1078Toyyyy_MM_dd_HH_mm_ss(endTime));
-            item.setWarn(buf.readLong());
+            item.setAlarmSign(buf.readLong());
             item.setMediaType(buf.readUnsignedByte());
             item.setStreamType(buf.readUnsignedByte());
             item.setStorageType(buf.readUnsignedByte());
@@ -89,7 +89,7 @@ public class J1205 extends Re {
         private String endTime;
 
         // 报警标志
-        private long warn;
+        private long alarmSign;
 
         // 音视频资源类型
         private int mediaType;
@@ -127,12 +127,12 @@ public class J1205 extends Re {
             this.endTime = endTime;
         }
 
-        public long getWarn() {
-            return warn;
+        public long getAlarmSign() {
+            return alarmSign;
         }
 
-        public void setWarn(long warn) {
-            this.warn = warn;
+        public void setAlarmSign(long alarmSign) {
+            this.alarmSign = alarmSign;
         }
 
         public int getMediaType() {
@@ -173,7 +173,7 @@ public class J1205 extends Re {
                     "channelId=" + channelId +
                     ", startTime='" + startTime + '\'' +
                     ", endTime='" + endTime + '\'' +
-                    ", warn=" + warn +
+                    ", warn=" + alarmSign +
                     ", mediaType=" + mediaType +
                     ", streamType=" + streamType +
                     ", storageType=" + storageType +

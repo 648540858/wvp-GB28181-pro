@@ -118,7 +118,7 @@ public interface Ijt1078Service {
 
     void playbackControl(String phoneNumber, Integer channelId, Integer command, Integer playbackSpeed, String time);
 
-    void recordDownload(String phoneNumber, Integer channelId, String startTime, String endTime, Integer type, Integer rate, GeneralCallback<String> fileCallback);
+    void recordDownload(String phoneNumber, Integer channelId, String startTime, String endTime, Integer alarmSign, Integer mediaType, Integer streamType, Integer storageType, GeneralCallback<String> fileCallback);
 
     PageInfo<JTChannel> getChannelList(int page, int count, int deviceId, String query);
 

@@ -470,7 +470,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public void recordDownload(String phoneNumber, Integer channelId, String startTime, String endTime, Integer type, Integer rate, GeneralCallback<String> fileCallback) {
+    public void recordDownload(String phoneNumber, Integer channelId, String startTime, String endTime, Integer alarmSign, Integer mediaType, Integer streamType, Integer storageType, GeneralCallback<String> fileCallback) {
         String filePath = UUID.randomUUID().toString();
         fileUploadMap.put(filePath, fileCallback);
         dynamicTask.startDelay(filePath, ()->{
@@ -489,11 +489,17 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         j92026.setPassword(ftpSetting.getPassword());
         j92026.setPath(filePath);
 
-        if (type != null) {
-            j92026.setMediaType(type);
+        if (mediaType != null) {
+            j92026.setMediaType(mediaType);
         }
-        if (rate != null) {
-            j92026.setStreamType(rate);
+        if (streamType != null) {
+            j92026.setStreamType(streamType);
+        }
+        if (storageType != null) {
+            j92026.setStorageType(storageType);
+        }
+        if (alarmSign != null) {
+            j92026.setAlarmSign(alarmSign);
         }
         jt1078Template.fileUpload(phoneNumber, j92026, 7200);
     }

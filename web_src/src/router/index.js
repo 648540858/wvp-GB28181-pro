@@ -7,6 +7,7 @@ import deviceList from '../components/DeviceList.vue'
 import jtDeviceList from '../components/JTDeviceList.vue'
 import jtChannelList from '../components/JTChannelList.vue'
 import jtRecordDetail from '../components/JTRecordDetail.vue'
+import jtDeviceParams from '../components/JTDeviceParam.vue'
 import channelList from '../components/channelList.vue'
 import gbRecordDetail from '../components/GBRecordDetail.vue'
 import pushVideoList from '../components/PushVideoList.vue'
@@ -86,6 +87,11 @@ export default new VueRouter({
           path: '/jtRecordDetail/:phoneNumber/:channelId/',
           name: 'jtRecordDetail',
           component: jtRecordDetail,
+        },
+        {
+          path: '/jtDeviceParams/:phoneNumber/',
+          name: 'jtDeviceParams',
+          component: jtDeviceParams,
         },
         {
           path: '/parentPlatformList/:count/:page',

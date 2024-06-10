@@ -79,10 +79,10 @@ public class JTDeviceConfig {
     @ConfigAttribute(id = 0x23, type="String", description = "从服务器 APN# 该值为空时 !终端应使用主服务器相同配置")
     private String apnSlave;
 
-    @ConfigAttribute(id = 0x24, type="String", description = "从服务器无线通信拨号密码 #  该值为空时 !终端应使用主服务器相 同配置")
+    @ConfigAttribute(id = 0x24, type="String", description = "从服务器无线通信拨号用户名 #  该值为空时 !终端应使用主服务器 相同配置")
     private String dialingUsernameSlave;
 
-    @ConfigAttribute(id = 0x25, type="String", description = "从服务器备份地址 IP或域名 !主机和端口用冒号分割 !多个服务器 使用分号分割")
+    @ConfigAttribute(id = 0x25, type="String", description = "从服务器无线通信拨号密码 #  该值为空时 !终端应使用主服务器相 同配置")
     private String dialingPasswordSlave;
 
     @ConfigAttribute(id = 0x26, type="String", description = "从服务器备份地址 IP或域名 !主机和端口用冒号分割 !多个服务器 使用分号分割")
@@ -133,7 +133,7 @@ public class JTDeviceConfig {
     @ConfigAttribute(id = 0x44, type="String", description = "接收终端 SMS 文本报警号码")
     private String phoneNumberForReceiveTextAlarm;
 
-    @ConfigAttribute(id = 0x45, type="Long", description = "终端电话接听策略 。0:自动接听；1:ACCON时自动接听 ,OFF时手动接听")
+    @ConfigAttribute(id = 0x45, type="Long", description = "终端电话接听策略 。0:自动接听；1:ACC ON时自动接听 ,OFF时手动接听")
     private Long phoneAnsweringPolicy;
 
     @ConfigAttribute(id = 0x46, type="Long", description = "每次最长通话时间 ,单位为秒(s) ,0 为不允许通话 ,0xFFFFFFFF为不限制")
@@ -164,7 +164,7 @@ public class JTDeviceConfig {
     private Long KeySign;
 
     @ConfigAttribute(id = 0x55, type="Long", description = "最高速度 ,单位为千米每小时(km/h)")
-    private Long topSpeed;
+    private Long maxSpeed;
 
     @ConfigAttribute(id = 0x56, type="Long", description = "超速持续时间 ,单位为秒(s)")
     private Long overSpeedDuration;
@@ -705,12 +705,12 @@ public class JTDeviceConfig {
         KeySign = keySign;
     }
 
-    public Long getTopSpeed() {
-        return topSpeed;
+    public Long getMaxSpeed() {
+        return maxSpeed;
     }
 
-    public void setTopSpeed(Long topSpeed) {
-        this.topSpeed = topSpeed;
+    public void setMaxSpeed(Long maxSpeed) {
+        this.maxSpeed = maxSpeed;
     }
 
     public Long getOverSpeedDuration() {
@@ -1056,7 +1056,7 @@ public class JTDeviceConfig {
                 ", alarmShootingSwitch： " + alarmShootingSwitch +
                 ", alarmShootingStorageFlags： " + alarmShootingStorageFlags +
                 ", KeySign： " + KeySign +
-                ", topSpeed： " + topSpeed +
+                ", topSpeed： " + maxSpeed +
                 ", overSpeedDuration： " + overSpeedDuration +
                 ", continuousDrivingTimeThreshold： " + continuousDrivingTimeThreshold +
                 ", cumulativeDrivingTimeThresholdForTheDay： " + cumulativeDrivingTimeThresholdForTheDay +

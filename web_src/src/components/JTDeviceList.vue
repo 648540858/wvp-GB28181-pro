@@ -220,7 +220,7 @@ export default {
     },
     moreClick: function (command, itemData) {
       if (command === "params") {
-        this.queryRecords(itemData)
+        this.$router.push(`/jtDeviceParams/${itemData.phoneNumber}`);
       }else if (command === "connection") {
         this.queryCloudRecords(itemData)
       }else {

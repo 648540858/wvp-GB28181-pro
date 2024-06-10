@@ -12,8 +12,9 @@
         </div>
       </div>
     </div>
-    <el-container v-loading="isLoading" style="height: 82vh;">
-      <el-main style="padding: 5px;">
+    <el-container v-loading="isLoading" style="height: 82vh; overflow: auto">
+      <el-main style="padding: 5px; background-color: #ffffff;">
+        <el-divider content-position="center">通讯参数</el-divider>
         <el-form size="mini"  ref="form" :rules="rules" :model="form" label-width="240px" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;">
           <el-form-item label="心跳发送间隔(秒)" prop="keepaliveInterval">
             <el-input v-model="form.keepaliveInterval" clearable></el-input>
@@ -30,9 +31,15 @@
           <el-form-item label="UDP消息重传次数" prop="udpRetransmissionCount">
             <el-input v-model="form.udpRetransmissionCount" clearable></el-input>
           </el-form-item>
-          <el-form-item label="SMS 消息应答超时时间(秒)" prop="smsRetransmissionCount">
+          <el-form-item label="SMS 消息应答超时时间(秒)" prop="smsResponseTimeout">
+            <el-input v-model="form.smsResponseTimeout" clearable></el-input>
+          </el-form-item>
+          <el-form-item label="SMS 消息重传次数" prop="smsRetransmissionCount">
             <el-input v-model="form.smsRetransmissionCount" clearable></el-input>
           </el-form-item>
+        </el-form>
+        <el-divider content-position="center">服务器参数</el-divider>
+        <el-form size="mini"  ref="form" :rules="rules" :model="form" label-width="240px" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;">
           <el-form-item label="APN(主)" prop="apnMaster">
             <el-input v-model="form.apnMaster" clearable></el-input>
           </el-form-item>
@@ -83,17 +90,18 @@
           <el-form-item label="IC卡认证服务器UDP端口" prop="udpPortIcMaster">
             <el-input v-model="form.udpPortIcMaster" clearable></el-input>
           </el-form-item>
-          <el-form-item label="位置汇报策略" prop="locationReportingStrategy">
-            <el-input v-model="form.udpPortIcMaster" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="位置汇报策略" prop="locationReportingStrategy">
+        </el-form>
+
+        <el-divider content-position="center">位置汇报</el-divider>
+        <el-form size="mini"  ref="form" :rules="rules" :model="form" label-width="240px" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;">
+          <el-form-item label="策略" prop="locationReportingStrategy">
             <el-select v-model="form.locationReportingStrategy" style="float: left; width: 100%" >
               <el-option label="定时汇报" :value="0">定时汇报</el-option>
               <el-option label="定距汇报" :value="1"></el-option>
               <el-option label="定时和定距汇报" :value="2"></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="位置汇报方案" prop="locationReportingPlan">
+          <el-form-item label="方案" prop="locationReportingPlan">
             <el-select v-model="form.locationReportingPlan" style="float: left; width: 100%" >
               <el-option label="根据ACC状态" :value="0"></el-option>
               <el-option label="登录状态和ACC状态" :value="1"></el-option>
@@ -126,15 +134,9 @@
           <el-form-item label="拐点补传角度(度，小于180)" prop="inflectionPointAngle">
             <el-input v-model="form.inflectionPointAngle" clearable></el-input>
           </el-form-item>
-          <el-form-item label="电子围栏半径(米)" prop="fenceRadius">
-            <el-input v-model="form.fenceRadius" clearable></el-input>
-          </el-form-item>
-          <el-form-item v-if="form.illegalDrivingPeriods" label="违规行驶时段-开始时间(HH:mm)" prop="illegalDrivingPeriods">
-            <el-input v-model="form.illegalDrivingPeriodsStartTime" clearable></el-input>
-          </el-form-item>
-          <el-form-item v-if="form.illegalDrivingPeriods" label="违规行驶时段-结束时间(HH:mm)" prop="illegalDrivingPeriods">
-            <el-input v-model="form.illegalDrivingPeriodsEndTime" clearable></el-input>
-          </el-form-item>
+        </el-form>
+        <el-divider content-position="center">电话号码</el-divider>
+        <el-form size="mini"  ref="form" :rules="rules" :model="form" label-width="240px" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;">
           <el-form-item label="监控平台电话号码" prop="platformPhoneNumber">
             <el-input v-model="form.platformPhoneNumber" clearable></el-input>
           </el-form-item>
@@ -165,6 +167,10 @@
           <el-form-item label="监管平台特权短信号码" prop="privilegedSMSNumber">
             <el-input v-model="form.privilegedSMSNumber" clearable></el-input>
           </el-form-item>
+        </el-form>
+
+        <el-divider content-position="center">报警参数</el-divider>
+        <el-form size="mini"  ref="form" :rules="rules" :model="form" label-width="240px" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;">
           <el-form-item label="报警屏蔽字(TODO)" prop="alarmMaskingWord">
             <el-input v-model="form.alarmMaskingWord" clearable></el-input>
           </el-form-item>
@@ -179,6 +185,19 @@
           </el-form-item>
           <el-form-item label="关键标志(TODO)" prop="KeySign">
             <el-input v-model="form.KeySign" clearable></el-input>
+          </el-form-item>
+          <el-form-item label="电子围栏半径(米)" prop="fenceRadius">
+            <el-input v-model="form.fenceRadius" clearable></el-input>
+          </el-form-item>
+        </el-form>
+
+        <el-divider content-position="center">行驶参数</el-divider>
+        <el-form size="mini"  ref="form" :rules="rules" :model="form" label-width="240px" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;">
+          <el-form-item v-if="form.illegalDrivingPeriods" label="违规行驶时段-开始时间(HH:mm)" prop="illegalDrivingPeriods">
+            <el-input v-model="form.illegalDrivingPeriods.startTime" clearable></el-input>
+          </el-form-item>
+          <el-form-item v-if="form.illegalDrivingPeriods" label="违规行驶时段-结束时间(HH:mm)" prop="illegalDrivingPeriods">
+            <el-input v-model="form.illegalDrivingPeriods.endTime" clearable></el-input>
           </el-form-item>
           <el-form-item label="最高速度(千米每小时)" prop="topSpeed">
             <el-input v-model="form.topSpeed" clearable></el-input>
@@ -205,13 +224,55 @@
             <el-input v-model="form.drowsyDrivingWarningDifference" clearable></el-input>
           </el-form-item>
           <el-form-item label="碰撞报警-碰撞时间(毫秒)" prop="collisionAlarmParamsCollisionAlarmTime">
-            <el-input v-model="form.collisionAlarmParamsCollisionAlarmTime" clearable></el-input>
+            <el-input v-model="form.collisionAlarmParams.collisionAlarmTime" clearable></el-input>
           </el-form-item>
           <el-form-item label="碰撞报警-碰撞加速度(0.1g)" prop="collisionAlarmParamsCollisionAcceleration">
-            <el-input v-model="form.collisionAlarmParamsCollisionAcceleration" clearable></el-input>
+            <el-input v-model="form.collisionAlarmParams.collisionAcceleration" clearable></el-input>
+          </el-form-item>
+          <el-form-item label="侧翻报警参数-侧翻角度(度)" prop="rolloverAlarm">
+            <el-input v-model="form.rolloverAlarm" clearable></el-input>
+          </el-form-item>
+        </el-form>
+
+        <el-divider content-position="center">定时拍照控制</el-divider>
+        <el-form size="mini"  ref="form" :rules="rules" :model="form" label-width="240px" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;">
+          <el-form-item label="定时拍照开关-通道1" prop="rolloverAlarm">
+            <el-switch v-model="form.cameraTimer.switchForChannel1" ></el-switch>
+          </el-form-item>
+          <el-form-item label="定时拍照开关-通道2" prop="rolloverAlarm">
+            <el-switch v-model="form.cameraTimer.switchForChannel2" ></el-switch>
+          </el-form-item>
+          <el-form-item label="定时拍照开关-通道3" prop="rolloverAlarm">
+            <el-switch v-model="form.cameraTimer.switchForChannel3" ></el-switch>
+          </el-form-item>
+          <el-form-item label="定时拍照开关-通道4" prop="rolloverAlarm">
+            <el-switch v-model="form.cameraTimer.switchForChannel4" ></el-switch>
+          </el-form-item>
+          <el-form-item label="定时拍照开关-通道5" prop="rolloverAlarm">
+            <el-switch v-model="form.cameraTimer.switchForChannel5" ></el-switch>
+          </el-form-item>
+          <el-form-item label="定时拍照存储-通道1" prop="rolloverAlarm">
+            <el-switch v-model="form.cameraTimer.storageFlagsForChannel1" ></el-switch>
+          </el-form-item>
+          <el-form-item label="定时拍照存储-通道2" prop="rolloverAlarm">
+            <el-switch v-model="form.cameraTimer.storageFlagsForChannel2" ></el-switch>
+          </el-form-item>
+          <el-form-item label="定时拍照存储-通道3" prop="rolloverAlarm">
+            <el-switch v-model="form.cameraTimer.storageFlagsForChannel3" ></el-switch>
+          </el-form-item>
+          <el-form-item label="定时拍照存储-通道4" prop="rolloverAlarm">
+            <el-switch v-model="form.cameraTimer.storageFlagsForChannel4" ></el-switch>
+          </el-form-item>
+          <el-form-item label="定时拍照存储-通道5" prop="rolloverAlarm">
+            <el-switch v-model="form.cameraTimer.storageFlagsForChannel5" ></el-switch>
           </el-form-item>
 
-
+          <el-form-item label="定时时间间隔" prop="timeInterval">
+            <el-input v-model="form.timeInterval" clearable></el-input>
+          </el-form-item>
+          <el-form-item label="定时时间单位" prop="rolloverAlarm">
+            <el-switch v-model="form.cameraTimer.timeUnit" active-text="分" inactive-text="秒"></el-switch>
+          </el-form-item>
         </el-form>
         <div style="float: right;">
           <el-button type="primary" @click="onSubmit" >确认</el-button>
@@ -240,7 +301,11 @@ export default {
   data() {
     return {
       phoneNumber: this.$route.params.phoneNumber,
-      form: {},
+      form: {
+        collisionAlarmParams: {},
+        illegalDrivingPeriods: {},
+        cameraTimer: {},
+      },
       rules: {
         deviceId: [{ required: true, message: "请输入设备编号", trigger: "blur" }]
       },
@@ -267,14 +332,6 @@ export default {
         this.isLoading = false;
         console.log(res)
         this.form = res.data.data;
-        if (this.form.illegalDrivingPeriods) {
-          this.form.illegalDrivingPeriodsStartTime = this.form.illegalDrivingPeriods.startTime
-          this.form.illegalDrivingPeriodsEndTime = this.form.illegalDrivingPeriods.endTime
-        }
-        if (this.form.collisionAlarmParams) {
-          this.form.collisionAlarmParamsCollisionAlarmTime = this.form.collisionAlarmParams.collisionAlarmTime
-          this.form.collisionAlarmParamsCollisionAcceleration = this.form.collisionAlarmParams.collisionAcceleration
-        }
       }).cache((e)=>{
         this.isLoading = false;
       });
@@ -282,8 +339,11 @@ export default {
     onSubmit: function () {
       this.$axios({
         method: 'post',
-        url: `/api/jt1078/terminal/channel/update`,
-        params: row
+        url: `/api/jt1078/set-config`,
+        data: {
+          phoneNumber: this.phoneNumber,
+          config: this.form
+        }
       }).then(function (res) {
         console.log(JSON.stringify(res));
       });

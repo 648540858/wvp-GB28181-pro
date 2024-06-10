@@ -26,7 +26,7 @@ public class JTDeviceConfig {
     private Long udpRetransmissionCount;
 
     @ConfigAttribute(id = 0x6, type="Long", description = "SMS 消息应答超时时间,单位为秒(s)")
-    private Long smsResponseTimeout;
+        private Long smsResponseTimeout;
 
     @ConfigAttribute(id = 0x7, type="Long", description = "SMS 消息重传次数")
     private Long smsRetransmissionCount;

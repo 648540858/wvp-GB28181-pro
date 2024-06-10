@@ -136,7 +136,7 @@ public class J0104 extends Re {
                         Method methodForChannelParam = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), JTChannelParam.class);
                         methodForChannelParam.invoke(deviceConfig, channelParam);
                         continue;
-                    case "alarmRecordingParam":
+                    case "AlarmRecordingParam":
                         JTAlarmRecordingParam alarmRecordingParam = JTAlarmRecordingParam.decode(buf);
                         Method methodForAlarmRecordingParam = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), JTAlarmRecordingParam.class);
                         methodForAlarmRecordingParam.invoke(deviceConfig, alarmRecordingParam);

@@ -21,13 +21,4 @@ public class MediaPublishEvent extends MediaEvent {
         return mediaPublishEvent;
     }
 
-    private String params;
-
-    public String getParams() {
-        return params;
-    }
-
-    public void setParams(String params) {
-        this.params = params;
-    }
 }

@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.jt1078.service.impl;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.GeneralCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
@@ -14,7 +13,6 @@ import com.genersoft.iot.vmp.jt1078.bean.common.ConfigAttribute;
 import com.genersoft.iot.vmp.jt1078.cmd.JT1078Template;
 import com.genersoft.iot.vmp.jt1078.dao.JTChannelMapper;
 import com.genersoft.iot.vmp.jt1078.dao.JTTerminalMapper;
-import com.genersoft.iot.vmp.jt1078.event.CallbackManager;
 import com.genersoft.iot.vmp.jt1078.event.FtpUploadEvent;
 import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
 import com.genersoft.iot.vmp.jt1078.proc.response.*;
@@ -30,12 +28,11 @@ import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaNotFoundEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaSendRtpStoppedEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.utils.MediaServerUtils;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -111,11 +108,59 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     @Async("taskExecutor")
     @EventListener
     public void onApplicationEvent(MediaNotFoundEvent event) {
-
+        if (!userSetting.isAutoApplyPlay()) {
+            return;
+        }
+        JTMediaStreamType jtMediaStreamType = checkStreamFromJt(event.getStream());
+        if (jtMediaStreamType == null){
+            return;
+        }
+        String[] streamParamArray = event.getStream().split("_");
+        String phoneNumber = streamParamArray[1];
+        int channelId = Integer.parseInt(streamParamArray[2]);
+        String params = event.getParams();
+        Map<String, String> paramMap = MediaServerUtils.urlParamToMap(params);
+        int type = 0;
+        try {
+            type = Integer.parseInt(paramMap.get("type"));
+        }catch (NumberFormatException ignored) {}
+        if (jtMediaStreamType.equals(JTMediaStreamType.PLAY)) {
+            play(phoneNumber, channelId, 0, null);
+        }else if (jtMediaStreamType.equals(JTMediaStreamType.PLAYBACK)) {
+            String startTimeParam = DateUtil.jt1078Toyyyy_MM_dd_HH_mm_ss(streamParamArray[3]);
+            String endTimeParam = DateUtil.jt1078Toyyyy_MM_dd_HH_mm_ss(streamParamArray[4]);
+            int rate = 0;
+            int playbackType = 0;
+            int playbackSpeed = 0;
+            try {
+                rate = Integer.parseInt(paramMap.get("rate"));
+                playbackType = Integer.parseInt(paramMap.get("playbackType"));
+                playbackSpeed = Integer.parseInt(paramMap.get("playbackSpeed"));
+            }catch (NumberFormatException ignored) {}
+            playback(phoneNumber, channelId, startTimeParam, endTimeParam, type, rate, playbackType, playbackSpeed, null);
+        }
     }
 
 
-
+    /**
+     * 校验流是否是属于部标的
+     */
+    @Override
+    public JTMediaStreamType checkStreamFromJt(String stream) {
+        if (!stream.startsWith("jt_")) {
+            return null;
+        }
+        String[] streamParamArray = stream.split("_");
+        if (streamParamArray.length == 3) {
+            return JTMediaStreamType.PLAY;
+        }else if (streamParamArray.length == 5) {
+            return JTMediaStreamType.PLAYBACK;
+        }else if (streamParamArray.length == 4) {
+            return JTMediaStreamType.TALK;
+        }else {
+            return null;
+        }
+    }
 
     @Override
     public JTDevice getDevice(String phoneNumber) {
@@ -213,6 +258,9 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             StreamInfo info = onPublishHandler(mediaServer, hookData, phoneNumber, channelId);
 
             for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
+                if (errorCallback == null) {
+                    continue;
+                }
                 errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), info);
             }
             subscribe.removeSubscribe(hook);
@@ -232,6 +280,10 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         });
         // 开启收流端口
         SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServer, stream, "000", false, false, 0, false, !channel.getHasAudio(), false, 1);
+        if (ssrcInfo == null) {
+            stopPlay(phoneNumber, channelId);
+            return;
+        }
         // 设置超时监听
         dynamicTask.startDelay(playKey, () -> {
             logger.info("[1078-点播] 超时， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
@@ -928,7 +980,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "对讲进行中");
         }
 
-        String receiveStream = "1078" + "_" + phoneNumber + "_" + channelId;
+        String receiveStream = "jt_" + phoneNumber + "_" + channelId + "_talk";
         MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
         if (mediaServer == null) {
             for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {

@@ -9,6 +9,8 @@ import com.github.pagehelper.PageInfo;
 import java.util.List;
 
 public interface Ijt1078Service {
+    JTMediaStreamType checkStreamFromJt(String stream);
+
     JTDevice getDevice(String phoneNumber);
 
     JTChannel getChannel(Integer terminalDbId, Integer channelId);

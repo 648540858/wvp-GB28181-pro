@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
+import com.genersoft.iot.vmp.jt1078.bean.JTMediaStreamType;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
@@ -273,11 +274,12 @@ public class MediaServiceImpl implements IMediaService {
                 return result;
             }else {
                 // 判断是否是1078点播
-                if (stream.startsWith("jt_")) {
+                JTMediaStreamType jtMediaStreamType = ijt1078Service.checkStreamFromJt(stream);
+                if (jtMediaStreamType != null) {
                     String[] streamParamArray = stream.split("_");
-                    if (streamParamArray.length == 3) {
+                    if (jtMediaStreamType.equals(JTMediaStreamType.PLAY)) {
                         ijt1078Service.stopPlay(streamParamArray[1], Integer.parseInt(streamParamArray[2]));
-                    }else if (streamParamArray.length == 5) {
+                    }else if (jtMediaStreamType.equals(JTMediaStreamType.PLAYBACK)) {
                         ijt1078Service.stopPlayback(streamParamArray[1], Integer.parseInt(streamParamArray[2]));
                     }
                 }

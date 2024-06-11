@@ -25,6 +25,9 @@ import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookData;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
+import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
+import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
+import com.genersoft.iot.vmp.media.event.media.MediaNotFoundEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaSendRtpStoppedEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
@@ -42,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
@@ -72,25 +76,45 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     private IMediaServerService mediaServerService;
 
     @Autowired
-    private IMediaService mediaService;
-
-    @Autowired
     private DynamicTask dynamicTask;
 
     @Autowired
     private UserSetting userSetting;
 
     @Autowired
-    private ZLMRESTfulUtils zlmresTfulUtils;
-
-    @Autowired
-    private CallbackManager callbackManager;
-
-    @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
     private FtpSetting ftpSetting;
+
+    /**
+     * 流到来的处理
+     */
+    @Async("taskExecutor")
+    @org.springframework.context.event.EventListener
+    public void onApplicationEvent(MediaArrivalEvent event) {
+
+    }
+
+    /**
+     * 流离开的处理
+     */
+    @Async("taskExecutor")
+    @EventListener
+    public void onApplicationEvent(MediaDepartureEvent event) {
+
+    }
+
+    /**
+     * 流未找到的处理
+     */
+    @Async("taskExecutor")
+    @EventListener
+    public void onApplicationEvent(MediaNotFoundEvent event) {
+
+    }
+
+
 
 
     @Override
@@ -172,7 +196,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             // 清理数据
             redisTemplate.delete(playKey);
         }
-        String stream = "jt_play_" + phoneNumber + "_" + channelId;
+        String stream = "jt_" + phoneNumber + "_" + channelId;
         MediaServer mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
         if (mediaServer == null) {
             for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
@@ -354,7 +378,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         }
         String startTimeParam = DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(startTime);
         String endTimeParam = DateUtil.yyyy_MM_dd_HH_mm_ssTo1078(endTime);
-        String stream = phoneNumber + "_" + channelId + "_" + startTimeParam + "_" + endTimeParam;
+        String stream = "jt_" + phoneNumber + "_" + channelId + "_" + startTimeParam + "_" + endTimeParam;
         MediaServer mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
         if (mediaServer == null) {
             for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {

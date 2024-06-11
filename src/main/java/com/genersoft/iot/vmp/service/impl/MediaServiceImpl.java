@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
+import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
@@ -71,6 +72,9 @@ public class MediaServiceImpl implements IMediaService {
 
     @Autowired
     private ISIPCommander commander;
+
+    @Autowired
+    private Ijt1078Service ijt1078Service;
 
     @Override
     public boolean authenticatePlay(String app, String stream, String callId) {
@@ -267,10 +271,18 @@ public class MediaServiceImpl implements IMediaService {
                         inviteInfo.getChannelId(), inviteInfo.getStream());
                 storager.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
                 return result;
+            }else {
+                // 判断是否是1078点播
+                if (stream.startsWith("jt_")) {
+                    String[] streamParamArray = stream.split("_");
+                    if (streamParamArray.length == 3) {
+                        ijt1078Service.stopPlay(streamParamArray[1], Integer.parseInt(streamParamArray[2]));
+                    }else if (streamParamArray.length == 5) {
+                        ijt1078Service.stopPlayback(streamParamArray[1], Integer.parseInt(streamParamArray[2]));
+                    }
+                }
             }
-            if (stream.startsWith("1078")) {
-                return false;
-            }
+
             SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(null, null, stream, null);
             if (sendRtpItem != null && "talk".equals(sendRtpItem.getApp() )) {
                 return false;

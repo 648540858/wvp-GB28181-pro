@@ -128,6 +128,9 @@ export default {
       this.form.subscribeCycleForCatalog = this.form.subscribeCycleForCatalog||0
       this.form.subscribeCycleForMobilePosition = this.form.subscribeCycleForMobilePosition||0
       this.form.mobilePositionSubmissionInterval = this.form.mobilePositionSubmissionInterval||0
+      if (this.form.mobilePositionSubmissionInterval === 0) {
+        this.form.mobilePositionSubmissionInterval = 5
+      }
       this.$axios({
         method: 'post',
         url:`/api/device/query/device/${this.isEdit?'update':'add'}/`,

@@ -4,7 +4,6 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
-import com.genersoft.iot.vmp.service.IPlatformService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -62,8 +61,15 @@ public class SubscribeHolder {
         mobilePositionMap.put(platformId, subscribeInfo);
         String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetting.getServerId() + "MobilePosition_" + platformId;
         // 添加任务处理GPS定时推送
+
+        int cycleForCatalog;
+        if (subscribeInfo.getGpsInterval() <= 0) {
+            cycleForCatalog = 5;
+        }else {
+            cycleForCatalog = subscribeInfo.getGpsInterval();
+        }
         dynamicTask.startCron(key, gpsTask,
-                subscribeInfo.getGpsInterval() * 1000);
+                cycleForCatalog * 1000);
         String taskOverdueKey = taskOverduePrefix +  "MobilePosition_" + platformId;
         if (subscribeInfo.getExpires() > 0) {
             // 添加任务处理订阅过期

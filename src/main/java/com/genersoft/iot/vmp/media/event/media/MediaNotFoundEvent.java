@@ -17,6 +17,7 @@ public class MediaNotFoundEvent extends MediaEvent {
         mediaDepartureEven.setStream(hookParam.getStream());
         mediaDepartureEven.setSchema(hookParam.getSchema());
         mediaDepartureEven.setMediaServer(mediaServer);
+        mediaDepartureEven.setParams(hookParam.getParams());
         return mediaDepartureEven;
     }
 }

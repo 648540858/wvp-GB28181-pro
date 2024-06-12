@@ -1230,6 +1230,8 @@ public class SIPCommander implements ISIPCommander {
         subscribePostitionXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
         if (device.getSubscribeCycleForMobilePosition() > 0) {
             subscribePostitionXml.append("<Interval>" + device.getMobilePositionSubmissionInterval() + "</Interval>\r\n");
+        }else {
+            subscribePostitionXml.append("<Interval>5</Interval>\r\n");
         }
         subscribePostitionXml.append("</Query>\r\n");
 

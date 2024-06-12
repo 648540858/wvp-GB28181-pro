@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -531,7 +532,16 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Override
     public int updateStatus(boolean status, String app, String stream) {
-        return streamProxyMapper.updateStatus(app, stream, status);
+        // 状态变化时推送到国标上级
+        StreamProxyItem streamProxyItem = streamProxyMapper.selectOne(app, stream);
+        if (streamProxyItem == null) {
+            return 0;
+        }
+        int result = streamProxyMapper.updateStatus(app, stream, status);
+        if (!ObjectUtils.isEmpty(streamProxyItem.getGbId())) {
+            gbStreamService.sendCatalogMsg(streamProxyItem, status?CatalogEvent.ON:CatalogEvent.OFF);
+        }
+        return result;
     }
 
     private void syncPullStream(String mediaServerId){

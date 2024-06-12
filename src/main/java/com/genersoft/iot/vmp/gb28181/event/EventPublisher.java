@@ -79,7 +79,7 @@ public class EventPublisher {
 			// 数据去重
 			Set<String> gbIdSet = new HashSet<>();
 			for (DeviceChannel deviceChannel : deviceChannels) {
-				if (!gbIdSet.contains(deviceChannel.getChannelId())) {
+				if (deviceChannel != null && deviceChannel.getChannelId() != null && !gbIdSet.contains(deviceChannel.getChannelId())) {
 					gbIdSet.add(deviceChannel.getChannelId());
 					channels.add(deviceChannel);
 				}

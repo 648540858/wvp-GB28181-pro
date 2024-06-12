@@ -1003,6 +1003,7 @@ public class PlayServiceImpl implements IPlayService {
             dynamicTask.stop(downLoadTimeOutTaskKey);
             callback.run(InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode(),
                     String.format("录像下载失败， 错误码： %s, %s", event.statusCode, event.msg), null);
+            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
             streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
             inviteStreamService.removeInviteInfo(inviteInfo);
         };

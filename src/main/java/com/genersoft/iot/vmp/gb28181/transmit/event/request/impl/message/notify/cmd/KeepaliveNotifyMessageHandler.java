@@ -62,7 +62,10 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
         }
         SIPRequest request = (SIPRequest) evt.getRequest();
         logger.info("[收到心跳] device: {}, callId: {}", device.getDeviceId(), request.getCallIdHeader().getCallId());
-
+        if (userSetting.getGbDeviceOnline() == 0 && !device.isOnLine()) {
+            logger.warn("[收到心跳] 设备离线，心跳不进行回复， device: {}, callId: {}", device.getDeviceId(), request.getCallIdHeader().getCallId());
+            return;
+        }
         // 回复200 OK
         try {
             responseAck(request, Response.OK);
@@ -101,9 +104,10 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
         if (device.isOnLine()) {
             deviceService.updateDevice(device);
         }else {
-            // 对于已经离线的设备判断他的注册是否已经过期
-            if (!deviceService.expire(device)){
-                device.setOnLine(false);
+            if (userSetting.getGbDeviceOnline() == 1) {
+                // 对于已经离线的设备判断他的注册是否已经过期
+                device.setOnLine(true);
+                device.setRegisterTime(DateUtil.getNow());
                 deviceService.online(device, null);
             }
         }

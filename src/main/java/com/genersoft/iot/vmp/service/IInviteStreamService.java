@@ -14,6 +14,8 @@ public interface IInviteStreamService {
      */
     void updateInviteInfo(InviteInfo inviteInfo);
 
+    void updateInviteInfo(InviteInfo inviteInfo, Long time);
+
     InviteInfo updateInviteInfoForStream(InviteInfo inviteInfo, String stream);
 
     /**

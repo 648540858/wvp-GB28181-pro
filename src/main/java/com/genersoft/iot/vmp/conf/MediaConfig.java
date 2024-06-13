@@ -27,7 +27,7 @@ public class MediaConfig{
     @Value("${media.ip}")
     private String ip;
 
-    @Value("${media.wan_ip}")
+    @Value("${media.wan_ip:}")
     private String wanIp;
 
     @Value("${media.hook-ip:127.0.0.1}")
@@ -36,10 +36,10 @@ public class MediaConfig{
     @Value("${sip.domain}")
     private String sipDomain;
 
-    @Value("${media.sdp-ip:${media.wan_ip}}")
+    @Value("${media.sdp-ip:${media.wan_ip:}}")
     private String sdpIp;
 
-    @Value("${media.stream-ip:${media.wan_ip}}")
+    @Value("${media.stream-ip:${media.wan_ip:}}")
     private String streamIp;
 
     @Value("${media.http-port:0}")
@@ -282,5 +282,13 @@ public class MediaConfig{
             return Pattern.matches("^([1-9]|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])(\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])){3}$", ipAddress);
         }
         return false;
+    }
+
+    public String getWanIp() {
+        return wanIp;
+    }
+
+    public void setWanIp(String wanIp) {
+        this.wanIp = wanIp;
     }
 }

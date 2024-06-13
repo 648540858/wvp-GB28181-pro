@@ -13,7 +13,6 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IPlayService;
-import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -108,19 +107,16 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			if (!userSetting.getServerId().equals(sendRtpItem.getServerId())) {
 				WVPResult wvpResult = redisRpcService.startSendRtp(sendRtpItem.getRedisKey(), sendRtpItem);
 				if (wvpResult.getCode() == 0) {
-					MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0, sendRtpItem.getApp(), sendRtpItem.getStream(),
-							sendRtpItem.getChannelId(), parentPlatform.getServerGBId(), parentPlatform.getName(), userSetting.getServerId(),
-							sendRtpItem.getMediaServerId());
-					messageForPushChannel.setPlatFormIndex(parentPlatform.getId());
-                    redisCatchStorage.sendPlatformStartPlayMsg(messageForPushChannel);
+					redisCatchStorage.sendPlatformStartPlayMsg(sendRtpItem, parentPlatform);
 				}
 			} else {
 				try {
 					if (sendRtpItem.isTcpActive()) {
-						mediaServerService.startSendRtpPassive(mediaInfo, parentPlatform, sendRtpItem, null);
+						mediaServerService.startSendRtpPassive(mediaInfo,sendRtpItem, null);
 					} else {
-						mediaServerService.startSendRtp(mediaInfo, parentPlatform, sendRtpItem);
+						mediaServerService.startSendRtp(mediaInfo, sendRtpItem);
 					}
+					redisCatchStorage.sendPlatformStartPlayMsg(sendRtpItem, parentPlatform);
 				}catch (ControllerException e) {
 					logger.error("RTP推流失败: {}", e.getMessage());
 					playService.startSendRtpStreamFailHand(sendRtpItem, parentPlatform, callIdHeader);
@@ -142,9 +138,9 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			}
 			try {
 				if (sendRtpItem.isTcpActive()) {
-					mediaServerService.startSendRtpPassive(mediaInfo, null, sendRtpItem, null);
+					mediaServerService.startSendRtpPassive(mediaInfo, sendRtpItem, null);
 				} else {
-					mediaServerService.startSendRtp(mediaInfo, null, sendRtpItem);
+					mediaServerService.startSendRtp(mediaInfo, sendRtpItem);
 				}
 			}catch (ControllerException e) {
 				logger.error("RTP推流失败: {}", e.getMessage());

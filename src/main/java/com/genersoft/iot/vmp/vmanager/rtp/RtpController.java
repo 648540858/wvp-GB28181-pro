@@ -1,18 +1,17 @@
 package com.genersoft.iot.vmp.vmanager.rtp;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
-import com.genersoft.iot.vmp.media.event.hook.Hook;
-import com.genersoft.iot.vmp.media.event.hook.HookType;
-import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.event.hook.Hook;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
+import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -31,9 +30,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -247,12 +244,12 @@ public class RtpController {
         Boolean streamReady = mediaServerService.isStreamReady(mediaServer, app, stream);
         if (streamReady) {
             if (sendRtpItemForVideo != null) {
-                mediaServerService.startSendRtp(mediaServer, null,  sendRtpItemForVideo);
+                mediaServerService.startSendRtp(mediaServer,  sendRtpItemForVideo);
                 logger.info("[第三方服务对接->发送流] 视频流发流成功，callId->{}，param->{}", callId, sendRtpItemForVideo);
                 redisTemplate.opsForValue().set(key, sendInfo);
             }
             if(sendRtpItemForAudio != null) {
-                mediaServerService.startSendRtp(mediaServer, null,  sendRtpItemForAudio);
+                mediaServerService.startSendRtp(mediaServer, sendRtpItemForAudio);
                 logger.info("[第三方服务对接->发送流] 音频流发流成功，callId->{}，param->{}", callId, sendRtpItemForAudio);
                 redisTemplate.opsForValue().set(key, sendInfo);
             }
@@ -279,12 +276,12 @@ public class RtpController {
                             throw new RuntimeException(e);
                         }
                         if (sendRtpItemForVideo != null) {
-                            mediaServerService.startSendRtp(mediaServer, null,  sendRtpItemForVideo);
+                            mediaServerService.startSendRtp(mediaServer, sendRtpItemForVideo);
                             logger.info("[第三方服务对接->发送流] 视频流发流成功，callId->{}，param->{}", callId, sendRtpItemForVideo);
                             redisTemplate.opsForValue().set(key, finalSendInfo);
                         }
                         if(sendRtpItemForAudio != null) {
-                            mediaServerService.startSendRtp(mediaServer, null,  sendRtpItemForAudio);
+                            mediaServerService.startSendRtp(mediaServer, sendRtpItemForAudio);
                             logger.info("[第三方服务对接->发送流] 音频流发流成功，callId->{}，param->{}", callId, sendRtpItemForAudio);
                             redisTemplate.opsForValue().set(key, finalSendInfo);
                         }

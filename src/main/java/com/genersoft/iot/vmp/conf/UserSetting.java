@@ -74,6 +74,8 @@ public class UserSetting {
 
     private boolean registerKeepIntDialog = false;
 
+    private int gbDeviceOnline = 1;
+
     public Boolean getSavePositionHistory() {
         return savePositionHistory;
     }
@@ -324,5 +326,13 @@ public class UserSetting {
 
     public void setDocEnable(Boolean docEnable) {
         this.docEnable = docEnable;
+    }
+
+    public int getGbDeviceOnline() {
+        return gbDeviceOnline;
+    }
+
+    public void setGbDeviceOnline(int gbDeviceOnline) {
+        this.gbDeviceOnline = gbDeviceOnline;
     }
 }

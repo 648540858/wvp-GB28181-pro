@@ -152,7 +152,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
                                 }else {
                                     // 发流
                                     try {
-                                        mediaServerService.startSendRtp(hookData.getMediaServer(),null, sendRtpItem);
+                                        mediaServerService.startSendRtp(hookData.getMediaServer(), sendRtpItem);
                                     }catch (ControllerException e) {
                                         logger.info("[语音喊话] 推流失败, 结果： {}", e.getMessage());
                                         return;

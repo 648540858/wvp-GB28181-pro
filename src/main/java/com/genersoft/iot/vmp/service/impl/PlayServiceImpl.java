@@ -389,7 +389,7 @@ public class PlayServiceImpl implements IPlayService {
         }, userSetting.getPlayTimeout());
 
         try {
-            mediaServerService.startSendRtpPassive(mediaServerItem, null, sendRtpItem, userSetting.getPlayTimeout() * 1000);
+            mediaServerService.startSendRtpPassive(mediaServerItem, sendRtpItem, userSetting.getPlayTimeout() * 1000);
         }catch (ControllerException e) {
             mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpItem.getSsrc());
             logger.info("[语音对讲]失败 deviceId: {}, channelId: {}", device.getDeviceId(), channelId);
@@ -1003,6 +1003,7 @@ public class PlayServiceImpl implements IPlayService {
             dynamicTask.stop(downLoadTimeOutTaskKey);
             callback.run(InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode(),
                     String.format("录像下载失败， 错误码： %s, %s", event.statusCode, event.msg), null);
+            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
             streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
             inviteStreamService.removeInviteInfo(inviteInfo);
         };
@@ -1413,10 +1414,11 @@ public class PlayServiceImpl implements IPlayService {
         if (mediaInfo != null) {
             try {
                 if (sendRtpItem.isTcpActive()) {
-                    mediaServerService.startSendRtpPassive(mediaInfo, platform, sendRtpItem, null);
+                    mediaServerService.startSendRtpPassive(mediaInfo, sendRtpItem, null);
                 } else {
-                    mediaServerService.startSendRtp(mediaInfo, platform, sendRtpItem);
+                    mediaServerService.startSendRtp(mediaInfo, sendRtpItem);
                 }
+                redisCatchStorage.sendPlatformStartPlayMsg(sendRtpItem, platform);
             }catch (ControllerException e) {
                 logger.error("RTP推流失败: {}", e.getMessage());
                 startSendRtpStreamFailHand(sendRtpItem, platform, callIdHeader);

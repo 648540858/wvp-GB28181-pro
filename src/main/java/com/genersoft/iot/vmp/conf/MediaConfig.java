@@ -27,19 +27,19 @@ public class MediaConfig{
     @Value("${media.ip}")
     private String ip;
 
-    @Value("${media.hook-ip:}")
-    private String hookIp;
+    @Value("${media.wan_ip}")
+    private String wanIp;
 
-    @Value("${sip.ip}")
-    private String sipIp;
+    @Value("${media.hook-ip:127.0.0.1}")
+    private String hookIp;
 
     @Value("${sip.domain}")
     private String sipDomain;
 
-    @Value("${media.sdp-ip:${media.ip}}")
+    @Value("${media.sdp-ip:${media.wan_ip}}")
     private String sdpIp;
 
-    @Value("${media.stream-ip:${media.ip}}")
+    @Value("${media.stream-ip:${media.wan_ip}}")
     private String streamIp;
 
     @Value("${media.http-port:0}")
@@ -111,20 +111,7 @@ public class MediaConfig{
     }
 
     public String getHookIp() {
-        if (ObjectUtils.isEmpty(hookIp)){
-            return sipIp;
-        }else {
-            return hookIp;
-        }
-
-    }
-
-    public String getSipIp() {
-        if (sipIp == null) {
-            return this.ip;
-        }else {
-            return sipIp;
-        }
+        return hookIp;
     }
 
     public int getHttpPort() {

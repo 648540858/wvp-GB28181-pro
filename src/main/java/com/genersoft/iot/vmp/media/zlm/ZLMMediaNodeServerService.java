@@ -8,15 +8,14 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
-import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.ZLMServerConfig;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
@@ -35,9 +34,6 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
 
     @Autowired
     private ZLMServerFactory zlmServerFactory;
-
-    @Value("${sip.ip}")
-    private String sipIp;
 
     @Override
     public int createRTPServer(MediaServer mediaServer, String streamId, long ssrc, Integer port, Boolean onlyAuto, Boolean disableAudio, Boolean reUsePort, Integer tcpMode) {
@@ -120,7 +116,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         mediaServer.setRtpProxyPort(zlmServerConfig.getRtpProxyPort());
         mediaServer.setStreamIp(ip);
 
-        mediaServer.setHookIp(sipIp.split(",")[0]);
+        mediaServer.setHookIp("127.0.0.1");
         mediaServer.setSdpIp(ip);
         mediaServer.setType("zlm");
         return mediaServer;

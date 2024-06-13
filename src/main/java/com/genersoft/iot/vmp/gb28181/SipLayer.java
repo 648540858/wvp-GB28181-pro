@@ -16,6 +16,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
 import javax.sip.*;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,15 +43,46 @@ public class SipLayer implements CommandLineRunner {
 	@Override
 	public void run(String... args) {
 		List<String> monitorIps = new ArrayList<>();
-		// 使用逗号分割多个ip
-		String separator = ",";
-		if (sipConfig.getIp().indexOf(separator) > 0) {
-			String[] split = sipConfig.getIp().split(separator);
-			monitorIps.addAll(Arrays.asList(split));
+		if (ObjectUtils.isEmpty(sipConfig.getIp())) {
+			try {
+				// 获得本机的所有网络接口
+				Enumeration<NetworkInterface> nifs = NetworkInterface.getNetworkInterfaces();
+				while (nifs.hasMoreElements()) {
+					NetworkInterface nif = nifs.nextElement();
+					// 获得与该网络接口绑定的 IP 地址，一般只有一个
+					Enumeration<InetAddress> addresses = nif.getInetAddresses();
+					while (addresses.hasMoreElements()) {
+						InetAddress addr = addresses.nextElement();
+						if (addr instanceof Inet4Address) {
+							if (addr.getHostAddress().equals("127.0.0.1")){
+								continue;
+							}
+							if (nif.getName().startsWith("docker")) {
+								continue;
+							}
+							logger.error("[自动配置SIP监听网卡] 网卡接口地址： {}", addr.getHostAddress());// 只关心 IPv4 地址
+							monitorIps.add(addr.getHostAddress());
+						}
+					}
+				}
+			}catch (Exception e) {
+				logger.error("[读取网卡信息失败]", e);
+			}
+			if (monitorIps.isEmpty()) {
+				logger.error("[自动配置SIP监听网卡信息失败]， 请手动配置SIP.IP后重新启动");
+				System.exit(1);
+			}
 		}else {
-			monitorIps.add(sipConfig.getIp());
+			// 使用逗号分割多个ip
+			String separator = ",";
+			if (sipConfig.getIp().indexOf(separator) > 0) {
+				String[] split = sipConfig.getIp().split(separator);
+				monitorIps.addAll(Arrays.asList(split));
+			}else {
+				monitorIps.add(sipConfig.getIp());
+			}
 		}
-
+		sipConfig.setShowIp(String.join(",", monitorIps));
 		SipFactory.getInstance().setPathName("gov.nist");
 		if (monitorIps.size() > 0) {
 			for (String monitorIp : monitorIps) {

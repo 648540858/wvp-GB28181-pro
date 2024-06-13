@@ -40,7 +40,7 @@ public class ApiController {
         result.put("Server","");
         result.put("SIPSerial", sipConfig.getId());
         result.put("SIPRealm", sipConfig.getDomain());
-        result.put("SIPHost", sipConfig.getIp());
+        result.put("SIPHost", sipConfig.getShowIp());
         result.put("SIPPort", sipConfig.getPort());
         result.put("ChannelCount","1000");
         result.put("VersionType","");

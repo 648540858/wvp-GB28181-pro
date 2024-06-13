@@ -44,7 +44,7 @@ window环境，以windows10为例：
 这里依然是参考网上教程，自行安装吧。
 
 ## 4 编译ZLMediaKit
-参考ZLMediaKit[WIKI](https://github.com/ZLMediaKit/ZLMediaKit/wiki)，截取一下关键步骤：
+参考ZLMediaKit[WIKI](https://github.com/ZLMediaKit/ZLMediaKit/wiki)，如果需要使用语音对讲功能，请参考[zlm启用webrtc编译指南](https://github.com/ZLMediaKit/ZLMediaKit/wiki/zlm%E5%90%AF%E7%94%A8webrtc%E7%BC%96%E8%AF%91%E6%8C%87%E5%8D%97)，开启zlm的webrtc功能。截取一下关键步骤：
 ```bash
 # 国内用户推荐从同步镜像网站gitee下载 
 git clone --depth 1 https://gitee.com/xia-chu/ZLMediaKit

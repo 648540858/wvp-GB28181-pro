@@ -322,6 +322,9 @@ public class DeviceQuery {
 	public void updateDevice(Device device){
 
 		if (device != null && device.getDeviceId() != null) {
+			if (device.getSubscribeCycleForMobilePosition() > 0 && device.getMobilePositionSubmissionInterval() <= 0) {
+				device.setMobilePositionSubmissionInterval(5);
+			}
 			deviceService.updateCustomDevice(device);
 		}
 	}

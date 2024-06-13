@@ -656,10 +656,16 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void sendPlatformStartPlayMsg(MessageForPushChannel msg) {
-        String key = VideoManagerConstants.VM_MSG_STREAM_START_PLAY_NOTIFY;
-        logger.info("[redis发送通知] 发送 推流被上级平台观看 {}: {}/{}->{}", key, msg.getApp(), msg.getStream(), msg.getPlatFormId());
-        redisTemplate.convertAndSend(key, JSON.toJSON(msg));
+    public void sendPlatformStartPlayMsg(SendRtpItem sendRtpItem, ParentPlatform platform) {
+        if (sendRtpItem.getPlayType() == InviteStreamType.PUSH && platform  != null) {
+            MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0, sendRtpItem.getApp(), sendRtpItem.getStream(),
+                    sendRtpItem.getChannelId(), platform.getServerGBId(), platform.getName(), userSetting.getServerId(),
+                    sendRtpItem.getMediaServerId());
+            messageForPushChannel.setPlatFormIndex(platform.getId());
+            String key = VideoManagerConstants.VM_MSG_STREAM_START_PLAY_NOTIFY;
+            logger.info("[redis发送通知] 发送 推流被上级平台观看 {}: {}/{}->{}", key, sendRtpItem.getApp(), sendRtpItem.getStream(), platform.getServerGBId());
+            redisTemplate.convertAndSend(key, JSON.toJSON(messageForPushChannel));
+        }
     }
 
     @Override

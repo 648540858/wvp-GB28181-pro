@@ -142,6 +142,9 @@ public class SipLayer implements CommandLineRunner {
 		if (ObjectUtils.isEmpty(ip)) {
 			return null;
 		}
+		if (udpSipProviderMap.size() == 1) {
+			return udpSipProviderMap.values().stream().findFirst().get();
+		}
 		return udpSipProviderMap.get(ip);
 	}
 
@@ -162,6 +165,9 @@ public class SipLayer implements CommandLineRunner {
 	public SipProviderImpl getTcpSipProvider(String ip) {
 		if (ObjectUtils.isEmpty(ip)) {
 			return null;
+		}
+		if (tcpSipProviderMap.size() == 1) {
+			return tcpSipProviderMap.values().stream().findFirst().get();
 		}
 		return tcpSipProviderMap.get(ip);
 	}

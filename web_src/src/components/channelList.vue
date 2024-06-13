@@ -604,12 +604,13 @@ export default {
       if (row.location) {
         const segements = row.location.split(",");
         if (segements.length !== 2) {
+          console.log(1)
           this.$message.warning("位置信息格式有误，例：117.234,36.378");
           return;
         } else {
           row.customLongitude = parseFloat(segements[0]);
-          row.custom_latitude = parseFloat(segements[1]);
-          if (!(row.longitude && row.latitude)) {
+          row.customLatitude = parseFloat(segements[1]);
+          if (!(row.customLongitude && row.customLatitude)) {
             this.$message.warning("位置信息格式有误，例：117.234,36.378");
             return;
           }

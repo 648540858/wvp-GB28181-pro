@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @DS("master")
@@ -64,9 +65,13 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
             }
         }
     }
-
     @Override
     public void updateInviteInfo(InviteInfo inviteInfo) {
+        updateInviteInfo(inviteInfo, null);
+    }
+
+    @Override
+    public void updateInviteInfo(InviteInfo inviteInfo, Long time) {
         if (inviteInfo == null || (inviteInfo.getDeviceId() == null || inviteInfo.getChannelId() == null)) {
             logger.warn("[更新Invite信息]，参数不全： {}", JSON.toJSON(inviteInfo));
             return;
@@ -118,7 +123,11 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
                 ":" + inviteInfoForUpdate.getChannelId() +
                 ":" + inviteInfoForUpdate.getStream()+
                 ":" + inviteInfoForUpdate.getSsrcInfo().getSsrc();
-        redisTemplate.opsForValue().set(key, inviteInfoForUpdate);
+        if (time != null && time > 0) {
+            redisTemplate.opsForValue().set(key, inviteInfoForUpdate, time, TimeUnit.SECONDS);
+        }else {
+            redisTemplate.opsForValue().set(key, inviteInfoForUpdate);
+        }
     }
 
     @Override
@@ -243,6 +252,9 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
                 String keyStr = (String) keyObj;
                 InviteInfo inviteInfo = (InviteInfo) redisTemplate.opsForValue().get(keyStr);
                 if (inviteInfo != null && inviteInfo.getStreamInfo() != null && inviteInfo.getStreamInfo().getMediaServerId().equals(mediaServerId)) {
+                    if (inviteInfo.getType().equals(InviteSessionType.DOWNLOAD) && inviteInfo.getStreamInfo().getProgress() == 1) {
+                        continue;
+                    }
                     count++;
                 }
             }

@@ -60,7 +60,7 @@ public class SipLayer implements CommandLineRunner {
 							if (nif.getName().startsWith("docker")) {
 								continue;
 							}
-							logger.error("[自动配置SIP监听网卡] 网卡接口地址： {}", addr.getHostAddress());// 只关心 IPv4 地址
+							logger.info("[自动配置SIP监听网卡] 网卡接口地址： {}", addr.getHostAddress());// 只关心 IPv4 地址
 							monitorIps.add(addr.getHostAddress());
 						}
 					}

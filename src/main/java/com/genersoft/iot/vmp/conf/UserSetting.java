@@ -74,7 +74,7 @@ public class UserSetting {
 
     private boolean registerKeepIntDialog = false;
 
-    private int gbDeviceOnline = 0;
+    private int gbDeviceOnline = 1;
 
     public Boolean getSavePositionHistory() {
         return savePositionHistory;

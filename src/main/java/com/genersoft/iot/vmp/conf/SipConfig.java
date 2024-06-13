@@ -98,9 +98,6 @@ public class SipConfig {
 	}
 
 	public String getShowIp() {
-		if (this.showIp == null) {
-			return this.ip;
-		}
 		return showIp;
 	}
 

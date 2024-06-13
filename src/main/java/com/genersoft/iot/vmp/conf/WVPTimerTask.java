@@ -22,7 +22,7 @@ public class WVPTimerTask {
     @Scheduled(fixedRate = 2 * 1000)   //每3秒执行一次
     public void execute(){
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("ip", sipConfig.getIp());
+        jsonObject.put("ip", sipConfig.getShowIp());
         jsonObject.put("port", serverPort);
         redisCatchStorage.updateWVPInfo(jsonObject, 3);
     }

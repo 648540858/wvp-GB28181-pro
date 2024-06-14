@@ -83,6 +83,9 @@ public class StreamInfo implements Serializable, Cloneable{
     @Schema(description = "是否暂停（录像回放使用）")
     private boolean pause;
 
+    @Schema(description = "转码后的视频流")
+    private StreamInfo transcodeStream;
+
     public void setFlv(StreamURL flv) {
         this.flv = flv;
     }
@@ -519,6 +522,14 @@ public class StreamInfo implements Serializable, Cloneable{
 
     public void setTransactionInfo(TransactionInfo transactionInfo) {
         this.transactionInfo = transactionInfo;
+    }
+
+    public StreamInfo getTranscodeStream() {
+        return transcodeStream;
+    }
+
+    public void setTranscodeStream(StreamInfo transcodeStream) {
+        this.transcodeStream = transcodeStream;
     }
 
     @Override

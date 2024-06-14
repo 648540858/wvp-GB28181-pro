@@ -95,10 +95,6 @@ public class MediaServiceImpl implements IMediaService {
         if (addr == null) {
             addr = mediaInfo.getStreamIp();
         }
-        if (!"broadcast".equalsIgnoreCase(app) && !ObjectUtils.isEmpty(mediaInfo.getTranscodeSuffix()) && !"null".equalsIgnoreCase(mediaInfo.getTranscodeSuffix())) {
-            stream = stream + "_" + mediaInfo.getTranscodeSuffix();
-//            streamInfoResult.setStream(stream);
-        }
 
         streamInfoResult.setIp(addr);
         streamInfoResult.setMediaServerId(mediaInfo.getId());
@@ -112,6 +108,14 @@ public class MediaServiceImpl implements IMediaService {
         streamInfoResult.setRtc(addr, mediaInfo.getHttpPort(),mediaInfo.getHttpSSlPort(), app,  stream, callIdParam, isPlay);
 
         streamInfoResult.setTracks(tracks);
+
+        if (!"broadcast".equalsIgnoreCase(app) && !ObjectUtils.isEmpty(mediaInfo.getTranscodeSuffix()) && !"null".equalsIgnoreCase(mediaInfo.getTranscodeSuffix())) {
+            String newStream = stream + "_" + mediaInfo.getTranscodeSuffix();
+            mediaInfo.setTranscodeSuffix(null);
+            StreamInfo transcodeStreamInfo = getStreamInfoByAppAndStream(mediaInfo, app, newStream, tracks, addr, callId, isPlay);
+            streamInfoResult.setTranscodeStream(transcodeStreamInfo);
+        }
+
         return streamInfoResult;
     }
 }

@@ -1141,15 +1141,15 @@ public class PlayServiceImpl implements IPlayService {
             AudioBroadcastCatch audioBroadcastCatch = new AudioBroadcastCatch(device.getDeviceId(), channelId, mediaServerItem, app, stream, event, AudioBroadcastCatchStatus.Ready, isFromPlatform);
             audioBroadcastManager.update(audioBroadcastCatch);
             // 等待invite消息， 超时则结束
-            String key = VideoManagerConstants.BROADCAST_WAITE_INVITE +  device.getDeviceId();
-            if (!SipUtils.isFrontEnd(device.getDeviceId())) {
-                key += audioBroadcastCatch.getChannelId();
-            }
-            dynamicTask.startDelay(key, ()->{
-                logger.info("[语音广播]等待invite消息超时：{}/{}", device.getDeviceId(), channelId);
-                event.call(-1,"等待invite消息超时");
-                stopAudioBroadcast(device.getDeviceId(), channelId);
-            }, 10*1000);
+//            String key = VideoManagerConstants.BROADCAST_WAITE_INVITE +  device.getDeviceId();
+//            if (!SipUtils.isFrontEnd(device.getDeviceId())) {
+//                key += audioBroadcastCatch.getChannelId();
+//            }
+//            dynamicTask.startDelay(key, ()->{
+//                logger.info("[语音广播]等待invite消息超时：{}/{}", device.getDeviceId(), channelId);
+//                event.call(-1,"等待invite消息超时");
+//                stopAudioBroadcast(device.getDeviceId(), channelId);
+//            }, 10*1000);
         }, eventResultForError -> {
             // 发送失败
             logger.error("语音广播发送失败： {}:{}", channelId, eventResultForError.msg);

@@ -281,7 +281,7 @@ public class PlayController {
 			playService.stopAudioBroadcast();
 		});
         try {
-            playService.audioBroadcastCmd(device, channelId, mediaServerItem, app, stream, 60, false, (code, msg) -> {
+            playService.audioBroadcastCmd(device, channel, mediaServerItem, app, stream, 60, false, (code, msg) -> {
                 WVPResult<Void> wvpResult = new WVPResult<>();
                 wvpResult.setCode(code);
                 wvpResult.setMsg(msg);

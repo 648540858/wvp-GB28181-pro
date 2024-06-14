@@ -39,10 +39,10 @@ public class SipLayer implements CommandLineRunner {
 
 	private final Map<String, SipProviderImpl> tcpSipProviderMap = new ConcurrentHashMap<>();
 	private final Map<String, SipProviderImpl> udpSipProviderMap = new ConcurrentHashMap<>();
+	private final List<String> monitorIps = new ArrayList<>();
 
 	@Override
 	public void run(String... args) {
-		List<String> monitorIps = new ArrayList<>();
 		if (ObjectUtils.isEmpty(sipConfig.getIp())) {
 			try {
 				// 获得本机的所有网络接口
@@ -173,6 +173,9 @@ public class SipLayer implements CommandLineRunner {
 	}
 
 	public String getLocalIp(String deviceLocalIp) {
+		if (monitorIps.size() == 1) {
+			return monitorIps.get(0);
+		}
 		if (!ObjectUtils.isEmpty(deviceLocalIp)) {
 			return deviceLocalIp;
 		}

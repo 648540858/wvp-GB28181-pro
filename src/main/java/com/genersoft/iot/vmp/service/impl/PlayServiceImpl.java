@@ -1113,33 +1113,28 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public boolean audioBroadcastCmd(Device device, String channelId, MediaServerItem mediaServerItem, String app, String stream, int timeout, boolean isFromPlatform, AudioBroadcastEvent event) throws InvalidArgumentException, ParseException, SipException {
-        if (device == null || channelId == null) {
+    public boolean audioBroadcastCmd(Device device, DeviceChannel deviceChannel, MediaServerItem mediaServerItem, String app, String stream, int timeout, boolean isFromPlatform, AudioBroadcastEvent event) throws InvalidArgumentException, ParseException, SipException {
+        if (device == null || deviceChannel == null) {
+            event.call(-1, "参数不全");
             return false;
         }
-        logger.info("[语音喊话] device： {}, channel: {}", device.getDeviceId(), channelId);
-        DeviceChannel deviceChannel = storager.queryChannel(device.getDeviceId(), channelId);
-        if (deviceChannel == null) {
-            logger.warn("开启语音广播的时候未找到通道： {}", channelId);
-            event.call(-1, "开启语音广播的时候未找到通道");
-            return false;
-        }
+        logger.info("[语音喊话] device： {}, channel: {}", device.getDeviceId(), deviceChannel.getChannelId());
         // 查询通道使用状态
-        if (audioBroadcastManager.exit(device.getDeviceId(), channelId)) {
-            SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(device.getDeviceId(), channelId, null, null);
-            if (sendRtpItem != null && sendRtpItem.isOnlyAudio()) {
-                // 查询流是否存在，不存在则认为是异常状态
-                Boolean streamReady = zlmServerFactory.isStreamReady(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStream());
-                if (streamReady) {
-                    logger.warn("语音广播已经开启： {}", channelId);
-                    event.call(-1,"语音广播已经开启");
-                    return false;
-                } else {
-                    stopAudioBroadcast(device.getDeviceId(), channelId);
-                }
-            }
-        }
-
+//        if (audioBroadcastManager.exit(device.getDeviceId(), deviceChannel.getChannelId())) {
+//            SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(device.getDeviceId(), channelId, null, null);
+//            if (sendRtpItem != null && sendRtpItem.isOnlyAudio()) {
+//                // 查询流是否存在，不存在则认为是异常状态
+//                Boolean streamReady = zlmServerFactory.isStreamReady(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStream());
+//                if (streamReady) {
+//                    logger.warn("语音广播已经开启： {}", channelId);
+//                    event.call(-1,"语音广播已经开启");
+//                    return false;
+//                } else {
+//                    stopAudioBroadcast(device.getDeviceId(), channelId);
+//                }
+//            }
+//        }
+        String channelId = deviceChannel.getChannelId();
         // 发送通知
         cmder.audioBroadcastCmd(device, channelId, eventResultForOk -> {
             // 发送成功

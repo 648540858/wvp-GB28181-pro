@@ -120,6 +120,9 @@ public class ApiStreamController {
             if (errorCode == InviteErrorCode.SUCCESS.getCode()) {
                 if (data != null) {
                     StreamInfo streamInfo = (StreamInfo)data;
+                    if (streamInfo.getTranscodeStream() != null) {
+                        streamInfo = streamInfo.getTranscodeStream();
+                    }
                     JSONObject resultJjson = new JSONObject();
                     resultJjson.put("StreamID", streamInfo.getStream());
                     resultJjson.put("DeviceID", serial);

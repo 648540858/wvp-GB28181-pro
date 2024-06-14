@@ -220,7 +220,7 @@ public class PlayServiceImpl implements IPlayService {
         String playSsrc = ssrcFactory.getPlaySsrc(mediaServerItem.getId());
 
         if (playSsrc == null) {
-            audioEvent.call("ssrc已经用尽");
+            audioEvent.call(-1,"ssrc已经用尽");
             return;
         }
         SendRtpItem sendRtpItem = new SendRtpItem();
@@ -246,7 +246,7 @@ public class PlayServiceImpl implements IPlayService {
         //端口获取失败的ssrcInfo 没有必要发送点播指令
         if (port <= 0) {
             logger.info("[语音对讲] 端口分配异常，deviceId={},channelId={}", device.getDeviceId(), channelId);
-            audioEvent.call("端口分配异常");
+            audioEvent.call(-1,"端口分配异常");
             return;
         }
         sendRtpItem.setLocalPort(port);
@@ -287,7 +287,7 @@ public class PlayServiceImpl implements IPlayService {
             if (jsonObject == null || jsonObject.getInteger("code") != 0 ) {
                 mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpItem.getSsrc());
                 logger.info("[语音对讲]失败 deviceId: {}, channelId: {}", device.getDeviceId(), channelId);
-                audioEvent.call("失败, " + jsonObject.getString("msg"));
+                audioEvent.call(-1,"失败, " + jsonObject.getString("msg"));
                 // 查看是否已经建立了通道，存在则发送bye
                 stopTalk(device, channelId);
             }
@@ -349,8 +349,6 @@ public class PlayServiceImpl implements IPlayService {
             eventResult.msg = "命令发送失败";
             errorEvent.response(eventResult);
         }
-//        }
-
     }
 
 
@@ -1123,7 +1121,7 @@ public class PlayServiceImpl implements IPlayService {
         DeviceChannel deviceChannel = storager.queryChannel(device.getDeviceId(), channelId);
         if (deviceChannel == null) {
             logger.warn("开启语音广播的时候未找到通道： {}", channelId);
-            event.call("开启语音广播的时候未找到通道");
+            event.call(-1, "开启语音广播的时候未找到通道");
             return false;
         }
         // 查询通道使用状态
@@ -1134,25 +1132,13 @@ public class PlayServiceImpl implements IPlayService {
                 Boolean streamReady = zlmServerFactory.isStreamReady(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStream());
                 if (streamReady) {
                     logger.warn("语音广播已经开启： {}", channelId);
-                    event.call("语音广播已经开启");
+                    event.call(-1,"语音广播已经开启");
                     return false;
                 } else {
                     stopAudioBroadcast(device.getDeviceId(), channelId);
                 }
             }
         }
-//        SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(device.getDeviceId(), channelId, null, null);
-//        if (sendRtpItem != null) {
-//            MediaServerItem mediaServer = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-//            Boolean streamReady = zlmServerFactory.isStreamReady(mediaServer, sendRtpItem.getApp(), sendRtpItem.getStream());
-//            if (streamReady) {
-//                logger.warn("[语音对讲] 进行中： {}", channelId);
-//                event.call("语音对讲进行中");
-//                return false;
-//            } else {
-//                stopTalk(device, channelId);
-//            }
-//        }
 
         // 发送通知
         cmder.audioBroadcastCmd(device, channelId, eventResultForOk -> {
@@ -1166,12 +1152,13 @@ public class PlayServiceImpl implements IPlayService {
             }
             dynamicTask.startDelay(key, ()->{
                 logger.info("[语音广播]等待invite消息超时：{}/{}", device.getDeviceId(), channelId);
+                event.call(-1,"等待invite消息超时");
                 stopAudioBroadcast(device.getDeviceId(), channelId);
             }, 10*1000);
         }, eventResultForError -> {
             // 发送失败
             logger.error("语音广播发送失败： {}:{}", channelId, eventResultForError.msg);
-            event.call("语音广播发送失败");
+            event.call(-1,"语音广播发送失败");
             stopAudioBroadcast(device.getDeviceId(), channelId);
         });
         return true;
@@ -1443,7 +1430,7 @@ public class PlayServiceImpl implements IPlayService {
         DeviceChannel deviceChannel = storager.queryChannel(device.getDeviceId(), channelId);
         if (deviceChannel == null) {
             logger.warn("开启语音对讲的时候未找到通道： {}", channelId);
-            event.call("开启语音对讲的时候未找到通道");
+            event.call(-1,"开启语音对讲的时候未找到通道");
             return;
         }
         // 查询通道使用状态
@@ -1455,7 +1442,7 @@ public class PlayServiceImpl implements IPlayService {
                 Boolean streamReady = zlmServerFactory.isStreamReady(mediaServer, sendRtpItem.getApp(), sendRtpItem.getStream());
                 if (streamReady) {
                     logger.warn("[语音对讲] 正在语音广播，无法开启语音通话： {}", channelId);
-                    event.call("正在语音广播");
+                    event.call(-1, "正在语音广播");
                     return;
                 } else {
                     stopAudioBroadcast(device.getDeviceId(), channelId);
@@ -1469,7 +1456,7 @@ public class PlayServiceImpl implements IPlayService {
             Boolean streamReady = zlmServerFactory.isStreamReady(mediaServer, "rtp", sendRtpItem.getReceiveStream());
             if (streamReady) {
                 logger.warn("[语音对讲] 进行中： {}", channelId);
-                event.call("语音对讲进行中");
+                event.call(-1,"语音对讲进行中");
                 return;
             } else {
                 stopTalk(device, channelId);
@@ -1480,14 +1467,14 @@ public class PlayServiceImpl implements IPlayService {
             logger.info("[语音对讲] 收到设备发来的流");
         }, eventResult -> {
             logger.warn("[语音对讲] 失败，{}/{}, 错误码 {} {}", device.getDeviceId(), channelId, eventResult.statusCode, eventResult.msg);
-            event.call("失败，错误码 " + eventResult.statusCode + ", " + eventResult.msg);
+            event.call(-1,"失败，错误码 " + eventResult.statusCode + ", " + eventResult.msg);
         }, () -> {
             logger.warn("[语音对讲] 失败，{}/{} 超时", device.getDeviceId(), channelId);
-            event.call("失败，超时 ");
+            event.call(-1,"失败，超时 ");
             stopTalk(device, channelId);
-        }, errorMsg -> {
-            logger.warn("[语音对讲] 失败，{}/{} {}", device.getDeviceId(), channelId, errorMsg);
-            event.call(errorMsg);
+        }, (code, msg) ->  {
+            logger.warn("[语音对讲] 失败，{}/{} {}", device.getDeviceId(), channelId, msg);
+            event.call(code, msg);
             stopTalk(device, channelId);
         });
     }

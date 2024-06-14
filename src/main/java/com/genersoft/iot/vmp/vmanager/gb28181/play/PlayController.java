@@ -11,6 +11,7 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
@@ -18,10 +19,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.service.IInviteStreamService;
-import com.genersoft.iot.vmp.service.IMediaServerService;
-import com.genersoft.iot.vmp.service.IMediaService;
-import com.genersoft.iot.vmp.service.IPlayService;
+import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -94,6 +92,12 @@ public class PlayController {
 
 	@Autowired
 	private UserSetting userSetting;
+
+	@Autowired
+	private IDeviceService deviceService;
+
+	@Autowired
+	private IDeviceChannelService channelService;
 
 	@Operation(summary = "开始点播", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
@@ -236,25 +240,60 @@ public class PlayController {
 		}
 	}
 
-	@Operation(summary = "语音广播命令", security = @SecurityRequirement(name = JwtUtils.HEADER))
+	@Operation(summary = "开始语音广播", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "deviceId", description = "通道国标编号", required = true)
-	@Parameter(name = "timeout", description = "推流超时时间(秒)", required = true)
-	@GetMapping("/broadcast/{deviceId}/{channelId}")
-	@PostMapping("/broadcast/{deviceId}/{channelId}")
-    public AudioBroadcastResult broadcastApi(@PathVariable String deviceId, @PathVariable String channelId, Integer timeout, Boolean broadcastMode) {
+	@Parameter(name = "mediaServerId", description = "流媒体ID", required = false)
+	@Parameter(name = "app", description = "用于广播的应用名", required = true)
+	@Parameter(name = "stream", description = "用于广播的流ID", required = true)
+	@GetMapping("/broadcast/start")
+	@PostMapping("/broadcast/start")
+    public DeferredResult<WVPResult<Void>> broadcastApi(String deviceId, String channelId, @RequestParam(required = false) String mediaServerId,  String app, String stream) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("语音广播API调用");
 		}
-		Device device = storager.queryVideoDevice(deviceId);
+		Device device = deviceService.getDevice(deviceId);
 		if (device == null) {
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), "未找到设备： " + deviceId);
 		}
-		if (channelId == null) {
+		DeviceChannel channel = channelService.getOne(deviceId, channelId);
+		if (channel == null) {
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), "未找到通道： " + channelId);
 		}
+		MediaServerItem mediaServerItem;
+		if (ObjectUtils.isEmpty(mediaServerId)) {
+			mediaServerItem = mediaServerService.getDefaultMediaServer();
+		}else {
+			mediaServerItem = mediaServerService.getOne(mediaServerId);
+		}
+		JSONObject jsonObject = zlmresTfulUtils.getMediaInfo(mediaServerItem, app, "rtsp", stream);
+		if (jsonObject == null || jsonObject.getInteger("code") != 0) {
+			throw new ControllerException(ErrorCode.ERROR400.getCode(), "推流信息不存在");
+		}
 
-		return playService.audioBroadcast(device, channelId, broadcastMode);
+		DeferredResult<WVPResult<Void>> result = new DeferredResult<>();
+
+		result.onTimeout(()->{
+			WVPResult<Void> wvpResult = new WVPResult<>();
+			wvpResult.setCode(-1);
+			wvpResult.setMsg("请求超时");
+			result.setResult(wvpResult);
+			playService.stopAudioBroadcast();
+		});
+        try {
+            playService.audioBroadcastCmd(device, channelId, mediaServerItem, app, stream, 60, false, (code, msg) -> {
+                WVPResult<Void> wvpResult = new WVPResult<>();
+                wvpResult.setCode(code);
+                wvpResult.setMsg(msg);
+                result.setResult(wvpResult);
+            });
+        } catch (InvalidArgumentException | ParseException | SipException e) {
+			WVPResult<Void> wvpResult = new WVPResult<>();
+			wvpResult.setCode(-1);
+			wvpResult.setMsg("请求失败：" + e.getMessage());
+			result.setResult(wvpResult);
+        }
+        return result;
 
 	}
 

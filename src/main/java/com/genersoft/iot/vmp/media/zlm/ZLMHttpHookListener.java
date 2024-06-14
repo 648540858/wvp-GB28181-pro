@@ -411,7 +411,7 @@ public class ZLMHttpHookListener {
                                     }
                                     // 开启语音对讲通道
                                     try {
-                                        playService.audioBroadcastCmd(device, channelId, mediaInfo, param.getApp(), param.getStream(), 60, false, (msg) -> {
+                                        playService.audioBroadcastCmd(device, channelId, mediaInfo, param.getApp(), param.getStream(), 60, false, (code, msg) -> {
                                             logger.info("[语音对讲] 通道建立成功, device: {}, channel: {}", deviceId, channelId);
                                         });
                                     } catch (InvalidArgumentException | ParseException | SipException e) {
@@ -440,8 +440,12 @@ public class ZLMHttpHookListener {
                                         playService.stopAudioBroadcast(deviceId, channelId);
                                     }
                                     // 开启语音对讲通道
-                                    playService.talkCmd(device, channelId, mediaInfo, param.getStream(), (msg) -> {
-                                        logger.info("[语音对讲] 通道建立成功, device: {}, channel: {}", deviceId, channelId);
+                                    playService.talkCmd(device, channelId, mediaInfo, param.getStream(), (code, msg) -> {
+                                        if (code == 0) {
+                                            logger.info("[语音对讲] 通道建立成功, device: {}, channel: {}", deviceId, channelId);
+                                        }else {
+                                            logger.info("[语音对讲] 通道建立失败,{}， device: {}, channel: {}", msg, deviceId, channelId);
+                                        }
                                     });
                                 } else {
                                     // 流注销

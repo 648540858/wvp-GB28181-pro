@@ -47,7 +47,7 @@ public interface IPlayService {
 
     AudioBroadcastResult audioBroadcast(Device device, String channelId, Boolean broadcastMode);
 
-    boolean audioBroadcastCmd(Device device, String channelId, MediaServerItem mediaServerItem, String app, String stream, int timeout, boolean isFromPlatform, AudioBroadcastEvent event) throws InvalidArgumentException, ParseException, SipException;
+    boolean audioBroadcastCmd(Device device, DeviceChannel channel, MediaServerItem mediaServerItem, String app, String stream, int timeout, boolean isFromPlatform, AudioBroadcastEvent event) throws InvalidArgumentException, ParseException, SipException;
 
     boolean audioBroadcastInUse(Device device, String channelId);
 

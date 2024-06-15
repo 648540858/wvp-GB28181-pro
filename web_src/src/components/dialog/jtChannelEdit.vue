@@ -64,7 +64,11 @@ export default {
     },
     onSubmit: function () {
       console.log("onSubmit");
-      let params = this.form
+      let params = {
+        channelId: this.form.channelId,
+        name: this.form.name,
+        terminalDbId: this.deviceId,
+      }
       this.$axios({
         method: 'post',
         url:`/api/jt1078/terminal/channel/${this.isEdit?'update':'add'}/`,

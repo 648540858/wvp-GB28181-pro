@@ -103,4 +103,16 @@ public interface JTTerminalMapper {
     @Select("SELECT * FROM wvp_jt_terminal where id=#{deviceId}")
     JTDevice getDeviceById(@Param("deviceId") Integer deviceId);
 
+    @Update({"<script>" +
+            "<foreach collection='devices' item='item' separator=';'>" +
+            " UPDATE" +
+            " wvp_jt_terminal" +
+            " SET update_time=#{item.updateTime}" +
+            "<if test='item.longitude != null'>, longitude=#{item.longitude}</if>" +
+            "<if test='item.latitude != null'>, latitude=#{item.latitude}</if>" +
+            "<if test='item.id > 0'>WHERE id=#{item.id}</if>" +
+            "<if test='item.id == 0 and item.phoneNumber != null '>WHERE phone_number=#{item.phoneNumber}</if>" +
+            "</foreach>" +
+            "</script>"})
+    void batchUpdateDevicePosition(List<JTDevice> devices);
 }

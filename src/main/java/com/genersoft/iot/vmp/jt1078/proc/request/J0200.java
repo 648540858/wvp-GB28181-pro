@@ -89,19 +89,11 @@ public class J0200 extends Re {
 
     @Override
     protected Rs handler(Header header, Session session, Ijt1078Service service) {
-        JTDevice deviceInDb = service.getDevice(header.getPhoneNumber());
         J8001 j8001 = new J8001();
         j8001.setRespNo(header.getSn());
         j8001.setRespId(header.getMsgId());
-        if (deviceInDb == null) {
-            j8001.setResult(J8001.FAIL);
-        }else {
-            // TODO 优化为发送异步事件，定时读取队列写入数据库
-            deviceInDb.setLongitude(positionInfo.getLongitude());
-            deviceInDb.setLatitude(positionInfo.getLatitude());
-            service.updateDevice(deviceInDb);
-            j8001.setResult(J8001.SUCCESS);
-        }
+        j8001.setResult(J8001.SUCCESS);
+        service.updateDevicePosition(header.getPhoneNumber(), positionInfo.getLongitude(), positionInfo.getLatitude());
         return j8001;
     }
 

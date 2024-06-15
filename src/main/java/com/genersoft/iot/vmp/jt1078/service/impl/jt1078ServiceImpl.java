@@ -43,7 +43,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -1158,4 +1160,32 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     public JTDevice getDeviceById(Integer deviceId) {
         return jtDeviceMapper.getDeviceById(deviceId);
     }
+
+    @Override
+    public void updateDevicePosition(String phoneNumber, Double longitude, Double latitude) {
+        JTDevice device = new JTDevice();
+        device.setPhoneNumber(phoneNumber);
+        device.setLongitude(longitude);
+        device.setLatitude(latitude);
+        device.setUpdateTime(DateUtil.getNow());
+        String key = VideoManagerConstants.INVITE_INFO_1078_POSITION + userSetting.getServerId();
+        redisTemplate.opsForList().leftPush(key, device);
+    }
+
+    @Scheduled(fixedDelay = 1000)
+    public void positionTask(){
+        String key = VideoManagerConstants.INVITE_INFO_1078_POSITION + userSetting.getServerId();
+        int count = 1000;
+        List<JTDevice> devices = new ArrayList<>(count);
+        Long size = redisTemplate.opsForList().size(key);
+        if (size == null || size == 0) {
+            return;
+        }
+        long readCount = Math.min(count, size);
+        for (long i = 0L; i < readCount; i++) {
+            devices.add((JTDevice)redisTemplate.opsForList().rightPop(key));
+        }
+        jtDeviceMapper.batchUpdateDevicePosition(devices);
+    }
+
 }

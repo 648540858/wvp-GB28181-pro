@@ -43,9 +43,9 @@ public interface IStreamPushService {
     /**
      * 停止一路推流
      * @param app 应用名
-     * @param streamId 流ID
+     * @param stream 流ID
      */
-    boolean stop(String app, String streamId);
+    boolean stop(String app, String stream);
 
     /**
      * 新的节点加入

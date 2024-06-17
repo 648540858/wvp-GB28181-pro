@@ -112,9 +112,9 @@ public class StreamPushController {
     @ResponseBody
     @Operation(summary = "中止一个推流", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "app", description = "应用名", required = true)
-    @Parameter(name = "streamId", description = "流id", required = true)
-    public void stop(String app, String streamId){
-        if (!streamPushService.stop(app, streamId)){
+    @Parameter(name = "stream", description = "流id", required = true)
+    public void stop(String app, String stream){
+        if (!streamPushService.stop(app, stream)){
             throw new ControllerException(ErrorCode.ERROR100);
         }
     }

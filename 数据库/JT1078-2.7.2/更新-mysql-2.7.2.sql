@@ -51,7 +51,7 @@ create table wvp_jt_channel (
                                gb_photoelectric_imaging_type integer,
                                gb_capture_position_type integer,
                                gb_room_type integer,
-                               gb_supply_light_type integer,
+                               gb_supply_light_type integer default 1,
                                gb_direction_type integer,
                                gb_resolution character varying(255),
                                gb_stream_number_list character varying(255),

@@ -16,44 +16,45 @@
       <el-main style="padding: 5px; background-color: #ffffff;">
         <el-divider content-position="center">通讯参数</el-divider>
         <el-form size="mini"  ref="form" :rules="rules" :model="form" label-width="240px" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;">
-          <el-form-item label="心跳发送间隔(秒)" prop="keepaliveInterval">
-            <el-input v-model="form.keepaliveInterval" clearable></el-input>
+          <el-form-item label="编码" prop="gbDeviceId">
+            <el-input v-model="form.gbDeviceId" clearable></el-input>
           </el-form-item>
-          <el-form-item label="TCP消息应答超时(秒)" prop="tcpResponseTimeout">
-            <el-input v-model="form.tcpResponseTimeout" clearable></el-input>
+          <el-form-item label="名称" prop="gbName">
+            <el-input v-model="form.gbName" clearable></el-input>
           </el-form-item>
-          <el-form-item label="TCP消息重传次数" prop="tcpRetransmissionCount">
-            <el-input v-model="form.tcpRetransmissionCount" clearable></el-input>
+          <el-form-item label="设备厂商" prop="gbManufacturer">
+            <el-input v-model="form.gbManufacturer" clearable></el-input>
           </el-form-item>
-          <el-form-item label="UDP消息应答超时时间(秒)" prop="udpResponseTimeout">
-            <el-input v-model="form.udpResponseTimeout" clearable></el-input>
+          <el-form-item label="设备型号" prop="gbModel">
+            <el-input v-model="form.gbModel" clearable></el-input>
           </el-form-item>
-          <el-form-item label="UDP消息重传次数" prop="udpRetransmissionCount">
-            <el-input v-model="form.udpRetransmissionCount" clearable></el-input>
+          <el-form-item label="行政区域" prop="gbCivilCode">
+            <el-input v-model="form.gbCivilCode" clearable></el-input>
           </el-form-item>
-          <el-form-item label="SMS 消息应答超时时间(秒)" prop="smsResponseTimeout">
-            <el-input v-model="form.smsResponseTimeout" clearable></el-input>
+          <el-form-item label="警区" prop="gbBlock">
+            <el-input v-model="form.gbBlock" clearable></el-input>
           </el-form-item>
-          <el-form-item label="SMS 消息重传次数" prop="smsRetransmissionCount">
-            <el-input v-model="form.smsRetransmissionCount" clearable></el-input>
+          <el-form-item label="安装地址" prop="gbAddress">
+            <el-input v-model="form.gbAddress" clearable></el-input>
           </el-form-item>
-        </el-form>
-        <el-divider content-position="center">服务器参数</el-divider>
-        <el-form size="mini"  ref="form" :rules="rules" :model="form" label-width="240px" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;">
-          <el-form-item label="APN(主)" prop="apnMaster">
-            <el-input v-model="form.apnMaster" clearable></el-input>
+          <el-form-item label="是否有子设备" prop="gbParental">
+            <el-checkbox v-model="form.gbParental" ></el-checkbox>
           </el-form-item>
-          <el-form-item label="无线通信拨号用户名(主)" prop="dialingUsernameMaster">
-            <el-input v-model="form.dialingUsernameMaster" clearable></el-input>
+          <el-form-item label="父节点ID" prop="gbParentId">
+            <el-input v-model="form.gbParentId" clearable></el-input>
           </el-form-item>
-          <el-form-item label="无线通信拨号密码(主)" prop="dialingPasswordMaster">
-            <el-input v-model="form.dialingPasswordMaster" clearable></el-input>
+          <el-form-item label="注册方式" prop="gbRegisterWay">
+            <el-input v-model="form.gbRegisterWay" clearable></el-input>
           </el-form-item>
-          <el-form-item label="IP或域名(主)" prop="addressMaster">
-            <el-input v-model="form.addressMaster" clearable></el-input>
+          <el-form-item label="摄像机安全能力等级代码" prop="gbSecurityLevelCode">
+            <el-input v-model="form.gbSecurityLevelCode" clearable></el-input>
           </el-form-item>
-          <el-form-item label="APN(备)" prop="apnBackup">
-            <el-input v-model="form.apnBackup" clearable></el-input>
+          <el-form-item label="保密属性" prop="gbSecrecy">
+            <el-input v-model="form.保密属性" clearable></el-input>
+            <el-select v-model="form.gbSecrecy" style="float: left; width: 100%" >
+              <el-option label="不涉密" :value="0"></el-option>
+              <el-option label="涉密" :value="1"></el-option>
+            </el-select>
           </el-form-item>
           <el-form-item label="无线通信拨号用户名(备)" prop="dialingUsernameBackup">
             <el-input v-model="form.dialingUsernameBackup" clearable></el-input>
@@ -306,6 +307,7 @@ export default {
         illegalDrivingPeriods: {},
         cameraTimer: {},
       },
+      version: 3,
       rules: {
         deviceId: [{ required: true, message: "请输入设备编号", trigger: "blur" }]
       },

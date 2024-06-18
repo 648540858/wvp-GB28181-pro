@@ -139,11 +139,11 @@ public class SipLayer implements CommandLineRunner {
 	}
 
 	public SipProviderImpl getUdpSipProvider(String ip) {
-		if (ObjectUtils.isEmpty(ip)) {
-			return null;
-		}
 		if (udpSipProviderMap.size() == 1) {
 			return udpSipProviderMap.values().stream().findFirst().get();
+		}
+		if (ObjectUtils.isEmpty(ip)) {
+			return null;
 		}
 		return udpSipProviderMap.get(ip);
 	}
@@ -163,11 +163,11 @@ public class SipLayer implements CommandLineRunner {
 	}
 
 	public SipProviderImpl getTcpSipProvider(String ip) {
-		if (ObjectUtils.isEmpty(ip)) {
-			return null;
-		}
 		if (tcpSipProviderMap.size() == 1) {
 			return tcpSipProviderMap.values().stream().findFirst().get();
+		}
+		if (ObjectUtils.isEmpty(ip)) {
+			return null;
 		}
 		return tcpSipProviderMap.get(ip);
 	}

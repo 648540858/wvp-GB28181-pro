@@ -39,10 +39,10 @@ public class SipLayer implements CommandLineRunner {
 
 	private final Map<String, SipProviderImpl> tcpSipProviderMap = new ConcurrentHashMap<>();
 	private final Map<String, SipProviderImpl> udpSipProviderMap = new ConcurrentHashMap<>();
+	private final List<String> monitorIps = new ArrayList<>();
 
 	@Override
 	public void run(String... args) {
-		List<String> monitorIps = new ArrayList<>();
 		if (ObjectUtils.isEmpty(sipConfig.getIp())) {
 			try {
 				// 获得本机的所有网络接口
@@ -139,11 +139,11 @@ public class SipLayer implements CommandLineRunner {
 	}
 
 	public SipProviderImpl getUdpSipProvider(String ip) {
-		if (ObjectUtils.isEmpty(ip)) {
-			return null;
-		}
 		if (udpSipProviderMap.size() == 1) {
 			return udpSipProviderMap.values().stream().findFirst().get();
+		}
+		if (ObjectUtils.isEmpty(ip)) {
+			return null;
 		}
 		return udpSipProviderMap.get(ip);
 	}
@@ -163,16 +163,19 @@ public class SipLayer implements CommandLineRunner {
 	}
 
 	public SipProviderImpl getTcpSipProvider(String ip) {
-		if (ObjectUtils.isEmpty(ip)) {
-			return null;
-		}
 		if (tcpSipProviderMap.size() == 1) {
 			return tcpSipProviderMap.values().stream().findFirst().get();
+		}
+		if (ObjectUtils.isEmpty(ip)) {
+			return null;
 		}
 		return tcpSipProviderMap.get(ip);
 	}
 
 	public String getLocalIp(String deviceLocalIp) {
+		if (monitorIps.size() == 1) {
+			return monitorIps.get(0);
+		}
 		if (!ObjectUtils.isEmpty(deviceLocalIp)) {
 			return deviceLocalIp;
 		}

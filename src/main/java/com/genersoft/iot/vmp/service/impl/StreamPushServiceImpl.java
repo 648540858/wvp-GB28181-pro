@@ -274,19 +274,19 @@ public class StreamPushServiceImpl implements IStreamPushService {
     }
 
     @Override
-    public boolean stop(String app, String streamId) {
-        logger.info("[推流 ] 停止流： {}/{}", app, streamId);
-        StreamPushItem streamPushItem = streamPushMapper.selectOne(app, streamId);
+    public boolean stop(String app, String stream) {
+        logger.info("[推流 ] 停止流： {}/{}", app, stream);
+        StreamPushItem streamPushItem = streamPushMapper.selectOne(app, stream);
         if (streamPushItem != null) {
             gbStreamService.sendCatalogMsg(streamPushItem, CatalogEvent.DEL);
         }
 
-        platformGbStreamMapper.delByAppAndStream(app, streamId);
-        gbStreamMapper.del(app, streamId);
-        int delStream = streamPushMapper.del(app, streamId);
+        platformGbStreamMapper.delByAppAndStream(app, stream);
+        gbStreamMapper.del(app, stream);
+        int delStream = streamPushMapper.del(app, stream);
         if (delStream > 0) {
             MediaServer mediaServerItem = mediaServerService.getOne(streamPushItem.getMediaServerId());
-            mediaServerService.closeStreams(mediaServerItem,app, streamId);
+            mediaServerService.closeStreams(mediaServerItem,app, stream);
         }
         return true;
     }

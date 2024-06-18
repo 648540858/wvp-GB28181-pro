@@ -171,153 +171,56 @@
               <el-option label="其他" :value="9"></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="休眠时汇报距离间隔(米)" prop="reportingDistanceDormancy">
-            <el-input v-model="form.reportingDistanceDormancy" clearable></el-input>
+          <el-form-item label="摄像机水平视场角(0-360)" prop="gbHorizontalFieldAngle">
+            <el-input v-model="form.gbHorizontalFieldAngle" clearable></el-input>
           </el-form-item>
-          <el-form-item label="紧急报警时汇报距离间隔(米)" prop="reportingDistanceEmergencyAlarm">
-            <el-input v-model="form.reportingDistanceEmergencyAlarm" clearable></el-input>
+          <el-form-item label="摄像机竖直视场角(0-360)" prop="gbVerticalFieldAngle">
+            <el-input v-model="form.gbVerticalFieldAngle" clearable></el-input>
           </el-form-item>
-          <el-form-item label="拐点补传角度(度，小于180)" prop="inflectionPointAngle">
-            <el-input v-model="form.inflectionPointAngle" clearable></el-input>
+          <el-form-item label="摄像机可视距离(米)" prop="gbMaxViewDistance">
+            <el-input v-model="form.gbMaxViewDistance" clearable></el-input>
           </el-form-item>
-        </el-form>
-        <el-divider content-position="center">电话号码</el-divider>
-        <el-form size="mini"  ref="form" :rules="rules" :model="form" label-width="240px" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;">
-          <el-form-item label="监控平台电话号码" prop="platformPhoneNumber">
-            <el-input v-model="form.platformPhoneNumber" clearable></el-input>
+          <el-form-item label="基层组织编码" prop="gbGrassrootsCode">
+            <el-input v-model="form.gbGrassrootsCode" clearable></el-input>
           </el-form-item>
-          <el-form-item label="复位电话号码" prop="phoneNumberForFactoryReset">
-            <el-input v-model="form.phoneNumberForFactoryReset" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="监控平台SMS电话号码" prop="phoneNumberForSms">
-            <el-input v-model="form.phoneNumberForSms" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="接收终端SMS文本报警号码" prop="phoneNumberForReceiveTextAlarm">
-            <el-input v-model="form.phoneNumberForReceiveTextAlarm" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="终端电话接听策略" prop="locationReportingStrategy">
-            <el-select v-model="form.locationReportingStrategy" style="float: left; width: 100%" >
-              <el-option label="自动接听" :value="0">定时汇报</el-option>
-              <el-option label="ACC ON时自动接听 ,OFF时手动接听" :value="1"></el-option>
+          <el-form-item label="监控点位类型" prop="gbPoType">
+            <el-select multiple v-model="form.gbMobileDeviceType" style="float: left; width: 100%" >
+              <el-option label="一类视频监控点" :value="1"></el-option>
+              <el-option label="二类视频监控点" :value="2"></el-option>
+              <el-option label="三类视频监控点" :value="3"></el-option>
+              <el-option label="其他点位" :value="4"></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="每次最长通话时间(秒)" prop="longestCallTimeForPerSession">
-            <el-input v-model="form.longestCallTimeForPerSession" clearable></el-input>
+          <el-form-item label="MAC地址(XX-XX-XX-XX-XX-XX)" prop="gbMac">
+            <el-input v-model="form.gbMac" clearable></el-input>
           </el-form-item>
-          <el-form-item label="当月最长通话时间(秒)" prop="longestCallTimeInMonth">
-            <el-input v-model="form.longestCallTimeInMonth" clearable></el-input>
+          <el-form-item label="卡口功能类型" prop="gbFunctionType">
+            <el-select multiple v-model="form.gbFunctionType" style="float: left; width: 100%" >
+              <el-option label="人脸卡口" value="01"></el-option>
+              <el-option label="人员卡口" value="02"></el-option>
+              <el-option label="机动车卡口" value="03"></el-option>
+              <el-option label="非机动车卡口" value="04"></el-option>
+              <el-option label="物品卡口" value="05"></el-option>
+              <el-option label="其他" value="99"></el-option>
+            </el-select>
           </el-form-item>
-          <el-form-item label="监听电话号码" prop="phoneNumbersForListen">
-            <el-input v-model="form.phoneNumbersForListen" clearable></el-input>
+          <el-form-item label="摄像机视频编码格式" prop="gbEncodeType">
+            <el-input v-model="form.gbEncodeType" clearable></el-input>
           </el-form-item>
-          <el-form-item label="监管平台特权短信号码" prop="privilegedSMSNumber">
-            <el-input v-model="form.privilegedSMSNumber" clearable></el-input>
+          <el-form-item label="摄像机安装使用时间" prop="gbInstallTime">
+            <el-input v-model="form.gbInstallTime" clearable></el-input>
           </el-form-item>
-        </el-form>
-
-        <el-divider content-position="center">报警参数</el-divider>
-        <el-form size="mini"  ref="form" :rules="rules" :model="form" label-width="240px" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;">
-          <el-form-item label="报警屏蔽字(TODO)" prop="alarmMaskingWord">
-            <el-input v-model="form.alarmMaskingWord" clearable></el-input>
+          <el-form-item label="管理单位名称" prop="gbManagementUnit">
+            <el-input v-model="form.gbManagementUnit" clearable></el-input>
           </el-form-item>
-          <el-form-item label="报警发送文本 SMS 开关(TODO)" prop="alarmSendsTextSmsSwitch">
-            <el-input v-model="form.alarmSendsTextSmsSwitch" clearable></el-input>
+          <el-form-item label="管理单位联系人联系方式" prop="gbContactInfo">
+            <el-input v-model="form.gbContactInfo" clearable></el-input>
           </el-form-item>
-          <el-form-item label="报警拍摄开关(TODO)" prop="alarmShootingSwitch">
-            <el-input v-model="form.alarmShootingSwitch" clearable></el-input>
+          <el-form-item label="录像保存天数" prop="gbRecordSaveDays">
+            <el-input v-model="form.gbRecordSaveDays" clearable></el-input>
           </el-form-item>
-          <el-form-item label="报警拍摄存储标志(TODO)" prop="alarmShootingStorageFlags">
-            <el-input v-model="form.alarmShootingStorageFlags" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="关键标志(TODO)" prop="KeySign">
-            <el-input v-model="form.KeySign" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="电子围栏半径(米)" prop="fenceRadius">
-            <el-input v-model="form.fenceRadius" clearable></el-input>
-          </el-form-item>
-        </el-form>
-
-        <el-divider content-position="center">行驶参数</el-divider>
-        <el-form size="mini"  ref="form" :rules="rules" :model="form" label-width="240px" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;">
-          <el-form-item v-if="form.illegalDrivingPeriods" label="违规行驶时段-开始时间(HH:mm)" prop="illegalDrivingPeriods">
-            <el-input v-model="form.illegalDrivingPeriods.startTime" clearable></el-input>
-          </el-form-item>
-          <el-form-item v-if="form.illegalDrivingPeriods" label="违规行驶时段-结束时间(HH:mm)" prop="illegalDrivingPeriods">
-            <el-input v-model="form.illegalDrivingPeriods.endTime" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="最高速度(千米每小时)" prop="topSpeed">
-            <el-input v-model="form.topSpeed" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="超速持续时间(秒)" prop="overSpeedDuration">
-            <el-input v-model="form.overSpeedDuration" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="连续驾驶时间门限(秒)" prop="continuousDrivingTimeThreshold">
-            <el-input v-model="form.continuousDrivingTimeThreshold" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="当天累计驾驶时间门限(秒)" prop="cumulativeDrivingTimeThresholdForTheDay">
-            <el-input v-model="form.cumulativeDrivingTimeThresholdForTheDay" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="最小休息时间(秒)" prop="minimumBreakTime">
-            <el-input v-model="form.minimumBreakTime" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="最长停车时间(秒)" prop="maximumParkingTime">
-            <el-input v-model="form.maximumParkingTime" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="超速预警差值(1/10 千米每小时)" prop="overSpeedWarningDifference">
-            <el-input v-model="form.overSpeedWarningDifference" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="疲劳驾驶预警差值(秒)" prop="drowsyDrivingWarningDifference">
-            <el-input v-model="form.drowsyDrivingWarningDifference" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="碰撞报警-碰撞时间(毫秒)" prop="collisionAlarmParamsCollisionAlarmTime">
-            <el-input v-model="form.collisionAlarmParams.collisionAlarmTime" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="碰撞报警-碰撞加速度(0.1g)" prop="collisionAlarmParamsCollisionAcceleration">
-            <el-input v-model="form.collisionAlarmParams.collisionAcceleration" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="侧翻报警参数-侧翻角度(度)" prop="rolloverAlarm">
-            <el-input v-model="form.rolloverAlarm" clearable></el-input>
-          </el-form-item>
-        </el-form>
-
-        <el-divider content-position="center">定时拍照控制</el-divider>
-        <el-form size="mini"  ref="form" :rules="rules" :model="form" label-width="240px" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;">
-          <el-form-item label="定时拍照开关-通道1" prop="rolloverAlarm">
-            <el-switch v-model="form.cameraTimer.switchForChannel1" ></el-switch>
-          </el-form-item>
-          <el-form-item label="定时拍照开关-通道2" prop="rolloverAlarm">
-            <el-switch v-model="form.cameraTimer.switchForChannel2" ></el-switch>
-          </el-form-item>
-          <el-form-item label="定时拍照开关-通道3" prop="rolloverAlarm">
-            <el-switch v-model="form.cameraTimer.switchForChannel3" ></el-switch>
-          </el-form-item>
-          <el-form-item label="定时拍照开关-通道4" prop="rolloverAlarm">
-            <el-switch v-model="form.cameraTimer.switchForChannel4" ></el-switch>
-          </el-form-item>
-          <el-form-item label="定时拍照开关-通道5" prop="rolloverAlarm">
-            <el-switch v-model="form.cameraTimer.switchForChannel5" ></el-switch>
-          </el-form-item>
-          <el-form-item label="定时拍照存储-通道1" prop="rolloverAlarm">
-            <el-switch v-model="form.cameraTimer.storageFlagsForChannel1" ></el-switch>
-          </el-form-item>
-          <el-form-item label="定时拍照存储-通道2" prop="rolloverAlarm">
-            <el-switch v-model="form.cameraTimer.storageFlagsForChannel2" ></el-switch>
-          </el-form-item>
-          <el-form-item label="定时拍照存储-通道3" prop="rolloverAlarm">
-            <el-switch v-model="form.cameraTimer.storageFlagsForChannel3" ></el-switch>
-          </el-form-item>
-          <el-form-item label="定时拍照存储-通道4" prop="rolloverAlarm">
-            <el-switch v-model="form.cameraTimer.storageFlagsForChannel4" ></el-switch>
-          </el-form-item>
-          <el-form-item label="定时拍照存储-通道5" prop="rolloverAlarm">
-            <el-switch v-model="form.cameraTimer.storageFlagsForChannel5" ></el-switch>
-          </el-form-item>
-
-          <el-form-item label="定时时间间隔" prop="timeInterval">
-            <el-input v-model="form.timeInterval" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="定时时间单位" prop="rolloverAlarm">
-            <el-switch v-model="form.cameraTimer.timeUnit" active-text="分" inactive-text="秒"></el-switch>
+          <el-form-item label="国民经济行业分类代码" prop="gbIndustrialClassification">
+            <el-input v-model="form.gbIndustrialClassification" clearable></el-input>
           </el-form-item>
         </el-form>
         <div style="float: right;">

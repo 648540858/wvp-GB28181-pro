@@ -53,7 +53,7 @@ public interface CloudRecordServiceMapper {
             " <if test= 'ids != null  ' > and id in " +
             " <foreach collection='ids'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
             " </if>" +
-            " order by start_time DESC" +
+            " order by start_time ASC" +
             " </script>")
     List<CloudRecordItem> getList(@Param("query") String query, @Param("app") String app, @Param("stream") String stream,
                                   @Param("startTimeStamp")Long startTimeStamp, @Param("endTimeStamp")Long endTimeStamp,

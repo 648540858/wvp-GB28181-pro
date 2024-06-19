@@ -120,22 +120,38 @@ public class ApiStreamController {
             if (errorCode == InviteErrorCode.SUCCESS.getCode()) {
                 if (data != null) {
                     StreamInfo streamInfo = (StreamInfo)data;
-                    if (streamInfo.getTranscodeStream() != null) {
-                        streamInfo = streamInfo.getTranscodeStream();
-                    }
                     JSONObject resultJjson = new JSONObject();
                     resultJjson.put("StreamID", streamInfo.getStream());
                     resultJjson.put("DeviceID", serial);
                     resultJjson.put("ChannelID", code);
                     resultJjson.put("ChannelName", deviceChannel.getName());
                     resultJjson.put("ChannelCustomName", "");
-                    resultJjson.put("FLV", streamInfo.getFlv().getUrl());
-                    if(streamInfo.getHttps_flv() != null) {
-                        resultJjson.put("HTTPS_FLV", streamInfo.getHttps_flv().getUrl());
+                    if (streamInfo.getTranscodeStream() != null) {
+                        resultJjson.put("FLV", streamInfo.getTranscodeStream().getFlv().getUrl());
+                    }else {
+                        resultJjson.put("FLV", streamInfo.getFlv().getUrl());
+
                     }
-                    resultJjson.put("WS_FLV", streamInfo.getWs_flv().getUrl());
+                    if(streamInfo.getHttps_flv() != null) {
+                        if (streamInfo.getTranscodeStream() != null) {
+                            resultJjson.put("HTTPS_FLV", streamInfo.getTranscodeStream().getHttps_flv().getUrl());
+                        }else {
+                            resultJjson.put("HTTPS_FLV", streamInfo.getHttps_flv().getUrl());
+                        }
+                    }
+
+                    if (streamInfo.getTranscodeStream() != null) {
+                        resultJjson.put("WS_FLV", streamInfo.getTranscodeStream().getWs_flv().getUrl());
+                    }else {
+                        resultJjson.put("WS_FLV", streamInfo.getWs_flv().getUrl());
+                    }
+
                     if(streamInfo.getWss_flv() != null) {
-                        resultJjson.put("WSS_FLV", streamInfo.getWss_flv().getUrl());
+                        if (streamInfo.getTranscodeStream() != null) {
+                            resultJjson.put("WSS_FLV", streamInfo.getTranscodeStream().getWss_flv().getUrl());
+                        }else {
+                            resultJjson.put("WSS_FLV", streamInfo.getWss_flv().getUrl());
+                        }
                     }
                     resultJjson.put("RTMP", streamInfo.getRtmp().getUrl());
                     if (streamInfo.getRtmps() != null) {

@@ -306,27 +306,29 @@ export default {
       this.initData();
     },
     add: function () {
-      this.$refs.channelEdit.openDialog(null, this.deviceId, () => {
-        this.$refs.channelEdit.close();
-        this.$message({
-          showClose: true,
-          message: "添加成功",
-          type: "success",
-        });
-        setTimeout(this.getList, 200)
-      })
+      // this.$refs.channelEdit.openDialog(null, this.deviceId, () => {
+      //   this.$refs.channelEdit.close();
+      //   this.$message({
+      //     showClose: true,
+      //     message: "添加成功",
+      //     type: "success",
+      //   });
+      //   setTimeout(this.getList, 200)
+      // })
+      this.$router.push(`/jtChannelEdit/${this.device.id}`);
     },
     // 编辑
     handleEdit(row) {
-      this.$refs.channelEdit.openDialog(row, this.deviceId, () => {
-        this.$refs.channelEdit.close();
-        this.$message({
-          showClose: true,
-          message: "修改成功",
-          type: "success",
-        });
-        setTimeout(this.getList, 200)
-      })
+      // this.$refs.channelEdit.openDialog(row, this.deviceId, () => {
+      //   this.$refs.channelEdit.close();
+      //   this.$message({
+      //     showClose: true,
+      //     message: "修改成功",
+      //     type: "success",
+      //   });
+      //   setTimeout(this.getList, 200)
+      // })
+      this.$router.push(`/jtChannelEdit/${this.device.id}/${row.id}`);
     }
   }
 };

@@ -7,6 +7,7 @@ import deviceList from '../components/DeviceList.vue'
 import jtDeviceList from '../components/JTDeviceList.vue'
 import jtChannelList from '../components/JTChannelList.vue'
 import jtRecordDetail from '../components/JTRecordDetail.vue'
+import jtChannelEdit from '../components/JTChannelEdit.vue'
 import jtDeviceParams from '../components/JTDeviceParam.vue'
 import channelList from '../components/channelList.vue'
 import gbRecordDetail from '../components/GBRecordDetail.vue'
@@ -92,6 +93,16 @@ export default new VueRouter({
           path: '/jtDeviceParams/:phoneNumber/',
           name: 'jtDeviceParams',
           component: jtDeviceParams,
+        },
+        {
+          path: '/jtChannelEdit/:terminalDbId/:id',
+          name: 'jtChannelEditUpdate',
+          component: jtChannelEdit,
+        },
+        {
+          path: '/jtChannelEdit/:terminalDbId/',
+          name: 'jtChannelEditAdd',
+          component: jtChannelEdit,
         },
         {
           path: '/parentPlatformList/:count/:page',

@@ -133,4 +133,6 @@ public interface Ijt1078Service {
     JTDevice getDeviceById(Integer deviceId);
 
     void updateDevicePosition(String phoneNumber, Double longitude, Double latitude);
+
+    JTChannel getChannelByDbId(Integer id);
 }

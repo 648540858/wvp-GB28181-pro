@@ -89,6 +89,14 @@ public class JT1078TerminalController {
         return service.getChannelList(page, count, deviceId, query);
     }
 
+    @Operation(summary = "1078-查询单个部标通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "id", description = "通道数据库ID", required = true)
+    @GetMapping("/channel/one")
+    public JTChannel getChannel(Integer id) {
+        assert id != null;
+        return service.getChannelByDbId(id);
+    }
+
     @Operation(summary = "1078-更新通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "channel", description = "通道", required = true)
     @PostMapping("/channel/update")

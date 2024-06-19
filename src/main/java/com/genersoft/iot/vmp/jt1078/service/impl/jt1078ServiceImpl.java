@@ -1188,4 +1188,8 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         jtDeviceMapper.batchUpdateDevicePosition(devices);
     }
 
+    @Override
+    public JTChannel getChannelByDbId(Integer id) {
+        return jtChannelMapper.getChannelByDbId(id);
+    }
 }

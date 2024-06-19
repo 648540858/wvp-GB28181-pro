@@ -4,7 +4,7 @@
       <div class="page-title">
         <el-button icon="el-icon-back" size="mini" style="font-size: 20px; color: #000;" type="text" @click="showDevice" ></el-button>
         <el-divider direction="vertical"></el-divider>
-        国标通道参数
+        通道编辑
       </div>
       <div class="page-header-btn">
         <div style="display: inline;">
@@ -14,12 +14,21 @@
     </div>
     <el-container v-loading="isLoading" style="height: 82vh; overflow: auto">
       <el-main style="padding: 5px; background-color: #ffffff;">
-        <el-divider content-position="center">通讯参数</el-divider>
-        <el-form size="mini"  ref="form" :rules="rules" :model="form" label-width="240px" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;">
-          <el-form-item label="编码" prop="gbDeviceId">
+        <el-divider content-position="center">部标通道参数</el-divider>
+        <el-form ref="form" :rules="rules" :model="form" label-width="240px" style="display: grid; grid-template-columns: 1fr 1fr 1fr ">
+          <el-form-item label="编号" prop="channelId">
+            <el-input v-model="form.channelId" clearable></el-input>
+          </el-form-item>
+          <el-form-item label="名称" prop="name">
+            <el-input v-model="form.name" clearable></el-input>
+          </el-form-item>
+        </el-form>
+        <el-divider content-position="center">国标通道参数</el-divider>
+        <el-form size="mini"  ref="form" :rules="rules" :model="form" label-width="240px" style="display: grid; grid-template-columns: 1fr 1fr 1fr ">
+          <el-form-item label="国标编码" prop="gbDeviceId">
             <el-input v-model="form.gbDeviceId" clearable></el-input>
           </el-form-item>
-          <el-form-item label="名称" prop="gbName">
+          <el-form-item label="通道名称" prop="gbName">
             <el-input v-model="form.gbName" clearable></el-input>
           </el-form-item>
           <el-form-item label="设备厂商" prop="gbManufacturer">
@@ -184,7 +193,7 @@
             <el-input v-model="form.gbGrassrootsCode" clearable></el-input>
           </el-form-item>
           <el-form-item label="监控点位类型" prop="gbPoType">
-            <el-select multiple v-model="form.gbMobileDeviceType" style="float: left; width: 100%" >
+            <el-select v-model="form.gbPoType" style="float: left; width: 100%" >
               <el-option label="一类视频监控点" :value="1"></el-option>
               <el-option label="二类视频监控点" :value="2"></el-option>
               <el-option label="三类视频监控点" :value="3"></el-option>
@@ -195,7 +204,7 @@
             <el-input v-model="form.gbMac" clearable></el-input>
           </el-form-item>
           <el-form-item label="卡口功能类型" prop="gbFunctionType">
-            <el-select multiple v-model="form.gbFunctionType" style="float: left; width: 100%" >
+            <el-select v-model="form.gbFunctionType" style="float: left; width: 100%" >
               <el-option label="人脸卡口" value="01"></el-option>
               <el-option label="人员卡口" value="02"></el-option>
               <el-option label="机动车卡口" value="03"></el-option>
@@ -249,18 +258,15 @@ export default {
   },
   data() {
     return {
-      phoneNumber: this.$route.params.phoneNumber,
       form: {
-        collisionAlarmParams: {},
-        illegalDrivingPeriods: {},
-        cameraTimer: {},
+        id: this.$route.params.id,
+        terminalDbId: this.$route.params.terminalDbId
       },
       version: 3,
       rules: {
         deviceId: [{ required: true, message: "请输入设备编号", trigger: "blur" }]
       },
       winHeight: window.innerHeight - 200,
-      beforeUrl: "/jtDeviceList",
       isLoading: false,
       loadSnap: {},
     };
@@ -271,35 +277,55 @@ export default {
   },
   methods: {
     initData: function () {
-      this.isLoading = true;
-      this.$axios({
-        method: 'get',
-        url: `/api/jt1078/config`,
-        params: {
-          phoneNumber: this.phoneNumber
-        }
-      }).then((res)=> {
-        this.isLoading = false;
-        console.log(res)
-        this.form = res.data.data;
-      }).cache((e)=>{
-        this.isLoading = false;
-      });
+      console.log(this.form.id)
+      if (this.form.id) {
+        this.isLoading = true;
+        this.$axios({
+          method: 'get',
+          url: `/api/jt1078/terminal/channel/one`,
+          params: {
+            id: this.form.id
+          }
+        }).then((res)=> {
+          this.isLoading = false;
+          if (res.data.data) {
+            this.form = res.data.data;
+          }
+        }).cache((e)=>{
+          this.isLoading = false;
+        });
+      }else {
+        isLoading = false;
+      }
     },
     onSubmit: function () {
+      console.log("onSubmit");
+      let isEdit = typeof (this.form.id) !== "undefined"
       this.$axios({
         method: 'post',
-        url: `/api/jt1078/set-config`,
-        data: {
-          phoneNumber: this.phoneNumber,
-          config: this.form
+        url:`/api/jt1078/terminal/channel/${isEdit?'update':'add'}/`,
+        params: this.form
+      }).then((res) => {
+        console.log(res.data)
+        if (res.data.code === 0) {
+          this.$message({
+            showClose: true,
+            message: "保存成功",
+            type: "success",
+          });
+        }else {
+          this.$message({
+            showClose: true,
+            message: res.data.msg,
+            type: "error",
+          });
         }
-      }).then(function (res) {
-        console.log(JSON.stringify(res));
+      }).catch(function (error) {
+        console.log(error);
       });
     },
     showDevice: function () {
-      this.$router.push(this.beforeUrl)
+      window.history.go(-1)
     },
   }
 };

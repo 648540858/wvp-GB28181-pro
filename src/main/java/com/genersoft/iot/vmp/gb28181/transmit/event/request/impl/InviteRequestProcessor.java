@@ -618,6 +618,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         }
                     } else if ("proxy".equals(gbStream.getStreamType())) {
                         if (null != proxyByAppAndStream) {
+                            sendRtpItem.setServerId(userSetting.getServerId());
                             if (sendRtpItem.getSsrc() == null) {
                                 // 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
                                 String ssrc = "Play".equalsIgnoreCase(sessionName) ? ssrcFactory.getPlaySsrc(mediaServerItem.getId()) : ssrcFactory.getPlayBackSsrc(mediaServerItem.getId());

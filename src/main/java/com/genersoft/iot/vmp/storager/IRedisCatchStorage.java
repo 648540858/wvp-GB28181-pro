@@ -135,6 +135,8 @@ public interface IRedisCatchStorage {
 
     MediaInfo getStreamInfo(String app, String streamId, String mediaServerId);
 
+    MediaInfo getProxyStream(String app, String streamId);
+
     void addCpuInfo(double cpuInfo);
 
     void addMemInfo(double memInfo);

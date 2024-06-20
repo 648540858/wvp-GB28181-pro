@@ -623,7 +623,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                 String ssrc = "Play".equalsIgnoreCase(sessionName) ? ssrcFactory.getPlaySsrc(mediaServerItem.getId()) : ssrcFactory.getPlayBackSsrc(mediaServerItem.getId());
                                 sendRtpItem.setSsrc(ssrc);
                             }
-                            if (proxyByAppAndStream.isStatus()) {
+                            MediaInfo mediaInfo = redisCatchStorage.getProxyStream(gbStream.getApp(), gbStream.getStream());
+                            if (mediaInfo != null) {
                                 sendProxyStream(sendRtpItem, mediaServerItem, platform, request);
                             } else {
                                 //开启代理拉流

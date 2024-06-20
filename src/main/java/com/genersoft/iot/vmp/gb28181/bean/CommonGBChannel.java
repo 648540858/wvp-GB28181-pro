@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Schema(description = "国标通道")
-public class GbChannel {
+public class CommonGBChannel {
 
     @Schema(description = "国标-编码")
     private String gbDeviceId;

@@ -376,17 +376,21 @@ public class ZLMHttpHookListener {
                     }
                     redisCatchStorage.updateStreamAuthorityInfo(param.getApp(), param.getStream(), streamAuthorityInfo);
 
-                    Map<String, String> params = MediaServerUtils.urlParamToMap(param.getParams());
-                    param.setParamMap(params);
-                    StreamInfo streamInfoByAppAndStream = mediaService.getStreamInfoByAppAndStream(mediaInfo,
-                            param.getApp(), param.getStream(), tracks, params.get("callId"));
-                    param.setStreamInfo(new StreamContent(streamInfoByAppAndStream));
+                    if (!"broadcast".equals(param.getApp()) && !"talk".equals(param.getApp())) {
+                        Map<String, String> params = MediaServerUtils.urlParamToMap(param.getParams());
+                        param.setParamMap(params);
+                        StreamInfo streamInfoByAppAndStream = mediaService.getStreamInfoByAppAndStream(mediaInfo,
+                                param.getApp(), param.getStream(), tracks, params.get("callId"));
+                        param.setStreamInfo(new StreamContent(streamInfoByAppAndStream));
 
-                    param.setSeverId(userSetting.getServerId());
-                    streamPushService.updatePush(param);
-                    // 冗余数据，自己系统中自用
-                    redisCatchStorage.addPushListItem(param.getApp(), param.getStream(), param);
+                        param.setSeverId(userSetting.getServerId());
+                        streamPushService.updatePush(param);
+                        // 冗余数据，自己系统中自用
+                        redisCatchStorage.addPushListItem(param.getApp(), param.getStream(), param);
+                    }
                 }
+            }else {
+                redisCatchStorage.removePushListItem(param.getApp(), param.getStream(), param.getMediaServerId());
             }
             // TODO 修改为第一个为准 后续不再处理
             if ("rtsp".equals(param.getSchema())) {

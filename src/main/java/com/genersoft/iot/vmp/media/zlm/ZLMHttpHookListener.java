@@ -375,8 +375,20 @@ public class ZLMHttpHookListener {
                         streamAuthorityInfo.setOriginTypeStr(param.getOriginTypeStr());
                     }
                     redisCatchStorage.updateStreamAuthorityInfo(param.getApp(), param.getStream(), streamAuthorityInfo);
+
+                    Map<String, String> params = MediaServerUtils.urlParamToMap(param.getParams());
+                    param.setParamMap(params);
+                    StreamInfo streamInfoByAppAndStream = mediaService.getStreamInfoByAppAndStream(mediaInfo,
+                            param.getApp(), param.getStream(), tracks, params.get("callId"));
+                    param.setStreamInfo(new StreamContent(streamInfoByAppAndStream));
+
+                    param.setSeverId(userSetting.getServerId());
+                    streamPushService.updatePush(param);
+                    // 冗余数据，自己系统中自用
+                    redisCatchStorage.addPushListItem(param.getApp(), param.getStream(), param);
                 }
             }
+            // TODO 修改为第一个为准 后续不再处理
             if ("rtsp".equals(param.getSchema())) {
                 logger.info("流变化：注册->{}, app->{}, stream->{}", param.isRegist(), param.getApp(), param.getStream());
                 if (param.isRegist()) {
@@ -464,14 +476,7 @@ public class ZLMHttpHookListener {
                             param.setStreamInfo(new StreamContent(streamInfoByAppAndStream));
 
                             redisCatchStorage.addStream(mediaInfo, type, param.getApp(), param.getStream(), param);
-                            if (param.getOriginType() == OriginType.RTSP_PUSH.ordinal()
-                                    || param.getOriginType() == OriginType.RTMP_PUSH.ordinal()
-                                    || param.getOriginType() == OriginType.RTC_PUSH.ordinal()) {
-                                param.setSeverId(userSetting.getServerId());
-                                streamPushService.updatePush(param);
-                                // 冗余数据，自己系统中自用
-                                redisCatchStorage.addPushListItem(param.getApp(), param.getStream(), param);
-                            }
+
                         } else {
                             // 兼容流注销时类型从redis记录获取
                             OnStreamChangedHookParam onStreamChangedHookParam = redisCatchStorage.getStreamInfo(

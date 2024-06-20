@@ -2,8 +2,8 @@ package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.annotations.Param;
@@ -108,7 +108,7 @@ public interface GbStreamMapper {
             "(app=#{item.app} and stream=#{item.stream}) " +
             "</foreach>" +
             "</script>")
-    void batchDel(List<StreamProxyItem> streamProxyItemList);
+    void batchDel(List<StreamProxy> streamProxyItemList);
 
     @Delete("<script> "+
             "DELETE FROM wvp_gb_stream where " +
@@ -130,7 +130,7 @@ public interface GbStreamMapper {
             "</foreach> " +
             "</script>")
     @Options(useGeneratedKeys = true, keyProperty = "gbStreamId", keyColumn = "gb_stream_id")
-    void batchAdd(@Param("subList") List<StreamPushItem> subList);
+    void batchAdd(@Param("subList") List<StreamPush> subList);
 
     @Update({"<script>" +
             "<foreach collection='gpsMsgInfos' item='item' separator=';'>" +
@@ -148,7 +148,7 @@ public interface GbStreamMapper {
                    "(app=#{item.app} and stream=#{item.stream}) " +
                    "</foreach>" +
                    "</script>")
-    List<GbStream> selectAllForAppAndStream(List<StreamPushItem> streamPushItems);
+    List<GbStream> selectAllForAppAndStream(List<StreamPush> streamPushItems);
 
     @Update("UPDATE wvp_gb_stream " +
             "SET media_server_id=#{mediaServerId}" +
@@ -163,7 +163,7 @@ public interface GbStreamMapper {
                     " WHERE app=#{item.app} and stream=#{item.stream}"+
                 "</foreach>"+
             "</script>")
-    int updateGbIdOrName(List<StreamPushItem> streamPushItemForUpdate);
+    int updateGbIdOrName(List<StreamPush> streamPushItemForUpdate);
 
     @Select("SELECT status FROM wvp_stream_proxy WHERE app=#{app} AND stream=#{stream}")
     Boolean selectStatusForProxy(@Param("app") String app, @Param("stream") String stream);

@@ -13,7 +13,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -91,7 +91,7 @@ public class MediaServiceImpl implements IMediaService {
     public ResultForOnPublish authenticatePublish(MediaServer mediaServer, String app, String stream, String params) {
         // 推流鉴权的处理
         if (!"rtp".equals(app)) {
-            StreamProxyItem streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(app, stream);
+            StreamProxy streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(app, stream);
             if (streamProxyItem != null) {
                 ResultForOnPublish result = new ResultForOnPublish();
                 result.setEnable_audio(streamProxyItem.isEnableAudio());
@@ -277,7 +277,7 @@ public class MediaServiceImpl implements IMediaService {
         } else {
             // 非国标流 推流/拉流代理
             // 拉流代理
-            StreamProxyItem streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(app, stream);
+            StreamProxy streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(app, stream);
             if (streamProxyItem != null) {
                 if (streamProxyItem.isEnableRemoveNoneReader()) {
                     // 无人观看自动移除

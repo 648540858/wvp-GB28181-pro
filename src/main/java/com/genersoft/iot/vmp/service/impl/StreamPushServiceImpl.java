@@ -16,7 +16,7 @@ import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OriginType;
 import com.genersoft.iot.vmp.service.IGbStreamService;
@@ -113,12 +113,12 @@ public class StreamPushServiceImpl implements IStreamPushService {
             streamAuthorityInfo.setOriginType(mediaInfo.getOriginType());
         }
         redisCatchStorage.updateStreamAuthorityInfo(event.getApp(), event.getStream(), streamAuthorityInfo);
-        StreamPushItem transform = StreamPushItem.getInstance(event, userSetting.getServerId());
+        StreamPush transform = StreamPush.getInstance(event, userSetting.getServerId());
         transform.setPushIng(true);
         transform.setUpdateTime(DateUtil.getNow());
         transform.setPushTime(DateUtil.getNow());
         transform.setSelf(true);
-        StreamPushItem pushInDb = getPush(event.getApp(), event.getStream());
+        StreamPush pushInDb = getPush(event.getApp(), event.getStream());
         if (pushInDb == null) {
             transform.setCreateTime(DateUtil.getNow());
             streamPushMapper.add(transform);
@@ -188,18 +188,18 @@ public class StreamPushServiceImpl implements IStreamPushService {
     }
 
 
-    private List<StreamPushItem> handleJSON(List<StreamInfo> streamInfoList) {
+    private List<StreamPush> handleJSON(List<StreamInfo> streamInfoList) {
         if (streamInfoList == null || streamInfoList.isEmpty()) {
             return null;
         }
-        Map<String, StreamPushItem> result = new HashMap<>();
+        Map<String, StreamPush> result = new HashMap<>();
         for (StreamInfo streamInfo : streamInfoList) {
             // 不保存国标推理以及拉流代理的流
             if (streamInfo.getOriginType() == OriginType.RTSP_PUSH.ordinal()
                     || streamInfo.getOriginType() == OriginType.RTMP_PUSH.ordinal()
                     || streamInfo.getOriginType() == OriginType.RTC_PUSH.ordinal() ) {
                 String key = streamInfo.getApp() + "_" + streamInfo.getStream();
-                StreamPushItem streamPushItem = result.get(key);
+                StreamPush streamPushItem = result.get(key);
                 if (streamPushItem == null) {
                     streamPushItem = streamPushItem.getInstance(streamInfo);
                     result.put(key, streamPushItem);
@@ -210,35 +210,26 @@ public class StreamPushServiceImpl implements IStreamPushService {
     }
 
     @Override
-    public StreamPushItem transform(OnStreamChangedHookParam item) {
-        StreamPushItem streamPushItem = new StreamPushItem();
+    public StreamPush transform(OnStreamChangedHookParam item) {
+        StreamPush streamPushItem = new StreamPush();
         streamPushItem.setApp(item.getApp());
         streamPushItem.setMediaServerId(item.getMediaServerId());
         streamPushItem.setStream(item.getStream());
-        streamPushItem.setAliveSecond(item.getAliveSecond());
-        streamPushItem.setOriginSock(item.getOriginSock());
-        streamPushItem.setTotalReaderCount(item.getTotalReaderCount());
-        streamPushItem.setOriginType(item.getOriginType());
-        streamPushItem.setOriginTypeStr(item.getOriginTypeStr());
-        streamPushItem.setOriginUrl(item.getOriginUrl());
         streamPushItem.setCreateTime(DateUtil.getNow());
-        streamPushItem.setAliveSecond(item.getAliveSecond());
-        streamPushItem.setStatus(true);
-        streamPushItem.setStreamType("push");
         streamPushItem.setVhost(item.getVhost());
         streamPushItem.setServerId(item.getSeverId());
         return streamPushItem;
     }
 
     @Override
-    public PageInfo<StreamPushItem> getPushList(Integer page, Integer count, String query, Boolean pushing, String mediaServerId) {
+    public PageInfo<StreamPush> getPushList(Integer page, Integer count, String query, Boolean pushing, String mediaServerId) {
         PageHelper.startPage(page, count);
-        List<StreamPushItem> all = streamPushMapper.selectAllForList(query, pushing, mediaServerId);
+        List<StreamPush> all = streamPushMapper.selectAllForList(query, pushing, mediaServerId);
         return new PageInfo<>(all);
     }
 
     @Override
-    public List<StreamPushItem> getPushList(String mediaServerId) {
+    public List<StreamPush> getPushList(String mediaServerId) {
         return streamPushMapper.selectAllByMediaServerIdWithOutGbID(mediaServerId);
     }
 
@@ -269,14 +260,14 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
 
     @Override
-    public StreamPushItem getPush(String app, String streamId) {
+    public StreamPush getPush(String app, String streamId) {
         return streamPushMapper.selectOne(app, streamId);
     }
 
     @Override
     public boolean stop(String app, String stream) {
         logger.info("[推流 ] 停止流： {}/{}", app, stream);
-        StreamPushItem streamPushItem = streamPushMapper.selectOne(app, stream);
+        StreamPush streamPushItem = streamPushMapper.selectOne(app, stream);
         if (streamPushItem != null) {
             gbStreamService.sendCatalogMsg(streamPushItem, CatalogEvent.DEL);
         }
@@ -299,13 +290,13 @@ public class StreamPushServiceImpl implements IStreamPushService {
             return;
         }
         // 数据库记录
-        List<StreamPushItem> pushList = getPushList(mediaServerId);
-        Map<String, StreamPushItem> pushItemMap = new HashMap<>();
+        List<StreamPush> pushList = getPushList(mediaServerId);
+        Map<String, StreamPush> pushItemMap = new HashMap<>();
         // redis记录
         List<MediaInfo> mediaInfoList = redisCatchStorage.getStreams(mediaServerId, "PUSH");
         Map<String, MediaInfo> streamInfoPushItemMap = new HashMap<>();
         if (pushList.size() > 0) {
-            for (StreamPushItem streamPushItem : pushList) {
+            for (StreamPush streamPushItem : pushList) {
                 if (ObjectUtils.isEmpty(streamPushItem.getGbId())) {
                     pushItemMap.put(streamPushItem.getApp() + streamPushItem.getStream(), streamPushItem);
                 }
@@ -326,15 +317,15 @@ public class StreamPushServiceImpl implements IStreamPushService {
         if (mediaList == null) {
             return;
         }
-        List<StreamPushItem> streamPushItems = handleJSON(mediaList);
+        List<StreamPush> streamPushItems = handleJSON(mediaList);
         if (streamPushItems != null) {
-            for (StreamPushItem streamPushItem : streamPushItems) {
+            for (StreamPush streamPushItem : streamPushItems) {
                 pushItemMap.remove(streamPushItem.getApp() + streamPushItem.getStream());
                 streamInfoPushItemMap.remove(streamPushItem.getApp() + streamPushItem.getStream());
                 streamAuthorityInfoInfoMap.remove(streamPushItem.getApp() + streamPushItem.getStream());
             }
         }
-        List<StreamPushItem> offlinePushItems = new ArrayList<>(pushItemMap.values());
+        List<StreamPush> offlinePushItems = new ArrayList<>(pushItemMap.values());
         if (offlinePushItems.size() > 0) {
             String type = "PUSH";
             int runLimit = 300;
@@ -344,7 +335,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
                     if (i + runLimit > offlinePushItems.size()) {
                         toIndex = offlinePushItems.size();
                     }
-                    List<StreamPushItem> streamPushItemsSub = offlinePushItems.subList(i, toIndex);
+                    List<StreamPush> streamPushItemsSub = offlinePushItems.subList(i, toIndex);
                     streamPushMapper.delAll(streamPushItemsSub);
                 }
             }else {
@@ -381,7 +372,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Override
     public void zlmServerOffline(String mediaServerId) {
-        List<StreamPushItem> streamPushItems = streamPushMapper.selectAllByMediaServerIdWithOutGbID(mediaServerId);
+        List<StreamPush> streamPushItems = streamPushMapper.selectAllByMediaServerIdWithOutGbID(mediaServerId);
         // 移除没有GBId的推流
         streamPushMapper.deleteWithoutGBId(mediaServerId);
         gbStreamMapper.deleteWithoutGBId("push", mediaServerId);
@@ -417,9 +408,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Override
     public boolean saveToRandomGB() {
-        List<StreamPushItem> streamPushItems = streamPushMapper.selectAll();
+        List<StreamPush> streamPushItems = streamPushMapper.selectAll();
         long gbId = 100001;
-        for (StreamPushItem streamPushItem : streamPushItems) {
+        for (StreamPush streamPushItem : streamPushItems) {
             streamPushItem.setStreamType("push");
             streamPushItem.setStatus(true);
             streamPushItem.setGbId("34020000004111" + gbId);
@@ -443,17 +434,17 @@ public class StreamPushServiceImpl implements IStreamPushService {
     }
 
     @Override
-    public void batchAdd(List<StreamPushItem> streamPushItems) {
+    public void batchAdd(List<StreamPush> streamPushItems) {
         streamPushMapper.addAll(streamPushItems);
         gbStreamMapper.batchAdd(streamPushItems);
     }
 
 
     @Override
-    public void batchAddForUpload(List<StreamPushItem> streamPushItems, Map<String, List<String[]>> streamPushItemsForAll ) {
+    public void batchAddForUpload(List<StreamPush> streamPushItems, Map<String, List<String[]>> streamPushItemsForAll ) {
         // 存储数据到stream_push表
         streamPushMapper.addAll(streamPushItems);
-        List<StreamPushItem> streamPushItemForGbStream = streamPushItems.stream()
+        List<StreamPush> streamPushItemForGbStream = streamPushItems.stream()
                 .filter(streamPushItem-> streamPushItem.getGbId() != null)
                 .collect(Collectors.toList());
         // 存储数据到gb_stream表， id会返回到streamPushItemForGbStream里
@@ -461,7 +452,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
             gbStreamMapper.batchAdd(streamPushItemForGbStream);
         }
         // 去除没有ID也就是没有存储到数据库的数据
-        List<StreamPushItem> streamPushItemsForPlatform = streamPushItemForGbStream.stream()
+        List<StreamPush> streamPushItemsForPlatform = streamPushItemForGbStream.stream()
                 .filter(streamPushItem-> streamPushItem.getGbStreamId() != null)
                 .collect(Collectors.toList());
 
@@ -489,14 +480,14 @@ public class StreamPushServiceImpl implements IStreamPushService {
                 }
                 platformInfoMap.put(platform.getServerGBId(), catalogMap);
             }
-            List<StreamPushItem> streamPushItemListFroPlatform = new ArrayList<>();
+            List<StreamPush> streamPushItemListFroPlatform = new ArrayList<>();
             Map<String, List<GbStream>> platformForEvent = new HashMap<>();
             // 遍历存储结果，查找app+Stream->platformId+catalogId的对应关系，然后执行批量写入
-            for (StreamPushItem streamPushItem : streamPushItemsForPlatform) {
+            for (StreamPush streamPushItem : streamPushItemsForPlatform) {
                 List<String[]> platFormInfoList = streamPushItemsForAll.get(streamPushItem.getApp() + streamPushItem.getStream());
                 if (platFormInfoList != null && platFormInfoList.size() > 0) {
                     for (String[] platFormInfoArray : platFormInfoList) {
-                        StreamPushItem streamPushItemForPlatform = new StreamPushItem();
+                        StreamPush streamPushItemForPlatform = new StreamPush();
                         streamPushItemForPlatform.setGbStreamId(streamPushItem.getGbStreamId());
                         if (platFormInfoArray.length > 0) {
                             // 数组 platFormInfoArray 0 为平台ID。 1为目录ID
@@ -589,7 +580,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     }
 
     @Override
-    public boolean add(StreamPushItem stream) {
+    public boolean add(StreamPush stream) {
         stream.setUpdateTime(DateUtil.getNow());
         stream.setCreateTime(DateUtil.getNow());
         stream.setServerId(userSetting.getServerId());
@@ -630,14 +621,14 @@ public class StreamPushServiceImpl implements IStreamPushService {
     }
 
     @Override
-    public Map<String, StreamPushItem> getAllAppAndStreamMap() {
+    public Map<String, StreamPush> getAllAppAndStreamMap() {
         return streamPushMapper.getAllAppAndStreamMap();
     }
 
     @Override
     public void updatePush(OnStreamChangedHookParam param) {
-        StreamPushItem transform = transform(param);
-        StreamPushItem pushInDb = getPush(param.getApp(), param.getStream());
+        StreamPush transform = transform(param);
+        StreamPush pushInDb = getPush(param.getApp(), param.getStream());
         transform.setPushIng(param.isRegist());
         transform.setUpdateTime(DateUtil.getNow());
         transform.setPushTime(DateUtil.getNow());

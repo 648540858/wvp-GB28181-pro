@@ -90,7 +90,7 @@ public class CommonGBChannel {
     private String gbBusinessGroupId;
 
     @Schema(description = "国标-摄像机结构类型,标识摄像机类型: 1-球机; 2-半球; 3-固定枪机; 4-遥控枪机;5-遥控半球;6-多目设备的全景/拼接通道;7-多目设备的分割通道")
-    private String gbPtzType;
+    private Integer gbPtzType;
 
     @Schema(description = "国标-摄像机光电成像类型。1-可见光成像;2-热成像;3-雷达成像;4-X光成像;5-深度光场成像;9-其他。可多值,")
     private String gbPhotoelectricImagingTyp;

@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.service.impl;
 
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.StreamPushExcelDto;
@@ -32,12 +32,12 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
     /**
      * 用于存储不加过滤的所有数据
      */
-    private final List<StreamPushItem> streamPushItems = new ArrayList<>();
+    private final List<StreamPush> streamPushItems = new ArrayList<>();
 
     /**
      * 用于存储更具APP+Stream过滤后的数据，可以直接存入stream_push表与gb_stream表
      */
-    private final Map<String,StreamPushItem> streamPushItemForSave = new HashMap<>();
+    private final Map<String, StreamPush> streamPushItemForSave = new HashMap<>();
 
     /**
      * 用于存储按照APP+Stream为KEY， 平台ID+目录Id 为value的数据，用于存储到gb_stream表后获取app+Stream对应的平台与目录信息，然后存入关联表
@@ -126,7 +126,7 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
             streamPushStreamSet.add(streamPushExcelDto.getApp()+streamPushExcelDto.getStream() + streamPushExcelDto.getPlatformId());
         }
 
-        StreamPushItem streamPushItem = new StreamPushItem();
+        StreamPush streamPushItem = new StreamPush();
         streamPushItem.setApp(streamPushExcelDto.getApp());
         streamPushItem.setStream(streamPushExcelDto.getStream());
         streamPushItem.setGbId(streamPushExcelDto.getGbId());

@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
@@ -32,13 +32,13 @@ public interface IStreamPushService {
     /**
      * 获取
      */
-    PageInfo<StreamPushItem> getPushList(Integer page, Integer count, String query, Boolean pushing, String mediaServerId);
+    PageInfo<StreamPush> getPushList(Integer page, Integer count, String query, Boolean pushing, String mediaServerId);
 
-    List<StreamPushItem> getPushList(String mediaSererId);
+    List<StreamPush> getPushList(String mediaSererId);
 
-    StreamPushItem transform(OnStreamChangedHookParam item);
+    StreamPush transform(OnStreamChangedHookParam item);
 
-    StreamPushItem getPush(String app, String streamId);
+    StreamPush getPush(String app, String streamId);
 
     /**
      * 停止一路推流
@@ -68,7 +68,7 @@ public interface IStreamPushService {
     /**
      * 批量添加
      */
-    void batchAdd(List<StreamPushItem> streamPushExcelDtoList);
+    void batchAdd(List<StreamPush> streamPushExcelDtoList);
 
     /**
      * 中止多个推流
@@ -78,7 +78,7 @@ public interface IStreamPushService {
     /**
      * 导入时批量增加
      */
-    void batchAddForUpload(List<StreamPushItem> streamPushItems, Map<String, List<String[]>> streamPushItemsForAll);
+    void batchAddForUpload(List<StreamPush> streamPushItems, Map<String, List<String[]>> streamPushItemsForAll);
 
     /**
      * 全部离线
@@ -98,7 +98,7 @@ public interface IStreamPushService {
     /**
      * 增加推流
      */
-    boolean add(StreamPushItem stream);
+    boolean add(StreamPush stream);
 
     /**
      * 获取全部的app+Streanm 用于判断推流列表是新增还是修改
@@ -112,7 +112,7 @@ public interface IStreamPushService {
      */
     ResourceBaseInfo getOverview();
 
-    Map<String, StreamPushItem> getAllAppAndStreamMap();
+    Map<String, StreamPush> getAllAppAndStreamMap();
 
 
     void updatePush(OnStreamChangedHookParam param);

@@ -241,6 +241,7 @@ public class XmlUtil {
     }
 
     public static DeviceChannel channelContentHandler(Element itemDevice, Device device, String event){
+        loadElement(itemDevice, DeviceChannel.class)
         DeviceChannel deviceChannel = new DeviceChannel();
         deviceChannel.setDeviceId(device.getDeviceId());
         Element channdelIdElement = itemDevice.element("DeviceID");

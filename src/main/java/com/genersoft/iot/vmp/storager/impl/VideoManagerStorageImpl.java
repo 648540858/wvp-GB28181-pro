@@ -6,7 +6,7 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -699,7 +699,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	 * @return
 	 */
 	@Override
-	public List<StreamProxyItem> getStreamProxyListForEnable(boolean enable) {
+	public List<StreamProxy> getStreamProxyListForEnable(boolean enable) {
 		return streamProxyMapper.selectForEnable(enable);
 	}
 
@@ -710,9 +710,9 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	 * @return
 	 */
 	@Override
-	public PageInfo<StreamProxyItem> queryStreamProxyList(Integer page, Integer count) {
+	public PageInfo<StreamProxy> queryStreamProxyList(Integer page, Integer count) {
 		PageHelper.startPage(page, count);
-		List<StreamProxyItem> all = streamProxyMapper.selectAll();
+		List<StreamProxy> all = streamProxyMapper.selectAll();
 		return new PageInfo<>(all);
 	}
 
@@ -744,7 +744,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	 * @return
 	 */
 	@Override
-	public StreamProxyItem queryStreamProxy(String app, String stream){
+	public StreamProxy queryStreamProxy(String app, String stream){
 		return streamProxyMapper.selectOne(app, stream);
 	}
 
@@ -783,7 +783,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	}
 
 	@Override
-	public List<StreamProxyItem> getStreamProxyListForEnableInMediaServer(String id, boolean enable) {
+	public List<StreamProxy> getStreamProxyListForEnableInMediaServer(String id, boolean enable) {
 		return streamProxyMapper.selectForEnableInMediaServer(id, enable);
 	}
 
@@ -799,7 +799,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	}
 
 	@Override
-	public StreamProxyItem getStreamProxyByAppAndStream(String app, String streamId) {
+	public StreamProxy getStreamProxyByAppAndStream(String app, String streamId) {
 		return streamProxyMapper.selectOne(app, streamId);
 	}
 

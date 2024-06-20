@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.service;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
@@ -53,7 +53,7 @@ public interface IGbStreamService {
      * @param streamPushItemForUpdate
      * @return
      */
-    int updateGbIdOrName(List<StreamPushItem> streamPushItemForUpdate);
+    int updateGbIdOrName(List<StreamPush> streamPushItemForUpdate);
 
     DeviceChannel getDeviceChannelListByStreamWithStatus(GbStream gbStream, String catalogId, ParentPlatform platform);
 

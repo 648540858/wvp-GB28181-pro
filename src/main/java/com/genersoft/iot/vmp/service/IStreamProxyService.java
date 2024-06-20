@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.service;
 import com.genersoft.iot.vmp.common.GeneralCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
@@ -16,7 +16,7 @@ public interface IStreamProxyService {
      * 保存视频代理
      * @param param
      */
-    void save(StreamProxyItem param, GeneralCallback<StreamInfo> callback);
+    void save(StreamProxy param, GeneralCallback<StreamInfo> callback);
 
     /**
      * 添加视频代理到zlm
@@ -24,7 +24,7 @@ public interface IStreamProxyService {
      * @param param
      * @return
      */
-    WVPResult<String> addStreamProxyToZlm(StreamProxyItem param);
+    WVPResult<String> addStreamProxyToZlm(StreamProxy param);
 
     /**
      * 从zlm移除视频代理
@@ -32,7 +32,7 @@ public interface IStreamProxyService {
      * @param param
      * @return
      */
-    Boolean removeStreamProxyFromZlm(StreamProxyItem param);
+    Boolean removeStreamProxyFromZlm(StreamProxy param);
 
     /**
      * 分页查询
@@ -40,7 +40,7 @@ public interface IStreamProxyService {
      * @param count
      * @return
      */
-    PageInfo<StreamProxyItem> getAll(Integer page, Integer count);
+    PageInfo<StreamProxy> getAll(Integer page, Integer count);
 
     /**
      * 删除视频代理
@@ -86,7 +86,7 @@ public interface IStreamProxyService {
      * 根据app与stream获取streamProxy
      * @return
      */
-    StreamProxyItem getStreamProxyByAppAndStream(String app, String streamId);
+    StreamProxy getStreamProxyByAppAndStream(String app, String streamId);
 
 
     /**
@@ -108,7 +108,7 @@ public interface IStreamProxyService {
     /**
      * 更新代理流
      */
-    boolean updateStreamProxy(StreamProxyItem streamProxyItem);
+    boolean updateStreamProxy(StreamProxy streamProxyItem);
 
     /**
      * 获取统计信息

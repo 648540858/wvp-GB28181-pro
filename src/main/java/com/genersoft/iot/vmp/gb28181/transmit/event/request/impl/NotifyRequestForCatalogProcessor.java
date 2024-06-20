@@ -122,6 +122,8 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 							event = eventElement.getText().toUpperCase();
 						}
 						DeviceChannel channel = XmlUtil.channelContentHandler(itemDevice, device, event);
+
+
 						if (channel == null) {
 							logger.info("[收到目录订阅]：但是解析失败 {}", new String(evt.getRequest().getRawContent()));
 							continue;
@@ -130,7 +132,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 							channel.setParentId(null);
 						}
 						channel.setDeviceId(device.getDeviceId());
-						logger.info("[收到目录订阅]：{}/{}", device.getDeviceId(), channel.getChannelId());
+						logger.info("[收到目录订阅]：{}/{}", device.getDeviceId(), channel.getDeviceId());
 						switch (event) {
 							case CatalogEvent.ON:
 								// 上线

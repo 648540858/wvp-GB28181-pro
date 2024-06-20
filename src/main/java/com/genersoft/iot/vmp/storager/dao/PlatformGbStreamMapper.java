@@ -4,8 +4,8 @@ import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformGbStream;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -29,7 +29,7 @@ public interface PlatformGbStreamMapper {
             "(#{item.gbStreamId}, #{item.platform_id}, #{item.catalogId})" +
             "</foreach> " +
             "</script>")
-    int batchAdd(List<StreamPushItem> streamPushItems);
+    int batchAdd(List<StreamPush> streamPushItems);
 
     @Delete("DELETE from wvp_platform_gb_stream WHERE gb_stream_id = (select gb_stream_id from wvp_gb_stream where app=#{app} AND stream=#{stream})")
     int delByAppAndStream(@Param("app") String app, @Param("stream") String stream);
@@ -51,7 +51,7 @@ public interface PlatformGbStreamMapper {
     @Select("SELECT pgs.*, gs.gb_id  from wvp_platform_gb_stream pgs " +
             "LEFT join wvp_gb_stream gs ON pgs.gb_stream_id = gs.gb_stream_id  " +
             "WHERE gs.app=#{app} AND gs.stream=#{stream} AND pgs.platform_id=#{platformId}")
-    StreamProxyItem selectOne(@Param("app") String app, @Param("stream") String stream, @Param("platformId") String platformId);
+    StreamProxy selectOne(@Param("app") String app, @Param("stream") String stream, @Param("platformId") String platformId);
 
     @Select("<script> " +
             "select gs.* " +

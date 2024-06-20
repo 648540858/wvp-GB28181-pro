@@ -7,7 +7,6 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -18,7 +17,7 @@ import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaNotFoundEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
 import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -131,7 +130,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             return;
         }
         // 拉流代理
-        StreamProxyItem streamProxyByAppAndStream = getStreamProxyByAppAndStream(event.getApp(), event.getStream());
+        StreamProxy streamProxyByAppAndStream = getStreamProxyByAppAndStream(event.getApp(), event.getStream());
         if (streamProxyByAppAndStream != null && streamProxyByAppAndStream.isEnableDisableNoneReader()) {
             start(event.getApp(), event.getStream());
         }
@@ -139,7 +138,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
 
     @Override
-    public void save(StreamProxyItem param, GeneralCallback<StreamInfo> callback) {
+    public void save(StreamProxy param, GeneralCallback<StreamInfo> callback) {
         MediaServer mediaServer;
         if (ObjectUtils.isEmpty(param.getMediaServerId()) || "auto".equals(param.getMediaServerId())){
             mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
@@ -266,7 +265,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
      * @param streamProxyItem
      * @return
      */
-    private boolean addStreamProxy(StreamProxyItem streamProxyItem) {
+    private boolean addStreamProxy(StreamProxy streamProxyItem) {
         TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
         boolean result = false;
         streamProxyItem.setStreamType("proxy");
@@ -304,7 +303,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
      * @return
      */
     @Override
-    public boolean updateStreamProxy(StreamProxyItem streamProxyItem) {
+    public boolean updateStreamProxy(StreamProxy streamProxyItem) {
         TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
         boolean result = false;
         streamProxyItem.setStreamType("proxy");
@@ -333,7 +332,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     @Override
-    public WVPResult<String> addStreamProxyToZlm(StreamProxyItem param) {
+    public WVPResult<String> addStreamProxyToZlm(StreamProxy param) {
         WVPResult<String> result = null;
         MediaServer mediaServer = null;
         if (param.getMediaServerId() == null) {
@@ -373,7 +372,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     @Override
-    public Boolean removeStreamProxyFromZlm(StreamProxyItem param) {
+    public Boolean removeStreamProxyFromZlm(StreamProxy param) {
         if (param ==null) {
             return null;
         }
@@ -395,13 +394,13 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     @Override
-    public PageInfo<StreamProxyItem> getAll(Integer page, Integer count) {
+    public PageInfo<StreamProxy> getAll(Integer page, Integer count) {
         return videoManagerStorager.queryStreamProxyList(page, count);
     }
 
     @Override
     public void del(String app, String stream) {
-        StreamProxyItem streamProxyItem = videoManagerStorager.queryStreamProxy(app, stream);
+        StreamProxy streamProxyItem = videoManagerStorager.queryStreamProxy(app, stream);
         if (streamProxyItem != null) {
             gbStreamService.sendCatalogMsg(streamProxyItem, CatalogEvent.DEL);
 
@@ -423,7 +422,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public boolean start(String app, String stream) {
         boolean result = false;
-        StreamProxyItem streamProxy = videoManagerStorager.queryStreamProxy(app, stream);
+        StreamProxy streamProxy = videoManagerStorager.queryStreamProxy(app, stream);
         if (streamProxy != null && !streamProxy.isEnable() ) {
             WVPResult<String> wvpResult = addStreamProxyToZlm(streamProxy);
             if (wvpResult == null) {
@@ -446,7 +445,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public boolean stop(String app, String stream) {
         boolean result = false;
-        StreamProxyItem streamProxyDto = videoManagerStorager.queryStreamProxy(app, stream);
+        StreamProxy streamProxyDto = videoManagerStorager.queryStreamProxy(app, stream);
         if (streamProxyDto != null && streamProxyDto.isEnable()) {
             Boolean removed = removeStreamProxyFromZlm(streamProxyDto);
             if (removed != null && removed) {
@@ -464,14 +463,14 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
 
     @Override
-    public StreamProxyItem getStreamProxyByAppAndStream(String app, String streamId) {
+    public StreamProxy getStreamProxyByAppAndStream(String app, String streamId) {
         return videoManagerStorager.getStreamProxyByAppAndStream(app, streamId);
     }
 
     @Override
     public void zlmServerOnline(String mediaServerId) {
         // 移除开启了无人观看自动移除的流
-        List<StreamProxyItem> streamProxyItemList = streamProxyMapper.selectAutoRemoveItemByMediaServerId(mediaServerId);
+        List<StreamProxy> streamProxyItemList = streamProxyMapper.selectAutoRemoveItemByMediaServerId(mediaServerId);
         if (streamProxyItemList.size() > 0) {
             gbStreamMapper.batchDel(streamProxyItemList);
         }
@@ -481,9 +480,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         syncPullStream(mediaServerId);
 
         // 恢复流代理, 只查找这个这个流媒体
-        List<StreamProxyItem> streamProxyListForEnable = storager.getStreamProxyListForEnableInMediaServer(
+        List<StreamProxy> streamProxyListForEnable = storager.getStreamProxyListForEnableInMediaServer(
                 mediaServerId, true);
-        for (StreamProxyItem streamProxyDto : streamProxyListForEnable) {
+        for (StreamProxy streamProxyDto : streamProxyListForEnable) {
             logger.info("恢复流代理，" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
             WVPResult<String> wvpResult = addStreamProxyToZlm(streamProxyDto);
             if (wvpResult == null) {
@@ -499,7 +498,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public void zlmServerOffline(String mediaServerId) {
         // 移除开启了无人观看自动移除的流
-        List<StreamProxyItem> streamProxyItemList = streamProxyMapper.selectAutoRemoveItemByMediaServerId(mediaServerId);
+        List<StreamProxy> streamProxyItemList = streamProxyMapper.selectAutoRemoveItemByMediaServerId(mediaServerId);
         if (streamProxyItemList.size() > 0) {
             gbStreamMapper.batchDel(streamProxyItemList);
         }
@@ -533,7 +532,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public int updateStatus(boolean status, String app, String stream) {
         // 状态变化时推送到国标上级
-        StreamProxyItem streamProxyItem = streamProxyMapper.selectOne(app, stream);
+        StreamProxy streamProxyItem = streamProxyMapper.selectOne(app, stream);
         if (streamProxyItem == null) {
             return 0;
         }
@@ -592,13 +591,13 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
         Map<String, MediaServer> serverItemMap = all.stream().collect(Collectors.toMap(MediaServer::getId, Function.identity(), (m1, m2) -> m1));
 
-        List<StreamProxyItem> list = videoManagerStorager.getStreamProxyListForEnable(true);
+        List<StreamProxy> list = videoManagerStorager.getStreamProxyListForEnable(true);
 
         if (CollectionUtils.isEmpty(list)){
             return;
         }
 
-        for (StreamProxyItem streamProxyItem : list) {
+        for (StreamProxy streamProxyItem : list) {
 
             MediaServer mediaServerItem = serverItemMap.get(streamProxyItem.getMediaServerId());
 

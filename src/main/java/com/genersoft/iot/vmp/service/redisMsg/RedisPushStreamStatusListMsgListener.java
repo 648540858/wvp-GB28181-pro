@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.service.redisMsg;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
@@ -57,17 +57,17 @@ public class RedisPushStreamStatusListMsgListener implements MessageListener {
                 while (!taskQueue.isEmpty()) {
                     Message msg = taskQueue.poll();
                     try {
-                        List<StreamPushItem> streamPushItems = JSON.parseArray(new String(msg.getBody()), StreamPushItem.class);
+                        List<StreamPush> streamPushItems = JSON.parseArray(new String(msg.getBody()), StreamPush.class);
                         //查询全部的app+stream 用于判断是添加还是修改
-                        Map<String, StreamPushItem> allAppAndStream = streamPushService.getAllAppAndStreamMap();
+                        Map<String, StreamPush> allAppAndStream = streamPushService.getAllAppAndStreamMap();
                         Map<String, GbStream> allGBId = gbStreamService.getAllGBId();
 
                         /**
                          * 用于存储更具APP+Stream过滤后的数据，可以直接存入stream_push表与gb_stream表
                          */
-                        List<StreamPushItem> streamPushItemForSave = new ArrayList<>();
-                        List<StreamPushItem> streamPushItemForUpdate = new ArrayList<>();
-                        for (StreamPushItem streamPushItem : streamPushItems) {
+                        List<StreamPush> streamPushItemForSave = new ArrayList<>();
+                        List<StreamPush> streamPushItemForUpdate = new ArrayList<>();
+                        for (StreamPush streamPushItem : streamPushItems) {
                             String app = streamPushItem.getApp();
                             String stream = streamPushItem.getStream();
                             boolean contains = allAppAndStream.containsKey(app + stream);

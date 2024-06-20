@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.storager;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
@@ -233,7 +233,7 @@ public interface IVideoManagerStorage {
 	 * @param enable
 	 * @return
 	 */
-	public List<StreamProxyItem> getStreamProxyListForEnable(boolean enable);
+	public List<StreamProxy> getStreamProxyListForEnable(boolean enable);
 
 	/**
 	 * 按照是app和stream获取代理流
@@ -241,7 +241,7 @@ public interface IVideoManagerStorage {
 	 * @param stream
 	 * @return
 	 */
-	public StreamProxyItem queryStreamProxy(String app, String stream);
+	public StreamProxy queryStreamProxy(String app, String stream);
 
 	/**
 	 * 获取代理流
@@ -249,7 +249,7 @@ public interface IVideoManagerStorage {
 	 * @param count
 	 * @return
 	 */
-	PageInfo<StreamProxyItem> queryStreamProxyList(Integer page, Integer count);
+	PageInfo<StreamProxy> queryStreamProxyList(Integer page, Integer count);
 
 	/**
 	 * 根据国标ID获取平台关联的直播流
@@ -294,7 +294,7 @@ public interface IVideoManagerStorage {
 	 * @param enable 启用/不启用
 	 * @return
 	 */
-	List<StreamProxyItem> getStreamProxyListForEnableInMediaServer(String id,  boolean enable);
+	List<StreamProxy> getStreamProxyListForEnableInMediaServer(String id, boolean enable);
 
 	/**
 	 * 根据通道ID获取其所在设备
@@ -321,7 +321,7 @@ public interface IVideoManagerStorage {
 	 * @param streamId
 	 * @return
 	 */
-    StreamProxyItem getStreamProxyByAppAndStream(String app, String streamId);
+    StreamProxy getStreamProxyByAppAndStream(String app, String streamId);
 
 	/**
 	 * catlog查询结束后完全重写通道信息

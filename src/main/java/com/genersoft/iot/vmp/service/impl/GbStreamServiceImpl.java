@@ -4,7 +4,7 @@ import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.ParentPlatformMapper;
@@ -194,7 +194,7 @@ public class GbStreamServiceImpl implements IGbStreamService {
     }
 
     @Override
-    public int updateGbIdOrName(List<StreamPushItem> streamPushItemForUpdate) {
+    public int updateGbIdOrName(List<StreamPush> streamPushItemForUpdate) {
         return gbStreamMapper.updateGbIdOrName(streamPushItemForUpdate);
     }
 

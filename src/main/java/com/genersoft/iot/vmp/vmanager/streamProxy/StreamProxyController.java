@@ -8,7 +8,7 @@ import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -62,10 +62,10 @@ public class StreamProxyController {
     @Parameter(name = "online", description = "是否在线")
     @GetMapping(value = "/list")
     @ResponseBody
-    public PageInfo<StreamProxyItem> list(@RequestParam(required = false)Integer page,
-                                          @RequestParam(required = false)Integer count,
-                                          @RequestParam(required = false)String query,
-                                          @RequestParam(required = false)Boolean online ){
+    public PageInfo<StreamProxy> list(@RequestParam(required = false)Integer page,
+                                      @RequestParam(required = false)Integer count,
+                                      @RequestParam(required = false)String query,
+                                      @RequestParam(required = false)Boolean online ){
 
         return streamProxyService.getAll(page, count);
     }
@@ -75,7 +75,7 @@ public class StreamProxyController {
     @Parameter(name = "stream", description = "流Id")
     @GetMapping(value = "/one")
     @ResponseBody
-    public StreamProxyItem one(String app, String stream){
+    public StreamProxy one(String app, String stream){
 
         return streamProxyService.getStreamProxyByAppAndStream(app, stream);
     }
@@ -85,7 +85,7 @@ public class StreamProxyController {
     })
     @PostMapping(value = "/save")
     @ResponseBody
-    public DeferredResult<Object> save(@RequestBody StreamProxyItem param){
+    public DeferredResult<Object> save(@RequestBody StreamProxy param){
         logger.info("添加代理： " + JSONObject.toJSONString(param));
         if (ObjectUtils.isEmpty(param.getMediaServerId())) {
             param.setMediaServerId("auto");
@@ -99,7 +99,7 @@ public class StreamProxyController {
         if (ObjectUtils.isEmpty(param.getGbId())) {
             param.setGbId(null);
         }
-        StreamProxyItem streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
+        StreamProxy streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
         if (streamProxyItem  != null) {
             streamProxyService.del(param.getApp(), param.getStream());
         }

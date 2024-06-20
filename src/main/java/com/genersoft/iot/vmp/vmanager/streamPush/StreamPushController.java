@@ -12,7 +12,7 @@ import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
@@ -72,11 +72,11 @@ public class StreamPushController {
     @Parameter(name = "query", description = "查询内容")
     @Parameter(name = "pushing", description = "是否正在推流")
     @Parameter(name = "mediaServerId", description = "流媒体ID")
-    public PageInfo<StreamPushItem> list(@RequestParam(required = false)Integer page,
-                                         @RequestParam(required = false)Integer count,
-                                         @RequestParam(required = false)String query,
-                                         @RequestParam(required = false)Boolean pushing,
-                                         @RequestParam(required = false)String mediaServerId ){
+    public PageInfo<StreamPush> list(@RequestParam(required = false)Integer page,
+                                     @RequestParam(required = false)Integer count,
+                                     @RequestParam(required = false)String query,
+                                     @RequestParam(required = false)Boolean pushing,
+                                     @RequestParam(required = false)String mediaServerId ){
 
         if (ObjectUtils.isEmpty(query)) {
             query = null;
@@ -84,7 +84,7 @@ public class StreamPushController {
         if (ObjectUtils.isEmpty(mediaServerId)) {
             mediaServerId = null;
         }
-        PageInfo<StreamPushItem> pushList = streamPushService.getPushList(page, count, query, pushing, mediaServerId);
+        PageInfo<StreamPush> pushList = streamPushService.getPushList(page, count, query, pushing, mediaServerId);
         return pushList;
     }
 
@@ -245,7 +245,7 @@ public class StreamPushController {
         if (userInfo!= null) {
             authority = true;
         }
-        StreamPushItem push = streamPushService.getPush(app, stream);
+        StreamPush push = streamPushService.getPush(app, stream);
         if (push != null && !push.isSelf()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "来自其他平台的推流信息");
         }
@@ -264,7 +264,7 @@ public class StreamPushController {
     @PostMapping(value = "/add")
     @ResponseBody
     @Operation(summary = "添加推流信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    public void add(@RequestBody StreamPushItem stream){
+    public void add(@RequestBody StreamPush stream){
         if (ObjectUtils.isEmpty(stream.getGbId())) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "国标ID不可为空");
         }

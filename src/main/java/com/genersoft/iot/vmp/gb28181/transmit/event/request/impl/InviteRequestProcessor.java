@@ -25,8 +25,8 @@ import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
@@ -197,8 +197,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 PlatformCatalog catalog = storager.getCatalog(requesterId, channelId);
 
                 MediaServer mediaServerItem = null;
-                StreamPushItem streamPushItem = null;
-                StreamProxyItem proxyByAppAndStream = null;
+                StreamPush streamPushItem = null;
+                StreamProxy proxyByAppAndStream = null;
                 // 不是通道可能是直播流
                 if (channel != null && gbStream == null) {
                     // 通道存在，发100，TRYING
@@ -593,7 +593,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         sendRtpItem.setPlayType(InviteStreamType.PUSH);
                         if (streamPushItem != null) {
                             // 从redis查询是否正在接收这个推流
-                            StreamPushItem pushListItem = redisCatchStorage.getPushListItem(gbStream.getApp(), gbStream.getStream());
+                            StreamPush pushListItem = redisCatchStorage.getPushListItem(gbStream.getApp(), gbStream.getStream());
                             if (pushListItem != null) {
                                 sendRtpItem.setServerId(pushListItem.getServerId());
                                 sendRtpItem.setMediaServerId(pushListItem.getMediaServerId());

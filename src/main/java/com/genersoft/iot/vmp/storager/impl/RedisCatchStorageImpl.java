@@ -14,7 +14,7 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -698,20 +698,20 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void addPushListItem(String app, String stream, MediaArrivalEvent event) {
         String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
-        StreamPushItem streamPushItem = StreamPushItem.getInstance(event, userSetting.getServerId());
+        StreamPush streamPushItem = StreamPush.getInstance(event, userSetting.getServerId());
         redisTemplate.opsForValue().set(key, streamPushItem);
     }
 
     @Override
-    public StreamPushItem getPushListItem(String app, String stream) {
+    public StreamPush getPushListItem(String app, String stream) {
         String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
-        return (StreamPushItem)redisTemplate.opsForValue().get(key);
+        return (StreamPush)redisTemplate.opsForValue().get(key);
     }
 
     @Override
     public void removePushListItem(String app, String stream, String mediaServerId) {
         String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
-        StreamPushItem param = (StreamPushItem)redisTemplate.opsForValue().get(key);
+        StreamPush param = (StreamPush)redisTemplate.opsForValue().get(key);
         if (param != null && param.getMediaServerId().equalsIgnoreCase(mediaServerId)) {
             redisTemplate.delete(key);
         }

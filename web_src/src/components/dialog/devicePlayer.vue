@@ -473,10 +473,14 @@ export default {
     },
     getUrlByStreamInfo() {
       console.log(this.streamInfo)
+      let streamInfo = this.streamInfo
+      if (this.streamInfo.transcodeStream) {
+        streamInfo = this.streamInfo.transcodeStream;
+      }
       if (location.protocol === "https:") {
-        this.videoUrl = this.streamInfo[this.player[this.activePlayer][1]]
+        this.videoUrl = streamInfo[this.player[this.activePlayer][1]]
       } else {
-        this.videoUrl = this.streamInfo[this.player[this.activePlayer][0]]
+        this.videoUrl = streamInfo[this.player[this.activePlayer][0]]
       }
       return this.videoUrl;
 

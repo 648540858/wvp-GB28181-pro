@@ -19,7 +19,6 @@ import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OriginType;
-import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -116,10 +115,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
         StreamPush pushInDb = getPush(event.getApp(), event.getStream());
         if (pushInDb == null) {
             transform.setCreateTime(DateUtil.getNow());
-            streamPushMapper.add(transform);
+            add(transform);
         }else {
-            streamPushMapper.update(transform);
-            gbStreamMapper.updateMediaServer(event.getApp(), event.getStream(), event.getMediaServer().getId());
+            update(transform);
         }
         // 冗余数据，自己系统中自用
         if (!"broadcast".equals(event.getApp()) && !"talk".equals(event.getApp())) {
@@ -166,14 +164,17 @@ public class StreamPushServiceImpl implements IStreamPushService {
                 redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
             }
         }
-        GbStream gbStream = gbStreamMapper.selectOne(event.getApp(), event.getStream());
-        if (gbStream != null) {
+        StreamPush push = getPush(event.getApp(), event.getStream());
+        push.setPushIng(false);
+        if (push.getGbDeviceId() != null) {
             if (userSetting.isUsePushingAsStatus()) {
-                streamPushMapper.updatePushStatus(event.getApp(), event.getStream(), false);
-                eventPublisher.catalogEventPublishForStream(null, gbStream, CatalogEvent.OFF);
+                push.setGbStatus(false);
+                updateStatus(push);
+//                streamPushMapper.updatePushStatus(event.getApp(), event.getStream(), false);
+//                eventPublisher.catalogEventPublishForStream(null, gbStream, CatalogEvent.OFF);
             }
         }else {
-            streamPushMapper.del(event.getApp(), event.getStream());
+            deleteByAppAndStream(event.getApp(), event.getStream());
         }
     }
 
@@ -222,31 +223,6 @@ public class StreamPushServiceImpl implements IStreamPushService {
         return streamPushMapper.selectAllByMediaServerIdWithOutGbID(mediaServerId);
     }
 
-    @Override
-    public boolean saveToGB(GbStream stream) {
-        stream.setStreamType("push");
-        stream.setStatus(true);
-        stream.setCreateTime(DateUtil.getNow());
-        stream.setStreamType("push");
-        stream.setMediaServerId(mediaConfig.getId());
-        int add = gbStreamMapper.add(stream);
-        return add > 0;
-    }
-
-    @Override
-    public boolean removeFromGB(GbStream stream) {
-        // 判断是否需要发送事件
-        gbStreamService.sendCatalogMsg(stream, CatalogEvent.DEL);
-        platformGbStreamMapper.delByAppAndStream(stream.getApp(), stream.getStream());
-        int del = gbStreamMapper.del(stream.getApp(), stream.getStream());
-        MediaServer mediaInfo = mediaServerService.getOne(stream.getMediaServerId());
-        List<StreamInfo> mediaList = mediaServerService.getMediaList(mediaInfo, stream.getApp(), stream.getStream(), null);
-        if (mediaList != null && mediaList.isEmpty()) {
-            streamPushMapper.del(stream.getApp(), stream.getStream());
-        }
-        return del > 0;
-    }
-
 
     @Override
     public StreamPush getPush(String app, String streamId) {
@@ -255,7 +231,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Override
     public boolean stop(String app, String stream) {
-        logger.info("[推流 ] 停止流： {}/{}", app, stream);
+        logger.info("[推流] 停止流： {}/{}", app, stream);
         StreamPush streamPushItem = streamPushMapper.selectOne(app, stream);
         if (streamPushItem != null) {
             gbStreamService.sendCatalogMsg(streamPushItem, CatalogEvent.DEL);
@@ -596,6 +572,11 @@ public class StreamPushServiceImpl implements IStreamPushService {
     }
 
     @Override
+    public boolean update(StreamPush stream) {
+
+    }
+
+    @Override
     public List<String> getAllAppAndStream() {
 
         return streamPushMapper.getAllAppAndStream();
@@ -635,4 +616,16 @@ public class StreamPushServiceImpl implements IStreamPushService {
             gbStreamMapper.updateMediaServer(param.getApp(), param.getStream(), param.getMediaServerId());
         }
     }
+
+    @Override
+    public void updateStatus(StreamPush push) {
+
+    }
+
+    @Override
+    public void deleteByAppAndStream(String app, String stream) {
+
+    }
+
+
 }

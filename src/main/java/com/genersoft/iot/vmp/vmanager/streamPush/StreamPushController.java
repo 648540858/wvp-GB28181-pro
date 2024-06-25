@@ -88,25 +88,6 @@ public class StreamPushController {
         return pushList;
     }
 
-    @PostMapping(value = "/save_to_gb")
-    @ResponseBody
-    @Operation(summary = "将推流添加到国标", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    public void saveToGB(@RequestBody GbStream stream){
-        if (!streamPushService.saveToGB(stream)){
-           throw new ControllerException(ErrorCode.ERROR100);
-        }
-    }
-
-
-    @DeleteMapping(value = "/remove_form_gb")
-    @ResponseBody
-    @Operation(summary = "将推流移出到国标", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    public void removeFormGB(@RequestBody GbStream stream){
-        if (!streamPushService.removeFromGB(stream)){
-            throw new ControllerException(ErrorCode.ERROR100);
-        }
-    }
-
 
     @PostMapping(value = "/stop")
     @ResponseBody

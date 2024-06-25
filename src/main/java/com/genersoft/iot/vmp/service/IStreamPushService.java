@@ -100,6 +100,8 @@ public interface IStreamPushService {
      */
     boolean add(StreamPush stream);
 
+    boolean update(StreamPush stream);
+
     /**
      * 获取全部的app+Streanm 用于判断推流列表是新增还是修改
      * @return
@@ -119,4 +121,5 @@ public interface IStreamPushService {
 
     Map<String, StreamPush> getAllGBId();
 
+    void updateStatus(StreamPush push);
 }

@@ -116,4 +116,7 @@ public interface IStreamPushService {
 
 
     void updatePush(OnStreamChangedHookParam param);
+
+    Map<String, StreamPush> getAllGBId();
+
 }

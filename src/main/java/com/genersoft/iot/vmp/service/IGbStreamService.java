@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service;
 
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
@@ -45,8 +46,8 @@ public interface IGbStreamService {
 
     DeviceChannel getDeviceChannelListByStream(GbStream gbStream, String catalogId, ParentPlatform platform);
 
-    void sendCatalogMsg(GbStream gbStream, String type);
-    void sendCatalogMsgs(List<GbStream> gbStreams, String type);
+    void sendCatalogMsg(CommonGBChannel gbStream, String type);
+    void sendCatalogMsgs(List<CommonGBChannel> gbStreams, String type);
 
     /**
      * 修改gbId或name

@@ -204,4 +204,10 @@ public interface StreamPushMapper {
     Map<String, StreamPush> getAllAppAndStreamMap();
 
 
+    @MapKey("gb_id")
+    @Select("SELECT wgs.gb_id, wsp.app, wsp.stream, wgs.gb_id, wgs.name " +
+            " from wvp_stream_push wsp " +
+            " left join wvp_gb_stream  wgs  on wgs.app = wsp.app and wgs.stream = wsp.stream")
+    Map<String, StreamPush> getAllGBId();
+
 }

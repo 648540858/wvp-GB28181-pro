@@ -49,9 +49,6 @@ public class StreamPushServiceImpl implements IStreamPushService {
     private final static Logger logger = LoggerFactory.getLogger(StreamPushServiceImpl.class);
 
     @Autowired
-    private GbStreamMapper gbStreamMapper;
-
-    @Autowired
     private StreamPushMapper streamPushMapper;
 
     @Autowired
@@ -65,9 +62,6 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Autowired
     private PlatformGbStreamMapper platformGbStreamMapper;
-
-    @Autowired
-    private IGbStreamService gbStreamService;
 
     @Autowired
     private EventPublisher eventPublisher;
@@ -126,16 +120,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
             streamPushMapper.update(transform);
             gbStreamMapper.updateMediaServer(event.getApp(), event.getStream(), event.getMediaServer().getId());
         }
-        // TODO 相关的事件自行管理，不需要写入ZLMMediaListManager
-//        ChannelOnlineEvent channelOnlineEventLister = getChannelOnlineEventLister(transform.getApp(), transform.getStream());
-//        if ( channelOnlineEventLister != null)  {
-//            try {
-//                channelOnlineEventLister.run(transform.getApp(), transform.getStream(), transform.getServerId());;
-//            } catch (ParseException e) {
-//                logger.error("addPush: ", e);
-//            }
-//            removedChannelOnlineEventLister(transform.getApp(), transform.getStream());
-//        }
+
         // 冗余数据，自己系统中自用
         redisCatchStorage.addPushListItem(event.getApp(), event.getStream(), event);
 
@@ -216,7 +201,6 @@ public class StreamPushServiceImpl implements IStreamPushService {
         streamPushItem.setMediaServerId(item.getMediaServerId());
         streamPushItem.setStream(item.getStream());
         streamPushItem.setCreateTime(DateUtil.getNow());
-        streamPushItem.setVhost(item.getVhost());
         streamPushItem.setServerId(item.getSeverId());
         return streamPushItem;
     }
@@ -623,6 +607,11 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Override
     public Map<String, StreamPush> getAllAppAndStreamMap() {
         return streamPushMapper.getAllAppAndStreamMap();
+    }
+
+    @Override
+    public Map<String, StreamPush> getAllGBId() {
+        return streamPushMapper.getAllGBId();
     }
 
     @Override

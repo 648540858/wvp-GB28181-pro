@@ -26,6 +26,7 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.*;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
+import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -126,18 +127,13 @@ public class StreamPushServiceImpl implements IStreamPushService {
             streamPushMapper.update(transform);
             gbStreamMapper.updateMediaServer(event.getApp(), event.getStream(), event.getMediaServer().getId());
         }
-        // TODO 相关的事件自行管理，不需要写入ZLMMediaListManager
-//        ChannelOnlineEvent channelOnlineEventLister = getChannelOnlineEventLister(transform.getApp(), transform.getStream());
-//        if ( channelOnlineEventLister != null)  {
-//            try {
-//                channelOnlineEventLister.run(transform.getApp(), transform.getStream(), transform.getServerId());;
-//            } catch (ParseException e) {
-//                logger.error("addPush: ", e);
-//            }
-//            removedChannelOnlineEventLister(transform.getApp(), transform.getStream());
-//        }
         // 冗余数据，自己系统中自用
-        redisCatchStorage.addPushListItem(event.getApp(), event.getStream(), event);
+        if (!"broadcast".equals(event.getApp()) && !"talk".equals(event.getApp())) {
+            StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(
+                    event.getMediaServer(), event.getApp(), event.getStream(), event.getMediaInfo(), event.getCallId());
+            event.getHookParam().setStreamInfo(new StreamContent(streamInfo));
+            redisCatchStorage.addPushListItem(event.getApp(), event.getStream(), event);
+        }
 
         // 发送流变化redis消息
         JSONObject jsonObject = new JSONObject();

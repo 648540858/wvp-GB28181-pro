@@ -27,6 +27,7 @@ import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
@@ -593,12 +594,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         sendRtpItem.setPlayType(InviteStreamType.PUSH);
                         if (streamPushItem != null) {
                             // 从redis查询是否正在接收这个推流
-                            StreamPushItem pushListItem = redisCatchStorage.getPushListItem(gbStream.getApp(), gbStream.getStream());
+                            OnStreamChangedHookParam pushListItem = redisCatchStorage.getPushListItem(gbStream.getApp(), gbStream.getStream());
                             if (pushListItem != null) {
-                                sendRtpItem.setServerId(pushListItem.getServerId());
+                                sendRtpItem.setServerId(pushListItem.getSeverId());
                                 sendRtpItem.setMediaServerId(pushListItem.getMediaServerId());
 
-                                pushListItem.setSelf(userSetting.getServerId().equals(pushListItem.getServerId()));
                                 redisCatchStorage.updateSendRTPSever(sendRtpItem);
                                 // 开始推流
                                 sendPushStream(sendRtpItem, mediaServerItem, platform, request);

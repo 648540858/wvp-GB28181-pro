@@ -40,12 +40,14 @@ public interface IStreamPushService {
 
     StreamPush getPush(String app, String streamId);
 
+    boolean stop(StreamPush streamPush);
+
     /**
      * 停止一路推流
      * @param app 应用名
      * @param stream 流ID
      */
-    boolean stop(String app, String stream);
+    boolean stopByAppAndStream(String app, String stream);
 
     /**
      * 新的节点加入
@@ -100,6 +102,8 @@ public interface IStreamPushService {
      */
     boolean add(StreamPush stream);
 
+    boolean update(StreamPush stream);
+
     /**
      * 获取全部的app+Streanm 用于判断推流列表是新增还是修改
      * @return
@@ -116,4 +120,12 @@ public interface IStreamPushService {
 
 
     void updatePush(OnStreamChangedHookParam param);
+
+    Map<String, StreamPush> getAllGBId();
+
+    void updateStatus(StreamPush push);
+
+    void deleteByAppAndStream(String app, String stream);
+
+    void updatePushStatus(Integer streamPushId, boolean pushIng);
 }

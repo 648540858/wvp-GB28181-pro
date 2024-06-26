@@ -9,7 +9,6 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.conf.security.SecurityUtils;
 import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
-import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
@@ -88,25 +87,6 @@ public class StreamPushController {
         return pushList;
     }
 
-    @PostMapping(value = "/save_to_gb")
-    @ResponseBody
-    @Operation(summary = "将推流添加到国标", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    public void saveToGB(@RequestBody GbStream stream){
-        if (!streamPushService.saveToGB(stream)){
-           throw new ControllerException(ErrorCode.ERROR100);
-        }
-    }
-
-
-    @DeleteMapping(value = "/remove_form_gb")
-    @ResponseBody
-    @Operation(summary = "将推流移出到国标", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    public void removeFormGB(@RequestBody GbStream stream){
-        if (!streamPushService.removeFromGB(stream)){
-            throw new ControllerException(ErrorCode.ERROR100);
-        }
-    }
-
 
     @PostMapping(value = "/stop")
     @ResponseBody
@@ -114,7 +94,7 @@ public class StreamPushController {
     @Parameter(name = "app", description = "应用名", required = true)
     @Parameter(name = "stream", description = "流id", required = true)
     public void stop(String app, String stream){
-        if (!streamPushService.stop(app, stream)){
+        if (!streamPushService.stopByAppAndStream(app, stream)){
             throw new ControllerException(ErrorCode.ERROR100);
         }
     }

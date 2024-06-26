@@ -5,15 +5,13 @@ import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.SystemAllInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.bean.AlarmChannelMessage;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
-import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
@@ -698,14 +696,13 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void addPushListItem(String app, String stream, MediaArrivalEvent event) {
         String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
-        StreamPush streamPushItem = StreamPush.getInstance(event, userSetting.getServerId());
-        redisTemplate.opsForValue().set(key, streamPushItem);
+        redisTemplate.opsForValue().set(key, event.getHookParam());
     }
 
     @Override
-    public StreamPush getPushListItem(String app, String stream) {
+    public OnStreamChangedHookParam getPushListItem(String app, String stream) {
         String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
-        return (StreamPush)redisTemplate.opsForValue().get(key);
+        return (OnStreamChangedHookParam)redisTemplate.opsForValue().get(key);
     }
 
     @Override

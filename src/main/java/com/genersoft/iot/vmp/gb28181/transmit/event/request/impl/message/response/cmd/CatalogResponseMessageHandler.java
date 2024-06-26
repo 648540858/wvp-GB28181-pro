@@ -7,7 +7,6 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
-import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.DocumentException;
@@ -114,8 +113,9 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                     if (channelDeviceElement == null) {
                                         continue;
                                     }
-                                    DeviceChannel channel = XmlUtil.channelContentHandler(itemDevice, device, null);
-                                    if (channel == null) {
+                                    DeviceChannel channel = DeviceChannel.decode(itemDevice);
+//                                    DeviceChannel channel = XmlUtil.channelContentHandler(itemDevice, device, null);
+                                    if (channel == null || channel.getDeviceId() == null) {
                                         logger.info("[收到目录订阅]：但是解析失败 {}", new String(evt.getRequest().getRawContent()));
                                         continue;
                                     }

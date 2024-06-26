@@ -7,6 +7,9 @@ import lombok.Data;
 @Schema(description = "国标通道")
 public class CommonGBChannel {
 
+    @Schema(description = "国标-数据库自增ID")
+    private int gbId;
+
     @Schema(description = "国标-编码")
     private String gbDeviceId;
 

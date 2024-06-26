@@ -157,16 +157,16 @@ public class GbStreamServiceImpl implements IGbStreamService {
     }
 
     @Override
-    public void sendCatalogMsg(GbStream gbStream, String type) {
-        if (gbStream == null || type == null) {
+    public void sendCatalogMsg(CommonGBChannel channel, String type) {
+        if (channel == null || type == null) {
             logger.warn("[发送目录订阅]类型：流信息或类型为NULL");
             return;
         }
-        List<GbStream> gbStreams = new ArrayList<>();
-        if (gbStream.getGbId() != null) {
-            gbStreams.add(gbStream);
+        List<CommonGBChannel> gbStreams = new ArrayList<>();
+        if (channel.getGbDeviceId() != null) {
+            gbStreams.add(channel);
         }else {
-            GbStream gbStreamIndb  = gbStreamMapper.selectOne(gbStream.getApp(), gbStream.getStream());
+            GbStream gbStreamIndb  = gbStreamMapper.selectOne(channel.getApp(), channel.getStream());
             if (gbStreamIndb != null && gbStreamIndb.getGbId() != null){
                 gbStreams.add(gbStreamIndb);
             }

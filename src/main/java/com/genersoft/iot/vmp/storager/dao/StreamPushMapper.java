@@ -87,7 +87,7 @@ public interface StreamPushMapper {
     List<StreamPush> selectAll();
 
     @Select("SELECT st.*, gs.gb_id, gs.name, gs.longitude, gs.latitude FROM wvp_stream_push st LEFT join wvp_gb_stream gs on st.app = gs.app AND st.stream = gs.stream WHERE st.app=#{app} AND st.stream=#{stream}")
-    StreamPush selectOne(@Param("app") String app, @Param("stream") String stream);
+    StreamPush selectByAppAndStream(@Param("app") String app, @Param("stream") String stream);
 
     @Insert("<script>"  +
             "Insert INTO wvp_stream_push (app, stream, total_reader_count, origin_type, origin_type_str, " +
@@ -203,5 +203,11 @@ public interface StreamPushMapper {
             " left join wvp_gb_stream  wgs  on wgs.app = wsp.app and wgs.stream = wsp.stream")
     Map<String, StreamPush> getAllAppAndStreamMap();
 
+
+    @MapKey("gb_id")
+    @Select("SELECT wgs.gb_id, wsp.app, wsp.stream, wgs.gb_id, wgs.name " +
+            " from wvp_stream_push wsp " +
+            " left join wvp_gb_stream  wgs  on wgs.app = wsp.app and wgs.stream = wsp.stream")
+    Map<String, StreamPush> getAllGBId();
 
 }

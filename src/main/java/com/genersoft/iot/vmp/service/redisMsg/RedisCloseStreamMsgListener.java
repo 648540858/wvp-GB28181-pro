@@ -3,9 +3,8 @@ package com.genersoft.iot.vmp.service.redisMsg;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.service.IStreamPushService;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.Message;
@@ -17,13 +16,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * 接收来自redis的关闭流更新通知
+ * 消息举例： PUBLISH VM_MSG_STREAM_PUSH_CLOSE "{'app': 'live', 'stream': 'stream'}"
  * @author lin
  */
+@Slf4j
 @Component
 public class RedisCloseStreamMsgListener implements MessageListener {
-
-    private final static Logger logger = LoggerFactory.getLogger(RedisCloseStreamMsgListener.class);
-
 
     @Autowired
     private IStreamPushService pushService;
@@ -46,11 +44,10 @@ public class RedisCloseStreamMsgListener implements MessageListener {
                         JSONObject jsonObject = JSON.parseObject(msg.getBody());
                         String app = jsonObject.getString("app");
                         String stream = jsonObject.getString("stream");
-                        pushService.stop(app, stream);
-
+                        pushService.stopByAppAndStream(app, stream);
                     }catch (Exception e) {
-                        logger.warn("[REDIS的关闭推流通知] 发现未处理的异常, \r\n{}", JSON.toJSONString(message));
-                        logger.error("[REDIS的关闭推流通知] 异常内容： ", e);
+                        log.warn("[REDIS的关闭推流通知] 发现未处理的异常, \r\n{}", JSON.toJSONString(message));
+                        log.error("[REDIS的关闭推流通知] 异常内容： ", e);
                     }
                 }
             });

@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.util.ObjectUtils;
 
 
 @Data
@@ -100,6 +101,16 @@ public class StreamPush extends CommonGBChannel implements Comparable<StreamPush
         streamPushItem.setCreateTime(DateUtil.getNow());
         streamPushItem.setServerId(serverId);
         return streamPushItem;
+    }
+
+    public CommonGBChannel getCommonGBChannel() {
+        if (ObjectUtils.isEmpty(this.getGbDeviceId())) {
+            return null;
+        }
+        if (ObjectUtils.isEmpty(this.getGbName())) {
+            this.setGbName( app+ "-" +stream);
+        }
+        return this;
     }
 
 

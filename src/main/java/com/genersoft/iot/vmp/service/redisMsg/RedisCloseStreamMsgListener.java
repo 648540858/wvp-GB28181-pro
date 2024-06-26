@@ -44,7 +44,7 @@ public class RedisCloseStreamMsgListener implements MessageListener {
                         JSONObject jsonObject = JSON.parseObject(msg.getBody());
                         String app = jsonObject.getString("app");
                         String stream = jsonObject.getString("stream");
-                        pushService.stop(app, stream);
+                        pushService.stopByAppAndStream(app, stream);
                     }catch (Exception e) {
                         log.warn("[REDIS的关闭推流通知] 发现未处理的异常, \r\n{}", JSON.toJSONString(message));
                         log.error("[REDIS的关闭推流通知] 异常内容： ", e);

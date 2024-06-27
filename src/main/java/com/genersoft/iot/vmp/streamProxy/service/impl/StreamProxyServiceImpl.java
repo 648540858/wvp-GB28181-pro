@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.service.impl;
+package com.genersoft.iot.vmp.streamProxy.service.impl;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.dynamic.datasource.annotation.DS;
@@ -17,18 +17,19 @@ import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaNotFoundEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
+import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.service.IGbStreamService;
-import com.genersoft.iot.vmp.service.IStreamProxyService;
+import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
-import com.genersoft.iot.vmp.storager.dao.StreamProxyMapper;
+import com.genersoft.iot.vmp.streamProxy.dao.StreamProxyMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
+import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,9 +59,6 @@ import java.util.stream.Collectors;
 public class StreamProxyServiceImpl implements IStreamProxyService {
 
     private final static Logger logger = LoggerFactory.getLogger(StreamProxyServiceImpl.class);
-
-    @Autowired
-    private IVideoManagerStorage videoManagerStorager;
 
     @Autowired
     private StreamProxyMapper streamProxyMapper;
@@ -105,7 +103,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @org.springframework.context.event.EventListener
     public void onApplicationEvent(MediaArrivalEvent event) {
         if ("rtsp".equals(event.getSchema())) {
-            updateStatus(true, event.getApp(), event.getStream());
+            updateStatusByAppAndStream(event.getApp(), event.getStream(), true);
         }
     }
 
@@ -116,7 +114,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @EventListener
     public void onApplicationEvent(MediaDepartureEvent event) {
         if ("rtsp".equals(event.getSchema())) {
-            updateStatus(false, event.getApp(), event.getStream());
+            updateStatusByAppAndStream(event.getApp(), event.getStream(), false);
         }
     }
 
@@ -185,7 +183,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         param.setMediaServerId(mediaServer.getId());
         boolean saveResult;
         // 更新
-        if (videoManagerStorager.queryStreamProxy(param.getApp(), param.getStream()) != null) {
+        if (streamProxyMapper.selectOne(param.getApp(), param.getStream()) != null) {
             saveResult = updateStreamProxy(param);
         }else { // 新增
             saveResult = addStreamProxy(param);
@@ -395,19 +393,21 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Override
     public PageInfo<StreamProxy> getAll(Integer page, Integer count) {
-        return videoManagerStorager.queryStreamProxyList(page, count);
+        PageHelper.startPage(page, count);
+        List<StreamProxy> all = streamProxyMapper.selectAll();
+        return new PageInfo<>(all);
     }
 
     @Override
     public void del(String app, String stream) {
-        StreamProxy streamProxyItem = videoManagerStorager.queryStreamProxy(app, stream);
+        StreamProxy streamProxyItem = streamProxyMapper.selectOne(app, stream);
         if (streamProxyItem != null) {
             gbStreamService.sendCatalogMsg(streamProxyItem, CatalogEvent.DEL);
 
             // 如果关联了国标那么移除关联
             platformGbStreamMapper.delByAppAndStream(app, stream);
             gbStreamMapper.del(app, stream);
-            videoManagerStorager.deleteStreamProxy(app, stream);
+            streamProxyMapper.del(app, stream);
             redisCatchStorage.removeStream(streamProxyItem.getMediaServerId(), "PULL", app, stream);
             redisCatchStorage.removeStream(streamProxyItem.getMediaServerId(), "PUSH", app, stream);
             Boolean result = removeStreamProxyFromZlm(streamProxyItem);
@@ -422,7 +422,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public boolean start(String app, String stream) {
         boolean result = false;
-        StreamProxy streamProxy = videoManagerStorager.queryStreamProxy(app, stream);
+        StreamProxy streamProxy = streamProxyMapper.selectOne(app, stream);
         if (streamProxy != null && !streamProxy.isEnable() ) {
             WVPResult<String> wvpResult = addStreamProxyToZlm(streamProxy);
             if (wvpResult == null) {
@@ -445,7 +445,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public boolean stop(String app, String stream) {
         boolean result = false;
-        StreamProxy streamProxyDto = videoManagerStorager.queryStreamProxy(app, stream);
+        StreamProxy streamProxyDto = streamProxyMapper.selectOne(app, stream);
         if (streamProxyDto != null && streamProxyDto.isEnable()) {
             Boolean removed = removeStreamProxyFromZlm(streamProxyDto);
             if (removed != null && removed) {
@@ -464,7 +464,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Override
     public StreamProxy getStreamProxyByAppAndStream(String app, String streamId) {
-        return videoManagerStorager.getStreamProxyByAppAndStream(app, streamId);
+        return streamProxyMapper.selectOne(app, streamId);
     }
 
     @Override
@@ -488,9 +488,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             if (wvpResult == null) {
                 // 设置为离线
                 logger.info("恢复流代理失败" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
-                updateStatus(false, streamProxyDto.getApp(), streamProxyDto.getStream());
+                updateStatusByAppAndStream(streamProxyDto.getApp(), streamProxyDto.getStream(), false);
             }else {
-                updateStatus(true, streamProxyDto.getApp(), streamProxyDto.getStream());
+                updateStatusByAppAndStream(streamProxyDto.getApp(), streamProxyDto.getStream(), true);
             }
         }
     }
@@ -530,7 +530,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     @Override
-    public int updateStatus(boolean status, String app, String stream) {
+    public int updateStatusByAppAndStream(String app, String stream, boolean status) {
         // 状态变化时推送到国标上级
         StreamProxy streamProxyItem = streamProxyMapper.selectOne(app, stream);
         if (streamProxyItem == null) {
@@ -591,7 +591,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
         Map<String, MediaServer> serverItemMap = all.stream().collect(Collectors.toMap(MediaServer::getId, Function.identity(), (m1, m2) -> m1));
 
-        List<StreamProxy> list = videoManagerStorager.getStreamProxyListForEnable(true);
+        List<StreamProxy> list = streamProxyMapper.selectForEnable(true);
 
         if (CollectionUtils.isEmpty(list)){
             return;

@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.media.zlm.dto;
+package com.genersoft.iot.vmp.streamProxy.bean;
 
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import io.swagger.v3.oas.annotations.media.Schema;

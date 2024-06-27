@@ -1,9 +1,9 @@
-package com.genersoft.iot.vmp.service;
+package com.genersoft.iot.vmp.streamProxy.service;
 
 import com.genersoft.iot.vmp.common.GeneralCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
+import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
@@ -63,7 +63,7 @@ public interface IStreamProxyService {
      * @param app
      * @param stream
      */
-    int updateStatus(boolean status, String app, String stream);
+    int updateStatusByAppAndStream(String app, String stream, boolean status);
 
 
 

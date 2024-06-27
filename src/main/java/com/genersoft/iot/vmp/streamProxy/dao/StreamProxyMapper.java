@@ -1,6 +1,6 @@
-package com.genersoft.iot.vmp.storager.dao;
+package com.genersoft.iot.vmp.streamProxy.dao;
 
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
+import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;

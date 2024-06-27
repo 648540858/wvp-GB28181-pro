@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.media.event.mediaServer;
 
 import com.genersoft.iot.vmp.service.IPlayService;
-import com.genersoft.iot.vmp.service.IStreamProxyService;
+import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

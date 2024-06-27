@@ -31,6 +31,7 @@ import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,11 +55,10 @@ import java.util.stream.Collectors;
 /**
  * 视频代理业务
  */
+@Slf4j
 @Service
 @DS("master")
 public class StreamProxyServiceImpl implements IStreamProxyService {
-
-    private final static Logger logger = LoggerFactory.getLogger(StreamProxyServiceImpl.class);
 
     @Autowired
     private StreamProxyMapper streamProxyMapper;
@@ -144,7 +144,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             mediaServer = mediaServerService.getOne(param.getMediaServerId());
         }
         if (mediaServer == null) {
-            logger.warn("保存代理未找到在线的ZLM...");
+            log.warn("保存代理未找到在线的ZLM...");
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "保存代理未找到在线的ZLM");
         }
         String dstUrl;
@@ -179,7 +179,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                     param.getStream());
         }
         param.setDstUrl(dstUrl);
-        logger.info("[拉流代理] 输出地址为：{}", dstUrl);
+        log.info("[拉流代理] 输出地址为：{}", dstUrl);
         param.setMediaServerId(mediaServer.getId());
         boolean saveResult;
         // 更新
@@ -287,7 +287,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             result = true;
             dataSourceTransactionManager.commit(transactionStatus);     //手动提交
         }catch (Exception e) {
-            logger.error("向数据库添加流代理失败：", e);
+            log.error("向数据库添加流代理失败：", e);
             dataSourceTransactionManager.rollback(transactionStatus);
         }
 
@@ -323,7 +323,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             dataSourceTransactionManager.commit(transactionStatus);     //手动提交
             result = true;
         }catch (Exception e) {
-            logger.error("未处理的异常 ", e);
+            log.error("未处理的异常 ", e);
             dataSourceTransactionManager.rollback(transactionStatus);
         }
         return result;
@@ -334,7 +334,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         WVPResult<String> result = null;
         MediaServer mediaServer = null;
         if (param.getMediaServerId() == null) {
-            logger.warn("添加代理时MediaServerId 为null");
+            log.warn("添加代理时MediaServerId 为null");
             return null;
         }else {
             mediaServer = mediaServerService.getOne(param.getMediaServerId());
@@ -360,7 +360,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         if (result != null && result.getCode() == 0) {
             String key = result.getData();
             if (key == null) {
-                logger.warn("[获取拉流代理的结果数据Data] 失败： {}", result );
+                log.warn("[获取拉流代理的结果数据Data] 失败： {}", result );
                 return result;
             }
             param.setStreamKey(key);
@@ -412,9 +412,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             redisCatchStorage.removeStream(streamProxyItem.getMediaServerId(), "PUSH", app, stream);
             Boolean result = removeStreamProxyFromZlm(streamProxyItem);
             if (result != null && result) {
-                logger.info("[移除代理]： 代理： {}/{}, 从zlm移除成功", app, stream);
+                log.info("[移除代理]： 代理： {}/{}, 从zlm移除成功", app, stream);
             }else {
-                logger.info("[移除代理]： 代理： {}/{}, 从zlm移除失败", app, stream);
+                log.info("[移除代理]： 代理： {}/{}, 从zlm移除失败", app, stream);
             }
         }
     }
@@ -433,7 +433,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 streamProxy.setEnable(true);
                 updateStreamProxy(streamProxy);
             }else {
-                logger.info("启用代理失败： {}/{}->{}({})", app, stream, wvpResult.getMsg(),
+                log.info("启用代理失败： {}/{}->{}({})", app, stream, wvpResult.getMsg(),
                         streamProxy.getSrcUrl() == null? streamProxy.getUrl():streamProxy.getSrcUrl());
             }
         } else if (streamProxy != null && streamProxy.isEnable()) {
@@ -483,11 +483,11 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         List<StreamProxy> streamProxyListForEnable = storager.getStreamProxyListForEnableInMediaServer(
                 mediaServerId, true);
         for (StreamProxy streamProxyDto : streamProxyListForEnable) {
-            logger.info("恢复流代理，" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
+            log.info("恢复流代理，" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
             WVPResult<String> wvpResult = addStreamProxyToZlm(streamProxyDto);
             if (wvpResult == null) {
                 // 设置为离线
-                logger.info("恢复流代理失败" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
+                log.info("恢复流代理失败" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
                 updateStatusByAppAndStream(streamProxyDto.getApp(), streamProxyDto.getStream(), false);
             }else {
                 updateStatusByAppAndStream(streamProxyDto.getApp(), streamProxyDto.getStream(), true);

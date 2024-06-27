@@ -72,32 +72,32 @@
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item command="params" v-bind:disabled="!scope.row.status">
                 终端参数</el-dropdown-item>
-              <el-dropdown-item command="attribute" v-bind:disabled="!scope.row.status">
-                终端属性</el-dropdown-item>
+<!--              <el-dropdown-item command="attribute" v-bind:disabled="!scope.row.status">-->
+<!--                终端属性</el-dropdown-item>-->
               <el-dropdown-item command="connection" v-bind:disabled="!scope.row.status" >
                 终端连接</el-dropdown-item>
-              <el-dropdown-item command="linkDetection" v-bind:disabled="!scope.row.status" >
-                链路检测</el-dropdown-item>
-              <el-dropdown-item command="position" v-bind:disabled="!scope.row.status" >
-                位置信息</el-dropdown-item>
-              <el-dropdown-item command="textMsg" v-bind:disabled="!scope.row.status" >
-                文本信息</el-dropdown-item>
-              <el-dropdown-item command="telephoneCallback" v-bind:disabled="!scope.row.status" >
-                电话回拨</el-dropdown-item>
-              <el-dropdown-item command="setPhoneBook" v-bind:disabled="!scope.row.status" >
-                设置电话本</el-dropdown-item>
-              <el-dropdown-item command="tempPositionTracking" v-bind:disabled="!scope.row.status" >
-                临时跟踪</el-dropdown-item>
-              <el-dropdown-item command="reset" v-bind:disabled="!scope.row.status" >
-                终端复位</el-dropdown-item>
-              <el-dropdown-item command="factoryReset" v-bind:disabled="!scope.row.status" >
-                恢复出厂</el-dropdown-item>
-              <el-dropdown-item command="door" v-bind:disabled="!scope.row.status" >
-                车门控制</el-dropdown-item>
-              <el-dropdown-item command="driverInfo" v-bind:disabled="!scope.row.status" >
-                驾驶员信息</el-dropdown-item>
-              <el-dropdown-item command="mediaAttribute" v-bind:disabled="!scope.row.status" >
-                音视频属性</el-dropdown-item>
+<!--              <el-dropdown-item command="linkDetection" v-bind:disabled="!scope.row.status" >-->
+<!--                链路检测</el-dropdown-item>-->
+<!--              <el-dropdown-item command="position" v-bind:disabled="!scope.row.status" >-->
+<!--                位置信息</el-dropdown-item>-->
+<!--              <el-dropdown-item command="textMsg" v-bind:disabled="!scope.row.status" >-->
+<!--                文本信息</el-dropdown-item>-->
+<!--              <el-dropdown-item command="telephoneCallback" v-bind:disabled="!scope.row.status" >-->
+<!--                电话回拨</el-dropdown-item>-->
+<!--              <el-dropdown-item command="setPhoneBook" v-bind:disabled="!scope.row.status" >-->
+<!--                设置电话本</el-dropdown-item>-->
+<!--              <el-dropdown-item command="tempPositionTracking" v-bind:disabled="!scope.row.status" >-->
+<!--                临时跟踪</el-dropdown-item>-->
+<!--              <el-dropdown-item command="reset" v-bind:disabled="!scope.row.status" >-->
+<!--                终端复位</el-dropdown-item>-->
+<!--              <el-dropdown-item command="factoryReset" v-bind:disabled="!scope.row.status" >-->
+<!--                恢复出厂</el-dropdown-item>-->
+<!--              <el-dropdown-item command="door" v-bind:disabled="!scope.row.status" >-->
+<!--                车门控制</el-dropdown-item>-->
+<!--              <el-dropdown-item command="driverInfo" v-bind:disabled="!scope.row.status" >-->
+<!--                驾驶员信息</el-dropdown-item>-->
+<!--              <el-dropdown-item command="mediaAttribute" v-bind:disabled="!scope.row.status" >-->
+<!--                音视频属性</el-dropdown-item>-->
             </el-dropdown-menu>
           </el-dropdown>
         </template>

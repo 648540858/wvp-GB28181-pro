@@ -74,8 +74,8 @@
                     设备录像</el-dropdown-item>
                   <el-dropdown-item command="cloudRecords" v-bind:disabled="device == null || device.online === 0" >
                     云端录像</el-dropdown-item>
-                  <el-dropdown-item command="shooting" v-bind:disabled="device == null || device.online === 0" >
-                    立即拍摄</el-dropdown-item>
+<!--                  <el-dropdown-item command="shooting" v-bind:disabled="device == null || device.online === 0" >-->
+<!--                    立即拍摄</el-dropdown-item>-->
                 </el-dropdown-menu>
               </el-dropdown>
             </template>

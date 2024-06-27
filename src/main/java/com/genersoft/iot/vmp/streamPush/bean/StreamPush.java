@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.media.zlm.dto;
+package com.genersoft.iot.vmp.streamPush.bean;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
@@ -110,6 +110,7 @@ public class StreamPush extends CommonGBChannel implements Comparable<StreamPush
         if (ObjectUtils.isEmpty(this.getGbName())) {
             this.setGbName( app+ "-" +stream);
         }
+        this.setStreamPushId(this.getId());
         return this;
     }
 

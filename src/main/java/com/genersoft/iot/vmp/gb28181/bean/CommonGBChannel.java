@@ -196,5 +196,11 @@ public class CommonGBChannel {
     @Schema(description = "国标-国民经济行业分类代码(可选)")
     private String gbIndustrialClassification;
 
+    @Schema(description = "关联的推流Id（流来源是推流时有效）")
+    private Integer streamPushId;
+
+    @Schema(description = "关联的拉流代理Id（流来源是拉流代理时有效）")
+    private Integer streamProxyId;
+
 
 }

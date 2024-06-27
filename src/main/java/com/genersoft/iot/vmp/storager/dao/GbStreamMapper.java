@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.storager.dao;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
+import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.annotations.Param;

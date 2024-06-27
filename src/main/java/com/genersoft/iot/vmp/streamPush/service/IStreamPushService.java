@@ -1,11 +1,13 @@
-package com.genersoft.iot.vmp.service;
+package com.genersoft.iot.vmp.streamPush.service;
 
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
+import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
+import com.genersoft.iot.vmp.streamPush.bean.StreamPushInfoForUpdateLoad;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.github.pagehelper.PageInfo;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -72,6 +74,9 @@ public interface IStreamPushService {
      */
     void batchAdd(List<StreamPush> streamPushExcelDtoList);
 
+    @Transactional
+    void batchAddForUpload(List<StreamPushInfoForUpdateLoad> streamPushItems, Map<String, List<String[]>> streamPushItemsForAll);
+
     /**
      * 中止多个推流
      */
@@ -80,7 +85,7 @@ public interface IStreamPushService {
     /**
      * 导入时批量增加
      */
-    void batchAddForUpload(List<StreamPush> streamPushItems, Map<String, List<String[]>> streamPushItemsForAll);
+    void batchAddForUpload(List<StreamPushInfoForUpdateLoad> streamPushItems, Map<String, List<String[]>> streamPushItemsForAll);
 
     /**
      * 全部离线

@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.vmanager.streamPush;
+package com.genersoft.iot.vmp.streamPush.controller;
 
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelReader;
@@ -11,11 +11,12 @@ import com.genersoft.iot.vmp.conf.security.SecurityUtils;
 import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
+import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMediaService;
-import com.genersoft.iot.vmp.service.IStreamPushService;
-import com.genersoft.iot.vmp.service.impl.StreamPushUploadFileHandler;
+import com.genersoft.iot.vmp.streamPush.bean.StreamPushExcelDto;
+import com.genersoft.iot.vmp.streamPush.service.IStreamPushService;
+import com.genersoft.iot.vmp.streamPush.enent.StreamPushUploadFileHandler;
 import com.genersoft.iot.vmp.vmanager.bean.*;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
@@ -173,7 +174,7 @@ public class StreamPushController {
                         RequestMessage msg = new RequestMessage();
                         msg.setKey(key);
                         WVPResult<Map<String, List<String>>> wvpResult = new WVPResult<>();
-                        if (errorStreams.size() == 0 && errorGBs.size() == 0) {
+                        if (errorStreams.isEmpty() && errorGBs.isEmpty()) {
                             wvpResult.setCode(0);
                             wvpResult.setMsg("成功");
                         }else {

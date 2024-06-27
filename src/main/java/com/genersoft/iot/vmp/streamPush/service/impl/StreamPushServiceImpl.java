@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.service.impl;
+package com.genersoft.iot.vmp.streamPush.service.impl;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.dynamic.datasource.annotation.DS;
@@ -20,20 +20,23 @@ import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOfflineEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOnlineEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OriginType;
-import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.dao.*;
+import com.genersoft.iot.vmp.storager.dao.ParentPlatformMapper;
+import com.genersoft.iot.vmp.storager.dao.PlatformCatalogMapper;
+import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
+import com.genersoft.iot.vmp.storager.dao.StreamProxyMapper;
+import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
+import com.genersoft.iot.vmp.streamPush.bean.StreamPushInfoForUpdateLoad;
+import com.genersoft.iot.vmp.streamPush.dao.StreamPushMapper;
+import com.genersoft.iot.vmp.streamPush.service.IStreamPushService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -44,7 +47,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -95,6 +97,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
      */
     @Async("taskExecutor")
     @EventListener
+    @Transactional
     public void onApplicationEvent(MediaArrivalEvent event) {
         MediaInfo mediaInfo = event.getMediaInfo();
         if (mediaInfo == null) {
@@ -148,6 +151,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
      */
     @Async("taskExecutor")
     @EventListener
+    @Transactional
     public void onApplicationEvent(MediaDepartureEvent event) {
 
         // 兼容流注销时类型从redis记录获取
@@ -190,6 +194,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
      */
     @Async("taskExecutor")
     @EventListener
+    @Transactional
     public void onApplicationEvent(MediaServerOnlineEvent event) {
         zlmServerOnline(event.getMediaServerId());
     }
@@ -199,6 +204,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
      */
     @Async("taskExecutor")
     @EventListener
+    @Transactional
     public void onApplicationEvent(MediaServerOfflineEvent event) {
         zlmServerOffline(event.getMediaServerId());
     }
@@ -469,26 +475,28 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
 
     @Override
-    public void batchAddForUpload(List<StreamPush> streamPushItems, Map<String, List<String[]>> streamPushItemsForAll ) {
+    @Transactional
+    public void batchAddForUpload(List<StreamPushInfoForUpdateLoad> streamPushItems, Map<String, List<String[]>> streamPushItemsForAll ) {
         // 存储数据到stream_push表
         streamPushMapper.addAll(streamPushItems);
-        List<StreamPush> streamPushItemForGbStream = streamPushItems.stream()
-                .filter(streamPushItem-> streamPushItem.getGbId() != null)
-                .collect(Collectors.toList());
-        // 存储数据到gb_stream表， id会返回到streamPushItemForGbStream里
-        if (streamPushItemForGbStream.size() > 0) {
-            gbStreamMapper.batchAdd(streamPushItemForGbStream);
-        }
-        // 去除没有ID也就是没有存储到数据库的数据
-        List<StreamPush> streamPushItemsForPlatform = streamPushItemForGbStream.stream()
-                .filter(streamPushItem-> streamPushItem.getGbStreamId() != null)
-                .collect(Collectors.toList());
 
-        if (streamPushItemsForPlatform.size() > 0) {
+        List<CommonGBChannel> channelList = new ArrayList<>();
+        for (StreamPush streamPushItem : streamPushItems) {
+            if (streamPushItem.getGbDeviceId() != null && streamPushItem.getId() > 0) {
+                channelList.add(streamPushItem.getCommonGBChannel());
+            }
+        }
+        // 存储数据到gb_stream表， id会返回到streamPushItemForGbStream里
+        if (!channelList.isEmpty()) {
+            gbChannelService.batchAdd(channelList);
+        }
+
+
+        if (!streamPushItemsForPlatform.isEmpty()) {
             // 获取所有平台，平台和目录信息一般不会特别大量。
             List<ParentPlatform> parentPlatformList = parentPlatformMapper.getParentPlatformList();
             Map<String, Map<String, PlatformCatalog>> platformInfoMap = new HashMap<>();
-            if (parentPlatformList.size() == 0) {
+            if (parentPlatformList.isEmpty()) {
                 return;
             }
             for (ParentPlatform platform : parentPlatformList) {

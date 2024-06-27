@@ -1,11 +1,11 @@
-package com.genersoft.iot.vmp.service.impl;
+package com.genersoft.iot.vmp.streamPush.enent;
 
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
-import com.genersoft.iot.vmp.service.IStreamPushService;
+import com.genersoft.iot.vmp.streamPush.bean.StreamPushExcelDto;
+import com.genersoft.iot.vmp.streamPush.bean.StreamPushInfoForUpdateLoad;
+import com.genersoft.iot.vmp.streamPush.service.IStreamPushService;
 import com.genersoft.iot.vmp.utils.DateUtil;
-import com.genersoft.iot.vmp.vmanager.bean.StreamPushExcelDto;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.springframework.util.ObjectUtils;
@@ -32,12 +32,12 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
     /**
      * 用于存储不加过滤的所有数据
      */
-    private final List<StreamPush> streamPushItems = new ArrayList<>();
+    private final List<StreamPushInfoForUpdateLoad> streamPushItems = new ArrayList<>();
 
     /**
      * 用于存储更具APP+Stream过滤后的数据，可以直接存入stream_push表与gb_stream表
      */
-    private final Map<String, StreamPush> streamPushItemForSave = new HashMap<>();
+    private final Map<String, StreamPushInfoForUpdateLoad> streamPushItemForSave = new HashMap<>();
 
     /**
      * 用于存储按照APP+Stream为KEY， 平台ID+目录Id 为value的数据，用于存储到gb_stream表后获取app+Stream对应的平台与目录信息，然后存入关联表
@@ -81,7 +81,7 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
         this.errorDataHandler = errorDataHandler;
         // 获取数据库已有的数据，已经存在的则忽略
         List<String> allAppAndStreams = pushService.getAllAppAndStream();
-        if (allAppAndStreams.size() > 0) {
+        if (!allAppAndStreams.isEmpty()) {
             for (String allAppAndStream : allAppAndStreams) {
                 pushMapInDb.put(allAppAndStream, allAppAndStream);
             }
@@ -126,31 +126,23 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
             streamPushStreamSet.add(streamPushExcelDto.getApp()+streamPushExcelDto.getStream() + streamPushExcelDto.getPlatformId());
         }
 
-        StreamPush streamPushItem = new StreamPush();
-        streamPushItem.setApp(streamPushExcelDto.getApp());
-        streamPushItem.setStream(streamPushExcelDto.getStream());
-        streamPushItem.setGbId(streamPushExcelDto.getGbId());
-        streamPushItem.setStatus(streamPushExcelDto.getStatus());
-        streamPushItem.setStreamType("push");
-        streamPushItem.setCreateTime(DateUtil.getNow());
-        streamPushItem.setMediaServerId(defaultMediaServerId);
-        streamPushItem.setName(streamPushExcelDto.getName());
-        streamPushItem.setOriginType(2);
-        streamPushItem.setOriginTypeStr("rtsp_push");
-        streamPushItem.setTotalReaderCount(0);
-        streamPushItem.setPlatformId(streamPushExcelDto.getPlatformId());
-        streamPushItem.setCatalogId(streamPushExcelDto.getCatalogId());
+        StreamPushInfoForUpdateLoad streamPushInfoForUpdateLoad = new StreamPushInfoForUpdateLoad();
+        streamPushInfoForUpdateLoad.setApp(streamPushExcelDto.getApp());
+        streamPushInfoForUpdateLoad.setStream(streamPushExcelDto.getStream());
+        streamPushInfoForUpdateLoad.setGbDeviceId(streamPushExcelDto.getGbId());
+        streamPushInfoForUpdateLoad.setGbStatus(streamPushExcelDto.isStatus());
+        streamPushInfoForUpdateLoad.setCreateTime(DateUtil.getNow());
+        streamPushInfoForUpdateLoad.setMediaServerId(defaultMediaServerId);
+        streamPushInfoForUpdateLoad.setGbName(streamPushExcelDto.getName());
+        streamPushInfoForUpdateLoad.setPlatformId(streamPushExcelDto.getPlatformId());
+        streamPushInfoForUpdateLoad.setCatalogId(streamPushExcelDto.getCatalogId());
 
         // 存入所有的通道信息
-        streamPushItems.add(streamPushItem);
-        streamPushItemForSave.put(streamPushItem.getApp() + streamPushItem.getStream(), streamPushItem);
+        streamPushItems.add(streamPushInfoForUpdateLoad);
+        streamPushItemForSave.put(streamPushInfoForUpdateLoad.getApp() + streamPushInfoForUpdateLoad.getStream(), streamPushInfoForUpdateLoad);
 
         if (!ObjectUtils.isEmpty(streamPushExcelDto.getPlatformId())) {
-            List<String[]> platformList = streamPushItemsForPlatform.get(streamPushItem.getApp() + streamPushItem.getStream());
-            if (platformList == null) {
-                platformList = new ArrayList<>();
-                streamPushItemsForPlatform.put(streamPushItem.getApp() + streamPushItem.getStream(), platformList);
-            }
+            List<String[]> platformList = streamPushItemsForPlatform.computeIfAbsent(streamPushInfoForUpdateLoad.getApp() + streamPushInfoForUpdateLoad.getStream(), k -> new ArrayList<>());
             String platformId = streamPushExcelDto.getPlatformId();
             String catalogId = streamPushExcelDto.getCatalogId();
             if (ObjectUtils.isEmpty(streamPushExcelDto.getCatalogId())) {
@@ -184,7 +176,7 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
     }
 
     private void saveData(){
-        if (streamPushItemForSave.size() > 0) {
+        if (!streamPushItemForSave.isEmpty()) {
             // 向数据库查询是否存在重复的app
             pushService.batchAddForUpload(new ArrayList<>(streamPushItemForSave.values()), streamPushItemsForPlatform);
         }

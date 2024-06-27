@@ -5,7 +5,7 @@ import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformGbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxy;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPush;
+import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 

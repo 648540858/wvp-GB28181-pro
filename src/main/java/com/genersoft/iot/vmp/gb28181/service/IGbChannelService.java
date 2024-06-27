@@ -16,10 +16,13 @@ public interface IGbChannelService {
 
     int offline(CommonGBChannel commonGBChannel);
 
+    int offline(List<CommonGBChannel> commonGBChannelList);
+
     int online(CommonGBChannel commonGBChannel);
+
+    int online(List<CommonGBChannel> commonGBChannelList);
 
     void closeSend(CommonGBChannel commonGBChannel);
 
     void batchAdd(List<CommonGBChannel> commonGBChannels);
-
 }

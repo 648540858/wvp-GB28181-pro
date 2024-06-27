@@ -18,11 +18,11 @@ public class StreamPushExcelDto {
     @ExcelProperty("国标ID")
     private String gbId;
 
-    @ExcelProperty("平台ID")
-    private String platformId;
-
-    @ExcelProperty("目录ID")
-    private String catalogId;
+//    @ExcelProperty("平台ID")
+//    private String platformId;
+//
+//    @ExcelProperty("目录ID")
+//    private String catalogId;
 
     @ExcelProperty("在线状态")
     private boolean status;

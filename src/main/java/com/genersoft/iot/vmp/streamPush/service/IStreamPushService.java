@@ -1,13 +1,9 @@
 package com.genersoft.iot.vmp.streamPush.service;
 
-import com.genersoft.iot.vmp.gb28181.bean.GbStream;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
-import com.genersoft.iot.vmp.streamPush.bean.StreamPushInfoForUpdateLoad;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.github.pagehelper.PageInfo;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -18,27 +14,11 @@ import java.util.Map;
 public interface IStreamPushService {
 
     /**
-     * 将应用名和流ID加入国标关联
-     * @param stream
-     * @return
-     */
-    boolean saveToGB(GbStream stream);
-
-    /**
-     * 将应用名和流ID移出国标关联
-     * @param stream
-     * @return
-     */
-    boolean removeFromGB(GbStream stream);
-
-    /**
      * 获取
      */
     PageInfo<StreamPush> getPushList(Integer page, Integer count, String query, Boolean pushing, String mediaServerId);
 
     List<StreamPush> getPushList(String mediaSererId);
-
-    StreamPush transform(OnStreamChangedHookParam item);
 
     StreamPush getPush(String app, String streamId);
 
@@ -62,35 +42,15 @@ public interface IStreamPushService {
     void zlmServerOffline(String mediaServerId);
 
     /**
-     * 清空
-     */
-    void clean();
-
-
-    boolean saveToRandomGB();
-
-    /**
      * 批量添加
      */
     void batchAdd(List<StreamPush> streamPushExcelDtoList);
 
-    @Transactional
-    void batchAddForUpload(List<StreamPushInfoForUpdateLoad> streamPushItems, Map<String, List<String[]>> streamPushItemsForAll);
-
-    /**
-     * 中止多个推流
-     */
-    boolean batchStop(List<GbStream> streamPushItems);
-
-    /**
-     * 导入时批量增加
-     */
-    void batchAddForUpload(List<StreamPushInfoForUpdateLoad> streamPushItems, Map<String, List<String[]>> streamPushItemsForAll);
 
     /**
      * 全部离线
      */
-    void allStreamOffline();
+    void allOffline();
 
     /**
      * 推流离线
@@ -122,9 +82,6 @@ public interface IStreamPushService {
     ResourceBaseInfo getOverview();
 
     Map<String, StreamPush> getAllAppAndStreamMap();
-
-
-    void updatePush(OnStreamChangedHookParam param);
 
     Map<String, StreamPush> getAllGBId();
 

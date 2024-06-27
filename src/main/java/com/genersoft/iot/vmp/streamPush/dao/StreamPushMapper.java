@@ -144,7 +144,7 @@ public interface StreamPushMapper {
             "(#{item.app}, #{item.stream}) " +
             "</foreach>" +
             ")</script>")
-    List<GbStream> getOnlinePusherForGbInList(List<StreamPushItemFromRedis> offlineStreams);
+    List<StreamPush> getOnlinePusherForGbInList(List<StreamPushItemFromRedis> offlineStreams);
 
     @Update("<script> "+
             "UPDATE wvp_stream_push SET status=0  where (app, stream) in (" +
@@ -161,7 +161,7 @@ public interface StreamPushMapper {
             "(#{item.app}, #{item.stream}) " +
             "</foreach>" +
             ") </script>")
-    List<GbStream> getOfflinePusherForGbInList(List<StreamPushItemFromRedis> onlineStreams);
+    List<StreamPush> getOfflinePusherForGbInList(List<StreamPushItemFromRedis> onlineStreams);
 
     @Update("<script> "+
             "UPDATE wvp_stream_push SET status=1  where (app, stream) in (" +
@@ -172,7 +172,7 @@ public interface StreamPushMapper {
     void online(List<StreamPushItemFromRedis> onlineStreams);
 
     @Select("SELECT gs.* FROM wvp_stream_push sp left join wvp_gb_stream gs on sp.app = gs.app AND sp.stream = gs.stream where sp.status = true")
-    List<GbStream> getOnlinePusherForGb();
+    List<StreamPush> getOnlinePusherForGb();
 
     @Update("UPDATE wvp_stream_push SET status=0")
     void setAllStreamOffline();
@@ -210,4 +210,5 @@ public interface StreamPushMapper {
             " left join wvp_gb_stream  wgs  on wgs.app = wsp.app and wgs.stream = wsp.stream")
     Map<String, StreamPush> getAllGBId();
 
+    StreamPush select(Integer streamPushId);
 }

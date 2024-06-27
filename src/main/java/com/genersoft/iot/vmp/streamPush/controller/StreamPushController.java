@@ -100,18 +100,6 @@ public class StreamPushController {
         }
     }
 
-    @DeleteMapping(value = "/batchStop")
-    @ResponseBody
-    @Operation(summary = "中止多个推流", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    public void batchStop(@RequestBody BatchGBStreamParam batchGBStreamParam){
-        if (batchGBStreamParam.getGbStreams().size() == 0) {
-            throw new ControllerException(ErrorCode.ERROR100);
-        }
-        if (!streamPushService.batchStop(batchGBStreamParam.getGbStreams())){
-            throw new ControllerException(ErrorCode.ERROR100);
-        }
-    }
-
     @PostMapping(value = "upload")
     @ResponseBody
     public DeferredResult<ResponseEntity<WVPResult<Object>>> uploadChannelFile(@RequestParam(value = "file") MultipartFile file){
@@ -252,10 +240,8 @@ public class StreamPushController {
         if (ObjectUtils.isEmpty(stream.getApp()) && ObjectUtils.isEmpty(stream.getStream())) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "app或stream不可为空");
         }
-        stream.setStatus(false);
+        stream.setGbStatus(false);
         stream.setPushIng(false);
-        stream.setAliveSecond(0L);
-        stream.setTotalReaderCount(0);
         if (!streamPushService.add(stream)) {
             throw new ControllerException(ErrorCode.ERROR100);
         }

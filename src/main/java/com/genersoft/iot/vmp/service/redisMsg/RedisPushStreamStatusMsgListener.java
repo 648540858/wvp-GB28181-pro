@@ -70,7 +70,7 @@ public class RedisPushStreamStatusMsgListener implements MessageListener, Applic
                         dynamicTask.stop(VideoManagerConstants.VM_MSG_GET_ALL_ONLINE_REQUESTED);
                         if (statusChangeFromPushStream.isSetAllOffline()) {
                             // 所有设备离线
-                            streamPushService.allStreamOffline();
+                            streamPushService.allOffline();
                         }
                         if (statusChangeFromPushStream.getOfflineStreams() != null
                                 && statusChangeFromPushStream.getOfflineStreams().size() > 0) {
@@ -99,7 +99,7 @@ public class RedisPushStreamStatusMsgListener implements MessageListener, Applic
             dynamicTask.startDelay(VideoManagerConstants.VM_MSG_GET_ALL_ONLINE_REQUESTED, ()->{
                 logger.info("[REDIS消息]未收到redis回复推流设备状态，执行推流设备离线");
                 // 五秒收不到请求就设置通道离线，然后通知上级离线
-                streamPushService.allStreamOffline();
+                streamPushService.allOffline();
             }, 5000);
         }
     }

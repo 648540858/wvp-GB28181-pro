@@ -11,6 +11,7 @@ import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.ZLMServerConfig;
+import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.slf4j.Logger;
@@ -389,5 +390,10 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
             return null;
         }
         return mediaInfo.getDuration();
+    }
+
+    @Override
+    public StreamInfo startProxy(MediaServer mediaServer, StreamProxy streamProxy) {
+        return null;
     }
 }

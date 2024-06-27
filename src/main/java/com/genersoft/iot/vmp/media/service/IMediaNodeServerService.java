@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 
 import java.util.List;
@@ -62,4 +63,6 @@ public interface IMediaNodeServerService {
     void startSendRtpStream(MediaServer mediaServer, SendRtpItem sendRtpItem);
 
     Long updateDownloadProcess(MediaServer mediaServer, String app, String stream);
+
+    StreamInfo startProxy(MediaServer mediaServer, StreamProxy streamProxy);
 }

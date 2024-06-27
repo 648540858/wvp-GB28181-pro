@@ -34,7 +34,6 @@ public class StreamProxy extends CommonGBChannel {
     @Schema(description = "拉流地址")
     private String srcUrl;
 
-
     @Schema(description = "超时时间")
     private int timeout;
 

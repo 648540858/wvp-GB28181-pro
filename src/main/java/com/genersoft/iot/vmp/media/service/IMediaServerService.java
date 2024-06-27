@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
+import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 
 import java.util.List;
@@ -152,4 +153,6 @@ public interface IMediaServerService {
     MediaServer getMediaServerByAppAndStream(String app, String stream);
 
     Long updateDownloadProcess(MediaServer mediaServerItem, String app, String stream);
+
+    StreamInfo startProxy(MediaServer mediaServer, StreamProxy streamProxy);
 }

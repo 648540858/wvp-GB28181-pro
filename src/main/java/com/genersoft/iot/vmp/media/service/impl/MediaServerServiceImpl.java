@@ -821,13 +821,13 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public Boolean isStreamReady(MediaServer mediaServer, String rtp, String streamId) {
+    public Boolean isStreamReady(MediaServer mediaServer, String app, String streamId) {
         IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
             logger.info("[isStreamReady] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             return false;
         }
-        MediaInfo mediaInfo = mediaNodeServerService.getMediaInfo(mediaServer, rtp, streamId);
+        MediaInfo mediaInfo = mediaNodeServerService.getMediaInfo(mediaServer, app, streamId);
         return mediaInfo != null;
     }
 

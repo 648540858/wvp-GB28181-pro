@@ -394,6 +394,63 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
 
     @Override
     public StreamInfo startProxy(MediaServer mediaServer, StreamProxy streamProxy) {
+        String dstUrl;
+        if ("ffmpeg".equalsIgnoreCase(streamProxy.getType())) {
+
+            String ffmpegCmd = getFfmpegCmd(mediaServer, streamProxy.getFfmpegCmdKey());
+
+            if (ffmpegCmd == null) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "ffmpeg拉流代理无法获取ffmpeg cmd");
+            }
+            String schema = getSchemaFromFFmpegCmd(ffmpegCmd);
+            if (schema == null) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "ffmpeg拉流代理无法从ffmpeg cmd中获取到输出格式");
+            }
+            int port;
+            String schemaForUri;
+            if (schema.equalsIgnoreCase("rtsp")) {
+                port = mediaServer.getRtspPort();
+                schemaForUri = schema;
+            }else if (schema.equalsIgnoreCase("flv")) {
+                port = mediaServer.getRtmpPort();
+                schemaForUri = schema;
+            }else {
+                port = mediaServer.getRtmpPort();
+                schemaForUri = schema;
+            }
+
+            dstUrl = String.format("%s://%s:%s/%s/%s", schemaForUri, "127.0.0.1", port, streamProxy.getApp(),
+                    streamProxy.getStream());
+        }else {
+            dstUrl = String.format("rtsp://%s:%s/%s/%s", "127.0.0.1", mediaServer.getRtspPort(), streamProxy.getApp(),
+                    streamProxy.getStream());
+        }
+        MediaInfo mediaInfo = getMediaInfo(mediaServer, streamProxy.getApp(), streamProxy.getStream());
+        if (mediaInfo != null) {
+            mediaServerService.closeStreams(mediaServer, param.getApp(), param.getStream());
+        }
+        if (isStreamReady(mediaServer, param.getApp(), param.getStream())) {
+            mediaServerService.closeStreams(mediaServer, param.getApp(), param.getStream());
+        }
+        return null;
+    }
+
+    private String getSchemaFromFFmpegCmd(String ffmpegCmd) {
+        ffmpegCmd = ffmpegCmd.replaceAll(" + ", " ");
+        String[] paramArray = ffmpegCmd.split(" ");
+        if (paramArray.length == 0) {
+            return null;
+        }
+        for (int i = 0; i < paramArray.length; i++) {
+            if (paramArray[i].equalsIgnoreCase("-f")) {
+                if (i + 1 < paramArray.length - 1) {
+                    return paramArray[i+1];
+                }else {
+                    return null;
+                }
+
+            }
+        }
         return null;
     }
 }

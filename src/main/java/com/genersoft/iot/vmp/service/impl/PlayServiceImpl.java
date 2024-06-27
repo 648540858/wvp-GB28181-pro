@@ -1038,7 +1038,8 @@ public class PlayServiceImpl implements IPlayService {
                             InviteInfo inviteInfoForNew = inviteStreamService.getInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId()
                                     , inviteInfo.getChannelId(), inviteInfo.getStream());
                             inviteInfoForNew.getStreamInfo().setDownLoadFilePath(downloadFileInfo);
-                            inviteStreamService.updateInviteInfo(inviteInfoForNew);
+                            // 不可以马上移除会导致后续接口拿不到下载地址
+                            inviteStreamService.updateInviteInfo(inviteInfoForNew, 60*15L);
                         };
                         Hook hook = Hook.getInstance(HookType.on_record_mp4, "rtp", ssrcInfo.getStream(), mediaServerItem.getId());
                         // 设置过期时间，下载失败时自动处理订阅数据

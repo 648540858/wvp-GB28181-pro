@@ -188,8 +188,8 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 		}
 		taskQueue.clear();
 	}
-	@Scheduled(fixedRate = 10000)
-	public void execute(){
-		logger.info("[待处理Notify-移动位置订阅消息数量]: {}", taskQueue.size());
-	}
+//	@Scheduled(fixedRate = 10000)
+//	public void execute(){
+//		logger.debug("[待处理Notify-移动位置订阅消息数量]: {}", taskQueue.size());
+//	}
 }

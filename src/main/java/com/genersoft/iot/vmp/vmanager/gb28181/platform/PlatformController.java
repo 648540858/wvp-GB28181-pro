@@ -89,7 +89,7 @@ public class PlatformController {
     @GetMapping("/server_config")
     public JSONObject serverConfig() {
         JSONObject result = new JSONObject();
-        result.put("deviceIp", sipConfig.getIp());
+        result.put("deviceIp", sipConfig.getShowIp());
         result.put("devicePort", sipConfig.getPort());
         result.put("username", sipConfig.getId());
         result.put("password", sipConfig.getPassword());

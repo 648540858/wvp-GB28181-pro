@@ -58,11 +58,6 @@ server:
 
 # 作为28181服务器的配置
 sip:
-  # [必须修改] 本机的IP，对应你的网卡，监听什么ip就是使用什么网卡，
-  # 如果要监听多张网卡，可以使用逗号分隔多个IP， 例如： 192.168.1.4,10.0.0.4
-  # 如果不明白，就使用0.0.0.0，大部分情况都是可以的
-  # 请不要使用127.0.0.1，任何包括localhost在内的域名都是不可以的。
-  ip: 172.19.128.50
   # [可选] 28181服务监听的端口
   port: 8116
   # 根据国标6.1.2中规定，domain宜采用ID统一编码的前十位编码。国标附录D中定义前8位为中心编码（由省级、市级、区级、基层编号组成，参照GB/T 2260-2007）
@@ -82,18 +77,14 @@ media:
   id: zlmediakit-local
   # [必须修改] zlm服务器的内网IP
   ip: 172.19.128.50
+  # [可选] 有公网IP就配置公网IP, 不可用域名
+  wan_ip:
   # [必须修改] zlm服务器的http.port
   http-port: 9092
-  # [可选] 返回流地址时的ip，置空使用 media.ip
-  stream-ip: 172.19.128.50
-  # [可选] wvp在国标信令中使用的ip，此ip为摄像机可以访问到的ip， 置空使用 media.ip
-  sdp-ip: 172.19.128.50
-  # [可选] zlm服务器的hook所使用的IP, 默认使用sip.ip
+  # [可选] zlm服务器访问WVP所使用的IP, 默认使用127.0.0.1，zlm和wvp没有部署在同一台服务器时必须配置
   hook-ip: 172.19.128.50
-  # [可选] zlm服务器的http.sslport, 置空使用zlm配置文件配置
-  http-ssl-port: 1443
-  # [可选] zlm服务器的hook.admin_params=secret
-  secret: 10000
+  # [必选选] zlm服务器的hook.admin_params=secret
+  secret: TWSYFgYJOQWB4ftgeYut8DW4wbs7pQnj
   # 启用多端口模式, 多端口模式使用端口区分每路流，兼容性更好。 单端口使用流的ssrc区分， 点播超时建议使用多端口测试
   rtp:
     # [可选] 是否启用多端口模式, 开启后会在portRange范围内选择端口用于媒体流传输
@@ -102,14 +93,16 @@ media:
     port-range: 50000,50300 # 端口范围
     # [可选] 国标级联在此范围内选择端口发送媒体流,
     send-port-range: 50000,50300 # 端口范围
-  # 录像辅助服务， 部署此服务可以实现zlm录像的管理与下载， 0 表示不使用
-  record-assist-port: 18081
 # [根据业务需求配置]
 user-settings:
   # 点播/录像回放 等待超时时间,单位：毫秒
   play-timeout: 180000
   # [可选] 自动点播， 使用固定流地址进行播放时，如果未点播则自动进行点播, 需要rtp.enable=true
   auto-apply-play: true
-  # 设备/通道状态变化时发送消息
-  device-status-notify: true
+  # 推流直播是否录制
+  record-push-live: true
+  # 国标是否录制
+  record-sip: true
+  # 国标点播 按需拉流, true：有人观看拉流，无人观看释放， false：拉起后不自动释放
+  stream-on-demand: true
 

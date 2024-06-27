@@ -96,7 +96,6 @@ public class ZLMRESTfulUtils {
             if (callback == null) {
                 try {
                     Response response = client.newCall(request).execute();
-
                     if (response.isSuccessful()) {
                         ResponseBody responseBody = response.body();
                         if (responseBody != null) {

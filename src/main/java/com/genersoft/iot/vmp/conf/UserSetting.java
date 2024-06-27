@@ -21,7 +21,7 @@ public class UserSetting {
 
     private Boolean seniorSdp = Boolean.FALSE;
 
-    private Integer playTimeout = 18000;
+    private Integer playTimeout = 10000;
 
     private int platformPlayTimeout = 20000;
 
@@ -74,7 +74,7 @@ public class UserSetting {
 
     private boolean registerKeepIntDialog = false;
 
-    private int gbDeviceOnline = 0;
+    private int gbDeviceOnline = 1;
 
     public Boolean getSavePositionHistory() {
         return savePositionHistory;

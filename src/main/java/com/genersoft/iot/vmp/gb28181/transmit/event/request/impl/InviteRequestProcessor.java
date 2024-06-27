@@ -27,6 +27,7 @@ import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
@@ -593,12 +594,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         sendRtpItem.setPlayType(InviteStreamType.PUSH);
                         if (streamPushItem != null) {
                             // 从redis查询是否正在接收这个推流
-                            StreamPushItem pushListItem = redisCatchStorage.getPushListItem(gbStream.getApp(), gbStream.getStream());
+                            OnStreamChangedHookParam pushListItem = redisCatchStorage.getPushListItem(gbStream.getApp(), gbStream.getStream());
                             if (pushListItem != null) {
-                                sendRtpItem.setServerId(pushListItem.getServerId());
+                                sendRtpItem.setServerId(pushListItem.getSeverId());
                                 sendRtpItem.setMediaServerId(pushListItem.getMediaServerId());
 
-                                pushListItem.setSelf(userSetting.getServerId().equals(pushListItem.getServerId()));
                                 redisCatchStorage.updateSendRTPSever(sendRtpItem);
                                 // 开始推流
                                 sendPushStream(sendRtpItem, mediaServerItem, platform, request);
@@ -618,12 +618,14 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         }
                     } else if ("proxy".equals(gbStream.getStreamType())) {
                         if (null != proxyByAppAndStream) {
+                            sendRtpItem.setServerId(userSetting.getServerId());
                             if (sendRtpItem.getSsrc() == null) {
                                 // 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
                                 String ssrc = "Play".equalsIgnoreCase(sessionName) ? ssrcFactory.getPlaySsrc(mediaServerItem.getId()) : ssrcFactory.getPlayBackSsrc(mediaServerItem.getId());
                                 sendRtpItem.setSsrc(ssrc);
                             }
-                            if (proxyByAppAndStream.isStatus()) {
+                            MediaInfo mediaInfo = redisCatchStorage.getProxyStream(gbStream.getApp(), gbStream.getStream());
+                            if (mediaInfo != null) {
                                 sendProxyStream(sendRtpItem, mediaServerItem, platform, request);
                             } else {
                                 //开启代理拉流

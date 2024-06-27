@@ -315,8 +315,8 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 		}
 	}
 
-	@Scheduled(fixedRate = 10000)   //每1秒执行一次
-	public void execute(){
-		logger.info("[待处理Notify-目录订阅消息数量]: {}", taskQueue.size());
-	}
+//	@Scheduled(fixedRate = 10000)   //每1秒执行一次
+//	public void execute(){
+//		logger.info("[待处理Notify-目录订阅消息数量]: {}", taskQueue.size());
+//	}
 }

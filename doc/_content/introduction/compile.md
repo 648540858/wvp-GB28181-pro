@@ -2,12 +2,8 @@
 # 编译
 WVP-PRO不只是实现了国标28181的协议，本身也是一个完整的视频平台。所以对于新手来说，你可能需要一些耐心来完成。遇到问题不要焦躁，你可以
 1. 百度
-2. 如果身边有熟悉java的朋友，可以咨询下朋友；
-3. 来群里（901799015）咨询群友；
-4. 向作者发送邮件648540858@qq.com；
-5. 作者远程支持（有偿）。   
-   如果这些仍不能解决你的问题，那么你可能需要与作者我一起合作完成这个项目，解决你遇到的问题。
-
+2. 加入星球体提问；[知识星球](https://t.zsxq.com/0d8VAD3Dm)
+3. 向作者发送邮件648540858@qq.com,寻求技术支持（有偿）；
 
 WVP-PRO使用Spring boot开发，maven管理依赖。对于熟悉spring开发的朋友是很容易进行编译部署以及运行的。  
 下面将提供一种通用方法方便大家运行项目。
@@ -44,7 +40,7 @@ window环境，以windows10为例：
 这里依然是参考网上教程，自行安装吧。
 
 ## 4 编译ZLMediaKit
-参考ZLMediaKit[WIKI](https://github.com/ZLMediaKit/ZLMediaKit/wiki)，截取一下关键步骤：
+参考ZLMediaKit[WIKI](https://github.com/ZLMediaKit/ZLMediaKit/wiki)，如果需要使用语音对讲功能，请参考[zlm启用webrtc编译指南](https://github.com/ZLMediaKit/ZLMediaKit/wiki/zlm%E5%90%AF%E7%94%A8webrtc%E7%BC%96%E8%AF%91%E6%8C%87%E5%8D%97)，开启zlm的webrtc功能。截取一下关键步骤：
 ```bash
 # 国内用户推荐从同步镜像网站gitee下载 
 git clone --depth 1 https://gitee.com/xia-chu/ZLMediaKit

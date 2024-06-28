@@ -278,15 +278,14 @@ public class MediaServiceImpl implements IMediaService {
         } else {
             // 非国标流 推流/拉流代理
             // 拉流代理
-            StreamProxy streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(app, stream);
-            if (streamProxyItem != null) {
-                if (streamProxyItem.isEnableRemoveNoneReader()) {
+            StreamProxy streamProxy = streamProxyService.getStreamProxyByAppAndStream(app, stream);
+            if (streamProxy != null) {
+                if (streamProxy.isEnableRemoveNoneReader()) {
                     // 无人观看自动移除
                     result = true;
                     streamProxyService.del(app, stream);
-                    String url = streamProxyItem.getUrl() != null ? streamProxyItem.getUrl() : streamProxyItem.getSrcUrl();
-                    logger.info("[{}/{}]<-[{}] 拉流代理无人观看已经移除", app, stream, url);
-                } else if (streamProxyItem.isEnableDisableNoneReader()) {
+                    logger.info("[{}/{}]<-[{}] 拉流代理无人观看已经移除", app, stream, streamProxy.getSrcUrl());
+                } else if (streamProxy.isEnableDisableNoneReader()) {
                     // 无人观看停用
                     result = true;
                     // 修改数据

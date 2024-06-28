@@ -335,7 +335,7 @@ public class ZLMRESTfulUtils {
         return sendPost(mediaServerItem, "restartServer",null, null);
     }
 
-    public JSONObject addStreamProxy(MediaServer mediaServerItem, String app, String stream, String url, boolean enable_audio, boolean enable_mp4, String rtp_type) {
+    public JSONObject addStreamProxy(MediaServer mediaServerItem, String app, String stream, String url, boolean enable_audio, boolean enable_mp4, String rtp_type, Integer timeOut) {
         Map<String, Object> param = new HashMap<>();
         param.put("vhost", "__defaultVhost__");
         param.put("app", app);
@@ -344,6 +344,9 @@ public class ZLMRESTfulUtils {
         param.put("enable_mp4", enable_mp4?1:0);
         param.put("enable_audio", enable_audio?1:0);
         param.put("rtp_type", rtp_type);
+        param.put("timeout_sec", timeOut);
+        // 拉流重试次数,默认为3
+        param.put("retry_count", 3);
         return sendPost(mediaServerItem, "addStreamProxy",param, null, 20);
     }
 

@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.util.ObjectUtils;
 
 /**
  * @author lin
@@ -60,4 +61,21 @@ public class StreamProxy extends CommonGBChannel {
 
     @Schema(description = "拉流代理时zlm返回的key，用于停止拉流代理")
     private String streamKey;
+
+    @Schema(description = "更新时间")
+    private String updateTime;
+
+    @Schema(description = "创建时间")
+    private String createTime;
+
+    public CommonGBChannel getCommonGBChannel() {
+        if (ObjectUtils.isEmpty(this.getGbDeviceId())) {
+            return null;
+        }
+        if (ObjectUtils.isEmpty(this.getGbName())) {
+            this.setGbName( app+ "-" +stream);
+        }
+        this.setStreamProxyId(this.getId());
+        return this;
+    }
 }

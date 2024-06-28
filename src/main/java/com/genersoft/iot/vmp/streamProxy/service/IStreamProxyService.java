@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.streamProxy.service;
 
-import com.genersoft.iot.vmp.common.GeneralCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
@@ -16,7 +15,7 @@ public interface IStreamProxyService {
      * 保存视频代理
      * @param param
      */
-    void save(StreamProxy param, GeneralCallback<StreamInfo> callback);
+    StreamInfo save(StreamProxy param);
 
     /**
      * 添加视频代理到zlm
@@ -73,7 +72,7 @@ public interface IStreamProxyService {
      * @param stream
      * @return
      */
-    boolean stop(String app, String stream);
+    void stop(String app, String stream);
 
     /**
      * 获取ffmpeg.cmd模板

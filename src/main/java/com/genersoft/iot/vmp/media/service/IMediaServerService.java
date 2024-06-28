@@ -40,6 +40,7 @@ public interface IMediaServerService {
     void closeRTPServer(MediaServer mediaServerItem, String streamId);
 
     void closeRTPServer(MediaServer mediaServerItem, String streamId, CommonCallback<Boolean> callback);
+
     Boolean updateRtpServerSSRC(MediaServer mediaServerItem, String streamId, String ssrc);
 
     void closeRTPServer(String mediaServerId, String streamId);
@@ -98,7 +99,7 @@ public interface IMediaServerService {
 
     WVPResult<String> addFFmpegSource(MediaServer mediaServerItem, String srcUrl, String dstUrl, int timeoutMs, boolean enableAudio, boolean enableMp4, String ffmpegCmdKey);
 
-    WVPResult<String> addStreamProxy(MediaServer mediaServerItem, String app, String stream, String url, boolean enableAudio, boolean enableMp4, String rtpType);
+    WVPResult<String> addStreamProxy(MediaServer mediaServerItem, String app, String stream, String url, boolean enableAudio, boolean enableMp4, String rtpType, Integer timeout);
 
     Boolean delFFmpegSource(MediaServer mediaServerItem, String streamKey);
 
@@ -155,4 +156,6 @@ public interface IMediaServerService {
     Long updateDownloadProcess(MediaServer mediaServerItem, String app, String stream);
 
     StreamInfo startProxy(MediaServer mediaServer, StreamProxy streamProxy);
+
+    void stopProxy(MediaServer mediaServer, String streamKey);
 }

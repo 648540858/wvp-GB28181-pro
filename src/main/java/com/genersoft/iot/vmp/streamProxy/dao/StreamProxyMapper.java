@@ -87,4 +87,9 @@ public interface StreamProxyMapper {
 
     @Select("select count(1) from wvp_stream_proxy where status = true")
     int getOnline();
+
+    /**
+     * 查询设置了自动移除并且没有国标编号的代理
+     */
+    List<StreamProxy> selectWithAutoRemoveAndWithoutGbDeviceIdByMediaServerId(String mediaServerId);
 }

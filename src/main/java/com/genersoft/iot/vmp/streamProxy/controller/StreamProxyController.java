@@ -6,14 +6,12 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
-import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -25,10 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.async.DeferredResult;
 
 import java.util.Map;
-import java.util.UUID;
 
 @SuppressWarnings("rawtypes")
 /**
@@ -85,7 +81,7 @@ public class StreamProxyController {
     })
     @PostMapping(value = "/save")
     @ResponseBody
-    public DeferredResult<Object> save(@RequestBody StreamProxy param){
+    public StreamContent save(@RequestBody StreamProxy param){
         logger.info("添加代理： " + JSONObject.toJSONString(param));
         if (ObjectUtils.isEmpty(param.getMediaServerId())) {
             param.setMediaServerId("auto");
@@ -93,43 +89,25 @@ public class StreamProxyController {
         if (ObjectUtils.isEmpty(param.getType())) {
             param.setType("default");
         }
-        if (ObjectUtils.isEmpty(param.getRtpType())) {
-            param.setRtpType("1");
-        }
         if (ObjectUtils.isEmpty(param.getGbId())) {
-            param.setGbId(null);
+            param.setGbDeviceId(null);
         }
         StreamProxy streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
         if (streamProxyItem  != null) {
             streamProxyService.del(param.getApp(), param.getStream());
         }
 
-        RequestMessage requestMessage = new RequestMessage();
-        String key = DeferredResultHolder.CALLBACK_CMD_PROXY + param.getApp() + param.getStream();
-        requestMessage.setKey(key);
-        String uuid = UUID.randomUUID().toString();
-        requestMessage.setId(uuid);
-        DeferredResult<Object> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
-        // 录像查询以channelId作为deviceId查询
-        resultHolder.put(key, uuid, result);
-        result.onTimeout(()->{
-            WVPResult<StreamInfo> wvpResult = new WVPResult<>();
-            wvpResult.setCode(ErrorCode.ERROR100.getCode());
-            wvpResult.setMsg("超时");
-            requestMessage.setData(wvpResult);
-            resultHolder.invokeAllResult(requestMessage);
-        });
-
-        streamProxyService.save(param, (code, msg, streamInfo) -> {
-            logger.info("[拉流代理] {}", code == ErrorCode.SUCCESS.getCode()? "成功":"失败： " + msg);
-            if (code == ErrorCode.SUCCESS.getCode()) {
-                requestMessage.setData(new StreamContent(streamInfo));
+        StreamInfo streamInfo =  streamProxyService.save(param);
+        if (param.isEnable()) {
+            if (streamInfo == null) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg());
             }else {
-                requestMessage.setData(WVPResult.fail(code, msg));
+                return new StreamContent(streamInfo);
             }
-            resultHolder.invokeAllResult(requestMessage);
-        });
-        return result;
+        }else {
+            return null;
+        }
+
     }
 
     @GetMapping(value = "/ffmpeg_cmd/list")
@@ -180,10 +158,6 @@ public class StreamProxyController {
     @Parameter(name = "stream", description = "流id", required = true)
     public void stop(String app, String stream){
         logger.info("停用代理： " + app + "/" + stream);
-        boolean result = streamProxyService.stop(app, stream);
-        if (!result) {
-            logger.info("停用代理失败： " + app + "/" + stream);
-            throw new ControllerException(ErrorCode.ERROR100);
-        }
+        streamProxyService.stop(app, stream);
     }
 }

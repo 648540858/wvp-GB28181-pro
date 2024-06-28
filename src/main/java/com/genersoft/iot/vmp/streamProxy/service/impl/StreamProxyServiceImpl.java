@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
@@ -16,6 +17,8 @@ import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaNotFoundEvent;
+import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOfflineEvent;
+import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOnlineEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.service.IGbStreamService;
@@ -42,6 +45,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
@@ -73,7 +77,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     private UserSetting userSetting;
 
     @Autowired
-    private GbStreamMapper gbStreamMapper;
+    private IGbChannelService gbChannelService;
 
     @Autowired
     private PlatformGbStreamMapper platformGbStreamMapper;
@@ -119,7 +123,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     /**
-     * 流离开的处理
+     * 流未找到的处理
      */
     @Async("taskExecutor")
     @EventListener
@@ -134,9 +138,29 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }
     }
 
+    /**
+     * 流媒体节点上线
+     */
+    @Async("taskExecutor")
+    @EventListener
+    @Transactional
+    public void onApplicationEvent(MediaServerOnlineEvent event) {
+        zlmServerOnline(event.getMediaServerId());
+    }
+
+    /**
+     * 流媒体节点离线
+     */
+    @Async("taskExecutor")
+    @EventListener
+    @Transactional
+    public void onApplicationEvent(MediaServerOfflineEvent event) {
+        zlmServerOffline(event.getMediaServerId());
+    }
+
 
     @Override
-    public void save(StreamProxy streamProxy, GeneralCallback<StreamInfo> callback) {
+    public StreamInfo save(StreamProxy streamProxy) {
         MediaServer mediaServer;
         if (ObjectUtils.isEmpty(streamProxy.getMediaServerId()) || "auto".equals(streamProxy.getMediaServerId())){
             mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
@@ -157,136 +181,47 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             saveResult = addStreamProxy(streamProxy);
         }
         if (!saveResult) {
-            callback.run(ErrorCode.ERROR100.getCode(), "保存失败", null);
-            return;
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "保存失败");
         }
 
         if (streamProxy.isEnable()) {
-            StreamInfo streamInfo = mediaServerService.startProxy(mediaServer, streamProxy);
-            if (streamInfo != null) {
-                callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
-            }else {
-                callback.run(ErrorCode.ERROR100.getCode(), "记录已保存，启用失败", null);
-            }
-
-//
-//
-//            Hook hook = Hook.getInstance(HookType.on_media_arrival, streamProxy.getApp(), streamProxy.getStream(), mediaServer.getId());
-//            hookSubscribe.addSubscribe(hook, (hookData) -> {
-//                StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(
-//                        mediaServer, streamProxy.getApp(), streamProxy.getStream(), null, null);
-//                callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
-//            });
-//            String talkKey = UUID.randomUUID().toString();
-//            String delayTalkKey = UUID.randomUUID().toString();
-//            dynamicTask.startDelay(delayTalkKey, ()->{
-//                StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStreamWithCheck(streamProxy.getApp(), streamProxy.getStream(), mediaServer.getId(), false);
-//                if (streamInfo != null) {
-//                    callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
-//                }else {
-//                    dynamicTask.stop(talkKey);
-//                    callback.run(ErrorCode.ERROR100.getCode(), "超时", null);
-//                }
-//            }, 7000);
-//            WVPResult<String> result = addStreamProxyToZlm(streamProxy);
-//            if (result != null && result.getCode() == 0) {
-//                hookSubscribe.removeSubscribe(hook);
-//                dynamicTask.stop(talkKey);
-//                StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(
-//                        mediaServer, streamProxy.getApp(), streamProxy.getStream(), null, null);
-//                callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
-//            }else {
-//                streamProxy.setEnable(false);
-//                // 直接移除
-//                if (streamProxy.isEnableRemoveNoneReader()) {
-//                    del(streamProxy.getApp(), streamProxy.getStream());
-//                }else {
-//                    updateStreamProxy(streamProxy);
-//                }
-//                if (result == null){
-//                    callback.run(ErrorCode.ERROR100.getCode(), "记录已保存，启用失败", null);
-//                }else {
-//                    callback.run(ErrorCode.ERROR100.getCode(), result.getMsg(), null);
-//                }
-//            }
-        }else{
-            StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(
-                    mediaServer, streamProxy.getApp(), streamProxy.getStream(), null, null);
-            callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+            return mediaServerService.startProxy(mediaServer, streamProxy);
         }
+        return null;
     }
 
 
 
     /**
      * 新增代理流
-     * @param streamProxyItem
-     * @return
      */
-    private boolean addStreamProxy(StreamProxy streamProxyItem) {
-        TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
-        boolean result = false;
-        streamProxyItem.setStreamType("proxy");
-        streamProxyItem.setStatus(true);
+    @Transactional
+    public boolean addStreamProxy(StreamProxy streamProxy) {
         String now = DateUtil.getNow();
-        streamProxyItem.setCreateTime(now);
-        try {
-            if (streamProxyMapper.add(streamProxyItem) > 0) {
-                if (!ObjectUtils.isEmpty(streamProxyItem.getGbId())) {
-                    if (gbStreamMapper.add(streamProxyItem) < 0) {
-                        //事务回滚
-                        dataSourceTransactionManager.rollback(transactionStatus);
-                        return false;
-                    }
-                }
-            }else {
-                //事务回滚
-                dataSourceTransactionManager.rollback(transactionStatus);
-                return false;
-            }
-            result = true;
-            dataSourceTransactionManager.commit(transactionStatus);     //手动提交
-        }catch (Exception e) {
-            log.error("向数据库添加流代理失败：", e);
-            dataSourceTransactionManager.rollback(transactionStatus);
+        streamProxy.setCreateTime(now);
+        streamProxy.setUpdateTime(now);
+
+        if (streamProxyMapper.add(streamProxy) > 0 && !ObjectUtils.isEmpty(streamProxy.getGbDeviceId())) {
+            gbChannelService.add(streamProxy.getCommonGBChannel());
         }
-
-
-        return result;
+        return true;
     }
 
     /**
      * 更新代理流
-     * @param streamProxyItem
-     * @return
      */
     @Override
-    public boolean updateStreamProxy(StreamProxy streamProxyItem) {
-        TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
-        boolean result = false;
-        streamProxyItem.setStreamType("proxy");
-        try {
-            if (streamProxyMapper.update(streamProxyItem) > 0) {
-                if (!ObjectUtils.isEmpty(streamProxyItem.getGbId())) {
-                    if (gbStreamMapper.updateByAppAndStream(streamProxyItem) == 0) {
-                        //事务回滚
-                        dataSourceTransactionManager.rollback(transactionStatus);
-                        return false;
-                    }
-                }
-            } else {
-                //事务回滚
-                dataSourceTransactionManager.rollback(transactionStatus);
-                return false;
-            }
+    public boolean updateStreamProxy(StreamProxy streamProxy) {
+        streamProxy.setUpdateTime(DateUtil.getNow());
 
-            dataSourceTransactionManager.commit(transactionStatus);     //手动提交
-            result = true;
-        }catch (Exception e) {
-            log.error("未处理的异常 ", e);
-            dataSourceTransactionManager.rollback(transactionStatus);
+        if (streamProxyMapper.update(streamProxy) > 0 && !ObjectUtils.isEmpty(streamProxy.getGbDeviceId())) {
+            if (streamProxy.getGbId() > 0) {
+                gbChannelService.update(streamProxy.getCommonGBChannel());
+            }else {
+                gbChannelService.add(streamProxy.getCommonGBChannel());
+            }
         }
-        return result;
+        return true;
     }
 
     @Override
@@ -314,8 +249,8 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                     param.getTimeoutMs(), param.isEnableAudio(), param.isEnableMp4(),
                     param.getFfmpegCmdKey());
         }else {
-            result = mediaServerService.addStreamProxy(mediaServer, param.getApp(), param.getStream(), param.getUrl().trim(),
-                    param.isEnableAudio(), param.isEnableMp4(), param.getRtpType());
+            result = mediaServerService.addStreamProxy(mediaServer, param.getApp(), param.getStream(), param.getSrcUrl().trim(),
+                    param.isEnableAudio(), param.isEnableMp4(), param.getRtspType(), param.getTimeout());
         }
         if (result != null && result.getCode() == 0) {
             String key = result.getData();
@@ -381,39 +316,42 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Override
     public boolean start(String app, String stream) {
-        boolean result = false;
         StreamProxy streamProxy = streamProxyMapper.selectOne(app, stream);
-        if (streamProxy != null && !streamProxy.isEnable() ) {
-            WVPResult<String> wvpResult = addStreamProxyToZlm(streamProxy);
-            if (wvpResult == null) {
-                return false;
-            }
-            if (wvpResult.getCode() == 0) {
-                result = true;
-                streamProxy.setEnable(true);
-                updateStreamProxy(streamProxy);
-            }else {
-                log.info("启用代理失败： {}/{}->{}({})", app, stream, wvpResult.getMsg(),
-                        streamProxy.getSrcUrl() == null? streamProxy.getUrl():streamProxy.getSrcUrl());
-            }
-        } else if (streamProxy != null && streamProxy.isEnable()) {
-           return true ;
+        if (streamProxy == null) {
+            throw new ControllerException(ErrorCode.ERROR404.getCode(), "代理信息未找到");
         }
-        return result;
+        MediaServer mediaServer;
+        if (ObjectUtils.isEmpty(streamProxy.getMediaServerId()) || "auto".equals(streamProxy.getMediaServerId())){
+            mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
+        }else {
+            mediaServer = mediaServerService.getOne(streamProxy.getMediaServerId());
+        }
+        if (mediaServer == null) {
+            log.warn("[启用代理] 未找到可用的媒体节点");
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的媒体节点");
+        }
+        StreamInfo streamInfo = mediaServerService.startProxy(mediaServer, streamProxy);
+        if (streamInfo == null) {
+            log.warn("[启用代理] 失败");
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "失败");
+        }
+        if (!streamProxy.isEnable()) {
+            updateStreamProxy(streamProxy);
+        }
+        return true;
     }
 
     @Override
-    public boolean stop(String app, String stream) {
-        boolean result = false;
-        StreamProxy streamProxyDto = streamProxyMapper.selectOne(app, stream);
-        if (streamProxyDto != null && streamProxyDto.isEnable()) {
-            Boolean removed = removeStreamProxyFromZlm(streamProxyDto);
-            if (removed != null && removed) {
-                streamProxyDto.setEnable(false);
-                result = updateStreamProxy(streamProxyDto);
-            }
+    public void stop(String app, String stream) {
+        StreamProxy streamProxy = streamProxyMapper.selectOne(app, stream);
+        if (streamProxy == null) {
+            throw new ControllerException(ErrorCode.ERROR404.getCode(), "代理信息未找到");
         }
-        return result;
+        MediaServer mediaServer = mediaServerService.getOne(streamProxy.getMediaServerId());
+        if (mediaServer == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到启用时使用的媒体节点");
+        }
+        mediaServerService.stopProxy(mediaServer, streamProxy.getStreamKey());
     }
 
     @Override
@@ -430,10 +368,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public void zlmServerOnline(String mediaServerId) {
         // 移除开启了无人观看自动移除的流
-        List<StreamProxy> streamProxyItemList = streamProxyMapper.selectAutoRemoveItemByMediaServerId(mediaServerId);
-        if (streamProxyItemList.size() > 0) {
-            gbStreamMapper.batchDel(streamProxyItemList);
-        }
+        List<StreamProxy> streamProxyItemList = streamProxyMapper.selectWithAutoRemoveAndWithoutGbDeviceIdByMediaServerId(mediaServerId);
         streamProxyMapper.deleteAutoRemoveItemByMediaServerId(mediaServerId);
 
         // 移除拉流代理生成的流信息
@@ -540,40 +475,40 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
 
-    @Scheduled(cron = "* 0/10 * * * ?")
-    public void asyncCheckStreamProxyStatus() {
-
-        List<MediaServer> all = mediaServerService.getAllOnline();
-
-        if (CollectionUtils.isEmpty(all)){
-            return;
-        }
-
-        Map<String, MediaServer> serverItemMap = all.stream().collect(Collectors.toMap(MediaServer::getId, Function.identity(), (m1, m2) -> m1));
-
-        List<StreamProxy> list = streamProxyMapper.selectForEnable(true);
-
-        if (CollectionUtils.isEmpty(list)){
-            return;
-        }
-
-        for (StreamProxy streamProxyItem : list) {
-
-            MediaServer mediaServerItem = serverItemMap.get(streamProxyItem.getMediaServerId());
-
-            MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServerItem, streamProxyItem.getApp(), streamProxyItem.getStream());
-
-            if (mediaInfo == null){
-                streamProxyItem.setStatus(false);
-            } else {
-                if (mediaInfo.getOnline() != null && mediaInfo.getOnline()) {
-                    streamProxyItem.setStatus(true);
-                } else {
-                    streamProxyItem.setStatus(false);
-                }
-            }
-
-            updateStreamProxy(streamProxyItem);
-        }
-    }
+//    @Scheduled(cron = "* 0/10 * * * ?")
+//    public void asyncCheckStreamProxyStatus() {
+//
+//        List<MediaServer> all = mediaServerService.getAllOnline();
+//
+//        if (CollectionUtils.isEmpty(all)){
+//            return;
+//        }
+//
+//        Map<String, MediaServer> serverItemMap = all.stream().collect(Collectors.toMap(MediaServer::getId, Function.identity(), (m1, m2) -> m1));
+//
+//        List<StreamProxy> list = streamProxyMapper.selectForEnable(true);
+//
+//        if (CollectionUtils.isEmpty(list)){
+//            return;
+//        }
+//
+//        for (StreamProxy streamProxyItem : list) {
+//
+//            MediaServer mediaServerItem = serverItemMap.get(streamProxyItem.getMediaServerId());
+//
+//            MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServerItem, streamProxyItem.getApp(), streamProxyItem.getStream());
+//
+//            if (mediaInfo == null){
+//                streamProxyItem.setStatus(false);
+//            } else {
+//                if (mediaInfo.getOnline() != null && mediaInfo.getOnline()) {
+//                    streamProxyItem.setStatus(true);
+//                } else {
+//                    streamProxyItem.setStatus(false);
+//                }
+//            }
+//
+//            updateStreamProxy(streamProxyItem);
+//        }
+//    }
 }

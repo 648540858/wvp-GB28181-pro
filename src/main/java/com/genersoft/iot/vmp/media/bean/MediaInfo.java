@@ -4,12 +4,14 @@ import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
 import java.util.List;
 
 /**
  * 视频信息
  */
+@Data
 @Schema(description = "视频信息")
 public class MediaInfo {
     @Schema(description = "应用名")
@@ -41,6 +43,8 @@ public class MediaInfo {
     private Boolean online;
     @Schema(description = "unknown = 0,rtmp_push=1,rtsp_push=2,rtp_push=3,pull=4,ffmpeg_pull=5,mp4_vod=6,device_chn=7")
     private Integer originType;
+    @Schema(description = "产生流的源流地址")
+    private String originUrl;
     @Schema(description = "存活时间，单位秒")
     private Long aliveSecond;
     @Schema(description = "数据产生速度，单位byte/s")
@@ -60,6 +64,7 @@ public class MediaInfo {
         Integer totalReaderCount = jsonObject.getInteger("totalReaderCount");
         Boolean online = jsonObject.getBoolean("online");
         Integer originType = jsonObject.getInteger("originType");
+        String originUrl = jsonObject.getString("originUrl");
         Long aliveSecond = jsonObject.getLong("aliveSecond");
         Long bytesSpeed = jsonObject.getLong("bytesSpeed");
         if (totalReaderCount != null) {
@@ -71,6 +76,10 @@ public class MediaInfo {
         if (originType != null) {
             mediaInfo.setOriginType(originType);
         }
+        if (originUrl != null) {
+            mediaInfo.setOriginUrl(originUrl);
+        }
+
         if (aliveSecond != null) {
             mediaInfo.setAliveSecond(aliveSecond);
         }
@@ -138,6 +147,7 @@ public class MediaInfo {
         mediaInfo.setReaderCount(param.getTotalReaderCount());
         mediaInfo.setOnline(param.isRegist());
         mediaInfo.setOriginType(param.getOriginType());
+        mediaInfo.setOriginUrl(param.getOriginUrl());
         mediaInfo.setAliveSecond(param.getAliveSecond());
         mediaInfo.setBytesSpeed(param.getBytesSpeed());
         List<OnStreamChangedHookParam.MediaTrack> tracks = param.getTracks();
@@ -176,141 +186,5 @@ public class MediaInfo {
             }
         }
         return mediaInfo;
-    }
-
-    public Integer getReaderCount() {
-        return readerCount;
-    }
-
-    public void setReaderCount(Integer readerCount) {
-        this.readerCount = readerCount;
-    }
-
-    public String getVideoCodec() {
-        return videoCodec;
-    }
-
-    public void setVideoCodec(String videoCodec) {
-        this.videoCodec = videoCodec;
-    }
-
-    public Integer getWidth() {
-        return width;
-    }
-
-    public void setWidth(Integer width) {
-        this.width = width;
-    }
-
-    public Integer getHeight() {
-        return height;
-    }
-
-    public void setHeight(Integer height) {
-        this.height = height;
-    }
-
-    public String getAudioCodec() {
-        return audioCodec;
-    }
-
-    public void setAudioCodec(String audioCodec) {
-        this.audioCodec = audioCodec;
-    }
-
-    public Integer getAudioChannels() {
-        return audioChannels;
-    }
-
-    public void setAudioChannels(Integer audioChannels) {
-        this.audioChannels = audioChannels;
-    }
-
-    public Integer getAudioSampleRate() {
-        return audioSampleRate;
-    }
-
-    public void setAudioSampleRate(Integer audioSampleRate) {
-        this.audioSampleRate = audioSampleRate;
-    }
-
-    public Long getDuration() {
-        return duration;
-    }
-
-    public void setDuration(Long duration) {
-        this.duration = duration;
-    }
-
-    public Boolean getOnline() {
-        return online;
-    }
-
-    public void setOnline(Boolean online) {
-        this.online = online;
-    }
-
-    public Integer getOriginType() {
-        return originType;
-    }
-
-    public void setOriginType(Integer originType) {
-        this.originType = originType;
-    }
-
-    public Long getAliveSecond() {
-        return aliveSecond;
-    }
-
-    public void setAliveSecond(Long aliveSecond) {
-        this.aliveSecond = aliveSecond;
-    }
-
-    public Long getBytesSpeed() {
-        return bytesSpeed;
-    }
-
-    public void setBytesSpeed(Long bytesSpeed) {
-        this.bytesSpeed = bytesSpeed;
-    }
-
-    public String getApp() {
-        return app;
-    }
-
-    public void setApp(String app) {
-        this.app = app;
-    }
-
-    public String getStream() {
-        return stream;
-    }
-
-    public void setStream(String stream) {
-        this.stream = stream;
-    }
-
-    public MediaServer getMediaServer() {
-        return mediaServer;
-    }
-
-    public void setMediaServer(MediaServer mediaServer) {
-        this.mediaServer = mediaServer;
-    }
-
-    public String getSchema() {
-        return schema;
-    }
-
-    public void setSchema(String schema) {
-        this.schema = schema;
-    }
-
-    public String getCallId() {
-        return callId;
-    }
-
-    public void setCallId(String callId) {
-        this.callId = callId;
     }
 }

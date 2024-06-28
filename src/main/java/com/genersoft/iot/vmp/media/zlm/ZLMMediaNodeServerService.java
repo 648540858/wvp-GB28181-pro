@@ -14,8 +14,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.ZLMServerConfig;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -25,10 +24,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service("zlm")
 public class ZLMMediaNodeServerService implements IMediaNodeServerService {
 
-    private final static Logger logger = LoggerFactory.getLogger(ZLMMediaNodeServerService.class);
 
     @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;
@@ -134,7 +133,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         }
         JSONObject jsonObject = zlmresTfulUtils.stopSendRtp(mediaInfo, param);
         if (jsonObject == null || jsonObject.getInteger("code") != 0 ) {
-            logger.error("停止发流失败: {}, 参数：{}", jsonObject.getString("msg"), JSON.toJSONString(param));
+            log.error("停止发流失败: {}, 参数：{}", jsonObject.getString("msg"), JSON.toJSONString(param));
             throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
         }
         return true;
@@ -152,7 +151,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         }
         JSONObject jsonObject = zlmresTfulUtils.stopSendRtp(mediaInfo, param);
         if (jsonObject == null || jsonObject.getInteger("code") != 0 ) {
-            logger.error("停止发流失败: {}, 参数：{}", jsonObject.getString("msg"), JSON.toJSONString(param));
+            log.error("停止发流失败: {}, 参数：{}", jsonObject.getString("msg"), JSON.toJSONString(param));
             return false;
         }
         return true;
@@ -160,13 +159,13 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
 
     @Override
     public boolean deleteRecordDirectory(MediaServer mediaServer, String app, String stream, String date, String fileName) {
-        logger.info("[zlm-deleteRecordDirectory] 删除磁盘文件, server: {} {}:{}->{}/{}", mediaServer.getId(), app, stream, date, fileName);
+        log.info("[zlm-deleteRecordDirectory] 删除磁盘文件, server: {} {}:{}->{}/{}", mediaServer.getId(), app, stream, date, fileName);
         JSONObject jsonObject = zlmresTfulUtils.deleteRecordDirectory(mediaServer, app,
                 stream, date, fileName);
         if (jsonObject.getInteger("code") == 0) {
             return true;
         }else {
-            logger.info("[zlm-deleteRecordDirectory] 删除磁盘文件错误, server: {} {}:{}->{}/{}, 结果： {}", mediaServer.getId(), app, stream, date, fileName, jsonObject);
+            log.info("[zlm-deleteRecordDirectory] 删除磁盘文件错误, server: {} {}:{}->{}/{}, 结果： {}", mediaServer.getId(), app, stream, date, fileName, jsonObject);
             return false;
         }
     }
@@ -218,7 +217,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     @Override
     public Boolean connectRtpServer(MediaServer mediaServer, String address, int port, String stream) {
         JSONObject jsonObject = zlmresTfulUtils.connectRtpServer(mediaServer, address, port, stream);
-        logger.info("[TCP主动连接对方] 结果： {}", jsonObject);
+        log.info("[TCP主动连接对方] 结果： {}", jsonObject);
         return jsonObject.getInteger("code") == 0;
     }
 
@@ -252,7 +251,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     public String getFfmpegCmd(MediaServer mediaServer, String cmdKey) {
         JSONObject jsonObject = zlmresTfulUtils.getMediaServerConfig(mediaServer);
         if (jsonObject.getInteger("code") != 0) {
-            logger.warn("[getFfmpegCmd] 获取流媒体配置失败");
+            log.warn("[getFfmpegCmd] 获取流媒体配置失败");
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "获取流媒体配置失败");
         }
         JSONArray dataArray = jsonObject.getJSONArray("data");
@@ -267,7 +266,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     public WVPResult<String> addFFmpegSource(MediaServer mediaServer, String srcUrl, String dstUrl, int timeoutMs, boolean enableAudio, boolean enableMp4, String ffmpegCmdKey) {
         JSONObject jsonObject = zlmresTfulUtils.addFFmpegSource(mediaServer, srcUrl, dstUrl, timeoutMs, enableAudio, enableMp4, ffmpegCmdKey);
         if (jsonObject.getInteger("code") != 0) {
-            logger.warn("[getFfmpegCmd] 添加FFMPEG代理失败");
+            log.warn("[getFfmpegCmd] 添加FFMPEG代理失败");
             return WVPResult.fail(ErrorCode.ERROR100.getCode(), "添加FFMPEG代理失败");
         }else {
             JSONObject data = jsonObject.getJSONObject("data");
@@ -280,8 +279,9 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public WVPResult<String> addStreamProxy(MediaServer mediaServer, String app, String stream, String url, boolean enableAudio, boolean enableMp4, String rtpType) {
-        JSONObject jsonObject = zlmresTfulUtils.addStreamProxy(mediaServer, app, stream, url, enableAudio, enableMp4, rtpType);
+    public WVPResult<String> addStreamProxy(MediaServer mediaServer, String app, String stream, String url,
+                                            boolean enableAudio, boolean enableMp4, String rtpType, Integer timeout) {
+        JSONObject jsonObject = zlmresTfulUtils.addStreamProxy(mediaServer, app, stream, url, enableAudio, enableMp4, rtpType, timeout);
         if (jsonObject.getInteger("code") != 0) {
             return WVPResult.fail(ErrorCode.ERROR100.getCode(), "添加代理失败");
         }else {
@@ -350,11 +350,11 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
 
         JSONObject jsonObject = zlmServerFactory.startSendRtpPassive(mediaServer, param, null);
         if (jsonObject == null || jsonObject.getInteger("code") != 0 ) {
-            logger.error("启动监听TCP被动推流失败: {}, 参数：{}", jsonObject.getString("msg"), JSON.toJSONString(param));
+            log.error("启动监听TCP被动推流失败: {}, 参数：{}", jsonObject.getString("msg"), JSON.toJSONString(param));
             throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
         }
-        logger.info("调用ZLM-TCP被动推流接口, 结果： {}",  jsonObject);
-        logger.info("启动监听TCP被动推流成功[ {}/{} ]，{}->{}:{}, " , sendRtpItem.getApp(), sendRtpItem.getStream(),
+        log.info("调用ZLM-TCP被动推流接口, 结果： {}",  jsonObject);
+        log.info("启动监听TCP被动推流成功[ {}/{} ]，{}->{}:{}, " , sendRtpItem.getApp(), sendRtpItem.getStream(),
                 jsonObject.getString("local_port"), param.get("dst_url"), param.get("dst_port"));
     }
 
@@ -386,7 +386,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     public Long updateDownloadProcess(MediaServer mediaServer, String app, String stream) {
         MediaInfo mediaInfo = getMediaInfo(mediaServer, app, stream);
         if (mediaInfo == null) {
-            logger.warn("[获取下载进度] 查询进度失败, 节点Id： {}， {}/{}", mediaServer.getId(), app, stream);
+            log.warn("[获取下载进度] 查询进度失败, 节点Id： {}， {}/{}", mediaServer.getId(), app, stream);
             return null;
         }
         return mediaInfo.getDuration();
@@ -427,12 +427,38 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         }
         MediaInfo mediaInfo = getMediaInfo(mediaServer, streamProxy.getApp(), streamProxy.getStream());
         if (mediaInfo != null) {
-            mediaServerService.closeStreams(mediaServer, param.getApp(), param.getStream());
+            if (mediaInfo.getOriginUrl().equals(streamProxy.getSrcUrl())) {
+                log.info("[启动拉流代理] 已存在， 直接返回， app： {}, stream: {}", mediaInfo.getApp(), streamProxy.getStream());
+                return getStreamInfoByAppAndStream(mediaServer, streamProxy.getApp(), streamProxy.getStream(), null, null, true);
+            }
+            closeStreams(mediaServer, streamProxy.getApp(), streamProxy.getStream());
         }
-        if (isStreamReady(mediaServer, param.getApp(), param.getStream())) {
-            mediaServerService.closeStreams(mediaServer, param.getApp(), param.getStream());
+
+        JSONObject jsonObject = null;
+        if ("ffmpeg".equalsIgnoreCase(streamProxy.getType())){
+            if (streamProxy.getTimeout() == 0) {
+                streamProxy.setTimeout(15);
+            }
+            jsonObject = zlmresTfulUtils.addFFmpegSource(mediaServer, streamProxy.getSrcUrl().trim(), dstUrl,
+                    streamProxy.getTimeout(), streamProxy.isEnableAudio(), streamProxy.isEnableMp4(),
+                    streamProxy.getFfmpegCmdKey());
+        }else {
+            jsonObject = zlmresTfulUtils.addStreamProxy(mediaServer, streamProxy.getApp(), streamProxy.getStream(), streamProxy.getSrcUrl().trim(),
+                    streamProxy.isEnableAudio(), streamProxy.isEnableMp4(), streamProxy.getRtspType(), streamProxy.getTimeout());
         }
-        return null;
+        if (jsonObject == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "请求失败");
+        }else if (jsonObject.getInteger("code") != 0) {
+            throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
+        }else {
+            JSONObject data = jsonObject.getJSONObject("data");
+            if (data == null) {
+                throw new ControllerException(jsonObject.getInteger("code"), "代理结果异常： " + jsonObject);
+            }else {
+                streamProxy.setStreamKey(jsonObject.getString("key"));
+                return getStreamInfoByAppAndStream(mediaServer, streamProxy.getApp(), streamProxy.getStream(), null, null, true);
+            }
+        }
     }
 
     private String getSchemaFromFFmpegCmd(String ffmpegCmd) {
@@ -452,5 +478,15 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
             }
         }
         return null;
+    }
+
+    @Override
+    public void stopProxy(MediaServer mediaServer, String streamKey) {
+        JSONObject jsonObject = zlmresTfulUtils.delStreamProxy(mediaServer, streamKey);
+        if (jsonObject == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "请求失败");
+        }else if (jsonObject.getInteger("code") != 0) {
+            throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
+        }
     }
 }

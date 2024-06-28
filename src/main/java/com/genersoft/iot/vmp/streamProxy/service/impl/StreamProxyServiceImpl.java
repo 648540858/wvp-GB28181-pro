@@ -160,6 +160,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
 
     @Override
+    @Transactional
     public StreamInfo save(StreamProxy streamProxy) {
         MediaServer mediaServer;
         if (ObjectUtils.isEmpty(streamProxy.getMediaServerId()) || "auto".equals(streamProxy.getMediaServerId())){

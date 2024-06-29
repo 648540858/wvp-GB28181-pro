@@ -191,8 +191,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         return null;
     }
 
-
-
     /**
      * 新增代理流
      */
@@ -233,24 +231,22 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     @Override
+    @Transactional
     public void del(String app, String stream) {
-        StreamProxy streamProxyItem = streamProxyMapper.selectOne(app, stream);
-        if (streamProxyItem != null) {
-            gbStreamService.sendCatalogMsg(streamProxyItem, CatalogEvent.DEL);
-
-            // 如果关联了国标那么移除关联
-            platformGbStreamMapper.delByAppAndStream(app, stream);
-            gbStreamMapper.del(app, stream);
-            streamProxyMapper.del(app, stream);
-            redisCatchStorage.removeStream(streamProxyItem.getMediaServerId(), "PULL", app, stream);
-            redisCatchStorage.removeStream(streamProxyItem.getMediaServerId(), "PUSH", app, stream);
-            Boolean result = removeStreamProxyFromZlm(streamProxyItem);
-            if (result != null && result) {
-                log.info("[移除代理]： 代理： {}/{}, 从zlm移除成功", app, stream);
-            }else {
-                log.info("[移除代理]： 代理： {}/{}, 从zlm移除失败", app, stream);
+        StreamProxy streamProxy = streamProxyMapper.selectOne(app, stream);
+        if (streamProxy == null) {
+            return;
+        }
+        if (streamProxy.getStreamKey() != null) {
+            MediaServer mediaServer = mediaServerService.getOne(streamProxy.getMediaServerId());
+            if (mediaServer != null) {
+                mediaServerService.stopProxy(mediaServer, streamProxy.getStreamKey());
             }
         }
+        if (streamProxy.getGbId() > 0) {
+            gbChannelService.delete(streamProxy.getGbId());
+        }
+        streamProxyMapper.delete(streamProxy.getId());
     }
 
     @Override
@@ -306,9 +302,20 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Override
     public void zlmServerOnline(String mediaServerId) {
+        MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+        if (mediaServer == null) {
+            return;
+        }
+        // 这里主要是控制数据库/redis缓存/以及zlm中存在的代理流 三者状态一致。以数据库中数据为根本
+        List<StreamProxy> streamProxies = streamProxyMapper.selectForEnableInMediaServer(mediaServerId, true);
+        if (streamProxies.isEmpty()){
+            return;
+        }
+
+
         // 移除开启了无人观看自动移除的流
-        List<StreamProxy> streamProxyItemList = streamProxyMapper.selectWithAutoRemoveAndWithoutGbDeviceIdByMediaServerId(mediaServerId);
-        streamProxyMapper.deleteAutoRemoveItemByMediaServerId(mediaServerId);
+//        List<StreamProxy> streamProxyItemList = streamProxyMapper.selectWithAutoRemoveAndWithoutGbDeviceIdByMediaServerId(mediaServerId);
+        streamProxyMapper.deleteWithAutoRemoveAndWithoutGbDeviceIdByMediaServerId(mediaServerId);
 
         // 移除拉流代理生成的流信息
         syncPullStream(mediaServerId);
@@ -318,7 +325,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 mediaServerId, true);
         for (StreamProxy streamProxyDto : streamProxyListForEnable) {
             log.info("恢复流代理，" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
-            mediaServerService.startProxy(me)
+            StreamInfo streamInfo = mediaServerService.startProxy(mediaServer, streamProxy);
             WVPResult<String> wvpResult = addStreamProxyToZlm(streamProxyDto);
             if (wvpResult == null) {
                 // 设置为离线

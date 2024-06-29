@@ -92,4 +92,7 @@ public interface StreamProxyMapper {
      * 查询设置了自动移除并且没有国标编号的代理
      */
     List<StreamProxy> selectWithAutoRemoveAndWithoutGbDeviceIdByMediaServerId(String mediaServerId);
+
+    int delete(int id);
+
 }

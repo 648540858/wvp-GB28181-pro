@@ -226,68 +226,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     @Override
-    public WVPResult<String> addStreamProxyToZlm(StreamProxy param) {
-        WVPResult<String> result = null;
-        MediaServer mediaServer = null;
-        if (param.getMediaServerId() == null) {
-            log.warn("添加代理时MediaServerId 为null");
-            return null;
-        }else {
-            mediaServer = mediaServerService.getOne(param.getMediaServerId());
-        }
-        if (mediaServer == null) {
-            return null;
-        }
-        if (mediaServerService.isStreamReady(mediaServer, param.getApp(), param.getStream())) {
-            mediaServerService.closeStreams(mediaServer, param.getApp(), param.getStream());
-        }
-        String msgResult;
-        if ("ffmpeg".equalsIgnoreCase(param.getType())){
-            if (param.getTimeoutMs() == 0) {
-                param.setTimeoutMs(15);
-            }
-            result = mediaServerService.addFFmpegSource(mediaServer, param.getSrcUrl().trim(), param.getDstUrl(),
-                    param.getTimeoutMs(), param.isEnableAudio(), param.isEnableMp4(),
-                    param.getFfmpegCmdKey());
-        }else {
-            result = mediaServerService.addStreamProxy(mediaServer, param.getApp(), param.getStream(), param.getSrcUrl().trim(),
-                    param.isEnableAudio(), param.isEnableMp4(), param.getRtspType(), param.getTimeout());
-        }
-        if (result != null && result.getCode() == 0) {
-            String key = result.getData();
-            if (key == null) {
-                log.warn("[获取拉流代理的结果数据Data] 失败： {}", result );
-                return result;
-            }
-            param.setStreamKey(key);
-            streamProxyMapper.update(param);
-        }
-        return result;
-    }
-
-    @Override
-    public Boolean removeStreamProxyFromZlm(StreamProxy param) {
-        if (param ==null) {
-            return null;
-        }
-        MediaServer mediaServer = mediaServerService.getOne(param.getMediaServerId());
-        if (mediaServer == null) {
-            return null;
-        }
-        List<StreamInfo> mediaList = mediaServerService.getMediaList(mediaServer, param.getApp(), param.getStream(), null);
-        if (mediaList == null || mediaList.isEmpty()) {
-            return true;
-        }
-        Boolean result = false;
-        if ("ffmpeg".equalsIgnoreCase(param.getType())){
-            result = mediaServerService.delFFmpegSource(mediaServer, param.getStreamKey());
-        }else {
-            result = mediaServerService.delStreamProxy(mediaServer, param.getStreamKey());
-        }
-        return result;
-    }
-
-    @Override
     public PageInfo<StreamProxy> getAll(Integer page, Integer count) {
         PageHelper.startPage(page, count);
         List<StreamProxy> all = streamProxyMapper.selectAll();
@@ -380,6 +318,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 mediaServerId, true);
         for (StreamProxy streamProxyDto : streamProxyListForEnable) {
             log.info("恢复流代理，" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
+            mediaServerService.startProxy(me)
             WVPResult<String> wvpResult = addStreamProxyToZlm(streamProxyDto);
             if (wvpResult == null) {
                 // 设置为离线

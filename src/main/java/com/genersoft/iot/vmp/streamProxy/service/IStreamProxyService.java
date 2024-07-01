@@ -4,7 +4,6 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
-import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 
 import java.util.Map;
@@ -16,22 +15,6 @@ public interface IStreamProxyService {
      * @param param
      */
     StreamInfo save(StreamProxy param);
-
-    /**
-     * 添加视频代理到zlm
-     *
-     * @param param
-     * @return
-     */
-    WVPResult<String> addStreamProxyToZlm(StreamProxy param);
-
-    /**
-     * 从zlm移除视频代理
-     *
-     * @param param
-     * @return
-     */
-    Boolean removeStreamProxyFromZlm(StreamProxy param);
 
     /**
      * 分页查询
@@ -101,8 +84,6 @@ public interface IStreamProxyService {
      * @return
      */
     void zlmServerOffline(String mediaServerId);
-
-    void clean();
 
     /**
      * 更新代理流

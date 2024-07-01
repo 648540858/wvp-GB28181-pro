@@ -25,4 +25,6 @@ public interface IGbChannelService {
     void closeSend(CommonGBChannel commonGBChannel);
 
     void batchAdd(List<CommonGBChannel> commonGBChannels);
+
+    void updateStatus(List<CommonGBChannel> channelList);
 }

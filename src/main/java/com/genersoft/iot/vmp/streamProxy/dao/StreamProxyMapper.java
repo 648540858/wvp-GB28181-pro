@@ -95,4 +95,5 @@ public interface StreamProxyMapper {
 
     int delete(int id);
 
+    void deleteByList(List<StreamProxy> streamProxiesForRemove);
 }

@@ -223,19 +223,19 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 }
                 catalogXml.append("<Item>\r\n");
                 // 行政区划分组只需要这两项就可以
-                catalogXml.append("<DeviceID>" + channel.getChannelId() + "</DeviceID>\r\n");
+                catalogXml.append("<DeviceID>" + channel.getGbDeviceId() + "</DeviceID>\r\n");
                 catalogXml.append("<Name>" + channel.getName() + "</Name>\r\n");
-                if (channel.getChannelId().length() <= 8) {
+                if (channel.getGbDeviceId().length() <= 8) {
                     catalogXml.append("</Item>\r\n");
                     continue;
                 }else {
-                    if (channel.getChannelId().length() != 20) {
+                    if (channel.getGbDeviceId().length() != 20) {
                         catalogXml.append("</Item>\r\n");
-                        logger.warn("[编号长度异常] {} 长度错误，请使用20位长度的国标编号,当前长度：{}", channel.getChannelId(), channel.getChannelId().length());
+                        logger.warn("[编号长度异常] {} 长度错误，请使用20位长度的国标编号,当前长度：{}", channel.getGbDeviceId(), channel.getChannelId().length());
                         catalogXml.append("</Item>\r\n");
                         continue;
                     }
-                    switch (Integer.parseInt(channel.getChannelId().substring(10, 13))){
+                    switch (Integer.parseInt(channel.getGbDeviceId().substring(10, 13))){
                         case 200:
 //                            catalogXml.append("<Manufacturer>三永华通</Manufacturer>\r\n");
 //                            GitUtil gitUtil = SpringBeanFactory.getBean("gitUtil");
@@ -271,8 +271,8 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                             break;
                         default:
                             // 通道项
-                            if (channel.getManufacture() != null) {
-                                catalogXml.append("<Manufacturer>" + channel.getManufacture() + "</Manufacturer>\r\n");
+                            if (channel.getManufacturer() != null) {
+                                catalogXml.append("<Manufacturer>" + channel.getManufacturer() + "</Manufacturer>\r\n");
                             }else {
                                 catalogXml.append("<Manufacturer></Manufacturer>\r\n");
                             }

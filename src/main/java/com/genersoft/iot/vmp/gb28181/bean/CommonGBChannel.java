@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
+import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -202,5 +203,19 @@ public class CommonGBChannel {
     @Schema(description = "关联的拉流代理Id（流来源是拉流代理时有效）")
     private Integer streamProxyId;
 
+    public String encode(CatalogEvent event){
+        String content;
+        if (event.getType().equals(CatalogEvent.DEL)
+                || event.getType().equals(CatalogEvent.DEFECT)
+                || event.getType().equals(CatalogEvent.VLOST)) {
+            content = "<Item>\n" +
+                      "<DeviceID>" + this.getGbDeviceId() + "</DeviceID>\n" +
+                        "<Event>" + event + "</Event>\r\n" +
+                        "</Item>";
+        }
+
+
+        return content;
+    }
 
 }

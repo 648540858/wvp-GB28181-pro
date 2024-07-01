@@ -230,4 +230,6 @@ public class DeviceChannel extends CommonGBChannel {
 		deviceChannel.setDeviceId(deviceElement.getText());
 		return deviceChannel;
 	}
+
+
 }

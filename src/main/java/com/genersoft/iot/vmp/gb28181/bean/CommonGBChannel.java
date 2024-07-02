@@ -96,6 +96,11 @@ public class CommonGBChannel {
     @Schema(description = "国标-摄像机结构类型,标识摄像机类型: 1-球机; 2-半球; 3-固定枪机; 4-遥控枪机;5-遥控半球;6-多目设备的全景/拼接通道;7-多目设备的分割通道")
     private Integer gbPtzType;
 
+    // 2016
+    @Schema(description = "-摄像机位置类型扩展。1-省际检查站、2-党政机关、3-车站码头、4-中心广场、5-体育场馆、6-商业中心、7-宗教场所、" +
+            "8-校园周边、9-治安复杂区域、10-交通干线。当目录项为摄像机时可选。")
+    private Integer PositionType;
+
     @Schema(description = "国标-摄像机光电成像类型。1-可见光成像;2-热成像;3-雷达成像;4-X光成像;5-深度光场成像;9-其他。可多值,")
     private String gbPhotoelectricImagingTyp;
 
@@ -203,19 +208,111 @@ public class CommonGBChannel {
     @Schema(description = "关联的拉流代理Id（流来源是拉流代理时有效）")
     private Integer streamProxyId;
 
+    public String encode(){
+        return encode(null);
+    }
     public String encode(CatalogEvent event){
         String content;
-        if (event.getType().equals(CatalogEvent.DEL)
-                || event.getType().equals(CatalogEvent.DEFECT)
-                || event.getType().equals(CatalogEvent.VLOST)) {
-            content = "<Item>\n" +
-                      "<DeviceID>" + this.getGbDeviceId() + "</DeviceID>\n" +
-                        "<Event>" + event + "</Event>\r\n" +
-                        "</Item>";
+        if (event == null) {
+            return getFullContent(null);
         }
-
-
+        switch (event.getType()) {
+            case CatalogEvent.DEL:
+            case CatalogEvent.DEFECT:
+            case CatalogEvent.VLOST:
+                content = "<Item>\n" +
+                        "<DeviceID>" + this.getGbDeviceId() + "</DeviceID>\n" +
+                        "<Event>" + event + "</Event>\n" +
+                        "</Item>\n";
+                break;
+            case CatalogEvent.ON:
+            case CatalogEvent.OFF:
+                content = "<Item>\n" +
+                        "<DeviceID>" + this.getGbDeviceId() + "</DeviceID>\n" +
+                        "<Event>" + event + "</Event>\r\n" +
+                        "</Item>\n";
+                break;
+            case CatalogEvent.ADD:
+            case CatalogEvent.UPDATE:
+                content = getFullContent(event.getType());
+                break;
+            default:
+                content = null;
+                break;
+        }
         return content;
+    }
+
+    private String getFullContent(String event) {
+        StringBuilder content = new StringBuilder();
+        // 行政区划目录项
+        content.append("<Item>\n")
+                .append("<DeviceID>" + this.getGbDeviceId() + "</DeviceID>\n")
+                .append("<Name>" + this.getGbName() + "</Name>\n");
+
+        if (this.getGbDeviceId().length() > 8) {
+
+            String type = this.getGbDeviceId().substring(10,13);
+            if (type.equals("200")) {
+                // 业务分组目录项
+                content.append("<Manufacturer>" + this.getGbManufacturer() + "</Manufacturer>\n")
+                        .append("<Model>" + this.getGbModel() + "</Model>\n")
+                        .append("<Owner>" + this.getGbOwner() + "</Owner>\n")
+                        .append("<CivilCode>" + this.getGbCivilCode() + "</CivilCode>\n")
+                        .append("<Address>" + this.getGbAddress() + "</Address>\n")
+                        .append("<RegisterWay>" + this.getGbRegisterWay() + "</RegisterWay>\n")
+                        .append("<Secrecy>" + this.getGbSecrecy() + "</Secrecy>\n");
+            }else if (type.equals("215")) {
+                // 业务分组
+                content.append("<ParentID>" + this.getGbParentId() + "</ParentID>\n");
+            }else if (type.equals("216")) {
+                // 虚拟组织目录项
+                content.append("<ParentID>" + this.getGbParentId() + "</ParentID>\n")
+                        .append("<BusinessGroupID>" + this.getGbBusinessGroupId() + "</BusinessGroupID>\n");
+            }else {
+                // 设备目录项
+                content.append("<Manufacturer>" + this.getGbManufacturer() + "</Manufacturer>\n")
+                        .append("<Model>" + this.getGbModel() + "</Model>\n")
+                        .append("<Owner>" + this.getGbOwner() + "</Owner>\n")
+                        .append("<CivilCode>" + this.getGbCivilCode() + "</CivilCode>\n")
+                        .append("<Block>" + this.getGbBlock() + "</Block>\n")
+                        .append("<Address>" + this.getGbAddress() + "</Address>\n")
+                        .append("<Parental>" + this.getGbParental() + "</Parental>\n")
+                        .append("<ParentID>" + this.getGbParentId() + "</ParentID>\n")
+                        .append("<SafetyWay>" + this.getGbSafetyWay() + "</SafetyWay>\n")
+                        .append("<RegisterWay>" + this.getGbRegisterWay() + "</RegisterWay>\n")
+                        .append("<CertNum>" + this.getGbCertNum() + "</CertNum>\n")
+                        .append("<Certifiable>" + this.getGbCertifiable() + "</Certifiable>\n")
+                        .append("<ErrCode>" + this.getGbErrCode() + "</ErrCode>\n")
+                        .append("<EndTime>" + this.getGbEndTime() + "</EndTime>\n")
+                        .append("<Secrecy>" + this.getGbSecrecy() + "</Secrecy>\n")
+                        .append("<IPAddress>" + this.getGbIpAddress() + "</IPAddress>\n")
+                        .append("<Port>" + this.getGbPort() + "</Port>\n")
+                        .append("<Password>" + this.getGbPassword() + "</Password>\n")
+                        .append("<Status>" + this.getGbStatus() + "</Status>\n")
+                        .append("<Longitude>" + this.getGbLongitude() + "</Longitude>\n")
+                        .append("<Latitude>" + this.getGbLatitude() + "</Latitude>\n")
+                        .append("<Info>\n")
+                        .append("  <PTZType>" + this.getGbPtzType() + "</PTZType>\n")
+                        .append("  <PositionType>" + this.getPositionType() + "</PositionType>\n")
+                        .append("  <RoomType>" + this.getGbRoomType() + "</RoomType>\n")
+                        .append("  <UseType>" + this.getGbUseType() + "</UseType>\n")
+                        .append("  <SupplyLightType>" + this.getGbSupplyLightType() + "</SupplyLightType>\n")
+                        .append("  <DirectionType>" + this.getGbDirectionType() + "</DirectionType>\n")
+                        .append("  <Resolution>" + this.getGbResolution() + "</Resolution>\n")
+                        .append("  <BusinessGroupID>" + this.getGbBusinessGroupId() + "</BusinessGroupID>\n")
+                        .append("  <DownloadSpeed>" + this.getGbDownloadSpeed() + "</DownloadSpeed>\n")
+                        .append("  <SVCSpaceSupportMode>" + this.getGbSvcSpaceSupportMod() + "</SVCSpaceSupportMode>\n")
+                        .append("  <SVCTimeSupportMode>" + this.getGbSvcTimeSupportMode() + "</SVCTimeSupportMode>\n")
+                        .append("</Info>")
+                ;
+            }
+        }
+        if (event != null) {
+            content.append("<Event>" + event + "</Event>\n");
+        }
+        content.append("</Item>\n");
+        return content.toString();
     }
 
 }

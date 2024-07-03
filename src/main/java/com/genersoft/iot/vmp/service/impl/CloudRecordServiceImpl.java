@@ -20,9 +20,8 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -35,12 +34,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+@Slf4j
 @Service
 @DS("share")
 public class CloudRecordServiceImpl implements ICloudRecordService {
-
-
-    private final static Logger logger = LoggerFactory.getLogger(CloudRecordServiceImpl.class);
 
     @Autowired
     private CloudRecordServiceMapper cloudRecordServiceMapper;
@@ -116,7 +113,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
                 cloudRecordItem.setCallId(streamAuthorityInfo.getCallId());
             }
         }
-        logger.info("[添加录像记录] {}/{}, callId: {}, 内容：{}", event.getApp(), event.getStream(), cloudRecordItem.getCallId(), event.getRecordInfo());
+        log.info("[添加录像记录] {}/{}, callId: {}, 内容：{}", event.getApp(), event.getStream(), cloudRecordItem.getCallId(), event.getRecordInfo());
         cloudRecordServiceMapper.add(cloudRecordItem);
     }
 

@@ -7,30 +7,30 @@ import com.genersoft.iot.vmp.conf.security.SecurityUtils;
 import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
-import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 
 
 @Tag(name  = "媒体流相关")
 @Controller
-
+@Slf4j
 @RequestMapping(value = "/api/media")
 public class MediaController {
-
-    private final static Logger logger = LoggerFactory.getLogger(MediaController.class);
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -85,7 +85,7 @@ public class MediaController {
         if (useSourceIpAsStreamIp != null && useSourceIpAsStreamIp) {
             String host = request.getHeader("Host");
             String localAddr = host.split(":")[0];
-            logger.info("使用{}作为返回流的ip", localAddr);
+            log.info("使用{}作为返回流的ip", localAddr);
             streamInfo = mediaServerService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, localAddr, authority);
         }else {
             streamInfo = mediaServerService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, authority);
@@ -100,12 +100,12 @@ public class MediaController {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
-                logger.error("[线程休眠失败]， {}", e.getMessage());
+                log.error("[线程休眠失败]， {}", e.getMessage());
             }
             if (useSourceIpAsStreamIp != null && useSourceIpAsStreamIp) {
                 String host = request.getHeader("Host");
                 String localAddr = host.split(":")[0];
-                logger.info("使用{}作为返回流的ip", localAddr);
+                log.info("使用{}作为返回流的ip", localAddr);
                 streamInfo = mediaServerService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, localAddr, authority);
             }else {
                 streamInfo = mediaServerService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, authority);

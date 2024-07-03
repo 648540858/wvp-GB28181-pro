@@ -12,8 +12,7 @@ import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -26,11 +25,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 @DS("master")
 public class InviteStreamServiceImpl implements IInviteStreamService {
-
-    private final Logger logger = LoggerFactory.getLogger(InviteStreamServiceImpl.class);
 
     private final Map<String, List<ErrorCallback<Object>>> inviteErrorCallbackMap = new ConcurrentHashMap<>();
 
@@ -73,7 +71,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     @Override
     public void updateInviteInfo(InviteInfo inviteInfo, Long time) {
         if (inviteInfo == null || (inviteInfo.getDeviceId() == null || inviteInfo.getChannelId() == null)) {
-            logger.warn("[更新Invite信息]，参数不全： {}", JSON.toJSON(inviteInfo));
+            log.warn("[更新Invite信息]，参数不全： {}", JSON.toJSON(inviteInfo));
             return;
         }
         InviteInfo inviteInfoForUpdate = null;
@@ -91,7 +89,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
             InviteInfo inviteInfoInRedis = getInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(),
                     inviteInfo.getChannelId(), inviteInfo.getStream());
             if (inviteInfoInRedis == null) {
-                logger.warn("[更新Invite信息]，未从缓存中读取到Invite信息： deviceId: {}, channel: {}, stream: {}",
+                log.warn("[更新Invite信息]，未从缓存中读取到Invite信息： deviceId: {}, channel: {}, stream: {}",
                         inviteInfo.getDeviceId(), inviteInfo.getChannelId(), inviteInfo.getStream());
                 return;
             }
@@ -165,7 +163,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
             return null;
         }
         if (scanResult.size() != 1) {
-            logger.warn("[获取InviteInfo] 发现 key: {}存在多条", key);
+            log.warn("[获取InviteInfo] 发现 key: {}存在多条", key);
         }
 
         return (InviteInfo) redisTemplate.opsForValue().get(scanResult.get(0));

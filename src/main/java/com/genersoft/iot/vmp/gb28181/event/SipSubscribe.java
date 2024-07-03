@@ -3,9 +3,8 @@ package com.genersoft.iot.vmp.gb28181.event;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceNotFoundEvent;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -22,10 +21,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author lin
  */
+@Slf4j
 @Component
 public class SipSubscribe {
-
-    private final Logger logger = LoggerFactory.getLogger(SipSubscribe.class);
 
     private final Map<String, SipSubscribe.Event> errorSubscribes = new ConcurrentHashMap<>();
 
@@ -39,7 +37,7 @@ public class SipSubscribe {
     //    @Scheduled(fixedRate= 100 * 60 * 60 )
     @Scheduled(cron="0 0/5 * * * ?")   //每5分钟执行一次
     public void execute(){
-        logger.info("[定时任务] 清理过期的SIP订阅信息");
+        log.info("[定时任务] 清理过期的SIP订阅信息");
 
         Instant instant = Instant.now().minusMillis(TimeUnit.MINUTES.toMillis(5));
 
@@ -55,10 +53,10 @@ public class SipSubscribe {
                 errorTimeSubscribes.remove(key);
             }
         }
-        logger.debug("okTimeSubscribes.size:{}",okTimeSubscribes.size());
-        logger.debug("okSubscribes.size:{}",okSubscribes.size());
-        logger.debug("errorTimeSubscribes.size:{}",errorTimeSubscribes.size());
-        logger.debug("errorSubscribes.size:{}",errorSubscribes.size());
+        log.debug("okTimeSubscribes.size:{}",okTimeSubscribes.size());
+        log.debug("okSubscribes.size:{}",okSubscribes.size());
+        log.debug("errorTimeSubscribes.size:{}",errorTimeSubscribes.size());
+        log.debug("errorSubscribes.size:{}",errorSubscribes.size());
     }
 
     public interface Event { void response(EventResult eventResult);

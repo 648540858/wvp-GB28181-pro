@@ -4,8 +4,8 @@ import com.alibaba.fastjson2.JSONArray;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.service.ICloudRecordService;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.ICloudRecordService;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -16,9 +16,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,13 +34,11 @@ import java.util.zip.ZipOutputStream;
 
 @SuppressWarnings("rawtypes")
 @Tag(name = "云端录像接口")
-
+@Slf4j
 @RestController
 @RequestMapping("/api/cloud/record")
 public class CloudRecordController {
 
-
-    private final static Logger logger = LoggerFactory.getLogger(CloudRecordController.class);
 
     @Autowired
     private ICloudRecordService cloudRecordService;
@@ -66,7 +63,7 @@ public class CloudRecordController {
             @RequestParam(required = false) String mediaServerId
 
     ) {
-        logger.info("[云端录像] 查询存在云端录像的日期 app->{}, stream->{}, mediaServerId->{}, year->{}, month->{}",
+        log.info("[云端录像] 查询存在云端录像的日期 app->{}, stream->{}, mediaServerId->{}, year->{}, month->{}",
                 app, stream, mediaServerId, year, month);
         Calendar calendar = Calendar.getInstance();
         if (ObjectUtils.isEmpty(year)) {
@@ -117,7 +114,7 @@ public class CloudRecordController {
             @RequestParam(required = false) String callId
 
     ) {
-        logger.info("[云端录像] 查询 app->{}, stream->{}, mediaServerId->{}, page->{}, count->{}, startTime->{}, endTime->{}, callId->{}",
+        log.info("[云端录像] 查询 app->{}, stream->{}, mediaServerId->{}, page->{}, count->{}, startTime->{}, endTime->{}, callId->{}",
                 app, stream, mediaServerId, page, count, startTime, endTime, callId);
 
         List<MediaServer> mediaServers;
@@ -232,7 +229,7 @@ public class CloudRecordController {
             @RequestParam(required = false) String callId,
             @RequestParam(required = false) Integer recordId
     ){
-        logger.info("[云端录像] 添加收藏，app={}，stream={},mediaServerId={},startTime={},endTime={},callId={},recordId={}",
+        log.info("[云端录像] 添加收藏，app={}，stream={},mediaServerId={},startTime={},endTime={},callId={},recordId={}",
                 app, stream, mediaServerId, startTime, endTime, callId, recordId);
         if (recordId != null) {
             return cloudRecordService.changeCollectById(recordId, true);
@@ -260,7 +257,7 @@ public class CloudRecordController {
             @RequestParam(required = false) String callId,
             @RequestParam(required = false) Integer recordId
     ){
-        logger.info("[云端录像] 移除收藏，app={}，stream={},mediaServerId={},startTime={},endTime={},callId={},recordId={}",
+        log.info("[云端录像] 移除收藏，app={}，stream={},mediaServerId={},startTime={},endTime={},callId={},recordId={}",
                 app, stream, mediaServerId, startTime, endTime, callId, recordId);
         if (recordId != null) {
             return cloudRecordService.changeCollectById(recordId, false);
@@ -306,7 +303,7 @@ public class CloudRecordController {
             @RequestParam(required = false) List<Integer> ids
 
     ) {
-        logger.info("[下载指定录像文件的压缩包] 查询 app->{}, stream->{}, mediaServerId->{}, startTime->{}, endTime->{}, callId->{}",
+        log.info("[下载指定录像文件的压缩包] 查询 app->{}, stream->{}, mediaServerId->{}, startTime->{}, endTime->{}, callId->{}",
                 app, stream, mediaServerId, startTime, endTime, callId);
 
         List<MediaServer> mediaServers;
@@ -367,7 +364,7 @@ public class CloudRecordController {
             }
             zos.close();
         } catch (IOException e) {
-            logger.error("[下载指定录像文件的压缩包] 失败： 查询 app->{}, stream->{}, mediaServerId->{}, startTime->{}, endTime->{}, callId->{}",
+            log.error("[下载指定录像文件的压缩包] 失败： 查询 app->{}, stream->{}, mediaServerId->{}, startTime->{}, endTime->{}, callId->{}",
                     app, stream, mediaServerId, startTime, endTime, callId, e);
         }
     }
@@ -409,7 +406,7 @@ public class CloudRecordController {
             @RequestParam(required = false) String remoteHost
 
     ) {
-        logger.info("[云端录像] 查询URL app->{}, stream->{}, mediaServerId->{}, page->{}, count->{}, startTime->{}, endTime->{}, callId->{}",
+        log.info("[云端录像] 查询URL app->{}, stream->{}, mediaServerId->{}, page->{}, count->{}, startTime->{}, endTime->{}, callId->{}",
                 app, stream, mediaServerId, page, count, startTime, endTime, callId);
 
         List<MediaServer> mediaServers;

@@ -1,8 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.event.alarm;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
@@ -18,27 +17,26 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author <a href="mailto:xiaoQQya@126.com">xiaoQQya</a>
  * @since 2021/01/20
  */
+@Slf4j
 @Component
 public class AlarmEventListener implements ApplicationListener<AlarmEvent> {
-
-    private static final Logger logger = LoggerFactory.getLogger(AlarmEventListener.class);
 
     private static final Map<String, PrintWriter> SSE_CACHE = new ConcurrentHashMap<>();
 
     public void addSseEmitter(String browserId, PrintWriter writer) {
         SSE_CACHE.put(browserId, writer);
-        logger.info("SSE 在线数量: {}", SSE_CACHE.size());
+        log.info("SSE 在线数量: {}", SSE_CACHE.size());
     }
 
     public void removeSseEmitter(String browserId, PrintWriter writer) {
         SSE_CACHE.remove(browserId, writer);
-        logger.info("SSE 在线数量: {}", SSE_CACHE.size());
+        log.info("SSE 在线数量: {}", SSE_CACHE.size());
     }
 
     @Override
     public void onApplicationEvent(@NotNull AlarmEvent event) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("设备报警事件触发, deviceId: {}, {}", event.getAlarmInfo().getDeviceId(), event.getAlarmInfo().getAlarmDescription());
+        if (log.isDebugEnabled()) {
+            log.debug("设备报警事件触发, deviceId: {}, {}", event.getAlarmInfo().getDeviceId(), event.getAlarmInfo().getAlarmDescription());
         }
 
         String msg = "<strong>设备编号：</strong> <i>" + event.getAlarmInfo().getDeviceId() + "</i>"
@@ -48,7 +46,7 @@ public class AlarmEventListener implements ApplicationListener<AlarmEvent> {
 
         for (Iterator<Map.Entry<String, PrintWriter>> it = SSE_CACHE.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<String, PrintWriter> response = it.next();
-            logger.info("推送到 SSE 连接, 浏览器 ID: {}", response.getKey());
+            log.info("推送到 SSE 连接, 浏览器 ID: {}", response.getKey());
             try {
                 PrintWriter writer = response.getValue();
 

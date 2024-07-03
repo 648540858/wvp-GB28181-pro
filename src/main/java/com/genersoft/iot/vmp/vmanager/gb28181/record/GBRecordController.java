@@ -1,7 +1,5 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.record;
 
-import com.genersoft.iot.vmp.common.InviteInfo;
-import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
@@ -15,7 +13,6 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.IPlayService;
-import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -26,10 +23,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,12 +38,10 @@ import java.text.ParseException;
 import java.util.UUID;
 
 @Tag(name  = "国标录像")
-
+@Slf4j
 @RestController
 @RequestMapping("/api/gb_record")
 public class GBRecordController {
-
-	private final static Logger logger = LoggerFactory.getLogger(GBRecordController.class);
 
 	@Autowired
 	private SIPCommander cmder;
@@ -79,8 +72,8 @@ public class GBRecordController {
 	@GetMapping("/query/{deviceId}/{channelId}")
 	public DeferredResult<WVPResult<RecordInfo>> recordinfo(@PathVariable String deviceId, @PathVariable String channelId, String startTime, String endTime){
 
-		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("录像信息查询 API调用，deviceId：%s ，startTime：%s， endTime：%s",deviceId, startTime, endTime));
+		if (log.isDebugEnabled()) {
+			log.debug(String.format("录像信息查询 API调用，deviceId：%s ，startTime：%s， endTime：%s",deviceId, startTime, endTime));
 		}
 		DeferredResult<WVPResult<RecordInfo>> result = new DeferredResult<>();
 		if (!DateUtil.verification(startTime, DateUtil.formatter)){
@@ -107,7 +100,7 @@ public class GBRecordController {
 				resultHolder.invokeResult(msg);
 			}));
 		} catch (InvalidArgumentException | SipException | ParseException e) {
-			logger.error("[命令发送失败] 查询录像: {}", e.getMessage());
+			log.error("[命令发送失败] 查询录像: {}", e.getMessage());
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " +  e.getMessage());
 		}
 
@@ -135,8 +128,8 @@ public class GBRecordController {
 	public DeferredResult<WVPResult<StreamContent>> download(HttpServletRequest request, @PathVariable String deviceId, @PathVariable String channelId,
 															 String startTime, String endTime, String downloadSpeed) {
 
-		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("历史媒体下载 API调用，deviceId：%s，channelId：%s，downloadSpeed：%s", deviceId, channelId, downloadSpeed));
+		if (log.isDebugEnabled()) {
+			log.debug(String.format("历史媒体下载 API调用，deviceId：%s，channelId：%s，downloadSpeed：%s", deviceId, channelId, downloadSpeed));
 		}
 
 		String uuid = UUID.randomUUID().toString();
@@ -181,8 +174,8 @@ public class GBRecordController {
 	@GetMapping("/download/stop/{deviceId}/{channelId}/{stream}")
 	public void playStop(@PathVariable String deviceId, @PathVariable String channelId, @PathVariable String stream) {
 
-		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("设备历史媒体下载停止 API调用，deviceId/channelId：%s_%s", deviceId, channelId));
+		if (log.isDebugEnabled()) {
+			log.debug(String.format("设备历史媒体下载停止 API调用，deviceId/channelId：%s_%s", deviceId, channelId));
 		}
 
 		if (deviceId == null || channelId == null) {
@@ -197,7 +190,7 @@ public class GBRecordController {
 		try {
 			cmder.streamByeCmd(device, channelId, stream, null);
 		} catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
-			logger.error("[停止历史媒体下载]停止历史媒体下载，发送BYE失败 {}", e.getMessage());
+			log.error("[停止历史媒体下载]停止历史媒体下载，发送BYE失败 {}", e.getMessage());
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
 		}
 	}

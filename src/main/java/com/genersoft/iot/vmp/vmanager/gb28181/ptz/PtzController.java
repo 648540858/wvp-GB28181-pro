@@ -13,8 +13,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -26,12 +25,10 @@ import java.text.ParseException;
 import java.util.UUID;
 
 @Tag(name  = "云台控制")
-
+@Slf4j
 @RestController
 @RequestMapping("/api/ptz")
 public class PtzController {
-
-	private final static Logger logger = LoggerFactory.getLogger(PtzController.class);
 
 	@Autowired
 	private SIPCommander cmder;
@@ -62,8 +59,8 @@ public class PtzController {
 	@PostMapping("/control/{deviceId}/{channelId}")
 	public void ptz(@PathVariable String deviceId,@PathVariable String channelId, String command, int horizonSpeed, int verticalSpeed, int zoomSpeed){
 
-		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("设备云台控制 API调用，deviceId：%s ，channelId：%s ，command：%s ，horizonSpeed：%d ，verticalSpeed：%d ，zoomSpeed：%d",deviceId, channelId, command, horizonSpeed, verticalSpeed, zoomSpeed));
+		if (log.isDebugEnabled()) {
+			log.debug(String.format("设备云台控制 API调用，deviceId：%s ，channelId：%s ，command：%s ，horizonSpeed：%d ，verticalSpeed：%d ，zoomSpeed：%d",deviceId, channelId, command, horizonSpeed, verticalSpeed, zoomSpeed));
 		}
 		Device device = storager.queryVideoDevice(deviceId);
 		int cmdCode = 0;
@@ -109,7 +106,7 @@ public class PtzController {
 		try {
 			cmder.frontEndCmd(device, channelId, cmdCode, horizonSpeed, verticalSpeed, zoomSpeed);
 		} catch (SipException | InvalidArgumentException | ParseException e) {
-			logger.error("[命令发送失败] 云台控制: {}", e.getMessage());
+			log.error("[命令发送失败] 云台控制: {}", e.getMessage());
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
 		}
 	}
@@ -125,15 +122,15 @@ public class PtzController {
 	@PostMapping("/front_end_command/{deviceId}/{channelId}")
 	public void frontEndCommand(@PathVariable String deviceId,@PathVariable String channelId,int cmdCode, int parameter1, int parameter2, int combindCode2){
 
-		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("设备云台控制 API调用，deviceId：%s ，channelId：%s ，cmdCode：%d parameter1：%d parameter2：%d",deviceId, channelId, cmdCode, parameter1, parameter2));
+		if (log.isDebugEnabled()) {
+			log.debug(String.format("设备云台控制 API调用，deviceId：%s ，channelId：%s ，cmdCode：%d parameter1：%d parameter2：%d",deviceId, channelId, cmdCode, parameter1, parameter2));
 		}
 		Device device = storager.queryVideoDevice(deviceId);
 
 		try {
 			cmder.frontEndCmd(device, channelId, cmdCode, parameter1, parameter2, combindCode2);
 		} catch (SipException | InvalidArgumentException | ParseException e) {
-			logger.error("[命令发送失败] 前端控制: {}", e.getMessage());
+			log.error("[命令发送失败] 前端控制: {}", e.getMessage());
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
 		}
 	}
@@ -144,15 +141,15 @@ public class PtzController {
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@GetMapping("/preset/query/{deviceId}/{channelId}")
 	public DeferredResult<String> presetQueryApi(@PathVariable String deviceId, @PathVariable String channelId) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("设备预置位查询API调用");
+		if (log.isDebugEnabled()) {
+			log.debug("设备预置位查询API调用");
 		}
 		Device device = storager.queryVideoDevice(deviceId);
 		String uuid =  UUID.randomUUID().toString();
 		String key =  DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (ObjectUtils.isEmpty(channelId) ? deviceId : channelId);
 		DeferredResult<String> result = new DeferredResult<String> (3 * 1000L);
 		result.onTimeout(()->{
-			logger.warn(String.format("获取设备预置位超时"));
+			log.warn(String.format("获取设备预置位超时"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);
@@ -173,7 +170,7 @@ public class PtzController {
 				resultHolder.invokeResult(msg);
 			});
 		} catch (InvalidArgumentException | SipException | ParseException e) {
-			logger.error("[命令发送失败] 获取设备预置位: {}", e.getMessage());
+			log.error("[命令发送失败] 获取设备预置位: {}", e.getMessage());
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
 		}
 		return result;

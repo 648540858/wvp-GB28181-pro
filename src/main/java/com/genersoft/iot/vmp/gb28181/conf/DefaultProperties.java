@@ -49,14 +49,14 @@ public class DefaultProperties {
         /**
          * sip_server_log.log 和 sip_debug_log.log ERROR, INFO, WARNING, OFF, DEBUG, TRACE
          */
-        Logger logger = LoggerFactory.getLogger(AlarmNotifyMessageHandler.class);
+        Logger log = LoggerFactory.getLogger(AlarmNotifyMessageHandler.class);
         if (sipLog) {
             properties.setProperty("gov.nist.javax.sip.STACK_LOGGER", "com.genersoft.iot.vmp.gb28181.conf.StackLoggerImpl");
             properties.setProperty("gov.nist.javax.sip.SERVER_LOGGER", "com.genersoft.iot.vmp.gb28181.conf.ServerLoggerImpl");
             properties.setProperty("gov.nist.javax.sip.LOG_MESSAGE_CONTENT", "true");
-            logger.info("[SIP日志]已开启");
+            log.info("[SIP日志]已开启");
         }else {
-            logger.info("[SIP日志]已关闭");
+            log.info("[SIP日志]已关闭");
         }
         return properties;
     }

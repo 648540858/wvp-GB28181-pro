@@ -2,8 +2,7 @@ package com.genersoft.iot.vmp.web.gb28181;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.SipConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,11 +13,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * API兼容：系统接口
  */
 @Controller
-
+@Slf4j
 @RequestMapping(value = "/api/v1")
 public class ApiController {
-
-    private final static Logger logger = LoggerFactory.getLogger(ApiController.class);
 
     @Autowired
     private SipConfig sipConfig;
@@ -87,8 +84,8 @@ public class ApiController {
     @GetMapping(value = "/login")
     @ResponseBody
     private JSONObject login(String username,String password ){
-        if (logger.isDebugEnabled()) {
-            logger.debug(String.format("模拟接口> 登录 API调用，username：%s ，password：%s ",
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("模拟接口> 登录 API调用，username：%s ，password：%s ",
                     username, password));
         }
 

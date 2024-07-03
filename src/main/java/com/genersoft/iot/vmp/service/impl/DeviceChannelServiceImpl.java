@@ -20,8 +20,7 @@ import com.genersoft.iot.vmp.storager.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,11 +34,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * @author lin
  */
+@Slf4j
 @Service
 @DS("master")
 public class DeviceChannelServiceImpl implements IDeviceChannelService {
-
-    private final static Logger logger = LoggerFactory.getLogger(DeviceChannelServiceImpl.class);
 
     @Autowired
     private EventPublisher eventPublisher;
@@ -278,9 +276,9 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         assert !ObjectUtils.isEmpty(channel.getDeviceId());
         assert !ObjectUtils.isEmpty(channel.getStreamIdentification());
         if (ObjectUtils.isEmpty(channel.getStreamIdentification())) {
-            logger.info("[重置通道码流类型] 设备: {}, 码流： {}", channel.getDeviceId(), channel.getStreamIdentification());
+            log.info("[重置通道码流类型] 设备: {}, 码流： {}", channel.getDeviceId(), channel.getStreamIdentification());
         }else {
-            logger.info("[更新通道码流类型] 设备: {}, 通道：{}， 码流： {}", channel.getDeviceId(), channel.getDeviceId(),
+            log.info("[更新通道码流类型] 设备: {}, 通道：{}， 码流： {}", channel.getDeviceId(), channel.getDeviceId(),
                     channel.getStreamIdentification());
         }
         channelMapper.updateChannelStreamIdentification(channel);
@@ -321,7 +319,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             return;
         }
         if (deviceChannels.size() > 100) {
-            logger.warn("[更新通道位置信息后发送通知] 设备可能是平台，上报的位置信息未标明通道编号，" +
+            log.warn("[更新通道位置信息后发送通知] 设备可能是平台，上报的位置信息未标明通道编号，" +
                     "导致所有通道被更新位置， deviceId:{}", device.getDeviceId());
         }
         for (DeviceChannel channel : deviceChannels) {
@@ -330,7 +328,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             try {
                 eventPublisher.mobilePositionEventPublish(mobilePosition);
             }catch (Exception e) {
-                logger.error("[向上级转发移动位置失败] ", e);
+                log.error("[向上级转发移动位置失败] ", e);
             }
             // 发送redis消息。 通知位置信息的变化
             JSONObject jsonObject = new JSONObject();
@@ -473,10 +471,10 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         }
 
         if (stringBuilder.length() > 0) {
-            logger.info("[目录查询]收到的数据存在重复： {}" , stringBuilder);
+            log.info("[目录查询]收到的数据存在重复： {}" , stringBuilder);
         }
         if(CollectionUtils.isEmpty(channels)){
-            logger.info("通道重设，数据为空={}" , deviceChannelList);
+            log.info("通道重设，数据为空={}" , deviceChannelList);
             return false;
         }
         int limitCount = 50;

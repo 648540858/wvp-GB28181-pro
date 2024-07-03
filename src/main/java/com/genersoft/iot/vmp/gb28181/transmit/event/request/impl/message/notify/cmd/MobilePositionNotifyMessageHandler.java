@@ -13,10 +13,9 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import gov.nist.javax.sip.message.SIPRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -36,10 +35,10 @@ import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 /**
  * 移动设备位置数据通知，设备主动发起，不需要上级订阅
  */
+@Slf4j
 @Component
 public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(MobilePositionNotifyMessageHandler.class);
     private final String cmdType = "MobilePosition";
 
     @Autowired
@@ -80,7 +79,7 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
         try {
             responseAck((SIPRequest) evt.getRequest(), Response.OK);
         } catch (SipException | InvalidArgumentException | ParseException e) {
-            logger.error("[命令发送失败] 移动位置通知回复: {}", e.getMessage());
+            log.error("[命令发送失败] 移动位置通知回复: {}", e.getMessage());
         }
         if (isEmpty) {
             taskExecutor.execute(() -> {
@@ -89,7 +88,7 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
                     try {
                         Element rootElementAfterCharset = getRootElement(sipMsgInfo.getEvt(), sipMsgInfo.getDevice().getCharset());
                         if (rootElementAfterCharset == null) {
-                            logger.warn("[移动位置通知] {}处理失败，未识别到信息体", device.getDeviceId());
+                            log.warn("[移动位置通知] {}处理失败，未识别到信息体", device.getDeviceId());
                             continue;
                         }
                         MobilePosition mobilePosition = new MobilePosition();
@@ -136,10 +135,10 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
                         deviceChannelService.updateChannelGPS(device, deviceChannel, mobilePosition);
 
                     } catch (DocumentException e) {
-                        logger.error("未处理的异常 ", e);
+                        log.error("未处理的异常 ", e);
                     } catch (Exception e) {
-                        logger.warn("[移动位置通知] 发现未处理的异常, \r\n{}", evt.getRequest());
-                        logger.error("[移动位置通知] 异常内容： ", e);
+                        log.warn("[移动位置通知] 发现未处理的异常, \r\n{}", evt.getRequest());
+                        log.error("[移动位置通知] 异常内容： ", e);
                     }
                 }
             });

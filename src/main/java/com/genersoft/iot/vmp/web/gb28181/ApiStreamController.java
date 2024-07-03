@@ -15,8 +15,7 @@ import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -30,11 +29,10 @@ import java.text.ParseException;
  */
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
 
+@Slf4j
 @RestController
 @RequestMapping(value = "/api/v1/stream")
 public class ApiStreamController {
-
-    private final static Logger logger = LoggerFactory.getLogger(ApiStreamController.class);
 
     @Autowired
     private SIPCommander cmder;
@@ -93,7 +91,7 @@ public class ApiStreamController {
             return result;
         }
         result.onTimeout(()->{
-            logger.info("播放等待超时");
+            log.info("播放等待超时");
             JSONObject resultJSON = new JSONObject();
             resultJSON.put("error","timeout");
             result.setResult(resultJSON);

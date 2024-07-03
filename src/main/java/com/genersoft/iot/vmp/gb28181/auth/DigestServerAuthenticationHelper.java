@@ -26,8 +26,7 @@
 package com.genersoft.iot.vmp.gb28181.auth;
 
 import gov.nist.core.InternalErrorHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.sip.address.URI;
 import javax.sip.header.AuthorizationHeader;
@@ -46,18 +45,13 @@ import java.util.Random;
  * @author M. Ranganathan
  * @author Marc Bednarek
  */
-
+@Slf4j
 public class DigestServerAuthenticationHelper  {
-
-    private Logger logger = LoggerFactory.getLogger(DigestServerAuthenticationHelper.class);
 
     private MessageDigest messageDigest;
 
     public static final String DEFAULT_ALGORITHM = "MD5";
     public static final String DEFAULT_SCHEME = "Digest";
-
-
-
 
     /** to hex converter */
     private static final char[] toHex = { '0', '1', '2', '3', '4', '5', '6',
@@ -205,17 +199,17 @@ public class DigestServerAuthenticationHelper  {
 
         byte mdbytes[] = messageDigest.digest(A1.getBytes());
         String HA1 = toHexString(mdbytes);
-        logger.debug("A1: " + A1);
-        logger.debug("A2: " + A2);
+        log.debug("A1: " + A1);
+        log.debug("A2: " + A2);
         mdbytes = messageDigest.digest(A2.getBytes());
         String HA2 = toHexString(mdbytes);
-        logger.debug("HA1: " + HA1);
-        logger.debug("HA2: " + HA2);
+        log.debug("HA1: " + HA1);
+        log.debug("HA2: " + HA2);
         // String cnonce = authHeader.getCNonce();
-        logger.debug("nonce: " + nonce);
-        logger.debug("nc: " + ncStr);
-        logger.debug("cnonce: " + cnonce);
-        logger.debug("qop: " + qop);
+        log.debug("nonce: " + nonce);
+        log.debug("nc: " + ncStr);
+        log.debug("cnonce: " + cnonce);
+        log.debug("qop: " + qop);
         String KD = HA1 + ":" + nonce;
 
         if (qop != null && qop.equalsIgnoreCase("auth") ) {
@@ -228,12 +222,12 @@ public class DigestServerAuthenticationHelper  {
             KD += ":" + qop;
         }
         KD += ":" + HA2;
-        logger.debug("KD: " + KD);
+        log.debug("KD: " + KD);
         mdbytes = messageDigest.digest(KD.getBytes());
         String mdString = toHexString(mdbytes);
-        logger.debug("mdString: " + mdString);
+        log.debug("mdString: " + mdString);
         String response = authHeader.getResponse();
-        logger.debug("response: " + response);
+        log.debug("response: " + response);
         return mdString.equals(response);
 
     }

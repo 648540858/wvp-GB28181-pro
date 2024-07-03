@@ -28,8 +28,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -46,12 +45,10 @@ import java.util.UUID;
  * @author lin
  */
 @Tag(name  = "国标设备点播")
-
+@Slf4j
 @RestController
 @RequestMapping("/api/play")
 public class PlayController {
-
-	private final static Logger logger = LoggerFactory.getLogger(PlayController.class);
 
 	@Autowired
 	private SIPCommander cmder;
@@ -84,7 +81,7 @@ public class PlayController {
 	public DeferredResult<WVPResult<StreamContent>> play(HttpServletRequest request, @PathVariable String deviceId,
 														 @PathVariable String channelId) {
 
-		logger.info("[开始点播] deviceId：{}, channelId：{}, ", deviceId, channelId);
+		log.info("[开始点播] deviceId：{}, channelId：{}, ", deviceId, channelId);
 		// 获取可用的zlm
 		Device device = storager.queryVideoDevice(deviceId);
 		MediaServer newMediaServerItem = playService.getNewMediaServerItem(device);
@@ -97,7 +94,7 @@ public class PlayController {
 		DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
 
 		result.onTimeout(()->{
-			logger.info("[点播等待超时] deviceId：{}, channelId：{}, ", deviceId, channelId);
+			log.info("[点播等待超时] deviceId：{}, channelId：{}, ", deviceId, channelId);
 			// 释放rtpserver
 			WVPResult<StreamInfo> wvpResult = new WVPResult<>();
 			wvpResult.setCode(ErrorCode.ERROR100.getCode());
@@ -155,7 +152,7 @@ public class PlayController {
 	@GetMapping("/stop/{deviceId}/{channelId}")
 	public JSONObject playStop(@PathVariable String deviceId, @PathVariable String channelId) {
 
-		logger.debug(String.format("设备预览/回放停止API调用，streamId：%s_%s", deviceId, channelId ));
+		log.debug(String.format("设备预览/回放停止API调用，streamId：%s_%s", deviceId, channelId ));
 
 		if (deviceId == null || channelId == null) {
 			throw new ControllerException(ErrorCode.ERROR400);
@@ -201,8 +198,8 @@ public class PlayController {
 	@GetMapping("/broadcast/{deviceId}/{channelId}")
 	@PostMapping("/broadcast/{deviceId}/{channelId}")
     public AudioBroadcastResult broadcastApi(@PathVariable String deviceId, @PathVariable String channelId, Integer timeout, Boolean broadcastMode) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("语音广播API调用");
+		if (log.isDebugEnabled()) {
+			log.debug("语音广播API调用");
 		}
 		Device device = storager.queryVideoDevice(deviceId);
 		if (device == null) {
@@ -222,8 +219,8 @@ public class PlayController {
 	@GetMapping("/broadcast/stop/{deviceId}/{channelId}")
 	@PostMapping("/broadcast/stop/{deviceId}/{channelId}")
 	public void stopBroadcast(@PathVariable String deviceId, @PathVariable String channelId) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("停止语音广播API调用");
+		if (log.isDebugEnabled()) {
+			log.debug("停止语音广播API调用");
 		}
 //		try {
 //			playService.stopAudioBroadcast(deviceId, channelId);
@@ -237,8 +234,8 @@ public class PlayController {
 	@Operation(summary = "获取所有的ssrc", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@GetMapping("/ssrc")
 	public JSONObject getSSRC() {
-		if (logger.isDebugEnabled()) {
-			logger.debug("获取所有的ssrc");
+		if (log.isDebugEnabled()) {
+			log.debug("获取所有的ssrc");
 		}
 		JSONArray objects = new JSONArray();
 		List<SsrcTransaction> allSsrc = streamSession.getAllSsrc();
@@ -263,8 +260,8 @@ public class PlayController {
 	@Parameter(name = "isSubStream", description = "是否子码流（true-子码流，false-主码流），默认为false", required = true)
 	@GetMapping("/snap")
 	public DeferredResult<String> getSnap(String deviceId, String channelId,boolean isSubStream) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("获取截图: {}/{}", deviceId, channelId);
+		if (log.isDebugEnabled()) {
+			log.debug("获取截图: {}/{}", deviceId, channelId);
 		}
 
 		DeferredResult<String> result = new DeferredResult<>(3 * 1000L);

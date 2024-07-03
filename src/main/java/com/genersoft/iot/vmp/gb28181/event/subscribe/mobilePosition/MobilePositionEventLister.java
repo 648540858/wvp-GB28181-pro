@@ -6,8 +6,7 @@ import com.genersoft.iot.vmp.gb28181.bean.SubscribeInfo;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
@@ -20,10 +19,9 @@ import java.util.List;
 /**
  * 移动位置通知消息转发
  */
+@Slf4j
 @Component
 public class MobilePositionEventLister implements ApplicationListener<MobilePositionEvent> {
-
-    private final static Logger logger = LoggerFactory.getLogger(MobilePositionEventLister.class);
 
     @Autowired
     private IVideoManagerStorage storager;
@@ -44,7 +42,7 @@ public class MobilePositionEventLister implements ApplicationListener<MobilePosi
         List<ParentPlatform> parentPlatformsForGB = storager.queryPlatFormListForGBWithGBId(event.getMobilePosition().getChannelId(), platforms);
 
         for (ParentPlatform platform : parentPlatformsForGB) {
-            logger.info("[向上级发送MobilePosition] 通道：{}，平台：{}， 位置： {}:{}", event.getMobilePosition().getChannelId(),
+            log.info("[向上级发送MobilePosition] 通道：{}，平台：{}， 位置： {}:{}", event.getMobilePosition().getChannelId(),
                     platform.getServerGBId(), event.getMobilePosition().getLongitude(), event.getMobilePosition().getLatitude());
             SubscribeInfo subscribe = subscribeHolder.getMobilePositionSubscribe(platform.getServerGBId());
             try {
@@ -52,7 +50,7 @@ public class MobilePositionEventLister implements ApplicationListener<MobilePosi
                         subscribe);
             } catch (InvalidArgumentException | ParseException | NoSuchFieldException | SipException |
                      IllegalAccessException e) {
-                logger.error("[命令发送失败] 国标级联 Catalog通知: {}", e.getMessage());
+                log.error("[命令发送失败] 国标级联 Catalog通知: {}", e.getMessage());
             }
         }
 

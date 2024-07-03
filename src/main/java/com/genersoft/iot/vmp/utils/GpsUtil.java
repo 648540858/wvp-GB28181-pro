@@ -1,18 +1,13 @@
 package com.genersoft.iot.vmp.utils;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.Socket;
+import com.genersoft.iot.vmp.gb28181.bean.BaiduPoint;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Base64;
 
-import com.genersoft.iot.vmp.gb28181.bean.BaiduPoint;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+@Slf4j
 public class GpsUtil {
 
-    private static Logger logger = LoggerFactory.getLogger(GpsUtil.class);
 
     public static BaiduPoint Wgs84ToBd09(String xx, String yy) {
 

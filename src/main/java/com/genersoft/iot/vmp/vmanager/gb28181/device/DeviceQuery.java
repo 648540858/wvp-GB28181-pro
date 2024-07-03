@@ -25,10 +25,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.ibatis.annotations.Options;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -53,12 +52,10 @@ import java.util.UUID;
 
 @Tag(name  = "国标设备查询", description = "国标设备查询")
 @SuppressWarnings("rawtypes")
-
+@Slf4j
 @RestController
 @RequestMapping("/api/device/query")
 public class DeviceQuery {
-	
-	private final static Logger logger = LoggerFactory.getLogger(DeviceQuery.class);
 	
 	@Autowired
 	private IVideoManagerStorage storager;
@@ -158,8 +155,8 @@ public class DeviceQuery {
 	@GetMapping("/devices/{deviceId}/sync")
 	public WVPResult<SyncStatus> devicesSync(@PathVariable String deviceId){
 		
-		if (logger.isDebugEnabled()) {
-			logger.debug("设备通道信息同步API调用，deviceId：" + deviceId);
+		if (log.isDebugEnabled()) {
+			log.debug("设备通道信息同步API调用，deviceId：" + deviceId);
 		}
 		Device device = storager.queryVideoDevice(deviceId);
 		boolean status = deviceService.isSyncRunning(deviceId);
@@ -186,8 +183,8 @@ public class DeviceQuery {
 	@DeleteMapping("/devices/{deviceId}/delete")
 	public String delete(@PathVariable String deviceId){
 		
-		if (logger.isDebugEnabled()) {
-			logger.debug("设备信息删除API调用，deviceId：" + deviceId);
+		if (log.isDebugEnabled()) {
+			log.debug("设备信息删除API调用，deviceId：" + deviceId);
 		}
 
 		// 清除redis记录
@@ -210,7 +207,7 @@ public class DeviceQuery {
 			json.put("deviceId", deviceId);
 			return json.toString();
 		} else {
-			logger.warn("设备信息删除API调用失败！");
+			log.warn("设备信息删除API调用失败！");
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备信息删除API调用失败！");
 		}
 	}
@@ -340,8 +337,8 @@ public class DeviceQuery {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@GetMapping("/devices/{deviceId}/status")
 	public DeferredResult<ResponseEntity<String>> deviceStatusApi(@PathVariable String deviceId) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("设备状态查询API调用");
+		if (log.isDebugEnabled()) {
+			log.debug("设备状态查询API调用");
 		}
 		Device device = storager.queryVideoDevice(deviceId);
 		String uuid = UUID.randomUUID().toString();
@@ -360,11 +357,11 @@ public class DeviceQuery {
 				resultHolder.invokeResult(msg);
 			});
 		} catch (InvalidArgumentException | SipException | ParseException e) {
-			logger.error("[命令发送失败] 获取设备状态: {}", e.getMessage());
+			log.error("[命令发送失败] 获取设备状态: {}", e.getMessage());
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
 		}
 		result.onTimeout(()->{
-			logger.warn(String.format("获取设备状态超时"));
+			log.warn(String.format("获取设备状态超时"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);
@@ -403,8 +400,8 @@ public class DeviceQuery {
 														@RequestParam(required = false) String alarmType,
 														@RequestParam(required = false) String startTime,
 														@RequestParam(required = false) String endTime) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("设备报警查询API调用");
+		if (log.isDebugEnabled()) {
+			log.debug("设备报警查询API调用");
 		}
 		Device device = storager.queryVideoDevice(deviceId);
 		String key = DeferredResultHolder.CALLBACK_CMD_ALARM + deviceId;
@@ -418,12 +415,12 @@ public class DeviceQuery {
 				resultHolder.invokeResult(msg);
 			});
 		} catch (InvalidArgumentException | SipException | ParseException e) {
-			logger.error("[命令发送失败] 设备报警查询: {}", e.getMessage());
+			log.error("[命令发送失败] 设备报警查询: {}", e.getMessage());
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
 		}
 		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String >> (3 * 1000L);
 		result.onTimeout(()->{
-			logger.warn(String.format("设备报警查询超时"));
+			log.warn(String.format("设备报警查询超时"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);

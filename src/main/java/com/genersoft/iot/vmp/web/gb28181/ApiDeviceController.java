@@ -14,8 +14,7 @@ import com.genersoft.iot.vmp.vmanager.bean.DeferredResultEx;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
 import com.github.pagehelper.PageInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,12 +32,10 @@ import java.util.*;
  * API兼容：设备信息
  */
 @SuppressWarnings("unchecked")
-
+@Slf4j
 @RestController
 @RequestMapping(value = "/api/v1/device")
 public class ApiDeviceController {
-
-    private final static Logger logger = LoggerFactory.getLogger(ApiDeviceController.class);
 
     @Autowired
     private IVideoManagerStorage storager;
@@ -194,8 +191,8 @@ public class ApiDeviceController {
                       @RequestParam(required = false)Boolean fill,
                       @RequestParam(required = false)Integer timeout){
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("<模拟接口> 获取下级通道预置位 API调用，deviceId：{} ，channel：{} ，code：{} ，fill：{} ，timeout：{} ",
+        if (log.isDebugEnabled()) {
+            log.debug("<模拟接口> 获取下级通道预置位 API调用，deviceId：{} ，channel：{} ，code：{} ，fill：{} ，timeout：{} ",
                     serial, channel, code, fill, timeout);
         }
 
@@ -205,7 +202,7 @@ public class ApiDeviceController {
         DeferredResult<Object> result = new DeferredResult<> (timeout * 1000L);
         DeferredResultEx<Object> deferredResultEx = new DeferredResultEx<>(result);
         result.onTimeout(()->{
-            logger.warn("<模拟接口> 获取设备预置位超时");
+            log.warn("<模拟接口> 获取设备预置位超时");
             // 释放rtpserver
             RequestMessage msg = new RequestMessage();
             msg.setId(uuid);
@@ -246,7 +243,7 @@ public class ApiDeviceController {
                 resultHolder.invokeResult(msg);
             });
         } catch (InvalidArgumentException | SipException | ParseException e) {
-            logger.error("[命令发送失败] 获取设备预置位: {}", e.getMessage());
+            log.error("[命令发送失败] 获取设备预置位: {}", e.getMessage());
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
         }
         return result;

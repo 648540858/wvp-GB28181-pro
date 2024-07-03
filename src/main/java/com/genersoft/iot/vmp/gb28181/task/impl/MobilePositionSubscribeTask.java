@@ -6,8 +6,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import gov.nist.javax.sip.message.SIPRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
@@ -19,8 +18,8 @@ import java.text.ParseException;
  * 移动位置订阅的定时更新
  * @author lin
  */
+@Slf4j
 public class MobilePositionSubscribeTask implements ISubscribeTask {
-    private final Logger logger = LoggerFactory.getLogger(MobilePositionSubscribeTask.class);
     private final Device device;
     private final ISIPCommander sipCommander;
 
@@ -43,23 +42,23 @@ public class MobilePositionSubscribeTask implements ISubscribeTask {
         try {
             sipRequest = sipCommander.mobilePositionSubscribe(device, request, eventResult -> {
                 // 成功
-                logger.info("[移动位置订阅]成功： {}", device.getDeviceId());
+                log.info("[移动位置订阅]成功： {}", device.getDeviceId());
                 ResponseEvent event = (ResponseEvent) eventResult.event;
                 ToHeader toHeader = (ToHeader)event.getResponse().getHeader(ToHeader.NAME);
                 try {
                     this.request.getToHeader().setTag(toHeader.getTag());
                 } catch (ParseException e) {
-                    logger.info("[移动位置订阅]成功： 为request设置ToTag失败");
+                    log.info("[移动位置订阅]成功： 为request设置ToTag失败");
                     this.request = null;
                 }
             },eventResult -> {
                 this.request = null;
                 // 失败
-                logger.warn("[移动位置订阅]失败，信令发送失败： {}-{} ", device.getDeviceId(), eventResult.msg);
+                log.warn("[移动位置订阅]失败，信令发送失败： {}-{} ", device.getDeviceId(), eventResult.msg);
                 dynamicTask.startDelay(taskKey, MobilePositionSubscribeTask.this, 2000);
             });
         } catch (InvalidArgumentException | SipException | ParseException e) {
-            logger.error("[命令发送失败] 移动位置订阅: {}", e.getMessage());
+            log.error("[命令发送失败] 移动位置订阅: {}", e.getMessage());
         }
         if (sipRequest != null) {
             this.request = sipRequest;
@@ -85,20 +84,20 @@ public class MobilePositionSubscribeTask implements ISubscribeTask {
                 ResponseEvent event = (ResponseEvent) eventResult.event;
                 if (event.getResponse().getRawContent() != null) {
                     // 成功
-                    logger.info("[取消移动位置订阅]成功： {}", device.getDeviceId());
+                    log.info("[取消移动位置订阅]成功： {}", device.getDeviceId());
                 }else {
                     // 成功
-                    logger.info("[取消移动位置订阅]成功： {}", device.getDeviceId());
+                    log.info("[取消移动位置订阅]成功： {}", device.getDeviceId());
                 }
                 if (callback != null) {
                     callback.run(event.getResponse().getRawContent() != null);
                 }
             },eventResult -> {
                 // 失败
-                logger.warn("[取消移动位置订阅]失败，信令发送失败： {}-{} ", device.getDeviceId(), eventResult.msg);
+                log.warn("[取消移动位置订阅]失败，信令发送失败： {}-{} ", device.getDeviceId(), eventResult.msg);
             });
         } catch (InvalidArgumentException | SipException | ParseException e) {
-            logger.error("[命令发送失败] 取消移动位置订阅: {}", e.getMessage());
+            log.error("[命令发送失败] 取消移动位置订阅: {}", e.getMessage());
         }
     }
 }

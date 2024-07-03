@@ -23,8 +23,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,12 +44,10 @@ import java.util.UUID;
  * @author lin
  */
 @Tag(name = "视频回放")
-
+@Slf4j
 @RestController
 @RequestMapping("/api/playback")
 public class PlaybackController {
-
-	private final static Logger logger = LoggerFactory.getLogger(PlaybackController.class);
 
 	@Autowired
 	private SIPCommander cmder;
@@ -79,8 +76,8 @@ public class PlaybackController {
 	public DeferredResult<WVPResult<StreamContent>> start(HttpServletRequest request, @PathVariable String deviceId, @PathVariable String channelId,
 														  String startTime, String endTime) {
 
-		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("设备回放 API调用，deviceId：%s ，channelId：%s", deviceId, channelId));
+		if (log.isDebugEnabled()) {
+			log.debug(String.format("设备回放 API调用，deviceId：%s ，channelId：%s", deviceId, channelId));
 		}
 
 		String uuid = UUID.randomUUID().toString();
@@ -155,7 +152,7 @@ public class PlaybackController {
 	@Parameter(name = "streamId", description = "回放流ID", required = true)
 	@GetMapping("/pause/{streamId}")
 	public void playPause(@PathVariable String streamId) {
-		logger.info("playPause: "+streamId);
+		log.info("playPause: "+streamId);
 
 		try {
 			playService.pauseRtp(streamId);
@@ -171,7 +168,7 @@ public class PlaybackController {
 	@Parameter(name = "streamId", description = "回放流ID", required = true)
 	@GetMapping("/resume/{streamId}")
 	public void playResume(@PathVariable String streamId) {
-		logger.info("playResume: "+streamId);
+		log.info("playResume: "+streamId);
 		try {
 			playService.resumeRtp(streamId);
 		} catch (ServiceException e) {
@@ -187,11 +184,11 @@ public class PlaybackController {
 	@Parameter(name = "seekTime", description = "拖动偏移量，单位s", required = true)
 	@GetMapping("/seek/{streamId}/{seekTime}")
 	public void playSeek(@PathVariable String streamId, @PathVariable long seekTime) {
-		logger.info("playSeek: "+streamId+", "+seekTime);
+		log.info("playSeek: "+streamId+", "+seekTime);
 		InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, streamId);
 
 		if (null == inviteInfo || inviteInfo.getStreamInfo() == null) {
-			logger.warn("streamId不存在!");
+			log.warn("streamId不存在!");
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), "streamId不存在");
 		}
 		Device device = storager.queryVideoDevice(inviteInfo.getDeviceId());
@@ -207,15 +204,15 @@ public class PlaybackController {
 	@Parameter(name = "speed", description = "倍速0.25 0.5 1、2、4", required = true)
 	@GetMapping("/speed/{streamId}/{speed}")
 	public void playSpeed(@PathVariable String streamId, @PathVariable Double speed) {
-		logger.info("playSpeed: "+streamId+", "+speed);
+		log.info("playSpeed: "+streamId+", "+speed);
 		InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, streamId);
 
 		if (null == inviteInfo || inviteInfo.getStreamInfo() == null) {
-			logger.warn("streamId不存在!");
+			log.warn("streamId不存在!");
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), "streamId不存在");
 		}
 		if(speed != 0.25 && speed != 0.5 && speed != 1 && speed != 2.0 && speed != 4.0) {
-			logger.warn("不支持的speed： " + speed);
+			log.warn("不支持的speed： " + speed);
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "不支持的speed（0.25 0.5 1、2、4）");
 		}
 		Device device = storager.queryVideoDevice(inviteInfo.getDeviceId());

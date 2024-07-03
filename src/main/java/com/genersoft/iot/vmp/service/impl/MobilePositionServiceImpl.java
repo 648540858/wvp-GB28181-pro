@@ -6,8 +6,7 @@ import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.service.IMobilePositionService;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMobilePositionMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -19,7 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
+@Slf4j
 @Service
 public class MobilePositionServiceImpl implements IMobilePositionService {
 
@@ -34,8 +33,6 @@ public class MobilePositionServiceImpl implements IMobilePositionService {
 
     @Autowired
     private RedisTemplate<String, MobilePosition> redisTemplate;
-
-    private final static Logger logger = LoggerFactory.getLogger(MobilePositionServiceImpl.class);
 
     private final String REDIS_MOBILE_POSITION_LIST = "redis_mobile_position_list";
 
@@ -78,7 +75,7 @@ public class MobilePositionServiceImpl implements IMobilePositionService {
         if (userSetting.getSavePositionHistory()) {
             mobilePositionMapper.batchadd(mobilePositions);
         }
-        logger.info("[移动位置订阅]更新通道位置： {}", mobilePositions.size());
+        log.info("[移动位置订阅]更新通道位置： {}", mobilePositions.size());
         Map<String, DeviceChannel> updateChannelMap = new HashMap<>();
         for (MobilePosition mobilePosition : mobilePositions) {
             DeviceChannel deviceChannel = new DeviceChannel();

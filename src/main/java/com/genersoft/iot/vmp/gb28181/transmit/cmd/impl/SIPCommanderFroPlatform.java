@@ -27,8 +27,7 @@ import com.genersoft.iot.vmp.utils.GitUtil;
 import gov.nist.javax.sip.message.MessageFactoryImpl;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.lang.Nullable;
@@ -46,11 +45,10 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Component
 @DependsOn("sipLayer")
 public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
-
-    private final Logger logger = LoggerFactory.getLogger(SIPCommanderFroPlatform.class);
 
     @Autowired
     private SIPRequestHeaderPlarformProvider headerProviderPlatformProvider;
@@ -132,7 +130,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
                 sipSubscribe.addErrorSubscribe(callIdHeader.getCallId(), (event)->{
                     if (event != null) {
-                        logger.info("向上级平台 [ {} ] 注册发生错误： {} ",
+                        log.info("向上级平台 [ {} ] 注册发生错误： {} ",
                                 parentPlatform.getServerGBId(),
                                 event.msg);
                     }
@@ -247,9 +245,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
         String callId = request.getCallIdHeader().getCallId();
 
-        logger.info("[命令发送] 国标级联{} 目录查询回复: 共{}条，已发送{}条", parentPlatform.getServerGBId(),
+        log.info("[命令发送] 国标级联{} 目录查询回复: 共{}条，已发送{}条", parentPlatform.getServerGBId(),
                 channels.size(), Math.min(index + parentPlatform.getCatalogGroup(), channels.size()));
-        logger.debug(catalogXml);
+        log.debug(catalogXml);
         if (sendAfterResponse) {
             // 默认按照收到200回复后发送下一条， 如果超时收不到回复，就以30毫秒的间隔直接发送。
             dynamicTask.startDelay(timeoutTaskKey, ()->{
@@ -258,11 +256,11 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 try {
                     sendCatalogResponse(channels, parentPlatform, sn, fromTag, indexNext, false);
                 } catch (SipException | InvalidArgumentException | ParseException e) {
-                    logger.error("[命令发送失败] 国标级联 目录查询回复: {}", e.getMessage());
+                    log.error("[命令发送失败] 国标级联 目录查询回复: {}", e.getMessage());
                 }
             }, 3000);
             sipSender.transmitRequest(parentPlatform.getDeviceIp(), request, eventResult -> {
-                logger.error("[目录推送失败] 国标级联 platform : {}, code: {}, msg: {}, 停止发送", parentPlatform.getServerGBId(), eventResult.statusCode, eventResult.msg);
+                log.error("[目录推送失败] 国标级联 platform : {}, code: {}, msg: {}, 停止发送", parentPlatform.getServerGBId(), eventResult.statusCode, eventResult.msg);
                 dynamicTask.stop(timeoutTaskKey);
             }, eventResult -> {
                 dynamicTask.stop(timeoutTaskKey);
@@ -270,12 +268,12 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 try {
                     sendCatalogResponse(channels, parentPlatform, sn, fromTag, indexNext, true);
                 } catch (SipException | InvalidArgumentException | ParseException e) {
-                    logger.error("[命令发送失败] 国标级联 目录查询回复: {}", e.getMessage());
+                    log.error("[命令发送失败] 国标级联 目录查询回复: {}", e.getMessage());
                 }
             });
         }else {
             sipSender.transmitRequest(parentPlatform.getDeviceIp(), request, eventResult -> {
-                logger.error("[目录推送失败] 国标级联 platform : {}, code: {}, msg: {}, 停止发送", parentPlatform.getServerGBId(), eventResult.statusCode, eventResult.msg);
+                log.error("[目录推送失败] 国标级联 platform : {}, code: {}, msg: {}, 停止发送", parentPlatform.getServerGBId(), eventResult.statusCode, eventResult.msg);
                 dynamicTask.stop(timeoutTaskKey);
             }, null);
             dynamicTask.startDelay(timeoutTaskKey, ()->{
@@ -283,7 +281,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 try {
                     sendCatalogResponse(channels, parentPlatform, sn, fromTag, indexNext, false);
                 } catch (SipException | InvalidArgumentException | ParseException e) {
-                    logger.error("[命令发送失败] 国标级联 目录查询回复: {}", e.getMessage());
+                    log.error("[命令发送失败] 国标级联 目录查询回复: {}", e.getMessage());
                 }
             }, 30);
         }
@@ -363,7 +361,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         if (parentPlatform == null) {
             return;
         }
-        logger.info("[发送 移动位置订阅] {}/{}->{},{}", parentPlatform.getServerGBId(), gpsMsgInfo.getId(), gpsMsgInfo.getLng(), gpsMsgInfo.getLat());
+        log.info("[发送 移动位置订阅] {}/{}->{},{}", parentPlatform.getServerGBId(), gpsMsgInfo.getId(), gpsMsgInfo.getLng(), gpsMsgInfo.getLat());
 
         String characterSet = parentPlatform.getCharacterSet();
         StringBuffer deviceStatusXml = new StringBuffer(600);
@@ -381,7 +379,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 .append("</Notify>\r\n");
 
        sendNotify(parentPlatform, deviceStatusXml.toString(), subscribeInfo, eventResult -> {
-            logger.error("发送NOTIFY通知消息失败。错误：{} {}", eventResult.statusCode, eventResult.msg);
+            log.error("发送NOTIFY通知消息失败。错误：{} {}", eventResult.statusCode, eventResult.msg);
         }, null);
 
     }
@@ -391,7 +389,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         if (parentPlatform == null) {
             return;
         }
-        logger.info("[发送报警通知]平台： {}/{}->{},{}: {}", parentPlatform.getServerGBId(), deviceAlarm.getChannelId(),
+        log.info("[发送报警通知]平台： {}/{}->{},{}: {}", parentPlatform.getServerGBId(), deviceAlarm.getChannelId(),
                 deviceAlarm.getLongitude(), deviceAlarm.getLatitude(), JSON.toJSONString(deviceAlarm));
         String characterSet = parentPlatform.getCharacterSet();
         StringBuffer deviceStatusXml = new StringBuffer(600);
@@ -439,16 +437,16 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         String catalogXmlContent = getCatalogXmlContentForCatalogAddOrUpdate(parentPlatform, channels,
                 deviceChannels.size(), type, subscribeInfo);
         System.out.println(catalogXmlContent);
-        logger.info("[发送NOTIFY通知]类型： {}，发送数量： {}", type, channels.size());
+        log.info("[发送NOTIFY通知]类型： {}，发送数量： {}", type, channels.size());
         sendNotify(parentPlatform, catalogXmlContent, subscribeInfo, eventResult -> {
-            logger.error("发送NOTIFY通知消息失败。错误：{} {}", eventResult.statusCode, eventResult.msg);
+            log.error("发送NOTIFY通知消息失败。错误：{} {}", eventResult.statusCode, eventResult.msg);
         }, (eventResult -> {
             try {
                 sendNotifyForCatalogAddOrUpdate(type, parentPlatform, deviceChannels, subscribeInfo,
                         finalIndex + parentPlatform.getCatalogGroup());
             } catch (InvalidArgumentException | ParseException | NoSuchFieldException | SipException |
                      IllegalAccessException e) {
-                logger.error("[命令发送失败] 国标级联 NOTIFY通知: {}", e.getMessage());
+                log.error("[命令发送失败] 国标级联 NOTIFY通知: {}", e.getMessage());
             }
         }));
     }
@@ -493,7 +491,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 || deviceChannels == null
                 || deviceChannels.size() == 0
                 || subscribeInfo == null) {
-            logger.warn("[缺少必要参数]");
+            log.warn("[缺少必要参数]");
             return;
         }
 
@@ -509,18 +507,18 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         }else {
             channels = deviceChannels.subList(index, deviceChannels.size());
         }
-        logger.info("[发送NOTIFY通知]类型： {}，发送数量： {}", type, channels.size());
+        log.info("[发送NOTIFY通知]类型： {}，发送数量： {}", type, channels.size());
         Integer finalIndex = index;
         String catalogXmlContent = getCatalogXmlContentForCatalogOther(parentPlatform, channels, type);
         sendNotify(parentPlatform, catalogXmlContent, subscribeInfo, eventResult -> {
-            logger.error("发送NOTIFY通知消息失败。错误：{} {}", eventResult.statusCode, eventResult.msg);
+            log.error("发送NOTIFY通知消息失败。错误：{} {}", eventResult.statusCode, eventResult.msg);
         }, eventResult -> {
             try {
                 sendNotifyForCatalogOther(type, parentPlatform, deviceChannels, subscribeInfo,
                         finalIndex + parentPlatform.getCatalogGroup());
             } catch (InvalidArgumentException | ParseException | NoSuchFieldException | SipException |
                      IllegalAccessException e) {
-                logger.error("[命令发送失败] 国标级联 NOTIFY通知: {}", e.getMessage());
+                log.error("[命令发送失败] 国标级联 NOTIFY通知: {}", e.getMessage());
             }
         });
     }
@@ -550,7 +548,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         if ( parentPlatform ==null) {
             return ;
         }
-        logger.info("[国标级联] 发送录像数据通道： {}", recordInfo.getChannelId());
+        log.info("[国标级联] 发送录像数据通道： {}", recordInfo.getChannelId());
         String characterSet = parentPlatform.getCharacterSet();
         StringBuffer recordXml = new StringBuffer(600);
         recordXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n")
@@ -587,13 +585,13 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
         recordXml.append("</RecordList>\r\n")
                 .append("</Response>\r\n");
-        logger.info("[国标级联] 发送录像数据通道：{}, 内容： {}", recordInfo.getChannelId(), recordXml);
+        log.info("[国标级联] 发送录像数据通道：{}, 内容： {}", recordInfo.getChannelId(), recordXml);
         // callid
         CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
 
         Request request = headerProviderPlatformProvider.createMessageRequest(parentPlatform, recordXml.toString(), fromTag, SipUtils.getNewViaTag(), callIdHeader);
         sipSender.transmitRequest(parentPlatform.getDeviceIp(), request, null, eventResult -> {
-            logger.info("[国标级联] 发送录像数据通道：{}, 发送成功", recordInfo.getChannelId());
+            log.info("[国标级联] 发送录像数据通道：{}, 发送成功", recordInfo.getChannelId());
         });
 
     }
@@ -636,14 +634,14 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     @Override
     public synchronized void streamByeCmd(ParentPlatform platform, SendRtpItem sendRtpItem) throws SipException, InvalidArgumentException, ParseException {
         if (sendRtpItem == null ) {
-            logger.info("[向上级发送BYE]， sendRtpItem 为NULL");
+            log.info("[向上级发送BYE]， sendRtpItem 为NULL");
             return;
         }
         if (platform == null) {
-            logger.info("[向上级发送BYE]， platform 为NULL");
+            log.info("[向上级发送BYE]， platform 为NULL");
             return;
         }
-        logger.info("[向上级发送BYE]， {}/{}", platform.getServerGBId(), sendRtpItem.getChannelId());
+        log.info("[向上级发送BYE]， {}/{}", platform.getServerGBId(), sendRtpItem.getChannelId());
         String mediaServerId = sendRtpItem.getMediaServerId();
         MediaServer mediaServerItem = mediaServerService.getOne(mediaServerId);
         if (mediaServerItem != null) {
@@ -652,7 +650,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         }
         SIPRequest byeRequest = headerProviderPlatformProvider.createByeRequest(platform, sendRtpItem);
         if (byeRequest == null) {
-            logger.warn("[向上级发送bye]：无法创建 byeRequest");
+            log.warn("[向上级发送bye]：无法创建 byeRequest");
         }
         sipSender.transmitRequest(platform.getDeviceIp(),byeRequest);
     }
@@ -705,7 +703,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             return;
         }
 
-        logger.info("{} 分配的ZLM为: {} [{}:{}]", stream, mediaServerItem.getId(), mediaServerItem.getIp(), ssrcInfo.getPort());
+        log.info("{} 分配的ZLM为: {} [{}:{}]", stream, mediaServerItem.getId(), mediaServerItem.getIp(), ssrcInfo.getPort());
         Hook hook = Hook.getInstance(HookType.on_media_arrival, "rtp", stream, mediaServerItem.getId());
         subscribe.addSubscribe(hook, (hookData) -> {
             if (event != null) {

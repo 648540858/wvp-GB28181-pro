@@ -10,8 +10,7 @@ import com.genersoft.iot.vmp.storager.dao.ParentPlatformMapper;
 import com.genersoft.iot.vmp.storager.dao.PlatformCatalogMapper;
 import com.genersoft.iot.vmp.storager.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
@@ -27,11 +26,10 @@ import java.util.Map;
 /**
  * @author lin
  */
+@Slf4j
 @Service
 @DS("master")
 public class PlatformChannelServiceImpl implements IPlatformChannelService {
-
-    private final static Logger logger = LoggerFactory.getLogger(PlatformChannelServiceImpl.class);
 
     @Autowired
     private PlatformChannelMapper platformChannelMapper;
@@ -62,7 +60,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     public int updateChannelForGB(String platformId, List<ChannelReduce> channelReduces, String catalogId) {
         ParentPlatform platform = platformMapper.getParentPlatByServerGBId(platformId);
         if (platform == null) {
-            logger.warn("更新级联通道信息时未找到平台{}的信息", platformId);
+            log.warn("更新级联通道信息时未找到平台{}的信息", platformId);
             return 0;
         }
         Map<Integer, ChannelReduce> deviceAndChannels = new HashMap<>();
@@ -95,12 +93,12 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
                     int count = platformChannelMapper.addChannels(platformId, channelReducesToAdd.subList(i, toIndex));
                     result = result || count < 0;
                     allCount += count;
-                    logger.info("[关联通道]国标通道 平台：{}, 共需关联通道数:{}, 已关联：{}", platformId, channelReducesToAdd.size(), toIndex);
+                    log.info("[关联通道]国标通道 平台：{}, 共需关联通道数:{}, 已关联：{}", platformId, channelReducesToAdd.size(), toIndex);
                 }
             }else {
                 allCount = platformChannelMapper.addChannels(platformId, channelReducesToAdd);
                 result = result || allCount < 0;
-                logger.info("[关联通道]国标通道 平台：{}, 关联通道数:{}", platformId, channelReducesToAdd.size());
+                log.info("[关联通道]国标通道 平台：{}, 关联通道数:{}", platformId, channelReducesToAdd.size());
             }
 
             if (result) {
@@ -108,7 +106,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
                 dataSourceTransactionManager.rollback(transactionStatus);
                 allCount = 0;
             }else {
-                logger.info("[关联通道]国标通道 平台：{}, 正在存入数据库", platformId);
+                log.info("[关联通道]国标通道 平台：{}, 正在存入数据库", platformId);
                 dataSourceTransactionManager.commit(transactionStatus);
 
             }
@@ -119,7 +117,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
                     eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.ADD);
                 }
             }
-            logger.info("[关联通道]国标通道 平台：{}, 存入数据库成功", platformId);
+            log.info("[关联通道]国标通道 平台：{}, 存入数据库成功", platformId);
         }
         return allCount;
     }
@@ -137,7 +135,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
                 }
                 return deviceChannelList;
             } else if (catalog == null && !catalogId.equals(platform.getDeviceGBId())) {
-                logger.warn("未查询到目录{}的信息", catalogId);
+                log.warn("未查询到目录{}的信息", catalogId);
                 return null;
             }
             for (ChannelReduce channelReduce : channelReduces) {

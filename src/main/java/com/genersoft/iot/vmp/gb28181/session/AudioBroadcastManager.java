@@ -3,8 +3,7 @@ package com.genersoft.iot.vmp.gb28181.session;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.AudioBroadcastCatch;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -17,10 +16,9 @@ import java.util.stream.Stream;
  * 语音广播消息管理类
  * @author lin
  */
+@Slf4j
 @Component
 public class AudioBroadcastManager {
-
-    private final static Logger logger = LoggerFactory.getLogger(AudioBroadcastManager.class);
 
     @Autowired
     private SipConfig config;

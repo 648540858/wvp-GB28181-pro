@@ -25,8 +25,7 @@ import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
 import com.genersoft.iot.vmp.storager.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
@@ -45,11 +44,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * 设备业务（目录订阅）
  */
+@Slf4j
 @Service
 @DS("master")
 public class DeviceServiceImpl implements IDeviceService {
-
-    private final static Logger logger = LoggerFactory.getLogger(DeviceServiceImpl.class);
 
     @Autowired
     private SIPCommander cmder;
@@ -104,7 +102,7 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public void online(Device device, SipTransactionInfo sipTransactionInfo) {
-        logger.info("[设备上线] deviceId：{}->{}:{}", device.getDeviceId(), device.getIp(), device.getPort());
+        log.info("[设备上线] deviceId：{}->{}:{}", device.getDeviceId(), device.getIp(), device.getPort());
         Device deviceInRedis = redisCatchStorage.getDevice(device.getDeviceId());
         Device deviceInDb = deviceMapper.getDeviceByDeviceId(device.getDeviceId());
 
@@ -132,13 +130,13 @@ public class DeviceServiceImpl implements IDeviceService {
             device.setOnLine(true);
             device.setCreateTime(now);
             device.setUpdateTime(now);
-            logger.info("[设备上线,首次注册]: {}，查询设备信息以及通道信息", device.getDeviceId());
+            log.info("[设备上线,首次注册]: {}，查询设备信息以及通道信息", device.getDeviceId());
             deviceMapper.add(device);
             redisCatchStorage.updateDevice(device);
             try {
                 commander.deviceInfoQuery(device);
             } catch (InvalidArgumentException | SipException | ParseException e) {
-                logger.error("[命令发送失败] 查询设备信息: {}", e.getMessage());
+                log.error("[命令发送失败] 查询设备信息: {}", e.getMessage());
             }
             sync(device);
         }else {
@@ -148,11 +146,11 @@ public class DeviceServiceImpl implements IDeviceService {
                 deviceMapper.update(device);
                 redisCatchStorage.updateDevice(device);
                 if (userSetting.getSyncChannelOnDeviceOnline()) {
-                    logger.info("[设备上线,离线状态下重新注册]: {}，查询设备信息以及通道信息", device.getDeviceId());
+                    log.info("[设备上线,离线状态下重新注册]: {}，查询设备信息以及通道信息", device.getDeviceId());
                     try {
                         commander.deviceInfoQuery(device);
                     } catch (InvalidArgumentException | SipException | ParseException e) {
-                        logger.error("[命令发送失败] 查询设备信息: {}", e.getMessage());
+                        log.error("[命令发送失败] 查询设备信息: {}", e.getMessage());
                     }
                     sync(device);
                     // TODO 如果设备下的通道级联到了其他平台，那么需要发送事件或者notify给上级平台
@@ -172,7 +170,7 @@ public class DeviceServiceImpl implements IDeviceService {
 
             }else {
                 if (deviceChannelMapper.queryAllChannels(device.getDeviceId()).size() == 0) {
-                    logger.info("[设备上线]: {}，通道数为0,查询通道信息", device.getDeviceId());
+                    log.info("[设备上线]: {}，通道数为0,查询通道信息", device.getDeviceId());
                     sync(device);
                 }
 
@@ -202,7 +200,7 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public void offline(String deviceId, String reason) {
-        logger.warn("[设备离线]，{}, device：{}", reason, deviceId);
+        log.warn("[设备离线]，{}, device：{}", reason, deviceId);
         Device device = deviceMapper.getDeviceByDeviceId(deviceId);
         if (device == null) {
             return;
@@ -255,7 +253,7 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device == null || device.getSubscribeCycleForCatalog() < 0) {
             return false;
         }
-        logger.info("[添加目录订阅] 设备{}", device.getDeviceId());
+        log.info("[添加目录订阅] 设备{}", device.getDeviceId());
         // 添加目录订阅
         CatalogSubscribeTask catalogSubscribeTask = new CatalogSubscribeTask(device, sipCommander, dynamicTask);
         // 刷新订阅
@@ -272,7 +270,7 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device == null || device.getSubscribeCycleForCatalog() < 0) {
             return false;
         }
-        logger.info("[移除目录订阅]: {}", device.getDeviceId());
+        log.info("[移除目录订阅]: {}", device.getDeviceId());
         String taskKey = device.getDeviceId() + "catalog";
         if (device.isOnLine()) {
             Runnable runnable = dynamicTask.get(taskKey);
@@ -290,7 +288,7 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device == null || device.getSubscribeCycleForMobilePosition() < 0) {
             return false;
         }
-        logger.info("[添加移动位置订阅] 设备{}", device.getDeviceId());
+        log.info("[添加移动位置订阅] 设备{}", device.getDeviceId());
         // 添加目录订阅
         MobilePositionSubscribeTask mobilePositionSubscribeTask = new MobilePositionSubscribeTask(device, sipCommander, dynamicTask);
         // 设置最小值为30
@@ -306,7 +304,7 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device == null || device.getSubscribeCycleForCatalog() < 0) {
             return false;
         }
-        logger.info("[移除移动位置订阅]: {}", device.getDeviceId());
+        log.info("[移除移动位置订阅]: {}", device.getDeviceId());
         String taskKey = device.getDeviceId() + "mobile_position";
         if (device.isOnLine()) {
             Runnable runnable = dynamicTask.get(taskKey);
@@ -332,7 +330,7 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     public void sync(Device device) {
         if (catalogResponseMessageHandler.isSyncRunning(device.getDeviceId())) {
-            logger.info("开启同步时发现同步已经存在");
+            log.info("开启同步时发现同步已经存在");
             return;
         }
         int sn = (int)((Math.random()*9+1)*100000);
@@ -343,7 +341,7 @@ public class DeviceServiceImpl implements IDeviceService {
                 catalogResponseMessageHandler.setChannelSyncEnd(device.getDeviceId(), errorMsg);
             });
         } catch (SipException | InvalidArgumentException | ParseException e) {
-            logger.error("[同步通道], 信令发送失败：{}", e.getMessage() );
+            log.error("[同步通道], 信令发送失败：{}", e.getMessage() );
             String errorMsg = String.format("同步通道失败，信令发送失败： %s", e.getMessage());
             catalogResponseMessageHandler.setChannelSyncEnd(device.getDeviceId(), errorMsg);
         }
@@ -381,7 +379,7 @@ public class DeviceServiceImpl implements IDeviceService {
         try {
             sipCommander.deviceStatusQuery(device, null);
         } catch (InvalidArgumentException | SipException | ParseException e) {
-            logger.error("[命令发送失败] 设备状态查询: {}", e.getMessage());
+            log.error("[命令发送失败] 设备状态查询: {}", e.getMessage());
         }
 
     }
@@ -446,7 +444,7 @@ public class DeviceServiceImpl implements IDeviceService {
     public void updateCustomDevice(Device device) {
         Device deviceInStore = deviceMapper.getDeviceByDeviceId(device.getDeviceId());
         if (deviceInStore == null) {
-            logger.warn("更新设备时未找到设备信息");
+            log.warn("更新设备时未找到设备信息");
             return;
         }
 

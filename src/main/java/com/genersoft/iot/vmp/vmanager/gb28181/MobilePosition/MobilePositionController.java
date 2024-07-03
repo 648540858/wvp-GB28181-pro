@@ -16,8 +16,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -32,12 +31,10 @@ import java.util.UUID;
  *  位置信息管理
  */
 @Tag(name  = "位置信息管理")
-
+@Slf4j
 @RestController
 @RequestMapping("/api/position")
 public class MobilePositionController {
-
-    private final static Logger logger = LoggerFactory.getLogger(MobilePositionController.class);
 
     @Autowired
     private IVideoManagerStorage storager;
@@ -114,12 +111,12 @@ public class MobilePositionController {
                 resultHolder.invokeResult(msg);
             });
         } catch (InvalidArgumentException | SipException | ParseException e) {
-            logger.error("[命令发送失败] 获取移动位置信息: {}", e.getMessage());
+            log.error("[命令发送失败] 获取移动位置信息: {}", e.getMessage());
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
         }
         DeferredResult<MobilePosition> result = new DeferredResult<MobilePosition>(5*1000L);
 		result.onTimeout(()->{
-			logger.warn(String.format("获取移动位置信息超时"));
+			log.warn(String.format("获取移动位置信息超时"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
             msg.setId(uuid);

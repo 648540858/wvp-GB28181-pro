@@ -20,8 +20,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -32,12 +31,11 @@ import javax.sip.SipException;
 import java.text.ParseException;
 import java.util.UUID;
 
+@Slf4j
 @Tag(name = "国标设备配置")
 @RestController
 @RequestMapping("/api/device/config")
 public class DeviceConfig {
-
-    private final static Logger logger = LoggerFactory.getLogger(DeviceQuery.class);
 
     @Autowired
     private IVideoManagerStorage storager;
@@ -72,8 +70,8 @@ public class DeviceConfig {
 																@RequestParam(required = false) String expiration,
 																@RequestParam(required = false) String heartBeatInterval,
                                                                 @RequestParam(required = false) String heartBeatCount) {
-        if (logger.isDebugEnabled()) {
-			logger.debug("报警复位API调用");
+        if (log.isDebugEnabled()) {
+			log.debug("报警复位API调用");
 		}
 		Device device = storager.queryVideoDevice(deviceId);
 		String uuid = UUID.randomUUID().toString();
@@ -87,12 +85,12 @@ public class DeviceConfig {
 				resultHolder.invokeResult(msg);
 			});
 		} catch (InvalidArgumentException | SipException | ParseException e) {
-			logger.error("[命令发送失败] 设备配置: {}", e.getMessage());
+			log.error("[命令发送失败] 设备配置: {}", e.getMessage());
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
 		}
 		DeferredResult<String> result = new DeferredResult<String>(3 * 1000L);
 		result.onTimeout(() -> {
-			logger.warn(String.format("设备配置操作超时, 设备未返回应答指令"));
+			log.warn(String.format("设备配置操作超时, 设备未返回应答指令"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);
@@ -123,8 +121,8 @@ public class DeviceConfig {
     public DeferredResult<String> configDownloadApi(@PathVariable String deviceId,
                                                                 @PathVariable String configType,
                                                                 @RequestParam(required = false) String channelId) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("设备状态查询API调用");
+		if (log.isDebugEnabled()) {
+			log.debug("设备状态查询API调用");
 		}
 		String key = DeferredResultHolder.CALLBACK_CMD_CONFIGDOWNLOAD + (ObjectUtils.isEmpty(channelId) ? deviceId : channelId);
 		String uuid = UUID.randomUUID().toString();
@@ -138,12 +136,12 @@ public class DeviceConfig {
 				resultHolder.invokeResult(msg);
 			});
 		} catch (InvalidArgumentException | SipException | ParseException e) {
-			logger.error("[命令发送失败] 获取设备配置: {}", e.getMessage());
+			log.error("[命令发送失败] 获取设备配置: {}", e.getMessage());
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
 		}
 		DeferredResult<String> result = new DeferredResult<String > (3 * 1000L);
 		result.onTimeout(()->{
-			logger.warn(String.format("获取设备配置超时"));
+			log.warn(String.format("获取设备配置超时"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);

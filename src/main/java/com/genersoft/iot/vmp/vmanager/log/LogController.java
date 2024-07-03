@@ -13,19 +13,16 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name  = "日志管理")
-
+@Slf4j
 @RestController
 @RequestMapping("/api/log")
 public class LogController {
-
-    private final static Logger logger = LoggerFactory.getLogger(LogController.class);
 
     @Autowired
     private ILogService logService;
@@ -65,7 +62,7 @@ public class LogController {
         }
 
         if (!userSetting.getLogInDatabase()) {
-            logger.warn("自动记录日志功能已关闭，查询结果可能不完整。");
+            log.warn("自动记录日志功能已关闭，查询结果可能不完整。");
         }
 
         if (ObjectUtils.isEmpty(startTime)) {

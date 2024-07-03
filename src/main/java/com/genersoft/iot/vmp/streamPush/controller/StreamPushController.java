@@ -11,20 +11,21 @@ import com.genersoft.iot.vmp.conf.security.SecurityUtils;
 import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
-import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMediaService;
+import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPushExcelDto;
-import com.genersoft.iot.vmp.streamPush.service.IStreamPushService;
 import com.genersoft.iot.vmp.streamPush.enent.StreamPushUploadFileHandler;
-import com.genersoft.iot.vmp.vmanager.bean.*;
+import com.genersoft.iot.vmp.streamPush.service.IStreamPushService;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,11 +44,9 @@ import java.util.UUID;
 
 @Tag(name  = "推流信息管理")
 @Controller
-
+@Slf4j
 @RequestMapping(value = "/api/push")
 public class StreamPushController {
-
-    private final static Logger logger = LoggerFactory.getLogger(StreamPushController.class);
 
     @Autowired
     private IStreamPushService streamPushService;
@@ -109,9 +108,9 @@ public class StreamPushController {
         // 录像查询以channelId作为deviceId查询
         String key = DeferredResultHolder.UPLOAD_FILE_CHANNEL;
         String uuid = UUID.randomUUID().toString();
-        logger.info("通道导入文件类型: {}",file.getContentType() );
+        log.info("通道导入文件类型: {}",file.getContentType() );
         if (file.isEmpty()) {
-            logger.warn("通道导入文件为空");
+            log.warn("通道导入文件为空");
             WVPResult<Object> wvpResult = new WVPResult<>();
             wvpResult.setCode(-1);
             wvpResult.setMsg("文件为空");
@@ -127,7 +126,7 @@ public class StreamPushController {
         }
         // 同时只处理一个文件
         if (resultHolder.exist(key, null)) {
-            logger.warn("已有导入任务正在执行");
+            log.warn("已有导入任务正在执行");
             WVPResult<Object> wvpResult = new WVPResult<>();
             wvpResult.setCode(-1);
             wvpResult.setMsg("已有导入任务正在执行");
@@ -137,7 +136,7 @@ public class StreamPushController {
 
         resultHolder.put(key, uuid, result);
         result.onTimeout(()->{
-            logger.warn("通道导入超时，可能文件过大");
+            log.warn("通道导入超时，可能文件过大");
             RequestMessage msg = new RequestMessage();
             msg.setKey(key);
             WVPResult<Object> wvpResult = new WVPResult<>();
@@ -152,13 +151,13 @@ public class StreamPushController {
             String name = file.getName();
             inputStream = file.getInputStream();
         } catch (IOException e) {
-            logger.error("未处理的异常 ", e);
+            log.error("未处理的异常 ", e);
         }
         try {
             //传入参数
             ExcelReader excelReader = EasyExcel.read(inputStream, StreamPushExcelDto.class,
                     new StreamPushUploadFileHandler(streamPushService, mediaServerService.getDefaultMediaServer().getId(), (errorStreams, errorGBs)->{
-                        logger.info("通道导入成功，存在重复App+Stream为{}个，存在国标ID为{}个", errorStreams.size(), errorGBs.size());
+                        log.info("通道导入成功，存在重复App+Stream为{}个，存在国标ID为{}个", errorStreams.size(), errorGBs.size());
                         RequestMessage msg = new RequestMessage();
                         msg.setKey(key);
                         WVPResult<Map<String, List<String>>> wvpResult = new WVPResult<>();
@@ -180,7 +179,7 @@ public class StreamPushController {
             excelReader.read(readSheet);
             excelReader.finish();
         }catch (Exception e) {
-            logger.warn("通道导入失败：", e);
+            log.warn("通道导入失败：", e);
             RequestMessage msg = new RequestMessage();
             msg.setKey(key);
             WVPResult<Object> wvpResult = new WVPResult<>();

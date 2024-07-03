@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
@@ -12,7 +13,9 @@ import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
-import com.genersoft.iot.vmp.service.*;
+import com.genersoft.iot.vmp.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.service.IPlatformChannelService;
+import com.genersoft.iot.vmp.service.IPlatformService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -24,12 +27,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
-import com.genersoft.iot.vmp.conf.SipConfig;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
@@ -40,12 +41,10 @@ import java.util.List;
  * 级联平台管理
  */
 @Tag(name  = "级联平台管理")
-
+@Slf4j
 @RestController
 @RequestMapping("/api/platform")
 public class PlatformController {
-
-    private final static Logger logger = LoggerFactory.getLogger(PlatformController.class);
 
     @Autowired
     private UserSetting userSetting;
@@ -144,8 +143,8 @@ public class PlatformController {
     @ResponseBody
     public void addPlatform(@RequestBody ParentPlatform parentPlatform) {
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("保存上级平台信息API调用");
+        if (log.isDebugEnabled()) {
+            log.debug("保存上级平台信息API调用");
         }
         if (ObjectUtils.isEmpty(parentPlatform.getName())
                 || ObjectUtils.isEmpty(parentPlatform.getServerGBId())
@@ -189,8 +188,8 @@ public class PlatformController {
     @ResponseBody
     public void savePlatform(@RequestBody ParentPlatform parentPlatform) {
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("保存上级平台信息API调用");
+        if (log.isDebugEnabled()) {
+            log.debug("保存上级平台信息API调用");
         }
         if (ObjectUtils.isEmpty(parentPlatform.getName())
                 || ObjectUtils.isEmpty(parentPlatform.getServerGBId())
@@ -221,8 +220,8 @@ public class PlatformController {
     @ResponseBody
     public void deletePlatform(@PathVariable String serverGBId) {
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("删除上级平台API调用");
+        if (log.isDebugEnabled()) {
+            log.debug("删除上级平台API调用");
         }
         if (ObjectUtils.isEmpty(serverGBId)
         ) {
@@ -252,7 +251,7 @@ public class PlatformController {
                 redisCatchStorage.delPlatformRegister(parentPlatform.getServerGBId());
             }));
         } catch (InvalidArgumentException | ParseException | SipException e) {
-            logger.error("[命令发送失败] 国标级联 注销: {}", e.getMessage());
+            log.error("[命令发送失败] 国标级联 注销: {}", e.getMessage());
         }
 
         boolean deleteResult = storager.deleteParentPlatform(parentPlatform);
@@ -337,13 +336,13 @@ public class PlatformController {
     @ResponseBody
     public void updateChannelForGB(@RequestBody UpdateChannelParam param) {
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("给上级平台添加国标通道API调用");
+        if (log.isDebugEnabled()) {
+            log.debug("给上级平台添加国标通道API调用");
         }
         int result = 0;
         if (param.getChannelReduces() == null || param.getChannelReduces().size() == 0) {
             if (param.isAll()) {
-                logger.info("[国标级联]添加所有通道到上级平台， {}", param.getPlatformId());
+                log.info("[国标级联]添加所有通道到上级平台， {}", param.getPlatformId());
                 List<ChannelReduce> allChannelForDevice = deviceChannelService.queryAllChannelList(param.getPlatformId());
                 result = platformChannelService.updateChannelForGB(param.getPlatformId(), allChannelForDevice, param.getCatalogId());
             }
@@ -366,13 +365,13 @@ public class PlatformController {
     @ResponseBody
     public void delChannelForGB(@RequestBody UpdateChannelParam param) {
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("给上级平台删除国标通道API调用");
+        if (log.isDebugEnabled()) {
+            log.debug("给上级平台删除国标通道API调用");
         }
         int result = 0;
         if (param.getChannelReduces() == null || param.getChannelReduces().size() == 0) {
             if (param.isAll()) {
-                logger.info("[国标级联]移除所有通道，上级平台， {}", param.getPlatformId());
+                log.info("[国标级联]移除所有通道，上级平台， {}", param.getPlatformId());
                 result = platformChannelService.delAllChannelForGB(param.getPlatformId(), param.getCatalogId());
             }
         }else {
@@ -397,8 +396,8 @@ public class PlatformController {
     @ResponseBody
     public List<PlatformCatalog> getCatalogByPlatform(String platformId, String parentId) {
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("查询目录,platformId: {}, parentId: {}", platformId, parentId);
+        if (log.isDebugEnabled()) {
+            log.debug("查询目录,platformId: {}, parentId: {}", platformId, parentId);
         }
         ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
         if (platform == null) {
@@ -426,8 +425,8 @@ public class PlatformController {
     @ResponseBody
     public void addCatalog(@RequestBody PlatformCatalog platformCatalog) {
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("添加目录,{}", JSON.toJSONString(platformCatalog));
+        if (log.isDebugEnabled()) {
+            log.debug("添加目录,{}", JSON.toJSONString(platformCatalog));
         }
         PlatformCatalog platformCatalogInStore = storager.getCatalog(platformCatalog.getPlatformId(), platformCatalog.getId());
 
@@ -451,8 +450,8 @@ public class PlatformController {
     @ResponseBody
     public void editCatalog(@RequestBody PlatformCatalog platformCatalog) {
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("编辑目录,{}", JSON.toJSONString(platformCatalog));
+        if (log.isDebugEnabled()) {
+            log.debug("编辑目录,{}", JSON.toJSONString(platformCatalog));
         }
         PlatformCatalog platformCatalogInStore = storager.getCatalog(platformCatalog.getPlatformId(), platformCatalog.getId());
 
@@ -479,8 +478,8 @@ public class PlatformController {
     @ResponseBody
     public void delCatalog(String id, String platformId) {
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("删除目录,{}", id);
+        if (log.isDebugEnabled()) {
+            log.debug("删除目录,{}", id);
         }
 
         if (ObjectUtils.isEmpty(id) || ObjectUtils.isEmpty(platformId)) {
@@ -512,8 +511,8 @@ public class PlatformController {
     @ResponseBody
     public void delRelation(@RequestBody PlatformCatalog platformCatalog) {
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("删除关联,{}", JSON.toJSONString(platformCatalog));
+        if (log.isDebugEnabled()) {
+            log.debug("删除关联,{}", JSON.toJSONString(platformCatalog));
         }
         int delResult = storager.delRelation(platformCatalog);
 
@@ -537,8 +536,8 @@ public class PlatformController {
     @ResponseBody
     public void setDefaultCatalog(String platformId, String catalogId) {
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("修改默认目录,{},{}", platformId, catalogId);
+        if (log.isDebugEnabled()) {
+            log.debug("修改默认目录,{},{}", platformId, catalogId);
         }
         int updateResult = storager.setDefaultCatalog(platformId, catalogId);
 

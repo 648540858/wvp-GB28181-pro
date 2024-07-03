@@ -2,10 +2,8 @@ package com.genersoft.iot.vmp.streamProxy.controller;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
@@ -17,8 +15,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.ObjectUtils;
@@ -32,23 +29,15 @@ import java.util.Map;
  */
 @Tag(name = "拉流代理", description = "")
 @Controller
-
+@Slf4j
 @RequestMapping(value = "/api/proxy")
 public class StreamProxyController {
-
-    private final static Logger logger = LoggerFactory.getLogger(StreamProxyController.class);
 
     @Autowired
     private IMediaServerService mediaServerService;
 
     @Autowired
     private IStreamProxyService streamProxyService;
-
-    @Autowired
-    private DeferredResultHolder resultHolder;
-
-    @Autowired
-    private UserSetting userSetting;
 
 
     @Operation(summary = "分页查询流代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -82,7 +71,7 @@ public class StreamProxyController {
     @PostMapping(value = "/save")
     @ResponseBody
     public StreamContent save(@RequestBody StreamProxy param){
-        logger.info("添加代理： " + JSONObject.toJSONString(param));
+        log.info("添加代理： " + JSONObject.toJSONString(param));
         if (ObjectUtils.isEmpty(param.getMediaServerId())) {
             param.setMediaServerId("auto");
         }
@@ -115,7 +104,7 @@ public class StreamProxyController {
     @Operation(summary = "获取ffmpeg.cmd模板", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "mediaServerId", description = "流媒体ID", required = true)
     public Map<String, String> getFFmpegCMDs(@RequestParam String mediaServerId){
-        logger.debug("获取节点[ {} ]ffmpeg.cmd模板", mediaServerId );
+        log.debug("获取节点[ {} ]ffmpeg.cmd模板", mediaServerId );
 
         MediaServer mediaServerItem = mediaServerService.getOne(mediaServerId);
         if (mediaServerItem == null) {
@@ -130,7 +119,7 @@ public class StreamProxyController {
     @Parameter(name = "app", description = "应用名", required = true)
     @Parameter(name = "stream", description = "流id", required = true)
     public void del(@RequestParam String app, @RequestParam String stream){
-        logger.info("移除代理： " + app + "/" + stream);
+        log.info("移除代理： " + app + "/" + stream);
         if (app == null || stream == null) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), app == null ?"app不能为null":"stream不能为null");
         }else {
@@ -144,7 +133,7 @@ public class StreamProxyController {
     @Parameter(name = "app", description = "应用名", required = true)
     @Parameter(name = "stream", description = "流id", required = true)
     public void start(String app, String stream){
-        logger.info("启用代理： " + app + "/" + stream);
+        log.info("启用代理： " + app + "/" + stream);
         boolean result = streamProxyService.start(app, stream);
         if (!result) {
             throw new ControllerException(ErrorCode.ERROR100);
@@ -157,7 +146,7 @@ public class StreamProxyController {
     @Parameter(name = "app", description = "应用名", required = true)
     @Parameter(name = "stream", description = "流id", required = true)
     public void stop(String app, String stream){
-        logger.info("停用代理： " + app + "/" + stream);
+        log.info("停用代理： " + app + "/" + stream);
         streamProxyService.stop(app, stream);
     }
 }

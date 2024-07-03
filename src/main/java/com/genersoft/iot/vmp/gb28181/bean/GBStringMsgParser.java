@@ -1,9 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
-import gov.nist.core.CommonLogger;
 import gov.nist.core.Host;
 import gov.nist.core.HostNameParser;
-import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.SIPConstants;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.GenericURI;
@@ -14,15 +12,15 @@ import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.parser.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 
+@Slf4j
 public class GBStringMsgParser implements MessageParser {
 
     protected static boolean computeContentLengthFromMessage = false;
-
-    private static StackLogger logger = CommonLogger.getLogger(StringMsgParser.class);
 
     /**
      * @since v0.9
@@ -60,8 +58,8 @@ public class GBStringMsgParser implements MessageParser {
         }
         catch (ArrayIndexOutOfBoundsException e) {
             // Array contains only control char, return null.
-            if (logger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
-                logger.logDebug("handled only control char so returning null");
+            if (log.isDebugEnabled()) {
+                log.debug("handled only control char so returning null");
             }
             return null;
         }

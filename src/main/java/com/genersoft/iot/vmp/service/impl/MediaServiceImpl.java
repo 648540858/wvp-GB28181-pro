@@ -13,18 +13,20 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
-import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
-import com.genersoft.iot.vmp.service.*;
+import com.genersoft.iot.vmp.service.IDeviceService;
+import com.genersoft.iot.vmp.service.IInviteStreamService;
+import com.genersoft.iot.vmp.service.IMediaService;
+import com.genersoft.iot.vmp.service.IUserService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.MediaServerUtils;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.OtherPsSendInfo;
 import com.genersoft.iot.vmp.vmanager.bean.OtherRtpSendInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -35,10 +37,9 @@ import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class MediaServiceImpl implements IMediaService {
-
-    private final static Logger logger = LoggerFactory.getLogger(MediaServiceImpl.class);
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -104,13 +105,13 @@ public class MediaServiceImpl implements IMediaService {
                 Map<String, String> paramMap = MediaServerUtils.urlParamToMap(params);
                 // 推流鉴权
                 if (params == null) {
-                    logger.info("推流鉴权失败： 缺少必要参数：sign=md5(user表的pushKey)");
+                    log.info("推流鉴权失败： 缺少必要参数：sign=md5(user表的pushKey)");
                     throw new ControllerException(ErrorCode.ERROR401.getCode(), "Unauthorized");
                 }
 
                 String sign = paramMap.get("sign");
                 if (sign == null) {
-                    logger.info("推流鉴权失败： 缺少必要参数：sign=md5(user表的pushKey)");
+                    log.info("推流鉴权失败： 缺少必要参数：sign=md5(user表的pushKey)");
                     throw new ControllerException(ErrorCode.ERROR401.getCode(), "Unauthorized");
                 }
                 // 推流自定义播放鉴权码
@@ -118,7 +119,7 @@ public class MediaServiceImpl implements IMediaService {
                 // 鉴权配置
                 boolean hasAuthority = userService.checkPushAuthority(callId, sign);
                 if (!hasAuthority) {
-                    logger.info("推流鉴权失败： sign 无权限: callId={}. sign={}", callId, sign);
+                    log.info("推流鉴权失败： sign 无权限: callId={}. sign={}", callId, sign);
                     throw new ControllerException(ErrorCode.ERROR401.getCode(), "Unauthorized");
                 }
                 StreamAuthorityInfo streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(app, stream, mediaServer.getId());
@@ -150,7 +151,7 @@ public class MediaServiceImpl implements IMediaService {
                 inviteInfo = inviteStreamService.getInviteInfoBySSRC(ssrc);
                 if (inviteInfo != null) {
                     result.setStream_replace(inviteInfo.getStream());
-                    logger.info("[ZLM HOOK]推流鉴权 stream: {} 替换为 {}", stream, inviteInfo.getStream());
+                    log.info("[ZLM HOOK]推流鉴权 stream: {} 替换为 {}", stream, inviteInfo.getStream());
                     stream = inviteInfo.getStream();
                 }
             }
@@ -234,7 +235,7 @@ public class MediaServiceImpl implements IMediaService {
                             try {
                                 commanderForPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
                             } catch (SipException | InvalidArgumentException | ParseException e) {
-                                logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+                                log.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
                             }
                             redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
                                     sendRtpItem.getCallId(), sendRtpItem.getStream());
@@ -254,14 +255,14 @@ public class MediaServiceImpl implements IMediaService {
                             commander.streamByeCmd(device, inviteInfo.getChannelId(),
                                     inviteInfo.getStream(), null);
                         } else {
-                            logger.info("[无人观看] 未找到设备的点播信息： {}， 流：{}", inviteInfo.getDeviceId(), stream);
+                            log.info("[无人观看] 未找到设备的点播信息： {}， 流：{}", inviteInfo.getDeviceId(), stream);
                         }
                     } catch (InvalidArgumentException | ParseException | SipException |
                              SsrcTransactionNotFoundException e) {
-                        logger.error("[无人观看]点播， 发送BYE失败 {}", e.getMessage());
+                        log.error("[无人观看]点播， 发送BYE失败 {}", e.getMessage());
                     }
                 } else {
-                    logger.info("[无人观看] 未找到设备： {}，流：{}", inviteInfo.getDeviceId(), stream);
+                    log.info("[无人观看] 未找到设备： {}，流：{}", inviteInfo.getDeviceId(), stream);
                 }
 
                 inviteStreamService.removeInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(),
@@ -284,7 +285,7 @@ public class MediaServiceImpl implements IMediaService {
                     // 无人观看自动移除
                     result = true;
                     streamProxyService.del(app, stream);
-                    logger.info("[{}/{}]<-[{}] 拉流代理无人观看已经移除", app, stream, streamProxy.getSrcUrl());
+                    log.info("[{}/{}]<-[{}] 拉流代理无人观看已经移除", app, stream, streamProxy.getSrcUrl());
                 } else if (streamProxy.isEnableDisableNoneReader()) {
                     // 无人观看停用
                     result = true;

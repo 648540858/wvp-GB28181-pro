@@ -18,8 +18,7 @@ import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Component;
@@ -35,11 +34,10 @@ import java.util.List;
  * 2020年5月6日 下午2:31:42
  */
 @SuppressWarnings("rawtypes")
+@Slf4j
 @Component
 @DS("master")
 public class VideoManagerStorageImpl implements IVideoManagerStorage {
-
-	private final Logger logger = LoggerFactory.getLogger(VideoManagerStorageImpl.class);
 
 	@Autowired
 	EventPublisher eventPublisher;
@@ -294,7 +292,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		List<DeviceChannel> channels = platformChannelMapper.queryChannelInParentPlatform(platformId, channelId);
 		if (channels.size() > 1) {
 			// 出现长度大于0的时候肯定是国标通道的ID重复了
-			logger.warn("国标ID存在重复：{}", channelId);
+			log.warn("国标ID存在重复：{}", channelId);
 		}
 		if (channels.size() == 0) {
 			return null;
@@ -308,7 +306,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		List<Device> devices = platformChannelMapper.queryVideoDeviceByPlatformIdAndChannelId(platformId, channelId);
 		if (devices.size() > 1) {
 			// 出现长度大于0的时候肯定是国标通道的ID重复了
-			logger.warn("国标ID存在重复：{}", channelId);
+			log.warn("国标ID存在重复：{}", channelId);
 		}
 		if (devices.size() == 0) {
 			return null;
@@ -324,7 +322,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		List<Device> devices = platformChannelMapper.queryDeviceInfoByPlatformIdAndChannelId(platformId, channelId);
 		if (devices.size() > 1) {
 			// 出现长度大于0的时候肯定是国标通道的ID重复了
-			logger.warn("国标ID存在重复：{}", channelId);
+			log.warn("国标ID存在重复：{}", channelId);
 		}
 		if (devices.size() == 0) {
 			return null;
@@ -400,7 +398,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 						}else {
 							PlatformCatalog catalog = catalogMapper.selectByPlatFormAndCatalogId(platformCatalog.getPlatformId(),platformCatalog.getParentId());
 							if (catalog == null) {
-								logger.warn("[添加目录] 无法获取目录{}的CivilCode和BusinessGroupId", platformCatalog.getPlatformId());
+								log.warn("[添加目录] 无法获取目录{}的CivilCode和BusinessGroupId", platformCatalog.getPlatformId());
 								break;
 							}
 							platformCatalog.setCivilCode(catalog.getCivilCode());

@@ -1,18 +1,16 @@
 package com.genersoft.iot.vmp.utils;
 
 import com.genersoft.iot.vmp.common.CivilCodePo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 public enum CivilCodeUtil {
 
     INSTANCE;
-    private final static Logger logger = LoggerFactory.getLogger(CivilCodeUtil.class);
-
     // 用与消息的缓存
     private final Map<String, CivilCodePo> civilCodeMap = new ConcurrentHashMap<>();
 

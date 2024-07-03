@@ -20,8 +20,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
@@ -34,12 +33,10 @@ import java.text.ParseException;
 import java.util.UUID;
 
 @Tag(name  = "国标设备控制")
-
+@Slf4j
 @RestController
 @RequestMapping("/api/device/control")
 public class DeviceControl {
-
-    private final static Logger logger = LoggerFactory.getLogger(DeviceQuery.class);
 
     @Autowired
     private IVideoManagerStorage storager;
@@ -59,14 +56,14 @@ public class DeviceControl {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @GetMapping("/teleboot/{deviceId}")
     public void teleBootApi(@PathVariable String deviceId) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("设备远程启动API调用");
+        if (log.isDebugEnabled()) {
+            log.debug("设备远程启动API调用");
         }
         Device device = storager.queryVideoDevice(deviceId);
 		try {
 			cmder.teleBootCmd(device);
 		} catch (InvalidArgumentException | SipException | ParseException e) {
-			logger.error("[命令发送失败] 远程启动: {}", e.getMessage());
+			log.error("[命令发送失败] 远程启动: {}", e.getMessage());
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
 		}
     }
@@ -85,15 +82,15 @@ public class DeviceControl {
     @GetMapping("/record/{deviceId}/{recordCmdStr}")
     public DeferredResult<ResponseEntity<String>> recordApi(@PathVariable String deviceId,
             @PathVariable String recordCmdStr, String channelId) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("开始/停止录像API调用");
+        if (log.isDebugEnabled()) {
+            log.debug("开始/停止录像API调用");
         }
         Device device = storager.queryVideoDevice(deviceId);
 		String uuid = UUID.randomUUID().toString();
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL +  deviceId + channelId;
 		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
 		result.onTimeout(() -> {
-			logger.warn(String.format("开始/停止录像操作超时, 设备未返回应答指令"));
+			log.warn(String.format("开始/停止录像操作超时, 设备未返回应答指令"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
 			msg.setKey(key);
@@ -114,7 +111,7 @@ public class DeviceControl {
 				resultHolder.invokeAllResult(msg);
 			},null);
 		} catch (InvalidArgumentException | SipException | ParseException e) {
-			logger.error("[命令发送失败] 开始/停止录像: {}", e.getMessage());
+			log.error("[命令发送失败] 开始/停止录像: {}", e.getMessage());
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
 		}
 
@@ -132,8 +129,8 @@ public class DeviceControl {
 	@Parameter(name = "guardCmdStr", description = "命令， 可选值：SetGuard（布防），ResetGuard（撤防）", required = true)
 	@GetMapping("/guard/{deviceId}/{guardCmdStr}")
 	public DeferredResult<String> guardApi(@PathVariable String deviceId, @PathVariable String guardCmdStr) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("布防/撤防API调用");
+		if (log.isDebugEnabled()) {
+			log.debug("布防/撤防API调用");
 		}
 		Device device = storager.queryVideoDevice(deviceId);
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + deviceId + deviceId;
@@ -147,13 +144,13 @@ public class DeviceControl {
 				resultHolder.invokeResult(msg);
 			},null);
 		} catch (InvalidArgumentException | SipException | ParseException e) {
-			logger.error("[命令发送失败] 布防/撤防操作: {}", e.getMessage());
+			log.error("[命令发送失败] 布防/撤防操作: {}", e.getMessage());
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage());
 		}
 		DeferredResult<String> result = new DeferredResult<>(3 * 1000L);
 		resultHolder.put(key, uuid, result);
 		result.onTimeout(() -> {
-			logger.warn(String.format("布防/撤防操作超时, 设备未返回应答指令"));
+			log.warn(String.format("布防/撤防操作超时, 设备未返回应答指令"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
 			msg.setKey(key);
@@ -181,8 +178,8 @@ public class DeviceControl {
 	public DeferredResult<ResponseEntity<String>> resetAlarmApi(@PathVariable String deviceId, String channelId,
 																@RequestParam(required = false) String alarmMethod,
 																@RequestParam(required = false) String alarmType) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("报警复位API调用");
+		if (log.isDebugEnabled()) {
+			log.debug("报警复位API调用");
 		}
 		Device device = storager.queryVideoDevice(deviceId);
 		String uuid = UUID.randomUUID().toString();
@@ -196,12 +193,12 @@ public class DeviceControl {
 				resultHolder.invokeResult(msg);
 			},null);
 		} catch (InvalidArgumentException | SipException | ParseException e) {
-			logger.error("[命令发送失败] 报警复位: {}", e.getMessage());
+			log.error("[命令发送失败] 报警复位: {}", e.getMessage());
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
 		}
 		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
 		result.onTimeout(() -> {
-			logger.warn(String.format("报警复位操作超时, 设备未返回应答指令"));
+			log.warn(String.format("报警复位操作超时, 设备未返回应答指令"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);
@@ -225,14 +222,14 @@ public class DeviceControl {
 	@GetMapping("/i_frame/{deviceId}")
 	public JSONObject iFrame(@PathVariable String deviceId,
 										@RequestParam(required = false) String channelId) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("强制关键帧API调用");
+		if (log.isDebugEnabled()) {
+			log.debug("强制关键帧API调用");
 		}
 		Device device = storager.queryVideoDevice(deviceId);
 		try {
 			cmder.iFrameCmd(device, channelId);
 		} catch (InvalidArgumentException | SipException | ParseException e) {
-			logger.error("[命令发送失败] 强制关键帧: {}", e.getMessage());
+			log.error("[命令发送失败] 强制关键帧: {}", e.getMessage());
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
 		}
 		JSONObject json = new JSONObject();
@@ -261,8 +258,8 @@ public class DeviceControl {
 	public DeferredResult<String> homePositionApi(String deviceId, String channelId, Boolean enabled,
 												  @RequestParam(required = false) Integer resetTime,
 												  @RequestParam(required = false) Integer presetIndex) {
-        if (logger.isDebugEnabled()) {
-			logger.debug("报警复位API调用");
+        if (log.isDebugEnabled()) {
+			log.debug("报警复位API调用");
 		}
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (ObjectUtils.isEmpty(channelId) ? deviceId : channelId);
 		String uuid = UUID.randomUUID().toString();
@@ -276,12 +273,12 @@ public class DeviceControl {
 				resultHolder.invokeResult(msg);
 			},null);
 		} catch (InvalidArgumentException | SipException | ParseException e) {
-			logger.error("[命令发送失败] 看守位控制: {}", e.getMessage());
+			log.error("[命令发送失败] 看守位控制: {}", e.getMessage());
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
 		}
 		DeferredResult<String> result = new DeferredResult<>(3 * 1000L);
 		result.onTimeout(() -> {
-			logger.warn(String.format("看守位控制操作超时, 设备未返回应答指令"));
+			log.warn(String.format("看守位控制操作超时, 设备未返回应答指令"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);
@@ -326,8 +323,8 @@ public class DeviceControl {
 											 @RequestParam int midpointy,
 											 @RequestParam int lengthx,
 											 @RequestParam int lengthy) throws RuntimeException {
-		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("设备拉框放大 API调用，deviceId：%s ，channelId：%s ，length：%d ，width：%d ，midpointx：%d ，midpointy：%d ，lengthx：%d ，lengthy：%d",deviceId, channelId, length, width, midpointx, midpointy,lengthx, lengthy));
+		if (log.isDebugEnabled()) {
+			log.debug(String.format("设备拉框放大 API调用，deviceId：%s ，channelId：%s ，length：%d ，width：%d ，midpointx：%d ，midpointy：%d ，lengthx：%d ，lengthy：%d",deviceId, channelId, length, width, midpointx, midpointy,lengthx, lengthy));
 		}
 		Device device = storager.queryVideoDevice(deviceId);
 		StringBuffer cmdXml = new StringBuffer(200);
@@ -342,7 +339,7 @@ public class DeviceControl {
 		try {
 			cmder.dragZoomCmd(device, channelId, cmdXml.toString());
 		} catch (InvalidArgumentException | SipException | ParseException e) {
-			logger.error("[命令发送失败] 拉框放大: {}", e.getMessage());
+			log.error("[命令发送失败] 拉框放大: {}", e.getMessage());
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " +  e.getMessage());
 		}
 	}
@@ -378,8 +375,8 @@ public class DeviceControl {
 											  @RequestParam int lengthx,
 											  @RequestParam int lengthy){
 
-		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("设备拉框缩小 API调用，deviceId：%s ，channelId：%s ，length：%d ，width：%d ，midpointx：%d ，midpointy：%d ，lengthx：%d ，lengthy：%d",deviceId, channelId, length, width, midpointx, midpointy,lengthx, lengthy));
+		if (log.isDebugEnabled()) {
+			log.debug(String.format("设备拉框缩小 API调用，deviceId：%s ，channelId：%s ，length：%d ，width：%d ，midpointx：%d ，midpointy：%d ，lengthx：%d ，lengthy：%d",deviceId, channelId, length, width, midpointx, midpointy,lengthx, lengthy));
 		}
 		Device device = storager.queryVideoDevice(deviceId);
 		StringBuffer cmdXml = new StringBuffer(200);
@@ -394,7 +391,7 @@ public class DeviceControl {
 		try {
 			cmder.dragZoomCmd(device, channelId, cmdXml.toString());
 		} catch (InvalidArgumentException | SipException | ParseException e) {
-			logger.error("[命令发送失败] 拉框缩小: {}", e.getMessage());
+			log.error("[命令发送失败] 拉框缩小: {}", e.getMessage());
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " +  e.getMessage());
 		}
 	}

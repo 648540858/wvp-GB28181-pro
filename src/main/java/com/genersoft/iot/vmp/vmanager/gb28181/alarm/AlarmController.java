@@ -16,8 +16,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -29,12 +28,10 @@ import java.util.Arrays;
 import java.util.List;
 
 @Tag(name = "报警信息管理")
-
+@Slf4j
 @RestController
 @RequestMapping("/api/alarm")
 public class AlarmController {
-
-    private final static Logger logger = LoggerFactory.getLogger(AlarmController.class);
 
     @Autowired
     private IDeviceAlarmService deviceAlarmService;
@@ -121,7 +118,7 @@ public class AlarmController {
             try {
                 commanderForPlatform.sendAlarmMessage(platform, deviceAlarm);
             } catch (SipException | InvalidArgumentException | ParseException e) {
-                logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+                log.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " +  e.getMessage());
             }
         }else {

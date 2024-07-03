@@ -4,9 +4,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -17,9 +16,9 @@ import java.util.Objects;
  * @version 1.0
  * @date 2022/3/11 10:17
  */
+@Slf4j
 public class UJson {
 
-    private static Logger logger = LoggerFactory.getLogger(UJson.class);
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     static {
@@ -39,7 +38,7 @@ public class UJson {
             try {
                 this.node = JSON_MAPPER.readValue(json, ObjectNode.class);
             }catch (Exception e){
-                logger.error(e.getMessage(), e);
+                log.error(e.getMessage(), e);
                 this.node = JSON_MAPPER.createObjectNode();
             }
         }
@@ -90,7 +89,7 @@ public class UJson {
         try {
             return JSON_MAPPER.readValue(json, clazz);
         }catch (Exception e){
-            logger.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             return null;
         }
     }
@@ -99,7 +98,7 @@ public class UJson {
         try{
             return JSON_MAPPER.writeValueAsString(object);
         }catch (Exception e){
-            logger.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             return "";
         }
     }

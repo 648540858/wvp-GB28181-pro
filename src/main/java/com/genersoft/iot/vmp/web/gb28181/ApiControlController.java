@@ -5,8 +5,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,12 +19,10 @@ import java.text.ParseException;
 /**
  * API兼容：设备控制
  */
-
+@Slf4j
 @RestController
 @RequestMapping(value = "/api/v1/control")
 public class ApiControlController {
-
-    private final static Logger logger = LoggerFactory.getLogger(ApiControlController.class);
 
     @Autowired
     private SIPCommander cmder;
@@ -48,8 +45,8 @@ public class ApiControlController {
                             @RequestParam(required = false)String code,
                             @RequestParam(required = false)Integer speed){
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("模拟接口> 设备云台控制 API调用，deviceId：{} ，channelId：{} ，command：{} ，speed：{} ",
+        if (log.isDebugEnabled()) {
+            log.debug("模拟接口> 设备云台控制 API调用，deviceId：{} ，channelId：{} ，command：{} ，speed：{} ",
                     serial, code, command, speed);
         }
         if (channel == null) {channel = 0;}
@@ -100,7 +97,7 @@ public class ApiControlController {
         try {
             cmder.frontEndCmd(device, code, cmdCode, speed, speed, speed);
         } catch (SipException | InvalidArgumentException | ParseException e) {
-            logger.error("[命令发送失败] 云台控制: {}", e.getMessage());
+            log.error("[命令发送失败] 云台控制: {}", e.getMessage());
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
         }
     }
@@ -122,8 +119,8 @@ public class ApiControlController {
                             @RequestParam(required = false)String name,
                             @RequestParam(required = false)Integer preset){
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("模拟接口> 预置位控制 API调用，deviceId：{} ，channelId：{} ，command：{} ，name：{} ，preset：{} ",
+        if (log.isDebugEnabled()) {
+            log.debug("模拟接口> 预置位控制 API调用，deviceId：{} ，channelId：{} ，command：{} ，name：{} ，preset：{} ",
                     serial, code, command, name, preset);
         }
 
@@ -149,7 +146,7 @@ public class ApiControlController {
         try {
             cmder.frontEndCmd(device, code, cmdCode, 0, preset, 0);
         } catch (SipException | InvalidArgumentException | ParseException e) {
-            logger.error("[命令发送失败] 预置位控制: {}", e.getMessage());
+            log.error("[命令发送失败] 预置位控制: {}", e.getMessage());
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
         }
     }

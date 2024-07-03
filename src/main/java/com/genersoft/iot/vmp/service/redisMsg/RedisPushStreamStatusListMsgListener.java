@@ -3,12 +3,11 @@ package com.genersoft.iot.vmp.service.redisMsg;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.service.IGbStreamService;
+import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.streamPush.service.IStreamPushService;
 import com.genersoft.iot.vmp.utils.DateUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.Message;
@@ -27,10 +26,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * @Date: 2022/8/16 11:32
  * @Description: 接收redis发送的推流设备列表更新通知
  */
+@Slf4j
 @Component
 public class RedisPushStreamStatusListMsgListener implements MessageListener {
 
-    private final static Logger logger = LoggerFactory.getLogger(RedisPushStreamStatusListMsgListener.class);
     @Resource
     private IMediaServerService mediaServerService;
 
@@ -48,7 +47,7 @@ public class RedisPushStreamStatusListMsgListener implements MessageListener {
 
     @Override
     public void onMessage(Message message, byte[] bytes) {
-        logger.info("[REDIS消息-推流设备列表更新]： {}", new String(message.getBody()));
+        log.info("[REDIS消息-推流设备列表更新]： {}", new String(message.getBody()));
         boolean isEmpty = taskQueue.isEmpty();
         taskQueue.offer(message);
         if (isEmpty) {
@@ -74,7 +73,7 @@ public class RedisPushStreamStatusListMsgListener implements MessageListener {
                             if (!contains) {
                                 if (allGBId.containsKey(streamPush.getGbDeviceId())) {
                                     StreamPush streamPushInDb = allGBId.get(streamPush.getGbDeviceId());
-                                    logger.warn("[REDIS消息-推流设备列表更新-INSERT] 国标编号重复: {}, 已分配给{}/{}",
+                                    log.warn("[REDIS消息-推流设备列表更新-INSERT] 国标编号重复: {}, 已分配给{}/{}",
                                             streamPushInDb.getGbDeviceId(), streamPushInDb.getApp(), streamPushInDb.getStream());
                                     continue;
                                 }
@@ -87,7 +86,7 @@ public class RedisPushStreamStatusListMsgListener implements MessageListener {
                                         && (!allGBId.get(streamPush.getGbDeviceId()).getApp().equals(streamPush.getApp())
                                         || !allGBId.get(streamPush.getGbDeviceId()).getStream().equals(streamPush.getStream()))) {
                                     StreamPush streamPushInDb = allGBId.get(streamPush.getGbDeviceId());
-                                    logger.warn("[REDIS消息-推流设备列表更新-UPDATE] 国标编号重复: {}, 已分配给{}/{}",
+                                    log.warn("[REDIS消息-推流设备列表更新-UPDATE] 国标编号重复: {}, 已分配给{}/{}",
                                             streamPush.getGbDeviceId(), streamPushInDb.getApp(), streamPushInDb.getStream());
                                     continue;
                                 }
@@ -96,19 +95,19 @@ public class RedisPushStreamStatusListMsgListener implements MessageListener {
                             }
                         }
                         if (!streamPushItemForSave.isEmpty()) {
-                            logger.info("添加{}条",streamPushItemForSave.size());
-                            logger.info(JSONObject.toJSONString(streamPushItemForSave));
+                            log.info("添加{}条",streamPushItemForSave.size());
+                            log.info(JSONObject.toJSONString(streamPushItemForSave));
                             streamPushService.batchAdd(streamPushItemForSave);
 
                         }
                         if(!streamPushItemForUpdate.isEmpty()){
-                            logger.info("修改{}条",streamPushItemForUpdate.size());
-                            logger.info(JSONObject.toJSONString(streamPushItemForUpdate));
+                            log.info("修改{}条",streamPushItemForUpdate.size());
+                            log.info(JSONObject.toJSONString(streamPushItemForUpdate));
                             gbStreamService.updateGbIdOrName(streamPushItemForUpdate);
                         }
                     }catch (Exception e) {
-                        logger.warn("[REDIS消息-推流设备列表更新] 发现未处理的异常, \r\n{}", new String(message.getBody()));
-                        logger.error("[REDIS消息-推流设备列表更新] 异常内容： ", e);
+                        log.warn("[REDIS消息-推流设备列表更新] 发现未处理的异常, \r\n{}", new String(message.getBody()));
+                        log.error("[REDIS消息-推流设备列表更新] 异常内容： ", e);
                     }
                 }
             });

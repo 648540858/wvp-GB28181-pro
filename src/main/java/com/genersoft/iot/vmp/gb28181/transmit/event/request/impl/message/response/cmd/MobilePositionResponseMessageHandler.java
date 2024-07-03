@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd;
 
-import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
@@ -13,14 +12,11 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.respons
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import gov.nist.javax.sip.message.SIPRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -38,23 +34,14 @@ import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
  * 移动设备位置数据查询回复
  * @author lin
  */
+@Slf4j
 @Component
 public class MobilePositionResponseMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(MobilePositionResponseMessageHandler.class);
     private final String cmdType = "MobilePosition";
 
     @Autowired
     private ResponseMessageHandler responseMessageHandler;
-
-    @Autowired
-    private UserSetting userSetting;
-
-    @Autowired
-    private IVideoManagerStorage storager;
-
-    @Autowired
-    private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
     private IDeviceChannelService deviceChannelService;
@@ -74,11 +61,11 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
         try {
             rootElement = getRootElement(evt, device.getCharset());
             if (rootElement == null) {
-                logger.warn("[ 移动设备位置数据查询回复 ] content cannot be null, {}", evt.getRequest());
+                log.warn("[ 移动设备位置数据查询回复 ] content cannot be null, {}", evt.getRequest());
                 try {
                     responseAck(request, Response.BAD_REQUEST);
                 } catch (SipException | InvalidArgumentException | ParseException e) {
-                    logger.error("[命令发送失败] 移动设备位置数据查询 BAD_REQUEST: {}", e.getMessage());
+                    log.error("[命令发送失败] 移动设备位置数据查询 BAD_REQUEST: {}", e.getMessage());
                 }
                 return;
             }
@@ -117,18 +104,11 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
 
             // 更新device channel 的经纬度
             DeviceChannel deviceChannel = new DeviceChannel();
-            deviceChannel.setDeviceId(device.getDeviceId());
-            deviceChannel.setChannelId(mobilePosition.getChannelId());
+            deviceChannel.setGbDeviceDbId(device.getId());
+            deviceChannel.setDeviceId(mobilePosition.getChannelId());
             deviceChannel.setLongitude(mobilePosition.getLongitude());
             deviceChannel.setLatitude(mobilePosition.getLatitude());
             deviceChannel.setGpsTime(mobilePosition.getTime());
-
-            deviceChannel = deviceChannelService.updateGps(deviceChannel, device);
-
-            mobilePosition.setLongitudeWgs84(deviceChannel.getLongitudeWgs84());
-            mobilePosition.setLatitudeWgs84(deviceChannel.getLatitudeWgs84());
-            mobilePosition.setLongitudeGcj02(deviceChannel.getLongitudeGcj02());
-            mobilePosition.setLatitudeGcj02(deviceChannel.getLatitudeGcj02());
 
             deviceChannelService.updateChannelGPS(device, deviceChannel, mobilePosition);
 
@@ -142,11 +122,11 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
             try {
                 responseAck(request, Response.OK);
             } catch (SipException | InvalidArgumentException | ParseException e) {
-                logger.error("[命令发送失败] 移动设备位置数据查询 200: {}", e.getMessage());
+                log.error("[命令发送失败] 移动设备位置数据查询 200: {}", e.getMessage());
             }
 
         } catch (DocumentException e) {
-            logger.error("未处理的异常 ", e);
+            log.error("未处理的异常 ", e);
         }
     }
 

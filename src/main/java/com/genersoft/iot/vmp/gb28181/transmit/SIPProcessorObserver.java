@@ -5,18 +5,16 @@ import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.response.ISIPResponseProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.timeout.ITimeoutProcessor;
-import gov.nist.javax.sip.message.SIPRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import javax.sip.*;
-import javax.sip.header.*;
+import javax.sip.header.CSeqHeader;
+import javax.sip.header.CallIdHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
-import java.net.InetAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,10 +23,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author: panlinlin
  * @date:   2021年11月5日 下午15：32
  */
+@Slf4j
 @Component
 public class SIPProcessorObserver implements ISIPProcessorObserver {
-
-    private final static Logger logger = LoggerFactory.getLogger(SIPProcessorObserver.class);
 
     private static Map<String,  ISIPRequestProcessor> requestProcessorMap = new ConcurrentHashMap<>();
     private static Map<String, ISIPResponseProcessor> responseProcessorMap = new ConcurrentHashMap<>();
@@ -76,7 +73,7 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
         String method = requestEvent.getRequest().getMethod();
         ISIPRequestProcessor sipRequestProcessor = requestProcessorMap.get(method);
         if (sipRequestProcessor == null) {
-            logger.warn("不支持方法{}的request", method);
+            log.warn("不支持方法{}的request", method);
             // TODO 回复错误玛
             return;
         }
@@ -116,7 +113,7 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
         } else if ((status >= Response.TRYING) && (status < Response.OK)) {
             // 增加其它无需回复的响应，如101、180等
         } else {
-            logger.warn("接收到失败的response响应！status：" + status + ",message:" + response.getReasonPhrase());
+            log.warn("接收到失败的response响应！status：" + status + ",message:" + response.getReasonPhrase());
             if (responseEvent.getResponse() != null && sipSubscribe.getErrorSubscribesSize() > 0 ) {
                 CallIdHeader callIdHeader = (CallIdHeader)responseEvent.getResponse().getHeader(CallIdHeader.NAME);
                 if (callIdHeader != null) {
@@ -142,17 +139,17 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
      */
     @Override
     public void processTimeout(TimeoutEvent timeoutEvent) {
-        logger.info("[消息发送超时]");
+        log.info("[消息发送超时]");
         ClientTransaction clientTransaction = timeoutEvent.getClientTransaction();
 
         if (clientTransaction != null) {
-            logger.info("[发送错误订阅] clientTransaction != null");
+            log.info("[发送错误订阅] clientTransaction != null");
             Request request = clientTransaction.getRequest();
             if (request != null) {
-                logger.info("[发送错误订阅] request != null");
+                log.info("[发送错误订阅] request != null");
                 CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
                 if (callIdHeader != null) {
-                    logger.info("[发送错误订阅]");
+                    log.info("[发送错误订阅]");
                     SipSubscribe.Event subscribe = sipSubscribe.getErrorSubscribe(callIdHeader.getCallId());
                     SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(timeoutEvent);
                     if (subscribe != null){

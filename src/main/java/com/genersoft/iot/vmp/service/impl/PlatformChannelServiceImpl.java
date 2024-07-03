@@ -124,8 +124,8 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         return allCount;
     }
 
-    private List<DeviceChannel> getDeviceChannelListByChannelReduceList(List<ChannelReduce> channelReduces, String catalogId, ParentPlatform platform) {
-        List<DeviceChannel> deviceChannelList = new ArrayList<>();
+    private List<CommonGBChannel> getDeviceChannelListByChannelReduceList(List<ChannelReduce> channelReduces, String catalogId, ParentPlatform platform) {
+        List<CommonGBChannel> deviceChannelList = new ArrayList<>();
         if (channelReduces.size() > 0){
             PlatformCatalog catalog = catalogManager.selectByPlatFormAndCatalogId(platform.getServerGBId(),catalogId);
             if (catalog == null && catalogId.equals(platform.getDeviceGBId())) {

@@ -1,18 +1,16 @@
 package com.genersoft.iot.vmp.gb28181.task;
 
-import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IPlatformService;
 import com.genersoft.iot.vmp.service.impl.PlatformServiceImpl;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,16 +35,10 @@ import java.util.Map;
 public class SipRunner implements CommandLineRunner {
 
     @Autowired
-    private IVideoManagerStorage storager;
-
-    @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
     private SSRCFactory ssrcFactory;
-
-    @Autowired
-    private UserSetting userSetting;
 
     @Autowired
     private IDeviceService deviceService;

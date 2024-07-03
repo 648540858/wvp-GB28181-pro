@@ -17,8 +17,7 @@ import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,10 +33,10 @@ import javax.sip.header.ToHeader;
  * SIP命令类型： ACK请求
  * @author lin
  */
+@Slf4j
 @Component
 public class AckRequestProcessor extends SIPRequestProcessorParent implements InitializingBean, ISIPRequestProcessor {
 
-	private final Logger logger = LoggerFactory.getLogger(AckRequestProcessor.class);
 	private final String method = "ACK";
 
 	@Autowired
@@ -82,19 +81,19 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 		dynamicTask.stop(callIdHeader.getCallId());
 		String fromUserId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(FromHeader.NAME)).getAddress().getURI()).getUser();
 		String toUserId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getURI()).getUser();
-		logger.info("[收到ACK]： 来自->{}", fromUserId);
+		log.info("[收到ACK]： 来自->{}", fromUserId);
 		SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(null, null, null, callIdHeader.getCallId());
 		if (sendRtpItem == null) {
-			logger.warn("[收到ACK]：未找到来自{}，callId: {}", fromUserId, callIdHeader.getCallId());
+			log.warn("[收到ACK]：未找到来自{}，callId: {}", fromUserId, callIdHeader.getCallId());
 			return;
 		}
 		// tcp主动时，此时是级联下级平台，在回复200ok时，本地已经请求zlm开启监听，跳过下面步骤
 		if (sendRtpItem.isTcpActive()) {
-			logger.info("收到ACK，rtp/{} TCP主动方式后续处理", sendRtpItem.getStream());
+			log.info("收到ACK，rtp/{} TCP主动方式后续处理", sendRtpItem.getStream());
 			return;
 		}
 		MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-		logger.info("收到ACK，rtp/{}开始向上级推流, 目标={}:{}，SSRC={}, 协议:{}",
+		log.info("收到ACK，rtp/{}开始向上级推流, 目标={}:{}，SSRC={}, 协议:{}",
 				sendRtpItem.getStream(),
 				sendRtpItem.getIp(),
 				sendRtpItem.getPort(),
@@ -118,14 +117,14 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 					}
 					redisCatchStorage.sendPlatformStartPlayMsg(sendRtpItem, parentPlatform);
 				}catch (ControllerException e) {
-					logger.error("RTP推流失败: {}", e.getMessage());
+					log.error("RTP推流失败: {}", e.getMessage());
 					playService.startSendRtpStreamFailHand(sendRtpItem, parentPlatform, callIdHeader);
 				}
 			}
 		}else {
 			Device device = deviceService.getDevice(fromUserId);
 			if (device == null) {
-				logger.warn("[收到ACK]：来自{}，目标为({})的推流信息为找到流体服务[{}]信息",fromUserId, toUserId, sendRtpItem.getMediaServerId());
+				log.warn("[收到ACK]：来自{}，目标为({})的推流信息为找到流体服务[{}]信息",fromUserId, toUserId, sendRtpItem.getMediaServerId());
 				return;
 			}
 			// 设置为收到ACK后发送语音的设备已经在发送200OK开始发流了
@@ -133,7 +132,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 				return;
 			}
 			if (mediaInfo == null) {
-				logger.warn("[收到ACK]：来自{}，目标为({})的推流信息为找到流体服务[{}]信息",fromUserId, toUserId, sendRtpItem.getMediaServerId());
+				log.warn("[收到ACK]：来自{}，目标为({})的推流信息为找到流体服务[{}]信息",fromUserId, toUserId, sendRtpItem.getMediaServerId());
 				return;
 			}
 			try {
@@ -143,7 +142,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 					mediaServerService.startSendRtp(mediaInfo, sendRtpItem);
 				}
 			}catch (ControllerException e) {
-				logger.error("RTP推流失败: {}", e.getMessage());
+				log.error("RTP推流失败: {}", e.getMessage());
 				playService.startSendRtpStreamFailHand(sendRtpItem, null, callIdHeader);
 			}
 		}

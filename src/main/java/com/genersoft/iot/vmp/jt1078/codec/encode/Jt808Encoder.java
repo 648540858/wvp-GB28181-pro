@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
  * @email qingtaij@163.com
  */
 public class Jt808Encoder extends MessageToByteEncoder<Rs> {
-    private final static Logger log = LoggerFactory.getLogger(Jt808Encoder.class);
+    private final static Logger logger = LoggerFactory.getLogger(Jt808Encoder.class);
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Rs msg, ByteBuf out) throws Exception {

@@ -22,8 +22,7 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -35,10 +34,9 @@ import java.text.ParseException;
 /**
  * 其他wvp发起的rpc调用，这里的方法被 RedisRpcConfig 通过反射寻找对应的方法名称调用
  */
+@Slf4j
 @Component
 public class RedisRpcController {
-
-    private final static Logger logger = LoggerFactory.getLogger(RedisRpcController.class);
 
     @Autowired
     private SSRCFactory ssrcFactory;
@@ -77,12 +75,12 @@ public class RedisRpcController {
         String sendRtpItemKey = request.getParam().toString();
         SendRtpItem sendRtpItem = (SendRtpItem) redisTemplate.opsForValue().get(sendRtpItemKey);
         if (sendRtpItem == null) {
-            logger.info("[redis-rpc] 获取发流的信息, 未找到redis中的发流信息， key：{}", sendRtpItemKey);
+            log.info("[redis-rpc] 获取发流的信息, 未找到redis中的发流信息， key：{}", sendRtpItemKey);
             RedisRpcResponse response = request.getResponse();
             response.setStatusCode(200);
             return response;
         }
-        logger.info("[redis-rpc] 获取发流的信息： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort());
+        log.info("[redis-rpc] 获取发流的信息： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort());
         // 查询本级是否有这个流
         MediaServer mediaServerItem = mediaServerService.getMediaServerByAppAndStream(sendRtpItem.getApp(), sendRtpItem.getStream());
         if (mediaServerItem == null) {
@@ -92,7 +90,7 @@ public class RedisRpcController {
         // 自平台内容
         int localPort = sendRtpPortManager.getNextPort(mediaServerItem);
         if (localPort == 0) {
-            logger.info("[redis-rpc] getSendRtpItem->服务器端口资源不足" );
+            log.info("[redis-rpc] getSendRtpItem->服务器端口资源不足" );
             RedisRpcResponse response = request.getResponse();
             response.setStatusCode(200);
         }
@@ -118,11 +116,11 @@ public class RedisRpcController {
      */
     public RedisRpcResponse waitePushStreamOnline(RedisRpcRequest request) {
         SendRtpItem sendRtpItem = JSONObject.parseObject(request.getParam().toString(), SendRtpItem.class);
-        logger.info("[redis-rpc] 监听流上线： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort());
+        log.info("[redis-rpc] 监听流上线： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort());
         // 查询本级是否有这个流
         MediaServer mediaServer = mediaServerService.getMediaServerByAppAndStream(sendRtpItem.getApp(), sendRtpItem.getStream());
         if (mediaServer != null) {
-            logger.info("[redis-rpc] 监听流上线时发现流已存在直接返回： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort() );
+            log.info("[redis-rpc] 监听流上线时发现流已存在直接返回： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort() );
             // 读取redis中的上级点播信息，生成sendRtpItm发送出去
             if (sendRtpItem.getSsrc() == null) {
                 // 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
@@ -141,7 +139,7 @@ public class RedisRpcController {
         // 监听流上线。 流上线直接发送sendRtpItem消息给实际的信令处理者
         Hook hook = Hook.getInstance(HookType.on_media_arrival, sendRtpItem.getApp(), sendRtpItem.getStream(), null);
         hookSubscribe.addSubscribe(hook, (hookData) -> {
-            logger.info("[redis-rpc] 监听流上线，流已上线： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort());
+            log.info("[redis-rpc] 监听流上线，流已上线： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort());
             // 读取redis中的上级点播信息，生成sendRtpItm发送出去
             if (sendRtpItem.getSsrc() == null) {
                 // 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
@@ -169,7 +167,7 @@ public class RedisRpcController {
      */
     public RedisRpcResponse stopWaitePushStreamOnline(RedisRpcRequest request) {
         SendRtpItem sendRtpItem = JSONObject.parseObject(request.getParam().toString(), SendRtpItem.class);
-        logger.info("[redis-rpc] 停止监听流上线： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort() );
+        log.info("[redis-rpc] 停止监听流上线： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort() );
         // 监听流上线。 流上线直接发送sendRtpItem消息给实际的信令处理者
         Hook hook = Hook.getInstance(HookType.on_media_arrival, sendRtpItem.getApp(), sendRtpItem.getStream(), null);
         hookSubscribe.removeSubscribe(hook);
@@ -188,22 +186,22 @@ public class RedisRpcController {
         RedisRpcResponse response = request.getResponse();
         response.setStatusCode(200);
         if (sendRtpItem == null) {
-            logger.info("[redis-rpc] 开始发流, 未找到redis中的发流信息， key：{}", sendRtpItemKey);
+            log.info("[redis-rpc] 开始发流, 未找到redis中的发流信息， key：{}", sendRtpItemKey);
             WVPResult wvpResult = WVPResult.fail(ErrorCode.ERROR100.getCode(), "未找到redis中的发流信息");
             response.setBody(wvpResult);
             return response;
         }
-        logger.info("[redis-rpc] 开始发流： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort());
+        log.info("[redis-rpc] 开始发流： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort());
         MediaServer mediaServer = mediaServerService.getOne(sendRtpItem.getMediaServerId());
         if (mediaServer == null) {
-            logger.info("[redis-rpc] startSendRtp->未找到MediaServer： {}", sendRtpItem.getMediaServerId() );
+            log.info("[redis-rpc] startSendRtp->未找到MediaServer： {}", sendRtpItem.getMediaServerId() );
             WVPResult wvpResult = WVPResult.fail(ErrorCode.ERROR100.getCode(), "未找到MediaServer");
             response.setBody(wvpResult);
             return response;
         }
         MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, sendRtpItem.getApp(), sendRtpItem.getStream());
         if (mediaInfo != null) {
-            logger.info("[redis-rpc] startSendRtp->流不在线： {}/{}", sendRtpItem.getApp(), sendRtpItem.getStream() );
+            log.info("[redis-rpc] startSendRtp->流不在线： {}/{}", sendRtpItem.getApp(), sendRtpItem.getStream() );
             WVPResult wvpResult = WVPResult.fail(ErrorCode.ERROR100.getCode(), "流不在线");
             response.setBody(wvpResult);
             return response;
@@ -211,12 +209,12 @@ public class RedisRpcController {
         try {
             mediaServerService.startSendRtp(mediaServer, sendRtpItem);
         }catch (ControllerException exception) {
-            logger.info("[redis-rpc] 发流失败： {}/{}, 目标地址： {}：{}， {}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort(), exception.getMsg());
+            log.info("[redis-rpc] 发流失败： {}/{}, 目标地址： {}：{}， {}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort(), exception.getMsg());
             WVPResult wvpResult = WVPResult.fail(exception.getCode(), exception.getMsg());
             response.setBody(wvpResult);
             return response;
         }
-        logger.info("[redis-rpc] 发流成功： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort());
+        log.info("[redis-rpc] 发流成功： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort());
         WVPResult wvpResult = WVPResult.success();
         response.setBody(wvpResult);
         return response;
@@ -231,15 +229,15 @@ public class RedisRpcController {
         RedisRpcResponse response = request.getResponse();
         response.setStatusCode(200);
         if (sendRtpItem == null) {
-            logger.info("[redis-rpc] 停止推流, 未找到redis中的发流信息， key：{}", sendRtpItemKey);
+            log.info("[redis-rpc] 停止推流, 未找到redis中的发流信息， key：{}", sendRtpItemKey);
             WVPResult wvpResult = WVPResult.fail(ErrorCode.ERROR100.getCode(), "未找到redis中的发流信息");
             response.setBody(wvpResult);
             return response;
         }
-        logger.info("[redis-rpc] 停止推流： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort() );
+        log.info("[redis-rpc] 停止推流： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort() );
         MediaServer mediaServer = mediaServerService.getOne(sendRtpItem.getMediaServerId());
         if (mediaServer == null) {
-            logger.info("[redis-rpc] stopSendRtp->未找到MediaServer： {}", sendRtpItem.getMediaServerId() );
+            log.info("[redis-rpc] stopSendRtp->未找到MediaServer： {}", sendRtpItem.getMediaServerId() );
             WVPResult wvpResult = WVPResult.fail(ErrorCode.ERROR100.getCode(), "未找到MediaServer");
             response.setBody(wvpResult);
             return response;
@@ -247,12 +245,12 @@ public class RedisRpcController {
         try {
             mediaServerService.stopSendRtp(mediaServer, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getSsrc());
         }catch (ControllerException exception) {
-            logger.info("[redis-rpc] 停止推流失败： {}/{}, 目标地址： {}：{}， code： {}, msg: {}", sendRtpItem.getApp(),
+            log.info("[redis-rpc] 停止推流失败： {}/{}, 目标地址： {}：{}， code： {}, msg: {}", sendRtpItem.getApp(),
                     sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort(), exception.getCode(), exception.getMsg() );
             response.setBody(WVPResult.fail(exception.getCode(), exception.getMsg()));
             return response;
         }
-        logger.info("[redis-rpc] 停止推流成功： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort() );
+        log.info("[redis-rpc] 停止推流成功： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort() );
         response.setBody(WVPResult.success());
         return response;
     }
@@ -266,10 +264,10 @@ public class RedisRpcController {
         RedisRpcResponse response = request.getResponse();
         response.setStatusCode(200);
         if (sendRtpItem == null) {
-            logger.info("[redis-rpc] 推流已经停止, 未找到redis中的发流信息， key：{}", sendRtpItemKey);
+            log.info("[redis-rpc] 推流已经停止, 未找到redis中的发流信息， key：{}", sendRtpItemKey);
             return response;
         }
-        logger.info("[redis-rpc] 推流已经停止： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort() );
+        log.info("[redis-rpc] 推流已经停止： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort() );
         String platformId = sendRtpItem.getPlatformId();
         ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
         if (platform == null) {
@@ -281,13 +279,13 @@ public class RedisRpcController {
                     sendRtpItem.getCallId(), sendRtpItem.getStream());
             redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem, platform);
         } catch (SipException | InvalidArgumentException | ParseException e) {
-            logger.error("[命令发送失败] 发送BYE: {}", e.getMessage());
+            log.error("[命令发送失败] 发送BYE: {}", e.getMessage());
         }
         return response;
     }
 
     private void sendResponse(RedisRpcResponse response){
-        logger.info("[redis-rpc] >> {}", response);
+        log.info("[redis-rpc] >> {}", response);
         response.setToId(userSetting.getServerId());
         RedisRpcMessage message = new RedisRpcMessage();
         message.setResponse(response);

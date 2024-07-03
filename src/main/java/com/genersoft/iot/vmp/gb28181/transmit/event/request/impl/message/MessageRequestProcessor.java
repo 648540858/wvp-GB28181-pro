@@ -13,10 +13,9 @@ import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -30,10 +29,9 @@ import java.text.ParseException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Component
 public class MessageRequestProcessor extends SIPRequestProcessorParent implements InitializingBean, ISIPRequestProcessor {
-
-    private final static Logger logger = LoggerFactory.getLogger(MessageRequestProcessor.class);
 
     private final String method = "MESSAGE";
 
@@ -94,7 +92,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
             if (device == null && parentPlatform == null) {
                 // 不存在则回复404
                 responseAck(request, Response.NOT_FOUND, "device "+ deviceId +" not found");
-                logger.warn("[设备未找到 ]deviceId: {}, callId: {}", deviceId, callIdHeader.getCallId());
+                log.warn("[设备未找到 ]deviceId: {}, callId: {}", deviceId, callIdHeader.getCallId());
                 if (sipSubscribe.getErrorSubscribe(callIdHeader.getCallId()) != null){
                     DeviceNotFoundEvent deviceNotFoundEvent = new DeviceNotFoundEvent(evt.getDialog());
                     deviceNotFoundEvent.setCallId(callIdHeader.getCallId());
@@ -106,7 +104,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
                 try {
                     rootElement = getRootElement(evt);
                     if (rootElement == null) {
-                        logger.error("处理MESSAGE请求  未获取到消息体{}", evt.getRequest());
+                        log.error("处理MESSAGE请求  未获取到消息体{}", evt.getRequest());
                         responseAck(request, Response.BAD_REQUEST, "content is null");
                         return;
                     }
@@ -124,17 +122,17 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
                         responseAck(request, Response.UNSUPPORTED_MEDIA_TYPE, "Unsupported message type, must Control/Notify/Query/Response");
                     }
                 } catch (DocumentException e) {
-                    logger.warn("解析XML消息内容异常", e);
+                    log.warn("解析XML消息内容异常", e);
                     // 不存在则回复404
                     responseAck(request, Response.BAD_REQUEST, e.getMessage());
                 }
             }
         } catch (SipException e) {
-            logger.warn("SIP 回复错误", e);
+            log.warn("SIP 回复错误", e);
         } catch (InvalidArgumentException e) {
-            logger.warn("参数无效", e);
+            log.warn("参数无效", e);
         } catch (ParseException e) {
-            logger.warn("SIP回复时解析异常", e);
+            log.warn("SIP回复时解析异常", e);
         }
     }
 

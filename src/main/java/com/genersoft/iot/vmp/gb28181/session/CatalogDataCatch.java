@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.gb28181.bean.CatalogData;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
+import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -21,6 +22,9 @@ public class CatalogDataCatch {
 
     @Autowired
     private IVideoManagerStorage storager;
+
+    @Autowired
+    private IDeviceChannelService deviceChannelService;
 
     public void addReady(Device device, int sn ) {
         CatalogData catalogData = data.get(device.getDeviceId());
@@ -113,9 +117,9 @@ public class CatalogDataCatch {
                 // 超过五秒收不到消息任务超时， 只更新这一部分数据, 收到数据与声明的总数一致，则重置通道数据，数据不全则只对收到的数据做更新操作
                 if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.runIng)) {
                     if (catalogData.getTotal() == catalogData.getChannelList().size()) {
-                        storager.resetChannels(catalogData.getDevice().getDeviceId(), catalogData.getChannelList());
+                        deviceChannelService.resetChannels(catalogData.getDevice().getDeviceId(), catalogData.getChannelList());
                     }else {
-                        storager.updateChannels(catalogData.getDevice().getDeviceId(), catalogData.getChannelList());
+                        deviceChannelService.updateChannels(catalogData.getDevice().getDeviceId(), catalogData.getChannelList());
                     }
                     String errorMsg = "更新成功，共" + catalogData.getTotal() + "条，已更新" + catalogData.getChannelList().size() + "条";
                     catalogData.setErrorMsg(errorMsg);

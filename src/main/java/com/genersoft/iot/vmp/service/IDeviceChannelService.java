@@ -108,4 +108,8 @@ public interface IDeviceChannelService {
     void offline(DeviceChannel channel);
 
     void delete(DeviceChannel channel);
+
+    void cleanChannelsForDevice(String deviceId);
+
+    boolean resetChannels(String deviceId, List<DeviceChannel> deviceChannels);
 }

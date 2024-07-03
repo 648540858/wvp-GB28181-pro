@@ -27,13 +27,13 @@ public class SipSubscribe {
 
     private final Logger logger = LoggerFactory.getLogger(SipSubscribe.class);
 
-    private Map<String, SipSubscribe.Event> errorSubscribes = new ConcurrentHashMap<>();
+    private final Map<String, SipSubscribe.Event> errorSubscribes = new ConcurrentHashMap<>();
 
-    private Map<String, SipSubscribe.Event> okSubscribes = new ConcurrentHashMap<>();
+    private final Map<String, SipSubscribe.Event> okSubscribes = new ConcurrentHashMap<>();
 
-    private Map<String, Instant> okTimeSubscribes = new ConcurrentHashMap<>();
+    private final Map<String, Instant> okTimeSubscribes = new ConcurrentHashMap<>();
 
-    private Map<String, Instant> errorTimeSubscribes = new ConcurrentHashMap<>();
+    private final Map<String, Instant> errorTimeSubscribes = new ConcurrentHashMap<>();
 
     //    @Scheduled(cron="*/5 * * * * ?")   //每五秒执行一次
     //    @Scheduled(fixedRate= 100 * 60 * 60 )

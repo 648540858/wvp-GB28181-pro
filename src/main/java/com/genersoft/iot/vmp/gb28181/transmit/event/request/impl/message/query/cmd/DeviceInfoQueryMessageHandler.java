@@ -8,9 +8,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessag
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.QueryMessageHandler;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -24,10 +23,10 @@ import java.text.ParseException;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
+@Slf4j
 @Component
 public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(DeviceInfoQueryMessageHandler.class);
     private final String cmdType = "DeviceInfo";
 
     @Autowired
@@ -50,13 +49,13 @@ public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent imp
 
     @Override
     public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element rootElement) {
-        logger.info("[DeviceInfo查询]消息");
+        log.info("[DeviceInfo查询]消息");
         FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
         try {
             // 回复200 OK
             responseAck((SIPRequest) evt.getRequest(), Response.OK);
         } catch (SipException | InvalidArgumentException | ParseException e) {
-            logger.error("[命令发送失败] DeviceInfo查询回复: {}", e.getMessage());
+            log.error("[命令发送失败] DeviceInfo查询回复: {}", e.getMessage());
             return;
         }
         String sn = rootElement.element("SN").getText();
@@ -72,14 +71,14 @@ public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent imp
         if (!parentPlatform.getDeviceGBId().equals(channelId)) {
             device = storager.queryDeviceInfoByPlatformIdAndChannelId(parentPlatform.getServerGBId(), channelId);
             if (device ==null){
-                logger.error("[平台没有该通道的使用权限]:platformId"+parentPlatform.getServerGBId()+"  deviceID:"+channelId);
+                log.error("[平台没有该通道的使用权限]:platformId"+parentPlatform.getServerGBId()+"  deviceID:"+channelId);
                 return;
             }
         }
         try {
             cmderFroPlatform.deviceInfoResponse(parentPlatform, device, sn, fromHeader.getTag());
         } catch (SipException | InvalidArgumentException | ParseException e) {
-            logger.error("[命令发送失败] 国标级联 DeviceInfo查询回复: {}", e.getMessage());
+            log.error("[命令发送失败] 国标级联 DeviceInfo查询回复: {}", e.getMessage());
         }
     }
 }

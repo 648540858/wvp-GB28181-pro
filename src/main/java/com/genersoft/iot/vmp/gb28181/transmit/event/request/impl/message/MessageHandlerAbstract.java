@@ -6,9 +6,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.cmd.CatalogQueryMessageHandler;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.sip.InvalidArgumentException;
@@ -21,9 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
+@Slf4j
 public abstract class MessageHandlerAbstract extends SIPRequestProcessorParent implements IMessageHandler{
-
-    private Logger logger = LoggerFactory.getLogger(MessageHandlerAbstract.class);
 
     public Map<String, IMessageHandler> messageHandlerMap = new ConcurrentHashMap<>();
 
@@ -41,7 +39,7 @@ public abstract class MessageHandlerAbstract extends SIPRequestProcessorParent i
             try {
                 responseAck((SIPRequest) evt.getRequest(), Response.OK);
             } catch (SipException | InvalidArgumentException | ParseException e) {
-                logger.error("[命令发送失败] 回复200 OK: {}", e.getMessage());
+                log.error("[命令发送失败] 回复200 OK: {}", e.getMessage());
             }
             return;
         }

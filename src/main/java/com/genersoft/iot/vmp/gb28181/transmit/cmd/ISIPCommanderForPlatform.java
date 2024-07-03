@@ -58,10 +58,10 @@ public interface ISIPCommanderForPlatform {
      * @param size
      * @return
      */
-    void catalogQuery(DeviceChannel channel, ParentPlatform parentPlatform, String sn, String fromTag, int size)
+    void catalogQuery(CommonGBChannel channel, ParentPlatform parentPlatform, String sn, String fromTag, int size)
             throws SipException, InvalidArgumentException, ParseException;
 
-    void catalogQuery(List<DeviceChannel> channels, ParentPlatform parentPlatform, String sn, String fromTag)
+    void catalogQuery(List<CommonGBChannel> channels, ParentPlatform parentPlatform, String sn, String fromTag)
             throws InvalidArgumentException, ParseException, SipException;
 
     /**
@@ -110,7 +110,7 @@ public interface ISIPCommanderForPlatform {
      * @param parentPlatform
      * @param deviceChannels
      */
-    void sendNotifyForCatalogAddOrUpdate(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels, SubscribeInfo subscribeInfo, Integer index) throws InvalidArgumentException, ParseException, NoSuchFieldException, SipException, IllegalAccessException;
+    void sendNotifyForCatalogAddOrUpdate(String type, ParentPlatform parentPlatform, List<CommonGBChannel> deviceChannels, SubscribeInfo subscribeInfo, Integer index) throws InvalidArgumentException, ParseException, NoSuchFieldException, SipException, IllegalAccessException;
 
     /**
      * 回复catalog事件-删除
@@ -118,7 +118,7 @@ public interface ISIPCommanderForPlatform {
      * @param parentPlatform
      * @param deviceChannels
      */
-    void sendNotifyForCatalogOther(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels,
+    void sendNotifyForCatalogOther(String type, ParentPlatform parentPlatform, List<CommonGBChannel> deviceChannels,
                                    SubscribeInfo subscribeInfo, Integer index) throws InvalidArgumentException,
             ParseException, NoSuchFieldException, SipException, IllegalAccessException;
 
@@ -130,7 +130,7 @@ public interface ISIPCommanderForPlatform {
      * @param fromTag        fromTag
      * @param recordInfo     录像信息
      */
-    void recordInfo(DeviceChannel deviceChannel, ParentPlatform parentPlatform, String fromTag, RecordInfo recordInfo)
+    void recordInfo(CommonGBChannel deviceChannel, ParentPlatform parentPlatform, String fromTag, RecordInfo recordInfo)
             throws SipException, InvalidArgumentException, ParseException;
 
     /**
@@ -158,5 +158,5 @@ public interface ISIPCommanderForPlatform {
                             SSRCInfo ssrcInfo, HookSubscribe.Event event, SipSubscribe.Event okEvent,
                             SipSubscribe.Event errorEvent) throws ParseException, SipException, InvalidArgumentException;
 
-    void broadcastResultCmd(ParentPlatform platform, DeviceChannel deviceChannel, String sn, boolean result, SipSubscribe.Event errorEvent,  SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
+    void broadcastResultCmd(ParentPlatform platform, CommonGBChannel deviceChannel, String sn, boolean result, SipSubscribe.Event errorEvent,  SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
 }

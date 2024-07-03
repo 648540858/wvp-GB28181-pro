@@ -11,9 +11,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessag
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.genersoft.iot.vmp.service.IPlayService;
 import gov.nist.javax.sip.message.SIPRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,10 +25,10 @@ import java.text.ParseException;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
+@Slf4j
 @Component
 public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(BroadcastResponseMessageHandler.class);
     private final String cmdType = "Broadcast";
 
     @Autowired
@@ -66,7 +65,7 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
             if (infoElement != null) {
                 reason = getText(infoElement, "Reason");
             }
-            logger.info("[语音广播]回复：{}, {}/{}", reason == null? result : result + ": " + reason, device.getDeviceId(), channelId );
+            log.info("[语音广播]回复：{}, {}/{}", reason == null? result : result + ": " + reason, device.getDeviceId(), channelId );
 
             // 回复200 OK
             responseAck(request, Response.OK);
@@ -78,7 +77,7 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
                 playService.stopAudioBroadcast(device.getDeviceId(), channelId);
             }
         } catch (ParseException | SipException | InvalidArgumentException e) {
-            logger.error("[命令发送失败] 国标级联 语音喊话: {}", e.getMessage());
+            log.error("[命令发送失败] 国标级联 语音喊话: {}", e.getMessage());
         }
     }
 

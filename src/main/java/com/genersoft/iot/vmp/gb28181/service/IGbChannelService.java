@@ -27,4 +27,6 @@ public interface IGbChannelService {
     void batchAdd(List<CommonGBChannel> commonGBChannels);
 
     void updateStatus(List<CommonGBChannel> channelList);
+
+    List<CommonGBChannel> queryByPlatformId(Integer platformId);
 }

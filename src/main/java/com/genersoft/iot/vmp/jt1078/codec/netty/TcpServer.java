@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
  */
 
 public class TcpServer {
-    private final static Logger log = LoggerFactory.getLogger(TcpServer.class);
+    private final static Logger logger = LoggerFactory.getLogger(TcpServer.class);
 
     private final Integer port;
     private boolean isRunning = false;

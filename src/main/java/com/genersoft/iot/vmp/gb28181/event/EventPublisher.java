@@ -52,8 +52,8 @@ public class EventPublisher {
 	}
 
 
-	public void catalogEventPublish(String platformId, DeviceChannel deviceChannel, String type) {
-		List<DeviceChannel> deviceChannelList = new ArrayList<>();
+	public void catalogEventPublish(String platformId, CommonGBChannel deviceChannel, String type) {
+		List<CommonGBChannel> deviceChannelList = new ArrayList<>();
 		deviceChannelList.add(deviceChannel);
 		catalogEventPublish(platformId, deviceChannelList, type);
 	}
@@ -72,22 +72,22 @@ public class EventPublisher {
 	 * @param deviceChannels
 	 * @param type
 	 */
-	public void catalogEventPublish(String platformId, List<DeviceChannel> deviceChannels, String type) {
+	public void catalogEventPublish(String platformId, List<CommonGBChannel> deviceChannels, String type) {
 		CatalogEvent outEvent = new CatalogEvent(this);
-		List<DeviceChannel> channels = new ArrayList<>();
+		List<CommonGBChannel> channels = new ArrayList<>();
 		if (deviceChannels.size() > 1) {
 			// 数据去重
 			Set<String> gbIdSet = new HashSet<>();
-			for (DeviceChannel deviceChannel : deviceChannels) {
-				if (deviceChannel != null && deviceChannel.getChannelId() != null && !gbIdSet.contains(deviceChannel.getChannelId())) {
-					gbIdSet.add(deviceChannel.getChannelId());
+			for (CommonGBChannel deviceChannel : deviceChannels) {
+				if (deviceChannel != null && deviceChannel.getGbDeviceId() != null && !gbIdSet.contains(deviceChannel.getGbDeviceId())) {
+					gbIdSet.add(deviceChannel.getGbDeviceId());
 					channels.add(deviceChannel);
 				}
 			}
 		}else {
 			channels = deviceChannels;
 		}
-		outEvent.setDeviceChannels(channels);
+		outEvent.setChannels(channels);
 		outEvent.setType(type);
 		outEvent.setPlatformId(platformId);
 		applicationEventPublisher.publishEvent(outEvent);
@@ -98,22 +98,6 @@ public class EventPublisher {
 		MobilePositionEvent event = new MobilePositionEvent(this);
 		event.setMobilePosition(mobilePosition);
 		applicationEventPublisher.publishEvent(event);
-	}
-
-
-	public void catalogEventPublishForStream(String platformId, List<GbStream> gbStreams, String type) {
-		CatalogEvent outEvent = new CatalogEvent(this);
-		outEvent.setGbStreams(gbStreams);
-		outEvent.setType(type);
-		outEvent.setPlatformId(platformId);
-		applicationEventPublisher.publishEvent(outEvent);
-	}
-
-
-	public void catalogEventPublishForStream(String platformId, GbStream gbStream, String type) {
-		List<GbStream> gbStreamList = new ArrayList<>();
-		gbStreamList.add(gbStream);
-		catalogEventPublishForStream(platformId, gbStreamList, type);
 	}
 
 	public void recordEndEventPush(RecordInfo recordInfo) {

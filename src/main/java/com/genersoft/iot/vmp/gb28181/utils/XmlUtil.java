@@ -2,14 +2,13 @@ package com.genersoft.iot.vmp.gb28181.utils;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.dom4j.Attribute;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 
@@ -25,21 +24,12 @@ import java.util.*;
 
 /**
  * 基于dom4j的工具包
- *
- *
  */
+@Slf4j
 public class XmlUtil {
-    /**
-     * 日志服务
-     */
-    private static Logger logger = LoggerFactory.getLogger(XmlUtil.class);
 
     /**
      * 解析XML为Document对象
-     *
-     * @param xml 被解析的XMl
-     *
-     * @return Document
      */
     public static Element parseXml(String xml) {
         Document document = null;
@@ -49,7 +39,7 @@ public class XmlUtil {
         try {
             document = saxReader.read(sr);
         } catch (DocumentException e) {
-            logger.error("解析失败", e);
+            log.error("解析失败", e);
         }
         return null == document ? null : document.getRootElement();
     }

@@ -4,9 +4,9 @@ import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.auth.DigestServerAuthenticationHelper;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.GbSipDate;
 import com.genersoft.iot.vmp.gb28181.bean.RemoteAddressInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
-import com.genersoft.iot.vmp.gb28181.bean.GbSipDate;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
@@ -20,16 +20,12 @@ import gov.nist.javax.sip.address.SipUri;
 import gov.nist.javax.sip.header.SIPDateHeader;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
-import javax.sip.*;
-import javax.sip.header.*;
-import javax.sip.message.Request;
 import javax.sip.RequestEvent;
 import javax.sip.SipException;
 import javax.sip.header.AuthorizationHeader;
@@ -46,10 +42,9 @@ import java.util.Locale;
 /**
  * SIP命令类型： REGISTER请求
  */
+@Slf4j
 @Component
 public class RegisterRequestProcessor extends SIPRequestProcessorParent implements InitializingBean, ISIPRequestProcessor {
-
-    private final Logger logger = LoggerFactory.getLogger(RegisterRequestProcessor.class);
 
     public final String method = "REGISTER";
 
@@ -104,11 +99,11 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                     userSetting.getSipUseSourceIpAsRemoteAddress());
             String requestAddress = remoteAddressInfo.getIp() + ":" + remoteAddressInfo.getPort();
             String title = registerFlag ? "[注册请求]": "[注销请求]";
-                    logger.info(title + "设备：{}, 开始处理: {}", deviceId, requestAddress);
+                    log.info(title + "设备：{}, 开始处理: {}", deviceId, requestAddress);
             if (device != null &&
                     device.getSipTransactionInfo() != null &&
                     request.getCallIdHeader().getCallId().equals(device.getSipTransactionInfo().getCallId())) {
-                logger.info(title + "设备：{}, 注册续订: {}",device.getDeviceId(), device.getDeviceId());
+                log.info(title + "设备：{}, 注册续订: {}",device.getDeviceId(), device.getDeviceId());
                 if (registerFlag) {
                     device.setExpires(request.getExpires().getExpires());
                     device.setIp(remoteAddressInfo.getIp());
@@ -133,7 +128,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             String password = (device != null && !ObjectUtils.isEmpty(device.getPassword()))? device.getPassword() : sipConfig.getPassword();
             AuthorizationHeader authHead = (AuthorizationHeader) request.getHeader(AuthorizationHeader.NAME);
             if (authHead == null && !ObjectUtils.isEmpty(password)) {
-                logger.info(title + " 设备：{}, 回复401: {}",deviceId, requestAddress);
+                log.info(title + " 设备：{}, 回复401: {}",deviceId, requestAddress);
                 response = getMessageFactory().createResponse(Response.UNAUTHORIZED, request);
                 new DigestServerAuthenticationHelper().generateChallenge(getHeaderFactory(), response, sipConfig.getDomain());
                 sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
@@ -148,7 +143,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 // 注册失败
                 response = getMessageFactory().createResponse(Response.FORBIDDEN, request);
                 response.setReasonPhrase("wrong password");
-                logger.info(title + " 设备：{}, 密码/SIP服务器ID错误, 回复403: {}", deviceId, requestAddress);
+                log.info(title + " 设备：{}, 密码/SIP服务器ID错误, 回复403: {}", deviceId, requestAddress);
                 sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
                 return;
             }
@@ -212,16 +207,16 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             // 注册成功
             // 保存到redis
             if (registerFlag) {
-                logger.info("[注册成功] deviceId: {}->{}",  deviceId, requestAddress);
+                log.info("[注册成功] deviceId: {}->{}",  deviceId, requestAddress);
                 device.setRegisterTime(DateUtil.getNow());
                 SipTransactionInfo sipTransactionInfo = new SipTransactionInfo((SIPResponse)response);
                 deviceService.online(device, sipTransactionInfo);
             } else {
-                logger.info("[注销成功] deviceId: {}->{}" ,deviceId, requestAddress);
+                log.info("[注销成功] deviceId: {}->{}" ,deviceId, requestAddress);
                 deviceService.offline(deviceId, "主动注销");
             }
         } catch (SipException | NoSuchAlgorithmException | ParseException e) {
-            logger.error("未处理的异常 ", e);
+            log.error("未处理的异常 ", e);
         }
     }
 

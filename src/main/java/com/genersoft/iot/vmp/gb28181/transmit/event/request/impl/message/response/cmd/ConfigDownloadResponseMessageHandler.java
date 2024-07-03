@@ -3,7 +3,6 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.respon
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -11,9 +10,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessag
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import gov.nist.javax.sip.message.SIPRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,17 +24,14 @@ import java.text.ParseException;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
+@Slf4j
 @Component
 public class ConfigDownloadResponseMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(ConfigDownloadResponseMessageHandler.class);
     private final String cmdType = "ConfigDownload";
 
     @Autowired
     private ResponseMessageHandler responseMessageHandler;
-
-    @Autowired
-    private EventPublisher publisher;
 
     @Autowired
     private DeferredResultHolder deferredResultHolder;
@@ -55,13 +50,13 @@ public class ConfigDownloadResponseMessageHandler extends SIPRequestProcessorPar
             // 回复200 OK
             responseAck((SIPRequest) evt.getRequest(), Response.OK);
         } catch (SipException | InvalidArgumentException | ParseException e) {
-            logger.error("[命令发送失败] 设备配置查询: {}", e.getMessage());
+            log.error("[命令发送失败] 设备配置查询: {}", e.getMessage());
         }
         // 此处是对本平台发出DeviceControl指令的应答
         JSONObject json = new JSONObject();
         XmlUtil.node2Json(element, json);
-        if (logger.isDebugEnabled()) {
-            logger.debug(json.toJSONString());
+        if (log.isDebugEnabled()) {
+            log.debug(json.toJSONString());
         }
         RequestMessage msg = new RequestMessage();
         msg.setKey(key);

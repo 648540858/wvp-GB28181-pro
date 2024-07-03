@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.utils.Coordtransform;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
@@ -23,12 +24,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -425,5 +427,148 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 //            deviceMobilePositionMapper.batchadd(mobilePositions);
 //        }
         deviceMobilePositionMapper.batchadd(mobilePositions);
+    }
+
+    @Override
+    public void cleanChannelsForDevice(String deviceId) {
+        channelMapper.cleanChannelsByDeviceId(deviceId);
+    }
+
+    @Override
+    public boolean resetChannels(String deviceId, List<DeviceChannel> deviceChannelList) {
+        if (CollectionUtils.isEmpty(deviceChannelList)) {
+            return false;
+        }
+        List<DeviceChannel> allChannels = channelMapper.queryAllChannels(deviceId);
+        Map<String,DeviceChannel> allChannelMap = new ConcurrentHashMap<>();
+        if (allChannels.size() > 0) {
+            for (DeviceChannel deviceChannel : allChannels) {
+                allChannelMap.put(deviceChannel.getChannelId(), deviceChannel);
+            }
+        }
+        TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
+        // 数据去重
+        List<DeviceChannel> channels = new ArrayList<>();
+
+        List<DeviceChannel> updateChannels = new ArrayList<>();
+        List<DeviceChannel> addChannels = new ArrayList<>();
+        List<DeviceChannel> deleteChannels = new ArrayList<>();
+        StringBuilder stringBuilder = new StringBuilder();
+        Map<String, Integer> subContMap = new HashMap<>();
+
+        // 数据去重
+        Set<String> gbIdSet = new HashSet<>();
+        for (DeviceChannel deviceChannel : deviceChannelList) {
+            if (gbIdSet.contains(deviceChannel.getChannelId())) {
+                stringBuilder.append(deviceChannel.getChannelId()).append(",");
+                continue;
+            }
+            gbIdSet.add(deviceChannel.getChannelId());
+            if (allChannelMap.containsKey(deviceChannel.getChannelId())) {
+                deviceChannel.setStreamId(allChannelMap.get(deviceChannel.getChannelId()).getStreamId());
+                deviceChannel.setHasAudio(allChannelMap.get(deviceChannel.getChannelId()).getHasAudio());
+                if (allChannelMap.get(deviceChannel.getChannelId()).isStatus() !=deviceChannel.isStatus()){
+                    List<String> strings = platformChannelMapper.queryParentPlatformByChannelId(deviceChannel.getChannelId());
+                    if (!CollectionUtils.isEmpty(strings)){
+                        strings.forEach(platformId->{
+                            eventPublisher.catalogEventPublish(platformId, deviceChannel, deviceChannel.isStatus()? CatalogEvent.ON:CatalogEvent.OFF);
+                        });
+                    }
+
+                }
+                deviceChannel.setUpdateTime(DateUtil.getNow());
+                updateChannels.add(deviceChannel);
+            }else {
+                deviceChannel.setCreateTime(DateUtil.getNow());
+                deviceChannel.setUpdateTime(DateUtil.getNow());
+                addChannels.add(deviceChannel);
+            }
+            allChannelMap.remove(deviceChannel.getChannelId());
+            channels.add(deviceChannel);
+            if (!ObjectUtils.isEmpty(deviceChannel.getParentId())) {
+                if (subContMap.get(deviceChannel.getParentId()) == null) {
+                    subContMap.put(deviceChannel.getParentId(), 1);
+                }else {
+                    Integer count = subContMap.get(deviceChannel.getParentId());
+                    subContMap.put(deviceChannel.getParentId(), count++);
+                }
+            }
+        }
+        deleteChannels.addAll(allChannelMap.values());
+        if (!channels.isEmpty()) {
+            for (DeviceChannel channel : channels) {
+                if (subContMap.get(channel.getChannelId()) != null){
+                    Integer count = subContMap.get(channel.getChannelId());
+                    if (count > 0) {
+                        channel.setSubCount(count);
+                        channel.setParental(1);
+                    }
+                }
+            }
+        }
+
+        if (stringBuilder.length() > 0) {
+            logger.info("[目录查询]收到的数据存在重复： {}" , stringBuilder);
+        }
+        if(CollectionUtils.isEmpty(channels)){
+            logger.info("通道重设，数据为空={}" , deviceChannelList);
+            return false;
+        }
+        try {
+            int limitCount = 50;
+            boolean result = false;
+            if (!result && !addChannels.isEmpty()) {
+                if (addChannels.size() > limitCount) {
+                    for (int i = 0; i < addChannels.size(); i += limitCount) {
+                        int toIndex = i + limitCount;
+                        if (i + limitCount > addChannels.size()) {
+                            toIndex = addChannels.size();
+                        }
+                        result = result || channelMapper.batchAdd(addChannels.subList(i, toIndex)) < 0;
+                    }
+                }else {
+                    result = result || channelMapper.batchAdd(addChannels) < 0;
+                }
+            }
+            if (!result && !updateChannels.isEmpty()) {
+                if (updateChannels.size() > limitCount) {
+                    for (int i = 0; i < updateChannels.size(); i += limitCount) {
+                        int toIndex = i + limitCount;
+                        if (i + limitCount > updateChannels.size()) {
+                            toIndex = updateChannels.size();
+                        }
+                        result = result || channelMapper.batchUpdate(updateChannels.subList(i, toIndex)) < 0;
+                    }
+                }else {
+                    result = result || channelMapper.batchUpdate(updateChannels) < 0;
+                }
+            }
+            if (!result && !deleteChannels.isEmpty()) {
+                System.out.println("删除： " + deleteChannels.size());
+                if (deleteChannels.size() > limitCount) {
+                    for (int i = 0; i < deleteChannels.size(); i += limitCount) {
+                        int toIndex = i + limitCount;
+                        if (i + limitCount > deleteChannels.size()) {
+                            toIndex = deleteChannels.size();
+                        }
+                        result = result || channelMapper.batchDel(deleteChannels.subList(i, toIndex)) < 0;
+                    }
+                }else {
+                    result = result || channelMapper.batchDel(deleteChannels) < 0;
+                }
+            }
+
+            if (result) {
+                //事务回滚
+                dataSourceTransactionManager.rollback(transactionStatus);
+            }
+            dataSourceTransactionManager.commit(transactionStatus);     //手动提交
+            return true;
+        }catch (Exception e) {
+            logger.error("未处理的异常 ", e);
+            dataSourceTransactionManager.rollback(transactionStatus);
+            return false;
+        }
+
     }
 }

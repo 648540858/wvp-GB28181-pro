@@ -148,18 +148,13 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
 
                                 // 更新device channel 的经纬度
                                 DeviceChannel deviceChannel = new DeviceChannel();
-                                deviceChannel.setDeviceId(sipMsgInfo.getDevice().getDeviceId());
-                                deviceChannel.setChannelId(channelId);
+                                deviceChannel.setGbDeviceDbId(sipMsgInfo.getDevice().getId());
+                                deviceChannel.setDeviceId(channelId);
                                 deviceChannel.setLongitude(mobilePosition.getLongitude());
                                 deviceChannel.setLatitude(mobilePosition.getLatitude());
                                 deviceChannel.setGpsTime(mobilePosition.getTime());
 
                                 deviceChannel = deviceChannelService.updateGps(deviceChannel, sipMsgInfo.getDevice());
-
-                                mobilePosition.setLongitudeWgs84(deviceChannel.getLongitudeWgs84());
-                                mobilePosition.setLatitudeWgs84(deviceChannel.getLatitudeWgs84());
-                                mobilePosition.setLongitudeGcj02(deviceChannel.getLongitudeGcj02());
-                                mobilePosition.setLatitudeGcj02(deviceChannel.getLatitudeGcj02());
 
                                 deviceChannelService.updateChannelGPS(device, deviceChannel, mobilePosition);
                             }

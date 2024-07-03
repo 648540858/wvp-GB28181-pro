@@ -12,9 +12,8 @@ import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import gov.nist.javax.sip.message.SIPRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -25,10 +24,10 @@ import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
 
+@Slf4j
 @Component
 public class DeviceStatusResponseMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(DeviceStatusResponseMessageHandler.class);
     private final String cmdType = "DeviceStatus";
 
     @Autowired
@@ -50,7 +49,7 @@ public class DeviceStatusResponseMessageHandler extends SIPRequestProcessorParen
 
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element element) {
-        logger.info("接收到DeviceStatus应答消息");
+        log.info("接收到DeviceStatus应答消息");
         // 检查设备是否存在， 不存在则不回复
         if (device == null) {
             return;
@@ -59,15 +58,15 @@ public class DeviceStatusResponseMessageHandler extends SIPRequestProcessorParen
         try {
              responseAck((SIPRequest) evt.getRequest(), Response.OK);
         } catch (SipException | InvalidArgumentException | ParseException e) {
-            logger.error("[命令发送失败] 国标级联 设备状态应答回复200OK: {}", e.getMessage());
+            log.error("[命令发送失败] 国标级联 设备状态应答回复200OK: {}", e.getMessage());
         }
         Element deviceIdElement = element.element("DeviceID");
         Element onlineElement = element.element("Online");
         String channelId = deviceIdElement.getText();
         JSONObject json = new JSONObject();
         XmlUtil.node2Json(element, json);
-        if (logger.isDebugEnabled()) {
-            logger.debug(json.toJSONString());
+        if (log.isDebugEnabled()) {
+            log.debug(json.toJSONString());
         }
         String text = onlineElement.getText();
         if ("ONLINE".equalsIgnoreCase(text.trim())) {

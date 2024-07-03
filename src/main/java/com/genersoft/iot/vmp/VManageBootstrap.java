@@ -28,7 +28,7 @@ import java.util.Collections;
 @EnableCaching
 public class VManageBootstrap extends SpringBootServletInitializer {
 
-	private final static Logger logger = LoggerFactory.getLogger(VManageBootstrap.class);
+	private final static Logger loggerger = LoggerFactory.getLogger(VManageBootstrap.class);
 
 	private static String[] args;
 	private static ConfigurableApplicationContext context;

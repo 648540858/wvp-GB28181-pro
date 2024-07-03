@@ -14,10 +14,9 @@ import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IMobilePositionService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -31,11 +30,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * SIP命令类型： NOTIFY请求中的移动位置请求处理
  */
+@Slf4j
 @Component
 public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessorParent {
-
-
-    private final static Logger logger = LoggerFactory.getLogger(NotifyRequestForMobilePositionProcessor.class);
 
 	private ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
 
@@ -57,7 +54,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 	public void process(RequestEvent evt) {
 
 		if (taskQueue.size() >= userSetting.getMaxNotifyCountQueue()) {
-			logger.error("[notify-移动位置] 待处理消息队列已满 {}，返回486 BUSY_HERE，消息不做处理", userSetting.getMaxNotifyCountQueue());
+			log.error("[notify-移动位置] 待处理消息队列已满 {}，返回486 BUSY_HERE，消息不做处理", userSetting.getMaxNotifyCountQueue());
 			return;
 		}
 		taskQueue.offer(new HandlerCatchData(evt, null, null));
@@ -80,12 +77,12 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 				// 回复 200 OK
 				Element rootElement = getRootElement(evt);
 				if (rootElement == null) {
-					logger.error("处理MobilePosition移动位置Notify时未获取到消息体,{}", evt.getRequest());
+					log.error("处理MobilePosition移动位置Notify时未获取到消息体,{}", evt.getRequest());
 					return;
 				}
 				Device device = redisCatchStorage.getDevice(deviceId);
 				if (device == null) {
-					logger.error("处理MobilePosition移动位置Notify时未获取到device,{}", deviceId);
+					log.error("处理MobilePosition移动位置Notify时未获取到device,{}", deviceId);
 					return;
 				}
 				MobilePosition mobilePosition = new MobilePosition();
@@ -143,7 +140,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 					}
 				}
 
-			logger.debug("[收到移动位置订阅通知]：{}/{}->{}.{}, 时间： {}", mobilePosition.getDeviceId(), mobilePosition.getChannelId(),
+			log.debug("[收到移动位置订阅通知]：{}/{}->{}.{}, 时间： {}", mobilePosition.getDeviceId(), mobilePosition.getChannelId(),
 					mobilePosition.getLongitude(), mobilePosition.getLatitude(), System.currentTimeMillis() - startTime);
 				mobilePosition.setReportSource("Mobile Position");
 
@@ -152,7 +149,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 				try {
 					eventPublisher.mobilePositionEventPublish(mobilePosition);
 				}catch (Exception e) {
-					logger.error("[向上级转发移动位置失败] ", e);
+					log.error("[向上级转发移动位置失败] ", e);
 				}
 				if (mobilePosition.getChannelId() == null || mobilePosition.getChannelId().equals(mobilePosition.getDeviceId())) {
 					List<DeviceChannel> channels = deviceChannelService.queryChaneListByDeviceId(mobilePosition.getDeviceId());
@@ -161,7 +158,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 						JSONObject jsonObject = new JSONObject();
 						jsonObject.put("time", DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
 						jsonObject.put("serial", channel.getDeviceId());
-						jsonObject.put("code", channel.getChannelId());
+						jsonObject.put("code", channel.getDeviceId());
 						jsonObject.put("longitude", mobilePosition.getLongitude());
 						jsonObject.put("latitude", mobilePosition.getLatitude());
 						jsonObject.put("altitude", mobilePosition.getAltitude());
@@ -183,7 +180,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 					redisCatchStorage.sendMobilePositionMsg(jsonObject);
 				}
 			} catch (DocumentException e) {
-				logger.error("未处理的异常 ", e);
+				log.error("未处理的异常 ", e);
 			}
 		}
 		taskQueue.clear();

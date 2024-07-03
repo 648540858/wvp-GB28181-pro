@@ -5,9 +5,8 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.support.atomic.RedisAtomicInteger;
@@ -17,10 +16,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Component
 public class SendRtpPortManager {
-
-    private final static Logger logger = LoggerFactory.getLogger(SendRtpPortManager.class);
 
     @Autowired
     private UserSetting userSetting;
@@ -32,7 +30,7 @@ public class SendRtpPortManager {
 
     public synchronized int getNextPort(MediaServer mediaServer) {
         if (mediaServer == null) {
-            logger.warn("[发送端口管理] 参数错误，mediaServer为NULL");
+            log.warn("[发送端口管理] 参数错误，mediaServer为NULL");
             return -1;
         }
         String sendIndexKey = KEY + userSetting.getServerId() + "_" +  mediaServer.getId();
@@ -53,12 +51,12 @@ public class SendRtpPortManager {
         if (sendRtpPortRange != null) {
             String[] portArray = sendRtpPortRange.split(",");
             if (portArray.length != 2 || !NumberUtils.isParsable(portArray[0]) || !NumberUtils.isParsable(portArray[1])) {
-                logger.warn("{}发送端口配置格式错误，自动使用50000-60000作为端口范围", mediaServer.getId());
+                log.warn("{}发送端口配置格式错误，自动使用50000-60000作为端口范围", mediaServer.getId());
                 startPort = 50000;
                 endPort = 60000;
             }else {
                 if ( Integer.parseInt(portArray[1]) - Integer.parseInt(portArray[0]) < 1) {
-                    logger.warn("{}发送端口配置错误,结束端口至少比开始端口大一，自动使用50000-60000作为端口范围", mediaServer.getId());
+                    log.warn("{}发送端口配置错误,结束端口至少比开始端口大一，自动使用50000-60000作为端口范围", mediaServer.getId());
                     startPort = 50000;
                     endPort = 60000;
                 }else {
@@ -67,12 +65,12 @@ public class SendRtpPortManager {
                 }
             }
         }else {
-            logger.warn("{}未设置发送端口默认值，自动使用50000-60000作为端口范围", mediaServer.getId());
+            log.warn("{}未设置发送端口默认值，自动使用50000-60000作为端口范围", mediaServer.getId());
             startPort = 50000;
             endPort = 60000;
         }
         if (redisTemplate == null || redisTemplate.getConnectionFactory() == null) {
-            logger.warn("{}获取redis连接信息失败", mediaServer.getId());
+            log.warn("{}获取redis连接信息失败", mediaServer.getId());
             return -1;
         }
 //        RedisAtomicInteger redisAtomicInteger = new RedisAtomicInteger(sendIndexKey , redisTemplate.getConnectionFactory());

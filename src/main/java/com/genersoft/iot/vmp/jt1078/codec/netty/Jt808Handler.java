@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Jt808Handler extends ChannelInboundHandlerAdapter {
 
-    private final static Logger log = LoggerFactory.getLogger(Jt808Handler.class);
+    private final static Logger logger = LoggerFactory.getLogger(Jt808Handler.class);
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {

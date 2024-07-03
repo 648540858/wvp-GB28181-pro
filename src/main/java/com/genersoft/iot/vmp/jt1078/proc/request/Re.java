@@ -14,7 +14,7 @@ import org.springframework.util.StringUtils;
  * @email qingtaij@163.com
  */
 public abstract class Re {
-    private final static Logger log = LoggerFactory.getLogger(Re.class);
+    private final static Logger logger = LoggerFactory.getLogger(Re.class);
 
     protected abstract Rs decode0(ByteBuf buf, Header header, Session session);
 

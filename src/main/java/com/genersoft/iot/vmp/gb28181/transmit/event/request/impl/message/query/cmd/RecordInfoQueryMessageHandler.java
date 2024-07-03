@@ -1,21 +1,20 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.cmd;
 
-import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.event.record.RecordEndEventListener;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.QueryMessageHandler;
-import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import gov.nist.javax.sip.message.SIPRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -27,10 +26,10 @@ import javax.sip.message.Response;
 import java.text.ParseException;
 import java.util.List;
 
+@Slf4j
 @Component
 public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(RecordInfoQueryMessageHandler.class);
     private final String cmdType = "RecordInfo";
 
     @Autowired
@@ -47,12 +46,6 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
 
     @Autowired
     private RecordEndEventListener recordEndEventListener;
-
-    @Autowired
-    private SipConfig config;
-
-    @Autowired
-    private EventPublisher publisher;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -102,10 +95,10 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
             // 接收录像数据
             recordEndEventListener.addEndEventHandler(deviceChannel.getDeviceId(), channelId, (recordInfo)->{
                 try {
-                    logger.info("[国标级联] 录像查询收到数据， 通道： {}，准备转发===", channelId);
+                    log.info("[国标级联] 录像查询收到数据， 通道： {}，准备转发===", channelId);
                     cmderFroPlatform.recordInfo(deviceChannel, parentPlatform, request.getFromTag(), recordInfo);
                 } catch (SipException | InvalidArgumentException | ParseException e) {
-                    logger.error("[命令发送失败] 国标级联 回复录像数据: {}", e.getMessage());
+                    log.error("[命令发送失败] 国标级联 回复录像数据: {}", e.getMessage());
                 }
             });
             try {
@@ -115,18 +108,18 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
                             try {
                                 responseAck(request, Response.OK);
                             } catch (SipException | InvalidArgumentException | ParseException e) {
-                                logger.error("[命令发送失败] 录像查询回复: {}", e.getMessage());
+                                log.error("[命令发送失败] 录像查询回复: {}", e.getMessage());
                             }
                         }),(eventResult -> {
                             // 查询失败
                             try {
                                 responseAck(request, eventResult.statusCode, eventResult.msg);
                             } catch (SipException | InvalidArgumentException | ParseException e) {
-                                logger.error("[命令发送失败] 录像查询回复: {}", e.getMessage());
+                                log.error("[命令发送失败] 录像查询回复: {}", e.getMessage());
                             }
                         }));
             } catch (InvalidArgumentException | ParseException | SipException e) {
-                logger.error("[命令发送失败] 录像查询: {}", e.getMessage());
+                log.error("[命令发送失败] 录像查询: {}", e.getMessage());
             }
 
         }else if (channelSources.get(1).getCount() > 0) { // 直播流
@@ -134,13 +127,13 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
             try {
                 responseAck(request, Response.NOT_IMPLEMENTED); // 回复未实现
             } catch (SipException | InvalidArgumentException | ParseException e) {
-                logger.error("[命令发送失败] 录像查询: {}", e.getMessage());
+                log.error("[命令发送失败] 录像查询: {}", e.getMessage());
             }
         }else { // 错误的请求
             try {
                 responseAck(request, Response.BAD_REQUEST);
             } catch (SipException | InvalidArgumentException | ParseException e) {
-                logger.error("[命令发送失败] 录像查询: {}", e.getMessage());
+                log.error("[命令发送失败] 录像查询: {}", e.getMessage());
             }
         }
     }

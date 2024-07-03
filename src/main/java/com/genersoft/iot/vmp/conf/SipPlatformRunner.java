@@ -4,11 +4,9 @@ import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.service.IPlatformService;
-import com.genersoft.iot.vmp.service.impl.PlatformServiceImpl;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
@@ -20,6 +18,7 @@ import java.util.List;
  * 系统启动时控制上级平台重新注册
  * @author lin
  */
+@Slf4j
 @Component
 @Order(value=13)
 public class SipPlatformRunner implements CommandLineRunner {
@@ -35,8 +34,6 @@ public class SipPlatformRunner implements CommandLineRunner {
 
     @Autowired
     private ISIPCommanderForPlatform sipCommanderForPlatform;
-
-    private final static Logger logger = LoggerFactory.getLogger(PlatformServiceImpl.class);
 
     @Override
     public void run(String... args) throws Exception {
@@ -59,7 +56,7 @@ public class SipPlatformRunner implements CommandLineRunner {
                         platformService.login(parentPlatform);
                     });
                 } catch (Exception e) {
-                    logger.error("[命令发送失败] 国标级联 注销: {}", e.getMessage());
+                    log.error("[命令发送失败] 国标级联 注销: {}", e.getMessage());
                     platformService.offline(parentPlatform, true);
                     continue;
                 }

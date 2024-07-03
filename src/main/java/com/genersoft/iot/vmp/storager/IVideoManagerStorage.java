@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.storager;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
@@ -58,18 +57,6 @@ public interface IVideoManagerStorage {
 	 * @return
 	 */
 	public PageInfo<DeviceChannel> queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, Boolean online, Boolean catalogUnderDevice, int page, int count);
-	
-	public List<DeviceChannelExtend> queryChannelsByDeviceIdWithStartAndLimit(String deviceId, List<String> channelIds, String query, Boolean hasSubChannel, Boolean online, int start, int limit);
-
-
-	/**
-	 * 获取某个设备的通道列表
-	 *
-	 * @param deviceId 设备ID
-	 * @return
-	 */
-	public List<DeviceChannel> queryChannelsByDeviceId(String deviceId,Boolean online,List<String> channelIds);
-	public List<DeviceChannel> queryOnlineChannelsByDeviceId(String deviceId);
 
 	/**
 	 * 获取某个设备的通道
@@ -77,13 +64,6 @@ public interface IVideoManagerStorage {
 	 * @param channelId 通道ID
 	 */
 	public DeviceChannel queryChannel(String deviceId, String channelId);
-
-	/**
-	 * 删除通道
-	 * @param deviceId 设备ID
-	 * @param channelId 通道ID
-	 */
-	public int delChannel(String deviceId, String channelId);
 
 	/**
 	 * 获取多个设备
@@ -113,26 +93,11 @@ public interface IVideoManagerStorage {
 	 */
 	PageInfo querySubChannels(String deviceId, String channelId, String query, Boolean hasSubChannel, Boolean online, int page, int count);
 
-
-	/**
-	 * 清空通道
-	 * @param deviceId
-	 */
-	void cleanChannelsForDevice(String deviceId);
-
-
 	/**
 	 * 更新上级平台
 	 * @param parentPlatform
 	 */
 	boolean updateParentPlatform(ParentPlatform parentPlatform);
-
-
-	/**
-	 * 添加上级平台
-	 * @param parentPlatform
-	 */
-	boolean addParentPlatform(ParentPlatform parentPlatform);
 
 	/**
 	 * 删除上级平台
@@ -154,20 +119,9 @@ public interface IVideoManagerStorage {
 	ParentPlatform queryParentPlatByServerGBId(String platformGbId);
 
 	/**
-	 * 所有平台离线
-	 */
-	void outlineForAllParentPlatform();
-
-	/**
 	 * 查询通道信息，不区分设备(已关联平台或全部)
 	 */
 	PageInfo<ChannelReduce> queryAllChannelList(int page, int count, String query, Boolean online, Boolean channelType, String platformId, String catalogId);
-
-	/**
-	 * 查询设备的通道信息
-	 */
-	List<DeviceChannelInPlatform> queryChannelListInParentPlatform(String platformId);
-
 
 
 	/**
@@ -181,9 +135,6 @@ public interface IVideoManagerStorage {
 
     DeviceChannel queryChannelInParentPlatform(String platformId, String channelId);
 
-    List<PlatformCatalog> queryChannelInParentPlatformAndCatalog(String platformId, String catalogId);
-    List<PlatformCatalog> queryStreamInParentPlatformAndCatalog(String platformId, String catalogId);
-
     Device queryVideoDeviceByPlatformIdAndChannelId(String platformId, String channelId);
 
 	/**
@@ -193,12 +144,6 @@ public interface IVideoManagerStorage {
 	 * @return 设备信息
 	 */
 	Device queryDeviceInfoByPlatformIdAndChannelId(String platformId, String channelId);
-	/**
-	 * 添加Mobile Position设备移动位置
-	 * @param mobilePosition
-	 * @return
-	 */
-	public boolean insertMobilePosition(MobilePosition mobilePosition);
 
 	/**
 	 * 查询移动位置轨迹
@@ -215,43 +160,6 @@ public interface IVideoManagerStorage {
 	public MobilePosition queryLatestPosition(String deviceId);
 
 	/**
-	 * 删除指定设备的所有移动位置
-	 * @param deviceId
-	 */
-	public int clearMobilePositionsByDeviceId(String deviceId);
-
-	/**
-	 * 移除代理流
-	 * @param app
-	 * @param stream
-	 * @return
-	 */
-	public int deleteStreamProxy(String app, String stream);
-
-	/**
-	 * 按照是否启用获取代理流
-	 * @param enable
-	 * @return
-	 */
-	public List<StreamProxy> getStreamProxyListForEnable(boolean enable);
-
-	/**
-	 * 按照是app和stream获取代理流
-	 * @param app
-	 * @param stream
-	 * @return
-	 */
-	public StreamProxy queryStreamProxy(String app, String stream);
-
-	/**
-	 * 获取代理流
-	 * @param page
-	 * @param count
-	 * @return
-	 */
-	PageInfo<StreamProxy> queryStreamProxyList(Integer page, Integer count);
-
-	/**
 	 * 根据国标ID获取平台关联的直播流
 	 * @param platformId
 	 * @param channelId
@@ -260,77 +168,11 @@ public interface IVideoManagerStorage {
 	GbStream queryStreamInParentPlatform(String platformId, String channelId);
 
 	/**
-	 * 获取平台关联的直播流
-	 * @param platformId
-	 * @return
-	 */
-	List<DeviceChannel> queryGbStreamListInPlatform(String platformId);
-
-	/**
-	 * 移除单个推流
-	 * @param app
-	 * @param stream
-	 */
-	int removeMedia(String app, String stream);
-
-	/**
-	 * 设置流离线
-	 */
-	int mediaOffline(String app, String streamId);
-
-	/**
-	 * 设置流上线
-	 */
-	int mediaOnline(String app, String streamId);
-
-	/**
-	 * 设置平台在线/离线
-	 */
-	void updateParentPlatformStatus(String platformGbID, boolean online);
-
-	/**
-	 * 根据媒体ID获取启用/不启用的代理列表
-	 * @param id 媒体ID
-	 * @param enable 启用/不启用
-	 * @return
-	 */
-	List<StreamProxy> getStreamProxyListForEnableInMediaServer(String id, boolean enable);
-
-	/**
 	 * 根据通道ID获取其所在设备
 	 * @param channelId  通道ID
 	 * @return
 	 */
     Device queryVideoDeviceByChannelId(String channelId);
-
-	/**
-	 * 通道上线
-	 * @param channelId 通道ID
-	 */
-	void deviceChannelOnline(String deviceId, String channelId);
-
-	/**
-	 * 通道离线
-	 * @param channelId 通道ID
-	 */
-	void deviceChannelOffline(String deviceId, String channelId);
-
-	/**
-	 * 通过app与stream获取StreamProxy
-	 * @param app
-	 * @param streamId
-	 * @return
-	 */
-    StreamProxy getStreamProxyByAppAndStream(String app, String streamId);
-
-	/**
-	 * catlog查询结束后完全重写通道信息
-	 * @param deviceId
-	 * @param deviceChannelList
-	 */
-	boolean resetChannels(String deviceId, List<DeviceChannel> deviceChannelList);
-
-	boolean updateChannels(String deviceId, List<DeviceChannel> deviceChannelList);
 
 	/**
 	 * 获取目录信息
@@ -350,17 +192,11 @@ public interface IVideoManagerStorage {
 
 	int setDefaultCatalog(String platformId, String catalogId);
 
-	List<DeviceChannel> queryCatalogInPlatform(String serverGBId);
-
     int delRelation(PlatformCatalog platformCatalog);
 
 	int updateStreamGPS(List<GPSMsgInfo> gpsMsgInfo);
 
 	List<ParentPlatform> queryPlatFormListForGBWithGBId(String channelId, List<String> platforms);
-
-	List<ParentPlatform> queryPlatFormListForStreamWithGBId(String app, String stream, List<String> platforms);
-
-	GbStream getGbStream(String app, String streamId);
 
 	void delCatalogByPlatformId(String serverGBId);
 
@@ -369,12 +205,6 @@ public interface IVideoManagerStorage {
     PlatformCatalog queryDefaultCatalogInPlatform(String platformId);
 
 	List<ChannelSourceInfo> getChannelSource(String platformId, String gbId);
-
-    void updateChannelPosition(DeviceChannel deviceChannel);
-
-	void cleanContentForPlatform(String serverGBId);
-
-	List<DeviceChannel> queryChannelWithCatalog(String serverGBId);
 
 	List<DeviceChannelExtend> queryChannelsByDeviceId(String serial, List<String> channelIds, Boolean online);
 

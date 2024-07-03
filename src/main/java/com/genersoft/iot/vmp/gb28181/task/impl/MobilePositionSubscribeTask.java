@@ -21,12 +21,12 @@ import java.text.ParseException;
  */
 public class MobilePositionSubscribeTask implements ISubscribeTask {
     private final Logger logger = LoggerFactory.getLogger(MobilePositionSubscribeTask.class);
-    private Device device;
-    private ISIPCommander sipCommander;
+    private final Device device;
+    private final ISIPCommander sipCommander;
 
     private SIPRequest request;
-    private DynamicTask dynamicTask;
-    private String taskKey = "mobile-position-subscribe-timeout";
+    private final DynamicTask dynamicTask;
+    private final String taskKey = "mobile-position-subscribe-timeout";
 
     public MobilePositionSubscribeTask(Device device, ISIPCommander sipCommander, DynamicTask dynamicTask) {
         this.device = device;

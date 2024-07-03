@@ -68,12 +68,8 @@ public class DeferredResultHolder {
 	}
 
 	public void put(String key, String id, DeferredResult result) {
-		Map<String, DeferredResultEx> deferredResultMap = map.get(key);
-		if (deferredResultMap == null) {
-			deferredResultMap = new ConcurrentHashMap<>();
-			map.put(key, deferredResultMap);
-		}
-		deferredResultMap.put(id, new DeferredResultEx(result));
+        Map<String, DeferredResultEx> deferredResultMap = map.computeIfAbsent(key, k -> new ConcurrentHashMap<>());
+        deferredResultMap.put(id, new DeferredResultEx(result));
 	}
 	
 	public DeferredResultEx get(String key, String id) {

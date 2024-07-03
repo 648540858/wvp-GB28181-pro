@@ -1,8 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
-import com.genersoft.iot.vmp.common.VideoManagerConstants;
-import com.genersoft.iot.vmp.conf.DynamicTask;
-import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.CmdType;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
@@ -17,10 +14,9 @@ import com.genersoft.iot.vmp.service.IPlatformService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -36,10 +32,10 @@ import java.text.ParseException;
  * SIP命令类型： SUBSCRIBE请求
  * @author lin
  */
+@Slf4j
 @Component
 public class SubscribeRequestProcessor extends SIPRequestProcessorParent implements InitializingBean, ISIPRequestProcessor {
 
-	private final Logger logger = LoggerFactory.getLogger(SubscribeRequestProcessor.class);
 	private final String method = "SUBSCRIBE";
 
 	@Autowired
@@ -75,7 +71,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		try {
 			Element rootElement = getRootElement(evt);
 			if (rootElement == null) {
-				logger.error("处理SUBSCRIBE请求  未获取到消息体{}", evt.getRequest());
+				log.error("处理SUBSCRIBE请求  未获取到消息体{}", evt.getRequest());
 				return;
 			}
 			String cmd = XmlUtil.getText(rootElement, "CmdType");
@@ -87,18 +83,18 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 			} else if (CmdType.CATALOG.equals(cmd)) {
 				processNotifyCatalogList(request, rootElement);
 			} else {
-				logger.info("接收到消息：" + cmd);
+				log.info("接收到消息：" + cmd);
 
 				Response response = getMessageFactory().createResponse(200, request);
 				if (response != null) {
 					ExpiresHeader expireHeader = getHeaderFactory().createExpiresHeader(30);
 					response.setExpires(expireHeader);
 				}
-				logger.info("response : " + response);
+				log.info("response : " + response);
 				sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
 			}
 		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
-			logger.error("未处理的异常 ", e);
+			log.error("未处理的异常 ", e);
 		}
 
 	}
@@ -119,7 +115,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		}
 
 		String sn = XmlUtil.getText(rootElement, "SN");
-		logger.info("[回复上级的移动位置订阅请求]: {}", platformId);
+		log.info("[回复上级的移动位置订阅请求]: {}", platformId);
 		StringBuilder resultXml = new StringBuilder(200);
 		resultXml.append("<?xml version=\"1.0\" ?>\r\n")
 				.append("<Response>\r\n")
@@ -153,7 +149,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 			}
 
 		} catch (SipException | InvalidArgumentException | ParseException e) {
-			logger.error("未处理的异常 ", e);
+			log.error("未处理的异常 ", e);
 		}
 	}
 
@@ -174,7 +170,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		SubscribeInfo subscribeInfo = new SubscribeInfo(request, platformId);
 
 		String sn = XmlUtil.getText(rootElement, "SN");
-		logger.info("[回复上级的目录订阅请求]: {}/{}", platformId, deviceId);
+		log.info("[回复上级的目录订阅请求]: {}/{}", platformId, deviceId);
 		StringBuilder resultXml = new StringBuilder(200);
 		resultXml.append("<?xml version=\"1.0\" ?>\r\n")
 				.append("<Response>\r\n")
@@ -199,7 +195,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 				subscribeHolder.putCatalogSubscribe(platformId, subscribeInfo);
 			}
 		} catch (SipException | InvalidArgumentException | ParseException e) {
-			logger.error("未处理的异常 ", e);
+			log.error("未处理的异常 ", e);
 		}
 		if (subscribeHolder.getCatalogSubscribe(platformId) == null && platform.isAutoPushChannel()) {
 			platformService.addSimulatedSubscribeInfo(platform);

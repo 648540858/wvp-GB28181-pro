@@ -7,34 +7,33 @@ import com.genersoft.iot.vmp.gb28181.bean.HomePositionRequest;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.control.ControlMessageHandler;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
-import javax.sip.*;
+import javax.sip.InvalidArgumentException;
+import javax.sip.RequestEvent;
+import javax.sip.SipException;
 import javax.sip.address.SipURI;
 import javax.sip.message.Response;
 import java.text.ParseException;
 import java.util.List;
 
-import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.*;
+import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
+import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.loadElement;
 
+@Slf4j
 @Component
 public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(DeviceControlQueryMessageHandler.class);
     private final String cmdType = "DeviceControl";
 
     @Autowired
@@ -45,13 +44,6 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
 
     @Autowired
     private SIPCommander cmder;
-
-    @Autowired
-    private SIPCommanderFroPlatform cmderFroPlatform;
-
-    @Qualifier("taskExecutor")
-    @Autowired
-    private ThreadPoolTaskExecutor taskExecutor;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -74,7 +66,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
         // 远程启动功能
         if (!ObjectUtils.isEmpty(getText(rootElement, "TeleBoot"))) {
             // TODO 拒绝远程启动命令
-            logger.warn("[国标级联]收到平台的远程启动命令， 不处理");
+            log.warn("[国标级联]收到平台的远程启动命令， 不处理");
 
 //            if (parentPlatform.getServerGBId().equals(targetGBId)) {
 //                // 远程启动本平台：需要在重新启动程序后先对SipStack解绑
@@ -107,7 +99,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
 //            }
         }
         DeviceControlType deviceControlType = DeviceControlType.typeOf(rootElement);
-        logger.info("[接受deviceControl命令] 命令: {}", deviceControlType);
+        log.info("[接受deviceControl命令] 命令: {}", deviceControlType);
         if (!ObjectUtils.isEmpty(deviceControlType) && !parentPlatform.getServerGBId().equals(targetGBId)) {
             //判断是否存在该通道
             Device deviceForPlatform = storager.queryVideoDeviceByPlatformIdAndChannelId(parentPlatform.getServerGBId(), channelId);
@@ -115,7 +107,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                 try {
                     responseAck(request, Response.NOT_FOUND);
                 } catch (SipException | InvalidArgumentException | ParseException e) {
-                    logger.error("[命令发送失败] 错误信息: {}", e.getMessage());
+                    log.error("[命令发送失败] 错误信息: {}", e.getMessage());
                 }
                 return;
             }
@@ -168,7 +160,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                     errorResult -> onError(request, errorResult),
                     okResult -> onOk(request, okResult));
         } catch (InvalidArgumentException | SipException | ParseException e) {
-            logger.error("[命令发送失败] 云台/前端: {}", e.getMessage());
+            log.error("[命令发送失败] 云台/前端: {}", e.getMessage());
         }
     }
 
@@ -183,7 +175,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             cmder.iFrameCmd(device, channelId);
             responseAck(request, Response.OK);
         } catch (InvalidArgumentException | SipException | ParseException e) {
-            logger.error("[命令发送失败] 强制关键帧: {}", e.getMessage());
+            log.error("[命令发送失败] 强制关键帧: {}", e.getMessage());
         }
     }
 
@@ -197,7 +189,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             cmder.teleBootCmd(device);
             responseAck(request, Response.OK);
         } catch (InvalidArgumentException | SipException | ParseException e) {
-            logger.error("[命令发送失败] 重启: {}", e.getMessage());
+            log.error("[命令发送失败] 重启: {}", e.getMessage());
         }
 
     }
@@ -229,7 +221,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             cmder.dragZoomCmd(device, channelId, cmdXml.toString());
             responseAck(request, Response.OK);
         } catch (Exception e) {
-            logger.error("[命令发送失败] 拉框控制: {}", e.getMessage());
+            log.error("[命令发送失败] 拉框控制: {}", e.getMessage());
         }
 
     }
@@ -252,7 +244,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                     errorResult -> onError(request, errorResult),
                     okResult -> onOk(request, okResult));
         } catch (Exception e) {
-            logger.error("[命令发送失败] 看守位设置: {}", e.getMessage());
+            log.error("[命令发送失败] 看守位设置: {}", e.getMessage());
         }
     }
 
@@ -280,7 +272,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                     errorResult -> onError(request, errorResult),
                     okResult -> onOk(request, okResult));
         } catch (InvalidArgumentException | SipException | ParseException e) {
-            logger.error("[命令发送失败] 告警消息: {}", e.getMessage());
+            log.error("[命令发送失败] 告警消息: {}", e.getMessage());
         }
     }
 
@@ -301,7 +293,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                     errorResult -> onError(request, errorResult),
                     okResult -> onOk(request, okResult));
         } catch (InvalidArgumentException | SipException | ParseException e) {
-            logger.error("[命令发送失败] 录像控制: {}", e.getMessage());
+            log.error("[命令发送失败] 录像控制: {}", e.getMessage());
         }
     }
 
@@ -321,7 +313,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                     errorResult -> onError(request, errorResult),
                     okResult -> onOk(request, okResult));
         } catch (InvalidArgumentException | SipException | ParseException e) {
-            logger.error("[命令发送失败] 布防/撤防命令: {}", e.getMessage());
+            log.error("[命令发送失败] 布防/撤防命令: {}", e.getMessage());
         }
     }
 
@@ -337,7 +329,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
         try {
             responseAck(request, eventResult.statusCode, eventResult.msg);
         } catch (SipException | InvalidArgumentException | ParseException e) {
-            logger.error("[命令发送失败] 回复: {}", e.getMessage());
+            log.error("[命令发送失败] 回复: {}", e.getMessage());
         }
     }
 
@@ -352,7 +344,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
         try {
             responseAck(request, eventResult.statusCode);
         } catch (SipException | InvalidArgumentException | ParseException e) {
-            logger.error("[命令发送失败] 回复: {}", e.getMessage());
+            log.error("[命令发送失败] 回复: {}", e.getMessage());
         }
     }
 }

@@ -20,9 +20,8 @@ import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -39,10 +38,10 @@ import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 /**
  * 媒体通知
  */
+@Slf4j
 @Component
 public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(MediaStatusNotifyMessageHandler.class);
     private final String cmdType = "MediaStatus";
 
     @Autowired
@@ -84,16 +83,16 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
         try {
              responseAck((SIPRequest) evt.getRequest(), Response.OK);
         } catch (SipException | InvalidArgumentException | ParseException e) {
-            logger.error("[命令发送失败] 国标级联 录像流推送完毕，回复200OK: {}", e.getMessage());
+            log.error("[命令发送失败] 国标级联 录像流推送完毕，回复200OK: {}", e.getMessage());
         }
         CallIdHeader callIdHeader = (CallIdHeader)evt.getRequest().getHeader(CallIdHeader.NAME);
         String NotifyType =getText(rootElement, "NotifyType");
         if ("121".equals(NotifyType)){
-            logger.info("[录像流]推送完毕，收到关流通知");
+            log.info("[录像流]推送完毕，收到关流通知");
 
             SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(null, null, callIdHeader.getCallId(), null);
             if (ssrcTransaction != null) {
-                logger.info("[录像流]推送完毕，关流通知， device: {}, channelId: {}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
+                log.info("[录像流]推送完毕，关流通知， device: {}, channelId: {}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
                 InviteInfo inviteInfo = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
                 if (inviteInfo.getStreamInfo() != null) {
                     inviteInfo.getStreamInfo().setProgress(1);
@@ -103,7 +102,7 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
                 try {
                     cmder.streamByeCmd(device, ssrcTransaction.getChannelId(), null, callIdHeader.getCallId());
                 } catch (InvalidArgumentException | ParseException  | SipException | SsrcTransactionNotFoundException e) {
-                    logger.error("[录像流]推送完毕，收到关流通知， 发送BYE失败 {}", e.getMessage());
+                    log.error("[录像流]推送完毕，收到关流通知， 发送BYE失败 {}", e.getMessage());
                 }
                 // 去除监听流注销自动停止下载的监听
                 Hook hook = Hook.getInstance(HookType.on_media_arrival, "rtp", ssrcTransaction.getStream(), ssrcTransaction.getMediaServerId());
@@ -113,17 +112,17 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
                 if (sendRtpItem != null) {
                     ParentPlatform parentPlatform = storage.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
                     if (parentPlatform == null) {
-                        logger.warn("[级联消息发送]：发送MediaStatus发现上级平台{}不存在", sendRtpItem.getPlatformId());
+                        log.warn("[级联消息发送]：发送MediaStatus发现上级平台{}不存在", sendRtpItem.getPlatformId());
                         return;
                     }
                     try {
                         sipCommanderFroPlatform.sendMediaStatusNotify(parentPlatform, sendRtpItem);
                     } catch (SipException | InvalidArgumentException | ParseException e) {
-                        logger.error("[命令发送失败] 国标级联 录像播放完毕: {}", e.getMessage());
+                        log.error("[命令发送失败] 国标级联 录像播放完毕: {}", e.getMessage());
                     }
                 }
             }else {
-                logger.info("[录像流]推送完毕，关流通知， 但是未找到对应的下载信息");
+                log.info("[录像流]推送完毕，关流通知， 但是未找到对应的下载信息");
             }
         }
     }

@@ -9,19 +9,18 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.sip.RequestEvent;
 
+@Slf4j
 @Component
 public class AlarmResponseMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(AlarmResponseMessageHandler.class);
     private final String cmdType = "Alarm";
 
     @Autowired
@@ -42,8 +41,8 @@ public class AlarmResponseMessageHandler extends SIPRequestProcessorParent imple
         String key = DeferredResultHolder.CALLBACK_CMD_ALARM + device.getDeviceId() + channelId;
         JSONObject json = new JSONObject();
         XmlUtil.node2Json(rootElement, json);
-        if (logger.isDebugEnabled()) {
-            logger.debug(json.toJSONString());
+        if (log.isDebugEnabled()) {
+            log.debug(json.toJSONString());
         }
         RequestMessage msg = new RequestMessage();
         msg.setKey(key);

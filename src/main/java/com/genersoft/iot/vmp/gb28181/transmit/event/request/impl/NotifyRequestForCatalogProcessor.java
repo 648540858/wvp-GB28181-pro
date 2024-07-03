@@ -1,7 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
-import com.genersoft.iot.vmp.conf.DynamicTask;
-import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.CatalogChannelEvent;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -62,11 +60,6 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 	@Autowired
 	private IDeviceChannelService deviceChannelService;
 
-	@Autowired
-	private DynamicTask dynamicTask;
-
-	@Autowired
-	private SipConfig sipConfig;
 
 	@Transactional
 	public void process(RequestEvent evt) {

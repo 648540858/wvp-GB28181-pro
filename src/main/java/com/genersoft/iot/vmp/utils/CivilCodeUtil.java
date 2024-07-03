@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public enum CivilCodeUtil {
 
     INSTANCE;
-    private final static Logger log = LoggerFactory.getLogger(CivilCodeUtil.class);
+    private final static Logger logger = LoggerFactory.getLogger(CivilCodeUtil.class);
 
     // 用与消息的缓存
     private final Map<String, CivilCodePo> civilCodeMap = new ConcurrentHashMap<>();

@@ -4,9 +4,8 @@ import com.alibaba.fastjson2.JSON;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.Message;
@@ -22,10 +21,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * 接收来自redis的GPS更新通知
  * @author lin
  */
+@Slf4j
 @Component
 public class RedisGpsMsgListener implements MessageListener {
-
-    private final static Logger logger = LoggerFactory.getLogger(RedisGpsMsgListener.class);
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -50,12 +48,12 @@ public class RedisGpsMsgListener implements MessageListener {
                     Message msg = taskQueue.poll();
                     try {
                         GPSMsgInfo gpsMsgInfo = JSON.parseObject(msg.getBody(), GPSMsgInfo.class);
-                        logger.info("[REDIS的位置变化通知], {}", JSON.toJSONString(gpsMsgInfo));
+                        log.info("[REDIS的位置变化通知], {}", JSON.toJSONString(gpsMsgInfo));
                         // 只是放入redis缓存起来
                         redisCatchStorage.updateGpsMsgInfo(gpsMsgInfo);
                     }catch (Exception e) {
-                        logger.warn("[REDIS的位置变化通知] 发现未处理的异常, \r\n{}", JSON.toJSONString(message));
-                        logger.error("[REDIS的位置变化通知] 异常内容： ", e);
+                        log.warn("[REDIS的位置变化通知] 发现未处理的异常, \r\n{}", JSON.toJSONString(message));
+                        log.error("[REDIS的位置变化通知] 异常内容： ", e);
                     }
                 }
             });

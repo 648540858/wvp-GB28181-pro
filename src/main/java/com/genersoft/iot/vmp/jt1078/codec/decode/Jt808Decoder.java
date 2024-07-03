@@ -23,7 +23,7 @@ import java.util.List;
  * @email qingtaij@163.com
  */
 public class Jt808Decoder extends ByteToMessageDecoder {
-    private final static Logger log = LoggerFactory.getLogger(Jt808Decoder.class);
+    private final static Logger logger = LoggerFactory.getLogger(Jt808Decoder.class);
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {

@@ -2,8 +2,7 @@ package com.genersoft.iot.vmp.service.redisMsg;
 
 import com.alibaba.fastjson2.JSON;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannelResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.Message;
@@ -20,10 +19,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * 接收redis返回的推流结果
  * @author lin
  */
+@Slf4j
 @Component
 public class RedisPushStreamResponseListener implements MessageListener {
-
-    private final static Logger logger = LoggerFactory.getLogger(RedisPushStreamResponseListener.class);
 
     private ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 
@@ -40,7 +38,7 @@ public class RedisPushStreamResponseListener implements MessageListener {
 
     @Override
     public void onMessage(Message message, byte[] bytes) {
-        logger.info("[REDIS消息-请求推流结果]： {}", new String(message.getBody()));
+        log.info("[REDIS消息-请求推流结果]： {}", new String(message.getBody()));
         boolean isEmpty = taskQueue.isEmpty();
         taskQueue.offer(message);
         if (isEmpty) {
@@ -50,7 +48,7 @@ public class RedisPushStreamResponseListener implements MessageListener {
                     try {
                         MessageForPushChannelResponse response = JSON.parseObject(new String(msg.getBody()), MessageForPushChannelResponse.class);
                         if (response == null || ObjectUtils.isEmpty(response.getApp()) || ObjectUtils.isEmpty(response.getStream())){
-                            logger.info("[REDIS消息-请求推流结果]：参数不全");
+                            log.info("[REDIS消息-请求推流结果]：参数不全");
                             continue;
                         }
                         // 查看正在等待的invite消息
@@ -58,8 +56,8 @@ public class RedisPushStreamResponseListener implements MessageListener {
                             responseEvents.get(response.getApp() + response.getStream()).run(response);
                         }
                     }catch (Exception e) {
-                        logger.warn("[REDIS消息-请求推流结果] 发现未处理的异常, \r\n{}", JSON.toJSONString(message));
-                        logger.error("[REDIS消息-请求推流结果] 异常内容： ", e);
+                        log.warn("[REDIS消息-请求推流结果] 发现未处理的异常, \r\n{}", JSON.toJSONString(message));
+                        log.error("[REDIS消息-请求推流结果] 异常内容： ", e);
                     }
                 }
             });

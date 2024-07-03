@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  */
 public enum SessionManager {
     INSTANCE;
-    private final static Logger log = LoggerFactory.getLogger(SessionManager.class);
+    private final static Logger logger = LoggerFactory.getLogger(SessionManager.class);
 
     // 用与消息的缓存
     private final Map<String, SynchronousQueue<String>> topicSubscribers = new ConcurrentHashMap<>();

@@ -22,13 +22,13 @@ import java.text.ParseException;
  */
 public class CatalogSubscribeTask implements ISubscribeTask {
     private final Logger logger = LoggerFactory.getLogger(CatalogSubscribeTask.class);
-    private Device device;
+    private final Device device;
     private final ISIPCommander sipCommander;
     private SIPRequest request;
 
-    private DynamicTask dynamicTask;
+    private final DynamicTask dynamicTask;
 
-    private String taskKey = "catalog-subscribe-timeout";
+    private final String taskKey = "catalog-subscribe-timeout";
 
 
     public CatalogSubscribeTask(Device device, ISIPCommander sipCommander, DynamicTask dynamicTask) {

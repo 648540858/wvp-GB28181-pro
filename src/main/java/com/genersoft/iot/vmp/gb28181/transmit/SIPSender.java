@@ -5,8 +5,7 @@ import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.utils.GitUtil;
 import gov.nist.javax.sip.SipProviderImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -24,10 +23,9 @@ import java.text.ParseException;
  * 发送SIP消息
  * @author lin
  */
+@Slf4j
 @Component
 public class SIPSender {
-
-    private final Logger logger = LoggerFactory.getLogger(SIPSender.class);
 
     @Autowired
     private SipLayer sipLayer;
@@ -50,7 +48,7 @@ public class SIPSender {
             ViaHeader viaHeader = (ViaHeader)message.getHeader(ViaHeader.NAME);
             String transport = "UDP";
             if (viaHeader == null) {
-                logger.warn("[消息头缺失]： ViaHeader， 使用默认的UDP方式处理数据");
+                log.warn("[消息头缺失]： ViaHeader， 使用默认的UDP方式处理数据");
             }else {
                 transport = viaHeader.getTransport();
             }
@@ -58,7 +56,7 @@ public class SIPSender {
                 try {
                     message.addHeader(SipUtils.createUserAgentHeader(gitUtil));
                 } catch (ParseException e) {
-                    logger.error("添加UserAgentHeader失败", e);
+                    log.error("添加UserAgentHeader失败", e);
                 }
             }
 
@@ -82,7 +80,7 @@ public class SIPSender {
             if ("TCP".equals(transport)) {
                 SipProviderImpl tcpSipProvider = sipLayer.getTcpSipProvider(ip);
                 if (tcpSipProvider == null) {
-                    logger.error("[发送信息失败] 未找到tcp://{}的监听信息", ip);
+                    log.error("[发送信息失败] 未找到tcp://{}的监听信息", ip);
                     return;
                 }
                 if (message instanceof Request) {
@@ -94,7 +92,7 @@ public class SIPSender {
             } else if ("UDP".equals(transport)) {
                 SipProviderImpl sipProvider = sipLayer.getUdpSipProvider(ip);
                 if (sipProvider == null) {
-                    logger.error("[发送信息失败] 未找到udp://{}的监听信息", ip);
+                    log.error("[发送信息失败] 未找到udp://{}的监听信息", ip);
                     return;
                 }
                 if (message instanceof Request) {
@@ -125,7 +123,7 @@ public class SIPSender {
         if (sipProvider != null) {
             return sipProvider.getNewCallId();
         }else {
-            logger.warn("[新建CallIdHeader失败]， ip={}, transport={}", ip, transport);
+            log.warn("[新建CallIdHeader失败]， ip={}, transport={}", ip, transport);
             return null;
         }
     }

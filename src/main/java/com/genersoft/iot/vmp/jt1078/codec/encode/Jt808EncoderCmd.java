@@ -25,7 +25,7 @@ import java.util.LinkedList;
  * @email qingtaij@163.com
  */
 public class Jt808EncoderCmd extends MessageToByteEncoder<Cmd> {
-    private final static Logger log = LoggerFactory.getLogger(Jt808EncoderCmd.class);
+    private final static Logger logger = LoggerFactory.getLogger(Jt808EncoderCmd.class);
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Cmd cmd, ByteBuf out) throws Exception {

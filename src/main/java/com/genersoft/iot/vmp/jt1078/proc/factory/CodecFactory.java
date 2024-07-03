@@ -17,7 +17,7 @@ import java.util.Map;
  */
 
 public class CodecFactory {
-    private final static Logger log = LoggerFactory.getLogger(CodecFactory.class);
+    private final static Logger logger = LoggerFactory.getLogger(CodecFactory.class);
 
     private static Map<String, Class<?>> protocolHash;
 

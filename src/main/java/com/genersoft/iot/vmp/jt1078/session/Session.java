@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @email qingtaij@163.com
  */
 public class Session {
-    private final static Logger log = LoggerFactory.getLogger(Session.class);
+    private final static Logger logger = LoggerFactory.getLogger(Session.class);
 
     public static final AttributeKey<Session> KEY = AttributeKey.newInstance(Session.class.getName());
 

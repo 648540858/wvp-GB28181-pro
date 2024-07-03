@@ -202,6 +202,9 @@ public class CommonGBChannel {
     @Schema(description = "国标-国民经济行业分类代码(可选)")
     private String gbIndustrialClassification;
 
+    @Schema(description = "关联的国标设备数据库ID")
+    private Integer gbDeviceDbId;
+
     @Schema(description = "关联的推流Id（流来源是推流时有效）")
     private Integer streamPushId;
 
@@ -211,12 +214,12 @@ public class CommonGBChannel {
     public String encode(){
         return encode(null);
     }
-    public String encode(CatalogEvent event){
+    public String encode(String event){
         String content;
         if (event == null) {
             return getFullContent(null);
         }
-        switch (event.getType()) {
+        switch (event) {
             case CatalogEvent.DEL:
             case CatalogEvent.DEFECT:
             case CatalogEvent.VLOST:
@@ -234,7 +237,7 @@ public class CommonGBChannel {
                 break;
             case CatalogEvent.ADD:
             case CatalogEvent.UPDATE:
-                content = getFullContent(event.getType());
+                content = getFullContent(event);
                 break;
             default:
                 content = null;

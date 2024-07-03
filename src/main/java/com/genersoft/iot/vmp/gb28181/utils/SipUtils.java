@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.utils;
 
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Gb28181Sdp;
 import com.genersoft.iot.vmp.gb28181.bean.RemoteAddressInfo;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -9,9 +8,8 @@ import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
 import gov.nist.javax.sip.header.Subject;
 import gov.nist.javax.sip.message.SIPRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
 
 import javax.sdp.SdpFactory;
@@ -36,9 +34,8 @@ import java.util.UUID;
  * @description JAIN SIP的工具类
  * @createTime 2021年09月27日 15:12:00
  */
+@Slf4j
 public class SipUtils {
-
-    private final static Logger logger = LoggerFactory.getLogger(SipUtils.class);
 
     public static String getUserIdFromFromHeader(Request request) {
         FromHeader fromHeader = (FromHeader)request.getHeader(FromHeader.NAME);
@@ -189,39 +186,6 @@ public class SipUtils {
         return new RemoteAddressInfo(remoteAddress, remotePort);
     }
 
-    public static DeviceChannel updateGps(DeviceChannel deviceChannel, String geoCoordSys) {
-        if (deviceChannel.getLongitude()*deviceChannel.getLatitude() > 0) {
-
-            if (geoCoordSys == null) {
-                geoCoordSys = "WGS84";
-            }
-            if ("WGS84".equals(geoCoordSys)) {
-                deviceChannel.setLongitudeWgs84(deviceChannel.getLongitude());
-                deviceChannel.setLatitudeWgs84(deviceChannel.getLatitude());
-                Double[] position = Coordtransform.WGS84ToGCJ02(deviceChannel.getLongitude(), deviceChannel.getLatitude());
-                deviceChannel.setLongitudeGcj02(position[0]);
-                deviceChannel.setLatitudeGcj02(position[1]);
-            }else if ("GCJ02".equals(geoCoordSys)) {
-                deviceChannel.setLongitudeGcj02(deviceChannel.getLongitude());
-                deviceChannel.setLatitudeGcj02(deviceChannel.getLatitude());
-                Double[] position = Coordtransform.GCJ02ToWGS84(deviceChannel.getLongitude(), deviceChannel.getLatitude());
-                deviceChannel.setLongitudeWgs84(position[0]);
-                deviceChannel.setLatitudeWgs84(position[1]);
-            }else {
-                deviceChannel.setLongitudeGcj02(0.00);
-                deviceChannel.setLatitudeGcj02(0.00);
-                deviceChannel.setLongitudeWgs84(0.00);
-                deviceChannel.setLatitudeWgs84(0.00);
-            }
-        }else {
-            deviceChannel.setLongitudeGcj02(deviceChannel.getLongitude());
-            deviceChannel.setLatitudeGcj02(deviceChannel.getLatitude());
-            deviceChannel.setLongitudeWgs84(deviceChannel.getLongitude());
-            deviceChannel.setLatitudeWgs84(deviceChannel.getLatitude());
-        }
-        return deviceChannel;
-    }
-
     public static Gb28181Sdp parseSDP(String sdpStr) throws SdpParseException {
 
         // jainSip不支持y= f=字段， 移除以解析。
@@ -277,7 +241,7 @@ public class SipUtils {
             try {
                 localDateTime = LocalDateTime.parse(timeStr, DateUtil.formatterISO8601);
             }catch (DateTimeParseException e2) {
-                logger.error("[格式化时间] 无法格式化时间： {}", timeStr);
+                log.error("[格式化时间] 无法格式化时间： {}", timeStr);
                 return null;
             }
         }

@@ -133,7 +133,6 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
                         deviceChannel.setLatitude(mobilePosition.getLatitude());
                         deviceChannel.setGpsTime(mobilePosition.getTime());
 
-                        deviceChannel = deviceChannelService.updateGps(deviceChannel, sipMsgInfo.getDevice());
                         deviceChannelService.updateChannelGPS(device, deviceChannel, mobilePosition);
 
                     } catch (DocumentException e) {

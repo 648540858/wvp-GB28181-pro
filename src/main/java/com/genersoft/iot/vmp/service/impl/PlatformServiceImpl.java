@@ -471,7 +471,7 @@ public class PlatformServiceImpl implements IPlatformService {
                 return;
             }
             for (DeviceChannel deviceChannel : gbStreams) {
-                String gbId = deviceChannel.getChannelId();
+                String gbId = deviceChannel.getDeviceId();
                 GPSMsgInfo gpsMsgInfo = redisCatchStorage.getGpsMsgInfo(gbId);
                 // 无最新位置不发送
                 if (gpsMsgInfo != null) {
@@ -789,19 +789,19 @@ public class PlatformServiceImpl implements IPlatformService {
 
         try {
             if (sendBye) {
-                commanderForPlatform.streamByeCmd(platform, channel.getChannelId(), stream, null, null);
+                commanderForPlatform.streamByeCmd(platform, channel.getDeviceId(), stream, null, null);
             }
         } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
-            logger.warn("[消息发送失败] 停止语音对讲， 平台：{}，通道：{}", platform.getId(), channel.getChannelId() );
+            logger.warn("[消息发送失败] 停止语音对讲， 平台：{}，通道：{}", platform.getId(), channel.getDeviceId() );
         } finally {
             mediaServerService.closeRTPServer(mediaServerItem, stream);
-            InviteInfo inviteInfo = inviteStreamService.getInviteInfo(null, platform.getServerGBId(), channel.getChannelId(), stream);
+            InviteInfo inviteInfo = inviteStreamService.getInviteInfo(null, platform.getServerGBId(), channel.getDeviceId(), stream);
             if (inviteInfo != null) {
                 // 释放ssrc
                 mediaServerService.releaseSsrc(mediaServerItem.getId(), inviteInfo.getSsrcInfo().getSsrc());
                 inviteStreamService.removeInviteInfo(inviteInfo);
             }
-            streamSession.remove(platform.getServerGBId(), channel.getChannelId(), stream);
+            streamSession.remove(platform.getServerGBId(), channel.getDeviceId(), stream);
         }
     }
 }

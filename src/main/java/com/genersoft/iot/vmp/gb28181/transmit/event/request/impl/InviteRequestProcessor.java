@@ -25,21 +25,21 @@ import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
-import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
+import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.IPlayService;
-import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
-import com.genersoft.iot.vmp.streamPush.service.IStreamPushService;
-import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
-import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
+import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.service.redisMsg.RedisPushStreamResponseListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
+import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
+import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
+import com.genersoft.iot.vmp.streamPush.service.IStreamPushService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import gov.nist.javax.sdp.TimeDescriptionImpl;
 import gov.nist.javax.sdp.fields.TimeField;
@@ -49,8 +49,6 @@ import gov.nist.javax.sip.message.SIPResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -64,10 +62,10 @@ import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
-import java.util.*;
 
 /**
  * SIP命令类型： INVITE请求
@@ -491,7 +489,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         String startTimeStr = DateUtil.urlFormatter.format(start);
                         String endTimeStr = DateUtil.urlFormatter.format(end);
                         String stream = device.getDeviceId() + "_" + channelId + "_" + startTimeStr + "_" + endTimeStr;
-                        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, stream, null, device.isSsrcCheck(), true, 0,false,!channel.getHasAudio(), false, device.getStreamMode());
+                        int tcpMode = device.getStreamMode().equals("TCP-ACTIVE")? 2: (device.getStreamMode().equals("TCP-PASSIVE")? 1:0);
+                        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, stream, null,
+                                device.isSsrcCheck(), true, 0,false,!channel.getHasAudio(), false, tcpMode);
                         sendRtpItem.setStream(stream);
                         // 写入redis， 超时时回复
                         redisCatchStorage.updateSendRTPSever(sendRtpItem);
@@ -521,7 +521,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         }
 
                         sendRtpItem.setPlayType(InviteStreamType.DOWNLOAD);
-                        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, null, null, device.isSsrcCheck(), true, 0, false,!channel.getHasAudio(), false, device.getStreamMode());
+                        int tcpMode = device.getStreamMode().equals("TCP-ACTIVE")? 2: (device.getStreamMode().equals("TCP-PASSIVE")? 1:0);
+                        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, null, null, device.isSsrcCheck(), true, 0, false,!channel.getHasAudio(), false, tcpMode);
                         sendRtpItem.setStream(ssrcInfo.getStream());
                         // 写入redis， 超时时回复
                         redisCatchStorage.updateSendRTPSever(sendRtpItem);

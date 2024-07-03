@@ -1,9 +1,6 @@
 package com.genersoft.iot.vmp.storager.dao;
 
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
@@ -62,7 +59,7 @@ public interface PlatformChannelMapper {
             "SELECT dc.* from wvp_platform_gb_channel pgc left join wvp_device_channel dc on dc.id = pgc.device_channel_id WHERE pgc.platform_id=#{platformId} " +
             " <if test='catalogId != null' > and pgc.catalog_id=#{catalogId}</if>" +
             "</script>")
-    List<DeviceChannel> queryAllChannelInCatalog(@Param("platformId") String platformId, @Param("catalogId") String catalogId);
+    List<CommonGBChannel> queryAllChannelInCatalog(@Param("platformId") String platformId, @Param("catalogId") String catalogId);
 
     @Select(" select dc.channel_id as id, dc.name as name, pgc.platform_id as platform_id, pgc.catalog_id as parent_id, 0 as children_count, 1 as type " +
             " from wvp_device_channel dc left join wvp_platform_gb_channel pgc on dc.id = pgc.device_channel_id " +

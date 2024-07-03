@@ -114,7 +114,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
             }
             SubscribeInfo catalogSubscribe = subscribeHolder.getCatalogSubscribe(platformId);
             if (catalogSubscribe != null) {
-                List<DeviceChannel> deviceChannelList = getDeviceChannelListByChannelReduceList(channelReducesToAdd, catalogId, platform);
+                List<CommonGBChannel> deviceChannelList = getDeviceChannelListByChannelReduceList(channelReducesToAdd, catalogId, platform);
                 if (deviceChannelList != null) {
                     eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.ADD);
                 }
@@ -167,7 +167,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
            catalogId = null;
         }
 
-        List<DeviceChannel> deviceChannels = platformChannelMapper.queryAllChannelInCatalog(platformId, catalogId);
+        List<CommonGBChannel> deviceChannels = platformChannelMapper.queryAllChannelInCatalog(platformId, catalogId);
         eventPublisher.catalogEventPublish(platformId, deviceChannels, CatalogEvent.DEL);
 
         return platformChannelMapper.delChannelForGBByCatalogId(platformId, catalogId);

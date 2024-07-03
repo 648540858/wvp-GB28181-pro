@@ -8,17 +8,15 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author QingtaiJiang
  * @date 2023/4/27 18:14
  * @email qingtaij@163.com
  */
+@Slf4j
 public class Jt808Handler extends ChannelInboundHandlerAdapter {
-
-    private final static Logger logger = LoggerFactory.getLogger(Jt808Handler.class);
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {

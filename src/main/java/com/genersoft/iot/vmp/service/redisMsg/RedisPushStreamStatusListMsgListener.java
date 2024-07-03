@@ -3,7 +3,6 @@ package com.genersoft.iot.vmp.service.redisMsg;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.streamPush.service.IStreamPushService;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -35,9 +34,6 @@ public class RedisPushStreamStatusListMsgListener implements MessageListener {
 
     @Resource
     private IStreamPushService streamPushService;
-    @Resource
-    private IGbStreamService gbStreamService;
-
 
     private ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 
@@ -103,7 +99,7 @@ public class RedisPushStreamStatusListMsgListener implements MessageListener {
                         if(!streamPushItemForUpdate.isEmpty()){
                             log.info("修改{}条",streamPushItemForUpdate.size());
                             log.info(JSONObject.toJSONString(streamPushItemForUpdate));
-                            gbStreamService.updateGbIdOrName(streamPushItemForUpdate);
+                            streamPushService.batchUpdate(streamPushItemForUpdate);
                         }
                     }catch (Exception e) {
                         log.warn("[REDIS消息-推流设备列表更新] 发现未处理的异常, \r\n{}", new String(message.getBody()));

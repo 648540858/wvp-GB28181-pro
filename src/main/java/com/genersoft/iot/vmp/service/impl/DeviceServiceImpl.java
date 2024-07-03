@@ -15,16 +15,15 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.CatalogResponseMessageHandler;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
-import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
 import com.genersoft.iot.vmp.storager.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
-import com.genersoft.iot.vmp.vmanager.bean.BaseTree;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +38,8 @@ import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -408,28 +408,13 @@ public class DeviceServiceImpl implements IDeviceService {
      */
     private void updateDeviceChannelGeoCoordSys(Device device) {
        List<DeviceChannel> deviceChannels =  deviceChannelMapper.getAllChannelWithCoordinate(device.getDeviceId());
-       if (deviceChannels.size() > 0) {
+       if (!deviceChannels.isEmpty()) {
            List<DeviceChannel> deviceChannelsForStore = new ArrayList<>();
-           for (DeviceChannel deviceChannel : deviceChannels) {
-               deviceChannelsForStore.add(deviceChannelService.updateGps(deviceChannel, device));
-           }
+           deviceChannelsForStore.addAll(deviceChannels);
            deviceChannelService.updateChannels(device.getDeviceId(), deviceChannelsForStore);
        }
     }
 
-
-    @Override
-    public List<BaseTree<DeviceChannel>> queryVideoDeviceTree(String deviceId, String parentId, boolean onlyCatalog) {
-        Device device = deviceMapper.getDeviceByDeviceId(deviceId);
-        if (device == null) {
-            return null;
-        }
-        if (ObjectUtils.isEmpty(parentId) ) {
-            parentId = deviceId;
-        }
-        List<DeviceChannel> rootNodes = deviceChannelMapper.getSubChannelsByDeviceId(deviceId, parentId, onlyCatalog);
-        return transportChannelsToTree(rootNodes, "");
-    }
 
     @Override
     public List<DeviceChannel> queryVideoDeviceInTreeNode(String deviceId, String parentId) {
@@ -442,45 +427,6 @@ public class DeviceServiceImpl implements IDeviceService {
         }else {
             return deviceChannelMapper.getSubChannelsByDeviceId(deviceId, parentId, false);
         }
-    }
-
-    private List<BaseTree<DeviceChannel>> transportChannelsToTree(List<DeviceChannel> channels, String parentId) {
-        if (channels == null) {
-            return null;
-        }
-        List<BaseTree<DeviceChannel>> treeNotes = new ArrayList<>();
-        if (channels.size() == 0) {
-            return treeNotes;
-        }
-        for (DeviceChannel channel : channels) {
-
-            BaseTree<DeviceChannel> node = new BaseTree<>();
-            node.setId(channel.getChannelId());
-            node.setDeviceId(channel.getDeviceId());
-            node.setName(channel.getName());
-            node.setPid(parentId);
-            node.setBasicData(channel);
-            node.setParent(false);
-            if (channel.getChannelId().length() <= 8) {
-                node.setParent(true);
-            }else {
-                if (channel.getChannelId().length() != 20) {
-                    node.setParent(channel.getParental() == 1);
-                }else {
-                    try {
-                        int type = Integer.parseInt(channel.getChannelId().substring(10, 13));
-                        if (type == 215 || type == 216 || type == 200) {
-                            node.setParent(true);
-                        }
-                    }catch (NumberFormatException e) {
-                        node.setParent(false);
-                    }
-                }
-            }
-            treeNotes.add(node);
-        }
-        Collections.sort(treeNotes);
-        return treeNotes;
     }
 
     @Override

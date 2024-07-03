@@ -108,7 +108,7 @@ public class ApiStreamController {
             resultJSON.put("error","channel[ " + code + " ]未找到");
             result.setResult(resultJSON);
             return result;
-        }else if (!deviceChannel.isStatus()) {
+        }else if (!deviceChannel.getStatus().equalsIgnoreCase("ON")) {
             JSONObject resultJSON = new JSONObject();
             resultJSON.put("error","channel[ " + code + " ]offline");
             result.setResult(resultJSON);

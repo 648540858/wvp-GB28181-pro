@@ -154,8 +154,6 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                                 deviceChannel.setLatitude(mobilePosition.getLatitude());
                                 deviceChannel.setGpsTime(mobilePosition.getTime());
 
-                                deviceChannel = deviceChannelService.updateGps(deviceChannel, sipMsgInfo.getDevice());
-
                                 deviceChannelService.updateChannelGPS(device, deviceChannel, mobilePosition);
                             }
                         }

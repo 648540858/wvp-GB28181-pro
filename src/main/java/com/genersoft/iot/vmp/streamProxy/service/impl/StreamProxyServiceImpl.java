@@ -7,9 +7,7 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
-import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
@@ -19,7 +17,6 @@ import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOfflineEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOnlineEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OriginType;
-import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
@@ -29,10 +26,8 @@ import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
-import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -73,9 +68,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Autowired
     private PlatformGbStreamMapper platformGbStreamMapper;
-
-    @Autowired
-    private IGbStreamService gbStreamService;
 
     @Autowired
     private IMediaServerService mediaServerService;
@@ -412,17 +404,23 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     @Override
+    @Transactional
     public int updateStatusByAppAndStream(String app, String stream, boolean status) {
         // 状态变化时推送到国标上级
         StreamProxy streamProxyItem = streamProxyMapper.selectOne(app, stream);
         if (streamProxyItem == null) {
             return 0;
         }
-        int result = streamProxyMapper.updateStatus(app, stream, status);
-        if (!ObjectUtils.isEmpty(streamProxyItem.getGbId())) {
-            gbStreamService.sendCatalogMsg(streamProxyItem, status?CatalogEvent.ON:CatalogEvent.OFF);
+        streamProxyItem.setGbStatus(status);
+        if (streamProxyItem.getGbId() > 0) {
+            if (status) {
+                gbChannelService.online(streamProxyItem.getCommonGBChannel());
+            }else {
+                gbChannelService.offline(streamProxyItem.getCommonGBChannel());
+            }
+
         }
-        return result;
+        return 1;
     }
 
     @Override

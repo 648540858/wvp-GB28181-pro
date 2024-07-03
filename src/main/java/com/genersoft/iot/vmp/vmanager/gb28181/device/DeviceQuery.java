@@ -18,7 +18,6 @@ import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import com.genersoft.iot.vmp.vmanager.bean.BaseTree;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
@@ -47,7 +46,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.text.ParseException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 @Tag(name  = "国标设备查询", description = "国标设备查询")
 @SuppressWarnings("rawtypes")
@@ -493,97 +495,5 @@ public class DeviceQuery {
 		} catch (IOException e) {
 			resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		}
-	}
-
-	/**
-	 * 查询国标树
-	 * @param deviceId 设备ID
-	 * @param parentId 父ID
-	 * @param page 当前页
-	 * @param count 每页条数
-	 * @return 国标设备
-	 */
-	@Operation(summary = "查询国标树")
-	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
-	@Parameter(name = "parentId", description = "父级国标编号")
-	@Parameter(name = "onlyCatalog", description = "只获取目录")
-	@Parameter(name = "page", description = "当前页", required = true)
-	@Parameter(name = "count", description = "每页条数", required = true)
-	@GetMapping("/tree/{deviceId}")
-	public ResponseEntity<PageInfo> getTree(@PathVariable String deviceId,
-											@RequestParam(required = false) String parentId,
-											@RequestParam(required = false) Boolean onlyCatalog,
-											int page, int count){
-
-
-		if (page <= 0) {
-			page = 1;
-		}
-		if (onlyCatalog == null) {
-			onlyCatalog = false;
-		}
-
-		List<BaseTree<DeviceChannel>> treeData = deviceService.queryVideoDeviceTree(deviceId, parentId, onlyCatalog);
-		if (treeData == null || (page - 1) * count > treeData.size()) {
-			PageInfo<BaseTree<DeviceChannel>> pageInfo = new PageInfo<>();
-			pageInfo.setPageNum(page);
-			pageInfo.setTotal(treeData == null? 0 : treeData.size());
-			pageInfo.setSize(0);
-			pageInfo.setList(new ArrayList<>());
-			return new ResponseEntity<>(pageInfo,HttpStatus.OK);
-		}
-
-		int toIndex = Math.min(page * count, treeData.size());
-		// 处理分页
-		List<BaseTree<DeviceChannel>> trees = treeData.subList((page - 1) * count, toIndex);
-		PageInfo<BaseTree<DeviceChannel>> pageInfo = new PageInfo<>();
-		pageInfo.setPageNum(page);
-		pageInfo.setTotal(treeData.size());
-		pageInfo.setSize(trees.size());
-		pageInfo.setList(trees);
-
-		return new ResponseEntity<>(pageInfo,HttpStatus.OK);
-	}
-
-	/**
-	 * 查询国标树下的通道
-	 * @param deviceId 设备ID
-	 * @param parentId 父ID
-	 * @param page 当前页
-	 * @param count 每页条数
-	 * @return 国标设备
-	 */
-	@Operation(summary = "查询国标树下的通道")
-	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
-	@Parameter(name = "parentId", description = "父级国标编号")
-	@Parameter(name = "page", description = "当前页", required = true)
-	@Parameter(name = "count", description = "每页条数", required = true)
-	@GetMapping("/tree/channel/{deviceId}")
-	public ResponseEntity<PageInfo> getChannelInTreeNode(@PathVariable String deviceId, @RequestParam(required = false) String parentId, int page, int count){
-
-		if (page <= 0) {
-			page = 1;
-		}
-
-		List<DeviceChannel> treeData = deviceService.queryVideoDeviceInTreeNode(deviceId, parentId);
-		if (treeData == null || (page - 1) * count > treeData.size()) {
-			PageInfo<BaseTree<DeviceChannel>> pageInfo = new PageInfo<>();
-			pageInfo.setPageNum(page);
-			pageInfo.setTotal(treeData == null? 0 : treeData.size());
-			pageInfo.setSize(0);
-			pageInfo.setList(new ArrayList<>());
-			return new ResponseEntity<>(pageInfo,HttpStatus.OK);
-		}
-
-		int toIndex = Math.min(page * count, treeData.size());
-		// 处理分页
-		List<DeviceChannel> trees = treeData.subList((page - 1) * count, toIndex);
-		PageInfo<DeviceChannel> pageInfo = new PageInfo<>();
-		pageInfo.setPageNum(page);
-		pageInfo.setTotal(treeData.size());
-		pageInfo.setSize(trees.size());
-		pageInfo.setList(trees);
-
-		return new ResponseEntity<>(pageInfo,HttpStatus.OK);
 	}
 }

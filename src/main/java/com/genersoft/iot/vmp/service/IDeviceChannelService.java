@@ -15,11 +15,6 @@ import java.util.List;
 public interface IDeviceChannelService {
 
     /**
-     * 更新gps信息
-     */
-    DeviceChannel updateGps(DeviceChannel deviceChannel, Device device);
-
-    /**
      * 添加设备通道
      *
      * @param deviceId 设备id

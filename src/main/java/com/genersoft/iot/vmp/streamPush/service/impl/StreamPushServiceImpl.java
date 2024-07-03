@@ -549,4 +549,8 @@ public class StreamPushServiceImpl implements IStreamPushService {
         return new ArrayList<>(result.values());
     }
 
+    @Override
+    public void batchUpdate(List<StreamPush> streamPushItemForUpdate) {
+
+    }
 }

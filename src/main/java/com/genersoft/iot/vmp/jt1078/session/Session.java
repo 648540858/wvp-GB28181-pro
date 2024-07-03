@@ -3,8 +3,7 @@ package com.genersoft.iot.vmp.jt1078.session;
 import com.genersoft.iot.vmp.jt1078.proc.Header;
 import io.netty.channel.Channel;
 import io.netty.util.AttributeKey;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -13,8 +12,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @date 2023/4/27 18:54
  * @email qingtaij@163.com
  */
+@Slf4j
 public class Session {
-    private final static Logger logger = LoggerFactory.getLogger(Session.class);
 
     public static final AttributeKey<Session> KEY = AttributeKey.newInstance(Session.class.getName());
 

@@ -77,9 +77,6 @@ public class PlatformController {
 	@Autowired
 	private IDeviceChannelService deviceChannelService;
 
-	@Autowired
-	private IGbStreamService gbStreamService;
-
     /**
      * 获取国标服务的配置
      *

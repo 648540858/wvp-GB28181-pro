@@ -1,9 +1,11 @@
 package com.genersoft.iot.vmp.gb28181.event.subscribe.catalog;
 
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
+import com.genersoft.iot.vmp.gb28181.bean.SubscribeInfo;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
-import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,9 +33,6 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
 
     @Autowired
     private ISIPCommanderForPlatform sipCommanderFroPlatform;
-
-    @Autowired
-    private IGbStreamService gbStreamService;
 
     @Autowired
     private SubscribeHolder subscribeHolder;
@@ -145,16 +144,11 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                                     continue;
                                 }
                                 log.info("[Catalog事件: {}]平台：{}，影响通道{}", event.getType(), platform.getServerGBId(), gbId);
-                                List<CommonGBChannel> deviceChannelList = new ArrayList<>();
+                                List<CommonGBChannel> channelList = new ArrayList<>();
                                 CommonGBChannel deviceChannel = channelMap.get(gbId);
-                                deviceChannelList.add(deviceChannel);
-                                GbStream gbStream = storager.queryStreamInParentPlatform(platform.getServerGBId(), gbId);
-                                if(gbStream != null){
-                                    CommonGBChannel deviceChannelByStream = gbStreamService.getDeviceChannelListByStreamWithStatus(gbStream, gbStream.getCatalogId(), platform);
-                                    deviceChannelList.add(deviceChannelByStream);
-                                }
+                                channelList.add(deviceChannel);
                                 try {
-                                    sipCommanderFroPlatform.sendNotifyForCatalogAddOrUpdate(event.getType(), platform, deviceChannelList, subscribeInfo, null);
+                                    sipCommanderFroPlatform.sendNotifyForCatalogAddOrUpdate(event.getType(), platform, channelList, subscribeInfo, null);
                                 } catch (InvalidArgumentException | ParseException | NoSuchFieldException |
                                          SipException | IllegalAccessException e) {
                                     log.error("[命令发送失败] 国标级联 Catalog通知: {}", e.getMessage());

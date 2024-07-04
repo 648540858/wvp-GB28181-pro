@@ -19,6 +19,9 @@ public class DeviceChannel extends CommonGBChannel {
 	@Schema(description = "数据库自增ID")
 	private int id;
 
+	@Schema(description = "设备的数据库自增ID")
+	private Integer deviceDbId;
+
 	@MessageElement("DeviceID")
 	@Schema(description = "编码")
 	private String deviceId;

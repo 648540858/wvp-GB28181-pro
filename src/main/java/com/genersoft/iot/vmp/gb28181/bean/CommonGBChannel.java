@@ -37,7 +37,7 @@ public class CommonGBChannel {
     private String gbAddress;
 
     @Schema(description = "国标-是否有子设备")
-    private Boolean gbParental;
+    private Integer gbParental;
 
     @Schema(description = "国标-父节点ID")
     private String gbParentId;
@@ -82,7 +82,7 @@ public class CommonGBChannel {
     private String gbPassword;
 
     @Schema(description = "国标-设备状态")
-    private Boolean gbStatus;
+    private Integer gbStatus;
 
     @Schema(description = "国标-经度 WGS-84坐标系")
     private Double gbLongitude;
@@ -99,7 +99,7 @@ public class CommonGBChannel {
     // 2016
     @Schema(description = "-摄像机位置类型扩展。1-省际检查站、2-党政机关、3-车站码头、4-中心广场、5-体育场馆、6-商业中心、7-宗教场所、" +
             "8-校园周边、9-治安复杂区域、10-交通干线。当目录项为摄像机时可选。")
-    private Integer PositionType;
+    private Integer gbPositionType;
 
     @Schema(description = "国标-摄像机光电成像类型。1-可见光成像;2-热成像;3-雷达成像;4-X光成像;5-深度光场成像;9-其他。可多值,")
     private String gbPhotoelectricImagingTyp;
@@ -297,7 +297,7 @@ public class CommonGBChannel {
                         .append("<Latitude>" + this.getGbLatitude() + "</Latitude>\n")
                         .append("<Info>\n")
                         .append("  <PTZType>" + this.getGbPtzType() + "</PTZType>\n")
-                        .append("  <PositionType>" + this.getPositionType() + "</PositionType>\n")
+                        .append("  <PositionType>" + this.getGbPositionType() + "</PositionType>\n")
                         .append("  <RoomType>" + this.getGbRoomType() + "</RoomType>\n")
                         .append("  <UseType>" + this.getGbUseType() + "</UseType>\n")
                         .append("  <SupplyLightType>" + this.getGbSupplyLightType() + "</SupplyLightType>\n")

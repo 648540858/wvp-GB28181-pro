@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.service.impl;
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
 import com.genersoft.iot.vmp.service.IDeviceAlarmService;
-import com.genersoft.iot.vmp.storager.dao.DeviceAlarmMapper;
+import com.genersoft.iot.vmp.gb28181.dao.DeviceAlarmMapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;

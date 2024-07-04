@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.storager.dao;
+package com.genersoft.iot.vmp.gb28181.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;

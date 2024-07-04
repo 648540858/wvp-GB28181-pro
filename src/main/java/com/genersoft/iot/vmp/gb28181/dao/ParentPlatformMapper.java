@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.storager.dao;
+package com.genersoft.iot.vmp.gb28181.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;

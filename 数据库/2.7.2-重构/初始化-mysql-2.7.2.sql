@@ -273,7 +273,7 @@ create table wvp_platform_gb_channel (
                                          name character varying(255),
                                          civil_code character varying(50),
                                          business_group_id character varying(50),
-                                         constraint uk_platform_gb_channel_platform_id_catalog_id_device_channel_id unique (platform_id, catalog_id, device_channel_id)
+                                         constraint uk_platform_gb_channel_platform_id_catalog_id_device_channel_id unique (platform_id, device_channel_id)
 );
 
 create table wvp_stream_proxy (

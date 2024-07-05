@@ -1,0 +1,84 @@
+"<if test='streamPushId != null'>, stream_push_id  = #{streamPushId}" +
+"<if test='streamPushId  == null'>, stream_push_id is null" +
+"<if test='streamProxyId != null'>,  stream_proxy_id = #{streamProxyId}" +
+"<if test='streamProxyId  == null'>, stream_proxy_id is null" +
+"<if test='createTime != null'>,  create_time = #{createTime}" +
+"<if test='createTime  == null'>, create_time is null" +
+"<if test='subCount != null'>,  sub_count = #{subCount}" +
+"<if test='subCount  == null'>, sub_count is null" +
+"<if test='streamId != null'>,  stream_id = #{streamId}" +
+"<if test='streamId  == null'>, stream_id is null" +
+"<if test='hasAudio != null'>,  has_audio = #{hAudio}" +
+"<if test='hasAudio  == null'>, has_audio is null" +
+"<if test='gpsTime != null'>,  gps_time = #{gpsTime}" +
+"<if test='gpsTime  == null'>, gps_time is null" +
+"<if test='streamIdentification != null'>,  stream_identification = #{streamIdentification}" +
+"<if test='streamIdentification  == null'>, stream_identification is null" +
+"<if test='gbDeviceId != null'>,   gb_device_id = #{gbDeviceId}" +
+"<if test='gbDeviceId  == null'>, gb_device_id is null" +
+"<if test='gbName != null'>,  gb_name = #{gbName}" +
+"<if test='gbName  == null'>, gb_name is null" +
+"<if test='gbManufacturer, != null'>,  gb_manufacturer = #{gbManufacturer}" +
+"<if test='gbManufacturer,  == null'>, gb_manufacturer is null" +
+"<if test='gbModel != null'>,  gb_model = #{gbModel}" +
+"<if test='gbModel  == null'>,   gb_model is null" +
+"<if test='gbOwner != null' >, gb_owner = #{gbOwner}" +
+"<if test='gbOwner  == null'>, gb_owner is null" +
+"<if test='gbCivilCode, != null' >, gbCivilCode = #{gbCivilCode}" +
+"<if test='gbCivilCode,  == null'>, gb_civil_code is null" +
+"<if test='gbBlock != null' >, gb_block = #{gbBlock}" +
+"<if test='gbBlock  == null'>, gb_block is null" +
+"<if test='gbAddress != null' >, gb_address = #{gbAddress}" +
+"<if test='gbAddress  == null'>, gb_address is null" +
+"<if test='gbParental != null' >, gb_parental = #{gbParental}" +
+"<if test='gbParental  == null'>, gb_parental is null" +
+"<if test='gbParentId != null' >, gb_parent_id = #{gbParentId}" +
+"<if test='gbParentId  == null'>, gb_parent_id is null" +
+"<if test='gbSafetyWay != null' >, gb_safety_way = #{gbSafetyWay}" +
+"<if test='gbSafetyWay  == null'>, gb_safety_way is null" +
+"<if test='gbRegisterWay != null' >, gb_register_way = #{gbRegisterWay}" +
+"<if test='gbRegisterWay  == null'>, gb_register_way is null" +
+"<if test='gbCertNum != null' >, gb_cert_num = #{gbCertNum}" +
+"<if test='gbCertNum  == null'>, gb_cert_num is null" +
+"<if test='gbCertifiable != null' >, gb_certifiable = #{gbCertifiable}" +
+"<if test='gbCertifiable  == null'>, gb_certifiable is null" +
+"<if test='gbErrCode != null' >, gb_err_code = #{gbErrCode}" +
+"<if test='gbErrCode  == null'>, gb_err_code is null" +
+"<if test='gbEndTime != null' >, gb_end_time = #{gbEndTime}" +
+"<if test='gbEndTime  == null'>, gb_end_time is null" +
+"<if test='gbSecrecy != null' >, gb_secrecy = #{gbSecrecy}" +
+"<if test='gbSecrecy  == null'>, gb_secrecy is null" +
+"<if test='gbIpAddress != null' >, gb_ip_address = #{gbIpAddress}" +
+"<if test='gbIpAddress  == null'>, gb_ip_address is null" +
+"<if test='gbPort != null' >, gb_ip_address = #{gbPort}" +
+"<if test='gbPort  == null'>, gb_port is null" +
+"<if test='gbPassword != null' >, gb_password = #{gbPassword}" +
+"<if test='gbPassword  == null'>, gb_password is null" +
+"<if test='gbStatus != null' >, gb_status = #{gbStatus}" +
+"<if test='gbStatus  == null'>, gb_status is null" +
+"<if test='gbLongitude != null' >, gb_longitude = #{gbLongitude}" +
+"<if test='gbLongitude  == null'>, gb_longitude is null" +
+"<if test='gbLatitude != null' >, gb_latitude = #{gbLatitude}" +
+"<if test='gbLatitude  == null'>, gb_latitude is null" +
+"<if test='gbPtzType != null' >, gb_ptz_type = #{gbPtzType}" +
+"<if test='gbPtzType  == null'>, gb_ptz_type is null" +
+"<if test='gbPositionType != null' >, gb_position_type = #{gbPositionType}" +
+"<if test='gbPositionType  == null'>, gb_position_type is null" +
+"<if test='gbRoomType != null' >, gb_room_type = #{gbRoomType}" +
+"<if test='gbRoomType  == null'>, gb_room_type is null" +
+"<if test='gbUseType != null' >, gb_use_type = #{gbUseType}" +
+"<if test='gbUseType  == null'>, gb_use_type is null" +
+"<if test='gbSupplyLightType != null' >, gb_supply_light_type = #{gbSupplyLightType}" +
+"<if test='gbSupplyLightType  == null'>, gb_supply_light_type is null" +
+"<if test='gbDirectionType != null' >, gb_direction_type = #{gbDirectionType}" +
+"<if test='gbDirectionType  == null'>, gb_direction_type is null" +
+"<if test='gbResolution != null' >, gb_resolution = #{gbResolution}" +
+"<if test='gbResolution  == null'>, gb_resolution is null" +
+"<if test='gbBusinessGroupId != null' >, gb_business_group_id = #{gbBusinessGroupId}" +
+"<if test='gbBusinessGroupId  == null'>, gb_business_group_id is null" +
+"<if test='gbDownloadSpeed != null' >, gb_download_speed = #{gbDownloadSpeed}" +
+"<if test='gbDownloadSpeed  == null'>, gb_download_speed is null" +
+"<if test='gbSvcSpaceSupportMod != null' >, gb_svc_space_support_mod = #{gbSvcSpaceSupportMod}" +
+"<if test='gbSvcSpaceSupportMod  == null'>, gb_svc_space_support_mod is null" +
+"<if test='gbSvcTimeSupportMode != null' >, gb_svc_time_support_mode = #{gbSvcTimeSupportMode}" +
+"<if test='gbSvcTimeSupportMode  == null'>, gb_svc_time_support_mode is null" +

@@ -44,6 +44,8 @@ public class GbChannelServiceImpl implements IGbChannelService {
             }catch (Exception e) {
                 log.warn("[通道移除通知] 发送失败，{}", channel.getGbDeviceId(), e);
             }
+            // 结束发送
+            closeSend(channel);
         }
         return 1;
     }
@@ -91,10 +93,34 @@ public class GbChannelServiceImpl implements IGbChannelService {
             log.warn("[多个通道离线] 通道数量为0，更新失败");
             return 0;
         }
-        int result = 0;
-        for (CommonGBChannel channel : commonGBChannelList) {
-            result += offline(channel);
+        List<CommonGBChannel> onlineChannelList = commonGBChannelMapper.queryInListByStatus(commonGBChannelList, 1);
+        if (onlineChannelList.isEmpty()) {
+            log.warn("[多个通道离线] 更新失败, 参数内通道已经离线");
+            return 0;
         }
+        int limitCount = 1000;
+        int result = 0;
+        if (onlineChannelList.size() > limitCount) {
+            for (int i = 0; i < onlineChannelList.size(); i += limitCount) {
+                int toIndex = i + limitCount;
+                if (i + limitCount > onlineChannelList.size()) {
+                    toIndex = onlineChannelList.size();
+                }
+                result += commonGBChannelMapper.updateStatusForList(onlineChannelList.subList(i, toIndex), 0);
+            }
+        }else {
+            result += commonGBChannelMapper.updateStatusForList(onlineChannelList, 0);
+        }
+        if (result > 0) {
+            try {
+                // 发送catalog
+                eventPublisher.catalogEventPublish(null, onlineChannelList, CatalogEvent.OFF);
+            }catch (Exception e) {
+                log.warn("[多个通道离线] 发送失败，数量：{}", onlineChannelList.size(), e);
+            }
+        }
+        // 结束国标级联的发送
+        closeSend(onlineChannelList);
         return result;
     }
 
@@ -123,16 +149,50 @@ public class GbChannelServiceImpl implements IGbChannelService {
             log.warn("[多个通道上线] 通道数量为0，更新失败");
             return 0;
         }
-        int result = 0;
-        for (CommonGBChannel channel : commonGBChannelList) {
-            result += online(channel);
+        List<CommonGBChannel> offlineChannelList = commonGBChannelMapper.queryInListByStatus(commonGBChannelList, 0);
+        if (offlineChannelList.isEmpty()) {
+            log.warn("[多个通道上线] 更新失败, 参数内通道已经上线线");
+            return 0;
         }
+        // 批量更新
+        int limitCount = 1000;
+        int result = 0;
+        if (offlineChannelList.size() > limitCount) {
+            for (int i = 0; i < offlineChannelList.size(); i += limitCount) {
+                int toIndex = i + limitCount;
+                if (i + limitCount > offlineChannelList.size()) {
+                    toIndex = offlineChannelList.size();
+                }
+                result += commonGBChannelMapper.updateStatusForList(offlineChannelList.subList(i, toIndex), 1);
+            }
+        }else {
+            result += commonGBChannelMapper.updateStatusForList(offlineChannelList, 1);
+        }
+        if (result > 0) {
+            try {
+                // 发送catalog
+                eventPublisher.catalogEventPublish(null, offlineChannelList, CatalogEvent.ON);
+            }catch (Exception e) {
+                log.warn("[多个通道上线] 发送失败，数量：{}", offlineChannelList.size(), e);
+            }
+        }
+
         return result;
     }
 
     @Override
     public void closeSend(CommonGBChannel commonGBChannel) {
 
+    }
+
+    @Override
+    @Transactional
+    public void closeSend(List<CommonGBChannel> commonGBChannelList) {
+        if (!commonGBChannelList.isEmpty()) {
+            for (CommonGBChannel commonGBChannel : commonGBChannelList) {
+                closeSend(commonGBChannel);
+            }
+        }
     }
 
     @Override

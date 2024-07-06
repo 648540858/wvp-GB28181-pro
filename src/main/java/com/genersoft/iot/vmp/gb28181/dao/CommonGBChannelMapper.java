@@ -4,6 +4,8 @@ import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Mapper
 @Repository
 public interface CommonGBChannelMapper {
@@ -294,4 +296,8 @@ public interface CommonGBChannelMapper {
     int update(CommonGBChannel commonGBChannel);
 
     int updateStatus(@Param("gbId") int gbId, @Param("status") int status);
+
+    int updateStatusForList(List<CommonGBChannel> commonGBChannels, @Param("status") int status);
+
+    List<CommonGBChannel> queryInListByStatus(List<CommonGBChannel> commonGBChannelList, @Param("status") int status);
 }

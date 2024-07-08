@@ -150,7 +150,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         push.setPushIng(false);
         if (push.getGbDeviceId() != null) {
             if (userSetting.isUsePushingAsStatus()) {
-                push.setGbStatus(false);
+                push.setGbStatus(0);
                 updateStatus(push);
 //                streamPushMapper.updatePushStatus(event.getApp(), event.getStream(), false);
 //                eventPublisher.catalogEventPublishForStream(null, gbStream, CatalogEvent.OFF);
@@ -279,10 +279,10 @@ public class StreamPushServiceImpl implements IStreamPushService {
         }
         streamPush.setPushIng(false);
         if (userSetting.isUsePushingAsStatus()) {
-            streamPush.setGbStatus(false);
             gbChannelService.offline(streamPush.getCommonGBChannel());
         }
-        gbChannelService.closeSend(streamPush.getCommonGBChannel());
+        redisCatchStorage.deleteSendRTPServer(null, streamPush.getGbDeviceId(), null, streamPush.getStream());
+        mediaServerService.stopSendRtp(mediaServer, streamPush.getApp(), streamPush.getStream(), null);
         streamPush.setUpdateTime(DateUtil.getNow());
         streamPushMapper.update(streamPush);
         return true;
@@ -508,7 +508,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         if (push.getGbDeviceId() != null) {
             return;
         }
-        if (push.getGbStatus()) {
+        if (push.getGbStatus() == 1) {
             gbChannelService.online(push.getCommonGBChannel());
         }else {
             gbChannelService.offline(push.getCommonGBChannel());
@@ -522,7 +522,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         StreamPush streamPushInDb = streamPushMapper.select(streamPushId);
         streamPushInDb.setPushIng(pushIng);
         if (userSetting.isUsePushingAsStatus()) {
-            streamPushInDb.setGbStatus(pushIng);
+            streamPushInDb.setGbStatus(pushIng?1:0);
         }
         streamPushInDb.setPushTime(DateUtil.getNow());
         updateStatus(streamPushInDb);

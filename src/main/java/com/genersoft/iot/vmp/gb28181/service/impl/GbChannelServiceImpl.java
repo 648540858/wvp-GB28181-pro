@@ -44,8 +44,6 @@ public class GbChannelServiceImpl implements IGbChannelService {
             }catch (Exception e) {
                 log.warn("[通道移除通知] 发送失败，{}", channel.getGbDeviceId(), e);
             }
-            // 结束发送
-            closeSend(channel);
         }
         return 1;
     }
@@ -119,8 +117,6 @@ public class GbChannelServiceImpl implements IGbChannelService {
                 log.warn("[多个通道离线] 发送失败，数量：{}", onlineChannelList.size(), e);
             }
         }
-        // 结束国标级联的发送
-        closeSend(onlineChannelList);
         return result;
     }
 
@@ -178,21 +174,6 @@ public class GbChannelServiceImpl implements IGbChannelService {
         }
 
         return result;
-    }
-
-    @Override
-    public void closeSend(CommonGBChannel commonGBChannel) {
-
-    }
-
-    @Override
-    @Transactional
-    public void closeSend(List<CommonGBChannel> commonGBChannelList) {
-        if (!commonGBChannelList.isEmpty()) {
-            for (CommonGBChannel commonGBChannel : commonGBChannelList) {
-                closeSend(commonGBChannel);
-            }
-        }
     }
 
     @Override

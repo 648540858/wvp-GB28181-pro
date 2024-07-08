@@ -16,18 +16,24 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.bean.RecordInfo;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaNotFoundEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
-import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.service.*;
-import com.genersoft.iot.vmp.service.bean.*;
+import com.genersoft.iot.vmp.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.service.IDeviceService;
+import com.genersoft.iot.vmp.service.IInviteStreamService;
+import com.genersoft.iot.vmp.service.IPlayService;
+import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
+import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
+import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.CloudRecordUtils;
@@ -38,8 +44,6 @@ import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.AudioBroadcastEvent;
 import gov.nist.javax.sip.message.SIPResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -55,7 +59,10 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.Vector;
 
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Slf4j
@@ -591,7 +598,7 @@ public class PlayServiceImpl implements IPlayService {
                 callback.run(InviteErrorCode.ERROR_FOR_SIP_SENDING_FAILED.getCode(),
                         InviteErrorCode.ERROR_FOR_SIP_SENDING_FAILED.getMsg(), null);
             }
-            inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channel.getChannelId(), null,
+            inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channel.getDeviceId(), null,
                     InviteErrorCode.ERROR_FOR_SIP_SENDING_FAILED.getCode(),
                     InviteErrorCode.ERROR_FOR_SIP_SENDING_FAILED.getMsg(), null);
 

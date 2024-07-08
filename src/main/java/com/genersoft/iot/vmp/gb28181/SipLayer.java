@@ -82,7 +82,9 @@ public class SipLayer implements CommandLineRunner {
 				monitorIps.add(sipConfig.getIp());
 			}
 		}
-		sipConfig.setShowIp(String.join(",", monitorIps));
+		if (ObjectUtils.isEmpty(sipConfig.getShowIp())){
+			sipConfig.setShowIp(String.join(",", monitorIps));
+		}
 		SipFactory.getInstance().setPathName("gov.nist");
 		if (monitorIps.size() > 0) {
 			for (String monitorIp : monitorIps) {

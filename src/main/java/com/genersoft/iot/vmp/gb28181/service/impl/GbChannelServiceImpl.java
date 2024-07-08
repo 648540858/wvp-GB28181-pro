@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -72,7 +71,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
             log.warn("[通道离线] 未找到数据库ID，更新失败， {}", commonGBChannel.getGbDeviceDbId());
             return 0;
         }
-        int result = commonGBChannelMapper.updateStatus(commonGBChannel.getGbId(), 0);
+        int result = commonGBChannelMapper.updateStatusById(commonGBChannel.getGbId(), 0);
         if (result > 0) {
             try {
                 // 发送通知
@@ -104,10 +103,10 @@ public class GbChannelServiceImpl implements IGbChannelService {
                 if (i + limitCount > onlineChannelList.size()) {
                     toIndex = onlineChannelList.size();
                 }
-                result += commonGBChannelMapper.updateStatusForList(onlineChannelList.subList(i, toIndex), 0);
+                result += commonGBChannelMapper.updateStatusForListById(onlineChannelList.subList(i, toIndex), 0);
             }
         }else {
-            result += commonGBChannelMapper.updateStatusForList(onlineChannelList, 0);
+            result += commonGBChannelMapper.updateStatusForListById(onlineChannelList, 0);
         }
         if (result > 0) {
             try {
@@ -126,7 +125,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
             log.warn("[通道上线] 未找到数据库ID，更新失败， {}", commonGBChannel.getGbDeviceDbId());
             return 0;
         }
-        int result = commonGBChannelMapper.updateStatus(commonGBChannel.getGbId(), 1);
+        int result = commonGBChannelMapper.updateStatusById(commonGBChannel.getGbId(), 1);
         if (result > 0) {
             try {
                 // 发送通知
@@ -159,10 +158,10 @@ public class GbChannelServiceImpl implements IGbChannelService {
                 if (i + limitCount > offlineChannelList.size()) {
                     toIndex = offlineChannelList.size();
                 }
-                result += commonGBChannelMapper.updateStatusForList(offlineChannelList.subList(i, toIndex), 1);
+                result += commonGBChannelMapper.updateStatusForListById(offlineChannelList.subList(i, toIndex), 1);
             }
         }else {
-            result += commonGBChannelMapper.updateStatusForList(offlineChannelList, 1);
+            result += commonGBChannelMapper.updateStatusForListById(offlineChannelList, 1);
         }
         if (result > 0) {
             try {
@@ -177,29 +176,55 @@ public class GbChannelServiceImpl implements IGbChannelService {
     }
 
     @Override
+    @Transactional
     public void batchAdd(List<CommonGBChannel> commonGBChannels) {
-
+        if (commonGBChannels.isEmpty()) {
+            log.warn("[新增多个通道] 通道数量为0，更新失败");
+            return;
+        }
+        // 批量保存
+        int limitCount = 1000;
+        int result = 0;
+        if (commonGBChannels.size() > limitCount) {
+            for (int i = 0; i < commonGBChannels.size(); i += limitCount) {
+                int toIndex = i + limitCount;
+                if (i + limitCount > commonGBChannels.size()) {
+                    toIndex = commonGBChannels.size();
+                }
+                result += commonGBChannelMapper.batchAdd(commonGBChannels.subList(i, toIndex));
+            }
+        }else {
+            result += commonGBChannelMapper.batchAdd(commonGBChannels);
+        }
+        log.warn("[新增多个通道] 通道数量为{}，成功保存：{}", commonGBChannels.size(), result);
     }
 
     @Override
     @Transactional
-    public void updateStatus(List<CommonGBChannel> channelList) {
-        if (channelList.isEmpty()) {
+    public void updateStatus(List<CommonGBChannel> commonGBChannels) {
+        if (commonGBChannels.isEmpty()) {
             log.warn("[更新多个通道状态] 通道数量为0，更新失败");
             return;
         }
-        for (CommonGBChannel channel : channelList) {
-            if  (channel.getGbStatus() == 1) {
-                online(channel);
-            }else {
-                offline(channel);
+        int limitCount = 1000;
+        int result = 0;
+        if (commonGBChannels.size() > limitCount) {
+            for (int i = 0; i < commonGBChannels.size(); i += limitCount) {
+                int toIndex = i + limitCount;
+                if (i + limitCount > commonGBChannels.size()) {
+                    toIndex = commonGBChannels.size();
+                }
+                result += commonGBChannelMapper.updateStatus(commonGBChannels.subList(i, toIndex));
             }
-
+        }else {
+            result += commonGBChannelMapper.updateStatus(commonGBChannels);
         }
+        log.warn("[更新多个通道状态] 通道数量为{}，成功保存：{}", commonGBChannels.size(), result);
     }
 
     @Override
     public List<CommonGBChannel> queryByPlatformId(Integer platformId) {
-        return Collections.emptyList();
+
+        return commonGBChannelMapper.queryByPlatformId(platformId);
     }
 }

@@ -195,7 +195,8 @@ create table wvp_device_channel (
                                     gb_industrial_classification character varying(255),
                                     stream_push_id integer,
                                     stream_proxy_id integer,
-                                    constraint uk_wvp_device_channel_unique_device_channel unique (device_db_id, device_id)
+                                    constraint uk_wvp_device_channel_unique_device_channel unique (device_db_id, device_id),
+                                    constraint uk_wvp_unique_channel unique (gb_device_id)
 );
 
 create table wvp_media_server (
@@ -273,7 +274,10 @@ create table wvp_platform_gb_channel (
                                          name character varying(255),
                                          civil_code character varying(50),
                                          business_group_id character varying(50),
-                                         constraint uk_platform_gb_channel_platform_id_catalog_id_device_channel_id unique (platform_id, device_channel_id)
+                                         parental integer,
+                                         parent_id character varying(255),
+                                         constraint uk_platform_gb_channel_platform_id_catalog_id_device_channel_id unique (platform_id, device_channel_id),
+                                         constraint uk_platform_gb_channel_device_id unique (device_id)
 );
 
 create table wvp_stream_proxy (

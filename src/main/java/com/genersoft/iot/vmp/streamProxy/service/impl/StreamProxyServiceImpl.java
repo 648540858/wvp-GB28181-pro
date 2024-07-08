@@ -317,8 +317,8 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                     || streamInfo.getOriginType() == OriginType.FFMPEG_PULL.ordinal() ) {
                 if (streamProxyMapForDb.get(key) != null) {
                     redisCatchStorage.addStream(mediaServer, "pull", streamInfo.getApp(), streamInfo.getStream(), streamInfo.getMediaInfo());
-                    if (!streamProxy.getGbStatus() && streamProxy.getGbId() > 0) {
-                        streamProxy.setGbStatus(true);
+                    if (streamProxy.getGbStatus() == 1 && streamProxy.getGbId() > 0) {
+                        streamProxy.setGbStatus(1);
                         channelListForOnline.add(streamProxy.getCommonGBChannel());
                     }
                     streamProxyMapForDb.remove(key);
@@ -333,8 +333,8 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         List<StreamProxy> streamProxiesForRemove = new ArrayList<>();
         if (!streamProxyMapForDb.isEmpty()) {
             for (StreamProxy streamProxy : streamProxyMapForDb.values()) {
-                if (streamProxy.getGbStatus() && streamProxy.getGbId() > 0) {
-                    streamProxy.setGbStatus(false);
+                if (streamProxy.getGbStatus() == 0 && streamProxy.getGbId() > 0) {
+                    streamProxy.setGbStatus(0);
                     channelListForOffline.add(streamProxy.getCommonGBChannel());
                 }
                 // 移除开启了无人观看自动移除的流
@@ -375,13 +375,13 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         List<CommonGBChannel> channelListForOffline = new ArrayList<>();
 
         for (StreamProxy streamProxy : streamProxies) {
-            if (streamProxy.getGbId() > 0 && streamProxy.getGbStatus()) {
+            if (streamProxy.getGbId() > 0 && streamProxy.getGbStatus() == 1) {
                 channelListForOffline.add(streamProxy.getCommonGBChannel());
             }
             if (streamProxy.getGbId() == 0 && streamProxy.isEnableRemoveNoneReader()) {
                 streamProxiesForRemove.add(streamProxy);
             }
-            if (streamProxy.getGbStatus()) {
+            if (streamProxy.getGbStatus() == 1) {
                 streamProxiesForSendMessage.add(streamProxy);
             }
         }
@@ -411,7 +411,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         if (streamProxyItem == null) {
             return 0;
         }
-        streamProxyItem.setGbStatus(status);
+        streamProxyItem.setGbStatus(status?1:0);
         if (streamProxyItem.getGbId() > 0) {
             if (status) {
                 gbChannelService.online(streamProxyItem.getCommonGBChannel());

@@ -203,9 +203,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		if (parentPlatform.getCatalogGroup() == 0) {
 			parentPlatform.setCatalogGroup(1);
 		}
-		if (parentPlatform.getAdministrativeDivision() == null) {
-			parentPlatform.setAdministrativeDivision(parentPlatform.getAdministrativeDivision());
-		}
 		ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId()); // .getDeviceGBId());
 		if (parentPlatform.getId() == null ) {
 			if (parentPlatform.getCatalogId() == null) {

@@ -165,10 +165,6 @@ public class PlatformServiceImpl implements IPlatformService {
             // 每次发送目录的数量默认为1
             parentPlatform.setCatalogGroup(1);
         }
-        if (parentPlatform.getAdministrativeDivision() == null) {
-            // 行政区划默认去编号的前6位
-            parentPlatform.setAdministrativeDivision(parentPlatform.getServerGBId().substring(0,6));
-        }
         parentPlatform.setCatalogId(parentPlatform.getDeviceGBId());
         int result = platformMapper.addParentPlatform(parentPlatform);
         // 添加缓存
@@ -220,9 +216,6 @@ public class PlatformServiceImpl implements IPlatformService {
         // 更新数据库
         if (parentPlatform.getCatalogGroup() == 0) {
             parentPlatform.setCatalogGroup(1);
-        }
-        if (parentPlatform.getAdministrativeDivision() == null) {
-            parentPlatform.setAdministrativeDivision(parentPlatform.getAdministrativeDivision());
         }
 
         platformMapper.updateParentPlatform(parentPlatform);

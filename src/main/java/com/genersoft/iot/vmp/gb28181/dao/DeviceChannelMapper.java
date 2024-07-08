@@ -17,14 +17,16 @@ import java.util.List;
 @Repository
 public interface DeviceChannelMapper {
 
-    @Insert("INSERT INTO wvp_device_channel (channel_id, device_id, name, manufacture, model, owner, civil_code, block, " +
-            "address, parental, parent_id, safety_way, register_way, cert_num, certifiable, err_code, secrecy, " +
-            "ip_address, port, password, ptz_type, status, stream_id, longitude, latitude, longitude_gcj02, latitude_gcj02, " +
-            "longitude_wgs84, latitude_wgs84, has_audio, create_time, update_time, business_group_id, gps_time, stream_identification) " +
-            "VALUES (#{channelId}, #{deviceId}, #{name}, #{manufacture}, #{model}, #{owner}, #{civilCode}, #{block}," +
-            "#{address}, #{parental}, #{parentId}, #{safetyWay}, #{registerWay}, #{certNum}, #{certifiable}, #{errCode}, #{secrecy}, " +
-            "#{ipAddress}, #{port}, #{password}, #{ptzType}, #{status}, #{streamId}, #{longitude}, #{latitude}, #{longitudeGcj02}, " +
-            "#{latitudeGcj02}, #{longitudeWgs84}, #{latitudeWgs84}, #{hasAudio}, #{createTime}, #{updateTime}, #{businessGroupId}, #{gpsTime}, #{streamIdentification})")
+    @Insert("INSERT INTO wvp_device_channel (device_id, device_db_id, name, manufacture, model, owner, civil_code, block, " +
+            "address, parental, parent_id, safety_way, register_way, cert_num, certifiable, err_code, end_time, secrecy, " +
+            "ip_address, port, password, status, longitude, latitude, ptz_type, position_type, room_type, use_type, " +
+            "supply_light_type, direction_type, resolution, business_group_id, download_speed, svc_space_support_mod, " +
+            "svc_time_support_mode, create_time, update_time, sub_count，stream_id, has_audio, gps_time, stream_identification) " +
+            "VALUES (#{deviceId}, #{deviceDbId}, #{name}, #{manufacture}, #{model}, #{owner}, #{civilCode}, #{block}," +
+            "#{address}, #{parental}, #{parentId}, #{safetyWay}, #{registerWay}, #{certNum}, #{certifiable}, #{errCode}, #{endTime}, #{secrecy}, " +
+            "#{ipAddress}, #{port}, #{password}, #{status}, #{longitude}, #{latitude}, #{ptzType}, #{positionType}, #{roomType}, #{useType}, " +
+            "#{supplyLightType}, #{directionType}, #{resolution}, #{businessGroupId}, #{downloadSpeed}, #{svcSpaceSupportMod}," +
+            " #{svcTimeSupportMode}, #{createTime}, #{updateTime}, #{subCount}, #{streamId}, #{hasAudio}, #{gpsTime}, #{streamIdentification})")
     int add(DeviceChannel channel);
 
     @Update(value = {" <script>" +

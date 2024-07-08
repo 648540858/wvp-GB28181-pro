@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionStatus;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
@@ -40,6 +41,9 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     @Autowired
     private IVideoManagerStorage storage;
 
+    @Autowired
+    private UserSetting userSetting;
+
     /**
      * 流到来的处理
      */
@@ -67,7 +71,11 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     }
     @Override
     public void updateInviteInfo(InviteInfo inviteInfo) {
-        updateInviteInfo(inviteInfo, null);
+        if (InviteSessionStatus.ready == inviteInfo.getStatus()) {
+            updateInviteInfo(inviteInfo, Long.valueOf(userSetting.getPlayTimeout()) * 2);
+        }else {
+            updateInviteInfo(inviteInfo, null);
+        }
     }
 
     @Override
@@ -148,7 +156,12 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
         if (inviteInfoInDb.getSsrcInfo() != null) {
             inviteInfoInDb.getSsrcInfo().setStream(stream);
         }
-        redisTemplate.opsForValue().set(key, inviteInfoInDb);
+        if (InviteSessionStatus.ready == inviteInfo.getStatus()) {
+            redisTemplate.opsForValue().set(key, inviteInfoInDb, userSetting.getPlayTimeout() * 2, TimeUnit.SECONDS);
+        }else {
+            redisTemplate.opsForValue().set(key, inviteInfoInDb);
+        }
+
         return inviteInfoInDb;
     }
 

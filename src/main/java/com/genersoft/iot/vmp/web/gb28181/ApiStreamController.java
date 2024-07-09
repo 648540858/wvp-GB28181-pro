@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.IPlayService;
@@ -45,6 +46,9 @@ public class ApiStreamController {
 
     @Autowired
     private IDeviceService deviceService;
+
+    @Autowired
+    private IDeviceChannelService deviceChannelService;
 
     @Autowired
     private IPlayService playService;
@@ -96,7 +100,7 @@ public class ApiStreamController {
             resultJSON.put("error","timeout");
             result.setResult(resultJSON);
             inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, serial, code);
-            storager.stopPlay(serial, code);
+            deviceChannelService.stopPlay(serial, code);
              // 清理RTP server
         });
 
@@ -240,7 +244,7 @@ public class ApiStreamController {
             return result;
         }
         inviteStreamService.removeInviteInfo(inviteInfo);
-        storager.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
+        deviceChannelService.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
         return null;
     }
 

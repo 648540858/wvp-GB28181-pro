@@ -24,11 +24,8 @@ public interface IDeviceChannelService {
 
     /**
      * 批量添加设备通道
-     *
-     * @param deviceId 设备id
-     * @param channels 多个通道
      */
-    int updateChannels(String deviceId, List<DeviceChannel> channels);
+    int updateChannels(Device device, List<DeviceChannel> channels);
 
     /**
      * 获取统计信息
@@ -93,7 +90,10 @@ public interface IDeviceChannelService {
 
     void updateChannelGPS(Device device, DeviceChannel deviceChannel, MobilePosition mobilePosition);
 
+    void startPlay(String deviceId, String channelId, String stream);
+
     void stopPlay(String deviceId, String channelId);
+
     void batchUpdateChannelGPS(List<DeviceChannel> channelList);
 
     void batchAddMobilePosition(List<MobilePosition> addMobilePositionList);
@@ -104,7 +104,9 @@ public interface IDeviceChannelService {
 
     void delete(DeviceChannel channel);
 
-    void cleanChannelsForDevice(String deviceId);
+    void cleanChannelsForDevice(int deviceId);
 
     boolean resetChannels(String deviceId, List<DeviceChannel> deviceChannels);
+
+
 }

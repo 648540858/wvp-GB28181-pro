@@ -13,10 +13,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
-import com.genersoft.iot.vmp.service.IDeviceService;
-import com.genersoft.iot.vmp.service.IInviteStreamService;
-import com.genersoft.iot.vmp.service.IMediaService;
-import com.genersoft.iot.vmp.service.IUserService;
+import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
@@ -58,6 +55,9 @@ public class MediaServiceImpl implements IMediaService {
 
     @Autowired
     private IInviteStreamService inviteStreamService;
+
+    @Autowired
+    private IDeviceChannelService deviceChannelService;
 
     @Autowired
     private VideoStreamSessionManager sessionManager;
@@ -267,7 +267,7 @@ public class MediaServiceImpl implements IMediaService {
 
                 inviteStreamService.removeInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(),
                         inviteInfo.getChannelId(), inviteInfo.getStream());
-                storager.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
+                deviceChannelService.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
                 return result;
             }
             SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(null, null, stream, null);

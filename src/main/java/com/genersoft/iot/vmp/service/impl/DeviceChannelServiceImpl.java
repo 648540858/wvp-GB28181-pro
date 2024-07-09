@@ -84,17 +84,16 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
-    public int updateChannels(String deviceId, List<DeviceChannel> channels) {
+    public int updateChannels(Device device, List<DeviceChannel> channels) {
         List<DeviceChannel> addChannels = new ArrayList<>();
         List<DeviceChannel> updateChannels = new ArrayList<>();
         HashMap<String, DeviceChannel> channelsInStore = new HashMap<>();
-        Device device = deviceMapper.getDeviceByDeviceId(deviceId);
         if (channels != null && channels.size() > 0) {
-            List<DeviceChannel> channelList = channelMapper.queryChannels(deviceId, null, null, null, null,null);
-            if (channelList.size() == 0) {
+            List<DeviceChannel> channelList = channelMapper.queryChannelsByDeviceDbId(device.getId());
+            if (channelList.isEmpty()) {
                 for (DeviceChannel channel : channels) {
-                    channel.setDeviceId(deviceId);
-                    InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channel.getDeviceId());
+                    channel.setDeviceDbId(device.getId());
+                    InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channel.getDeviceId());
                     if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
                         channel.setStreamId(inviteInfo.getStreamInfo().getStream());
                     }
@@ -108,8 +107,8 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     channelsInStore.put(deviceChannel.getDeviceId(), deviceChannel);
                 }
                 for (DeviceChannel channel : channels) {
-                    channel.setDeviceId(deviceId);
-                    InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channel.getDeviceId());
+                    channel.setDeviceDbId(device.getId());
+                    InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channel.getDeviceId());
                     if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
                         channel.setStreamId(inviteInfo.getStreamInfo().getStream());
                     }
@@ -231,7 +230,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public void delete(DeviceChannel channel) {
-        channelMapper.del(channel.getDeviceId(), channel.getDeviceId());
+        channelMapper.del(channel.getId());
     }
 
     @Override
@@ -345,6 +344,11 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
+    public void startPlay(String deviceId, String channelId, String stream) {
+        channelMapper.startPlay(deviceId, channelId, stream);
+    }
+
+    @Override
     public void stopPlay(String deviceId, String channelId) {
         channelMapper.stopPlay(deviceId, channelId);
     }
@@ -393,7 +397,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
-    public void cleanChannelsForDevice(String deviceId) {
+    public void cleanChannelsForDevice(int deviceId) {
         channelMapper.cleanChannelsByDeviceId(deviceId);
     }
 

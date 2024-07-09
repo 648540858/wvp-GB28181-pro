@@ -100,7 +100,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                         if (sumNum == 0) {
                             log.info("[收到通道]设备:{}的: 0个", take.getDevice().getDeviceId());
                             // 数据已经完整接收
-                            deviceChannelService.cleanChannelsForDevice(take.getDevice().getDeviceId());
+                            deviceChannelService.cleanChannelsForDevice(take.getDevice().getId());
                             catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null);
                         } else {
                             Iterator<Element> deviceListIterator = deviceListElement.elementIterator();

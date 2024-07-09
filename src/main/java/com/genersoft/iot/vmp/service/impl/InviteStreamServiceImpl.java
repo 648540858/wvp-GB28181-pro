@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
+import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -40,6 +41,9 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     private IVideoManagerStorage storage;
 
     @Autowired
+    private IDeviceChannelService deviceChannelService;
+
+    @Autowired
     private UserSetting userSetting;
 
     /**
@@ -63,7 +67,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
             InviteInfo inviteInfo = getInviteInfoByStream(null, event.getStream());
             if (inviteInfo != null && (inviteInfo.getType() == InviteSessionType.PLAY || inviteInfo.getType() == InviteSessionType.PLAYBACK)) {
                 removeInviteInfo(inviteInfo);
-                storage.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
+                deviceChannelService.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
             }
         }
     }

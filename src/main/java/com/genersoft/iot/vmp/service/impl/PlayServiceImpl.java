@@ -314,7 +314,7 @@ public class PlayServiceImpl implements IPlayService {
                 }else {
                     // 点播发起了但是尚未成功, 仅注册回调等待结果即可
                     inviteStreamService.once(InviteSessionType.PLAY, deviceId, channelId, null, callback);
-                    storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
+                    channelService.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
                     inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
                 }
             }
@@ -698,7 +698,7 @@ public class PlayServiceImpl implements IPlayService {
             DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
             if (deviceChannel != null) {
                 deviceChannel.setStreamId(streamInfo.getStream());
-                storager.startPlay(deviceId, channelId, streamInfo.getStream());
+                channelService.startPlay(deviceId, channelId, streamInfo.getStream());
             }
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
             if (inviteInfo != null) {
@@ -719,7 +719,7 @@ public class PlayServiceImpl implements IPlayService {
             DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
             if (deviceChannel != null) {
                 deviceChannel.setStreamId(streamInfo.getStream());
-                storager.startPlay(deviceId, channelId, streamInfo.getStream());
+                channelService.startPlay(deviceId, channelId, streamInfo.getStream());
             }
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, mediaInfo.getStream());
             if (inviteInfo != null) {
@@ -1638,7 +1638,7 @@ public class PlayServiceImpl implements IPlayService {
             }
         }
         inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channelId);
-        storager.stopPlay(device.getDeviceId(), channelId);
+        channelService.stopPlay(device.getDeviceId(), channelId);
         channelService.stopPlay(device.getDeviceId(), channelId);
         if (inviteInfo.getStreamInfo() != null) {
             mediaServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServerId(), inviteInfo.getStream());

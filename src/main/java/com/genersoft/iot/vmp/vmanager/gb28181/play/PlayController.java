@@ -15,6 +15,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
@@ -74,6 +75,10 @@ public class PlayController {
 	@Autowired
 	private UserSetting userSetting;
 
+
+	@Autowired
+	private IDeviceChannelService deviceChannelService;
+
 	@Operation(summary = "开始点播", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
@@ -102,7 +107,7 @@ public class PlayController {
 			requestMessage.setData(wvpResult);
 			resultHolder.invokeAllResult(requestMessage);
 			inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
-			storager.stopPlay(deviceId, channelId);
+			deviceChannelService.stopPlay(deviceId, channelId);
 		});
 
 		// 录像查询以channelId作为deviceId查询

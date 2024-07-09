@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
@@ -24,6 +25,7 @@ import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -409,7 +411,7 @@ public class DeviceServiceImpl implements IDeviceService {
        if (!deviceChannels.isEmpty()) {
            List<DeviceChannel> deviceChannelsForStore = new ArrayList<>();
            deviceChannelsForStore.addAll(deviceChannels);
-           deviceChannelService.updateChannels(device.getDeviceId(), deviceChannelsForStore);
+           deviceChannelService.updateChannels(device, deviceChannelsForStore);
        }
     }
 
@@ -545,11 +547,15 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public boolean delete(String deviceId) {
+        Device device = deviceMapper.getDeviceByDeviceId(deviceId);
+        if (device == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备:" + deviceId);
+        }
         TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
         boolean result = false;
         try {
             platformChannelMapper.delChannelForDeviceId(deviceId);
-            deviceChannelMapper.cleanChannelsByDeviceId(deviceId);
+            deviceChannelMapper.cleanChannelsByDeviceId(device.getId());
             if ( deviceMapper.del(deviceId) < 0 ) {
                 //事务回滚
                 dataSourceTransactionManager.rollback(transactionStatus);

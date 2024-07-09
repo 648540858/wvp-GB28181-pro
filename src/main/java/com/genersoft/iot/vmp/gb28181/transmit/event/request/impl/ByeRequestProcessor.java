@@ -61,6 +61,9 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 	private IDeviceService deviceService;
 
 	@Autowired
+	private IDeviceChannelService deviceChannelService;
+
+	@Autowired
 	private AudioBroadcastManager audioBroadcastManager;
 
 	@Autowired
@@ -216,7 +219,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 					InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY,
 							device.getDeviceId(), channel.getDeviceId());
 					if (inviteInfo != null) {
-						storager.stopPlay(ssrcTransaction.getDeviceId(), channel.getDeviceId());
+						deviceChannelService.stopPlay(ssrcTransaction.getDeviceId(), channel.getDeviceId());
 						inviteStreamService.removeInviteInfo(inviteInfo);
 						if (inviteInfo.getStreamInfo() != null) {
 							mediaServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServerId(), inviteInfo.getStreamInfo().getStream());

@@ -24,21 +24,6 @@ public interface IVideoManagerStorage {
 	 * @return true:存在  false：不存在
 	 */
 	public boolean exists(String deviceId);
-
-	/**
-	 * 开始播放
-	 * @param deviceId 设备id
-	 * @param channelId 通道ID
-	 * @param streamId 流地址
-	 */
-	public void startPlay(String deviceId, String channelId, String streamId);
-
-	/**
-	 * 停止播放
-	 * @param deviceId 设备id
-	 * @param channelId 通道ID
-	 */
-	public void stopPlay(String deviceId, String channelId);
 	
 	/**   
 	 * 获取设备

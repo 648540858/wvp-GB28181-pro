@@ -119,7 +119,7 @@ public class CatalogDataCatch {
                     if (catalogData.getTotal() == catalogData.getChannelList().size()) {
                         deviceChannelService.resetChannels(catalogData.getDevice().getDeviceId(), catalogData.getChannelList());
                     }else {
-                        deviceChannelService.updateChannels(catalogData.getDevice().getDeviceId(), catalogData.getChannelList());
+                        deviceChannelService.updateChannels(catalogData.getDevice(), catalogData.getChannelList());
                     }
                     String errorMsg = "更新成功，共" + catalogData.getTotal() + "条，已更新" + catalogData.getChannelList().size() + "条";
                     catalogData.setErrorMsg(errorMsg);

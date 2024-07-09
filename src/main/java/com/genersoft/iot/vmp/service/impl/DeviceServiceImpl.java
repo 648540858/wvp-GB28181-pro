@@ -171,7 +171,7 @@ public class DeviceServiceImpl implements IDeviceService {
                 }
 
             }else {
-                if (deviceChannelMapper.queryAllChannels(device.getDeviceId()).size() == 0) {
+                if (deviceChannelMapper.queryAllChannels(device.getId()).isEmpty()) {
                     log.info("[设备上线]: {}，通道数为0,查询通道信息", device.getDeviceId());
                     sync(device);
                 }
@@ -402,20 +402,6 @@ public class DeviceServiceImpl implements IDeviceService {
             redisCatchStorage.updateDevice(device);
         }
     }
-
-    /**
-     * 更新通道坐标系
-     */
-    private void updateDeviceChannelGeoCoordSys(Device device) {
-       List<DeviceChannel> deviceChannels =  deviceChannelMapper.getAllChannelWithCoordinate(device.getDeviceId());
-       if (!deviceChannels.isEmpty()) {
-           List<DeviceChannel> deviceChannelsForStore = new ArrayList<>();
-           deviceChannelsForStore.addAll(deviceChannels);
-           deviceChannelService.updateChannels(device, deviceChannelsForStore);
-       }
-    }
-
-
     @Override
     public List<DeviceChannel> queryVideoDeviceInTreeNode(String deviceId, String parentId) {
         Device device = deviceMapper.getDeviceByDeviceId(deviceId);
@@ -423,9 +409,9 @@ public class DeviceServiceImpl implements IDeviceService {
             return null;
         }
         if (ObjectUtils.isEmpty(parentId) || parentId.equals(deviceId)) {
-            return deviceChannelMapper.getSubChannelsByDeviceId(deviceId, null, false);
+            return deviceChannelMapper.getSubChannelsByDeviceId(device.getId(), null, false);
         }else {
-            return deviceChannelMapper.getSubChannelsByDeviceId(deviceId, parentId, false);
+            return deviceChannelMapper.getSubChannelsByDeviceId(device.getId(), parentId, false);
         }
     }
 
@@ -528,7 +514,6 @@ public class DeviceServiceImpl implements IDeviceService {
             // 坐标系变化，需要重新计算GCJ02坐标和WGS84坐标
             if (!deviceInStore.getGeoCoordSys().equals(device.getGeoCoordSys())) {
                 deviceInStore.setGeoCoordSys(device.getGeoCoordSys());
-                updateDeviceChannelGeoCoordSys(deviceInStore);
             }
         }else {
             deviceInStore.setGeoCoordSys("WGS84");

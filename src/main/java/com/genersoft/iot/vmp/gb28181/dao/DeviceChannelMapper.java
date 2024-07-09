@@ -67,11 +67,12 @@ public interface DeviceChannelMapper {
             ", download_speed=#{downloadSpeed}" +
             ", svc_space_support_mod=#{svcSpaceSupportMod}" +
             ", svc_time_support_mode=#{svcTimeSupportMode}" +
-            ", sub_count，stream_id=#{subCount，streamId}" +
+            ", sub_count=#{subCount}" +
+            ", stream_id=#{streamId}" +
             ", has_audio=#{hasAudio}" +
             ", gps_time=#{gpsTime}" +
             ", stream_identification=#{streamIdentification}" +
-            "WHERE id=#{id}"+
+            "WHERE id=#{id}" +
             " </script>"})
     int update(DeviceChannel channel);
 
@@ -111,7 +112,7 @@ public interface DeviceChannelMapper {
             ", gb_download_speed = #{gbDownloadSpeed}" +
             ", gb_svc_space_support_mod = #{gbSvcSpaceSupportMod}" +
             ", gb_svc_time_support_mode = #{gbSvcTimeSupportMode}" +
-            "WHERE id = #{id}"+
+            "WHERE id = #{id}" +
             " </script>"})
     int updateCustomInfo(DeviceChannel channel);
 
@@ -231,7 +232,6 @@ public interface DeviceChannelMapper {
     List<DeviceChannel> queryChannelsByDeviceDbId(@Param("deviceDbId") int deviceDbId);
 
 
-
     @Select(value = {" <script>" +
             "SELECT " +
             "dc.*, " +
@@ -301,7 +301,7 @@ public interface DeviceChannelMapper {
             " FROM wvp_device_channel dc " +
             " left join wvp_device d on d.id=dc.device_db_id" +
             " WHERE d.device_id=#{deviceId} AND dc.device_id=#{channelId}")
-    DeviceChannel queryChannel(@Param("deviceId") String deviceId,@Param("channelId") String channelId);
+    DeviceChannel queryChannel(@Param("deviceId") String deviceId, @Param("channelId") String channelId);
 
     @Delete("DELETE FROM wvp_device_channel WHERE device_db_id=#{deviceId}")
     int cleanChannelsByDeviceId(@Param("deviceId") int deviceId);
@@ -319,277 +319,217 @@ public interface DeviceChannelMapper {
     @Select(value = {" <script>" +
             "SELECT " +
             "    dc.id,\n" +
-            "    dc.channel_id,\n" +
-            "    dc.device_id,\n" +
-            "    COALESCE(dc.custom_name, dc.name) AS name,\n" +
-            "    de.manufacturer,\n" +
-            "    de.host_address,\n" +
+            "    COALESCE(dc.gb_device_id, dc.device_id) AS name,\n" +
+            "    COALESCE(dc.gb_name, dc.name) AS name,\n" +
+            "    COALESCE(dc.gb_manufacturer, dc.manufacturer) AS manufacturer,\n" +
+            "    COALESCE(dc.gb_ip_address, dc.ip_address) AS ip_address,\n" +
             "    dc.sub_count,\n" +
             "    pgc.platform_id as platform_id,\n" +
             "    pgc.catalog_id as catalog_id " +
             " FROM wvp_device_channel dc " +
-            " LEFT JOIN wvp_device de ON dc.device_id = de.device_id " +
+            " LEFT JOIN wvp_device de ON dc.device_db_id = de.id " +
             " LEFT JOIN wvp_platform_gb_channel pgc on pgc.device_channel_id = dc.id " +
             " WHERE 1=1 " +
-            " <if test='query != null'> AND (dc.channel_id LIKE concat('%',#{query},'%') OR dc.name LIKE concat('%',#{query},'%') OR dc.name LIKE concat('%',#{query},'%'))</if> " +
-            " <if test='online == true' > AND dc.status=true</if> " +
-            " <if test='online == false' > AND dc.status=false</if> " +
+            " <if test='query != null'> " +
+            "AND " +
+            "(COALESCE(dc.gb_device_id, dc.device_id) LIKE concat('%',#{query},'%') " +
+            " OR COALESCE(dc.gb_name, dc.name) LIKE concat('%',#{query},'%'))</if> " +
+            " <if test='online == true' > AND dc.status=1</if> " +
+            " <if test='online == false' > AND dc.status=0</if> " +
             " <if test='hasSubChannel!= null and hasSubChannel == true' >  AND dc.sub_count > 0</if> " +
             " <if test='hasSubChannel!= null and hasSubChannel == false' >  AND dc.sub_count = 0</if> " +
             " <if test='catalogId == null ' >  AND dc.id not in (select device_channel_id from wvp_platform_gb_channel where platform_id=#{platformId} ) </if> " +
             " <if test='catalogId != null ' >  AND pgc.platform_id = #{platformId} and pgc.catalog_id=#{catalogId} </if> " +
-            " ORDER BY dc.device_id, dc.channel_id ASC" +
+            " ORDER BY COALESCE(dc.gb_device_id, dc.device_id) ASC" +
             " </script>"})
     List<ChannelReduce> queryChannelListInAll(@Param("query") String query, @Param("online") Boolean online, @Param("hasSubChannel") Boolean hasSubChannel, @Param("platformId") String platformId, @Param("catalogId") String catalogId);
 
-    @Select(value = {" <script>" +
-            "SELECT " +
-            "    dc.*,\n" +
-            "    pgc.platform_id as platform_id,\n" +
-            "    pgc.catalog_id as catalog_id " +
-            " FROM wvp_device_channel dc " +
-            " LEFT JOIN wvp_platform_gb_channel pgc on pgc.device_channel_id = dc.id " +
-            " WHERE pgc.platform_id = #{platformId} " +
-            " ORDER BY dc.device_id, dc.channel_id ASC" +
-            " </script>"})
-    List<DeviceChannelInPlatform> queryChannelByPlatformId(String platformId);
+    @Select("SELECT " +
+            "    id,\n" +
+            "    device_db_id,\n" +
+            "    create_time,\n" +
+            "    update_time,\n" +
+            "    sub_count,\n" +
+            "    stream_id,\n" +
+            "    has_audio,\n" +
+            "    gps_time,\n" +
+            "    stream_identification,\n" +
+            "    coalesce(gb_device_id, device_id) as device_id,\n" +
+            "    coalesce(gb_name, name) as name,\n" +
+            "    coalesce(gb_manufacturer, manufacturer) as manufacturer,\n" +
+            "    coalesce(gb_model, model) as model,\n" +
+            "    coalesce(gb_owner, owner) as owner,\n" +
+            "    coalesce(gb_civil_code, civil_code) as civil_code,\n" +
+            "    coalesce(gb_block, block) as block,\n" +
+            "    coalesce(gb_address, address) as address,\n" +
+            "    coalesce(gb_parental, parental) as parental,\n" +
+            "    coalesce(gb_parent_id, parent_id) as parent_id,\n" +
+            "    coalesce(gb_safety_way, safety_way) as safety_way,\n" +
+            "    coalesce(gb_register_way, register_way) as register_way,\n" +
+            "    coalesce(gb_cert_num, cert_num) as cert_num,\n" +
+            "    coalesce(gb_certifiable, certifiable) as certifiable,\n" +
+            "    coalesce(gb_err_code, err_code) as err_code,\n" +
+            "    coalesce(gb_end_time, end_time) as end_time,\n" +
+            "    coalesce(gb_secrecy, secrecy) as secrecy,\n" +
+            "    coalesce(gb_ip_address, ip_address) as ip_address,\n" +
+            "    coalesce(gb_port, port) as port,\n" +
+            "    coalesce(gb_password, password) as password,\n" +
+            "    coalesce(gb_status, status) as status,\n" +
+            "    coalesce(gb_longitude, longitude) as longitude,\n" +
+            "    coalesce(gb_latitude, latitude) as latitude,\n" +
+            "    coalesce(gb_ptz_type, ptz_type) as ptz_type,\n" +
+            "    coalesce(gb_position_type, position_type) as position_type,\n" +
+            "    coalesce(gb_room_type, room_type) as room_type,\n" +
+            "    coalesce(gb_use_type, use_type) as use_type,\n" +
+            "    coalesce(gb_supply_light_type, supply_light_type) as supply_light_type,\n" +
+            "    coalesce(gb_direction_type, direction_type) as direction_type,\n" +
+            "    coalesce(gb_resolution, resolution) as resolution,\n" +
+            "    coalesce(gb_business_group_id, business_group_id) as business_group_id,\n" +
+            "    coalesce(gb_download_speed, download_speed) as download_speed,\n" +
+            "    coalesce(gb_svc_space_support_mod, svc_space_support_mod) as svc_space_support_mod,\n" +
+            "    coalesce(gb_svc_time_support_mode svc_time_support_mode) as svc_time_support_mode\n" +
+            " FROM wvp_device_channel WHERE device_id=#{channelId}")
+    List<DeviceChannel> queryChannelByChannelId(@Param("channelId") String channelId);
 
-
-    @Select("SELECT * FROM wvp_device_channel WHERE channel_id=#{channelId}")
-    List<DeviceChannel> queryChannelByChannelId( String channelId);
-
-    @Update(value = {"UPDATE wvp_device_channel SET status=false WHERE device_id=#{deviceId} AND channel_id=#{channelId}"})
-    void offline(@Param("deviceId") String deviceId, @Param("channelId") String channelId);
-
-    @Update(value = {"UPDATE wvp_device_channel SET status=false WHERE device_id=#{deviceId}"})
-    void offlineByDeviceId(String deviceId);
+    @Update(value = {"UPDATE wvp_device_channel SET status=0 WHERE id=#{id}"})
+    void offline(@Param("id") int id);
 
     @Insert("<script> " +
             "insert into wvp_device_channel " +
-            "(channel_id, device_id, name, manufacture, model, owner, civil_code, block, sub_count, " +
-            "  address, parental, parent_id, safety_way, register_way, cert_num, certifiable, err_code, secrecy, " +
-            "  ip_address,port,password,ptz_type,status,stream_id,longitude,latitude,longitude_gcj02,latitude_gcj02,"+
-            "  longitude_wgs84,latitude_wgs84,has_audio,create_time,update_time,business_group_id,gps_time,stream_identification)"+
+            "(device_id, device_db_id, name, manufacture, model, owner, civil_code, block, " +
+            "address, parental, parent_id, safety_way, register_way, cert_num, certifiable, err_code, end_time, secrecy, " +
+            "ip_address, port, password, status, longitude, latitude, ptz_type, position_type, room_type, use_type, " +
+            "supply_light_type, direction_type, resolution, business_group_id, download_speed, svc_space_support_mod, " +
+            "svc_time_support_mode, create_time, update_time, sub_count，stream_id, has_audio, gps_time, stream_identification) " +
             "values " +
             "<foreach collection='addChannels' index='index' item='item' separator=','> " +
-            "(#{item.channelId}, #{item.deviceId}, #{item.name}, #{item.manufacture}, #{item.model}, " +
-            "#{item.owner}, #{item.civilCode}, #{item.block},#{item.subCount}," +
-            "#{item.address}, #{item.parental}, #{item.parentId}, #{item.safetyWay}, #{item.registerWay}, " +
-            "#{item.certNum}, #{item.certifiable}, #{item.errCode}, #{item.secrecy}, " +
-            "#{item.ipAddress}, #{item.port}, #{item.password}, #{item.ptzType}, #{item.status}, " +
-            "#{item.streamId}, #{item.longitude}, #{item.latitude},#{item.longitudeGcj02}, " +
-            "#{item.latitudeGcj02},#{item.longitudeWgs84}, #{item.latitudeWgs84}, #{item.hasAudio}, now(), now(), " +
-            "#{item.businessGroupId}, #{item.gpsTime}, #{item.streamIdentification}) " +
+            "(#{item.deviceId}, #{item.deviceDbId}, #{item.name}, #{item.manufacture}, #{item.model}, #{item.owner}, #{item.civilCode}, #{item.block}, " +
+            "#{item.address}, #{item.parental}, #{item.parentId}, #{item.safetyWay}, #{item.registerWay}, #{item.certNum}, #{item.certifiable}, #{item.errCode}, #{item.endTime}, #{item.secrecy}, " +
+            "#{item.ipAddress}, #{item.port}, #{item.password}, #{item.status}, #{item.longitude}, #{item.latitude}, #{item.ptzType}, #{item.positionType}, #{item.roomType}, #{item.useType}, " +
+            "#{item.supplyLightType}, #{item.directionType}, #{item.resolution}, #{item.businessGroupId}, #{item.downloadSpeed}, #{item.svcSpaceSupportMod}," +
+            " #{item.svcTimeSupportMode}, #{item.createTime}, #{item.updateTime}, #{item.subCount}, #{item.streamId}, #{item.hasAudio}, #{item.gpsTime}, #{item.streamIdentification}) " +
             "</foreach> " +
             "</script>")
     int batchAdd(@Param("addChannels") List<DeviceChannel> addChannels);
 
 
-    @Insert("<script> " +
-            "insert into wvp_device_channel " +
-            "(channel_id,device_id,name,manufacture,model,owner,civil_code,block,sub_count,"+
-            "  address,parental,parent_id,safety_way,register_way,cert_num,certifiable,err_code,secrecy,"+
-            "  ip_address,port,password,ptz_type,status,stream_id,longitude,latitude,longitude_gcj02,latitude_gcj02,"+
-            "  longitude_wgs84,latitude_wgs84,has_audio,create_time,update_time,business_group_id,gps_time)"+
-            "values " +
-            "<foreach collection='addChannels' index='index' item='item' separator=','> " +
-            "(#{item.channelId}, #{item.deviceId}, #{item.name}, #{item.manufacture}, #{item.model}, " +
-            "#{item.owner}, #{item.civilCode}, #{item.block},#{item.subCount}," +
-            "#{item.address}, #{item.parental}, #{item.parentId}, #{item.safetyWay}, #{item.registerWay}, " +
-            "#{item.certNum}, #{item.certifiable}, #{item.errCode}, #{item.secrecy}, " +
-            "#{item.ipAddress}, #{item.port}, #{item.password}, #{item.ptzType}, #{item.status}, " +
-            "#{item.streamId}, #{item.longitude}, #{item.latitude},#{item.longitudeGcj02}, " +
-            "#{item.latitudeGcj02},#{item.longitudeWgs84}, #{item.latitudeWgs84}, #{item.hasAudio}, now(), now(), " +
-            "#{item.businessGroupId}, #{item.gpsTime}) " +
-            "</foreach> " +
-            "ON DUPLICATE KEY UPDATE " +
-            "update_time=VALUES(update_time), " +
-            "name=VALUES(name), " +
-            "manufacture=VALUES(manufacture), " +
-            "model=VALUES(model), " +
-            "owner=VALUES(owner), " +
-            "civil_code=VALUES(civil_code), " +
-            "block=VALUES(block), " +
-            "sub_count=VALUES(sub_count), " +
-            "address=VALUES(address), " +
-            "parental=VALUES(parental), " +
-            "parent_id=VALUES(parent_id), " +
-            "safety_way=VALUES(safety_way), " +
-            "register_way=VALUES(register_way), " +
-            "cert_num=VALUES(cert_num), " +
-            "certifiable=VALUES(certifiable), " +
-            "err_code=VALUES(err_code), " +
-            "secrecy=VALUES(secrecy), " +
-            "ip_address=VALUES(ip_address), " +
-            "port=VALUES(port), " +
-            "password=VALUES(password), " +
-            "ptz_type=VALUES(ptz_type), " +
-            "status=VALUES(status), " +
-            "stream_id=VALUES(stream_id), " +
-            "longitude=VALUES(longitude), " +
-            "latitude=VALUES(latitude), " +
-            "longitude_gcj02=VALUES(longitude_gcj02), " +
-            "latitude_gcj02=VALUES(latitude_gcj02), " +
-            "longitude_wgs84=VALUES(longitude_wgs84), " +
-            "latitude_wgs84=VALUES(latitude_wgs84), " +
-            "has_audio=VALUES(has_audio), " +
-            "business_group_id=VALUES(business_group_id), " +
-            "gps_time=VALUES(gps_time)" +
-            "</script>")
-    int batchAddOrUpdate(List<DeviceChannel> addChannels);
-
-    @Update(value = {"UPDATE wvp_device_channel SET status=true WHERE device_id=#{deviceId} AND channel_id=#{channelId}"})
-    void online(@Param("deviceId") String deviceId, @Param("channelId") String channelId);
+    @Update(value = {"UPDATE wvp_device_channel SET status=0 WHERE id=#{id}"})
+    void online(@Param("id") int id);
 
     @Update({"<script>" +
             "<foreach collection='updateChannels' item='item' separator=';'>" +
             " UPDATE" +
             " wvp_device_channel" +
             " SET update_time=#{item.updateTime}" +
-            "<if test='item.name != null'>, name=#{item.name}</if>" +
-            "<if test='item.manufacture != null'>, manufacture=#{item.manufacture}</if>" +
-            "<if test='item.model != null'>, model=#{item.model}</if>" +
-            "<if test='item.owner != null'>, owner=#{item.owner}</if>" +
-            "<if test='item.civilCode != null'>, civil_code=#{item.civilCode}</if>" +
-            "<if test='item.block != null'>, block=#{item.block}</if>" +
-            "<if test='item.subCount != null'>, sub_count=#{item.subCount}</if>" +
-            "<if test='item.address != null'>, address=#{item.address}</if>" +
-            "<if test='item.parental != null'>, parental=#{item.parental}</if>" +
-            "<if test='item.parentId != null'>, parent_id=#{item.parentId}</if>" +
-            "<if test='item.safetyWay != null'>, safety_way=#{item.safetyWay}</if>" +
-            "<if test='item.registerWay != null'>, register_way=#{item.registerWay}</if>" +
-            "<if test='item.certNum != null'>, cert_num=#{item.certNum}</if>" +
-            "<if test='item.certifiable != null'>, certifiable=#{item.certifiable}</if>" +
-            "<if test='item.errCode != null'>, err_code=#{item.errCode}</if>" +
-            "<if test='item.secrecy != null'>, secrecy=#{item.secrecy}</if>" +
-            "<if test='item.ipAddress != null'>, ip_address=#{item.ipAddress}</if>" +
-            "<if test='item.port != null'>, port=#{item.port}</if>" +
-            "<if test='item.password != null'>, password=#{item.password}</if>" +
-            "<if test='item.ptzType != null'>, ptz_type=#{item.ptzType}</if>" +
-            "<if test='item.status != null'>, status=#{item.status}</if>" +
-            "<if test='item.streamId != null'>, stream_id=#{item.streamId}</if>" +
-            "<if test='item.hasAudio != null'>, has_audio=#{item.hasAudio}</if>" +
-            "<if test='item.longitude != null'>, longitude=#{item.longitude}</if>" +
-            "<if test='item.latitude != null'>, latitude=#{item.latitude}</if>" +
-            "<if test='item.customLongitude != null'>, custom_longitude=#{item.customLongitude}</if>" +
-            "<if test='item.customLatitude != null'>, custom_latitude=#{item.customLatitude}</if>" +
-            "<if test='item.longitudeGcj02 != null'>, longitude_gcj02=#{item.longitudeGcj02}</if>" +
-            "<if test='item.latitudeGcj02 != null'>, latitude_gcj02=#{item.latitudeGcj02}</if>" +
-            "<if test='item.longitudeWgs84 != null'>, longitude_wgs84=#{item.longitudeWgs84}</if>" +
-            "<if test='item.latitudeWgs84 != null'>, latitude_wgs84=#{item.latitudeWgs84}</if>" +
-            "<if test='item.businessGroupId != null'>, business_group_id=#{item.businessGroupId}</if>" +
-            "<if test='item.gpsTime != null'>, gps_time=#{item.gpsTime}</if>" +
-            "<if test='item.streamIdentification != null'>, stream_identification=#{item.streamIdentification}</if>" +
-            "<if test='item.id > 0'>WHERE id=#{item.id}</if>" +
-            "<if test='item.id == 0 and item.channelId != null '>WHERE device_id=#{item.deviceId} AND channel_id=#{item.channelId}</if>" +
-            "<if test='item.id == 0 and item.channelId == null '>WHERE device_id=#{item.deviceId}</if>" +
+            ", device_id=#{item.deviceId}" +
+            ", device_db_id=#{item.deviceDbId}" +
+            ", name=#{item.name}" +
+            ", manufacture=#{item.manufacture}" +
+            ", model=#{item.model}" +
+            ", owner=#{item.owner}" +
+            ", civil_code=#{item.civilCode}" +
+            ", block=#{item.block}" +
+            ", address=#{item.address}" +
+            ", parental=#{item.parental}" +
+            ", parent_id=#{item.parentId}" +
+            ", safety_way=#{item.safetyWay}" +
+            ", register_way=#{item.registerWay}" +
+            ", cert_num=#{item.certNum}" +
+            ", certifiable=#{item.certifiable}" +
+            ", err_code=#{item.errCode}" +
+            ", end_time=#{item.endTime}" +
+            ", secrecy=#{item.secrecy}" +
+            ", ip_address=#{item.ipAddress}" +
+            ", port=#{item.port}" +
+            ", password=#{item.password}" +
+            ", status=#{item.status}" +
+            ", longitude=#{item.longitude}" +
+            ", latitude=#{item.latitude}" +
+            ", ptz_type=#{item.ptzType}" +
+            ", position_type=#{item.positionType}" +
+            ", room_type=#{item.roomType}" +
+            ", use_type=#{item.useType}" +
+            ", supply_light_type=#{item.supplyLightType}" +
+            ", direction_type=#{item.directionType}" +
+            ", resolution=#{item.resolution}" +
+            ", business_group_id=#{item.businessGroupId}" +
+            ", download_speed=#{item.downloadSpeed}" +
+            ", svc_space_support_mod=#{item.svcSpaceSupportMod}" +
+            ", svc_time_support_mode=#{item.svcTimeSupportMode}" +
+            ", sub_count=#{item.subCount}" +
+            ", stream_id=#{item.streamId}" +
+            ", has_audio=#{item.hasAudio}" +
+            ", gps_time=#{item.gpsTime}" +
+            ", stream_identification=#{item.streamIdentification}" +
+            "WHERE id=#{item.id}" +
             "</foreach>" +
             "</script>"})
     int batchUpdate(List<DeviceChannel> updateChannels);
-
-
-    @Select("SELECT * FROM wvp_device_channel WHERE device_id=#{deviceId} AND status=true")
-    List<DeviceChannel> queryOnlineChannelsByDeviceId(String deviceId);
-
-    @Delete(value = {" <script>" +
-            "DELETE " +
-            "from " +
-            "wvp_device_channel " +
-            "WHERE " +
-            "device_id = #{deviceId} " +
-            " AND channel_id NOT IN " +
-            "<foreach collection='channels'  item='item'  open='(' separator=',' close=')' > #{item.channelId}</foreach>" +
-            " </script>"})
-    int cleanChannelsNotInList(@Param("deviceId") String deviceId, @Param("channels") List<DeviceChannel> channels);
 
     @Update(" update wvp_device_channel" +
             " set sub_count = (select *" +
             "                from (select count(0)" +
             "                      from wvp_device_channel" +
-            "                      where device_id = #{deviceId} and parent_id = #{channelId}) as temp)" +
-            " where device_id = #{deviceId} " +
-            " and channel_id = #{channelId}")
-    int updateChannelSubCount(@Param("deviceId") String deviceId, @Param("channelId") String channelId);
+            "                      where device_db_id = #{deviceDbId} and parent_id = #{channelId}) as temp)" +
+            " where device_db_id = #{deviceDbId} and device_id = #{channelId}")
+    int updateChannelSubCount(@Param("deviceDbId") int deviceDbId, @Param("channelId") String channelId);
 
     @Update(value = {" <script>" +
             "UPDATE wvp_device_channel " +
             "SET " +
             "latitude=#{latitude}, " +
             "longitude=#{longitude}, " +
-            "longitude_gcj02=#{longitudeGcj02}, " +
-            "latitude_gcj02=#{latitudeGcj02}, " +
-            "longitude_wgs84=#{longitudeWgs84}, " +
-            "latitude_wgs84=#{latitudeWgs84}, " +
             "gps_time=#{gpsTime} " +
-            "WHERE device_id=#{deviceId} " +
-            " <if test='channelId != null' >  AND channel_id=#{channelId}</if>" +
+            "WHERE id=#{id} " +
             " </script>"})
     int updatePosition(DeviceChannel deviceChannel);
 
-    @Select("SELECT * FROM wvp_device_channel WHERE length(trim(stream_id)) > 0")
-    List<DeviceChannel> getAllChannelInPlay();
-
-    @Select("select * from wvp_device_channel where longitude*latitude > 0 and device_id = #{deviceId}")
-    List<DeviceChannel> getAllChannelWithCoordinate(String deviceId);
-
-
-    @Select(value = {" <script>" +
-            "select * " +
-            "from wvp_device_channel " +
-            "where device_id=#{deviceId}" +
-            " <if test='parentId != null and length != null' > and parent_id= #{parentId} or left(channel_id, LENGTH(#{parentId})) = #{parentId} and length(channel_id)=#{length} </if>" +
-            " <if test='parentId == null and length != null' > and parent_id= #{parentId} or length(channel_id)=#{length} </if>" +
-            " <if test='parentId == null and length == null' > and parent_id= #{parentId} </if>" +
-            " <if test='parentId != null and length == null' > and parent_id= #{parentId} or left(channel_id, LENGTH(#{parentId})) = #{parentId} </if>" +
-            " </script>"})
-    List<DeviceChannel> getChannelsWithCivilCodeAndLength(@Param("deviceId") String deviceId, @Param("parentId") String parentId, @Param("length") Integer length);
-
-    @Select(value = {" <script>" +
-            "select * " +
-            "from wvp_device_channel " +
-            "where device_id=#{deviceId} and length(channel_id)>14 and civil_code=#{parentId}" +
-            " </script>"})
-    List<DeviceChannel> getChannelsByCivilCode(@Param("deviceId") String deviceId, @Param("parentId") String parentId);
-
-    @Select("select min(length(channel_id)) as minLength " +
-            "from wvp_device_channel " +
-            "where device_id=#{deviceId}")
-    Integer getChannelMinLength(String deviceId);
-
-    @Select("select * from wvp_device_channel where device_id=#{deviceId} and civil_code not in " +
-            "(select civil_code from wvp_device_channel where device_id=#{deviceId} group by civil_code)")
-    List<DeviceChannel> getChannelWithoutCivilCode(String deviceId);
-
-    @Select("select * from wvp_device_channel where device_id=#{deviceId} and SUBSTRING(channel_id, 11, 3)=#{typeCode}")
-    List<DeviceChannel> getBusinessGroups(@Param("deviceId") String deviceId, @Param("typeCode") String typeCode);
-
-    @Select("select dc.id, dc.channel_id, dc.device_id, COALESCE(dc.custom_name, dc.name) AS name, dc.manufacture,dc.model,dc.owner, pc.civil_code,dc.block, " +
-            " dc.address, '0' as parental,'0' as channel_type, pc.id as parent_id, dc.safety_way, dc.register_way,dc.cert_num, dc.certifiable,  " +
-            " dc.err_code,dc.end_time, dc.secrecy,   dc.ip_address,  dc.port,  COALESCE(dc.custom_ptz_type, dc.ptz_type) AS ptz_type,  dc.password, dc.status, " +
-            " COALESCE(dc.custom_longitude, dc.longitude) AS longitude, COALESCE(dc.custom_latitude, dc.latitude) AS latitude,  pc.business_group_id " +
-            " from wvp_device_channel dc" +
-            " LEFT JOIN wvp_platform_gb_channel pgc on  dc.id = pgc.device_channel_id" +
-            " LEFT JOIN wvp_platform_catalog pc on pgc.catalog_id = pc.id and pgc.platform_id = pc.platform_id" +
-            " where pgc.platform_id=#{serverGBId}")
-    List<DeviceChannel> queryChannelWithCatalog(String serverGBId);
-
-    @Select("select * from wvp_device_channel where device_id = #{deviceId}")
-    List<DeviceChannel> queryAllChannels(String deviceId);
-
-
-    @Select("select channelId" +
-            ", device_id" +
-            ", latitude" +
-            ", longitude"+
-            ",latitude_wgs84"+
-            ",longitude_wgs84"+
-            ",latitude_gcj02"+
-            ",longitude_gcj02"+
-            "from wvp_device_channel where device_id = #{deviceId} " +
-            "and latitude != 0 " +
-            "and  longitude != 0 " +
-            "and(latitude_gcj02=0 or latitude_wgs84=0 or longitude_wgs84= 0 or longitude_gcj02 = 0)")
-    List<DeviceChannel> getChannelsWithoutTransform(String deviceId);
+    @Select("select " +
+            "    id,\n" +
+            "    device_db_id,\n" +
+            "    create_time,\n" +
+            "    update_time,\n" +
+            "    sub_count,\n" +
+            "    stream_id,\n" +
+            "    has_audio,\n" +
+            "    gps_time,\n" +
+            "    stream_identification,\n" +
+            "    coalesce(gb_device_id, device_id) as device_id,\n" +
+            "    coalesce(gb_name, name) as name,\n" +
+            "    coalesce(gb_manufacturer, manufacturer) as manufacturer,\n" +
+            "    coalesce(gb_model, model) as model,\n" +
+            "    coalesce(gb_owner, owner) as owner,\n" +
+            "    coalesce(gb_civil_code, civil_code) as civil_code,\n" +
+            "    coalesce(gb_block, block) as block,\n" +
+            "    coalesce(gb_address, address) as address,\n" +
+            "    coalesce(gb_parental, parental) as parental,\n" +
+            "    coalesce(gb_parent_id, parent_id) as parent_id,\n" +
+            "    coalesce(gb_safety_way, safety_way) as safety_way,\n" +
+            "    coalesce(gb_register_way, register_way) as register_way,\n" +
+            "    coalesce(gb_cert_num, cert_num) as cert_num,\n" +
+            "    coalesce(gb_certifiable, certifiable) as certifiable,\n" +
+            "    coalesce(gb_err_code, err_code) as err_code,\n" +
+            "    coalesce(gb_end_time, end_time) as end_time,\n" +
+            "    coalesce(gb_secrecy, secrecy) as secrecy,\n" +
+            "    coalesce(gb_ip_address, ip_address) as ip_address,\n" +
+            "    coalesce(gb_port, port) as port,\n" +
+            "    coalesce(gb_password, password) as password,\n" +
+            "    coalesce(gb_status, status) as status,\n" +
+            "    coalesce(gb_longitude, longitude) as longitude,\n" +
+            "    coalesce(gb_latitude, latitude) as latitude,\n" +
+            "    coalesce(gb_ptz_type, ptz_type) as ptz_type,\n" +
+            "    coalesce(gb_position_type, position_type) as position_type,\n" +
+            "    coalesce(gb_room_type, room_type) as room_type,\n" +
+            "    coalesce(gb_use_type, use_type) as use_type,\n" +
+            "    coalesce(gb_supply_light_type, supply_light_type) as supply_light_type,\n" +
+            "    coalesce(gb_direction_type, direction_type) as direction_type,\n" +
+            "    coalesce(gb_resolution, resolution) as resolution,\n" +
+            "    coalesce(gb_business_group_id, business_group_id) as business_group_id,\n" +
+            "    coalesce(gb_download_speed, download_speed) as download_speed,\n" +
+            "    coalesce(gb_svc_space_support_mod, svc_space_support_mod) as svc_space_support_mod,\n" +
+            "    coalesce(gb_svc_time_support_mode svc_time_support_mode) as svc_time_support_mode\n" +
+            " from wvp_device_channel where device_db_id = #{deviceDbId}")
+    List<DeviceChannel> queryAllChannels(@Param("deviceDbId") int deviceDbId);
 
     @Select("select de.* from wvp_device de left join wvp_device_channel dc on de.device_id = dc.deviceId where dc.channel_id=#{channelId}")
     List<Device> getDeviceByChannelId(String channelId);
@@ -597,21 +537,21 @@ public interface DeviceChannelMapper {
 
     @Delete({"<script>" +
             "<foreach collection='deleteChannelList' item='item' separator=';'>" +
-            "DELETE FROM wvp_device_channel WHERE device_id=#{item.deviceId} AND channel_id=#{item.channelId}" +
+            "DELETE FROM wvp_device_channel WHERE id=#{item.id}" +
             "</foreach>" +
             "</script>"})
     int batchDel(@Param("deleteChannelList") List<DeviceChannel> deleteChannelList);
 
     @Update({"<script>" +
             "<foreach collection='channels' item='item' separator=';'>" +
-            "UPDATE wvp_device_channel SET status=true WHERE device_id=#{item.deviceId} AND channel_id=#{item.channelId}" +
+            "UPDATE wvp_device_channel SET status=1 WHERE id=#{item.id}" +
             "</foreach>" +
             "</script>"})
     int batchOnline(@Param("channels") List<DeviceChannel> channels);
 
     @Update({"<script>" +
             "<foreach collection='channels' item='item' separator=';'>" +
-            "UPDATE wvp_device_channel SET status= false WHERE device_id=#{item.deviceId} AND channel_id=#{item.channelId}" +
+            "UPDATE wvp_device_channel SET status=0 WHERE id=#{item.id}" +
             "</foreach>" +
             "</script>"})
     int batchOffline(List<DeviceChannel> channels);
@@ -623,60 +563,61 @@ public interface DeviceChannelMapper {
     @Select("select count(1) from wvp_device_channel")
     int getAllChannelCount();
 
-    // 设备主子码流逻辑START
-    @Update(value = {"UPDATE wvp_device_channel SET stream_id=null WHERE device_id=#{deviceId}"})
-    void clearPlay(String deviceId);
-    // 设备主子码流逻辑END
     @Select(value = {" <script>" +
-            "SELECT id,\n" +
-            "       channel_id,\n" +
-            "       COALESCE(custom_name, name)           AS name,\n" +
-            "       custom_name,\n" +
-            "       manufacture,\n" +
-            "       model,\n" +
-            "       owner,\n" +
-            "       civil_code,\n" +
-            "       block,\n" +
-            "       address,\n" +
-            "       parent_id,\n" +
-            "       safety_way,\n" +
-            "       register_way,\n" +
-            "       cert_num,\n" +
-            "       certifiable,\n" +
-            "       err_code,\n" +
-            "       end_time,\n" +
-            "       secrecy,\n" +
-            "       ip_address,\n" +
-            "       port,\n" +
-            "       password,\n" +
-            "       COALESCE(custom_ptz_type, ptz_type)   AS ptz_type,\n" +
-            "       status,\n" +
-            "       COALESCE(custom_longitude, longitude) AS longitude,\n" +
-            "       COALESCE(custom_latitude, latitude)   AS latitude,\n" +
-            "       stream_id,\n" +
-            "       device_id,\n" +
-            "       parental,\n" +
-            "       has_audio,\n" +
-            "       create_time,\n" +
-            "       update_time,\n" +
-            "       sub_count,\n" +
-            "       longitude_gcj02,\n" +
-            "       latitude_gcj02,\n" +
-            "       longitude_wgs84,\n" +
-            "       latitude_wgs84,\n" +
-            "       business_group_id,\n" +
-            "       gps_time\n" +
+            "SELECT " +
+            "    id,\n" +
+            "    device_db_id,\n" +
+            "    create_time,\n" +
+            "    update_time,\n" +
+            "    sub_count,\n" +
+            "    stream_id,\n" +
+            "    has_audio,\n" +
+            "    gps_time,\n" +
+            "    stream_identification,\n" +
+            "    coalesce(gb_device_id, device_id) as device_id,\n" +
+            "    coalesce(gb_name, name) as name,\n" +
+            "    coalesce(gb_manufacturer, manufacturer) as manufacturer,\n" +
+            "    coalesce(gb_model, model) as model,\n" +
+            "    coalesce(gb_owner, owner) as owner,\n" +
+            "    coalesce(gb_civil_code, civil_code) as civil_code,\n" +
+            "    coalesce(gb_block, block) as block,\n" +
+            "    coalesce(gb_address, address) as address,\n" +
+            "    coalesce(gb_parental, parental) as parental,\n" +
+            "    coalesce(gb_parent_id, parent_id) as parent_id,\n" +
+            "    coalesce(gb_safety_way, safety_way) as safety_way,\n" +
+            "    coalesce(gb_register_way, register_way) as register_way,\n" +
+            "    coalesce(gb_cert_num, cert_num) as cert_num,\n" +
+            "    coalesce(gb_certifiable, certifiable) as certifiable,\n" +
+            "    coalesce(gb_err_code, err_code) as err_code,\n" +
+            "    coalesce(gb_end_time, end_time) as end_time,\n" +
+            "    coalesce(gb_secrecy, secrecy) as secrecy,\n" +
+            "    coalesce(gb_ip_address, ip_address) as ip_address,\n" +
+            "    coalesce(gb_port, port) as port,\n" +
+            "    coalesce(gb_password, password) as password,\n" +
+            "    coalesce(gb_status, status) as status,\n" +
+            "    coalesce(gb_longitude, longitude) as longitude,\n" +
+            "    coalesce(gb_latitude, latitude) as latitude,\n" +
+            "    coalesce(gb_ptz_type, ptz_type) as ptz_type,\n" +
+            "    coalesce(gb_position_type, position_type) as position_type,\n" +
+            "    coalesce(gb_room_type, room_type) as room_type,\n" +
+            "    coalesce(gb_use_type, use_type) as use_type,\n" +
+            "    coalesce(gb_supply_light_type, supply_light_type) as supply_light_type,\n" +
+            "    coalesce(gb_direction_type, direction_type) as direction_type,\n" +
+            "    coalesce(gb_resolution, resolution) as resolution,\n" +
+            "    coalesce(gb_business_group_id, business_group_id) as business_group_id,\n" +
+            "    coalesce(gb_download_speed, download_speed) as download_speed,\n" +
+            "    coalesce(gb_svc_space_support_mod, svc_space_support_mod) as svc_space_support_mod,\n" +
+            "    coalesce(gb_svc_time_support_mode svc_time_support_mode) as svc_time_support_mode\n" +
             "from wvp_device_channel " +
-            "where device_id=#{deviceId}" +
+            "where device_db_id=#{deviceDbId}" +
             " <if test='parentId != null and parentId != deviceId'> and parent_id = #{parentId} </if>" +
             " <if test='parentId == null or parentId == deviceId'> and parent_id is null or parent_id = #{deviceId}</if>" +
             " <if test='onlyCatalog == true '> and parental = 1 </if>" +
             " </script>"})
-    List<DeviceChannel> getSubChannelsByDeviceId(@Param("deviceId") String deviceId, @Param("parentId") String parentId, @Param("onlyCatalog") boolean onlyCatalog);
+    List<DeviceChannel> getSubChannelsByDeviceId(@Param("deviceDbId") int deviceDbId, @Param("parentId") String parentId, @Param("onlyCatalog") boolean onlyCatalog);
 
     @Update("<script>" +
-            "UPDATE wvp_device_channel SET stream_identification=#{streamIdentification} WHERE device_id=#{deviceId}" +
-            " <if test='channelId != null'> and channel_id = #{channelId} </if>" +
+            "UPDATE wvp_device_channel SET stream_identification=#{streamIdentification} WHERE id=#{id}" +
             "</script>")
     void updateChannelStreamIdentification(DeviceChannel channel);
 
@@ -688,13 +629,9 @@ public interface DeviceChannelMapper {
             " SET update_time=#{item.updateTime}" +
             "<if test='item.longitude != null'>, longitude=#{item.longitude}</if>" +
             "<if test='item.latitude != null'>, latitude=#{item.latitude}</if>" +
-            "<if test='item.longitudeGcj02 != null'>, longitude_gcj02=#{item.longitudeGcj02}</if>" +
-            "<if test='item.latitudeGcj02 != null'>, latitude_gcj02=#{item.latitudeGcj02}</if>" +
-            "<if test='item.longitudeWgs84 != null'>, longitude_wgs84=#{item.longitudeWgs84}</if>" +
-            "<if test='item.latitudeWgs84 != null'>, latitude_wgs84=#{item.latitudeWgs84}</if>" +
             "<if test='item.gpsTime != null'>, gps_time=#{item.gpsTime}</if>" +
             "<if test='item.id > 0'>WHERE id=#{item.id}</if>" +
-            "<if test='item.id == 0'>WHERE device_id=#{item.deviceId} AND channel_id=#{item.channelId}</if>" +
+            "<if test='item.id == 0'>WHERE device_db_id=#{item.deviceDbId} AND device_id=#{item.deviceId}</if>" +
             "</foreach>" +
             "</script>"})
     void batchUpdatePosition(List<DeviceChannel> channelList);

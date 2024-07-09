@@ -82,7 +82,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         }else {
             channelMapper.update(channel);
         }
-        channelMapper.updateChannelSubCount(deviceId,channel.getParentId());
+        channelMapper.updateChannelSubCount(channel.getDeviceDbId(),channel.getParentId());
     }
 
     @Override
@@ -171,34 +171,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
-    public boolean updateAllGps(Device device) {
-        List<DeviceChannel> deviceChannels = channelMapper.getChannelsWithoutTransform(device.getDeviceId());
-        List<DeviceChannel> result = new CopyOnWriteArrayList<>();
-        if (deviceChannels.size() == 0) {
-            return true;
-        }
-        String now = DateUtil.getNow();
-        deviceChannels.parallelStream().forEach(deviceChannel -> {
-            deviceChannel.setUpdateTime(now);
-            result.add(deviceChannel);
-        });
-        int limitCount = 50;
-        if (result.size() > limitCount) {
-            for (int i = 0; i < result.size(); i += limitCount) {
-                int toIndex = i + limitCount;
-                if (i + limitCount > result.size()) {
-                    toIndex = result.size();
-                }
-                channelMapper.batchUpdate(result.subList(i, toIndex));
-            }
-        }else {
-            channelMapper.batchUpdate(result);
-        }
-
-        return true;
-    }
-
-    @Override
     public List<Device> getDeviceByChannelId(String channelId) {
 
         return channelMapper.getDeviceByChannelId(channelId);
@@ -216,7 +188,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public void online(DeviceChannel channel) {
-        channelMapper.online(channel.getDeviceId(), channel.getDeviceId());
+        channelMapper.online(channel.getId());
     }
 
     @Override
@@ -227,7 +199,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public void offline(DeviceChannel channel) {
-        channelMapper.offline(channel.getDeviceId(), channel.getDeviceId());
+        channelMapper.offline(channel.getId());
     }
 
     @Override
@@ -267,14 +239,14 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         channelMapper.batchAdd(channels);
         for (DeviceChannel channel : channels) {
             if (channel.getParentId() != null) {
-                channelMapper.updateChannelSubCount(channel.getDeviceId(), channel.getParentId());
+                channelMapper.updateChannelSubCount(channel.getDeviceDbId(), channel.getParentId());
             }
         }
     }
 
     @Override
     public void updateChannelStreamIdentification(DeviceChannel channel) {
-        assert !ObjectUtils.isEmpty(channel.getDeviceId());
+        assert !ObjectUtils.isEmpty(channel.getId());
         assert !ObjectUtils.isEmpty(channel.getStreamIdentification());
         if (ObjectUtils.isEmpty(channel.getStreamIdentification())) {
             log.info("[重置通道码流类型] 设备: {}, 码流： {}", channel.getDeviceId(), channel.getStreamIdentification());
@@ -287,7 +259,11 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public List<DeviceChannel> queryChaneListByDeviceId(String deviceId) {
-        return channelMapper.queryAllChannels(deviceId);
+        Device device = deviceMapper.getDeviceByDeviceId(deviceId);
+        if (device == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到通道：" + deviceId);
+        }
+        return channelMapper.queryAllChannels(device.getId());
     }
 
     @Override
@@ -417,7 +393,11 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         if (CollectionUtils.isEmpty(deviceChannelList)) {
             return false;
         }
-        List<DeviceChannel> allChannels = channelMapper.queryAllChannels(deviceId);
+        Device device = deviceMapper.getDeviceByDeviceId(deviceId);
+        if (device == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备： " +deviceId);
+        }
+        List<DeviceChannel> allChannels = channelMapper.queryAllChannels(device.getId());
         Map<String,DeviceChannel> allChannelMap = new ConcurrentHashMap<>();
         if (allChannels.size() > 0) {
             for (DeviceChannel deviceChannel : allChannels) {

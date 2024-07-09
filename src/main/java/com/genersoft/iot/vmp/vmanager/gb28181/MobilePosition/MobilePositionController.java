@@ -152,24 +152,4 @@ public class MobilePositionController {
         device.setMobilePositionSubmissionInterval(Integer.parseInt(interval));
         deviceService.updateCustomDevice(device);
     }
-
-    /**
-     * 数据位置信息格式处理
-     * @param deviceId 设备ID
-     * @return true = 命令发送成功
-     */
-    @Operation(summary = "数据位置信息格式处理", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
-    @GetMapping("/transform/{deviceId}")
-    public void positionTransform(@PathVariable String deviceId) {
-
-        Device device = deviceService.getDevice(deviceId);
-        if (device == null) {
-            throw new ControllerException(ErrorCode.ERROR400.getCode(), "未找到设备： " + deviceId);
-        }
-        boolean result = deviceChannelService.updateAllGps(device);
-        if (!result) {
-            throw new ControllerException(ErrorCode.ERROR100);
-        }
-    }
 }

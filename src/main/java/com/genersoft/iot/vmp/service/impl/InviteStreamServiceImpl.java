@@ -7,9 +7,13 @@ import com.genersoft.iot.vmp.common.InviteSessionStatus;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
+import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -38,13 +42,13 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     private RedisTemplate<Object, Object> redisTemplate;
 
     @Autowired
-    private IVideoManagerStorage storage;
-
-    @Autowired
-    private IDeviceChannelService deviceChannelService;
-
-    @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private DeviceMapper deviceMapper;
+
+    @Autowired
+    private DeviceChannelMapper deviceChannelMapper;
 
     /**
      * 流到来的处理
@@ -67,7 +71,10 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
             InviteInfo inviteInfo = getInviteInfoByStream(null, event.getStream());
             if (inviteInfo != null && (inviteInfo.getType() == InviteSessionType.PLAY || inviteInfo.getType() == InviteSessionType.PLAYBACK)) {
                 removeInviteInfo(inviteInfo);
-                deviceChannelService.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
+                Device device = deviceMapper.getDeviceByDeviceId(inviteInfo.getDeviceId());
+                if (device != null) {
+                    deviceChannelMapper.stopPlay(device.getId(), inviteInfo.getChannelId());
+                }
             }
         }
     }

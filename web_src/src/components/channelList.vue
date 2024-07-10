@@ -1,6 +1,6 @@
 <template>
   <div id="channelList" style="width: 100%">
-    <div class="page-header">
+    <div v-if="!editId" class="page-header">
       <div class="page-title">
         <el-button icon="el-icon-back" size="mini" style="font-size: 20px; color: #000;" type="text" @click="showDevice" ></el-button>
         <el-divider direction="vertical"></el-divider>
@@ -45,7 +45,7 @@
       </div>
     </div>
     <devicePlayer ref="devicePlayer"></devicePlayer>
-    <el-container v-loading="isLoging" style="height: 82vh;">
+    <el-container v-if="!editId" v-loading="isLoging" style="height: 82vh;">
       <el-aside width="auto" style="height: 82vh; background-color: #ffffff; overflow: auto" v-if="showTree">
         <DeviceTree ref="deviceTree" :device="device" :onlyCatalog="true" :clickEvent="treeNodeClickEvent"></DeviceTree>
       </el-aside>
@@ -161,7 +161,7 @@
         </el-pagination>
       </el-main>
     </el-container>
-
+    <channel-edit v-if="editId" id="editId"></channel-edit>
     <!--设备列表-->
 
   </div>
@@ -172,13 +172,15 @@ import devicePlayer from './dialog/devicePlayer.vue'
 import uiHeader from '../layout/UiHeader.vue'
 import DeviceService from "./service/DeviceService";
 import DeviceTree from "./common/DeviceTree";
+import ChannelEdit from "./ChannelEdit";
 
 export default {
   name: 'channelList',
   components: {
     devicePlayer,
     uiHeader,
-    DeviceTree
+    DeviceTree,
+    ChannelEdit,
   },
   data() {
     return {
@@ -201,6 +203,7 @@ export default {
       beforeUrl: "/deviceList",
       isLoging: false,
       showTree: false,
+      editId: null,
       loadSnap: {},
       ptzTypes: {
         0: "未知",
@@ -545,7 +548,7 @@ export default {
     },
     // 编辑
     handleEdit(row) {
-
+      this.editId = row.id
     }
   }
 };

@@ -665,18 +665,18 @@ public class XmlUtil {
             }
             String value = annotation.value();
             boolean subVal = value.contains(".");
-            Element element1 = element.element(value);
-            if (element1 == null) {
-                continue;
-            }
             if (!subVal) {
+                Element element1 = element.element(value);
+                if (element1 == null) {
+                    continue;
+                }
                 // 无下级数据
                 Object fieldVal = element1.isTextOnly() ? element1.getText() : loadElement(element1, field.getType());
                 Object o = simpleTypeDeal(field.getType(), fieldVal);
                 ReflectionUtils.setField(field, t,  o);
             } else {
-                String[] pathArray = value.split(".");
-                Element subElement = element1;
+                String[] pathArray = value.split("\\.");
+                Element subElement = element;
                 for (String path : pathArray) {
                     subElement = subElement.element(path);
                     if (subElement == null) {

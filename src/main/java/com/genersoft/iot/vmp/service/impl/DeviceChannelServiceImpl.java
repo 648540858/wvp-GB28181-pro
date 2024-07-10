@@ -92,6 +92,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         List<DeviceChannel> addChannels = new ArrayList<>();
         List<DeviceChannel> updateChannels = new ArrayList<>();
         HashMap<String, DeviceChannel> channelsInStore = new HashMap<>();
+        int result = 0;
         if (channels != null && !channels.isEmpty()) {
             List<DeviceChannel> channelList = channelMapper.queryChannelsByDeviceDbId(device.getId());
             if (channelList.isEmpty()) {
@@ -120,42 +121,60 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     DeviceChannel deviceChannelInDb = channelsInStore.get(channel.getDeviceDbId() + channel.getDeviceId());
                     if ( deviceChannelInDb != null) {
                         channel.setId(deviceChannelInDb.getId());
+                        channel.setUpdateTime(now);
                         updateChannels.add(channel);
                     }else {
-                        addChannels.add(channel);
                         channel.setCreateTime(now);
+                        channel.setUpdateTime(now);
+                        addChannels.add(channel);
                     }
                 }
             }
-            int limitCount = 50;
-            if (addChannels.size() > 0) {
-                if (addChannels.size() > limitCount) {
-                    for (int i = 0; i < addChannels.size(); i += limitCount) {
+            Set<String> channelSet = new HashSet<>();
+            // 滤重
+            List<DeviceChannel> addChannelList = new ArrayList<>();
+            List<DeviceChannel> updateChannelList = new ArrayList<>();
+            addChannels.forEach(channel -> {
+                if (channelSet.add(channel.getDeviceId())) {
+                    addChannelList.add(channel);
+                }
+            });
+            channelSet.clear();
+            updateChannels.forEach(channel -> {
+                if (channelSet.add(channel.getDeviceId())) {
+                    updateChannelList.add(channel);
+                }
+            });
+
+            int limitCount = 500;
+            if (!addChannelList.isEmpty()) {
+                if (addChannelList.size() > limitCount) {
+                    for (int i = 0; i < addChannelList.size(); i += limitCount) {
                         int toIndex = i + limitCount;
-                        if (i + limitCount > addChannels.size()) {
-                            toIndex = addChannels.size();
+                        if (i + limitCount > addChannelList.size()) {
+                            toIndex = addChannelList.size();
                         }
-                        channelMapper.batchAdd(addChannels.subList(i, toIndex));
+                        result += channelMapper.batchAdd(addChannelList.subList(i, toIndex));
                     }
                 }else {
-                    channelMapper.batchAdd(addChannels);
+                    result += channelMapper.batchAdd(addChannelList);
                 }
             }
-            if (updateChannels.size() > 0) {
-                if (updateChannels.size() > limitCount) {
-                    for (int i = 0; i < updateChannels.size(); i += limitCount) {
+            if (!updateChannelList.isEmpty()) {
+                if (updateChannelList.size() > limitCount) {
+                    for (int i = 0; i < updateChannelList.size(); i += limitCount) {
                         int toIndex = i + limitCount;
-                        if (i + limitCount > updateChannels.size()) {
-                            toIndex = updateChannels.size();
+                        if (i + limitCount > updateChannelList.size()) {
+                            toIndex = updateChannelList.size();
                         }
-                        channelMapper.batchUpdate(updateChannels.subList(i, toIndex));
+                        result += channelMapper.batchUpdate(updateChannelList.subList(i, toIndex));
                     }
                 }else {
-                    channelMapper.batchUpdate(updateChannels);
+                    result += channelMapper.batchUpdate(updateChannelList);
                 }
             }
         }
-        return addChannels.size() + updateChannels.size();
+        return result;
     }
 
     @Override

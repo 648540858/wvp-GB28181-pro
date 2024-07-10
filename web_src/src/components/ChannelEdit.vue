@@ -22,6 +22,8 @@ export default {
   props: [ 'id',],
   computed: {},
   created() {
+    // 获取完整信息
+    // 国标类型特殊处理
 
   },
   data() {
@@ -36,8 +38,7 @@ export default {
     close: function () {
 
     },
-    getAllRole:function () {
-
+    getChannel:function () {
       this.$axios({
         method: 'get',
         url: "/api/role/all"

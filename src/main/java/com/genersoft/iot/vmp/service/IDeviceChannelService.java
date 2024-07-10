@@ -5,6 +5,8 @@ import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
+import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
+import com.github.pagehelper.PageInfo;
 
 import java.util.List;
 
@@ -39,6 +41,8 @@ public interface IDeviceChannelService {
      * @return
      */
     List<ChannelReduce> queryAllChannelList(String platformId);
+
+    PageInfo<ChannelReduce> queryAllChannelList(int page, int count, String query, Boolean online, Boolean channelType, String platformId, String catalogId);
 
     /**
      * 查询通道所属的设备
@@ -103,5 +107,12 @@ public interface IDeviceChannelService {
 
     boolean resetChannels(String deviceId, List<DeviceChannel> deviceChannels);
 
+    PageInfo<DeviceChannel> getSubChannels(int deviceDbId, String channelId, String query, Boolean channelType, Boolean online, int page, int count);
 
+    List<DeviceChannelExtend> queryChannelExtendsByDeviceId(String deviceId, List<String> channelIds, Boolean online);
+
+    PageInfo<DeviceChannel> queryChannelsByDeviceId(String deviceId, String query, Boolean channelType, Boolean online, int page, int count);
+
+
+    List<Device> queryDeviceWithAsMessageChannel();
 }

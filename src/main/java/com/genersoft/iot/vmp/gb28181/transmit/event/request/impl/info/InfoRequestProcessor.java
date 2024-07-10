@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -49,7 +50,7 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
     private IInviteStreamService inviteStreamService;
 
     @Autowired
-    private IVideoManagerStorage storager;
+    private IDeviceService deviceService;
 
     @Autowired
     private SIPCommander cmder;
@@ -113,7 +114,7 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
                         responseAck(request, Response.NOT_FOUND, "stream " + streamId + " not found");
                         return;
                     }
-                    Device device1 = storager.queryVideoDevice(inviteInfo.getDeviceId());
+                    Device device1 = deviceService.getDevice(inviteInfo.getDeviceId());
                     if (inviteInfo.getStreamInfo() != null) {
                         cmder.playbackControlCmd(device1,inviteInfo.getStreamInfo(),new String(evt.getRequest().getRawContent()),eventResult -> {
                             // 失败的回复

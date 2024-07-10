@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
@@ -37,6 +38,9 @@ public class PtzController {
 	private IVideoManagerStorage storager;
 
 	@Autowired
+	private IDeviceService deviceService;
+
+	@Autowired
 	private DeferredResultHolder resultHolder;
 
 	/***
@@ -62,7 +66,7 @@ public class PtzController {
 		if (log.isDebugEnabled()) {
 			log.debug(String.format("设备云台控制 API调用，deviceId：%s ，channelId：%s ，command：%s ，horizonSpeed：%d ，verticalSpeed：%d ，zoomSpeed：%d",deviceId, channelId, command, horizonSpeed, verticalSpeed, zoomSpeed));
 		}
-		Device device = storager.queryVideoDevice(deviceId);
+		Device device = deviceService.getDevice(deviceId);
 		int cmdCode = 0;
 		switch (command){
 			case "left":
@@ -125,7 +129,7 @@ public class PtzController {
 		if (log.isDebugEnabled()) {
 			log.debug(String.format("设备云台控制 API调用，deviceId：%s ，channelId：%s ，cmdCode：%d parameter1：%d parameter2：%d",deviceId, channelId, cmdCode, parameter1, parameter2));
 		}
-		Device device = storager.queryVideoDevice(deviceId);
+		Device device = deviceService.getDevice(deviceId);
 
 		try {
 			cmder.frontEndCmd(device, channelId, cmdCode, parameter1, parameter2, combindCode2);
@@ -144,7 +148,7 @@ public class PtzController {
 		if (log.isDebugEnabled()) {
 			log.debug("设备预置位查询API调用");
 		}
-		Device device = storager.queryVideoDevice(deviceId);
+		Device device = deviceService.getDevice(deviceId);
 		String uuid =  UUID.randomUUID().toString();
 		String key =  DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (ObjectUtils.isEmpty(channelId) ? deviceId : channelId);
 		DeferredResult<String> result = new DeferredResult<String> (3 * 1000L);

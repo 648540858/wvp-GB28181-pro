@@ -8,6 +8,8 @@ import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
+import com.genersoft.iot.vmp.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +37,12 @@ public class RedisAlarmMsgListener implements MessageListener {
 
     @Autowired
     private ISIPCommanderForPlatform commanderForPlatform;
+
+    @Autowired
+    private IDeviceService deviceService;
+
+    @Autowired
+    private IDeviceChannelService channelService;
 
     @Autowired
     private IVideoManagerStorage storage;
@@ -108,7 +116,7 @@ public class RedisAlarmMsgListener implements MessageListener {
 
                             }
                             // 获取开启了消息推送的设备和平台
-                            List<Device> devices = storage.queryDeviceWithAsMessageChannel();
+                            List<Device> devices = channelService.queryDeviceWithAsMessageChannel();
                             if (devices.size() > 0) {
                                 for (Device device : devices) {
                                     try {
@@ -121,7 +129,7 @@ public class RedisAlarmMsgListener implements MessageListener {
                             }
 
                         }else {
-                            Device device = storage.queryVideoDevice(gbId);
+                            Device device = deviceService.getDevice(gbId);
                             ParentPlatform platform = storage.queryParentPlatByServerGBId(gbId);
                             if (device != null && platform == null) {
                                 try {

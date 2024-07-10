@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
+import com.github.pagehelper.PageInfo;
 
 import java.util.List;
 
@@ -88,6 +89,8 @@ public interface IDeviceService {
      */
     List<Device> getAllOnlineDevice();
 
+    List<Device> getAllByStatus(boolean status);
+
     /**
      * 判断是否注册已经失效
      * @param device 设备信息
@@ -159,4 +162,6 @@ public interface IDeviceService {
      * 获取所有设备
      */
     List<Device> getAll();
+
+    PageInfo<Device> getAll(int page, int count, String query, Boolean status);
 }

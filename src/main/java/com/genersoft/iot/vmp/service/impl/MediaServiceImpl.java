@@ -170,9 +170,9 @@ public class MediaServiceImpl implements IMediaService {
 
                 String deviceId = ssrcTransactionForAll.get(0).getDeviceId();
                 String channelId = ssrcTransactionForAll.get(0).getChannelId();
-                DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
+                DeviceChannel deviceChannel = deviceChannelService.getOne(deviceId, channelId);
                 if (deviceChannel != null) {
-                    result.setEnable_audio(deviceChannel.getHasAudio());
+                    result.setEnable_audio(deviceChannel.isHasAudio());
                 }
                 // 如果是录像下载就设置视频间隔十秒
                 if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.DOWNLOAD) {

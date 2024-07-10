@@ -147,6 +147,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
             }
         }
         StreamPush push = getPush(event.getApp(), event.getStream());
+        if (push == null) {
+            return;
+        }
         push.setPushIng(false);
         if (push.getGbDeviceId() != null) {
             if (userSetting.isUsePushingAsStatus()) {

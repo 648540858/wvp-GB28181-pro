@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.gb28181.bean.PresetQuerySipReq;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.DeferredResultEx;
@@ -43,10 +44,13 @@ public class ApiDeviceController {
     @Autowired
     private SIPCommander cmder;
     @Autowired
-    private IDeviceService deviceService;
+    private IDeviceChannelService channelService;
 
     @Autowired
     private DeferredResultHolder resultHolder;
+
+    @Autowired
+    private IDeviceService deviceService;
 
 
     /**
@@ -70,10 +74,10 @@ public class ApiDeviceController {
         JSONObject result = new JSONObject();
         List<Device> devices;
         if (start == null || limit ==null) {
-            devices = storager.queryVideoDeviceList(online);
+            devices = deviceService.getAllByStatus(online);
             result.put("DeviceCount", devices.size());
         }else {
-            PageInfo<Device> deviceList = storager.queryVideoDeviceList(start/limit, limit,online);
+            PageInfo<Device> deviceList = deviceService.getAll(start/limit, limit,null, online);
             result.put("DeviceCount", deviceList.getTotal());
             devices = deviceList.getList();
         }
@@ -120,7 +124,7 @@ public class ApiDeviceController {
             String[] split = code.trim().split(",");
             channelIds = Arrays.asList(split);
         }
-        List<DeviceChannelExtend> allDeviceChannelList = storager.queryChannelsByDeviceId(serial,channelIds,online);
+        List<DeviceChannelExtend> allDeviceChannelList = channelService.queryChannelExtendsByDeviceId(serial,channelIds,online);
         if (start == null || limit ==null) {
             deviceChannels = allDeviceChannelList;
             result.put("ChannelCount", deviceChannels.size());
@@ -196,7 +200,7 @@ public class ApiDeviceController {
                     serial, channel, code, fill, timeout);
         }
 
-        Device device = storager.queryVideoDevice(serial);
+        Device device = deviceService.getDevice(serial);
         String uuid =  UUID.randomUUID().toString();
         String key =  DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (ObjectUtils.isEmpty(code) ? serial : code);
         DeferredResult<Object> result = new DeferredResult<> (timeout * 1000L);

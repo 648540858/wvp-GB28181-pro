@@ -320,7 +320,7 @@ public class PlatformController {
         if (ObjectUtils.isEmpty(platformId) || ObjectUtils.isEmpty(catalogId)) {
             catalogId = null;
         }
-        PageInfo<ChannelReduce> channelReduces = storager.queryAllChannelList(page, count, query, online, channelType, platformId, catalogId);
+        PageInfo<ChannelReduce> channelReduces = deviceChannelService.queryAllChannelList(page, count, query, online, channelType, platformId, catalogId);
 
         return channelReduces;
     }

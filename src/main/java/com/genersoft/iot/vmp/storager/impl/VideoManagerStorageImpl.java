@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.storager.impl;
 
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
@@ -10,15 +9,10 @@ import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import com.genersoft.iot.vmp.storager.dao.*;
+import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
-import com.genersoft.iot.vmp.streamProxy.dao.StreamProxyMapper;
-import com.genersoft.iot.vmp.streamPush.dao.StreamPushMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
-import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -75,16 +69,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	private PlatformCatalogMapper platformCatalogMapper;
 
 	@Autowired
-    private StreamProxyMapper streamProxyMapper;
-
-	@Autowired
-    private StreamPushMapper streamPushMapper;
-
-	@Autowired
     private GbStreamMapper gbStreamMapper;
-
-	@Autowired
-    private UserSetting userSetting;
 
 	@Autowired
     private PlatformCatalogMapper catalogMapper;
@@ -92,88 +77,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	@Autowired
     private PlatformGbStreamMapper platformGbStreamMapper;
 
-	/**
-	 * 根据设备ID判断设备是否存在
-	 *
-	 * @param deviceId 设备ID
-	 * @return true:存在  false：不存在
-	 */
-	@Override
-	public boolean exists(String deviceId) {
-		return deviceMapper.getDeviceByDeviceId(deviceId) != null;
-	}
 
-
-	/**
-	 * 获取设备
-	 *
-	 * @param deviceId 设备ID
-	 * @return Device 设备对象
-	 */
-	@Override
-	public Device queryVideoDevice(String deviceId) {
-		return deviceMapper.getDeviceByDeviceId(deviceId);
-	}
-
-	@Override
-	public PageInfo queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, Boolean online, Boolean catalogUnderDevice, int page, int count) {
-		// 获取到所有正在播放的流
-		PageHelper.startPage(page, count);
-		List<DeviceChannel> all;
-		if (catalogUnderDevice != null && catalogUnderDevice) {
-			all = deviceChannelMapper.queryChannels(deviceId, deviceId, query, hasSubChannel, online,null);
-			// 海康设备的parentId是SIP id
-			List<DeviceChannel> deviceChannels = deviceChannelMapper.queryChannels(deviceId, sipConfig.getId(), query, hasSubChannel, online,null);
-			all.addAll(deviceChannels);
-		}else {
-			all = deviceChannelMapper.queryChannels(deviceId, null, query, hasSubChannel, online,null);
-		}
-		return new PageInfo<>(all);
-	}
-
-	@Override
-	public List<DeviceChannelExtend> queryChannelsByDeviceId(String deviceId, List<String> channelIds, Boolean online) {
-		return deviceChannelMapper.queryChannelsWithDeviceInfo(deviceId, null,null, null, online,channelIds);
-	}
-
-	@Override
-	public PageInfo<DeviceChannel> querySubChannels(String deviceId, String parentChannelId, String query, Boolean hasSubChannel, Boolean online, int page, int count) {
-		PageHelper.startPage(page, count);
-		List<DeviceChannel> all = deviceChannelMapper.queryChannels(deviceId, parentChannelId, query, hasSubChannel, online,null);
-		return new PageInfo<>(all);
-	}
-
-	@Override
-	public DeviceChannel queryChannel(String deviceId, String channelId) {
-		return deviceChannelMapper.queryChannel(deviceId, channelId);
-	}
-
-
-	/**
-	 * 获取多个设备
-	 *
-	 * @param page 当前页数
-	 * @param count 每页数量
-	 * @return PageInfo<Device> 分页设备对象数组
-	 */
-	@Override
-	public PageInfo<Device> queryVideoDeviceList(int page, int count,Boolean online) {
-		PageHelper.startPage(page, count);
-		List<Device> all = deviceMapper.getDevices(online);
-		return new PageInfo<>(all);
-	}
-
-	/**
-	 * 获取多个设备
-	 *
-	 * @return List<Device> 设备对象数组
-	 */
-	@Override
-	public List<Device> queryVideoDeviceList(Boolean online) {
-
-		List<Device> deviceList =  deviceMapper.getDevices(online);
-		return deviceList;
-	}
 
 
 	/**
@@ -246,19 +150,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		return platformMapper.queryEnablePlatformListWithAsMessageChannel();
 	}
 
-	@Override
-	public List<Device> queryDeviceWithAsMessageChannel() {
-		return deviceMapper.queryDeviceWithAsMessageChannel();
-	}
-
-
-	@Override
-	public PageInfo<ChannelReduce> queryAllChannelList(int page, int count, String query, Boolean online,
-													   Boolean channelType, String platformId, String catalogId) {
-		PageHelper.startPage(page, count);
-		List<ChannelReduce> all = deviceChannelMapper.queryChannelListInAll(query, online, channelType, platformId, catalogId);
-		return new PageInfo<>(all);
-	}
 
 
 	@Override

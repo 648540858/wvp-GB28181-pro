@@ -184,7 +184,7 @@ public class DeviceChannel extends CommonGBChannel {
 	private String  streamId;
 
 	@Schema(description = "是否含有音频")
-	private Boolean hasAudio;
+	private boolean hasAudio;
 
 	@Schema(description = "GPS的更新时间")
 	private String gpsTime;

@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.service.IDeviceAlarmService;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -44,6 +45,9 @@ public class AlarmController {
 
     @Autowired
     private IVideoManagerStorage storage;
+
+    @Autowired
+    private IDeviceService deviceService;
 
 
     /**
@@ -95,7 +99,7 @@ public class AlarmController {
     @Operation(summary = "测试向上级/设备发送模拟报警通知", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备国标编号")
     public void delete(@RequestParam String deviceId) {
-        Device device = storage.queryVideoDevice(deviceId);
+        Device device = deviceService.getDevice(deviceId);
         ParentPlatform platform = storage.queryParentPlatByServerGBId(deviceId);
         DeviceAlarm deviceAlarm = new DeviceAlarm();
         deviceAlarm.setChannelId(deviceId);

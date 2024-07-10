@@ -16,6 +16,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
@@ -75,6 +76,8 @@ public class PlayController {
 	@Autowired
 	private UserSetting userSetting;
 
+	@Autowired
+	private IDeviceService deviceService;
 
 	@Autowired
 	private IDeviceChannelService deviceChannelService;
@@ -87,8 +90,11 @@ public class PlayController {
 														 @PathVariable String channelId) {
 
 		log.info("[开始点播] deviceId：{}, channelId：{}, ", deviceId, channelId);
+		if (ObjectUtils.isEmpty(deviceId) || ObjectUtils.isEmpty(channelId)) {
+			throw new ControllerException(ErrorCode.ERROR400);
+		}
 		// 获取可用的zlm
-		Device device = storager.queryVideoDevice(deviceId);
+		Device device = deviceService.getDevice(deviceId);
 		MediaServer newMediaServerItem = playService.getNewMediaServerItem(device);
 
 		RequestMessage requestMessage = new RequestMessage();
@@ -163,7 +169,7 @@ public class PlayController {
 			throw new ControllerException(ErrorCode.ERROR400);
 		}
 
-		Device device = storager.queryVideoDevice(deviceId);
+		Device device = deviceService.getDevice(deviceId);
 		if (device == null) {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备[" + deviceId + "]不存在");
 		}
@@ -206,7 +212,7 @@ public class PlayController {
 		if (log.isDebugEnabled()) {
 			log.debug("语音广播API调用");
 		}
-		Device device = storager.queryVideoDevice(deviceId);
+		Device device = deviceService.getDevice(deviceId);
 		if (device == null) {
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), "未找到设备： " + deviceId);
 		}

@@ -91,7 +91,7 @@ public class DeviceQuery {
 	@GetMapping("/devices/{deviceId}")
 	public Device devices(@PathVariable String deviceId){
 		
-		return storager.queryVideoDevice(deviceId);
+		return deviceService.getDevice(deviceId);
 	}
 
 	/**
@@ -103,12 +103,14 @@ public class DeviceQuery {
 	@Operation(summary = "分页查询国标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "page", description = "当前页", required = true)
 	@Parameter(name = "count", description = "每页查询数量", required = true)
+	@Parameter(name = "query", description = "搜索", required = false)
+	@Parameter(name = "status", description = "状态", required = false)
 	@GetMapping("/devices")
 	@Options()
-	public PageInfo<Device> devices(int page, int count){
+	public PageInfo<Device> devices(int page, int count, String query, Boolean status){
 //		if (page == null) page = 0;
 //		if (count == null) count = 20;
-		return storager.queryVideoDeviceList(page, count,null);
+		return deviceService.getAll(page, count,query, status);
 	}
 
 	/**
@@ -131,18 +133,16 @@ public class DeviceQuery {
 	@Parameter(name = "query", description = "查询内容")
 	@Parameter(name = "online", description = "是否在线")
 	@Parameter(name = "channelType", description = "设备/子目录-> false/true")
-	@Parameter(name = "catalogUnderDevice", description = "是否直属与设备的目录")
 	public PageInfo<DeviceChannel> channels(@PathVariable String deviceId,
 											   int page, int count,
 											   @RequestParam(required = false) String query,
 											   @RequestParam(required = false) Boolean online,
-											   @RequestParam(required = false) Boolean channelType,
-											   @RequestParam(required = false) Boolean catalogUnderDevice) {
+											   @RequestParam(required = false) Boolean channelType) {
 		if (ObjectUtils.isEmpty(query)) {
 			query = null;
 		}
 
-		return storager.queryChannelsByDeviceId(deviceId, query, channelType, online, catalogUnderDevice, page, count);
+		return deviceChannelService.queryChannelsByDeviceId(deviceId, query, channelType, online, page, count);
 	}
 
 	/**
@@ -154,11 +154,11 @@ public class DeviceQuery {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@GetMapping("/devices/{deviceId}/sync")
 	public WVPResult<SyncStatus> devicesSync(@PathVariable String deviceId){
-		
+
 		if (log.isDebugEnabled()) {
 			log.debug("设备通道信息同步API调用，deviceId：" + deviceId);
 		}
-		Device device = storager.queryVideoDevice(deviceId);
+		Device device = deviceService.getDevice(deviceId);
 		boolean status = deviceService.isSyncRunning(deviceId);
 		// 已存在则返回进度
 		if (status) {
@@ -182,7 +182,7 @@ public class DeviceQuery {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@DeleteMapping("/devices/{deviceId}/delete")
 	public String delete(@PathVariable String deviceId){
-		
+
 		if (log.isDebugEnabled()) {
 			log.debug("设备信息删除API调用，deviceId：" + deviceId);
 		}
@@ -240,13 +240,13 @@ public class DeviceQuery {
 												  @RequestParam(required = false) Boolean online,
 												  @RequestParam(required = false) Boolean channelType){
 
-		DeviceChannel deviceChannel = storager.queryChannel(deviceId,channelId);
+		DeviceChannel deviceChannel = deviceChannelService.getOne(deviceId,channelId);
 		if (deviceChannel == null) {
 			PageInfo<DeviceChannel> deviceChannelPageResult = new PageInfo<>();
 			return deviceChannelPageResult;
 		}
 
-		return storager.querySubChannels(deviceId, channelId, query, channelType, online, page, count);
+		return deviceChannelService.getSubChannels(deviceChannel.getDeviceDbId(), channelId, query, channelType, online, page, count);
 	}
 
 	/**
@@ -330,7 +330,7 @@ public class DeviceQuery {
 
 	/**
 	 * 设备状态查询请求API接口
-	 * 
+	 *
 	 * @param deviceId 设备id
 	 */
 	@Operation(summary = "设备状态查询", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -340,7 +340,7 @@ public class DeviceQuery {
 		if (log.isDebugEnabled()) {
 			log.debug("设备状态查询API调用");
 		}
-		Device device = storager.queryVideoDevice(deviceId);
+		Device device = deviceService.getDevice(deviceId);
 		String uuid = UUID.randomUUID().toString();
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS + deviceId;
 		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(2*1000L);
@@ -394,8 +394,8 @@ public class DeviceQuery {
 	@Parameter(name = "endTime", description = "报警发生终止时间")
 	@GetMapping("/alarm/{deviceId}")
 	public DeferredResult<ResponseEntity<String>> alarmApi(@PathVariable String deviceId,
-														@RequestParam(required = false) String startPriority, 
-														@RequestParam(required = false) String endPriority, 
+														@RequestParam(required = false) String startPriority,
+														@RequestParam(required = false) String endPriority,
 														@RequestParam(required = false) String alarmMethod,
 														@RequestParam(required = false) String alarmType,
 														@RequestParam(required = false) String startTime,
@@ -403,7 +403,7 @@ public class DeviceQuery {
 		if (log.isDebugEnabled()) {
 			log.debug("设备报警查询API调用");
 		}
-		Device device = storager.queryVideoDevice(deviceId);
+		Device device = deviceService.getDevice(deviceId);
 		String key = DeferredResultHolder.CALLBACK_CMD_ALARM + deviceId;
 		String uuid = UUID.randomUUID().toString();
 		try {

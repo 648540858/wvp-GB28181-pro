@@ -82,7 +82,7 @@ public class ApiStreamController {
 
     ){
         DeferredResult<JSONObject> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue() + 10);
-        Device device = storager.queryVideoDevice(serial);
+        Device device = deviceService.getDevice(serial);
         if (device == null ) {
             JSONObject resultJSON = new JSONObject();
             resultJSON.put("error","device[ " + serial + " ]未找到");
@@ -104,7 +104,7 @@ public class ApiStreamController {
              // 清理RTP server
         });
 
-        DeviceChannel deviceChannel = storager.queryChannel(serial, code);
+        DeviceChannel deviceChannel = deviceChannelService.getOne(serial, code);
         if (deviceChannel == null) {
             JSONObject resultJSON = new JSONObject();
             resultJSON.put("error","channel[ " + code + " ]未找到");

@@ -99,7 +99,7 @@ public class MobilePositionController {
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @GetMapping("/realtime/{deviceId}")
     public DeferredResult<MobilePosition> realTimePosition(@PathVariable String deviceId) {
-        Device device = storager.queryVideoDevice(deviceId);
+        Device device = deviceService.getDevice(deviceId);
         String uuid = UUID.randomUUID().toString();
         String key = DeferredResultHolder.CALLBACK_CMD_MOBILE_POSITION + deviceId;
         try {
@@ -147,7 +147,7 @@ public class MobilePositionController {
         if (StringUtil.isEmpty(interval)) {
             interval = "5";
         }
-        Device device = storager.queryVideoDevice(deviceId);
+        Device device = deviceService.getDevice(deviceId);
         device.setSubscribeCycleForMobilePosition(Integer.parseInt(expires));
         device.setMobilePositionSubmissionInterval(Integer.parseInt(interval));
         deviceService.updateCustomDevice(device);

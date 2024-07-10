@@ -4,8 +4,6 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
-import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
-import com.github.pagehelper.PageInfo;
 
 import java.util.List;
 
@@ -17,66 +15,6 @@ import java.util.List;
 @SuppressWarnings("rawtypes")
 public interface IVideoManagerStorage {
 
-	/**   
-	 * 根据设备ID判断设备是否存在
-	 * 
-	 * @param deviceId 设备ID
-	 * @return true:存在  false：不存在
-	 */
-	public boolean exists(String deviceId);
-	
-	/**   
-	 * 获取设备
-	 * 
-	 * @param deviceId 设备ID
-	 * @return DShadow 设备对象
-	 */
-	public Device queryVideoDevice(String deviceId);
-
-	/**
-	 * 获取某个设备的通道列表
-	 *
-	 * @param deviceId 设备ID
-	 * @param page 分页 当前页
-	 * @param count 每页数量
-	 * @return
-	 */
-	public PageInfo<DeviceChannel> queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, Boolean online, Boolean catalogUnderDevice, int page, int count);
-
-	/**
-	 * 获取某个设备的通道
-	 * @param deviceId 设备ID
-	 * @param channelId 通道ID
-	 */
-	public DeviceChannel queryChannel(String deviceId, String channelId);
-
-	/**
-	 * 获取多个设备
-	 * @param page 当前页数
-	 * @param count 每页数量
-	 * @return List<Device> 设备对象数组
-	 */
-	public PageInfo<Device> queryVideoDeviceList(int page, int count,Boolean online);
-
-	/**
-	 * 获取多个设备
-	 *
-	 * @return List<Device> 设备对象数组
-	 */
-	public List<Device> queryVideoDeviceList(Boolean online);
-
-
-
-	/**
-	 * 查询子设备
-	 *
-	 * @param deviceId
-	 * @param channelId
-	 * @param page
-	 * @param count
-	 * @return
-	 */
-	PageInfo querySubChannels(String deviceId, String channelId, String query, Boolean hasSubChannel, Boolean online, int page, int count);
 
 	/**
 	 * 更新上级平台
@@ -102,12 +40,6 @@ public interface IVideoManagerStorage {
 	 * @return
 	 */
 	ParentPlatform queryParentPlatByServerGBId(String platformGbId);
-
-	/**
-	 * 查询通道信息，不区分设备(已关联平台或全部)
-	 */
-	PageInfo<ChannelReduce> queryAllChannelList(int page, int count, String query, Boolean online, Boolean channelType, String platformId, String catalogId);
-
 
 	/**
 	 *  移除上级平台的通道信息
@@ -191,9 +123,6 @@ public interface IVideoManagerStorage {
 
 	List<ChannelSourceInfo> getChannelSource(String platformId, String gbId);
 
-	List<DeviceChannelExtend> queryChannelsByDeviceId(String serial, List<String> channelIds, Boolean online);
-
 	List<ParentPlatform> queryEnablePlatformListWithAsMessageChannel();
 
-	List<Device> queryDeviceWithAsMessageChannel();
 }

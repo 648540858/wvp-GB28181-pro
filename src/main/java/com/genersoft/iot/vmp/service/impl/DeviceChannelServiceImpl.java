@@ -22,6 +22,9 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
+import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -74,7 +77,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         }
         String now = DateUtil.getNow();
         channel.setUpdateTime(now);
-        DeviceChannel deviceChannel = channelMapper.queryChannel(deviceId, channelId);
+        DeviceChannel deviceChannel = getOne(deviceId, channelId);
         if (deviceChannel == null) {
             channel.setCreateTime(now);
             channelMapper.add(channel);
@@ -171,6 +174,13 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
+    public PageInfo<ChannelReduce> queryAllChannelList(int page, int count, String query, Boolean online, Boolean channelType, String platformId, String catalogId) {
+        PageHelper.startPage(page, count);
+        List<ChannelReduce> all = channelMapper.queryChannelListInAll(query, online, channelType, platformId, catalogId);
+        return new PageInfo<>(all);
+    }
+
+    @Override
     public List<Device> getDeviceByChannelId(String channelId) {
 
         return channelMapper.getDeviceByChannelId(channelId);
@@ -209,7 +219,11 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public DeviceChannel getOne(String deviceId, String channelId){
-        return channelMapper.queryChannel(deviceId, channelId);
+        Device device = deviceMapper.getDeviceByDeviceId(deviceId);
+        if (device == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备：" + deviceId);
+        }
+        return channelMapper.getOneByDeviceId(device.getId(), channelId);
     }
 
     @Override
@@ -424,7 +438,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             DeviceChannel channelInDb = allChannelMap.get(deviceChannel.getDeviceDbId() + deviceChannel.getDeviceId());
             if (channelInDb != null) {
                 deviceChannel.setStreamId(channelInDb.getStreamId());
-                deviceChannel.setHasAudio(channelInDb.getHasAudio());
+                deviceChannel.setHasAudio(channelInDb.isHasAudio());
                 deviceChannel.setId(channelInDb.getId());
                 if (channelInDb.getStatus().equalsIgnoreCase(deviceChannel.getStatus())){
                     List<String> strings = platformChannelMapper.queryParentPlatformByChannelId(deviceChannel.getDeviceId());
@@ -517,5 +531,34 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
         return true;
 
+    }
+
+    @Override
+    public PageInfo<DeviceChannel> getSubChannels(int deviceDbId, String channelId, String query, Boolean channelType, Boolean online, int page, int count) {
+        PageHelper.startPage(page, count);
+        List<DeviceChannel> all = channelMapper.queryChannels(deviceDbId, channelId, query, channelType, online,null);
+        return new PageInfo<>(all);
+    }
+
+    @Override
+    public List<DeviceChannelExtend> queryChannelExtendsByDeviceId(String deviceId, List<String> channelIds, Boolean online) {
+        return channelMapper.queryChannelsWithDeviceInfo(deviceId, null,null, null, online,channelIds);
+    }
+
+    @Override
+    public PageInfo queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, Boolean online, int page, int count) {
+        Device device = deviceMapper.getDeviceByDeviceId(deviceId);
+        if (device == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备：" + deviceId);
+        }
+        // 获取到所有正在播放的流
+        PageHelper.startPage(page, count);
+        List<DeviceChannel> all = channelMapper.queryChannels(device.getId(), null, query, hasSubChannel, online,null);
+        return new PageInfo<>(all);
+    }
+
+    @Override
+    public List<Device> queryDeviceWithAsMessageChannel() {
+        return deviceMapper.queryDeviceWithAsMessageChannel();
     }
 }

@@ -491,7 +491,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         String stream = device.getDeviceId() + "_" + channelId + "_" + startTimeStr + "_" + endTimeStr;
                         int tcpMode = device.getStreamMode().equals("TCP-ACTIVE")? 2: (device.getStreamMode().equals("TCP-PASSIVE")? 1:0);
                         SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, stream, null,
-                                device.isSsrcCheck(), true, 0,false,!channel.getHasAudio(), false, tcpMode);
+                                device.isSsrcCheck(), true, 0,false,!channel.isHasAudio(), false, tcpMode);
                         sendRtpItem.setStream(stream);
                         // 写入redis， 超时时回复
                         redisCatchStorage.updateSendRTPSever(sendRtpItem);
@@ -522,7 +522,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
                         sendRtpItem.setPlayType(InviteStreamType.DOWNLOAD);
                         int tcpMode = device.getStreamMode().equals("TCP-ACTIVE")? 2: (device.getStreamMode().equals("TCP-PASSIVE")? 1:0);
-                        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, null, null, device.isSsrcCheck(), true, 0, false,!channel.getHasAudio(), false, tcpMode);
+                        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, null, null,
+                                device.isSsrcCheck(), true, 0, false,!channel.isHasAudio(), false, tcpMode);
                         sendRtpItem.setStream(ssrcInfo.getStream());
                         // 写入redis， 超时时回复
                         redisCatchStorage.updateSendRTPSever(sendRtpItem);

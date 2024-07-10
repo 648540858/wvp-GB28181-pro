@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.web.gb28181;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +28,7 @@ public class ApiControlController {
     private SIPCommander cmder;
 
     @Autowired
-    private IVideoManagerStorage storager;
+    private IDeviceService deviceService;
 
     /**
      * 设备控制 - 云台控制
@@ -51,7 +51,7 @@ public class ApiControlController {
         }
         if (channel == null) {channel = 0;}
         if (speed == null) {speed = 0;}
-        Device device = storager.queryVideoDevice(serial);
+        Device device = deviceService.getDevice(serial);
         if (device == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "device[ " + serial + " ]未找到");
         }
@@ -125,7 +125,7 @@ public class ApiControlController {
         }
 
         if (channel == null) {channel = 0;}
-        Device device = storager.queryVideoDevice(serial);
+        Device device = deviceService.getDevice(serial);
         if (device == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "device[ " + serial + " ]未找到");
         }

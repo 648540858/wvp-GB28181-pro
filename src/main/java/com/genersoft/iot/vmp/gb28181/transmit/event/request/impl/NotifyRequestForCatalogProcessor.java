@@ -182,7 +182,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 									log.info("[增加通道] 已存在，不发送通知只更新，设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
 									DeviceChannel channel = catalogChannelEvent.getChannel();
 									channel.setId(deviceChannel.getId());
-									channel.setHasAudio(deviceChannel.getHasAudio());
+									channel.setHasAudio(deviceChannel.isHasAudio());
 									channel.setUpdateTime(DateUtil.getNow());
 									updateChannelMap.put(catalogChannelEvent.getChannel().getDeviceId(), channel);
 								} else {
@@ -211,7 +211,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								if (deviceChannelForUpdate != null) {
 									DeviceChannel channel = catalogChannelEvent.getChannel();
 									channel.setId(deviceChannelForUpdate.getId());
-									channel.setHasAudio(deviceChannelForUpdate.getHasAudio());
+									channel.setHasAudio(deviceChannelForUpdate.isHasAudio());
 									channel.setUpdateTime(DateUtil.getNow());
 									updateChannelMap.put(catalogChannelEvent.getChannel().getDeviceId(), channel);
 								} else {

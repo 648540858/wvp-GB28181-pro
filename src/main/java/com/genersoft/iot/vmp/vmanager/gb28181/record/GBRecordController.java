@@ -83,7 +83,7 @@ public class GBRecordController {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "endTime格式为" + DateUtil.PATTERN);
 		}
 
-		Device device = storager.queryVideoDevice(deviceId);
+		Device device = deviceService.getDevice(deviceId);
 		// 指定超时时间 1分钟30秒
 		String uuid = UUID.randomUUID().toString();
 		int sn  =  (int)((Math.random()*9+1)*100000);

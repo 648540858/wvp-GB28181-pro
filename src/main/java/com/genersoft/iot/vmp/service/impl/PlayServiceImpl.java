@@ -234,7 +234,7 @@ public class PlayServiceImpl implements IPlayService {
         if (device == null || !device.isOnLine()) {
             return;
         }
-        DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
+        DeviceChannel deviceChannel = channelService.getOne(deviceId, channelId);
         if (deviceChannel == null) {
             return;
         }
@@ -258,7 +258,7 @@ public class PlayServiceImpl implements IPlayService {
 
             int tcpMode = device.getStreamMode().equals("TCP-ACTIVE")? 2: (device.getStreamMode().equals("TCP-PASSIVE")? 1:0);
             SSRCInfo ssrcInfo = mediaServerService.openRTPServer(event.getMediaServer(), event.getStream(), null,
-                    device.isSsrcCheck(), true, 0, false, !deviceChannel.getHasAudio(), false, tcpMode);
+                    device.isSsrcCheck(), true, 0, false, !deviceChannel.isHasAudio(), false, tcpMode);
             playBack(event.getMediaServer(), ssrcInfo, deviceId, channelId, startTime, endTime, null);
         }
     }
@@ -321,7 +321,7 @@ public class PlayServiceImpl implements IPlayService {
         }
         String streamId = String.format("%s_%s", device.getDeviceId(), channelId);
         int tcpMode = device.getStreamMode().equals("TCP-ACTIVE")? 2: (device.getStreamMode().equals("TCP-PASSIVE")? 1:0);
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, ssrc, device.isSsrcCheck(),  false, 0, false, !channel.getHasAudio(), false, tcpMode);
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, ssrc, device.isSsrcCheck(),  false, 0, false, !channel.isHasAudio(), false, tcpMode);
         if (ssrcInfo == null) {
             callback.run(InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode(), InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getMsg(), null);
             inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
@@ -695,7 +695,7 @@ public class PlayServiceImpl implements IPlayService {
         Device device = redisCatchStorage.getDevice(deviceId);
         streamInfo = onPublishHandler(mediaServerItem, mediaInfo, deviceId, channelId);
         if (streamInfo != null) {
-            DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
+            DeviceChannel deviceChannel = channelService.getOne(deviceId, channelId);
             if (deviceChannel != null) {
                 deviceChannel.setStreamId(streamInfo.getStream());
                 channelService.startPlay(deviceId, channelId, streamInfo.getStream());
@@ -716,7 +716,7 @@ public class PlayServiceImpl implements IPlayService {
         if (streamInfo != null) {
             streamInfo.setStartTime(startTime);
             streamInfo.setEndTime(endTime);
-            DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
+            DeviceChannel deviceChannel = channelService.getOne(deviceId, channelId);
             if (deviceChannel != null) {
                 deviceChannel.setStreamId(streamInfo.getStream());
                 channelService.startPlay(deviceId, channelId, streamInfo.getStream());
@@ -753,7 +753,7 @@ public class PlayServiceImpl implements IPlayService {
     @Override
     public void playBack(String deviceId, String channelId, String startTime,
                          String endTime, ErrorCallback<Object> callback) {
-        Device device = storager.queryVideoDevice(deviceId);
+        Device device = deviceService.getDevice(deviceId);
         if (device == null) {
             log.warn("[录像回放] 未找到设备 deviceId: {},channelId:{}", deviceId, channelId);
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备：" + deviceId);
@@ -778,7 +778,7 @@ public class PlayServiceImpl implements IPlayService {
                 .replace(" ", "");
         String stream = deviceId + "_" + channelId + "_" + startTimeStr + "_" + endTimeTimeStr;
         int tcpMode = device.getStreamMode().equals("TCP-ACTIVE")? 2: (device.getStreamMode().equals("TCP-PASSIVE")? 1:0);
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, stream, null, device.isSsrcCheck(),  true, 0, false,  !channel.getHasAudio(),  false, tcpMode);
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, stream, null, device.isSsrcCheck(),  true, 0, false,  !channel.isHasAudio(),  false, tcpMode);
         playBack(newMediaServerItem, ssrcInfo, deviceId, channelId, startTime, endTime, callback);
     }
 
@@ -793,7 +793,7 @@ public class PlayServiceImpl implements IPlayService {
             return;
         }
 
-        Device device = storager.queryVideoDevice(deviceId);
+        Device device = deviceService.getDevice(deviceId);
         if (device == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备： " + deviceId + "不存在");
         }
@@ -959,7 +959,7 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void download(String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, ErrorCallback<Object> callback) {
-        Device device = storager.queryVideoDevice(deviceId);
+        Device device = deviceService.getDevice(deviceId);
         if (device == null) {
             return;
         }
@@ -976,7 +976,7 @@ public class PlayServiceImpl implements IPlayService {
         }
         int tcpMode = device.getStreamMode().equals("TCP-ACTIVE")? 2: (device.getStreamMode().equals("TCP-PASSIVE")? 1:0);
         // 录像下载不使用固定流地址，固定流地址会导致如果开始时间与结束时间一致时文件错误的叠加在一起
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, null, device.isSsrcCheck(),  true, 0, false,!channel.getHasAudio(), false, tcpMode);
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, null, device.isSsrcCheck(),  true, 0, false,!channel.isHasAudio(), false, tcpMode);
         download(newMediaServerItem, ssrcInfo, deviceId, channelId, startTime, endTime, downloadSpeed, callback);
     }
 
@@ -989,7 +989,7 @@ public class PlayServiceImpl implements IPlayService {
                     null);
             return;
         }
-        Device device = storager.queryVideoDevice(deviceId);
+        Device device = deviceService.getDevice(deviceId);
         if (device == null) {
             callback.run(InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getCode(),
                     "设备：" + deviceId + "不存在",
@@ -1198,7 +1198,7 @@ public class PlayServiceImpl implements IPlayService {
             return null;
         }
         log.info("[语音喊话] device： {}, channel: {}", device.getDeviceId(), channelId);
-        DeviceChannel deviceChannel = storager.queryChannel(device.getDeviceId(), channelId);
+        DeviceChannel deviceChannel = channelService.getOne(device.getDeviceId(), channelId);
         if (deviceChannel == null) {
             log.warn("开启语音广播的时候未找到通道： {}", channelId);
             return null;
@@ -1223,7 +1223,7 @@ public class PlayServiceImpl implements IPlayService {
             return false;
         }
         log.info("[语音喊话] device： {}, channel: {}", device.getDeviceId(), channelId);
-        DeviceChannel deviceChannel = storager.queryChannel(device.getDeviceId(), channelId);
+        DeviceChannel deviceChannel = channelService.getOne(device.getDeviceId(), channelId);
         if (deviceChannel == null) {
             log.warn("开启语音广播的时候未找到通道： {}", channelId);
             event.call("开启语音广播的时候未找到通道");
@@ -1396,7 +1396,7 @@ public class PlayServiceImpl implements IPlayService {
         if (!result) {
             throw new ServiceException("暂停RTP接收失败");
         }
-        Device device = storager.queryVideoDevice(inviteInfo.getDeviceId());
+        Device device = deviceService.getDevice(inviteInfo.getDeviceId());
         cmder.playPauseCmd(device, inviteInfo.getStreamInfo());
     }
 
@@ -1424,7 +1424,7 @@ public class PlayServiceImpl implements IPlayService {
         if (!result) {
             throw new ServiceException("继续RTP接收失败");
         }
-        Device device = storager.queryVideoDevice(inviteInfo.getDeviceId());
+        Device device = deviceService.getDevice(inviteInfo.getDeviceId());
         cmder.playResumeCmd(device, inviteInfo.getStreamInfo());
     }
 
@@ -1486,7 +1486,7 @@ public class PlayServiceImpl implements IPlayService {
         }
         // TODO 必须多端口模式才支持语音喊话鹤语音对讲
         log.info("[语音对讲] device： {}, channel: {}", device.getDeviceId(), channelId);
-        DeviceChannel deviceChannel = storager.queryChannel(device.getDeviceId(), channelId);
+        DeviceChannel deviceChannel = channelService.getOne(device.getDeviceId(), channelId);
         if (deviceChannel == null) {
             log.warn("开启语音对讲的时候未找到通道： {}", channelId);
             event.call("开启语音对讲的时候未找到通道");

@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.github.pagehelper.PageInfo;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
@@ -300,4 +301,45 @@ public interface DeviceMapper {
 
     @Select("select * FROM wvp_device where  as_message_channel = true")
     List<Device> queryDeviceWithAsMessageChannel();
+
+    @Select(" <script>" +
+            "SELECT " +
+            "id, " +
+            "device_id, " +
+            "coalesce(custom_name, name) as name, " +
+            "password, " +
+            "manufacturer, " +
+            "model, " +
+            "firmware, " +
+            "transport," +
+            "stream_mode," +
+            "ip,"+
+            "sdp_ip,"+
+            "local_ip,"+
+            "port,"+
+            "host_address,"+
+            "expires,"+
+            "register_time,"+
+            "keepalive_time,"+
+            "create_time,"+
+            "update_time,"+
+            "charset,"+
+            "subscribe_cycle_for_catalog,"+
+            "subscribe_cycle_for_mobile_position,"+
+            "mobile_position_submission_interval,"+
+            "subscribe_cycle_for_alarm,"+
+            "ssrc_check,"+
+            "as_message_channel,"+
+            "broadcast_push_after_ack,"+
+            "geo_coord_sys,"+
+            "on_line,"+
+            "media_server_id,"+
+            "(SELECT count(0) FROM wvp_device_channel dc WHERE dc.device_db_id= de.id) as channel_count " +
+            " FROM wvp_device de" +
+            " where 1 = 1 "+
+            " <if test='status != null'> AND de.on_line=${status}</if>"+
+            " <if test='query != null'> AND coalesce(custom_name, name) as name LIKE '%${query}%'</if> " +
+            " order by create_time desc "+
+            " </script>")
+    List<Device> getDeviceList(@Param("query") String query, @Param("status") Boolean status);
 }

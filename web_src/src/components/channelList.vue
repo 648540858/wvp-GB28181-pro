@@ -52,11 +52,9 @@
       <el-main style="padding: 5px;">
         <el-table ref="channelListTable" :data="deviceChannelList" :height="winHeight" style="width: 100%"
                   header-row-class-name="table-header">
-          <el-table-column prop="channelId" label="通道编号" min-width="180">
+          <el-table-column prop="deviceId" label="编号" min-width="180">
           </el-table-column>
-          <el-table-column prop="deviceId" label="设备编号" min-width="180">
-          </el-table-column>
-          <el-table-column prop="name" label="通道名称" min-width="180">
+          <el-table-column prop="name" label="名称" min-width="180">
             <template v-slot:default="scope">
               <el-input
                 v-show="scope.row.edit"
@@ -85,7 +83,9 @@
           </el-table-column>
           <el-table-column prop="subCount" label="子节点数" min-width="100">
           </el-table-column>
-          <el-table-column prop="manufacture" label="厂家" min-width="100">
+          <el-table-column prop="manufacturer" label="厂家" min-width="100">
+          </el-table-column>
+          <el-table-column prop="model" label="型号" min-width="150">
           </el-table-column>
           <el-table-column label="位置信息" min-width="120">
             <template v-slot:default="scope">
@@ -102,16 +102,7 @@
           </el-table-column>
           <el-table-column prop="ptzType" label="云台类型" min-width="100">
             <template v-slot:default="scope">
-              <el-select v-show="scope.row.edit" v-model="scope.row.ptzType"
-                         placeholder="云台类型" filterable>
-                <el-option
-                  v-for="(value, key) in ptzTypes"
-                  :key="key"
-                  :label="value"
-                  :value="key"
-                />
-              </el-select>
-              <div v-show="!scope.row.edit">{{ scope.row.ptzTypeText }}</div>
+              <div >{{ scope.row.ptzTypeText }}</div>
             </template>
           </el-table-column>
           <el-table-column label="开启音频" min-width="100">
@@ -138,8 +129,8 @@
           <el-table-column label="状态" min-width="100">
             <template slot-scope="scope">
               <div slot="reference" class="name-wrapper">
-                <el-tag size="medium" v-if="scope.row.status === true">在线</el-tag>
-                <el-tag size="medium" type="info" v-if="scope.row.status === false">离线</el-tag>
+                <el-tag size="medium" v-if="scope.row.status === 'ON'">在线</el-tag>
+                <el-tag size="medium" type="info" v-if="scope.row.status !== 'ON'">离线</el-tag>
               </div>
             </template>
           </el-table-column>
@@ -347,7 +338,7 @@ export default {
     sendDevicePush: function (itemData) {
       let deviceId = this.deviceId;
       this.isLoging = true;
-      let channelId = itemData.channelId;
+      let channelId = itemData.deviceId;
       console.log("通知设备推流1：" + deviceId + " : " + channelId);
       let that = this;
       this.$axios({
@@ -394,13 +385,13 @@ export default {
     },
     queryRecords: function (itemData) {
       let deviceId = this.deviceId;
-      let channelId = itemData.channelId;
+      let channelId = itemData.deviceId;
 
       this.$router.push(`/gbRecordDetail/${deviceId}/${channelId}`)
     },
     queryCloudRecords: function (itemData) {
       let deviceId = this.deviceId;
-      let channelId = itemData.channelId;
+      let channelId = itemData.deviceId;
 
       this.$router.push(`/cloudRecordDetail/rtp/${deviceId}_${channelId}`)
     },
@@ -408,7 +399,7 @@ export default {
       var that = this;
       this.$axios({
         method: 'get',
-        url: '/api/play/stop/' + this.deviceId + "/" + itemData.channelId,
+        url: '/api/play/stop/' + this.deviceId + "/" + itemData.deviceId,
         params: {
           isSubStream: this.isSubStream
         }
@@ -454,7 +445,7 @@ export default {
     changeSubchannel(itemData) {
       this.beforeUrl = this.$router.currentRoute.path;
 
-      var url = `/${this.$router.currentRoute.name}/${this.$router.currentRoute.params.deviceId}/${itemData.channelId}`
+      var url = `/${this.$router.currentRoute.name}/${this.$router.currentRoute.params.deviceId}/${itemData.deviceId}`
       this.$router.push(url).then(() => {
         this.searchSrt = "";
         this.channelType = "";

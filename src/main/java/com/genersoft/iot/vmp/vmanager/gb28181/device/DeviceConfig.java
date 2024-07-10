@@ -14,6 +14,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,6 +40,9 @@ public class DeviceConfig {
 
     @Autowired
     private IVideoManagerStorage storager;
+
+    @Autowired
+    private IDeviceService deviceService;
 
     @Autowired
     private SIPCommander cmder;
@@ -73,7 +77,7 @@ public class DeviceConfig {
         if (log.isDebugEnabled()) {
 			log.debug("报警复位API调用");
 		}
-		Device device = storager.queryVideoDevice(deviceId);
+		Device device = deviceService.getDevice(deviceId);
 		String uuid = UUID.randomUUID().toString();
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONFIG + deviceId + channelId;
 		try {
@@ -126,7 +130,7 @@ public class DeviceConfig {
 		}
 		String key = DeferredResultHolder.CALLBACK_CMD_CONFIGDOWNLOAD + (ObjectUtils.isEmpty(channelId) ? deviceId : channelId);
 		String uuid = UUID.randomUUID().toString();
-		Device device = storager.queryVideoDevice(deviceId);
+		Device device = deviceService.getDevice(deviceId);
 		try {
 			cmder.deviceConfigQuery(device, channelId, configType, event -> {
 				RequestMessage msg = new RequestMessage();

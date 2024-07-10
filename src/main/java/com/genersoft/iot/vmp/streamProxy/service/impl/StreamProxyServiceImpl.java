@@ -3,13 +3,11 @@ package com.genersoft.iot.vmp.streamProxy.service.impl;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaNotFoundEvent;
@@ -18,8 +16,6 @@ import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOnlineEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OriginType;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import com.genersoft.iot.vmp.gb28181.dao.PlatformGbStreamMapper;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.streamProxy.dao.StreamProxyMapper;
 import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
@@ -58,25 +54,13 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
-    private IVideoManagerStorage storager;
-
-    @Autowired
     private UserSetting userSetting;
 
     @Autowired
     private IGbChannelService gbChannelService;
 
     @Autowired
-    private PlatformGbStreamMapper platformGbStreamMapper;
-
-    @Autowired
     private IMediaServerService mediaServerService;
-
-    @Autowired
-    private HookSubscribe hookSubscribe;
-
-    @Autowired
-    private DynamicTask dynamicTask;
 
     @Autowired
     DataSourceTransactionManager dataSourceTransactionManager;
@@ -407,16 +391,18 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Transactional
     public int updateStatusByAppAndStream(String app, String stream, boolean status) {
         // 状态变化时推送到国标上级
-        StreamProxy streamProxyItem = streamProxyMapper.selectOne(app, stream);
-        if (streamProxyItem == null) {
+        StreamProxy streamProxy = streamProxyMapper.selectOne(app, stream);
+        if (streamProxy == null) {
             return 0;
         }
-        streamProxyItem.setGbStatus(status?1:0);
-        if (streamProxyItem.getGbId() > 0) {
+        streamProxy.setStatus(true);
+        streamProxyMapper.online(streamProxy.getId());
+        streamProxy.setGbStatus(status?1:0);
+        if (streamProxy.getGbId() > 0) {
             if (status) {
-                gbChannelService.online(streamProxyItem.getCommonGBChannel());
+                gbChannelService.online(streamProxy.getCommonGBChannel());
             }else {
-                gbChannelService.offline(streamProxyItem.getCommonGBChannel());
+                gbChannelService.offline(streamProxy.getCommonGBChannel());
             }
 
         }

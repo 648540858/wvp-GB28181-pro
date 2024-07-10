@@ -88,12 +88,25 @@ public interface StreamProxyMapper {
     @Select("select count(1) from wvp_stream_proxy where status = true")
     int getOnline();
 
-    /**
-     * 查询设置了自动移除并且没有国标编号的代理
-     */
-    List<StreamProxy> selectWithAutoRemoveAndWithoutGbDeviceIdByMediaServerId(String mediaServerId);
+    @Delete("DELETE FROM wvp_stream_proxy WHERE id=#{id}")
+    int delete(@Param("id") int id);
 
-    int delete(int id);
-
+    @Delete(value = "<script>" +
+            "DELETE FROM wvp_stream_proxy WHERE id in (" +
+            "<foreach collection='streamProxiesForRemove' index='index' item='item' separator=','> " +
+            "#{item.id}"+
+            "</foreach>" +
+            ")" +
+            "</script>")
     void deleteByList(List<StreamProxy> streamProxiesForRemove);
+
+    @Update("UPDATE wvp_stream_proxy " +
+            "SET status=true " +
+            "WHERE id=#{id}")
+    int online(@Param("id") int id);
+
+    @Update("UPDATE wvp_stream_proxy " +
+            "SET status=false " +
+            "WHERE id=#{id}")
+    int offline(@Param("id") int id);
 }

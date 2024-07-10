@@ -292,6 +292,7 @@ create table wvp_stream_proxy (
                                   media_server_id character varying(50),
                                   enable_audio bool default false,
                                   enable_mp4 bool default false,
+                                  status bool default false,
                                   enable bool default false,
                                   enable_remove_none_reader bool default false,
                                   create_time character varying(50),

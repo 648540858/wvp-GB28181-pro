@@ -15,6 +15,7 @@ import java.util.List;
 public interface DeviceMapper {
 
     @Select("SELECT " +
+            "id, " +
             "device_id, " +
             "coalesce(custom_name, name) as name, " +
             "password, " +
@@ -44,8 +45,8 @@ public interface DeviceMapper {
             "on_line," +
             "media_server_id," +
             "broadcast_push_after_ack," +
-            "(SELECT count(0) FROM wvp_device_channel WHERE device_id=wvp_device.device_id) as channel_count "+
-            " FROM wvp_device WHERE device_id = #{deviceId}")
+            "(SELECT count(0) FROM wvp_device_channel dc WHERE dc.device_db_id= de.id) as channel_count "+
+            " FROM wvp_device de WHERE de.device_id = #{deviceId}")
     Device getDeviceByDeviceId(String deviceId);
 
     @Insert("INSERT INTO wvp_device (" +
@@ -133,6 +134,7 @@ public interface DeviceMapper {
     @Select(
             " <script>" +
             "SELECT " +
+            "id, " +
             "device_id, " +
             "coalesce(custom_name, name) as name, " +
             "password, " +
@@ -162,10 +164,10 @@ public interface DeviceMapper {
             "geo_coord_sys,"+
             "on_line,"+
             "media_server_id,"+
-            "(SELECT count(0) FROM wvp_device_channel WHERE device_id=de.device_id) as channel_count " +
+            "(SELECT count(0) FROM wvp_device_channel dc WHERE dc.device_db_id= de.id) as channel_count " +
             "FROM wvp_device de" +
-            "<if test=\"onLine != null\"> where on_line=${onLine}</if>"+
-            " order by create_time desc "+
+            "<if test=\"onLine != null\"> where de.on_line=${onLine}</if>"+
+            " order by de.create_time desc "+
             " </script>"
     )
     List<Device> getDevices(Boolean onLine);
@@ -174,6 +176,7 @@ public interface DeviceMapper {
     int del(String deviceId);
 
     @Select("SELECT " +
+            "id, " +
             "device_id, " +
             "coalesce(custom_name, name) as name, " +
             "password, " +
@@ -204,7 +207,9 @@ public interface DeviceMapper {
             "on_line"+
             " FROM wvp_device WHERE on_line = true")
     List<Device> getOnlineDevices();
+
     @Select("SELECT " +
+            "id,"+
             "device_id,"+
             "coalesce(custom_name,name)as name,"+
             "password,"+

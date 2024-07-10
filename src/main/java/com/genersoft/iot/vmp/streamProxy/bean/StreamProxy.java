@@ -62,6 +62,9 @@ public class StreamProxy extends CommonGBChannel {
     @Schema(description = "拉流代理时zlm返回的key，用于停止拉流代理")
     private String streamKey;
 
+    @Schema(description = "拉流状态")
+    private Boolean status;
+
     @Schema(description = "更新时间")
     private String updateTime;
 

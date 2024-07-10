@@ -9,15 +9,15 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
+import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
+import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
+import com.genersoft.iot.vmp.gb28181.dao.DeviceMobilePositionMapper;
+import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
-import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
-import com.genersoft.iot.vmp.gb28181.dao.DeviceMobilePositionMapper;
-import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
@@ -31,7 +31,6 @@ import org.springframework.util.ObjectUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author lin
@@ -90,7 +89,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         List<DeviceChannel> addChannels = new ArrayList<>();
         List<DeviceChannel> updateChannels = new ArrayList<>();
         HashMap<String, DeviceChannel> channelsInStore = new HashMap<>();
-        if (channels != null && channels.size() > 0) {
+        if (channels != null && !channels.isEmpty()) {
             List<DeviceChannel> channelList = channelMapper.queryChannelsByDeviceDbId(device.getId());
             if (channelList.isEmpty()) {
                 for (DeviceChannel channel : channels) {
@@ -106,17 +105,18 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 }
             }else {
                 for (DeviceChannel deviceChannel : channelList) {
-                    channelsInStore.put(deviceChannel.getDeviceId(), deviceChannel);
+                    channelsInStore.put(deviceChannel.getDeviceDbId() + deviceChannel.getDeviceId(), deviceChannel);
                 }
                 for (DeviceChannel channel : channels) {
-                    channel.setDeviceDbId(device.getId());
                     InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channel.getDeviceId());
                     if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
                         channel.setStreamId(inviteInfo.getStreamInfo().getStream());
                     }
                     String now = DateUtil.getNow();
                     channel.setUpdateTime(now);
-                    if (channelsInStore.get(channel.getDeviceId()) != null) {
+                    DeviceChannel deviceChannelInDb = channelsInStore.get(channel.getDeviceDbId() + channel.getDeviceId());
+                    if ( deviceChannelInDb != null) {
+                        channel.setId(deviceChannelInDb.getId());
                         updateChannels.add(channel);
                     }else {
                         addChannels.add(channel);
@@ -399,9 +399,9 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         }
         List<DeviceChannel> allChannels = channelMapper.queryAllChannels(device.getId());
         Map<String,DeviceChannel> allChannelMap = new ConcurrentHashMap<>();
-        if (allChannels.size() > 0) {
+        if (!allChannels.isEmpty()) {
             for (DeviceChannel deviceChannel : allChannels) {
-                allChannelMap.put(deviceChannel.getDeviceId(), deviceChannel);
+                allChannelMap.put(deviceChannel.getDeviceDbId() + deviceChannel.getDeviceId(), deviceChannel);
             }
         }
         // 数据去重
@@ -421,17 +421,18 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 continue;
             }
             gbIdSet.add(deviceChannel.getDeviceId());
-            if (allChannelMap.containsKey(deviceChannel.getDeviceId())) {
-                deviceChannel.setStreamId(allChannelMap.get(deviceChannel.getDeviceId()).getStreamId());
-                deviceChannel.setHasAudio(allChannelMap.get(deviceChannel.getDeviceId()).getHasAudio());
-                if (allChannelMap.get(deviceChannel.getDeviceId()).getStatus().equalsIgnoreCase(deviceChannel.getStatus())){
+            DeviceChannel channelInDb = allChannelMap.get(deviceChannel.getDeviceDbId() + deviceChannel.getDeviceId());
+            if (channelInDb != null) {
+                deviceChannel.setStreamId(channelInDb.getStreamId());
+                deviceChannel.setHasAudio(channelInDb.getHasAudio());
+                deviceChannel.setId(channelInDb.getId());
+                if (channelInDb.getStatus().equalsIgnoreCase(deviceChannel.getStatus())){
                     List<String> strings = platformChannelMapper.queryParentPlatformByChannelId(deviceChannel.getDeviceId());
                     if (!CollectionUtils.isEmpty(strings)){
                         strings.forEach(platformId->{
                             eventPublisher.catalogEventPublish(platformId, deviceChannel, deviceChannel.getStatus().equals("ON")? CatalogEvent.ON:CatalogEvent.OFF);
                         });
                     }
-
                 }
                 deviceChannel.setUpdateTime(DateUtil.getNow());
                 updateChannels.add(deviceChannel);
@@ -440,7 +441,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 deviceChannel.setUpdateTime(DateUtil.getNow());
                 addChannels.add(deviceChannel);
             }
-            allChannelMap.remove(deviceChannel.getDeviceId());
+            allChannelMap.remove(deviceChannel.getDeviceDbId() + deviceChannel.getDeviceId());
             channels.add(deviceChannel);
             if (!ObjectUtils.isEmpty(deviceChannel.getParentId())) {
                 if (subContMap.get(deviceChannel.getParentId()) == null) {

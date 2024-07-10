@@ -106,7 +106,6 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                             Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
                             if (deviceListIterator != null) {
                                 List<DeviceChannel> channelList = new ArrayList<>();
-                                List<String> parentChannelIds = new ArrayList<>();
                                 // 遍历DeviceList
                                 while (deviceListIterator.hasNext()) {
                                     Element itemDevice = deviceListIterator.next();
@@ -115,16 +114,14 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                         continue;
                                     }
                                     DeviceChannel channel = DeviceChannel.decode(itemDevice);
-//                                    DeviceChannel channel = XmlUtil.channelContentHandler(itemDevice, device, null);
                                     if (channel == null || channel.getDeviceId() == null) {
                                         log.info("[收到目录订阅]：但是解析失败 {}", new String(evt.getRequest().getRawContent()));
                                         continue;
                                     }
+                                    channel.setDeviceDbId(device.getId());
                                     if (channel.getParentId() != null && channel.getParentId().equals(sipConfig.getId())) {
                                         channel.setParentId(null);
                                     }
-                                    channel.setDeviceId(take.getDevice().getDeviceId());
-
                                     channelList.add(channel);
                                 }
                                 int sn = Integer.parseInt(snElement.getText());

@@ -55,7 +55,7 @@ public interface CommonGBChannelMapper {
             "    coalesce(gb_business_group_id, business_group_id) as gb_business_group_id,\n" +
             "    coalesce(gb_download_speed, download_speed) as gb_download_speed,\n" +
             "    coalesce(gb_svc_space_support_mod, svc_space_support_mod) as gb_svc_space_support_mod,\n" +
-            "    coalesce(gb_svc_time_support_mode svc_time_support_mode) as gb_svc_time_support_mode\n" +
+            "    coalesce(gb_svc_time_support_mode,svc_time_support_mode) as gb_svc_time_support_mode\n" +
             "from wvp_device_channel\n" +
             "where gb_device_id = #{gbDeviceId} or device_id = #{gbDeviceId}")
     CommonGBChannel queryByDeviceId(@Param("gbDeviceId") String gbDeviceId);
@@ -198,7 +198,7 @@ public interface CommonGBChannelMapper {
             "    coalesce(gb_business_group_id, business_group_id) as gb_business_group_id,\n" +
             "    coalesce(gb_download_speed, download_speed) as gb_download_speed,\n" +
             "    coalesce(gb_svc_space_support_mod, svc_space_support_mod) as gb_svc_space_support_mod,\n" +
-            "    coalesce(gb_svc_time_support_mode svc_time_support_mode) as gb_svc_time_support_mode\n" +
+            "    coalesce(gb_svc_time_support_mode, svc_time_support_mode) as gb_svc_time_support_mode\n" +
             " from wvp_device_channel" +
             " where id = #{gbId}")
     CommonGBChannel queryById(@Param("gbId") int gbId);
@@ -355,7 +355,7 @@ public interface CommonGBChannelMapper {
             "    coalesce(gb_business_group_id, business_group_id) as gb_business_group_id,\n" +
             "    coalesce(gb_download_speed, download_speed) as gb_download_speed,\n" +
             "    coalesce(gb_svc_space_support_mod, svc_space_support_mod) as gb_svc_space_support_mod,\n" +
-            "    coalesce(gb_svc_time_support_mode svc_time_support_mode) as gb_svc_time_support_mode\n" +
+            "    coalesce(gb_svc_time_support_mode,svc_time_support_mode) as gb_svc_time_support_mode\n" +
             " from wvp_device_channel" +
             " where gb_status=#{status} and id in " +
             " <foreach collection='commonGBChannelList'  item='item'  open='(' separator=',' close=')' > #{item.gbId}</foreach>" +
@@ -471,7 +471,7 @@ public interface CommonGBChannelMapper {
             "    coalesce(wpgc.business_group_id, wdc.gb_business_group_id, wdc.business_group_id) as gb_business_group_id,\n" +
             "    coalesce(wdc.gb_download_speed, wdc.download_speed) as gb_download_speed,\n" +
             "    coalesce(wdc.gb_svc_space_support_mod, wdc.svc_space_support_mod) as gb_svc_space_support_mod,\n" +
-            "    coalesce(wdc.gb_svc_time_support_mode wdc.svc_time_support_mode) as gb_svc_time_support_mode\n" +
+            "    coalesce(wdc.gb_svc_time_support_mode,wdc.svc_time_support_mode) as gb_svc_time_support_mode\n" +
             "from wvp_device_channel wdc left join wvp_platform_gb_channel wpgc on wdc.id = wpgc.device_channel_id\n" +
             "where wpgc.platform_id = #{platformId}"})
     List<CommonGBChannel> queryByPlatformId(@Param("platformId") Integer platformId);

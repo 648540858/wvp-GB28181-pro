@@ -3,6 +3,16 @@
     <div class="page-header">
       <div class="page-title">设备列表</div>
       <div class="page-header-btn">
+        搜索:
+        <el-input @input="getDeviceList" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
+                  prefix-icon="el-icon-search" v-model="searchSrt" clearable></el-input>
+        在线状态:
+        <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="getDeviceList" v-model="online" placeholder="请选择"
+                   default-first-option>
+          <el-option label="全部" value=""></el-option>
+          <el-option label="在线" value="true"></el-option>
+          <el-option label="离线" value="false"></el-option>
+        </el-select>
         <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="add">添加设备
         </el-button>
         <el-button icon="el-icon-refresh-right" circle size="mini" :loading="getDeviceListLoading"
@@ -106,7 +116,8 @@ export default {
     return {
       deviceList: [], //设备列表
       currentDevice: {}, //当前操作设备对象
-
+      searchSrt: "",
+      online: null,
       videoComponentList: [],
       updateLooper: 0, //数据刷新轮训标志
       currentDeviceChannelsLenth: 0,
@@ -157,7 +168,9 @@ export default {
         url: `/api/device/query/devices`,
         params: {
           page: this.currentPage,
-          count: this.count
+          count: this.count,
+          query: this.searchSrt,
+          status: this.online,
         }
       }).then( (res)=> {
         if (res.data.code === 0) {

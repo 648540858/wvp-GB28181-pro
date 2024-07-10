@@ -108,9 +108,10 @@ public class DeviceQuery {
 	@GetMapping("/devices")
 	@Options()
 	public PageInfo<Device> devices(int page, int count, String query, Boolean status){
-//		if (page == null) page = 0;
-//		if (count == null) count = 20;
-		return deviceService.getAll(page, count,query, status);
+		if (ObjectUtils.isEmpty(query)){
+			query = null;
+		}
+		return deviceService.getAll(page, count, query, status);
 	}
 
 	/**

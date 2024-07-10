@@ -52,20 +52,9 @@
       <el-main style="padding: 5px;">
         <el-table ref="channelListTable" :data="deviceChannelList" :height="winHeight" style="width: 100%"
                   header-row-class-name="table-header">
-          <el-table-column prop="deviceId" label="编号" min-width="180">
-          </el-table-column>
           <el-table-column prop="name" label="名称" min-width="180">
-            <template v-slot:default="scope">
-              <el-input
-                v-show="scope.row.edit"
-                v-model="scope.row.name"
-                placeholder="通道名称"
-                :maxlength="255"
-                show-word-limit
-                clearable
-              />
-              <span v-show="!scope.row.edit">{{ scope.row.name }}</span>
-            </template>
+          </el-table-column>
+          <el-table-column prop="deviceId" label="编号" min-width="180">
           </el-table-column>
           <el-table-column label="快照" min-width="100">
             <template v-slot:default="scope">
@@ -85,20 +74,7 @@
           </el-table-column>
           <el-table-column prop="manufacturer" label="厂家" min-width="100">
           </el-table-column>
-          <el-table-column prop="model" label="型号" min-width="150">
-          </el-table-column>
-          <el-table-column label="位置信息" min-width="120">
-            <template v-slot:default="scope">
-              <el-input
-                v-show="scope.row.edit"
-                v-model="scope.row.location"
-                placeholder="例：117.234,36.378"
-                :maxlength="30"
-                show-word-limit
-                clearable
-              />
-              <span v-show="!scope.row.edit">{{ scope.row.location }}</span>
-            </template>
+          <el-table-column prop="location" label="位置信息" min-width="120">
           </el-table-column>
           <el-table-column prop="ptzType" label="云台类型" min-width="100">
             <template v-slot:default="scope">
@@ -146,16 +122,6 @@
               </el-button>
               <el-divider direction="vertical"></el-divider>
               <el-button
-                v-if="scope.row.edit"
-                size="medium"
-                type="text"
-                icon="el-icon-edit-outline"
-                @click="handleSave(scope.row)"
-              >
-                保存
-              </el-button>
-              <el-button
-                v-else
                 size="medium"
                 type="text"
                 icon="el-icon-edit"
@@ -169,13 +135,6 @@
                          @click="changeSubchannel(scope.row)">查看
               </el-button>
               <el-divider v-if="scope.row.subCount > 0 || scope.row.parental === 1" direction="vertical"></el-divider>
-<!--              <el-button size="medium" v-bind:disabled="device == null || device.online === 0"-->
-<!--                         icon="el-icon-video-camera"-->
-<!--                         type="text" @click="queryRecords(scope.row)">设备录像-->
-<!--              </el-button>-->
-<!--              <el-button size="medium" v-bind:disabled="device == null || device.online === 0" icon="el-icon-cloudy"-->
-<!--                         type="text" @click="queryCloudRecords(scope.row)">云端录像-->
-<!--              </el-button>-->
               <el-dropdown @command="(command)=>{moreClick(command, scope.row)}">
                 <el-button size="medium" type="text" >
                   更多功能<i class="el-icon-arrow-down el-icon--right"></i>
@@ -315,11 +274,8 @@ export default {
           that.deviceChannelList = res.data.data.list;
           that.deviceChannelList.forEach(e => {
             e.ptzType = e.ptzType + "";
-            that.$set(e, "edit", false);
             that.$set(e, "location", "");
-            if (e.customLongitude && e.customLatitude) {
-              that.$set(e, "location", e.customLongitude + "," + e.customLatitude);
-            }else if (e.longitude && e.latitude) {
+            if (e.longitude && e.latitude) {
               that.$set(e, "location", e.longitude + "," + e.latitude);
             }
           });
@@ -415,7 +371,7 @@ export default {
     },
     getSnap: function (row) {
       let baseUrl = window.baseUrl ? window.baseUrl : "";
-      return ((process.env.NODE_ENV === 'development') ? process.env.BASE_API : baseUrl) + '/api/device/query/snap/' + row.deviceId + '/' + row.channelId;
+      return ((process.env.NODE_ENV === 'development') ? process.env.BASE_API : baseUrl) + '/api/device/query/snap/' + this.deviceId + '/' + row.deviceId;
     },
     getBigSnap: function (row) {
       return [this.getSnap(row)]
@@ -472,11 +428,8 @@ export default {
             this.deviceChannelList = res.data.data.list;
             this.deviceChannelList.forEach(e => {
               e.ptzType = e.ptzType + "";
-              this.$set(e, "edit", false);
               this.$set(e, "location", "");
-              if (e.customLongitude && e.customLatitude) {
-                this.$set(e, "location", e.customLongitude + "," + e.customLatitude);
-              }else if (e.longitude && e.latitude) {
+              if (e.longitude && e.latitude) {
                 this.$set(e, "location", e.longitude + "," + e.latitude);
               }
             });
@@ -590,65 +543,9 @@ export default {
       }
       this.initData();
     },
-    // 保存
-    handleSave(row) {
-      if (row.location) {
-        const segements = row.location.split(",");
-        if (segements.length !== 2) {
-          console.log(1)
-          this.$message.warning("位置信息格式有误，例：117.234,36.378");
-          return;
-        } else {
-          row.customLongitude = parseFloat(segements[0]);
-          row.customLatitude = parseFloat(segements[1]);
-          if (!(row.customLongitude && row.customLatitude)) {
-            this.$message.warning("位置信息格式有误，例：117.234,36.378");
-            return;
-          }
-        }
-      } else {
-        delete row.longitude;
-        delete row.latitude;
-      }
-      Object.keys(row).forEach(key => {
-        const value = row[key];
-        if (value === null || value === undefined || (typeof value === "string" && value.trim() === "")) {
-          delete row[key];
-        }
-      });
-      this.$axios({
-        method: 'post',
-        url: `/api/device/query/channel/update/${this.deviceId}`,
-        params: row
-      }).then(response => {
-        if (response.data.code === 0) {
-          this.$message.success("修改成功！");
-          this.initData();
-        } else {
-          this.$message.error("修改失败！");
-        }
-      }).catch(_ => {
-        this.$message.error("修改失败！");
-      })
-    },
-    // 是否正在编辑
-    isEdit() {
-      let editing = false;
-      this.deviceChannelList.forEach(e => {
-        if (e.edit) {
-          editing = true;
-        }
-      });
-
-      return editing;
-    },
     // 编辑
     handleEdit(row) {
-      if (this.isEdit()) {
-        this.$message.warning('请保存当前编辑项！');
-      } else {
-        row.edit = true;
-      }
+
     }
   }
 };

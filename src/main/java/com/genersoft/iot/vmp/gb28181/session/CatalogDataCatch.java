@@ -117,7 +117,7 @@ public class CatalogDataCatch {
                 // 超过五秒收不到消息任务超时， 只更新这一部分数据, 收到数据与声明的总数一致，则重置通道数据，数据不全则只对收到的数据做更新操作
                 if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.runIng)) {
                     if (catalogData.getTotal() == catalogData.getChannelList().size()) {
-                        deviceChannelService.resetChannels(catalogData.getDevice().getDeviceId(), catalogData.getChannelList());
+                        deviceChannelService.resetChannels(catalogData.getDevice().getId(), catalogData.getChannelList());
                     }else {
                         deviceChannelService.updateChannels(catalogData.getDevice(), catalogData.getChannelList());
                     }

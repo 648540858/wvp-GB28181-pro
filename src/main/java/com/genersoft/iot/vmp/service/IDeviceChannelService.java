@@ -105,7 +105,7 @@ public interface IDeviceChannelService {
 
     void cleanChannelsForDevice(int deviceId);
 
-    boolean resetChannels(String deviceId, List<DeviceChannel> deviceChannels);
+    boolean resetChannels(int deviceDbId, List<DeviceChannel> deviceChannels);
 
     PageInfo<DeviceChannel> getSubChannels(int deviceDbId, String channelId, String query, Boolean channelType, Boolean online, int page, int count);
 

@@ -422,15 +422,11 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     @Transactional
-    public boolean resetChannels(String deviceId, List<DeviceChannel> deviceChannelList) {
+    public boolean resetChannels(int deviceDbId, List<DeviceChannel> deviceChannelList) {
         if (CollectionUtils.isEmpty(deviceChannelList)) {
             return false;
         }
-        Device device = deviceMapper.getDeviceByDeviceId(deviceId);
-        if (device == null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备： " +deviceId);
-        }
-        List<DeviceChannel> allChannels = channelMapper.queryAllChannels(device.getId());
+        List<DeviceChannel> allChannels = channelMapper.queryAllChannels(deviceDbId);
         Map<String,DeviceChannel> allChannelMap = new ConcurrentHashMap<>();
         if (!allChannels.isEmpty()) {
             for (DeviceChannel deviceChannel : allChannels) {
@@ -507,7 +503,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         }
         int limitCount = 50;
         boolean result = false;
-        if (!result && !addChannels.isEmpty()) {
+        if (!addChannels.isEmpty()) {
             if (addChannels.size() > limitCount) {
                 for (int i = 0; i < addChannels.size(); i += limitCount) {
                     int toIndex = i + limitCount;

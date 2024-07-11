@@ -1,9 +1,8 @@
-package com.genersoft.iot.vmp.vmanager.gb28181.play.bean;
+package com.genersoft.iot.vmp.gb28181.controller.bean;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.async.DeferredResult;
 
 public class PlayResult {

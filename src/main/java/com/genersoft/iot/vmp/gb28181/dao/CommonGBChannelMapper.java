@@ -165,6 +165,7 @@ public interface CommonGBChannelMapper {
             "    has_audio,\n" +
             "    gps_time,\n" +
             "    stream_identification,\n" +
+            "    device_db_id as gb_device_db_id,\n" +
             "    coalesce(gb_device_id, device_id) as gb_device_id,\n" +
             "    coalesce(gb_name, name) as gb_name,\n" +
             "    coalesce(gb_manufacturer, manufacturer) as gb_manufacturer,\n" +

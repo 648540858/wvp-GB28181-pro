@@ -227,4 +227,9 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
         return commonGBChannelMapper.queryByPlatformId(platformId);
     }
+
+    @Override
+    public CommonGBChannel getOne(int id) {
+        return commonGBChannelMapper.queryById(id);
+    }
 }

@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.vmanager.gb28181.play;
+package com.genersoft.iot.vmp.gb28181.controller;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;

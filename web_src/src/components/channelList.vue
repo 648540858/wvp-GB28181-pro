@@ -161,7 +161,7 @@
         </el-pagination>
       </el-main>
     </el-container>
-    <channel-edit v-if="editId" id="editId"></channel-edit>
+    <channel-edit v-if="editId" :id="editId"></channel-edit>
     <!--设备列表-->
 
   </div>

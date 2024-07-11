@@ -239,7 +239,7 @@ public class StreamPushController {
         if (ObjectUtils.isEmpty(stream.getApp()) && ObjectUtils.isEmpty(stream.getStream())) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "app或stream不可为空");
         }
-        stream.setGbStatus(0);
+        stream.setGbStatus("OFF");
         stream.setPushIng(false);
         if (!streamPushService.add(stream)) {
             throw new ControllerException(ErrorCode.ERROR100);

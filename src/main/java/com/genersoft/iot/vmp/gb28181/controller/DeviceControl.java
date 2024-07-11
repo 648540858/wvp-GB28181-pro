@@ -5,7 +5,7 @@
  * @date 2021年2月1日
  */
 
-package com.genersoft.iot.vmp.vmanager.gb28181.device;
+package com.genersoft.iot.vmp.gb28181.controller;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;

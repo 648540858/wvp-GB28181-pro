@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.vmanager.gb28181.playback;
+package com.genersoft.iot.vmp.gb28181.controller;
 
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;

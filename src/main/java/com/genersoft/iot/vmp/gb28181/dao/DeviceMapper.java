@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.github.pagehelper.PageInfo;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.annotations.Param;
@@ -342,4 +343,7 @@ public interface DeviceMapper {
             " order by create_time desc "+
             " </script>")
     List<Device> getDeviceList(@Param("query") String query, @Param("status") Boolean status);
+
+    @Select("select * from wvp_device_channel where id = #{id}")
+    DeviceChannel getRawChannel(@Param("id") int id);
 }

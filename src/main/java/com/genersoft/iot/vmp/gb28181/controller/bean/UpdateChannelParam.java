@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.vmanager.gb28181.platform.bean;
+package com.genersoft.iot.vmp.gb28181.controller.bean;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

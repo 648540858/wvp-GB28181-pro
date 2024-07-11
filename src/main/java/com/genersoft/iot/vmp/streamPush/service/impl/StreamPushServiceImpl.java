@@ -153,7 +153,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         push.setPushIng(false);
         if (push.getGbDeviceId() != null) {
             if (userSetting.isUsePushingAsStatus()) {
-                push.setGbStatus(0);
+                push.setGbStatus("OFF");
                 updateStatus(push);
 //                streamPushMapper.updatePushStatus(event.getApp(), event.getStream(), false);
 //                eventPublisher.catalogEventPublishForStream(null, gbStream, CatalogEvent.OFF);
@@ -511,7 +511,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         if (push.getGbDeviceId() != null) {
             return;
         }
-        if (push.getGbStatus() == 1) {
+        if ("ON".equalsIgnoreCase(push.getGbStatus())) {
             gbChannelService.online(push.getCommonGBChannel());
         }else {
             gbChannelService.offline(push.getCommonGBChannel());
@@ -525,7 +525,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         StreamPush streamPushInDb = streamPushMapper.select(streamPushId);
         streamPushInDb.setPushIng(pushIng);
         if (userSetting.isUsePushingAsStatus()) {
-            streamPushInDb.setGbStatus(pushIng?1:0);
+            streamPushInDb.setGbStatus(pushIng?"ON":"OFF");
         }
         streamPushInDb.setPushTime(DateUtil.getNow());
         updateStatus(streamPushInDb);

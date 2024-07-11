@@ -21,7 +21,7 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
-import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
+import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
 import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -579,5 +579,10 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     @Override
     public List<Device> queryDeviceWithAsMessageChannel() {
         return deviceMapper.queryDeviceWithAsMessageChannel();
+    }
+
+    @Override
+    public DeviceChannel getRawChannel(int id) {
+        return deviceMapper.getRawChannel(id);
     }
 }

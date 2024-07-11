@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.vmanager.gb28181.device;
+package com.genersoft.iot.vmp.gb28181.controller;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
@@ -116,15 +116,6 @@ public class DeviceQuery {
 
 	/**
 	 * 分页查询通道数
-	 *
-	 * @param deviceId 设备id
-	 * @param page 当前页
-	 * @param count 每页条数
-	 * @param query 查询内容
-	 * @param online 是否在线  在线 true / 离线 false
-	 * @param channelType 设备 false/子目录 true
-	 * @param catalogUnderDevice 是否直属与设备的目录
-	 * @return 通道列表
 	 */
 	@GetMapping("/devices/{deviceId}/channels")
 	@Operation(summary = "分页查询通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -148,8 +139,6 @@ public class DeviceQuery {
 
 	/**
 	 * 同步设备通道
-	 * @param deviceId 设备id
-	 * @return
 	 */
 	@Operation(summary = "同步设备通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
@@ -493,5 +482,12 @@ public class DeviceQuery {
 		} catch (IOException e) {
 			resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		}
+	}
+
+	@GetMapping("/channel/raw")
+	@Operation(summary = "国标通道编辑时的数据回显")
+	@Parameter(name = "id", description = "通道的Id", required = true)
+	public DeviceChannel getRawChannel(int id) {
+		return deviceChannelService.getRawChannel(id);
 	}
 }

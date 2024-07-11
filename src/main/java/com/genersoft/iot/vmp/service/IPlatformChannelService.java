@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.service;
 
-import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
+import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
 
 import java.util.List;
 

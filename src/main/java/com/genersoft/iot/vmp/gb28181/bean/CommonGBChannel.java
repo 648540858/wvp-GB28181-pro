@@ -82,7 +82,7 @@ public class CommonGBChannel {
     private String gbPassword;
 
     @Schema(description = "国标-设备状态")
-    private Integer gbStatus;
+    private String gbStatus;
 
     @Schema(description = "国标-经度 WGS-84坐标系")
     private Double gbLongitude;

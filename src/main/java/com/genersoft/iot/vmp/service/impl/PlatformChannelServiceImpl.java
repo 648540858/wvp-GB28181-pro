@@ -9,7 +9,7 @@ import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.ParentPlatformMapper;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformCatalogMapper;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
-import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
+import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;

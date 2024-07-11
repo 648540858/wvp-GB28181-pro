@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.vmanager.gb28181.sse;
+package com.genersoft.iot.vmp.gb28181.controller;
 
 import com.genersoft.iot.vmp.gb28181.event.alarm.AlarmEventListener;
 import io.swagger.v3.oas.annotations.tags.Tag;

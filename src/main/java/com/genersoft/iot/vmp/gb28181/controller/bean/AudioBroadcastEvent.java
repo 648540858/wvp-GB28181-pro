@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.vmanager.gb28181.play.bean;
+package com.genersoft.iot.vmp.gb28181.controller.bean;
 
 
 /**

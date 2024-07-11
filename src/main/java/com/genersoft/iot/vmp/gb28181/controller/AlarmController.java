@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.vmanager.gb28181.alarm;
+package com.genersoft.iot.vmp.gb28181.controller;
 
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;

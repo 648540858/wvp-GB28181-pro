@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.vmanager.gb28181.media;
+package com.genersoft.iot.vmp.gb28181.controller;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;

@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
-import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -231,5 +233,38 @@ public class GbChannelServiceImpl implements IGbChannelService {
     @Override
     public CommonGBChannel getOne(int id) {
         return commonGBChannelMapper.queryById(id);
+    }
+
+    @Override
+    public List<IndustryCodeType> getIndustryCodeList() {
+        IndustryCodeTypeEnum[] values = IndustryCodeTypeEnum.values();
+        List<IndustryCodeType> result = new ArrayList<>(values.length);
+        for (IndustryCodeTypeEnum value : values) {
+            result.add(IndustryCodeType.getInstance(value));
+        }
+        Collections.sort(result);
+        return result;
+    }
+
+    @Override
+    public List<DeviceType> getDeviceTypeList() {
+        DeviceTypeEnum[] values = DeviceTypeEnum.values();
+        List<DeviceType> result = new ArrayList<>(values.length);
+        for (DeviceTypeEnum value : values) {
+            result.add(DeviceType.getInstance(value));
+        }
+        Collections.sort(result);
+        return result;
+    }
+
+    @Override
+    public List<NetworkIdentificationType> getNetworkIdentificationTypeList() {
+        NetworkIdentificationTypeEnum[] values = NetworkIdentificationTypeEnum.values();
+        List<NetworkIdentificationType> result = new ArrayList<>(values.length);
+        for (NetworkIdentificationTypeEnum value : values) {
+            result.add(NetworkIdentificationType.getInstance(value));
+        }
+        Collections.sort(result);
+        return result;
     }
 }

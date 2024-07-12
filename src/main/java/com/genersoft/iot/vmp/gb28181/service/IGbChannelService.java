@@ -1,6 +1,9 @@
 package com.genersoft.iot.vmp.gb28181.service;
 
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceType;
+import com.genersoft.iot.vmp.gb28181.bean.IndustryCodeType;
+import com.genersoft.iot.vmp.gb28181.bean.NetworkIdentificationType;
 
 import java.util.List;
 
@@ -29,4 +32,10 @@ public interface IGbChannelService {
     List<CommonGBChannel> queryByPlatformId(Integer platformId);
 
     CommonGBChannel getOne(int id);
+
+    List<IndustryCodeType> getIndustryCodeList();
+
+    List<DeviceType> getDeviceTypeList();
+
+    List<NetworkIdentificationType> getNetworkIdentificationTypeList();
 }

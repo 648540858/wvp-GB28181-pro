@@ -1,191 +1,230 @@
 <template>
   <div id="ChannelEdit" v-loading="locading" style="width: 100%">
-    <el-form ref="passwordForm" status-icon label-width="160px" style="padding-top: 1rem">
-      <el-form-item label="名称" >
-        <el-input v-model="form.gbName" placeholder="请输入通道名称"></el-input>
-      </el-form-item>
-      <el-form-item label="编码" >
-        <el-input v-model="form.gbDeviceId" placeholder="请输入通道编码"></el-input>
-      </el-form-item>
-      <el-form-item label="设备厂商" >
-        <el-input v-model="form.gbManufacturer" placeholder="请输入设备厂商"></el-input>
-      </el-form-item>
-      <el-form-item label="设备型号" >
-        <el-input v-model="form.gbModel" placeholder="请输入设备型号"></el-input>
-      </el-form-item>
-      <el-form-item label="设备归属" >
-        <el-input v-model="form.gbOwner" placeholder="请输入设备归属"></el-input>
-      </el-form-item>
-      <el-form-item label="行政区域" >
-        <el-input v-model="form.gbCivilCode" placeholder="请输入行政区域"></el-input>
-      </el-form-item>
-      <el-form-item label="警区" >
-        <el-input v-model="form.gbBlock" placeholder="请输入警区"></el-input>
-      </el-form-item>
-      <el-form-item label="安装地址" >
-        <el-input v-model="form.gbAddress" placeholder="请输入安装地址"></el-input>
-      </el-form-item>
-      <el-form-item label="子设备" >
-        <el-select v-model="form.gbParental" style="width: 100%" placeholder="请选择是否有子设备">
-          <el-option label="有" :value="1"></el-option>
-          <el-option label="无" :value="0"></el-option>
-        </el-select>
-      </el-form-item>
-      <el-form-item label="父节点编码" >
-        <el-input v-model="form.gbParentId" placeholder="请输入父节点编码"></el-input>
-      </el-form-item>
-      <el-form-item label="信令安全模式" >
-        <el-select v-model="form.gbSafetyWay" style="width: 100%" placeholder="请选择信令安全模式">
-          <el-option label="不采用" :value="0"></el-option>
-          <el-option label="S/MIME签名" :value="2"></el-option>
-          <el-option label="S/MIME加密签名同时采用" :value="3"></el-option>
-          <el-option label="数字摘要" :value="4"></el-option>
-        </el-select>
-      </el-form-item>
-      <el-form-item label="注册方式" >
-        <el-select v-model="form.gbRegisterWay" style="width: 100%" placeholder="请选择注册方式">
-          <el-option label="IETFRFC3261标准" :value="1"></el-option>
-          <el-option label="基于口令的双向认证" :value="2"></el-option>
-          <el-option label="基于数字证书的双向认证注册" :value="3"></el-option>
-        </el-select>
-      </el-form-item>
-      <el-form-item label="证书序列号" >
-        <el-input type="number" v-model="form.gbCertNum" placeholder="请输入证书序列号"></el-input>
-      </el-form-item>
-      <el-form-item label="证书有效标识" >
-        <el-select v-model="form.gbCertifiable" style="width: 100%" placeholder="请选择证书有效标识">
-          <el-option label="有效" :value="1"></el-option>
-          <el-option label="无效" :value="0"></el-option>
-        </el-select>
-      </el-form-item>
-      <el-form-item label="无效原因码" >
-        <el-input type="errCode" v-model="form.gbCertNum" placeholder="请输入无效原因码"></el-input>
-      </el-form-item>
-      <el-form-item label="证书终止有效期" >
-        <el-date-picker
-          v-model="form.gbEndTime"
-          type="datetime"
-          placeholder="选择日期时间">
-        </el-date-picker>
-      </el-form-item>
-      <el-form-item label="保密属性" >
-        <el-select v-model="form.gbSecrecy" style="width: 100%" placeholder="请选择保密属性">
-          <el-option label="不涉密" :value="0"></el-option>
-          <el-option label="涉密" :value="1"></el-option>
-        </el-select>
-      </el-form-item>
-      <el-form-item label="IP地址" >
-        <el-input v-model="form.gbIpAddress" placeholder="请输入IP地址"></el-input>
-      </el-form-item>
-      <el-form-item label="端口" >
-        <el-input type="number" v-model="form.gbPort" placeholder="请输入端口"></el-input>
-      </el-form-item>
-      <el-form-item label="设备口令" >
-        <el-input v-model="form.gbPassword" placeholder="请输入设备口令"></el-input>
-      </el-form-item>
-      <el-form-item label="设备状态" >
-        <el-select v-model="form.gbStatus" style="width: 100%" placeholder="请选择设备状态">
-          <el-option label="在线" value="ON"></el-option>
-          <el-option label="离线" value="OFF"></el-option>
-        </el-select>
-      </el-form-item>
-      <el-form-item label="经度" >
-        <el-input v-model="form.gbLongitude" placeholder="请输入经度"></el-input>
-      </el-form-item>
-      <el-form-item label="纬度" >
-        <el-input v-model="form.gbLatitude" placeholder="请输入纬度"></el-input>
-      </el-form-item>
-      <el-form-item label="业务分组编号" >
-        <el-input v-model="form.gbBusinessGroupId" placeholder="请输入业务分组编号"></el-input>
-      </el-form-item>
-      <el-form-item label="云台类型" >
-        <el-select v-model="form.gbStatus" style="width: 100%" placeholder="请选择云台类型">
-          <el-option label="球机" :value="1"></el-option>
-          <el-option label="半球" :value="2"></el-option>
-          <el-option label="固定枪机" :value="3"></el-option>
-          <el-option label="遥控枪机" :value="4"></el-option>
-          <el-option label="遥控半球" :value="5"></el-option>
-          <el-option label="多目设备的全景/拼接通道" :value="6"></el-option>
-          <el-option label="多目设备的分割通道" :value="7"></el-option>
-        </el-select>
-      </el-form-item>
-      <el-form-item label="位置类型" >
-        <el-select v-model="form.gbPositionType" style="width: 100%" placeholder="请选择位置类型">
-          <el-option label="省际检查站" :value="1"></el-option>
-          <el-option label="党政机关" :value="2"></el-option>
-          <el-option label="车站码头" :value="3"></el-option>
-          <el-option label="中心广场" :value="4"></el-option>
-          <el-option label="体育场馆" :value="5"></el-option>
-          <el-option label="商业中心" :value="6"></el-option>
-          <el-option label="宗教场所" :value="7"></el-option>
-          <el-option label="校园周边" :value="8"></el-option>
-          <el-option label="治安复杂区域" :value="9"></el-option>
-          <el-option label="交通干线" :value="10"></el-option>
-        </el-select>
-      </el-form-item>
-      <el-form-item label="室外/室内" >
-        <el-select v-model="form.gbRoomType" style="width: 100%" placeholder="请选择位置类型">
-          <el-option label="室外" :value="1"></el-option>
-          <el-option label="室内" :value="2"></el-option>
-        </el-select>
-      </el-form-item>
-      <el-form-item label="用途" >
-        <el-select v-model="form.gbUseType" style="width: 100%" placeholder="请选择位置类型">
-          <el-option label="治安" :value="1"></el-option>
-          <el-option label="交通" :value="2"></el-option>
-          <el-option label="重点" :value="3"></el-option>
-        </el-select>
-      </el-form-item>
-      <el-form-item label="补光" >
-        <el-select v-model="form.gbUseType" style="width: 100%" placeholder="请选择位置类型">
-          <el-option label="无补光" :value="1"></el-option>
-          <el-option label="红外补光" :value="2"></el-option>
-          <el-option label="白光补光" :value="3"></el-option>
-          <el-option label="激光补光" :value="4"></el-option>
-          <el-option label="其他" :value="9"></el-option>
-        </el-select>
-      </el-form-item>
-      <el-form-item label="监视方位" >
-        <el-select v-model="form.gbUseType" style="width: 100%" placeholder="请选择位置类型">
-          <el-option label="东(西向东)" :value="1"></el-option>
-          <el-option label="西(东向西)" :value="2"></el-option>
-          <el-option label="南(北向南)" :value="3"></el-option>
-          <el-option label="北(南向北)" :value="4"></el-option>
-          <el-option label="东南(西北到东南)" :value="5"></el-option>
-          <el-option label="东北(西南到东北)" :value="6"></el-option>
-          <el-option label="西南(东北到西南)" :value="7"></el-option>
-          <el-option label="西北(东南到西北)" :value="8"></el-option>
-        </el-select>
-      </el-form-item>
-      <el-form-item label="分辨率" >
-        <el-input v-model="form.gbResolution" placeholder="请输入分辨率"></el-input>
-      </el-form-item>
-      <el-form-item label="下载倍速" >
-        <el-select v-model="form.gbDownloadSpeedArray" @change="test" multiple style="width: 100%" placeholder="请选择位置类型">
-          <el-option label="1倍速" value="1"></el-option>
-          <el-option label="2倍速" value="2"></el-option>
-          <el-option label="4倍速" value="4"></el-option>
-          <el-option label="8倍速" value="8"></el-option>
-          <el-option label="16倍速" value="16"></el-option>
-        </el-select>
-      </el-form-item>
-
-
-
-      <div style="float: right;">
-        <el-button type="primary" size="mini" @click="onSubmit">保存</el-button>
-        <el-button size="mini" @click="close">取消</el-button>
+    <div v-if="!form.gbId" class="page-header">
+      <div class="page-title">
+        <el-button icon="el-icon-back" size="mini" style="font-size: 20px; color: #000;" type="text" @click="showDevice" ></el-button>
+        <el-divider direction="vertical"></el-divider>
+        编辑通道
       </div>
+      <div class="page-header-btn">
+        <div style="display: inline;">
+          <el-button icon="el-icon-close" size="mini" style="font-size: 20px; color: #000;" type="text" @click="showDevice" ></el-button>
+        </div>
+      </div>
+    </div>
+    <el-form ref="passwordForm" status-icon label-width="160px" class="channel-form">
+      <div class="form-box">
+        <el-form-item label="名称" >
+          <el-input v-model="form.gbName" placeholder="请输入通道名称"></el-input>
+        </el-form-item>
+        <el-form-item label="编码" >
+          <el-input v-model="form.gbDeviceId" placeholder="请输入通道编码">
+            <el-button slot="append" @click="buildDeviceIdCode">生成</el-button>
+          </el-input>
+        </el-form-item>
+        <el-form-item label="设备厂商" >
+          <el-input v-model="form.gbManufacturer" placeholder="请输入设备厂商"></el-input>
+        </el-form-item>
+        <el-form-item label="设备型号" >
+          <el-input v-model="form.gbModel" placeholder="请输入设备型号"></el-input>
+        </el-form-item>
+
+        <el-form-item label="行政区域" >
+          <el-input v-model="form.gbCivilCode" placeholder="请输入行政区域"></el-input>
+        </el-form-item>
+
+        <el-form-item label="安装地址" >
+          <el-input v-model="form.gbAddress" placeholder="请输入安装地址"></el-input>
+        </el-form-item>
+        <el-form-item label="子设备" >
+          <el-select v-model="form.gbParental" style="width: 100%" placeholder="请选择是否有子设备">
+            <el-option label="有" :value="1"></el-option>
+            <el-option label="无" :value="0"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="父节点编码" >
+          <el-input v-model="form.gbParentId" placeholder="请输入父节点编码"></el-input>
+        </el-form-item>
+        <el-form-item label="设备状态" >
+          <el-select v-model="form.gbStatus" style="width: 100%" placeholder="请选择设备状态">
+            <el-option label="在线" value="ON"></el-option>
+            <el-option label="离线" value="OFF"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="经度" >
+          <el-input v-model="form.gbLongitude" placeholder="请输入经度"></el-input>
+        </el-form-item>
+        <el-form-item label="纬度" >
+          <el-input v-model="form.gbLatitude" placeholder="请输入纬度"></el-input>
+        </el-form-item>
+        <el-form-item label="云台类型" >
+          <el-select v-model="form.gbPtzType" style="width: 100%" placeholder="请选择云台类型">
+            <el-option label="球机" :value="1"></el-option>
+            <el-option label="半球" :value="2"></el-option>
+            <el-option label="固定枪机" :value="3"></el-option>
+            <el-option label="遥控枪机" :value="4"></el-option>
+            <el-option label="遥控半球" :value="5"></el-option>
+            <el-option label="多目设备的全景/拼接通道" :value="6"></el-option>
+            <el-option label="多目设备的分割通道" :value="7"></el-option>
+          </el-select>
+        </el-form-item>
+      </div>
+      <div>
+        <el-form-item label="警区" >
+          <el-input v-model="form.gbBlock" placeholder="请输入警区"></el-input>
+        </el-form-item>
+        <el-form-item label="设备归属" >
+          <el-input v-model="form.gbOwner" placeholder="请输入设备归属"></el-input>
+        </el-form-item>
+        <el-form-item label="信令安全模式" >
+          <el-select v-model="form.gbSafetyWay" style="width: 100%" placeholder="请选择信令安全模式">
+            <el-option label="不采用" :value="0"></el-option>
+            <el-option label="S/MIME签名" :value="2"></el-option>
+            <el-option label="S/MIME加密签名同时采用" :value="3"></el-option>
+            <el-option label="数字摘要" :value="4"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="注册方式" >
+          <el-select v-model="form.gbRegisterWay" style="width: 100%" placeholder="请选择注册方式">
+            <el-option label="IETFRFC3261标准" :value="1"></el-option>
+            <el-option label="基于口令的双向认证" :value="2"></el-option>
+            <el-option label="基于数字证书的双向认证注册" :value="3"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="证书序列号" >
+          <el-input type="number" v-model="form.gbCertNum" placeholder="请输入证书序列号"></el-input>
+        </el-form-item>
+        <el-form-item label="证书有效标识" >
+          <el-select v-model="form.gbCertifiable" style="width: 100%" placeholder="请选择证书有效标识">
+            <el-option label="有效" :value="1"></el-option>
+            <el-option label="无效" :value="0"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="无效原因码" >
+          <el-input type="errCode" v-model="form.gbCertNum" placeholder="请输入无效原因码"></el-input>
+        </el-form-item>
+        <el-form-item label="证书终止有效期" >
+          <el-date-picker
+            v-model="form.gbEndTime"
+            type="datetime"
+            placeholder="选择日期时间"
+            style="width: 100%">
+          </el-date-picker>
+        </el-form-item>
+        <el-form-item label="保密属性" >
+          <el-select v-model="form.gbSecrecy" style="width: 100%" placeholder="请选择保密属性">
+            <el-option label="不涉密" :value="0"></el-option>
+            <el-option label="涉密" :value="1"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="IP地址" >
+          <el-input v-model="form.gbIpAddress" placeholder="请输入IP地址"></el-input>
+        </el-form-item>
+        <el-form-item label="端口" >
+          <el-input type="number" v-model="form.gbPort" placeholder="请输入端口"></el-input>
+        </el-form-item>
+        <el-form-item label="设备口令" >
+          <el-input v-model="form.gbPassword" placeholder="请输入设备口令"></el-input>
+        </el-form-item>
+      </div>
+      <div>
+        <el-form-item label="业务分组编号" >
+          <el-input v-model="form.gbBusinessGroupId" placeholder="请输入业务分组编号"></el-input>
+        </el-form-item>
+        <el-form-item label="位置类型" >
+          <el-select v-model="form.gbPositionType" style="width: 100%" placeholder="请选择位置类型">
+            <el-option label="省际检查站" :value="1"></el-option>
+            <el-option label="党政机关" :value="2"></el-option>
+            <el-option label="车站码头" :value="3"></el-option>
+            <el-option label="中心广场" :value="4"></el-option>
+            <el-option label="体育场馆" :value="5"></el-option>
+            <el-option label="商业中心" :value="6"></el-option>
+            <el-option label="宗教场所" :value="7"></el-option>
+            <el-option label="校园周边" :value="8"></el-option>
+            <el-option label="治安复杂区域" :value="9"></el-option>
+            <el-option label="交通干线" :value="10"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="室外/室内" >
+          <el-select v-model="form.gbRoomType" style="width: 100%" placeholder="请选择位置类型">
+            <el-option label="室外" :value="1"></el-option>
+            <el-option label="室内" :value="2"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="用途" >
+          <el-select v-model="form.gbUseType" style="width: 100%" placeholder="请选择位置类型">
+            <el-option label="治安" :value="1"></el-option>
+            <el-option label="交通" :value="2"></el-option>
+            <el-option label="重点" :value="3"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="补光" >
+          <el-select v-model="form.gbUseType" style="width: 100%" placeholder="请选择位置类型">
+            <el-option label="无补光" :value="1"></el-option>
+            <el-option label="红外补光" :value="2"></el-option>
+            <el-option label="白光补光" :value="3"></el-option>
+            <el-option label="激光补光" :value="4"></el-option>
+            <el-option label="其他" :value="9"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="监视方位" >
+          <el-select v-model="form.gbUseType" style="width: 100%" placeholder="请选择位置类型">
+            <el-option label="东(西向东)" :value="1"></el-option>
+            <el-option label="西(东向西)" :value="2"></el-option>
+            <el-option label="南(北向南)" :value="3"></el-option>
+            <el-option label="北(南向北)" :value="4"></el-option>
+            <el-option label="东南(西北到东南)" :value="5"></el-option>
+            <el-option label="东北(西南到东北)" :value="6"></el-option>
+            <el-option label="西南(东北到西南)" :value="7"></el-option>
+            <el-option label="西北(东南到西北)" :value="8"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="分辨率" >
+          <el-input v-model="form.gbResolution" placeholder="请输入分辨率"></el-input>
+        </el-form-item>
+        <el-form-item label="下载倍速" >
+          <el-select v-model="form.gbDownloadSpeedArray" multiple style="width: 100%" placeholder="请选择位置类型">
+            <el-option label="1倍速" value="1"></el-option>
+            <el-option label="2倍速" value="2"></el-option>
+            <el-option label="4倍速" value="4"></el-option>
+            <el-option label="8倍速" value="8"></el-option>
+            <el-option label="16倍速" value="16"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="空域编码能力" >
+          <el-select v-model="form.gbSvcSpaceSupportMod" style="width: 100%" placeholder="请选择空域编码能力">
+            <el-option label="1级增强" value="1"></el-option>
+            <el-option label="2级增强" value="2"></el-option>
+            <el-option label="3级增强" value="3"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="时域编码能力" >
+          <el-select v-model="form.gbSvcTimeSupportMode" style="width: 100%" placeholder="请选择空域编码能力">
+            <el-option label="1级增强" value="1"></el-option>
+            <el-option label="2级增强" value="2"></el-option>
+            <el-option label="3级增强" value="3"></el-option>
+          </el-select>
+        </el-form-item>
+        <div style="float: right;">
+          <el-button type="primary" @click="onSubmit">保存</el-button>
+          <el-button @click="close">取消</el-button>
+        </div>
+      </div>
+
     </el-form>
+    <ChannelCode ref="channelCode"></ChannelCode>
   </div>
 </template>
 
 <script>
+import ChannelCode from './dialog/ChannelCode.vue'
 
 export default {
   name: "channelEdit",
   props: [ 'id',],
-  computed: {},
+  components: {
+    ChannelCode,
+  },
   created() {
     // 获取完整信息
     this.getCommonChannel()
@@ -201,6 +240,9 @@ export default {
 
     },
     close: function () {
+
+    },
+    showDevice: function () {
 
     },
     test: function () {
@@ -224,6 +266,11 @@ export default {
         this.locading = false
       ])
     },
+    buildDeviceIdCode: function (){
+      this.$refs.channelCode.openDialog(code=>{
+        this.form.gbDeviceId = code;
+      });
+    }
     // getDeviceChannel:function (callback) {
     //   this.$axios({
     //     method: 'get',
@@ -246,3 +293,12 @@ export default {
   },
 };
 </script>
+<style>
+.channel-form {
+  display: grid;
+  background-color: #FFFFFF;
+  padding: 1rem 2rem 0 2rem;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+</style>

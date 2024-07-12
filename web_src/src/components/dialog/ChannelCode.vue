@@ -9,7 +9,7 @@
       :destroy-on-close="true"
       @close="closeModel()"
     >
-      <el-tabs v-model="activeKey" centered  style="padding: 0 1rem">
+      <el-tabs v-model="activeKey" centered style="padding: 0 1rem">
         <el-tab-pane name="0" >
           <div slot="label">
             <div class="show-code-item">{{ allVal[0].val }}</div>
@@ -123,7 +123,7 @@ export default {
   props: {},
   computed: {},
   created() {
-    this.getRegionList()
+    // this.getRegionList()
   },
   data() {
     return {

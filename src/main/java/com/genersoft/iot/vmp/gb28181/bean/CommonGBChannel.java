@@ -211,6 +211,14 @@ public class CommonGBChannel {
     @Schema(description = "关联的拉流代理Id（流来源是拉流代理时有效）")
     private Integer streamProxyId;
 
+    @Schema(description = "创建时间")
+    private String createTime;
+
+    @Schema(description = "更新时间")
+    private String updateTime;
+
+
+
     public String encode(){
         return encode(null);
     }

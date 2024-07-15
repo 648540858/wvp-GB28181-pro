@@ -38,4 +38,6 @@ public interface IGbChannelService {
     List<DeviceType> getDeviceTypeList();
 
     List<NetworkIdentificationType> getNetworkIdentificationTypeList();
+
+    void reset(int id);
 }

@@ -1,10 +1,13 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
+import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -51,6 +54,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Override
     public int update(CommonGBChannel commonGBChannel) {
+        log.warn("[更新通道] 通道ID: {}, ", commonGBChannel.getGbId());
         if (commonGBChannel.getGbId() <= 0) {
             log.warn("[更新通道] 未找到数据库ID，更新失败， {}", commonGBChannel.getGbDeviceDbId());
             return 0;
@@ -266,5 +270,21 @@ public class GbChannelServiceImpl implements IGbChannelService {
         }
         Collections.sort(result);
         return result;
+    }
+
+    @Override
+    public void reset(int id) {
+        log.info("[重置国标通道] id: {}", id);
+        CommonGBChannel channel = getOne(id);
+        if (channel == null ) {
+            log.warn("[重置国标通道] 未找到对应Id的通道: id: {}", id);
+            throw new ControllerException(ErrorCode.ERROR400);
+        }
+        if (channel.getGbDeviceDbId() <= 0) {
+            log.warn("[重置国标通道] 非国标下级通道无法重置: id: {}", id);
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "非国标下级通道无法重置");
+        }
+        // 这个多加一个参数,为了防止将非国标的通道通过此方法清空内容,导致意外发生
+        commonGBChannelMapper.reset(id, channel.getGbDeviceDbId(), DateUtil.getNow());
     }
 }

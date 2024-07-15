@@ -171,12 +171,6 @@ public class DeviceChannel extends CommonGBChannel {
 	@Schema(description = "云台类型描述字符串")
 	private String ptzTypeText;
 
-	@Schema(description = "创建时间")
-	private String createTime;
-
-	@Schema(description = "更新时间")
-	private String updateTime;
-
 	@Schema(description = "子设备数")
 	private int subCount;
 

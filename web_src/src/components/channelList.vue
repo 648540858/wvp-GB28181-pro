@@ -161,7 +161,7 @@
         </el-pagination>
       </el-main>
     </el-container>
-    <channel-edit v-if="editId" :id="editId"></channel-edit>
+    <channel-edit v-if="editId" :id="editId" :closeEdit="closeEdit"></channel-edit>
     <!--设备列表-->
 
   </div>
@@ -549,7 +549,13 @@ export default {
     // 编辑
     handleEdit(row) {
       this.editId = row.id
+    },
+    // 结束编辑
+    closeEdit: function (){
+      this.editId = null
+      this.getDeviceChannelList()
     }
+
   }
 };
 </script>

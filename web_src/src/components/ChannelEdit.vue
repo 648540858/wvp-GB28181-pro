@@ -1,14 +1,14 @@
 <template>
   <div id="ChannelEdit" v-loading="locading" style="width: 100%">
-    <div v-if="!form.gbId" class="page-header">
+    <div v-if="form.gbId" class="page-header">
       <div class="page-title">
-        <el-button icon="el-icon-back" size="mini" style="font-size: 20px; color: #000;" type="text" @click="showDevice" ></el-button>
+        <el-button icon="el-icon-back" size="mini" style="font-size: 20px; color: #000;" type="text" @click="close" ></el-button>
         <el-divider direction="vertical"></el-divider>
         编辑通道
       </div>
       <div class="page-header-btn">
         <div style="display: inline;">
-          <el-button icon="el-icon-close" size="mini" style="font-size: 20px; color: #000;" type="text" @click="showDevice" ></el-button>
+          <el-button icon="el-icon-close" size="mini" style="font-size: 20px; color: #000;" type="text" @click="close" ></el-button>
         </div>
       </div>
     </div>
@@ -208,6 +208,7 @@
         <div style="float: right;">
           <el-button type="primary" @click="onSubmit">保存</el-button>
           <el-button @click="close">取消</el-button>
+          <el-button v-if="form.gbDeviceDbId" @click="reset">重置</el-button>
         </div>
       </div>
 
@@ -221,7 +222,7 @@ import channelCode from './dialog/channelCode'
 
 export default {
   name: "channelEdit",
-  props: [ 'id',],
+  props: [ 'id', 'closeEdit'],
   components: {
     channelCode,
   },
@@ -237,12 +238,51 @@ export default {
   },
   methods: {
     onSubmit: function () {
-
+      this.form.gbDownloadSpeed = this.form.gbDownloadSpeedArray.join("/")
+      this.$axios({
+        method: 'post',
+        url: "/api/common/channel/update",
+        data: this.form
+      }).then((res) => {
+        if (res.data.code === 0) {
+          this.$message.success("保存成功");
+          this.close()
+        }
+      }).catch((error) => {
+        console.error(error)
+      }).finally(()=>[
+        this.locading = false
+      ])
     },
     close: function () {
-
+      this.closeEdit()
     },
-    showDevice: function () {
+    reset: function () {
+      this.$confirm("确定重置为默认内容?", '提示', {
+        dangerouslyUseHTMLString: true,
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$axios({
+          method: 'post',
+          url: "/api/common/channel/reset",
+          params: {
+            id: this.form.gbId
+          }
+        }).then((res) => {
+          if (res.data.code === 0) {
+            this.$message.success("重置成功 已保存");
+            this.getCommonChannel()
+          }
+        }).catch((error) => {
+          console.error(error)
+        }).finally(()=>[
+          this.locading = false
+        ])
+      }).catch(() => {
+
+      });
 
     },
     test: function () {

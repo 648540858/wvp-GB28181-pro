@@ -155,17 +155,11 @@ public interface CommonGBChannelMapper {
 
     @Select(" select\n" +
             "    id as gb_id,\n" +
-            "    device_db_id,\n" +
+            "    device_db_id as gb_device_db_id,\n" +
             "    stream_push_id,\n" +
             "    stream_proxy_id,\n" +
             "    create_time,\n" +
             "    update_time,\n" +
-            "    sub_count,\n" +
-            "    stream_id,\n" +
-            "    has_audio,\n" +
-            "    gps_time,\n" +
-            "    stream_identification,\n" +
-            "    device_db_id as gb_device_db_id,\n" +
             "    coalesce(gb_device_id, device_id) as gb_device_id,\n" +
             "    coalesce(gb_name, name) as gb_name,\n" +
             "    coalesce(gb_manufacturer, manufacturer) as gb_manufacturer,\n" +
@@ -210,20 +204,6 @@ public interface CommonGBChannelMapper {
     @Update(value = {" <script>" +
             "UPDATE wvp_device_channel " +
             "SET update_time=#{updateTime}" +
-            "<if test='streamPushId != null'>, stream_push_id  = #{streamPushId}</if>" +
-            "<if test='streamPushId  == null'>, stream_push_id = null</if>" +
-            "<if test='streamProxyId != null'>,  stream_proxy_id = #{streamProxyId}</if>" +
-            "<if test='streamProxyId  == null'>, stream_proxy_id = null</if>" +
-            "<if test='subCount != null'>,  sub_count = #{subCount}</if>" +
-            "<if test='subCount  == null'>, sub_count = null</if>" +
-            "<if test='streamId != null'>,  stream_id = #{streamId}</if>" +
-            "<if test='streamId  == null'>, stream_id = null</if>" +
-            "<if test='hasAudio != null'>,  has_audio = #{hasAudio}</if>" +
-            "<if test='hasAudio  == null'>, has_audio = null</if>" +
-            "<if test='gpsTime != null'>,  gps_time = #{gpsTime}</if>" +
-            "<if test='gpsTime  == null'>, gps_time = null</if>" +
-            "<if test='streamIdentification != null'>,  stream_identification = #{streamIdentification}</if>" +
-            "<if test='streamIdentification  == null'>, stream_identification = null</if>" +
             "<if test='gbDeviceId != null'>, gb_device_id = #{gbDeviceId}</if>" +
             "<if test='gbDeviceId  == null'>, gb_device_id = null</if>" +
             "<if test='gbName != null'>,  gb_name = #{gbName}</if>" +
@@ -234,8 +214,8 @@ public interface CommonGBChannelMapper {
             "<if test='gbModel  == null'>,   gb_model = null</if>" +
             "<if test='gbOwner != null' >, gb_owner = #{gbOwner}</if>" +
             "<if test='gbOwner  == null'>, gb_owner = null</if>" +
-            "<if test='gbCivilCode, != null' >, gb_civil_code = #{gbCivilCode}</if>" +
-            "<if test='gbCivilCode,  == null'>, gb_civil_code = null</if>" +
+            "<if test='gbCivilCode != null' >, gb_civil_code = #{gbCivilCode}</if>" +
+            "<if test='gbCivilCode == null'>, gb_civil_code = null</if>" +
             "<if test='gbBlock != null' >, gb_block = #{gbBlock}</if>" +
             "<if test='gbBlock  == null'>, gb_block = null</if>" +
             "<if test='gbAddress != null' >, gb_address = #{gbAddress}</if>" +
@@ -476,4 +456,21 @@ public interface CommonGBChannelMapper {
             "from wvp_device_channel wdc left join wvp_platform_gb_channel wpgc on wdc.id = wpgc.device_channel_id\n" +
             "where wpgc.platform_id = #{platformId}"})
     List<CommonGBChannel> queryByPlatformId(@Param("platformId") Integer platformId);
+
+
+    @Update(value = {" <script>" +
+            " UPDATE wvp_device_channel " +
+            " SET update_time=#{updateTime}, gb_device_id = null, gb_name = null, gb_manufacturer = null," +
+            " gb_model = null, gb_owner = null, gb_civil_code = null, gb_block = null, gb_address = null," +
+            " gb_parental = null, gb_parent_id = null, gb_safety_way = null, gb_register_way = null, gb_cert_num = null," +
+            " gb_certifiable = null, gb_err_code = null, gb_end_time = null, gb_secrecy = null, gb_ip_address = null, " +
+            " gb_port = null, gb_password = null, gb_status = null, gb_longitude = null, gb_latitude = null, " +
+            " gb_ptz_type = null, gb_position_type = null, gb_room_type = null, gb_use_type = null, gb_supply_light_type = null, " +
+            " gb_direction_type = null, gb_resolution = null, gb_business_group_id = null, gb_download_speed = null, gb_svc_space_support_mod = null, " +
+            " gb_direction_type = null, gb_resolution = null, gb_business_group_id = null, gb_download_speed = null, gb_svc_space_support_mod = null, " +
+            " gb_svc_time_support_mode = null" +
+            " WHERE id = #{id} and device_db_id = #{gbDeviceDbId}"+
+            " </script>"})
+    void reset(@Param("id") int id, @Param("gbDeviceDbId") int gbDeviceDbId, @Param("updateTime") String updateTime);
+
 }

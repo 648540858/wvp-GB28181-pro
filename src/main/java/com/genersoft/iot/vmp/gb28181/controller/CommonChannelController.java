@@ -15,9 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -65,5 +63,19 @@ public class CommonChannelController {
     @GetMapping("/network/identification/list")
     public List<NetworkIdentificationType> getNetworkIdentificationTypeList(){
         return channelService.getNetworkIdentificationTypeList();
+    }
+
+    @Operation(summary = "更新通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @ResponseBody
+    @PostMapping("/update")
+    public void update(@RequestBody CommonGBChannel channel){
+        channelService.update(channel);
+    }
+
+    @Operation(summary = "重置国标通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @ResponseBody
+    @PostMapping("/reset")
+    public void reset(Integer id){
+        channelService.reset(id);
     }
 }

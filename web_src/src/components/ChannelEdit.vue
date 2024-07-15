@@ -19,7 +19,7 @@
         </el-form-item>
         <el-form-item label="编码" >
           <el-input v-model="form.gbDeviceId" placeholder="请输入通道编码">
-            <el-button slot="append" @click="buildDeviceIdCode">生成</el-button>
+            <el-button slot="append" @click="buildDeviceIdCode(form.gbDeviceId)">生成</el-button>
           </el-input>
         </el-form-item>
         <el-form-item label="设备厂商" >
@@ -212,18 +212,18 @@
       </div>
 
     </el-form>
-    <ChannelCode ref="channelCode"></ChannelCode>
+    <channelCode ref="channelCode"></channelCode>
   </div>
 </template>
 
 <script>
-import ChannelCode from './dialog/ChannelCode.vue'
+import channelCode from './dialog/channelCode'
 
 export default {
   name: "channelEdit",
   props: [ 'id',],
   components: {
-    ChannelCode,
+    channelCode,
   },
   created() {
     // 获取完整信息
@@ -266,10 +266,10 @@ export default {
         this.locading = false
       ])
     },
-    buildDeviceIdCode: function (){
+    buildDeviceIdCode: function (gbDeviceId){
       this.$refs.channelCode.openDialog(code=>{
         this.form.gbDeviceId = code;
-      });
+      }, gbDeviceId);
     }
     // getDeviceChannel:function (callback) {
     //   this.$axios({

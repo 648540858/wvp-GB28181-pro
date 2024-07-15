@@ -87,7 +87,7 @@ public class CommonGBChannel {
     @Schema(description = "国标-经度 WGS-84坐标系")
     private Double gbLongitude;
 
-    @Schema(description = "国标-,纬度 WGS-84坐标系")
+    @Schema(description = "国标-纬度 WGS-84坐标系")
     private Double gbLatitude;
 
     @Schema(description = "国标-虚拟组织所属的业务分组ID")

@@ -81,21 +81,21 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
     public void invoke(StreamPushExcelDto streamPushExcelDto, AnalysisContext analysisContext) {
         if (ObjectUtils.isEmpty(streamPushExcelDto.getApp())
                 || ObjectUtils.isEmpty(streamPushExcelDto.getStream())
-                || ObjectUtils.isEmpty(streamPushExcelDto.getGbId())) {
+                || ObjectUtils.isEmpty(streamPushExcelDto.getGbDeviceId())) {
             return;
         }
         Integer rowIndex = analysisContext.readRowHolder().getRowIndex();
 
         if (gBMap.get(streamPushExcelDto.getApp() + streamPushExcelDto.getStream()) == null) {
             try {
-                gBMap.put(streamPushExcelDto.getApp() + streamPushExcelDto.getStream(), streamPushExcelDto.getGbId());
+                gBMap.put(streamPushExcelDto.getApp() + streamPushExcelDto.getStream(), streamPushExcelDto.getGbDeviceId());
             }catch (IllegalArgumentException e) {
-                errorInfoList.add("行：" + rowIndex + ", " + streamPushExcelDto.getGbId() + " 国标ID重复使用");
+                errorInfoList.add("行：" + rowIndex + ", " + streamPushExcelDto.getGbDeviceId() + " 国标ID重复使用");
                 return;
             }
         }else {
-            if (!gBMap.get(streamPushExcelDto.getApp() + streamPushExcelDto.getStream()).equals(streamPushExcelDto.getGbId())) {
-                errorInfoList.add("行：" + rowIndex + ", " + streamPushExcelDto.getGbId() + " 同样的应用名和流ID使用了不同的国标ID");
+            if (!gBMap.get(streamPushExcelDto.getApp() + streamPushExcelDto.getStream()).equals(streamPushExcelDto.getGbDeviceId())) {
+                errorInfoList.add("行：" + rowIndex + ", " + streamPushExcelDto.getGbDeviceId() + " 同样的应用名和流ID使用了不同的国标ID");
                 return;
             }
         }
@@ -103,7 +103,7 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
         StreamPush streamPush = new StreamPush();
         streamPush.setApp(streamPushExcelDto.getApp());
         streamPush.setStream(streamPushExcelDto.getStream());
-        streamPush.setGbDeviceId(streamPushExcelDto.getGbId());
+        streamPush.setGbDeviceId(streamPushExcelDto.getGbDeviceId());
         streamPush.setGbStatus(streamPushExcelDto.isStatus()?"ON":"OFF");
         streamPush.setCreateTime(DateUtil.getNow());
         streamPush.setMediaServerId(defaultMediaServerId);

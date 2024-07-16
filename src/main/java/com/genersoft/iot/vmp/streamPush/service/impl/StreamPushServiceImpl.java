@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
@@ -21,6 +22,7 @@ import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.streamPush.dao.StreamPushMapper;
 import com.genersoft.iot.vmp.streamPush.service.IStreamPushService;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.github.pagehelper.PageHelper;
@@ -205,6 +207,10 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Transactional
     public boolean add(StreamPush stream) {
         log.info("[添加推流] app: {}, stream: {}, 国标编号: {}", stream.getApp(), stream.getStream(), stream.getGbDeviceId());
+        StreamPush streamPushInDb = streamPushMapper.selectByAppAndStream(stream.getApp(), stream.getStream());
+        if (streamPushInDb != null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "应用名+流ID已存在");
+        }
         stream.setUpdateTime(DateUtil.getNow());
         stream.setCreateTime(DateUtil.getNow());
         int addResult = streamPushMapper.add(stream);
@@ -218,7 +224,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         if (channel != null) {
             log.info("[添加推流]失败，国标编号已存在: {} app: {}, stream: {}, ", stream.getGbDeviceId(), stream.getApp(), stream.getStream());
         }
-        int addChannelResult = gbChannelService.add(stream.getCommonGBChannel());
+        int addChannelResult = gbChannelService.add(stream.buildCommonGBChannel());
         return addChannelResult > 0;
     }
 
@@ -243,10 +249,18 @@ public class StreamPushServiceImpl implements IStreamPushService {
     public boolean update(StreamPush streamPush) {
         log.info("[更新推流]：id: {}, app: {}, stream: {}, ", streamPush.getId(), streamPush.getApp(), streamPush.getStream());
         assert streamPush.getId() != null;
+        StreamPush streamPushInDb = streamPushMapper.select(streamPush.getId());
+        if (!streamPushInDb.getApp().equals(streamPush.getApp()) || !streamPushInDb.getStream().equals(streamPush.getStream())) {
+            // app或者stream变化
+            StreamPush streamPushInDbForAppAndStream = streamPushMapper.selectByAppAndStream(streamPush.getApp(), streamPush.getStream());
+            if (streamPushInDbForAppAndStream != null && !streamPushInDbForAppAndStream.getId().equals(streamPush.getId())) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "应用名+流ID已存在");
+            }
+        }
         streamPush.setUpdateTime(DateUtil.getNow());
         streamPushMapper.update(streamPush);
         if (streamPush.getGbId() > 0) {
-            gbChannelService.update(streamPush.getCommonGBChannel());
+            gbChannelService.update(streamPush.buildCommonGBChannel());
         }
         return true;
     }
@@ -282,7 +296,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         }
         streamPush.setPushIng(false);
         if (userSetting.isUsePushingAsStatus()) {
-            gbChannelService.offline(streamPush.getCommonGBChannel());
+            gbChannelService.offline(streamPush.buildCommonGBChannel());
         }
         redisCatchStorage.deleteSendRTPServer(null, streamPush.getGbDeviceId(), null, streamPush.getStream());
         mediaServerService.stopSendRtp(mediaServer, streamPush.getApp(), streamPush.getStream(), null);
@@ -440,8 +454,8 @@ public class StreamPushServiceImpl implements IStreamPushService {
         streamPushMapper.addAll(streamPushItems);
         List<CommonGBChannel> commonGBChannels = new ArrayList<>();
         for (StreamPush streamPush : streamPushItems) {
-            if (ObjectUtils.isEmpty(streamPush.getGbDeviceId())) {
-                commonGBChannels.add(streamPush.getCommonGBChannel());
+            if (!ObjectUtils.isEmpty(streamPush.getGbDeviceId())) {
+                commonGBChannels.add(streamPush.buildCommonGBChannel());
             }
         }
         gbChannelService.batchAdd(commonGBChannels);
@@ -449,13 +463,13 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Override
     public void allOffline() {
-        List<StreamPush> onlinePushers = streamPushMapper.getOnlinePusherForGb();
-        if (onlinePushers.isEmpty()) {
+        List<StreamPush> streamPushList = streamPushMapper.selectAllForList(null, null, null);
+        if (streamPushList.isEmpty()) {
             return;
         }
         List<CommonGBChannel> commonGBChannelList = new ArrayList<>();
-        for (StreamPush onlinePusher : onlinePushers) {
-            commonGBChannelList.add(onlinePusher.getCommonGBChannel());
+        for (StreamPush streamPush : streamPushList) {
+            commonGBChannelList.add(streamPush.buildCommonGBChannel());
         }
         gbChannelService.offline(commonGBChannelList);
     }
@@ -463,10 +477,10 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Override
     public void offline(List<StreamPushItemFromRedis> offlineStreams) {
         // 更新部分设备离线
-        List<StreamPush> onlinePushers = streamPushMapper.getOnlinePusherForGbInList(offlineStreams);
+        List<StreamPush> streamPushList = streamPushMapper.getListFromRedis(offlineStreams);
         List<CommonGBChannel> commonGBChannelList = new ArrayList<>();
-        for (StreamPush onlinePusher : onlinePushers) {
-            commonGBChannelList.add(onlinePusher.getCommonGBChannel());
+        for (StreamPush onlinePusher : streamPushList) {
+            commonGBChannelList.add(onlinePusher.buildCommonGBChannel());
         }
         gbChannelService.offline(commonGBChannelList);
     }
@@ -474,10 +488,10 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Override
     public void online(List<StreamPushItemFromRedis> onlineStreams) {
         // 更新部分设备上线streamPushService
-        List<StreamPush> offlinePushers = streamPushMapper.getOfflinePusherForGbInList(onlineStreams);
+        List<StreamPush> streamPushList = streamPushMapper.getListFromRedis(onlineStreams);
         List<CommonGBChannel> commonGBChannelList = new ArrayList<>();
-        for (StreamPush onlinePusher : offlinePushers) {
-            commonGBChannelList.add(onlinePusher.getCommonGBChannel());
+        for (StreamPush onlinePusher : streamPushList) {
+            commonGBChannelList.add(onlinePusher.buildCommonGBChannel());
         }
         gbChannelService.online(commonGBChannelList);
     }
@@ -491,7 +505,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Override
     public ResourceBaseInfo getOverview() {
         int total = streamPushMapper.getAllCount();
-        int online = streamPushMapper.getAllOnline(userSetting.isUsePushingAsStatus());
+        int online = streamPushMapper.getAllPushing(userSetting.isUsePushingAsStatus());
 
         return new ResourceBaseInfo(total, online);
     }
@@ -512,9 +526,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
             return;
         }
         if ("ON".equalsIgnoreCase(push.getGbStatus())) {
-            gbChannelService.online(push.getCommonGBChannel());
+            gbChannelService.online(push.buildCommonGBChannel());
         }else {
-            gbChannelService.offline(push.getCommonGBChannel());
+            gbChannelService.offline(push.buildCommonGBChannel());
         }
     }
 
@@ -555,5 +569,39 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Override
     public void batchUpdate(List<StreamPush> streamPushItemForUpdate) {
 
+    }
+
+    @Override
+    @Transactional
+    public int delete(int id) {
+        StreamPush streamPush = streamPushMapper.select(id);
+        if (streamPush == null) {
+            return 0;
+        }
+        if(streamPush.isPushIng()) {
+            MediaServer mediaServer = mediaServerService.getOne(streamPush.getMediaServerId());
+            mediaServerService.closeStreams(mediaServer, streamPush.getApp(), streamPush.getStream());
+        }
+        if (streamPush.getGbDeviceId() != null) {
+            gbChannelService.delete(streamPush.getGbId());
+        }
+        return streamPushMapper.del(id);
+    }
+
+    @Override
+    @Transactional
+    public void batchRemove(Set<Integer> ids) {
+        List<StreamPush> streamPushList = streamPushMapper.selectInSet(ids);
+        if (streamPushList.isEmpty()) {
+            return;
+        }
+        List<CommonGBChannel> commonGBChannelList = new ArrayList<>();
+        streamPushList.stream().forEach(streamPush -> {
+            if (streamPush.getGbDeviceId() != null) {
+                commonGBChannelList.add(streamPush.buildCommonGBChannel());
+            }
+        });
+        streamPushMapper.batchDel(streamPushList);
+        gbChannelService.delete(commonGBChannelList);
     }
 }

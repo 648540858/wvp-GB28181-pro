@@ -15,7 +15,7 @@
           <div style="text-align: center">{{ allVal[0].meaning }}</div>
         </div>
         <el-radio-group v-model="allVal[0].val" >
-          <el-radio v-for="item in regionList" :key="item.commonRegionId" :label="item.commonRegionDeviceId" style="line-height: 2rem">
+          <el-radio v-for="item in regionList" :key="item.commonRegionDeviceId" :label="item.commonRegionDeviceId" style="line-height: 2rem">
             {{ item.commonRegionName }} - {{ item.commonRegionDeviceId }}
           </el-radio>
         </el-radio-group>
@@ -26,7 +26,7 @@
             <div style="text-align: center">{{ allVal[1].meaning }}</div>
           </div>
           <el-radio-group v-model="allVal[1].val" :disabled="allVal[1].lock">
-            <el-radio v-for="item in regionList" :key="item.commonRegionId" :label="item.commonRegionDeviceId.substring(2)" style="line-height: 2rem">
+            <el-radio v-for="item in regionList" :key="item.commonRegionDeviceId" :label="item.commonRegionDeviceId.substring(2)" style="line-height: 2rem">
               {{ item.commonRegionName }} - {{ item.commonRegionDeviceId.substring(2) }}
             </el-radio>
           </el-radio-group>
@@ -37,7 +37,7 @@
             <div style="text-align: center">{{ allVal[2].meaning }}</div>
           </div>
           <el-radio-group v-model="allVal[2].val" :disabled="allVal[2].lock">
-            <el-radio v-for="item in regionList" :key="item.commonRegionId" :label="item.commonRegionDeviceId.substring(4)" style="line-height: 2rem">
+            <el-radio v-for="item in regionList" :key="item.commonRegionDeviceId" :label="item.commonRegionDeviceId.substring(4)" style="line-height: 2rem">
               {{ item.commonRegionName }} - {{ item.commonRegionDeviceId.substring(4) }}
             </el-radio>
           </el-radio-group>
@@ -75,7 +75,7 @@
             <div style="text-align: center">{{ allVal[5].meaning }}</div>
           </div>
           <el-radio-group v-model="allVal[5].val" :disabled="allVal[5].lock" >
-            <el-radio v-for="item in deviceTypeList" :label="item.code" style="line-height: 2rem">
+            <el-radio v-for="item in deviceTypeList" :label="item.code" :key="item.code" style="line-height: 2rem">
               {{ item.name }} - {{ item.code }}
             </el-radio>
           </el-radio-group>
@@ -86,7 +86,7 @@
             <div style="text-align: center">{{ allVal[6].meaning }}</div>
           </div>
           <el-radio-group v-model="allVal[6].val" :disabled="allVal[6].lock">
-            <el-radio v-for="item in networkIdentificationTypeList" :label="item.code" style="line-height: 2rem">
+            <el-radio v-for="item in networkIdentificationTypeList" :label="item.code" :key="item.code" style="line-height: 2rem">
               {{ item.name }} - {{ item.code }}
             </el-radio>
           </el-radio-group>
@@ -195,6 +195,7 @@ export default {
   },
   methods: {
     openDialog: function (endCallBck, code, lockIndex, lockContent) {
+      console.log(code)
       this.showVideoDialog = true
       this.activeKey= '0';
       this.regionList = []

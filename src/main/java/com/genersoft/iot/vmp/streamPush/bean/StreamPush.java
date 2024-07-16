@@ -83,13 +83,13 @@ public class StreamPush extends CommonGBChannel implements Comparable<StreamPush
     }
 
     public StreamPush getInstance(StreamInfo streamInfo) {
-        StreamPush streamPushItem = new StreamPush();
-        streamPushItem.setApp(streamInfo.getApp());
-        streamPushItem.setMediaServerId(streamInfo.getMediaServerId());
-        streamPushItem.setStream(streamInfo.getStream());
-        streamPushItem.setCreateTime(DateUtil.getNow());
-        streamPushItem.setServerId(streamInfo.getMediaServerId());
-        return streamPushItem;
+        StreamPush streamPush = new StreamPush();
+        streamPush.setApp(streamInfo.getApp());
+        streamPush.setMediaServerId(streamInfo.getMediaServerId());
+        streamPush.setStream(streamInfo.getStream());
+        streamPush.setCreateTime(DateUtil.getNow());
+        streamPush.setServerId(streamInfo.getMediaServerId());
+        return streamPush;
 
     }
 
@@ -103,7 +103,7 @@ public class StreamPush extends CommonGBChannel implements Comparable<StreamPush
         return streamPushItem;
     }
 
-    public CommonGBChannel getCommonGBChannel() {
+    public CommonGBChannel buildCommonGBChannel() {
         if (ObjectUtils.isEmpty(this.getGbDeviceId())) {
             return null;
         }

@@ -8,7 +8,7 @@
       <el-menu-item index="/live">分屏监控</el-menu-item>
       <el-menu-item index="/deviceList">国标设备</el-menu-item>
       <el-menu-item index="/map">电子地图</el-menu-item>
-      <el-menu-item index="/pushVideoList">推流列表</el-menu-item>
+      <el-menu-item index="/streamPushList">推流列表</el-menu-item>
       <el-menu-item index="/streamProxyList">拉流代理</el-menu-item>
       <el-menu-item index="/cloudRecord">云端录像</el-menu-item>
       <el-menu-item index="/mediaServerManger">节点管理</el-menu-item>

@@ -98,7 +98,7 @@ create table wvp_log (
 create table wvp_device_channel (
                                     id serial primary key ,
                                     device_db_id integer,
-                                    device_id character varying(50) not null,
+                                    device_id character varying(50),
                                     name character varying(255),
                                     manufacturer character varying(50),
                                     model character varying(50),

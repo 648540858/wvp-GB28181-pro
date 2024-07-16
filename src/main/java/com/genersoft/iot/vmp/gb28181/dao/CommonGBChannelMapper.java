@@ -67,11 +67,6 @@ public interface CommonGBChannelMapper {
             " <if test='streamPushId != null' > stream_push_id,</if>" +
             "create_time," +
             "update_time," +
-            "sub_count," +
-            "stream_id," +
-            "has_audio," +
-            "gps_time," +
-            "stream_identification," +
             "gb_name," +
             "gb_manufacturer," +
             "gb_model," +
@@ -111,11 +106,6 @@ public interface CommonGBChannelMapper {
             " <if test='streamPushId != null' > #{streamPushId},</if>" +
             "#{createTime}, " +
             "#{updateTime}, " +
-            "#{subCount}, " +
-            "#{streamId}, " +
-            "#{hasAudio}, " +
-            "#{gpsTime}, " +
-            "#{streamIdentification}, " +
             "#{gbName}, " +
             "#{gbManufacturer}, " +
             "#{gbModel}, " +
@@ -351,11 +341,6 @@ public interface CommonGBChannelMapper {
             "stream_push_id," +
             "create_time," +
             "update_time," +
-            "sub_count," +
-            "stream_id," +
-            "has_audio," +
-            "gps_time," +
-            "stream_identification," +
             "gb_name," +
             "gb_manufacturer," +
             "gb_model," +
@@ -391,8 +376,8 @@ public interface CommonGBChannelMapper {
             "gb_svc_time_support_mode ) " +
             "VALUES" +
             "<foreach collection='commonGBChannels' index='index' item='item' separator=','> " +
-            "(#{item.gbDeviceId}, #{item.streamProxyId}, #{item.streamPushId},#{item.createTime},#{item.updateTime},#{item.subCount}," +
-            "#{item.streamId},#{item.hasAudio},#{item.gpsTime},#{item.streamIdentification},#{item.gbName},#{item.gbManufacturer}, #{item.gbModel}," +
+            "(#{item.gbDeviceId}, #{item.streamProxyId}, #{item.streamPushId},#{item.createTime},#{item.updateTime}," +
+            "#{item.gbName},#{item.gbManufacturer}, #{item.gbModel}," +
             "#{item.gbOwner},#{item.gbCivilCode},#{item.gbBlock}, #{item.gbAddress}, #{item.gbParental}, #{item.gbParentId},#{item.gbSafetyWay}, " +
             "#{item.gbRegisterWay},#{item.gbCertNum},#{item.gbCertifiable},#{item.gbErrCode},#{item.gbEndTime}, #{item.gbSecrecy},#{item.gbIpAddress}," +
             "#{item.gbPort},#{item.gbPassword},#{item.gbStatus},#{item.gbLongitude}, #{item.gbLatitude},#{item.gbPtzType},#{item.gbPositionType},#{item.gbRoomType}," +
@@ -473,4 +458,64 @@ public interface CommonGBChannelMapper {
             " </script>"})
     void reset(@Param("id") int id, @Param("gbDeviceDbId") int gbDeviceDbId, @Param("updateTime") String updateTime);
 
+
+    @Select(value = {" <script>" +
+            " select\n" +
+            "    id as gb_id,\n" +
+            "    device_db_id,\n" +
+            "    stream_push_id,\n" +
+            "    stream_proxy_id,\n" +
+            "    create_time,\n" +
+            "    update_time,\n" +
+            "    sub_count,\n" +
+            "    stream_id,\n" +
+            "    has_audio,\n" +
+            "    gps_time,\n" +
+            "    stream_identification,\n" +
+            "    coalesce(gb_device_id, device_id) as gb_device_id,\n" +
+            "    coalesce(gb_name, name) as gb_name,\n" +
+            "    coalesce(gb_manufacturer, manufacturer) as gb_manufacturer,\n" +
+            "    coalesce(gb_model, model) as gb_model,\n" +
+            "    coalesce(gb_owner, owner) as gb_owner,\n" +
+            "    coalesce(gb_civil_code, civil_code) as gb_civil_code,\n" +
+            "    coalesce(gb_block, block) as gb_block,\n" +
+            "    coalesce(gb_address, address) as gb_address,\n" +
+            "    coalesce(gb_parental, parental) as gb_parental,\n" +
+            "    coalesce(gb_parent_id, parent_id) as gb_parent_id,\n" +
+            "    coalesce(gb_safety_way, safety_way) as gb_safety_way,\n" +
+            "    coalesce(gb_register_way, register_way) as gb_register_way,\n" +
+            "    coalesce(gb_cert_num, cert_num) as gb_cert_num,\n" +
+            "    coalesce(gb_certifiable, certifiable) as gb_certifiable,\n" +
+            "    coalesce(gb_err_code, err_code) as gb_err_code,\n" +
+            "    coalesce(gb_end_time, end_time) as gb_end_time,\n" +
+            "    coalesce(gb_secrecy, secrecy) as gb_secrecy,\n" +
+            "    coalesce(gb_ip_address, ip_address) as gb_ip_address,\n" +
+            "    coalesce(gb_port, port) as gb_port,\n" +
+            "    coalesce(gb_password, password) as gb_password,\n" +
+            "    coalesce(gb_status, status) as gb_status,\n" +
+            "    coalesce(gb_longitude, longitude) as gb_longitude,\n" +
+            "    coalesce(gb_latitude, latitude) as gb_latitude,\n" +
+            "    coalesce(gb_ptz_type, ptz_type) as gb_ptz_type,\n" +
+            "    coalesce(gb_position_type, position_type) as gb_position_type,\n" +
+            "    coalesce(gb_room_type, room_type) as gb_room_type,\n" +
+            "    coalesce(gb_use_type, use_type) as gb_use_type,\n" +
+            "    coalesce(gb_supply_light_type, supply_light_type) as gb_supply_light_type,\n" +
+            "    coalesce(gb_direction_type, direction_type) as gb_direction_type,\n" +
+            "    coalesce(gb_resolution, resolution) as gb_resolution,\n" +
+            "    coalesce(gb_business_group_id, business_group_id) as gb_business_group_id,\n" +
+            "    coalesce(gb_download_speed, download_speed) as gb_download_speed,\n" +
+            "    coalesce(gb_svc_space_support_mod, svc_space_support_mod) as gb_svc_space_support_mod,\n" +
+            "    coalesce(gb_svc_time_support_mode,svc_time_support_mode) as gb_svc_time_support_mode\n" +
+            " from wvp_device_channel" +
+            " where 1 = 1 and id in " +
+            " <foreach collection='commonGBChannelList'  item='item'  open='(' separator=',' close=')' > #{item.gbId}</foreach>" +
+            "</script>"})
+    List<CommonGBChannel> queryByIds(List<CommonGBChannel> commonGBChannelList);
+
+    @Delete(value = {" <script>" +
+            " delete from wvp_device_channel" +
+            " where 1 = 1 and id in " +
+            " <foreach collection='channelListInDb'  item='item'  open='(' separator=',' close=')' > #{item.gbId}</foreach>" +
+            "</script>"})
+    void batchDelete(List<CommonGBChannel> channelListInDb);
 }

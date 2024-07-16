@@ -78,4 +78,11 @@ public class CommonChannelController {
     public void reset(Integer id){
         channelService.reset(id);
     }
+
+    @Operation(summary = "增加通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @ResponseBody
+    @PostMapping("/add")
+    public void add(@RequestBody CommonGBChannel channel){
+        channelService.add(channel);
+    }
 }

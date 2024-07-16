@@ -15,6 +15,8 @@ public interface IGbChannelService {
 
     int delete(int gbId);
 
+    void delete(List<CommonGBChannel> commonGBChannelList);
+
     int update(CommonGBChannel commonGBChannel);
 
     int offline(CommonGBChannel commonGBChannel);
@@ -40,4 +42,5 @@ public interface IGbChannelService {
     List<NetworkIdentificationType> getNetworkIdentificationTypeList();
 
     void reset(int id);
+
 }

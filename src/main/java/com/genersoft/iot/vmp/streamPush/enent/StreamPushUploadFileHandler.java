@@ -110,7 +110,7 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
         streamPush.setGbName(streamPushExcelDto.getName());
         streamPush.setGbLongitude(streamPushExcelDto.getLongitude());
         streamPush.setGbLatitude(streamPushExcelDto.getLatitude());
-
+        streamPush.setUpdateTime(DateUtil.getNow());
         streamPushItemForSave.put(streamPush.getApp() + streamPush.getStream(), streamPush);
 
         loadedSize ++;

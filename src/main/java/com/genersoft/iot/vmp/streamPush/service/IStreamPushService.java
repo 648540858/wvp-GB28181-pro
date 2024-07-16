@@ -7,6 +7,7 @@ import com.github.pagehelper.PageInfo;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author lin
@@ -92,4 +93,8 @@ public interface IStreamPushService {
     void updatePushStatus(Integer streamPushId, boolean pushIng);
 
     void batchUpdate(List<StreamPush> streamPushItemForUpdate);
+
+    int delete(int id);
+
+    void batchRemove(Set<Integer> ids);
 }

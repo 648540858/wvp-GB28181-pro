@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMediaService;
+import com.genersoft.iot.vmp.streamPush.bean.BatchRemoveParam;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPushExcelDto;
 import com.genersoft.iot.vmp.streamPush.enent.StreamPushUploadFileHandler;
@@ -88,13 +89,12 @@ public class StreamPushController {
     }
 
 
-    @PostMapping(value = "/stop")
+    @PostMapping(value = "/remove")
     @ResponseBody
-    @Operation(summary = "中止一个推流", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "app", description = "应用名", required = true)
-    @Parameter(name = "stream", description = "流id", required = true)
-    public void stop(String app, String stream){
-        if (!streamPushService.stopByAppAndStream(app, stream)){
+    @Operation(summary = "删除", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "id", description = "应用名", required = true)
+    public void delete(int id){
+        if (streamPushService.delete(id) > 0){
             throw new ControllerException(ErrorCode.ERROR100);
         }
     }
@@ -232,7 +232,7 @@ public class StreamPushController {
     @PostMapping(value = "/add")
     @ResponseBody
     @Operation(summary = "添加推流信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    public void add(@RequestBody StreamPush stream){
+    public StreamPush add(@RequestBody StreamPush stream){
         if (ObjectUtils.isEmpty(stream.getGbId())) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "国标ID不可为空");
         }
@@ -244,5 +244,29 @@ public class StreamPushController {
         if (!streamPushService.add(stream)) {
             throw new ControllerException(ErrorCode.ERROR100);
         }
+        stream.setStreamPushId(stream.getId());
+        return stream;
+    }
+
+    @PostMapping(value = "/update")
+    @ResponseBody
+    @Operation(summary = "更新推流信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    public void update(@RequestBody StreamPush stream){
+        if (ObjectUtils.isEmpty(stream.getId())) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "ID不可为空");
+        }
+        if (!streamPushService.update(stream)) {
+            throw new ControllerException(ErrorCode.ERROR100);
+        }
+    }
+
+    @DeleteMapping(value = "/batchRemove")
+    @ResponseBody
+    @Operation(summary = "删除多个推流", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    public void batchStop(@RequestBody BatchRemoveParam ids){
+        if(ids.getIds().isEmpty()) {
+            return;
+        }
+        streamPushService.batchRemove(ids.getIds());
     }
 }

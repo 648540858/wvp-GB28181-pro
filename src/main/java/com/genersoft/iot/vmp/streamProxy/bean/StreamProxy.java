@@ -71,7 +71,7 @@ public class StreamProxy extends CommonGBChannel {
     @Schema(description = "创建时间")
     private String createTime;
 
-    public CommonGBChannel getCommonGBChannel() {
+    public CommonGBChannel buildCommonGBChannel() {
         if (ObjectUtils.isEmpty(this.getGbDeviceId())) {
             return null;
         }

@@ -6,7 +6,7 @@ import console from '../components/console.vue'
 import deviceList from '../components/DeviceList.vue'
 import channelList from '../components/channelList.vue'
 import gbRecordDetail from '../components/GBRecordDetail.vue'
-import pushVideoList from '../components/PushVideoList.vue'
+import streamPushList from '../components/StreamPushList.vue'
 import streamProxyList from '../components/StreamProxyList.vue'
 import map from '../components/map.vue'
 import login from '../components/Login.vue'
@@ -54,8 +54,8 @@ export default new VueRouter({
           component: deviceList,
         },
         {
-          path: '/pushVideoList',
-          component: pushVideoList,
+          path: '/streamPushList',
+          component: streamPushList,
         },
         {
           path: '/streamProxyList',

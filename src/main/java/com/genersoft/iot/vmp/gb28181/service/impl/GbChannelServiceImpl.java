@@ -53,8 +53,23 @@ public class GbChannelServiceImpl implements IGbChannelService {
     }
 
     @Override
+    public void delete(List<CommonGBChannel> commonGBChannelList) {
+        List<CommonGBChannel> channelListInDb = commonGBChannelMapper.queryByIds(commonGBChannelList);
+        if (channelListInDb.isEmpty()) {
+            return;
+        }
+        commonGBChannelMapper.batchDelete(channelListInDb);
+        try {
+            // 发送通知
+            eventPublisher.catalogEventPublish(null, channelListInDb, CatalogEvent.DEL);
+        }catch (Exception e) {
+            log.warn("[通道移除通知] 发送失败，{}条", channelListInDb.size(), e);
+        }
+    }
+
+    @Override
     public int update(CommonGBChannel commonGBChannel) {
-        log.warn("[更新通道] 通道ID: {}, ", commonGBChannel.getGbId());
+        log.info("[更新通道] 通道ID: {}, ", commonGBChannel.getGbId());
         if (commonGBChannel.getGbId() <= 0) {
             log.warn("[更新通道] 未找到数据库ID，更新失败， {}", commonGBChannel.getGbDeviceDbId());
             return 0;

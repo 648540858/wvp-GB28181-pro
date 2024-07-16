@@ -169,7 +169,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         streamProxy.setUpdateTime(now);
 
         if (streamProxyMapper.add(streamProxy) > 0 && !ObjectUtils.isEmpty(streamProxy.getGbDeviceId())) {
-            gbChannelService.add(streamProxy.getCommonGBChannel());
+            gbChannelService.add(streamProxy.buildCommonGBChannel());
         }
         return true;
     }
@@ -183,9 +183,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
         if (streamProxyMapper.update(streamProxy) > 0 && !ObjectUtils.isEmpty(streamProxy.getGbDeviceId())) {
             if (streamProxy.getGbId() > 0) {
-                gbChannelService.update(streamProxy.getCommonGBChannel());
+                gbChannelService.update(streamProxy.buildCommonGBChannel());
             }else {
-                gbChannelService.add(streamProxy.getCommonGBChannel());
+                gbChannelService.add(streamProxy.buildCommonGBChannel());
             }
         }
         return true;
@@ -303,7 +303,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                     redisCatchStorage.addStream(mediaServer, "pull", streamInfo.getApp(), streamInfo.getStream(), streamInfo.getMediaInfo());
                     if ("OFF".equalsIgnoreCase(streamProxy.getGbStatus()) && streamProxy.getGbId() > 0) {
                         streamProxy.setGbStatus("ON");
-                        channelListForOnline.add(streamProxy.getCommonGBChannel());
+                        channelListForOnline.add(streamProxy.buildCommonGBChannel());
                     }
                     streamProxyMapForDb.remove(key);
                 }
@@ -319,7 +319,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             for (StreamProxy streamProxy : streamProxyMapForDb.values()) {
                 if ("ON".equalsIgnoreCase(streamProxy.getGbStatus()) && streamProxy.getGbId() > 0) {
                     streamProxy.setGbStatus("OFF");
-                    channelListForOffline.add(streamProxy.getCommonGBChannel());
+                    channelListForOffline.add(streamProxy.buildCommonGBChannel());
                 }
                 // 移除开启了无人观看自动移除的流
                 if (streamProxy.getGbDeviceId() == null && streamProxy.isEnableRemoveNoneReader()) {
@@ -360,7 +360,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
         for (StreamProxy streamProxy : streamProxies) {
             if (streamProxy.getGbId() > 0 && "ON".equalsIgnoreCase(streamProxy.getGbStatus())) {
-                channelListForOffline.add(streamProxy.getCommonGBChannel());
+                channelListForOffline.add(streamProxy.buildCommonGBChannel());
             }
             if (streamProxy.getGbId() == 0 && streamProxy.isEnableRemoveNoneReader()) {
                 streamProxiesForRemove.add(streamProxy);
@@ -400,9 +400,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         streamProxy.setGbStatus(status?"ON":"OFF");
         if (streamProxy.getGbId() > 0) {
             if (status) {
-                gbChannelService.online(streamProxy.getCommonGBChannel());
+                gbChannelService.online(streamProxy.buildCommonGBChannel());
             }else {
-                gbChannelService.offline(streamProxy.getCommonGBChannel());
+                gbChannelService.offline(streamProxy.buildCommonGBChannel());
             }
 
         }

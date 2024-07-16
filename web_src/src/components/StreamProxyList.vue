@@ -1,113 +1,120 @@
 <template>
 	<div id="streamProxyList" style="width: 100%">
-    <div class="page-header">
-      <div class="page-title">拉流代理列表</div>
-      <div class="page-header-btn">
-        <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addStreamProxy">添加代理</el-button>
-        <el-button v-if="false" icon="el-icon-search" size="mini" style="margin-right: 1rem;" type="primary" @click="addOnvif">搜索ONVIF</el-button>
-        <el-button icon="el-icon-refresh-right" circle size="mini" @click="refresh()"></el-button>
+
+    <div v-if="!streamProxy">
+      <div class="page-header">
+        <div class="page-title">拉流代理列表</div>
+        <div class="page-header-btn">
+          <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addStreamProxy">添加代理</el-button>
+          <el-button v-if="false" icon="el-icon-search" size="mini" style="margin-right: 1rem;" type="primary" @click="addOnvif">搜索ONVIF</el-button>
+          <el-button icon="el-icon-refresh-right" circle size="mini" @click="refresh()"></el-button>
+        </div>
       </div>
+      <devicePlayer ref="devicePlayer"></devicePlayer>
+      <el-table :data="streamProxyList" style="width: 100%" :height="winHeight">
+        <el-table-column prop="name" label="名称" min-width="120" show-overflow-tooltip/>
+        <el-table-column prop="app" label="流应用名" min-width="120" show-overflow-tooltip/>
+        <el-table-column prop="stream" label="流ID" min-width="120" show-overflow-tooltip/>
+        <el-table-column label="流地址" min-width="400"  show-overflow-tooltip >
+          <template slot-scope="scope">
+            <div slot="reference" class="name-wrapper">
+
+              <el-tag size="medium" v-if="scope.row.type == 'default'">
+                <i class="cpoy-btn el-icon-document-copy"  title="点击拷贝" v-clipboard="scope.row.url" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></i>
+                {{scope.row.url}}
+              </el-tag>
+              <el-tag size="medium" v-if="scope.row.type != 'default'">
+                <i class="cpoy-btn el-icon-document-copy"  title="点击拷贝" v-clipboard="scope.row.srcUrl" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></i>
+                {{scope.row.srcUrl}}
+              </el-tag>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="mediaServerId" label="流媒体" min-width="180" ></el-table-column>
+        <el-table-column label="类型" width="100" >
+          <template slot-scope="scope">
+            <div slot="reference" class="name-wrapper">
+              <el-tag size="medium">{{scope.row.type === "default"? "直接代理":"FFMPEG代理"}}</el-tag>
+            </div>
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="gbId" label="国标编码" min-width="180"  show-overflow-tooltip/>
+        <el-table-column label="状态" min-width="120" >
+          <template slot-scope="scope">
+            <div slot="reference" class="name-wrapper">
+              <el-tag size="medium" v-if="scope.row.status">在线</el-tag>
+              <el-tag size="medium" type="info" v-if="!scope.row.status">离线</el-tag>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="启用" min-width="120" >
+          <template slot-scope="scope">
+            <div slot="reference" class="name-wrapper">
+              <el-tag size="medium" v-if="scope.row.enable">已启用</el-tag>
+              <el-tag size="medium" type="info" v-if="!scope.row.enable">未启用</el-tag>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="createTime" label="创建时间"  min-width="150" show-overflow-tooltip/>
+        <el-table-column label="音频" min-width="120" >
+          <template slot-scope="scope">
+            <div slot="reference" class="name-wrapper">
+              <el-tag size="medium" v-if="scope.row.enableAudio">已启用</el-tag>
+              <el-tag size="medium" type="info" v-if="!scope.row.enableAudio">未启用</el-tag>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="录制" min-width="120" >
+          <template slot-scope="scope">
+            <div slot="reference" class="name-wrapper">
+              <el-tag size="medium" v-if="scope.row.enableMp4">已启用</el-tag>
+              <el-tag size="medium" type="info" v-if="!scope.row.enableMp4">未启用</el-tag>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="无人观看" min-width="160" >
+          <template slot-scope="scope">
+            <div slot="reference" class="name-wrapper">
+              <el-tag size="medium" v-if="scope.row.enableRemoveNoneReader">移除</el-tag>
+              <el-tag size="medium" v-if="scope.row.enableDisableNoneReader">停用</el-tag>
+              <el-tag size="medium" type="info" v-if="!scope.row.enableRemoveNoneReader && !scope.row.enableDisableNoneReader">不做处理</el-tag>
+            </div>
+          </template>
+        </el-table-column>
+
+
+        <el-table-column label="操作" width="360"  fixed="right">
+          <template slot-scope="scope">
+            <el-button size="medium" icon="el-icon-video-play" type="text" v-if="scope.row.enable" @click="play(scope.row)">播放</el-button>
+            <el-divider direction="vertical"></el-divider>
+            <el-button size="medium" icon="el-icon-position" type="text" @click="edit(scope.row)">
+              编辑
+            </el-button>
+            <el-button size="medium" icon="el-icon-switch-button" type="text" v-if="scope.row.enable" @click="stop(scope.row)">停用</el-button>
+            <el-divider direction="vertical"></el-divider>
+            <el-button size="medium" icon="el-icon-check" type="text" :loading="scope.row.startBtnLoading" v-if="!scope.row.enable" @click="start(scope.row)">启用</el-button>
+            <el-divider v-if="!scope.row.enable" direction="vertical"></el-divider>
+            <el-button size="medium" icon="el-icon-delete" type="text" style="color: #f56c6c" @click="deleteStreamProxy(scope.row)">删除</el-button>
+            <el-button size="medium" icon="el-icon-cloudy" type="text" @click="queryCloudRecords(scope.row)">云端录像
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-pagination
+        style="float: right"
+        @size-change="handleSizeChange"
+        @current-change="currentChange"
+        :current-page="currentPage"
+        :page-size="count"
+        :page-sizes="[15, 25, 35, 50]"
+        layout="total, sizes, prev, pager, next"
+        :total="total">
+      </el-pagination>
     </div>
-    <devicePlayer ref="devicePlayer"></devicePlayer>
-    <el-table :data="streamProxyList" style="width: 100%" :height="winHeight">
-      <el-table-column prop="name" label="名称" min-width="120" show-overflow-tooltip/>
-      <el-table-column prop="app" label="流应用名" min-width="120" show-overflow-tooltip/>
-      <el-table-column prop="stream" label="流ID" min-width="120" show-overflow-tooltip/>
-      <el-table-column label="流地址" min-width="400"  show-overflow-tooltip >
-        <template slot-scope="scope">
-          <div slot="reference" class="name-wrapper">
-
-            <el-tag size="medium" v-if="scope.row.type == 'default'">
-              <i class="cpoy-btn el-icon-document-copy"  title="点击拷贝" v-clipboard="scope.row.url" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></i>
-              {{scope.row.url}}
-            </el-tag>
-            <el-tag size="medium" v-if="scope.row.type != 'default'">
-              <i class="cpoy-btn el-icon-document-copy"  title="点击拷贝" v-clipboard="scope.row.srcUrl" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></i>
-              {{scope.row.srcUrl}}
-            </el-tag>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column prop="mediaServerId" label="流媒体" min-width="180" ></el-table-column>
-      <el-table-column label="类型" width="100" >
-        <template slot-scope="scope">
-          <div slot="reference" class="name-wrapper">
-            <el-tag size="medium">{{scope.row.type === "default"? "直接代理":"FFMPEG代理"}}</el-tag>
-          </div>
-        </template>
-      </el-table-column>
-
-      <el-table-column prop="gbId" label="国标编码" min-width="180"  show-overflow-tooltip/>
-      <el-table-column label="状态" min-width="120" >
-        <template slot-scope="scope">
-          <div slot="reference" class="name-wrapper">
-            <el-tag size="medium" v-if="scope.row.status">在线</el-tag>
-            <el-tag size="medium" type="info" v-if="!scope.row.status">离线</el-tag>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="启用" min-width="120" >
-        <template slot-scope="scope">
-          <div slot="reference" class="name-wrapper">
-            <el-tag size="medium" v-if="scope.row.enable">已启用</el-tag>
-            <el-tag size="medium" type="info" v-if="!scope.row.enable">未启用</el-tag>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column prop="createTime" label="创建时间"  min-width="150" show-overflow-tooltip/>
-      <el-table-column label="音频" min-width="120" >
-        <template slot-scope="scope">
-          <div slot="reference" class="name-wrapper">
-            <el-tag size="medium" v-if="scope.row.enableAudio">已启用</el-tag>
-            <el-tag size="medium" type="info" v-if="!scope.row.enableAudio">未启用</el-tag>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="录制" min-width="120" >
-        <template slot-scope="scope">
-          <div slot="reference" class="name-wrapper">
-            <el-tag size="medium" v-if="scope.row.enableMp4">已启用</el-tag>
-            <el-tag size="medium" type="info" v-if="!scope.row.enableMp4">未启用</el-tag>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="无人观看" min-width="160" >
-        <template slot-scope="scope">
-          <div slot="reference" class="name-wrapper">
-            <el-tag size="medium" v-if="scope.row.enableRemoveNoneReader">移除</el-tag>
-            <el-tag size="medium" v-if="scope.row.enableDisableNoneReader">停用</el-tag>
-            <el-tag size="medium" type="info" v-if="!scope.row.enableRemoveNoneReader && !scope.row.enableDisableNoneReader">不做处理</el-tag>
-          </div>
-        </template>
-      </el-table-column>
-
-
-      <el-table-column label="操作" width="360"  fixed="right">
-        <template slot-scope="scope">
-          <el-button size="medium" icon="el-icon-video-play" type="text" v-if="scope.row.enable" @click="play(scope.row)">播放</el-button>
-          <el-divider direction="vertical"></el-divider>
-          <el-button size="medium" icon="el-icon-switch-button" type="text" v-if="scope.row.enable" @click="stop(scope.row)">停用</el-button>
-          <el-divider direction="vertical"></el-divider>
-          <el-button size="medium" icon="el-icon-check" type="text" :loading="scope.row.startBtnLoading" v-if="!scope.row.enable" @click="start(scope.row)">启用</el-button>
-          <el-divider v-if="!scope.row.enable" direction="vertical"></el-divider>
-          <el-button size="medium" icon="el-icon-delete" type="text" style="color: #f56c6c" @click="deleteStreamProxy(scope.row)">删除</el-button>
-          <el-button size="medium" icon="el-icon-cloudy" type="text" @click="queryCloudRecords(scope.row)">云端录像
-          </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <el-pagination
-      style="float: right"
-      @size-change="handleSizeChange"
-      @current-change="currentChange"
-      :current-page="currentPage"
-      :page-size="count"
-      :page-sizes="[15, 25, 35, 50]"
-      layout="total, sizes, prev, pager, next"
-      :total="total">
-    </el-pagination>
     <streamProxyEdit ref="streamProxyEdit" ></streamProxyEdit>
     <onvifEdit ref="onvifEdit" ></onvifEdit>
+    <StreamProxyEdit v-if="streamProxy" :streamProxy="streamProxy" :closeEdit="closeEdit" ></StreamProxyEdit>
 	</div>
 </template>
 
@@ -116,12 +123,14 @@
 	import onvifEdit from './dialog/onvifEdit.vue'
 	import devicePlayer from './dialog/devicePlayer.vue'
 	import uiHeader from '../layout/UiHeader.vue'
+  import StreamProxyEdit from "./StreamProxyEdit";
 	export default {
 		name: 'streamProxyList',
 		components: {
 			devicePlayer,
 			streamProxyEdit,
       onvifEdit,
+      StreamProxyEdit,
 			uiHeader
 		},
 		data() {
@@ -134,7 +143,8 @@
 				currentPage:1,
 				count:15,
 				total:0,
-        startBtnLoading: false
+        startBtnLoading: false,
+        streamProxy: null
 			};
 		},
 		computed: {
@@ -187,7 +197,8 @@
 				});
 			},
 			addStreamProxy: function(){
-				this.$refs.streamProxyEdit.openDialog(null, this.initData)
+				// this.$refs.streamProxyEdit.openDialog(null, this.initData)
+        this.streamProxy = {}
 			},
       addOnvif: function(){
         this.$axios({
@@ -214,7 +225,11 @@
         });
 
 			},
-			saveStreamProxy: function(){
+      edit: function(row){
+        this.streamProxy = row
+			},
+      closeEdit: function(row){
+        this.streamProxy = null
 			},
 			play: function(row){
 				let that = this;

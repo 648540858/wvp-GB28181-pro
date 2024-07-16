@@ -96,7 +96,6 @@ public class StreamPushServiceImpl implements IStreamPushService {
             streamPush.setPushIng(true);
             streamPush.setUpdateTime(DateUtil.getNow());
             streamPush.setPushTime(DateUtil.getNow());
-            streamPush.setSelf(true);
             add(streamPush);
         }else {
             updatePushStatus(streamPushInDb.getId(), true);
@@ -243,6 +242,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         if (streamPush.getGbId() > 0) {
             gbChannelService.delete(streamPush.getGbId());
         }
+        streamPushMapper.del(streamPush.getId());
     }
     @Override
     @Transactional
@@ -522,7 +522,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Override
     public void updateStatus(StreamPush push) {
-        if (push.getGbDeviceId() != null) {
+        if (ObjectUtils.isEmpty(push.getGbDeviceId())) {
             return;
         }
         if ("ON".equalsIgnoreCase(push.getGbStatus())) {

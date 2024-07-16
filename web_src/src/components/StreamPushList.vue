@@ -50,6 +50,12 @@
         </el-table-column>
         <el-table-column prop="stream" label="流ID" min-width="200">
         </el-table-column>
+        <el-table-column label="推流状态"  min-width="100">
+          <template slot-scope="scope">
+            <el-tag size="medium" v-if="scope.row.pushIng">推流中</el-tag>
+            <el-tag size="medium" type="info" v-if="!scope.row.pushIng">已停止</el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="gbDeviceId" label="国标编码" min-width="200" >
         </el-table-column>
         <el-table-column prop="mediaServerId" label="流媒体" min-width="200" >
@@ -61,16 +67,7 @@
             </el-button-group>
           </template>
         </el-table-column>
-        <el-table-column label="正在推流"  min-width="100">
-          <template slot-scope="scope">
-            {{scope.row.pushIng ? '是' : '否' }}
-          </template>
-        </el-table-column>
-        <el-table-column label="本平台推流"  min-width="100">
-          <template slot-scope="scope">
-            {{scope.row.pushIng && !!scope.row.self ? '是' : '否' }}
-          </template>
-        </el-table-column>
+
 
         <el-table-column label="操作" min-width="360"  fixed="right">
           <template slot-scope="scope">

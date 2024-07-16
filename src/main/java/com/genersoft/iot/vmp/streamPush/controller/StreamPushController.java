@@ -213,10 +213,6 @@ public class StreamPushController {
         if (userInfo!= null) {
             authority = true;
         }
-        StreamPush push = streamPushService.getPush(app, stream);
-        if (push != null && !push.isSelf()) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "来自其他平台的推流信息");
-        }
         StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, authority);
         if (streamInfo == null){
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "获取播放地址失败");

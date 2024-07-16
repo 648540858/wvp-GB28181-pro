@@ -70,12 +70,6 @@ public class StreamPush extends CommonGBChannel implements Comparable<StreamPush
     @Schema(description = "是否正在推流")
     private boolean pushIng;
 
-    /**
-     * 是否自己平台的推流
-     */
-    @Schema(description = "是否自己平台的推流")
-    private boolean self;
-
     @Override
     public int compareTo(@NotNull StreamPush streamPushItem) {
         return Long.valueOf(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(this.createTime)

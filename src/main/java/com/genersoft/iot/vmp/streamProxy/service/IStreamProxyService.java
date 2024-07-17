@@ -22,7 +22,7 @@ public interface IStreamProxyService {
      * @param count
      * @return
      */
-    PageInfo<StreamProxy> getAll(Integer page, Integer count);
+    PageInfo<StreamProxy> getAll(Integer page, Integer count, String query, Boolean pulling,String mediaServerId);
 
     /**
      * 删除视频代理
@@ -96,4 +96,5 @@ public interface IStreamProxyService {
      */
     ResourceBaseInfo getOverview();
 
+    StreamInfo add(StreamProxy streamProxy);
 }

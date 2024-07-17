@@ -292,7 +292,7 @@ create table wvp_stream_proxy (
                                   media_server_id character varying(50),
                                   enable_audio bool default false,
                                   enable_mp4 bool default false,
-                                  status bool default false,
+                                  pulling bool default false,
                                   enable bool default false,
                                   enable_remove_none_reader bool default false,
                                   create_time character varying(50),
@@ -313,7 +313,7 @@ create table wvp_stream_push (
                                  push_time character varying(50),
                                  status bool default false,
                                  update_time character varying(50),
-                                 push_ing bool default false,
+                                 pushing bool default false,
                                  self bool default false,
                                  constraint uk_stream_push_app_stream unique (app, stream)
 );

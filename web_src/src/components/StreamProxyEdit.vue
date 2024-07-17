@@ -25,23 +25,17 @@
               <el-option label="FFmpeg" value="ffmpeg"></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="名称" prop="name">
-            <el-input v-model="streamProxy.name" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="流应用名" prop="app">
+          <el-form-item label="应用名" prop="app">
             <el-input v-model="streamProxy.app" clearable></el-input>
           </el-form-item>
           <el-form-item label="流ID" prop="stream">
             <el-input v-model="streamProxy.stream" clearable></el-input>
           </el-form-item>
-          <el-form-item label="拉流地址" prop="url" v-if="streamProxy.type=='default'">
-            <el-input v-model="streamProxy.url" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="拉流地址" prop="srcUrl" v-if="streamProxy.type=='ffmpeg'">
+          <el-form-item label="拉流地址" prop="url">
             <el-input v-model="streamProxy.srcUrl" clearable></el-input>
           </el-form-item>
           <el-form-item label="超时时间:毫秒" prop="timeoutMs" v-if="streamProxy.type=='ffmpeg'">
-            <el-input v-model="streamProxy.timeoutMs" clearable></el-input>
+            <el-input v-model="streamProxy.timeout" clearable></el-input>
           </el-form-item>
           <el-form-item label="节点选择" prop="rtpType">
             <el-select
@@ -72,12 +66,9 @@
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="国标编码" prop="gbId">
-            <el-input v-model="streamProxy.gbId" placeholder="设置国标编码可推送到国标" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="拉流方式" prop="rtpType" v-if="streamProxy.type=='default'">
+          <el-form-item label="拉流方式" prop="rtpType" v-if="streamProxy.type ==='default'">
             <el-select
-              v-model="streamProxy.rtpType"
+              v-model="streamProxy.rtspType"
               style="width: 100%"
               placeholder="请选择拉流方式"
             >

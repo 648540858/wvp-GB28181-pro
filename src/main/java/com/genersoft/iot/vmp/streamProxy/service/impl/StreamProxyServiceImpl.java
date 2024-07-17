@@ -144,7 +144,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         streamProxy.setMediaServerId(mediaServer.getId());
         boolean saveResult;
         // 更新
-        if (streamProxyMapper.selectOne(streamProxy.getApp(), streamProxy.getStream()) != null) {
+        if (streamProxyMapper.selectOneByAppAndStream(streamProxy.getApp(), streamProxy.getStream()) != null) {
             saveResult = updateStreamProxy(streamProxy);
         }else { // 新增
             saveResult = addStreamProxy(streamProxy);
@@ -192,16 +192,16 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     @Override
-    public PageInfo<StreamProxy> getAll(Integer page, Integer count) {
+    public PageInfo<StreamProxy> getAll(Integer page, Integer count, String query, Boolean pulling,String mediaServerId) {
         PageHelper.startPage(page, count);
-        List<StreamProxy> all = streamProxyMapper.selectAll();
+        List<StreamProxy> all = streamProxyMapper.selectAll(query, pulling, mediaServerId);
         return new PageInfo<>(all);
     }
 
     @Override
     @Transactional
     public void del(String app, String stream) {
-        StreamProxy streamProxy = streamProxyMapper.selectOne(app, stream);
+        StreamProxy streamProxy = streamProxyMapper.selectOneByAppAndStream(app, stream);
         if (streamProxy == null) {
             return;
         }
@@ -219,7 +219,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Override
     public boolean start(String app, String stream) {
-        StreamProxy streamProxy = streamProxyMapper.selectOne(app, stream);
+        StreamProxy streamProxy = streamProxyMapper.selectOneByAppAndStream(app, stream);
         if (streamProxy == null) {
             throw new ControllerException(ErrorCode.ERROR404.getCode(), "代理信息未找到");
         }
@@ -246,7 +246,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Override
     public void stop(String app, String stream) {
-        StreamProxy streamProxy = streamProxyMapper.selectOne(app, stream);
+        StreamProxy streamProxy = streamProxyMapper.selectOneByAppAndStream(app, stream);
         if (streamProxy == null) {
             throw new ControllerException(ErrorCode.ERROR404.getCode(), "代理信息未找到");
         }
@@ -265,7 +265,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Override
     public StreamProxy getStreamProxyByAppAndStream(String app, String streamId) {
-        return streamProxyMapper.selectOne(app, streamId);
+        return streamProxyMapper.selectOneByAppAndStream(app, streamId);
     }
 
     @Override
@@ -391,11 +391,11 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Transactional
     public int updateStatusByAppAndStream(String app, String stream, boolean status) {
         // 状态变化时推送到国标上级
-        StreamProxy streamProxy = streamProxyMapper.selectOne(app, stream);
+        StreamProxy streamProxy = streamProxyMapper.selectOneByAppAndStream(app, stream);
         if (streamProxy == null) {
             return 0;
         }
-        streamProxy.setStatus(true);
+        streamProxy.setPulling(true);
         streamProxyMapper.online(streamProxy.getId());
         streamProxy.setGbStatus(status?"ON":"OFF");
         if (streamProxy.getGbId() > 0) {
@@ -404,7 +404,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             }else {
                 gbChannelService.offline(streamProxy.buildCommonGBChannel());
             }
-
         }
         return 1;
     }
@@ -418,8 +417,24 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         return new ResourceBaseInfo(total, online);
     }
 
+    @Override
+    @Transactional
+    public StreamInfo add(StreamProxy streamProxy) {
+        StreamProxy streamProxyInDb = streamProxyMapper.selectOneByAppAndStream(streamProxy.getApp(), streamProxy.getStream());
+        if (streamProxyInDb != null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "APP+STREAM已经存在");
+        }
+        if (streamProxy.getGbDeviceId() != null) {
+            gbChannelService.add(streamProxy.buildCommonGBChannel());
+        }
+        streamProxyMapper.add(streamProxy);
+        if (streamProxy.isEnable()) {
+//            start()
+        }
+        return null;
+    }
 
-//    @Scheduled(cron = "* 0/10 * * * ?")
+    //    @Scheduled(cron = "* 0/10 * * * ?")
 //    public void asyncCheckStreamProxyStatus() {
 //
 //        List<MediaServer> all = mediaServerService.getAllOnline();

@@ -236,7 +236,7 @@ public class StreamPushController {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "app或stream不可为空");
         }
         stream.setGbStatus("OFF");
-        stream.setPushIng(false);
+        stream.setPushing(false);
         if (!streamPushService.add(stream)) {
             throw new ControllerException(ErrorCode.ERROR100);
         }

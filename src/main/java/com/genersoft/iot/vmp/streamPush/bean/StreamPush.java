@@ -68,7 +68,7 @@ public class StreamPush extends CommonGBChannel implements Comparable<StreamPush
      * 是否正在推流
      */
     @Schema(description = "是否正在推流")
-    private boolean pushIng;
+    private boolean pushing;
 
     @Override
     public int compareTo(@NotNull StreamPush streamPushItem) {

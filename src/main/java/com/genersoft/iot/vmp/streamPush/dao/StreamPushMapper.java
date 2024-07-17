@@ -13,8 +13,8 @@ import java.util.Set;
 @Repository
 public interface StreamPushMapper {
 
-    @Insert("INSERT INTO wvp_stream_push (app, stream, media_server_id, server_id, push_time,  update_time, create_time, push_ing) VALUES" +
-            "(#{app}, #{stream}, #{mediaServerId} , #{serverId} , #{pushTime} ,#{updateTime}, #{createTime}, #{pushIng})")
+    @Insert("INSERT INTO wvp_stream_push (app, stream, media_server_id, server_id, push_time,  update_time, create_time, pushing) VALUES" +
+            "(#{app}, #{stream}, #{mediaServerId} , #{serverId} , #{pushTime} ,#{updateTime}, #{createTime}, #{pushing})")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int add(StreamPush streamPushItem);
 
@@ -27,7 +27,7 @@ public interface StreamPushMapper {
             "<if test=\"mediaServerId != null\">, media_server_id=#{mediaServerId}</if>" +
             "<if test=\"serverId != null\">, server_id=#{serverId}</if>" +
             "<if test=\"pushTime != null\">, push_time=#{pushTime}</if>" +
-            "<if test=\"pushIng != null\">, push_ing=#{pushIng}</if>" +
+            "<if test=\"pushing != null\">, pushing=#{pushing}</if>" +
             "WHERE id = #{id}"+
             " </script>"})
     int update(StreamPush streamPushItem);
@@ -49,21 +49,21 @@ public interface StreamPushMapper {
             " 1=1 " +
             " <if test='query != null'> AND (st.app LIKE concat('%',#{query},'%') OR st.stream LIKE concat('%',#{query},'%') " +
             " OR wdc.gb_device_id LIKE concat('%',#{query},'%') OR wdc.gb_name LIKE concat('%',#{query},'%'))</if> " +
-            " <if test='pushing == true' > AND st.push_ing=1</if>" +
-            " <if test='pushing == false' > AND st.push_ing=0 </if>" +
+            " <if test='pushing == true' > AND st.pushing=1</if>" +
+            " <if test='pushing == false' > AND st.pushing=0 </if>" +
             " <if test='mediaServerId != null' > AND st.media_server_id=#{mediaServerId} </if>" +
             " order by st.create_time desc" +
             " </script>"})
-    List<StreamPush> selectAllForList(@Param("query") String query, @Param("pushing") Boolean pushing, @Param("mediaServerId") String mediaServerId);
+    List<StreamPush> selectAll(@Param("query") String query, @Param("pushing") Boolean pushing, @Param("mediaServerId") String mediaServerId);
 
     @Select("SELECT st.*, st.id as stream_push_id, wdc.*, wdc.id as gb_id FROM wvp_stream_push st LEFT join wvp_device_channel wdc on st.id = wdc.stream_push_id WHERE st.app=#{app} AND st.stream=#{stream}")
     StreamPush selectByAppAndStream(@Param("app") String app, @Param("stream") String stream);
 
     @Insert("<script>"  +
             "Insert INTO wvp_stream_push ( " +
-            " app, stream, media_server_id, server_id, push_time,  update_time, create_time, push_ing) " +
+            " app, stream, media_server_id, server_id, push_time,  update_time, create_time, pushing) " +
             " VALUES <foreach collection='streamPushItems' item='item' index='index' separator=','>" +
-            " ( #{item.app}, #{item.stream}, #{item.mediaServerId},#{item.serverId} ,#{item.pushTime}, #{item.updateTime}, #{item.createTime}, #{item.pushIng} )" +
+            " ( #{item.app}, #{item.stream}, #{item.mediaServerId},#{item.serverId} ,#{item.pushTime}, #{item.updateTime}, #{item.createTime}, #{item.pushing} )" +
             " </foreach>" +
             " </script>")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
@@ -76,9 +76,9 @@ public interface StreamPushMapper {
     List<StreamPush> selectAllByMediaServerIdWithOutGbID(String mediaServerId);
 
     @Update("UPDATE wvp_stream_push " +
-            "SET push_ing=#{pushIng} " +
+            "SET pushing=#{pushing} " +
             "WHERE id=#{id}")
-    int updatePushStatus(@Param("id") int id, @Param("pushIng") boolean pushIng);
+    int updatePushStatus(@Param("id") int id, @Param("pushing") boolean pushing);
 
 
     @Select("<script> "+
@@ -98,7 +98,7 @@ public interface StreamPushMapper {
     int getAllCount();
 
     @Select(value = {" <script>" +
-            " select count(1) from wvp_stream_push where push_ing = true" +
+            " select count(1) from wvp_stream_push where pushing = true" +
             " </script>"})
     int getAllPushing(Boolean usePushingAsStatus);
 

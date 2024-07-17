@@ -11,81 +11,86 @@ import java.util.List;
 @Repository
 public interface StreamProxyMapper {
 
-    @Insert("INSERT INTO wvp_stream_proxy (type, name, app, stream,media_server_id, url, src_url, dst_url, " +
-            "timeout_ms, ffmpeg_cmd_key, rtp_type, enable_audio, enable_mp4, enable, status, stream_key, enable_remove_none_reader, enable_disable_none_reader, create_time) VALUES" +
-            "(#{type}, #{name}, #{app}, #{stream}, #{mediaServerId}, #{url}, #{srcUrl}, #{dstUrl}, " +
-            "#{timeoutMs}, #{ffmpegCmdKey}, #{rtpType}, #{enableAudio}, #{enableMp4}, #{enable}, #{status}, #{streamKey}, " +
+    @Insert("INSERT INTO wvp_stream_proxy (type, name, app, stream,media_server_id, src_url, " +
+            "timeout, ffmpeg_cmd_key, rtsp_type, enable_audio, enable_mp4, enable, pulling, stream_key, " +
+            "enable_remove_none_reader, enable_disable_none_reader, create_time) VALUES" +
+            "(#{type}, #{name}, #{app}, #{stream}, #{mediaServerId}, #{srcUrl}, " +
+            "#{timeout}, #{ffmpegCmdKey}, #{rtspType}, #{enableAudio}, #{enableMp4}, #{enable}, #{pulling}, #{streamKey}, " +
             "#{enableRemoveNoneReader}, #{enableDisableNoneReader}, #{createTime} )")
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int add(StreamProxy streamProxyDto);
 
     @Update("UPDATE wvp_stream_proxy " +
             "SET type=#{type}, " +
+            "app=#{app}," +
+            "stream=#{stream}," +
             "name=#{name}," +
             "app=#{app}," +
             "stream=#{stream}," +
             "url=#{url}, " +
             "media_server_id=#{mediaServerId}, " +
             "src_url=#{srcUrl}," +
-            "dst_url=#{dstUrl}, " +
-            "timeout_ms=#{timeoutMs}, " +
+            "timeout=#{timeout}, " +
             "ffmpeg_cmd_key=#{ffmpegCmdKey}, " +
-            "rtp_type=#{rtpType}, " +
+            "rtsp_type=#{rtspType}, " +
             "enable_audio=#{enableAudio}, " +
             "enable=#{enable}, " +
-            "status=#{status}, " +
+            "pulling=#{pulling}, " +
             "stream_key=#{streamKey}, " +
             "enable_remove_none_reader=#{enableRemoveNoneReader}, " +
             "enable_disable_none_reader=#{enableDisableNoneReader}, " +
             "enable_mp4=#{enableMp4} " +
-            "WHERE app=#{app} AND stream=#{stream}")
+            "WHERE id=#{id}")
     int update(StreamProxy streamProxyDto);
 
     @Delete("DELETE FROM wvp_stream_proxy WHERE app=#{app} AND stream=#{stream}")
-    int del(String app, String stream);
+    int delByAppAndStream(String app, String stream);
 
-    @Select("SELECT st.*, pgs.gb_id, pgs.name, pgs.longitude, pgs.latitude FROM wvp_stream_proxy st LEFT join wvp_gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream order by st.create_time desc")
-    List<StreamProxy> selectAll();
+    @Select("SELECT " +
+            " st.*, " +
+            " st.id as stream_proxy_id, " +
+            " wdc.*, " +
+            " wdc.id as gb_id" +
+            " FROM wvp_stream_proxy st " +
+            " LEFT join wvp_device_channel wdc " +
+            " on st.id = wdc.stream_proxy_id " +
+            " WHERE " +
+            " 1=1 " +
+            " <if test='query != null'> AND (st.app LIKE concat('%',#{query},'%') OR st.stream LIKE concat('%',#{query},'%') " +
+            " OR wdc.gb_device_id LIKE concat('%',#{query},'%') OR wdc.gb_name LIKE concat('%',#{query},'%'))</if> " +
+            " <if test='pulling == true' > AND st.pulling=1</if>" +
+            " <if test='pulling == false' > AND st.pulling=0 </if>" +
+            " <if test='mediaServerId != null' > AND st.media_server_id=#{mediaServerId} </if>" +
+            "order by st.create_time desc")
+    List<StreamProxy> selectAll(@Param("query") String query, @Param("pushing") Boolean pushing, @Param("mediaServerId") String mediaServerId);
 
-    @Select("SELECT st.*, pgs.gb_id, pgs.name, pgs.longitude, pgs.latitude, 'proxy' as streamType FROM wvp_stream_proxy st LEFT join wvp_gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream WHERE st.enable=#{enable} order by st.create_time desc")
-    List<StreamProxy> selectForEnable(boolean enable);
+    @Select("SELECT " +
+            " st.*, " +
+            " st.id as stream_proxy_id, " +
+            " wdc.*, " +
+            " wdc.id as gb_id" +
+            " FROM wvp_stream_proxy st " +
+            " LEFT join wvp_device_channel wdc " +
+            " on st.id = wdc.stream_proxy_id " +
+            " WHERE st.app=#{app} AND st.stream=#{stream} order by st.create_time desc")
+    StreamProxy selectOneByAppAndStream(@Param("app") String app, @Param("stream") String stream);
 
-    @Select("SELECT st.*, pgs.gb_id, pgs.name, pgs.longitude, pgs.latitude FROM wvp_stream_proxy st LEFT join wvp_gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream WHERE st.app=#{app} AND st.stream=#{stream} order by st.create_time desc")
-    StreamProxy selectOne(@Param("app") String app, @Param("stream") String stream);
-
-    @Select("SELECT st.*, pgs.gb_id, pgs.name, pgs.longitude, pgs.latitude FROM wvp_stream_proxy st " +
-            "LEFT join wvp_gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream " +
+    @Select("SELECT " +
+            " st.*, " +
+            " st.id as stream_proxy_id, " +
+            " wdc.*, " +
+            " wdc.id as gb_id" +
+            " FROM wvp_stream_proxy st " +
+            " LEFT join wvp_device_channel wdc " +
+            " on st.id = wdc.stream_proxy_id " +
             "WHERE st.enable=#{enable} and st.media_server_id= #{id} order by st.create_time desc")
     List<StreamProxy> selectForEnableInMediaServer(@Param("id")  String id, @Param("enable") boolean enable);
 
-    @Select("SELECT st.*, pgs.gb_id, pgs.name, pgs.longitude, pgs.latitude FROM wvp_stream_proxy st " +
-            "LEFT join wvp_gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream " +
-            "WHERE st.media_server_id= #{id} order by st.create_time desc")
-    List<StreamProxy> selectInMediaServer(String id);
-
-    @Update("UPDATE wvp_stream_proxy " +
-            "SET status=#{status} " +
-            "WHERE media_server_id=#{mediaServerId}")
-    void updateStatusByMediaServerId(@Param("mediaServerId") String mediaServerId, @Param("status") boolean status);
-
-    @Update("UPDATE wvp_stream_proxy " +
-            "SET status=#{status} " +
-            "WHERE app=#{app} AND stream=#{stream}")
-    int updateStatus(@Param("app") String app, @Param("stream") String stream, @Param("status") boolean status);
-
-    @Delete("DELETE FROM wvp_stream_proxy WHERE enable_remove_none_reader=true AND media_server_id=#{mediaServerId}")
-    void deleteAutoRemoveItemByMediaServerId(String mediaServerId);
-
-    @Select("SELECT st.*, pgs.gb_id, pgs.name, pgs.longitude, pgs.latitude FROM wvp_stream_proxy st LEFT join wvp_gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream WHERE st.enable_remove_none_reader=true AND st.media_server_id=#{mediaServerId} order by st.create_time desc")
-    List<StreamProxy> selectAutoRemoveItemByMediaServerId(String mediaServerId);
-
-    @Select("select count(1) as total, sum(status) as online from wvp_stream_proxy")
-    ResourceBaseInfo getOverview();
 
     @Select("select count(1) from wvp_stream_proxy")
-
     int getAllCount();
 
-    @Select("select count(1) from wvp_stream_proxy where status = true")
+    @Select("select count(1) from wvp_stream_proxy where pulling = true")
     int getOnline();
 
     @Delete("DELETE FROM wvp_stream_proxy WHERE id=#{id}")
@@ -101,12 +106,12 @@ public interface StreamProxyMapper {
     void deleteByList(List<StreamProxy> streamProxiesForRemove);
 
     @Update("UPDATE wvp_stream_proxy " +
-            "SET status=true " +
+            "SET pulling=true " +
             "WHERE id=#{id}")
     int online(@Param("id") int id);
 
     @Update("UPDATE wvp_stream_proxy " +
-            "SET status=false " +
+            "SET pulling=false " +
             "WHERE id=#{id}")
     int offline(@Param("id") int id);
 }

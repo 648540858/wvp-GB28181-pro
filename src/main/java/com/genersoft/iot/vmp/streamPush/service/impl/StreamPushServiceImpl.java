@@ -93,7 +93,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         StreamPush streamPushInDb = getPush(event.getApp(), event.getStream());
         if (streamPushInDb == null) {
             StreamPush streamPush = StreamPush.getInstance(event, userSetting.getServerId());
-            streamPush.setPushIng(true);
+            streamPush.setPushing(true);
             streamPush.setUpdateTime(DateUtil.getNow());
             streamPush.setPushTime(DateUtil.getNow());
             add(streamPush);
@@ -151,7 +151,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         if (push == null) {
             return;
         }
-        push.setPushIng(false);
+        push.setPushing(false);
         if (push.getGbDeviceId() != null) {
             if (userSetting.isUsePushingAsStatus()) {
                 push.setGbStatus("OFF");
@@ -187,7 +187,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Override
     public PageInfo<StreamPush> getPushList(Integer page, Integer count, String query, Boolean pushing, String mediaServerId) {
         PageHelper.startPage(page, count);
-        List<StreamPush> all = streamPushMapper.selectAllForList(query, pushing, mediaServerId);
+        List<StreamPush> all = streamPushMapper.selectAll(query, pushing, mediaServerId);
         return new PageInfo<>(all);
     }
 
@@ -236,7 +236,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
             log.info("[删除推流]失败， 不存在 app: {}, stream: {}, ", app, stream);
             return;
         }
-        if (streamPush.isPushIng()) {
+        if (streamPush.isPushing()) {
             stop(streamPush);
         }
         if (streamPush.getGbId() > 0) {
@@ -294,7 +294,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         if (mediaServer != null) {
             mediaServerService.closeStreams(mediaServer, streamPush.getApp(), streamPush.getStream());
         }
-        streamPush.setPushIng(false);
+        streamPush.setPushing(false);
         if (userSetting.isUsePushingAsStatus()) {
             gbChannelService.offline(streamPush.buildCommonGBChannel());
         }
@@ -463,7 +463,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Override
     public void allOffline() {
-        List<StreamPush> streamPushList = streamPushMapper.selectAllForList(null, null, null);
+        List<StreamPush> streamPushList = streamPushMapper.selectAll(null, null, null);
         if (streamPushList.isEmpty()) {
             return;
         }
@@ -537,7 +537,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Override
     public void updatePushStatus(Integer streamPushId, boolean pushIng) {
         StreamPush streamPushInDb = streamPushMapper.select(streamPushId);
-        streamPushInDb.setPushIng(pushIng);
+        streamPushInDb.setPushing(pushIng);
         if (userSetting.isUsePushingAsStatus()) {
             streamPushInDb.setGbStatus(pushIng?"ON":"OFF");
         }
@@ -578,7 +578,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         if (streamPush == null) {
             return 0;
         }
-        if(streamPush.isPushIng()) {
+        if(streamPush.isPushing()) {
             MediaServer mediaServer = mediaServerService.getOne(streamPush.getMediaServerId());
             mediaServerService.closeStreams(mediaServer, streamPush.getApp(), streamPush.getStream());
         }

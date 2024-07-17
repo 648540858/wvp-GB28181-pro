@@ -63,13 +63,7 @@ public class StreamProxy extends CommonGBChannel {
     private String streamKey;
 
     @Schema(description = "拉流状态")
-    private Boolean status;
-
-    @Schema(description = "更新时间")
-    private String updateTime;
-
-    @Schema(description = "创建时间")
-    private String createTime;
+    private Boolean pulling;
 
     public CommonGBChannel buildCommonGBChannel() {
         if (ObjectUtils.isEmpty(this.getGbDeviceId())) {

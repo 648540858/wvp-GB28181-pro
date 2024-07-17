@@ -44,15 +44,18 @@ public class StreamProxyController {
     @Parameter(name = "page", description = "当前页")
     @Parameter(name = "count", description = "每页查询数量")
     @Parameter(name = "query", description = "查询内容")
-    @Parameter(name = "online", description = "是否在线")
+    @Parameter(name = "query", description = "查询内容")
+    @Parameter(name = "pulling", description = "是否正在拉流")
+    @Parameter(name = "mediaServerId", description = "流媒体ID")
     @GetMapping(value = "/list")
     @ResponseBody
     public PageInfo<StreamProxy> list(@RequestParam(required = false)Integer page,
                                       @RequestParam(required = false)Integer count,
                                       @RequestParam(required = false)String query,
-                                      @RequestParam(required = false)Boolean online ){
+                                      @RequestParam(required = false)Boolean pulling,
+                                      @RequestParam(required = false)String mediaServerId){
 
-        return streamProxyService.getAll(page, count);
+        return streamProxyService.getAll(page, count, query, pulling, mediaServerId);
     }
 
     @Operation(summary = "查询流代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -65,7 +68,7 @@ public class StreamProxyController {
         return streamProxyService.getStreamProxyByAppAndStream(app, stream);
     }
 
-    @Operation(summary = "保存代理", security = @SecurityRequirement(name = JwtUtils.HEADER), parameters = {
+    @Operation(summary = "保存代理(已存在会覆盖)", security = @SecurityRequirement(name = JwtUtils.HEADER), parameters = {
             @Parameter(name = "param", description = "代理参数", required = true),
     })
     @PostMapping(value = "/save")
@@ -87,6 +90,40 @@ public class StreamProxyController {
         }
 
         StreamInfo streamInfo =  streamProxyService.save(param);
+        if (param.isEnable()) {
+            if (streamInfo == null) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg());
+            }else {
+                return new StreamContent(streamInfo);
+            }
+        }else {
+            return null;
+        }
+
+    }
+
+    @Operation(summary = "新增代理", security = @SecurityRequirement(name = JwtUtils.HEADER), parameters = {
+            @Parameter(name = "param", description = "代理参数", required = true),
+    })
+    @PostMapping(value = "/add")
+    @ResponseBody
+    public StreamContent add(@RequestBody StreamProxy param){
+        log.info("添加代理： " + JSONObject.toJSONString(param));
+        if (ObjectUtils.isEmpty(param.getMediaServerId())) {
+            param.setMediaServerId("auto");
+        }
+        if (ObjectUtils.isEmpty(param.getType())) {
+            param.setType("default");
+        }
+        if (ObjectUtils.isEmpty(param.getGbId())) {
+            param.setGbDeviceId(null);
+        }
+        StreamProxy streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
+        if (streamProxyItem  != null) {
+            streamProxyService.del(param.getApp(), param.getStream());
+        }
+
+        StreamInfo streamInfo =  streamProxyService.add(param);
         if (param.isEnable()) {
             if (streamInfo == null) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg());

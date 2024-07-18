@@ -429,11 +429,29 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }
         streamProxyMapper.add(streamProxy);
         if (streamProxy.isEnable()) {
-//            start()
+            return startProxy(streamProxy);
         }
         return null;
     }
 
+    private StreamInfo startProxy(StreamProxy streamProxy){
+        if (!streamProxy.isEnable()) {
+            return null;
+        }
+        MediaServer mediaServer;
+        String mediaServerId = streamProxy.getMediaServerId();
+        if (mediaServerId == null || "auto".equals(mediaServerId)) {
+            mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
+        }else {
+            mediaServer = mediaServerService.getOne(mediaServerId);
+        }
+        if (mediaServer == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的媒体节点");
+        }
+
+        return mediaServerService.startProxy(mediaServer, streamProxy);
+
+    }
     //    @Scheduled(cron = "* 0/10 * * * ?")
 //    public void asyncCheckStreamProxyStatus() {
 //

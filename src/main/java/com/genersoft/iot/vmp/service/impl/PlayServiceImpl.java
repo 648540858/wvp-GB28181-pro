@@ -757,7 +757,7 @@ public class PlayServiceImpl implements IPlayService {
         }
 
         MediaServer newMediaServerItem = getNewMediaServerItem(device);
-        if (device.getStreamMode().equalsIgnoreCase("TCP-ACTIVE") && ! newMediaServerItem.isRtpEnable()) {
+        if ("TCP-ACTIVE".equalsIgnoreCase(device.getStreamMode()) && ! newMediaServerItem.isRtpEnable()) {
             logger.warn("[录像回放] 单端口收流时不支持TCP主动方式收流 deviceId: {},channelId:{}", deviceId, channelId);
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "单端口收流时不支持TCP主动方式收流");
         }

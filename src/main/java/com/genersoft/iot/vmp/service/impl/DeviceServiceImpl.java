@@ -35,6 +35,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import javax.sip.InvalidArgumentException;
@@ -537,29 +538,17 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
+    @Transactional
     public boolean delete(String deviceId) {
         Device device = deviceMapper.getDeviceByDeviceId(deviceId);
         if (device == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备:" + deviceId);
         }
-        TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
-        boolean result = false;
-        try {
-            platformChannelMapper.delChannelForDeviceId(deviceId);
-            deviceChannelMapper.cleanChannelsByDeviceId(device.getId());
-            if ( deviceMapper.del(deviceId) < 0 ) {
-                //事务回滚
-                dataSourceTransactionManager.rollback(transactionStatus);
-            }
-            result = true;
-            dataSourceTransactionManager.commit(transactionStatus);     //手动提交
-        }catch (Exception e) {
-            dataSourceTransactionManager.rollback(transactionStatus);
-        }
-        if (result) {
-            redisCatchStorage.removeDevice(deviceId);
-        }
-        return result;
+        platformChannelMapper.delChannelForDeviceId(deviceId);
+        deviceChannelMapper.cleanChannelsByDeviceId(device.getId());
+        deviceMapper.del(deviceId);
+        redisCatchStorage.removeDevice(deviceId);
+        return true;
     }
 
     @Override

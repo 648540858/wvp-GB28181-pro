@@ -110,6 +110,7 @@ public interface DeviceMapper {
                 "#{geoCoordSys}," +
                 "#{onLine}" +
             ")")
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int add(Device device);
 
     @Update(value = {" <script>" +

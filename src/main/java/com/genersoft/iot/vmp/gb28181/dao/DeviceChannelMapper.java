@@ -26,6 +26,7 @@ public interface DeviceChannelMapper {
             "#{ipAddress}, #{port}, #{password}, #{status}, #{longitude}, #{latitude}, #{ptzType}, #{positionType}, #{roomType}, #{useType}, " +
             "#{supplyLightType}, #{directionType}, #{resolution}, #{businessGroupId}, #{downloadSpeed}, #{svcSpaceSupportMod}," +
             " #{svcTimeSupportMode}, #{createTime}, #{updateTime}, #{subCount}, #{streamId}, #{hasAudio}, #{gpsTime}, #{streamIdentification})")
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int add(DeviceChannel channel);
 
     @Update(value = {" <script>" +

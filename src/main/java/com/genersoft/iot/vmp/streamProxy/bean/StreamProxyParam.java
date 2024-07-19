@@ -1,24 +1,14 @@
 package com.genersoft.iot.vmp.streamProxy.bean;
 
-import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.springframework.util.ObjectUtils;
 
 /**
  * @author lin
  */
 @Data
 @Schema(description = "拉流代理的信息")
-@EqualsAndHashCode(callSuper = true)
-public class StreamProxy extends CommonGBChannel {
-
-    /**
-     * 数据库自增ID
-     */
-    @Schema(description = "数据库自增ID")
-    private int id;
+public class StreamProxyParam {
 
     @Schema(description = "类型，取值，default： 流媒体直接拉流（默认），ffmpeg： ffmpeg实现拉流")
     private String type;
@@ -33,16 +23,16 @@ public class StreamProxy extends CommonGBChannel {
     private String mediaServerId;
 
     @Schema(description = "拉流地址")
-    private String srcUrl;
+    private String url;
 
     @Schema(description = "超时时间:秒")
-    private int timeout;
+    private int timeoutMs;
 
     @Schema(description = "ffmpeg模板KEY")
     private String ffmpegCmdKey;
 
     @Schema(description = "rtsp拉流时，拉流方式，0：tcp，1：udp，2：组播")
-    private String rtspType;
+    private String rtpType;
 
     @Schema(description = "是否启用")
     private boolean enable;
@@ -59,20 +49,23 @@ public class StreamProxy extends CommonGBChannel {
     @Schema(description = "是否 无人观看时自动停用")
     private boolean enableDisableNoneReader;
 
-    @Schema(description = "拉流代理时zlm返回的key，用于停止拉流代理")
-    private String streamKey;
 
-    @Schema(description = "拉流状态")
-    private Boolean pulling;
+    public StreamProxy buildStreamProxy() {
+        StreamProxy streamProxy = new StreamProxy();
+        streamProxy.setApp(app);
+        streamProxy.setStream(stream);
+        streamProxy.setMediaServerId(mediaServerId);
+        streamProxy.setSrcUrl(url);
+        streamProxy.setTimeout(timeoutMs/1000);
+        streamProxy.setRtspType(rtpType);
+        streamProxy.setEnable(enable);
+        streamProxy.setEnableAudio(enableAudio);
+        streamProxy.setEnableMp4(enableMp4);
+        streamProxy.setEnableRemoveNoneReader(enableRemoveNoneReader);
+        streamProxy.setEnableDisableNoneReader(enableDisableNoneReader);
+        streamProxy.setFfmpegCmdKey(ffmpegCmdKey);
 
-    public CommonGBChannel buildCommonGBChannel() {
-        if (ObjectUtils.isEmpty(this.getGbDeviceId())) {
-            return null;
-        }
-        if (ObjectUtils.isEmpty(this.getGbName())) {
-            this.setGbName( app+ "-" +stream);
-        }
-        this.setStreamProxyId(this.getId());
-        return this;
+        return streamProxy;
+
     }
 }

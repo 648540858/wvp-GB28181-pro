@@ -210,7 +210,9 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         streamInfoResult.setRtc(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam, isPlay);
 
         streamInfoResult.setMediaInfo(mediaInfo);
-        streamInfoResult.setOriginType(mediaInfo.getOriginType());
+        if (mediaInfo != null) {
+            streamInfoResult.setOriginType(mediaInfo.getOriginType());
+        }
         return streamInfoResult;
     }
 

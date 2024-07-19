@@ -82,7 +82,8 @@ public class CommonChannelController {
     @Operation(summary = "增加通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @ResponseBody
     @PostMapping("/add")
-    public void add(@RequestBody CommonGBChannel channel){
+    public CommonGBChannel add(@RequestBody CommonGBChannel channel){
         channelService.add(channel);
+        return channel;
     }
 }

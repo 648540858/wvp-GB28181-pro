@@ -95,8 +95,8 @@ public class MediaController {
             return  new StreamContent(streamInfo);
         }else {
             //获取流失败，重启拉流后重试一次
-            streamProxyService.stop(app,stream);
-            boolean start = streamProxyService.start(app, stream);
+            streamProxyService.stopByAppAndStream(app,stream);
+            boolean start = streamProxyService.startByAppAndStream(app, stream);
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -116,5 +116,31 @@ public class MediaController {
                 throw new ControllerException(ErrorCode.ERROR100);
             }
         }
+    }
+    /**
+     * 获取推流播放地址
+     * @param app 应用名
+     * @param stream 流id
+     * @return
+     */
+    @GetMapping(value = "/getPlayUrl")
+    @ResponseBody
+    @Operation(summary = "获取推流播放地址", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "app", description = "应用名", required = true)
+    @Parameter(name = "stream", description = "流id", required = true)
+    @Parameter(name = "mediaServerId", description = "媒体服务器id")
+    public StreamContent getPlayUrl(@RequestParam String app, @RequestParam String stream,
+                                    @RequestParam(required = false) String mediaServerId){
+        boolean authority = false;
+        // 是否登陆用户, 登陆用户返回完整信息
+        LoginUser userInfo = SecurityUtils.getUserInfo();
+        if (userInfo!= null) {
+            authority = true;
+        }
+        StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, authority);
+        if (streamInfo == null){
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "获取播放地址失败");
+        }
+        return new StreamContent(streamInfo);
     }
 }

@@ -266,14 +266,14 @@ public class ZLMRESTfulUtils {
         return sendPost(mediaServerItem, "getRtpInfo",param, null);
     }
 
-    public JSONObject addFFmpegSource(MediaServer mediaServerItem, String src_url, String dst_url, Integer timeout_ms,
+    public JSONObject addFFmpegSource(MediaServer mediaServerItem, String src_url, String dst_url, Integer timeout_sec,
                                       boolean enable_audio, boolean enable_mp4, String ffmpeg_cmd_key){
         log.info(src_url);
         log.info(dst_url);
         Map<String, Object> param = new HashMap<>();
         param.put("src_url", src_url);
         param.put("dst_url", dst_url);
-        param.put("timeout_ms", timeout_ms);
+        param.put("timeout_ms", timeout_sec*1000);
         param.put("enable_mp4", enable_mp4);
         param.put("ffmpeg_cmd_key", ffmpeg_cmd_key);
         return sendPost(mediaServerItem, "addFFmpegSource",param, null);

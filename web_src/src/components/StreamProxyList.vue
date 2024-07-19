@@ -5,6 +5,27 @@
       <div class="page-header">
         <div class="page-title">拉流代理列表</div>
         <div class="page-header-btn">
+          搜索:
+          <el-input @input="getStreamProxyList" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
+                    prefix-icon="el-icon-search" v-model="searchSrt" clearable></el-input>
+          流媒体:
+          <el-select size="mini" @change="getStreamProxyList" style="margin-right: 1rem;" v-model="mediaServerId"
+                     placeholder="请选择" default-first-option>
+            <el-option label="全部" value=""></el-option>
+            <el-option
+              v-for="item in mediaServerList"
+              :key="item.id"
+              :label="item.id"
+              :value="item.id">
+            </el-option>
+          </el-select>
+          推流状态:
+          <el-select size="mini" style="margin-right: 1rem;" @change="getStreamProxyList" v-model="pulling" placeholder="请选择"
+                     default-first-option>
+            <el-option label="全部" value=""></el-option>
+            <el-option label="正在拉流" value="true"></el-option>
+            <el-option label="拉流未进行" value="false"></el-option>
+          </el-select>
           <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addStreamProxy">添加代理</el-button>
           <el-button v-if="false" icon="el-icon-search" size="mini" style="margin-right: 1rem;" type="primary" @click="addOnvif">搜索ONVIF</el-button>
           <el-button icon="el-icon-refresh-right" circle size="mini" @click="refresh()"></el-button>
@@ -12,18 +33,12 @@
       </div>
       <devicePlayer ref="devicePlayer"></devicePlayer>
       <el-table :data="streamProxyList" style="width: 100%" :height="winHeight">
-        <el-table-column prop="name" label="名称" min-width="120" show-overflow-tooltip/>
         <el-table-column prop="app" label="流应用名" min-width="120" show-overflow-tooltip/>
         <el-table-column prop="stream" label="流ID" min-width="120" show-overflow-tooltip/>
-        <el-table-column label="流地址" min-width="400"  show-overflow-tooltip >
+        <el-table-column label="流地址" min-width="250"  show-overflow-tooltip >
           <template slot-scope="scope">
             <div slot="reference" class="name-wrapper">
-
-              <el-tag size="medium" v-if="scope.row.type == 'default'">
-                <i class="cpoy-btn el-icon-document-copy"  title="点击拷贝" v-clipboard="scope.row.url" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></i>
-                {{scope.row.url}}
-              </el-tag>
-              <el-tag size="medium" v-if="scope.row.type != 'default'">
+              <el-tag size="medium">
                 <i class="cpoy-btn el-icon-document-copy"  title="点击拷贝" v-clipboard="scope.row.srcUrl" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></i>
                 {{scope.row.srcUrl}}
               </el-tag>
@@ -31,20 +46,20 @@
           </template>
         </el-table-column>
         <el-table-column prop="mediaServerId" label="流媒体" min-width="180" ></el-table-column>
-        <el-table-column label="类型" width="100" >
+        <el-table-column label="代理方式" width="100" >
           <template slot-scope="scope">
             <div slot="reference" class="name-wrapper">
-              <el-tag size="medium">{{scope.row.type === "default"? "直接代理":"FFMPEG代理"}}</el-tag>
+              {{scope.row.type === "default"? "默认":"FFMPEG代理"}}
             </div>
           </template>
         </el-table-column>
 
-        <el-table-column prop="gbId" label="国标编码" min-width="180"  show-overflow-tooltip/>
-        <el-table-column label="状态" min-width="120" >
+        <el-table-column prop="gbDeviceId" label="国标编码" min-width="180"  show-overflow-tooltip/>
+        <el-table-column label="拉流状态" min-width="120" >
           <template slot-scope="scope">
             <div slot="reference" class="name-wrapper">
-              <el-tag size="medium" v-if="scope.row.status">在线</el-tag>
-              <el-tag size="medium" type="info" v-if="!scope.row.status">离线</el-tag>
+              <el-tag size="medium" v-if="scope.row.pulling">在线</el-tag>
+              <el-tag size="medium" type="info" v-if="!scope.row.pulling">离线</el-tag>
             </div>
           </template>
         </el-table-column>
@@ -57,47 +72,19 @@
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间"  min-width="150" show-overflow-tooltip/>
-        <el-table-column label="音频" min-width="120" >
-          <template slot-scope="scope">
-            <div slot="reference" class="name-wrapper">
-              <el-tag size="medium" v-if="scope.row.enableAudio">已启用</el-tag>
-              <el-tag size="medium" type="info" v-if="!scope.row.enableAudio">未启用</el-tag>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column label="录制" min-width="120" >
-          <template slot-scope="scope">
-            <div slot="reference" class="name-wrapper">
-              <el-tag size="medium" v-if="scope.row.enableMp4">已启用</el-tag>
-              <el-tag size="medium" type="info" v-if="!scope.row.enableMp4">未启用</el-tag>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column label="无人观看" min-width="160" >
-          <template slot-scope="scope">
-            <div slot="reference" class="name-wrapper">
-              <el-tag size="medium" v-if="scope.row.enableRemoveNoneReader">移除</el-tag>
-              <el-tag size="medium" v-if="scope.row.enableDisableNoneReader">停用</el-tag>
-              <el-tag size="medium" type="info" v-if="!scope.row.enableRemoveNoneReader && !scope.row.enableDisableNoneReader">不做处理</el-tag>
-            </div>
-          </template>
-        </el-table-column>
-
-
         <el-table-column label="操作" width="360"  fixed="right">
           <template slot-scope="scope">
             <el-button size="medium" icon="el-icon-video-play" type="text" v-if="scope.row.enable" @click="play(scope.row)">播放</el-button>
             <el-divider direction="vertical"></el-divider>
-            <el-button size="medium" icon="el-icon-position" type="text" @click="edit(scope.row)">
+            <el-button size="medium" icon="el-icon-edit" type="text" @click="edit(scope.row)">
               编辑
             </el-button>
-            <el-button size="medium" icon="el-icon-switch-button" type="text" v-if="scope.row.enable" @click="stop(scope.row)">停用</el-button>
             <el-divider direction="vertical"></el-divider>
             <el-button size="medium" icon="el-icon-check" type="text" :loading="scope.row.startBtnLoading" v-if="!scope.row.enable" @click="start(scope.row)">启用</el-button>
             <el-divider v-if="!scope.row.enable" direction="vertical"></el-divider>
+            <el-button size="medium" icon="el-icon-cloudy" type="text" @click="queryCloudRecords(scope.row)">云端录像</el-button>
+            <el-divider direction="vertical"></el-divider>
             <el-button size="medium" icon="el-icon-delete" type="text" style="color: #f56c6c" @click="deleteStreamProxy(scope.row)">删除</el-button>
-            <el-button size="medium" icon="el-icon-cloudy" type="text" @click="queryCloudRecords(scope.row)">云端录像
-            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -124,6 +111,7 @@
 	import devicePlayer from './dialog/devicePlayer.vue'
 	import uiHeader from '../layout/UiHeader.vue'
   import StreamProxyEdit from "./StreamProxyEdit";
+  import MediaServer from "./service/MediaServer";
 	export default {
 		name: 'streamProxyList',
 		components: {
@@ -144,7 +132,12 @@
 				count:15,
 				total:0,
         startBtnLoading: false,
-        streamProxy: null
+        streamProxy: null,
+        searchSrt: "",
+        mediaServerId: "",
+        pulling: "",
+        mediaServerObj: new MediaServer(),
+        mediaServerList: [],
 			};
 		},
 		computed: {
@@ -160,12 +153,15 @@
 		methods: {
 			initData: function() {
 				this.getStreamProxyList();
+        this.mediaServerObj.getOnlineMediaServerList((data) => {
+          this.mediaServerList = data.data;
+        })
 			},
       stopUpdateList: function (){
         window.clearInterval(this.updateLooper)
       },
       startUpdateList: function (){
-        this.updateLooper = setInterval(this.initData, 1000);
+        this.updateLooper = setInterval(this.getStreamProxyList, 1000);
       },
 			currentChange: function(val){
 				this.currentPage = val;
@@ -182,7 +178,10 @@
 					url:`/api/proxy/list`,
 					params: {
 						page: that.currentPage,
-						count: that.count
+						count: that.count,
+            query: this.searchSrt,
+            pulling: this.pulling,
+            mediaServerId: this.mediaServerId,
 					}
 				}).then(function (res) {
           if (res.data.code === 0) {
@@ -198,7 +197,14 @@
 			},
 			addStreamProxy: function(){
 				// this.$refs.streamProxyEdit.openDialog(null, this.initData)
-        this.streamProxy = {}
+        this.streamProxy = {
+          type: "default",
+          noneReader: "1",
+          enable: true,
+          enableAudio: true,
+          mediaServerId: "",
+          timeout: 10,
+        }
 			},
       addOnvif: function(){
         this.$axios({
@@ -235,7 +241,7 @@
 				let that = this;
 				this.$axios({
 					method: 'get',
-					url:`/api/push/getPlayUrl`,
+					url:`/api/media/getPlayUrl`,
 					params: {
 						app: row.app,
 						stream: row.stream,
@@ -273,10 +279,9 @@
         }).then(() => {
           that.$axios({
             method:"delete",
-            url:"/api/proxy/del",
+            url:"/api/proxy/delete",
             params:{
-              app: row.app,
-              stream: row.stream
+              id: row.id,
             }
           }).then((res)=>{
             that.initData()

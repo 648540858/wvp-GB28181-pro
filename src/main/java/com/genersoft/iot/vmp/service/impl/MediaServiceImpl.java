@@ -284,13 +284,13 @@ public class MediaServiceImpl implements IMediaService {
                 if (streamProxy.isEnableRemoveNoneReader()) {
                     // 无人观看自动移除
                     result = true;
-                    streamProxyService.del(app, stream);
+                    streamProxyService.delteByAppAndStream(app, stream);
                     log.info("[{}/{}]<-[{}] 拉流代理无人观看已经移除", app, stream, streamProxy.getSrcUrl());
                 } else if (streamProxy.isEnableDisableNoneReader()) {
                     // 无人观看停用
                     result = true;
                     // 修改数据
-                    streamProxyService.stop(app, stream);
+                    streamProxyService.stopByAppAndStream(app, stream);
                 } else {
                     // 无人观看不做处理
                     result = false;

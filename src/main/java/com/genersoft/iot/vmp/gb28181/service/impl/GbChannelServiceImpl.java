@@ -34,6 +34,18 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Override
     public int add(CommonGBChannel commonGBChannel) {
+        if (commonGBChannel.getStreamPushId() != null && commonGBChannel.getStreamPushId() > 0) {
+            CommonGBChannel commonGBChannelInDb = commonGBChannelMapper.queryByStreamPushId(commonGBChannel.getStreamPushId());
+            if (commonGBChannelInDb != null) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "此推流已经关联通道");
+            }
+        }
+        if (commonGBChannel.getStreamProxyId() != null && commonGBChannel.getStreamProxyId() > 0) {
+            CommonGBChannel commonGBChannelInDb = commonGBChannelMapper.queryByStreamProxyId(commonGBChannel.getStreamProxyId());
+            if (commonGBChannelInDb != null) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "此代理已经关联通道");
+            }
+        }
         return commonGBChannelMapper.insert(commonGBChannel);
     }
 
@@ -74,6 +86,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
             log.warn("[更新通道] 未找到数据库ID，更新失败， {}", commonGBChannel.getGbDeviceDbId());
             return 0;
         }
+        commonGBChannel.setUpdateTime(DateUtil.getNow());
         int result = commonGBChannelMapper.update(commonGBChannel);
         if (result > 0) {
             try {

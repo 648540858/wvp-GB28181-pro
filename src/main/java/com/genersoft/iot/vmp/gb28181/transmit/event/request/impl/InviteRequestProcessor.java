@@ -743,7 +743,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             log.info("[ app={}, stream={} ] 等待拉流代理流超时", sendRtpItem.getApp(), sendRtpItem.getStream());
             hookSubscribe.removeSubscribe(hook);
         }, userSetting.getPlatformPlayTimeout());
-        boolean start = streamProxyService.start(sendRtpItem.getApp(), sendRtpItem.getStream());
+        boolean start = streamProxyService.startByAppAndStream(sendRtpItem.getApp(), sendRtpItem.getStream());
         if (!start) {
             try {
                 responseAck(request, Response.BUSY_HERE, "channel [" + sendRtpItem.getChannelId() + "] offline");

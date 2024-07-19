@@ -17,6 +17,7 @@ import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OriginType;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
+import com.genersoft.iot.vmp.streamProxy.bean.StreamProxyParam;
 import com.genersoft.iot.vmp.streamProxy.dao.StreamProxyMapper;
 import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -72,10 +73,11 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
      * 流到来的处理
      */
     @Async("taskExecutor")
+    @Transactional
     @org.springframework.context.event.EventListener
     public void onApplicationEvent(MediaArrivalEvent event) {
         if ("rtsp".equals(event.getSchema())) {
-            updateStatusByAppAndStream(event.getApp(), event.getStream(), true);
+            streamChangeHandler(event.getApp(), event.getStream(), event.getMediaServer().getId(), true);
         }
     }
 
@@ -84,9 +86,10 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
      */
     @Async("taskExecutor")
     @EventListener
+    @Transactional
     public void onApplicationEvent(MediaDepartureEvent event) {
         if ("rtsp".equals(event.getSchema())) {
-            updateStatusByAppAndStream(event.getApp(), event.getStream(), false);
+            streamChangeHandler(event.getApp(), event.getStream(), event.getMediaServer().getId(), false);
         }
     }
 
@@ -102,7 +105,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         // 拉流代理
         StreamProxy streamProxyByAppAndStream = getStreamProxyByAppAndStream(event.getApp(), event.getStream());
         if (streamProxyByAppAndStream != null && streamProxyByAppAndStream.isEnableDisableNoneReader()) {
-            start(event.getApp(), event.getStream());
+            startByAppAndStream(event.getApp(), event.getStream());
         }
     }
 
@@ -129,64 +132,95 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Override
     @Transactional
-    public StreamInfo save(StreamProxy streamProxy) {
-        MediaServer mediaServer;
-        if (ObjectUtils.isEmpty(streamProxy.getMediaServerId()) || "auto".equals(streamProxy.getMediaServerId())){
-            mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
+    public StreamInfo save(StreamProxyParam param) {
+        // 兼容旧接口
+        StreamProxy streamProxyInDb = getStreamProxyByAppAndStream(param.getApp(), param.getStream());
+        if (streamProxyInDb  != null && streamProxyInDb.getPulling()) {
+            stopProxy(streamProxyInDb);
+        }
+        if (streamProxyInDb  == null){
+            return add(param.buildStreamProxy());
         }else {
-            mediaServer = mediaServerService.getOne(streamProxy.getMediaServerId());
+            stopProxy(streamProxyInDb);
+            streamProxyMapper.delete(streamProxyInDb.getId());
+            return add(param.buildStreamProxy());
         }
-        if (mediaServer == null) {
-            log.warn("保存代理未找到在线的ZLM...");
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "保存代理未找到在线的ZLM");
-        }
+    }
 
-        streamProxy.setMediaServerId(mediaServer.getId());
-        boolean saveResult;
-        // 更新
-        if (streamProxyMapper.selectOneByAppAndStream(streamProxy.getApp(), streamProxy.getStream()) != null) {
-            saveResult = updateStreamProxy(streamProxy);
-        }else { // 新增
-            saveResult = addStreamProxy(streamProxy);
+    @Override
+    @Transactional
+    public StreamInfo add(StreamProxy streamProxy) {
+        StreamProxy streamProxyInDb = streamProxyMapper.selectOneByAppAndStream(streamProxy.getApp(), streamProxy.getStream());
+        if (streamProxyInDb != null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "APP+STREAM已经存在");
         }
-        if (!saveResult) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "保存失败");
+        if (streamProxy.getGbDeviceId() != null) {
+            gbChannelService.add(streamProxy.buildCommonGBChannel());
         }
-
+        streamProxy.setCreateTime(DateUtil.getNow());
+        streamProxy.setUpdateTime(DateUtil.getNow());
+        streamProxyMapper.add(streamProxy);
+        streamProxy.setStreamProxyId(streamProxy.getId());
         if (streamProxy.isEnable()) {
-            return mediaServerService.startProxy(mediaServer, streamProxy);
+            return startProxy(streamProxy);
         }
         return null;
     }
 
-    /**
-     * 新增代理流
-     */
-    @Transactional
-    public boolean addStreamProxy(StreamProxy streamProxy) {
-        String now = DateUtil.getNow();
-        streamProxy.setCreateTime(now);
-        streamProxy.setUpdateTime(now);
-
-        if (streamProxyMapper.add(streamProxy) > 0 && !ObjectUtils.isEmpty(streamProxy.getGbDeviceId())) {
-            gbChannelService.add(streamProxy.buildCommonGBChannel());
+    @Override
+    public void delte(int id) {
+        StreamProxy streamProxy = getStreamProxy(id);
+        if (streamProxy == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "代理不存在");
         }
-        return true;
+        delte(streamProxy);
+    }
+
+    private void delte(StreamProxy streamProxy) {
+        if (streamProxy.getPulling()) {
+            stopProxy(streamProxy);
+        }
+        if(streamProxy.getGbId() > 0) {
+            gbChannelService.delete(streamProxy.getGbId());
+        }
+        streamProxyMapper.delete(streamProxy.getId());
+    }
+
+    @Override
+    @Transactional
+    public void delteByAppAndStream(String app, String stream) {
+        StreamProxy streamProxy = streamProxyMapper.selectOneByAppAndStream(app, stream);
+        if (streamProxy == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "代理不存在");
+        }
+        delte(streamProxy);
     }
 
     /**
      * 更新代理流
      */
     @Override
-    public boolean updateStreamProxy(StreamProxy streamProxy) {
+    public boolean update(StreamProxy streamProxy) {
         streamProxy.setUpdateTime(DateUtil.getNow());
-
+        StreamProxy streamProxyInDb = streamProxyMapper.select(streamProxy.getId());
+        if (streamProxyInDb  == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "代理不存在");
+        }
         if (streamProxyMapper.update(streamProxy) > 0 && !ObjectUtils.isEmpty(streamProxy.getGbDeviceId())) {
             if (streamProxy.getGbId() > 0) {
                 gbChannelService.update(streamProxy.buildCommonGBChannel());
             }else {
                 gbChannelService.add(streamProxy.buildCommonGBChannel());
             }
+        }
+        // 判断是否需要重启代理
+        if (!streamProxyInDb.getApp().equals(streamProxy.getApp())
+                || !streamProxyInDb.getStream().equals(streamProxy.getStream())
+                || !streamProxyInDb.getMediaServerId().equals(streamProxy.getMediaServerId())
+        ) {
+            // app/stream 变化则重启代理
+            stopProxy(streamProxyInDb);
+            startProxy(streamProxy);
         }
         return true;
     }
@@ -198,63 +232,47 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         return new PageInfo<>(all);
     }
 
-    @Override
-    @Transactional
-    public void del(String app, String stream) {
-        StreamProxy streamProxy = streamProxyMapper.selectOneByAppAndStream(app, stream);
-        if (streamProxy == null) {
-            return;
-        }
-        if (streamProxy.getStreamKey() != null) {
-            MediaServer mediaServer = mediaServerService.getOne(streamProxy.getMediaServerId());
-            if (mediaServer != null) {
-                mediaServerService.stopProxy(mediaServer, streamProxy.getStreamKey());
-            }
-        }
-        if (streamProxy.getGbId() > 0) {
-            gbChannelService.delete(streamProxy.getGbId());
-        }
-        streamProxyMapper.delete(streamProxy.getId());
-    }
 
     @Override
-    public boolean start(String app, String stream) {
+    public boolean startByAppAndStream(String app, String stream) {
         StreamProxy streamProxy = streamProxyMapper.selectOneByAppAndStream(app, stream);
         if (streamProxy == null) {
             throw new ControllerException(ErrorCode.ERROR404.getCode(), "代理信息未找到");
         }
+        StreamInfo streamInfo = startProxy(streamProxy);
+        return streamInfo != null;
+    }
+
+    @Override
+    public void stopByAppAndStream(String app, String stream) {
+        StreamProxy streamProxy = streamProxyMapper.selectOneByAppAndStream(app, stream);
+        if (streamProxy == null) {
+            throw new ControllerException(ErrorCode.ERROR404.getCode(), "代理信息未找到");
+        }
+        stopProxy(streamProxy);
+    }
+
+    private void stopProxy(StreamProxy streamProxy){
+
         MediaServer mediaServer;
-        if (ObjectUtils.isEmpty(streamProxy.getMediaServerId()) || "auto".equals(streamProxy.getMediaServerId())){
+        String mediaServerId = streamProxy.getMediaServerId();
+        if (mediaServerId == null) {
             mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
         }else {
-            mediaServer = mediaServerService.getOne(streamProxy.getMediaServerId());
+            mediaServer = mediaServerService.getOne(mediaServerId);
         }
         if (mediaServer == null) {
-            log.warn("[启用代理] 未找到可用的媒体节点");
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的媒体节点");
         }
-        StreamInfo streamInfo = mediaServerService.startProxy(mediaServer, streamProxy);
-        if (streamInfo == null) {
-            log.warn("[启用代理] 失败");
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "失败");
+        if (ObjectUtils.isEmpty(streamProxy.getStreamKey())) {
+            mediaServerService.closeStreams(mediaServer, streamProxy.getApp(), streamProxy.getStream());
+        }else {
+            mediaServerService.stopProxy(mediaServer, streamProxy.getStreamKey());
         }
-        if (!streamProxy.isEnable()) {
-            updateStreamProxy(streamProxy);
-        }
-        return true;
-    }
-
-    @Override
-    public void stop(String app, String stream) {
-        StreamProxy streamProxy = streamProxyMapper.selectOneByAppAndStream(app, stream);
-        if (streamProxy == null) {
-            throw new ControllerException(ErrorCode.ERROR404.getCode(), "代理信息未找到");
-        }
-        MediaServer mediaServer = mediaServerService.getOne(streamProxy.getMediaServerId());
-        if (mediaServer == null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到启用时使用的媒体节点");
-        }
-        mediaServerService.stopProxy(mediaServer, streamProxy.getStreamKey());
+        streamProxy.setMediaServerId(mediaServer.getId());
+        streamProxy.setStreamKey(null);
+        streamProxy.setPulling(false);
+        streamProxyMapper.update(streamProxy);
     }
 
     @Override
@@ -264,8 +282,8 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
 
     @Override
-    public StreamProxy getStreamProxyByAppAndStream(String app, String streamId) {
-        return streamProxyMapper.selectOneByAppAndStream(app, streamId);
+    public StreamProxy getStreamProxyByAppAndStream(String app, String stream) {
+        return streamProxyMapper.selectOneByAppAndStream(app, stream);
     }
 
     @Override
@@ -387,16 +405,19 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }
     }
 
-    @Override
     @Transactional
-    public int updateStatusByAppAndStream(String app, String stream, boolean status) {
+    public void streamChangeHandler(String app, String stream, String mediaServerId, boolean status) {
         // 状态变化时推送到国标上级
         StreamProxy streamProxy = streamProxyMapper.selectOneByAppAndStream(app, stream);
         if (streamProxy == null) {
-            return 0;
+            return;
         }
-        streamProxy.setPulling(true);
-        streamProxyMapper.online(streamProxy.getId());
+        streamProxy.setPulling(status);
+        if (!mediaServerId.equals(streamProxy.getMediaServerId())) {
+            streamProxy.setMediaServerId(mediaServerId);
+        }
+        streamProxy.setUpdateTime(DateUtil.getNow());
+        streamProxyMapper.update(streamProxy);
         streamProxy.setGbStatus(status?"ON":"OFF");
         if (streamProxy.getGbId() > 0) {
             if (status) {
@@ -405,7 +426,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 gbChannelService.offline(streamProxy.buildCommonGBChannel());
             }
         }
-        return 1;
     }
 
     @Override
@@ -417,21 +437,16 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         return new ResourceBaseInfo(total, online);
     }
 
+
+
     @Override
-    @Transactional
-    public StreamInfo add(StreamProxy streamProxy) {
-        StreamProxy streamProxyInDb = streamProxyMapper.selectOneByAppAndStream(streamProxy.getApp(), streamProxy.getStream());
-        if (streamProxyInDb != null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "APP+STREAM已经存在");
+    public boolean start(int id) {
+        StreamProxy streamProxy = streamProxyMapper.select(id);
+        if (streamProxy == null) {
+            throw new ControllerException(ErrorCode.ERROR404.getCode(), "代理信息未找到");
         }
-        if (streamProxy.getGbDeviceId() != null) {
-            gbChannelService.add(streamProxy.buildCommonGBChannel());
-        }
-        streamProxyMapper.add(streamProxy);
-        if (streamProxy.isEnable()) {
-            return startProxy(streamProxy);
-        }
-        return null;
+        StreamInfo streamInfo = startProxy(streamProxy);
+        return streamInfo != null;
     }
 
     private StreamInfo startProxy(StreamProxy streamProxy){
@@ -440,7 +455,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }
         MediaServer mediaServer;
         String mediaServerId = streamProxy.getMediaServerId();
-        if (mediaServerId == null || "auto".equals(mediaServerId)) {
+        if (mediaServerId == null) {
             mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
         }else {
             mediaServer = mediaServerService.getOne(mediaServerId);
@@ -448,10 +463,22 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         if (mediaServer == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的媒体节点");
         }
-
-        return mediaServerService.startProxy(mediaServer, streamProxy);
-
+        StreamInfo streamInfo = mediaServerService.startProxy(mediaServer, streamProxy);
+        if (mediaServerId == null) {
+            streamProxy.setMediaServerId(mediaServer.getId());
+            update(streamProxy);
+        }
+        return streamInfo;
     }
+
+    @Override
+    public StreamProxy getStreamProxy(int id) {
+        return streamProxyMapper.select(id);
+    }
+
+
+
+
     //    @Scheduled(cron = "* 0/10 * * * ?")
 //    public void asyncCheckStreamProxyStatus() {
 //

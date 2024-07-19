@@ -197,7 +197,7 @@ export default {
       this.getListLoading = true;
       this.$axios({
         method: 'get',
-        url: '/api/push/getPlayUrl',
+        url: '/api/media/getPlayUrl',
         params: {
           app: row.app,
           stream: row.stream,

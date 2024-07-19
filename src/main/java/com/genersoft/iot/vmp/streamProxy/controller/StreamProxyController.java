@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
+import com.genersoft.iot.vmp.streamProxy.bean.StreamProxyParam;
 import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
@@ -44,7 +45,6 @@ public class StreamProxyController {
     @Parameter(name = "page", description = "当前页")
     @Parameter(name = "count", description = "每页查询数量")
     @Parameter(name = "query", description = "查询内容")
-    @Parameter(name = "query", description = "查询内容")
     @Parameter(name = "pulling", description = "是否正在拉流")
     @Parameter(name = "mediaServerId", description = "流媒体ID")
     @GetMapping(value = "/list")
@@ -55,6 +55,12 @@ public class StreamProxyController {
                                       @RequestParam(required = false)Boolean pulling,
                                       @RequestParam(required = false)String mediaServerId){
 
+        if (ObjectUtils.isEmpty(mediaServerId)) {
+            mediaServerId = null;
+        }
+        if (ObjectUtils.isEmpty(query)) {
+            query = null;
+        }
         return streamProxyService.getAll(page, count, query, pulling, mediaServerId);
     }
 
@@ -73,20 +79,13 @@ public class StreamProxyController {
     })
     @PostMapping(value = "/save")
     @ResponseBody
-    public StreamContent save(@RequestBody StreamProxy param){
+    public StreamContent save(@RequestBody StreamProxyParam param){
         log.info("添加代理： " + JSONObject.toJSONString(param));
         if (ObjectUtils.isEmpty(param.getMediaServerId())) {
             param.setMediaServerId("auto");
         }
         if (ObjectUtils.isEmpty(param.getType())) {
             param.setType("default");
-        }
-        if (ObjectUtils.isEmpty(param.getGbId())) {
-            param.setGbDeviceId(null);
-        }
-        StreamProxy streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
-        if (streamProxyItem  != null) {
-            streamProxyService.del(param.getApp(), param.getStream());
         }
 
         StreamInfo streamInfo =  streamProxyService.save(param);
@@ -107,10 +106,10 @@ public class StreamProxyController {
     })
     @PostMapping(value = "/add")
     @ResponseBody
-    public StreamContent add(@RequestBody StreamProxy param){
+    public StreamProxy add(@RequestBody StreamProxy param){
         log.info("添加代理： " + JSONObject.toJSONString(param));
         if (ObjectUtils.isEmpty(param.getMediaServerId())) {
-            param.setMediaServerId("auto");
+            param.setMediaServerId(null);
         }
         if (ObjectUtils.isEmpty(param.getType())) {
             param.setType("default");
@@ -118,22 +117,24 @@ public class StreamProxyController {
         if (ObjectUtils.isEmpty(param.getGbId())) {
             param.setGbDeviceId(null);
         }
-        StreamProxy streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
-        if (streamProxyItem  != null) {
-            streamProxyService.del(param.getApp(), param.getStream());
-        }
+        streamProxyService.add(param);
+        return param;
+    }
 
-        StreamInfo streamInfo =  streamProxyService.add(param);
-        if (param.isEnable()) {
-            if (streamInfo == null) {
-                throw new ControllerException(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg());
-            }else {
-                return new StreamContent(streamInfo);
-            }
-        }else {
-            return null;
+    @Operation(summary = "更新代理", security = @SecurityRequirement(name = JwtUtils.HEADER), parameters = {
+            @Parameter(name = "param", description = "代理参数", required = true),
+    })
+    @PostMapping(value = "/update")
+    @ResponseBody
+    public void update(@RequestBody StreamProxy param){
+        log.info("更新代理： " + JSONObject.toJSONString(param));
+        if (param.getId() == 0) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "缺少代理信息的ID");
         }
-
+        if (ObjectUtils.isEmpty(param.getGbId())) {
+            param.setGbDeviceId(null);
+        }
+        streamProxyService.update(param);
     }
 
     @GetMapping(value = "/ffmpeg_cmd/list")
@@ -160,18 +161,26 @@ public class StreamProxyController {
         if (app == null || stream == null) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), app == null ?"app不能为null":"stream不能为null");
         }else {
-            streamProxyService.del(app, stream);
+            streamProxyService.delteByAppAndStream(app, stream);
         }
+    }
+
+    @DeleteMapping(value = "/delte")
+    @ResponseBody
+    @Operation(summary = "移除代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "id", description = "代理ID", required = true)
+    public void delte(int id){
+        log.info("移除代理： " + id );
+        streamProxyService.delte(id);
     }
 
     @GetMapping(value = "/start")
     @ResponseBody
     @Operation(summary = "启用代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "app", description = "应用名", required = true)
-    @Parameter(name = "stream", description = "流id", required = true)
-    public void start(String app, String stream){
-        log.info("启用代理： " + app + "/" + stream);
-        boolean result = streamProxyService.start(app, stream);
+    @Parameter(name = "id", description = "代理Id", required = true)
+    public void start(int id){
+        log.info("启用代理： " + id);
+        boolean result = streamProxyService.start(id);
         if (!result) {
             throw new ControllerException(ErrorCode.ERROR100);
         }
@@ -184,6 +193,6 @@ public class StreamProxyController {
     @Parameter(name = "stream", description = "流id", required = true)
     public void stop(String app, String stream){
         log.info("停用代理： " + app + "/" + stream);
-        streamProxyService.stop(app, stream);
+        streamProxyService.stopByAppAndStream(app, stream);
     }
 }

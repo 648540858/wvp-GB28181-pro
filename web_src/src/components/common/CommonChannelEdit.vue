@@ -249,9 +249,11 @@ export default {
             if (this.saveSuccess) {
               this.saveSuccess()
             }
+          }else {
+            this.$message.error(res.data.msg);
           }
         }).catch((error) => {
-          console.error(error)
+          this.$message.error(error);
         }).finally(()=>[
           this.locading = false
         ])
@@ -263,12 +265,15 @@ export default {
         }).then((res) => {
           if (res.data.code === 0) {
             this.$message.success("保存成功");
+            this.form = res.data.data
             if (this.saveSuccess) {
               this.saveSuccess()
             }
+          }else {
+            this.$message.error(res.data.msg);
           }
         }).catch((error) => {
-          console.error(error)
+          this.$message.error(error);
         }).finally(()=>[
           this.locading = false
         ])

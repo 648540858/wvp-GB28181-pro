@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.streamProxy.dao;
 
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
-import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
+import com.genersoft.iot.vmp.streamProxy.dao.provider.StreamProxyProvider;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -11,10 +11,10 @@ import java.util.List;
 @Repository
 public interface StreamProxyMapper {
 
-    @Insert("INSERT INTO wvp_stream_proxy (type, name, app, stream,media_server_id, src_url, " +
+    @Insert("INSERT INTO wvp_stream_proxy (type, app, stream,media_server_id, src_url, " +
             "timeout, ffmpeg_cmd_key, rtsp_type, enable_audio, enable_mp4, enable, pulling, stream_key, " +
             "enable_remove_none_reader, enable_disable_none_reader, create_time) VALUES" +
-            "(#{type}, #{name}, #{app}, #{stream}, #{mediaServerId}, #{srcUrl}, " +
+            "(#{type}, #{app}, #{stream}, #{mediaServerId}, #{srcUrl}, " +
             "#{timeout}, #{ffmpegCmdKey}, #{rtspType}, #{enableAudio}, #{enableMp4}, #{enable}, #{pulling}, #{streamKey}, " +
             "#{enableRemoveNoneReader}, #{enableDisableNoneReader}, #{createTime} )")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
@@ -24,10 +24,8 @@ public interface StreamProxyMapper {
             "SET type=#{type}, " +
             "app=#{app}," +
             "stream=#{stream}," +
-            "name=#{name}," +
             "app=#{app}," +
             "stream=#{stream}," +
-            "url=#{url}, " +
             "media_server_id=#{mediaServerId}, " +
             "src_url=#{srcUrl}," +
             "timeout=#{timeout}, " +
@@ -46,45 +44,14 @@ public interface StreamProxyMapper {
     @Delete("DELETE FROM wvp_stream_proxy WHERE app=#{app} AND stream=#{stream}")
     int delByAppAndStream(String app, String stream);
 
-    @Select("SELECT " +
-            " st.*, " +
-            " st.id as stream_proxy_id, " +
-            " wdc.*, " +
-            " wdc.id as gb_id" +
-            " FROM wvp_stream_proxy st " +
-            " LEFT join wvp_device_channel wdc " +
-            " on st.id = wdc.stream_proxy_id " +
-            " WHERE " +
-            " 1=1 " +
-            " <if test='query != null'> AND (st.app LIKE concat('%',#{query},'%') OR st.stream LIKE concat('%',#{query},'%') " +
-            " OR wdc.gb_device_id LIKE concat('%',#{query},'%') OR wdc.gb_name LIKE concat('%',#{query},'%'))</if> " +
-            " <if test='pulling == true' > AND st.pulling=1</if>" +
-            " <if test='pulling == false' > AND st.pulling=0 </if>" +
-            " <if test='mediaServerId != null' > AND st.media_server_id=#{mediaServerId} </if>" +
-            "order by st.create_time desc")
-    List<StreamProxy> selectAll(@Param("query") String query, @Param("pushing") Boolean pushing, @Param("mediaServerId") String mediaServerId);
+    @SelectProvider(type = StreamProxyProvider.class, method = "selectAll")
+    List<StreamProxy> selectAll(@Param("query") String query, @Param("pulling") Boolean pulling, @Param("mediaServerId") String mediaServerId);
 
-    @Select("SELECT " +
-            " st.*, " +
-            " st.id as stream_proxy_id, " +
-            " wdc.*, " +
-            " wdc.id as gb_id" +
-            " FROM wvp_stream_proxy st " +
-            " LEFT join wvp_device_channel wdc " +
-            " on st.id = wdc.stream_proxy_id " +
-            " WHERE st.app=#{app} AND st.stream=#{stream} order by st.create_time desc")
+    @SelectProvider(type = StreamProxyProvider.class, method = "selectOneByAppAndStream")
     StreamProxy selectOneByAppAndStream(@Param("app") String app, @Param("stream") String stream);
 
-    @Select("SELECT " +
-            " st.*, " +
-            " st.id as stream_proxy_id, " +
-            " wdc.*, " +
-            " wdc.id as gb_id" +
-            " FROM wvp_stream_proxy st " +
-            " LEFT join wvp_device_channel wdc " +
-            " on st.id = wdc.stream_proxy_id " +
-            "WHERE st.enable=#{enable} and st.media_server_id= #{id} order by st.create_time desc")
-    List<StreamProxy> selectForEnableInMediaServer(@Param("id")  String id, @Param("enable") boolean enable);
+    @SelectProvider(type = StreamProxyProvider.class, method = "selectForEnableInMediaServer")
+    List<StreamProxy> selectForEnableInMediaServer(@Param("mediaServerId")  String mediaServerId, @Param("enable") boolean enable);
 
 
     @Select("select count(1) from wvp_stream_proxy")
@@ -114,4 +81,7 @@ public interface StreamProxyMapper {
             "SET pulling=false " +
             "WHERE id=#{id}")
     int offline(@Param("id") int id);
+
+    @SelectProvider(type = StreamProxyProvider.class, method = "select")
+    StreamProxy select(@Param("id") int id);
 }

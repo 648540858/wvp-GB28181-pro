@@ -749,13 +749,12 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Override
     public StreamInfo getStreamInfoByAppAndStreamWithCheck(String app, String stream, String mediaServerId, String addr, boolean authority) {
-        StreamInfo streamInfo = null;
         if (mediaServerId == null) {
             mediaServerId = mediaConfig.getId();
         }
         MediaServer mediaInfo = getOne(mediaServerId);
         if (mediaInfo == null) {
-            return null;
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到使用的媒体节点");
         }
         String calld = null;
         StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(app, stream);

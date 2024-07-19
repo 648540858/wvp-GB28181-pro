@@ -3,12 +3,9 @@ package com.genersoft.iot.vmp.streamPush.controller;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelReader;
 import com.alibaba.excel.read.metadata.ReadSheet;
-import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
-import com.genersoft.iot.vmp.conf.security.SecurityUtils;
-import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
@@ -19,7 +16,6 @@ import com.genersoft.iot.vmp.streamPush.bean.StreamPushExcelDto;
 import com.genersoft.iot.vmp.streamPush.enent.StreamPushUploadFileHandler;
 import com.genersoft.iot.vmp.streamPush.service.IStreamPushService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
@@ -191,33 +187,6 @@ public class StreamPushController {
 
 
         return result;
-    }
-
-    /**
-     * 获取推流播放地址
-     * @param app 应用名
-     * @param stream 流id
-     * @return
-     */
-    @GetMapping(value = "/getPlayUrl")
-    @ResponseBody
-    @Operation(summary = "获取推流播放地址", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "app", description = "应用名", required = true)
-    @Parameter(name = "stream", description = "流id", required = true)
-    @Parameter(name = "mediaServerId", description = "媒体服务器id")
-    public StreamContent getPlayUrl(@RequestParam String app, @RequestParam String stream,
-                                    @RequestParam(required = false) String mediaServerId){
-        boolean authority = false;
-        // 是否登陆用户, 登陆用户返回完整信息
-        LoginUser userInfo = SecurityUtils.getUserInfo();
-        if (userInfo!= null) {
-            authority = true;
-        }
-        StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, authority);
-        if (streamInfo == null){
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "获取播放地址失败");
-        }
-        return new StreamContent(streamInfo);
     }
 
     /**

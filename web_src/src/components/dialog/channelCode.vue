@@ -1,14 +1,14 @@
 <template>
   <el-dialog
     title="生成国标编码"
-    width="60%"
+    width="65rem"
     top="2rem"
     center
     :close-on-click-modal="false"
     :visible.sync="showVideoDialog"
     :destroy-on-close="false"
   >
-    <el-tabs v-model="activeKey" style="padding: 0 1rem" @tab-click="getRegionList">
+    <el-tabs v-model="activeKey" style="padding: 0 1rem; margin: auto 0" @tab-click="getRegionList">
       <el-tab-pane name="0" >
         <div slot="label" >
           <div class="show-code-item">{{ allVal[0].val }}</div>

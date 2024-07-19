@@ -152,6 +152,7 @@ export default {
         }).then((res)=> {
           if (typeof (res.data.code) != "undefined" && res.data.code === 0) {
             this.$message.success("保存成功");
+            this.locading = false;
             this.streamProxy = res.data.data
           }else {
             this.$message.error(res.data.msg);
@@ -169,6 +170,7 @@ export default {
         }).then((res)=> {
           if (typeof (res.data.code) != "undefined" && res.data.code === 0) {
             this.$message.success("保存成功");
+            this.locading = false;
             this.streamProxy = res.data.data
           }else {
             this.$message.error(res.data.msg);

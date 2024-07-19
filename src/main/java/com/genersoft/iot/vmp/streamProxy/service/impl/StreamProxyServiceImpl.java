@@ -216,9 +216,10 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         // 判断是否需要重启代理
         if (!streamProxyInDb.getApp().equals(streamProxy.getApp())
                 || !streamProxyInDb.getStream().equals(streamProxy.getStream())
-                || !streamProxyInDb.getMediaServerId().equals(streamProxy.getMediaServerId())
+                || (streamProxyInDb.getMediaServerId() != null && streamProxyInDb.getMediaServerId().equals(streamProxy.getMediaServerId()))
+                || (streamProxyInDb.getMediaServerId() == null && streamProxy.getMediaServerId() != null)
         ) {
-            // app/stream 变化则重启代理
+            // 变化则重启代理
             stopProxy(streamProxyInDb);
             startProxy(streamProxy);
         }

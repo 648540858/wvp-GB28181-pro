@@ -168,15 +168,15 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     @Override
-    public void delte(int id) {
+    public void delete(int id) {
         StreamProxy streamProxy = getStreamProxy(id);
         if (streamProxy == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "代理不存在");
         }
-        delte(streamProxy);
+        delete(streamProxy);
     }
 
-    private void delte(StreamProxy streamProxy) {
+    private void delete(StreamProxy streamProxy) {
         if (streamProxy.getPulling()) {
             stopProxy(streamProxy);
         }
@@ -193,7 +193,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         if (streamProxy == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "代理不存在");
         }
-        delte(streamProxy);
+        delete(streamProxy);
     }
 
     /**

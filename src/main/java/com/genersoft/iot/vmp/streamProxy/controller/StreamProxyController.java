@@ -165,13 +165,13 @@ public class StreamProxyController {
         }
     }
 
-    @DeleteMapping(value = "/delte")
+    @DeleteMapping(value = "/delete")
     @ResponseBody
     @Operation(summary = "移除代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "id", description = "代理ID", required = true)
     public void delte(int id){
         log.info("移除代理： " + id );
-        streamProxyService.delte(id);
+        streamProxyService.delete(id);
     }
 
     @GetMapping(value = "/start")

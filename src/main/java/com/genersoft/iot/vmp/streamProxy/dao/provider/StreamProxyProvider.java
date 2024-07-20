@@ -20,12 +20,12 @@ public class StreamProxyProvider {
     }
 
     public String selectForEnableInMediaServer(Map<String, Object> params ){
-        return getBaseSelectSql() + String.format(" WHERE st.enable=%s and st.media_server_id= %s order by st.create_time desc",
+        return getBaseSelectSql() + String.format(" WHERE st.enable=%s and st.media_server_id= '%s' order by st.create_time desc",
                 params.get("enable"), params.get("mediaServerId"));
     }
 
     public String selectOneByAppAndStream(Map<String, Object> params ){
-        return getBaseSelectSql() + String.format(" WHERE st.app=%s AND st.stream=%s order by st.create_time desc",
+        return getBaseSelectSql() + String.format(" WHERE st.app='%s' AND st.stream='%s' order by st.create_time desc",
                 params.get("app"), params.get("stream"));
     }
 

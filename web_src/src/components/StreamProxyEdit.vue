@@ -67,7 +67,7 @@
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="拉流方式(RTSP)" prop="rtpType" v-if="streamProxy.type ==='default'">
+          <el-form-item label="拉流方式(RTSP)" prop="rtpType">
             <el-select
               v-model="streamProxy.rtspType"
               style="width: 100%"
@@ -79,10 +79,13 @@
             </el-select>
           </el-form-item>
 
-          <el-form-item label="无人观看" prop="rtpType" >
-            <el-radio v-model="streamProxy.noneReader" label="0">不做处理</el-radio>
-            <el-radio v-model="streamProxy.noneReader" label="1">停用</el-radio>
-            <el-radio v-model="streamProxy.noneReader" label="2">移除</el-radio>
+          <el-form-item label="无人观看" prop="noneReader" >
+            <el-radio-group v-model="streamProxy.noneReader">
+              <el-radio :label="0">不做处理</el-radio>
+              <el-radio :label="1">停用</el-radio>
+              <el-radio :label="2">移除</el-radio>
+            </el-radio-group>
+
           </el-form-item>
           <el-form-item label="其他选项">
             <div style="float: left;">
@@ -94,7 +97,7 @@
           </el-form-item>
           <el-form-item>
             <div style="float: right;">
-              <el-button type="primary" @click="onSubmit" :loading="locading" >保存</el-button>
+              <el-button type="primary" @click="onSubmit" :loading="saveLoading" >保存</el-button>
               <el-button @click="close">取消</el-button>
             </div>
 
@@ -114,7 +117,7 @@ import MediaServer from "./service/MediaServer";
 
 export default {
   name: "channelEdit",
-  props: [ 'streamProxy', 'closeEdit'],
+  props: [ 'value', 'closeEdit'],
   components: {
     CommonChannelEdit,
   },
@@ -126,7 +129,8 @@ export default {
   },
   data() {
     return {
-      locading: false,
+      saveLoading: false,
+      streamProxy: this.value,
       mediaServer: new MediaServer(),
       mediaServerList:{},
       ffmpegCmdList:{},
@@ -142,7 +146,9 @@ export default {
   },
   methods: {
     onSubmit: function () {
-      this.locading = true;
+      console.log(typeof this.streamProxy.noneReader)
+      this.saveLoading = true;
+
       this.noneReaderHandler();
       if (this.streamProxy.id) {
         this.$axios({
@@ -150,17 +156,19 @@ export default {
           url:`/api/proxy/update`,
           data: this.streamProxy
         }).then((res)=> {
+          this.saveLoading = false;
           if (typeof (res.data.code) != "undefined" && res.data.code === 0) {
             this.$message.success("保存成功");
-            this.locading = false;
             this.streamProxy = res.data.data
           }else {
             this.$message.error(res.data.msg);
           }
         }).catch((error) =>{
-          this.$message.error(res.data.error);
+          this.$message.error(error);
+          this.saveLoading = false;
         }).finally(()=>{
-          this.locading = false;
+          console.log("finally==finally")
+          this.saveLoading = false;
         })
       }else {
         this.$axios({
@@ -168,17 +176,18 @@ export default {
           url:`/api/proxy/add`,
           data: this.streamProxy
         }).then((res)=> {
+          this.saveLoading = false;
           if (typeof (res.data.code) != "undefined" && res.data.code === 0) {
             this.$message.success("保存成功");
-            this.locading = false;
             this.streamProxy = res.data.data
           }else {
             this.$message.error(res.data.msg);
           }
         }).catch((error) =>{
           this.$message.error(res.data.error);
+          this.saveLoading = false;
         }).finally(()=>{
-          this.locading = false;
+          this.saveLoading = false;
         })
       }
 
@@ -205,13 +214,13 @@ export default {
     },
     noneReaderHandler: function() {
       console.log(this.streamProxy)
-      if (this.streamProxy.noneReader === null || this.streamProxy.noneReader === "0" || !this.streamProxy.noneReader) {
+      if (this.streamProxy.noneReader === null || this.streamProxy.noneReader === 0 || !this.streamProxy.noneReader) {
         this.streamProxy.enableDisableNoneReader = false;
         this.streamProxy.enableRemoveNoneReader = false;
-      }else if (this.streamProxy.noneReader === "1"){
+      }else if (this.streamProxy.noneReader === 1){
         this.streamProxy.enableDisableNoneReader = true;
         this.streamProxy.enableRemoveNoneReader = false;
-      }else if (this.streamProxy.noneReader ==="2"){
+      }else if (this.streamProxy.noneReader ===2){
         this.streamProxy.enableDisableNoneReader = false;
         this.streamProxy.enableRemoveNoneReader = true;
       }

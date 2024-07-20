@@ -177,7 +177,8 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     private void delete(StreamProxy streamProxy) {
-        if (streamProxy.getPulling()) {
+        assert streamProxy != null;
+        if (streamProxy.getPulling() != null && streamProxy.getPulling()) {
             stopProxy(streamProxy);
         }
         if(streamProxy.getGbId() > 0) {
@@ -441,13 +442,12 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
 
     @Override
-    public boolean start(int id) {
+    public StreamInfo start(int id) {
         StreamProxy streamProxy = streamProxyMapper.select(id);
         if (streamProxy == null) {
             throw new ControllerException(ErrorCode.ERROR404.getCode(), "代理信息未找到");
         }
-        StreamInfo streamInfo = startProxy(streamProxy);
-        return streamInfo != null;
+        return startProxy(streamProxy);
     }
 
     private StreamInfo startProxy(StreamProxy streamProxy){

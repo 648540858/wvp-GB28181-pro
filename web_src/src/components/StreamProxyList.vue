@@ -80,8 +80,6 @@
               编辑
             </el-button>
             <el-divider direction="vertical"></el-divider>
-            <el-button size="medium" icon="el-icon-check" type="text" :loading="scope.row.startBtnLoading" v-if="!scope.row.enable" @click="start(scope.row)">启用</el-button>
-            <el-divider v-if="!scope.row.enable" direction="vertical"></el-divider>
             <el-button size="medium" icon="el-icon-cloudy" type="text" @click="queryCloudRecords(scope.row)">云端录像</el-button>
             <el-divider direction="vertical"></el-divider>
             <el-button size="medium" icon="el-icon-delete" type="text" style="color: #f56c6c" @click="deleteStreamProxy(scope.row)">删除</el-button>
@@ -101,7 +99,7 @@
     </div>
     <streamProxyEdit ref="streamProxyEdit" ></streamProxyEdit>
     <onvifEdit ref="onvifEdit" ></onvifEdit>
-    <StreamProxyEdit v-if="streamProxy" :streamProxy="streamProxy" :closeEdit="closeEdit" ></StreamProxyEdit>
+    <StreamProxyEdit v-if="streamProxy" v-model="streamProxy" :closeEdit="closeEdit" ></StreamProxyEdit>
 	</div>
 </template>
 
@@ -199,7 +197,7 @@
 				// this.$refs.streamProxyEdit.openDialog(null, this.initData)
         this.streamProxy = {
           type: "default",
-          noneReader: "1",
+          noneReader: 1,
           enable: true,
           enableAudio: true,
           mediaServerId: "",
@@ -232,6 +230,13 @@
 
 			},
       edit: function(row){
+        if (row.enableDisableNoneReader) {
+          this.$set(row, "noneReader", 1)
+        }else if (row.enableRemoveNoneReader) {
+          this.$set(row, "noneReader", 2)
+        }else {
+          this.$set(row, "noneReader", 0)
+        }
         this.streamProxy = row
 			},
       closeEdit: function(row){
@@ -241,11 +246,9 @@
 				let that = this;
 				this.$axios({
 					method: 'get',
-					url:`/api/media/getPlayUrl`,
+					url:`/api/proxy/start`,
 					params: {
-						app: row.app,
-						stream: row.stream,
-            mediaServerId: row.mediaServerId
+						id: row.id,
 					}
 				}).then(function (res) {
 					if (res.data.code === 0) {

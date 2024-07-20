@@ -178,11 +178,13 @@ public class StreamProxyController {
     @ResponseBody
     @Operation(summary = "启用代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "id", description = "代理Id", required = true)
-    public void start(int id){
-        log.info("启用代理： " + id);
-        boolean result = streamProxyService.start(id);
-        if (!result) {
-            throw new ControllerException(ErrorCode.ERROR100);
+    public StreamContent start(int id){
+        log.info("播放代理： " + id);
+        StreamInfo streamInfo = streamProxyService.start(id);
+        if (streamInfo == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg());
+        }else {
+            return new StreamContent(streamInfo);
         }
     }
 

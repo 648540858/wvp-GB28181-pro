@@ -1098,12 +1098,6 @@ public class PlayServiceImpl implements IPlayService {
             log.warn("[获取下载进度] 查询录像信息时发现节点不存在");
             return null;
         }
-        SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(deviceId, channelId, null, stream);
-
-        if (ssrcTransaction == null) {
-            log.warn("[获取下载进度] 下载已结束");
-            return null;
-        }
         String app = "rtp";
         Long duration  = mediaServerService.updateDownloadProcess(mediaServerItem, app, stream);
         if (duration == null || duration == 0) {

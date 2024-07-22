@@ -192,10 +192,9 @@ public class StreamProxyController {
     @GetMapping(value = "/stop")
     @ResponseBody
     @Operation(summary = "停用代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "app", description = "应用名", required = true)
-    @Parameter(name = "stream", description = "流id", required = true)
-    public void stop(String app, String stream){
-        log.info("停用代理： " + app + "/" + stream);
-        streamProxyService.stopByAppAndStream(app, stream);
+    @Parameter(name = "id", description = "代理Id", required = true)
+    public void stop(int id){
+        log.info("停用代理： {}", id);
+        streamProxyService.stop(id);
     }
 }

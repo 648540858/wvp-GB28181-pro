@@ -94,4 +94,6 @@ public interface IStreamProxyService {
     void delete(int id);
 
     StreamInfo start(int id);
+
+    void stop(int id);
 }

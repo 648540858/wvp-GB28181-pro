@@ -74,8 +74,10 @@
         <el-table-column prop="createTime" label="创建时间"  min-width="150" show-overflow-tooltip/>
         <el-table-column label="操作" width="360"  fixed="right">
           <template slot-scope="scope">
-            <el-button size="medium" icon="el-icon-video-play" type="text" v-if="scope.row.enable" @click="play(scope.row)">播放</el-button>
+            <el-button size="medium" icon="el-icon-video-play" type="text" @click="play(scope.row)">播放</el-button>
             <el-divider direction="vertical"></el-divider>
+            <el-button size="medium" icon="el-icon-switch-button" style="color: #f56c6c"  type="text" v-if="scope.row.pulling" @click="stopPlay(scope.row)">停止</el-button>
+            <el-divider direction="vertical" v-if="scope.row.pulling" ></el-divider>
             <el-button size="medium" icon="el-icon-edit" type="text" @click="edit(scope.row)">
               编辑
             </el-button>
@@ -268,6 +270,26 @@
               message: "获取地址失败：" + res.data.msg,
               type: "error",
             });
+          }
+
+				}).catch(function (error) {
+					console.log(error);
+				});
+
+			},
+      stopPlay: function(row){
+				let that = this;
+				this.$axios({
+					method: 'get',
+					url:`/api/proxy/stop`,
+					params: {
+						id: row.id,
+					}
+				}).then(function (res) {
+					if (res.data.code === 0) {
+
+          }else {
+            that.$message.error(res.data.msg);
           }
 
 				}).catch(function (error) {

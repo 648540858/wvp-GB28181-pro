@@ -474,8 +474,14 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         return streamProxyMapper.select(id);
     }
 
-
-
+    @Override
+    public void stop(int id) {
+        StreamProxy streamProxy = streamProxyMapper.select(id);
+        if (streamProxy == null) {
+            throw new ControllerException(ErrorCode.ERROR404.getCode(), "代理信息未找到");
+        }
+        stopProxy(streamProxy);
+    }
 
     //    @Scheduled(cron = "* 0/10 * * * ?")
 //    public void asyncCheckStreamProxyStatus() {

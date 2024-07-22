@@ -381,5 +381,26 @@ create table wvp_user_api_key (
 INSERT INTO wvp_user VALUES (1, 'admin','21232f297a57a5a743894a0e4a801fc3',1,'2021-04-13 14:14:57','2021-04-13 14:14:57','3e80d1762a324d5b0ff636e0bd16f1e3');
 INSERT INTO wvp_user_role VALUES (1, 'admin','0','2021-04-13 14:14:57','2021-04-13 14:14:57');
 
+CREATE TABLE wvp_common_group
+(
+    id               serial primary key,
+    device_id        varchar(50)  NOT NULL,
+    name             varchar(255) NOT NULL,
+    parent_device_id varchar(50) DEFAULT NULL,
+    business_group   varchar(50) DEFAULT NULL,
+    create_time      varchar(50)  NOT NULL,
+    update_time      varchar(50)  NOT NULL,
+    UNIQUE KEY common_group_device_id (device_id)
+);
 
+CREATE TABLE wvp_common_region
+(
+    id               serial primary key,
+    device_id        varchar(50)  NOT NULL,
+    name             varchar(255) NOT NULL,
+    parent_device_id varchar(50) DEFAULT NULL,
+    create_time      varchar(50)  NOT NULL,
+    update_time      varchar(50)  NOT NULL,
+    UNIQUE KEY common_region_device_id (device_id)
+);
 

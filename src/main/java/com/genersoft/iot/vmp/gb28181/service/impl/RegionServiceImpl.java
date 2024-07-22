@@ -35,13 +35,13 @@ public class RegionServiceImpl implements IRegionService {
 
     @Override
     public void add(Region region) {
-        assert region.getCommonRegionName() != null;
-        assert region.getCommonRegionDeviceId() != null;
-        if (ObjectUtils.isEmpty(region.getCommonRegionParentId().trim())) {
-            region.setCommonRegionParentId(null);
+        assert region.getName() != null;
+        assert region.getDeviceId() != null;
+        if (ObjectUtils.isEmpty(region.getParentDeviceId().trim())) {
+            region.setParentDeviceId(null);
         }
-        region.setCommonRegionCreateTime(DateUtil.getNow());
-        region.setCommonRegionUpdateTime(DateUtil.getNow());
+        region.setCreateTime(DateUtil.getNow());
+        region.setUpdateTime(DateUtil.getNow());
         regionMapper.add(region);
     }
 

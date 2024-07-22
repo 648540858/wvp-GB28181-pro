@@ -15,50 +15,50 @@ public class Region implements Comparable<Region>{
      * 数据库自增ID
      */
     @Schema(description = "数据库自增ID")
-    private int commonRegionId;
+    private int id;
 
     /**
      * 区域国标编号
      */
     @Schema(description = "区域国标编号")
-    private String commonRegionDeviceId;
+    private String deviceId;
 
     /**
      * 区域名称
      */
     @Schema(description = "区域名称")
-    private String commonRegionName;
+    private String name;
 
     /**
      * 父区域国标ID
      */
     @Schema(description = "父区域国标ID")
-    private String commonRegionParentId;
+    private String parentDeviceId;
 
     /**
      * 创建时间
      */
     @Schema(description = "创建时间")
-    private String commonRegionCreateTime;
+    private String createTime;
 
     /**
      * 更新时间
      */
     @Schema(description = "更新时间")
-    private String commonRegionUpdateTime;
+    private String updateTime;
 
     public static Region getInstance(String commonRegionDeviceId, String commonRegionName, String commonRegionParentId) {
         Region region = new Region();
-        region.setCommonRegionDeviceId(commonRegionDeviceId);
-        region.setCommonRegionName(commonRegionName);
-        region.setCommonRegionParentId(commonRegionParentId);
-        region.setCommonRegionCreateTime(DateUtil.getNow());
-        region.setCommonRegionUpdateTime(DateUtil.getNow());
+        region.setDeviceId(commonRegionDeviceId);
+        region.setName(commonRegionName);
+        region.setParentDeviceId(commonRegionParentId);
+        region.setCreateTime(DateUtil.getNow());
+        region.setUpdateTime(DateUtil.getNow());
         return region;
     }
 
     @Override
     public int compareTo(@NotNull Region region) {
-        return Integer.compare(Integer.parseInt(this.commonRegionDeviceId), Integer.parseInt(region.getCommonRegionDeviceId()));
+        return Integer.compare(Integer.parseInt(this.deviceId), Integer.parseInt(region.getDeviceId()));
     }
 }

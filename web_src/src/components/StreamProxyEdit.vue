@@ -21,8 +21,8 @@
               style="width: 100%"
               placeholder="请选择代理类型"
             >
-              <el-option label="默认" value="default"></el-option>
-              <el-option label="FFmpeg" value="ffmpeg"></el-option>
+              <el-option key="默认" label="默认" value="default"></el-option>
+              <el-option key="FFmpeg" label="FFmpeg" value="ffmpeg"></el-option>
             </el-select>
           </el-form-item>
           <el-form-item label="应用名" prop="app">
@@ -67,7 +67,7 @@
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="拉流方式(RTSP)" prop="rtpType">
+          <el-form-item label="拉流方式(RTSP)" prop="rtspType">
             <el-select
               v-model="streamProxy.rtspType"
               style="width: 100%"
@@ -127,6 +127,11 @@ export default {
       this.mediaServerList = data.data;
     })
   },
+  watch: {
+    value(newValue, oldValue){
+      this.streamProxy = newValue;
+    }
+  },
   data() {
     return {
       saveLoading: false,
@@ -159,10 +164,12 @@ export default {
           this.saveLoading = false;
           if (typeof (res.data.code) != "undefined" && res.data.code === 0) {
             this.$message.success("保存成功");
+            console.log(res.data.data)
             this.streamProxy = res.data.data
           }else {
             this.$message.error(res.data.msg);
           }
+          this.saveLoading = false;
         }).catch((error) =>{
           this.$message.error(error);
           this.saveLoading = false;
@@ -214,7 +221,7 @@ export default {
     },
     noneReaderHandler: function() {
       console.log(this.streamProxy)
-      if (this.streamProxy.noneReader === null || this.streamProxy.noneReader === 0 || !this.streamProxy.noneReader) {
+      if (!this.streamProxy.noneReader || this.streamProxy.noneReader === 0 ) {
         this.streamProxy.enableDisableNoneReader = false;
         this.streamProxy.enableRemoveNoneReader = false;
       }else if (this.streamProxy.noneReader === 1){

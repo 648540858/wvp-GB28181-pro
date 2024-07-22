@@ -126,7 +126,7 @@ public class StreamProxyController {
     })
     @PostMapping(value = "/update")
     @ResponseBody
-    public void update(@RequestBody StreamProxy param){
+    public StreamProxy update(@RequestBody StreamProxy param){
         log.info("更新代理： " + JSONObject.toJSONString(param));
         if (param.getId() == 0) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "缺少代理信息的ID");
@@ -135,6 +135,7 @@ public class StreamProxyController {
             param.setGbDeviceId(null);
         }
         streamProxyService.update(param);
+        return param;
     }
 
     @GetMapping(value = "/ffmpeg_cmd/list")
@@ -170,7 +171,7 @@ public class StreamProxyController {
     @Operation(summary = "移除代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "id", description = "代理ID", required = true)
     public void delte(int id){
-        log.info("移除代理： " + id );
+        log.info("移除代理： {}", id);
         streamProxyService.delete(id);
     }
 
@@ -179,7 +180,7 @@ public class StreamProxyController {
     @Operation(summary = "启用代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "id", description = "代理Id", required = true)
     public StreamContent start(int id){
-        log.info("播放代理： " + id);
+        log.info("播放代理： {}", id);
         StreamInfo streamInfo = streamProxyService.start(id);
         if (streamInfo == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg());

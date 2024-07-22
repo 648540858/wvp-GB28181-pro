@@ -159,7 +159,12 @@
         window.clearInterval(this.updateLooper)
       },
       startUpdateList: function (){
-        this.updateLooper = setInterval(this.getStreamProxyList, 1000);
+        this.updateLooper = setInterval(()=>{
+          if (!this.streamProxy) {
+            this.getStreamProxyList()
+          }
+
+        }, 1000);
       },
 			currentChange: function(val){
 				this.currentPage = val;
@@ -238,6 +243,7 @@
           this.$set(row, "noneReader", 0)
         }
         this.streamProxy = row
+        this.$set(this.streamProxy, "rtspType", row.rtspType)
 			},
       closeEdit: function(row){
         this.streamProxy = null

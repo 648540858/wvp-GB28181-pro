@@ -161,9 +161,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         streamProxy.setUpdateTime(DateUtil.getNow());
         streamProxyMapper.add(streamProxy);
         streamProxy.setStreamProxyId(streamProxy.getId());
-        if (streamProxy.isEnable()) {
-            return startProxy(streamProxy);
-        }
         return null;
     }
 

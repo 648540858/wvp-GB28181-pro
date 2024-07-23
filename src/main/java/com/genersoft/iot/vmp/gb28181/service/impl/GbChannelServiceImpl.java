@@ -8,6 +8,8 @@ import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.PageInfo;
+import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -314,5 +316,12 @@ public class GbChannelServiceImpl implements IGbChannelService {
         }
         // 这个多加一个参数,为了防止将非国标的通道通过此方法清空内容,导致意外发生
         commonGBChannelMapper.reset(id, channel.getGbDeviceDbId(), DateUtil.getNow());
+    }
+
+    @Override
+    public PageInfo<CommonGBChannel> queryList(int page, int count, String query, Boolean online) {
+        PageHelper.startPage(page, count);
+        List<CommonGBChannel> all = commonGBChannelMapper.queryList(query, online);
+        return new PageInfo<>(all);
     }
 }

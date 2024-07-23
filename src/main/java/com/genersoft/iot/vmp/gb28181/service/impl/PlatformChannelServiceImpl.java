@@ -1,10 +1,10 @@
-package com.genersoft.iot.vmp.service.impl;
+package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
-import com.genersoft.iot.vmp.service.IPlatformChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.ParentPlatformMapper;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformCatalogMapper;

@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.service;
+package com.genersoft.iot.vmp.gb28181.service;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.genersoft.iot.vmp.media.bean.MediaServer;

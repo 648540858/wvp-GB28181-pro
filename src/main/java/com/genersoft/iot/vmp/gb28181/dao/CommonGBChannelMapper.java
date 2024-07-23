@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.dao.provider.ChannelProvider;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -10,50 +11,8 @@ import java.util.List;
 @Repository
 public interface CommonGBChannelMapper {
 
-    @Select("select\n" +
-            "    id as gb_id,\n" +
-            "    id as gb_id,\n" +
-            "    device_db_id as gb_device_db_id,\n" +
-            "    stream_push_id,\n" +
-            "    stream_proxy_id,\n" +
-            "    create_time,\n" +
-            "    update_time,\n" +
-            "    coalesce(gb_device_id, device_id) as gb_device_id,\n" +
-            "    coalesce(gb_name, name) as gb_name,\n" +
-            "    coalesce(gb_manufacturer, manufacturer) as gb_manufacturer,\n" +
-            "    coalesce(gb_model, model) as gb_model,\n" +
-            "    coalesce(gb_owner, owner) as gb_owner,\n" +
-            "    coalesce(gb_civil_code, civil_code) as gb_civil_code,\n" +
-            "    coalesce(gb_block, block) as gb_block,\n" +
-            "    coalesce(gb_address, address) as gb_address,\n" +
-            "    coalesce(gb_parental, parental) as gb_parental,\n" +
-            "    coalesce(gb_parent_id, parent_id) as gb_parent_id,\n" +
-            "    coalesce(gb_safety_way, safety_way) as gb_safety_way,\n" +
-            "    coalesce(gb_register_way, register_way) as gb_register_way,\n" +
-            "    coalesce(gb_cert_num, cert_num) as gb_cert_num,\n" +
-            "    coalesce(gb_certifiable, certifiable) as gb_certifiable,\n" +
-            "    coalesce(gb_err_code, err_code) as gb_err_code,\n" +
-            "    coalesce(gb_end_time, end_time) as gb_end_time,\n" +
-            "    coalesce(gb_secrecy, secrecy) as gb_secrecy,\n" +
-            "    coalesce(gb_ip_address, ip_address) as gb_ip_address,\n" +
-            "    coalesce(gb_port, port) as gb_port,\n" +
-            "    coalesce(gb_password, password) as gb_password,\n" +
-            "    coalesce(gb_status, status) as gb_status,\n" +
-            "    coalesce(gb_longitude, longitude) as gb_longitude,\n" +
-            "    coalesce(gb_latitude, latitude) as gb_latitude,\n" +
-            "    coalesce(gb_ptz_type, ptz_type) as gb_ptz_type,\n" +
-            "    coalesce(gb_position_type, position_type) as gb_position_type,\n" +
-            "    coalesce(gb_room_type, room_type) as gb_room_type,\n" +
-            "    coalesce(gb_use_type, use_type) as gb_use_type,\n" +
-            "    coalesce(gb_supply_light_type, supply_light_type) as gb_supply_light_type,\n" +
-            "    coalesce(gb_direction_type, direction_type) as gb_direction_type,\n" +
-            "    coalesce(gb_resolution, resolution) as gb_resolution,\n" +
-            "    coalesce(gb_business_group_id, business_group_id) as gb_business_group_id,\n" +
-            "    coalesce(gb_download_speed, download_speed) as gb_download_speed,\n" +
-            "    coalesce(gb_svc_space_support_mod, svc_space_support_mod) as gb_svc_space_support_mod,\n" +
-            "    coalesce(gb_svc_time_support_mode,svc_time_support_mode) as gb_svc_time_support_mode\n" +
-            "from wvp_device_channel\n" +
-            "where gb_device_id = #{gbDeviceId} or device_id = #{gbDeviceId}")
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryByDeviceId")
     CommonGBChannel queryByDeviceId(@Param("gbDeviceId") String gbDeviceId);
 
     @Insert(" <script>" +
@@ -140,49 +99,7 @@ public interface CommonGBChannelMapper {
     @Options(useGeneratedKeys = true, keyProperty = "gbId", keyColumn = "id")
     int insert(CommonGBChannel commonGBChannel);
 
-    @Select(" select\n" +
-            "    id as gb_id,\n" +
-            "    device_db_id as gb_device_db_id,\n" +
-            "    stream_push_id,\n" +
-            "    stream_proxy_id,\n" +
-            "    create_time,\n" +
-            "    update_time,\n" +
-            "    coalesce(gb_device_id, device_id) as gb_device_id,\n" +
-            "    coalesce(gb_name, name) as gb_name,\n" +
-            "    coalesce(gb_manufacturer, manufacturer) as gb_manufacturer,\n" +
-            "    coalesce(gb_model, model) as gb_model,\n" +
-            "    coalesce(gb_owner, owner) as gb_owner,\n" +
-            "    coalesce(gb_civil_code, civil_code) as gb_civil_code,\n" +
-            "    coalesce(gb_block, block) as gb_block,\n" +
-            "    coalesce(gb_address, address) as gb_address,\n" +
-            "    coalesce(gb_parental, parental) as gb_parental,\n" +
-            "    coalesce(gb_parent_id, parent_id) as gb_parent_id,\n" +
-            "    coalesce(gb_safety_way, safety_way) as gb_safety_way,\n" +
-            "    coalesce(gb_register_way, register_way) as gb_register_way,\n" +
-            "    coalesce(gb_cert_num, cert_num) as gb_cert_num,\n" +
-            "    coalesce(gb_certifiable, certifiable) as gb_certifiable,\n" +
-            "    coalesce(gb_err_code, err_code) as gb_err_code,\n" +
-            "    coalesce(gb_end_time, end_time) as gb_end_time,\n" +
-            "    coalesce(gb_secrecy, secrecy) as gb_secrecy,\n" +
-            "    coalesce(gb_ip_address, ip_address) as gb_ip_address,\n" +
-            "    coalesce(gb_port, port) as gb_port,\n" +
-            "    coalesce(gb_password, password) as gb_password,\n" +
-            "    coalesce(gb_status, status) as gb_status,\n" +
-            "    coalesce(gb_longitude, longitude) as gb_longitude,\n" +
-            "    coalesce(gb_latitude, latitude) as gb_latitude,\n" +
-            "    coalesce(gb_ptz_type, ptz_type) as gb_ptz_type,\n" +
-            "    coalesce(gb_position_type, position_type) as gb_position_type,\n" +
-            "    coalesce(gb_room_type, room_type) as gb_room_type,\n" +
-            "    coalesce(gb_use_type, use_type) as gb_use_type,\n" +
-            "    coalesce(gb_supply_light_type, supply_light_type) as gb_supply_light_type,\n" +
-            "    coalesce(gb_direction_type, direction_type) as gb_direction_type,\n" +
-            "    coalesce(gb_resolution, resolution) as gb_resolution,\n" +
-            "    coalesce(gb_business_group_id, business_group_id) as gb_business_group_id,\n" +
-            "    coalesce(gb_download_speed, download_speed) as gb_download_speed,\n" +
-            "    coalesce(gb_svc_space_support_mod, svc_space_support_mod) as gb_svc_space_support_mod,\n" +
-            "    coalesce(gb_svc_time_support_mode, svc_time_support_mode) as gb_svc_time_support_mode\n" +
-            " from wvp_device_channel" +
-            " where id = #{gbId}")
+    @SelectProvider(type = ChannelProvider.class, method = "queryById")
     CommonGBChannel queryById(@Param("gbId") int gbId);
 
     @Delete(value = {"delete from wvp_device_channel where id = #{gbId} "})
@@ -191,74 +108,38 @@ public interface CommonGBChannelMapper {
     @Update(value = {" <script>" +
             "UPDATE wvp_device_channel " +
             "SET update_time=#{updateTime}" +
-            "<if test='gbDeviceId != null'>, gb_device_id = #{gbDeviceId}</if>" +
-            "<if test='gbDeviceId  == null'>, gb_device_id = null</if>" +
-            "<if test='gbName != null'>,  gb_name = #{gbName}</if>" +
-            "<if test='gbName == null'>, gb_name = null</if>" +
-            "<if test='gbManufacturer != null'>,  gb_manufacturer = #{gbManufacturer}</if>" +
-            "<if test='gbManufacturer == null'>, gb_manufacturer = null</if>" +
-            "<if test='gbModel != null'>,  gb_model = #{gbModel}</if>" +
-            "<if test='gbModel  == null'>,   gb_model = null</if>" +
-            "<if test='gbOwner != null' >, gb_owner = #{gbOwner}</if>" +
-            "<if test='gbOwner  == null'>, gb_owner = null</if>" +
-            "<if test='gbCivilCode != null' >, gb_civil_code = #{gbCivilCode}</if>" +
-            "<if test='gbCivilCode == null'>, gb_civil_code = null</if>" +
-            "<if test='gbBlock != null' >, gb_block = #{gbBlock}</if>" +
-            "<if test='gbBlock  == null'>, gb_block = null</if>" +
-            "<if test='gbAddress != null' >, gb_address = #{gbAddress}</if>" +
-            "<if test='gbAddress  == null'>, gb_address = null</if>" +
-            "<if test='gbParental != null' >, gb_parental = #{gbParental}</if>" +
-            "<if test='gbParental  == null'>, gb_parental = null</if>" +
-            "<if test='gbParentId != null' >, gb_parent_id = #{gbParentId}</if>" +
-            "<if test='gbParentId  == null'>, gb_parent_id = null</if>" +
-            "<if test='gbSafetyWay != null' >, gb_safety_way = #{gbSafetyWay}</if>" +
-            "<if test='gbSafetyWay  == null'>, gb_safety_way = null</if>" +
-            "<if test='gbRegisterWay != null' >, gb_register_way = #{gbRegisterWay}</if>" +
-            "<if test='gbRegisterWay  == null'>, gb_register_way = null</if>" +
-            "<if test='gbCertNum != null' >, gb_cert_num = #{gbCertNum}</if>" +
-            "<if test='gbCertNum  == null'>, gb_cert_num = null</if>" +
-            "<if test='gbCertifiable != null' >, gb_certifiable = #{gbCertifiable}</if>" +
-            "<if test='gbCertifiable  == null'>, gb_certifiable = null</if>" +
-            "<if test='gbErrCode != null' >, gb_err_code = #{gbErrCode}</if>" +
-            "<if test='gbErrCode  == null'>, gb_err_code = null</if>" +
-            "<if test='gbEndTime != null' >, gb_end_time = #{gbEndTime}</if>" +
-            "<if test='gbEndTime  == null'>, gb_end_time = null</if>" +
-            "<if test='gbSecrecy != null' >, gb_secrecy = #{gbSecrecy}</if>" +
-            "<if test='gbSecrecy  == null'>, gb_secrecy = null</if>" +
-            "<if test='gbIpAddress != null' >, gb_ip_address = #{gbIpAddress}</if>" +
-            "<if test='gbIpAddress  == null'>, gb_ip_address = null</if>" +
-            "<if test='gbPort != null' >, gb_ip_address = #{gbPort}</if>" +
-            "<if test='gbPort  == null'>, gb_port = null</if>" +
-            "<if test='gbPassword != null' >, gb_password = #{gbPassword}</if>" +
-            "<if test='gbPassword  == null'>, gb_password = null</if>" +
-            "<if test='gbStatus != null' >, gb_status = #{gbStatus}</if>" +
-            "<if test='gbStatus  == null'>, gb_status = null</if>" +
-            "<if test='gbLongitude != null' >, gb_longitude = #{gbLongitude}</if>" +
-            "<if test='gbLongitude  == null'>, gb_longitude = null</if>" +
-            "<if test='gbLatitude != null' >, gb_latitude = #{gbLatitude}</if>" +
-            "<if test='gbLatitude  == null'>, gb_latitude = null</if>" +
-            "<if test='gbPtzType != null' >, gb_ptz_type = #{gbPtzType}</if>" +
-            "<if test='gbPtzType  == null'>, gb_ptz_type = null</if>" +
-            "<if test='gbPositionType != null' >, gb_position_type = #{gbPositionType}</if>" +
-            "<if test='gbPositionType  == null'>, gb_position_type = null</if>" +
-            "<if test='gbRoomType != null' >, gb_room_type = #{gbRoomType}</if>" +
-            "<if test='gbRoomType  == null'>, gb_room_type = null</if>" +
-            "<if test='gbUseType != null' >, gb_use_type = #{gbUseType}</if>" +
-            "<if test='gbUseType  == null'>, gb_use_type = null</if>" +
-            "<if test='gbSupplyLightType != null' >, gb_supply_light_type = #{gbSupplyLightType}</if>" +
-            "<if test='gbSupplyLightType  == null'>, gb_supply_light_type = null</if>" +
-            "<if test='gbDirectionType != null' >, gb_direction_type = #{gbDirectionType}</if>" +
-            "<if test='gbDirectionType  == null'>, gb_direction_type = null</if>" +
-            "<if test='gbResolution != null' >, gb_resolution = #{gbResolution}</if>" +
-            "<if test='gbResolution  == null'>, gb_resolution = null</if>" +
-            "<if test='gbBusinessGroupId != null' >, gb_business_group_id = #{gbBusinessGroupId}</if>" +
-            "<if test='gbBusinessGroupId  == null'>, gb_business_group_id = null</if>" +
-            "<if test='gbDownloadSpeed != null' >, gb_download_speed = #{gbDownloadSpeed}</if>" +
-            "<if test='gbDownloadSpeed  == null'>, gb_download_speed = null</if>" +
-            "<if test='gbSvcSpaceSupportMod != null' >, gb_svc_space_support_mod = #{gbSvcSpaceSupportMod}</if>" +
-            "<if test='gbSvcSpaceSupportMod  == null'>, gb_svc_space_support_mod = null</if>" +
-            "<if test='gbSvcTimeSupportMode != null' >, gb_svc_time_support_mode = #{gbSvcTimeSupportMode}</if>" +
-            "<if test='gbSvcTimeSupportMode  == null'>, gb_svc_time_support_mode = null</if>" +
+            ", gb_device_id = #{gbDeviceId}" +
+            ", gb_name = #{gbName}" +
+            ", gb_manufacturer = #{gbManufacturer}" +
+            ", gb_model = #{gbModel}" +
+            ", gb_owner = #{gbOwner}" +
+            ", gb_civil_code = #{gbCivilCode}" +
+            ", gb_block = #{gbBlock}" +
+            ", gb_address = #{gbAddress}" +
+            ", gb_parental = #{gbParental}" +
+            ", gb_safety_way = #{gbSafetyWay}" +
+            ", gb_register_way = #{gbRegisterWay}" +
+            ", gb_cert_num = #{gbCertNum}" +
+            ", gb_certifiable = #{gbCertifiable}" +
+            ", gb_err_code = #{gbErrCode}" +
+            ", gb_end_time = #{gbEndTime}" +
+            ", gb_ip_address = #{gbIpAddress}" +
+            ", gb_port = #{gbPort}" +
+            ", gb_password = #{gbPassword}" +
+            ", gb_status = #{gbStatus}" +
+            ", gb_longitude = #{gbLongitude}" +
+            ", gb_latitude = #{gbLatitude}" +
+            ", gb_ptz_type = #{gbPtzType}" +
+            ", gb_position_type = #{gbPositionType}" +
+            ", gb_room_type = #{gbRoomType}" +
+            ", gb_use_type = #{gbUseType}" +
+            ", gb_supply_light_type = #{gbSupplyLightType}" +
+            ", gb_direction_type = #{gbDirectionType}" +
+            ", gb_resolution = #{gbResolution}" +
+            ", gb_business_group_id = #{gbBusinessGroupId}" +
+            ", gb_download_speed = #{gbDownloadSpeed}" +
+            ", gb_svc_space_support_mod = #{gbSvcSpaceSupportMod}" +
+            ", gb_svc_time_support_mode = #{gbSvcTimeSupportMode}" +
             "WHERE id = #{gbId}"+
             " </script>"})
     int update(CommonGBChannel commonGBChannel);
@@ -277,52 +158,7 @@ public interface CommonGBChannelMapper {
             "</script>")
     int updateStatusForListById(List<CommonGBChannel> commonGBChannels, @Param("status") int status);
 
-    @Select(value = {" <script>" +
-            " select\n" +
-            "    id as gb_id,\n" +
-            "    device_db_id as gb_device_db_id,\n" +
-            "    stream_push_id,\n" +
-            "    stream_proxy_id,\n" +
-            "    create_time,\n" +
-            "    update_time,\n" +
-            "    coalesce(gb_device_id, device_id) as gb_device_id,\n" +
-            "    coalesce(gb_name, name) as gb_name,\n" +
-            "    coalesce(gb_manufacturer, manufacturer) as gb_manufacturer,\n" +
-            "    coalesce(gb_model, model) as gb_model,\n" +
-            "    coalesce(gb_owner, owner) as gb_owner,\n" +
-            "    coalesce(gb_civil_code, civil_code) as gb_civil_code,\n" +
-            "    coalesce(gb_block, block) as gb_block,\n" +
-            "    coalesce(gb_address, address) as gb_address,\n" +
-            "    coalesce(gb_parental, parental) as gb_parental,\n" +
-            "    coalesce(gb_parent_id, parent_id) as gb_parent_id,\n" +
-            "    coalesce(gb_safety_way, safety_way) as gb_safety_way,\n" +
-            "    coalesce(gb_register_way, register_way) as gb_register_way,\n" +
-            "    coalesce(gb_cert_num, cert_num) as gb_cert_num,\n" +
-            "    coalesce(gb_certifiable, certifiable) as gb_certifiable,\n" +
-            "    coalesce(gb_err_code, err_code) as gb_err_code,\n" +
-            "    coalesce(gb_end_time, end_time) as gb_end_time,\n" +
-            "    coalesce(gb_secrecy, secrecy) as gb_secrecy,\n" +
-            "    coalesce(gb_ip_address, ip_address) as gb_ip_address,\n" +
-            "    coalesce(gb_port, port) as gb_port,\n" +
-            "    coalesce(gb_password, password) as gb_password,\n" +
-            "    coalesce(gb_status, status) as gb_status,\n" +
-            "    coalesce(gb_longitude, longitude) as gb_longitude,\n" +
-            "    coalesce(gb_latitude, latitude) as gb_latitude,\n" +
-            "    coalesce(gb_ptz_type, ptz_type) as gb_ptz_type,\n" +
-            "    coalesce(gb_position_type, position_type) as gb_position_type,\n" +
-            "    coalesce(gb_room_type, room_type) as gb_room_type,\n" +
-            "    coalesce(gb_use_type, use_type) as gb_use_type,\n" +
-            "    coalesce(gb_supply_light_type, supply_light_type) as gb_supply_light_type,\n" +
-            "    coalesce(gb_direction_type, direction_type) as gb_direction_type,\n" +
-            "    coalesce(gb_resolution, resolution) as gb_resolution,\n" +
-            "    coalesce(gb_business_group_id, business_group_id) as gb_business_group_id,\n" +
-            "    coalesce(gb_download_speed, download_speed) as gb_download_speed,\n" +
-            "    coalesce(gb_svc_space_support_mod, svc_space_support_mod) as gb_svc_space_support_mod,\n" +
-            "    coalesce(gb_svc_time_support_mode,svc_time_support_mode) as gb_svc_time_support_mode\n" +
-            " from wvp_device_channel" +
-            " where gb_status=#{status} and id in " +
-            " <foreach collection='commonGBChannelList'  item='item'  open='(' separator=',' close=')' > #{item.gbId}</foreach>" +
-            "</script>"})
+    @SelectProvider(type = ChannelProvider.class, method = "queryInListByStatus")
     List<CommonGBChannel> queryInListByStatus(List<CommonGBChannel> commonGBChannelList, @Param("status") int status);
 
 
@@ -451,52 +287,7 @@ public interface CommonGBChannelMapper {
     void reset(@Param("id") int id, @Param("gbDeviceDbId") int gbDeviceDbId, @Param("updateTime") String updateTime);
 
 
-    @Select(value = {" <script>" +
-            " select\n" +
-            "    id as gb_id,\n" +
-            "    device_db_id as gb_device_db_id,\n" +
-            "    stream_push_id,\n" +
-            "    stream_proxy_id,\n" +
-            "    create_time,\n" +
-            "    update_time,\n" +
-            "    coalesce(gb_device_id, device_id) as gb_device_id,\n" +
-            "    coalesce(gb_name, name) as gb_name,\n" +
-            "    coalesce(gb_manufacturer, manufacturer) as gb_manufacturer,\n" +
-            "    coalesce(gb_model, model) as gb_model,\n" +
-            "    coalesce(gb_owner, owner) as gb_owner,\n" +
-            "    coalesce(gb_civil_code, civil_code) as gb_civil_code,\n" +
-            "    coalesce(gb_block, block) as gb_block,\n" +
-            "    coalesce(gb_address, address) as gb_address,\n" +
-            "    coalesce(gb_parental, parental) as gb_parental,\n" +
-            "    coalesce(gb_parent_id, parent_id) as gb_parent_id,\n" +
-            "    coalesce(gb_safety_way, safety_way) as gb_safety_way,\n" +
-            "    coalesce(gb_register_way, register_way) as gb_register_way,\n" +
-            "    coalesce(gb_cert_num, cert_num) as gb_cert_num,\n" +
-            "    coalesce(gb_certifiable, certifiable) as gb_certifiable,\n" +
-            "    coalesce(gb_err_code, err_code) as gb_err_code,\n" +
-            "    coalesce(gb_end_time, end_time) as gb_end_time,\n" +
-            "    coalesce(gb_secrecy, secrecy) as gb_secrecy,\n" +
-            "    coalesce(gb_ip_address, ip_address) as gb_ip_address,\n" +
-            "    coalesce(gb_port, port) as gb_port,\n" +
-            "    coalesce(gb_password, password) as gb_password,\n" +
-            "    coalesce(gb_status, status) as gb_status,\n" +
-            "    coalesce(gb_longitude, longitude) as gb_longitude,\n" +
-            "    coalesce(gb_latitude, latitude) as gb_latitude,\n" +
-            "    coalesce(gb_ptz_type, ptz_type) as gb_ptz_type,\n" +
-            "    coalesce(gb_position_type, position_type) as gb_position_type,\n" +
-            "    coalesce(gb_room_type, room_type) as gb_room_type,\n" +
-            "    coalesce(gb_use_type, use_type) as gb_use_type,\n" +
-            "    coalesce(gb_supply_light_type, supply_light_type) as gb_supply_light_type,\n" +
-            "    coalesce(gb_direction_type, direction_type) as gb_direction_type,\n" +
-            "    coalesce(gb_resolution, resolution) as gb_resolution,\n" +
-            "    coalesce(gb_business_group_id, business_group_id) as gb_business_group_id,\n" +
-            "    coalesce(gb_download_speed, download_speed) as gb_download_speed,\n" +
-            "    coalesce(gb_svc_space_support_mod, svc_space_support_mod) as gb_svc_space_support_mod,\n" +
-            "    coalesce(gb_svc_time_support_mode,svc_time_support_mode) as gb_svc_time_support_mode\n" +
-            " from wvp_device_channel" +
-            " where 1 = 1 and id in " +
-            " <foreach collection='commonGBChannelList'  item='item'  open='(' separator=',' close=')' > #{item.gbId}</foreach>" +
-            "</script>"})
+    @SelectProvider(type = ChannelProvider.class, method = "queryByIds")
     List<CommonGBChannel> queryByIds(List<CommonGBChannel> commonGBChannelList);
 
     @Delete(value = {" <script>" +
@@ -506,93 +297,12 @@ public interface CommonGBChannelMapper {
             "</script>"})
     void batchDelete(List<CommonGBChannel> channelListInDb);
 
-    @Select(value = {"select\n" +
-            "    id as gb_id,\n" +
-            "    device_db_id as gb_device_db_id,\n" +
-            "    stream_push_id,\n" +
-            "    stream_proxy_id,\n" +
-            "    create_time,\n" +
-            "    update_time,\n" +
-            "    coalesce(gb_device_id, device_id) as gb_device_id,\n" +
-            "    coalesce(gb_name, name) as gb_name,\n" +
-            "    coalesce(gb_manufacturer, manufacturer) as gb_manufacturer,\n" +
-            "    coalesce(gb_model, model) as gb_model,\n" +
-            "    coalesce(gb_owner, owner) as gb_owner,\n" +
-            "    coalesce(gb_civil_code, civil_code) as gb_civil_code,\n" +
-            "    coalesce(gb_block, block) as gb_block,\n" +
-            "    coalesce(gb_address, address) as gb_address,\n" +
-            "    coalesce(gb_parental, parental) as gb_parental,\n" +
-            "    coalesce(gb_parent_id, parent_id) as gb_parent_id,\n" +
-            "    coalesce(gb_safety_way, safety_way) as gb_safety_way,\n" +
-            "    coalesce(gb_register_way, register_way) as gb_register_way,\n" +
-            "    coalesce(gb_cert_num, cert_num) as gb_cert_num,\n" +
-            "    coalesce(gb_certifiable, certifiable) as gb_certifiable,\n" +
-            "    coalesce(gb_err_code, err_code) as gb_err_code,\n" +
-            "    coalesce(gb_end_time, end_time) as gb_end_time,\n" +
-            "    coalesce(gb_secrecy, secrecy) as gb_secrecy,\n" +
-            "    coalesce(gb_ip_address, ip_address) as gb_ip_address,\n" +
-            "    coalesce(gb_port, port) as gb_port,\n" +
-            "    coalesce(gb_password, password) as gb_password,\n" +
-            "    coalesce(gb_status, status) as gb_status,\n" +
-            "    coalesce(gb_longitude, longitude) as gb_longitude,\n" +
-            "    coalesce(gb_latitude, latitude) as gb_latitude,\n" +
-            "    coalesce(gb_ptz_type, ptz_type) as gb_ptz_type,\n" +
-            "    coalesce(gb_position_type, position_type) as gb_position_type,\n" +
-            "    coalesce(gb_room_type, room_type) as gb_room_type,\n" +
-            "    coalesce(gb_use_type, use_type) as gb_use_type,\n" +
-            "    coalesce(gb_supply_light_type, supply_light_type) as gb_supply_light_type,\n" +
-            "    coalesce(gb_direction_type, direction_type) as gb_direction_type,\n" +
-            "    coalesce(gb_resolution, resolution) as gb_resolution,\n" +
-            "    coalesce(gb_business_group_id, business_group_id) as gb_business_group_id,\n" +
-            "    coalesce(gb_download_speed, download_speed) as gb_download_speed,\n" +
-            "    coalesce(gb_svc_space_support_mod, svc_space_support_mod) as gb_svc_space_support_mod,\n" +
-            "    coalesce(gb_svc_time_support_mode,svc_time_support_mode) as gb_svc_time_support_mode\n" +
-            "from wvp_device_channel \n" +
-            "where stream_push_id = #{streamPushId}"})
+    @SelectProvider(type = ChannelProvider.class, method = "queryByStreamPushId")
     CommonGBChannel queryByStreamPushId(@Param("streamPushId") Integer streamPushId);
 
-    @Select(value = {"select\n" +
-            "    id as gb_id,\n" +
-            "    device_db_id as gb_device_db_id,\n" +
-            "    stream_push_id,\n" +
-            "    stream_proxy_id,\n" +
-            "    create_time,\n" +
-            "    update_time,\n" +
-            "    coalesce(gb_device_id, device_id) as gb_device_id,\n" +
-            "    coalesce(gb_name, name) as gb_name,\n" +
-            "    coalesce(gb_manufacturer, manufacturer) as gb_manufacturer,\n" +
-            "    coalesce(gb_model, model) as gb_model,\n" +
-            "    coalesce(gb_owner, owner) as gb_owner,\n" +
-            "    coalesce(gb_civil_code, civil_code) as gb_civil_code,\n" +
-            "    coalesce(gb_block, block) as gb_block,\n" +
-            "    coalesce(gb_address, address) as gb_address,\n" +
-            "    coalesce(gb_parental, parental) as gb_parental,\n" +
-            "    coalesce(gb_parent_id, parent_id) as gb_parent_id,\n" +
-            "    coalesce(gb_safety_way, safety_way) as gb_safety_way,\n" +
-            "    coalesce(gb_register_way, register_way) as gb_register_way,\n" +
-            "    coalesce(gb_cert_num, cert_num) as gb_cert_num,\n" +
-            "    coalesce(gb_certifiable, certifiable) as gb_certifiable,\n" +
-            "    coalesce(gb_err_code, err_code) as gb_err_code,\n" +
-            "    coalesce(gb_end_time, end_time) as gb_end_time,\n" +
-            "    coalesce(gb_secrecy, secrecy) as gb_secrecy,\n" +
-            "    coalesce(gb_ip_address, ip_address) as gb_ip_address,\n" +
-            "    coalesce(gb_port, port) as gb_port,\n" +
-            "    coalesce(gb_password, password) as gb_password,\n" +
-            "    coalesce(gb_status, status) as gb_status,\n" +
-            "    coalesce(gb_longitude, longitude) as gb_longitude,\n" +
-            "    coalesce(gb_latitude, latitude) as gb_latitude,\n" +
-            "    coalesce(gb_ptz_type, ptz_type) as gb_ptz_type,\n" +
-            "    coalesce(gb_position_type, position_type) as gb_position_type,\n" +
-            "    coalesce(gb_room_type, room_type) as gb_room_type,\n" +
-            "    coalesce(gb_use_type, use_type) as gb_use_type,\n" +
-            "    coalesce(gb_supply_light_type, supply_light_type) as gb_supply_light_type,\n" +
-            "    coalesce(gb_direction_type, direction_type) as gb_direction_type,\n" +
-            "    coalesce(gb_resolution, resolution) as gb_resolution,\n" +
-            "    coalesce(gb_business_group_id, business_group_id) as gb_business_group_id,\n" +
-            "    coalesce(gb_download_speed, download_speed) as gb_download_speed,\n" +
-            "    coalesce(gb_svc_space_support_mod, svc_space_support_mod) as gb_svc_space_support_mod,\n" +
-            "    coalesce(gb_svc_time_support_mode,svc_time_support_mode) as gb_svc_time_support_mode\n" +
-            "from wvp_device_channel \n" +
-            "where stream_proxy_id = #{streamProxyId}"})
+    @SelectProvider(type = ChannelProvider.class, method = "queryByStreamProxyId")
     CommonGBChannel queryByStreamProxyId(@Param("streamProxyId") Integer streamProxyId);
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryList")
+    List<CommonGBChannel> queryList(String query, Boolean online);
 }

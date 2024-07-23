@@ -9,7 +9,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
-import com.genersoft.iot.vmp.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import gov.nist.javax.sip.message.SIPRequest;

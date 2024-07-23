@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.service.impl;
+package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.dynamic.datasource.annotation.DS;
@@ -12,11 +12,8 @@ import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
-import com.genersoft.iot.vmp.service.IDeviceChannelService;
-import com.genersoft.iot.vmp.service.IDeviceService;
-import com.genersoft.iot.vmp.service.IInviteStreamService;
+import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

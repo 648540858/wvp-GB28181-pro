@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.event.device;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;

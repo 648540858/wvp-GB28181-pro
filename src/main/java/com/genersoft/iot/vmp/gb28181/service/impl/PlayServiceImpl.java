@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.service.impl;
+package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.*;
@@ -26,10 +26,10 @@ import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaNotFoundEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
-import com.genersoft.iot.vmp.service.IDeviceChannelService;
-import com.genersoft.iot.vmp.service.IDeviceService;
-import com.genersoft.iot.vmp.service.IInviteStreamService;
-import com.genersoft.iot.vmp.service.IPlayService;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
+import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;

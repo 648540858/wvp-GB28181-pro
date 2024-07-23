@@ -6,7 +6,7 @@ import com.genersoft.iot.vmp.gb28181.session.CatalogDataCatch;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
-import com.genersoft.iot.vmp.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;

@@ -11,8 +11,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.service.IDeviceService;
-import com.genersoft.iot.vmp.service.IPlayService;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;

@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.service.impl;
+package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.dynamic.datasource.annotation.DS;
@@ -15,8 +15,8 @@ import com.genersoft.iot.vmp.gb28181.dao.DeviceMobilePositionMapper;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
-import com.genersoft.iot.vmp.service.IDeviceChannelService;
-import com.genersoft.iot.vmp.service.IInviteStreamService;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;

@@ -6,7 +6,7 @@ import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.response.SIPResponseProcessorAbstract;
-import com.genersoft.iot.vmp.service.IPlatformService;
+import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.dto.PlatformRegisterInfo;
 import gov.nist.javax.sip.message.SIPResponse;

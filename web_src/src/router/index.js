@@ -23,6 +23,7 @@ import userManager from '../components/UserManager.vue'
 import userApiKeyManager from '../components/UserApiKeyManager.vue'
 import wasmPlayer from '../components/common/jessibuca.vue'
 import rtcPlayer from '../components/dialog/rtcPlayer.vue'
+import region from '../components/region.vue'
 
 const originalPush = VueRouter.prototype.push
 VueRouter.prototype.push = function push(location) {
@@ -130,6 +131,11 @@ export default new VueRouter({
           path: '/userApiKeyManager/:userId',
           name: 'userApiKeyManager',
           component: userApiKeyManager,
+        },
+        {
+          path: '/region',
+          name: 'region',
+          component: region,
         }
         ,
         ]

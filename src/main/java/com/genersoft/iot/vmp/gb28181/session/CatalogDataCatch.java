@@ -4,7 +4,7 @@ import com.genersoft.iot.vmp.gb28181.bean.CatalogData;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
-import com.genersoft.iot.vmp.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;

@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.web.gb28181;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

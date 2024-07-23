@@ -7,7 +7,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
-import com.genersoft.iot.vmp.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.DocumentException;

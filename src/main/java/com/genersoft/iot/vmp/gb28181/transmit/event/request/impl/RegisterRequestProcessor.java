@@ -12,7 +12,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
-import com.genersoft.iot.vmp.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import gov.nist.javax.sip.RequestEventExt;
 import gov.nist.javax.sip.address.AddressImpl;

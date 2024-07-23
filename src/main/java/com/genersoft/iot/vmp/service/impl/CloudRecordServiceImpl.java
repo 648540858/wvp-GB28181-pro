@@ -10,7 +10,7 @@ import com.genersoft.iot.vmp.media.event.media.MediaRecordMp4Event;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
-import com.genersoft.iot.vmp.service.ICloudRecordService;
+import com.genersoft.iot.vmp.gb28181.service.ICloudRecordService;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;

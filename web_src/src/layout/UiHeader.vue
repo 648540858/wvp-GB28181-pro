@@ -10,6 +10,12 @@
       <el-menu-item index="/map">电子地图</el-menu-item>
       <el-menu-item index="/streamPushList">推流列表</el-menu-item>
       <el-menu-item index="/streamProxyList">拉流代理</el-menu-item>
+      <el-submenu >
+        <template slot="title">通道管理</template>
+        <el-menu-item index="/region">行政区划</el-menu-item>
+        <el-menu-item index="/group">业务分组</el-menu-item>
+        <el-menu-item index="/commonChannelList">通道列表</el-menu-item>
+      </el-submenu>
       <el-menu-item index="/cloudRecord">云端录像</el-menu-item>
       <el-menu-item index="/mediaServerManger">节点管理</el-menu-item>
       <el-menu-item index="/parentPlatformList/15/1">国标级联</el-menu-item>

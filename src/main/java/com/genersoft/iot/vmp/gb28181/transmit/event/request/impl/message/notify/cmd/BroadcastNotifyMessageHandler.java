@@ -9,9 +9,9 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessag
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.service.IDeviceService;
-import com.genersoft.iot.vmp.service.IPlatformService;
-import com.genersoft.iot.vmp.service.IPlayService;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
+import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;

@@ -55,7 +55,7 @@ public class RegionServiceImpl implements IRegionService {
     @Override
     public PageInfo<Region> query(String query, int page, int count) {
         PageHelper.startPage(page, count);
-        List<Region> regionList =  regionMapper.query(query);
+        List<Region> regionList =  regionMapper.query(query, null);
         return new PageInfo<>(regionList);
     }
 

@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.service.impl;
+package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.InviteInfo;
@@ -19,9 +19,9 @@ import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaSendRtpStoppedEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.service.IInviteStreamService;
-import com.genersoft.iot.vmp.service.IPlatformService;
-import com.genersoft.iot.vmp.service.IPlayService;
+import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
+import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
+import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;

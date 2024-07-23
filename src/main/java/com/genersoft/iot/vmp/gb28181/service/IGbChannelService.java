@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceType;
 import com.genersoft.iot.vmp.gb28181.bean.IndustryCodeType;
 import com.genersoft.iot.vmp.gb28181.bean.NetworkIdentificationType;
+import com.genersoft.iot.vmp.vmanager.bean.PageInfo;
 
 import java.util.List;
 
@@ -43,4 +44,5 @@ public interface IGbChannelService {
 
     void reset(int id);
 
+    PageInfo<CommonGBChannel> queryList(int page, int count, String query, Boolean online);
 }

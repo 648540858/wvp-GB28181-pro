@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.gb28181.bean.NetworkIdentificationType;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.vmanager.bean.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -15,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -85,5 +87,21 @@ public class CommonChannelController {
     public CommonGBChannel add(@RequestBody CommonGBChannel channel){
         channelService.add(channel);
         return channel;
+    }
+
+    @Operation(summary = "获取通道列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "page", description = "当前页", required = true)
+    @Parameter(name = "count", description = "每页查询数量", required = true)
+    @Parameter(name = "query", description = "查询内容")
+    @Parameter(name = "online", description = "是否在线")
+    @ResponseBody
+    @PostMapping("/list")
+    public PageInfo<CommonGBChannel> queryList(int page, int count,
+                                               @RequestParam(required = false) String query,
+                                               @RequestParam(required = false) Boolean online){
+        if (ObjectUtils.isEmpty(query)){
+            query = null;
+        }
+        return channelService.queryList(page, count, query, online);
     }
 }

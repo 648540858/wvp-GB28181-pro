@@ -11,7 +11,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessag
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
-import com.genersoft.iot.vmp.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;

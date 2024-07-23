@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.service;
+package com.genersoft.iot.vmp.gb28181.service;
 
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;

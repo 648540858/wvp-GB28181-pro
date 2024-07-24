@@ -763,7 +763,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             calld = streamAuthorityInfo.getCallId();
         }
         List<StreamInfo> streamInfoList = getMediaList(mediaInfo, app, stream, calld);
-        if (streamInfoList.isEmpty()) {
+        if (streamInfoList == null || streamInfoList.isEmpty()) {
             return null;
         }else {
             return streamInfoList.get(0);
@@ -809,6 +809,13 @@ public class MediaServerServiceImpl implements IMediaServerService {
         streamInfoResult.setRtc(addr, mediaServer.getHttpPort(),mediaServer.getHttpSSlPort(), app,  stream, callIdParam, isPlay);
 
         streamInfoResult.setMediaInfo(mediaInfo);
+
+        if (!"broadcast".equalsIgnoreCase(app) && !ObjectUtils.isEmpty(mediaServer.getTranscodeSuffix()) && !"null".equalsIgnoreCase(mediaServer.getTranscodeSuffix())) {
+            String newStream = stream + "_" + mediaServer.getTranscodeSuffix();
+            mediaServer.setTranscodeSuffix(null);
+            StreamInfo transcodeStreamInfo = getStreamInfoByAppAndStream(mediaServer, app, newStream, null, addr, callId, isPlay);
+            streamInfoResult.setTranscodeStream(transcodeStreamInfo);
+        }
         return streamInfoResult;
     }
 

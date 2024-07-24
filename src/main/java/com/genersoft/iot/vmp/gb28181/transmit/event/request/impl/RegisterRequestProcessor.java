@@ -114,6 +114,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                     device.setIp(remoteAddressInfo.getIp());
                     device.setPort(remoteAddressInfo.getPort());
                     device.setHostAddress(remoteAddressInfo.getIp().concat(":").concat(String.valueOf(remoteAddressInfo.getPort())));
+
                     device.setLocalIp(request.getLocalAddress().getHostAddress());
                     Response registerOkResponse = getRegisterOkResponse(request);
                     // 判断TCP还是UDP

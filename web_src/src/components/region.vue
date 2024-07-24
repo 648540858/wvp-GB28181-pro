@@ -1,10 +1,29 @@
 <template>
   <div id="region" style="width: 100%">
-    <el-container v-if="!editId" v-loading="loading" style="height: 82vh;">
-      <el-aside width="auto" style="height: 82vh; background-color: #ffffff; overflow: auto">
+    <el-container v-loading="loading" >
+      <el-aside width="400px" >
         <RegionTree ref="regionTree" :edit="true" :clickEvent="treeNodeClickEvent"></RegionTree>
       </el-aside>
       <el-main style="padding: 5px;">
+        <div class="page-header">
+          <div class="page-title">通道列表</div>
+          <div class="page-header-btn">
+            <div  style="display: inline;">
+              搜索:
+              <el-input @input="search" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
+                        prefix-icon="el-icon-search" v-model="searchSrt" clearable></el-input>
+
+              在线状态:
+              <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="search" v-model="online" placeholder="请选择"
+                         default-first-option>
+                <el-option label="全部" value=""></el-option>
+                <el-option label="在线" value="true"></el-option>
+                <el-option label="离线" value="false"></el-option>
+              </el-select>
+            </div>
+            <el-button icon="el-icon-refresh-right" circle size="mini" @click="refresh()"></el-button>
+          </div>
+        </div>
         <el-table ref="channelListTable" :data="channelList" :height="winHeight" style="width: 100%"
                   header-row-class-name="table-header">
           <el-table-column prop="gbName" label="名称" min-width="180">

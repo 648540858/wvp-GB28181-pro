@@ -1,9 +1,8 @@
 package com.genersoft.iot.vmp.conf;
 
 import com.genersoft.iot.vmp.common.CivilCodePo;
-import com.genersoft.iot.vmp.gb28181.bean.Region;
+import com.genersoft.iot.vmp.utils.CivilCodeUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.ehcache.impl.internal.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
@@ -17,9 +16,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * 启动时读取行政区划表
@@ -32,8 +28,6 @@ public class CivilCodeFileConf implements CommandLineRunner {
     @Autowired
     @Lazy
     private UserSetting userSetting;
-
-    private final Map<String, CivilCodePo> civilCodeMap= new ConcurrentHashMap<>();
 
     @Override
     public void run(String... args) throws Exception {
@@ -70,28 +64,14 @@ public class CivilCodeFileConf implements CommandLineRunner {
             }
             String[] infoArray = line.split(",");
             CivilCodePo civilCodePo = CivilCodePo.getInstance(infoArray);
-            civilCodeMap.put(civilCodePo.getCode(), civilCodePo);
+            CivilCodeUtil.INSTANCE.add(civilCodePo);
         }
         inputStreamReader.close();
         inputStream.close();
-        if (civilCodeMap.isEmpty()) {
+        if (CivilCodeUtil.INSTANCE.isEmpty()) {
             log.warn("[行政区划] 文件内容为空，可能造成目录刷新结果不完整");
         }else {
-            log.info("[行政区划] 加载成功，共加载数据{}条", civilCodeMap.size());
+            log.info("[行政区划] 加载成功，共加载数据{}条", CivilCodeUtil.INSTANCE.size());
         }
-    }
-
-    public List<Region> getAllChild(String parent) {
-        List<Region> result = new ArrayList<>();
-        for (String key : civilCodeMap.keySet()) {
-            if (parent == null) {
-                if (ObjectUtils.isEmpty(civilCodeMap.get(key).getParentCode().trim())) {
-                    result.add(Region.getInstance(key, civilCodeMap.get(key).getName(), civilCodeMap.get(key).getParentCode()));
-                }
-            }else if (civilCodeMap.get(key).getParentCode().equals(parent)) {
-                result.add(Region.getInstance(key, civilCodeMap.get(key).getName(), civilCodeMap.get(key).getParentCode()));
-            }
-        }
-        return result;
     }
 }

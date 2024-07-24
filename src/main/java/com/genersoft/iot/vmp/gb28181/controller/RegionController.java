@@ -39,13 +39,31 @@ public class RegionController {
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页查询数量", required = true)
     @ResponseBody
-    @GetMapping("/list")
+    @GetMapping("/page/list")
     public PageInfo<Region> query(
             @RequestParam(required = false) String query,
             @RequestParam(required = true) int page,
             @RequestParam(required = true) int count
     ){
         return regionService.query(query, page, count);
+    }
+
+    @Operation(summary = "查询区域")
+    @Parameter(name = "query", description = "要搜索的内容", required = true)
+    @Parameter(name = "parent", description = "所属行政区划编号", required = true)
+    @ResponseBody
+    @GetMapping("/tree/list")
+    public List<Region> queryForTree(
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) String parent
+    ){
+        if (ObjectUtils.isEmpty(parent)) {
+            parent = null;
+        }
+        if (ObjectUtils.isEmpty(query)) {
+            query = null;
+        }
+        return regionService.queryForTree(query, parent);
     }
 
     @Operation(summary = "更新区域")
@@ -107,5 +125,12 @@ public class RegionController {
             parent = null;
         }
         return regionService.getAllChild(parent);
+    }
+
+    @Operation(summary = "从通道中同步行政区划")
+    @ResponseBody
+    @GetMapping("/sync")
+    public void sync(){
+        regionService.syncFromChannel();
     }
 }

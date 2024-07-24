@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
+import com.genersoft.iot.vmp.common.CivilCodePo;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -52,6 +53,18 @@ public class Region implements Comparable<Region>{
         region.setDeviceId(commonRegionDeviceId);
         region.setName(commonRegionName);
         region.setParentDeviceId(commonRegionParentId);
+        region.setCreateTime(DateUtil.getNow());
+        region.setUpdateTime(DateUtil.getNow());
+        return region;
+    }
+
+    public static Region getInstance(CivilCodePo civilCodePo) {
+        Region region = new Region();
+        region.setName(civilCodePo.getName());
+        region.setDeviceId(civilCodePo.getCode());
+        if (civilCodePo.getCode().length() > 2) {
+            region.setParentDeviceId(civilCodePo.getParentCode());
+        }
         region.setCreateTime(DateUtil.getNow());
         region.setUpdateTime(DateUtil.getNow());
         return region;

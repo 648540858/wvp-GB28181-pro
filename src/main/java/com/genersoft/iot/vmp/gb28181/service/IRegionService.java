@@ -30,4 +30,8 @@ public interface IRegionService {
     List<Region> getAllChild(String parent);
 
     Region queryRegionByDeviceId(String regionDeviceId);
+
+    List<Region> queryForTree(String query, String parent);
+
+    void syncFromChannel();
 }

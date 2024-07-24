@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.common;
 
+import org.springframework.util.ObjectUtils;
+
 public class CivilCodePo {
 
     private String code;
@@ -12,7 +14,9 @@ public class CivilCodePo {
         CivilCodePo civilCodePo = new CivilCodePo();
         civilCodePo.setCode(infoArray[0]);
         civilCodePo.setName(infoArray[1]);
-        civilCodePo.setParentCode(infoArray[2]);
+        if (!ObjectUtils.isEmpty(infoArray[2])) {
+            civilCodePo.setParentCode(infoArray[2]);
+        }
         return civilCodePo;
     }
 

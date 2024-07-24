@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@liveqing/liveplayer": "^2.7.10",
+    "@wchbrad/vue-easy-tree": "^1.0.12",
     "axios": "^0.24.0",
     "core-js": "^2.6.5",
     "echarts": "^4.9.0",

@@ -2,11 +2,13 @@ package com.genersoft.iot.vmp.gb28181.bean;
 
 import com.genersoft.iot.vmp.gb28181.utils.MessageElement;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
+import com.genersoft.iot.vmp.utils.CivilCodeUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
+import org.springframework.util.ObjectUtils;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -218,7 +220,18 @@ public class DeviceChannel extends CommonGBChannel {
 	}
 
 	public static DeviceChannel decode(Element element) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        return XmlUtil.elementDecode(element, DeviceChannel.class);
+		DeviceChannel deviceChannel = XmlUtil.elementDecode(element, DeviceChannel.class);
+		if(deviceChannel.getCivilCode() != null ) {
+			if (ObjectUtils.isEmpty(deviceChannel.getCivilCode())
+					|| deviceChannel.getCivilCode().length() > 8 ){
+				deviceChannel.setCivilCode(null);
+			}else {
+				if (CivilCodeUtil.INSTANCE.getCivilCodePo(deviceChannel.getCivilCode()) == null) {
+					deviceChannel.setCivilCode(null);
+				}
+			}
+		}
+		return XmlUtil.elementDecode(element, DeviceChannel.class);
 	}
 
 	public static DeviceChannel decodeWithOnlyDeviceId(Element element) {

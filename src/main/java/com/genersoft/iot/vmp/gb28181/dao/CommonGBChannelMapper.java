@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.RegionTree;
 import com.genersoft.iot.vmp.gb28181.dao.provider.ChannelProvider;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
@@ -305,4 +306,17 @@ public interface CommonGBChannelMapper {
 
     @SelectProvider(type = ChannelProvider.class, method = "queryList")
     List<CommonGBChannel> queryList(String query, Boolean online);
+
+    @Select("<script>" +
+            " select " +
+            "    coalesce(gb_device_id, device_id) as id," +
+            "    coalesce(gb_name, name) as label, " +
+            "    1 as type, " +
+            "    true as is_leaf " +
+            " from wvp_device_channel " +
+            " where coalesce(gb_civil_code, civil_code) = #{parent} " +
+            " <if test='query != null'> AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%') " +
+            " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%'))</if> " +
+            " </script>")
+    List<RegionTree> queryForRegionTreeByCivilCode(@Param("query") String query, @Param("parent") String parent);
 }

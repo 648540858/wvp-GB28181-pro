@@ -3,6 +3,8 @@ package com.genersoft.iot.vmp.gb28181.service.impl;
 import com.genersoft.iot.vmp.common.CivilCodePo;
 import com.genersoft.iot.vmp.conf.CivilCodeFileConf;
 import com.genersoft.iot.vmp.gb28181.bean.Region;
+import com.genersoft.iot.vmp.gb28181.bean.RegionTree;
+import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.RegionMapper;
 import com.genersoft.iot.vmp.gb28181.service.IRegionService;
 import com.genersoft.iot.vmp.utils.CivilCodeUtil;
@@ -28,7 +30,7 @@ public class RegionServiceImpl implements IRegionService {
 
 
     @Autowired
-    private GbChannelServiceImpl gbChannelService;
+    private CommonGBChannelMapper commonGBChannelMapper;
 
 
     @Autowired
@@ -87,8 +89,13 @@ public class RegionServiceImpl implements IRegionService {
     }
 
     @Override
-    public List<Region> queryForTree(String query, String parent) {
-        return regionMapper.queryForTree(query, parent);
+    public List<RegionTree> queryForTree(String query, String parent) {
+        List<RegionTree> regionList = regionMapper.queryForTree(query, parent);
+        if (parent != null) {
+            List<RegionTree> channelList = commonGBChannelMapper.queryForRegionTreeByCivilCode(query, parent);
+            regionList.addAll(channelList);
+        }
+        return regionList;
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.service;
 
 import com.genersoft.iot.vmp.gb28181.bean.Region;
+import com.genersoft.iot.vmp.gb28181.bean.RegionTree;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
@@ -31,7 +32,7 @@ public interface IRegionService {
 
     Region queryRegionByDeviceId(String regionDeviceId);
 
-    List<Region> queryForTree(String query, String parent);
+    List<RegionTree> queryForTree(String query, String parent);
 
     void syncFromChannel();
 }

@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.controller;
 
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Region;
+import com.genersoft.iot.vmp.gb28181.bean.RegionTree;
 import com.genersoft.iot.vmp.gb28181.service.IRegionService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageInfo;
@@ -53,7 +54,7 @@ public class RegionController {
     @Parameter(name = "parent", description = "所属行政区划编号", required = true)
     @ResponseBody
     @GetMapping("/tree/list")
-    public List<Region> queryForTree(
+    public List<RegionTree> queryForTree(
             @RequestParam(required = false) String query,
             @RequestParam(required = false) String parent
     ){
@@ -121,7 +122,7 @@ public class RegionController {
     @ResponseBody
     @GetMapping("/base/child/list")
     public List<Region> getAllChild(@RequestParam(required = false) String parent){
-        if (ObjectUtils.isEmpty(parent.trim())) {
+        if (ObjectUtils.isEmpty(parent)) {
             parent = null;
         }
         return regionService.getAllChild(parent);

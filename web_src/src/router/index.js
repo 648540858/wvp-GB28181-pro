@@ -133,7 +133,7 @@ export default new VueRouter({
           component: userApiKeyManager,
         },
         {
-          path: '/region',
+          path: '/channel/region',
           name: 'region',
           component: region,
         }

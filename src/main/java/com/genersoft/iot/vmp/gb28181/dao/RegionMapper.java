@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.Region;
+import com.genersoft.iot.vmp.gb28181.bean.RegionTree;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -65,11 +66,17 @@ public interface RegionMapper {
     int batchAdd(List<Region> regionList);
 
     @Select(" <script>" +
-            " SELECT * from wvp_common_region " +
+            " SELECT " +
+            " device_id as id," +
+            " name as label, " +
+            " parent_device_id," +
+            " 0 as type," +
+            " false as is_leaf" +
+            " from wvp_common_region " +
             " where " +
             " <if test='parentId != null'> parent_device_id = #{parentId} </if> " +
             " <if test='parentId == null'> parent_device_id is null </if> " +
             " <if test='query != null'> AND (device_id LIKE concat('%',#{query},'%') OR name LIKE concat('%',#{query},'%'))</if> " +
             " </script>")
-    List<Region> queryForTree(@Param("query") String query, @Param("parentId") String parentId);
+    List<RegionTree> queryForTree(@Param("query") String query, @Param("parentId") String parentId);
 }

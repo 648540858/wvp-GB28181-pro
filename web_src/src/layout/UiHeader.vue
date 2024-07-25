@@ -10,11 +10,11 @@
       <el-menu-item index="/map">电子地图</el-menu-item>
       <el-menu-item index="/streamPushList">推流列表</el-menu-item>
       <el-menu-item index="/streamProxyList">拉流代理</el-menu-item>
-      <el-submenu >
+      <el-submenu index="/channel">
         <template slot="title">通道管理</template>
-        <el-menu-item index="/region">行政区划</el-menu-item>
-        <el-menu-item index="/group">业务分组</el-menu-item>
-        <el-menu-item index="/commonChannelList">通道列表</el-menu-item>
+        <el-menu-item index="/channel/region">行政区划</el-menu-item>
+        <el-menu-item index="/channel/group">业务分组</el-menu-item>
+        <el-menu-item index="/channel/list">通道列表</el-menu-item>
       </el-submenu>
       <el-menu-item index="/cloudRecord">云端录像</el-menu-item>
       <el-menu-item index="/mediaServerManger">节点管理</el-menu-item>
@@ -55,12 +55,15 @@ export default {
       alarmNotify: false,
       sseSource: null,
       username: userService.getUser().username,
-      activeIndex: this.$route.path,
+      activeIndex: this.$route.path.indexOf("/", 1)>0?this.$route.path.substring(0, this.$route.path.indexOf("/", 1)):this.$route.path,
       editUser: userService.getUser() ? userService.getUser().role.id === 1 : false
     };
   },
   created() {
-    console.log(JSON.stringify(userService.getUser()))
+    console.log(34334)
+    console.log(this.$route.path)
+    console.log(this.$route.path.indexOf("/", 1))
+    console.log(this.activeIndex)
     if (this.$route.path.startsWith("/channelList")) {
       this.activeIndex = "/deviceList"
     }
@@ -181,5 +184,15 @@ export default {
 #UiHeader .el-menu-item.is-active {
   color: #fff !important;
   background-color: #1890ff !important;
+}
+#UiHeader .el-submenu.is-active {
+  background-color: #1890ff !important;
+}
+#UiHeader .el-submenu.is-active .el-submenu__title {
+  color: #fff !important;
+  background-color: #1890ff !important;
+}
+#UiHeader .el-submenu.is-active .el-submenu__icon-arrow {
+  color: #fff !important;
 }
 </style>

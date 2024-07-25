@@ -20,8 +20,10 @@
                 <el-option label="在线" value="true"></el-option>
                 <el-option label="离线" value="false"></el-option>
               </el-select>
+              <el-button size="medium" type="primary" @click="add()">
+                添加
+              </el-button>
             </div>
-            <el-button icon="el-icon-refresh-right" circle size="mini" @click="refresh()"></el-button>
           </div>
         </div>
         <el-table ref="channelListTable" :data="channelList" :height="winHeight" style="width: 100%"
@@ -40,15 +42,12 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="操作" min-width="340" fixed="right">
+          <el-table-column label="添加状态" min-width="100">
             <template slot-scope="scope">
-              <el-button size="medium" icon="el-icon-video-play" type="text" @click="add(scope.row)">
-                添加
-              </el-button>
-              <el-divider direction="vertical"></el-divider>
-              <el-button size="medium" type="text" icon="el-icon-edit" @click="remove(scope.row)">
-                移除
-              </el-button>
+              <div slot="reference" class="name-wrapper">
+                <el-tag size="medium" v-if="scope.row.civilCode">已添加</el-tag>
+                <el-tag size="medium" type="info" v-if="!scope.row.civilCode">未添加</el-tag>
+              </div>
             </template>
           </el-table-column>
         </el-table>
@@ -102,20 +101,10 @@ export default {
   methods: {
     initData: function () {
       if (typeof (this.parentChannelId) == "undefined" || this.parentChannelId == 0) {
-        this.channelList();
+        this.getChannelList();
       } else {
         this.showSubchannels();
       }
-    },
-    initParam: function () {
-      this.deviceId = this.$route.params.deviceId;
-      this.parentChannelId = this.$route.params.parentChannelId;
-      this.currentPage = 1;
-      this.count = 15;
-      if (this.parentChannelId == "" || this.parentChannelId == 0) {
-        this.beforeUrl = "/deviceList"
-      }
-
     },
     currentChange: function (val) {
       this.currentPage = val;
@@ -123,9 +112,9 @@ export default {
     },
     handleSizeChange: function (val) {
       this.count = val;
-      this.channelList();
+      this.getChannelList();
     },
-    channelList: function () {
+    getChannelList: function () {
       let that = this;
       if (typeof (this.$route.params.deviceId) == "undefined") return;
       this.$axios({

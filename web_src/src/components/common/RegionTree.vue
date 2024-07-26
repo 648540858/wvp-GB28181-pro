@@ -10,7 +10,7 @@
         </div>
       </div>
     </div>
-    <div >
+    <div>
       <vue-easy-tree
         ref="veTree"
         node-key="id"
@@ -19,14 +19,19 @@
         style="height: 78vh; padding: 2rem"
         :load="loadNode"
         :data="treeData"
+        :default-expanded-keys="['']"
         @node-contextmenu="contextmenuEventHandler"
         @node-click="nodeClickHandler"
       >
         <span class="custom-tree-node" slot-scope="{ node, data }">
-         <span v-if="node.data.type === 0" style="color: #409EFF" class="iconfont icon-bianzubeifen3"></span>
-         <span v-if="node.data.type === 1" style="color: #409EFF" class="iconfont icon-file-stream2"></span>
-        <span style=" padding-left: 1px">{{ node.label }}</span>
-      </span>
+          <span @click.stop >
+            <el-radio v-if="node.data.type === 0 && node.level !== 1 " style="margin-right: 0" v-model="chooseId" @input="chooseIdChange" :label="node.data.id">{{''}}</el-radio>
+          </span>
+          <span v-if="node.data.type === 0" style="color: #409EFF" class="iconfont icon-bianzubeifen3"></span>
+          <span v-if="node.data.type === 1" style="color: #409EFF" class="iconfont icon-file-stream2"></span>
+          <span style=" padding-left: 1px" v-if="node.data.id !==''">{{ node.label }}({{ node.data.id }})</span>
+          <span style=" padding-left: 1px" v-if="node.data.id ===''">{{ node.label }}</span>
+        </span>
       </vue-easy-tree>
     </div>
     <regionCode ref="regionCode"></regionCode>
@@ -47,13 +52,14 @@ export default {
   data() {
     return {
       searchSrt: "",
+      chooseId: "",
       // props: {
       //   label: "name",
       // },
       treeData: [],
     }
   },
-  props: ['edit', 'clickEvent', 'contextMenuEvent'],
+  props: ['edit', 'clickEvent', 'chooseIdChange'],
   created() {
     // this.$axios({
     //   method: 'get',
@@ -107,7 +113,14 @@ export default {
     loadNode: function (node, resolve) {
       console.log(22222)
       console.log(node)
-      if (node.level === 0 || node.data.id.length < 8) {
+      if (node.level === 0) {
+        resolve([{
+          id: "",
+          label: "根资源组",
+          isLeaf: false,
+          type: 0
+        }]);
+      } else if (node.data.id.length < 8) {
         this.$axios({
           method: 'get',
           url: `/api/region/tree/list`,
@@ -115,7 +128,7 @@ export default {
             query: this.searchSrt,
             parent: node.data.id
           }
-        }).then((res)=> {
+        }).then((res) => {
           if (res.data.code === 0) {
             resolve(res.data.data);
           }
@@ -123,7 +136,7 @@ export default {
         }).catch(function (error) {
           console.log(error);
         });
-      }else {
+      } else {
         resolve([]);
       }
     },
@@ -176,7 +189,8 @@ export default {
     reset: function () {
       this.$forceUpdate();
     },
-    contextmenuEventHandler: function (event,data,node,element){
+    contextmenuEventHandler: function (event, data, node, element) {
+      console.log(node.level)
       if (node.data.type === 1) {
         data.parentId = node.parent.data.id;
         this.$contextmenu({
@@ -187,10 +201,10 @@ export default {
               disabled: false,
               onClick: () => {
                 this.$axios({
-                  method:"delete",
-                  url:"/api/platform/catalog/relation/del",
+                  method: "delete",
+                  url: "/api/platform/catalog/relation/del",
                   data: data
-                }).then((res)=>{
+                }).then((res) => {
                   console.log("移除成功")
                   node.parent.loaded = false
                   node.parent.expand();
@@ -204,7 +218,7 @@ export default {
           customClass: "custom-class", // 自定义菜单 class
           zIndex: 3000, // 菜单样式 z-index
         });
-      }else if (node.data.type === 0){
+      } else if (node.data.type === 0) {
         this.$contextmenu({
           items: [
             {
@@ -224,9 +238,9 @@ export default {
               }
             },
             {
-              label: "修改节点",
+              label: "重命名",
               icon: "el-icon-edit",
-              disabled: false,
+              disabled: node.level === 1,
               onClick: () => {
                 this.editCatalog(data, node);
               }
@@ -234,14 +248,14 @@ export default {
             {
               label: "删除节点",
               icon: "el-icon-delete",
-              disabled: false,
+              disabled: node.level === 1,
               onClick: () => {
                 this.$confirm('确定删除?', '提示', {
                   confirmButtonText: '确定',
                   cancelButtonText: '取消',
                   type: 'warning'
                 }).then(() => {
-                  this.removeCatalog(data.id, node)
+                  this.removeRegion(data.id, node)
                 }).catch(() => {
 
                 });
@@ -276,30 +290,43 @@ export default {
 
       return false;
     },
-    refreshNode: function (node){
+    removeRegion: function (id, node) {
+      this.$axios({
+        method: "delete",
+        url: `/api/region/delete`,
+        params: {
+          deviceId: id,
+        }
+      }).then((res) => {
+        if (res.data.code === 0) {
+          console.log("移除成功")
+          node.parent.loaded = false
+          node.parent.expand();
+        }
+      })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
+    refreshNode: function (node) {
       node.loaded = false
       node.expand();
     },
-    addRegion: function (id, node){
+    addRegion: function (id, node) {
 
       console.log(node)
 
-      this.$refs.regionCode.openDialog(code=>{
-
-        console.log(this.form)
-        console.log("code===> " + code)
-        this.form.gbDeviceId = code;
-        console.log("code22===> " + code)
+      this.$refs.regionCode.openDialog(form => {
         node.loaded = false
         node.expand();
       }, id);
     },
-    nodeClickHandler: function (data, node, tree){
+    nodeClickHandler: function (data, node, tree) {
       console.log(data)
       console.log(node)
-      this.chooseId = data.id;
-      this.chooseName = data.name;
-      if (this.catalogIdChange)this.catalogIdChange(this.chooseId, this.chooseName);
+      // this.chooseId = data.id;
+      // this.chooseName = data.name;
+      // if (this.catalogIdChange)this.catalogIdChange(this.chooseId, this.chooseName);
     }
   },
   destroyed() {
@@ -324,5 +351,8 @@ export default {
 
 .device-offline {
   color: #727272;
+}
+.custom-tree-node .el-radio__label {
+  padding-left: 4px !important;
 }
 </style>

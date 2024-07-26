@@ -2,7 +2,7 @@
   <div id="region" style="width: 100%">
     <el-container v-loading="loading" >
       <el-aside width="400px" >
-        <RegionTree ref="regionTree" :edit="true" :clickEvent="treeNodeClickEvent"></RegionTree>
+        <RegionTree ref="regionTree" :edit="true" :clickEvent="treeNodeClickEvent" :chooseIdChange="chooseIdChange"></RegionTree>
       </el-aside>
       <el-main style="padding: 5px;">
         <div class="page-header">
@@ -27,7 +27,9 @@
           </div>
         </div>
         <el-table ref="channelListTable" :data="channelList" :height="winHeight" style="width: 100%"
-                  header-row-class-name="table-header">
+                  header-row-class-name="table-header" @selection-change="handleSelectionChange">
+          <el-table-column type="selection" width="55">
+          </el-table-column>
           <el-table-column prop="gbName" label="名称" min-width="180">
           </el-table-column>
           <el-table-column prop="gbDeviceId" label="编号" min-width="180">
@@ -84,27 +86,23 @@ export default {
       searchSrt: "",
       channelType: "",
       online: "",
-      winHeight: window.innerHeight - 200,
+      winHeight: window.innerHeight - 180,
       currentPage: 1,
       count: 15,
       total: 0,
       loading: false,
       loadSnap: {},
+      regionId: ""
     };
   },
 
-  mounted() {
+  created() {
     this.initData();
-
   },
   destroyed() {},
   methods: {
     initData: function () {
-      if (typeof (this.parentChannelId) == "undefined" || this.parentChannelId == 0) {
-        this.getChannelList();
-      } else {
-        this.showSubchannels();
-      }
+      this.getChannelList();
     },
     currentChange: function (val) {
       this.currentPage = val;
@@ -116,28 +114,19 @@ export default {
     },
     getChannelList: function () {
       let that = this;
-      if (typeof (this.$route.params.deviceId) == "undefined") return;
       this.$axios({
         method: 'get',
-        url: `/api/device/query/devices/${this.$route.params.deviceId}/channels`,
+        url: `/api/common/channel/list`,
         params: {
           page: that.currentPage,
           count: that.count,
           query: that.searchSrt,
-          online: that.online,
-          channelType: that.channelType
+          online: that.online
         }
       }).then(function (res) {
         if (res.data.code === 0) {
           that.total = res.data.data.total;
-          that.deviceChannelList = res.data.data.list;
-          that.deviceChannelList.forEach(e => {
-            e.ptzType = e.ptzType + "";
-            that.$set(e, "location", "");
-            if (e.longitude && e.latitude) {
-              that.$set(e, "location", e.longitude + "," + e.latitude);
-            }
-          });
+          that.channelList = res.data.data.list;
           // 防止出现表格错位
           that.$nextTick(() => {
             that.$refs.channelListTable.doLayout();
@@ -148,7 +137,14 @@ export default {
         console.log(error);
       });
     },
+    handleSelectionChange: function (val){
+      console.log(val)
+    },
     add: function (row) {
+      if (!this.regionId) {
+        this.$message.info("请选择左侧行政区划节点")
+      }
+
     },
     remove: function (row) {
     },
@@ -165,13 +161,10 @@ export default {
       this.initData();
     },
     treeNodeClickEvent: function (device, data, isCatalog) {
-      console.log(device)
-      if (!!!data.channelId) {
-        this.parentChannelId = device.deviceId;
-      } else {
-        this.parentChannelId = data.channelId;
-      }
-      this.initData();
+
+    },
+    chooseIdChange: function (id) {
+      this.regionId = id;
     },
   }
 };

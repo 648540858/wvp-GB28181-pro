@@ -1,11 +1,11 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.genersoft.iot.vmp.common.CivilCodePo;
-import com.genersoft.iot.vmp.conf.CivilCodeFileConf;
 import com.genersoft.iot.vmp.gb28181.bean.Region;
 import com.genersoft.iot.vmp.gb28181.bean.RegionTree;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.RegionMapper;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IRegionService;
 import com.genersoft.iot.vmp.utils.CivilCodeUtil;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -34,7 +34,7 @@ public class RegionServiceImpl implements IRegionService {
 
 
     @Autowired
-    private CivilCodeFileConf civilCodeFileConf;
+    private IGbChannelService gbChannelService;
 
     @Override
     public void add(Region region) {
@@ -51,8 +51,31 @@ public class RegionServiceImpl implements IRegionService {
     @Override
     @Transactional
     public boolean deleteByDeviceId(String regionDeviceId) {
-
+        Region region = regionMapper.queryOneByDeviceId(regionDeviceId);
+        // 获取所有子节点
+        List<Region> allChildren = getAllChildren(regionDeviceId);
+        allChildren.add(region);
+        // 设置使用这些节点的通道的civilCode为null,
+        gbChannelService.removeCivilCode(allChildren);
+        regionMapper.batchDelete(allChildren);
         return true;
+    }
+
+    private List<Region> getAllChildren(String deviceId) {
+        if (deviceId == null || deviceId.length() >= 8) {
+            return new ArrayList<>();
+        }
+        List<Region> children = regionMapper.getChildren(deviceId);
+        if (ObjectUtils.isEmpty(children)) {
+            return children;
+        }
+        List<Region> regions = new ArrayList<>(children);
+        for (Region region : children) {
+            if (region.getDeviceId().length() < 8) {
+                regions.addAll(getAllChildren(region.getDeviceId()));
+            }
+        }
+        return regions;
     }
 
     @Override
@@ -139,5 +162,10 @@ public class RegionServiceImpl implements IRegionService {
         }
 
         regionMapper.batchAdd(new ArrayList<>(regionMapForVerification.values()));
+    }
+
+    @Override
+    public boolean delete(int id) {
+        return regionMapper.delete(id) > 0;
     }
 }

@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.Region;
 import com.genersoft.iot.vmp.gb28181.bean.RegionTree;
 import com.genersoft.iot.vmp.gb28181.dao.provider.ChannelProvider;
 import org.apache.ibatis.annotations.*;
@@ -238,7 +239,7 @@ public interface CommonGBChannelMapper {
             "    coalesce(wdc.gb_manufacturer, wdc.manufacturer) as gb_manufacturer,\n" +
             "    coalesce(wdc.gb_model, wdc.model) as gb_model,\n" +
             "    coalesce(wdc.gb_owner, wdc.owner) as gb_owner,\n" +
-            "    coalesce(wpgc.civil_code, wdc.gb_civil_code, wdc.civil_code) as gb_civil_code,\n" +
+            "    wdc.gb_civil_code,\n" +
             "    coalesce(wdc.gb_block, wdc.block) as gb_block,\n" +
             "    coalesce(wdc.gb_address, wdc.address) as gb_address,\n" +
             "    coalesce(wpgc.parental, wdc.gb_parental, wdc.parental) as gb_parental,\n" +
@@ -275,7 +276,7 @@ public interface CommonGBChannelMapper {
     @Update(value = {" <script>" +
             " UPDATE wvp_device_channel " +
             " SET update_time=#{updateTime}, gb_device_id = null, gb_name = null, gb_manufacturer = null," +
-            " gb_model = null, gb_owner = null, gb_civil_code = null, gb_block = null, gb_address = null," +
+            " gb_model = null, gb_owner = null, gb_block = null, gb_address = null," +
             " gb_parental = null, gb_parent_id = null, gb_safety_way = null, gb_register_way = null, gb_cert_num = null," +
             " gb_certifiable = null, gb_err_code = null, gb_end_time = null, gb_secrecy = null, gb_ip_address = null, " +
             " gb_port = null, gb_password = null, gb_status = null, gb_longitude = null, gb_latitude = null, " +
@@ -314,9 +315,17 @@ public interface CommonGBChannelMapper {
             "    1 as type, " +
             "    true as is_leaf " +
             " from wvp_device_channel " +
-            " where coalesce(gb_civil_code, civil_code) = #{parent} " +
+            " where gb_civil_code = #{parent} " +
             " <if test='query != null'> AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%') " +
             " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%'))</if> " +
             " </script>")
     List<RegionTree> queryForRegionTreeByCivilCode(@Param("query") String query, @Param("parent") String parent);
+
+    @Update(value = {" <script>" +
+            " UPDATE wvp_device_channel " +
+            " SET gb_civil_code = null" +
+            " WHERE gb_civil_code in "+
+            " <foreach collection='allChildren'  item='item'  open='(' separator=',' close=')' > #{item.deviceId}</foreach>" +
+            " </script>"})
+    int removeCivilCode(List<Region> allChildren);
 }

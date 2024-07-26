@@ -50,8 +50,6 @@ public class RegionTree {
         return regionTree;
     }
 
-
-
     public static RegionTree getInstance(CommonGBChannel channel) {
         RegionTree regionTree = new RegionTree();
         regionTree.setId(channel.getGbDeviceId());

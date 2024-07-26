@@ -78,10 +78,10 @@ public class RegionController {
     @Operation(summary = "删除区域")
     @Parameter(name = "regionDeviceId", description = "区域编码", required = true)
     @ResponseBody
-    @GetMapping("/delete")
-    public void delete(String regionDeviceId){
-        assert regionDeviceId != null;
-        boolean result = regionService.deleteByDeviceId(regionDeviceId);
+    @DeleteMapping("/delete")
+    public void delete(String deviceId){
+        assert !ObjectUtils.isEmpty(deviceId);
+        boolean result = regionService.deleteByDeviceId(deviceId);
         if (!result) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "移除失败");
         }

@@ -8,8 +8,8 @@ import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.PageInfo;
 import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -323,5 +323,12 @@ public class GbChannelServiceImpl implements IGbChannelService {
         PageHelper.startPage(page, count);
         List<CommonGBChannel> all = commonGBChannelMapper.queryList(query, online);
         return new PageInfo<>(all);
+    }
+
+    @Override
+    public void removeCivilCode(List<Region> allChildren) {
+        commonGBChannelMapper.removeCivilCode(allChildren);
+        // TODO 是否需要通知上级, 或者等添加新的行政区划时发送更新通知
+
     }
 }

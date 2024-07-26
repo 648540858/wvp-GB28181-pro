@@ -79,4 +79,13 @@ public interface RegionMapper {
             " <if test='query != null'> AND (device_id LIKE concat('%',#{query},'%') OR name LIKE concat('%',#{query},'%'))</if> " +
             " </script>")
     List<RegionTree> queryForTree(@Param("query") String query, @Param("parentId") String parentId);
+
+    @Select("SELECT * from wvp_common_region WHERE device_id = #{deviceId} ")
+    Region queryOneByDeviceId(@Param("deviceId") String deviceId);
+
+    @Delete("<script>" +
+            " DELETE FROM wvp_common_region WHERE id in " +
+            " <foreach collection='allChildren'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
+            " </script>")
+    void batchDelete(List<Region> allChildren);
 }

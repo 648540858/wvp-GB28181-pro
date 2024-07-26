@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.gb28181.bean;
 
 import com.genersoft.iot.vmp.gb28181.utils.MessageElement;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
-import com.genersoft.iot.vmp.utils.CivilCodeUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -225,11 +224,8 @@ public class DeviceChannel extends CommonGBChannel {
 			if (ObjectUtils.isEmpty(deviceChannel.getCivilCode())
 					|| deviceChannel.getCivilCode().length() > 8 ){
 				deviceChannel.setCivilCode(null);
-			}else {
-				if (CivilCodeUtil.INSTANCE.getCivilCodePo(deviceChannel.getCivilCode()) == null) {
-					deviceChannel.setCivilCode(null);
-				}
 			}
+			// 此处对于不在wvp缓存中的行政区划,默认直接存储.保证即使出现wvp的行政区划缓存过老,也可以通过用户自主创建的方式正常使用系统
 		}
 		return XmlUtil.elementDecode(element, DeviceChannel.class);
 	}

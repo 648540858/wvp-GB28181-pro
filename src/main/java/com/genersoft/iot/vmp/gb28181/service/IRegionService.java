@@ -35,4 +35,6 @@ public interface IRegionService {
     List<RegionTree> queryForTree(String query, String parent);
 
     void syncFromChannel();
+
+    boolean delete(int id);
 }

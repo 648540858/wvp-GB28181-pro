@@ -14,39 +14,33 @@
           <div class="show-code-item">{{ allVal[0].val }}</div>
           <div style="text-align: center">{{ allVal[0].meaning }}</div>
         </div>
-        <el-radio-group v-model="allVal[0].val" @input="deviceChange">
-          <el-radio v-for="item in regionList" :key="item.deviceId" :label="item.deviceId" style="line-height: 2rem">
-            {{ item.name }} - {{ item.deviceId }}
-          </el-radio>
-        </el-radio-group>
+        <el-radio v-for="item in regionList"  v-model="allVal[0].val" :key="item.deviceId" :name="item.name" :label="item.deviceId" @input="deviceChange(item)" style="line-height: 2rem">
+          {{ item.name }} - {{ item.deviceId }}
+        </el-radio>
       </el-tab-pane>
         <el-tab-pane name="1">
           <div slot="label">
             <div class="show-code-item">{{ allVal[1].val?allVal[1].val:"--" }}</div>
             <div style="text-align: center">{{ allVal[1].meaning }}</div>
           </div>
-          <el-radio-group v-model="allVal[1].val" :disabled="allVal[1].lock" @input="deviceChange">
-            <el-radio :key="-1" label="" style="line-height: 2rem">
-              不添加
-            </el-radio>
-            <el-radio v-for="item in regionList" :key="item.deviceId" :label="item.deviceId.substring(2)" style="line-height: 2rem">
-              {{ item.name }} - {{ item.deviceId.substring(2) }}
-            </el-radio>
-          </el-radio-group>
+          <el-radio :key="-1" v-model="allVal[1].val" @input="deviceChange" label="" style="line-height: 2rem">
+            不添加
+          </el-radio>
+          <el-radio v-for="item in regionList" v-model="allVal[1].val" @input="deviceChange(item)" :key="item.deviceId" :label="item.deviceId.substring(2)" style="line-height: 2rem">
+            {{ item.name }} - {{ item.deviceId.substring(2) }}
+          </el-radio>
         </el-tab-pane>
         <el-tab-pane name="2">
           <div slot="label">
             <div class="show-code-item">{{ allVal[2].val?allVal[2].val:"--" }}</div>
             <div style="text-align: center">{{ allVal[2].meaning }}</div>
           </div>
-          <el-radio-group v-model="allVal[2].val" :disabled="allVal[2].lock" @input="deviceChange">
-            <el-radio :key="-1" label="" style="line-height: 2rem">
-              不添加
-            </el-radio>
-            <el-radio v-for="item in regionList" :key="item.deviceId" :label="item.deviceId.substring(4)" style="line-height: 2rem">
-              {{ item.name }} - {{ item.deviceId.substring(4) }}
-            </el-radio>
-          </el-radio-group>
+          <el-radio :key="-1" label="" v-model="allVal[2].val" style="line-height: 2rem" @input="deviceChange">
+            不添加
+          </el-radio>
+          <el-radio v-for="item in regionList" v-model="allVal[2].val" @input="deviceChange(item)" :key="item.deviceId" :label="item.deviceId.substring(4)" style="line-height: 2rem">
+            {{ item.name }} - {{ item.deviceId.substring(4) }}
+          </el-radio>
         </el-tab-pane>
         <el-tab-pane name="3">
           请手动输入基层接入单位编码,两位数字
@@ -136,21 +130,64 @@ export default {
   },
   methods: {
     openDialog: function (endCallBck, parentDeviceId, code, lockContent) {
-      console.log(code)
-      console.log(parentDeviceId)
       this.showVideoDialog = true
       this.activeKey= '0';
       this.regionList = []
       this.form.parentDeviceId = parentDeviceId
-
-      this.getRegionList()
-      if (typeof code != 'undefined' && code.length === 8) {
-        console.log(111)
-        this.allVal[0].val = code.substring(0, 2)
-        this.allVal[1].val = code.substring(2, 4)
-        this.allVal[2].val = code.substring(4, 6)
-        this.allVal[3].val = code.substring(6, 8)
+      this.allVal =  [
+        {
+          id: [1, 2],
+          meaning: '省级编码',
+          val: '11',
+          type: '中心编码',
+          lock: false,
+        },
+        {
+          id: [3, 4],
+          meaning: '市级编码',
+          val: '',
+          type: '中心编码',
+          lock: false,
+        },
+        {
+          id: [5, 6],
+          meaning: '区级编码',
+          val: '',
+          type: '中心编码',
+          lock: false,
+        },
+        {
+          id: [7, 8],
+          meaning: '基层接入单位编码',
+          val: '',
+          type: '中心编码',
+          lock: false,
+        }
+      ]
+      if (parentDeviceId) {
+        console.log(parentDeviceId)
+        console.log(parentDeviceId.length)
+        if (parentDeviceId.length >= 2) {
+          this.allVal[0].val = parentDeviceId.substring(0, 2)
+          this.activeKey = "1"
+        }
+        if (parentDeviceId.length >= 4) {
+          this.allVal[1].val = parentDeviceId.substring(2, 4)
+          this.activeKey = "2"
+        }
+        if (parentDeviceId.length >= 6) {
+          this.allVal[2].val = parentDeviceId.substring(4, 6)
+          this.activeKey = "3"
+        }
       }
+      this.getRegionList()
+      // if (typeof code != 'undefined' && code.length === 8) {
+      //   this.allVal[0].val = code.substring(0, 2)
+      //   this.allVal[1].val = code.substring(2, 4)
+      //   this.allVal[2].val = code.substring(4, 6)
+      //   this.allVal[3].val = code.substring(6, 8)
+      // }
+
       console.log(this.allVal)
       this.endCallBck = endCallBck;
     },
@@ -246,7 +283,8 @@ export default {
     closeModel: function (){
       this.showVideoDialog = false
     },
-    deviceChange: function (){
+    deviceChange: function (item){
+      console.log(item)
       let code = this.allVal[0].val
       if (this.allVal[1].val) {
         code += this.allVal[1].val
@@ -263,22 +301,29 @@ export default {
         this.allVal[3].val = ""
       }
       this.form.deviceId = code
+      if (item) {
+        this.form.name = item.name
+      }
+
     },
     handleOk: function() {
-      const code =
-        this.allVal[0].val +
-        this.allVal[1].val +
-        this.allVal[2].val +
-        this.allVal[3].val +
-        this.allVal[4].val +
-        this.allVal[5].val +
-        this.allVal[6].val +
-        this.allVal[7].val
-      console.log(code)
-      if (this.endCallBck) {
-        this.endCallBck(code)
-      }
-      this.showVideoDialog = false
+      this.$axios({
+        method: 'post',
+        url: "/api/region/add/",
+        data: this.form
+      }).then((res) => {
+        if (res.data.code === 0) {
+          if (typeof this.endCallBck == "function") {
+            this.endCallBck(this.form)
+          }
+          this.showVideoDialog = false
+        } else {
+          this.$message.error(res.data.msg);
+        }
+      }).catch((error) => {
+        this.$message.error(error);
+      });
+
     }
   },
 };

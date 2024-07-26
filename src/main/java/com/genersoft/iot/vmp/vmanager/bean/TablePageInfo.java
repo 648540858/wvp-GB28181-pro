@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.vmanager.bean;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PageInfo<T> {
+public class TablePageInfo<T> {
     //当前页
     private int pageNum;
     //每页的数量
@@ -19,11 +19,11 @@ public class PageInfo<T> {
 
     private List<T> list;
 
-    public PageInfo(List<T> resultData) {
+    public TablePageInfo(List<T> resultData) {
         this.resultData = resultData;
     }
 
-    public PageInfo() {
+    public TablePageInfo() {
     }
 
     public void startPage(int page, int count) {

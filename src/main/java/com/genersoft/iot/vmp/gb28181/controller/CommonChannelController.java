@@ -8,14 +8,13 @@ import com.genersoft.iot.vmp.gb28181.bean.NetworkIdentificationType;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.vmanager.bean.PageInfo;
+import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +22,7 @@ import java.util.List;
 
 
 @Tag(name  = "全局通道管理")
-@Controller
+@RestController
 @Slf4j
 @RequestMapping(value = "/api/common/channel")
 public class CommonChannelController {
@@ -41,48 +40,41 @@ public class CommonChannelController {
     @Operation(summary = "查询通道信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "id", description = "通道的数据库自增Id", required = true)
     @GetMapping(value = "/one")
-    @ResponseBody
     public CommonGBChannel getOne(int id){
         return channelService.getOne(id);
     }
 
     @Operation(summary = "获取行业编码列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @ResponseBody
     @GetMapping("/industry/list")
     public List<IndustryCodeType> getIndustryCodeList(){
         return channelService.getIndustryCodeList();
     }
 
     @Operation(summary = "获取编码列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @ResponseBody
     @GetMapping("/type/list")
     public List<DeviceType> getDeviceTypeList(){
         return channelService.getDeviceTypeList();
     }
 
     @Operation(summary = "获取编码列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @ResponseBody
     @GetMapping("/network/identification/list")
     public List<NetworkIdentificationType> getNetworkIdentificationTypeList(){
         return channelService.getNetworkIdentificationTypeList();
     }
 
     @Operation(summary = "更新通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @ResponseBody
     @PostMapping("/update")
     public void update(@RequestBody CommonGBChannel channel){
         channelService.update(channel);
     }
 
     @Operation(summary = "重置国标通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @ResponseBody
     @PostMapping("/reset")
     public void reset(Integer id){
         channelService.reset(id);
     }
 
     @Operation(summary = "增加通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @ResponseBody
     @PostMapping("/add")
     public CommonGBChannel add(@RequestBody CommonGBChannel channel){
         channelService.add(channel);
@@ -94,8 +86,7 @@ public class CommonChannelController {
     @Parameter(name = "count", description = "每页查询数量", required = true)
     @Parameter(name = "query", description = "查询内容")
     @Parameter(name = "online", description = "是否在线")
-    @ResponseBody
-    @PostMapping("/list")
+    @GetMapping("/list")
     public PageInfo<CommonGBChannel> queryList(int page, int count,
                                                @RequestParam(required = false) String query,
                                                @RequestParam(required = false) Boolean online){

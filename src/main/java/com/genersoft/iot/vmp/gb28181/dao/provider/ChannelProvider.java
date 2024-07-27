@@ -1,0 +1,106 @@
+package com.genersoft.iot.vmp.gb28181.dao.provider;
+
+import java.util.Map;
+
+public class ChannelProvider {
+
+    public String getBaseSelectSql(){
+        return "select\n" +
+                "    id as gb_id,\n" +
+                "    device_db_id as gb_device_db_id,\n" +
+                "    stream_push_id,\n" +
+                "    stream_proxy_id,\n" +
+                "    create_time,\n" +
+                "    update_time,\n" +
+                "    coalesce(gb_device_id, device_id) as gb_device_id,\n" +
+                "    coalesce(gb_name, name) as gb_name,\n" +
+                "    coalesce(gb_manufacturer, manufacturer) as gb_manufacturer,\n" +
+                "    coalesce(gb_model, model) as gb_model,\n" +
+                "    coalesce(gb_owner, owner) as gb_owner,\n" +
+                "    gb_civil_code,\n" +
+                "    coalesce(gb_block, block) as gb_block,\n" +
+                "    coalesce(gb_address, address) as gb_address,\n" +
+                "    coalesce(gb_parental, parental) as gb_parental,\n" +
+                "    coalesce(gb_parent_id, parent_id) as gb_parent_id,\n" +
+                "    coalesce(gb_safety_way, safety_way) as gb_safety_way,\n" +
+                "    coalesce(gb_register_way, register_way) as gb_register_way,\n" +
+                "    coalesce(gb_cert_num, cert_num) as gb_cert_num,\n" +
+                "    coalesce(gb_certifiable, certifiable) as gb_certifiable,\n" +
+                "    coalesce(gb_err_code, err_code) as gb_err_code,\n" +
+                "    coalesce(gb_end_time, end_time) as gb_end_time,\n" +
+                "    coalesce(gb_secrecy, secrecy) as gb_secrecy,\n" +
+                "    coalesce(gb_ip_address, ip_address) as gb_ip_address,\n" +
+                "    coalesce(gb_port, port) as gb_port,\n" +
+                "    coalesce(gb_password, password) as gb_password,\n" +
+                "    coalesce(gb_status, status) as gb_status,\n" +
+                "    coalesce(gb_longitude, longitude) as gb_longitude,\n" +
+                "    coalesce(gb_latitude, latitude) as gb_latitude,\n" +
+                "    coalesce(gb_ptz_type, ptz_type) as gb_ptz_type,\n" +
+                "    coalesce(gb_position_type, position_type) as gb_position_type,\n" +
+                "    coalesce(gb_room_type, room_type) as gb_room_type,\n" +
+                "    coalesce(gb_use_type, use_type) as gb_use_type,\n" +
+                "    coalesce(gb_supply_light_type, supply_light_type) as gb_supply_light_type,\n" +
+                "    coalesce(gb_direction_type, direction_type) as gb_direction_type,\n" +
+                "    coalesce(gb_resolution, resolution) as gb_resolution,\n" +
+                "    coalesce(gb_business_group_id, business_group_id) as gb_business_group_id,\n" +
+                "    coalesce(gb_download_speed, download_speed) as gb_download_speed,\n" +
+                "    coalesce(gb_svc_space_support_mod, svc_space_support_mod) as gb_svc_space_support_mod,\n" +
+                "    coalesce(gb_svc_time_support_mode,svc_time_support_mode) as gb_svc_time_support_mode\n" +
+                " from wvp_device_channel\n"
+                ;
+    }
+
+
+    public String queryByDeviceId(Map<String, Object> params ){
+        return getBaseSelectSql() + " where gb_device_id = #{gbDeviceId} or device_id = #{gbDeviceId}";
+    }
+
+    public String queryById(Map<String, Object> params ){
+        return getBaseSelectSql() + " where id = #{gbId}";
+    }
+
+    public String queryByStreamPushId(Map<String, Object> params ){
+        return getBaseSelectSql() + " where stream_push_id = #{streamPushId}";
+    }
+
+    public String queryByStreamProxyId(Map<String, Object> params ){
+        return getBaseSelectSql() + " where stream_proxy_id = #{streamProxyId}";
+    }
+
+
+    public String queryList(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(getBaseSelectSql());
+        sqlBuild.append(" where 1 = 1 ");
+        if (params.get("query") != null) {
+            sqlBuild.append(" AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%')" +
+                    " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%') )")
+            ;
+        }
+        if (params.get("online") != null && (Boolean)params.get("online")) {
+            sqlBuild.append(" AND coalesce(gb_status, status) = 'ON'");
+        }
+        if (params.get("online") != null && !(Boolean)params.get("online")) {
+            sqlBuild.append(" AND coalesce(gb_status, status) = 'OFF'");
+        }
+        return sqlBuild.toString();
+    }
+
+    public String queryInListByStatus(Map<String, Object> params ){
+        return " <script>" + getBaseSelectSql() +
+                " where gb_status=#{status} and id in " +
+                " <foreach collection='commonGBChannelList'  item='item'  open='(' separator=',' close=')' > " +
+                " #{item.gbId}" +
+                " </foreach>" +
+                " </script>" ;
+    }
+
+    public String queryByIds(Map<String, Object> params ){
+        return " <script>" + getBaseSelectSql() +
+                " where id in " +
+                " <foreach collection='commonGBChannelList'  item='item'  open='(' separator=',' close=')' > " +
+                " #{item.gbId}" +
+                " </foreach>" +
+                " </script>" ;
+    }
+}

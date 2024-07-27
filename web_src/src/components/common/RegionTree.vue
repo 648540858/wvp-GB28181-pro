@@ -1,6 +1,6 @@
 <template>
   <div id="DeviceTree">
-    <div class="page-header" style="margin-bottom: 1rem">
+    <div class="page-header" style="margin-bottom: 1rem;">
       <div class="page-title">行政区划</div>
       <div class="page-header-btn">
         <div style="display: inline;">

@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.genersoft.iot.vmp.common.CivilCodePo;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Region;
 import com.genersoft.iot.vmp.gb28181.bean.RegionTree;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
@@ -9,9 +10,11 @@ import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IRegionService;
 import com.genersoft.iot.vmp.utils.CivilCodeUtil;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -45,7 +48,12 @@ public class RegionServiceImpl implements IRegionService {
         }
         region.setCreateTime(DateUtil.getNow());
         region.setUpdateTime(DateUtil.getNow());
-        regionMapper.add(region);
+        try {
+            regionMapper.add(region);
+        }catch (DuplicateKeyException e){
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "此行政区划已存在");
+        }
+
     }
 
     @Override

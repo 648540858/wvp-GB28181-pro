@@ -20,7 +20,7 @@
                 <el-option label="在线" value="true"></el-option>
                 <el-option label="离线" value="false"></el-option>
               </el-select>
-              <el-button size="medium" type="primary" @click="add()">
+              <el-button size="mini" type="primary" @click="add()">
                 添加
               </el-button>
             </div>
@@ -28,7 +28,7 @@
         </div>
         <el-table ref="channelListTable" :data="channelList" :height="winHeight" style="width: 100%"
                   header-row-class-name="table-header" @selection-change="handleSelectionChange">
-          <el-table-column type="selection" width="55">
+          <el-table-column type="selection" width="55" :selectable="selectable">
           </el-table-column>
           <el-table-column prop="gbName" label="名称" min-width="180">
           </el-table-column>
@@ -92,7 +92,8 @@ export default {
       total: 0,
       loading: false,
       loadSnap: {},
-      regionId: ""
+      regionId: "",
+      multipleSelection: []
     };
   },
 
@@ -138,12 +139,26 @@ export default {
       });
     },
     handleSelectionChange: function (val){
-      console.log(val)
+      this.multipleSelection = val;
+    },
+    selectable: function (row, rowIndex) {
+      if (row.civilCode) {
+        return false
+      }else {
+        return true
+      }
     },
     add: function (row) {
       if (!this.regionId) {
         this.$message.info("请选择左侧行政区划节点")
       }
+      console.log(this.regionId)
+      console.log(this.multipleSelection)
+      let channels = []
+      for (let i = 0; i < this.multipleSelection.length; i++) {
+        channels.push(this.multipleSelection[i].gbId)
+      }
+      console.log(channels)
 
     },
     remove: function (row) {

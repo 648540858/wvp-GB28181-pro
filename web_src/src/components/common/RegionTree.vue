@@ -249,6 +249,7 @@ export default {
               label: "删除节点",
               icon: "el-icon-delete",
               disabled: node.level === 1,
+              divided: true,
               onClick: () => {
                 this.$confirm('确定删除?', '提示', {
                   confirmButtonText: '确定',
@@ -259,6 +260,22 @@ export default {
                 }).catch(() => {
 
                 });
+              }
+            },
+            {
+              label: "添加设备",
+              icon: "el-icon-plus",
+              disabled: node.level === 1,
+              onClick: () => {
+                this.addChannelFormDevice(data.id, node)
+              }
+            },
+            {
+              label: "移除设备",
+              icon: "el-icon-delete",
+              disabled: node.level === 1,
+              onClick: () => {
+                this.removeChannelFormDevice(data.id, node)
               }
             },
             // {
@@ -307,6 +324,12 @@ export default {
         .catch(function (error) {
           console.log(error);
         });
+    },
+    addChannelFormDevice: function (id, node) {
+
+    },
+    removeChannelFormDevice: function (id, node) {
+
     },
     refreshNode: function (node) {
       node.loaded = false

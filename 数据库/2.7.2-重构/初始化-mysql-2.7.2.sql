@@ -160,7 +160,7 @@ create table wvp_device_channel (
                                     gb_ip_address character varying(50),
                                     gb_port integer,
                                     gb_password character varying(50),
-                                    gb_status character varying(50) default 'OFF',
+                                    gb_status character varying(50),
                                     gb_longitude double,
                                     gb_latitude double,
                                     gb_business_group_id character varying(50),

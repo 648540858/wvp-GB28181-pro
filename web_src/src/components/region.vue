@@ -20,6 +20,13 @@
                 <el-option label="在线" value="true"></el-option>
                 <el-option label="离线" value="false"></el-option>
               </el-select>
+              添加状态:
+              <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="search" v-model="hasCivilCode" placeholder="请选择"
+                         default-first-option>
+                <el-option label="全部" value=""></el-option>
+                <el-option label="已添加" value="true"></el-option>
+                <el-option label="未添加" value="false"></el-option>
+              </el-select>
               <el-button size="mini" type="primary" @click="add()">
                 添加
               </el-button>
@@ -40,14 +47,14 @@
             <template slot-scope="scope">
               <div slot="reference" class="name-wrapper">
                 <el-tag size="medium" v-if="scope.row.gbStatus === 'ON'">在线</el-tag>
-                <el-tag size="medium" type="info" v-if="scope.row.status !== 'ON'">离线</el-tag>
+                <el-tag size="medium" type="info" v-if="scope.row.gbStatus !== 'ON'">离线</el-tag>
               </div>
             </template>
           </el-table-column>
           <el-table-column label="添加状态" min-width="100">
             <template slot-scope="scope">
               <div slot="reference" class="name-wrapper">
-                <el-tag size="medium" v-if="scope.row.civilCode">已添加</el-tag>
+                <el-tag size="medium" v-if="scope.row.civilCode">已添加({{scope.row.civilCode}})</el-tag>
                 <el-tag size="medium" type="info" v-if="!scope.row.civilCode">未添加</el-tag>
               </div>
             </template>
@@ -86,6 +93,7 @@ export default {
       searchSrt: "",
       channelType: "",
       online: "",
+      hasCivilCode: "",
       winHeight: window.innerHeight - 180,
       currentPage: 1,
       count: 15,
@@ -114,27 +122,27 @@ export default {
       this.getChannelList();
     },
     getChannelList: function () {
-      let that = this;
       this.$axios({
         method: 'get',
         url: `/api/common/channel/list`,
         params: {
-          page: that.currentPage,
-          count: that.count,
-          query: that.searchSrt,
-          online: that.online
+          page: this.currentPage,
+          count: this.count,
+          query: this.searchSrt,
+          online: this.online,
+          hasCivilCode: this.hasCivilCode
         }
-      }).then(function (res) {
+      }).then((res)=> {
         if (res.data.code === 0) {
-          that.total = res.data.data.total;
-          that.channelList = res.data.data.list;
+          this.total = res.data.data.total;
+          this.channelList = res.data.data.list;
           // 防止出现表格错位
-          that.$nextTick(() => {
-            that.$refs.channelListTable.doLayout();
+          this.$nextTick(() => {
+            this.$refs.channelListTable.doLayout();
           })
         }
 
-      }).catch(function (error) {
+      }).catch((error)=> {
         console.log(error);
       });
     },

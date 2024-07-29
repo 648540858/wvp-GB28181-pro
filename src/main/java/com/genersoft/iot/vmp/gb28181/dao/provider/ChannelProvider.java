@@ -83,6 +83,12 @@ public class ChannelProvider {
         if (params.get("online") != null && !(Boolean)params.get("online")) {
             sqlBuild.append(" AND coalesce(gb_status, status) = 'OFF'");
         }
+        if (params.get("hasCivilCode") != null && (Boolean)params.get("hasCivilCode")) {
+            sqlBuild.append(" AND gb_civil_code is not null");
+        }
+        if (params.get("hasCivilCode") != null && !(Boolean)params.get("hasCivilCode")) {
+            sqlBuild.append(" AND gb_civil_code is null");
+        }
         return sqlBuild.toString();
     }
 

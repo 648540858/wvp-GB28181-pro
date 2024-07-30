@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.gb28181.service;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.github.pagehelper.PageInfo;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface IGbChannelService {
@@ -13,7 +14,7 @@ public interface IGbChannelService {
 
     int delete(int gbId);
 
-    void delete(List<CommonGBChannel> commonGBChannelList);
+    void delete(Collection<Integer> ids);
 
     int update(CommonGBChannel commonGBChannel);
 
@@ -44,4 +45,8 @@ public interface IGbChannelService {
     PageInfo<CommonGBChannel> queryList(int page, int count, String query, Boolean online, Boolean hasCivilCode);
 
     void removeCivilCode(List<Region> allChildren);
+
+    void addChannelToRegion(String civilCode, List<Integer> channelIds);
+
+    void deleteChannelToRegion(String civilCode, List<Integer> channelIds);
 }

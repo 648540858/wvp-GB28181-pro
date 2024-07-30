@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -76,11 +77,11 @@ public class RegionController {
     }
 
     @Operation(summary = "删除区域")
-    @Parameter(name = "regionDeviceId", description = "区域编码", required = true)
+    @Parameter(name = "deviceId", description = "区域编码", required = true)
     @ResponseBody
     @DeleteMapping("/delete")
     public void delete(String deviceId){
-        assert !ObjectUtils.isEmpty(deviceId);
+        Assert.hasLength(deviceId, "区域编码（deviceId）不需要存在");
         boolean result = regionService.deleteByDeviceId(deviceId);
         if (!result) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "移除失败");

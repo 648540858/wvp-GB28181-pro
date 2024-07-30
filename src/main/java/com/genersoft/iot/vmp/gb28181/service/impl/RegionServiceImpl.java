@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 import java.util.*;
@@ -41,8 +42,8 @@ public class RegionServiceImpl implements IRegionService {
 
     @Override
     public void add(Region region) {
-        assert region.getName() != null;
-        assert region.getDeviceId() != null;
+        Assert.hasLength(region.getName(), "名称必须存在");
+        Assert.hasLength(region.getDeviceId(), "国标编号必须存在");
         if (ObjectUtils.isEmpty(region.getParentDeviceId().trim())) {
             region.setParentDeviceId(null);
         }
@@ -95,7 +96,7 @@ public class RegionServiceImpl implements IRegionService {
 
     @Override
     public PageInfo<Region> queryChildRegionList(String regionParentId, int page, int count) {
-        assert regionParentId != null;
+        Assert.hasLength(regionParentId, "上级行政区划编号必须存在");
         PageHelper.startPage(page, count);
         List<Region> all = regionMapper.getChildren(regionParentId);
         return new PageInfo<>(all);

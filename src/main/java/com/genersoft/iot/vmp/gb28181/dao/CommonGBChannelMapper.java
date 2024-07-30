@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.gb28181.dao.provider.ChannelProvider;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 
 @Mapper
@@ -290,7 +291,7 @@ public interface CommonGBChannelMapper {
 
 
     @SelectProvider(type = ChannelProvider.class, method = "queryByIds")
-    List<CommonGBChannel> queryByIds(List<CommonGBChannel> commonGBChannelList);
+    List<CommonGBChannel> queryByIds(Collection<Integer> ids);
 
     @Delete(value = {" <script>" +
             " delete from wvp_device_channel" +
@@ -328,4 +329,16 @@ public interface CommonGBChannelMapper {
             " <foreach collection='allChildren'  item='item'  open='(' separator=',' close=')' > #{item.deviceId}</foreach>" +
             " </script>"})
     int removeCivilCode(List<Region> allChildren);
+
+
+    @Update(value = {" <script>" +
+            " UPDATE wvp_device_channel " +
+            " SET gb_civil_code = #{civilCode}" +
+            " WHERE id in "+
+            " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.gbId}</foreach>" +
+            " </script>"})
+    int updateRegion(@Param("civilCode") String civilCode, @Param("channelList") List<CommonGBChannel> channelList);
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryByIdsOrCivilCode")
+    List<CommonGBChannel> queryByIdsOrCivilCode(@Param("civilCode") String civilCode, @Param("ids") List<Integer> ids);
 }

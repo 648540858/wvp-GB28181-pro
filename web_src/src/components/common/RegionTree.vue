@@ -4,9 +4,10 @@
       <div class="page-title">行政区划</div>
       <div class="page-header-btn">
         <div style="display: inline;">
-          <el-input @input="search" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
+          <el-input @input="search" style="margin-right: 1rem; width: 12rem;" size="mini" placeholder="关键字"
                     prefix-icon="el-icon-search" v-model="searchSrt" clearable></el-input>
 
+          <el-checkbox v-model="showCode">显示编号</el-checkbox>
         </div>
       </div>
     </div>
@@ -28,9 +29,9 @@
             <el-radio v-if="node.data.type === 0 && node.level !== 1 " style="margin-right: 0" v-model="chooseId" @input="chooseIdChange" :label="node.data.id">{{''}}</el-radio>
           </span>
           <span v-if="node.data.type === 0" style="color: #409EFF" class="iconfont icon-bianzubeifen3"></span>
-          <span v-if="node.data.type === 1" style="color: #409EFF" class="iconfont icon-file-stream2"></span>
-          <span style=" padding-left: 1px" v-if="node.data.id !==''">{{ node.label }}({{ node.data.id }})</span>
-          <span style=" padding-left: 1px" v-if="node.data.id ===''">{{ node.label }}</span>
+          <span v-if="node.data.type === 1" style="color: #409EFF" class="iconfont icon-shexiangtou2"></span>
+          <span style=" padding-left: 1px" v-if="node.data.id !=='' && showCode">{{ node.label }}-{{ node.data.id }}</span>
+          <span style=" padding-left: 1px" v-if="node.data.id ==='' || !showCode">{{ node.label }}</span>
         </span>
       </vue-easy-tree>
     </div>
@@ -51,6 +52,7 @@ export default {
   },
   data() {
     return {
+      showCode: false,
       searchSrt: "",
       chooseId: "",
       // props: {
@@ -201,9 +203,11 @@ export default {
               disabled: false,
               onClick: () => {
                 this.$axios({
-                  method: "delete",
-                  url: "/api/platform/catalog/relation/del",
-                  data: data
+                  method: "post",
+                  url: `/api/common/channel/region/delete`,
+                  data: {
+                    channelIds: [data.id]
+                  }
                 }).then((res) => {
                   console.log("移除成功")
                   node.parent.loaded = false

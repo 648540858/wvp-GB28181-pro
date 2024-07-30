@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -67,8 +68,8 @@ public class GbChannelServiceImpl implements IGbChannelService {
     }
 
     @Override
-    public void delete(List<CommonGBChannel> commonGBChannelList) {
-        List<CommonGBChannel> channelListInDb = commonGBChannelMapper.queryByIds(commonGBChannelList);
+    public void delete(Collection<Integer> ids) {
+        List<CommonGBChannel> channelListInDb = commonGBChannelMapper.queryByIds(ids);
         if (channelListInDb.isEmpty()) {
             return;
         }
@@ -330,5 +331,41 @@ public class GbChannelServiceImpl implements IGbChannelService {
         commonGBChannelMapper.removeCivilCode(allChildren);
         // TODO 是否需要通知上级, 或者等添加新的行政区划时发送更新通知
 
+    }
+
+    @Override
+    public void addChannelToRegion(String civilCode, List<Integer> channelIds) {
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByIds(channelIds);
+        if (channelList.isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
+        }
+        int result = commonGBChannelMapper.updateRegion(civilCode, channelList);
+        // 发送通知
+        if (result > 0) {
+            try {
+                // 发送catalog
+                eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
+            }catch (Exception e) {
+                log.warn("[多个通道添加行政区划] 发送失败，数量：{}", channelList.size(), e);
+            }
+        }
+    }
+
+    @Override
+    public void deleteChannelToRegion(String civilCode, List<Integer> channelIds) {
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByIdsOrCivilCode(civilCode, channelIds);
+        if (channelList.isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
+        }
+        int result = commonGBChannelMapper.updateRegion(civilCode, channelList);
+        // 发送通知
+        if (result > 0) {
+            try {
+                // 发送catalog
+                eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
+            }catch (Exception e) {
+                log.warn("[多个通道添加行政区划] 发送失败，数量：{}", channelList.size(), e);
+            }
+        }
     }
 }

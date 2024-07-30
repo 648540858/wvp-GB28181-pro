@@ -1,5 +1,9 @@
 package com.genersoft.iot.vmp.gb28181.dao.provider;
 
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public class ChannelProvider {
@@ -93,20 +97,64 @@ public class ChannelProvider {
     }
 
     public String queryInListByStatus(Map<String, Object> params ){
-        return " <script>" + getBaseSelectSql() +
-                " where gb_status=#{status} and id in " +
-                " <foreach collection='commonGBChannelList'  item='item'  open='(' separator=',' close=')' > " +
-                " #{item.gbId}" +
-                " </foreach>" +
-                " </script>" ;
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(getBaseSelectSql());
+        sqlBuild.append("where gb_status=#{status} and id in ( ");
+
+        List<CommonGBChannel> commonGBChannelList = (List<CommonGBChannel>)params.get("ids");
+        boolean first = true;
+        for (CommonGBChannel channel : commonGBChannelList) {
+            if (!first) {
+                sqlBuild.append(",");
+            }
+            sqlBuild.append(channel.getGbId());
+            first = false;
+        }
+        sqlBuild.append(" )");
+        return sqlBuild.toString() ;
     }
 
     public String queryByIds(Map<String, Object> params ){
-        return " <script>" + getBaseSelectSql() +
-                " where id in " +
-                " <foreach collection='commonGBChannelList'  item='item'  open='(' separator=',' close=')' > " +
-                " #{item.gbId}" +
-                " </foreach>" +
-                " </script>" ;
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(getBaseSelectSql());
+        sqlBuild.append("where id in ( ");
+
+        Collection<Integer> ids = (Collection<Integer>)params.get("ids");
+        boolean first = true;
+        for (Integer id : ids) {
+            if (!first) {
+                sqlBuild.append(",");
+            }
+            sqlBuild.append(id);
+            first = false;
+        }
+        sqlBuild.append(" )");
+        return sqlBuild.toString() ;
+    }
+
+    public String queryByIdsOrCivilCode(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(getBaseSelectSql());
+        sqlBuild.append("where ");
+        if (params.get("civilCode") != null) {
+            sqlBuild.append(" gb_civil_code = #{civilCode} ");
+            if (params.get("ids") != null) {
+                sqlBuild.append(" OR ");
+            }
+        }
+        if (params.get("ids") != null) {
+            sqlBuild.append(" id in ( ");
+            Collection<Integer> ids = (Collection<Integer>)params.get("ids");
+            boolean first = true;
+            for (Integer id : ids) {
+                if (!first) {
+                    sqlBuild.append(",");
+                }
+                sqlBuild.append(id);
+                first = false;
+            }
+            sqlBuild.append(" )");
+        }
+        return sqlBuild.toString() ;
     }
 }

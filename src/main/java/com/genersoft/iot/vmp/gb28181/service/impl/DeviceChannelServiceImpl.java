@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
@@ -279,8 +280,8 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public void updateChannelStreamIdentification(DeviceChannel channel) {
-        assert !ObjectUtils.isEmpty(channel.getId());
-        assert !ObjectUtils.isEmpty(channel.getStreamIdentification());
+        Assert.isTrue(channel.getId() > 0, "通道ID必须存在");
+        Assert.hasLength(channel.getStreamIdentification(), "码流标识必须存在");
         if (ObjectUtils.isEmpty(channel.getStreamIdentification())) {
             log.info("[重置通道码流类型] 设备: {}, 码流： {}", channel.getDeviceId(), channel.getStreamIdentification());
         }else {

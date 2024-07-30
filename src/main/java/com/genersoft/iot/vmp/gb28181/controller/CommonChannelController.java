@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceType;
 import com.genersoft.iot.vmp.gb28181.bean.IndustryCodeType;
 import com.genersoft.iot.vmp.gb28181.bean.NetworkIdentificationType;
+import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelToRegionParam;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -15,6 +16,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -96,5 +98,20 @@ public class CommonChannelController {
             query = null;
         }
         return channelService.queryList(page, count, query, online, hasCivilCode);
+    }
+
+    @Operation(summary = "通道设置行政区划", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @PostMapping("/region/add")
+    public void addChannelToRegion(@RequestBody ChannelToRegionParam param){
+        Assert.notEmpty(param.getChannelIds(),"通道ID不可为空");
+        Assert.hasLength(param.getCivilCode(),"未添加行政区划");
+        channelService.addChannelToRegion(param.getCivilCode(), param.getChannelIds());
+    }
+
+    @Operation(summary = "通道删除行政区划", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @PostMapping("/region/delete")
+    public void deleteChannelToRegion(@RequestBody ChannelToRegionParam param){
+        Assert.isTrue(param.getChannelIds().isEmpty() && ObjectUtils.isEmpty(param.getCivilCode()),"参数异常");
+        channelService.deleteChannelToRegion(param.getCivilCode(), param.getChannelIds());
     }
 }

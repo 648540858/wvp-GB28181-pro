@@ -54,8 +54,8 @@
           <el-table-column label="添加状态" min-width="100">
             <template slot-scope="scope">
               <div slot="reference" class="name-wrapper">
-                <el-tag size="medium" v-if="scope.row.civilCode">已添加({{scope.row.civilCode}})</el-tag>
-                <el-tag size="medium" type="info" v-if="!scope.row.civilCode">未添加</el-tag>
+                <el-tag size="medium" v-if="scope.row.gbCivilCode">已添加-{{scope.row.gbCivilCode}}</el-tag>
+                <el-tag size="medium" type="info" v-if="!scope.row.gbCivilCode">未添加</el-tag>
               </div>
             </template>
           </el-table-column>
@@ -93,7 +93,7 @@ export default {
       searchSrt: "",
       channelType: "",
       online: "",
-      hasCivilCode: "",
+      hasCivilCode: "false",
       winHeight: window.innerHeight - 180,
       currentPage: 1,
       count: 15,
@@ -150,7 +150,7 @@ export default {
       this.multipleSelection = val;
     },
     selectable: function (row, rowIndex) {
-      if (row.civilCode) {
+      if (row.gbCivilCode) {
         return false
       }else {
         return true
@@ -159,15 +159,36 @@ export default {
     add: function (row) {
       if (!this.regionId) {
         this.$message.info("请选择左侧行政区划节点")
+        return;
       }
-      console.log(this.regionId)
-      console.log(this.multipleSelection)
       let channels = []
       for (let i = 0; i < this.multipleSelection.length; i++) {
         channels.push(this.multipleSelection[i].gbId)
       }
-      console.log(channels)
+      if (channels.length === 0) {
+        this.$message.info("请选择右侧通道")
+        return;
+      }
+      this.loading = true
 
+      this.$axios({
+        method: 'post',
+        url: `/api/common/channel/region/add`,
+        data: {
+          civilCode: this.regionId,
+          channelIds: channels
+        }
+      }).then((res)=> {
+        if (res.data.code === 0) {
+          this.$message.success("保存成功")
+        }else {
+          this.$message.error(res.data.msg)
+        }
+        this.loading = false
+      }).catch((error)=> {
+        this.$message.error(error)
+        this.loading = false
+      });
     },
     remove: function (row) {
     },

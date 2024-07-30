@@ -52,6 +52,16 @@ public class GlobalExceptionHandler {
     public WVPResult<String> exceptionHandler(HttpRequestMethodNotSupportedException e) {
         return WVPResult.fail(ErrorCode.ERROR400);
     }
+    /**
+     * 断言异常处理
+     * @param e 异常
+     * @return 统一返回结果
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.OK)
+    public WVPResult<String> exceptionHandler(IllegalArgumentException e) {
+        return WVPResult.fail(ErrorCode.ERROR100.getCode(), e.getMessage());
+    }
 
 
     /**
@@ -60,7 +70,7 @@ public class GlobalExceptionHandler {
      * @return 统一返回结果
      */
     @ExceptionHandler(ControllerException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<WVPResult<String>> exceptionHandler(ControllerException e) {
         return new ResponseEntity<>(WVPResult.fail(e.getCode(), e.getMsg()), HttpStatus.OK);
     }

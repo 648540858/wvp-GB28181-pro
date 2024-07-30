@@ -33,6 +33,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
@@ -174,7 +175,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     private void delete(StreamProxy streamProxy) {
-        assert streamProxy != null;
+        Assert.notNull(streamProxy, "代理不可为NULL");
         if (streamProxy.getPulling() != null && streamProxy.getPulling()) {
             stopProxy(streamProxy);
         }

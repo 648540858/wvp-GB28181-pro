@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -121,8 +122,8 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     public String addTask(String app, String stream, MediaServer mediaServerItem, String startTime, String endTime,
                           String callId, String remoteHost, boolean filterMediaServer) {
         // 参数校验
-        assert app != null;
-        assert stream != null;
+        Assert.notNull(app,"应用名为NULL");
+        Assert.notNull(stream,"流ID为NULL");
         if (mediaServerItem.getRecordAssistPort() == 0) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "为配置Assist服务");
         }

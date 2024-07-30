@@ -35,6 +35,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 import java.util.*;
@@ -247,8 +248,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Override
     @Transactional
     public boolean update(StreamPush streamPush) {
+        Assert.notNull(streamPush, "推流信息不可为NULL");
+        Assert.isTrue(streamPush.getId() > 0, "推流信息ID必须存在");
         log.info("[更新推流]：id: {}, app: {}, stream: {}, ", streamPush.getId(), streamPush.getApp(), streamPush.getStream());
-        assert streamPush.getId() != null;
         StreamPush streamPushInDb = streamPushMapper.select(streamPush.getId());
         if (!streamPushInDb.getApp().equals(streamPush.getApp()) || !streamPushInDb.getStream().equals(streamPush.getStream())) {
             // app或者stream变化
@@ -602,6 +604,6 @@ public class StreamPushServiceImpl implements IStreamPushService {
             }
         });
         streamPushMapper.batchDel(streamPushList);
-        gbChannelService.delete(commonGBChannelList);
+        gbChannelService.delete(ids);
     }
 }

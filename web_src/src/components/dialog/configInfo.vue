@@ -21,9 +21,9 @@
         </el-descriptions>
         <el-descriptions title="版本信息"v-if="configInfoData.version">
           <el-descriptions-item label="版本">{{configInfoData.version.version}}</el-descriptions-item>
-          <el-descriptions-item label="编译时间">{{configInfoData.version.BUILD_DATE}}</el-descriptions-item>
-          <el-descriptions-item label="GIT版本">{{configInfoData.version.GIT_Revision_SHORT}}</el-descriptions-item>
-          <el-descriptions-item label="GIT最后提交时间">{{configInfoData.version.GIT_DATE}}</el-descriptions-item>
+          <el-descriptions-item label="编译时间">{{configInfoData.version.build_DATE}}</el-descriptions-item>
+          <el-descriptions-item label="GIT版本">{{configInfoData.version.git_Revision_SHORT}}</el-descriptions-item>
+          <el-descriptions-item label="GIT最后提交时间">{{configInfoData.version.git_DATE}}</el-descriptions-item>
         </el-descriptions>
       </div>
     </el-dialog>

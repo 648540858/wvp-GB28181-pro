@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -352,8 +353,55 @@ public class GbChannelServiceImpl implements IGbChannelService {
     }
 
     @Override
+    @Transactional
     public void deleteChannelToRegion(String civilCode, List<Integer> channelIds) {
-        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByIdsOrCivilCode(civilCode, channelIds);
+        if (!ObjectUtils.isEmpty(civilCode)) {
+            deleteChannelToRegionByCivilCode(civilCode);
+        }
+        if (!ObjectUtils.isEmpty(channelIds)) {
+            deleteChannelToRegionByChannelIds(channelIds);
+        }
+    }
+
+    @Override
+    public void deleteChannelToRegionByCivilCode(String civilCode) {
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByCivilCode(civilCode);
+        if (channelList.isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
+        }
+        int result = commonGBChannelMapper.removeCivilCodeByChannels(channelList);
+        // TODO 发送通知
+//        if (result > 0) {
+//            try {
+//                // 发送catalog
+//                eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
+//            }catch (Exception e) {
+//                log.warn("[多个通道添加行政区划] 发送失败，数量：{}", channelList.size(), e);
+//            }
+//        }
+    }
+
+    @Override
+    public void deleteChannelToRegionByChannelIds(List<Integer> channelIds) {
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByIds(channelIds);
+        if (channelList.isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
+        }
+        int result = commonGBChannelMapper.removeCivilCodeByChannels(channelList);
+        // TODO 发送通知
+//        if (result > 0) {
+//            try {
+//                // 发送catalog
+//                eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
+//            }catch (Exception e) {
+//                log.warn("[多个通道添加行政区划] 发送失败，数量：{}", channelList.size(), e);
+//            }
+//        }
+    }
+
+    @Override
+    public void addChannelToRegionBYGbDevice(String civilCode, List<Integer> deviceIds) {
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(deviceIds);
         if (channelList.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }
@@ -367,5 +415,14 @@ public class GbChannelServiceImpl implements IGbChannelService {
                 log.warn("[多个通道添加行政区划] 发送失败，数量：{}", channelList.size(), e);
             }
         }
+    }
+
+    @Override
+    public void deleteChannelToRegionBYGbDevice(List<Integer> deviceIds) {
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(deviceIds);
+        if (channelList.isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
+        }
+        int result = commonGBChannelMapper.removeCivilCodeByChannels(channelList);
     }
 }

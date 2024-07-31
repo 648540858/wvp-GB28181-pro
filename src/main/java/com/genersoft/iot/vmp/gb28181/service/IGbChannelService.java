@@ -49,4 +49,12 @@ public interface IGbChannelService {
     void addChannelToRegion(String civilCode, List<Integer> channelIds);
 
     void deleteChannelToRegion(String civilCode, List<Integer> channelIds);
+
+    void deleteChannelToRegionByCivilCode(String civilCode);
+
+    void deleteChannelToRegionByChannelIds(List<Integer> channelIds);
+
+    void addChannelToRegionBYGbDevice(String civilCode, List<Integer> deviceIds);
+
+    void deleteChannelToRegionBYGbDevice(List<Integer> deviceIds);
 }

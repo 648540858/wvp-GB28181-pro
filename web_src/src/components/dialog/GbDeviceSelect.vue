@@ -1,16 +1,16 @@
 <template>
   <div id="addUser" v-loading="getDeviceListLoading">
     <el-dialog
-      title="选择设备"
-      width="40%"
+      title="添加国标设备通道到行政区划"
+      width="60%"
       top="2rem"
       :close-on-click-modal="false"
       :visible.sync="showDialog"
       :destroy-on-close="true"
       @close="close()"
     >
-      <div class="page-header">
-        <div class="page-header-btn">
+      <div class="page-header" style="width: 100%">
+        <div class="page-header-btn" style="width: 100%; text-align: left">
           搜索:
           <el-input @input="getDeviceList" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
                     prefix-icon="el-icon-search" v-model="searchSrt" clearable></el-input>
@@ -21,8 +21,9 @@
             <el-option label="在线" value="true"></el-option>
             <el-option label="离线" value="false"></el-option>
           </el-select>
-          <el-button icon="el-icon-refresh-right" circle size="mini" :loading="getDeviceListLoading"
-                     @click="getDeviceList()"></el-button>
+          <el-button size="mini" :loading="getDeviceListLoading"
+                     @click="getDeviceList()">刷新</el-button>
+          <el-button type="primary" size="mini" style="float: right" @click="onSubmit">确 定</el-button>
         </div>
       </div>
       <!--设备列表-->
@@ -35,6 +36,14 @@
         </el-table-column>
         <el-table-column prop="manufacturer" label="厂家" min-width="120" >
         </el-table-column>
+        <el-table-column label="地址" min-width="160" >
+          <template slot-scope="scope">
+            <div slot="reference" class="name-wrapper">
+              <el-tag v-if="scope.row.hostAddress" size="medium">{{ scope.row.hostAddress }}</el-tag>
+              <el-tag v-if="!scope.row.hostAddress" size="medium">未知</el-tag>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column label="状态" min-width="120">
           <template slot-scope="scope">
             <div slot="reference" class="name-wrapper">
@@ -45,12 +54,12 @@
         </el-table-column>
       </el-table>
       <el-pagination
-        style="float: right"
+        style="text-align: right;"
         @size-change="handleSizeChange"
         @current-change="currentChange"
         :current-page="currentPage"
         :page-size="count"
-        :page-sizes="[15, 25, 35, 50, 200, 1000, 50000]"
+        :page-sizes="[10, 25, 35, 50, 200, 1000, 50000]"
         layout="total, sizes, prev, pager, next"
         :total="total">
       </el-pagination>
@@ -74,9 +83,9 @@ export default {
       videoComponentList: [],
       updateLooper: 0, //数据刷新轮训标志
       currentDeviceChannelsLenth: 0,
-      winHeight: window.innerHeight - 200,
+      winHeight: 580,
       currentPage: 1,
-      count: 15,
+      count: 10,
       total: 0,
       getDeviceListLoading: false,
       multipleSelection: [],
@@ -127,7 +136,10 @@ export default {
       this.showDialog = true;
     },
     onSubmit: function () {
-
+      if (this.listChangeCallback ) {
+        this.listChangeCallback(this.multipleSelection)
+      }
+      this.showDialog = false;
     },
     close: function () {
       this.showDialog = false;

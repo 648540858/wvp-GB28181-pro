@@ -11,6 +11,12 @@ import lombok.Data;
 public class RegionTree {
 
     /**
+     * 数据库Id
+     */
+    @Schema(description = "数据库Id")
+    private int dbId;
+
+    /**
      * 区域国标编号
      */
     @Schema(description = "区域国标编号")

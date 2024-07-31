@@ -132,6 +132,24 @@ public class ChannelProvider {
         return sqlBuild.toString() ;
     }
 
+    public String queryByGbDeviceIds(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(getBaseSelectSql());
+        sqlBuild.append("where device_db_id in ( ");
+
+        Collection<Integer> ids = (Collection<Integer>)params.get("deviceIds");
+        boolean first = true;
+        for (Integer id : ids) {
+            if (!first) {
+                sqlBuild.append(",");
+            }
+            sqlBuild.append(id);
+            first = false;
+        }
+        sqlBuild.append(" )");
+        return sqlBuild.toString() ;
+    }
+
     public String queryByIdsOrCivilCode(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
@@ -155,6 +173,13 @@ public class ChannelProvider {
             }
             sqlBuild.append(" )");
         }
+        return sqlBuild.toString() ;
+    }
+
+    public String queryByCivilCode(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(getBaseSelectSql());
+        sqlBuild.append("where gb_civil_code = #{civilCode} ");
         return sqlBuild.toString() ;
     }
 }

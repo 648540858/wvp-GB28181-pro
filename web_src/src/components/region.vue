@@ -2,7 +2,7 @@
   <div id="region" style="width: 100%">
     <el-container v-loading="loading" >
       <el-aside width="400px" >
-        <RegionTree ref="regionTree" :edit="true" :clickEvent="treeNodeClickEvent" :chooseIdChange="chooseIdChange"></RegionTree>
+        <RegionTree ref="regionTree" :edit="true" :clickEvent="treeNodeClickEvent" :chooseIdChange="chooseIdChange" :onChannelChange="getChannelList"></RegionTree>
       </el-aside>
       <el-main style="padding: 5px;">
         <div class="page-header">
@@ -30,11 +30,12 @@
               <el-button size="mini" type="primary" @click="add()">
                 添加
               </el-button>
+              <el-button icon="el-icon-refresh-right" circle size="mini" @click="getChannelList()"></el-button>
             </div>
           </div>
         </div>
         <el-table ref="channelListTable" :data="channelList" :height="winHeight" style="width: 100%"
-                  header-row-class-name="table-header" @selection-change="handleSelectionChange">
+                  header-row-class-name="table-header" @selection-change="handleSelectionChange" @row-dblclick="rowDblclick">
           <el-table-column type="selection" width="55" :selectable="selectable">
           </el-table-column>
           <el-table-column prop="gbName" label="名称" min-width="180">
@@ -42,6 +43,15 @@
           <el-table-column prop="gbDeviceId" label="编号" min-width="180">
           </el-table-column>
           <el-table-column prop="gbManufacturer" label="厂家" min-width="100">
+          </el-table-column>
+          <el-table-column label="类型" min-width="100">
+            <template slot-scope="scope">
+              <div slot="reference" class="name-wrapper">
+                <el-tag size="medium" v-if="scope.row.gbDeviceDbId">国标设备</el-tag>
+                <el-tag size="medium" v-if="scope.row.streamPushId">推流设备</el-tag>
+                <el-tag size="medium" v-if="scope.row.streamProxyId">拉流代理</el-tag>
+              </div>
+            </template>
           </el-table-column>
           <el-table-column label="状态" min-width="100">
             <template slot-scope="scope">
@@ -54,7 +64,7 @@
           <el-table-column label="添加状态" min-width="100">
             <template slot-scope="scope">
               <div slot="reference" class="name-wrapper">
-                <el-tag size="medium" v-if="scope.row.gbCivilCode">已添加-{{scope.row.gbCivilCode}}</el-tag>
+                <el-tag size="medium" :title="scope.row.gbCivilCode" v-if="scope.row.gbCivilCode">已添加</el-tag>
                 <el-tag size="medium" type="info" v-if="!scope.row.gbCivilCode">未添加</el-tag>
               </div>
             </template>
@@ -156,6 +166,11 @@ export default {
         return true
       }
     },
+    rowDblclick: function (row, rowIndex) {
+      if (row.gbCivilCode) {
+        this.$refs.regionTree.refresh(row.gbCivilCode)
+      }
+    },
     add: function (row) {
       if (!this.regionId) {
         this.$message.info("请选择左侧行政区划节点")
@@ -181,6 +196,9 @@ export default {
       }).then((res)=> {
         if (res.data.code === 0) {
           this.$message.success("保存成功")
+          this.getChannelList()
+          // 刷新树节点
+          this.$refs.regionTree.refresh(this.regionId)
         }else {
           this.$message.error(res.data.msg)
         }

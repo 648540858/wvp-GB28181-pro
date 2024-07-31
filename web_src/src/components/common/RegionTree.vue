@@ -4,7 +4,7 @@
       <div class="page-title">行政区划</div>
       <div class="page-header-btn">
         <div style="display: inline;">
-          <el-input @input="search" style="margin-right: 1rem; width: 12rem;" size="mini" placeholder="关键字"
+          <el-input @input="search" style="visibility:hidden; margin-right: 1rem; width: 12rem;" size="mini" placeholder="关键字"
                     prefix-icon="el-icon-search" v-model="searchSrt" clearable></el-input>
 
           <el-checkbox v-model="showCode">显示编号</el-checkbox>
@@ -13,11 +13,12 @@
     </div>
     <div>
       <vue-easy-tree
+        class="flow-tree"
         ref="veTree"
         node-key="id"
-        height="72vh"
+        height="78vh"
         lazy
-        style="height: 78vh; padding: 2rem"
+        style="padding: 2rem 0 2rem 0.5rem"
         :load="loadNode"
         :data="treeData"
         :default-expanded-keys="['']"
@@ -30,91 +31,42 @@
           </span>
           <span v-if="node.data.type === 0" style="color: #409EFF" class="iconfont icon-bianzubeifen3"></span>
           <span v-if="node.data.type === 1" style="color: #409EFF" class="iconfont icon-shexiangtou2"></span>
-          <span style=" padding-left: 1px" v-if="node.data.id !=='' && showCode">{{ node.label }}-{{ node.data.id }}</span>
-          <span style=" padding-left: 1px" v-if="node.data.id ==='' || !showCode">{{ node.label }}</span>
+          <span style=" padding-left: 1px" v-if="node.data.id !=='' && showCode" :title="node.data.id">{{ node.label }}（编号：{{ node.data.id }}）</span>
+          <span style=" padding-left: 1px" v-if="node.data.id ==='' || !showCode" :title="node.data.id">{{ node.label }}</span>
         </span>
       </vue-easy-tree>
     </div>
     <regionCode ref="regionCode"></regionCode>
+    <gbDeviceSelect ref="gbDeviceSelect"></gbDeviceSelect>
   </div>
 </template>
 
 <script>
 import VueEasyTree from "@wchbrad/vue-easy-tree";
 import regionCode from './../dialog/regionCode'
-
-let treeData = []
+import gbDeviceSelect from './../dialog/GbDeviceSelect'
 
 export default {
   name: 'DeviceTree',
   components: {
-    VueEasyTree, regionCode
+    VueEasyTree, regionCode, gbDeviceSelect
   },
   data() {
     return {
       showCode: false,
       searchSrt: "",
       chooseId: "",
-      // props: {
-      //   label: "name",
-      // },
       treeData: [],
     }
   },
-  props: ['edit', 'clickEvent', 'chooseIdChange'],
+  props: ['edit', 'clickEvent', 'chooseIdChange', 'onChannelChange'],
   created() {
-    // this.$axios({
-    //   method: 'get',
-    //   url: `/api/region/tree/list`,
-    // }).then((res)=> {
-    //   if (res.data.code === 0) {
-    //
-    //     for (let i = 0; i < res.data.data.length; i++) {
-    //       let item = res.data.data[i]
-    //       console.log(item)
-    //       this.treeData.push({
-    //         id: item.deviceId,
-    //         label: item.name,
-    //         children: [],
-    //         isLeaf: false,
-    //       })
-    //     }
-    //
-    //   }
-    //
-    // }).catch(function (error) {
-    //   console.log(error);
-    // });
   },
   methods: {
-    onClick(evt, treeId, treeNode) {
-
-    },
-    onCheck(evt, treeId, treeNode) {
-
-    },
-    handleCreated(ztreeObj) {
-
-    },
     search() {
 
     },
-    handleNodeClick(data, node, element) {
-      let deviceNode = this.$refs.gdTree.getNode(data.userData.deviceId)
-      if (typeof (this.clickEvent) == "function") {
-        this.clickEvent(deviceNode.data.userData, data.userData, data.type === 2)
-      }
-    },
-    handleContextMenu(event, data, node, element) {
-      console.log("右键点击事件")
-      let deviceNode = this.$refs.gdTree.getNode(data.userData.deviceId)
-      if (typeof (this.contextMenuEvent) == "function") {
-        this.contextMenuEvent(deviceNode.data.userData, event, data.userData, data.type === 2)
-      }
-    },
     loadNode: function (node, resolve) {
-      console.log(22222)
-      console.log(node)
       if (node.level === 0) {
         resolve([{
           id: "",
@@ -122,7 +74,7 @@ export default {
           isLeaf: false,
           type: 0
         }]);
-      } else if (node.data.id.length < 8) {
+      } else if (node.data.id.length <= 8) {
         this.$axios({
           method: 'get',
           url: `/api/region/tree/list`,
@@ -142,56 +94,11 @@ export default {
         resolve([]);
       }
     },
-    channelDataHandler: function (data, resolve) {
-      if (data.length > 0) {
-        let nodeList = []
-        for (let i = 0; i < data.length; i++) {
-          let item = data[i];
-          let type = 3;
-          if (item.id.length <= 10) {
-            type = 2;
-          } else {
-            if (item.id.length > 14) {
-              let channelType = item.id.substring(10, 13)
-              console.log("channelType: " + channelType)
-              if (channelType === '215' || channelType === '216') {
-                type = 2;
-              }
-              console.log(type)
-              if (item.basicData.ptzType === 1) { // 1-球机;2-半球;3-固定枪机;4-遥控枪机
-                type = 4;
-              } else if (item.basicData.ptzType === 2) {
-                type = 5;
-              } else if (item.basicData.ptzType === 3 || item.basicData.ptzType === 4) {
-                type = 6;
-              }
-            } else {
-              if (item.basicData.subCount > 0 || item.basicData.parental === 1) {
-                type = 2;
-              }
-            }
-          }
-          let node = {
-            name: item.name || item.basicData.channelId,
-            isLeaf: type !== 2,
-            id: item.id,
-            deviceId: item.deviceId,
-            type: type,
-            online: item.basicData.status === 1,
-            hasGPS: item.basicData.longitude * item.basicData.latitude !== 0,
-            userData: item.basicData
-          }
-          nodeList.push(node);
-        }
-        resolve(nodeList)
-      } else {
-        resolve([])
-      }
-    },
     reset: function () {
       this.$forceUpdate();
     },
     contextmenuEventHandler: function (event, data, node, element) {
+
       console.log(node.level)
       if (node.data.type === 1) {
         data.parentId = node.parent.data.id;
@@ -202,14 +109,18 @@ export default {
               icon: "el-icon-delete",
               disabled: false,
               onClick: () => {
+                console.log(data)
                 this.$axios({
                   method: "post",
                   url: `/api/common/channel/region/delete`,
                   data: {
-                    channelIds: [data.id]
+                    channelIds: [data.dbId]
                   }
                 }).then((res) => {
                   console.log("移除成功")
+                  if (this.onChannelChange) {
+                    this.onChannelChange()
+                  }
                   node.parent.loaded = false
                   node.parent.expand();
                 }).catch(function (error) {
@@ -324,18 +235,78 @@ export default {
           node.parent.loaded = false
           node.parent.expand();
         }
-      })
-        .catch(function (error) {
+      }).catch(function (error) {
           console.log(error);
-        });
+      });
     },
     addChannelFormDevice: function (id, node) {
-
+      this.$refs.gbDeviceSelect.openDialog((rows)=>{
+        let deviceIds = []
+        for (let i = 0; i < rows.length; i++) {
+          deviceIds.push(rows[i].id)
+        }
+        this.$axios({
+          method: 'post',
+          url: `/api/common/channel/region/device/add`,
+          data: {
+            civilCode: node.data.id,
+            deviceIds: deviceIds,
+          }
+        }).then((res)=> {
+          if (res.data.code === 0) {
+            this.$message.success("保存成功")
+            if (this.onChannelChange) {
+              this.onChannelChange()
+            }
+            node.loaded = false
+            node.expand();
+          }else {
+            this.$message.error(res.data.msg)
+          }
+          this.loading = false
+        }).catch((error)=> {
+          this.$message.error(error)
+          this.loading = false
+        });
+      })
     },
     removeChannelFormDevice: function (id, node) {
-
+      this.$refs.gbDeviceSelect.openDialog((rows)=>{
+        let deviceIds = []
+        for (let i = 0; i < rows.length; i++) {
+          deviceIds.push(rows[i].id)
+        }
+        this.$axios({
+          method: 'post',
+          url: `/api/common/channel/region/device/delete`,
+          data: {
+            deviceIds: deviceIds,
+          }
+        }).then((res)=> {
+          if (res.data.code === 0) {
+            this.$message.success("保存成功")
+            if (this.onChannelChange) {
+              this.onChannelChange()
+            }
+            node.loaded = false
+            node.expand();
+          }else {
+            this.$message.error(res.data.msg)
+          }
+          this.loading = false
+        }).catch((error)=> {
+          this.$message.error(error)
+          this.loading = false
+        });
+      })
     },
     refreshNode: function (node) {
+      node.loaded = false
+      node.expand();
+    },
+    refresh: function (id) {
+      // 查询node
+      let node = this.$refs.veTree.getNode(id)
       node.loaded = false
       node.expand();
     },
@@ -382,4 +353,5 @@ export default {
 .custom-tree-node .el-radio__label {
   padding-left: 4px !important;
 }
+
 </style>

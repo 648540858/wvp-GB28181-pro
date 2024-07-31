@@ -70,6 +70,7 @@ public interface RegionMapper {
             " device_id as id," +
             " name as label, " +
             " parent_device_id," +
+            " id as db_id," +
             " 0 as type," +
             " false as is_leaf" +
             " from wvp_common_region " +

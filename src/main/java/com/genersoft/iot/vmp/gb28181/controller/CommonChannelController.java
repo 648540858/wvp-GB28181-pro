@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceType;
 import com.genersoft.iot.vmp.gb28181.bean.IndustryCodeType;
 import com.genersoft.iot.vmp.gb28181.bean.NetworkIdentificationType;
+import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelToRegionBYGbDeviceParam;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelToRegionParam;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
@@ -111,7 +112,22 @@ public class CommonChannelController {
     @Operation(summary = "通道删除行政区划", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @PostMapping("/region/delete")
     public void deleteChannelToRegion(@RequestBody ChannelToRegionParam param){
-        Assert.isTrue(param.getChannelIds().isEmpty() && ObjectUtils.isEmpty(param.getCivilCode()),"参数异常");
+        Assert.isTrue(!param.getChannelIds().isEmpty() || !ObjectUtils.isEmpty(param.getCivilCode()),"参数异常");
         channelService.deleteChannelToRegion(param.getCivilCode(), param.getChannelIds());
+    }
+
+    @Operation(summary = "通道设置行政区划-根据国标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @PostMapping("/region/device/add")
+    public void addChannelToRegionBYGbDevice(@RequestBody ChannelToRegionBYGbDeviceParam param){
+        Assert.notEmpty(param.getDeviceIds(),"参数异常");
+        Assert.hasLength(param.getCivilCode(),"未添加行政区划");
+        channelService.addChannelToRegionBYGbDevice(param.getCivilCode(), param.getDeviceIds());
+    }
+
+    @Operation(summary = "通道删除行政区划-根据国标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @PostMapping("/region/device/delete")
+    public void deleteChannelToRegionBYGbDevice(@RequestBody ChannelToRegionBYGbDeviceParam param){
+        Assert.notEmpty(param.getDeviceIds(),"参数异常");
+        channelService.deleteChannelToRegionBYGbDevice(param.getDeviceIds());
     }
 }

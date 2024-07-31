@@ -313,6 +313,7 @@ public interface CommonGBChannelMapper {
             " select " +
             "    coalesce(gb_device_id, device_id) as id," +
             "    coalesce(gb_name, name) as label, " +
+            "    id as db_id, " +
             "    1 as type, " +
             "    true as is_leaf " +
             " from wvp_device_channel " +
@@ -341,4 +342,18 @@ public interface CommonGBChannelMapper {
 
     @SelectProvider(type = ChannelProvider.class, method = "queryByIdsOrCivilCode")
     List<CommonGBChannel> queryByIdsOrCivilCode(@Param("civilCode") String civilCode, @Param("ids") List<Integer> ids);
+
+    @Update(value = {" <script>" +
+            " UPDATE wvp_device_channel " +
+            " SET gb_civil_code = null" +
+            " WHERE id in "+
+            " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.gbId}</foreach>" +
+            " </script>"})
+    int removeCivilCodeByChannels(List<CommonGBChannel> channelList);
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryByCivilCode")
+    List<CommonGBChannel> queryByCivilCode(@Param("civilCode") String civilCode);
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryByGbDeviceIds")
+    List<CommonGBChannel> queryByGbDeviceIds(List<Integer> deviceIds);
 }

@@ -14,7 +14,7 @@ public interface GroupMapper {
     @Insert("INSERT INTO wvp_common_group (device_id, name, parent_device_id, business_group, create_time, update_time) " +
             "VALUES (#{deviceId}, #{name}, #{parentDeviceId}, #{businessGroup}, #{createTime}, #{updateTime})")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
-    void add(Group group);
+    int add(Group group);
 
     @Delete("DELETE FROM wvp_common_group WHERE id=#{id}")
     int delete(@Param("id") int id);

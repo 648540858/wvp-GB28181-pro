@@ -325,4 +325,21 @@ public class CommonGBChannel {
         return content.toString();
     }
 
+    public static CommonGBChannel build(Group group) {
+        GbCode gbCode = GbCode.decode(group.getDeviceId());
+        CommonGBChannel channel = new CommonGBChannel();
+        if (gbCode.getTypeCode().equals("215")) {
+            // 业务分组
+            channel.setGbName(group.getName());
+            channel.setGbDeviceId(group.getDeviceId());
+        }else {
+            // 虚拟组织
+            channel.setGbName(group.getName());
+            channel.setGbDeviceId(group.getDeviceId());
+            channel.setGbParentId(group.getParentDeviceId());
+            channel.setGbBusinessGroupId(group.getBusinessGroup());
+        }
+        return channel;
+    }
+
 }

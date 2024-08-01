@@ -1,8 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.dao;
 
-import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.Region;
-import com.genersoft.iot.vmp.gb28181.bean.RegionTree;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.provider.ChannelProvider;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
@@ -356,4 +354,14 @@ public interface CommonGBChannelMapper {
 
     @SelectProvider(type = ChannelProvider.class, method = "queryByGbDeviceIds")
     List<CommonGBChannel> queryByGbDeviceIds(List<Integer> deviceIds);
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryByGroupList")
+    List<CommonGBChannelWitchGroupChannelId> queryByGroupList(List<Group> groupList);
+
+    @Delete(value = {" <script>" +
+            " delete from wvp_common_group_channel" +
+            " where id in " +
+            " <foreach collection='channels'  item='item'  open='(' separator=',' close=')' > #{item.groupChannelId}</foreach>" +
+            "</script>"})
+    int batchDeleteGroup(List<CommonGBChannelWitchGroupChannelId> channels);
 }

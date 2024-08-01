@@ -218,7 +218,6 @@ public class CommonGBChannel {
     private String updateTime;
 
 
-
     public String encode(){
         return encode(null);
     }

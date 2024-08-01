@@ -228,7 +228,7 @@ export default {
         url: "/api/push/stop",
         params: {
           app: row.app,
-          streamId: row.stream
+          stream: row.stream
         }
       }).then((res) => {
         if (res.data.code === 0) {

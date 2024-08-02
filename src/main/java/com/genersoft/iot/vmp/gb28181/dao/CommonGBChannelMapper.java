@@ -360,7 +360,7 @@ public interface CommonGBChannelMapper {
 
     @Update(value = {" <script>" +
             " UPDATE wvp_device_channel " +
-            " SET gb_parent_id = null" +
+            " SET gb_parent_id = null, gb_business_group_id = null" +
             " WHERE id in "+
             " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.gbId}</foreach>" +
             " </script>"})

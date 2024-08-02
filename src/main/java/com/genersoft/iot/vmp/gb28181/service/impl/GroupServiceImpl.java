@@ -137,7 +137,13 @@ public class GroupServiceImpl implements IGroupService {
     }
 
     @Override
-    public List<GroupTree> queryForTree(String query, String parent) {
+    public List<GroupTree> queryForTree(String query, String parent, Integer platformId) {
+        if (parent == null) {
+            // 查询所有业务分组
+            return groupManager.queryBusinessGroupForTree(query, platformId);
+        }else {
+            List<GroupTree> groupTreeList = groupManager.queryForTree(query, parent, platformId);
+        }
         return Collections.emptyList();
     }
 
@@ -147,7 +153,29 @@ public class GroupServiceImpl implements IGroupService {
     }
 
     @Override
+    @Transactional
     public boolean delete(int id) {
-        return false;
+        Group group = groupManager.queryOne(id);
+        Assert.notNull(group, "分组不存在");
+        groupManager.delete(id);
+        GbCode gbCode = GbCode.decode(group.getDeviceId());
+        if (gbCode.getTypeCode().equals("215")) {
+            // 业务分组
+            gbChannelService.removeParentIdByBusinessGroup(gbCode.getTypeCode());
+        }else {
+            List<Group> groups = queryAllChildren(group.getDeviceId(), group.getPlatformId());
+            groups.add(group);
+            gbChannelService.removeParentIdByGroupList(groups);
+        }
+        // 发送分组移除通知
+        // 将变化信息发送通知
+        CommonGBChannel channel = CommonGBChannel.build(group);
+        try {
+            // 发送catalog
+            eventPublisher.catalogEventPublish(null, channel, CatalogEvent.DEL);
+        }catch (Exception e) {
+            log.warn("[业务分组/虚拟组织删除] 发送失败，{}", group.getDeviceId(), e);
+        }
+        return true;
     }
 }

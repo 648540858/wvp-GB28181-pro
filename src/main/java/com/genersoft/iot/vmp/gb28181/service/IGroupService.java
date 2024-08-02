@@ -14,7 +14,7 @@ public interface IGroupService {
 
     Group queryGroupByDeviceId(String regionDeviceId);
 
-    List<GroupTree> queryForTree(String query, String parent);
+    List<GroupTree> queryForTree(String query, String parent, Integer platformId);
 
     void syncFromChannel();
 

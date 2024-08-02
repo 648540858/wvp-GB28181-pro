@@ -82,9 +82,28 @@ public interface GroupMapper {
             " where " +
             " <if test='parentId != null'> parent_device_id = #{parentId} </if> " +
             " <if test='parentId == null'> parent_device_id is null </if> " +
+            " <if test='platformId != null'> platform_id = #{platformId} </if> " +
+            " <if test='platformId == null'> platform_id is null </if> " +
             " <if test='query != null'> AND (device_id LIKE concat('%',#{query},'%') OR name LIKE concat('%',#{query},'%'))</if> " +
             " </script>")
-    List<GroupTree> queryForTree(@Param("query") String query, @Param("parentId") String parentId);
+    List<GroupTree> queryForTree(@Param("query") String query, @Param("parentId") String parentId,
+                                 @Param("platformId") Integer platformId);
+
+    @Select(" <script>" +
+            " SELECT " +
+            " device_id as id," +
+            " name as label, " +
+            " parent_device_id," +
+            " id as db_id," +
+            " 0 as type," +
+            " false as is_leaf" +
+            " from wvp_common_group " +
+            " where device_id=business_group" +
+            " <if test='platformId != null'> platform_id = #{platformId} </if> " +
+            " <if test='platformId == null'> platform_id is null </if> " +
+            " <if test='query != null'> AND (device_id LIKE concat('%',#{query},'%') OR name LIKE concat('%',#{query},'%'))</if> " +
+            " </script>")
+    List<GroupTree> queryBusinessGroupForTree(String query, Integer platformId);
 
     @Select("SELECT * from wvp_common_group WHERE device_id = #{deviceId} and business_group = #{businessGroup}")
     Group queryOneByDeviceId(@Param("deviceId") String deviceId, @Param("businessGroup") String businessGroup);
@@ -103,4 +122,6 @@ public interface GroupMapper {
 
     @Delete("DELETE FROM wvp_common_group WHERE business_group = #{businessGroup}")
     int deleteByBusinessGroup(@Param("businessGroup") String businessGroup);
+
+
 }

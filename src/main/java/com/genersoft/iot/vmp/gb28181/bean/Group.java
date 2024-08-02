@@ -52,6 +52,12 @@ public class Group implements Comparable<Group>{
     @Schema(description = "更新时间")
     private String updateTime;
 
+    /**
+     * 平台ID
+     */
+    @Schema(description = "平台ID")
+    private Integer platformId;
+
     @Override
     public int compareTo(@NotNull Group region) {
         return Integer.compare(Integer.parseInt(this.deviceId), Integer.parseInt(region.getDeviceId()));

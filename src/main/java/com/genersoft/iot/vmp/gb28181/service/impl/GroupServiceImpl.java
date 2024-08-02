@@ -11,6 +11,7 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -85,6 +86,7 @@ public class GroupServiceImpl implements IGroupService {
     }
 
     @Override
+    @Transactional
     public boolean deleteByDeviceId(String deviceId, String groupId) {
         Assert.notNull(deviceId, "编号不可为NULL");
         Assert.notNull(groupId, "业务分组不可为NULL");
@@ -92,38 +94,24 @@ public class GroupServiceImpl implements IGroupService {
 
         Group businessGroup = groupManager.queryBusinessGroup(groupId);
         Assert.notNull(businessGroup, "业务分组不存在");
-        // 待删除的分组
-        List<Group> groupList;
         // 是否需要清理业务分组字段
         if (gbCode.getTypeCode().equals("215")) {
             // 删除业务分组
             // 获取所有的虚拟组织
-            groupList = groupManager.queryByBusinessGroup(deviceId);
-            if (groupList.isEmpty()) {
-                return false;
-            }
+            int result = groupManager.deleteByBusinessGroup(deviceId);
+            Assert.isTrue(result > 0, "分组不存在");
+            gbChannelService.removeParentIdByBusinessGroup(deviceId);
         }else {
             // 删除虚拟组织
             Group group = groupManager.queryOneByDeviceId(deviceId, groupId);
             Assert.notNull(group, "分组不存在");
             // 获取所有子分组
-            groupList = queryAllChildren(deviceId, groupId);
-            if (groupList.isEmpty()) {
-                return false;
-            }
-
+            List<Group> groupList = queryAllChildren(deviceId, groupId);
+            groupList.add(group);
+            int result = groupManager.batchDelete(groupList);
+            Assert.isTrue(result> 0, "删除分组失败");
+            gbChannelService.removeParentIdByGroupList(groupList);
         }
-        List<CommonGBChannelWitchGroupChannelId> channels = commonGBChannelMapper.queryByGroupList(groupList);
-        if (channels.isEmpty()) {
-            return false;
-        }
-        commonGBChannelMapper.batchDeleteGroup(channels);
-
-        // TODO 待定 是否需要发送catalog事件，还是等分配的时候发送UPDATE事件
-        groupManager.batchDelete(groupList);
-
-
-
         return true;
     }
 

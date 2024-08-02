@@ -356,12 +356,16 @@ public interface CommonGBChannelMapper {
     List<CommonGBChannel> queryByGbDeviceIds(List<Integer> deviceIds);
 
     @SelectProvider(type = ChannelProvider.class, method = "queryByGroupList")
-    List<CommonGBChannelWitchGroupChannelId> queryByGroupList(List<Group> groupList);
+    List<CommonGBChannel> queryByGroupList(List<Group> groupList);
 
-    @Delete(value = {" <script>" +
-            " delete from wvp_common_group_channel" +
-            " where id in " +
-            " <foreach collection='channels'  item='item'  open='(' separator=',' close=')' > #{item.groupChannelId}</foreach>" +
-            "</script>"})
-    int batchDeleteGroup(List<CommonGBChannelWitchGroupChannelId> channels);
+    @Update(value = {" <script>" +
+            " UPDATE wvp_device_channel " +
+            " SET gb_parent_id = null" +
+            " WHERE id in "+
+            " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.gbId}</foreach>" +
+            " </script>"})
+    int removeParentIdByChannels(List<CommonGBChannel> channelList);
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryByBusinessGroup")
+    List<CommonGBChannel> queryByBusinessGroup(@Param("businessGroup") String businessGroup);
 }

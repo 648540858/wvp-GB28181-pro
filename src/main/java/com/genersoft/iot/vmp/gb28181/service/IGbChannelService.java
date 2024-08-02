@@ -57,4 +57,8 @@ public interface IGbChannelService {
     void addChannelToRegionBYGbDevice(String civilCode, List<Integer> deviceIds);
 
     void deleteChannelToRegionBYGbDevice(List<Integer> deviceIds);
+
+    void removeParentIdByBusinessGroup(String businessGroup);
+
+    void removeParentIdByGroupList(List<Group> groupList);
 }

@@ -11,8 +11,8 @@ import java.util.Set;
 @Mapper
 public interface GroupMapper {
 
-    @Insert("INSERT INTO wvp_common_group (device_id, name, parent_device_id, business_group, create_time, update_time) " +
-            "VALUES (#{deviceId}, #{name}, #{parentDeviceId}, #{businessGroup}, #{createTime}, #{updateTime})")
+    @Insert("INSERT INTO wvp_common_group (device_id, name, parent_device_id, business_group, platform_id, create_time, update_time) " +
+            "VALUES (#{deviceId}, #{name}, #{parentDeviceId}, #{businessGroup}, #{platformId}, #{createTime}, #{updateTime})")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int add(Group group);
 
@@ -89,11 +89,14 @@ public interface GroupMapper {
             " DELETE FROM wvp_common_group WHERE id in " +
             " <foreach collection='allChildren'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
             " </script>")
-    void batchDelete(List<Group> allChildren);
+    int batchDelete(List<Group> allChildren);
 
     @Select("SELECT * from wvp_common_group WHERE device_id = #{businessGroup} and business_group = #{businessGroup} ")
     Group queryBusinessGroup(@Param("businessGroup") String businessGroup);
 
     @Select("SELECT * from wvp_common_group WHERE business_group = #{businessGroup} ")
     List<Group> queryByBusinessGroup(@Param("businessGroup") String businessGroup);
+
+    @Delete("DELETE FROM wvp_common_group WHERE business_group = #{businessGroup}")
+    int deleteByBusinessGroup(@Param("businessGroup") String businessGroup);
 }

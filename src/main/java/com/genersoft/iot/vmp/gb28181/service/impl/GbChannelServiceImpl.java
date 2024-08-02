@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
@@ -424,5 +425,26 @@ public class GbChannelServiceImpl implements IGbChannelService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }
         int result = commonGBChannelMapper.removeCivilCodeByChannels(channelList);
+    }
+
+    @Override
+    public void removeParentIdByBusinessGroup(String businessGroup) {
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByBusinessGroup(businessGroup);
+        Assert.notEmpty(channelList, "所有业务分组的通道不存在");
+        if (channelList.isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
+        }
+        int result = commonGBChannelMapper.removeParentIdByChannels(channelList);
+
+    }
+
+    @Override
+    public void removeParentIdByGroupList(List<Group> groupList) {
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGroupList(groupList);
+        Assert.notEmpty(channelList, "所有业务分组的通道不存在");
+        if (channelList.isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
+        }
+        int result = commonGBChannelMapper.removeParentIdByChannels(channelList);
     }
 }

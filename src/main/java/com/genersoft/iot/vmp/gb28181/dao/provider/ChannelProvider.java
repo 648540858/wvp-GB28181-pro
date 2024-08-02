@@ -11,68 +11,65 @@ public class ChannelProvider {
 
     public String getBaseSelectSql(){
         return "select\n" +
-                "    wdc.id as gb_id,\n" +
-                "    wdc.device_db_id as gb_device_db_id,\n" +
-                "    wcg.id as group_channel_id,\n" +
-                "    wdc.stream_push_id,\n" +
-                "    wdc.stream_proxy_id,\n" +
-                "    wdc.create_time,\n" +
-                "    wdc.update_time,\n" +
-                "    coalesce(wdc.gb_device_id, wdc.device_id) as gb_device_id,\n" +
-                "    coalesce(wdc.gb_name, wdc.name) as gb_name,\n" +
-                "    coalesce(wdc.gb_manufacturer, manufacturer) as gb_manufacturer,\n" +
-                "    coalesce(wdc.gb_model, wdc.model) as gb_model,\n" +
-                "    coalesce(wdc.gb_owner, wdc.owner) as gb_owner,\n" +
+                "    id as gb_id,\n" +
+                "    device_db_id as gb_device_db_id,\n" +
+                "    stream_push_id,\n" +
+                "    stream_proxy_id,\n" +
+                "    create_time,\n" +
+                "    update_time,\n" +
+                "    coalesce(gb_device_id, device_id) as gb_device_id,\n" +
+                "    coalesce(gb_name, name) as gb_name,\n" +
+                "    coalesce(gb_manufacturer, manufacturer) as gb_manufacturer,\n" +
+                "    coalesce(gb_model, model) as gb_model,\n" +
+                "    coalesce(gb_owner, owner) as gb_owner,\n" +
                 "    gb_civil_code,\n" +
-                "    coalesce(wdc.gb_block, wdc.block) as gb_block,\n" +
-                "    coalesce(wdc.gb_address, wdc.address) as gb_address,\n" +
-                "    coalesce(wdc.gb_parental, wdc.parental) as gb_parental,\n" +
-                "    wcg.device_id as gb_parent_id,\n" +
-                "    coalesce(wdc.gb_safety_way, wdc.safety_way) as gb_safety_way,\n" +
-                "    coalesce(wdc.gb_register_way, wdc.register_way) as gb_register_way,\n" +
-                "    coalesce(wdc.gb_cert_num, wdc.cert_num) as gb_cert_num,\n" +
-                "    coalesce(wdc.gb_certifiable, wdc.certifiable) as gb_certifiable,\n" +
-                "    coalesce(wdc.gb_err_code, wdc.err_code) as gb_err_code,\n" +
-                "    coalesce(wdc.gb_end_time, wdc.end_time) as gb_end_time,\n" +
-                "    coalesce(wdc.gb_secrecy, wdc.secrecy) as gb_secrecy,\n" +
-                "    coalesce(wdc.gb_ip_address, wdc.ip_address) as gb_ip_address,\n" +
-                "    coalesce(wdc.gb_port, port) wdc.as gb_port,\n" +
-                "    coalesce(wdc.gb_password, wdc.password) as gb_password,\n" +
-                "    coalesce(wdc.gb_status, wdc.status) as gb_status,\n" +
-                "    coalesce(wdc.gb_longitude, wdc.longitude) as gb_longitude,\n" +
-                "    coalesce(wdc.gb_latitude, wdc.latitude) as gb_latitude,\n" +
-                "    coalesce(wdc.gb_ptz_type, wdc.ptz_type) as gb_ptz_type,\n" +
-                "    coalesce(wdc.gb_position_type, wdc.position_type) as gb_position_type,\n" +
-                "    coalesce(wdc.gb_room_type, wdc.room_type) as gb_room_type,\n" +
-                "    coalesce(wdc.gb_use_type, wdc.use_type) as gb_use_type,\n" +
-                "    coalesce(wdc.gb_supply_light_type, wdc.supply_light_type) as gb_supply_light_type,\n" +
-                "    coalesce(wdc.gb_direction_type, wdc.direction_type) as gb_direction_type,\n" +
-                "    coalesce(wdc.gb_resolution, wdc.resolution) as gb_resolution,\n" +
-                "    wcg.business_group as gb_business_group_id,\n" +
-                "    coalesce(wdc.gb_download_speed, wdc.download_speed) as gb_download_speed,\n" +
-                "    coalesce(wdc.gb_svc_space_support_mod, wdc.svc_space_support_mod) as gb_svc_space_support_mod,\n" +
-                "    coalesce(wdc.gb_svc_time_support_mode, wdc.svc_time_support_mode) as gb_svc_time_support_mode\n" +
-                " from wvp_device_channel wdc\n" + 
-                " left jon wvp_common_group_channel wcgc on wcgc.channel_id = wdc.id\n" + 
-                " left jon wvp_common_group wcg on wcgc.group_id = wcg.id\n"
+                "    coalesce(gb_block, block) as gb_block,\n" +
+                "    coalesce(gb_address, address) as gb_address,\n" +
+                "    coalesce(gb_parental, parental) as gb_parental,\n" +
+                "    coalesce(gb_parent_id, parent_id) as gb_parent_id,\n" +
+                "    coalesce(gb_safety_way, safety_way) as gb_safety_way,\n" +
+                "    coalesce(gb_register_way, register_way) as gb_register_way,\n" +
+                "    coalesce(gb_cert_num, cert_num) as gb_cert_num,\n" +
+                "    coalesce(gb_certifiable, certifiable) as gb_certifiable,\n" +
+                "    coalesce(gb_err_code, err_code) as gb_err_code,\n" +
+                "    coalesce(gb_end_time, end_time) as gb_end_time,\n" +
+                "    coalesce(gb_secrecy, secrecy) as gb_secrecy,\n" +
+                "    coalesce(gb_ip_address, ip_address) as gb_ip_address,\n" +
+                "    coalesce(gb_port, port) as gb_port,\n" +
+                "    coalesce(gb_password, password) as gb_password,\n" +
+                "    coalesce(gb_status, status) as gb_status,\n" +
+                "    coalesce(gb_longitude, longitude) as gb_longitude,\n" +
+                "    coalesce(gb_latitude, latitude) as gb_latitude,\n" +
+                "    coalesce(gb_ptz_type, ptz_type) as gb_ptz_type,\n" +
+                "    coalesce(gb_position_type, position_type) as gb_position_type,\n" +
+                "    coalesce(gb_room_type, room_type) as gb_room_type,\n" +
+                "    coalesce(gb_use_type, use_type) as gb_use_type,\n" +
+                "    coalesce(gb_supply_light_type, supply_light_type) as gb_supply_light_type,\n" +
+                "    coalesce(gb_direction_type, direction_type) as gb_direction_type,\n" +
+                "    coalesce(gb_resolution, resolution) as gb_resolution,\n" +
+                "    gb_business_group_id,\n" +
+                "    coalesce(gb_download_speed, download_speed) as gb_download_speed,\n" +
+                "    coalesce(gb_svc_space_support_mod, svc_space_support_mod) as gb_svc_space_support_mod,\n" +
+                "    coalesce(gb_svc_time_support_mode,svc_time_support_mode) as gb_svc_time_support_mode\n" +
+                " from wvp_device_channel\n"
                 ;
     }
 
 
     public String queryByDeviceId(Map<String, Object> params ){
-        return getBaseSelectSql() + " where wdc.gb_device_id = #{gbDeviceId} or wdc.device_id = #{gbDeviceId}";
+        return getBaseSelectSql() + " where gb_device_id = #{gbDeviceId} or device_id = #{gbDeviceId}";
     }
 
     public String queryById(Map<String, Object> params ){
-        return getBaseSelectSql() + " where wdc.id = #{gbId}";
+        return getBaseSelectSql() + " where id = #{gbId}";
     }
 
     public String queryByStreamPushId(Map<String, Object> params ){
-        return getBaseSelectSql() + " where wdc.stream_push_id = #{streamPushId}";
+        return getBaseSelectSql() + " where stream_push_id = #{streamPushId}";
     }
 
     public String queryByStreamProxyId(Map<String, Object> params ){
-        return getBaseSelectSql() + " where wdc.stream_proxy_id = #{streamProxyId}";
+        return getBaseSelectSql() + " where stream_proxy_id = #{streamProxyId}";
     }
 
 
@@ -81,21 +78,21 @@ public class ChannelProvider {
         sqlBuild.append(getBaseSelectSql());
         sqlBuild.append(" where 1 = 1 ");
         if (params.get("query") != null) {
-            sqlBuild.append(" AND (coalesce(wdc.gb_device_id, device_id) LIKE concat('%',#{query},'%')" +
-                    " OR coalesce(wdc.gb_name, name) LIKE concat('%',#{query},'%') )")
+            sqlBuild.append(" AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%')" +
+                    " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%') )")
             ;
         }
         if (params.get("online") != null && (Boolean)params.get("online")) {
-            sqlBuild.append(" AND coalesce(wdc.gb_status, status) = 'ON'");
+            sqlBuild.append(" AND coalesce(gb_status, status) = 'ON'");
         }
         if (params.get("online") != null && !(Boolean)params.get("online")) {
-            sqlBuild.append(" AND coalesce(wdc.gb_status, status) = 'OFF'");
+            sqlBuild.append(" AND coalesce(gb_status, status) = 'OFF'");
         }
         if (params.get("hasCivilCode") != null && (Boolean)params.get("hasCivilCode")) {
-            sqlBuild.append(" AND wdc.gb_civil_code is not null");
+            sqlBuild.append(" AND gb_civil_code is not null");
         }
         if (params.get("hasCivilCode") != null && !(Boolean)params.get("hasCivilCode")) {
-            sqlBuild.append(" AND wdc.gb_civil_code is null");
+            sqlBuild.append(" AND gb_civil_code is null");
         }
         return sqlBuild.toString();
     }
@@ -103,7 +100,7 @@ public class ChannelProvider {
     public String queryInListByStatus(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append("where wdc.gb_status=#{status} and wdc.id in ( ");
+        sqlBuild.append("where gb_status=#{status} and id in ( ");
 
         List<CommonGBChannel> commonGBChannelList = (List<CommonGBChannel>)params.get("ids");
         boolean first = true;
@@ -121,7 +118,7 @@ public class ChannelProvider {
     public String queryByIds(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append("where wdc.id in ( ");
+        sqlBuild.append("where id in ( ");
 
         Collection<Integer> ids = (Collection<Integer>)params.get("ids");
         boolean first = true;
@@ -139,7 +136,7 @@ public class ChannelProvider {
     public String queryByGbDeviceIds(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append("where wdc.device_db_id in ( ");
+        sqlBuild.append("where device_db_id in ( ");
 
         Collection<Integer> ids = (Collection<Integer>)params.get("deviceIds");
         boolean first = true;
@@ -159,13 +156,13 @@ public class ChannelProvider {
         sqlBuild.append(getBaseSelectSql());
         sqlBuild.append("where ");
         if (params.get("civilCode") != null) {
-            sqlBuild.append(" wdc.gb_civil_code = #{civilCode} ");
+            sqlBuild.append(" gb_civil_code = #{civilCode} ");
             if (params.get("ids") != null) {
                 sqlBuild.append(" OR ");
             }
         }
         if (params.get("ids") != null) {
-            sqlBuild.append(" wdc.id in ( ");
+            sqlBuild.append(" id in ( ");
             Collection<Integer> ids = (Collection<Integer>)params.get("ids");
             boolean first = true;
             for (Integer id : ids) {
@@ -183,7 +180,14 @@ public class ChannelProvider {
     public String queryByCivilCode(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append("where wdc.gb_civil_code = #{civilCode} ");
+        sqlBuild.append("where gb_civil_code = #{civilCode} ");
+        return sqlBuild.toString() ;
+    }
+
+    public String queryByBusinessGroup(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(getBaseSelectSql());
+        sqlBuild.append("where gb_business_group_id = #{businessGroup} ");
         return sqlBuild.toString() ;
     }
 
@@ -191,14 +195,14 @@ public class ChannelProvider {
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
 
-        sqlBuild.append(" wcg.id in ( ");
+        sqlBuild.append(" gb_business_group_id in ( ");
         Collection<Group> ids = (Collection<Group>)params.get("groupList");
         boolean first = true;
         for (Group group : ids) {
             if (!first) {
                 sqlBuild.append(",");
             }
-            sqlBuild.append(group.getId());
+            sqlBuild.append(group.getDeviceId());
             first = false;
         }
         sqlBuild.append(" )");

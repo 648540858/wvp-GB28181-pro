@@ -407,16 +407,10 @@ CREATE TABLE wvp_common_group
     name             varchar(255) NOT NULL,
     parent_device_id varchar(50) DEFAULT NULL,
     business_group   varchar(50) NOT NULL,
+    platform_id      int,
     create_time      varchar(50)  NOT NULL,
     update_time      varchar(50)  NOT NULL,
-    UNIQUE KEY common_group_device_id (device_id)
-);
-
-CREATE TABLE wvp_common_group_channel
-(
-    id         serial primary key,
-    group_id   integer,
-    channel_id integer
+    UNIQUE KEY common_group_device_platform (device_id, platform_id)
 );
 
 CREATE TABLE wvp_common_region

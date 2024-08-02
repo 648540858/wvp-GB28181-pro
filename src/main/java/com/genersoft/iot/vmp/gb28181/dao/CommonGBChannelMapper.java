@@ -368,4 +368,23 @@ public interface CommonGBChannelMapper {
 
     @SelectProvider(type = ChannelProvider.class, method = "queryByBusinessGroup")
     List<CommonGBChannel> queryByBusinessGroup(@Param("businessGroup") String businessGroup);
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryByParentId")
+    List<CommonGBChannel> queryByParentId(@Param("parentId") String parentId);
+
+    @Update(value = {" <script>" +
+            " UPDATE wvp_device_channel " +
+            " SET gb_business_group_id = #{businessGroup}" +
+            " WHERE id in "+
+            " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.gbId}</foreach>" +
+            " </script>"})
+    void updateBusinessGroupByChannelList(@Param("businessGroup") String businessGroup, List<CommonGBChannel> channelList);
+
+    @Update(value = {" <script>" +
+            " UPDATE wvp_device_channel " +
+            " SET gb_parent_id = #{parentId}" +
+            " WHERE id in "+
+            " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.gbId}</foreach>" +
+            " </script>"})
+    void updateParentIdByChannelList(@Param("parentId") String parentId, List<CommonGBChannel> channelList);
 }

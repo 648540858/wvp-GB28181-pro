@@ -61,4 +61,8 @@ public interface IGbChannelService {
     void removeParentIdByBusinessGroup(String businessGroup);
 
     void removeParentIdByGroupList(List<Group> groupList);
+
+    void updateBusinessGroup(String oldBusinessGroup, String newBusinessGroup);
+
+    void updateParentIdGroup(String oldParentId, String newParentId);
 }

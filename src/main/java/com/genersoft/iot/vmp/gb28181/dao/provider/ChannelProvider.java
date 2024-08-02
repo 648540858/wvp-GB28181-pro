@@ -26,7 +26,7 @@ public class ChannelProvider {
                 "    coalesce(gb_block, block) as gb_block,\n" +
                 "    coalesce(gb_address, address) as gb_address,\n" +
                 "    coalesce(gb_parental, parental) as gb_parental,\n" +
-                "    coalesce(gb_parent_id, parent_id) as gb_parent_id,\n" +
+                "    gb_parent_id,\n" +
                 "    coalesce(gb_safety_way, safety_way) as gb_safety_way,\n" +
                 "    coalesce(gb_register_way, register_way) as gb_register_way,\n" +
                 "    coalesce(gb_cert_num, cert_num) as gb_cert_num,\n" +
@@ -188,6 +188,13 @@ public class ChannelProvider {
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
         sqlBuild.append("where gb_business_group_id = #{businessGroup} ");
+        return sqlBuild.toString() ;
+    }
+
+    public String queryByParentId(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(getBaseSelectSql());
+        sqlBuild.append("where gb_parent_id = #{parentId} ");
         return sqlBuild.toString() ;
     }
 

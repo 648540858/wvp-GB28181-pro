@@ -431,9 +431,6 @@ public class GbChannelServiceImpl implements IGbChannelService {
     public void removeParentIdByBusinessGroup(String businessGroup) {
         List<CommonGBChannel> channelList = commonGBChannelMapper.queryByBusinessGroup(businessGroup);
         Assert.notEmpty(channelList, "所有业务分组的通道不存在");
-        if (channelList.isEmpty()) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
-        }
         int result = commonGBChannelMapper.removeParentIdByChannels(channelList);
 
     }
@@ -442,9 +439,40 @@ public class GbChannelServiceImpl implements IGbChannelService {
     public void removeParentIdByGroupList(List<Group> groupList) {
         List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGroupList(groupList);
         Assert.notEmpty(channelList, "所有业务分组的通道不存在");
-        if (channelList.isEmpty()) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
-        }
         int result = commonGBChannelMapper.removeParentIdByChannels(channelList);
+    }
+
+    @Override
+    public void updateBusinessGroup(String oldBusinessGroup, String newBusinessGroup) {
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByBusinessGroup(oldBusinessGroup);
+        Assert.notEmpty(channelList, "旧的业务分组的通道不存在");
+
+        commonGBChannelMapper.updateBusinessGroupByChannelList(newBusinessGroup, channelList);
+        for (CommonGBChannel channel : channelList) {
+            channel.setGbBusinessGroupId(newBusinessGroup);
+        }
+        // 发送catalog
+        try {
+            eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
+        }catch (Exception e) {
+            log.warn("[多个通道业务分组] 发送失败，数量：{}", channelList.size(), e);
+        }
+    }
+
+    @Override
+    public void updateParentIdGroup(String oldParentId, String newParentId) {
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByParentId(oldParentId);
+        Assert.notEmpty(channelList, "旧的虚拟组织的通道不存在");
+
+        commonGBChannelMapper.updateParentIdByChannelList(newParentId, channelList);
+        for (CommonGBChannel channel : channelList) {
+            channel.setGbParentId(newParentId);
+        }
+        // 发送catalog
+        try {
+            eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
+        }catch (Exception e) {
+            log.warn("[多个通道业务分组] 发送失败，数量：{}", channelList.size(), e);
+        }
     }
 }

@@ -32,8 +32,12 @@ public interface GroupMapper {
             " </script>"})
     List<Group> query(@Param("query") String query, @Param("parentId") String parentId, @Param("businessGroup") String businessGroup);
 
-    @Select("SELECT * from wvp_common_group WHERE parent_device_id = #{parentId} AND business_group=#{businessGroup} ORDER BY id ")
-    List<Group> getChildren(@Param("parentId") String parentId , @Param("businessGroup") String businessGroup);
+    @Select(value = {" <script>" +
+            "SELECT * from wvp_common_group WHERE parent_device_id = #{parentId} "+
+            " <if test='platformId != null'> AND platform_id = #{platformId}</if> " +
+            " <if test='platformId == null'> AND platform_id is null</if> " +
+            " </script>"})
+    List<Group> getChildren(@Param("parentId") String parentId , @Param("platformId") Integer platformId);
 
     @Select("SELECT * from wvp_common_group WHERE id = #{id} ")
     Group queryOne(@Param("id") int id);

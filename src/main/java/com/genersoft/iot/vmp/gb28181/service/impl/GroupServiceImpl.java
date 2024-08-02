@@ -85,84 +85,50 @@ public class GroupServiceImpl implements IGroupService {
         }
     }
 
-    @Override
-    @Transactional
-    public boolean deleteByDeviceId(String deviceId, String groupId) {
-        Assert.notNull(deviceId, "编号不可为NULL");
-        Assert.notNull(groupId, "业务分组不可为NULL");
-        GbCode gbCode = GbCode.decode(deviceId);
-
-        Group businessGroup = groupManager.queryBusinessGroup(groupId);
-        Assert.notNull(businessGroup, "业务分组不存在");
-        // 是否需要清理业务分组字段
-        if (gbCode.getTypeCode().equals("215")) {
-            // 删除业务分组
-            // 获取所有的虚拟组织
-            int result = groupManager.deleteByBusinessGroup(deviceId);
-            Assert.isTrue(result > 0, "分组不存在");
-            gbChannelService.removeParentIdByBusinessGroup(deviceId);
-        }else {
-            // 删除虚拟组织
-            Group group = groupManager.queryOneByDeviceId(deviceId, groupId);
-            Assert.notNull(group, "分组不存在");
-            // 获取所有子分组
-            List<Group> groupList = queryAllChildren(deviceId, groupId);
-            groupList.add(group);
-            int result = groupManager.batchDelete(groupList);
-            Assert.isTrue(result> 0, "删除分组失败");
-            gbChannelService.removeParentIdByGroupList(groupList);
-        }
-        return true;
-    }
-
-    private List<Group> queryAllChildren(String deviceId, String groupId) {
-        List<Group> children = groupManager.getChildren(deviceId, groupId);
+    private List<Group> queryAllChildren(String deviceId, Integer platformId) {
+        List<Group> children = groupManager.getChildren(deviceId, platformId);
         if (ObjectUtils.isEmpty(children)) {
             return children;
         }
         for (int i = 0; i < children.size(); i++) {
-            children.addAll(queryAllChildren(children.get(i).getDeviceId(), groupId));
+            children.addAll(queryAllChildren(children.get(i).getDeviceId(), platformId));
         }
         return children;
     }
 
     @Override
+    @Transactional
     public void update(Group group) {
         Assert.isTrue(group.getId()> 0, "更新必须携带分组ID");
         Assert.notNull(group.getDeviceId(), "编号不可为NULL");
         Assert.notNull(group.getBusinessGroup(), "业务分组不可为NULL");
         Group groupInDb = groupManager.queryOne(group.getId());
         Assert.notNull(groupInDb, "分组不存在");
+
+        group.setName(group.getName());
+        group.setUpdateTime(DateUtil.getNow());
+        groupManager.update(group);
+
+        // 将变化信息发送通知
+        CommonGBChannel channel = CommonGBChannel.build(group);
+        try {
+            // 发送catalog
+            eventPublisher.catalogEventPublish(null, channel, CatalogEvent.UPDATE);
+        }catch (Exception e) {
+            log.warn("[业务分组/虚拟组织变化] 发送失败，{}", group.getDeviceId(), e);
+        }
+
         // 由于编号变化，会需要处理太多内容以及可能发送大量消息，所以目前更新只只支持重命名
-        groupInDb.setName(group.getName());
-        groupInDb.setUpdateTime(DateUtil.getNow());
-        groupManager.update(groupInDb);
-
-
-        // 名称变化-- 直接通知上级分组本身变化
-        // 编号变化-- 通知：1.分组删除， 2.分组新增， 3.所有的所属通道parentId变化
-        // 本身是业务分组，如果编号变化，相当于重建，需要做大量通知
-        //
-
-
         GbCode decode = GbCode.decode(group.getDeviceId());
-        if (decode.getTypeCode().equals("215")) {
-            // 业务分组变化。需要将其下的所有业务分组修改
-        }else {
-            // 虚拟组织修改，需要把其下的子节点修改父节点ID
+        if (!groupInDb.getDeviceId().equals(group.getDeviceId())) {
+            if (decode.getTypeCode().equals("215")) {
+                // 业务分组变化。需要将其下的所有业务分组修改
+                gbChannelService.updateBusinessGroup(groupInDb.getDeviceId(), group.getDeviceId());
+            }else {
+                // 虚拟组织修改，需要把其下的子节点修改父节点ID
+                gbChannelService.updateParentIdGroup(groupInDb.getDeviceId(), group.getDeviceId());
+            }
         }
-
-        int update = groupManager.update(group);
-        if (update == 1) {
-            // TODO 查看此业务分组是否关联了国标设备，发送更新消息
-
-        }
-
-    }
-
-    @Override
-    public List<Group> getAllChild(String parentDeviceId) {
-        return Collections.emptyList();
     }
 
     @Override

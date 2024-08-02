@@ -25,7 +25,7 @@ public class GroupController {
     @Autowired
     private IGroupService groupService;
 
-    @Operation(summary = "添加区域")
+    @Operation(summary = "添加分组")
     @Parameter(name = "group", description = "group", required = true)
     @ResponseBody
     @PostMapping("/add")
@@ -33,7 +33,7 @@ public class GroupController {
         groupService.add(group);
     }
 
-    @Operation(summary = "查询区域")
+    @Operation(summary = "查询分组")
     @Parameter(name = "query", description = "要搜索的内容", required = true)
     @Parameter(name = "parent", description = "所属分组编号", required = true)
     @ResponseBody
@@ -51,7 +51,7 @@ public class GroupController {
         return groupService.queryForTree(query, parent);
     }
 
-    @Operation(summary = "更新区域")
+    @Operation(summary = "更新分组")
     @Parameter(name = "group", description = "Group", required = true)
     @ResponseBody
     @PostMapping("/update")
@@ -59,19 +59,19 @@ public class GroupController {
         groupService.update(group);
     }
 
-    @Operation(summary = "删除区域")
-    @Parameter(name = "deviceId", description = "区域编码", required = true)
+    @Operation(summary = "删除分组")
+    @Parameter(name = "id", description = "分组id", required = true)
     @ResponseBody
     @DeleteMapping("/delete")
-    public void delete(String deviceId){
-        Assert.hasLength(deviceId, "区域编码（deviceId）不需要存在");
-        boolean result = groupService.deleteByDeviceId(deviceId);
+    public void delete(Integer id){
+        Assert.notNull(id, "分组id（deviceId）不需要存在");
+        boolean result = groupService.delete(id);
         if (!result) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "移除失败");
         }
     }
 
-    @Operation(summary = "根据区域Id查询区域")
+    @Operation(summary = "根据分组Id查询分组")
     @Parameter(name = "groupDeviceId", description = "分组节点编号", required = true)
     @ResponseBody
     @GetMapping("/one")
@@ -80,17 +80,6 @@ public class GroupController {
     ){
         Assert.hasLength(deviceId, "");
         return groupService.queryGroupByDeviceId(deviceId);
-    }
-
-    @Operation(summary = "获取所属的分组下的分组")
-    @Parameter(name = "parent", description = "所属的分组", required = false)
-    @ResponseBody
-    @GetMapping("/base/child/list")
-    public List<Group> getAllChild(@RequestParam(required = false) String parent){
-        if (ObjectUtils.isEmpty(parent)) {
-            parent = null;
-        }
-        return groupService.getAllChild(parent);
     }
 
     @Operation(summary = "从通道中同步分组")

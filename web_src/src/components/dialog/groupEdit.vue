@@ -13,7 +13,9 @@
       <div id="shared" style="margin-top: 1rem;margin-right: 100px;">
         <el-form ref="form" :rules="rules" :model="group" label-width="140px" >
           <el-form-item label="节点编号" prop="id" >
-            <el-input v-model="group.deviceId" clearable></el-input>
+            <el-input v-model="group.deviceId" placeholder="请输入编码">
+              <el-button slot="append" @click="buildDeviceIdCode(group.deviceId)">生成</el-button>
+            </el-input>
           </el-form-item>
           <el-form-item label="节点名称" prop="name">
             <el-input v-model="group.name" clearable></el-input>
@@ -29,13 +31,16 @@
         </el-form>
       </div>
     </el-dialog>
+    <channelCode ref="channelCode"></channelCode>
   </div>
 </template>
 
 <script>
+import channelCode from "./channelCode.vue";
 
 export default {
   name: "groupEdit",
+  components: {channelCode},
   computed: {},
   props: [],
   created() {},
@@ -81,6 +86,15 @@ export default {
             type: "error",
           });
         });
+    },
+    buildDeviceIdCode: function (deviceId){
+
+      this.$refs.channelCode.openDialog(code=>{
+        console.log(this.form)
+        console.log("code===> " + code)
+        this.group.deviceId = code;
+        console.log("code22===> " + code)
+      }, deviceId);
     },
     close: function () {
       this.showDialog = false;

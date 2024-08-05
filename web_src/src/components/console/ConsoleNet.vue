@@ -103,7 +103,7 @@ export default {
           bottom: "15px",
           selected: {},
         }
-      }
+      },
       chartEvents: {
         legendselectchanged: (item) => {
           this.extend.legend.selected = item.selected;

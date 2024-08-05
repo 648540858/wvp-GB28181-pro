@@ -37,9 +37,9 @@ public interface RegionMapper {
     @Select("SELECT * from wvp_common_region WHERE id = #{id} ")
     Region queryOne(@Param("id") int id);
 
-    @Select(" select coalesce(dc.gb_civil_code, dc.civil_code) as civil_code " +
+    @Select(" select dc.civil_code as civil_code " +
             " from wvp_device_channel dc " +
-            " where coalesce(dc.gb_civil_code, dc.civil_code) not in " +
+            " where dc.civil_code not in " +
             " (select device_id from wvp_common_region)")
     List<String> getUninitializedCivilCode();
 

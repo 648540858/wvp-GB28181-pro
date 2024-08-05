@@ -36,20 +36,20 @@
         </span>
       </vue-easy-tree>
     </div>
-    <regionCode ref="regionCode"></regionCode>
+    <groupEdit ref="groupEdit"></groupEdit>
     <gbDeviceSelect ref="gbDeviceSelect"></gbDeviceSelect>
   </div>
 </template>
 
 <script>
 import VueEasyTree from "@wchbrad/vue-easy-tree";
-import regionCode from './../dialog/regionCode'
+import groupEdit from './../dialog/groupEdit'
 import gbDeviceSelect from './../dialog/GbDeviceSelect'
 
 export default {
   name: 'DeviceTree',
   components: {
-    VueEasyTree, regionCode, gbDeviceSelect
+    VueEasyTree, groupEdit, gbDeviceSelect
   },
   data() {
     return {
@@ -77,7 +77,7 @@ export default {
       } else if (node.data.id.length <= 8) {
         this.$axios({
           method: 'get',
-          url: `/api/region/tree/list`,
+          url: `/api/group/tree/list`,
           params: {
             query: this.searchSrt,
             parent: node.data.id
@@ -112,7 +112,7 @@ export default {
                 console.log(data)
                 this.$axios({
                   method: "post",
-                  url: `/api/common/channel/region/delete`,
+                  url: `/api/common/channel/group/delete`,
                   data: {
                     channelIds: [data.dbId]
                   }
@@ -145,11 +145,11 @@ export default {
               }
             },
             {
-              label: "新建节点",
+              label: node.level === 1?"新建业务分组":"新建虚拟组织",
               icon: "el-icon-plus",
               disabled: false,
               onClick: () => {
-                this.addRegion(data.id, node);
+                this.addGroup(data.id, node);
               }
             },
             {
@@ -171,7 +171,7 @@ export default {
                   cancelButtonText: '取消',
                   type: 'warning'
                 }).then(() => {
-                  this.removeRegion(data.id, node)
+                  this.removeGroup(data.id, node)
                 }).catch(() => {
 
                 });
@@ -222,10 +222,10 @@ export default {
 
       return false;
     },
-    removeRegion: function (id, node) {
+    removeGroup: function (id, node) {
       this.$axios({
         method: "delete",
-        url: `/api/region/delete`,
+        url: `/api/group/delete`,
         params: {
           deviceId: id,
         }
@@ -247,7 +247,7 @@ export default {
         }
         this.$axios({
           method: 'post',
-          url: `/api/common/channel/region/device/add`,
+          url: `/api/common/channel/group/device/add`,
           data: {
             civilCode: node.data.id,
             deviceIds: deviceIds,
@@ -278,7 +278,7 @@ export default {
         }
         this.$axios({
           method: 'post',
-          url: `/api/common/channel/region/device/delete`,
+          url: `/api/common/channel/group/device/delete`,
           data: {
             deviceIds: deviceIds,
           }
@@ -310,11 +310,10 @@ export default {
       node.loaded = false
       node.expand();
     },
-    addRegion: function (id, node) {
-
-      console.log(node)
-
-      this.$refs.regionCode.openDialog(form => {
+    addGroup: function (id, node) {
+      this.$refs.groupEdit.openDialog({
+        id: null
+      },form => {
         node.loaded = false
         node.expand();
       }, id);

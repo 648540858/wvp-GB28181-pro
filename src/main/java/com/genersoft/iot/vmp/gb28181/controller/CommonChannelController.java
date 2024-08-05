@@ -94,11 +94,12 @@ public class CommonChannelController {
     public PageInfo<CommonGBChannel> queryList(int page, int count,
                                                @RequestParam(required = false) String query,
                                                @RequestParam(required = false) Boolean online,
-                                               @RequestParam(required = false) Boolean hasCivilCode){
+                                               @RequestParam(required = false) Boolean hasCivilCode,
+                                               @RequestParam(required = false) Boolean hasGroup){
         if (ObjectUtils.isEmpty(query)){
             query = null;
         }
-        return channelService.queryList(page, count, query, online, hasCivilCode);
+        return channelService.queryList(page, count, query, online, hasCivilCode, hasGroup);
     }
 
     @Operation(summary = "通道设置行政区划", security = @SecurityRequirement(name = JwtUtils.HEADER))

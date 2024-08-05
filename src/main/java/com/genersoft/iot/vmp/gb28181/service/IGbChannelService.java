@@ -42,7 +42,7 @@ public interface IGbChannelService {
 
     void reset(int id);
 
-    PageInfo<CommonGBChannel> queryList(int page, int count, String query, Boolean online, Boolean hasCivilCode);
+    PageInfo<CommonGBChannel> queryList(int page, int count, String query, Boolean online, Boolean hasCivilCode, Boolean hasGroup);
 
     void removeCivilCode(List<Region> allChildren);
 

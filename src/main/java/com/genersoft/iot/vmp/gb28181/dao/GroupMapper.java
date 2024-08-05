@@ -99,8 +99,8 @@ public interface GroupMapper {
             " false as is_leaf" +
             " from wvp_common_group " +
             " where device_id=business_group" +
-            " <if test='platformId != null'> platform_id = #{platformId} </if> " +
-            " <if test='platformId == null'> platform_id is null </if> " +
+            " <if test='platformId != null'> AND platform_id = #{platformId} </if> " +
+            " <if test='platformId == null'> AND platform_id is null </if> " +
             " <if test='query != null'> AND (device_id LIKE concat('%',#{query},'%') OR name LIKE concat('%',#{query},'%'))</if> " +
             " </script>")
     List<GroupTree> queryBusinessGroupForTree(String query, Integer platformId);

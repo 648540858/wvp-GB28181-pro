@@ -24,6 +24,7 @@ import userApiKeyManager from '../components/UserApiKeyManager.vue'
 import wasmPlayer from '../components/common/jessibuca.vue'
 import rtcPlayer from '../components/dialog/rtcPlayer.vue'
 import region from '../components/region.vue'
+import group from '../components/group.vue'
 
 const originalPush = VueRouter.prototype.push
 VueRouter.prototype.push = function push(location) {
@@ -136,6 +137,11 @@ export default new VueRouter({
           path: '/channel/region',
           name: 'region',
           component: region,
+        },
+        {
+          path: '/channel/group',
+          name: 'group',
+          component: group,
         }
         ,
         ]

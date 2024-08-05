@@ -94,6 +94,12 @@ public class ChannelProvider {
         if (params.get("hasCivilCode") != null && !(Boolean)params.get("hasCivilCode")) {
             sqlBuild.append(" AND gb_civil_code is null");
         }
+        if (params.get("hasGroup") != null && (Boolean)params.get("hasGroup")) {
+            sqlBuild.append(" AND gb_business_group_id is not null");
+        }
+        if (params.get("hasGroup") != null && !(Boolean)params.get("hasGroup")) {
+            sqlBuild.append(" AND gb_business_group_id is null");
+        }
         return sqlBuild.toString();
     }
 

@@ -305,7 +305,9 @@ public interface CommonGBChannelMapper {
     CommonGBChannel queryByStreamProxyId(@Param("streamProxyId") Integer streamProxyId);
 
     @SelectProvider(type = ChannelProvider.class, method = "queryList")
-    List<CommonGBChannel> queryList(@Param("query") String query, @Param("online") Boolean online, @Param("hasCivilCode") Boolean hasCivilCode);
+    List<CommonGBChannel> queryList(@Param("query") String query, @Param("online") Boolean online,
+                                    @Param("hasCivilCode") Boolean hasCivilCode,
+                                    @Param("hasGroup") Boolean hasGroup);
 
     @Select("<script>" +
             " select " +

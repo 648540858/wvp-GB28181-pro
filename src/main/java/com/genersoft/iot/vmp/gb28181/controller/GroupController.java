@@ -73,21 +73,21 @@ public class GroupController {
         }
     }
 
-    @Operation(summary = "根据分组Id查询分组")
-    @Parameter(name = "groupDeviceId", description = "分组节点编号", required = true)
-    @ResponseBody
-    @GetMapping("/one")
-    public Group queryGroupByDeviceId(
-            @RequestParam(required = true) String deviceId
-    ){
-        Assert.hasLength(deviceId, "");
-        return groupService.queryGroupByDeviceId(deviceId);
-    }
+//    @Operation(summary = "根据分组Id查询分组")
+//    @Parameter(name = "groupDeviceId", description = "分组节点编号", required = true)
+//    @ResponseBody
+//    @GetMapping("/one")
+//    public Group queryGroupByDeviceId(
+//            @RequestParam(required = true) String deviceId
+//    ){
+//        Assert.hasLength(deviceId, "");
+//        return groupService.queryGroupByDeviceId(deviceId);
+//    }
 
-    @Operation(summary = "从通道中同步分组")
-    @ResponseBody
-    @GetMapping("/sync")
-    public void sync(){
-        groupService.syncFromChannel();
-    }
+//    @Operation(summary = "从通道中同步分组")
+//    @ResponseBody
+//    @GetMapping("/sync")
+//    public void sync(){
+//        groupService.syncFromChannel();
+//    }
 }

@@ -1,14 +1,15 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
-import com.genersoft.iot.vmp.common.CivilCodePo;
-import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.GbCode;
+import com.genersoft.iot.vmp.gb28181.bean.Group;
+import com.genersoft.iot.vmp.gb28181.bean.GroupTree;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.GroupMapper;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IGroupService;
-import com.genersoft.iot.vmp.utils.CivilCodeUtil;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
-import java.util.*;
+import java.util.List;
 
 /**
  * 区域管理类
@@ -149,45 +150,7 @@ public class GroupServiceImpl implements IGroupService {
 
     @Override
     public void syncFromChannel() {
-        // 获取未初始化的业务分组
-        List<String> civilCodeList = regionMapper.getUninitializedCivilCode();
-        if (civilCodeList.isEmpty()) {
-            return;
-        }
-        List<Region> regionList = new ArrayList<>();
-        // 收集节点的父节点,用于验证哪些节点的父节点不存在,方便一并存入
-        Map<String, Region> regionMapForVerification = new HashMap<>();
-        civilCodeList.forEach(civilCode->{
-            CivilCodePo civilCodePo = CivilCodeUtil.INSTANCE.getCivilCodePo(civilCode);
-            if (civilCodePo != null) {
-                Region region = Region.getInstance(civilCodePo);
-                regionList.add(region);
-                // 获取全部的父节点
-                List<CivilCodePo> civilCodePoList = CivilCodeUtil.INSTANCE.getAllParentCode(civilCode);
-                if (!civilCodePoList.isEmpty()) {
-                    for (CivilCodePo codePo : civilCodePoList) {
-                        regionMapForVerification.put(codePo.getCode(), Region.getInstance(codePo));
-                    }
-                }
-            }
-        });
-        if (regionList.isEmpty()){
-            return;
-        }
-        if (!regionMapForVerification.isEmpty()) {
-            // 查询数据库中已经存在的.
-            List<String> civilCodesInDb = regionMapper.queryInList(regionMapForVerification.keySet());
-            if (!civilCodesInDb.isEmpty()) {
-                for (String code : civilCodesInDb) {
-                    regionMapForVerification.remove(code);
-                }
-            }
-        }
-        for (Region region : regionList) {
-            regionMapForVerification.put(region.getDeviceId(), region);
-        }
 
-        regionMapper.batchAdd(new ArrayList<>(regionMapForVerification.values()));
     }
 
     @Override

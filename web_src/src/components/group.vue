@@ -21,7 +21,7 @@
                 <el-option label="离线" value="false"></el-option>
               </el-select>
               添加状态:
-              <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="search" v-model="hasCivilCode" placeholder="请选择"
+              <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="search" v-model="hasGroup" placeholder="请选择"
                          default-first-option>
                 <el-option label="全部" value=""></el-option>
                 <el-option label="已添加" value="true"></el-option>
@@ -64,8 +64,8 @@
           <el-table-column label="添加状态" min-width="100">
             <template slot-scope="scope">
               <div slot="reference" class="name-wrapper">
-                <el-tag size="medium" :title="scope.row.gbCivilCode" v-if="scope.row.gbCivilCode">已添加</el-tag>
-                <el-tag size="medium" type="info" v-if="!scope.row.gbCivilCode">未添加</el-tag>
+                <el-tag size="medium" :title="scope.row.gbBusinessGroupId" v-if="scope.row.gbBusinessGroupId">已添加</el-tag>
+                <el-tag size="medium" type="info" v-if="!scope.row.gbBusinessGroupId">未添加</el-tag>
               </div>
             </template>
           </el-table-column>
@@ -103,7 +103,7 @@ export default {
       searchSrt: "",
       channelType: "",
       online: "",
-      hasCivilCode: "false",
+      hasGroup: "false",
       winHeight: window.innerHeight - 180,
       currentPage: 1,
       count: 15,
@@ -140,7 +140,7 @@ export default {
           count: this.count,
           query: this.searchSrt,
           online: this.online,
-          hasCivilCode: this.hasCivilCode
+          hasGroup: this.hasGroup
         }
       }).then((res)=> {
         if (res.data.code === 0) {

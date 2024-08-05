@@ -11,7 +11,7 @@ import lombok.Data;
 public class GbCode {
 
     @Schema(description = "中心编码,由监控中心所在地的行政区划代码确定,符合GB/T2260—2007的要求")
-    private String civilCode;
+    private String centerCode;
 
     @Schema(description = "行业编码")
     private String industryCode;
@@ -34,7 +34,7 @@ public class GbCode {
         }
         code = code.trim();
         GbCode gbCode = new GbCode();
-        gbCode.setCivilCode(code.substring(0, 8));
+        gbCode.setCenterCode(code.substring(0, 8));
         gbCode.setIndustryCode(code.substring(9, 10));
         gbCode.setTypeCode(code.substring(11, 13));
         gbCode.setNetCode(code.substring(14, 15));
@@ -43,6 +43,6 @@ public class GbCode {
     }
 
     public String ecode(){
-        return civilCode + industryCode + typeCode + netCode + sn;
+        return centerCode + industryCode + typeCode + netCode + sn;
     }
 }

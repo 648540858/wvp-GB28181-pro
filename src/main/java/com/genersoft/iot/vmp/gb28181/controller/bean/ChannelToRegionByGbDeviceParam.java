@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class ChannelToRegionBYGbDeviceParam {
+public class ChannelToRegionByGbDeviceParam {
     private List<Integer> deviceIds;
     private String civilCode;
 }

@@ -342,6 +342,9 @@ public class GbChannelServiceImpl implements IGbChannelService {
         if (channelList.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }
+        for (CommonGBChannel channel : channelList) {
+            channel.setGbCivilCode(civilCode);
+        }
         int result = commonGBChannelMapper.updateRegion(civilCode, channelList);
         // 发送通知
         if (result > 0) {
@@ -402,10 +405,13 @@ public class GbChannelServiceImpl implements IGbChannelService {
     }
 
     @Override
-    public void addChannelToRegionBYGbDevice(String civilCode, List<Integer> deviceIds) {
+    public void addChannelToRegionByGbDevice(String civilCode, List<Integer> deviceIds) {
         List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(deviceIds);
         if (channelList.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
+        }
+        for (CommonGBChannel channel : channelList) {
+            channel.setGbCivilCode(civilCode);
         }
         int result = commonGBChannelMapper.updateRegion(civilCode, channelList);
         // 发送通知
@@ -420,7 +426,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
     }
 
     @Override
-    public void deleteChannelToRegionBYGbDevice(List<Integer> deviceIds) {
+    public void deleteChannelToRegionByGbDevice(List<Integer> deviceIds) {
         List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(deviceIds);
         if (channelList.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
@@ -431,7 +437,9 @@ public class GbChannelServiceImpl implements IGbChannelService {
     @Override
     public void removeParentIdByBusinessGroup(String businessGroup) {
         List<CommonGBChannel> channelList = commonGBChannelMapper.queryByBusinessGroup(businessGroup);
-        Assert.notEmpty(channelList, "所有业务分组的通道不存在");
+        if (channelList.isEmpty()) {
+            return;
+        }
         int result = commonGBChannelMapper.removeParentIdByChannels(channelList);
 
     }
@@ -439,8 +447,10 @@ public class GbChannelServiceImpl implements IGbChannelService {
     @Override
     public void removeParentIdByGroupList(List<Group> groupList) {
         List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGroupList(groupList);
-        Assert.notEmpty(channelList, "所有业务分组的通道不存在");
-        int result = commonGBChannelMapper.removeParentIdByChannels(channelList);
+        if (channelList.isEmpty()) {
+            return;
+        }
+        commonGBChannelMapper.removeParentIdByChannels(channelList);
     }
 
     @Override
@@ -448,32 +458,95 @@ public class GbChannelServiceImpl implements IGbChannelService {
         List<CommonGBChannel> channelList = commonGBChannelMapper.queryByBusinessGroup(oldBusinessGroup);
         Assert.notEmpty(channelList, "旧的业务分组的通道不存在");
 
-        commonGBChannelMapper.updateBusinessGroupByChannelList(newBusinessGroup, channelList);
-        for (CommonGBChannel channel : channelList) {
-            channel.setGbBusinessGroupId(newBusinessGroup);
-        }
-        // 发送catalog
-        try {
-            eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
-        }catch (Exception e) {
-            log.warn("[多个通道业务分组] 发送失败，数量：{}", channelList.size(), e);
+        int result = commonGBChannelMapper.updateBusinessGroupByChannelList(newBusinessGroup, channelList);
+        if (result > 0) {
+            for (CommonGBChannel channel : channelList) {
+                channel.setGbBusinessGroupId(newBusinessGroup);
+            }
+            // 发送catalog
+            try {
+                eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
+            }catch (Exception e) {
+                log.warn("[多个通道业务分组] 发送失败，数量：{}", channelList.size(), e);
+            }
         }
     }
 
     @Override
     public void updateParentIdGroup(String oldParentId, String newParentId) {
         List<CommonGBChannel> channelList = commonGBChannelMapper.queryByParentId(oldParentId);
-        Assert.notEmpty(channelList, "旧的虚拟组织的通道不存在");
+        if (channelList.isEmpty()) {
+            return;
+        }
 
-        commonGBChannelMapper.updateParentIdByChannelList(newParentId, channelList);
+        int result = commonGBChannelMapper.updateParentIdByChannelList(newParentId, channelList);
+        if (result > 0) {
+            for (CommonGBChannel channel : channelList) {
+                channel.setGbParentId(newParentId);
+            }
+            // 发送catalog
+            try {
+                eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
+            }catch (Exception e) {
+                log.warn("[多个通道业务分组] 发送失败，数量：{}", channelList.size(), e);
+            }
+        }
+    }
+
+    @Override
+    public void addChannelToGroup(String parentId, String businessGroup, List<Integer> channelIds) {
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByIds(channelIds);
+        if (channelList.isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
+        }
+        int result = commonGBChannelMapper.updateGroup(parentId, businessGroup, channelList);
+        // 发送通知
+        if (result > 0) {
+            for (CommonGBChannel channel : channelList) {
+                channel.setGbBusinessGroupId(businessGroup);
+                channel.setGbParentId(parentId);
+            }
+            try {
+                // 发送catalog
+                eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
+            }catch (Exception e) {
+                log.warn("[多个通道添加行政区划] 发送失败，数量：{}", channelList.size(), e);
+            }
+        }
+    }
+
+    @Override
+    public void deleteChannelToGroup(String parentId, String businessGroup, List<Integer> channelIds) {
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(channelIds);
+        if (channelList.isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
+        }
+        int result = commonGBChannelMapper.removeParentIdByChannels(channelList);
+    }
+
+    @Override
+    public void addChannelToGroupByGbDevice(String parentId, String businessGroup, List<Integer> deviceIds) {
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(deviceIds);
+        if (channelList.isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
+        }
         for (CommonGBChannel channel : channelList) {
-            channel.setGbParentId(newParentId);
+            channel.setGbCivilCode(civilCode);
         }
-        // 发送catalog
-        try {
-            eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
-        }catch (Exception e) {
-            log.warn("[多个通道业务分组] 发送失败，数量：{}", channelList.size(), e);
+        int result = commonGBChannelMapper.updateRegion(civilCode, channelList);
+        // 发送通知
+        if (result > 0) {
+            try {
+                // 发送catalog
+                eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
+            }catch (Exception e) {
+                log.warn("[多个通道添加行政区划] 发送失败，数量：{}", channelList.size(), e);
+            }
         }
+    }
+
+    @Override
+    public void deleteChannelToGroupByGbDevice(List<Integer> deviceIds) {
+
     }
 }

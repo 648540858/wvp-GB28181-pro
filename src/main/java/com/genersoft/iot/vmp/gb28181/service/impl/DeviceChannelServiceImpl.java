@@ -457,9 +457,9 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 deviceChannel.setHasAudio(channelInDb.isHasAudio());
                 deviceChannel.setId(channelInDb.getId());
                 if (channelInDb.getStatus().equalsIgnoreCase(deviceChannel.getStatus())){
-                    List<String> strings = platformChannelMapper.queryParentPlatformByChannelId(deviceChannel.getDeviceId());
-                    if (!CollectionUtils.isEmpty(strings)){
-                        strings.forEach(platformId->{
+                    List<Integer> ids = platformChannelMapper.queryParentPlatformByChannelId(deviceChannel.getDeviceId());
+                    if (!CollectionUtils.isEmpty(ids)){
+                        ids.forEach(platformId->{
                             eventPublisher.catalogEventPublish(platformId, deviceChannel, deviceChannel.getStatus().equals("ON")? CatalogEvent.ON:CatalogEvent.OFF);
                         });
                     }

@@ -82,4 +82,6 @@ public interface IPlatformService {
     void stopBroadcast(ParentPlatform platform, DeviceChannel channel, String stream,boolean sendBye, MediaServer mediaServerItem);
 
     void addSimulatedSubscribeInfo(ParentPlatform parentPlatform);
+
+    ParentPlatform queryOne(Integer platformId);
 }

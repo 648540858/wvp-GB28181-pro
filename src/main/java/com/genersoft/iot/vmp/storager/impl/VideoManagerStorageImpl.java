@@ -3,16 +3,14 @@ package com.genersoft.iot.vmp.storager.impl;
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
 import com.genersoft.iot.vmp.gb28181.dao.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
-import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
-import com.genersoft.iot.vmp.utils.DateUtil;
-import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -33,6 +31,7 @@ import java.util.List;
 @Component
 @DS("master")
 public class VideoManagerStorageImpl implements IVideoManagerStorage {
+
 
 	@Autowired
 	EventPublisher eventPublisher;
@@ -162,7 +161,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 			deviceChannel.setGbDeviceId(channelReduce.getChannelId());
 			deviceChannelList.add(deviceChannel);
 		}
-		eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.DEL);
+//		eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.DEL);
 		return result;
 	}
 
@@ -242,174 +241,11 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	}
 
 	@Override
-	public List<PlatformCatalog> getChildrenCatalogByPlatform(String platformId, String parentId) {
-		return catalogMapper.selectByParentId(platformId, parentId);
-	}
-
-	@Override
-	public int addCatalog(PlatformCatalog platformCatalog) {
-		ParentPlatform platform = platformMapper.getParentPlatByServerGBId(platformCatalog.getPlatformId());
-		if (platform == null) {
-			return 0;
-		}
-		if (platformCatalog.getId().length() <= 8) {
-			platformCatalog.setCivilCode(platformCatalog.getParentId());
-		}else {
-			if (platformCatalog.getId().length() != 20) {
-				return 0;
-			}
-			if (platformCatalog.getParentId() != null) {
-				switch (Integer.parseInt(platformCatalog.getId().substring(10, 13))){
-					case 200:
-					case 215:
-						if (platformCatalog.getParentId().length() <= 8) {
-							platformCatalog.setCivilCode(platformCatalog.getParentId());
-						}else {
-							PlatformCatalog catalog = catalogMapper.selectByPlatFormAndCatalogId(platformCatalog.getPlatformId(), platformCatalog.getParentId());
-							if (catalog != null) {
-								platformCatalog.setCivilCode(catalog.getCivilCode());
-							}
-						}
-						break;
-					case 216:
-						if (platformCatalog.getParentId().length() <= 8) {
-							platformCatalog.setCivilCode(platformCatalog.getParentId());
-						}else {
-							PlatformCatalog catalog = catalogMapper.selectByPlatFormAndCatalogId(platformCatalog.getPlatformId(),platformCatalog.getParentId());
-							if (catalog == null) {
-								log.warn("[添加目录] 无法获取目录{}的CivilCode和BusinessGroupId", platformCatalog.getPlatformId());
-								break;
-							}
-							platformCatalog.setCivilCode(catalog.getCivilCode());
-							if (Integer.parseInt(platformCatalog.getParentId().substring(10, 13)) == 215) {
-								platformCatalog.setBusinessGroupId(platformCatalog.getParentId());
-							}else {
-								if (Integer.parseInt(platformCatalog.getParentId().substring(10, 13)) == 216) {
-									platformCatalog.setBusinessGroupId(catalog.getBusinessGroupId());
-								}
-							}
-						}
-						break;
-					default:
-						break;
-				}
-			}
-		}
-		int result = catalogMapper.add(platformCatalog);
-		if (result > 0) {
-			DeviceChannel deviceChannel = getDeviceChannelByCatalog(platformCatalog);
-			eventPublisher.catalogEventPublish(platformCatalog.getPlatformId(), deviceChannel, CatalogEvent.ADD);
-		}
-		return result;
-	}
-
-	private PlatformCatalog getTopCatalog(String id, String platformId) {
-		PlatformCatalog catalog = catalogMapper.selectByPlatFormAndCatalogId(platformId, id);
-		if (catalog.getParentId().equals(platformId)) {
-			return catalog;
-		}else {
-			return getTopCatalog(catalog.getParentId(), platformId);
-		}
-	}
-
-	@Override
-	public PlatformCatalog getCatalog(String platformId, String id) {
-		return catalogMapper.selectByPlatFormAndCatalogId(platformId, id);
-	}
-
-	@Override
-	public int delCatalog(String platformId, String id) {
-		return delCatalogExecute(id, platformId);
-	}
-	private int delCatalogExecute(String id, String platformId) {
-		int delresult =  catalogMapper.del(platformId, id);
-		DeviceChannel deviceChannelForCatalog = new DeviceChannel();
-		if (delresult > 0){
-			deviceChannelForCatalog.setDeviceId(id);
-			eventPublisher.catalogEventPublish(platformId, deviceChannelForCatalog, CatalogEvent.DEL);
-		}
-
-		List<GbStream> gbStreams = platformGbStreamMapper.queryChannelInParentPlatformAndCatalog(platformId, id);
-		if (!gbStreams.isEmpty()){
-			List<CommonGBChannel> deviceChannelList = new ArrayList<>();
-			for (GbStream gbStream : gbStreams) {
-				CommonGBChannel deviceChannel = new CommonGBChannel();
-				deviceChannel.setGbDeviceId(gbStream.getGbId());
-				deviceChannelList.add(deviceChannel);
-			}
-			eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.DEL);
-		}
-		int delStreamresult = platformGbStreamMapper.delByPlatformAndCatalogId(platformId,id);
-		List<PlatformCatalog> platformCatalogs = platformChannelMapper.queryChannelInParentPlatformAndCatalog(platformId, id);
-		if (!platformCatalogs.isEmpty()){
-			List<CommonGBChannel> deviceChannelList = new ArrayList<>();
-			for (PlatformCatalog platformCatalog : platformCatalogs) {
-				CommonGBChannel deviceChannel = new CommonGBChannel();
-				deviceChannel.setGbDeviceId(platformCatalog.getId());
-				deviceChannelList.add(deviceChannel);
-			}
-			eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.DEL);
-		}
-		int delChannelresult = platformChannelMapper.delByCatalogId(platformId, id);
-		// 查看是否存在子目录，如果存在一并删除
-		List<String> allChildCatalog = getAllChildCatalog(id, platformId);
-		if (!allChildCatalog.isEmpty()) {
-			int limitCount = 50;
-			if (allChildCatalog.size() > limitCount) {
-				for (int i = 0; i < allChildCatalog.size(); i += limitCount) {
-					int toIndex = i + limitCount;
-					if (i + limitCount > allChildCatalog.size()) {
-						toIndex = allChildCatalog.size();
-					}
-					delChannelresult += platformCatalogMapper.deleteAll(platformId, allChildCatalog.subList(i, toIndex));
-				}
-			}else {
-				delChannelresult += platformCatalogMapper.deleteAll(platformId, allChildCatalog);
-			}
-		}
-		return delresult + delChannelresult + delStreamresult;
-	}
-
-	private List<String> getAllChildCatalog(String id, String platformId) {
-		List<String> catalogList = platformCatalogMapper.queryCatalogFromParent(id, platformId);
-		List<String> catalogListChild = new ArrayList<>();
-		if (catalogList != null && !catalogList.isEmpty()) {
-			for (String childId : catalogList) {
-				List<String> allChildCatalog = getAllChildCatalog(childId, platformId);
-				if (allChildCatalog != null && !allChildCatalog.isEmpty()) {
-					catalogListChild.addAll(allChildCatalog);
-				}
-
-			}
-		}
-		if (!catalogListChild.isEmpty()) {
-			catalogList.addAll(catalogListChild);
-		}
-		return catalogList;
-	}
-
-
-	@Override
-	public int updateCatalog(PlatformCatalog platformCatalog) {
-		int result = catalogMapper.update(platformCatalog);
-		if (result > 0) {
-			DeviceChannel deviceChannel = getDeviceChannelByCatalog(platformCatalog);
-			eventPublisher.catalogEventPublish(platformCatalog.getPlatformId(), deviceChannel, CatalogEvent.UPDATE);
-		}
-		return result;
-	}
-
-	@Override
-	public int setDefaultCatalog(String platformId, String catalogId) {
-		return platformMapper.setDefaultCatalog(platformId, catalogId, DateUtil.getNow());
-	}
-
-	@Override
 	public int delRelation(PlatformCatalog platformCatalog) {
 		if (platformCatalog.getType() == 1) {
 			CommonGBChannel deviceChannel = new CommonGBChannel();
 			deviceChannel.setGbDeviceId(platformCatalog.getId());
-			eventPublisher.catalogEventPublish(platformCatalog.getPlatformId(), deviceChannel, CatalogEvent.DEL);
+//			eventPublisher.catalogEventPublish(platformCatalog.getPlatformId(), deviceChannel, CatalogEvent.DEL);
 			return platformChannelMapper.delByCatalogIdAndChannelIdAndPlatformId(platformCatalog);
 		}else if (platformCatalog.getType() == 2) {
 			List<GbStream> gbStreams = platformGbStreamMapper.queryChannelInParentPlatformAndCatalog(platformCatalog.getPlatformId(), platformCatalog.getParentId());
@@ -417,7 +253,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 				if (gbStream.getGbId().equals(platformCatalog.getId())) {
 					CommonGBChannel deviceChannel = new CommonGBChannel();
 					deviceChannel.setGbDeviceId(gbStream.getGbId());
-					eventPublisher.catalogEventPublish(platformCatalog.getPlatformId(), deviceChannel, CatalogEvent.DEL);
+//					eventPublisher.catalogEventPublish(platformCatalog.getPlatformId(), deviceChannel, CatalogEvent.DEL);
 					return platformGbStreamMapper.delByAppAndStream(gbStream.getApp(), gbStream.getStream());
 				}
 			}
@@ -457,20 +293,11 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	}
 
 	@Override
-	public void delCatalogByPlatformId(String serverGBId) {
-		catalogMapper.delByPlatformId(serverGBId);
-	}
-
-	@Override
 	public void delRelationByPlatformId(String serverGBId) {
 		platformGbStreamMapper.delByPlatformId(serverGBId);
 		platformChannelMapper.delByPlatformId(serverGBId);
 	}
 
-	@Override
-	public PlatformCatalog queryDefaultCatalogInPlatform(String platformId) {
-		return catalogMapper.selectDefaultByPlatFormId(platformId);
-	}
 
 	@Override
 	public List<ChannelSourceInfo> getChannelSource(String platformId, String gbId) {

@@ -114,7 +114,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
             if (catalogSubscribe != null) {
                 List<CommonGBChannel> deviceChannelList = getDeviceChannelListByChannelReduceList(channelReducesToAdd, catalogId, platform);
                 if (deviceChannelList != null) {
-                    eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.ADD);
+                    eventPublisher.catalogEventPublish(platform.getId(), deviceChannelList, CatalogEvent.ADD);
                 }
             }
             log.info("[关联通道]国标通道 平台：{}, 存入数据库成功", platformId);
@@ -166,7 +166,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         }
 
         List<CommonGBChannel> deviceChannels = platformChannelMapper.queryAllChannelInCatalog(platformId, catalogId);
-        eventPublisher.catalogEventPublish(platformId, deviceChannels, CatalogEvent.DEL);
+        eventPublisher.catalogEventPublish(platform.getId(), deviceChannels, CatalogEvent.DEL);
 
         return platformChannelMapper.delChannelForGBByCatalogId(platformId, catalogId);
     }

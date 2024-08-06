@@ -255,7 +255,7 @@ public class PlatformController {
         }
 
         boolean deleteResult = storager.deleteParentPlatform(parentPlatform);
-        storager.delCatalogByPlatformId(parentPlatform.getServerGBId());
+//        storager.delCatalogByPlatformId(parentPlatform.getServerGBId());
         storager.delRelationByPlatformId(parentPlatform.getServerGBId());
         // 停止发送位置订阅定时任务
         String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetting.getServerId() +  "_MobilePosition_" + parentPlatform.getServerGBId();
@@ -383,124 +383,6 @@ public class PlatformController {
     }
 
     /**
-     * 获取目录
-     *
-     * @param platformId 平台ID
-     * @param parentId   目录父ID
-     * @return
-     */
-    @Operation(summary = "获取目录", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "platformId", description = "上级平台的国标编号", required = true)
-    @Parameter(name = "parentId", description = "父级目录的国标编号", required = true)
-    @GetMapping("/catalog")
-    @ResponseBody
-    public List<PlatformCatalog> getCatalogByPlatform(String platformId, String parentId) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("查询目录,platformId: {}, parentId: {}", platformId, parentId);
-        }
-        ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
-        if (platform == null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台未找到");
-        }
-//        if (platformId.equals(parentId)) {
-//            parentId = platform.getDeviceGBId();
-//        }
-
-        if (platformId.equals(platform.getDeviceGBId())) {
-            parentId = null;
-        }
-
-        return storager.getChildrenCatalogByPlatform(platformId, parentId);
-    }
-
-    /**
-     * 添加目录
-     *
-     * @param platformCatalog 目录
-     * @return
-     */
-    @Operation(summary = "添加目录", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @PostMapping("/catalog/add")
-    @ResponseBody
-    public void addCatalog(@RequestBody PlatformCatalog platformCatalog) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("添加目录,{}", JSON.toJSONString(platformCatalog));
-        }
-        PlatformCatalog platformCatalogInStore = storager.getCatalog(platformCatalog.getPlatformId(), platformCatalog.getId());
-
-        if (platformCatalogInStore != null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), platformCatalog.getId() + " already exists");
-        }
-        int addResult = storager.addCatalog(platformCatalog);
-        if (addResult <= 0) {
-            throw new ControllerException(ErrorCode.ERROR100);
-        }
-    }
-
-    /**
-     * 编辑目录
-     *
-     * @param platformCatalog 目录
-     * @return
-     */
-    @Operation(summary = "编辑目录", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @PostMapping("/catalog/edit")
-    @ResponseBody
-    public void editCatalog(@RequestBody PlatformCatalog platformCatalog) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("编辑目录,{}", JSON.toJSONString(platformCatalog));
-        }
-        PlatformCatalog platformCatalogInStore = storager.getCatalog(platformCatalog.getPlatformId(), platformCatalog.getId());
-
-        if (platformCatalogInStore == null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), platformCatalog.getId() + " not exists");
-        }
-        int addResult = storager.updateCatalog(platformCatalog);
-        if (addResult <= 0) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "写入数据库失败");
-        }
-    }
-
-    /**
-     * 删除目录
-     *
-     * @param id 目录Id
-     * @param platformId 平台Id
-     * @return
-     */
-    @Operation(summary = "删除目录", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "id", description = "目录Id", required = true)
-    @Parameter(name = "platformId", description = "平台Id", required = true)
-    @DeleteMapping("/catalog/del")
-    @ResponseBody
-    public void delCatalog(String id, String platformId) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("删除目录,{}", id);
-        }
-
-        if (ObjectUtils.isEmpty(id) || ObjectUtils.isEmpty(platformId)) {
-            throw new ControllerException(ErrorCode.ERROR400);
-        }
-
-        int delResult = storager.delCatalog(platformId, id);
-        // 如果删除的是默认目录则根目录设置为默认目录
-        PlatformCatalog parentPlatform = storager.queryDefaultCatalogInPlatform(platformId);
-
-        // 默认节点被移除
-        if (parentPlatform == null) {
-            storager.setDefaultCatalog(platformId, platformId);
-        }
-
-        if (delResult <= 0) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "写入数据库失败");
-        }
-    }
-
-    /**
      * 删除关联
      *
      * @param platformCatalog 关联的信息
@@ -517,31 +399,6 @@ public class PlatformController {
         int delResult = storager.delRelation(platformCatalog);
 
         if (delResult <= 0) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "写入数据库失败");
-        }
-    }
-
-
-    /**
-     * 修改默认目录
-     *
-     * @param platformId 平台Id
-     * @param catalogId  目录Id
-     * @return
-     */
-    @Operation(summary = "修改默认目录", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "catalogId", description = "目录Id", required = true)
-    @Parameter(name = "platformId", description = "平台Id", required = true)
-    @PostMapping("/catalog/default/update")
-    @ResponseBody
-    public void setDefaultCatalog(String platformId, String catalogId) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("修改默认目录,{},{}", platformId, catalogId);
-        }
-        int updateResult = storager.setDefaultCatalog(platformId, catalogId);
-
-        if (updateResult <= 0) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "写入数据库失败");
         }
     }

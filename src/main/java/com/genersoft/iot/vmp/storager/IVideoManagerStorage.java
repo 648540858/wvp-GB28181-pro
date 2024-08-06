@@ -91,35 +91,13 @@ public interface IVideoManagerStorage {
 	 */
     Device queryVideoDeviceByChannelId(String channelId);
 
-	/**
-	 * 获取目录信息
-	 * @param platformId
-	 * @param parentId
-	 * @return
-	 */
-    List<PlatformCatalog> getChildrenCatalogByPlatform(String platformId, String parentId);
-
-	int addCatalog(PlatformCatalog platformCatalog);
-
-	PlatformCatalog getCatalog(String platformId, String id);
-
-	int delCatalog(String platformId, String id);
-
-	int updateCatalog(PlatformCatalog platformCatalog);
-
-	int setDefaultCatalog(String platformId, String catalogId);
-
     int delRelation(PlatformCatalog platformCatalog);
 
 	int updateStreamGPS(List<GPSMsgInfo> gpsMsgInfo);
 
 	List<ParentPlatform> queryPlatFormListForGBWithGBId(String channelId, List<String> platforms);
 
-	void delCatalogByPlatformId(String serverGBId);
-
 	void delRelationByPlatformId(String serverGBId);
-
-    PlatformCatalog queryDefaultCatalogInPlatform(String platformId);
 
 	List<ChannelSourceInfo> getChannelSource(String platformId, String gbId);
 

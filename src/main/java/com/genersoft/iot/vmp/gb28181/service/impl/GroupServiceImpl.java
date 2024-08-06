@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -44,43 +45,55 @@ public class GroupServiceImpl implements IGroupService {
         Assert.notNull(group, "参数不可为NULL");
         Assert.notNull(group.getDeviceId(), "设备编号不可为NULL");
         Assert.isTrue(group.getDeviceId().trim().length() == 20, "设备编号必须为20位");
-        Assert.isTrue(group.getParentDeviceId().trim().length() == 20, "父级编号错误");
         Assert.notNull(group.getName(), "设备编号不可为NULL");
 
         GbCode gbCode = GbCode.decode(group.getDeviceId());
         Assert.notNull(gbCode, "设备编号不满足国标定义");
-        // 根据字段判断此处应使用什么规则校验
-        if (ObjectUtils.isEmpty(group.getParentDeviceId())) {
-            if (ObjectUtils.isEmpty(group.getBusinessGroup())) {
-                // 如果是建立业务分组，那么编号必须20位，且10-13必须为215,
-                Assert.isTrue("215".equals(gbCode.getTypeCode()), "创建业务分组时设备编号11-13位应使用215");
-                group.setBusinessGroup(group.getDeviceId());
-            }else {
-                // 建立第一个虚拟组织
-                Assert.isTrue("216".equals(gbCode.getTypeCode()), "创建虚拟组织时设备编号11-13位应使用216");
-            }
+        if ("215".equals(gbCode.getTypeCode())){
+            // 添加业务分组
+            addBusinessGroup(group);
         }else {
-            // 建立第一个虚拟组织
             Assert.isTrue("216".equals(gbCode.getTypeCode()), "创建虚拟组织时设备编号11-13位应使用216");
+            // 添加虚拟组织
+            addGroup(group);
         }
-        if (!ObjectUtils.isEmpty(group.getBusinessGroup())) {
-            // 校验业务分组是否存在
-            Group businessGroup = groupManager.queryBusinessGroup(group.getBusinessGroup());
-            Assert.notNull(businessGroup, "所属的业务分组分组不存在");
-        }
+    }
+
+    private void addGroup(Group group) {
+        // 建立虚拟组织
+        Assert.notNull(group.getBusinessGroup(), "所属的业务分组分组不存在");
+        Group businessGroup = groupManager.queryBusinessGroup(group.getBusinessGroup());
+        Assert.notNull(businessGroup, "所属的业务分组分组不存在");
         if (!ObjectUtils.isEmpty(group.getParentDeviceId())) {
             Group parentGroup = groupManager.queryOneByDeviceId(group.getParentDeviceId(), group.getBusinessGroup());
             Assert.notNull(parentGroup, "所属的上级分组分组不存在");
+        }else {
+            group.setParentDeviceId(null);
         }
         group.setCreateTime(DateUtil.getNow());
         group.setUpdateTime(DateUtil.getNow());
         groupManager.add(group);
-        // 添加新的虚拟组织需要发起同志
-        if (gbCode.getTypeCode().equals("216")) {
+        if (group.getPlatformId() != null) {
             CommonGBChannel channel = CommonGBChannel.build(group);
             try {
                 // 发送catalog
-                eventPublisher.catalogEventPublish(null, channel, CatalogEvent.ADD);
+                eventPublisher.catalogEventPublish(group.getPlatformId(), channel, CatalogEvent.ADD);
+            }catch (Exception e) {
+                log.warn("[添加虚拟组织] 发送失败， {}-{}", channel.getGbName(), channel.getGbDeviceDbId(), e);
+            }
+        }
+    }
+
+    private void addBusinessGroup(Group group) {
+        group.setBusinessGroup(group.getDeviceId());
+        group.setCreateTime(DateUtil.getNow());
+        group.setUpdateTime(DateUtil.getNow());
+        groupManager.addBusinessGroup(group);
+        if (group.getPlatformId() != null) {
+            CommonGBChannel channel = CommonGBChannel.build(group);
+            try {
+                // 发送catalog
+                eventPublisher.catalogEventPublish(group.getPlatformId(), channel, CatalogEvent.ADD);
             }catch (Exception e) {
                 log.warn("[添加虚拟组织] 发送失败， {}-{}", channel.getGbName(), channel.getGbDeviceDbId(), e);
             }
@@ -110,7 +123,28 @@ public class GroupServiceImpl implements IGroupService {
         group.setName(group.getName());
         group.setUpdateTime(DateUtil.getNow());
         groupManager.update(group);
-
+        // 修改他的子节点
+        if (!group.getDeviceId().equals(groupInDb.getDeviceId())
+                || !group.getBusinessGroup().equals(groupInDb.getBusinessGroup())) {
+            List<Group> groupList = queryAllChildren(groupInDb.getDeviceId(), groupInDb.getPlatformId());
+            if (!groupList.isEmpty()) {
+               int result =  groupManager.updateChild(groupInDb.getDeviceId(), group);
+               if (result > 0) {
+                   for (Group chjildGroup : groupList) {
+                       chjildGroup.setParentDeviceId(group.getDeviceId());
+                       chjildGroup.setBusinessGroup(group.getBusinessGroup());
+                       // 将变化信息发送通知
+                       CommonGBChannel channel = CommonGBChannel.build(chjildGroup);
+                       try {
+                           // 发送catalog
+                           eventPublisher.catalogEventPublish(null, channel, CatalogEvent.UPDATE);
+                       }catch (Exception e) {
+                           log.warn("[业务分组/虚拟组织变化] 发送失败，{}", group.getDeviceId(), e);
+                       }
+                   }
+               }
+            }
+        }
         // 将变化信息发送通知
         CommonGBChannel channel = CommonGBChannel.build(group);
         try {
@@ -144,7 +178,13 @@ public class GroupServiceImpl implements IGroupService {
             // 查询所有业务分组
             return groupManager.queryBusinessGroupForTree(query, platformId);
         }else {
-            return groupManager.queryForTree(query, parent, platformId);
+            GbCode gbCode = GbCode.decode(parent);
+            if (gbCode.getTypeCode().equals("215")) {
+                return groupManager.queryForTreeByBusinessGroup(query, parent, platformId);
+            }else {
+                return groupManager.queryForTree(query, parent, platformId);
+            }
+
         }
     }
 
@@ -158,24 +198,33 @@ public class GroupServiceImpl implements IGroupService {
     public boolean delete(int id) {
         Group group = groupManager.queryOne(id);
         Assert.notNull(group, "分组不存在");
-        groupManager.delete(id);
+        List<Group> groupListForDelete = new ArrayList<>();
         GbCode gbCode = GbCode.decode(group.getDeviceId());
         if (gbCode.getTypeCode().equals("215")) {
+            List<Group> groupList = groupManager.queryByBusinessGroup(group.getDeviceId());
+            if (!groupList.isEmpty()) {
+                groupListForDelete.addAll(groupList);
+            }
             // 业务分组
-            gbChannelService.removeParentIdByBusinessGroup(gbCode.getTypeCode());
+            gbChannelService.removeParentIdByBusinessGroup(group.getDeviceId());
         }else {
-            List<Group> groups = queryAllChildren(group.getDeviceId(), group.getPlatformId());
-            groups.add(group);
-            gbChannelService.removeParentIdByGroupList(groups);
+            List<Group> groupList = queryAllChildren(group.getDeviceId(), group.getPlatformId());
+            if (!groupList.isEmpty()) {
+                groupListForDelete.addAll(groupList);
+            }
+            groupListForDelete.add(group);
+            gbChannelService.removeParentIdByGroupList(groupListForDelete);
         }
-        // 发送分组移除通知
-        // 将变化信息发送通知
-        CommonGBChannel channel = CommonGBChannel.build(group);
-        try {
-            // 发送catalog
-            eventPublisher.catalogEventPublish(null, channel, CatalogEvent.DEL);
-        }catch (Exception e) {
-            log.warn("[业务分组/虚拟组织删除] 发送失败，{}", group.getDeviceId(), e);
+        groupManager.batchDelete(groupListForDelete);
+        for (Group groupForDelete : groupListForDelete) {
+            // 将变化信息发送通知
+            CommonGBChannel channel = CommonGBChannel.build(groupForDelete);
+            try {
+                // 发送catalog
+                eventPublisher.catalogEventPublish(null, channel, CatalogEvent.DEL);
+            }catch (Exception e) {
+                log.warn("[业务分组/虚拟组织删除] 发送失败，{}", groupForDelete.getDeviceId(), e);
+            }
         }
         return true;
     }

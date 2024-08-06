@@ -27,7 +27,7 @@
       >
         <span class="custom-tree-node" slot-scope="{ node, data }">
           <span @click.stop >
-            <el-radio v-if="node.data.type === 0 && node.level !== 1 " style="margin-right: 0" v-model="chooseId" @input="chooseIdChange" :label="node.data.id">{{''}}</el-radio>
+            <el-radio v-if="node.data.type === 0 && node.level > 2 " style="margin-right: 0" v-model="chooseId" @input="chooseIdChange" :label="node.data.id">{{''}}</el-radio>
           </span>
           <span v-if="node.data.type === 0" style="color: #409EFF" class="iconfont icon-bianzubeifen3"></span>
           <span v-if="node.data.type === 1" style="color: #409EFF" class="iconfont icon-shexiangtou2"></span>
@@ -74,7 +74,7 @@ export default {
           isLeaf: false,
           type: 0
         }]);
-      } else if (node.data.id.length <= 8) {
+      } else {
         this.$axios({
           method: 'get',
           url: `/api/group/tree/list`,
@@ -90,8 +90,6 @@ export default {
         }).catch(function (error) {
           console.log(error);
         });
-      } else {
-        resolve([]);
       }
     },
     reset: function () {
@@ -145,7 +143,7 @@ export default {
               }
             },
             {
-              label: node.level === 1?"新建业务分组":"新建虚拟组织",
+              label: "新建节点",
               icon: "el-icon-plus",
               disabled: false,
               onClick: () => {
@@ -153,11 +151,11 @@ export default {
               }
             },
             {
-              label: "重命名",
+              label: "编辑节点",
               icon: "el-icon-edit",
               disabled: node.level === 1,
               onClick: () => {
-                this.editCatalog(data, node);
+                this.editGroup(data, node);
               }
             },
             {
@@ -180,7 +178,7 @@ export default {
             {
               label: "添加设备",
               icon: "el-icon-plus",
-              disabled: node.level === 1,
+              disabled: node.level <= 2,
               onClick: () => {
                 this.addChannelFormDevice(data.id, node)
               }
@@ -188,7 +186,7 @@ export default {
             {
               label: "移除设备",
               icon: "el-icon-delete",
-              disabled: node.level === 1,
+              disabled: node.level <= 2,
               onClick: () => {
                 this.removeChannelFormDevice(data.id, node)
               }
@@ -227,7 +225,7 @@ export default {
         method: "delete",
         url: `/api/group/delete`,
         params: {
-          deviceId: id,
+          id: node.data.dbId,
         }
       }).then((res) => {
         if (res.data.code === 0) {
@@ -312,10 +310,27 @@ export default {
     },
     addGroup: function (id, node) {
       this.$refs.groupEdit.openDialog({
-        id: null
+        id: 0,
+        name: "",
+        deviceId: "",
+        parentDeviceId: node.level > 2 ? node.data.id:"",
+        businessGroup: node.level > 2 ? node.data.businessGroup: node.data.id,
       },form => {
         node.loaded = false
         node.expand();
+      }, id);
+    },
+    editGroup: function (id, node) {
+      console.log(node)
+      this.$refs.groupEdit.openDialog({
+        id: node.data.dbId,
+        name: node.data.label,
+        deviceId: node.data.id,
+        parentDeviceId: node.data.parentDeviceId,
+        businessGroup: node.data.businessGroup,
+      },form => {
+        node.parent.loaded = false
+        node.parent.expand();
       }, id);
     },
     nodeClickHandler: function (data, node, tree) {

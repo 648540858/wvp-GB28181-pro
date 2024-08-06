@@ -5,7 +5,9 @@ import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceType;
 import com.genersoft.iot.vmp.gb28181.bean.IndustryCodeType;
 import com.genersoft.iot.vmp.gb28181.bean.NetworkIdentificationType;
-import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelToRegionBYGbDeviceParam;
+import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelToGroupByGbDeviceParam;
+import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelToGroupParam;
+import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelToRegionByGbDeviceParam;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelToRegionParam;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
@@ -119,16 +121,54 @@ public class CommonChannelController {
 
     @Operation(summary = "通道设置行政区划-根据国标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @PostMapping("/region/device/add")
-    public void addChannelToRegionBYGbDevice(@RequestBody ChannelToRegionBYGbDeviceParam param){
+    public void addChannelToRegionByGbDevice(@RequestBody ChannelToRegionByGbDeviceParam param){
         Assert.notEmpty(param.getDeviceIds(),"参数异常");
         Assert.hasLength(param.getCivilCode(),"未添加行政区划");
-        channelService.addChannelToRegionBYGbDevice(param.getCivilCode(), param.getDeviceIds());
+        channelService.addChannelToRegionByGbDevice(param.getCivilCode(), param.getDeviceIds());
     }
 
     @Operation(summary = "通道删除行政区划-根据国标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @PostMapping("/region/device/delete")
-    public void deleteChannelToRegionBYGbDevice(@RequestBody ChannelToRegionBYGbDeviceParam param){
+    public void deleteChannelToRegionByGbDevice(@RequestBody ChannelToRegionByGbDeviceParam param){
         Assert.notEmpty(param.getDeviceIds(),"参数异常");
-        channelService.deleteChannelToRegionBYGbDevice(param.getDeviceIds());
+        channelService.deleteChannelToRegionByGbDevice(param.getDeviceIds());
+    }
+
+
+
+
+
+    @Operation(summary = "通道设置业务分组", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @PostMapping("/group/add")
+    public void addChannelToGroup(@RequestBody ChannelToGroupParam param){
+        Assert.notEmpty(param.getChannelIds(),"通道ID不可为空");
+        Assert.hasLength(param.getParentId(),"未添加上级分组编号");
+        Assert.hasLength(param.getBusinessGroup(),"未添加业务分组");
+        channelService.addChannelToGroup(param.getParentId(), param.getBusinessGroup(), param.getChannelIds());
+    }
+
+    @Operation(summary = "通道删除业务分组", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @PostMapping("/group/delete")
+    public void deleteChannelToGroup(@RequestBody ChannelToGroupParam param){
+        Assert.isTrue(!param.getChannelIds().isEmpty()
+                || (!ObjectUtils.isEmpty(param.getParentId()) && !ObjectUtils.isEmpty(param.getBusinessGroup())),
+                "参数异常");
+        channelService.deleteChannelToGroup(param.getParentId(), param.getBusinessGroup(), param.getChannelIds());
+    }
+
+    @Operation(summary = "通道设置业务分组-根据国标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @PostMapping("/group/device/add")
+    public void addChannelToGroupByGbDevice(@RequestBody ChannelToGroupByGbDeviceParam param){
+        Assert.notEmpty(param.getDeviceIds(),"参数异常");
+        Assert.hasLength(param.getParentId(),"未添加上级分组编号");
+        Assert.hasLength(param.getBusinessGroup(),"未添加业务分组");
+        channelService.addChannelToGroupByGbDevice(param.getParentId(), param.getBusinessGroup(), param.getDeviceIds());
+    }
+
+    @Operation(summary = "通道删除业务分组-根据国标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @PostMapping("/group/device/delete")
+    public void deleteChannelToGroupByGbDevice(@RequestBody ChannelToGroupByGbDeviceParam param){
+        Assert.notEmpty(param.getDeviceIds(),"参数异常");
+        channelService.deleteChannelToGroupByGbDevice(param.getDeviceIds());
     }
 }

@@ -208,7 +208,7 @@ public class ChannelProvider {
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
 
-        sqlBuild.append(" gb_business_group_id in ( ");
+        sqlBuild.append(" where gb_business_group_id in ( ");
         Collection<Group> ids = (Collection<Group>)params.get("groupList");
         boolean first = true;
         for (Group group : ids) {

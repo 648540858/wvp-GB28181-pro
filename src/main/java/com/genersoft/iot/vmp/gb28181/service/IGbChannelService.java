@@ -54,9 +54,9 @@ public interface IGbChannelService {
 
     void deleteChannelToRegionByChannelIds(List<Integer> channelIds);
 
-    void addChannelToRegionBYGbDevice(String civilCode, List<Integer> deviceIds);
+    void addChannelToRegionByGbDevice(String civilCode, List<Integer> deviceIds);
 
-    void deleteChannelToRegionBYGbDevice(List<Integer> deviceIds);
+    void deleteChannelToRegionByGbDevice(List<Integer> deviceIds);
 
     void removeParentIdByBusinessGroup(String businessGroup);
 
@@ -65,4 +65,12 @@ public interface IGbChannelService {
     void updateBusinessGroup(String oldBusinessGroup, String newBusinessGroup);
 
     void updateParentIdGroup(String oldParentId, String newParentId);
+
+    void addChannelToGroup(String parentId, String businessGroup, List<Integer> channelIds);
+
+    void deleteChannelToGroup(String parentId, String businessGroup, List<Integer> channelIds);
+
+    void addChannelToGroupByGbDevice(String parentId, String businessGroup, List<Integer> deviceIds);
+
+    void deleteChannelToGroupByGbDevice(List<Integer> deviceIds);
 }

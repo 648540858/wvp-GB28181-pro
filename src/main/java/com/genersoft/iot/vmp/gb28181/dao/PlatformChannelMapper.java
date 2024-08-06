@@ -118,5 +118,5 @@ public interface PlatformChannelMapper {
     List<Device> queryDeviceInfoByPlatformIdAndChannelId(@Param("platformId") String platformId, @Param("channelId") String channelId);
 
     @Select("SELECT pgc.platform_id from wvp_platform_gb_channel pgc left join wvp_device_channel dc on dc.id = pgc.device_channel_id WHERE dc.device_id=#{channelId}")
-    List<String> queryParentPlatformByChannelId(@Param("channelId") String channelId);
+    List<Integer> queryParentPlatformByChannelId(@Param("channelId") String channelId);
 }

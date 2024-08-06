@@ -34,27 +34,17 @@ public class GroupTree {
     @Schema(description = "父区域国标ID")
     private String parentDeviceId;
 
+    /**
+     * 业务分组ID
+     */
+    @Schema(description = "父区域国标ID")
+    private String businessGroup;
+
     @Schema(description = "是否有子节点")
     private boolean isLeaf;
 
     @Schema(description = "类型, 行政区划:0 摄像头: 1")
     private int type;
-
-
-
-    public static GroupTree getInstance(Region region) {
-        GroupTree regionTree = new GroupTree();
-        regionTree.setId(region.getDeviceId());
-        regionTree.setLabel(region.getName());
-        regionTree.setParentDeviceId(region.getParentDeviceId());
-        regionTree.setType(0);
-        if (region.getDeviceId().length() < 8) {
-            regionTree.setLeaf(false);
-        }else {
-            regionTree.setLeaf(true);
-        }
-        return regionTree;
-    }
 
     public static GroupTree getInstance(CommonGBChannel channel) {
         GroupTree regionTree = new GroupTree();

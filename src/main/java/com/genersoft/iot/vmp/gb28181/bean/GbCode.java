@@ -35,10 +35,10 @@ public class GbCode {
         code = code.trim();
         GbCode gbCode = new GbCode();
         gbCode.setCenterCode(code.substring(0, 8));
-        gbCode.setIndustryCode(code.substring(9, 10));
-        gbCode.setTypeCode(code.substring(11, 13));
-        gbCode.setNetCode(code.substring(14, 15));
-        gbCode.setSn(code.substring(15, 20));
+        gbCode.setIndustryCode(code.substring(8, 10));
+        gbCode.setTypeCode(code.substring(10, 13));
+        gbCode.setNetCode(code.substring(13, 14));
+        gbCode.setSn(code.substring(14));
         return gbCode;
     }
 

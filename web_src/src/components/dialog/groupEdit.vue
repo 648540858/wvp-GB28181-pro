@@ -11,7 +11,7 @@
       @close="close()"
     >
       <div id="shared" style="margin-top: 1rem;margin-right: 100px;">
-        <el-form ref="form" :rules="rules" :model="group" label-width="140px" >
+        <el-form ref="form" :model="group" label-width="140px" >
           <el-form-item label="节点编号" prop="id" >
             <el-input v-model="group.deviceId" placeholder="请输入编码">
               <el-button slot="append" @click="buildDeviceIdCode(group.deviceId)">生成</el-button>
@@ -50,13 +50,23 @@ export default {
       showDialog: false,
       loading: false,
       level: 0,
-      group: {},
+      group: {
+        id: 0,
+        deviceId: "",
+        name: "",
+        parentDeviceId: "",
+        businessGroup: "",
+        platformId: "",
+
+      },
     };
   },
   methods: {
     openDialog: function (group, callback) {
       console.log(group)
-      this.group = group;
+      if (group) {
+        this.group = group;
+      }
       this.showDialog = true;
       this.submitCallback = callback;
     },
@@ -64,7 +74,7 @@ export default {
 
       this.$axios({
         method:"post",
-        url: this.group.id ? '/api/group/add':'/api/group/update',
+        url: this.group.id ? '/api/group/update':'/api/group/add',
         data: this.group
       }).then((res)=> {
         if (res.data.code === 0) {
@@ -88,13 +98,11 @@ export default {
         });
     },
     buildDeviceIdCode: function (deviceId){
-
+      console.log(this.group)
+      let lockContent = this.group.businessGroup ? "216":"215"
       this.$refs.channelCode.openDialog(code=>{
-        console.log(this.form)
-        console.log("code===> " + code)
         this.group.deviceId = code;
-        console.log("code22===> " + code)
-      }, deviceId);
+      }, deviceId, 5 , lockContent);
     },
     close: function () {
       this.showDialog = false;

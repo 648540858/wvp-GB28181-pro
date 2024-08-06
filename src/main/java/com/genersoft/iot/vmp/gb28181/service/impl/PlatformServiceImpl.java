@@ -795,4 +795,9 @@ public class PlatformServiceImpl implements IPlatformService {
             streamSession.remove(platform.getServerGBId(), channel.getDeviceId(), stream);
         }
     }
+
+    @Override
+    public ParentPlatform queryOne(Integer platformId) {
+        return platformMapper.getParentPlatById(platformId);
+    }
 }

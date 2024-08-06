@@ -52,7 +52,7 @@ public class EventPublisher {
 	}
 
 
-	public void catalogEventPublish(String platformId, CommonGBChannel deviceChannel, String type) {
+	public void catalogEventPublish(Integer platformId, CommonGBChannel deviceChannel, String type) {
 		List<CommonGBChannel> deviceChannelList = new ArrayList<>();
 		deviceChannelList.add(deviceChannel);
 		catalogEventPublish(platformId, deviceChannelList, type);
@@ -72,7 +72,7 @@ public class EventPublisher {
 	 * @param deviceChannels
 	 * @param type
 	 */
-	public void catalogEventPublish(String platformId, List<CommonGBChannel> deviceChannels, String type) {
+	public void catalogEventPublish(Integer platformId, List<CommonGBChannel> deviceChannels, String type) {
 		CatalogEvent outEvent = new CatalogEvent(this);
 		List<CommonGBChannel> channels = new ArrayList<>();
 		if (deviceChannels.size() > 1) {

@@ -58,6 +58,6 @@ public class CatalogEvent  extends ApplicationEvent {
 
     @Setter
     @Getter
-    private String platformId;
+    private Integer platformId;
 
 }

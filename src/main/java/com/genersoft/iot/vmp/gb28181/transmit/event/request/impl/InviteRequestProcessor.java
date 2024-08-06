@@ -193,7 +193,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 // 查询平台下是否有该通道
                 DeviceChannel channel = storager.queryChannelInParentPlatform(requesterId, channelId);
                 GbStream gbStream = storager.queryStreamInParentPlatform(requesterId, channelId);
-                PlatformCatalog catalog = storager.getCatalog(requesterId, channelId);
+//                PlatformCatalog catalog = storager.getCatalog(requesterId, channelId);
 
                 MediaServer mediaServerItem = null;
                 StreamPush streamPushItem = null;
@@ -258,14 +258,15 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     } catch (SipException | InvalidArgumentException | ParseException e) {
                         log.error("[命令发送失败] invite CALL_IS_BEING_FORWARDED: {}", e.getMessage());
                     }
-                } else if (catalog != null) {
-                    try {
-                        // 目录不支持点播
-                        responseAck(request, Response.BAD_REQUEST, "catalog channel can not play");
-                    } catch (SipException | InvalidArgumentException | ParseException e) {
-                        log.error("[命令发送失败] invite 目录不支持点播: {}", e.getMessage());
-                    }
-                    return;
+//                }
+//                else if (catalog != null) {
+//                    try {
+//                        // 目录不支持点播
+//                        responseAck(request, Response.BAD_REQUEST, "catalog channel can not play");
+//                    } catch (SipException | InvalidArgumentException | ParseException e) {
+//                        log.error("[命令发送失败] invite 目录不支持点播: {}", e.getMessage());
+//                    }
+//                    return;
                 } else {
                     log.info("通道不存在，返回404: {}", channelId);
                     try {

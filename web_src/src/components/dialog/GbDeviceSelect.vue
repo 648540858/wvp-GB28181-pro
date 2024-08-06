@@ -1,7 +1,7 @@
 <template>
   <div id="addUser" v-loading="getDeviceListLoading">
     <el-dialog
-      title="添加国标设备通道到行政区划"
+      title="添加国标设备通道"
       width="60%"
       top="2rem"
       :close-on-click-modal="false"
@@ -33,6 +33,8 @@
         <el-table-column prop="name" label="名称" min-width="160">
         </el-table-column>
         <el-table-column prop="deviceId" label="设备编号" min-width="200" >
+        </el-table-column>
+        <el-table-column prop="channelCount" label="通道数" min-width="120" >
         </el-table-column>
         <el-table-column prop="manufacturer" label="厂家" min-width="120" >
         </el-table-column>

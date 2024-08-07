@@ -251,7 +251,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         Assert.notNull(streamPush, "推流信息不可为NULL");
         Assert.isTrue(streamPush.getId() > 0, "推流信息ID必须存在");
         log.info("[更新推流]：id: {}, app: {}, stream: {}, ", streamPush.getId(), streamPush.getApp(), streamPush.getStream());
-        StreamPush streamPushInDb = streamPushMapper.select(streamPush.getId());
+        StreamPush streamPushInDb = streamPushMapper.queryOne(streamPush.getId());
         if (!streamPushInDb.getApp().equals(streamPush.getApp()) || !streamPushInDb.getStream().equals(streamPush.getStream())) {
             // app或者stream变化
             StreamPush streamPushInDbForAppAndStream = streamPushMapper.selectByAppAndStream(streamPush.getApp(), streamPush.getStream());
@@ -538,7 +538,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Override
     public void updatePushStatus(Integer streamPushId, boolean pushIng) {
-        StreamPush streamPushInDb = streamPushMapper.select(streamPushId);
+        StreamPush streamPushInDb = streamPushMapper.queryOne(streamPushId);
         streamPushInDb.setPushing(pushIng);
         if (userSetting.isUsePushingAsStatus()) {
             streamPushInDb.setGbStatus(pushIng?"ON":"OFF");
@@ -576,7 +576,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Override
     @Transactional
     public int delete(int id) {
-        StreamPush streamPush = streamPushMapper.select(id);
+        StreamPush streamPush = streamPushMapper.queryOne(id);
         if (streamPush == null) {
             return 0;
         }

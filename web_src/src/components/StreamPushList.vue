@@ -71,9 +71,7 @@
 
         <el-table-column label="操作" min-width="360"  fixed="right">
           <template slot-scope="scope">
-            <el-button size="medium" icon="el-icon-video-play"
-                       v-if="scope.row.pushIng === true"
-                       @click="playPush(scope.row)" type="text">播放
+            <el-button size="medium" icon="el-icon-video-play"@click="playPush(scope.row)" type="text">播放
             </el-button>
             <el-divider direction="vertical"></el-divider>
             <el-button size="medium" icon="el-icon-delete" type="text" @click="deletePush(scope.row.id)" style="color: #f56c6c" >删除</el-button>
@@ -197,11 +195,9 @@ export default {
       this.getListLoading = true;
       this.$axios({
         method: 'get',
-        url: '/api/media/getPlayUrl',
+        url: '/api/push/start',
         params: {
-          app: row.app,
-          stream: row.stream,
-          mediaServerId: row.mediaServerId
+          id: id
         }
       }).then(function (res) {
         that.getListLoading = false;

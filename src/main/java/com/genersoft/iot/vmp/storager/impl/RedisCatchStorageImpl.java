@@ -696,9 +696,9 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public OnStreamChangedHookParam getPushListItem(String app, String stream) {
+    public MediaArrivalEvent getPushListItem(String app, String stream) {
         String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
-        return (OnStreamChangedHookParam)redisTemplate.opsForValue().get(key);
+        return (MediaArrivalEvent)redisTemplate.opsForValue().get(key);
     }
 
     @Override

@@ -4,12 +4,16 @@ import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Map;
 
 /**
  * 流到来事件
  */
+
 public class MediaArrivalEvent extends MediaEvent {
     public MediaArrivalEvent(Object source) {
         super(source);
@@ -28,55 +32,29 @@ public class MediaArrivalEvent extends MediaEvent {
         return mediaArrivalEvent;
     }
 
+    @Getter
+    @Setter
     private MediaInfo mediaInfo;
 
+    @Getter
+    @Setter
     private String callId;
 
+    @Getter
+    @Setter
     private OnStreamChangedHookParam hookParam;
 
+    @Getter
+    @Setter
     private StreamContent streamInfo;
 
+    @Getter
+    @Setter
     private Map<String, String> paramMap;
 
-    public MediaInfo getMediaInfo() {
-        return mediaInfo;
-    }
-
-    public void setMediaInfo(MediaInfo mediaInfo) {
-        this.mediaInfo = mediaInfo;
-    }
+    @Getter
+    @Setter
+    private String serverId;
 
 
-    public String getCallId() {
-        return callId;
-    }
-
-    public void setCallId(String callId) {
-        this.callId = callId;
-    }
-
-    public OnStreamChangedHookParam getHookParam() {
-        return hookParam;
-    }
-
-    public void setHookParam(OnStreamChangedHookParam hookParam) {
-        this.hookParam = hookParam;
-    }
-
-    public StreamContent getStreamInfo() {
-        return streamInfo;
-    }
-
-    public void setStreamInfo(StreamContent streamInfo) {
-        this.streamInfo = streamInfo;
-    }
-
-
-    public Map<String, String> getParamMap() {
-        return paramMap;
-    }
-
-    public void setParamMap(Map<String, String> paramMap) {
-        this.paramMap = paramMap;
-    }
 }

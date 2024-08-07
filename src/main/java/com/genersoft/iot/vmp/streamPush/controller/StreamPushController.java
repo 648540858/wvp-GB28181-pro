@@ -14,8 +14,10 @@ import com.genersoft.iot.vmp.streamPush.bean.BatchRemoveParam;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPushExcelDto;
 import com.genersoft.iot.vmp.streamPush.enent.StreamPushUploadFileHandler;
+import com.genersoft.iot.vmp.streamPush.service.IStreamPushPlayService;
 import com.genersoft.iot.vmp.streamPush.service.IStreamPushService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -47,6 +50,9 @@ public class StreamPushController {
 
     @Autowired
     private IStreamPushService streamPushService;
+
+    @Autowired
+    private IStreamPushPlayService streamPushPlayService;
 
     @Autowired
     private IMediaServerService mediaServerService;
@@ -233,5 +239,24 @@ public class StreamPushController {
             return;
         }
         streamPushService.batchRemove(ids.getIds());
+    }
+
+    @GetMapping(value = "/start")
+    @ResponseBody
+    @Operation(summary = "开始播放", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    public DeferredResult<WVPResult<StreamContent>> batchStop(Integer id){
+        Assert.notNull(id, "推流ID不可为NULL");
+        DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
+        result.onTimeout(()->{
+            WVPResult<StreamContent> fail = WVPResult.fail(ErrorCode.ERROR100.getCode(), "等待推流超时");
+            result.setResult(fail);
+        });
+        streamPushPlayService.start(id, streamInfo -> {
+            if (streamInfo != null) {
+                WVPResult<StreamContent> success = WVPResult.success(new StreamContent(streamInfo));
+                result.setResult(success);
+            }
+        });
+        return result;
     }
 }

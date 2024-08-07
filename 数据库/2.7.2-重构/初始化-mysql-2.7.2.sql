@@ -270,7 +270,6 @@ create table wvp_platform
     update_time        character varying(50),
     as_message_channel bool default false,
     custom_catalog     bool default false,
-    auto_push_channel  bool default false,
     send_stream_ip     character varying(50),
     constraint uk_platform_unique_server_gb_id unique (server_gb_id)
 );
@@ -317,17 +316,18 @@ create table wvp_stream_proxy
 
 create table wvp_stream_push
 (
-    id              serial primary key,
-    app             character varying(255),
-    stream          character varying(255),
-    create_time     character varying(50),
-    media_server_id character varying(50),
-    server_id       character varying(50),
-    push_time       character varying(50),
-    status          bool default false,
-    update_time     character varying(50),
-    pushing         bool default false,
-    self            bool default false,
+    id                serial primary key,
+    app               character varying(255),
+    stream            character varying(255),
+    create_time       character varying(50),
+    media_server_id   character varying(50),
+    server_id         character varying(50),
+    push_time         character varying(50),
+    status            bool default false,
+    update_time       character varying(50),
+    pushing           bool default false,
+    self              bool default false,
+    auto_push_channel bool default true,
     constraint uk_stream_push_app_stream unique (app, stream)
 );
 create table wvp_cloud_record
@@ -406,7 +406,7 @@ CREATE TABLE wvp_common_group
     device_id        varchar(50)  NOT NULL,
     name             varchar(255) NOT NULL,
     parent_device_id varchar(50) DEFAULT NULL,
-    business_group   varchar(50) NOT NULL,
+    business_group   varchar(50)  NOT NULL,
     platform_id      int,
     create_time      varchar(50)  NOT NULL,
     update_time      varchar(50)  NOT NULL,

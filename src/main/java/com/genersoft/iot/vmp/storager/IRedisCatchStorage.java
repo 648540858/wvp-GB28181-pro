@@ -216,7 +216,7 @@ public interface IRedisCatchStorage {
 
     void addPushListItem(String app, String stream, MediaArrivalEvent param);
 
-    OnStreamChangedHookParam getPushListItem(String app, String stream);
+    MediaArrivalEvent getPushListItem(String app, String stream);
 
     void removePushListItem(String app, String stream, String mediaServerId);
 

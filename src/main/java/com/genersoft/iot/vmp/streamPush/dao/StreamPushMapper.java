@@ -116,7 +116,7 @@ public interface StreamPushMapper {
     Map<String, StreamPush> getAllGBId();
 
     @Select("SELECT st.*, st.id as stream_push_id, wdc.*, wdc.id as gb_id FROM wvp_stream_push st LEFT join wvp_device_channel wdc on st.id = wdc.stream_push_id WHERE st.id=#{id}")
-    StreamPush select(@Param("id") int id);
+    StreamPush queryOne(@Param("id") int id);
 
     @Select("<script> "+
             "SELECT st.*, st.id as stream_push_id, wdc.*, wdc.id as gb_id FROM wvp_stream_push st LEFT join wvp_device_channel wdc on st.id = wdc.stream_push_id " +
@@ -135,4 +135,5 @@ public interface StreamPushMapper {
             "</foreach>" +
             ")</script>")
     void batchDel(List<StreamPush> streamPushList);
+
 }

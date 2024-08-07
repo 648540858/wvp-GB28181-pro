@@ -13,7 +13,8 @@
       </div>
     </div>
     <el-tabs tab-position="left">
-      <el-tab-pane label="推流信息编辑" style="background-color: #FFFFFF">
+      <el-tab-pane label="推流信息编辑" style="background-color: #FFFFFF; padding: 1rem">
+        <el-divider content-position="center">基础信息</el-divider>
         <el-form ref="streamPushForm" status-icon label-width="160px" class="channel-form" v-loading="locading">
           <el-form-item label="应用名" >
             <el-input v-model="streamPush.app" placeholder="请输入应用名"></el-input>
@@ -21,10 +22,14 @@
           <el-form-item label="流ID" >
             <el-input v-model="streamPush.stream" placeholder="请输入流ID"></el-input>
           </el-form-item>
-
+        </el-form>
+        <el-divider content-position="center">策略</el-divider>
+        <el-form ref="streamPushForm" status-icon label-width="160px" v-loading="locading">
+          <el-form-item style="text-align: left">
+            <el-checkbox v-model="streamPush.autoPushChannel">拉起离线推流</el-checkbox>
+          </el-form-item>
 
         </el-form>
-        <el-divider content-position="left">少年包青天</el-divider>
         <el-form style="text-align: right">
           <el-form-item >
             <el-button type="primary" @click="onSubmit">保存</el-button>

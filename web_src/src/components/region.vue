@@ -27,8 +27,11 @@
                 <el-option label="已添加" value="true"></el-option>
                 <el-option label="未添加" value="false"></el-option>
               </el-select>
-              <el-button size="mini" type="primary" @click="add()">
+              <el-button v-if="hasCivilCode !=='true'" size="mini" type="primary" @click="add()">
                 添加
+              </el-button>
+              <el-button v-if="hasCivilCode ==='true'" size="mini" type="danger" @click="remove()">
+                移除
               </el-button>
               <el-button icon="el-icon-refresh-right" circle size="mini" @click="getChannelList()"></el-button>
             </div>
@@ -162,8 +165,12 @@ export default {
       this.multipleSelection = val;
     },
     selectable: function (row, rowIndex) {
-      if (row.gbCivilCode) {
-        return false
+      if (this.hasCivilCode === "") {
+        if (row.gbCivilCode) {
+          return false
+        }else {
+          return true
+        }
       }else {
         return true
       }
@@ -211,6 +218,36 @@ export default {
       });
     },
     remove: function (row) {
+      let channels = []
+      for (let i = 0; i < this.multipleSelection.length; i++) {
+        channels.push(this.multipleSelection[i].gbId)
+      }
+      if (channels.length === 0) {
+        this.$message.info("请选择右侧通道")
+        return;
+      }
+      this.loading = true
+
+      this.$axios({
+        method: 'post',
+        url: `/api/common/channel/region/delete`,
+        data: {
+          channelIds: channels
+        }
+      }).then((res)=> {
+        if (res.data.code === 0) {
+          this.$message.success("保存成功")
+          this.getChannelList()
+          // 刷新树节点
+          this.$refs.regionTree.refresh(this.regionId)
+        }else {
+          this.$message.error(res.data.msg)
+        }
+        this.loading = false
+      }).catch((error)=> {
+        this.$message.error(error)
+        this.loading = false
+      });
     },
     getSnap: function (row) {
       let baseUrl = window.baseUrl ? window.baseUrl : "";

@@ -27,8 +27,11 @@
                 <el-option label="已添加" value="true"></el-option>
                 <el-option label="未添加" value="false"></el-option>
               </el-select>
-              <el-button size="mini" type="primary" @click="add()">
+              <el-button v-if="hasGroup !=='true'" size="mini" type="primary" @click="add()">
                 添加
+              </el-button>
+              <el-button v-if="hasGroup ==='true'" size="mini" type="danger" @click="remove()">
+                移除
               </el-button>
               <el-button icon="el-icon-refresh-right" circle size="mini" @click="getChannelList()"></el-button>
             </div>
@@ -64,8 +67,8 @@
           <el-table-column label="添加状态" min-width="100">
             <template slot-scope="scope">
               <div slot="reference" class="name-wrapper">
-                <el-tag size="medium" :title="scope.row.gbBusinessGroupId" v-if="scope.row.gbBusinessGroupId">已添加</el-tag>
-                <el-tag size="medium" type="info" v-if="!scope.row.gbBusinessGroupId">未添加</el-tag>
+                <el-tag size="medium" :title="scope.row.gbParentId" v-if="scope.row.gbParentId">已添加</el-tag>
+                <el-tag size="medium" type="info" v-if="!scope.row.gbParentId">未添加</el-tag>
               </div>
             </template>
           </el-table-column>
@@ -110,7 +113,8 @@ export default {
       total: 0,
       loading: false,
       loadSnap: {},
-      regionId: "",
+      groupId: "",
+      businessGroup: "",
       multipleSelection: []
     };
   },
@@ -160,19 +164,23 @@ export default {
       this.multipleSelection = val;
     },
     selectable: function (row, rowIndex) {
-      if (row.gbCivilCode) {
-        return false
+      if (this.hasGroup === "") {
+        if (row.gbParentId) {
+          return false
+        }else {
+          return true
+        }
       }else {
         return true
       }
     },
     rowDblclick: function (row, rowIndex) {
-      if (row.gbCivilCode) {
-        this.$refs.groupTree.refresh(row.gbCivilCode)
+      if (row.gbParentId) {
+        this.$refs.groupTree.refresh(row.gbParentId)
       }
     },
     add: function (row) {
-      if (!this.regionId) {
+      if (!this.groupId) {
         this.$message.info("请选择左侧行政区划节点")
         return;
       }
@@ -188,9 +196,10 @@ export default {
 
       this.$axios({
         method: 'post',
-        url: `/api/common/channel/region/add`,
+        url: `/api/common/channel/group/add`,
         data: {
-          civilCode: this.regionId,
+          parentId: this.groupId,
+          businessGroup: this.businessGroup,
           channelIds: channels
         }
       }).then((res)=> {
@@ -198,7 +207,7 @@ export default {
           this.$message.success("保存成功")
           this.getChannelList()
           // 刷新树节点
-          this.$refs.groupTree.refresh(this.regionId)
+          this.$refs.groupTree.refresh(this.groupId)
         }else {
           this.$message.error(res.data.msg)
         }
@@ -209,6 +218,37 @@ export default {
       });
     },
     remove: function (row) {
+
+      let channels = []
+      for (let i = 0; i < this.multipleSelection.length; i++) {
+        channels.push(this.multipleSelection[i].gbId)
+      }
+      if (channels.length === 0) {
+        this.$message.info("请选择右侧通道")
+        return;
+      }
+      this.loading = true
+
+      this.$axios({
+        method: 'post',
+        url: `/api/common/channel/group/delete`,
+        data: {
+          channelIds: channels
+        }
+      }).then((res)=> {
+        if (res.data.code === 0) {
+          this.$message.success("保存成功")
+          this.getChannelList()
+          // 刷新树节点
+          this.$refs.groupTree.refresh(this.groupId)
+        }else {
+          this.$message.error(res.data.msg)
+        }
+        this.loading = false
+      }).catch((error)=> {
+        this.$message.error(error)
+        this.loading = false
+      });
     },
     getSnap: function (row) {
       let baseUrl = window.baseUrl ? window.baseUrl : "";
@@ -225,8 +265,9 @@ export default {
     treeNodeClickEvent: function (device, data, isCatalog) {
 
     },
-    chooseIdChange: function (id) {
-      this.regionId = id;
+    chooseIdChange: function (id, businessGroup) {
+      this.groupId = id;
+      this.businessGroup = businessGroup;
     },
   }
 };

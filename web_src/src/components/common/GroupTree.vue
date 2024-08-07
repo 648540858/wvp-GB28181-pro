@@ -27,7 +27,7 @@
       >
         <span class="custom-tree-node" slot-scope="{ node, data }">
           <span @click.stop >
-            <el-radio v-if="node.data.type === 0 && node.level > 2 " style="margin-right: 0" v-model="chooseId" @input="chooseIdChange" :label="node.data.id">{{''}}</el-radio>
+            <el-radio v-if="node.data.type === 0 && node.level > 2 " style="margin-right: 0" v-model="chooseId" @input="chooseIdChange(node.data.id, node.data.businessGroup)" :label="node.data.id">{{''}}</el-radio>
           </span>
           <span v-if="node.data.type === 0" style="color: #409EFF" class="iconfont icon-bianzubeifen3"></span>
           <span v-if="node.data.type === 1" style="color: #409EFF" class="iconfont icon-shexiangtou2"></span>
@@ -232,6 +232,9 @@ export default {
           console.log("移除成功")
           node.parent.loaded = false
           node.parent.expand();
+          if (this.onChannelChange) {
+            this.onChannelChange()
+          }
         }
       }).catch(function (error) {
           console.log(error);
@@ -247,7 +250,8 @@ export default {
           method: 'post',
           url: `/api/common/channel/group/device/add`,
           data: {
-            civilCode: node.data.id,
+            parentId: node.data.id,
+            businessGroup: node.data.businessGroup,
             deviceIds: deviceIds,
           }
         }).then((res)=> {

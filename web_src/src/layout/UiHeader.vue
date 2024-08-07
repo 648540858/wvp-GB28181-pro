@@ -14,7 +14,6 @@
         <template slot="title">通道管理</template>
         <el-menu-item index="/channel/region">行政区划</el-menu-item>
         <el-menu-item index="/channel/group">业务分组</el-menu-item>
-        <el-menu-item index="/channel/list">通道列表</el-menu-item>
       </el-submenu>
       <el-menu-item index="/cloudRecord">云端录像</el-menu-item>
       <el-menu-item index="/mediaServerManger">节点管理</el-menu-item>

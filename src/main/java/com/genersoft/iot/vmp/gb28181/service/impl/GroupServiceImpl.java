@@ -1,9 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
-import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.GbCode;
-import com.genersoft.iot.vmp.gb28181.bean.Group;
-import com.genersoft.iot.vmp.gb28181.bean.GroupTree;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.GroupMapper;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
@@ -182,7 +179,16 @@ public class GroupServiceImpl implements IGroupService {
             if (gbCode.getTypeCode().equals("215")) {
                 return groupManager.queryForTreeByBusinessGroup(query, parent, platformId);
             }else {
-                return groupManager.queryForTree(query, parent, platformId);
+                // 查询业务分组以及所属的通道
+                List<GroupTree> groupTrees = groupManager.queryForTree(query, parent, platformId);
+                if (platformId == null) {
+                    List<GroupTree> channelList = commonGBChannelMapper.queryForGroupTreeByParentId(query, parent);
+                    groupTrees.addAll(channelList);
+                }else {
+                    // TODO 查询平台独属的关联通道
+                }
+
+                return groupTrees;
             }
 
         }

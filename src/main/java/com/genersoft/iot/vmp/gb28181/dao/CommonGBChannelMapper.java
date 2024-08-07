@@ -399,4 +399,19 @@ public interface CommonGBChannelMapper {
     int updateGroup(@Param("parentId") String parentId, @Param("businessGroup") String businessGroup,
                     List<CommonGBChannel> channelList);
 
+    @Select("<script>" +
+            " select " +
+            "    coalesce(gb_device_id, device_id) as id," +
+            "    coalesce(gb_name, name) as label, " +
+            "    id as db_id, " +
+            "    gb_parent_id as parent_device_id," +
+            "    gb_business_group_id as business_group," +
+            "    1 as type, " +
+            "    true as is_leaf " +
+            " from wvp_device_channel " +
+            " where gb_parent_id = #{parent} " +
+            " <if test='query != null'> AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%') " +
+            " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%'))</if> " +
+            " </script>")
+    List<GroupTree> queryForGroupTreeByParentId(@Param("query") String query, @Param("parent") String parent);
 }

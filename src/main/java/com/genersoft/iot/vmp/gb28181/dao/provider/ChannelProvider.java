@@ -142,7 +142,7 @@ public class ChannelProvider {
     public String queryByGbDeviceIds(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append("where device_db_id in ( ");
+        sqlBuild.append("where id in ( ");
 
         Collection<Integer> ids = (Collection<Integer>)params.get("deviceIds");
         boolean first = true;
@@ -208,7 +208,7 @@ public class ChannelProvider {
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
 
-        sqlBuild.append(" where gb_business_group_id in ( ");
+        sqlBuild.append(" where gb_parent_id in ( ");
         Collection<Group> ids = (Collection<Group>)params.get("groupList");
         boolean first = true;
         for (Group group : ids) {

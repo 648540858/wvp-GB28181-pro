@@ -15,6 +15,8 @@
         </el-select>
         <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="add">添加设备
         </el-button>
+        <el-button icon="el-icon-info" size="mini" style="margin-right: 1rem;" type="primary" @click="showInfo">平台信息
+        </el-button>
         <el-button icon="el-icon-refresh-right" circle size="mini" :loading="getDeviceListLoading"
                    @click="getDeviceList()"></el-button>
       </div>
@@ -97,6 +99,7 @@
     </el-pagination>
     <deviceEdit ref="deviceEdit"></deviceEdit>
     <syncChannelProgress ref="syncChannelProgress"></syncChannelProgress>
+    <configInfo ref="configInfo"></configInfo>
   </div>
 </template>
 
@@ -104,10 +107,12 @@
 import uiHeader from '../layout/UiHeader.vue'
 import deviceEdit from './dialog/deviceEdit.vue'
 import syncChannelProgress from './dialog/SyncChannelProgress.vue'
+import configInfo from "./dialog/configInfo.vue";
 
 export default {
   name: 'app',
   components: {
+    configInfo,
     uiHeader,
     deviceEdit,
     syncChannelProgress,
@@ -305,6 +310,21 @@ export default {
         setTimeout(this.getDeviceList, 200)
 
       })
+    },
+    showInfo: function (){
+
+      this.$axios({
+        method: 'get',
+        url: `/api/server/system/configInfo`,
+      }).then( (res)=> {
+        console.log(res)
+        if (res.data.code === 0) {
+          console.log(2222)
+          console.log(this.$refs.configInfo)
+          this.$refs.configInfo.openDialog(res.data.data)
+        }
+      }).catch( (error)=> {
+      });
     }
 
 

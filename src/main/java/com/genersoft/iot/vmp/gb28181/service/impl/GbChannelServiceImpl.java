@@ -531,11 +531,16 @@ public class GbChannelServiceImpl implements IGbChannelService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }
         for (CommonGBChannel channel : channelList) {
-            channel.setGbCivilCode(civilCode);
+            channel.setGbParentId(parentId);
+            channel.setGbBusinessGroupId(businessGroup);
         }
-        int result = commonGBChannelMapper.updateRegion(civilCode, channelList);
+        int result = commonGBChannelMapper.updateGroup(parentId, businessGroup, channelList);
         // 发送通知
         if (result > 0) {
+            for (CommonGBChannel channel : channelList) {
+                channel.setGbBusinessGroupId(businessGroup);
+                channel.setGbParentId(parentId);
+            }
             try {
                 // 发送catalog
                 eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
@@ -547,6 +552,10 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Override
     public void deleteChannelToGroupByGbDevice(List<Integer> deviceIds) {
-
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(deviceIds);
+        if (channelList.isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
+        }
+        commonGBChannelMapper.removeParentIdByChannels(channelList);
     }
 }

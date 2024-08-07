@@ -21,6 +21,9 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -140,7 +143,19 @@ public class ZLMHttpHookListener {
         }
         if (param.getSchema().equalsIgnoreCase("rtsp")) {
             if (param.isRegist()) {
-                log.info("[ZLM HOOK] 流注册, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
+                logger.info("[ZLM HOOK] 流注册, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
+                String queryParams = param.getParams();
+                if (queryParams == null) {
+                    try {
+                        URL url = new URL("http" + param.getOriginUrl().substring(4));
+                        queryParams = url.getQuery();
+                    }catch (MalformedURLException ignored) {}
+                }
+                if (queryParams != null) {
+                    param.setParamMap(MediaServerUtils.urlParamToMap(queryParams));
+                }else {
+                    param.setParamMap(new HashMap<>());
+                }
                 MediaArrivalEvent mediaArrivalEvent = MediaArrivalEvent.getInstance(this, param, mediaServer);
                 applicationEventPublisher.publishEvent(mediaArrivalEvent);
             } else {

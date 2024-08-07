@@ -47,7 +47,10 @@ import org.springframework.web.context.request.async.DeferredResult;
 import javax.servlet.http.HttpServletRequest;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.ParseException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -377,10 +380,27 @@ public class ZLMHttpHookListener {
                     redisCatchStorage.updateStreamAuthorityInfo(param.getApp(), param.getStream(), streamAuthorityInfo);
 
                     if (!"broadcast".equals(param.getApp()) && !"talk".equals(param.getApp())) {
-                        Map<String, String> params = MediaServerUtils.urlParamToMap(param.getParams());
-                        param.setParamMap(params);
+                        String paramsStr = param.getParams();
+                        if (paramsStr == null) {
+                            // 兼容arm zlm 无法获取到Params的问题
+                            URL url = null;
+                            try {
+                                url = new URL("http" + param.getOriginUrl().substring(4));
+                            } catch (MalformedURLException ignored) {}
+                            if (url != null) {
+                                paramsStr = url.getQuery();
+                            }
+                        }
+                        if (paramsStr != null) {
+                            Map<String, String> params = MediaServerUtils.urlParamToMap(paramsStr);
+                            param.setParamMap(params);
+                        }else {
+                            param.setParamMap(new HashMap<>());
+                            logger.warn("获取推流的params信息失败");
+                        }
+
                         StreamInfo streamInfoByAppAndStream = mediaService.getStreamInfoByAppAndStream(mediaInfo,
-                                param.getApp(), param.getStream(), tracks, params.get("callId"));
+                                param.getApp(), param.getStream(), tracks, param.getParamMap().get("callId"));
                         param.setStreamInfo(new StreamContent(streamInfoByAppAndStream));
 
                         param.setSeverId(userSetting.getServerId());

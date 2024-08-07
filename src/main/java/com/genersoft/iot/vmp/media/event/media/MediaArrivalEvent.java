@@ -5,6 +5,8 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 
+import java.util.Map;
+
 /**
  * 流到来事件
  */
@@ -22,6 +24,7 @@ public class MediaArrivalEvent extends MediaEvent {
         mediaArrivalEvent.setSchema(hookParam.getSchema());
         mediaArrivalEvent.setSchema(hookParam.getSchema());
         mediaArrivalEvent.setHookParam(hookParam);
+        mediaArrivalEvent.setParamMap(hookParam.getParamMap());
         return mediaArrivalEvent;
     }
 
@@ -32,6 +35,8 @@ public class MediaArrivalEvent extends MediaEvent {
     private OnStreamChangedHookParam hookParam;
 
     private StreamContent streamInfo;
+
+    private Map<String, String> paramMap;
 
     public MediaInfo getMediaInfo() {
         return mediaInfo;
@@ -64,5 +69,14 @@ public class MediaArrivalEvent extends MediaEvent {
 
     public void setStreamInfo(StreamContent streamInfo) {
         this.streamInfo = streamInfo;
+    }
+
+
+    public Map<String, String> getParamMap() {
+        return paramMap;
+    }
+
+    public void setParamMap(Map<String, String> paramMap) {
+        this.paramMap = paramMap;
     }
 }

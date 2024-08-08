@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
+import com.genersoft.iot.vmp.utils.DateUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
@@ -57,6 +58,25 @@ public class Group implements Comparable<Group>{
      */
     @Schema(description = "平台ID")
     private Integer platformId;
+
+    public static Group getInstance(DeviceChannel channel) {
+        GbCode gbCode = GbCode.decode(channel.getDeviceId());
+        if (gbCode == null || (!gbCode.getTypeCode().equals("215") && !gbCode.getTypeCode().equals("216"))) {
+            return null;
+        }
+        Group group = new Group();
+        group.setName(channel.getName());
+        group.setDeviceId(channel.getDeviceId());
+        group.setCreateTime(DateUtil.getNow());
+        group.setUpdateTime(DateUtil.getNow());
+        if (gbCode.getTypeCode().equals("215")) {
+            group.setBusinessGroup(channel.getDeviceId());
+        }else if (gbCode.getTypeCode().equals("216")) {
+            group.setBusinessGroup(channel.getBusinessGroupId());
+            group.setParentDeviceId(channel.getParentId());
+        }
+        return group;
+    }
 
     @Override
     public int compareTo(@NotNull Group region) {

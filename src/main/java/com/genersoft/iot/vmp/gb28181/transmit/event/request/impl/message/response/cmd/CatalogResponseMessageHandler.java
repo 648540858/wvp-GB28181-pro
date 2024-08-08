@@ -2,12 +2,13 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.respon
 
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.service.IGroupService;
+import com.genersoft.iot.vmp.gb28181.service.IRegionService;
 import com.genersoft.iot.vmp.gb28181.session.CatalogDataCatch;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.DocumentException;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
@@ -44,10 +46,13 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     private final ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
 
     @Autowired
-    private IVideoManagerStorage storager;
+    private IDeviceChannelService deviceChannelService;
 
     @Autowired
-    private IDeviceChannelService deviceChannelService;
+    private IRegionService regionService;
+
+    @Autowired
+    private IGroupService groupService;
 
     @Autowired
     private CatalogDataCatch catalogDataCatch;
@@ -66,6 +71,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     }
 
     @Override
+    @Transactional
     public void handForDevice(RequestEvent evt, Device device, Element element) {
         taskQueue.offer(new HandlerCatchData(evt, device, element));
         // 回复200 OK
@@ -106,6 +112,8 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                             Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
                             if (deviceListIterator != null) {
                                 List<DeviceChannel> channelList = new ArrayList<>();
+                                List<Region> regionList = new ArrayList<>();
+                                List<Group> groupList = new ArrayList<>();
                                 // 遍历DeviceList
                                 while (deviceListIterator.hasNext()) {
                                     Element itemDevice = deviceListIterator.next();
@@ -114,7 +122,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                         continue;
                                     }
                                     DeviceChannel channel = DeviceChannel.decode(itemDevice);
-                                    if (channel == null || channel.getDeviceId() == null) {
+                                    if (channel.getDeviceId() == null) {
                                         log.info("[收到目录订阅]：但是解析失败 {}", new String(evt.getRequest().getRawContent()));
                                         continue;
                                     }
@@ -122,17 +130,30 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                     if (channel.getParentId() != null && channel.getParentId().equals(sipConfig.getId())) {
                                         channel.setParentId(null);
                                     }
+                                    // 解析通道类型
+                                    if (channel.getDeviceId().length() <= 8) {
+                                        // 行政区划
+                                        Region region = Region.getInstance(channel);
+                                        regionList.add(region);
+                                    }else if (channel.getDeviceId().length() == 20){
+                                        // 业务分组/虚拟组织
+                                        Group group = Group.getInstance(channel);
+                                        if (group != null) {
+                                            groupList.add(group);
+                                        }
+                                    }
                                     channelList.add(channel);
                                 }
                                 int sn = Integer.parseInt(snElement.getText());
-                                catalogDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, take.getDevice(), channelList);
-                                log.info("[收到通道]设备: {} -> {}个，{}/{}", take.getDevice().getDeviceId(), channelList.size(), catalogDataCatch.get(take.getDevice().getDeviceId()) == null ? 0 : catalogDataCatch.get(take.getDevice().getDeviceId()).size(), sumNum);
-                                if (catalogDataCatch.get(take.getDevice().getDeviceId()).size() == sumNum) {
+                                catalogDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, take.getDevice(),
+                                        channelList, regionList, groupList);
+                                log.info("[收到通道]设备: {} -> {}个，{}/{}", take.getDevice().getDeviceId(), channelList.size(), catalogDataCatch.getDeviceChannelList(take.getDevice().getDeviceId()) == null ? 0 : catalogDataCatch.getDeviceChannelList(take.getDevice().getDeviceId()).size(), sumNum);
+                                if (catalogDataCatch.getDeviceChannelList(take.getDevice().getDeviceId()).size() == sumNum) {
                                     // 数据已经完整接收， 此时可能存在某个设备离线变上线的情况，但是考虑到性能，此处不做处理，
                                     // 目前支持设备通道上线通知时和设备上线时向上级通知
-                                    boolean resetChannelsResult = deviceChannelService.resetChannels(device.getId(), catalogDataCatch.get(take.getDevice().getDeviceId()));
+                                    boolean resetChannelsResult = saveData(device);
                                     if (!resetChannelsResult) {
-                                        String errorMsg = "接收成功，写入失败，共" + sumNum + "条，已接收" + catalogDataCatch.get(take.getDevice().getDeviceId()).size() + "条";
+                                        String errorMsg = "接收成功，写入失败，共" + sumNum + "条，已接收" + catalogDataCatch.getDeviceChannelList(take.getDevice().getDeviceId()).size() + "条";
                                         catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), errorMsg);
                                     } else {
                                         catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null);
@@ -152,13 +173,26 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
 
     }
 
+    @Transactional
+    public boolean saveData(Device device) {
+
+        boolean result = deviceChannelService.resetChannels(device.getId(), catalogDataCatch.getDeviceChannelList(device.getDeviceId()));
+        if (!catalogDataCatch.getRegionList(device.getDeviceId()).isEmpty()) {
+            result &= regionService.batchAdd(catalogDataCatch.getRegionList(device.getDeviceId()));
+        }
+        if (!catalogDataCatch.getGroupList(device.getDeviceId()).isEmpty()) {
+            result &= groupService.batchAdd(catalogDataCatch.getGroupList(device.getDeviceId()));
+        }
+        return result;
+    }
+
     @Override
     public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element rootElement) {
 
     }
 
     public SyncStatus getChannelSyncProgress(String deviceId) {
-        if (catalogDataCatch.get(deviceId) == null) {
+        if (catalogDataCatch.getDeviceChannelList(deviceId) == null) {
             return null;
         } else {
             return catalogDataCatch.getSyncStatus(deviceId);
@@ -166,7 +200,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     }
 
     public boolean isSyncRunning(String deviceId) {
-        if (catalogDataCatch.get(deviceId) == null) {
+        if (catalogDataCatch.getDeviceChannelList(deviceId) == null) {
             return false;
         } else {
             return catalogDataCatch.isSyncRunning(deviceId);

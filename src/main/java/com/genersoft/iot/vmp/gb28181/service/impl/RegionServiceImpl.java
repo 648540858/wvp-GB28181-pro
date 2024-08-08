@@ -13,6 +13,8 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,7 @@ import java.util.*;
 public class RegionServiceImpl implements IRegionService {
 
 
+    private static final Logger log = LoggerFactory.getLogger(RegionServiceImpl.class);
     @Autowired
     private RegionMapper regionMapper;
 
@@ -176,5 +179,25 @@ public class RegionServiceImpl implements IRegionService {
     @Override
     public boolean delete(int id) {
         return regionMapper.delete(id) > 0;
+    }
+
+    @Override
+    public boolean batchAdd(List<Region> regionList) {
+        if (regionList== null || regionList.isEmpty()) {
+            return false;
+        }
+        Map<String, Region> regionMapForVerification = new HashMap<>();
+        for (Region region : regionList) {
+            regionMapForVerification.put(region.getDeviceId(), region);
+        }
+        // 查询数据库中已经存在的.
+        List<Region> regionListInDb = regionMapper.queryInRegionList(regionList);
+        if (!regionListInDb.isEmpty()) {
+            for (Region region : regionListInDb) {
+                regionMapForVerification.remove(region.getDeviceId());
+            }
+        }
+        regionMapper.batchAdd(new ArrayList<>(regionMapForVerification.values()));
+        return false;
     }
 }

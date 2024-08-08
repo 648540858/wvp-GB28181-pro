@@ -1,9 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.session;
 
-import com.genersoft.iot.vmp.gb28181.bean.CatalogData;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +36,8 @@ public class CatalogDataCatch {
         }
     }
 
-    public void put(String deviceId, int sn, int total, Device device, List<DeviceChannel> deviceChannelList) {
+    public void put(String deviceId, int sn, int total, Device device, List<DeviceChannel> deviceChannelList,
+                    List<Region> regionList, List<Group> groupList) {
         CatalogData catalogData = data.get(deviceId);
         if (catalogData == null) {
             catalogData = new CatalogData();
@@ -47,6 +45,8 @@ public class CatalogDataCatch {
             catalogData.setTotal(total);
             catalogData.setDevice(device);
             catalogData.setChannelList(deviceChannelList);
+            catalogData.setRegionListList(regionList);
+            catalogData.setGroupListListList(groupList);
             catalogData.setStatus(CatalogData.CatalogDataStatus.runIng);
             catalogData.setLastTime(Instant.now());
             data.put(deviceId, catalogData);
@@ -59,16 +59,34 @@ public class CatalogDataCatch {
             catalogData.setDevice(device);
             catalogData.setStatus(CatalogData.CatalogDataStatus.runIng);
             catalogData.getChannelList().addAll(deviceChannelList);
+            catalogData.getRegionListList().addAll(regionList);
+            catalogData.getGroupListListList().addAll(groupList);
             catalogData.setLastTime(Instant.now());
         }
     }
 
-    public List<DeviceChannel> get(String deviceId) {
+    public List<DeviceChannel> getDeviceChannelList(String deviceId) {
         CatalogData catalogData = data.get(deviceId);
         if (catalogData == null) {
             return null;
         }
         return catalogData.getChannelList();
+    }
+
+    public List<Region> getRegionList(String deviceId) {
+        CatalogData catalogData = data.get(deviceId);
+        if (catalogData == null) {
+            return null;
+        }
+        return catalogData.getRegionListList();
+    }
+
+    public List<Group> getGroupList(String deviceId) {
+        CatalogData catalogData = data.get(deviceId);
+        if (catalogData == null) {
+            return null;
+        }
+        return catalogData.getGroupListListList();
     }
 
     public int getTotal(String deviceId) {

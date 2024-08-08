@@ -19,4 +19,6 @@ public interface IGroupService {
     void syncFromChannel();
 
     boolean delete(int id);
+
+    boolean batchAdd(List<Group> groupList);
 }

@@ -89,4 +89,11 @@ public interface RegionMapper {
             " <foreach collection='allChildren'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
             " </script>")
     void batchDelete(List<Region> allChildren);
+
+    @Select(" <script>" +
+            " SELECT * from wvp_common_region " +
+            " where device_id in " +
+            " <foreach collection='regionList'  item='item'  open='(' separator=',' close=')' > #{item.deviceId}</foreach>" +
+            " </script>")
+    List<Region> queryInRegionList(List<Region> regionList);
 }

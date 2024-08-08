@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.gb28181.bean.GroupTree;
+import com.genersoft.iot.vmp.gb28181.bean.Region;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -152,4 +153,11 @@ public interface GroupMapper {
             " SET parent_device_id=#{group.deviceId}, business_group = #{group.businessGroup}" +
             " WHERE parent_device_id = #{oldDeviceId}")
     int updateChild(@Param("oldDeviceId") String oldDeviceId, Group group);
+
+    @Select(" <script>" +
+            " SELECT * from wvp_common_group " +
+            " where device_id in " +
+            " <foreach collection='groupList'  item='item'  open='(' separator=',' close=')' > #{item.deviceId}</foreach>" +
+            " </script>")
+    List<Region> queryInGroupList(List<Group> groupList);
 }

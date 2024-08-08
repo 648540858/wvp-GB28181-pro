@@ -37,4 +37,6 @@ public interface IRegionService {
     void syncFromChannel();
 
     boolean delete(int id);
+
+    boolean batchAdd(List<Region> regionList);
 }

@@ -16,7 +16,9 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 区域管理类
@@ -233,5 +235,25 @@ public class GroupServiceImpl implements IGroupService {
             }
         }
         return true;
+    }
+
+    @Override
+    public boolean batchAdd(List<Group> groupList) {
+        if (groupList== null || groupList.isEmpty()) {
+            return false;
+        }
+        Map<String, Group> groupMapForVerification = new HashMap<>();
+        for (Group group : groupList) {
+            groupMapForVerification.put(group.getDeviceId(), group);
+        }
+        // 查询数据库中已经存在的.
+        List<Region> regionListInDb = groupManager.queryInGroupList(groupList);
+        if (!regionListInDb.isEmpty()) {
+            for (Region region : regionListInDb) {
+                groupMapForVerification.remove(region.getDeviceId());
+            }
+        }
+        groupManager.batchAdd(new ArrayList<>(groupMapForVerification.values()));
+        return false;
     }
 }

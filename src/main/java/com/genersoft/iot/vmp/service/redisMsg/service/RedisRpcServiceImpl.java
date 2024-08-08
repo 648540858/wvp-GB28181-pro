@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.service.redisMsg.service;
 
 import com.alibaba.fastjson2.JSON;
 import com.genersoft.iot.vmp.common.CommonCallback;
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.redis.RedisRpcConfig;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
@@ -11,6 +12,7 @@ import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
@@ -37,6 +39,10 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
+
+
+    @Autowired
+    private IMediaServerService mediaServerService;
 
     private RedisRpcRequest buildRequest(String uri, Object param) {
         RedisRpcRequest request = new RedisRpcRequest();
@@ -145,5 +151,49 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     @Override
     public void removeCallback(long key) {
         redisRpcConfig.removeCallback(key);
+    }
+
+    @Override
+    public long onStreamOnlineEvent(String app, String stream, CommonCallback<StreamInfo> callback) {
+
+        log.info("[请求所有WVP监听流上线] {}/{}", app, stream);
+        // 监听流上线。 流上线直接发送sendRtpItem消息给实际的信令处理者
+        Hook hook = Hook.getInstance(HookType.on_media_arrival, app, stream, null);
+        StreamInfo streamInfoParam = new StreamInfo();
+        streamInfoParam.setApp(app);
+        streamInfoParam.setStream(stream);
+        RedisRpcRequest request = buildRequest("onPushStreamOnlineEvent", streamInfoParam);
+        hookSubscribe.addSubscribe(hook, (hookData) -> {
+            if (callback != null) {
+                callback.run(mediaServerService.getStreamInfoByAppAndStream(hookData.getMediaServer(),
+                        app, stream, hookData.getMediaInfo(),
+                        hookData.getMediaInfo() != null ? hookData.getMediaInfo().getCallId() : null));
+            }
+            hookSubscribe.removeSubscribe(hook);
+            redisRpcConfig.removeCallback(request.getSn());
+        });
+
+        redisRpcConfig.request(request, response -> {
+            if (response.getBody() == null) {
+                log.info("[请求所有WVP监听流上线] 流上线,但是未找到发流信息：{}/{}", app, stream);
+                return;
+            }
+            log.info("[请求所有WVP监听流上线] 流上线 {}/{}", app, stream);
+
+            if (callback != null) {
+                callback.run((StreamInfo) response.getBody());
+            }
+            hookSubscribe.removeSubscribe(hook);
+        });
+        return request.getSn();
+    }
+
+    @Override
+    public void unPushStreamOnlineEvent(String app, String stream) {
+        StreamInfo streamInfoParam = new StreamInfo();
+        streamInfoParam.setApp(app);
+        streamInfoParam.setStream(stream);
+        RedisRpcRequest request = buildRequest("unPushStreamOnlineEvent", streamInfoParam);
+        redisRpcConfig.request(request, 10);
     }
 }

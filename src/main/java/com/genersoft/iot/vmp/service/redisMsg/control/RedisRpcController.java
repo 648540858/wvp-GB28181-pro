@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.service.redisMsg.control;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.redis.RedisRpcConfig;
@@ -163,6 +164,39 @@ public class RedisRpcController {
     }
 
     /**
+     * 监听流上线
+     */
+    public RedisRpcResponse onPushStreamOnlineEvent(RedisRpcRequest request) {
+        StreamInfo streamInfo = JSONObject.parseObject(request.getParam().toString(), StreamInfo.class);
+        log.info("[redis-rpc] 监听流上线： {}/{}", streamInfo.getApp(), streamInfo.getStream());
+        // 查询本级是否有这个流
+        StreamInfo streamInfoInServer = mediaServerService.getMediaByAppAndStream(streamInfo.getApp(), streamInfo.getStream());
+        if (streamInfoInServer != null) {
+            log.info("[redis-rpc] 监听流上线时发现流已存在直接返回： {}/{}", streamInfo.getApp(), streamInfo.getStream());
+            RedisRpcResponse response = request.getResponse();
+            response.setBody(streamInfoInServer);
+            response.setStatusCode(200);
+            return response;
+        }
+        // 监听流上线。 流上线直接发送sendRtpItem消息给实际的信令处理者
+        Hook hook = Hook.getInstance(HookType.on_media_arrival, streamInfo.getApp(), streamInfo.getStream(), null);
+        hookSubscribe.addSubscribe(hook, (hookData) -> {
+            log.info("[redis-rpc] 监听流上线，流已上线： {}/{}", streamInfo.getApp(), streamInfo.getStream());
+            // 读取redis中的上级点播信息，生成sendRtpItm发送出去
+            RedisRpcResponse response = request.getResponse();
+            response.setBody(mediaServerService.getStreamInfoByAppAndStream(hookData.getMediaServer(),
+                    streamInfo.getApp(), streamInfo.getStream(), hookData.getMediaInfo(),
+                    hookData.getMediaInfo() != null ? hookData.getMediaInfo().getCallId() : null));
+            response.setStatusCode(200);
+            // 手动发送结果
+            sendResponse(response);
+            hookSubscribe.removeSubscribe(hook);
+
+        });
+        return null;
+    }
+
+    /**
      * 停止监听流上线
      */
     public RedisRpcResponse stopWaitePushStreamOnline(RedisRpcRequest request) {
@@ -170,6 +204,20 @@ public class RedisRpcController {
         log.info("[redis-rpc] 停止监听流上线： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort() );
         // 监听流上线。 流上线直接发送sendRtpItem消息给实际的信令处理者
         Hook hook = Hook.getInstance(HookType.on_media_arrival, sendRtpItem.getApp(), sendRtpItem.getStream(), null);
+        hookSubscribe.removeSubscribe(hook);
+        RedisRpcResponse response = request.getResponse();
+        response.setStatusCode(200);
+        return response;
+    }
+
+    /**
+     * 停止监听流上线
+     */
+    public RedisRpcResponse unPushStreamOnlineEvent(RedisRpcRequest request) {
+        StreamInfo streamInfo = JSONObject.parseObject(request.getParam().toString(), StreamInfo.class);
+        log.info("[redis-rpc] 停止监听流上线： {}/{}", streamInfo.getApp(), streamInfo.getStream());
+        // 监听流上线。 流上线直接发送sendRtpItem消息给实际的信令处理者
+        Hook hook = Hook.getInstance(HookType.on_media_arrival, streamInfo.getApp(), streamInfo.getStream(), null);
         hookSubscribe.removeSubscribe(hook);
         RedisRpcResponse response = request.getResponse();
         response.setStatusCode(200);

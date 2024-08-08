@@ -158,4 +158,6 @@ public interface IMediaServerService {
     StreamInfo startProxy(MediaServer mediaServer, StreamProxy streamProxy);
 
     void stopProxy(MediaServer mediaServer, String streamKey);
+
+    StreamInfo getMediaByAppAndStream(String app, String stream);
 }

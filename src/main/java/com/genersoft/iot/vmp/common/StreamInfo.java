@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.util.Objects;
 
+
 @Schema(description = "流信息")
 public class StreamInfo implements Serializable, Cloneable{
 

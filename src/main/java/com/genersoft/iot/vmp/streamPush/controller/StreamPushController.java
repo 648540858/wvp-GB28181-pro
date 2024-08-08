@@ -251,12 +251,12 @@ public class StreamPushController {
             WVPResult<StreamContent> fail = WVPResult.fail(ErrorCode.ERROR100.getCode(), "等待推流超时");
             result.setResult(fail);
         });
-        streamPushPlayService.start(id, streamInfo -> {
-            if (streamInfo != null) {
+        streamPushPlayService.start(id, (code, msg, streamInfo) -> {
+            if (code == 0 && streamInfo != null) {
                 WVPResult<StreamContent> success = WVPResult.success(new StreamContent(streamInfo));
                 result.setResult(success);
             }
-        });
+        }, null, null);
         return result;
     }
 }

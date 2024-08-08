@@ -910,6 +910,19 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
+    public StreamInfo getMediaByAppAndStream(String app, String stream) {
+
+        List<MediaServer> mediaServerList = getAll();
+        for (MediaServer mediaServer : mediaServerList) {
+            MediaInfo mediaInfo = getMediaInfo(mediaServer, app, stream);
+            if (mediaInfo != null) {
+                return getStreamInfoByAppAndStream(mediaServer, app, stream, mediaInfo, mediaInfo.getCallId());
+            }
+        }
+        return null;
+    }
+
+    @Override
     public Long updateDownloadProcess(MediaServer mediaServer, String app, String stream) {
         IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {

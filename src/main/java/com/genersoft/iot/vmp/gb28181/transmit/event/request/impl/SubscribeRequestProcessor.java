@@ -197,7 +197,8 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		} catch (SipException | InvalidArgumentException | ParseException e) {
 			log.error("未处理的异常 ", e);
 		}
-		if (subscribeHolder.getCatalogSubscribe(platformId) == null && platform.isAutoPushChannel()) {
+		if (subscribeHolder.getCatalogSubscribe(platformId) == null
+				&& platform.getAutoPushChannel() != null && platform.getAutoPushChannel()) {
 			platformService.addSimulatedSubscribeInfo(platform);
 		}
 	}

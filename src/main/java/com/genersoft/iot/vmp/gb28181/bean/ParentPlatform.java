@@ -102,4 +102,7 @@ public class ParentPlatform {
 
     @Schema(description = "是否使用自定义业务分组")
     private Boolean customCatalog;
+
+    @Schema(description = "是否自动推送通道变化")
+    private Boolean autoPushChannel;
 }

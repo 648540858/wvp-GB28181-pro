@@ -197,7 +197,7 @@ export default {
         method: 'get',
         url: '/api/push/start',
         params: {
-          id: id
+          id: row.id
         }
       }).then(function (res) {
         that.getListLoading = false;

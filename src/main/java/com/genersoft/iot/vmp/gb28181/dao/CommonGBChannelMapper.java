@@ -146,9 +146,9 @@ public interface CommonGBChannelMapper {
     int update(CommonGBChannel commonGBChannel);
 
     @Update(value = {" <script>" +
-            "UPDATE wvp_device_channel " +
-            "SET gb_status = #{gbStatus}" +
-            "WHERE id = #{gbId}"+
+            " UPDATE wvp_device_channel " +
+            " SET gb_status = #{status}" +
+            " WHERE id = #{gbId}"+
             " </script>"})
     int updateStatusById(@Param("gbId") int gbId, @Param("status") int status);
 

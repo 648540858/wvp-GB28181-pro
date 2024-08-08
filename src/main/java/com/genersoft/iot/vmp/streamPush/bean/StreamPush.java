@@ -74,7 +74,7 @@ public class StreamPush extends CommonGBChannel implements Comparable<StreamPush
      * 拉起离线推流
      */
     @Schema(description = "拉起离线推流")
-    private boolean autoPushChannel;
+    private boolean startOfflinePush;
 
     @Override
     public int compareTo(@NotNull StreamPush streamPushItem) {

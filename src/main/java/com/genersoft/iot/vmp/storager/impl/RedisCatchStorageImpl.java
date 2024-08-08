@@ -692,7 +692,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void addPushListItem(String app, String stream, MediaArrivalEvent event) {
         String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
-        redisTemplate.opsForValue().set(key, event.getHookParam());
+        redisTemplate.opsForValue().set(key, event);
     }
 
     @Override

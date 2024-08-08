@@ -4,10 +4,8 @@ import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
@@ -20,7 +18,6 @@ import com.genersoft.iot.vmp.streamPush.service.IStreamPushPlayService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -47,19 +44,10 @@ public class StreamPushPlayServiceImpl implements IStreamPushPlayService {
     private DynamicTask dynamicTask;
 
     @Autowired
-    private HookSubscribe subscribe;
-
-    @Autowired
     private IRedisRpcService redisRpcService;
 
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
-
-    @Autowired
     private RedisPushStreamResponseListener redisPushStreamResponseListener;
-
-    @Autowired
-    private SendRtpPortManager sendRtpPortManager;
 
     @Override
     public void start(Integer id, ErrorCallback<StreamInfo> callback, String platformDeviceId, String platformName ) {
@@ -76,7 +64,7 @@ public class StreamPushPlayServiceImpl implements IStreamPushPlayService {
                     streamPush.getApp(), streamPush.getStream(), null, callId));
             return;
         }
-        Assert.isTrue(streamPush.isAutoPushChannel(), "通道未推流");
+        Assert.isTrue(streamPush.isStartOfflinePush(), "通道未推流");
         // 发送redis消息以使设备上线，流上线后被
         log.info("[ app={}, stream={} ]通道未推流，发送redis信息控制设备开始推流", streamPush.getApp(), streamPush.getStream());
         MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(1,

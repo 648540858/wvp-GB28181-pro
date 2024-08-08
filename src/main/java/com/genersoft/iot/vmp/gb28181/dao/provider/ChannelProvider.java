@@ -108,7 +108,7 @@ public class ChannelProvider {
         sqlBuild.append(getBaseSelectSql());
         sqlBuild.append("where gb_status=#{status} and id in ( ");
 
-        List<CommonGBChannel> commonGBChannelList = (List<CommonGBChannel>)params.get("ids");
+        List<CommonGBChannel> commonGBChannelList = (List<CommonGBChannel>)params.get("commonGBChannelList");
         boolean first = true;
         for (CommonGBChannel channel : commonGBChannelList) {
             if (!first) {

@@ -315,7 +315,7 @@ public class PlatformServiceImpl implements IPlatformService {
                     },
                     (parentPlatform.getKeepTimeout())*1000);
         }
-        if (parentPlatform.isAutoPushChannel()) {
+        if (parentPlatform.getAutoPushChannel() != null && parentPlatform.getAutoPushChannel()) {
             if (subscribeHolder.getCatalogSubscribe(parentPlatform.getServerGBId()) == null) {
                 log.info("[国标级联]：{}, 添加自动通道推送模拟订阅信息", parentPlatform.getServerGBId());
                 addSimulatedSubscribeInfo(parentPlatform);

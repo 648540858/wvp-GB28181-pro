@@ -174,19 +174,20 @@ public class RedisRpcController {
         if (streamInfoInServer != null) {
             log.info("[redis-rpc] 监听流上线时发现流已存在直接返回： {}/{}", streamInfo.getApp(), streamInfo.getStream());
             RedisRpcResponse response = request.getResponse();
-            response.setBody(streamInfoInServer);
+            response.setBody(JSONObject.toJSONString(streamInfoInServer));
             response.setStatusCode(200);
             return response;
         }
         // 监听流上线。 流上线直接发送sendRtpItem消息给实际的信令处理者
-        Hook hook = Hook.getInstance(HookType.on_media_arrival, streamInfo.getApp(), streamInfo.getStream(), null);
+        Hook hook = Hook.getInstance(HookType.on_media_arrival, streamInfo.getApp(), streamInfo.getStream());
         hookSubscribe.addSubscribe(hook, (hookData) -> {
             log.info("[redis-rpc] 监听流上线，流已上线： {}/{}", streamInfo.getApp(), streamInfo.getStream());
             // 读取redis中的上级点播信息，生成sendRtpItm发送出去
             RedisRpcResponse response = request.getResponse();
-            response.setBody(mediaServerService.getStreamInfoByAppAndStream(hookData.getMediaServer(),
+            StreamInfo streamInfoByAppAndStream = mediaServerService.getStreamInfoByAppAndStream(hookData.getMediaServer(),
                     streamInfo.getApp(), streamInfo.getStream(), hookData.getMediaInfo(),
-                    hookData.getMediaInfo() != null ? hookData.getMediaInfo().getCallId() : null));
+                    hookData.getMediaInfo() != null ? hookData.getMediaInfo().getCallId() : null);
+            response.setBody(JSONObject.toJSONString(streamInfoByAppAndStream));
             response.setStatusCode(200);
             // 手动发送结果
             sendResponse(response);

@@ -164,6 +164,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         streamInfoParam.setStream(stream);
         RedisRpcRequest request = buildRequest("onStreamOnlineEvent", streamInfoParam);
         hookSubscribe.addSubscribe(hook, (hookData) -> {
+            log.info("[请求所有WVP监听流上线] 监听流上线 {}/{}", app, stream);
             if (callback != null) {
                 callback.run(mediaServerService.getStreamInfoByAppAndStream(hookData.getMediaServer(),
                         app, stream, hookData.getMediaInfo(),
@@ -181,7 +182,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
             log.info("[请求所有WVP监听流上线] 流上线 {}/{}", app, stream);
 
             if (callback != null) {
-                callback.run((StreamInfo) response.getBody());
+                callback.run(JSON.parseObject(response.getBody().toString(), StreamInfo.class));
             }
             hookSubscribe.removeSubscribe(hook);
         });

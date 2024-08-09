@@ -708,7 +708,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         if (param != null && param.getMediaServerId().equalsIgnoreCase(mediaServerId)) {
             redisTemplate.delete(key);
         }
-
     }
 
     @Override

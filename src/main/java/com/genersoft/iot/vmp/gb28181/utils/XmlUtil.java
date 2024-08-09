@@ -659,37 +659,41 @@ public class XmlUtil {
         T t = clazz.getDeclaredConstructor().newInstance();
         for (Field field : fields) {
             ReflectionUtils.makeAccessible(field);
-            MessageElement annotation = field.getAnnotation(MessageElement.class);
+            MessageElementForCatalog annotation = field.getAnnotation(MessageElementForCatalog.class);
             if (annotation == null) {
                 continue;
             }
-            String value = annotation.value();
-            boolean subVal = value.contains(".");
-            if (!subVal) {
-                Element element1 = element.element(value);
-                if (element1 == null) {
-                    continue;
-                }
-                // 无下级数据
-                Object fieldVal = element1.isTextOnly() ? element1.getText() : loadElement(element1, field.getType());
-                Object o = simpleTypeDeal(field.getType(), fieldVal);
-                ReflectionUtils.setField(field, t,  o);
-            } else {
-                String[] pathArray = value.split("\\.");
-                Element subElement = element;
-                for (String path : pathArray) {
-                    subElement = subElement.element(path);
-                    if (subElement == null) {
-                        break;
+            String[] values = annotation.value();
+            for (String value : values) {
+                boolean subVal = value.contains(".");
+                if (!subVal) {
+                    Element element1 = element.element(value);
+                    if (element1 == null) {
+                        continue;
                     }
+                    // 无下级数据
+                    Object fieldVal = element1.isTextOnly() ? element1.getText() : loadElement(element1, field.getType());
+                    Object o = simpleTypeDeal(field.getType(), fieldVal);
+                    ReflectionUtils.setField(field, t,  o);
+                    break;
+                } else {
+                    String[] pathArray = value.split("\\.");
+                    Element subElement = element;
+                    for (String path : pathArray) {
+                        subElement = subElement.element(path);
+                        if (subElement == null) {
+                            break;
+                        }
+                    }
+                    if (subElement == null) {
+                        continue;
+                    }
+                    Object fieldVal = subElement.isTextOnly() ? subElement.getText() : loadElement(subElement, field.getType());
+                    Object o = simpleTypeDeal(field.getType(), fieldVal);
+                    ReflectionUtils.setField(field, t,  o);
                 }
-                if (subElement == null) {
-                    continue;
-                }
-                Object fieldVal = subElement.isTextOnly() ? subElement.getText() : loadElement(subElement, field.getType());
-                Object o = simpleTypeDeal(field.getType(), fieldVal);
-                ReflectionUtils.setField(field, t,  o);
             }
+
         }
         return t;
     }

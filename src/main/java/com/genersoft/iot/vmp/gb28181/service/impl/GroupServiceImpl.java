@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 区域管理类
@@ -185,7 +186,11 @@ public class GroupServiceImpl implements IGroupService {
                 List<GroupTree> groupTrees = groupManager.queryForTree(query, parent, platformId);
                 if (platformId == null) {
                     List<GroupTree> channelList = commonGBChannelMapper.queryForGroupTreeByParentId(query, parent);
-                    groupTrees.addAll(channelList);
+                    List<GroupTree> channelListForResult = channelList.stream().filter(groupTree -> {
+                       GbCode gbCodeForChannel = GbCode.decode(groupTree.getId());
+                       return !gbCodeForChannel.getTypeCode().equals("215") && !gbCodeForChannel.getTypeCode().equals("216");
+                    }).collect(Collectors.toList());
+                    groupTrees.addAll(channelListForResult);
                 }else {
                     // TODO 查询平台独属的关联通道
                 }
@@ -253,7 +258,9 @@ public class GroupServiceImpl implements IGroupService {
                 groupMapForVerification.remove(region.getDeviceId());
             }
         }
-        groupManager.batchAdd(new ArrayList<>(groupMapForVerification.values()));
-        return false;
+        if (!groupMapForVerification.isEmpty()) {
+            groupManager.batchAdd(new ArrayList<>(groupMapForVerification.values()));
+        }
+        return true;
     }
 }

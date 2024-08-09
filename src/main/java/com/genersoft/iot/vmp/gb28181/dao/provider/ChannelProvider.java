@@ -22,11 +22,11 @@ public class ChannelProvider {
                 "    coalesce(gb_manufacturer, manufacturer) as gb_manufacturer,\n" +
                 "    coalesce(gb_model, model) as gb_model,\n" +
                 "    coalesce(gb_owner, owner) as gb_owner,\n" +
-                "    gb_civil_code,\n" +
+                "    coalesce(gb_civil_code, civil_code),\n" +
                 "    coalesce(gb_block, block) as gb_block,\n" +
                 "    coalesce(gb_address, address) as gb_address,\n" +
                 "    coalesce(gb_parental, parental) as gb_parental,\n" +
-                "    gb_parent_id,\n" +
+                "    coalesce(gb_parent_id, parent_id) as gb_parent_id,\n" +
                 "    coalesce(gb_safety_way, safety_way) as gb_safety_way,\n" +
                 "    coalesce(gb_register_way, register_way) as gb_register_way,\n" +
                 "    coalesce(gb_cert_num, cert_num) as gb_cert_num,\n" +
@@ -47,7 +47,7 @@ public class ChannelProvider {
                 "    coalesce(gb_supply_light_type, supply_light_type) as gb_supply_light_type,\n" +
                 "    coalesce(gb_direction_type, direction_type) as gb_direction_type,\n" +
                 "    coalesce(gb_resolution, resolution) as gb_resolution,\n" +
-                "    gb_business_group_id,\n" +
+                "    coalesce(gb_business_group_id, business_group_id) as gb_business_group_id,\n" +
                 "    coalesce(gb_download_speed, download_speed) as gb_download_speed,\n" +
                 "    coalesce(gb_svc_space_support_mod, svc_space_support_mod) as gb_svc_space_support_mod,\n" +
                 "    coalesce(gb_svc_time_support_mode,svc_time_support_mode) as gb_svc_time_support_mode\n" +
@@ -89,16 +89,16 @@ public class ChannelProvider {
             sqlBuild.append(" AND coalesce(gb_status, status) = 'OFF'");
         }
         if (params.get("hasCivilCode") != null && (Boolean)params.get("hasCivilCode")) {
-            sqlBuild.append(" AND gb_civil_code is not null");
+            sqlBuild.append(" AND coalesce(gb_civil_code, civil_code) is not null");
         }
         if (params.get("hasCivilCode") != null && !(Boolean)params.get("hasCivilCode")) {
-            sqlBuild.append(" AND gb_civil_code is null");
+            sqlBuild.append(" AND coalesce(gb_civil_code, civil_code) is null");
         }
         if (params.get("hasGroup") != null && (Boolean)params.get("hasGroup")) {
-            sqlBuild.append(" AND gb_business_group_id is not null");
+            sqlBuild.append(" AND coalesce(gb_business_group_id, business_group_id) is not null");
         }
         if (params.get("hasGroup") != null && !(Boolean)params.get("hasGroup")) {
-            sqlBuild.append(" AND gb_business_group_id is null");
+            sqlBuild.append(" AND coalesce(gb_business_group_id, business_group_id) is null");
         }
         return sqlBuild.toString();
     }
@@ -162,7 +162,7 @@ public class ChannelProvider {
         sqlBuild.append(getBaseSelectSql());
         sqlBuild.append("where ");
         if (params.get("civilCode") != null) {
-            sqlBuild.append(" gb_civil_code = #{civilCode} ");
+            sqlBuild.append(" coalesce(gb_civil_code, civil_code) = #{civilCode} ");
             if (params.get("ids") != null) {
                 sqlBuild.append(" OR ");
             }
@@ -186,14 +186,14 @@ public class ChannelProvider {
     public String queryByCivilCode(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append("where gb_civil_code = #{civilCode} ");
-        return sqlBuild.toString() ;
+        sqlBuild.append("where coalesce(gb_civil_code, civil_code) = #{civilCode} ");
+        return sqlBuild.toString();
     }
 
     public String queryByBusinessGroup(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append("where gb_business_group_id = #{businessGroup} ");
+        sqlBuild.append("where coalesce(gb_business_group_id, business_group_id) = #{businessGroup} ");
         return sqlBuild.toString() ;
     }
 

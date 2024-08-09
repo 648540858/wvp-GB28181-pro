@@ -58,9 +58,26 @@ public class CatalogDataCatch {
             catalogData.setTotal(total);
             catalogData.setDevice(device);
             catalogData.setStatus(CatalogData.CatalogDataStatus.runIng);
-            catalogData.getChannelList().addAll(deviceChannelList);
-            catalogData.getRegionListList().addAll(regionList);
-            catalogData.getGroupListListList().addAll(groupList);
+
+            if (deviceChannelList != null && !deviceChannelList.isEmpty()) {
+                if (catalogData.getChannelList() != null) {
+                    catalogData.getChannelList().addAll(deviceChannelList);
+                }
+            }
+            if (regionList != null && !regionList.isEmpty()) {
+                if (catalogData.getRegionListList() != null) {
+                    catalogData.getRegionListList().addAll(regionList);
+                }else {
+                    catalogData.setRegionListList(regionList);
+                }
+            }
+            if (groupList != null && !groupList.isEmpty()) {
+                if (catalogData.getGroupListListList() != null) {
+                    catalogData.getGroupListListList().addAll(groupList);
+                }else {
+                    catalogData.setGroupListListList(groupList);
+                }
+            }
             catalogData.setLastTime(Instant.now());
         }
     }

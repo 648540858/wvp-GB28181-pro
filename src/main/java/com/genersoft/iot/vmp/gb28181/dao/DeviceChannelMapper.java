@@ -16,12 +16,12 @@ import java.util.List;
 @Repository
 public interface DeviceChannelMapper {
 
-    @Insert("INSERT INTO wvp_device_channel (device_id, device_db_id, name, manufacturer, model, owner, civil_code, gb_civil_code, block, " +
+    @Insert("INSERT INTO wvp_device_channel (device_id, device_db_id, name, manufacturer, model, owner, civil_code, block, " +
             "address, parental, parent_id, safety_way, register_way, cert_num, certifiable, err_code, end_time, secrecy, " +
             "ip_address, port, password, status, longitude, latitude, ptz_type, position_type, room_type, use_type, " +
             "supply_light_type, direction_type, resolution, business_group_id, download_speed, svc_space_support_mod, " +
             "svc_time_support_mode, create_time, update_time, sub_count，stream_id, has_audio, gps_time, stream_identification) " +
-            "VALUES (#{deviceId}, #{deviceDbId}, #{name}, #{manufacturer}, #{model}, #{owner}, #{civilCode}, #{civilCode}, #{block}," +
+            "VALUES (#{deviceId}, #{deviceDbId}, #{name}, #{manufacturer}, #{model}, #{owner}, #{civilCode}, #{block}," +
             "#{address}, #{parental}, #{parentId}, #{safetyWay}, #{registerWay}, #{certNum}, #{certifiable}, #{errCode}, #{endTime}, #{secrecy}, " +
             "#{ipAddress}, #{port}, #{password}, #{status}, #{longitude}, #{latitude}, #{ptzType}, #{positionType}, #{roomType}, #{useType}, " +
             "#{supplyLightType}, #{directionType}, #{resolution}, #{businessGroupId}, #{downloadSpeed}, #{svcSpaceSupportMod}," +
@@ -132,7 +132,7 @@ public interface DeviceChannelMapper {
             " coalesce(dc.gb_manufacturer, dc.manufacturer) as manufacturer,\n" +
             " coalesce(dc.gb_model, dc.model) as model,\n" +
             " coalesce(dc.gb_owner, dc.owner) as owner,\n" +
-            " gb_civil_code as civil_code,\n" +
+            " coalesce(dc.gb_civil_code, dc.civil_code) as civil_code,\n" +
             " coalesce(dc.gb_block, dc.block) as block,\n" +
             " coalesce(dc.gb_address, dc.address) as address,\n" +
             " coalesce(dc.gb_parental, dc.parental) as parental,\n" +
@@ -169,7 +169,7 @@ public interface DeviceChannelMapper {
             "coalesce(dc.gb_device_id, dc.device_id) LIKE concat('%',#{query},'%') " +
             "OR coalesce(dc.gb_name, dc.name) LIKE concat('%',#{query},'%') " +
             ")</if> " +
-            " <if test='parentChannelId != null'> AND (dc.parent_id=#{parentChannelId} OR dc.gb_civil_code = #{parentChannelId}) </if> " +
+            " <if test='parentChannelId != null'> AND (dc.parent_id=#{parentChannelId} OR coalesce(dc.gb_civil_code, dc.civil_code) = #{parentChannelId}) </if> " +
             " <if test='online == true' > AND dc.status= true</if>" +
             " <if test='online == false' > AND dc.status= false</if>" +
             " <if test='hasSubChannel == true' >  AND dc.sub_count > 0 </if>" +
@@ -197,7 +197,7 @@ public interface DeviceChannelMapper {
             " coalesce(gb_manufacturer, manufacturer) as manufacturer,\n" +
             " coalesce(gb_model, model) as model,\n" +
             " coalesce(gb_owner, owner) as owner,\n" +
-            " gb_civil_code as civil_code,\n" +
+            " coalesce(gb_civil_code, civil_code) as civil_code,\n" +
             " coalesce(gb_block, block) as block,\n" +
             " coalesce(gb_address, address) as address,\n" +
             " coalesce(gb_parental, parental) as parental,\n" +
@@ -269,7 +269,7 @@ public interface DeviceChannelMapper {
             " coalesce(dc.gb_manufacturer, dc.manufacturer) as manufacturer,\n" +
             " coalesce(dc.gb_model, dc.model) as model,\n" +
             " coalesce(dc.gb_owner, dc.owner) as owner,\n" +
-            " dc.gb_civil_code as civil_code,\n" +
+            " coalesce(dc.gb_civil_code, dc.civil_code) as civil_code,\n" +
             " coalesce(dc.gb_block, dc.block) as block,\n" +
             " coalesce(dc.gb_address, dc.address) as address,\n" +
             " coalesce(dc.gb_parental, dc.parental) as parental,\n" +
@@ -359,7 +359,7 @@ public interface DeviceChannelMapper {
             " coalesce(gb_manufacturer, manufacturer) as manufacturer,\n" +
             " coalesce(gb_model, model) as model,\n" +
             " coalesce(gb_owner, owner) as owner,\n" +
-            " gb_civil_code as civil_code,\n" +
+            " coalesce(gb_civil_code, civil_code) as civil_code,\n" +
             " coalesce(gb_block, block) as block,\n" +
             " coalesce(gb_address, address) as address,\n" +
             " coalesce(gb_parental, parental) as parental,\n" +
@@ -396,14 +396,14 @@ public interface DeviceChannelMapper {
 
     @Insert("<script> " +
             "insert into wvp_device_channel " +
-            "(device_id, device_db_id, name, manufacturer, model, owner, civil_code, gb_civil_code, block, " +
+            "(device_id, device_db_id, name, manufacturer, model, owner, civil_code, block, " +
             "address, parental, parent_id, safety_way, register_way, cert_num, certifiable, err_code, end_time, secrecy, " +
             "ip_address, port, password, status, longitude, latitude, ptz_type, position_type, room_type, use_type, " +
             "supply_light_type, direction_type, resolution, business_group_id, download_speed, svc_space_support_mod, " +
             "svc_time_support_mode, create_time, update_time, sub_count, stream_id, has_audio, gps_time, stream_identification) " +
             "values " +
             "<foreach collection='addChannels' index='index' item='item' separator=','> " +
-            "(#{item.deviceId}, #{item.deviceDbId}, #{item.name}, #{item.manufacturer}, #{item.model}, #{item.owner}, #{item.civilCode}, #{item.gbCivilCode}, #{item.block}, " +
+            "(#{item.deviceId}, #{item.deviceDbId}, #{item.name}, #{item.manufacturer}, #{item.model}, #{item.owner}, #{item.civilCode}, #{item.block}, " +
             "#{item.address}, #{item.parental}, #{item.parentId}, #{item.safetyWay}, #{item.registerWay}, #{item.certNum}, #{item.certifiable}, #{item.errCode}, #{item.endTime}, #{item.secrecy}, " +
             "#{item.ipAddress}, #{item.port}, #{item.password}, #{item.status}, #{item.longitude}, #{item.latitude}, #{item.ptzType}, #{item.positionType}, #{item.roomType}, #{item.useType}, " +
             "#{item.supplyLightType}, #{item.directionType}, #{item.resolution}, #{item.businessGroupId}, #{item.downloadSpeed}, #{item.svcSpaceSupportMod}," +
@@ -499,7 +499,7 @@ public interface DeviceChannelMapper {
             " coalesce(gb_manufacturer, manufacturer) as manufacturer,\n" +
             " coalesce(gb_model, model) as model,\n" +
             " coalesce(gb_owner, owner) as owner,\n" +
-            " gb_civil_code as civil_code,\n" +
+            " coalesce(gb_civil_code, civil_code) as civil_code,\n" +
             " coalesce(gb_block, block) as block,\n" +
             " coalesce(gb_address, address) as address,\n" +
             " coalesce(gb_parental, parental) as parental,\n" +
@@ -579,7 +579,7 @@ public interface DeviceChannelMapper {
             " coalesce(gb_manufacturer, manufacturer) as manufacturer,\n" +
             " coalesce(gb_model, model) as model,\n" +
             " coalesce(gb_owner, owner) as owner,\n" +
-            " gb_civil_code as civil_code,\n" +
+            " coalesce(gb_civil_code, civil_code) as civil_code,\n" +
             " coalesce(gb_block, block) as block,\n" +
             " coalesce(gb_address, address) as address,\n" +
             " coalesce(gb_parental, parental) as parental,\n" +
@@ -652,7 +652,7 @@ public interface DeviceChannelMapper {
             " coalesce(gb_manufacturer, manufacturer) as manufacturer,\n" +
             " coalesce(gb_model, model) as model,\n" +
             " coalesce(gb_owner, owner) as owner,\n" +
-            " gb_civil_code as civil_code,\n" +
+            " coalesce(gb_civil_code, civil_code) as civil_code,\n" +
             " coalesce(gb_block, block) as block,\n" +
             " coalesce(gb_address, address) as address,\n" +
             " coalesce(gb_parental, parental) as parental,\n" +
@@ -702,7 +702,7 @@ public interface DeviceChannelMapper {
             " coalesce(gb_manufacturer, manufacturer) as manufacturer,\n" +
             " coalesce(gb_model, model) as model,\n" +
             " coalesce(gb_owner, owner) as owner,\n" +
-            " gb_civil_code as civil_code,\n" +
+            " coalesce(gb_civil_code, civil_code) as civil_code,\n" +
             " coalesce(gb_block, block) as block,\n" +
             " coalesce(gb_address, address) as address,\n" +
             " coalesce(gb_parental, parental) as parental,\n" +

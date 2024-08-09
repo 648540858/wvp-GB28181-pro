@@ -75,6 +75,9 @@ public class Group implements Comparable<Group>{
             group.setBusinessGroup(channel.getBusinessGroupId());
             group.setParentDeviceId(channel.getParentId());
         }
+        if (group.getBusinessGroup() == null) {
+            return null;
+        }
         return group;
     }
 

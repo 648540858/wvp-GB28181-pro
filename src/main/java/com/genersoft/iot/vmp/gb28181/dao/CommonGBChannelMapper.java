@@ -238,7 +238,7 @@ public interface CommonGBChannelMapper {
             "    coalesce(wdc.gb_manufacturer, wdc.manufacturer) as gb_manufacturer,\n" +
             "    coalesce(wdc.gb_model, wdc.model) as gb_model,\n" +
             "    coalesce(wdc.gb_owner, wdc.owner) as gb_owner,\n" +
-            "    wdc.gb_civil_code,\n" +
+            "    coalesce(wdc.gb_civil_code, wdc.civil_code) as gb_civil_code,\n" +
             "    coalesce(wdc.gb_block, wdc.block) as gb_block,\n" +
             "    coalesce(wdc.gb_address, wdc.address) as gb_address,\n" +
             "    coalesce(wpgc.parental, wdc.gb_parental, wdc.parental) as gb_parental,\n" +
@@ -317,7 +317,7 @@ public interface CommonGBChannelMapper {
             "    1 as type, " +
             "    true as is_leaf " +
             " from wvp_device_channel " +
-            " where gb_civil_code = #{parent} " +
+            " where coalesce(gb_civil_code, civil_code) = #{parent} " +
             " <if test='query != null'> AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%') " +
             " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%'))</if> " +
             " </script>")
@@ -325,7 +325,7 @@ public interface CommonGBChannelMapper {
 
     @Update(value = {" <script>" +
             " UPDATE wvp_device_channel " +
-            " SET gb_civil_code = null" +
+            " SET gb_civil_code = null, civil_code = null" +
             " WHERE gb_civil_code in "+
             " <foreach collection='allChildren'  item='item'  open='(' separator=',' close=')' > #{item.deviceId}</foreach>" +
             " </script>"})
@@ -345,7 +345,7 @@ public interface CommonGBChannelMapper {
 
     @Update(value = {" <script>" +
             " UPDATE wvp_device_channel " +
-            " SET gb_civil_code = null" +
+            " SET gb_civil_code = null, civil_code = null" +
             " WHERE id in "+
             " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.gbId}</foreach>" +
             " </script>"})
@@ -362,7 +362,7 @@ public interface CommonGBChannelMapper {
 
     @Update(value = {" <script>" +
             " UPDATE wvp_device_channel " +
-            " SET gb_parent_id = null, gb_business_group_id = null" +
+            " SET gb_parent_id = null, gb_business_group_id = null, parent_id = null, business_group_id = null" +
             " WHERE id in "+
             " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.gbId}</foreach>" +
             " </script>"})
@@ -390,6 +390,22 @@ public interface CommonGBChannelMapper {
             " </script>"})
     int updateParentIdByChannelList(@Param("parentId") String parentId, List<CommonGBChannel> channelList);
 
+    @Select("<script>" +
+            " select " +
+            "    coalesce(gb_device_id, device_id) as id," +
+            "    coalesce(gb_name, name) as label, " +
+            "    coalesce(gb_parent_id, parent_id) as parent_device_id, " +
+            "    coalesce(gb_business_group_id, business_group_id) as business_group, " +
+            "    id as db_id, " +
+            "    1 as type, " +
+            "    true as is_leaf " +
+            " from wvp_device_channel " +
+            " where coalesce(gb_parent_id, parent_id) = #{parent} " +
+            " <if test='query != null'> AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%') " +
+            " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%'))</if> " +
+            " </script>")
+    List<GroupTree> queryForGroupTreeByParentId(@Param("query") String query, @Param("parent") String parent);
+
     @Update(value = {" <script>" +
             " UPDATE wvp_device_channel " +
             " SET gb_parent_id = #{parentId}, gb_business_group_id = #{businessGroup}" +
@@ -398,20 +414,4 @@ public interface CommonGBChannelMapper {
             " </script>"})
     int updateGroup(@Param("parentId") String parentId, @Param("businessGroup") String businessGroup,
                     List<CommonGBChannel> channelList);
-
-    @Select("<script>" +
-            " select " +
-            "    coalesce(gb_device_id, device_id) as id," +
-            "    coalesce(gb_name, name) as label, " +
-            "    id as db_id, " +
-            "    gb_parent_id as parent_device_id," +
-            "    gb_business_group_id as business_group," +
-            "    1 as type, " +
-            "    true as is_leaf " +
-            " from wvp_device_channel " +
-            " where gb_parent_id = #{parent} " +
-            " <if test='query != null'> AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%') " +
-            " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%'))</if> " +
-            " </script>")
-    List<GroupTree> queryForGroupTreeByParentId(@Param("query") String query, @Param("parent") String parent);
 }

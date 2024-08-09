@@ -74,6 +74,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     @Transactional
     public void handForDevice(RequestEvent evt, Device device, Element element) {
         taskQueue.offer(new HandlerCatchData(evt, device, element));
+        System.out.println(evt.getRequest());
         // 回复200 OK
         try {
             responseAck((SIPRequest) evt.getRequest(), Response.OK);
@@ -176,12 +177,20 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     @Transactional
     public boolean saveData(Device device) {
 
-        boolean result = deviceChannelService.resetChannels(device.getId(), catalogDataCatch.getDeviceChannelList(device.getDeviceId()));
-        if (!catalogDataCatch.getRegionList(device.getDeviceId()).isEmpty()) {
+        boolean result = true;
+        List<DeviceChannel> deviceChannelList = catalogDataCatch.getDeviceChannelList(device.getDeviceId());
+        if (deviceChannelList != null && !deviceChannelList.isEmpty()) {
+            result &= deviceChannelService.resetChannels(device.getId(), deviceChannelList);
+        }
+
+        List<Region> regionList = catalogDataCatch.getRegionList(device.getDeviceId());
+        if ( regionList!= null && !regionList.isEmpty()) {
             result &= regionService.batchAdd(catalogDataCatch.getRegionList(device.getDeviceId()));
         }
-        if (!catalogDataCatch.getGroupList(device.getDeviceId()).isEmpty()) {
-            result &= groupService.batchAdd(catalogDataCatch.getGroupList(device.getDeviceId()));
+
+        List<Group> groupList = catalogDataCatch.getGroupList(device.getDeviceId());
+        if (groupList != null && !groupList.isEmpty()) {
+            result &= groupService.batchAdd(groupList);
         }
         return result;
     }

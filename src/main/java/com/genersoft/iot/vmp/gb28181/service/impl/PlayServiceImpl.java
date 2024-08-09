@@ -523,7 +523,7 @@ public class PlayServiceImpl implements IPlayService {
                     streamSession.remove(device.getDeviceId(), channel.getDeviceId(), ssrcInfo.getStream());
                     mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                     // 取消订阅消息监听
-                    subscribe.removeSubscribe(Hook.getInstance(HookType.on_media_arrival, "rtp", ssrcInfo.getStream(), mediaServerItem.getId()));
+                    subscribe.removeSubscribe(Hook.getInstance(HookType.on_media_arrival, "rtp", ssrcInfo.getStream()));
                 }
             }else {
                 log.info("[点播超时] 收流超时 deviceId: {}, channelId: {},码流：{}，端口：{}, SSRC: {}",

@@ -156,7 +156,7 @@ public class ZLMHttpHookListener {
                 }else {
                     param.setParamMap(new HashMap<>());
                 }
-                MediaArrivalEvent mediaArrivalEvent = MediaArrivalEvent.getInstance(this, param, mediaServer);
+                MediaArrivalEvent mediaArrivalEvent = MediaArrivalEvent.getInstance(this, param, mediaServer, userSetting.getServerId());
                 applicationEventPublisher.publishEvent(mediaArrivalEvent);
             } else {
                 log.info("[ZLM HOOK] 流注销, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());

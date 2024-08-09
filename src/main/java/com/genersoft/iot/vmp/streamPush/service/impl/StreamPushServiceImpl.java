@@ -24,7 +24,6 @@ import com.genersoft.iot.vmp.streamPush.service.IStreamPushService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
-import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -99,14 +98,11 @@ public class StreamPushServiceImpl implements IStreamPushService {
             streamPush.setPushTime(DateUtil.getNow());
             add(streamPush);
         }else {
-            updatePushStatus(streamPushInDb.getId(), true);
+            updatePushStatus(streamPushInDb, true);
         }
         // 冗余数据，自己系统中自用
         if (!"broadcast".equals(event.getApp()) && !"talk".equals(event.getApp())) {
-            StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(
-                    event.getMediaServer(), event.getApp(), event.getStream(), event.getMediaInfo(), event.getCallId());
-            event.getHookParam().setStreamInfo(new StreamContent(streamInfo));
-            redisCatchStorage.addPushListItem(event.getApp(), event.getStream(), event);
+            redisCatchStorage.addPushListItem(event.getApp(), event.getStream(), event.getMediaInfo());
         }
 
         // 发送流变化redis消息
@@ -148,18 +144,12 @@ public class StreamPushServiceImpl implements IStreamPushService {
                 redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
             }
         }
-        StreamPush push = getPush(event.getApp(), event.getStream());
-        if (push == null) {
+        StreamPush streamPush = getPush(event.getApp(), event.getStream());
+        if (streamPush == null) {
             return;
         }
-        push.setPushing(false);
-        if (push.getGbDeviceId() != null) {
-            if (userSetting.isUsePushingAsStatus()) {
-                push.setGbStatus("OFF");
-                updateStatus(push);
-//                streamPushMapper.updatePushStatus(event.getApp(), event.getStream(), false);
-//                eventPublisher.catalogEventPublishForStream(null, gbStream, CatalogEvent.OFF);
-            }
+        if (streamPush.getGbDeviceId() != null) {
+            updatePushStatus(streamPush, false);
         }else {
             deleteByAppAndStream(event.getApp(), event.getStream());
         }
@@ -524,27 +514,28 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Override
     public void updateStatus(StreamPush push) {
-        if (ObjectUtils.isEmpty(push.getGbDeviceId())) {
-            return;
-        }
-        if ("ON".equalsIgnoreCase(push.getGbStatus())) {
-            gbChannelService.online(push.buildCommonGBChannel());
-        }else {
-            gbChannelService.offline(push.buildCommonGBChannel());
-        }
+
     }
 
 
 
     @Override
-    public void updatePushStatus(Integer streamPushId, boolean pushIng) {
-        StreamPush streamPushInDb = streamPushMapper.queryOne(streamPushId);
-        streamPushInDb.setPushing(pushIng);
+    @Transactional
+    public void updatePushStatus(StreamPush streamPush, boolean pushIng) {
+        streamPush.setPushing(pushIng);
         if (userSetting.isUsePushingAsStatus()) {
-            streamPushInDb.setGbStatus(pushIng?"ON":"OFF");
+            streamPush.setGbStatus(pushIng?"ON":"OFF");
         }
-        streamPushInDb.setPushTime(DateUtil.getNow());
-        updateStatus(streamPushInDb);
+        streamPush.setPushTime(DateUtil.getNow());
+        streamPushMapper.updatePushStatus(streamPush.getId(), pushIng);
+        if (ObjectUtils.isEmpty(streamPush.getGbDeviceId())) {
+            return;
+        }
+        if ("ON".equalsIgnoreCase(streamPush.getGbStatus())) {
+            gbChannelService.online(streamPush.buildCommonGBChannel());
+        }else {
+            gbChannelService.offline(streamPush.buildCommonGBChannel());
+        }
     }
 
     private List<StreamPush> handleJSON(List<StreamInfo> streamInfoList) {
@@ -570,7 +561,16 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Override
     public void batchUpdate(List<StreamPush> streamPushItemForUpdate) {
-
+        int result = streamPushMapper.batchUpdate(streamPushItemForUpdate);
+        if (result > 0) {
+            List<CommonGBChannel> commonGBChannels = new ArrayList<>();
+            for (StreamPush streamPush : streamPushItemForUpdate) {
+                if (!ObjectUtils.isEmpty(streamPush.getGbDeviceId())) {
+                    commonGBChannels.add(streamPush.buildCommonGBChannel());
+                }
+            }
+            gbChannelService.batchUpdate(commonGBChannels);
+        }
     }
 
     @Override

@@ -414,4 +414,46 @@ public interface CommonGBChannelMapper {
             " </script>"})
     int updateGroup(@Param("parentId") String parentId, @Param("businessGroup") String businessGroup,
                     List<CommonGBChannel> channelList);
+
+    @Update({"<script>" +
+            "<foreach collection='commonGBChannels' item='item' separator=';'>" +
+            " UPDATE" +
+            " wvp_device_channel" +
+            " SET update_time=#{item.updateTime}" +
+            ", gb_device_id=#{item.gbDeviceId}" +
+            ", gb_name=#{item.gbName}" +
+            ", gb_manufacturer=#{item.gbManufacturer}" +
+            ", gb_model=#{item.gbModel}" +
+            ", gb_owner=#{item.gbOwner}" +
+            ", gb_civil_code=#{item.gbCivilCode}" +
+            ", gb_block=#{item.gbBlock}" +
+            ", gb_address=#{item.gbAddress}" +
+            ", gb_parental=#{item.gbParental}" +
+            ", gb_safety_way=#{item.gbSafetyWay}" +
+            ", gb_register_way=#{item.gbRegisterWay}" +
+            ", gb_cert_num=#{item.gbCertNum}" +
+            ", gb_certifiable=#{item.gbCertifiable}" +
+            ", gb_err_code=#{item.gbErrCode}" +
+            ", gb_end_time=#{item.gbEndTime}" +
+            ", gb_ip_address=#{item.gbIpAddress}" +
+            ", gb_port=#{item.gbPort}" +
+            ", gb_password=#{item.gbPassword}" +
+            ", gb_status=#{item.gbStatus}" +
+            ", gb_longitude=#{item.gbLongitude}" +
+            ", gb_latitude=#{item.gbLatitude}" +
+            ", gb_ptz_type=#{item.gbPtzType}" +
+            ", gb_position_type=#{item.gbPositionType}" +
+            ", gb_room_type=#{item.gbRoomType}" +
+            ", gb_use_type=#{item.gbUseType}" +
+            ", gb_supply_light_type=#{item.gbSupplyLightType}" +
+            ", gb_direction_type=#{item.gbDirectionType}" +
+            ", gb_resolution=#{item.gbResolution}" +
+            ", gb_business_group_id=#{item.gbBusinessGroupId}" +
+            ", gb_download_speed=#{item.gbDownloadSpeed}" +
+            ", gb_svc_space_support_mod=#{item.gbSvcSpaceSupportMod}" +
+            ", gb_svc_time_support_mode=#{item.gbSvcTimeSupportMode}" +
+            " WHERE id=#{item.id}" +
+            "</foreach>" +
+            "</script>"})
+    int batchUpdate(List<CommonGBChannel> commonGBChannels);
 }

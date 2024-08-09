@@ -239,6 +239,36 @@ public class GbChannelServiceImpl implements IGbChannelService {
     }
 
     @Override
+    public void batchUpdate(List<CommonGBChannel> commonGBChannels) {
+        if (commonGBChannels.isEmpty()) {
+            log.warn("[更新多个通道] 通道数量为0，更新失败");
+            return;
+        }
+        // 批量保存
+        int limitCount = 1000;
+        int result = 0;
+        if (commonGBChannels.size() > limitCount) {
+            for (int i = 0; i < commonGBChannels.size(); i += limitCount) {
+                int toIndex = i + limitCount;
+                if (i + limitCount > commonGBChannels.size()) {
+                    toIndex = commonGBChannels.size();
+                }
+                result += commonGBChannelMapper.batchUpdate(commonGBChannels.subList(i, toIndex));
+            }
+        }else {
+            result += commonGBChannelMapper.batchUpdate(commonGBChannels);
+        }
+        log.warn("[更新多个通道] 通道数量为{}，成功保存：{}", commonGBChannels.size(), result);
+        // 发送通过更新通知
+        try {
+            // 发送通知
+            eventPublisher.catalogEventPublish(null, commonGBChannels, CatalogEvent.UPDATE);
+        }catch (Exception e) {
+            log.warn("[更新多个通道] 发送失败，{}个", commonGBChannels.size(), e);
+        }
+    }
+
+    @Override
     @Transactional
     public void updateStatus(List<CommonGBChannel> commonGBChannels) {
         if (commonGBChannels.isEmpty()) {
@@ -259,11 +289,17 @@ public class GbChannelServiceImpl implements IGbChannelService {
             result += commonGBChannelMapper.updateStatus(commonGBChannels);
         }
         log.warn("[更新多个通道状态] 通道数量为{}，成功保存：{}", commonGBChannels.size(), result);
+        // 发送通过更新通知
+        try {
+            // 发送通知
+            eventPublisher.catalogEventPublish(null, commonGBChannels, CatalogEvent.UPDATE);
+        }catch (Exception e) {
+            log.warn("[更新多个通道] 发送失败，{}个", commonGBChannels.size(), e);
+        }
     }
 
     @Override
     public List<CommonGBChannel> queryByPlatformId(Integer platformId) {
-
         return commonGBChannelMapper.queryByPlatformId(platformId);
     }
 

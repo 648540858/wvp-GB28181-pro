@@ -13,8 +13,8 @@ import java.util.Set;
 @Repository
 public interface StreamPushMapper {
 
-    @Insert("INSERT INTO wvp_stream_push (app, stream, media_server_id, server_id, push_time,  update_time, create_time, pushing) VALUES" +
-            "(#{app}, #{stream}, #{mediaServerId} , #{serverId} , #{pushTime} ,#{updateTime}, #{createTime}, #{pushing})")
+    @Insert("INSERT INTO wvp_stream_push (app, stream, media_server_id, server_id, push_time,  update_time, create_time, pushing, start_offline_push) VALUES" +
+            "(#{app}, #{stream}, #{mediaServerId} , #{serverId} , #{pushTime} ,#{updateTime}, #{createTime}, #{pushing}, #{startOfflinePush})")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int add(StreamPush streamPushItem);
 
@@ -28,6 +28,7 @@ public interface StreamPushMapper {
             "<if test=\"serverId != null\">, server_id=#{serverId}</if>" +
             "<if test=\"pushTime != null\">, push_time=#{pushTime}</if>" +
             "<if test=\"pushing != null\">, pushing=#{pushing}</if>" +
+            "<if test=\"startOfflinePush != null\">, start_offline_push=#{startOfflinePush}</if>" +
             "WHERE id = #{id}"+
             " </script>"})
     int update(StreamPush streamPushItem);
@@ -61,9 +62,9 @@ public interface StreamPushMapper {
 
     @Insert("<script>"  +
             "Insert INTO wvp_stream_push ( " +
-            " app, stream, media_server_id, server_id, push_time,  update_time, create_time, pushing) " +
+            " app, stream, media_server_id, server_id, push_time,  update_time, create_time, pushing, start_offline_push) " +
             " VALUES <foreach collection='streamPushItems' item='item' index='index' separator=','>" +
-            " ( #{item.app}, #{item.stream}, #{item.mediaServerId},#{item.serverId} ,#{item.pushTime}, #{item.updateTime}, #{item.createTime}, #{item.pushing} )" +
+            " ( #{item.app}, #{item.stream}, #{item.mediaServerId},#{item.serverId} ,#{item.pushTime}, #{item.updateTime}, #{item.createTime}, #{item.pushing}, #{item.startOfflinePush} )" +
             " </foreach>" +
             " </script>")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
@@ -136,4 +137,21 @@ public interface StreamPushMapper {
             ")</script>")
     void batchDel(List<StreamPush> streamPushList);
 
+
+    @Update({"<script>" +
+            "<foreach collection='streamPushItemForUpdate' item='item' separator=';'>" +
+            " UPDATE" +
+            " wvp_stream_push" +
+            " SET update_time=#{item.updateTime}" +
+            ", app=#{item.app}" +
+            ", stream=#{item.stream}" +
+            ", media_server_id=#{item.mediaServerId}" +
+            ", server_id=#{item.serverId}" +
+            ", push_time=#{item.pushTime}" +
+            ", pushing=#{item.pushing}" +
+            ", start_offline_push=#{item.startOfflinePush}" +
+            " WHERE id=#{item.item.id}" +
+            "</foreach>" +
+            "</script>"})
+    int batchUpdate(List<StreamPush> streamPushItemForUpdate);
 }

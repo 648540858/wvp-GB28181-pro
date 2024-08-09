@@ -26,7 +26,7 @@
         <el-divider content-position="center">策略</el-divider>
         <el-form ref="streamPushForm" status-icon label-width="160px" v-loading="locading">
           <el-form-item style="text-align: left">
-            <el-checkbox v-model="streamPush.autoPushChannel">拉起离线推流</el-checkbox>
+            <el-checkbox v-model="streamPush.startOfflinePush">拉起离线推流</el-checkbox>
           </el-form-item>
 
         </el-form>

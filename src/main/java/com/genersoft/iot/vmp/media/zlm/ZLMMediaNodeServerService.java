@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
@@ -34,6 +35,9 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
 
     @Autowired
     private ZLMServerFactory zlmServerFactory;
+
+    @Autowired
+    private UserSetting userSetting;
 
     @Override
     public int createRTPServer(MediaServer mediaServer, String streamId, long ssrc, Integer port, Boolean onlyAuto, Boolean disableAudio, Boolean reUsePort, Integer tcpMode) {
@@ -181,7 +185,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
                     return null;
                 }
                 JSONObject mediaJSON = data.getJSONObject(0);
-                MediaInfo mediaInfo = MediaInfo.getInstance(mediaJSON, mediaServer);
+                MediaInfo mediaInfo = MediaInfo.getInstance(mediaJSON, mediaServer, userSetting.getServerId());
                 StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServer, app, stream, mediaInfo, callId, true);
                 if (streamInfo != null) {
                     streamInfoList.add(streamInfo);
@@ -234,7 +238,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         if (jsonObject.getInteger("code") != 0) {
             return null;
         }
-        return MediaInfo.getInstance(jsonObject, mediaServer);
+        return MediaInfo.getInstance(jsonObject, mediaServer, userSetting.getServerId());
     }
 
     @Override

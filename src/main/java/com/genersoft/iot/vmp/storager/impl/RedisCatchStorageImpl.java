@@ -10,9 +10,7 @@ import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -690,22 +688,22 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void addPushListItem(String app, String stream, MediaArrivalEvent event) {
+    public void addPushListItem(String app, String stream, MediaInfo mediaInfo) {
         String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
-        redisTemplate.opsForValue().set(key, event);
+        redisTemplate.opsForValue().set(key, mediaInfo);
     }
 
     @Override
-    public MediaArrivalEvent getPushListItem(String app, String stream) {
+    public MediaInfo getPushListItem(String app, String stream) {
         String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
-        return (MediaArrivalEvent)redisTemplate.opsForValue().get(key);
+        return (MediaInfo)redisTemplate.opsForValue().get(key);
     }
 
     @Override
     public void removePushListItem(String app, String stream, String mediaServerId) {
         String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
-        OnStreamChangedHookParam param = (OnStreamChangedHookParam)redisTemplate.opsForValue().get(key);
-        if (param != null && param.getMediaServerId().equalsIgnoreCase(mediaServerId)) {
+        MediaInfo param = (MediaInfo)redisTemplate.opsForValue().get(key);
+        if (param != null && param.getMediaServer().getId().equalsIgnoreCase(mediaServerId)) {
             redisTemplate.delete(key);
         }
     }

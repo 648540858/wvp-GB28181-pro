@@ -158,11 +158,11 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
 
         log.info("[请求所有WVP监听流上线] {}/{}", app, stream);
         // 监听流上线。 流上线直接发送sendRtpItem消息给实际的信令处理者
-        Hook hook = Hook.getInstance(HookType.on_media_arrival, app, stream, null);
+        Hook hook = Hook.getInstance(HookType.on_media_arrival, app, stream);
         StreamInfo streamInfoParam = new StreamInfo();
         streamInfoParam.setApp(app);
         streamInfoParam.setStream(stream);
-        RedisRpcRequest request = buildRequest("onPushStreamOnlineEvent", streamInfoParam);
+        RedisRpcRequest request = buildRequest("onStreamOnlineEvent", streamInfoParam);
         hookSubscribe.addSubscribe(hook, (hookData) -> {
             if (callback != null) {
                 callback.run(mediaServerService.getStreamInfoByAppAndStream(hookData.getMediaServer(),

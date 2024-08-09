@@ -70,11 +70,13 @@ public class HookSubscribe {
     private final Map<String, Hook> allHook = new ConcurrentHashMap<>();
 
     private void sendNotify(HookType hookType, MediaEvent event) {
-        Hook paramHook = Hook.getInstance(hookType, event.getApp(), event.getStream(), event.getMediaServer().getId());
+        Hook paramHook = Hook.getInstance(hookType, event.getApp(), event.getStream());
         Event hookSubscribeEvent = allSubscribes.get(paramHook.toString());
         if (hookSubscribeEvent != null) {
             HookData data = HookData.getInstance(event);
             hookSubscribeEvent.response(data);
+        }else {
+
         }
     }
 

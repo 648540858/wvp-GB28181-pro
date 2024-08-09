@@ -90,7 +90,7 @@ public interface IStreamPushService {
 
     void deleteByAppAndStream(String app, String stream);
 
-    void updatePushStatus(Integer streamPushId, boolean pushIng);
+    void updatePushStatus(StreamPush streamPush, boolean pushIng);
 
     void batchUpdate(List<StreamPush> streamPushItemForUpdate);
 

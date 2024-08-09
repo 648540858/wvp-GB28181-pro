@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
@@ -24,11 +25,8 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
-import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
-import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
@@ -598,10 +596,10 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         sendRtpItem.setPlayType(InviteStreamType.PUSH);
                         if (streamPushItem != null) {
                             // 从redis查询是否正在接收这个推流
-                            MediaArrivalEvent mediaArrivalEvent = redisCatchStorage.getPushListItem(gbStream.getApp(), gbStream.getStream());
-                            if (mediaArrivalEvent != null) {
-                                sendRtpItem.setServerId(mediaArrivalEvent.getServerId());
-                                sendRtpItem.setMediaServerId(mediaArrivalEvent.getMediaServer().getId());
+                            MediaInfo mediaInfo = redisCatchStorage.getPushListItem(gbStream.getApp(), gbStream.getStream());
+                            if (mediaInfo != null) {
+                                sendRtpItem.setServerId(mediaInfo.getServerId());
+                                sendRtpItem.setMediaServerId(mediaInfo.getMediaServer().getId());
 
                                 redisCatchStorage.updateSendRTPSever(sendRtpItem);
                                 // 开始推流

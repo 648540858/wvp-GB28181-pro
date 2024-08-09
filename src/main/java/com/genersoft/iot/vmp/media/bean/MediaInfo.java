@@ -3,10 +3,12 @@ package com.genersoft.iot.vmp.media.bean;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
+import com.genersoft.iot.vmp.utils.MediaServerUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 视频信息
@@ -51,10 +53,15 @@ public class MediaInfo {
     private Long bytesSpeed;
     @Schema(description = "鉴权参数")
     private String callId;
+    @Schema(description = "额外参数")
+    private Map<String, String> paramMap;
+    @Schema(description = "服务ID")
+    private String serverId;
 
-    public static MediaInfo getInstance(JSONObject jsonObject, MediaServer mediaServer) {
+    public static MediaInfo getInstance(JSONObject jsonObject, MediaServer mediaServer, String serverId) {
         MediaInfo mediaInfo = new MediaInfo();
         mediaInfo.setMediaServer(mediaServer);
+        mediaInfo.setServerId(serverId);
         String app = jsonObject.getString("app");
         mediaInfo.setApp(app);
         String stream = jsonObject.getString("stream");
@@ -66,6 +73,7 @@ public class MediaInfo {
         Integer originType = jsonObject.getInteger("originType");
         String originUrl = jsonObject.getString("originUrl");
         Long aliveSecond = jsonObject.getLong("aliveSecond");
+        String params = jsonObject.getString("params");
         Long bytesSpeed = jsonObject.getLong("bytesSpeed");
         if (totalReaderCount != null) {
             mediaInfo.setReaderCount(totalReaderCount);
@@ -85,6 +93,12 @@ public class MediaInfo {
         }
         if (bytesSpeed != null) {
             mediaInfo.setBytesSpeed(bytesSpeed);
+        }
+        if (params != null) {
+            mediaInfo.setParamMap(MediaServerUtils.urlParamToMap(params));
+            if(mediaInfo.getCallId() == null) {
+                mediaInfo.setCallId(mediaInfo.getParamMap().get("callId"));
+            }
         }
         JSONArray jsonArray = jsonObject.getJSONArray("tracks");
         if (jsonArray.isEmpty()) {
@@ -137,7 +151,7 @@ public class MediaInfo {
         return mediaInfo;
     }
 
-    public static MediaInfo getInstance(OnStreamChangedHookParam param, MediaServer mediaServer) {
+    public static MediaInfo getInstance(OnStreamChangedHookParam param, MediaServer mediaServer, String serverId) {
 
         MediaInfo mediaInfo = new MediaInfo();
         mediaInfo.setApp(param.getApp());
@@ -150,6 +164,11 @@ public class MediaInfo {
         mediaInfo.setOriginUrl(param.getOriginUrl());
         mediaInfo.setAliveSecond(param.getAliveSecond());
         mediaInfo.setBytesSpeed(param.getBytesSpeed());
+        mediaInfo.setParamMap(param.getParamMap());
+        if(mediaInfo.getCallId() == null) {
+            mediaInfo.setCallId(param.getParamMap().get("callId"));
+        }
+        mediaInfo.setServerId(serverId);
         List<OnStreamChangedHookParam.MediaTrack> tracks = param.getTracks();
         if (tracks == null || tracks.isEmpty()) {
             return mediaInfo;

@@ -4,7 +4,6 @@ import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,15 +18,14 @@ public class MediaArrivalEvent extends MediaEvent {
         super(source);
     }
 
-    public static MediaArrivalEvent getInstance(Object source, OnStreamChangedHookParam hookParam, MediaServer mediaServer){
+    public static MediaArrivalEvent getInstance(Object source, OnStreamChangedHookParam hookParam, MediaServer mediaServer, String serverId){
         MediaArrivalEvent mediaArrivalEvent = new MediaArrivalEvent(source);
-        mediaArrivalEvent.setMediaInfo(MediaInfo.getInstance(hookParam, mediaServer));
+        mediaArrivalEvent.setMediaInfo(MediaInfo.getInstance(hookParam, mediaServer, serverId));
         mediaArrivalEvent.setApp(hookParam.getApp());
         mediaArrivalEvent.setStream(hookParam.getStream());
         mediaArrivalEvent.setMediaServer(mediaServer);
         mediaArrivalEvent.setSchema(hookParam.getSchema());
         mediaArrivalEvent.setSchema(hookParam.getSchema());
-        mediaArrivalEvent.setHookParam(hookParam);
         mediaArrivalEvent.setParamMap(hookParam.getParamMap());
         return mediaArrivalEvent;
     }
@@ -39,10 +37,6 @@ public class MediaArrivalEvent extends MediaEvent {
     @Getter
     @Setter
     private String callId;
-
-    @Getter
-    @Setter
-    private OnStreamChangedHookParam hookParam;
 
     @Getter
     @Setter

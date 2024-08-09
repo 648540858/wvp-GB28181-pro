@@ -4,7 +4,7 @@ import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
+import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
@@ -53,14 +53,14 @@ public class StreamPushPlayServiceImpl implements IStreamPushPlayService {
     public void start(Integer id, ErrorCallback<StreamInfo> callback, String platformDeviceId, String platformName ) {
         StreamPush streamPush = streamPushMapper.queryOne(id);
         Assert.notNull(streamPush, "推流信息未找到");
-        MediaArrivalEvent pushListItem = redisCatchStorage.getPushListItem(streamPush.getApp(), streamPush.getStream());
-        if (pushListItem != null) {
+        MediaInfo mediaInfo = redisCatchStorage.getPushListItem(streamPush.getApp(), streamPush.getStream());
+        if (mediaInfo != null) {
             String callId = null;
             StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(streamPush.getApp(), streamPush.getStream());
             if (streamAuthorityInfo != null) {
                 callId = streamAuthorityInfo.getCallId();
             }
-            callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), mediaServerService.getStreamInfoByAppAndStream(pushListItem.getMediaServer(),
+            callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), mediaServerService.getStreamInfoByAppAndStream(mediaInfo.getMediaServer(),
                     streamPush.getApp(), streamPush.getStream(), null, callId));
             return;
         }
@@ -83,7 +83,7 @@ public class StreamPushPlayServiceImpl implements IStreamPushPlayService {
         long key = redisRpcService.onStreamOnlineEvent(streamPush.getApp(), streamPush.getStream(), (streamInfo) -> {
             dynamicTask.stop(timeOutTaskKey);
             if (streamInfo == null) {
-                log.warn("[级联点播] 等待推流得到结果未空： {}/{}", streamPush.getApp(), streamPush.getStream());
+                log.warn("等待推流得到结果未空： {}/{}", streamPush.getApp(), streamPush.getStream());
                 callback.run(ErrorCode.ERROR100.getCode(), "fail", null);
             }else {
                 callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);

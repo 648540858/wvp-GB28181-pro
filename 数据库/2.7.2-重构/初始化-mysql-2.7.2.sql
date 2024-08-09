@@ -327,7 +327,7 @@ create table wvp_stream_push
     update_time       character varying(50),
     pushing           bool default false,
     self              bool default false,
-    auto_push_channel bool default true,
+    start_offline_push bool default true,
     constraint uk_stream_push_app_stream unique (app, stream)
 );
 create table wvp_cloud_record

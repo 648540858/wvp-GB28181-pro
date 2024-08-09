@@ -5,9 +5,7 @@ import com.genersoft.iot.vmp.common.SystemAllInfo;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.storager.dao.dto.PlatformRegisterInfo;
@@ -214,9 +212,9 @@ public interface IRedisCatchStorage {
 
     void sendPlatformStopPlayMsg(SendRtpItem sendRtpItem, ParentPlatform platform);
 
-    void addPushListItem(String app, String stream, MediaArrivalEvent param);
+    void addPushListItem(String app, String stream, MediaInfo param);
 
-    MediaArrivalEvent getPushListItem(String app, String stream);
+    MediaInfo getPushListItem(String app, String stream);
 
     void removePushListItem(String app, String stream, String mediaServerId);
 

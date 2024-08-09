@@ -166,7 +166,7 @@ public class RedisRpcController {
     /**
      * 监听流上线
      */
-    public RedisRpcResponse onPushStreamOnlineEvent(RedisRpcRequest request) {
+    public RedisRpcResponse onStreamOnlineEvent(RedisRpcRequest request) {
         StreamInfo streamInfo = JSONObject.parseObject(request.getParam().toString(), StreamInfo.class);
         log.info("[redis-rpc] 监听流上线： {}/{}", streamInfo.getApp(), streamInfo.getStream());
         // 查询本级是否有这个流

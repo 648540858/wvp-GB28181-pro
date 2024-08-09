@@ -73,4 +73,6 @@ public interface IGbChannelService {
     void addChannelToGroupByGbDevice(String parentId, String businessGroup, List<Integer> deviceIds);
 
     void deleteChannelToGroupByGbDevice(List<Integer> deviceIds);
+
+    void batchUpdate(List<CommonGBChannel> commonGBChannels);
 }

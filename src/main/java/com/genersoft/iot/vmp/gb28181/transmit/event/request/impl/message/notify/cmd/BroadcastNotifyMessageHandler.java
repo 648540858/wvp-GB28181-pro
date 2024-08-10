@@ -74,7 +74,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, ParentPlatform platform, Element rootElement) {
+    public void handForPlatform(RequestEvent evt, Platform platform, Element rootElement) {
         // 来自上级平台的语音喊话请求
         SIPRequest request = (SIPRequest) evt.getRequest();
         try {

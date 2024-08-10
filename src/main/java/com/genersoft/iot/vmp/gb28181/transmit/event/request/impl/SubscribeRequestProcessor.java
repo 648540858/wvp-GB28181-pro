@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
 import com.genersoft.iot.vmp.gb28181.bean.CmdType;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeInfo;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
@@ -108,7 +108,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		}
 		String platformId = SipUtils.getUserIdFromFromHeader(request);
 		String deviceId = XmlUtil.getText(rootElement, "DeviceID");
-		ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
+		Platform platform = storager.queryParentPlatByServerGBId(platformId);
 		SubscribeInfo subscribeInfo = new SubscribeInfo(request, platformId);
 		if (platform == null) {
 			return;
@@ -137,7 +137,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		}
 
 		try {
-			ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
+			Platform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
 			SIPResponse response = responseXmlAck(request, resultXml.toString(), parentPlatform, subscribeInfo.getExpires());
 			if (subscribeInfo.getExpires() == 0) {
 				subscribeHolder.removeMobilePositionSubscribe(platformId);
@@ -163,7 +163,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		}
 		String platformId = SipUtils.getUserIdFromFromHeader(request);
 		String deviceId = XmlUtil.getText(rootElement, "DeviceID");
-		ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
+		Platform platform = storager.queryParentPlatByServerGBId(platformId);
 		if (platform == null){
 			return;
 		}
@@ -186,7 +186,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 			subscribeHolder.removeCatalogSubscribe(platformId);
 		}
 		try {
-			ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
+			Platform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
 			SIPResponse response = responseXmlAck(request, resultXml.toString(), parentPlatform, subscribeInfo.getExpires());
 			if (subscribeInfo.getExpires() == 0) {
 				subscribeHolder.removeCatalogSubscribe(platformId);

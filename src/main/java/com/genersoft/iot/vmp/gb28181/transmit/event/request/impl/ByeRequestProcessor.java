@@ -123,7 +123,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 
 			if (sendRtpItem.getPlayType().equals(InviteStreamType.PUSH)) {
 				// 不是本平台的就发送redis消息让其他wvp停止发流
-				ParentPlatform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
+				Platform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
 				if (platform != null) {
 					redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem, platform);
 					if (!userSetting.getServerId().equals(sendRtpItem.getServerId())) {
@@ -185,7 +185,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 		}
 		log.info("[收到bye] 来自设备：{}, 通道: {}, 类型： {}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getType());
 
-		ParentPlatform platform = platformService.queryPlatformByServerGBId(ssrcTransaction.getDeviceId());
+		Platform platform = platformService.queryPlatformByServerGBId(ssrcTransaction.getDeviceId());
 		if (platform != null ) {
 			if (ssrcTransaction.getType().equals(InviteSessionType.BROADCAST)) {
 				log.info("[收到bye] 上级停止语音对讲，来自：{}, 通道已停止推流: {}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());

@@ -1155,7 +1155,7 @@ public class PlayServiceImpl implements IPlayService {
         if (sendRtpItems.size() > 0) {
             for (SendRtpItem sendRtpItem : sendRtpItems) {
                 if (sendRtpItem.getMediaServerId().equals(mediaServerId)) {
-                    ParentPlatform platform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
+                    Platform platform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
                     try {
                         sipCommanderFroPlatform.streamByeCmd(platform, sendRtpItem.getCallId());
                     } catch (SipException | InvalidArgumentException | ParseException e) {
@@ -1423,7 +1423,7 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public void startPushStream(SendRtpItem sendRtpItem, SIPResponse sipResponse, ParentPlatform platform, CallIdHeader callIdHeader) {
+    public void startPushStream(SendRtpItem sendRtpItem, SIPResponse sipResponse, Platform platform, CallIdHeader callIdHeader) {
         // 开始发流
         MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 
@@ -1448,7 +1448,7 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public void startSendRtpStreamFailHand(SendRtpItem sendRtpItem, ParentPlatform platform, CallIdHeader callIdHeader) {
+    public void startSendRtpStreamFailHand(SendRtpItem sendRtpItem, Platform platform, CallIdHeader callIdHeader) {
         if (sendRtpItem.isOnlyAudio()) {
             Device device = deviceService.getDevice(sendRtpItem.getDeviceId());
             AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());

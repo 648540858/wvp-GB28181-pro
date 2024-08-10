@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceNotFoundEvent;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
@@ -78,7 +78,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
         // 查询设备是否存在
         Device device = redisCatchStorage.getDevice(deviceId);
         // 查询上级平台是否存在
-        ParentPlatform parentPlatform = storage.queryParentPlatByServerGBId(deviceId);
+        Platform parentPlatform = storage.queryParentPlatByServerGBId(deviceId);
         try {
             if (device != null && parentPlatform != null) {
                 String hostAddress = request.getRemoteAddress().getHostAddress();

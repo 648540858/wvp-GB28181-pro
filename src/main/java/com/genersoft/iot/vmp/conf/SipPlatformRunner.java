@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.conf;
 
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
+import com.genersoft.iot.vmp.gb28181.bean.PlatformCatch;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -38,14 +38,14 @@ public class SipPlatformRunner implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         // 获取所有启用的平台
-        List<ParentPlatform> parentPlatforms = storager.queryEnableParentPlatformList(true);
+        List<Platform> parentPlatforms = storager.queryEnableParentPlatformList(true);
 
-        for (ParentPlatform parentPlatform : parentPlatforms) {
+        for (Platform parentPlatform : parentPlatforms) {
 
-            ParentPlatformCatch parentPlatformCatchOld = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
+            PlatformCatch parentPlatformCatchOld = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
 
             // 更新缓存
-            ParentPlatformCatch parentPlatformCatch = new ParentPlatformCatch();
+            PlatformCatch parentPlatformCatch = new PlatformCatch();
             parentPlatformCatch.setParentPlatform(parentPlatform);
             parentPlatformCatch.setId(parentPlatform.getServerGBId());
             redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);

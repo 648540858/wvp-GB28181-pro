@@ -6,7 +6,7 @@ import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
-import com.genersoft.iot.vmp.gb28181.dao.ParentPlatformMapper;
+import com.genersoft.iot.vmp.gb28181.dao.PlatformMapper;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformCatalogMapper;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
@@ -51,14 +51,14 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     private PlatformCatalogMapper catalogManager;
 
     @Autowired
-    private ParentPlatformMapper platformMapper;
+    private PlatformMapper platformMapper;
 
     @Autowired
     EventPublisher eventPublisher;
 
     @Override
     public int updateChannelForGB(String platformId, List<ChannelReduce> channelReduces, String catalogId) {
-        ParentPlatform platform = platformMapper.getParentPlatByServerGBId(platformId);
+        Platform platform = platformMapper.getParentPlatByServerGBId(platformId);
         if (platform == null) {
             log.warn("更新级联通道信息时未找到平台{}的信息", platformId);
             return 0;
@@ -122,7 +122,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         return allCount;
     }
 
-    private List<CommonGBChannel> getDeviceChannelListByChannelReduceList(List<ChannelReduce> channelReduces, String catalogId, ParentPlatform platform) {
+    private List<CommonGBChannel> getDeviceChannelListByChannelReduceList(List<ChannelReduce> channelReduces, String catalogId, Platform platform) {
         List<CommonGBChannel> deviceChannelList = new ArrayList<>();
         if (!channelReduces.isEmpty()){
             PlatformCatalog catalog = catalogManager.selectByPlatFormAndCatalogId(platform.getServerGBId(),catalogId);
@@ -157,7 +157,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         if (platformId == null) {
             return 0;
         }
-        ParentPlatform platform = platformMapper.getParentPlatByServerGBId(platformId);
+        Platform platform = platformMapper.getParentPlatByServerGBId(platformId);
         if (platform == null) {
             return 0;
         }

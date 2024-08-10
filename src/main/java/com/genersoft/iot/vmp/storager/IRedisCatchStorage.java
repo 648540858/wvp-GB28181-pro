@@ -22,9 +22,9 @@ public interface IRedisCatchStorage {
      */
     Long getCSEQ();
 
-    void updatePlatformCatchInfo(ParentPlatformCatch parentPlatformCatch);
+    void updatePlatformCatchInfo(PlatformCatch parentPlatformCatch);
 
-    ParentPlatformCatch queryPlatformCatchInfo(String platformGbId);
+    PlatformCatch queryPlatformCatchInfo(String platformGbId);
 
     void delPlatformCatchInfo(String platformGbId);
 
@@ -208,9 +208,9 @@ public interface IRedisCatchStorage {
 
     void sendChannelAddOrDelete(String deviceId, String channelId, boolean add);
 
-    void sendPlatformStartPlayMsg(SendRtpItem sendRtpItem, ParentPlatform platform);
+    void sendPlatformStartPlayMsg(SendRtpItem sendRtpItem, Platform platform);
 
-    void sendPlatformStopPlayMsg(SendRtpItem sendRtpItem, ParentPlatform platform);
+    void sendPlatformStopPlayMsg(SendRtpItem sendRtpItem, Platform platform);
 
     void addPushListItem(String app, String stream, MediaInfo param);
 

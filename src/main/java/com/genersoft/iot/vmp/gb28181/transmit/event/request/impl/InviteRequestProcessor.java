@@ -184,7 +184,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     requesterId, callIdHeader.getCallId(), request.getRemoteAddress(), request.getRemotePort());
 
             // 查询请求是否来自上级平台\设备
-            ParentPlatform platform = storager.queryParentPlatByServerGBId(requesterId);
+            Platform platform = storager.queryParentPlatByServerGBId(requesterId);
             if (platform == null) {
                 inviteFromDeviceHandle(request, requesterId, channelId);
 
@@ -644,7 +644,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         }
     }
 
-    private void startSendRtpStreamHand(RequestEvent evt, SendRtpItem sendRtpItem, ParentPlatform parentPlatform,
+    private void startSendRtpStreamHand(RequestEvent evt, SendRtpItem sendRtpItem, Platform parentPlatform,
                                         JSONObject jsonObject, Map<String, Object> param, CallIdHeader callIdHeader) {
         if (jsonObject == null) {
             log.error("下级TCP被动启动监听失败: 请检查ZLM服务");
@@ -659,7 +659,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     /**
      * 安排推流
      */
-    private void sendProxyStream(SendRtpItem sendRtpItem, MediaServer mediaServerItem, ParentPlatform platform, SIPRequest request) {
+    private void sendProxyStream(SendRtpItem sendRtpItem, MediaServer mediaServerItem, Platform platform, SIPRequest request) {
         MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStream());
         
         if (mediaInfo != null) {
@@ -688,7 +688,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         }
     }
 
-    private void sendPushStream(SendRtpItem sendRtpItem, MediaServer mediaServerItem, ParentPlatform platform, SIPRequest request) {
+    private void sendPushStream(SendRtpItem sendRtpItem, MediaServer mediaServerItem, Platform platform, SIPRequest request) {
         // 推流
         if (sendRtpItem.getServerId().equals(userSetting.getServerId())) {
             MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStream());
@@ -729,7 +729,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     /**
      * 通知流上线
      */
-    private void notifyProxyStreamOnline(SendRtpItem sendRtpItem, MediaServer mediaServerItem, ParentPlatform platform, SIPRequest request) {
+    private void notifyProxyStreamOnline(SendRtpItem sendRtpItem, MediaServer mediaServerItem, Platform platform, SIPRequest request) {
         // TODO 控制启用以使设备上线
         log.info("[ app={}, stream={} ]通道未推流，启用流后开始推流", sendRtpItem.getApp(), sendRtpItem.getStream());
         // 监听流上线
@@ -758,7 +758,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     /**
      * 通知流上线
      */
-    private void notifyPushStreamOnline(SendRtpItem sendRtpItem, MediaServer mediaServerItem, ParentPlatform platform, SIPRequest request) {
+    private void notifyPushStreamOnline(SendRtpItem sendRtpItem, MediaServer mediaServerItem, Platform platform, SIPRequest request) {
         // 发送redis消息以使设备上线，流上线后被
         log.info("[ app={}, stream={} ]通道未推流，发送redis信息控制设备开始推流", sendRtpItem.getApp(), sendRtpItem.getStream());
         MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(1,
@@ -847,7 +847,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     /**
      * 来自其他wvp的推流
      */
-    private void otherWvpPushStream(SendRtpItem sendRtpItem, SIPRequest request, ParentPlatform platform) {
+    private void otherWvpPushStream(SendRtpItem sendRtpItem, SIPRequest request, Platform platform) {
         log.info("[级联点播] 来自其他wvp的推流 {}/{}", sendRtpItem.getApp(), sendRtpItem.getStream());
         sendRtpItem = redisRpcService.getSendRtpItem(sendRtpItem.getRedisKey());
         if (sendRtpItem == null) {
@@ -862,7 +862,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         redisCatchStorage.updateSendRTPSever(sendRtpItem);
     }
 
-    public SIPResponse sendStreamAck(SIPRequest request, SendRtpItem sendRtpItem, ParentPlatform platform) {
+    public SIPResponse sendStreamAck(SIPRequest request, SendRtpItem sendRtpItem, Platform platform) {
 
         String sdpIp = sendRtpItem.getLocalIp();
         if (!ObjectUtils.isEmpty(platform.getSendStreamIp())) {
@@ -1117,7 +1117,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             content.append("y=" + ssrc + "\r\n");
             content.append("f=v/////a/1/8/1\r\n");
 
-            ParentPlatform parentPlatform = new ParentPlatform();
+            Platform parentPlatform = new Platform();
             parentPlatform.setServerIP(device.getIp());
             parentPlatform.setServerPort(device.getPort());
             parentPlatform.setServerGBId(device.getDeviceId());

@@ -56,7 +56,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	private DeviceMobilePositionMapper deviceMobilePositionMapper;
 
 	@Autowired
-    private ParentPlatformMapper platformMapper;
+    private PlatformMapper platformMapper;
 
 	@Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -91,27 +91,27 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	}
 
 	@Override
-	public boolean updateParentPlatform(ParentPlatform parentPlatform) {
+	public boolean updateParentPlatform(Platform parentPlatform) {
 		int result = 0;
 		if (parentPlatform.getCatalogGroup() == 0) {
 			parentPlatform.setCatalogGroup(1);
 		}
-		ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId()); // .getDeviceGBId());
+		PlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId()); // .getDeviceGBId());
 		if (parentPlatform.getId() == null ) {
 			if (parentPlatform.getCatalogId() == null) {
 				parentPlatform.setCatalogId(parentPlatform.getServerGBId());
 			}
 			result = platformMapper.addParentPlatform(parentPlatform);
 			if (parentPlatformCatch == null) {
-				parentPlatformCatch = new ParentPlatformCatch();
+				parentPlatformCatch = new PlatformCatch();
 				parentPlatformCatch.setParentPlatform(parentPlatform);
 				parentPlatformCatch.setId(parentPlatform.getServerGBId());
 			}
 		}else {
 			if (parentPlatformCatch == null) { // serverGBId 已变化
-				ParentPlatform parentPlatById = platformMapper.getParentPlatById(parentPlatform.getId());
+				Platform parentPlatById = platformMapper.getParentPlatById(parentPlatform.getId());
 				// 使用旧的查出缓存ID
-				parentPlatformCatch = new ParentPlatformCatch();
+				parentPlatformCatch = new PlatformCatch();
 				parentPlatformCatch.setId(parentPlatform.getServerGBId());
 				redisCatchStorage.delPlatformCatchInfo(parentPlatById.getServerGBId());
 			}
@@ -127,7 +127,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 
 	@Transactional
 	@Override
-	public boolean deleteParentPlatform(ParentPlatform parentPlatform) {
+	public boolean deleteParentPlatform(Platform parentPlatform) {
 		int result = platformMapper.delParentPlatform(parentPlatform);
 		// 删除关联的通道
 		platformChannelMapper.cleanChannelForGB(parentPlatform.getServerGBId());
@@ -135,17 +135,17 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	}
 
 	@Override
-	public ParentPlatform queryParentPlatByServerGBId(String platformGbId) {
+	public Platform queryParentPlatByServerGBId(String platformGbId) {
 		return platformMapper.getParentPlatByServerGBId(platformGbId);
 	}
 
 	@Override
-	public List<ParentPlatform> queryEnableParentPlatformList(boolean enable) {
+	public List<Platform> queryEnableParentPlatformList(boolean enable) {
 		return platformMapper.getEnableParentPlatformList(enable);
 	}
 
 	@Override
-	public List<ParentPlatform> queryEnablePlatformListWithAsMessageChannel() {
+	public List<Platform> queryEnablePlatformListWithAsMessageChannel() {
 		return platformMapper.queryEnablePlatformListWithAsMessageChannel();
 	}
 
@@ -266,29 +266,8 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		return gbStreamMapper.updateStreamGPS(gpsMsgInfos);
 	}
 
-
-	private DeviceChannel getDeviceChannelByCatalog(PlatformCatalog catalog) {
-		ParentPlatform platform = platformMapper.getParentPlatByServerGBId(catalog.getPlatformId());
-		DeviceChannel deviceChannel = new DeviceChannel();
-		deviceChannel.setDeviceId(catalog.getId());
-		deviceChannel.setName(catalog.getName());
-		deviceChannel.setDeviceId(platform.getDeviceGBId());
-		deviceChannel.setManufacturer("wvp-pro");
-		deviceChannel.setStatus("ON");
-		deviceChannel.setParental(1);
-
-		deviceChannel.setRegisterWay(1);
-		deviceChannel.setParentId(catalog.getParentId());
-		deviceChannel.setBusinessGroupId(catalog.getBusinessGroupId());
-
-		deviceChannel.setModel("live");
-		deviceChannel.setOwner("wvp-pro");
-		deviceChannel.setSecrecy(0);
-		return deviceChannel;
-	}
-
 	@Override
-	public List<ParentPlatform> queryPlatFormListForGBWithGBId(String channelId, List<String> platforms) {
+	public List<Platform> queryPlatFormListForGBWithGBId(String channelId, List<String> platforms) {
 		return platformChannelMapper.queryPlatFormListForGBWithGBId(channelId, platforms);
 	}
 

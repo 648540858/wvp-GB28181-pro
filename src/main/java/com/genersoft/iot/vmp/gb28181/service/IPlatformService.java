@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.service;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -19,7 +19,7 @@ import java.text.ParseException;
  */
 public interface IPlatformService {
 
-    ParentPlatform queryPlatformByServerGBId(String platformGbId);
+    Platform queryPlatformByServerGBId(String platformGbId);
 
     /**
      * 分页获取上级平台
@@ -27,37 +27,37 @@ public interface IPlatformService {
      * @param count
      * @return
      */
-    PageInfo<ParentPlatform> queryParentPlatformList(int page, int count);
+    PageInfo<Platform> queryParentPlatformList(int page, int count);
 
     /**
      * 添加级联平台
      * @param parentPlatform 级联平台
      */
-    boolean add(ParentPlatform parentPlatform);
+    boolean add(Platform parentPlatform);
 
     /**
      * 添加级联平台
      * @param parentPlatform 级联平台
      */
-    boolean update(ParentPlatform parentPlatform);
+    boolean update(Platform parentPlatform);
 
     /**
      * 平台上线
      * @param parentPlatform 平台信息
      */
-    void online(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo);
+    void online(Platform parentPlatform, SipTransactionInfo sipTransactionInfo);
 
     /**
      * 平台离线
      * @param parentPlatform 平台信息
      */
-    void offline(ParentPlatform parentPlatform, boolean stopRegisterTask);
+    void offline(Platform parentPlatform, boolean stopRegisterTask);
 
     /**
      * 向上级平台发起注册
      * @param parentPlatform
      */
-    void login(ParentPlatform parentPlatform);
+    void login(Platform parentPlatform);
 
     /**
      * 向上级平台发送位置订阅
@@ -73,15 +73,15 @@ public interface IPlatformService {
      * @param errorEvent 信令错误事件
      * @param timeoutCallback 超时事件
      */
-    void broadcastInvite(ParentPlatform platform, String channelId, MediaServer mediaServerItem, HookSubscribe.Event hookEvent,
+    void broadcastInvite(Platform platform, String channelId, MediaServer mediaServerItem, HookSubscribe.Event hookEvent,
                          SipSubscribe.Event errorEvent, InviteTimeOutCallback timeoutCallback) throws InvalidArgumentException, ParseException, SipException;
 
     /**
      * 语音喊话回复BYE
      */
-    void stopBroadcast(ParentPlatform platform, DeviceChannel channel, String stream,boolean sendBye, MediaServer mediaServerItem);
+    void stopBroadcast(Platform platform, DeviceChannel channel, String stream, boolean sendBye, MediaServer mediaServerItem);
 
-    void addSimulatedSubscribeInfo(ParentPlatform parentPlatform);
+    void addSimulatedSubscribeInfo(Platform parentPlatform);
 
-    ParentPlatform queryOne(Integer platformId);
+    Platform queryOne(Integer platformId);
 }

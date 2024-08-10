@@ -25,7 +25,7 @@ import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
-import com.genersoft.iot.vmp.gb28181.dao.ParentPlatformMapper;
+import com.genersoft.iot.vmp.gb28181.dao.PlatformMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -59,7 +59,7 @@ public class PlatformServiceImpl implements IPlatformService {
     private final static String KEEPALIVE_KEY_PREFIX = "platform_keepalive_";
 
     @Autowired
-    private ParentPlatformMapper platformMapper;
+    private PlatformMapper platformMapper;
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -106,7 +106,7 @@ public class PlatformServiceImpl implements IPlatformService {
             for (SendRtpItem sendRtpItem : sendRtpItems) {
                 if (sendRtpItem != null && sendRtpItem.getApp().equals(event.getApp())) {
                     String platformId = sendRtpItem.getPlatformId();
-                    ParentPlatform platform = platformMapper.getParentPlatByServerGBId(platformId);
+                    Platform platform = platformMapper.getParentPlatByServerGBId(platformId);
 
                     try {
                         if (platform != null) {
@@ -132,7 +132,7 @@ public class PlatformServiceImpl implements IPlatformService {
         List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(event.getStream());
         if (sendRtpItems != null && !sendRtpItems.isEmpty()) {
             for (SendRtpItem sendRtpItem : sendRtpItems) {
-                ParentPlatform parentPlatform = platformMapper.getParentPlatByServerGBId(sendRtpItem.getPlatformId());
+                Platform parentPlatform = platformMapper.getParentPlatByServerGBId(sendRtpItem.getPlatformId());
                 ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
                 try {
                     commanderForPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
@@ -147,19 +147,19 @@ public class PlatformServiceImpl implements IPlatformService {
 
 
     @Override
-    public ParentPlatform queryPlatformByServerGBId(String platformGbId) {
+    public Platform queryPlatformByServerGBId(String platformGbId) {
         return platformMapper.getParentPlatByServerGBId(platformGbId);
     }
 
     @Override
-    public PageInfo<ParentPlatform> queryParentPlatformList(int page, int count) {
+    public PageInfo<Platform> queryParentPlatformList(int page, int count) {
         PageHelper.startPage(page, count);
-        List<ParentPlatform> all = platformMapper.getParentPlatformList();
+        List<Platform> all = platformMapper.getParentPlatformList();
         return new PageInfo<>(all);
     }
 
     @Override
-    public boolean add(ParentPlatform parentPlatform) {
+    public boolean add(Platform parentPlatform) {
 
         if (parentPlatform.getCatalogGroup() == 0) {
             // 每次发送目录的数量默认为1
@@ -168,7 +168,7 @@ public class PlatformServiceImpl implements IPlatformService {
         parentPlatform.setCatalogId(parentPlatform.getDeviceGBId());
         int result = platformMapper.addParentPlatform(parentPlatform);
         // 添加缓存
-        ParentPlatformCatch parentPlatformCatch = new ParentPlatformCatch();
+        PlatformCatch parentPlatformCatch = new PlatformCatch();
         parentPlatformCatch.setParentPlatform(parentPlatform);
         parentPlatformCatch.setId(parentPlatform.getServerGBId());
         parentPlatformCatch.setParentPlatform(parentPlatform);
@@ -188,11 +188,11 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public boolean update(ParentPlatform parentPlatform) {
+    public boolean update(Platform parentPlatform) {
         log.info("[国标级联]更新平台 {}", parentPlatform.getDeviceGBId());
         parentPlatform.setCharacterSet(parentPlatform.getCharacterSet().toUpperCase());
-        ParentPlatform parentPlatformOld = platformMapper.getParentPlatById(parentPlatform.getId());
-        ParentPlatformCatch parentPlatformCatchOld = redisCatchStorage.queryPlatformCatchInfo(parentPlatformOld.getServerGBId());
+        Platform parentPlatformOld = platformMapper.getParentPlatById(parentPlatform.getId());
+        PlatformCatch parentPlatformCatchOld = redisCatchStorage.queryPlatformCatchInfo(parentPlatformOld.getServerGBId());
         parentPlatform.setUpdateTime(DateUtil.getNow());
 
         // 停止心跳定时
@@ -221,7 +221,7 @@ public class PlatformServiceImpl implements IPlatformService {
         platformMapper.updateParentPlatform(parentPlatform);
         // 更新redis
         redisCatchStorage.delPlatformCatchInfo(parentPlatformOld.getServerGBId());
-        ParentPlatformCatch parentPlatformCatch = new ParentPlatformCatch();
+        PlatformCatch parentPlatformCatch = new PlatformCatch();
         parentPlatformCatch.setParentPlatform(parentPlatform);
         parentPlatformCatch.setId(parentPlatform.getServerGBId());
         redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
@@ -245,15 +245,15 @@ public class PlatformServiceImpl implements IPlatformService {
 
 
     @Override
-    public void online(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo) {
+    public void online(Platform parentPlatform, SipTransactionInfo sipTransactionInfo) {
         log.info("[国标级联]：{}, 平台上线", parentPlatform.getServerGBId());
         final String registerFailAgainTaskKey = REGISTER_FAIL_AGAIN_KEY_PREFIX + parentPlatform.getServerGBId();
         dynamicTask.stop(registerFailAgainTaskKey);
 
         platformMapper.updateParentPlatformStatus(parentPlatform.getServerGBId(), true);
-        ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
+        PlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
         if (parentPlatformCatch == null) {
-            parentPlatformCatch = new ParentPlatformCatch();
+            parentPlatformCatch = new PlatformCatch();
             parentPlatformCatch.setParentPlatform(parentPlatform);
             parentPlatformCatch.setId(parentPlatform.getServerGBId());
             parentPlatform.setStatus(true);
@@ -288,7 +288,7 @@ public class PlatformServiceImpl implements IPlatformService {
                                     log.warn("[国标级联]发送心跳收到错误，code： {}, msg: {}", eventResult.statusCode, eventResult.msg);
                                 }
                                 // 心跳失败
-                                ParentPlatformCatch platformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
+                                PlatformCatch platformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
                                 // 此时是第三次心跳超时， 平台离线
                                 if (platformCatch.getKeepAliveReply()  == 2) {
                                     // 设置平台离线，并重新注册
@@ -302,7 +302,7 @@ public class PlatformServiceImpl implements IPlatformService {
                             }, eventResult -> {
                                 // 心跳成功
                                 // 清空之前的心跳超时计数
-                                ParentPlatformCatch platformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
+                                PlatformCatch platformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
                                 if (platformCatch != null && platformCatch.getKeepAliveReply() > 0) {
                                     platformCatch.setKeepAliveReply(0);
                                     redisCatchStorage.updatePlatformCatchInfo(platformCatch);
@@ -329,7 +329,7 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public void addSimulatedSubscribeInfo(ParentPlatform parentPlatform) {
+    public void addSimulatedSubscribeInfo(Platform parentPlatform) {
         // 自动添加一条模拟的订阅信息
         SubscribeInfo subscribeInfo = new SubscribeInfo();
         subscribeInfo.setId(parentPlatform.getServerGBId());
@@ -343,7 +343,7 @@ public class PlatformServiceImpl implements IPlatformService {
         subscribeHolder.putCatalogSubscribe(parentPlatform.getServerGBId(), subscribeInfo);
     }
 
-    private void registerTask(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo){
+    private void registerTask(Platform parentPlatform, SipTransactionInfo sipTransactionInfo){
         try {
             // 不在同一个会话中续订则每次全新注册
             if (!userSetting.isRegisterKeepIntDialog()) {
@@ -367,12 +367,12 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public void offline(ParentPlatform parentPlatform, boolean stopRegister) {
+    public void offline(Platform parentPlatform, boolean stopRegister) {
         log.info("[平台离线]：{}", parentPlatform.getServerGBId());
-        ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
+        PlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
         parentPlatformCatch.setKeepAliveReply(0);
         parentPlatformCatch.setRegisterAliveReply(0);
-        ParentPlatform parentPlatformInCatch = parentPlatformCatch.getParentPlatform();
+        Platform parentPlatformInCatch = parentPlatformCatch.getParentPlatform();
         parentPlatformInCatch.setStatus(false);
         parentPlatformCatch.setParentPlatform(parentPlatformInCatch);
         redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
@@ -409,7 +409,7 @@ public class PlatformServiceImpl implements IPlatformService {
         if (!stopRegister) {
             // 设置为60秒自动尝试重新注册
             final String registerFailAgainTaskKey = REGISTER_FAIL_AGAIN_KEY_PREFIX + parentPlatform.getServerGBId();
-            ParentPlatform platform = platformMapper.getParentPlatById(parentPlatform.getId());
+            Platform platform = platformMapper.getParentPlatById(parentPlatform.getId());
             if (platform.isEnable()) {
                 dynamicTask.startCron(registerFailAgainTaskKey,
                         ()-> registerTask(platform, null),
@@ -431,7 +431,7 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public void login(ParentPlatform parentPlatform) {
+    public void login(Platform parentPlatform) {
         final String registerTaskKey = REGISTER_KEY_PREFIX + parentPlatform.getServerGBId();
         try {
             commanderForPlatform.register(parentPlatform, eventResult1 -> {
@@ -449,7 +449,7 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Override
     public void sendNotifyMobilePosition(String platformId) {
-        ParentPlatform platform = platformMapper.getParentPlatByServerGBId(platformId);
+        Platform platform = platformMapper.getParentPlatByServerGBId(platformId);
         if (platform == null) {
             return;
         }
@@ -483,7 +483,7 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public void broadcastInvite(ParentPlatform platform, String channelId, MediaServer mediaServerItem, HookSubscribe.Event hookEvent,
+    public void broadcastInvite(Platform platform, String channelId, MediaServer mediaServerItem, HookSubscribe.Event hookEvent,
                                 SipSubscribe.Event errorEvent, InviteTimeOutCallback timeoutCallback) throws InvalidArgumentException, ParseException, SipException {
 
         if (mediaServerItem == null) {
@@ -625,7 +625,7 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     private void inviteOKHandler(SipSubscribe.EventResult eventResult, SSRCInfo ssrcInfo, int tcpMode, boolean ssrcCheck, MediaServer mediaServerItem,
-                                 ParentPlatform platform, String channelId, String timeOutTaskKey, ErrorCallback<Object> callback,
+                                 Platform platform, String channelId, String timeOutTaskKey, ErrorCallback<Object> callback,
                                  InviteInfo inviteInfo, InviteSessionType inviteSessionType){
         inviteInfo.setStatus(InviteSessionStatus.ok);
         ResponseEvent responseEvent = (ResponseEvent) eventResult.event;
@@ -727,7 +727,7 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
 
-    private void tcpActiveHandler(ParentPlatform platform, String channelId, String contentString,
+    private void tcpActiveHandler(Platform platform, String channelId, String contentString,
                                   MediaServer mediaServerItem, int tcpMode, boolean ssrcCheck,
                                   String timeOutTaskKey, SSRCInfo ssrcInfo, ErrorCallback<Object> callback){
         if (tcpMode != 2) {
@@ -776,7 +776,7 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public void stopBroadcast(ParentPlatform platform, DeviceChannel channel, String stream, boolean sendBye, MediaServer mediaServerItem) {
+    public void stopBroadcast(Platform platform, DeviceChannel channel, String stream, boolean sendBye, MediaServer mediaServerItem) {
 
         try {
             if (sendBye) {
@@ -797,7 +797,7 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public ParentPlatform queryOne(Integer platformId) {
+    public Platform queryOne(Integer platformId) {
         return platformMapper.getParentPlatById(platformId);
     }
 }

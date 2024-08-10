@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.dao;
 
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.annotations.Param;
@@ -13,15 +13,15 @@ import java.util.List;
  */
 @Mapper
 @Repository
-public interface ParentPlatformMapper {
+public interface PlatformMapper {
 
     @Insert("INSERT INTO wvp_platform (enable, name, server_gb_id, server_gb_domain, server_ip, server_port,device_gb_id,device_ip,"+
             "device_port,username,password,expires,keep_timeout,transport,character_set,ptz,rtcp,as_message_channel,auto_push_channel,"+
-            "status,start_offline_push,catalog_id,administrative_division,catalog_group,create_time,update_time,send_stream_ip) " +
+            "status,catalog_id,administrative_division,catalog_group,create_time,update_time,send_stream_ip) " +
             "            VALUES (#{enable}, #{name}, #{serverGBId}, #{serverGBDomain}, #{serverIP}, #{serverPort}, #{deviceGBId}, #{deviceIp}, " +
             "            #{devicePort}, #{username}, #{password}, #{expires}, #{keepTimeout}, #{transport}, #{characterSet}, #{ptz}, #{rtcp}, #{asMessageChannel}, #{autoPushChannel}, " +
-            "            #{status},  #{startOfflinePush}, #{catalogId}, #{administrativeDivision}, #{catalogGroup}, #{createTime}, #{updateTime}, #{sendStreamIp})")
-    int addParentPlatform(ParentPlatform parentPlatform);
+            "            #{status}, #{catalogId}, #{administrativeDivision}, #{catalogGroup}, #{createTime}, #{updateTime}, #{sendStreamIp})")
+    int addParentPlatform(Platform parentPlatform);
 
     @Update("UPDATE wvp_platform " +
             "SET enable=#{enable}, " +
@@ -44,7 +44,6 @@ public interface ParentPlatformMapper {
             "as_message_channel=#{asMessageChannel}, " +
             "auto_push_channel=#{autoPushChannel}, " +
             "status=#{status}, " +
-            "start_offline_push=#{startOfflinePush}, " +
             "catalog_group=#{catalogGroup}, " +
             "administrative_division=#{administrativeDivision}, " +
             "create_time=#{createTime}, " +
@@ -52,10 +51,10 @@ public interface ParentPlatformMapper {
             "send_stream_ip=#{sendStreamIp}, " +
             "catalog_id=#{catalogId} " +
             "WHERE id=#{id}")
-    int updateParentPlatform(ParentPlatform parentPlatform);
+    int updateParentPlatform(Platform parentPlatform);
 
     @Delete("DELETE FROM wvp_platform WHERE server_gb_id=#{serverGBId}")
-    int delParentPlatform(ParentPlatform parentPlatform);
+    int delParentPlatform(Platform parentPlatform);
 
     @Select("SELECT *, ((SELECT count(0)\n" +
             "              FROM wvp_platform_gb_channel pc\n" +
@@ -69,19 +68,19 @@ public interface ParentPlatformMapper {
             "              FROM wvp_platform_catalog pgc\n" +
             "              WHERE pgc.platform_id = pp.server_gb_id)) as channel_count\n" +
             "FROM wvp_platform pp ")
-    List<ParentPlatform> getParentPlatformList();
+    List<Platform> getParentPlatformList();
 
     @Select("SELECT * FROM wvp_platform WHERE enable=#{enable} ")
-    List<ParentPlatform> getEnableParentPlatformList(boolean enable);
+    List<Platform> getEnableParentPlatformList(boolean enable);
 
     @Select("SELECT * FROM wvp_platform WHERE enable=true and as_message_channel=true")
-    List<ParentPlatform> queryEnablePlatformListWithAsMessageChannel();
+    List<Platform> queryEnablePlatformListWithAsMessageChannel();
 
     @Select("SELECT * FROM wvp_platform WHERE server_gb_id=#{platformGbId}")
-    ParentPlatform getParentPlatByServerGBId(String platformGbId);
+    Platform getParentPlatByServerGBId(String platformGbId);
 
     @Select("SELECT * FROM wvp_platform WHERE id=#{id}")
-    ParentPlatform getParentPlatById(int id);
+    Platform getParentPlatById(int id);
 
     @Update("UPDATE wvp_platform SET status=false" )
     int outlineForAllParentPlatform();

@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
@@ -61,7 +61,7 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element rootElement) {
+    public void handForPlatform(RequestEvent evt, Platform platform, Element rootElement) {
 
         FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
         try {
@@ -72,16 +72,14 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
         }
         Element snElement = rootElement.element("SN");
         String sn = snElement.getText();
-        List<CommonGBChannel> channelList = channelService.queryByPlatformId(parentPlatform.getId());
-
-        // TODO 是否包含平台信息，做成一个策略
+        List<CommonGBChannel> channelList = channelService.queryByPlatform(platform);
 
         try {
             if (!channelList.isEmpty()) {
-                cmderFroPlatform.catalogQuery(channelList, parentPlatform, sn, fromHeader.getTag());
+                cmderFroPlatform.catalogQuery(channelList, platform, sn, fromHeader.getTag());
             }else {
                 // 回复无通道
-                cmderFroPlatform.catalogQuery(null, parentPlatform, sn, fromHeader.getTag(), 0);
+                cmderFroPlatform.catalogQuery(null, platform, sn, fromHeader.getTag(), 0);
             }
         } catch (SipException | InvalidArgumentException | ParseException e) {
             log.error("[命令发送失败] 国标级联 目录查询回复: {}", e.getMessage());

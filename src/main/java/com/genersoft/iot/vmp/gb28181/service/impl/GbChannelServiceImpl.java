@@ -299,9 +299,34 @@ public class GbChannelServiceImpl implements IGbChannelService {
     }
 
     @Override
-    public List<CommonGBChannel> queryByPlatformId(Integer platformId) {
-        return commonGBChannelMapper.queryByPlatformId(platformId);
+    public List<CommonGBChannel> queryByPlatform(Platform platform) {
+        if (platform == null) {
+            return null;
+        }
+        List<CommonGBChannel> commonGBChannelList = commonGBChannelMapper.queryWithPlatform(platform.getId());
+        if (commonGBChannelList.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<CommonGBChannel> channelList = new ArrayList<>();
+        // 是否包含平台信息
+        if (platform.getCatalogWithPlatform()) {
+            CommonGBChannel channel = CommonGBChannel.build(platform);
+            channelList.add(channel);
+        }
+
+        // 是否包含行政区划信息
+        if (platform.getCatalogWithRegion()) {
+
+        }
+        // 是否包含分组信息
+        if (platform.getCatalogWithGroup()) {
+
+        }
+
+
+        return channelList;
     }
+
 
     @Override
     public CommonGBChannel getOne(int id) {

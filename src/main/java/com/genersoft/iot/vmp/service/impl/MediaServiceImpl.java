@@ -234,7 +234,7 @@ public class MediaServiceImpl implements IMediaService {
                             inviteInfo.getChannelId());
                     if (!sendRtpItems.isEmpty()) {
                         for (SendRtpItem sendRtpItem : sendRtpItems) {
-                            ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
+                            Platform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
                             try {
                                 commanderForPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
                             } catch (SipException | InvalidArgumentException | ParseException e) {

@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.event.subscribe.catalog;
 
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeInfo;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
@@ -42,9 +42,9 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
     @Override
     public void onApplicationEvent(CatalogEvent event) {
         SubscribeInfo subscribe = null;
-        ParentPlatform parentPlatform = null;
+        Platform parentPlatform = null;
 
-        Map<String, List<ParentPlatform>> parentPlatformMap = new HashMap<>();
+        Map<String, List<Platform>> parentPlatformMap = new HashMap<>();
         Map<String, CommonGBChannel> channelMap = new HashMap<>();
         if (event.getPlatformId() != null) {
             parentPlatform = platformService.queryOne(event.getPlatformId());
@@ -62,7 +62,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
             if (event.getChannels() != null) {
                 if (!platforms.isEmpty()) {
                     for (CommonGBChannel deviceChannel : event.getChannels()) {
-                        List<ParentPlatform> parentPlatformsForGB = storager.queryPlatFormListForGBWithGBId(deviceChannel.getGbDeviceId(), platforms);
+                        List<Platform> parentPlatformsForGB = storager.queryPlatFormListForGBWithGBId(deviceChannel.getGbDeviceId(), platforms);
                         parentPlatformMap.put(deviceChannel.getGbDeviceId(), parentPlatformsForGB);
                         channelMap.put(deviceChannel.getGbDeviceId(), deviceChannel);
                     }
@@ -90,9 +90,9 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                     }
                 }else if (!parentPlatformMap.keySet().isEmpty()) {
                     for (String gbId : parentPlatformMap.keySet()) {
-                        List<ParentPlatform> parentPlatforms = parentPlatformMap.get(gbId);
+                        List<Platform> parentPlatforms = parentPlatformMap.get(gbId);
                         if (parentPlatforms != null && !parentPlatforms.isEmpty()) {
-                            for (ParentPlatform platform : parentPlatforms) {
+                            for (Platform platform : parentPlatforms) {
                                 SubscribeInfo subscribeInfo = subscribeHolder.getCatalogSubscribe(platform.getServerGBId());
                                 if (subscribeInfo == null) {
                                     continue;
@@ -135,9 +135,9 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                     }
                 }else if (!parentPlatformMap.keySet().isEmpty()) {
                     for (String gbId : parentPlatformMap.keySet()) {
-                        List<ParentPlatform> parentPlatforms = parentPlatformMap.get(gbId);
+                        List<Platform> parentPlatforms = parentPlatformMap.get(gbId);
                         if (parentPlatforms != null && !parentPlatforms.isEmpty()) {
-                            for (ParentPlatform platform : parentPlatforms) {
+                            for (Platform platform : parentPlatforms) {
                                 SubscribeInfo subscribeInfo = subscribeHolder.getCatalogSubscribe(platform.getServerGBId());
                                 if (subscribeInfo == null) {
                                     continue;

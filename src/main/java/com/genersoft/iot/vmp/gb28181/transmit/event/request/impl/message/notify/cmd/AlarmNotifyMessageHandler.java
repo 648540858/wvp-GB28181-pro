@@ -198,7 +198,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element rootElement) {
+    public void handForPlatform(RequestEvent evt, Platform parentPlatform, Element rootElement) {
         log.info("收到来自平台[{}]的报警通知", parentPlatform.getServerGBId());
         // 回复200 OK
         try {

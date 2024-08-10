@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.response.impl;
 
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
+import com.genersoft.iot.vmp.gb28181.bean.PlatformCatch;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
@@ -65,7 +65,7 @@ public class RegisterResponseProcessor extends SIPResponseProcessorAbstract {
 			return;
 		}
 
-		ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(platformRegisterInfo.getPlatformId());
+		PlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(platformRegisterInfo.getPlatformId());
 		if (parentPlatformCatch == null) {
 			log.warn(String.format("[国标级联]收到注册/注销%S请求，平台：%s，但是平台缓存信息未查询到!!!", response.getStatusCode(),platformRegisterInfo.getPlatformId()));
 			return;
@@ -73,7 +73,7 @@ public class RegisterResponseProcessor extends SIPResponseProcessorAbstract {
 
 		String action = platformRegisterInfo.isRegister() ? "注册" : "注销";
 		log.info(String.format("[国标级联]%s %S响应,%s ", action, response.getStatusCode(), platformRegisterInfo.getPlatformId() ));
-		ParentPlatform parentPlatform = parentPlatformCatch.getParentPlatform();
+		Platform parentPlatform = parentPlatformCatch.getParentPlatform();
 		if (parentPlatform == null) {
 			log.warn(String.format("[国标级联]收到 %s %s的%S请求, 但是平台信息未查询到!!!", platformRegisterInfo.getPlatformId(), action, response.getStatusCode()));
 			return;

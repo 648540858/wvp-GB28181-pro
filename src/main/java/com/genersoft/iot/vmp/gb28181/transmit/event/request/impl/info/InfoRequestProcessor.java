@@ -80,7 +80,7 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
         // 查询设备是否存在
         Device device = redisCatchStorage.getDevice(deviceId);
         // 查询上级平台是否存在
-        ParentPlatform parentPlatform = storage.queryParentPlatByServerGBId(deviceId);
+        Platform parentPlatform = storage.queryParentPlatByServerGBId(deviceId);
         try {
             if (device != null && parentPlatform != null) {
                 log.warn("[重复]平台与设备编号重复：{}", deviceId);

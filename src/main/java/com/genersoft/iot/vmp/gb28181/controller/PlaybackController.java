@@ -140,7 +140,7 @@ public class PlaybackController {
 		if (ObjectUtils.isEmpty(deviceId) || ObjectUtils.isEmpty(channelId) || ObjectUtils.isEmpty(stream)) {
 			throw new ControllerException(ErrorCode.ERROR400);
 		}
-		Device device = deviceService.getDevice(deviceId);
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		if (device == null) {
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), "设备：" + deviceId + " 未找到");
 		}
@@ -195,7 +195,7 @@ public class PlaybackController {
 			log.warn("streamId不存在!");
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), "streamId不存在");
 		}
-		Device device = deviceService.getDevice(inviteInfo.getDeviceId());
+		Device device = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
 		try {
 			cmder.playSeekCmd(device, inviteInfo.getStreamInfo(), seekTime);
 		} catch (InvalidArgumentException | ParseException | SipException e) {
@@ -219,7 +219,7 @@ public class PlaybackController {
 			log.warn("不支持的speed： " + speed);
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "不支持的speed（0.25 0.5 1、2、4）");
 		}
-		Device device = deviceService.getDevice(inviteInfo.getDeviceId());
+		Device device = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
 		try {
 			cmder.playSpeedCmd(device, inviteInfo.getStreamInfo(), speed);
 		} catch (InvalidArgumentException | ParseException | SipException e) {

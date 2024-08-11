@@ -9,7 +9,6 @@ import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
-import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -28,6 +27,9 @@ import javax.sip.header.ContentTypeHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
 
+/**
+ * INFO 一般用于国标级联时的回放控制
+ */
 @Slf4j
 @Component
 public class InfoRequestProcessor extends SIPRequestProcessorParent implements InitializingBean, ISIPRequestProcessor {
@@ -68,22 +70,17 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
     public void process(RequestEvent evt) {
         log.debug("接收到消息：" + evt.getRequest());
         SIPRequest request = (SIPRequest) evt.getRequest();
-        String deviceId = SipUtils.getUserIdFromFromHeader(request);
         CallIdHeader callIdHeader = request.getCallIdHeader();
         // 先从会话内查找
         SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransaction(null, null, callIdHeader.getCallId(), null);
 
-        // 兼容海康 媒体通知 消息from字段不是设备ID的问题
-        if (ssrcTransaction != null) {
-            deviceId = ssrcTransaction.getDeviceId();
-        }
         // 查询设备是否存在
-        Device device = redisCatchStorage.getDevice(deviceId);
+        Device device = redisCatchStorage.getDevice(ssrcTransaction.getDeviceId());
         // 查询上级平台是否存在
-        Platform parentPlatform = storage.queryParentPlatByServerGBId(deviceId);
+        Platform parentPlatform = storage.queryParentPlatByServerGBId(ssrcTransaction.getDeviceId());
         try {
             if (device != null && parentPlatform != null) {
-                log.warn("[重复]平台与设备编号重复：{}", deviceId);
+                log.warn("[重复]平台与设备编号重复：{}", ssrcTransaction.getDeviceId());
                 String hostAddress = request.getRemoteAddress().getHostAddress();
                 int remotePort = request.getRemotePort();
                 if (device.getHostAddress().equals(hostAddress + ":" + remotePort)) {
@@ -94,8 +91,8 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
             }
             if (device == null && parentPlatform == null) {
                 // 不存在则回复404
-                responseAck(request, Response.NOT_FOUND, "device "+ deviceId +" not found");
-                log.warn("[设备未找到 ]： {}", deviceId);
+                responseAck(request, Response.NOT_FOUND, "device "+ ssrcTransaction.getDeviceId() +" not found");
+                log.warn("[设备未找到 ]： {}", ssrcTransaction.getDeviceId());
                 if (sipSubscribe.getErrorSubscribe(callIdHeader.getCallId()) != null){
                     DeviceNotFoundEvent deviceNotFoundEvent = new DeviceNotFoundEvent(evt.getDialog());
                     deviceNotFoundEvent.setCallId(callIdHeader.getCallId());
@@ -114,8 +111,9 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
                         responseAck(request, Response.NOT_FOUND, "stream " + streamId + " not found");
                         return;
                     }
-                    Device device1 = deviceService.getDevice(inviteInfo.getDeviceId());
+                    Device device1 = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
                     if (inviteInfo.getStreamInfo() != null) {
+                        // 不解析协议， 直接转发给对应的设备
                         cmder.playbackControlCmd(device1,inviteInfo.getStreamInfo(),new String(evt.getRequest().getRawContent()),eventResult -> {
                             // 失败的回复
                             try {
@@ -143,6 +141,4 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
             log.warn("SIP回复时解析异常", e);
         }
     }
-
-
 }

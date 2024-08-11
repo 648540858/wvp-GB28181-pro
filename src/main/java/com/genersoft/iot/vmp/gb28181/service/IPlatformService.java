@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.service;
 
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
@@ -79,7 +80,7 @@ public interface IPlatformService {
     /**
      * 语音喊话回复BYE
      */
-    void stopBroadcast(Platform platform, DeviceChannel channel, String stream, boolean sendBye, MediaServer mediaServerItem);
+    void stopBroadcast(Platform platform, CommonGBChannel channel, String stream, boolean sendBye, MediaServer mediaServerItem);
 
     void addSimulatedSubscribeInfo(Platform parentPlatform);
 

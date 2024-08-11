@@ -67,10 +67,10 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 	private AudioBroadcastManager audioBroadcastManager;
 
 	@Autowired
-	private IDeviceChannelService channelService;
+	private IVideoManagerStorage storager;
 
 	@Autowired
-	private IVideoManagerStorage storager;
+	private IGbChannelService channelService;
 
 	@Autowired
 	private IMediaServerService mediaServerService;
@@ -163,7 +163,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 				if (mediaInfo.getReaderCount() <= 0) {
 					log.info("[收到bye] {} 无其它观看者，通知设备停止推流", streamId);
 					if (sendRtpItem.getPlayType().equals(InviteStreamType.PLAY)) {
-						Device device = deviceService.getDevice(sendRtpItem.getDeviceId());
+						Device device = deviceService.getDeviceByDeviceId(sendRtpItem.getDeviceId());
 						if (device == null) {
 							log.info("[收到bye] {} 通知设备停止推流时未找到设备信息", streamId);
 						}
@@ -189,7 +189,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 		if (platform != null ) {
 			if (ssrcTransaction.getType().equals(InviteSessionType.BROADCAST)) {
 				log.info("[收到bye] 上级停止语音对讲，来自：{}, 通道已停止推流: {}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
-				DeviceChannel channel = storager.queryChannelInParentPlatform(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
+				CommonGBChannel channel = channelService.queryOneWithPlatform(platform.getId(), ssrcTransaction.getChannelId());
 				if (channel == null) {
 					log.info("[收到bye] 未找到通道，设备：{}， 通道：{}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
 					return;
@@ -198,16 +198,16 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 				platformService.stopBroadcast(platform, channel, ssrcTransaction.getStream(), false,
 						mediaServerService.getOne(mediaServerId));
 
-				playService.stopAudioBroadcast(ssrcTransaction.getDeviceId(), channel.getDeviceId());
+				playService.stopAudioBroadcast(ssrcTransaction.getDeviceId(), channel.getGbDeviceId());
 			}
 
 		}else {
-			Device device = deviceService.getDevice(ssrcTransaction.getDeviceId());
+			Device device = deviceService.getDeviceByDeviceId(ssrcTransaction.getDeviceId());
 			if (device == null) {
 				log.info("[收到bye] 未找到设备：{} ", ssrcTransaction.getDeviceId());
 				return;
 			}
-			DeviceChannel channel = channelService.getOne(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
+			DeviceChannel channel = deviceChannelService.getOne(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
 			if (channel == null) {
 				log.info("[收到bye] 未找到通道，设备：{}， 通道：{}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
 				return;

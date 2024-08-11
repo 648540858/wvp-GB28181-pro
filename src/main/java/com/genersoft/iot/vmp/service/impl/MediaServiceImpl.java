@@ -248,7 +248,7 @@ public class MediaServiceImpl implements IMediaService {
                         }
                     }
                 }
-                Device device = deviceService.getDevice(inviteInfo.getDeviceId());
+                Device device = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
                 if (device != null) {
                     try {
                         // 多查询一次防止已经被处理了

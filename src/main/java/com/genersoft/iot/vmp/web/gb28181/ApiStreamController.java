@@ -82,7 +82,7 @@ public class ApiStreamController {
 
     ){
         DeferredResult<JSONObject> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue() + 10);
-        Device device = deviceService.getDevice(serial);
+        Device device = deviceService.getDeviceByDeviceId(serial);
         if (device == null ) {
             JSONObject resultJSON = new JSONObject();
             resultJSON.put("error","device[ " + serial + " ]未找到");
@@ -230,7 +230,7 @@ public class ApiStreamController {
             result.put("error","未找到流信息");
             return result;
         }
-        Device device = deviceService.getDevice(serial);
+        Device device = deviceService.getDeviceByDeviceId(serial);
         if (device == null) {
             JSONObject result = new JSONObject();
             result.put("error","未找到设备");

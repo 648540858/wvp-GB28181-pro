@@ -129,7 +129,7 @@ public class RedisAlarmMsgListener implements MessageListener {
                             }
 
                         }else {
-                            Device device = deviceService.getDevice(gbId);
+                            Device device = deviceService.getDeviceByDeviceId(gbId);
                             Platform platform = storage.queryParentPlatByServerGBId(gbId);
                             if (device != null && platform == null) {
                                 try {

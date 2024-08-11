@@ -75,4 +75,6 @@ public interface IGbChannelService {
     void deleteChannelToGroupByGbDevice(List<Integer> deviceIds);
 
     void batchUpdate(List<CommonGBChannel> commonGBChannels);
+
+    CommonGBChannel queryOneWithPlatform(Integer platformId, String channelDeviceId);
 }

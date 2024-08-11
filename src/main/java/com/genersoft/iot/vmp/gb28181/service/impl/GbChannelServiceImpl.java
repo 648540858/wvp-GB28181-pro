@@ -3,6 +3,8 @@ package com.genersoft.iot.vmp.gb28181.service.impl;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
+import com.genersoft.iot.vmp.gb28181.dao.GroupMapper;
+import com.genersoft.iot.vmp.gb28181.dao.RegionMapper;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
@@ -31,6 +33,12 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Autowired
     private CommonGBChannelMapper commonGBChannelMapper;
+
+    @Autowired
+    private RegionMapper regionMapper;
+
+    @Autowired
+    private GroupMapper groupMapper;
 
     @Override
     public CommonGBChannel queryByDeviceId(String gbDeviceId) {
@@ -316,14 +324,19 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
         // 是否包含行政区划信息
         if (platform.getCatalogWithRegion()) {
-
+            List<CommonGBChannel> regionChannelList = regionMapper.queryInChannelList(commonGBChannelList);
+            if (!regionChannelList.isEmpty()) {
+                channelList.addAll(regionChannelList);
+            }
         }
         // 是否包含分组信息
         if (platform.getCatalogWithGroup()) {
-
+            List<CommonGBChannel> groupChannelList = groupMapper.queryInChannelList(commonGBChannelList);
+            if (!groupChannelList.isEmpty()) {
+                channelList.addAll(groupChannelList);
+            }
         }
-
-
+        channelList.addAll(commonGBChannelList);
         return channelList;
     }
 
@@ -618,5 +631,10 @@ public class GbChannelServiceImpl implements IGbChannelService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }
         commonGBChannelMapper.removeParentIdByChannels(channelList);
+    }
+
+    @Override
+    public CommonGBChannel queryOneWithPlatform(Integer platformId, String channelDeviceId) {
+        return commonGBChannelMapper.queryOneWithPlatform(platformId, channelDeviceId);
     }
 }

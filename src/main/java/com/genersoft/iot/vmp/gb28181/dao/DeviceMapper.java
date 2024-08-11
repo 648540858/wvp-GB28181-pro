@@ -347,4 +347,7 @@ public interface DeviceMapper {
 
     @Select("select * from wvp_device_channel where id = #{id}")
     DeviceChannel getRawChannel(@Param("id") int id);
+
+    @Select("select * from wvp_device where id = #{id}")
+    Device query(@Param("id") Integer id);
 }

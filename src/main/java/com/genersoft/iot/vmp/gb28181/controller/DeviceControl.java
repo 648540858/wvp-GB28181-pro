@@ -59,7 +59,7 @@ public class DeviceControl {
         if (log.isDebugEnabled()) {
             log.debug("设备远程启动API调用");
         }
-        Device device = deviceService.getDevice(deviceId);
+        Device device = deviceService.getDeviceByDeviceId(deviceId);
 		try {
 			cmder.teleBootCmd(device);
 		} catch (InvalidArgumentException | SipException | ParseException e) {
@@ -85,7 +85,7 @@ public class DeviceControl {
         if (log.isDebugEnabled()) {
             log.debug("开始/停止录像API调用");
         }
-        Device device = deviceService.getDevice(deviceId);
+        Device device = deviceService.getDeviceByDeviceId(deviceId);
 		String uuid = UUID.randomUUID().toString();
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL +  deviceId + channelId;
 		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
@@ -132,7 +132,7 @@ public class DeviceControl {
 		if (log.isDebugEnabled()) {
 			log.debug("布防/撤防API调用");
 		}
-		Device device = deviceService.getDevice(deviceId);
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + deviceId + deviceId;
 		String uuid =UUID.randomUUID().toString();
 		try {
@@ -181,7 +181,7 @@ public class DeviceControl {
 		if (log.isDebugEnabled()) {
 			log.debug("报警复位API调用");
 		}
-		Device device = deviceService.getDevice(deviceId);
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		String uuid = UUID.randomUUID().toString();
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + deviceId + channelId;
 		try {
@@ -225,7 +225,7 @@ public class DeviceControl {
 		if (log.isDebugEnabled()) {
 			log.debug("强制关键帧API调用");
 		}
-		Device device = deviceService.getDevice(deviceId);
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		try {
 			cmder.iFrameCmd(device, channelId);
 		} catch (InvalidArgumentException | SipException | ParseException e) {
@@ -263,7 +263,7 @@ public class DeviceControl {
 		}
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (ObjectUtils.isEmpty(channelId) ? deviceId : channelId);
 		String uuid = UUID.randomUUID().toString();
-		Device device = deviceService.getDevice(deviceId);
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		try {
 			cmder.homePositionCmd(device, channelId, enabled, resetTime, presetIndex, event -> {
 				RequestMessage msg = new RequestMessage();
@@ -326,7 +326,7 @@ public class DeviceControl {
 		if (log.isDebugEnabled()) {
 			log.debug(String.format("设备拉框放大 API调用，deviceId：%s ，channelId：%s ，length：%d ，width：%d ，midpointx：%d ，midpointy：%d ，lengthx：%d ，lengthy：%d",deviceId, channelId, length, width, midpointx, midpointy,lengthx, lengthy));
 		}
-		Device device = deviceService.getDevice(deviceId);
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		StringBuffer cmdXml = new StringBuffer(200);
 		cmdXml.append("<DragZoomIn>\r\n");
 		cmdXml.append("<Length>" + length+ "</Length>\r\n");
@@ -378,7 +378,7 @@ public class DeviceControl {
 		if (log.isDebugEnabled()) {
 			log.debug(String.format("设备拉框缩小 API调用，deviceId：%s ，channelId：%s ，length：%d ，width：%d ，midpointx：%d ，midpointy：%d ，lengthx：%d ，lengthy：%d",deviceId, channelId, length, width, midpointx, midpointy,lengthx, lengthy));
 		}
-		Device device = deviceService.getDevice(deviceId);
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		StringBuffer cmdXml = new StringBuffer(200);
 		cmdXml.append("<DragZoomOut>\r\n");
 		cmdXml.append("<Length>" + length+ "</Length>\r\n");

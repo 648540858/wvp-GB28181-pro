@@ -41,14 +41,6 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
     @Autowired
     private SIPCommanderFroPlatform cmderFroPlatform;
 
-    @Autowired
-    private SipConfig config;
-
-    @Autowired
-    private EventPublisher publisher;
-
-    @Autowired
-    private IVideoManagerStorage storage;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -57,7 +49,10 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
 
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element element) {
-
+        try {
+            // 回复200 OK
+            responseAck((SIPRequest) evt.getRequest(), Response.FORBIDDEN);
+        } catch (SipException | InvalidArgumentException | ParseException ignored) {}
     }
 
     @Override
@@ -84,6 +79,5 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
         } catch (SipException | InvalidArgumentException | ParseException e) {
             log.error("[命令发送失败] 国标级联 目录查询回复: {}", e.getMessage());
         }
-
     }
 }

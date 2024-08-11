@@ -91,7 +91,7 @@ public class DeviceQuery {
 	@GetMapping("/devices/{deviceId}")
 	public Device devices(@PathVariable String deviceId){
 		
-		return deviceService.getDevice(deviceId);
+		return deviceService.getDeviceByDeviceId(deviceId);
 	}
 
 	/**
@@ -148,7 +148,7 @@ public class DeviceQuery {
 		if (log.isDebugEnabled()) {
 			log.debug("设备通道信息同步API调用，deviceId：" + deviceId);
 		}
-		Device device = deviceService.getDevice(deviceId);
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		boolean status = deviceService.isSyncRunning(deviceId);
 		// 已存在则返回进度
 		if (status) {
@@ -273,7 +273,7 @@ public class DeviceQuery {
 			"UDP（udp传输），TCP-ACTIVE（tcp主动模式,暂不支持），TCP-PASSIVE（tcp被动模式）", required = true)
 	@PostMapping("/transport/{deviceId}/{streamMode}")
 	public void updateTransport(@PathVariable String deviceId, @PathVariable String streamMode){
-		Device device = deviceService.getDevice(deviceId);
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		device.setStreamMode(streamMode);
 		deviceService.updateCustomDevice(device);
 	}
@@ -330,7 +330,7 @@ public class DeviceQuery {
 		if (log.isDebugEnabled()) {
 			log.debug("设备状态查询API调用");
 		}
-		Device device = deviceService.getDevice(deviceId);
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		String uuid = UUID.randomUUID().toString();
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS + deviceId;
 		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(2*1000L);
@@ -393,7 +393,7 @@ public class DeviceQuery {
 		if (log.isDebugEnabled()) {
 			log.debug("设备报警查询API调用");
 		}
-		Device device = deviceService.getDevice(deviceId);
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		String key = DeferredResultHolder.CALLBACK_CMD_ALARM + deviceId;
 		String uuid = UUID.randomUUID().toString();
 		try {

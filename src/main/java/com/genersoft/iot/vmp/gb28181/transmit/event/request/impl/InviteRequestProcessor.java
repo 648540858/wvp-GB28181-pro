@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
@@ -81,6 +82,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
     @Autowired
     private IVideoManagerStorage storager;
+
+    @Autowired
+    private IGbChannelService channelService;
 
     @Autowired
     private IStreamPushService streamPushService;
@@ -190,15 +194,12 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
             } else {
                 // 查询平台下是否有该通道
-                DeviceChannel channel = storager.queryChannelInParentPlatform(requesterId, channelId);
-                GbStream gbStream = storager.queryStreamInParentPlatform(requesterId, channelId);
-//                PlatformCatalog catalog = storager.getCatalog(requesterId, channelId);
-
+                CommonGBChannel channel= channelService.queryOneWithPlatform(platform.getId(), channelId);
                 MediaServer mediaServerItem = null;
                 StreamPush streamPushItem = null;
                 StreamProxy proxyByAppAndStream = null;
                 // 不是通道可能是直播流
-                if (channel != null && gbStream == null) {
+                if (channel != null ) {
                     // 通道存在，发100，TRYING
                     try {
                         responseAck(request, Response.TRYING);

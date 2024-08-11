@@ -122,7 +122,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 				}
 			}
 		}else {
-			Device device = deviceService.getDevice(fromUserId);
+			Device device = deviceService.getDeviceByDeviceId(fromUserId);
 			if (device == null) {
 				log.warn("[收到ACK]：来自{}，目标为({})的推流信息为找到流体服务[{}]信息",fromUserId, toUserId, sendRtpItem.getMediaServerId());
 				return;

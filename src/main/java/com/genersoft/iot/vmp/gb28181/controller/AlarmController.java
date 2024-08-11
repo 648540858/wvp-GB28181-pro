@@ -99,7 +99,7 @@ public class AlarmController {
     @Operation(summary = "测试向上级/设备发送模拟报警通知", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备国标编号")
     public void delete(@RequestParam String deviceId) {
-        Device device = deviceService.getDevice(deviceId);
+        Device device = deviceService.getDeviceByDeviceId(deviceId);
         Platform platform = storage.queryParentPlatByServerGBId(deviceId);
         DeviceAlarm deviceAlarm = new DeviceAlarm();
         deviceAlarm.setChannelId(deviceId);

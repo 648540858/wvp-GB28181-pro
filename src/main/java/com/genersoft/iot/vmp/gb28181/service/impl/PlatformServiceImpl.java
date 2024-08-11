@@ -165,7 +165,6 @@ public class PlatformServiceImpl implements IPlatformService {
             // 每次发送目录的数量默认为1
             parentPlatform.setCatalogGroup(1);
         }
-        parentPlatform.setCatalogId(parentPlatform.getDeviceGBId());
         int result = platformMapper.addParentPlatform(parentPlatform);
         // 添加缓存
         PlatformCatch parentPlatformCatch = new PlatformCatch();
@@ -776,23 +775,23 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public void stopBroadcast(Platform platform, DeviceChannel channel, String stream, boolean sendBye, MediaServer mediaServerItem) {
+    public void stopBroadcast(Platform platform, CommonGBChannel channel, String stream, boolean sendBye, MediaServer mediaServerItem) {
 
         try {
             if (sendBye) {
-                commanderForPlatform.streamByeCmd(platform, channel.getDeviceId(), stream, null, null);
+                commanderForPlatform.streamByeCmd(platform, channel.getGbDeviceId(), stream, null, null);
             }
         } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
-            log.warn("[消息发送失败] 停止语音对讲， 平台：{}，通道：{}", platform.getId(), channel.getDeviceId() );
+            log.warn("[消息发送失败] 停止语音对讲， 平台：{}，通道：{}", platform.getId(), channel.getGbDeviceId() );
         } finally {
             mediaServerService.closeRTPServer(mediaServerItem, stream);
-            InviteInfo inviteInfo = inviteStreamService.getInviteInfo(null, platform.getServerGBId(), channel.getDeviceId(), stream);
+            InviteInfo inviteInfo = inviteStreamService.getInviteInfo(null, platform.getServerGBId(), channel.getGbDeviceId(), stream);
             if (inviteInfo != null) {
                 // 释放ssrc
                 mediaServerService.releaseSsrc(mediaServerItem.getId(), inviteInfo.getSsrcInfo().getSsrc());
                 inviteStreamService.removeInviteInfo(inviteInfo);
             }
-            streamSession.remove(platform.getServerGBId(), channel.getDeviceId(), stream);
+            streamSession.remove(platform.getServerGBId(), channel.getGbDeviceId(), stream);
         }
     }
 

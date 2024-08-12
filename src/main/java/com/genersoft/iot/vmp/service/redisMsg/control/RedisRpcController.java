@@ -168,7 +168,7 @@ public class RedisRpcController {
      */
     public RedisRpcResponse onStreamOnlineEvent(RedisRpcRequest request) {
         StreamInfo streamInfo = JSONObject.parseObject(request.getParam().toString(), StreamInfo.class);
-        log.info("[redis-rpc] 监听流上线： {}/{}", streamInfo.getApp(), streamInfo.getStream());
+        log.info("[redis-rpc] 监听流信息，等待流上线： {}/{}", streamInfo.getApp(), streamInfo.getStream());
         // 查询本级是否有这个流
         StreamInfo streamInfoInServer = mediaServerService.getMediaByAppAndStream(streamInfo.getApp(), streamInfo.getStream());
         if (streamInfoInServer != null) {
@@ -192,7 +192,6 @@ public class RedisRpcController {
             // 手动发送结果
             sendResponse(response);
             hookSubscribe.removeSubscribe(hook);
-
         });
         return null;
     }

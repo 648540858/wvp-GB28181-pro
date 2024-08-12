@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
@@ -7,7 +8,9 @@ import com.genersoft.iot.vmp.gb28181.dao.GroupMapper;
 import com.genersoft.iot.vmp.gb28181.dao.RegionMapper;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageHelper;
@@ -19,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
+import javax.sip.message.Response;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -33,6 +37,9 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Autowired
     private CommonGBChannelMapper commonGBChannelMapper;
+
+    @Autowired
+    private IDeviceService deviceService;
 
     @Autowired
     private RegionMapper regionMapper;
@@ -636,5 +643,19 @@ public class GbChannelServiceImpl implements IGbChannelService {
     @Override
     public CommonGBChannel queryOneWithPlatform(Integer platformId, String channelDeviceId) {
         return commonGBChannelMapper.queryOneWithPlatform(platformId, channelDeviceId);
+    }
+
+    @Override
+    public void start(CommonGBChannel channel, ErrorCallback<StreamInfo> callback) {
+        if (channel.getGbDeviceDbId() > 0) {
+            // 国标通道
+            Device device = deviceService.getDevice(channel.getGbDeviceDbId());
+            if (device == null) {
+                log.warn("[点播] 未找到通道{}的设备信息", channel);
+                throw new PlayException(Response.SERVER_INTERNAL_ERROR, "serverInternalError");
+            }
+
+
+        }
     }
 }

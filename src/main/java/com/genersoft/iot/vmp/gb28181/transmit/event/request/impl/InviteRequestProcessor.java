@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
@@ -82,6 +83,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
     @Autowired
     private IVideoManagerStorage storager;
+
+    @Autowired
+    private IDeviceService deviceService;
 
     @Autowired
     private IGbChannelService channelService;
@@ -158,7 +162,58 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         SIPRequest request = (SIPRequest)evt.getRequest();
         try {
             InviteInfo inviteInfo = decode(evt);
-        } catch (SdpParseException e) {
+
+            // 查询请求是否来自上级平台\设备
+            Platform platform = storager.queryParentPlatByServerGBId(inviteInfo.getRequesterId());
+            if (platform == null) {
+                inviteFromDeviceHandle(request, inviteInfo.getRequesterId(), inviteInfo.getChannelId());
+            } else {
+                // 查询平台下是否有该通道
+                CommonGBChannel channel= channelService.queryOneWithPlatform(platform.getId(), inviteInfo.getChannelId());
+                if (channel == null) {
+                    log.info("[上级INVITE] 通道不存在，返回404: {}", inviteInfo.getChannelId());
+                    try {
+                        // 通道不存在，发404，资源不存在
+                        responseAck(request, Response.NOT_FOUND);
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        log.error("[命令发送失败] invite 通道不存在: {}", e.getMessage());
+                    }
+                    return;
+                }
+                // 通道存在，发100，TRYING
+                try {
+                    responseAck(request, Response.TRYING);
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    log.error("[命令发送失败] invite TRYING: {}", e.getMessage());
+                }
+
+                channelService.start(channel, ((code, msg, data) -> {
+                    if (code != Response.OK) {
+                        try {
+                            responseAck(request, code, msg);
+                        } catch (SipException | InvalidArgumentException | ParseException e) {
+                            log.error("[命令发送失败] 点播失败: {}", e.getMessage());
+                        }
+                    }else {
+
+                    }
+                }));
+
+                if (channel.getGbDeviceDbId() > 0) {
+                    Device device = deviceService.getDevice(channel.getGbDeviceDbId());
+                    if (device == null) {
+                        log.warn("点播平台{}的通道{}时未找到设备信息", requesterId, channel);
+                        try {
+                            responseAck(request, Response.SERVER_INTERNAL_ERROR);
+                        } catch (SipException | InvalidArgumentException | ParseException e) {
+                            log.error("[命令发送失败] invite 未找到设备信息: {}", e.getMessage());
+                        }
+                        return;
+                    }
+                }
+
+            }
+        } catch (SdpException e) {
             // 参数不全， 发400，请求错误
             try {
                 responseAck(request, Response.BAD_REQUEST);
@@ -171,6 +226,12 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 responseAck(request, e.getCode(), e.getMsg());
             } catch (SipException | InvalidArgumentException | ParseException e) {
                 log.error("[命令发送失败] invite BAD_REQUEST: {}", e.getMessage());
+            }
+        }catch (PlayException e) {
+            try {
+                responseAck(request, e.getCode(), e.getMsg());
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] invite 点播失败: {}", e.getMessage());
             }
         }
 
@@ -546,7 +607,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         inviteInfo.setChannelId(channelId);
         inviteInfo.setSessionName(sessionName);
         inviteInfo.setSsrc(gb28181Sdp.getSsrc());
-        inviteInfo.setCallId(request.getCallIdHeader().getCallId());
+        inviteInfo.setCallId(callIdHeader.getCallId());
 
         // 如果是录像回放，则会存在录像的开始时间与结束时间
         Long startTime = null;
@@ -603,12 +664,12 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         inviteInfo.setStartTime(startTime);
         inviteInfo.setStopTime(stopTime);
         String username = sdp.getOrigin().getUsername();
-        String addressStr;
-        if(StringUtils.isEmpty(platform.getSendStreamIp())){
-            addressStr = sdp.getConnection().getAddress();
-        }else {
-            addressStr = platform.getSendStreamIp();
-        }
+//        String addressStr;
+//        if(StringUtils.isEmpty(platform.getSendStreamIp())){
+//            addressStr = sdp.getConnection().getAddress();
+//        }else {
+//            addressStr = platform.getSendStreamIp();
+//        }
 
         Vector sdpMediaDescriptions = sdp.getMediaDescriptions(true);
         MediaDescription mediaDescription = null;
@@ -619,6 +680,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         if (mediaDescription != null) {
             downloadSpeed = mediaDescription.getAttribute("downloadspeed");
         }
+        inviteInfo.setIp(sdp.getConnection().getAddress());
+        inviteInfo.setPort(port);
+        inviteInfo.setDownloadSpeed(downloadSpeed);
+
+        return inviteInfo;
 
     }
 

@@ -15,5 +15,7 @@ public class InviteInfo {
     private Long startTime;
     private Long stopTime;
     private String downloadSpeed;
+    private String ip;
+    private int port;
 
 }

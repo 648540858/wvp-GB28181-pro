@@ -7,7 +7,6 @@ import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformMapper;
-import com.genersoft.iot.vmp.gb28181.dao.PlatformCatalogMapper;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
 import lombok.extern.slf4j.Slf4j;
@@ -46,9 +45,6 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
 
     @Autowired
     private DeviceChannelMapper deviceChannelMapper;
-
-    @Autowired
-    private PlatformCatalogMapper catalogManager;
 
     @Autowired
     private PlatformMapper platformMapper;

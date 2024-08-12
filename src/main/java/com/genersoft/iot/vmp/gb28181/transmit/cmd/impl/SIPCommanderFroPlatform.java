@@ -85,24 +85,24 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     private GitUtil gitUtil;
 
     @Override
-    public void register(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException {
+    public void register(Platform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException {
         register(parentPlatform, null, null, errorEvent, okEvent, true);
     }
 
     @Override
-    public void register(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException {
+    public void register(Platform parentPlatform, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException {
 
         register(parentPlatform, sipTransactionInfo, null, errorEvent, okEvent, true);
     }
 
     @Override
-    public void unregister(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException {
+    public void unregister(Platform parentPlatform, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException {
         register(parentPlatform, sipTransactionInfo, null, errorEvent, okEvent, false);
     }
 
     @Override
-    public void register(ParentPlatform parentPlatform, @Nullable SipTransactionInfo sipTransactionInfo, @Nullable WWWAuthenticateHeader www,
-                            SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent, boolean isRegister) throws SipException, InvalidArgumentException, ParseException {
+    public void register(Platform parentPlatform, @Nullable SipTransactionInfo sipTransactionInfo, @Nullable WWWAuthenticateHeader www,
+                         SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent, boolean isRegister) throws SipException, InvalidArgumentException, ParseException {
             Request request;
 
             CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
@@ -148,7 +148,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public String keepalive(ParentPlatform parentPlatform,SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws SipException, InvalidArgumentException, ParseException {
+    public String keepalive(Platform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws SipException, InvalidArgumentException, ParseException {
             String characterSet = parentPlatform.getCharacterSet();
             StringBuffer keepaliveXml = new StringBuffer(200);
             keepaliveXml.append("<?xml version=\"1.0\" encoding=\"")
@@ -178,7 +178,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
      * @param parentPlatform 平台信息
      */
     @Override
-    public void catalogQuery(CommonGBChannel channel, ParentPlatform parentPlatform, String sn, String fromTag, int size) throws SipException, InvalidArgumentException, ParseException {
+    public void catalogQuery(CommonGBChannel channel, Platform parentPlatform, String sn, String fromTag, int size) throws SipException, InvalidArgumentException, ParseException {
 
         if ( parentPlatform ==null) {
             return ;
@@ -198,13 +198,13 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public void catalogQuery(List<CommonGBChannel> channels, ParentPlatform parentPlatform, String sn, String fromTag) throws InvalidArgumentException, ParseException, SipException {
+    public void catalogQuery(List<CommonGBChannel> channels, Platform parentPlatform, String sn, String fromTag) throws InvalidArgumentException, ParseException, SipException {
         if ( parentPlatform ==null) {
             return ;
         }
         sendCatalogResponse(channels, parentPlatform, sn, fromTag, 0, true);
     }
-    private String getCatalogXml(List<CommonGBChannel> channels, String sn, ParentPlatform parentPlatform, int size) {
+    private String getCatalogXml(List<CommonGBChannel> channels, String sn, Platform parentPlatform, int size) {
         String characterSet = parentPlatform.getCharacterSet();
         StringBuffer catalogXml = new StringBuffer(600);
         catalogXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet +"\"?>\r\n")
@@ -225,7 +225,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         return catalogXml.toString();
     }
 
-    private void sendCatalogResponse(List<CommonGBChannel> channels, ParentPlatform parentPlatform, String sn, String fromTag, int index, boolean sendAfterResponse) throws SipException, InvalidArgumentException, ParseException {
+    private void sendCatalogResponse(List<CommonGBChannel> channels, Platform parentPlatform, String sn, String fromTag, int index, boolean sendAfterResponse) throws SipException, InvalidArgumentException, ParseException {
         if (index >= channels.size()) {
             return;
         }
@@ -295,7 +295,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
      * @return
      */
     @Override
-    public void deviceInfoResponse(ParentPlatform parentPlatform,Device device, String sn, String fromTag) throws SipException, InvalidArgumentException, ParseException {
+    public void deviceInfoResponse(Platform parentPlatform, Device device, String sn, String fromTag) throws SipException, InvalidArgumentException, ParseException {
         if (parentPlatform == null) {
             return;
         }
@@ -333,7 +333,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
      * @return
      */
     @Override
-    public void deviceStatusResponse(ParentPlatform parentPlatform,String channelId, String sn, String fromTag,boolean status) throws SipException, InvalidArgumentException, ParseException {
+    public void deviceStatusResponse(Platform parentPlatform, String channelId, String sn, String fromTag, boolean status) throws SipException, InvalidArgumentException, ParseException {
         if (parentPlatform == null) {
             return ;
         }
@@ -357,7 +357,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public void sendNotifyMobilePosition(ParentPlatform parentPlatform, GPSMsgInfo gpsMsgInfo, SubscribeInfo subscribeInfo) throws InvalidArgumentException, ParseException, NoSuchFieldException, SipException, IllegalAccessException {
+    public void sendNotifyMobilePosition(Platform parentPlatform, GPSMsgInfo gpsMsgInfo, SubscribeInfo subscribeInfo) throws InvalidArgumentException, ParseException, NoSuchFieldException, SipException, IllegalAccessException {
         if (parentPlatform == null) {
             return;
         }
@@ -385,7 +385,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public void sendAlarmMessage(ParentPlatform parentPlatform, DeviceAlarm deviceAlarm) throws SipException, InvalidArgumentException, ParseException {
+    public void sendAlarmMessage(Platform parentPlatform, DeviceAlarm deviceAlarm) throws SipException, InvalidArgumentException, ParseException {
         if (parentPlatform == null) {
             return;
         }
@@ -417,7 +417,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public void sendNotifyForCatalogAddOrUpdate(String type, ParentPlatform parentPlatform, List<CommonGBChannel> deviceChannels, SubscribeInfo subscribeInfo, Integer index) throws InvalidArgumentException, ParseException, NoSuchFieldException, SipException, IllegalAccessException {
+    public void sendNotifyForCatalogAddOrUpdate(String type, Platform parentPlatform, List<CommonGBChannel> deviceChannels, SubscribeInfo subscribeInfo, Integer index) throws InvalidArgumentException, ParseException, NoSuchFieldException, SipException, IllegalAccessException {
         if (parentPlatform == null || deviceChannels == null || deviceChannels.isEmpty() || subscribeInfo == null) {
             return;
         }
@@ -451,8 +451,8 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         }));
     }
 
-    private void sendNotify(ParentPlatform parentPlatform, String catalogXmlContent,
-                                   SubscribeInfo subscribeInfo, SipSubscribe.Event errorEvent,  SipSubscribe.Event okEvent )
+    private void sendNotify(Platform parentPlatform, String catalogXmlContent,
+                            SubscribeInfo subscribeInfo, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent )
             throws SipException, ParseException, InvalidArgumentException {
         MessageFactoryImpl messageFactory = (MessageFactoryImpl) SipFactory.getInstance().createMessageFactory();
         String characterSet = parentPlatform.getCharacterSet();
@@ -464,7 +464,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         sipSender.transmitRequest(parentPlatform.getDeviceIp(), notifyRequest, errorEvent, okEvent);
     }
 
-    private  String getCatalogXmlContentForCatalogAddOrUpdate(ParentPlatform parentPlatform, List<CommonGBChannel> channels, int sumNum, String type, SubscribeInfo subscribeInfo) {
+    private  String getCatalogXmlContentForCatalogAddOrUpdate(Platform parentPlatform, List<CommonGBChannel> channels, int sumNum, String type, SubscribeInfo subscribeInfo) {
         StringBuffer catalogXml = new StringBuffer(600);
         String characterSet = parentPlatform.getCharacterSet();
         catalogXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n")
@@ -485,8 +485,8 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public void sendNotifyForCatalogOther(String type, ParentPlatform parentPlatform, List<CommonGBChannel> deviceChannels,
-                                             SubscribeInfo subscribeInfo, Integer index) throws InvalidArgumentException, ParseException, NoSuchFieldException, SipException, IllegalAccessException {
+    public void sendNotifyForCatalogOther(String type, Platform parentPlatform, List<CommonGBChannel> deviceChannels,
+                                          SubscribeInfo subscribeInfo, Integer index) throws InvalidArgumentException, ParseException, NoSuchFieldException, SipException, IllegalAccessException {
         if (parentPlatform == null
                 || deviceChannels == null
                 || deviceChannels.size() == 0
@@ -523,7 +523,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         });
     }
 
-    private String getCatalogXmlContentForCatalogOther(ParentPlatform parentPlatform, List<CommonGBChannel> channels, String type) {
+    private String getCatalogXmlContentForCatalogOther(Platform parentPlatform, List<CommonGBChannel> channels, String type) {
 
         String characterSet = parentPlatform.getCharacterSet();
         StringBuffer catalogXml = new StringBuffer(600);
@@ -544,7 +544,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         return catalogXml.toString();
     }
     @Override
-    public void recordInfo(CommonGBChannel deviceChannel, ParentPlatform parentPlatform, String fromTag, RecordInfo recordInfo) throws SipException, InvalidArgumentException, ParseException {
+    public void recordInfo(CommonGBChannel deviceChannel, Platform parentPlatform, String fromTag, RecordInfo recordInfo) throws SipException, InvalidArgumentException, ParseException {
         if ( parentPlatform ==null) {
             return ;
         }
@@ -597,7 +597,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public void sendMediaStatusNotify(ParentPlatform parentPlatform, SendRtpItem sendRtpItem) throws SipException, InvalidArgumentException, ParseException {
+    public void sendMediaStatusNotify(Platform parentPlatform, SendRtpItem sendRtpItem) throws SipException, InvalidArgumentException, ParseException {
         if (sendRtpItem == null || parentPlatform == null) {
             return;
         }
@@ -621,7 +621,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public void streamByeCmd(ParentPlatform platform, String callId) throws SipException, InvalidArgumentException, ParseException {
+    public void streamByeCmd(Platform platform, String callId) throws SipException, InvalidArgumentException, ParseException {
         if (platform == null) {
             return;
         }
@@ -632,7 +632,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public synchronized void streamByeCmd(ParentPlatform platform, SendRtpItem sendRtpItem) throws SipException, InvalidArgumentException, ParseException {
+    public synchronized void streamByeCmd(Platform platform, SendRtpItem sendRtpItem) throws SipException, InvalidArgumentException, ParseException {
         if (sendRtpItem == null ) {
             log.info("[向上级发送BYE]， sendRtpItem 为NULL");
             return;
@@ -656,7 +656,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public void streamByeCmd(ParentPlatform platform, String channelId, String stream, String callId, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException {
+    public void streamByeCmd(Platform platform, String channelId, String stream, String callId, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException {
         SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(platform.getServerGBId(), channelId, callId, stream);
         if (ssrcTransaction == null) {
             throw new SsrcTransactionNotFoundException(platform.getServerGBId(), channelId, callId, stream);
@@ -671,7 +671,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public void broadcastResultCmd(ParentPlatform platform, CommonGBChannel deviceChannel, String sn, boolean result, SipSubscribe.Event errorEvent,  SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void broadcastResultCmd(Platform platform, CommonGBChannel deviceChannel, String sn, boolean result, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
         if (platform == null || deviceChannel == null) {
             return;
         }
@@ -694,7 +694,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public void broadcastInviteCmd(ParentPlatform platform, String channelId, MediaServer mediaServerItem,
+    public void broadcastInviteCmd(Platform platform, String channelId, MediaServer mediaServerItem,
                                    SSRCInfo ssrcInfo, HookSubscribe.Event event, SipSubscribe.Event okEvent,
                                    SipSubscribe.Event errorEvent) throws ParseException, SipException, InvalidArgumentException {
         String stream = ssrcInfo.getStream();

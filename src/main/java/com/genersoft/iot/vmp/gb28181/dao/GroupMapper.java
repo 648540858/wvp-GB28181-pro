@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.dao;
 
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.gb28181.bean.GroupTree;
 import com.genersoft.iot.vmp.gb28181.bean.Region;
@@ -160,4 +161,14 @@ public interface GroupMapper {
             " <foreach collection='groupList'  item='item'  open='(' separator=',' close=')' > #{item.deviceId}</foreach>" +
             " </script>")
     List<Region> queryInGroupList(List<Group> groupList);
+
+    @Select(" <script>" +
+            " SELECT " +
+            " device_id as gb_device_id" +
+            " name as gb_name" +
+            " from wvp_common_group " +
+            " where (device_id, business_group) in " +
+            " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > (#{item.gbParentId}, #{item.gbBusinessGroupId})</foreach>" +
+            " </script>")
+    List<CommonGBChannel> queryInChannelList(List<CommonGBChannel> channelList);
 }

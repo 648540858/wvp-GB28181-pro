@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.gb28181.service;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ServiceException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
@@ -55,9 +55,9 @@ public interface IPlayService {
 
     void resumeRtp(String streamId) throws ServiceException, InvalidArgumentException, ParseException, SipException;
 
-    void startPushStream(SendRtpItem sendRtpItem, SIPResponse sipResponse, ParentPlatform platform, CallIdHeader callIdHeader);
+    void startPushStream(SendRtpItem sendRtpItem, SIPResponse sipResponse, Platform platform, CallIdHeader callIdHeader);
 
-    void startSendRtpStreamFailHand(SendRtpItem sendRtpItem,ParentPlatform platform, CallIdHeader callIdHeader);
+    void startSendRtpStreamFailHand(SendRtpItem sendRtpItem, Platform platform, CallIdHeader callIdHeader);
 
     void talkCmd(Device device, String channelId, MediaServer mediaServerItem, String stream, AudioBroadcastEvent event);
 

@@ -4,7 +4,7 @@ import com.genersoft.iot.vmp.common.enums.DeviceControlType;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DragZoomRequest;
 import com.genersoft.iot.vmp.gb28181.bean.HomePositionRequest;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -56,7 +56,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element rootElement) {
+    public void handForPlatform(RequestEvent evt, Platform parentPlatform, Element rootElement) {
 
         SIPRequest request = (SIPRequest) evt.getRequest();
 
@@ -65,38 +65,14 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
         String channelId = getText(rootElement, "DeviceID");
         // 远程启动功能
         if (!ObjectUtils.isEmpty(getText(rootElement, "TeleBoot"))) {
-            // TODO 拒绝远程启动命令
-            log.warn("[国标级联]收到平台的远程启动命令， 不处理");
-
-//            if (parentPlatform.getServerGBId().equals(targetGBId)) {
-//                // 远程启动本平台：需要在重新启动程序后先对SipStack解绑
-//                logger.info("执行远程启动本平台命令");
-//                try {
-//                    cmderFroPlatform.unregister(parentPlatform, null, null);
-//                } catch (InvalidArgumentException | ParseException | SipException e) {
-//                    logger.error("[命令发送失败] 国标级联 注销: {}", e.getMessage());
-//                }
-//                taskExecutor.execute(() -> {
-//                    // 远程启动
-////                    try {
-////                        Thread.sleep(3000);
-////                        SipProvider up = (SipProvider) SpringBeanFactory.getBean("udpSipProvider");
-////                        SipStackImpl stack = (SipStackImpl)up.getSipStack();
-////                        stack.stop();
-////                        Iterator listener = stack.getListeningPoints();
-////                        while (listener.hasNext()) {
-////                            stack.deleteListeningPoint((ListeningPoint) listener.next());
-////                        }
-////                        Iterator providers = stack.getSipProviders();
-////                        while (providers.hasNext()) {
-////                            stack.deleteSipProvider((SipProvider) providers.next());
-////                        }
-////                        VManageBootstrap.restart();
-////                    } catch (InterruptedException | ObjectInUseException e) {
-////                        logger.error("[任务执行失败] 服务重启: {}", e.getMessage());
-////                    }
-//                });
-//            }
+            // 拒绝远程启动命令
+            log.warn("[国标级联]收到平台的远程启动命令， 禁用，不允许上级平台随意重启下级平台");
+            try {
+                responseAck(request, Response.FORBIDDEN);
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
         }
         DeviceControlType deviceControlType = DeviceControlType.typeOf(rootElement);
         log.info("[接受deviceControl命令] 命令: {}", deviceControlType);

@@ -8,7 +8,7 @@ import lombok.Data;
  */
 @Data
 @Schema(description = "平台信息")
-public class ParentPlatform {
+public class Platform {
 
     @Schema(description = "ID(数据库中)")
     private Integer id;
@@ -70,9 +70,6 @@ public class ParentPlatform {
     @Schema(description = "在线状态")
     private int channelCount;
 
-    @Schema(description = "默认目录Id,自动添加的通道多放在这个目录下")
-    private String catalogId;
-
     @Schema(description = "已被订阅目录信息")
     private boolean catalogSubscribe;
 
@@ -81,9 +78,6 @@ public class ParentPlatform {
 
     @Schema(description = "已被订阅移动位置信息")
     private boolean mobilePositionSubscribe;
-
-    @Schema(description = "点播未推流的设备时是否使用redis通知拉起")
-    private boolean startOfflinePush;
 
     @Schema(description = "目录分组-每次向上级发送通道信息时单个包携带的通道数量，取值1,2,4,8")
     private int catalogGroup;
@@ -97,12 +91,46 @@ public class ParentPlatform {
     @Schema(description = "是否作为消息通道")
     private boolean asMessageChannel;
 
-    @Schema(description = "点播回复200OK使用次IP")
+    @Schema(description = "点播回复200OK使用的IP")
     private String sendStreamIp;
 
     @Schema(description = "是否使用自定义业务分组")
-    private Boolean customCatalog;
+    private Boolean customGroup;
 
     @Schema(description = "是否自动推送通道变化")
     private Boolean autoPushChannel;
+
+    @Schema(description = "目录信息包含平台信息")
+    private Boolean catalogWithPlatform;
+
+    @Schema(description = "目录信息包含分组信息")
+    private Boolean catalogWithGroup;
+
+    @Schema(description = "目录信息包含行政区划")
+    private Boolean catalogWithRegion;
+
+    @Schema(description = "行政区划")
+    private String civilCode;
+
+    @Schema(description = "平台厂商")
+    private String manufacturer;
+
+    @Schema(description = "平台型号")
+    private String model;
+
+    @Schema(description = "平台安装地址")
+    private String address;
+
+    @Schema(description = "注册方式（必选）缺省为1； " +
+            "1-符合IETF RFC 3261标准的认证注册模式；" +
+            "2-基于口令的双向认证注册模式；" +
+            "3-基于数字证书的双向认证注册模式(高安全级别要求)；" +
+            "4-基于数字证书的单向认证注册模式（高安全级别要求）")
+    private int registerWay = 1;
+
+    @Schema(description = "保密属性（必选）缺省为0；0-不涉密，1-涉密")
+    private int secrecy = 0;
+
+    @Schema(description = "在线状态")
+    private String Status = "ON";
 }

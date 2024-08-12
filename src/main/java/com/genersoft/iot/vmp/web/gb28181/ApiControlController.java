@@ -51,7 +51,7 @@ public class ApiControlController {
         }
         if (channel == null) {channel = 0;}
         if (speed == null) {speed = 0;}
-        Device device = deviceService.getDevice(serial);
+        Device device = deviceService.getDeviceByDeviceId(serial);
         if (device == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "device[ " + serial + " ]未找到");
         }
@@ -125,7 +125,7 @@ public class ApiControlController {
         }
 
         if (channel == null) {channel = 0;}
-        Device device = deviceService.getDevice(serial);
+        Device device = deviceService.getDeviceByDeviceId(serial);
         if (device == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "device[ " + serial + " ]未找到");
         }

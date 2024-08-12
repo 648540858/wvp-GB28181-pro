@@ -342,4 +342,18 @@ public class CommonGBChannel {
         return channel;
     }
 
+    public static CommonGBChannel build(Platform platform) {
+        CommonGBChannel commonGBChannel = new CommonGBChannel();
+        commonGBChannel.setGbDeviceId(platform.getDeviceGBId());
+        commonGBChannel.setGbName(platform.getName());
+        commonGBChannel.setGbManufacturer(platform.getManufacturer());
+        commonGBChannel.setGbModel(platform.getModel());
+        commonGBChannel.setGbCivilCode(platform.getCivilCode());
+        commonGBChannel.setGbAddress(platform.getAddress());
+        commonGBChannel.setGbRegisterWay(platform.getRegisterWay());
+        commonGBChannel.setGbSecrecy(platform.getSecrecy());
+        commonGBChannel.setGbStatus(platform.getStatus());
+        return commonGBChannel;
+    }
+
 }

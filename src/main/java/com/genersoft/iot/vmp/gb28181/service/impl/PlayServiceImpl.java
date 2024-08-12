@@ -130,7 +130,7 @@ public class PlayServiceImpl implements IPlayService {
                 if (streamArray.length == 2) {
                     String deviceId = streamArray[0];
                     String channelId = streamArray[1];
-                    Device device = deviceService.getDevice(deviceId);
+                    Device device = deviceService.getDeviceByDeviceId(deviceId);
                     if (device == null) {
                         log.info("[语音对讲/喊话] 未找到设备：{}", deviceId);
                         return;
@@ -172,7 +172,7 @@ public class PlayServiceImpl implements IPlayService {
             for (SendRtpItem sendRtpItem : sendRtpItems) {
                 if (sendRtpItem != null && sendRtpItem.getApp().equals(event.getApp())) {
                     String platformId = sendRtpItem.getPlatformId();
-                    Device device = deviceService.getDevice(platformId);
+                    Device device = deviceService.getDeviceByDeviceId(platformId);
                     try {
                         if (device != null) {
                             cmder.streamByeCmd(device, sendRtpItem.getChannelId(), event.getStream(), sendRtpItem.getCallId());
@@ -200,7 +200,7 @@ public class PlayServiceImpl implements IPlayService {
                 if (streamArray.length == 2) {
                     String deviceId = streamArray[0];
                     String channelId = streamArray[1];
-                    Device device = deviceService.getDevice(deviceId);
+                    Device device = deviceService.getDeviceByDeviceId(deviceId);
                     if (device == null) {
                         log.info("[语音对讲/喊话] 未找到设备：{}", deviceId);
                         return;
@@ -753,7 +753,7 @@ public class PlayServiceImpl implements IPlayService {
     @Override
     public void playBack(String deviceId, String channelId, String startTime,
                          String endTime, ErrorCallback<Object> callback) {
-        Device device = deviceService.getDevice(deviceId);
+        Device device = deviceService.getDeviceByDeviceId(deviceId);
         if (device == null) {
             log.warn("[录像回放] 未找到设备 deviceId: {},channelId:{}", deviceId, channelId);
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备：" + deviceId);
@@ -793,7 +793,7 @@ public class PlayServiceImpl implements IPlayService {
             return;
         }
 
-        Device device = deviceService.getDevice(deviceId);
+        Device device = deviceService.getDeviceByDeviceId(deviceId);
         if (device == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备： " + deviceId + "不存在");
         }
@@ -959,7 +959,7 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void download(String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, ErrorCallback<Object> callback) {
-        Device device = deviceService.getDevice(deviceId);
+        Device device = deviceService.getDeviceByDeviceId(deviceId);
         if (device == null) {
             return;
         }
@@ -989,7 +989,7 @@ public class PlayServiceImpl implements IPlayService {
                     null);
             return;
         }
-        Device device = deviceService.getDevice(deviceId);
+        Device device = deviceService.getDeviceByDeviceId(deviceId);
         if (device == null) {
             callback.run(InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getCode(),
                     "设备：" + deviceId + "不存在",
@@ -1155,7 +1155,7 @@ public class PlayServiceImpl implements IPlayService {
         if (sendRtpItems.size() > 0) {
             for (SendRtpItem sendRtpItem : sendRtpItems) {
                 if (sendRtpItem.getMediaServerId().equals(mediaServerId)) {
-                    ParentPlatform platform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
+                    Platform platform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
                     try {
                         sipCommanderFroPlatform.streamByeCmd(platform, sendRtpItem.getCallId());
                     } catch (SipException | InvalidArgumentException | ParseException e) {
@@ -1169,7 +1169,7 @@ public class PlayServiceImpl implements IPlayService {
         if (allSsrc.size() > 0) {
             for (SsrcTransaction ssrcTransaction : allSsrc) {
                 if (ssrcTransaction.getMediaServerId().equals(mediaServerId)) {
-                    Device device = deviceService.getDevice(ssrcTransaction.getDeviceId());
+                    Device device = deviceService.getDeviceByDeviceId(ssrcTransaction.getDeviceId());
                     if (device == null) {
                         continue;
                     }
@@ -1291,7 +1291,7 @@ public class PlayServiceImpl implements IPlayService {
         }
         if (audioBroadcastCatchList.size() > 0) {
             for (AudioBroadcastCatch audioBroadcastCatch : audioBroadcastCatchList) {
-                Device device = deviceService.getDevice(deviceId);
+                Device device = deviceService.getDeviceByDeviceId(deviceId);
                 if (device == null || audioBroadcastCatch == null) {
                     return;
                 }
@@ -1390,7 +1390,7 @@ public class PlayServiceImpl implements IPlayService {
         if (!result) {
             throw new ServiceException("暂停RTP接收失败");
         }
-        Device device = deviceService.getDevice(inviteInfo.getDeviceId());
+        Device device = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
         cmder.playPauseCmd(device, inviteInfo.getStreamInfo());
     }
 
@@ -1418,12 +1418,12 @@ public class PlayServiceImpl implements IPlayService {
         if (!result) {
             throw new ServiceException("继续RTP接收失败");
         }
-        Device device = deviceService.getDevice(inviteInfo.getDeviceId());
+        Device device = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
         cmder.playResumeCmd(device, inviteInfo.getStreamInfo());
     }
 
     @Override
-    public void startPushStream(SendRtpItem sendRtpItem, SIPResponse sipResponse, ParentPlatform platform, CallIdHeader callIdHeader) {
+    public void startPushStream(SendRtpItem sendRtpItem, SIPResponse sipResponse, Platform platform, CallIdHeader callIdHeader) {
         // 开始发流
         MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 
@@ -1448,9 +1448,9 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public void startSendRtpStreamFailHand(SendRtpItem sendRtpItem, ParentPlatform platform, CallIdHeader callIdHeader) {
+    public void startSendRtpStreamFailHand(SendRtpItem sendRtpItem, Platform platform, CallIdHeader callIdHeader) {
         if (sendRtpItem.isOnlyAudio()) {
-            Device device = deviceService.getDevice(sendRtpItem.getDeviceId());
+            Device device = deviceService.getDeviceByDeviceId(sendRtpItem.getDeviceId());
             AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
             if (audioBroadcastCatch != null) {
                 try {
@@ -1571,7 +1571,7 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void getSnap(String deviceId, String channelId, String fileName, ErrorCallback errorCallback) {
-        Device device = deviceService.getDevice(deviceId);
+        Device device = deviceService.getDeviceByDeviceId(deviceId);
         if (device == null) {
             errorCallback.run(InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getCode(), InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getMsg(), null);
             return;

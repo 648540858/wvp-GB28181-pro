@@ -77,7 +77,7 @@ public class DeviceConfig {
         if (log.isDebugEnabled()) {
 			log.debug("报警复位API调用");
 		}
-		Device device = deviceService.getDevice(deviceId);
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		String uuid = UUID.randomUUID().toString();
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONFIG + deviceId + channelId;
 		try {
@@ -130,7 +130,7 @@ public class DeviceConfig {
 		}
 		String key = DeferredResultHolder.CALLBACK_CMD_CONFIGDOWNLOAD + (ObjectUtils.isEmpty(channelId) ? deviceId : channelId);
 		String uuid = UUID.randomUUID().toString();
-		Device device = deviceService.getDevice(deviceId);
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		try {
 			cmder.deviceConfigQuery(device, channelId, configType, event -> {
 				RequestMessage msg = new RequestMessage();

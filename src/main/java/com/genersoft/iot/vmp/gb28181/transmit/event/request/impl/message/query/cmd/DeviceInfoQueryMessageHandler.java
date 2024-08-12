@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.cmd;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
@@ -48,7 +48,7 @@ public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent imp
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element rootElement) {
+    public void handForPlatform(RequestEvent evt, Platform platform, Element rootElement) {
         log.info("[DeviceInfo查询]消息");
         FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
         try {
@@ -68,15 +68,15 @@ public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent imp
         // 查询这是通道id还是设备id
         Device device = null;
         // 如果id指向平台的国标编号，那么就是查询平台的信息
-        if (!parentPlatform.getDeviceGBId().equals(channelId)) {
-            device = storager.queryDeviceInfoByPlatformIdAndChannelId(parentPlatform.getServerGBId(), channelId);
+        if (!platform.getDeviceGBId().equals(channelId)) {
+            device = storager.queryDeviceInfoByPlatformIdAndChannelId(platform.getServerGBId(), channelId);
             if (device ==null){
-                log.error("[平台没有该通道的使用权限]:platformId"+parentPlatform.getServerGBId()+"  deviceID:"+channelId);
+                log.error("[平台没有该通道的使用权限]:platformId"+platform.getServerGBId()+"  deviceID:"+channelId);
                 return;
             }
         }
         try {
-            cmderFroPlatform.deviceInfoResponse(parentPlatform, device, sn, fromHeader.getTag());
+            cmderFroPlatform.deviceInfoResponse(platform, device, sn, fromHeader.getTag());
         } catch (SipException | InvalidArgumentException | ParseException e) {
             log.error("[命令发送失败] 国标级联 DeviceInfo查询回复: {}", e.getMessage());
         }

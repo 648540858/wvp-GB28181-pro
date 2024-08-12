@@ -81,7 +81,7 @@ public interface IDeviceService {
      * @param deviceId 设备编号
      * @return 设备信息
      */
-    Device getDevice(String deviceId);
+    Device getDeviceByDeviceId(String deviceId);
 
     /**
      * 获取所有在线设备
@@ -164,4 +164,7 @@ public interface IDeviceService {
     List<Device> getAll();
 
     PageInfo<Device> getAll(int page, int count, String query, Boolean status);
+
+    Device getDevice(Integer gbDeviceDbId);
+
 }

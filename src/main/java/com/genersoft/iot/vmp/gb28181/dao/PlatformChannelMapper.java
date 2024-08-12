@@ -97,7 +97,7 @@ public interface PlatformChannelMapper {
             "AND pp.server_gb_id IN" +
             "<foreach collection='platforms' item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
             "</script> ")
-    List<ParentPlatform> queryPlatFormListForGBWithGBId(@Param("channelId") String channelId, @Param("platforms") List<String> platforms);
+    List<Platform> queryPlatFormListForGBWithGBId(@Param("channelId") String channelId, @Param("platforms") List<String> platforms);
 
     @Delete("<script> " +
            "DELETE from wvp_platform_gb_channel WHERE platform_id=#{serverGBId}"  +

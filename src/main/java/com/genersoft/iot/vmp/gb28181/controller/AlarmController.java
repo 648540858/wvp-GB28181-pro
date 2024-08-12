@@ -4,7 +4,7 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceAlarmService;
@@ -99,8 +99,8 @@ public class AlarmController {
     @Operation(summary = "测试向上级/设备发送模拟报警通知", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "deviceId", description = "设备国标编号")
     public void delete(@RequestParam String deviceId) {
-        Device device = deviceService.getDevice(deviceId);
-        ParentPlatform platform = storage.queryParentPlatByServerGBId(deviceId);
+        Device device = deviceService.getDeviceByDeviceId(deviceId);
+        Platform platform = storage.queryParentPlatByServerGBId(deviceId);
         DeviceAlarm deviceAlarm = new DeviceAlarm();
         deviceAlarm.setChannelId(deviceId);
         deviceAlarm.setAlarmDescription("test");

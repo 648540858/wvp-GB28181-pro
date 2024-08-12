@@ -83,7 +83,7 @@ public class GBRecordController {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "endTime格式为" + DateUtil.PATTERN);
 		}
 
-		Device device = deviceService.getDevice(deviceId);
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		// 指定超时时间 1分钟30秒
 		String uuid = UUID.randomUUID().toString();
 		int sn  =  (int)((Math.random()*9+1)*100000);
@@ -182,7 +182,7 @@ public class GBRecordController {
 			throw new ControllerException(ErrorCode.ERROR400);
 		}
 
-		Device device = deviceService.getDevice(deviceId);
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		if (device == null) {
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), "设备：" + deviceId + "未找到");
 		}

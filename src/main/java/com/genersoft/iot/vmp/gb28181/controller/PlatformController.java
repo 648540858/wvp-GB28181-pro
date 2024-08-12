@@ -8,8 +8,8 @@ import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
+import com.genersoft.iot.vmp.gb28181.bean.PlatformCatch;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
@@ -100,8 +100,8 @@ public class PlatformController {
     @Operation(summary = "获取级联服务器信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "id", description = "平台国标编号", required = true)
     @GetMapping("/info/{id}")
-    public ParentPlatform getPlatform(@PathVariable String id) {
-        ParentPlatform parentPlatform = platformService.queryPlatformByServerGBId(id);
+    public Platform getPlatform(@PathVariable String id) {
+        Platform parentPlatform = platformService.queryPlatformByServerGBId(id);
         if (parentPlatform != null) {
             return  parentPlatform;
         } else {
@@ -120,11 +120,11 @@ public class PlatformController {
     @Operation(summary = "分页查询级联平台", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页条数", required = true)
-    public PageInfo<ParentPlatform> platforms(@PathVariable int page, @PathVariable int count) {
+    public PageInfo<Platform> platforms(@PathVariable int page, @PathVariable int count) {
 
-        PageInfo<ParentPlatform> parentPlatformPageInfo = platformService.queryParentPlatformList(page, count);
+        PageInfo<Platform> parentPlatformPageInfo = platformService.queryParentPlatformList(page, count);
         if (parentPlatformPageInfo.getList().size() > 0) {
-            for (ParentPlatform platform : parentPlatformPageInfo.getList()) {
+            for (Platform platform : parentPlatformPageInfo.getList()) {
                 platform.setMobilePositionSubscribe(subscribeHolder.getMobilePositionSubscribe(platform.getServerGBId()) != null);
                 platform.setCatalogSubscribe(subscribeHolder.getCatalogSubscribe(platform.getServerGBId()) != null);
             }
@@ -141,7 +141,7 @@ public class PlatformController {
     @Operation(summary = "添加上级平台信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @PostMapping("/add")
     @ResponseBody
-    public void addPlatform(@RequestBody ParentPlatform parentPlatform) {
+    public void addPlatform(@RequestBody Platform parentPlatform) {
 
         if (log.isDebugEnabled()) {
             log.debug("保存上级平台信息API调用");
@@ -164,7 +164,7 @@ public class PlatformController {
         }
 
 
-        ParentPlatform parentPlatformOld = storager.queryParentPlatByServerGBId(parentPlatform.getServerGBId());
+        Platform parentPlatformOld = storager.queryParentPlatByServerGBId(parentPlatform.getServerGBId());
         if (parentPlatformOld != null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台 " + parentPlatform.getServerGBId() + " 已存在");
         }
@@ -186,7 +186,7 @@ public class PlatformController {
     @Operation(summary = "保存上级平台信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @PostMapping("/save")
     @ResponseBody
-    public void savePlatform(@RequestBody ParentPlatform parentPlatform) {
+    public void savePlatform(@RequestBody Platform parentPlatform) {
 
         if (log.isDebugEnabled()) {
             log.debug("保存上级平台信息API调用");
@@ -227,8 +227,8 @@ public class PlatformController {
         ) {
             throw new ControllerException(ErrorCode.ERROR400);
         }
-        ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(serverGBId);
-        ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(serverGBId);
+        Platform parentPlatform = storager.queryParentPlatByServerGBId(serverGBId);
+        PlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(serverGBId);
         if (parentPlatform == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台不存在");
         }
@@ -279,7 +279,7 @@ public class PlatformController {
     @ResponseBody
     public Boolean exitPlatform(@PathVariable String serverGBId) {
 
-        ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(serverGBId);
+        Platform parentPlatform = storager.queryParentPlatByServerGBId(serverGBId);
         return parentPlatform != null;
     }
 

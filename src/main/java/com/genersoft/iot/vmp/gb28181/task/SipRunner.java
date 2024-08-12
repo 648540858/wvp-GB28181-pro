@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.task;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
@@ -95,7 +95,7 @@ public class SipRunner implements CommandLineRunner {
                     ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
                     boolean stopResult = mediaServerService.initStopSendRtp(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getSsrc());
                     if (stopResult) {
-                        ParentPlatform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
+                        Platform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
                         if (platform != null) {
                             try {
                                 commanderForPlatform.streamByeCmd(platform, sendRtpItem.getCallId());

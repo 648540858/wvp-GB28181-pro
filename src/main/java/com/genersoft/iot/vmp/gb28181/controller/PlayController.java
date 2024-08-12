@@ -94,7 +94,7 @@ public class PlayController {
 		Assert.notNull(deviceId, "设备国标编号不可为NULL");
 		Assert.notNull(channelId, "通道国标编号不可为NULL");
 		// 获取可用的zlm
-		Device device = deviceService.getDevice(deviceId);
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		MediaServer newMediaServerItem = playService.getNewMediaServerItem(device);
 
 		RequestMessage requestMessage = new RequestMessage();
@@ -169,7 +169,7 @@ public class PlayController {
 			throw new ControllerException(ErrorCode.ERROR400);
 		}
 
-		Device device = deviceService.getDevice(deviceId);
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		if (device == null) {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备[" + deviceId + "]不存在");
 		}
@@ -212,7 +212,7 @@ public class PlayController {
 		if (log.isDebugEnabled()) {
 			log.debug("语音广播API调用");
 		}
-		Device device = deviceService.getDevice(deviceId);
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		if (device == null) {
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), "未找到设备： " + deviceId);
 		}

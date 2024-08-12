@@ -146,7 +146,7 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element element) {
+    public void handForPlatform(RequestEvent evt, Platform parentPlatform, Element element) {
 
     }
 }

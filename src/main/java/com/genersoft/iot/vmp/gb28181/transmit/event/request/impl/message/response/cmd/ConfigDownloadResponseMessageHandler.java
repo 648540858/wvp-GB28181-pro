@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.respon
 
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -67,7 +67,7 @@ public class ConfigDownloadResponseMessageHandler extends SIPRequestProcessorPar
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element element) {
+    public void handForPlatform(RequestEvent evt, Platform parentPlatform, Element element) {
         // 不会收到上级平台的心跳信息
 
     }

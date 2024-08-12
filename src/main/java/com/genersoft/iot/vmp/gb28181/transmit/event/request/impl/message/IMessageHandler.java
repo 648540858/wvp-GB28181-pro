@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import org.dom4j.Element;
 
 import javax.sip.RequestEvent;
@@ -19,5 +19,5 @@ public interface IMessageHandler {
      * @param evt
      * @param parentPlatform
      */
-    void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element element);
+    void handForPlatform(RequestEvent evt, Platform parentPlatform, Element element);
 }

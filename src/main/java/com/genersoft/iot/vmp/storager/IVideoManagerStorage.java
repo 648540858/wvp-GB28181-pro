@@ -20,26 +20,26 @@ public interface IVideoManagerStorage {
 	 * 更新上级平台
 	 * @param parentPlatform
 	 */
-	boolean updateParentPlatform(ParentPlatform parentPlatform);
+	boolean updateParentPlatform(Platform parentPlatform);
 
 	/**
 	 * 删除上级平台
 	 * @param parentPlatform
 	 */
-	boolean deleteParentPlatform(ParentPlatform parentPlatform);
+	boolean deleteParentPlatform(Platform parentPlatform);
 
 	/**
 	 * 获取所有已启用的平台
 	 * @return
 	 */
-	List<ParentPlatform> queryEnableParentPlatformList(boolean enable);
+	List<Platform> queryEnableParentPlatformList(boolean enable);
 
 	/**
 	 * 获取上级平台
 	 * @param platformGbId
 	 * @return
 	 */
-	ParentPlatform queryParentPlatByServerGBId(String platformGbId);
+	Platform queryParentPlatByServerGBId(String platformGbId);
 
 	/**
 	 *  移除上级平台的通道信息
@@ -95,12 +95,12 @@ public interface IVideoManagerStorage {
 
 	int updateStreamGPS(List<GPSMsgInfo> gpsMsgInfo);
 
-	List<ParentPlatform> queryPlatFormListForGBWithGBId(String channelId, List<String> platforms);
+	List<Platform> queryPlatFormListForGBWithGBId(String channelId, List<String> platforms);
 
 	void delRelationByPlatformId(String serverGBId);
 
 	List<ChannelSourceInfo> getChannelSource(String platformId, String gbId);
 
-	List<ParentPlatform> queryEnablePlatformListWithAsMessageChannel();
+	List<Platform> queryEnablePlatformListWithAsMessageChannel();
 
 }

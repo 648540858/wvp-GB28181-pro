@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request;
 
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.google.common.primitives.Bytes;
@@ -127,7 +127,7 @@ public abstract class SIPRequestProcessorParent {
 	/**
 	 * 回复带sdp的200
 	 */
-	public SIPResponse responseSdpAck(SIPRequest request, String sdp, ParentPlatform platform) throws SipException, InvalidArgumentException, ParseException {
+	public SIPResponse responseSdpAck(SIPRequest request, String sdp, Platform platform) throws SipException, InvalidArgumentException, ParseException {
 
 		ContentTypeHeader contentTypeHeader = SipFactory.getInstance().createHeaderFactory().createContentTypeHeader("APPLICATION", "SDP");
 
@@ -150,7 +150,7 @@ public abstract class SIPRequestProcessorParent {
 	/**
 	 * 回复带xml的200
 	 */
-	public SIPResponse responseXmlAck(SIPRequest request, String xml, ParentPlatform platform, Integer expires) throws SipException, InvalidArgumentException, ParseException {
+	public SIPResponse responseXmlAck(SIPRequest request, String xml, Platform platform, Integer expires) throws SipException, InvalidArgumentException, ParseException {
 		ContentTypeHeader contentTypeHeader = SipFactory.getInstance().createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
 
 		SipURI sipURI = (SipURI)request.getRequestURI();

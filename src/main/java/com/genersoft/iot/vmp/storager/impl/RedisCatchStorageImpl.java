@@ -89,14 +89,14 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void updatePlatformCatchInfo(ParentPlatformCatch parentPlatformCatch) {
+    public void updatePlatformCatchInfo(PlatformCatch parentPlatformCatch) {
         String key = VideoManagerConstants.PLATFORM_CATCH_PREFIX  + userSetting.getServerId() + "_" +  parentPlatformCatch.getId();
         redisTemplate.opsForValue().set(key, parentPlatformCatch);
     }
 
     @Override
-    public ParentPlatformCatch queryPlatformCatchInfo(String platformGbId) {
-        return (ParentPlatformCatch)redisTemplate.opsForValue().get(VideoManagerConstants.PLATFORM_CATCH_PREFIX + userSetting.getServerId() + "_" + platformGbId);
+    public PlatformCatch queryPlatformCatchInfo(String platformGbId) {
+        return (PlatformCatch)redisTemplate.opsForValue().get(VideoManagerConstants.PLATFORM_CATCH_PREFIX + userSetting.getServerId() + "_" + platformGbId);
     }
 
     @Override
@@ -662,7 +662,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void sendPlatformStartPlayMsg(SendRtpItem sendRtpItem, ParentPlatform platform) {
+    public void sendPlatformStartPlayMsg(SendRtpItem sendRtpItem, Platform platform) {
         if (sendRtpItem.getPlayType() == InviteStreamType.PUSH && platform  != null) {
             MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0, sendRtpItem.getApp(), sendRtpItem.getStream(),
                     sendRtpItem.getChannelId(), platform.getServerGBId(), platform.getName(), userSetting.getServerId(),
@@ -675,7 +675,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void sendPlatformStopPlayMsg(SendRtpItem sendRtpItem, ParentPlatform platform) {
+    public void sendPlatformStopPlayMsg(SendRtpItem sendRtpItem, Platform platform) {
 
         MessageForPushChannel msg = MessageForPushChannel.getInstance(0,
                 sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getChannelId(),

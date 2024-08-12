@@ -200,7 +200,7 @@ public class ApiDeviceController {
                     serial, channel, code, fill, timeout);
         }
 
-        Device device = deviceService.getDevice(serial);
+        Device device = deviceService.getDeviceByDeviceId(serial);
         String uuid =  UUID.randomUUID().toString();
         String key =  DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (ObjectUtils.isEmpty(code) ? serial : code);
         DeferredResult<Object> result = new DeferredResult<> (timeout * 1000L);

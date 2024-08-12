@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify
 
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -43,6 +44,9 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
     private IVideoManagerStorage storage;
 
     @Autowired
+    private IGbChannelService channelService;
+
+    @Autowired
     private ISIPCommanderForPlatform commanderForPlatform;
 
     @Autowired
@@ -74,7 +78,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, ParentPlatform platform, Element rootElement) {
+    public void handForPlatform(RequestEvent evt, Platform platform, Element rootElement) {
         // 来自上级平台的语音喊话请求
         SIPRequest request = (SIPRequest) evt.getRequest();
         try {
@@ -94,14 +98,14 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
 
             log.info("[国标级联 语音喊话] platform: {}, channel: {}", platform.getServerGBId(), targetId);
 
-            DeviceChannel deviceChannel = storage.queryChannelInParentPlatform(platform.getServerGBId(), targetId);
-            if (deviceChannel == null) {
+            CommonGBChannel channel = channelService.queryOneWithPlatform(platform.getId(), targetId);
+            if (channel == null) {
                 log.warn("[国标级联 语音喊话] 未找到通道 platform: {}, channel: {}", platform.getServerGBId(), targetId);
                 responseAck(request, Response.NOT_FOUND, "TargetID not found");
                 return;
             }
             // 向下级发送语音的喊话请求
-            Device device = deviceService.getDevice(deviceChannel.getDeviceId());
+            Device device = deviceService.getDevice(channel.getGbDeviceDbId());
             if (device == null) {
                 responseAck(request, Response.NOT_FOUND, "device not found");
                 return;
@@ -110,26 +114,26 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
 
             // 查看语音通道是否已经建立并且已经在使用
             if (playService.audioBroadcastInUse(device, targetId)) {
-                commanderForPlatform.broadcastResultCmd(platform, deviceChannel, sn, false,null, null);
+                commanderForPlatform.broadcastResultCmd(platform, channel, sn, false,null, null);
                 return;
             }
 
             MediaServer mediaServerForMinimumLoad = mediaServerService.getMediaServerForMinimumLoad(null);
-            commanderForPlatform.broadcastResultCmd(platform, deviceChannel, sn, true,  eventResult->{
+            commanderForPlatform.broadcastResultCmd(platform, channel, sn, true,  eventResult->{
                 log.info("[国标级联] 语音喊话 回复失败 platform： {}， 错误：{}/{}", platform.getServerGBId(), eventResult.statusCode, eventResult.msg);
             }, eventResult->{
 
                 // 消息发送成功， 向上级发送invite，获取推流
                 try {
-                    platformService.broadcastInvite(platform, deviceChannel.getDeviceId(), mediaServerForMinimumLoad,  (hookData)->{
+                    platformService.broadcastInvite(platform, channel.getGbDeviceId(), mediaServerForMinimumLoad,  (hookData)->{
                         // 上级平台推流成功
                         AudioBroadcastCatch broadcastCatch = audioBroadcastManager.get(device.getDeviceId(), targetId);
                         if (broadcastCatch != null ) {
                             if (playService.audioBroadcastInUse(device, targetId)) {
                                 log.info("[国标级联] 语音喊话 设备正在使用中 platform： {}， channel: {}",
-                                        platform.getServerGBId(), deviceChannel.getDeviceId());
+                                        platform.getServerGBId(), channel.getGbDeviceId());
                                 //  查看语音通道已经建立且已经占用 回复BYE
-                                platformService.stopBroadcast(platform, deviceChannel, hookData.getStream(),  true, hookData.getMediaServer());
+                                platformService.stopBroadcast(platform, channel, hookData.getStream(),  true, hookData.getMediaServer());
                             }else {
                                 // 查看语音通道已经建立但是未占用
                                 broadcastCatch.setApp(hookData.getApp());

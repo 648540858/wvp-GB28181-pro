@@ -93,7 +93,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             SipUri uri = (SipUri) address.getURI();
             String deviceId = uri.getUser();
 
-            Device device = deviceService.getDevice(deviceId);
+            Device device = deviceService.getDeviceByDeviceId(deviceId);
 
             RemoteAddressInfo remoteAddressInfo = SipUtils.getRemoteAddressFromRequest(request,
                     userSetting.getSipUseSourceIpAsRemoteAddress());

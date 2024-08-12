@@ -234,7 +234,7 @@ public class MediaServiceImpl implements IMediaService {
                             inviteInfo.getChannelId());
                     if (!sendRtpItems.isEmpty()) {
                         for (SendRtpItem sendRtpItem : sendRtpItems) {
-                            ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
+                            Platform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
                             try {
                                 commanderForPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
                             } catch (SipException | InvalidArgumentException | ParseException e) {
@@ -248,7 +248,7 @@ public class MediaServiceImpl implements IMediaService {
                         }
                     }
                 }
-                Device device = deviceService.getDevice(inviteInfo.getDeviceId());
+                Device device = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
                 if (device != null) {
                     try {
                         // 多查询一次防止已经被处理了

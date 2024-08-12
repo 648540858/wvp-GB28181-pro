@@ -351,7 +351,7 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public Device getDevice(String deviceId) {
+    public Device getDeviceByDeviceId(String deviceId) {
         Device device = redisCatchStorage.getDevice(deviceId);
         if (device == null) {
             device = deviceMapper.getDeviceByDeviceId(deviceId);
@@ -567,5 +567,10 @@ public class DeviceServiceImpl implements IDeviceService {
         PageHelper.startPage(page, count);
         List<Device> all = deviceMapper.getDeviceList(query, status);
         return new PageInfo<>(all);
+    }
+
+    @Override
+    public Device getDevice(Integer id) {
+        return deviceMapper.query(id);
     }
 }

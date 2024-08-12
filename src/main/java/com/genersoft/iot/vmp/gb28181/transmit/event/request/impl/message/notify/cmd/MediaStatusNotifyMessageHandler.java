@@ -4,7 +4,7 @@ import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
@@ -110,7 +110,7 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
                 // 如果级联播放，需要给上级发送此通知 TODO 多个上级同时观看一个下级 可能存在停错的问题，需要将点播CallId进行上下级绑定
                 SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(null, ssrcTransaction.getChannelId(), null, null);
                 if (sendRtpItem != null) {
-                    ParentPlatform parentPlatform = storage.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
+                    Platform parentPlatform = storage.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
                     if (parentPlatform == null) {
                         log.warn("[级联消息发送]：发送MediaStatus发现上级平台{}不存在", sendRtpItem.getPlatformId());
                         return;
@@ -128,7 +128,7 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element element) {
+    public void handForPlatform(RequestEvent evt, Platform parentPlatform, Element element) {
 
     }
 }

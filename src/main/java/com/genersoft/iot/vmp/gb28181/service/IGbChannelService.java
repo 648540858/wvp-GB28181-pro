@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.service;
 
-import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.github.pagehelper.PageInfo;
@@ -80,5 +79,5 @@ public interface IGbChannelService {
 
     CommonGBChannel queryOneWithPlatform(Integer platformId, String channelDeviceId);
 
-    void start(CommonGBChannel channel, ErrorCallback<StreamInfo> callback);
+    void start(CommonGBChannel channel, ErrorCallback<CommonChannelPlayInfo> callback);
 }

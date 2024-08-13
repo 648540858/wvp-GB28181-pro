@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
-import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
@@ -10,6 +10,8 @@ import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IPlayService;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -42,10 +44,16 @@ public class GbChannelServiceImpl implements IGbChannelService {
     private IDeviceService deviceService;
 
     @Autowired
+    private IPlayService playService;
+
+    @Autowired
     private RegionMapper regionMapper;
 
     @Autowired
     private GroupMapper groupMapper;
+
+    @Autowired
+    private UserSetting userSetting;
 
     @Override
     public CommonGBChannel queryByDeviceId(String gbDeviceId) {
@@ -646,16 +654,34 @@ public class GbChannelServiceImpl implements IGbChannelService {
     }
 
     @Override
-    public void start(CommonGBChannel channel, ErrorCallback<StreamInfo> callback) {
+    public void start(CommonGBChannel channel, ErrorCallback<CommonChannelPlayInfo> callback) {
+        log.info("[点播通用通道] 通道： {}({})", channel.getGbName(), channel.getGbDeviceId());
         if (channel.getGbDeviceDbId() > 0) {
             // 国标通道
             Device device = deviceService.getDevice(channel.getGbDeviceDbId());
             if (device == null) {
                 log.warn("[点播] 未找到通道{}的设备信息", channel);
-                throw new PlayException(Response.SERVER_INTERNAL_ERROR, "serverInternalError");
+                throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
+            }
+            MediaServer mediaServer = playService.getNewMediaServerItem(device);
+            if (mediaServer == null) {
+                log.warn("[点播] 未找到可用媒体节点");
+                throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
             }
 
-
+            playService.play(mediaServer, device.getDeviceId(), channel.getGbDeviceId(),  null, (code, msg, data) -> {
+                if (callback != null) {
+                    callback.run(code, msg, CommonChannelPlayInfo.build(mediaServer, data));
+                }
+            });
+        }else if (channel.getStreamProxyId() > 0){
+            // 拉流代理
+        }else if (channel.getStreamPushId() > 0) {
+            // 推流
+        }else {
+            // 通道数据异常
+            log.error("[点播通用通道] 通道数据异常，无法识别通道来源： {}({})", channel.getGbName(), channel.getGbDeviceId());
+            throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
         }
     }
 }

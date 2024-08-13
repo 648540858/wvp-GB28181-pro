@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.gb28181.bean.PlayException;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
@@ -878,8 +879,8 @@ public class MediaServerServiceImpl implements IMediaServerService {
                                          String app, String stream, String channelId, boolean tcp, boolean rtcp){
 
         int localPort = sendRtpPortManager.getNextPort(serverItem);
-        if (localPort == 0) {
-            return null;
+        if (localPort <= 0) {
+            throw new PlayException(javax.sip.message.Response.SERVER_INTERNAL_ERROR, "server internal error");
         }
         SendRtpItem sendRtpItem = new SendRtpItem();
         sendRtpItem.setIp(ip);

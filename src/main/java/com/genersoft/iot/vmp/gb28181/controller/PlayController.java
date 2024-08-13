@@ -119,14 +119,13 @@ public class PlayController {
 		// 录像查询以channelId作为deviceId查询
 		resultHolder.put(key, uuid, result);
 
-		playService.play(newMediaServerItem, deviceId, channelId, null, (code, msg, data) -> {
+		playService.play(newMediaServerItem, deviceId, channelId, null, (code, msg, streamInfo) -> {
 			WVPResult<StreamContent> wvpResult = new WVPResult<>();
 			if (code == InviteErrorCode.SUCCESS.getCode()) {
 				wvpResult.setCode(ErrorCode.SUCCESS.getCode());
 				wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
 
-				if (data != null) {
-					StreamInfo streamInfo = (StreamInfo)data;
+				if (streamInfo != null) {
 					if (userSetting.getUseSourceIpAsStreamIp()) {
 						streamInfo=streamInfo.clone();//深拷贝
 						String host;

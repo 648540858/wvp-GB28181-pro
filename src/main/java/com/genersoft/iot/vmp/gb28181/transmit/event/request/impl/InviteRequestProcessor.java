@@ -184,7 +184,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     log.error("[命令发送失败] 上级Invite TRYING: {}", e.getMessage());
                 }
 
-                channelService.start(channel, ((code, msg, commonChannelPlayInfo) -> {
+                channelService.start(channel, inviteInfo, ((code, msg, commonChannelPlayInfo) -> {
                     if (code != Response.OK) {
                         try {
                             responseAck(request, code, msg);

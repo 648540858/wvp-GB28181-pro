@@ -79,5 +79,5 @@ public interface IGbChannelService {
 
     CommonGBChannel queryOneWithPlatform(Integer platformId, String channelDeviceId);
 
-    void start(CommonGBChannel channel, ErrorCallback<CommonChannelPlayInfo> callback);
+    void start(CommonGBChannel channel, InviteInfo inviteInfo, ErrorCallback<CommonChannelPlayInfo> callback);
 }

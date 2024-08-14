@@ -12,7 +12,7 @@
       </div>
     </div>
     <!--用户列表-->
-    <el-table :data="userList" style="width: 100%;font-size: 12px;" :height="winHeight"
+    <el-table size=mini :data="userList" style="width: 100%;font-size: 12px;" :height="winHeight"
               header-row-class-name="table-header">
       <el-table-column prop="username" label="用户名" min-width="160"/>
       <el-table-column prop="pushKey" label="pushkey" min-width="160"/>

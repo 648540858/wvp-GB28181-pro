@@ -27,7 +27,7 @@
         </div>
       </div>
       <!--设备列表-->
-      <el-table :data="deviceList" style="width: 100%;font-size: 12px;" :height="winHeight" header-row-class-name="table-header" @selection-change="handleSelectionChange">
+      <el-table size=mini :data="deviceList" style="width: 100%;font-size: 12px;" :height="winHeight" header-row-class-name="table-header" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" >
         </el-table-column>
         <el-table-column prop="name" label="名称" min-width="160">

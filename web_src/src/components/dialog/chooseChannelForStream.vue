@@ -27,7 +27,7 @@
       <el-button v-if="catalogId === null"  icon="el-icon-plus" size="mini" style="margin-right: 1rem;" @click="add()">全部添加</el-button>
       <el-button v-if="catalogId !== null" type="danger" icon="el-icon-delete" size="mini" style="margin-right: 1rem;" @click="remove()">全部移除</el-button>
     </div>
-    <el-table ref="gbStreamsTable" :data="gbStreams" border style="width: 100%" :height="winHeight" :row-key="(row)=> row.app + row.stream" @selection-change="handleSelectionChange">
+    <el-table size=mini ref="gbStreamsTable" :data="gbStreams" border style="width: 100%" :height="winHeight" :row-key="(row)=> row.app + row.stream" @selection-change="handleSelectionChange">
         <el-table-column align="center" type="selection" :reserve-selection="true" width="55">
         </el-table-column>
         <el-table-column prop="name" label="名称" show-overflow-tooltip align="center">

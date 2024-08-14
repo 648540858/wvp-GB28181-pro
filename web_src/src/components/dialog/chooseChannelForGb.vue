@@ -24,7 +24,7 @@
      <el-button v-if="catalogId !== null" type="danger" icon="el-icon-delete" size="mini" @click="remove()">全部移除</el-button>
     </div>
 
-    <el-table ref="gbChannelsTable" :data="gbChannels" border style="width: 100%" :height="winHeight" :row-key="(row)=> row.deviceId + row.channelId" @selection-change="handleSelectionChange">
+    <el-table size=mini ref="gbChannelsTable" :data="gbChannels" border style="width: 100%" :height="winHeight" :row-key="(row)=> row.deviceId + row.channelId" @selection-change="handleSelectionChange">
         <el-table-column align="center" type="selection" :reserve-selection="true" width="55">
         </el-table-column>
         <el-table-column prop="channelId" label="通道编号" width="180" align="center">

@@ -11,7 +11,7 @@
       </div>
     </div>
     <!--ApiKey列表-->
-    <el-table :data="userList" style="width: 100%;font-size: 12px;" :height="winHeight"
+    <el-table size=mini :data="userList" style="width: 100%;font-size: 12px;" :height="winHeight"
               header-row-class-name="table-header">
       <el-table-column prop="user.username" label="用户名" min-width="120"/>
       <el-table-column prop="app" label="应用名" min-width="160"/>

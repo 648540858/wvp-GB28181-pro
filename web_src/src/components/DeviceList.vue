@@ -22,7 +22,7 @@
       </div>
     </div>
     <!--设备列表-->
-    <el-table :data="deviceList" style="width: 100%;font-size: 12px;" :height="winHeight" header-row-class-name="table-header">
+    <el-table size=mini :data="deviceList" style="width: 100%;font-size: 12px;" :height="winHeight" header-row-class-name="table-header">
       <el-table-column prop="name" label="名称" min-width="160">
       </el-table-column>
       <el-table-column prop="deviceId" label="设备编号" min-width="200" >
@@ -67,7 +67,7 @@
 <!--      <el-table-column prop="createTime" label="创建时间"  width="140">-->
 <!--      </el-table-column>-->
 
-      <el-table-column label="操作" min-width="450" fixed="right">
+      <el-table-column label="操作" min-width="380" fixed="right">
         <template slot-scope="scope">
           <el-button type="text" size="medium" v-bind:disabled="scope.row.online==0" icon="el-icon-refresh" @click="refDevice(scope.row)"
                      @mouseover="getTooltipContent(scope.row.deviceId)">刷新

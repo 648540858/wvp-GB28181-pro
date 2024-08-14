@@ -37,7 +37,7 @@
             </div>
           </div>
         </div>
-        <el-table ref="channelListTable" :data="channelList" :height="winHeight" style="width: 100%"
+        <el-table size=mini ref="channelListTable" :data="channelList" :height="winHeight" style="width: 100%"
                   header-row-class-name="table-header" @selection-change="handleSelectionChange" @row-dblclick="rowDblclick">
           <el-table-column type="selection" width="55" :selectable="selectable">
           </el-table-column>

@@ -50,7 +50,7 @@
         <DeviceTree ref="deviceTree" :device="device" :onlyCatalog="true" :clickEvent="treeNodeClickEvent"></DeviceTree>
       </el-aside>
       <el-main style="padding: 5px;">
-        <el-table ref="channelListTable" :data="deviceChannelList" :height="winHeight" style="width: 100%"
+        <el-table size=mini ref="channelListTable" :data="deviceChannelList" :height="winHeight" style="width: 100%"
                   header-row-class-name="table-header">
           <el-table-column prop="name" label="名称" min-width="180">
           </el-table-column>

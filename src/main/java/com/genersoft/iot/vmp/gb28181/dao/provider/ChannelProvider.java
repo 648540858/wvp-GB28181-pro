@@ -22,7 +22,7 @@ public class ChannelProvider {
                 "    coalesce(gb_manufacturer, manufacturer) as gb_manufacturer,\n" +
                 "    coalesce(gb_model, model) as gb_model,\n" +
                 "    coalesce(gb_owner, owner) as gb_owner,\n" +
-                "    coalesce(gb_civil_code, civil_code),\n" +
+                "    coalesce(gb_civil_code, civil_code) as gb_civil_code,\n" +
                 "    coalesce(gb_block, block) as gb_block,\n" +
                 "    coalesce(gb_address, address) as gb_address,\n" +
                 "    coalesce(gb_parental, parental) as gb_parental,\n" +

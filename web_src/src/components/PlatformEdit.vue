@@ -1,10 +1,10 @@
 <template>
-  <div id="StreamProxyEdit" style="width: 100%">
+  <div id="PlatformEdit" style="width: 100%">
     <div class="page-header">
       <div class="page-title">
         <el-button icon="el-icon-back" size="mini" style="font-size: 20px; color: #000;" type="text" @click="close" ></el-button>
         <el-divider direction="vertical"></el-divider>
-        编辑拉流代理信息
+        添加上级平台
       </div>
       <div class="page-header-btn">
         <div style="display: inline;">
@@ -12,30 +12,30 @@
         </div>
       </div>
     </div>
-    <div id="shared" style="text-align: right; margin-top: 1rem">
+    <div id="shared" style="text-align: right; margin-top: 1rem; background-color: #FFFFFF; padding-top: 2rem;">
       <el-row :gutter="24">
         <el-col :span="11">
-          <el-form ref="platform1" :rules="rules" :model="platform" label-width="160px">
+          <el-form ref="platform1" :rules="rules" :model="value" label-width="160px">
             <el-form-item label="名称" prop="name">
-              <el-input v-model="platform.name"></el-input>
+              <el-input v-model="value.name"></el-input>
             </el-form-item>
             <el-form-item label="SIP服务国标编码" prop="serverGBId">
-              <el-input v-model="platform.serverGBId" clearable @input="serverGBIdChange"></el-input>
+              <el-input v-model="value.serverGBId" clearable @input="serverGBIdChange"></el-input>
             </el-form-item>
             <el-form-item label="SIP服务国标域" prop="serverGBDomain">
-              <el-input v-model="platform.serverGBDomain" clearable></el-input>
+              <el-input v-model="value.serverGBDomain" clearable></el-input>
             </el-form-item>
             <el-form-item label="SIP服务IP" prop="serverIP">
-              <el-input v-model="platform.serverIP" clearable></el-input>
+              <el-input v-model="value.serverIP" clearable></el-input>
             </el-form-item>
             <el-form-item label="SIP服务端口" prop="serverPort">
-              <el-input v-model="platform.serverPort" clearable type="number"></el-input>
+              <el-input v-model="value.serverPort" clearable type="number"></el-input>
             </el-form-item>
             <el-form-item label="设备国标编号" prop="deviceGBId">
-              <el-input v-model="platform.deviceGBId" clearable @input="deviceGBIdChange"></el-input>
+              <el-input v-model="value.deviceGBId" clearable @input="deviceGBIdChange"></el-input>
             </el-form-item>
             <el-form-item label="本地IP" prop="deviceIp">
-              <el-select v-model="platform.deviceIp" placeholder="请选择与上级相通的网卡" style="width: 100%">
+              <el-select v-model="value.deviceIp" placeholder="请选择与上级相通的网卡" style="width: 100%">
                 <el-option
                   v-for="ip in deviceIps"
                   :key="ip"
@@ -45,33 +45,33 @@
               </el-select>
             </el-form-item>
             <el-form-item label="本地端口" prop="devicePort">
-              <el-input v-model="platform.devicePort" :disabled="true" type="number"></el-input>
+              <el-input v-model="value.devicePort" :disabled="true" type="number"></el-input>
             </el-form-item>
             <el-form-item label="SDP发流IP" prop="sendStreamIp">
-              <el-input v-model="platform.sendStreamIp"></el-input>
+              <el-input v-model="value.sendStreamIp"></el-input>
             </el-form-item>
           </el-form>
         </el-col>
         <el-col :span="12">
           <el-form ref="platform2" :rules="rules" :model="platform" label-width="160px">
             <el-form-item label="行政区划" prop="administrativeDivision">
-              <el-input v-model="platform.administrativeDivision" clearable></el-input>
+              <el-input v-model="value.civilCode" clearable></el-input>
             </el-form-item>
             <el-form-item label="SIP认证用户名" prop="username">
-              <el-input v-model="platform.username"></el-input>
+              <el-input v-model="value.username"></el-input>
             </el-form-item>
             <el-form-item label="SIP认证密码" prop="password">
-              <el-input v-model="platform.password"></el-input>
+              <el-input v-model="value.password"></el-input>
             </el-form-item>
             <el-form-item label="注册周期(秒)" prop="expires">
-              <el-input v-model="platform.expires"></el-input>
+              <el-input v-model="value.expires"></el-input>
             </el-form-item>
             <el-form-item label="心跳周期(秒)" prop="keepTimeout">
-              <el-input v-model="platform.keepTimeout"></el-input>
+              <el-input v-model="value.keepTimeout"></el-input>
             </el-form-item>
             <el-form-item label="信令传输" prop="transport">
               <el-select
-                v-model="platform.transport"
+                v-model="value.transport"
                 style="width: 100%"
                 placeholder="请选择信令传输方式"
               >
@@ -81,7 +81,7 @@
             </el-form-item>
             <el-form-item label="目录分组" prop="catalogGroup">
               <el-select
-                v-model="platform.catalogGroup"
+                v-model="value.catalogGroup"
                 style="width: 100%"
                 placeholder="请选择目录分组"
               >
@@ -93,7 +93,7 @@
             </el-form-item>
             <el-form-item label="字符集" prop="characterSet">
               <el-select
-                v-model="platform.characterSet"
+                v-model="value.characterSet"
                 style="width: 100%"
                 placeholder="请选择字符集"
               >
@@ -101,13 +101,20 @@
                 <el-option label="UTF-8" value="UTF-8"></el-option>
               </el-select>
             </el-form-item>
-            <el-form-item label="其他选项">
-              <el-checkbox label="启用" v-model="platform.enable" @change="checkExpires"></el-checkbox>
-              <!--                <el-checkbox label="云台控制" v-model="platform.ptz"></el-checkbox>-->
-              <el-checkbox label="拉起推流" v-model="platform.startOfflinePush"></el-checkbox>
-              <el-checkbox label="RTCP保活" v-model="platform.rtcp" @change="rtcpCheckBoxChange"></el-checkbox>
-              <el-checkbox label="消息通道" v-model="platform.asMessageChannel"></el-checkbox>
-              <el-checkbox label="推送通道" v-model="platform.autoPushChannel"></el-checkbox>
+            <el-form-item label="其他选项" >
+              <div style="text-align: left">
+                <el-checkbox label="启用" v-model="value.enable" @change="checkExpires"></el-checkbox>
+                <!--                <el-checkbox label="云台控制" v-model="value.ptz"></el-checkbox>-->
+                <el-checkbox label="RTCP保活" v-model="value.rtcp" @change="rtcpCheckBoxChange"></el-checkbox>
+                <el-checkbox label="消息通道" v-model="value.asMessageChannel"></el-checkbox>
+                <el-checkbox label="主动推送通道" v-model="value.autoPushChannel"></el-checkbox>
+                <el-checkbox label="主动推送通道" v-model="value.autoPushChannel"></el-checkbox>
+                <el-checkbox label="主动推送通道" v-model="value.autoPushChannel"></el-checkbox>
+                <el-checkbox label="主动推送通道" v-model="value.autoPushChannel"></el-checkbox>
+                <el-checkbox label="主动推送通道" v-model="value.autoPushChannel"></el-checkbox>
+              </div>
+
+
             </el-form-item>
             <el-form-item>
               <el-button type="primary" @click="onSubmit">{{
@@ -130,13 +137,28 @@ export default {
   props: [ 'value', 'closeEdit'],
   components: {
   },
-  created() {},
+  created() {
+
+  },
   watch: {
     value(newValue, oldValue){
       this.streamProxy = newValue;
     }
   },
   data() {
+    var deviceGBIdRules = async (rule, value, callback) => {
+      console.log(value);
+      if (value === "") {
+        callback(new Error("请输入设备国标编号"));
+      } else {
+        var exit = await this.deviceGBIdExit(value);
+        if (exit) {
+          callback(new Error("设备国标编号已存在"));
+        } else {
+          callback();
+        }
+      }
+    }
     return {
       listChangeCallback: null,
       showDialog: false,
@@ -244,38 +266,22 @@ export default {
       }
 
     },
-    close: function () {
-      this.closeEdit()
+    checkExpires: function () {
+      if (this.value.enable && this.value.expires === "0") {
+        this.value.expires = "3600";
+      }
     },
-    mediaServerIdChange:function (){
-      if (this.streamProxy.mediaServerId !== "auto"){
-        this.$axios({
-          method: 'get',
-          url:`/api/proxy/ffmpeg_cmd/list`,
-          params: {
-            mediaServerId: this.streamProxy.mediaServerId
-          }
-        }).then((res)=> {
-          this.ffmpegCmdList = res.data.data;
-          this.streamProxy.ffmpegCmdKey = Object.keys(res.data.data)[0];
-        }).catch(function (error) {
-          console.log(error);
+    rtcpCheckBoxChange: function (result) {
+      if (result) {
+        this.$message({
+          showClose: true,
+          message: "开启RTCP保活需要上级平台支持，可以避免无效推流",
+          type: "warning",
         });
       }
-
     },
-    noneReaderHandler: function() {
-      console.log(this.streamProxy)
-      if (!this.streamProxy.noneReader || this.streamProxy.noneReader === 0 ) {
-        this.streamProxy.enableDisableNoneReader = false;
-        this.streamProxy.enableRemoveNoneReader = false;
-      }else if (this.streamProxy.noneReader === 1){
-        this.streamProxy.enableDisableNoneReader = true;
-        this.streamProxy.enableRemoveNoneReader = false;
-      }else if (this.streamProxy.noneReader ===2){
-        this.streamProxy.enableDisableNoneReader = false;
-        this.streamProxy.enableRemoveNoneReader = true;
-      }
+    close: function () {
+      this.closeEdit()
     },
   },
 };

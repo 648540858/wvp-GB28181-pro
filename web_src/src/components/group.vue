@@ -37,7 +37,7 @@
             </div>
           </div>
         </div>
-        <el-table ref="channelListTable" :data="channelList" :height="winHeight" style="width: 100%"
+        <el-table size=mini ref="channelListTable" :data="channelList" :height="winHeight" style="width: 100%"
                   header-row-class-name="table-header" @selection-change="handleSelectionChange" @row-dblclick="rowDblclick">
           <el-table-column type="selection" width="55" :selectable="selectable">
           </el-table-column>
@@ -67,8 +67,8 @@
           <el-table-column label="添加状态" min-width="100">
             <template slot-scope="scope">
               <div slot="reference" class="name-wrapper">
-                <el-tag size="medium" :title="scope.row.gbParentId" v-if="scope.row.gbParentId">已添加</el-tag>
-                <el-tag size="medium" type="info" v-if="!scope.row.gbParentId">未添加</el-tag>
+                <el-tag size="medium" :title="scope.row.gbBusinessGroupId" v-if="scope.row.gbBusinessGroupId">已添加</el-tag>
+                <el-tag size="medium" type="info" v-if="!scope.row.gbBusinessGroupId">未添加</el-tag>
               </div>
             </template>
           </el-table-column>

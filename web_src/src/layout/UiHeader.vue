@@ -17,7 +17,7 @@
       </el-submenu>
       <el-menu-item index="/cloudRecord">云端录像</el-menu-item>
       <el-menu-item index="/mediaServerManger">节点管理</el-menu-item>
-      <el-menu-item index="/parentPlatformList/15/1">国标级联</el-menu-item>
+      <el-menu-item index="/platformList/15/1">国标级联</el-menu-item>
       <el-menu-item v-if="editUser" index="/userManager">用户管理</el-menu-item>
 
       <!--            <el-submenu index="/setting">-->

@@ -10,7 +10,7 @@ import streamPushList from '../components/StreamPushList.vue'
 import streamProxyList from '../components/StreamProxyList.vue'
 import map from '../components/map.vue'
 import login from '../components/Login.vue'
-import parentPlatformList from '../components/ParentPlatformList.vue'
+import platform from '../components/PlatformList.vue'
 import cloudRecord from '../components/CloudRecord.vue'
 import cloudRecordDetail from '../components/CloudRecordDetail.vue'
 import mediaServerManger from '../components/MediaServerManger.vue'
@@ -74,9 +74,9 @@ export default new VueRouter({
           component: gbRecordDetail,
         },
         {
-          path: '/parentPlatformList/:count/:page',
-          name: 'parentPlatformList',
-          component: parentPlatformList,
+          path: '/platformList/:count/:page',
+          name: 'platformList',
+          component: platform,
         },
         {
           path: '/map/:deviceId/:parentChannelId/:count/:page',

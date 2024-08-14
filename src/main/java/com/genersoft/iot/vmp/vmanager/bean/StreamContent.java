@@ -172,8 +172,10 @@ public class StreamContent {
         if (streamInfo.getRtcs() != null) {
             this.rtcs = streamInfo.getRtcs().getUrl();
         }
+        if (streamInfo.getMediaServer() != null) {
+            this.mediaServerId = streamInfo.getMediaServer().getId();
+        }
 
-        this.mediaServerId = streamInfo.getMediaServerId();
         this.mediaInfo = streamInfo.getMediaInfo();
         this.startTime = streamInfo.getStartTime();
         this.endTime = streamInfo.getEndTime();

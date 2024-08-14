@@ -9,7 +9,7 @@ import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
@@ -34,7 +34,6 @@ import com.genersoft.iot.vmp.service.redisMsg.RedisPushStreamResponseListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
-import com.genersoft.iot.vmp.streamPush.service.IStreamPushService;
 import gov.nist.javax.sdp.TimeDescriptionImpl;
 import gov.nist.javax.sdp.fields.TimeField;
 import gov.nist.javax.sdp.fields.URIField;
@@ -77,13 +76,10 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     private IVideoManagerStorage storager;
 
     @Autowired
-    private IDeviceService deviceService;
-
-    @Autowired
     private IGbChannelService channelService;
 
     @Autowired
-    private IStreamPushService streamPushService;
+    private IGbChannelPlayService channelPlayService;
 
     @Autowired
     private IStreamProxyService streamProxyService;
@@ -160,7 +156,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             if (platform == null) {
                 inviteFromDeviceHandle(request, inviteInfo.getRequesterId(), inviteInfo.getChannelId());
             } else {
-
                 // 查询平台下是否有该通道
                 CommonGBChannel channel= channelService.queryOneWithPlatform(platform.getId(), inviteInfo.getChannelId());
                 if (channel == null) {
@@ -184,7 +179,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     log.error("[命令发送失败] 上级Invite TRYING: {}", e.getMessage());
                 }
 
-                channelService.start(channel, inviteInfo, ((code, msg, commonChannelPlayInfo) -> {
+                channelPlayService.start(channel, inviteInfo, platform, ((code, msg, streamInfo) -> {
                     if (code != Response.OK) {
                         try {
                             responseAck(request, code, msg);
@@ -194,9 +189,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     }else {
                         // 点播成功， TODO 可以在此处检测cancel命令是否存在，存在则不发送
                         // 构建sendRTP内容
-                        SendRtpItem sendRtpItem = mediaServerService.createSendRtpItem(commonChannelPlayInfo.getMediaServer(),
+                        SendRtpItem sendRtpItem = mediaServerService.createSendRtpItem(streamInfo.getMediaServer(),
                                 inviteInfo.getIp(), inviteInfo.getPort(), inviteInfo.getSsrc(), platform.getServerGBId(),
-                                commonChannelPlayInfo.getStreamInfo().getApp(), commonChannelPlayInfo.getStreamInfo().getStream(),
+                                streamInfo.getApp(), streamInfo.getStream(),
                                 channel.getGbDeviceId(), inviteInfo.isTcp(), platform.isRtcp());
                         if (inviteInfo.isTcp() && inviteInfo.isTcpActive()) {
                             sendRtpItem.setTcpActive(true);
@@ -206,7 +201,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         sendRtpItem.setPlayType("Play".equalsIgnoreCase(inviteInfo.getSessionName()) ? InviteStreamType.PLAY : InviteStreamType.PLAYBACK);
 
                         redisCatchStorage.updateSendRTPSever(sendRtpItem);
-                        String sdpIp = commonChannelPlayInfo.getMediaServer().getSdpIp();
+                        String sdpIp = streamInfo.getMediaServer().getSdpIp();
                         if (!ObjectUtils.isEmpty(platform.getSendStreamIp())) {
                             sdpIp = platform.getSendStreamIp();
                         }
@@ -214,7 +209,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         // 超时未收到Ack应该回复bye,当前等待时间为10秒
                         dynamicTask.startDelay(inviteInfo.getCallId(), () -> {
                             log.info("Ack 等待超时");
-                            mediaServerService.releaseSsrc(commonChannelPlayInfo.getMediaServer().getId(), sendRtpItem.getSsrc());
+                            mediaServerService.releaseSsrc(streamInfo.getMediaServer().getId(), sendRtpItem.getSsrc());
                             // 回复bye
                             sendBye(platform, inviteInfo.getCallId());
                         }, 60 * 1000);

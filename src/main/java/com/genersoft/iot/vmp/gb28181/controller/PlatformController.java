@@ -256,7 +256,7 @@ public class PlatformController {
 
         boolean deleteResult = storager.deleteParentPlatform(parentPlatform);
 //        storager.delCatalogByPlatformId(parentPlatform.getServerGBId());
-        storager.delRelationByPlatformId(parentPlatform.getServerGBId());
+//        storager.delRelationByPlatformId(parentPlatform.getServerGBId());
         // 停止发送位置订阅定时任务
         String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetting.getServerId() +  "_MobilePosition_" + parentPlatform.getServerGBId();
         dynamicTask.stop(key);
@@ -396,11 +396,11 @@ public class PlatformController {
         if (log.isDebugEnabled()) {
             log.debug("删除关联,{}", JSON.toJSONString(platformCatalog));
         }
-        int delResult = storager.delRelation(platformCatalog);
-
-        if (delResult <= 0) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "写入数据库失败");
-        }
+//        int delResult = storager.delRelation(platformCatalog);
+//
+//        if (delResult <= 0) {
+//            throw new ControllerException(ErrorCode.ERROR100.getCode(), "写入数据库失败");
+//        }
     }
 
 

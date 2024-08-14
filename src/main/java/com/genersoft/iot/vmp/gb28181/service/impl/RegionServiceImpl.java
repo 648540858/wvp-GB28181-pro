@@ -35,10 +35,8 @@ public class RegionServiceImpl implements IRegionService {
     @Autowired
     private RegionMapper regionMapper;
 
-
     @Autowired
     private CommonGBChannelMapper commonGBChannelMapper;
-
 
     @Autowired
     private IGbChannelService gbChannelService;

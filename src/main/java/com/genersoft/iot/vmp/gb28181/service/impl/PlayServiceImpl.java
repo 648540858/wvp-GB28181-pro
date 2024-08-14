@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.baomidou.dynamic.datasource.annotation.DS;
+import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.*;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -8,7 +9,12 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.exception.ServiceException;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.controller.bean.AudioBroadcastEvent;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
+import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
@@ -26,10 +32,6 @@ import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaNotFoundEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
-import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
-import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
@@ -41,7 +43,6 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
-import com.genersoft.iot.vmp.gb28181.controller.bean.AudioBroadcastEvent;
 import gov.nist.javax.sip.message.SIPResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +56,7 @@ import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
 import javax.sip.SipException;
 import javax.sip.header.CallIdHeader;
+import javax.sip.message.Response;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -265,7 +267,7 @@ public class PlayServiceImpl implements IPlayService {
 
 
     @Override
-    public SSRCInfo play(MediaServer mediaServerItem, String deviceId, String channelId, String ssrc, ErrorCallback<Object> callback) {
+    public SSRCInfo play(MediaServer mediaServerItem, String deviceId, String channelId, String ssrc, ErrorCallback<StreamInfo> callback) {
         if (mediaServerItem == null) {
             log.warn("[点播] 未找到可用的zlm deviceId: {},channelId:{}", deviceId, channelId);
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的zlm");
@@ -300,8 +302,7 @@ public class PlayServiceImpl implements IPlayService {
                             null);
                     return inviteInfo.getSsrcInfo();
                 }
-                String mediaServerId = streamInfo.getMediaServerId();
-                MediaServer mediaInfo = mediaServerService.getOne(mediaServerId);
+                MediaServer mediaInfo = streamInfo.getMediaServer();
                 Boolean ready = mediaServerService.isStreamReady(mediaInfo, "rtp", streamId);
                 if (ready != null && ready) {
                     callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
@@ -465,7 +466,7 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void play(MediaServer mediaServerItem, SSRCInfo ssrcInfo, Device device, DeviceChannel channel,
-                     ErrorCallback<Object> callback) {
+                     ErrorCallback<StreamInfo> callback) {
 
         if (mediaServerItem == null || ssrcInfo == null) {
             if (callback != null) {
@@ -608,7 +609,7 @@ public class PlayServiceImpl implements IPlayService {
 
     private void tcpActiveHandler(Device device, String channelId, String contentString,
                                   MediaServer mediaServerItem,
-                                  String timeOutTaskKey, SSRCInfo ssrcInfo, ErrorCallback<Object> callback){
+                                  String timeOutTaskKey, SSRCInfo ssrcInfo, ErrorCallback<StreamInfo> callback){
         if (!device.getStreamMode().equalsIgnoreCase("TCP-ACTIVE")) {
             return;
         }
@@ -752,7 +753,7 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void playBack(String deviceId, String channelId, String startTime,
-                         String endTime, ErrorCallback<Object> callback) {
+                         String endTime, ErrorCallback<StreamInfo> callback) {
         Device device = deviceService.getDeviceByDeviceId(deviceId);
         if (device == null) {
             log.warn("[录像回放] 未找到设备 deviceId: {},channelId:{}", deviceId, channelId);
@@ -785,7 +786,7 @@ public class PlayServiceImpl implements IPlayService {
     @Override
     public void playBack(MediaServer mediaServerItem, SSRCInfo ssrcInfo,
                          String deviceId, String channelId, String startTime,
-                         String endTime, ErrorCallback<Object> callback) {
+                         String endTime, ErrorCallback<StreamInfo> callback) {
         if (mediaServerItem == null || ssrcInfo == null) {
             callback.run(InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getCode(),
                     InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getMsg(),
@@ -868,7 +869,7 @@ public class PlayServiceImpl implements IPlayService {
 
 
     private void InviteOKHandler(SipSubscribe.EventResult eventResult, SSRCInfo ssrcInfo, MediaServer mediaServerItem,
-                                 Device device, String channelId, String timeOutTaskKey, ErrorCallback<Object> callback,
+                                 Device device, String channelId, String timeOutTaskKey, ErrorCallback<StreamInfo> callback,
                                  InviteInfo inviteInfo, InviteSessionType inviteSessionType){
         inviteInfo.setStatus(InviteSessionStatus.ok);
         ResponseEvent responseEvent = (ResponseEvent) eventResult.event;
@@ -958,7 +959,7 @@ public class PlayServiceImpl implements IPlayService {
 
 
     @Override
-    public void download(String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, ErrorCallback<Object> callback) {
+    public void download(String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, ErrorCallback<StreamInfo> callback) {
         Device device = deviceService.getDeviceByDeviceId(deviceId);
         if (device == null) {
             return;
@@ -982,7 +983,7 @@ public class PlayServiceImpl implements IPlayService {
 
 
     @Override
-    public void download(MediaServer mediaServerItem, SSRCInfo ssrcInfo, String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, ErrorCallback<Object> callback) {
+    public void download(MediaServer mediaServerItem, SSRCInfo ssrcInfo, String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, ErrorCallback<StreamInfo> callback) {
         if (mediaServerItem == null || ssrcInfo == null) {
             callback.run(InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getCode(),
                     InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getMsg(),
@@ -1092,8 +1093,7 @@ public class PlayServiceImpl implements IPlayService {
         }
 
         // 获取当前已下载时长
-        String mediaServerId = inviteInfo.getStreamInfo().getMediaServerId();
-        MediaServer mediaServerItem = mediaServerService.getOne(mediaServerId);
+        MediaServer mediaServerItem = inviteInfo.getStreamInfo().getMediaServer();
         if (mediaServerItem == null) {
             log.warn("[获取下载进度] 查询录像信息时发现节点不存在");
             return null;
@@ -1375,7 +1375,7 @@ public class PlayServiceImpl implements IPlayService {
         }
         inviteInfo.getStreamInfo().setPause(true);
         inviteStreamService.updateInviteInfo(inviteInfo);
-        MediaServer mediaServerItem = mediaServerService.getOne(inviteInfo.getStreamInfo().getMediaServerId());
+        MediaServer mediaServerItem = inviteInfo.getStreamInfo().getMediaServer();
         if (null == mediaServerItem) {
             log.warn("mediaServer 不存在!");
             throw new ServiceException("mediaServer不存在");
@@ -1403,7 +1403,7 @@ public class PlayServiceImpl implements IPlayService {
         }
         inviteInfo.getStreamInfo().setPause(false);
         inviteStreamService.updateInviteInfo(inviteInfo);
-        MediaServer mediaServerItem = mediaServerService.getOne(inviteInfo.getStreamInfo().getMediaServerId());
+        MediaServer mediaServerItem = inviteInfo.getStreamInfo().getMediaServer();
         if (null == mediaServerItem) {
             log.warn("mediaServer 不存在!");
             throw new ServiceException("mediaServer不存在");
@@ -1580,7 +1580,7 @@ public class PlayServiceImpl implements IPlayService {
         if (inviteInfo != null) {
             if (inviteInfo.getStreamInfo() != null) {
                 // 已存在线直接截图
-                MediaServer mediaServerItemInuse = mediaServerService.getOne(inviteInfo.getStreamInfo().getMediaServerId());
+                MediaServer mediaServerItemInuse = inviteInfo.getStreamInfo().getMediaServer();
                 String streamUrl;
                 if (mediaServerItemInuse.getRtspPort() != 0) {
                     streamUrl = String.format("rtsp://127.0.0.1:%s/%s/%s", mediaServerItemInuse.getRtspPort(), "rtp",  inviteInfo.getStreamInfo().getStream());
@@ -1635,7 +1635,55 @@ public class PlayServiceImpl implements IPlayService {
         channelService.stopPlay(device.getDeviceId(), channelId);
         channelService.stopPlay(device.getDeviceId(), channelId);
         if (inviteInfo.getStreamInfo() != null) {
-            mediaServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServerId(), inviteInfo.getStream());
+            mediaServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServer(), inviteInfo.getStream());
         }
+    }
+
+    @Override
+    public void play(CommonGBChannel channel, ErrorCallback<StreamInfo> callback) {
+        Device device = deviceService.getDevice(channel.getGbDeviceDbId());
+        if (device == null) {
+            log.warn("[点播] 未找到通道{}的设备信息", channel);
+            throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
+        }
+        MediaServer mediaServer = getNewMediaServerItem(device);
+        if (mediaServer == null) {
+            log.warn("[点播] 未找到可用媒体节点");
+            throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
+        }
+        play(mediaServer, device.getDeviceId(), channel.getGbDeviceId(), null, callback);
+    }
+
+    @Override
+    public void playBack(CommonGBChannel channel, Long startTime, Long stopTime, ErrorCallback<StreamInfo> callback) {
+        if (startTime == null || stopTime == null) {
+            throw new PlayException(Response.BAD_REQUEST, "bad request");
+        }
+        // 国标通道
+        Device device = deviceService.getDevice(channel.getGbDeviceDbId());
+        if (device == null) {
+            log.warn("[点播] 未找到通道{}的设备信息", channel);
+            throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
+        }
+        String startTimeStr = DateUtil.timestampTo_yyyy_MM_dd_HH_mm_ss(startTime);
+        String stopTimeStr = DateUtil.timestampTo_yyyy_MM_dd_HH_mm_ss(stopTime);
+        playBack(device.getDeviceId(), channel.getGbDeviceId(), startTimeStr, stopTimeStr, callback);
+    }
+
+    @Override
+    public void download(CommonGBChannel channel, Long startTime, Long stopTime, Integer downloadSpeed, ErrorCallback<StreamInfo> callback) {
+        if (startTime == null || stopTime == null || downloadSpeed == null) {
+            throw new PlayException(Response.BAD_REQUEST, "bad request");
+        }
+        // 国标通道
+        Device device = deviceService.getDevice(channel.getGbDeviceDbId());
+        if (device == null) {
+            log.warn("[点播] 未找到通道{}的设备信息", channel);
+            throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
+        }
+        String startTimeStr = DateUtil.timestampTo_yyyy_MM_dd_HH_mm_ss(startTime);
+        String stopTimeStr = DateUtil.timestampTo_yyyy_MM_dd_HH_mm_ss(stopTime);
+        download(device.getDeviceId(), channel.getGbDeviceId(), startTimeStr, stopTimeStr, downloadSpeed, callback);
+
     }
 }

@@ -85,10 +85,13 @@ public class StreamPush extends CommonGBChannel implements Comparable<StreamPush
     public StreamPush getInstance(StreamInfo streamInfo) {
         StreamPush streamPush = new StreamPush();
         streamPush.setApp(streamInfo.getApp());
-        streamPush.setMediaServerId(streamInfo.getMediaServerId());
+        if (streamInfo.getMediaServer() != null) {
+            streamPush.setMediaServerId(streamInfo.getMediaServer().getId());
+        }
+
         streamPush.setStream(streamInfo.getStream());
         streamPush.setCreateTime(DateUtil.getNow());
-        streamPush.setServerId(streamInfo.getMediaServerId());
+        streamPush.setServerId(streamInfo.getServerId());
         return streamPush;
 
     }

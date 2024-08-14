@@ -197,11 +197,12 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
 
     public StreamInfo getStreamInfoByAppAndStream(MediaServer mediaServer, String app, String stream, MediaInfo mediaInfo, String callId, boolean isPlay) {
         StreamInfo streamInfoResult = new StreamInfo();
+        streamInfoResult.setServerId(userSetting.getServerId());
         streamInfoResult.setStream(stream);
         streamInfoResult.setApp(app);
         String addr = mediaServer.getStreamIp();
         streamInfoResult.setIp(addr);
-        streamInfoResult.setMediaServerId(mediaServer.getId());
+        streamInfoResult.setMediaServer(mediaServer);
         String callIdParam = ObjectUtils.isEmpty(callId)?"":"?callId=" + callId;
         streamInfoResult.setRtmp(addr, mediaServer.getRtmpPort(),mediaServer.getRtmpSSlPort(), app,  stream, callIdParam);
         streamInfoResult.setRtsp(addr, mediaServer.getRtspPort(),mediaServer.getRtspSSLPort(), app,  stream, callIdParam);

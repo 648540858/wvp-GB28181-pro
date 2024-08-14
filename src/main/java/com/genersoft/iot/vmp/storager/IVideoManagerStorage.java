@@ -1,8 +1,9 @@
 package com.genersoft.iot.vmp.storager;
 
-import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
-import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
 
 import java.util.List;
@@ -76,13 +77,6 @@ public interface IVideoManagerStorage {
 	 */
 	public MobilePosition queryLatestPosition(String deviceId);
 
-	/**
-	 * 根据国标ID获取平台关联的直播流
-	 * @param platformId
-	 * @param channelId
-	 * @return
-	 */
-	GbStream queryStreamInParentPlatform(String platformId, String channelId);
 
 	/**
 	 * 根据通道ID获取其所在设备
@@ -91,15 +85,7 @@ public interface IVideoManagerStorage {
 	 */
     Device queryVideoDeviceByChannelId(String channelId);
 
-    int delRelation(PlatformCatalog platformCatalog);
-
-	int updateStreamGPS(List<GPSMsgInfo> gpsMsgInfo);
-
 	List<Platform> queryPlatFormListForGBWithGBId(String channelId, List<String> platforms);
-
-	void delRelationByPlatformId(String serverGBId);
-
-	List<ChannelSourceInfo> getChannelSource(String platformId, String gbId);
 
 	List<Platform> queryEnablePlatformListWithAsMessageChannel();
 

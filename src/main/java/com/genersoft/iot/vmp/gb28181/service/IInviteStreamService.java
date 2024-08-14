@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.service;
 
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 
 /**
@@ -58,12 +59,12 @@ public interface IInviteStreamService {
     /**
      * 添加一个invite回调
      */
-    void once(InviteSessionType type, String deviceId, String channelId, String stream,  ErrorCallback<Object> callback);
+    void once(InviteSessionType type, String deviceId, String channelId, String stream,  ErrorCallback<StreamInfo> callback);
 
     /**
      * 调用一个invite回调
      */
-    void call(InviteSessionType type, String deviceId, String channelId, String stream,  int code, String msg, Object data);
+    void call(InviteSessionType type, String deviceId, String channelId, String stream,  int code, String msg, StreamInfo data);
 
     /**
      * 清空一个设备的所有invite信息

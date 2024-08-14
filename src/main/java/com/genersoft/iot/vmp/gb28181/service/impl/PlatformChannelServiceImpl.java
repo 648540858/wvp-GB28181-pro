@@ -120,29 +120,29 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
 
     private List<CommonGBChannel> getDeviceChannelListByChannelReduceList(List<ChannelReduce> channelReduces, String catalogId, Platform platform) {
         List<CommonGBChannel> deviceChannelList = new ArrayList<>();
-        if (!channelReduces.isEmpty()){
-            PlatformCatalog catalog = catalogManager.selectByPlatFormAndCatalogId(platform.getServerGBId(),catalogId);
-            if (catalog == null && catalogId.equals(platform.getDeviceGBId())) {
-                for (ChannelReduce channelReduce : channelReduces) {
-                    DeviceChannel deviceChannel = deviceChannelMapper.getOne(channelReduce.getId());
-                    deviceChannel.setParental(0);
-                    deviceChannel.setCivilCode(platform.getServerGBDomain());
-                    deviceChannelList.add(deviceChannel);
-                }
-                return deviceChannelList;
-            } else if (catalog == null && !catalogId.equals(platform.getDeviceGBId())) {
-                log.warn("未查询到目录{}的信息", catalogId);
-                return null;
-            }
-            for (ChannelReduce channelReduce : channelReduces) {
-                DeviceChannel deviceChannel = deviceChannelMapper.getOne(channelReduce.getId());
-                deviceChannel.setParental(0);
-                deviceChannel.setCivilCode(catalog.getCivilCode());
-                deviceChannel.setParentId(catalog.getParentId());
-                deviceChannel.setBusinessGroupId(catalog.getBusinessGroupId());
-                deviceChannelList.add(deviceChannel);
-            }
-        }
+//        if (!channelReduces.isEmpty()){
+//            PlatformCatalog catalog = catalogManager.selectByPlatFormAndCatalogId(platform.getServerGBId(),catalogId);
+//            if (catalog == null && catalogId.equals(platform.getDeviceGBId())) {
+//                for (ChannelReduce channelReduce : channelReduces) {
+//                    DeviceChannel deviceChannel = deviceChannelMapper.getOne(channelReduce.getId());
+//                    deviceChannel.setParental(0);
+//                    deviceChannel.setCivilCode(platform.getServerGBDomain());
+//                    deviceChannelList.add(deviceChannel);
+//                }
+//                return deviceChannelList;
+//            } else if (catalog == null && !catalogId.equals(platform.getDeviceGBId())) {
+//                log.warn("未查询到目录{}的信息", catalogId);
+//                return null;
+//            }
+//            for (ChannelReduce channelReduce : channelReduces) {
+//                DeviceChannel deviceChannel = deviceChannelMapper.getOne(channelReduce.getId());
+//                deviceChannel.setParental(0);
+//                deviceChannel.setCivilCode(catalog.getCivilCode());
+//                deviceChannel.setParentId(catalog.getParentId());
+//                deviceChannel.setBusinessGroupId(catalog.getBusinessGroupId());
+//                deviceChannelList.add(deviceChannel);
+//            }
+//        }
         return deviceChannelList;
     }
 

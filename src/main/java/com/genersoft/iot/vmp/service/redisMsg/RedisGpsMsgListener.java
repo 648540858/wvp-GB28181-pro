@@ -67,7 +67,7 @@ public class RedisGpsMsgListener implements MessageListener {
     public void execute(){
         List<GPSMsgInfo> gpsMsgInfo = redisCatchStorage.getAllGpsMsgInfo();
         if (gpsMsgInfo.size() > 0) {
-            storager.updateStreamGPS(gpsMsgInfo);
+//            storager.updateStreamGPS(gpsMsgInfo);
             for (GPSMsgInfo msgInfo : gpsMsgInfo) {
                 msgInfo.setStored(true);
                 redisCatchStorage.updateGpsMsgInfo(msgInfo);

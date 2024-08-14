@@ -1,21 +1,14 @@
 package com.genersoft.iot.vmp.storager.impl;
 
 import com.baomidou.dynamic.datasource.annotation.DS;
-import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
 import com.genersoft.iot.vmp.gb28181.dao.*;
-import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
-import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
-import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -34,19 +27,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 
 
 	@Autowired
-	EventPublisher eventPublisher;
-
-	@Autowired
-	SipConfig sipConfig;
-
-
-	@Autowired
-	TransactionDefinition transactionDefinition;
-
-	@Autowired
-	DataSourceTransactionManager dataSourceTransactionManager;
-
-	@Autowired
     private DeviceMapper deviceMapper;
 
 	@Autowired
@@ -63,20 +43,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 
 	@Autowired
     private PlatformChannelMapper platformChannelMapper;
-
-	@Autowired
-	private PlatformCatalogMapper platformCatalogMapper;
-
-	@Autowired
-    private GbStreamMapper gbStreamMapper;
-
-	@Autowired
-    private PlatformCatalogMapper catalogMapper;
-
-	@Autowired
-    private PlatformGbStreamMapper platformGbStreamMapper;
-
-
 
 
 	/**
@@ -98,9 +64,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		}
 		PlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId()); // .getDeviceGBId());
 		if (parentPlatform.getId() == null ) {
-			if (parentPlatform.getCatalogId() == null) {
-				parentPlatform.setCatalogId(parentPlatform.getServerGBId());
-			}
 			result = platformMapper.addParentPlatform(parentPlatform);
 			if (parentPlatformCatch == null) {
 				parentPlatformCatch = new PlatformCatch();
@@ -218,17 +181,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		return deviceMobilePositionMapper.queryLatestPositionByDevice(deviceId);
 	}
 
-	/**
-	 * 根据国标ID获取平台关联的直播流
-	 * @param platformId
-	 * @param gbId
-	 * @return
-	 */
-	@Override
-	public GbStream queryStreamInParentPlatform(String platformId, String gbId) {
-		return gbStreamMapper.queryStreamInPlatform(platformId, gbId);
-	}
-
 
 	@Override
 	public Device queryVideoDeviceByChannelId( String channelId) {
@@ -241,45 +193,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	}
 
 	@Override
-	public int delRelation(PlatformCatalog platformCatalog) {
-		if (platformCatalog.getType() == 1) {
-			CommonGBChannel deviceChannel = new CommonGBChannel();
-			deviceChannel.setGbDeviceId(platformCatalog.getId());
-//			eventPublisher.catalogEventPublish(platformCatalog.getPlatformId(), deviceChannel, CatalogEvent.DEL);
-			return platformChannelMapper.delByCatalogIdAndChannelIdAndPlatformId(platformCatalog);
-		}else if (platformCatalog.getType() == 2) {
-			List<GbStream> gbStreams = platformGbStreamMapper.queryChannelInParentPlatformAndCatalog(platformCatalog.getPlatformId(), platformCatalog.getParentId());
-			for (GbStream gbStream : gbStreams) {
-				if (gbStream.getGbId().equals(platformCatalog.getId())) {
-					CommonGBChannel deviceChannel = new CommonGBChannel();
-					deviceChannel.setGbDeviceId(gbStream.getGbId());
-//					eventPublisher.catalogEventPublish(platformCatalog.getPlatformId(), deviceChannel, CatalogEvent.DEL);
-					return platformGbStreamMapper.delByAppAndStream(gbStream.getApp(), gbStream.getStream());
-				}
-			}
-		}
-		return 0;
-	}
-
-	@Override
-	public int updateStreamGPS(List<GPSMsgInfo> gpsMsgInfos) {
-		return gbStreamMapper.updateStreamGPS(gpsMsgInfos);
-	}
-
-	@Override
 	public List<Platform> queryPlatFormListForGBWithGBId(String channelId, List<String> platforms) {
 		return platformChannelMapper.queryPlatFormListForGBWithGBId(channelId, platforms);
-	}
-
-	@Override
-	public void delRelationByPlatformId(String serverGBId) {
-		platformGbStreamMapper.delByPlatformId(serverGBId);
-		platformChannelMapper.delByPlatformId(serverGBId);
-	}
-
-
-	@Override
-	public List<ChannelSourceInfo> getChannelSource(String platformId, String gbId) {
-		return platformMapper.getChannelSource(platformId, gbId);
 	}
 }

@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
-import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
@@ -8,11 +7,7 @@ import com.genersoft.iot.vmp.gb28181.dao.GroupMapper;
 import com.genersoft.iot.vmp.gb28181.dao.RegionMapper;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
-import com.genersoft.iot.vmp.gb28181.service.IPlayService;
-import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageHelper;
@@ -24,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
-import javax.sip.message.Response;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -41,19 +35,10 @@ public class GbChannelServiceImpl implements IGbChannelService {
     private CommonGBChannelMapper commonGBChannelMapper;
 
     @Autowired
-    private IDeviceService deviceService;
-
-    @Autowired
-    private IPlayService playService;
-
-    @Autowired
     private RegionMapper regionMapper;
 
     @Autowired
     private GroupMapper groupMapper;
-
-    @Autowired
-    private UserSetting userSetting;
 
     @Override
     public CommonGBChannel queryByDeviceId(String gbDeviceId) {
@@ -651,49 +636,5 @@ public class GbChannelServiceImpl implements IGbChannelService {
     @Override
     public CommonGBChannel queryOneWithPlatform(Integer platformId, String channelDeviceId) {
         return commonGBChannelMapper.queryOneWithPlatform(platformId, channelDeviceId);
-    }
-
-    @Override
-    public void start(CommonGBChannel channel, InviteInfo inviteInfo, ErrorCallback<CommonChannelPlayInfo> callback) {
-        if (channel == null || inviteInfo == null || callback == null) {
-            log.warn("[通用通道点播] 参数异常, channel: {}, inviteInfo: {}, callback: {}", channel != null, inviteInfo != null, callback != null);
-            throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
-        }
-        log.info("[点播通用通道] 类型：{}， 通道： {}({})", inviteInfo.getSessionName(), channel.getGbName(), channel.getGbDeviceId());
-        if ("Play".equalsIgnoreCase(inviteInfo.getSessionName())) {
-            if (channel.getGbDeviceDbId() > 0) {
-                // 国标通道
-                Device device = deviceService.getDevice(channel.getGbDeviceDbId());
-                if (device == null) {
-                    log.warn("[点播] 未找到通道{}的设备信息", channel);
-                    throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
-                }
-                MediaServer mediaServer = playService.getNewMediaServerItem(device);
-                if (mediaServer == null) {
-                    log.warn("[点播] 未找到可用媒体节点");
-                    throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
-                }
-
-                playService.play(mediaServer, device.getDeviceId(), channel.getGbDeviceId(), null, (code, msg, data) -> {
-                    if (callback != null) {
-                        callback.run(code, msg, CommonChannelPlayInfo.build(mediaServer, data));
-                    }
-                });
-            } else if (channel.getStreamProxyId() > 0) {
-                // 拉流代理
-            } else if (channel.getStreamPushId() > 0) {
-                // 推流
-            } else {
-                // 通道数据异常
-                log.error("[点播通用通道] 通道数据异常，无法识别通道来源： {}({})", channel.getGbName(), channel.getGbDeviceId());
-                throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
-            }
-        }else if ("Playback".equals(inviteInfo.getSessionName())) {
-
-        }else if ("Download".equals(inviteInfo.getSessionName())) {
-
-        }else {
-
-        }
     }
 }

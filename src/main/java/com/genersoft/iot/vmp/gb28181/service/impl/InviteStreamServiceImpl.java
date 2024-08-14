@@ -2,10 +2,7 @@ package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.dynamic.datasource.annotation.DS;
-import com.genersoft.iot.vmp.common.InviteInfo;
-import com.genersoft.iot.vmp.common.InviteSessionStatus;
-import com.genersoft.iot.vmp.common.InviteSessionType;
-import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.genersoft.iot.vmp.common.*;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
@@ -33,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 @DS("master")
 public class InviteStreamServiceImpl implements IInviteStreamService {
 
-    private final Map<String, List<ErrorCallback<Object>>> inviteErrorCallbackMap = new ConcurrentHashMap<>();
+    private final Map<String, List<ErrorCallback<StreamInfo>>> inviteErrorCallbackMap = new ConcurrentHashMap<>();
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
@@ -233,9 +230,9 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     }
 
     @Override
-    public void once(InviteSessionType type, String deviceId, String channelId, String stream, ErrorCallback<Object> callback) {
+    public void once(InviteSessionType type, String deviceId, String channelId, String stream, ErrorCallback<StreamInfo> callback) {
         String key = buildKey(type, deviceId, channelId, stream);
-        List<ErrorCallback<Object>> callbacks = inviteErrorCallbackMap.get(key);
+        List<ErrorCallback<StreamInfo>> callbacks = inviteErrorCallbackMap.get(key);
         if (callbacks == null) {
             callbacks = new CopyOnWriteArrayList<>();
             inviteErrorCallbackMap.put(key, callbacks);
@@ -270,7 +267,10 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
             for (Object keyObj : scanResult) {
                 String keyStr = (String) keyObj;
                 InviteInfo inviteInfo = (InviteInfo) redisTemplate.opsForValue().get(keyStr);
-                if (inviteInfo != null && inviteInfo.getStreamInfo() != null && inviteInfo.getStreamInfo().getMediaServerId().equals(mediaServerId)) {
+                if (inviteInfo != null
+                        && inviteInfo.getStreamInfo() != null
+                        && inviteInfo.getStreamInfo().getMediaServer() != null
+                        && inviteInfo.getStreamInfo().getMediaServer().getId().equals(mediaServerId)) {
                     if (inviteInfo.getType().equals(InviteSessionType.DOWNLOAD) && inviteInfo.getStreamInfo().getProgress() == 1) {
                         continue;
                     }
@@ -282,13 +282,13 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     }
 
     @Override
-    public void call(InviteSessionType type, String deviceId, String channelId, String stream, int code, String msg, Object data) {
+    public void call(InviteSessionType type, String deviceId, String channelId, String stream, int code, String msg, StreamInfo data) {
         String key = buildSubStreamKey(type, deviceId, channelId, stream);
-        List<ErrorCallback<Object>> callbacks = inviteErrorCallbackMap.get(key);
+        List<ErrorCallback<StreamInfo>> callbacks = inviteErrorCallbackMap.get(key);
         if (callbacks == null) {
             return;
         }
-        for (ErrorCallback<Object> callback : callbacks) {
+        for (ErrorCallback<StreamInfo> callback : callbacks) {
             callback.run(code, msg, data);
         }
         inviteErrorCallbackMap.remove(key);

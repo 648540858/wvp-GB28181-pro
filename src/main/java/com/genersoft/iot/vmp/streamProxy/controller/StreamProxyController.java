@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxyParam;
+import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyPlayService;
 import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
@@ -39,6 +40,9 @@ public class StreamProxyController {
 
     @Autowired
     private IStreamProxyService streamProxyService;
+
+    @Autowired
+    private IStreamProxyPlayService streamProxyPlayService;
 
 
     @Operation(summary = "分页查询流代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -181,7 +185,7 @@ public class StreamProxyController {
     @Parameter(name = "id", description = "代理Id", required = true)
     public StreamContent start(int id){
         log.info("播放代理： {}", id);
-        StreamInfo streamInfo = streamProxyService.start(id);
+        StreamInfo streamInfo = streamProxyPlayService.start(id);
         if (streamInfo == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg());
         }else {
@@ -195,6 +199,6 @@ public class StreamProxyController {
     @Parameter(name = "id", description = "代理Id", required = true)
     public void stop(int id){
         log.info("停用代理： {}", id);
-        streamProxyService.stop(id);
+        streamProxyPlayService.stop(id);
     }
 }

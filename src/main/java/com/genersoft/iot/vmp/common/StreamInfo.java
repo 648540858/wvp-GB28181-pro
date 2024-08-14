@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.common;
 
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -69,8 +70,8 @@ public class StreamInfo implements Serializable, Cloneable{
 
     @Schema(description = "RTCS流地址")
     private StreamURL rtcs;
-    @Schema(description = "流媒体ID")
-    private String mediaServerId;
+    @Schema(description = "流媒体节点")
+    private MediaServer mediaServer;
     @Schema(description = "流编码信息")
     private MediaInfo mediaInfo;
     @Schema(description = "开始时间")
@@ -90,6 +91,9 @@ public class StreamInfo implements Serializable, Cloneable{
 
     @Schema(description = "转码后的视频流")
     private StreamInfo transcodeStream;
+
+    @Schema(description = "使用的WVP ID")
+    private String serverId;
 
     public void setFlv(StreamURL flv) {
         this.flv = flv;
@@ -481,12 +485,12 @@ public class StreamInfo implements Serializable, Cloneable{
         return rtcs;
     }
 
-    public String getMediaServerId() {
-        return mediaServerId;
+    public MediaServer getMediaServer() {
+        return mediaServer;
     }
 
-    public void setMediaServerId(String mediaServerId) {
-        this.mediaServerId = mediaServerId;
+    public void setMediaServer(MediaServer mediaServer) {
+        this.mediaServer = mediaServer;
     }
 
     public MediaInfo getMediaInfo() {
@@ -646,5 +650,13 @@ public class StreamInfo implements Serializable, Cloneable{
 
     public void setOriginType(int originType) {
         this.originType = originType;
+    }
+
+    public String getServerId() {
+        return serverId;
+    }
+
+    public void setServerId(String serverId) {
+        this.serverId = serverId;
     }
 }

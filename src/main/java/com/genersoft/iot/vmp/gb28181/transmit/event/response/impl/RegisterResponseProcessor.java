@@ -73,7 +73,7 @@ public class RegisterResponseProcessor extends SIPResponseProcessorAbstract {
 
 		String action = platformRegisterInfo.isRegister() ? "注册" : "注销";
 		log.info(String.format("[国标级联]%s %S响应,%s ", action, response.getStatusCode(), platformRegisterInfo.getPlatformId() ));
-		Platform parentPlatform = parentPlatformCatch.getParentPlatform();
+		Platform parentPlatform = parentPlatformCatch.getPlatform();
 		if (parentPlatform == null) {
 			log.warn(String.format("[国标级联]收到 %s %s的%S请求, 但是平台信息未查询到!!!", platformRegisterInfo.getPlatformId(), action, response.getStatusCode()));
 			return;

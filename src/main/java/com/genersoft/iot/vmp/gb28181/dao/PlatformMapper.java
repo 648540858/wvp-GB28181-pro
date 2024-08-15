@@ -1,9 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
-import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
 import org.apache.ibatis.annotations.*;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,59 +14,59 @@ import java.util.List;
 public interface PlatformMapper {
 
     @Insert("INSERT INTO wvp_platform (enable, name, server_gb_id, server_gb_domain, server_ip, server_port,device_gb_id,device_ip,"+
-            "device_port,username,password,expires,keep_timeout,transport,character_set,ptz,rtcp,as_message_channel,auto_push_channel,"+
-            "status,catalog_id,administrative_division,catalog_group,create_time,update_time,send_stream_ip) " +
-            "            VALUES (#{enable}, #{name}, #{serverGBId}, #{serverGBDomain}, #{serverIP}, #{serverPort}, #{deviceGBId}, #{deviceIp}, " +
-            "            #{devicePort}, #{username}, #{password}, #{expires}, #{keepTimeout}, #{transport}, #{characterSet}, #{ptz}, #{rtcp}, #{asMessageChannel}, #{autoPushChannel}, " +
-            "            #{status}, #{catalogId}, #{administrativeDivision}, #{catalogGroup}, #{createTime}, #{updateTime}, #{sendStreamIp})")
-    int addParentPlatform(Platform parentPlatform);
+            " device_port,username,password,expires,keep_timeout,transport,character_set,ptz,rtcp,status,catalog_group, update_time," +
+            " create_time, as_message_channel, send_stream_ip, auto_push_channel, catalog_with_platform,catalog_with_group,catalog_with_region, "+
+            " civil_code,manufacturer,model,address,register_way,secrecy) " +
+            " VALUES (#{enable}, #{name}, #{serverGBId}, #{serverGBDomain}, #{serverIp}, #{serverPort}, #{deviceGBId}, #{deviceIp}, " +
+            " #{devicePort}, #{username}, #{password}, #{expires}, #{keepTimeout}, #{transport}, #{characterSet}, #{ptz}, #{rtcp}, #{status}, #{catalogGroup},#{updateTime}," +
+            " #{createTime}, #{asMessageChannel}, #{sendStreamIp}, #{autoPushChannel}, #{catalogWithPlatform}, #{catalogWithGroup},#{catalogWithRegion}, " +
+            " #{civilCode}, #{manufacturer}, #{model}, #{address}, #{registerWay}, #{secrecy})")
+    int add(Platform parentPlatform);
 
     @Update("UPDATE wvp_platform " +
-            "SET enable=#{enable}, " +
-            "name=#{name}," +
-            "device_gb_id=#{deviceGBId}," +
-            "server_gb_id=#{serverGBId}, " +
-            "server_gb_domain=#{serverGBDomain}, " +
-            "server_ip=#{serverIP}," +
-            "server_port=#{serverPort}, " +
-            "device_ip=#{deviceIp}, " +
-            "device_port=#{devicePort}, " +
-            "username=#{username}, " +
-            "password=#{password}, " +
-            "expires=#{expires}, " +
-            "keep_timeout=#{keepTimeout}, " +
-            "transport=#{transport}, " +
-            "character_set=#{characterSet}, " +
-            "ptz=#{ptz}, " +
-            "rtcp=#{rtcp}, " +
-            "as_message_channel=#{asMessageChannel}, " +
-            "auto_push_channel=#{autoPushChannel}, " +
-            "status=#{status}, " +
-            "catalog_group=#{catalogGroup}, " +
-            "administrative_division=#{administrativeDivision}, " +
-            "create_time=#{createTime}, " +
-            "update_time=#{updateTime}, " +
-            "send_stream_ip=#{sendStreamIp}, " +
-            "catalog_id=#{catalogId} " +
+            "SET update_time = #{updateTime}," +
+            " enable=#{enable}, " +
+            " name=#{name}," +
+            " server_gb_id=#{serverGBId}, " +
+            " server_gb_domain=#{serverGBDomain}, " +
+            " server_ip=#{serverIp}," +
+            " server_port=#{serverPort}, " +
+            " device_gb_id=#{deviceGBId}," +
+            " device_ip=#{deviceIp}, " +
+            " device_port=#{devicePort}, " +
+            " username=#{username}, " +
+            " password=#{password}, " +
+            " expires=#{expires}, " +
+            " keep_timeout=#{keepTimeout}, " +
+            " transport=#{transport}, " +
+            " character_set=#{characterSet}, " +
+            " ptz=#{ptz}, " +
+            " rtcp=#{rtcp}, " +
+            " status=#{status}, " +
+            " catalog_group=#{catalogGroup}, " +
+            " as_message_channel=#{asMessageChannel}, " +
+            " send_stream_ip=#{sendStreamIp}, " +
+            " auto_push_channel=#{autoPushChannel}, " +
+            " catalog_with_platform=#{catalogWithPlatform}, " +
+            " catalog_with_group=#{catalogWithGroup}, " +
+            " catalog_with_region=#{catalogWithRegion}, " +
+            " civil_code=#{civilCode}, " +
+            " manufacturer=#{manufacturer}, " +
+            " model=#{model}, " +
+            " address=#{address}, " +
+            " register_way=#{registerWay}, " +
+            " secrecy=#{secrecy} " +
             "WHERE id=#{id}")
-    int updateParentPlatform(Platform parentPlatform);
+    int update(Platform parentPlatform);
 
     @Delete("DELETE FROM wvp_platform WHERE server_gb_id=#{serverGBId}")
     int delParentPlatform(Platform parentPlatform);
 
-    @Select("SELECT *, ((SELECT count(0)\n" +
-            "              FROM wvp_platform_gb_channel pc\n" +
-            "              WHERE pc.platform_id = pp.server_gb_id)\n" +
-            "              +\n" +
-            "              (SELECT count(0)\n" +
-            "              FROM wvp_platform_gb_stream pgs\n" +
-            "              WHERE pgs.platform_id = pp.server_gb_id)\n" +
-            "              +\n" +
-            "              (SELECT count(0)\n" +
-            "              FROM wvp_platform_catalog pgc\n" +
-            "              WHERE pgc.platform_id = pp.server_gb_id)) as channel_count\n" +
-            "FROM wvp_platform pp ")
-    List<Platform> getParentPlatformList();
+    @Select(" SELECT pp.*, " +
+            " (SELECT count(0) FROM wvp_platform_gb_channel pc WHERE pc.platform_id = pp.id  ) as channel_count" +
+            " FROM wvp_platform pp "
+    )
+    List<Platform> queryList();
 
     @Select("SELECT * FROM wvp_platform WHERE enable=#{enable} ")
     List<Platform> getEnableParentPlatformList(boolean enable);
@@ -80,23 +78,9 @@ public interface PlatformMapper {
     Platform getParentPlatByServerGBId(String platformGbId);
 
     @Select("SELECT * FROM wvp_platform WHERE id=#{id}")
-    Platform getParentPlatById(int id);
-
-    @Update("UPDATE wvp_platform SET status=false" )
-    int outlineForAllParentPlatform();
+    Platform query(int id);
 
     @Update("UPDATE wvp_platform SET status=#{online} WHERE server_gb_id=#{platformGbID}" )
-    int updateParentPlatformStatus(@Param("platformGbID") String platformGbID, @Param("online") boolean online);
+    int updateStatus(@Param("platformGbID") String platformGbID, @Param("online") boolean online);
 
-    @Update(value = {" <script>" +
-            "UPDATE wvp_platform " +
-            "SET catalog_id=#{catalogId}, update_time=#{updateTime}" +
-            "WHERE server_gb_id=#{platformId}"+
-            "</script>"})
-    int setDefaultCatalog(@Param("platformId") String platformId, @Param("catalogId") String catalogId, @Param("updateTime") String updateTime);
-
-    @Select("select 'channel' as name, count(pgc.platform_id) count from wvp_platform_gb_channel pgc left join wvp_device_channel dc on dc.id = pgc.device_channel_id where  pgc.platform_id=#{platform_id} and dc.channel_id =#{gbId} " +
-            "union " +
-            "select 'stream' as name, count(pgs.platform_id) count from wvp_platform_gb_stream pgs left join wvp_gb_stream gs on pgs.gb_stream_id = gs.gb_stream_id where  pgs.platform_id=#{platform_id} and gs.gb_id =#{gbId}")
-    List<ChannelSourceInfo> getChannelSource(@Param("platform_id") String platform_id, @Param("gbId") String gbId);
 }

@@ -32,7 +32,7 @@
         </div>
       </div>
       <devicePlayer ref="devicePlayer"></devicePlayer>
-      <el-table size=mini :data="streamProxyList" style="width: 100%" :height="winHeight">
+      <el-table size="medium"  :data="streamProxyList" style="width: 100%" :height="winHeight">
         <el-table-column prop="app" label="流应用名" min-width="120" show-overflow-tooltip/>
         <el-table-column prop="stream" label="流ID" min-width="120" show-overflow-tooltip/>
         <el-table-column label="流地址" min-width="250"  show-overflow-tooltip >
@@ -89,7 +89,7 @@
         </el-table-column>
       </el-table>
       <el-pagination
-        style="float: right"
+        style="text-align: right"
         @size-change="handleSizeChange"
         @current-change="currentChange"
         :current-page="currentPage"

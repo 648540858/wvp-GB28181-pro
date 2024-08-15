@@ -12,7 +12,7 @@
       </div>
     </div>
     <!--用户列表-->
-    <el-table size=mini :data="userList" style="width: 100%;font-size: 12px;" :height="winHeight"
+    <el-table size="medium"  :data="userList" style="width: 100%;font-size: 12px;" :height="winHeight"
               header-row-class-name="table-header">
       <el-table-column prop="username" label="用户名" min-width="160"/>
       <el-table-column prop="pushKey" label="pushkey" min-width="160"/>
@@ -35,7 +35,7 @@
     <changePushKey ref="changePushKey"></changePushKey>
     <addUser ref="addUser"></addUser>
     <el-pagination
-      style="float: right"
+      style="text-align: right"
       @size-change="handleSizeChange"
       @current-change="currentChange"
       :current-page="currentPage"

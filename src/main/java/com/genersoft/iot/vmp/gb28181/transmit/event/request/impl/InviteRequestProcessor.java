@@ -1217,7 +1217,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             content.append("f=v/////a/1/8/1\r\n");
 
             Platform parentPlatform = new Platform();
-            parentPlatform.setServerIP(device.getIp());
+            parentPlatform.setServerIp(device.getIp());
             parentPlatform.setServerPort(device.getPort());
             parentPlatform.setServerGBId(device.getDeviceId());
 

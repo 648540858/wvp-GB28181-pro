@@ -46,7 +46,7 @@ public class SipPlatformRunner implements CommandLineRunner {
 
             // 更新缓存
             PlatformCatch parentPlatformCatch = new PlatformCatch();
-            parentPlatformCatch.setParentPlatform(parentPlatform);
+            parentPlatformCatch.setPlatform(parentPlatform);
             parentPlatformCatch.setId(parentPlatform.getServerGBId());
             redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
             if (parentPlatformCatchOld != null) {

@@ -37,7 +37,7 @@
             </div>
           </div>
         </div>
-        <el-table size=mini ref="channelListTable" :data="channelList" :height="winHeight" style="width: 100%"
+        <el-table size="medium"  ref="channelListTable" :data="channelList" :height="winHeight" style="width: 100%"
                   header-row-class-name="table-header" @selection-change="handleSelectionChange" @row-dblclick="rowDblclick">
           <el-table-column type="selection" width="55" :selectable="selectable">
           </el-table-column>
@@ -74,7 +74,7 @@
           </el-table-column>
         </el-table>
         <el-pagination
-          style="float: right"
+          style="text-align: right"
           @size-change="handleSizeChange"
           @current-change="currentChange"
           :current-page="currentPage"

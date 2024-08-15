@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.service;
 
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
@@ -28,7 +27,7 @@ public interface IPlatformService {
      * @param count
      * @return
      */
-    PageInfo<Platform> queryParentPlatformList(int page, int count);
+    PageInfo<Platform> queryPlatformList(int page, int count);
 
     /**
      * 添加级联平台

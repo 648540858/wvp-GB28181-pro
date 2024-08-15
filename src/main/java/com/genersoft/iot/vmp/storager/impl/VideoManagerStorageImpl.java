@@ -64,25 +64,25 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		}
 		PlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId()); // .getDeviceGBId());
 		if (parentPlatform.getId() == null ) {
-			result = platformMapper.addParentPlatform(parentPlatform);
+			result = platformMapper.add(parentPlatform);
 			if (parentPlatformCatch == null) {
 				parentPlatformCatch = new PlatformCatch();
-				parentPlatformCatch.setParentPlatform(parentPlatform);
+				parentPlatformCatch.setPlatform(parentPlatform);
 				parentPlatformCatch.setId(parentPlatform.getServerGBId());
 			}
 		}else {
 			if (parentPlatformCatch == null) { // serverGBId 已变化
-				Platform parentPlatById = platformMapper.getParentPlatById(parentPlatform.getId());
+				Platform parentPlatById = platformMapper.query(parentPlatform.getId());
 				// 使用旧的查出缓存ID
 				parentPlatformCatch = new PlatformCatch();
 				parentPlatformCatch.setId(parentPlatform.getServerGBId());
 				redisCatchStorage.delPlatformCatchInfo(parentPlatById.getServerGBId());
 			}
 
-			result = platformMapper.updateParentPlatform(parentPlatform);
+			result = platformMapper.update(parentPlatform);
 		}
 		// 更新缓存
-		parentPlatformCatch.setParentPlatform(parentPlatform);
+		parentPlatformCatch.setPlatform(parentPlatform);
 		redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
 
 		return result > 0;

@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import javax.sdp.*;
 import javax.sip.InvalidArgumentException;
@@ -130,14 +131,14 @@ public class PlatformServiceImpl implements IPlatformService {
         List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(event.getStream());
         if (sendRtpItems != null && !sendRtpItems.isEmpty()) {
             for (SendRtpItem sendRtpItem : sendRtpItems) {
-                Platform parentPlatform = platformMapper.getParentPlatByServerGBId(sendRtpItem.getPlatformId());
+                Platform platform = platformMapper.getParentPlatByServerGBId(sendRtpItem.getPlatformId());
                 ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
                 try {
-                    commanderForPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
+                    commanderForPlatform.streamByeCmd(platform, sendRtpItem.getCallId());
                 } catch (SipException | InvalidArgumentException | ParseException e) {
                     log.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
                 }
-                redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
+                redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), sendRtpItem.getChannelId(),
                         sendRtpItem.getCallId(), sendRtpItem.getStream());
             }
         }
@@ -150,32 +151,31 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public PageInfo<Platform> queryParentPlatformList(int page, int count) {
+    public PageInfo<Platform> queryPlatformList(int page, int count) {
         PageHelper.startPage(page, count);
-        List<Platform> all = platformMapper.getParentPlatformList();
+        List<Platform> all = platformMapper.queryList();
         return new PageInfo<>(all);
     }
 
     @Override
-    public boolean add(Platform parentPlatform) {
-
-        if (parentPlatform.getCatalogGroup() == 0) {
+    public boolean add(Platform platform) {
+        log.info("[国标级联]添加平台 {}", platform.getDeviceGBId());
+        if (platform.getCatalogGroup() == 0) {
             // 每次发送目录的数量默认为1
-            parentPlatform.setCatalogGroup(1);
+            platform.setCatalogGroup(1);
         }
-        int result = platformMapper.addParentPlatform(parentPlatform);
+        int result = platformMapper.add(platform);
         // 添加缓存
-        PlatformCatch parentPlatformCatch = new PlatformCatch();
-        parentPlatformCatch.setParentPlatform(parentPlatform);
-        parentPlatformCatch.setId(parentPlatform.getServerGBId());
-        parentPlatformCatch.setParentPlatform(parentPlatform);
-        redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
-        if (parentPlatform.isEnable()) {
+        PlatformCatch platformCatch = new PlatformCatch();
+        platformCatch.setPlatform(platform);
+        platformCatch.setId(platform.getServerGBId());
+        redisCatchStorage.updatePlatformCatchInfo(platformCatch);
+        if (platform.isEnable()) {
             // 保存时启用就发送注册
             // 注册成功时由程序直接调用了online方法
             try {
-                commanderForPlatform.register(parentPlatform, eventResult -> {
-                    log.info("[国标级联] {},添加向上级注册失败，请确定上级平台可用时重新保存", parentPlatform.getServerGBId());
+                commanderForPlatform.register(platform, eventResult -> {
+                    log.info("[国标级联] {}（{}）,添加向上级注册失败，请确定上级平台可用时重新保存", platform.getName(), platform.getServerGBId());
                 }, null);
             } catch (InvalidArgumentException | ParseException | SipException e) {
                 log.error("[命令发送失败] 国标级联: {}", e.getMessage());
@@ -185,25 +185,26 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public boolean update(Platform parentPlatform) {
-        log.info("[国标级联]更新平台 {}", parentPlatform.getDeviceGBId());
-        parentPlatform.setCharacterSet(parentPlatform.getCharacterSet().toUpperCase());
-        Platform parentPlatformOld = platformMapper.getParentPlatById(parentPlatform.getId());
-        PlatformCatch parentPlatformCatchOld = redisCatchStorage.queryPlatformCatchInfo(parentPlatformOld.getServerGBId());
-        parentPlatform.setUpdateTime(DateUtil.getNow());
+    public boolean update(Platform platform) {
+        Assert.isTrue(platform.getId() > 0, "ID必须存在");
+        log.info("[国标级联] 更新平台 {}({})", platform.getName(), platform.getDeviceGBId());
+        platform.setCharacterSet(platform.getCharacterSet().toUpperCase());
+        Platform platformInDb = platformMapper.query(platform.getId());
+        PlatformCatch platformCatchOld = redisCatchStorage.queryPlatformCatchInfo(platformInDb.getServerGBId());
+        platform.setUpdateTime(DateUtil.getNow());
 
         // 停止心跳定时
-        final String keepaliveTaskKey = KEEPALIVE_KEY_PREFIX + parentPlatformOld.getServerGBId();
+        final String keepaliveTaskKey = KEEPALIVE_KEY_PREFIX + platformInDb.getServerGBId();
         dynamicTask.stop(keepaliveTaskKey);
         // 停止注册定时
-        final String registerTaskKey = REGISTER_KEY_PREFIX + parentPlatformOld.getServerGBId();
+        final String registerTaskKey = REGISTER_KEY_PREFIX + platformInDb.getServerGBId();
         dynamicTask.stop(registerTaskKey);
         // 注销旧的
         try {
-            if (parentPlatformOld.isStatus() && parentPlatformCatchOld != null) {
-                log.info("保存平台{}时发现旧平台在线，发送注销命令", parentPlatformOld.getServerGBId());
-                commanderForPlatform.unregister(parentPlatformOld, parentPlatformCatchOld.getSipTransactionInfo(), null, eventResult -> {
-                    log.info("[国标级联] 注销成功， 平台：{}", parentPlatformOld.getServerGBId());
+            if (platformInDb.isStatus() && platformCatchOld != null) {
+                log.info("保存平台{}时发现旧平台在线，发送注销命令", platformInDb.getServerGBId());
+                commanderForPlatform.unregister(platformInDb, platformCatchOld.getSipTransactionInfo(), null, eventResult -> {
+                    log.info("[国标级联] 注销成功， 平台：{}", platformInDb.getServerGBId());
                 });
             }
         } catch (InvalidArgumentException | ParseException | SipException e) {
@@ -211,98 +212,97 @@ public class PlatformServiceImpl implements IPlatformService {
         }
 
         // 更新数据库
-        if (parentPlatform.getCatalogGroup() == 0) {
-            parentPlatform.setCatalogGroup(1);
+        if (platform.getCatalogGroup() == 0) {
+            platform.setCatalogGroup(1);
         }
 
-        platformMapper.updateParentPlatform(parentPlatform);
+        platformMapper.update(platform);
         // 更新redis
-        redisCatchStorage.delPlatformCatchInfo(parentPlatformOld.getServerGBId());
-        PlatformCatch parentPlatformCatch = new PlatformCatch();
-        parentPlatformCatch.setParentPlatform(parentPlatform);
-        parentPlatformCatch.setId(parentPlatform.getServerGBId());
-        redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
+        redisCatchStorage.delPlatformCatchInfo(platformInDb.getServerGBId());
+        PlatformCatch platformCatch = new PlatformCatch();
+        platformCatch.setPlatform(platform);
+        platformCatch.setId(platform.getServerGBId());
+        redisCatchStorage.updatePlatformCatchInfo(platformCatch);
         // 注册
-        if (parentPlatform.isEnable()) {
+        if (platform.isEnable()) {
             // 保存时启用就发送注册
             // 注册成功时由程序直接调用了online方法
             try {
-                log.info("[国标级联] 平台注册 {}", parentPlatform.getDeviceGBId());
-                commanderForPlatform.register(parentPlatform, eventResult -> {
-                    log.info("[国标级联] {},添加向上级注册失败，请确定上级平台可用时重新保存", parentPlatform.getServerGBId());
+                log.info("[国标级联] 平台注册 {}", platform.getDeviceGBId());
+                commanderForPlatform.register(platform, eventResult -> {
+                    log.info("[国标级联] {},添加向上级注册失败，请确定上级平台可用时重新保存", platform.getServerGBId());
                 }, null);
             } catch (InvalidArgumentException | ParseException | SipException e) {
                 log.error("[命令发送失败] 国标级联: {}", e.getMessage());
             }
         }
 
-
         return false;
     }
 
 
     @Override
-    public void online(Platform parentPlatform, SipTransactionInfo sipTransactionInfo) {
-        log.info("[国标级联]：{}, 平台上线", parentPlatform.getServerGBId());
-        final String registerFailAgainTaskKey = REGISTER_FAIL_AGAIN_KEY_PREFIX + parentPlatform.getServerGBId();
+    public void online(Platform platform, SipTransactionInfo sipTransactionInfo) {
+        log.info("[国标级联]：{}, 平台上线", platform.getServerGBId());
+        final String registerFailAgainTaskKey = REGISTER_FAIL_AGAIN_KEY_PREFIX + platform.getServerGBId();
         dynamicTask.stop(registerFailAgainTaskKey);
 
-        platformMapper.updateParentPlatformStatus(parentPlatform.getServerGBId(), true);
-        PlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
-        if (parentPlatformCatch == null) {
-            parentPlatformCatch = new PlatformCatch();
-            parentPlatformCatch.setParentPlatform(parentPlatform);
-            parentPlatformCatch.setId(parentPlatform.getServerGBId());
-            parentPlatform.setStatus(true);
-            parentPlatformCatch.setParentPlatform(parentPlatform);
+        platformMapper.updateStatus(platform.getServerGBId(), true);
+        PlatformCatch platformCatch = redisCatchStorage.queryPlatformCatchInfo(platform.getServerGBId());
+        if (platformCatch == null) {
+            platformCatch = new PlatformCatch();
+            platformCatch.setPlatform(platform);
+            platformCatch.setId(platform.getServerGBId());
+            platform.setStatus(true);
+            platformCatch.setPlatform(platform);
         }
 
-        parentPlatformCatch.getParentPlatform().setStatus(true);
-        parentPlatformCatch.setSipTransactionInfo(sipTransactionInfo);
-        redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
+        platformCatch.getPlatform().setStatus(true);
+        platformCatch.setSipTransactionInfo(sipTransactionInfo);
+        redisCatchStorage.updatePlatformCatchInfo(platformCatch);
 
-        final String registerTaskKey = REGISTER_KEY_PREFIX + parentPlatform.getServerGBId();
+        final String registerTaskKey = REGISTER_KEY_PREFIX + platform.getServerGBId();
         if (!dynamicTask.isAlive(registerTaskKey)) {
-            log.info("[国标级联]：{}, 添加定时注册任务", parentPlatform.getServerGBId());
+            log.info("[国标级联]：{}, 添加定时注册任务", platform.getServerGBId());
             // 添加注册任务
             dynamicTask.startCron(registerTaskKey,
                 // 注册失败（注册成功时由程序直接调用了online方法）
-                ()-> registerTask(parentPlatform, sipTransactionInfo),
-                    parentPlatform.getExpires() * 1000);
+                ()-> registerTask(platform, sipTransactionInfo),
+                    platform.getExpires() * 1000);
         }
 
 
-        final String keepaliveTaskKey = KEEPALIVE_KEY_PREFIX + parentPlatform.getServerGBId();
+        final String keepaliveTaskKey = KEEPALIVE_KEY_PREFIX + platform.getServerGBId();
         if (!dynamicTask.contains(keepaliveTaskKey)) {
-            log.info("[国标级联]：{}, 添加定时心跳任务", parentPlatform.getServerGBId());
+            log.info("[国标级联]：{}, 添加定时心跳任务", platform.getServerGBId());
             // 添加心跳任务
             dynamicTask.startCron(keepaliveTaskKey,
                     ()-> {
                         try {
-                            commanderForPlatform.keepalive(parentPlatform, eventResult -> {
+                            commanderForPlatform.keepalive(platform, eventResult -> {
                                 // 心跳失败
                                 if (eventResult.type != SipSubscribe.EventResultType.timeout) {
                                     log.warn("[国标级联]发送心跳收到错误，code： {}, msg: {}", eventResult.statusCode, eventResult.msg);
                                 }
                                 // 心跳失败
-                                PlatformCatch platformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
+                                PlatformCatch platformCatchForNow = redisCatchStorage.queryPlatformCatchInfo(platform.getServerGBId());
                                 // 此时是第三次心跳超时， 平台离线
-                                if (platformCatch.getKeepAliveReply()  == 2) {
+                                if (platformCatchForNow.getKeepAliveReply()  == 2) {
                                     // 设置平台离线，并重新注册
-                                    log.info("[国标级联] 三次心跳失败, 平台{}({})离线", parentPlatform.getName(), parentPlatform.getServerGBId());
-                                    offline(parentPlatform, false);
+                                    log.info("[国标级联] 三次心跳失败, 平台{}({})离线", platform.getName(), platform.getServerGBId());
+                                    offline(platform, false);
                                 }else {
-                                    platformCatch.setKeepAliveReply(platformCatch.getKeepAliveReply() + 1);
-                                    redisCatchStorage.updatePlatformCatchInfo(platformCatch);
+                                    platformCatchForNow.setKeepAliveReply(platformCatchForNow.getKeepAliveReply() + 1);
+                                    redisCatchStorage.updatePlatformCatchInfo(platformCatchForNow);
                                 }
 
                             }, eventResult -> {
                                 // 心跳成功
                                 // 清空之前的心跳超时计数
-                                PlatformCatch platformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
-                                if (platformCatch != null && platformCatch.getKeepAliveReply() > 0) {
-                                    platformCatch.setKeepAliveReply(0);
-                                    redisCatchStorage.updatePlatformCatchInfo(platformCatch);
+                                PlatformCatch platformCatchForNow = redisCatchStorage.queryPlatformCatchInfo(platform.getServerGBId());
+                                if (platformCatchForNow != null && platformCatchForNow.getKeepAliveReply() > 0) {
+                                    platformCatchForNow.setKeepAliveReply(0);
+                                    redisCatchStorage.updatePlatformCatchInfo(platformCatchForNow);
                                 }
                                 log.info("[发送心跳] 国标级联 发送心跳, code： {}, msg: {}", eventResult.statusCode, eventResult.msg);
                             });
@@ -310,37 +310,37 @@ public class PlatformServiceImpl implements IPlatformService {
                             log.error("[命令发送失败] 国标级联 发送心跳: {}", e.getMessage());
                         }
                     },
-                    (parentPlatform.getKeepTimeout())*1000);
+                    (platform.getKeepTimeout())*1000);
         }
-        if (parentPlatform.getAutoPushChannel() != null && parentPlatform.getAutoPushChannel()) {
-            if (subscribeHolder.getCatalogSubscribe(parentPlatform.getServerGBId()) == null) {
-                log.info("[国标级联]：{}, 添加自动通道推送模拟订阅信息", parentPlatform.getServerGBId());
-                addSimulatedSubscribeInfo(parentPlatform);
+        if (platform.getAutoPushChannel() != null && platform.getAutoPushChannel()) {
+            if (subscribeHolder.getCatalogSubscribe(platform.getServerGBId()) == null) {
+                log.info("[国标级联]：{}, 添加自动通道推送模拟订阅信息", platform.getServerGBId());
+                addSimulatedSubscribeInfo(platform);
             }
         }else {
-            SubscribeInfo catalogSubscribe = subscribeHolder.getCatalogSubscribe(parentPlatform.getServerGBId());
+            SubscribeInfo catalogSubscribe = subscribeHolder.getCatalogSubscribe(platform.getServerGBId());
             if (catalogSubscribe != null && catalogSubscribe.getExpires() == -1) {
-                subscribeHolder.removeCatalogSubscribe(parentPlatform.getServerGBId());
+                subscribeHolder.removeCatalogSubscribe(platform.getServerGBId());
             }
         }
     }
 
     @Override
-    public void addSimulatedSubscribeInfo(Platform parentPlatform) {
+    public void addSimulatedSubscribeInfo(Platform platform) {
         // 自动添加一条模拟的订阅信息
         SubscribeInfo subscribeInfo = new SubscribeInfo();
-        subscribeInfo.setId(parentPlatform.getServerGBId());
+        subscribeInfo.setId(platform.getServerGBId());
         subscribeInfo.setExpires(-1);
         subscribeInfo.setEventType("Catalog");
         int random = (int) Math.floor(Math.random() * 10000);
         subscribeInfo.setEventId(random + "");
-        subscribeInfo.setSimulatedCallId(UUID.randomUUID().toString().replace("-", "") + "@" + parentPlatform.getServerIP());
+        subscribeInfo.setSimulatedCallId(UUID.randomUUID().toString().replace("-", "") + "@" + platform.getServerIp());
         subscribeInfo.setSimulatedFromTag(UUID.randomUUID().toString().replace("-", ""));
         subscribeInfo.setSimulatedToTag(UUID.randomUUID().toString().replace("-", ""));
-        subscribeHolder.putCatalogSubscribe(parentPlatform.getServerGBId(), subscribeInfo);
+        subscribeHolder.putCatalogSubscribe(platform.getServerGBId(), subscribeInfo);
     }
 
-    private void registerTask(Platform parentPlatform, SipTransactionInfo sipTransactionInfo){
+    private void registerTask(Platform platform, SipTransactionInfo sipTransactionInfo){
         try {
             // 不在同一个会话中续订则每次全新注册
             if (!userSetting.isRegisterKeepIntDialog()) {
@@ -348,15 +348,15 @@ public class PlatformServiceImpl implements IPlatformService {
             }
 
             if (sipTransactionInfo == null) {
-                log.info("[国标级联] 平台：{}注册即将到期，开始重新注册", parentPlatform.getServerGBId());
+                log.info("[国标级联] 平台：{}注册即将到期，开始重新注册", platform.getServerGBId());
             }else {
-                log.info("[国标级联] 平台：{}注册即将到期，开始续订", parentPlatform.getServerGBId());
+                log.info("[国标级联] 平台：{}注册即将到期，开始续订", platform.getServerGBId());
             }
 
-            commanderForPlatform.register(parentPlatform, sipTransactionInfo,  eventResult -> {
-                log.info("[国标级联] 平台：{}注册失败，{}:{}", parentPlatform.getServerGBId(),
+            commanderForPlatform.register(platform, sipTransactionInfo,  eventResult -> {
+                log.info("[国标级联] 平台：{}注册失败，{}:{}", platform.getServerGBId(),
                         eventResult.statusCode, eventResult.msg);
-                offline(parentPlatform, false);
+                offline(platform, false);
             }, null);
         } catch (Exception e) {
             log.error("[命令发送失败] 国标级联定时注册: {}", e.getMessage());
@@ -364,52 +364,52 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public void offline(Platform parentPlatform, boolean stopRegister) {
-        log.info("[平台离线]：{}", parentPlatform.getServerGBId());
-        PlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
-        parentPlatformCatch.setKeepAliveReply(0);
-        parentPlatformCatch.setRegisterAliveReply(0);
-        Platform parentPlatformInCatch = parentPlatformCatch.getParentPlatform();
-        parentPlatformInCatch.setStatus(false);
-        parentPlatformCatch.setParentPlatform(parentPlatformInCatch);
-        redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
-        platformMapper.updateParentPlatformStatus(parentPlatform.getServerGBId(), false);
+    public void offline(Platform platform, boolean stopRegister) {
+        log.info("[平台离线]：{}", platform.getServerGBId());
+        PlatformCatch platformCatch = redisCatchStorage.queryPlatformCatchInfo(platform.getServerGBId());
+        platformCatch.setKeepAliveReply(0);
+        platformCatch.setRegisterAliveReply(0);
+        Platform catchPlatform = platformCatch.getPlatform();
+        catchPlatform.setStatus(false);
+        platformCatch.setPlatform(catchPlatform);
+        redisCatchStorage.updatePlatformCatchInfo(platformCatch);
+        platformMapper.updateStatus(platform.getServerGBId(), false);
 
         // 停止所有推流
-        log.info("[平台离线] {}, 停止所有推流", parentPlatform.getServerGBId());
-        stopAllPush(parentPlatform.getServerGBId());
+        log.info("[平台离线] {}, 停止所有推流", platform.getServerGBId());
+        stopAllPush(platform.getServerGBId());
 
         // 清除注册定时
-        log.info("[平台离线] {}, 停止定时注册任务", parentPlatform.getServerGBId());
-        final String registerTaskKey = REGISTER_KEY_PREFIX + parentPlatform.getServerGBId();
+        log.info("[平台离线] {}, 停止定时注册任务", platform.getServerGBId());
+        final String registerTaskKey = REGISTER_KEY_PREFIX + platform.getServerGBId();
         if (dynamicTask.contains(registerTaskKey)) {
             dynamicTask.stop(registerTaskKey);
         }
         // 清除心跳定时
-        log.info("[平台离线] {}, 停止定时发送心跳任务", parentPlatform.getServerGBId());
-        final String keepaliveTaskKey = KEEPALIVE_KEY_PREFIX + parentPlatform.getServerGBId();
+        log.info("[平台离线] {}, 停止定时发送心跳任务", platform.getServerGBId());
+        final String keepaliveTaskKey = KEEPALIVE_KEY_PREFIX + platform.getServerGBId();
         if (dynamicTask.contains(keepaliveTaskKey)) {
             // 清除心跳任务
             dynamicTask.stop(keepaliveTaskKey);
         }
         // 停止订阅回复
-        SubscribeInfo catalogSubscribe = subscribeHolder.getCatalogSubscribe(parentPlatform.getServerGBId());
+        SubscribeInfo catalogSubscribe = subscribeHolder.getCatalogSubscribe(platform.getServerGBId());
         if (catalogSubscribe != null) {
             if (catalogSubscribe.getExpires() > 0) {
-                log.info("[平台离线] {}, 停止目录订阅回复", parentPlatform.getServerGBId());
-                subscribeHolder.removeCatalogSubscribe(parentPlatform.getServerGBId());
+                log.info("[平台离线] {}, 停止目录订阅回复", platform.getServerGBId());
+                subscribeHolder.removeCatalogSubscribe(platform.getServerGBId());
             }
         }
-        log.info("[平台离线] {}, 停止移动位置订阅回复", parentPlatform.getServerGBId());
-        subscribeHolder.removeMobilePositionSubscribe(parentPlatform.getServerGBId());
+        log.info("[平台离线] {}, 停止移动位置订阅回复", platform.getServerGBId());
+        subscribeHolder.removeMobilePositionSubscribe(platform.getServerGBId());
         // 发起定时自动重新注册
         if (!stopRegister) {
             // 设置为60秒自动尝试重新注册
-            final String registerFailAgainTaskKey = REGISTER_FAIL_AGAIN_KEY_PREFIX + parentPlatform.getServerGBId();
-            Platform platform = platformMapper.getParentPlatById(parentPlatform.getId());
-            if (platform.isEnable()) {
+            final String registerFailAgainTaskKey = REGISTER_FAIL_AGAIN_KEY_PREFIX + platform.getServerGBId();
+            Platform platformInDb = platformMapper.query(platform.getId());
+            if (platformInDb.isEnable()) {
                 dynamicTask.startCron(registerFailAgainTaskKey,
-                        ()-> registerTask(platform, null),
+                        ()-> registerTask(platformInDb, null),
                         userSetting.getRegisterAgainAfterTime() * 1000);
             }
         }
@@ -428,15 +428,15 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public void login(Platform parentPlatform) {
-        final String registerTaskKey = REGISTER_KEY_PREFIX + parentPlatform.getServerGBId();
+    public void login(Platform platform) {
+        final String registerTaskKey = REGISTER_KEY_PREFIX + platform.getServerGBId();
         try {
-            commanderForPlatform.register(parentPlatform, eventResult1 -> {
-                log.info("[国标级联] {}，开始定时发起注册，间隔为1分钟", parentPlatform.getServerGBId());
+            commanderForPlatform.register(platform, eventResult1 -> {
+                log.info("[国标级联] {}，开始定时发起注册，间隔为1分钟", platform.getServerGBId());
                 // 添加注册任务
                 dynamicTask.startCron(registerTaskKey,
                         // 注册失败（注册成功时由程序直接调用了online方法）
-                        ()-> log.info("[国标级联] {},平台离线后持续发起注册，失败", parentPlatform.getServerGBId()),
+                        ()-> log.info("[国标级联] {},平台离线后持续发起注册，失败", platform.getServerGBId()),
                         60*1000);
             }, null);
         } catch (InvalidArgumentException | ParseException | SipException e) {
@@ -807,6 +807,6 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Override
     public Platform queryOne(Integer platformId) {
-        return platformMapper.getParentPlatById(platformId);
+        return platformMapper.query(platformId);
     }
 }

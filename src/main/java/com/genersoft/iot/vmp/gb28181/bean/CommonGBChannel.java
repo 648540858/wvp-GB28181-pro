@@ -352,7 +352,7 @@ public class CommonGBChannel {
         commonGBChannel.setGbAddress(platform.getAddress());
         commonGBChannel.setGbRegisterWay(platform.getRegisterWay());
         commonGBChannel.setGbSecrecy(platform.getSecrecy());
-        commonGBChannel.setGbStatus(platform.getStatus());
+        commonGBChannel.setGbStatus(platform.isStatus()?"ON":"OFF");
         return commonGBChannel;
     }
 

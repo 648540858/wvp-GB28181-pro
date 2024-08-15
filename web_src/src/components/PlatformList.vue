@@ -10,7 +10,7 @@
       </div>
 
       <!--设备列表-->
-      <el-table size=mini :data="platformList" style="width: 100%" :height="winHeight">
+      <el-table size="medium"  :data="platformList" style="width: 100%" :height="winHeight">
         <el-table-column prop="name" label="名称" ></el-table-column>
         <el-table-column prop="serverGBId" label="平台编号" min-width="200"></el-table-column>
         <el-table-column label="是否启用" min-width="80" >
@@ -32,7 +32,7 @@
         <el-table-column label="地址" min-width="160" >
           <template slot-scope="scope">
             <div slot="reference" class="name-wrapper">
-              <el-tag size="medium">{{ scope.row.serverIP}}:{{scope.row.serverPort }}</el-tag>
+              <el-tag size="medium">{{ scope.row.serverIp}}:{{scope.row.serverPort }}</el-tag>
             </div>
           </template>
         </el-table-column>
@@ -53,13 +53,13 @@
         <el-table-column label="操作" min-width="240" fixed="right">
           <template slot-scope="scope">
             <el-button size="medium" icon="el-icon-edit" type="text" @click="editPlatform(scope.row)">编辑</el-button>
-            <el-button size="medium" icon="el-icon-share"  type="text"  @click="chooseChannel(scope.row)">选择通道</el-button>
+            <el-button size="medium" icon="el-icon-share"  type="text"  @click="chooseChannel(scope.row)">通道共享</el-button>
             <el-button size="medium" icon="el-icon-delete"  type="text" style="color: #f56c6c" @click="deletePlatform(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
       <el-pagination
-        style="float: right"
+        style="text-align: right"
         @size-change="handleSizeChange"
         @current-change="currentChange"
         :current-page="currentPage"
@@ -70,7 +70,7 @@
       </el-pagination>
     </div>
 
-    <platformEdit ref="platformEdit" v-if="platform" v-model="platform" :closeEdit="closeEdit" ></platformEdit>
+    <platformEdit ref="platformEdit" v-if="platform" v-model="platform" :closeEdit="closeEdit" :device-ips="deviceIps" ></platformEdit>
     <chooseChannelDialog ref="chooseChannelDialog" ></chooseChannelDialog>
   </div>
 </template>
@@ -118,8 +118,7 @@ export default {
       this.platform = this.defaultPlatform;
     },
     editPlatform: function(platform) {
-      console.log(platform)
-      this.$refs.platformEdit.openDialog(platform, this.initData)
+      this.platform = platform;
     },
     closeEdit: function() {
       this.platform = null;
@@ -154,8 +153,8 @@ export default {
         });
     },
     chooseChannel: function(platform) {
-        console.log("platform.name: " + platform.name)
-       this.$refs.chooseChannelDialog.openDialog(platform.serverGBId,platform.deviceGBId, platform.name, platform.catalogId, this.initData)
+      console.log("platform.name: " + platform.name)
+      this.$refs.chooseChannelDialog.openDialog(platform.serverGBId,platform.deviceGBId, platform.name, platform.catalogId, this.initData)
     },
     initData: function() {
       this.$axios({
@@ -174,7 +173,7 @@ export default {
             name: null,
             serverGBId: null,
             serverGBDomain: null,
-            serverIP: null,
+            serverIp: null,
             serverPort: null,
             deviceGBId: res.data.data.username,
             deviceIp: this.deviceIps[0],
@@ -186,8 +185,16 @@ export default {
             transport: "UDP",
             characterSet: "GB2312",
             startOfflinePush: false,
+            customGroup: false,
+            catalogWithPlatform: false,
+            catalogWithGroup: false,
+            catalogWithRegion: false,
+            manufacturer: null,
+            model: null,
+            address: null,
+            secrecy: 1,
             catalogGroup: 1,
-            administrativeDivision: res.data.data.username.substr(0, 6),
+            civilCode: null,
             sendStreamIp: res.data.data.sendStreamIp,
           }
         }

@@ -29,6 +29,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -122,7 +123,7 @@ public class PlatformController {
     @Parameter(name = "count", description = "每页条数", required = true)
     public PageInfo<Platform> platforms(@PathVariable int page, @PathVariable int count) {
 
-        PageInfo<Platform> parentPlatformPageInfo = platformService.queryParentPlatformList(page, count);
+        PageInfo<Platform> parentPlatformPageInfo = platformService.queryPlatformList(page, count);
         if (parentPlatformPageInfo.getList().size() > 0) {
             for (Platform platform : parentPlatformPageInfo.getList()) {
                 platform.setMobilePositionSubscribe(subscribeHolder.getMobilePositionSubscribe(platform.getServerGBId()) != null);
@@ -135,45 +136,53 @@ public class PlatformController {
     /**
      * 添加上级平台信息
      *
-     * @param parentPlatform
+     * @param platform
      * @return
      */
     @Operation(summary = "添加上级平台信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @PostMapping("/add")
     @ResponseBody
-    public void addPlatform(@RequestBody Platform parentPlatform) {
+    public void addPlatform(@RequestBody Platform platform) {
 
         if (log.isDebugEnabled()) {
             log.debug("保存上级平台信息API调用");
         }
-        if (ObjectUtils.isEmpty(parentPlatform.getName())
-                || ObjectUtils.isEmpty(parentPlatform.getServerGBId())
-                || ObjectUtils.isEmpty(parentPlatform.getServerGBDomain())
-                || ObjectUtils.isEmpty(parentPlatform.getServerIP())
-                || ObjectUtils.isEmpty(parentPlatform.getServerPort())
-                || ObjectUtils.isEmpty(parentPlatform.getDeviceGBId())
-                || ObjectUtils.isEmpty(parentPlatform.getExpires())
-                || ObjectUtils.isEmpty(parentPlatform.getKeepTimeout())
-                || ObjectUtils.isEmpty(parentPlatform.getTransport())
-                || ObjectUtils.isEmpty(parentPlatform.getCharacterSet())
-        ) {
-            throw new ControllerException(ErrorCode.ERROR400);
-        }
-        if (parentPlatform.getServerPort() < 0 || parentPlatform.getServerPort() > 65535) {
-            throw new ControllerException(ErrorCode.ERROR400.getCode(), "error severPort");
+        Assert.notNull(platform.getName(), "平台名称不可为空");
+        Assert.notNull(platform.getServerGBId(), "上级平台国标编号不可为空");
+        Assert.notNull(platform.getServerIp(), "上级平台IP不可为空");
+        Assert.isTrue(platform.getServerPort() > 0 && platform.getServerPort() < 65535, "上级平台端口异常");
+        Assert.notNull(platform.getDeviceGBId(), "本平台国标编号不可为空");
+
+        if (ObjectUtils.isEmpty(platform.getServerGBDomain())) {
+            platform.setServerGBDomain(platform.getServerGBId().substring(0, 6));
         }
 
+        if (platform.getExpires() <= 0) {
+            platform.setExpires(3600);
+        }
 
-        Platform parentPlatformOld = storager.queryParentPlatByServerGBId(parentPlatform.getServerGBId());
+        if (platform.getKeepTimeout() <= 0) {
+            platform.setKeepTimeout(60);
+        }
+
+        if (ObjectUtils.isEmpty(platform.getTransport())) {
+            platform.setTransport("UDP");
+        }
+
+        if (ObjectUtils.isEmpty(platform.getCharacterSet())) {
+            platform.setCharacterSet("GB2312");
+        }
+
+        Platform parentPlatformOld = platformService.queryPlatformByServerGBId(platform.getServerGBId());
         if (parentPlatformOld != null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台 " + parentPlatform.getServerGBId() + " 已存在");
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台 " + platform.getServerGBId() + " 已存在");
         }
-        parentPlatform.setCreateTime(DateUtil.getNow());
-        parentPlatform.setUpdateTime(DateUtil.getNow());
-        boolean updateResult = platformService.add(parentPlatform);
+        platform.setCreateTime(DateUtil.getNow());
+        platform.setUpdateTime(DateUtil.getNow());
+        boolean updateResult = platformService.add(platform);
 
         if (!updateResult) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(),"写入数据库失败");
+            throw new ControllerException(ErrorCode.ERROR100);
         }
     }
 
@@ -184,9 +193,9 @@ public class PlatformController {
      * @return
      */
     @Operation(summary = "保存上级平台信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @PostMapping("/save")
+    @PostMapping("/update")
     @ResponseBody
-    public void savePlatform(@RequestBody Platform parentPlatform) {
+    public void updatePlatform(@RequestBody Platform parentPlatform) {
 
         if (log.isDebugEnabled()) {
             log.debug("保存上级平台信息API调用");
@@ -194,7 +203,7 @@ public class PlatformController {
         if (ObjectUtils.isEmpty(parentPlatform.getName())
                 || ObjectUtils.isEmpty(parentPlatform.getServerGBId())
                 || ObjectUtils.isEmpty(parentPlatform.getServerGBDomain())
-                || ObjectUtils.isEmpty(parentPlatform.getServerIP())
+                || ObjectUtils.isEmpty(parentPlatform.getServerIp())
                 || ObjectUtils.isEmpty(parentPlatform.getServerPort())
                 || ObjectUtils.isEmpty(parentPlatform.getDeviceGBId())
                 || ObjectUtils.isEmpty(parentPlatform.getExpires())

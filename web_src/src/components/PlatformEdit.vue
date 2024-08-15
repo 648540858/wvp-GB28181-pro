@@ -15,7 +15,7 @@
     <div id="shared" style="text-align: right; margin-top: 1rem; background-color: #FFFFFF; padding-top: 2rem;">
       <el-row :gutter="24">
         <el-col :span="11">
-          <el-form ref="platform1" :rules="rules" :model="value" label-width="160px">
+          <el-form ref="platform1" :rules="rules" :model="value" size="medium" label-width="160px">
             <el-form-item label="名称" prop="name">
               <el-input v-model="value.name"></el-input>
             </el-form-item>
@@ -25,8 +25,8 @@
             <el-form-item label="SIP服务国标域" prop="serverGBDomain">
               <el-input v-model="value.serverGBDomain" clearable></el-input>
             </el-form-item>
-            <el-form-item label="SIP服务IP" prop="serverIP">
-              <el-input v-model="value.serverIP" clearable></el-input>
+            <el-form-item label="SIP服务IP" prop="serverIp">
+              <el-input v-model="value.serverIp" clearable></el-input>
             </el-form-item>
             <el-form-item label="SIP服务端口" prop="serverPort">
               <el-input v-model="value.serverPort" clearable type="number"></el-input>
@@ -47,16 +47,7 @@
             <el-form-item label="本地端口" prop="devicePort">
               <el-input v-model="value.devicePort" :disabled="true" type="number"></el-input>
             </el-form-item>
-            <el-form-item label="SDP发流IP" prop="sendStreamIp">
-              <el-input v-model="value.sendStreamIp"></el-input>
-            </el-form-item>
-          </el-form>
-        </el-col>
-        <el-col :span="12">
-          <el-form ref="platform2" :rules="rules" :model="platform" label-width="160px">
-            <el-form-item label="行政区划" prop="administrativeDivision">
-              <el-input v-model="value.civilCode" clearable></el-input>
-            </el-form-item>
+
             <el-form-item label="SIP认证用户名" prop="username">
               <el-input v-model="value.username"></el-input>
             </el-form-item>
@@ -69,6 +60,13 @@
             <el-form-item label="心跳周期(秒)" prop="keepTimeout">
               <el-input v-model="value.keepTimeout"></el-input>
             </el-form-item>
+          </el-form>
+        </el-col>
+        <el-col :span="12">
+          <el-form ref="platform2" :rules="rules" :model="value" size="medium" label-width="160px">
+            <el-form-item label="SDP发流IP" prop="sendStreamIp">
+              <el-input v-model="value.sendStreamIp"></el-input>
+            </el-form-item>
             <el-form-item label="信令传输" prop="transport">
               <el-select
                 v-model="value.transport"
@@ -77,6 +75,12 @@
               >
                 <el-option label="UDP" value="UDP"></el-option>
                 <el-option label="TCP" value="TCP"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="保密属性" >
+              <el-select v-model="value.secrecy" style="width: 100%" placeholder="请选择保密属性">
+                <el-option label="不涉密" :value="0"></el-option>
+                <el-option label="涉密" :value="1"></el-option>
               </el-select>
             </el-form-item>
             <el-form-item label="目录分组" prop="catalogGroup">
@@ -101,6 +105,18 @@
                 <el-option label="UTF-8" value="UTF-8"></el-option>
               </el-select>
             </el-form-item>
+            <el-form-item label="行政区划" prop="civilCode">
+              <el-input v-model="value.civilCode" clearable></el-input>
+            </el-form-item>
+            <el-form-item label="平台厂商" prop="manufacturer">
+              <el-input v-model="value.manufacturer" clearable></el-input>
+            </el-form-item>
+            <el-form-item label="平台型号" prop="model">
+              <el-input v-model="value.model" clearable></el-input>
+            </el-form-item>
+            <el-form-item label="平台安装地址" prop="address">
+              <el-input v-model="value.address" clearable></el-input>
+            </el-form-item>
             <el-form-item label="其他选项" >
               <div style="text-align: left">
                 <el-checkbox label="启用" v-model="value.enable" @change="checkExpires"></el-checkbox>
@@ -108,10 +124,9 @@
                 <el-checkbox label="RTCP保活" v-model="value.rtcp" @change="rtcpCheckBoxChange"></el-checkbox>
                 <el-checkbox label="消息通道" v-model="value.asMessageChannel"></el-checkbox>
                 <el-checkbox label="主动推送通道" v-model="value.autoPushChannel"></el-checkbox>
-                <el-checkbox label="主动推送通道" v-model="value.autoPushChannel"></el-checkbox>
-                <el-checkbox label="主动推送通道" v-model="value.autoPushChannel"></el-checkbox>
-                <el-checkbox label="主动推送通道" v-model="value.autoPushChannel"></el-checkbox>
-                <el-checkbox label="主动推送通道" v-model="value.autoPushChannel"></el-checkbox>
+                <el-checkbox label="推送平台信息" v-model="value.catalogWithPlatform"></el-checkbox>
+                <el-checkbox label="推送分组信息" v-model="value.catalogWithGroup"></el-checkbox>
+                <el-checkbox label="推送行政区划" v-model="value.catalogWithRegion"></el-checkbox>
               </div>
 
 
@@ -134,7 +149,7 @@
 
 export default {
   name: "platformEdit",
-  props: [ 'value', 'closeEdit'],
+  props: [ 'value', 'closeEdit', 'deviceIps'],
   components: {
   },
   created() {
@@ -164,35 +179,7 @@ export default {
       showDialog: false,
       isLoging: false,
       onSubmit_text: "立即创建",
-      saveUrl: "/api/platform/save",
 
-      platform: {
-        id: null,
-        enable: true,
-        ptz: true,
-        rtcp: false,
-        asMessageChannel: false,
-        autoPushChannel: false,
-        name: null,
-        serverGBId: null,
-        serverGBDomain: null,
-        serverIP: null,
-        serverPort: null,
-        deviceGBId: null,
-        deviceIp: null,
-        devicePort: null,
-        username: null,
-        password: null,
-        expires: 3600,
-        keepTimeout: 60,
-        transport: "UDP",
-        characterSet: "GB2312",
-        startOfflinePush: false,
-        catalogGroup: 1,
-        administrativeDivision: "",
-        sendStreamIp: null,
-      },
-      deviceIps: [], // 存储用户设备IP数组
       rules: {
         name: [{required: true, message: "请输入平台名称", trigger: "blur"}],
         serverGBId: [
@@ -201,7 +188,7 @@ export default {
         serverGBDomain: [
           {required: true, message: "请输入SIP服务国标域", trigger: "blur"},
         ],
-        serverIP: [{required: true, message: "请输入SIP服务IP", trigger: "blur"}],
+        serverIp: [{required: true, message: "请输入SIP服务IP", trigger: "blur"}],
         serverPort: [{required: true, message: "请输入SIP服务端口", trigger: "blur"}],
         deviceGBId: [{validator: deviceGBIdRules, trigger: "blur"}],
         username: [{required: false, message: "请输入SIP认证用户名", trigger: "blur"}],
@@ -218,53 +205,73 @@ export default {
   },
   methods: {
     onSubmit: function () {
-      console.log(typeof this.streamProxy.noneReader)
       this.saveLoading = true;
-
-      this.noneReaderHandler();
-      if (this.streamProxy.id) {
+      if (this.value.id) {
         this.$axios({
           method: 'post',
-          url:`/api/proxy/update`,
-          data: this.streamProxy
-        }).then((res)=> {
+          url: "/api/platform/update",
+          data: this.value
+        }).then((res) => {
           this.saveLoading = false;
-          if (typeof (res.data.code) != "undefined" && res.data.code === 0) {
-            this.$message.success("保存成功");
-            console.log(res.data.data)
-            this.streamProxy = res.data.data
-          }else {
-            this.$message.error(res.data.msg);
+          if (res.data.code === 0) {
+            this.$message({
+              showClose: true,
+              message: "保存成功",
+              type: "success",
+            });
+            this.showDialog = false;
+            if (this.closeEdit) {
+              this.closeEdit();
+            }
+          } else {
+            this.$message({
+              showClose: true,
+              message: res.data.msg,
+              type: "error",
+            });
           }
+        }).catch((error) => {
           this.saveLoading = false;
-        }).catch((error) =>{
-          this.$message.error(error);
-          this.saveLoading = false;
-        }).finally(()=>{
-          console.log("finally==finally")
-          this.saveLoading = false;
-        })
+          console.log(error);
+        });
       }else {
         this.$axios({
           method: 'post',
-          url:`/api/proxy/add`,
-          data: this.streamProxy
-        }).then((res)=> {
+          url: "/api/platform/add",
+          data: this.value
+        }).then((res) => {
           this.saveLoading = false;
-          if (typeof (res.data.code) != "undefined" && res.data.code === 0) {
-            this.$message.success("保存成功");
-            this.streamProxy = res.data.data
-          }else {
-            this.$message.error(res.data.msg);
+          if (res.data.code === 0) {
+            this.$message({
+              showClose: true,
+              message: "保存成功",
+              type: "success",
+            });
+            if (this.closeEdit) {
+              this.closeEdit();
+            }
+          } else {
+            this.$message({
+              showClose: true,
+              message: res.data.msg,
+              type: "error",
+            });
           }
-        }).catch((error) =>{
-          this.$message.error(res.data.error);
+        }).catch((error) => {
           this.saveLoading = false;
-        }).finally(()=>{
-          this.saveLoading = false;
-        })
+          console.log(error);
+        });
       }
 
+
+    },
+    serverGBIdChange: function () {
+      if (this.value.serverGBId.length > 10) {
+        this.value.serverGBDomain = this.value.serverGBId.substr(0, 10);
+      }
+    },
+    deviceGBIdChange: function () {
+      this.value.username = this.value.deviceGBId;
     },
     checkExpires: function () {
       if (this.value.enable && this.value.expires === "0") {

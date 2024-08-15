@@ -17,7 +17,7 @@ public class PlatformCatch {
 
     private String callId;
 
-    private Platform parentPlatform;
+    private Platform platform;
 
     private SipTransactionInfo sipTransactionInfo;
 

@@ -33,10 +33,14 @@ public class VManageBootstrap extends SpringBootServletInitializer {
 	public static void main(String[] args) {
 		VManageBootstrap.args = args;
 		VManageBootstrap.context = SpringApplication.run(VManageBootstrap.class, args);
-		GitUtil gitUtil1 = SpringBeanFactory.getBean("gitUtil");
-		log.info("构建版本： {}", gitUtil1.getBuildVersion());
-		log.info("构建时间： {}", gitUtil1.getBuildDate());
-		log.info("GIT最后提交时间： {}", gitUtil1.getCommitTime());
+		GitUtil gitUtil = SpringBeanFactory.getBean("gitUtil");
+		if (gitUtil == null) {
+			log.info("获取版本信息失败");
+		}else {
+			log.info("构建版本： {}", gitUtil.getBuildVersion());
+			log.info("构建时间： {}", gitUtil.getBuildDate());
+			log.info("GIT最后提交时间： {}", gitUtil.getCommitTime());
+		}
 	}
 	// 项目重启
 	public static void restart() {

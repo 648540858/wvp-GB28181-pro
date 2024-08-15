@@ -26,7 +26,7 @@ public class Platform {
     private String serverGBDomain;
 
     @Schema(description = "SIP服务IP")
-    private String serverIP;
+    private String serverIp;
 
     @Schema(description = "SIP服务端口")
     private int serverPort;
@@ -67,7 +67,7 @@ public class Platform {
     @Schema(description = "在线状态")
     private boolean status;
 
-    @Schema(description = "在线状态")
+    @Schema(description = "通道数量")
     private int channelCount;
 
     @Schema(description = "已被订阅目录信息")
@@ -93,9 +93,6 @@ public class Platform {
 
     @Schema(description = "点播回复200OK使用的IP")
     private String sendStreamIp;
-
-    @Schema(description = "是否使用自定义业务分组")
-    private Boolean customGroup;
 
     @Schema(description = "是否自动推送通道变化")
     private Boolean autoPushChannel;
@@ -130,7 +127,4 @@ public class Platform {
 
     @Schema(description = "保密属性（必选）缺省为0；0-不涉密，1-涉密")
     private int secrecy = 0;
-
-    @Schema(description = "在线状态")
-    private String Status = "ON";
 }

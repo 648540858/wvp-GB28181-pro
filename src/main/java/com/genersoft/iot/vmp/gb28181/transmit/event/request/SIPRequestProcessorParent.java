@@ -134,7 +134,7 @@ public abstract class SIPRequestProcessorParent {
 		// 兼容国标中的使用编码@域名作为RequestURI的情况
 		SipURI sipURI = (SipURI)request.getRequestURI();
 		if (sipURI.getPort() == -1) {
-			sipURI = SipFactory.getInstance().createAddressFactory().createSipURI(platform.getServerGBId(),  platform.getServerIP()+":"+platform.getServerPort());
+			sipURI = SipFactory.getInstance().createAddressFactory().createSipURI(platform.getServerGBId(),  platform.getServerIp()+":"+platform.getServerPort());
 		}
 		ResponseAckExtraParam responseAckExtraParam = new ResponseAckExtraParam();
 		responseAckExtraParam.contentTypeHeader = contentTypeHeader;
@@ -155,7 +155,7 @@ public abstract class SIPRequestProcessorParent {
 
 		SipURI sipURI = (SipURI)request.getRequestURI();
 		if (sipURI.getPort() == -1) {
-			sipURI = SipFactory.getInstance().createAddressFactory().createSipURI(platform.getServerGBId(),  platform.getServerIP()+":"+platform.getServerPort());
+			sipURI = SipFactory.getInstance().createAddressFactory().createSipURI(platform.getServerGBId(),  platform.getServerIp()+":"+platform.getServerPort());
 		}
 		ResponseAckExtraParam responseAckExtraParam = new ResponseAckExtraParam();
 		responseAckExtraParam.contentTypeHeader = contentTypeHeader;

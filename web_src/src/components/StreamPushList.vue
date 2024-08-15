@@ -40,7 +40,7 @@
           <el-button icon="el-icon-refresh-right" circle size="mini" @click="refresh()"></el-button>
         </div>
       </div>
-      <el-table size=mini ref="pushListTable" :data="pushList" style="width: 100%" :height="winHeight" :loading="loading"
+      <el-table size="medium"  ref="pushListTable" :data="pushList" style="width: 100%" :height="winHeight" :loading="loading"
                 @selection-change="handleSelectionChange" :row-key="(row)=> row.app + row.stream">
         <el-table-column  type="selection" :reserve-selection="true" min-width="55">
         </el-table-column>
@@ -85,7 +85,7 @@
         </el-table-column>
       </el-table>
       <el-pagination
-        style="float: right"
+        style="text-align: right"
         @size-change="handleSizeChange"
         @current-change="currentChange"
         :current-page="currentPage"

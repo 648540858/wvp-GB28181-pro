@@ -71,13 +71,13 @@
     </div>
 
     <platformEdit ref="platformEdit" v-if="platform" v-model="platform" :closeEdit="closeEdit" :device-ips="deviceIps" ></platformEdit>
-    <chooseChannelDialog ref="chooseChannelDialog" ></chooseChannelDialog>
+    <shareChannel ref="shareChannel" ></shareChannel>
   </div>
 </template>
 
 <script>
 import uiHeader from '../layout/UiHeader.vue'
-import chooseChannelDialog from './dialog/chooseChannel.vue'
+import shareChannel from './dialog/shareChannel.vue'
 import platformEdit from './PlatformEdit.vue'
 import streamProxyEdit from "./dialog/StreamProxyEdit.vue";
 export default {
@@ -85,7 +85,7 @@ export default {
   components: {
     streamProxyEdit,
     uiHeader,
-    chooseChannelDialog,
+    shareChannel,
     platformEdit
   },
   data() {
@@ -153,8 +153,7 @@ export default {
         });
     },
     chooseChannel: function(platform) {
-      console.log("platform.name: " + platform.name)
-      this.$refs.chooseChannelDialog.openDialog(platform.serverGBId,platform.deviceGBId, platform.name, platform.catalogId, this.initData)
+      this.$refs.shareChannel.openDialog(platform.serverGBId, this.initData)
     },
     initData: function() {
       this.$axios({

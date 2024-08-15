@@ -8,10 +8,7 @@ import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
-import com.genersoft.iot.vmp.gb28181.bean.Platform;
-import com.genersoft.iot.vmp.gb28181.bean.PlatformCatch;
-import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
-import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
 import com.genersoft.iot.vmp.gb28181.controller.bean.UpdateChannelParam;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
@@ -303,35 +300,27 @@ public class PlatformController {
      * @param channelType 通道类型
      * @return
      */
-    @Operation(summary = "查询上级平台是否存在", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "分页查询级联平台的所有所有通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页条数", required = true)
-    @Parameter(name = "platformId", description = "上级平台的国标编号")
-    @Parameter(name = "catalogId", description = "目录ID")
+    @Parameter(name = "platformId", description = "上级平台的数据ID")
     @Parameter(name = "query", description = "查询内容")
     @Parameter(name = "online", description = "是否在线")
-    @Parameter(name = "channelType", description = "通道类型")
-    @GetMapping("/channel_list")
+    @Parameter(name = "hasShare", description = "是否已经共享")
+    @GetMapping("/channel/list")
     @ResponseBody
-    public PageInfo<ChannelReduce> channelList(int page, int count,
-                                               @RequestParam(required = false) String platformId,
-                                               @RequestParam(required = false) String catalogId,
-                                               @RequestParam(required = false) String query,
-                                               @RequestParam(required = false) Boolean online,
-                                               @RequestParam(required = false) Boolean channelType) {
+    public PageInfo<CommonGBChannel> channelList(int page, int count,
+                                                 @RequestParam(required = false) Integer platformId,
+                                                 @RequestParam(required = false) String query,
+                                                 @RequestParam(required = false) Boolean online,
+                                                 @RequestParam(required = false) Boolean hasShare) {
 
-        if (ObjectUtils.isEmpty(platformId)) {
-            platformId = null;
-        }
+        Assert.notNull(platformId, "上级平台的数据ID不可为NULL");
         if (ObjectUtils.isEmpty(query)) {
             query = null;
         }
-        if (ObjectUtils.isEmpty(platformId) || ObjectUtils.isEmpty(catalogId)) {
-            catalogId = null;
-        }
-        PageInfo<ChannelReduce> channelReduces = deviceChannelService.queryAllChannelList(page, count, query, online, channelType, platformId, catalogId);
 
-        return channelReduces;
+        return platformChannelService.queryChannelList(page, count, query, online, platformId, hasShare);
     }
 
     /**

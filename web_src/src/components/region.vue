@@ -154,7 +154,6 @@ export default {
             this.$refs.channelListTable.doLayout();
           })
         }
- yguop
 
       }).catch((error)=> {
 

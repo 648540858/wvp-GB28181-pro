@@ -164,14 +164,19 @@ public interface GroupMapper {
 
     @Select(" <script>" +
             " SELECT " +
-            " device_id as gb_device_id," +
-            " name as gb_name," +
-            " business_group as gb_business_group," +
-            " 1 as gb_parental," +
-            " parent_device_id as gb_parent_id" +
+            " * " +
             " from wvp_common_group " +
             " where (device_id, business_group) in " +
             " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > (#{item.gbParentId}, #{item.gbBusinessGroupId})</foreach>" +
             " </script>")
-    List<CommonGBChannel> queryInChannelList(List<CommonGBChannel> channelList);
+    Set<Group> queryInChannelList(List<CommonGBChannel> channelList);
+
+    @Select(" <script>" +
+            " SELECT " +
+            " * " +
+            " from wvp_common_group " +
+            " where device_id in " +
+            " <foreach collection='regionChannelList'  item='item'  open='(' separator=',' close=')' > #{item.parentDeviceId}</foreach>" +
+            " </script>")
+    Set<Group> queryParentInChannelList(Set<Group> regionChannelList);
 }

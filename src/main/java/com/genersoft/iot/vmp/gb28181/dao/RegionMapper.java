@@ -105,7 +105,7 @@ public interface RegionMapper {
             " where device_id in " +
             " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.gbCivilCode}</foreach>" +
             " </script>")
-    List<Region> queryInChannelList(List<CommonGBChannel> channelList);
+    Set<Region> queryInChannelList(List<CommonGBChannel> channelList);
 
 
     @Select(" <script>" +
@@ -115,5 +115,5 @@ public interface RegionMapper {
             " where device_id in " +
             " <foreach collection='regionChannelList'  item='item'  open='(' separator=',' close=')' > #{item.parentDeviceId}</foreach>" +
             " </script>")
-    List<Region> queryParentInChannelList(List<Region> regionChannelList);
+    Set<Region> queryParentInChannelList(Set<Region> regionChannelList);
 }

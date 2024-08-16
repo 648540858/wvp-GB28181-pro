@@ -20,10 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -328,10 +325,10 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
         // 是否包含行政区划信息
         if (platform.getCatalogWithRegion()) {
-            List<Region> regionChannelList = regionMapper.queryInChannelList(commonGBChannelList);
+            Set<Region> regionChannelList = regionMapper.queryInChannelList(commonGBChannelList);
             if (!regionChannelList.isEmpty()) {
-                // 获取这些节点的所有父节点
-                List<Region> allRegion = getAllRegion(regionChannelList);
+                // 获取这些节点的所有父节点, 使用set滤重
+                Set<Region> allRegion = getAllRegion(regionChannelList);
                 for (Region region : allRegion) {
                     channelList.add(CommonGBChannel.build(region));
                 }
@@ -339,25 +336,41 @@ public class GbChannelServiceImpl implements IGbChannelService {
         }
         // 是否包含分组信息
         if (platform.getCatalogWithGroup()) {
-            List<CommonGBChannel> groupChannelList = groupMapper.queryInChannelList(commonGBChannelList);
+            Set<Group> groupChannelList = groupMapper.queryInChannelList(commonGBChannelList);
             if (!groupChannelList.isEmpty()) {
                 // 获取这些节点的所有父节点
-                channelList.addAll(groupChannelList);
+                Set<Group> allGroup = getAllGroup(groupChannelList);
+                for (Group group : allGroup) {
+                    channelList.add(CommonGBChannel.build(group));
+                }
             }
         }
         channelList.addAll(commonGBChannelList);
         return channelList;
     }
 
-    private List<Region> getAllRegion(List<Region> regionChannelList ) {
+    private Set<Region> getAllRegion(Set<Region> regionChannelList ) {
         if (regionChannelList.isEmpty()) {
-            return new ArrayList<>();
+            return new HashSet<>();
         }
-        List<Region> channelList = regionMapper.queryParentInChannelList(regionChannelList);
+        Set<Region> channelList = regionMapper.queryParentInChannelList(regionChannelList);
         if (channelList.isEmpty()) {
             return channelList;
         }
-        List<Region> allParentRegion = getAllRegion(channelList);
+        Set<Region> allParentRegion = getAllRegion(channelList);
+        channelList.addAll(allParentRegion);
+        return channelList;
+    }
+
+    private Set<Group> getAllGroup(Set<Group> regionChannelList ) {
+        if (regionChannelList.isEmpty()) {
+            return new HashSet<>();
+        }
+        Set<Group> channelList = groupMapper.queryParentInChannelList(regionChannelList);
+        if (channelList.isEmpty()) {
+            return channelList;
+        }
+        Set<Group> allParentRegion = getAllGroup(channelList);
         channelList.addAll(allParentRegion);
         return channelList;
     }

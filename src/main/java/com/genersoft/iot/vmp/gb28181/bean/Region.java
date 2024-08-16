@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 import com.genersoft.iot.vmp.common.CivilCodePo;
+import com.genersoft.iot.vmp.jt1078.proc.request.Re;
 import com.genersoft.iot.vmp.utils.CivilCodeUtil;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -87,5 +88,30 @@ public class Region implements Comparable<Region>{
     @Override
     public int compareTo(@NotNull Region region) {
         return Integer.compare(Integer.parseInt(this.deviceId), Integer.parseInt(region.getDeviceId()));
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null)
+            return false;
+        if (this == obj)
+            return true;
+        if (obj instanceof Region) {
+            Region region = (Region) obj;
+
+            // 比较每个属性的值一致时才返回true
+            if (region.getId() == this.id) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 重写hashcode方法，返回的hashCode一样才再去比较每个属性的值
+     */
+    @Override
+    public int hashCode() {
+        return id;
     }
 }

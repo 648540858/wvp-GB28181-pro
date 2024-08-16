@@ -27,7 +27,9 @@
           <el-button v-if="hasShare ==='true'" size="mini" type="danger" @click="remove()">
             移除
           </el-button>
-          <el-button icon="el-icon-refresh-right" circle size="mini" @click="getChannelList()"></el-button>
+          <el-button size="mini" @click="addAll()">全部添加</el-button>
+          <el-button size="mini" @click="removeAll()">全部移除</el-button>
+          <el-button size="mini" @click="getChannelList()">刷新</el-button>
         </div>
       </div>
     </div>
@@ -86,6 +88,7 @@
 export default {
   name: 'shareChannelAdd',
   components: {},
+  props: [ 'platformId'],
   data() {
     return {
       channelList: [],
@@ -191,6 +194,42 @@ export default {
         this.loading = false
       });
     },
+    addAll: function (row) {
+      this.$confirm("确定全部添加？", '提示', {
+        dangerouslyUseHTMLString: true,
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.loading = true
+
+        this.$axios({
+          method: 'post',
+          url: `/api/platform/channel/add`,
+          data: {
+            platformId: this.platformId,
+            all: true
+          }
+        }).then((res)=> {
+          if (res.data.code === 0) {
+            this.$message.success("保存成功")
+            this.getChannelList()
+          }else {
+            this.$message.error(res.data.msg)
+          }
+          this.loading = false
+        }).catch((error)=> {
+          this.$message.error(error)
+          this.loading = false
+        });
+      }).catch(() => {
+      });
+
+
+
+
+
+    },
     remove: function (row) {
       let channels = []
       for (let i = 0; i < this.multipleSelection.length; i++) {
@@ -203,9 +242,10 @@ export default {
       this.loading = true
 
       this.$axios({
-        method: 'post',
-        url: `/api/platform/channel/delete`,
+        method: 'delete',
+        url: `/api/platform/channel/remove`,
         data: {
+          platformId: this.platformId,
           channelIds: channels
         }
       }).then((res)=> {
@@ -220,6 +260,38 @@ export default {
         this.$message.error(error)
         this.loading = false
       });
+    },
+    removeAll: function (row) {
+
+      this.$confirm("确定全部移除？", '提示', {
+        dangerouslyUseHTMLString: true,
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.loading = true
+        this.$axios({
+          method: 'delete',
+          url: `/api/platform/channel/remove`,
+          data: {
+            platformId: this.platformId,
+            all: true
+          }
+        }).then((res)=> {
+          if (res.data.code === 0) {
+            this.$message.success("保存成功")
+            this.getChannelList()
+          }else {
+            this.$message.error(res.data.msg)
+          }
+          this.loading = false
+        }).catch((error)=> {
+          this.$message.error(error)
+          this.loading = false
+        });
+      }).catch(() => {
+      });
+
     },
     search: function () {
       this.currentPage = 1;

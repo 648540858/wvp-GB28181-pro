@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.GroupMapper;
+import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.RegionMapper;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
@@ -33,6 +34,9 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Autowired
     private CommonGBChannelMapper commonGBChannelMapper;
+
+    @Autowired
+    private PlatformChannelMapper platformChannelMapper;
 
     @Autowired
     private RegionMapper regionMapper;
@@ -635,6 +639,6 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Override
     public CommonGBChannel queryOneWithPlatform(Integer platformId, String channelDeviceId) {
-        return commonGBChannelMapper.queryOneWithPlatform(platformId, channelDeviceId);
+        return platformChannelMapper.queryOneWithPlatform(platformId, channelDeviceId);
     }
 }

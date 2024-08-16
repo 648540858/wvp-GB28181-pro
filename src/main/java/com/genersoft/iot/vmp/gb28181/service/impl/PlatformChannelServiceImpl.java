@@ -1,26 +1,20 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.baomidou.dynamic.datasource.annotation.DS;
-import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.PlatformChannel;
+import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
-import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
-import com.genersoft.iot.vmp.gb28181.dao.PlatformMapper;
-import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
-import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.util.ObjectUtils;
+import org.springframework.util.Assert;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author lin
@@ -34,136 +28,81 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     private PlatformChannelMapper platformChannelMapper;
 
     @Autowired
-    TransactionDefinition transactionDefinition;
-
-    @Autowired
-    DataSourceTransactionManager dataSourceTransactionManager;
-
-    @Autowired
-    private SubscribeHolder subscribeHolder;
-
-
-    @Autowired
-    private DeviceChannelMapper deviceChannelMapper;
-
-    @Autowired
-    private PlatformMapper platformMapper;
-
-    @Autowired
     EventPublisher eventPublisher;
 
+
     @Override
-    public int updateChannelForGB(String platformId, List<ChannelReduce> channelReduces, String catalogId) {
-        Platform platform = platformMapper.getParentPlatByServerGBId(platformId);
-        if (platform == null) {
-            log.warn("更新级联通道信息时未找到平台{}的信息", platformId);
-            return 0;
-        }
-        Map<Integer, ChannelReduce> deviceAndChannels = new HashMap<>();
-        for (ChannelReduce channelReduce : channelReduces) {
-            channelReduce.setCatalogId(catalogId);
-            deviceAndChannels.put(channelReduce.getId(), channelReduce);
-        }
-        List<Integer> deviceAndChannelList = new ArrayList<>(deviceAndChannels.keySet());
-        // 查询当前已经存在的
-        List<Integer> channelIds = platformChannelMapper.findChannelRelatedPlatform(platformId, channelReduces);
-        if (deviceAndChannelList != null) {
-            deviceAndChannelList.removeAll(channelIds);
-        }
-        for (Integer channelId : channelIds) {
-            deviceAndChannels.remove(channelId);
-        }
-        List<ChannelReduce> channelReducesToAdd = new ArrayList<>(deviceAndChannels.values());
-        // 对剩下的数据进行存储
-        int allCount = 0;
-        boolean result = false;
-        TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
-        int limitCount = 50;
-        if (channelReducesToAdd.size() > 0) {
-            if (channelReducesToAdd.size() > limitCount) {
-                for (int i = 0; i < channelReducesToAdd.size(); i += limitCount) {
-                    int toIndex = i + limitCount;
-                    if (i + limitCount > channelReducesToAdd.size()) {
-                        toIndex = channelReducesToAdd.size();
-                    }
-                    int count = platformChannelMapper.addChannels(platformId, channelReducesToAdd.subList(i, toIndex));
-                    result = result || count < 0;
-                    allCount += count;
-                    log.info("[关联通道]国标通道 平台：{}, 共需关联通道数:{}, 已关联：{}", platformId, channelReducesToAdd.size(), toIndex);
-                }
-            }else {
-                allCount = platformChannelMapper.addChannels(platformId, channelReducesToAdd);
-                result = result || allCount < 0;
-                log.info("[关联通道]国标通道 平台：{}, 关联通道数:{}", platformId, channelReducesToAdd.size());
-            }
-
-            if (result) {
-                //事务回滚
-                dataSourceTransactionManager.rollback(transactionStatus);
-                allCount = 0;
-            }else {
-                log.info("[关联通道]国标通道 平台：{}, 正在存入数据库", platformId);
-                dataSourceTransactionManager.commit(transactionStatus);
-
-            }
-            SubscribeInfo catalogSubscribe = subscribeHolder.getCatalogSubscribe(platformId);
-            if (catalogSubscribe != null) {
-                List<CommonGBChannel> deviceChannelList = getDeviceChannelListByChannelReduceList(channelReducesToAdd, catalogId, platform);
-                if (deviceChannelList != null) {
-                    eventPublisher.catalogEventPublish(platform.getId(), deviceChannelList, CatalogEvent.ADD);
-                }
-            }
-            log.info("[关联通道]国标通道 平台：{}, 存入数据库成功", platformId);
-        }
-        return allCount;
-    }
-
-    private List<CommonGBChannel> getDeviceChannelListByChannelReduceList(List<ChannelReduce> channelReduces, String catalogId, Platform platform) {
-        List<CommonGBChannel> deviceChannelList = new ArrayList<>();
-//        if (!channelReduces.isEmpty()){
-//            PlatformCatalog catalog = catalogManager.selectByPlatFormAndCatalogId(platform.getServerGBId(),catalogId);
-//            if (catalog == null && catalogId.equals(platform.getDeviceGBId())) {
-//                for (ChannelReduce channelReduce : channelReduces) {
-//                    DeviceChannel deviceChannel = deviceChannelMapper.getOne(channelReduce.getId());
-//                    deviceChannel.setParental(0);
-//                    deviceChannel.setCivilCode(platform.getServerGBDomain());
-//                    deviceChannelList.add(deviceChannel);
-//                }
-//                return deviceChannelList;
-//            } else if (catalog == null && !catalogId.equals(platform.getDeviceGBId())) {
-//                log.warn("未查询到目录{}的信息", catalogId);
-//                return null;
-//            }
-//            for (ChannelReduce channelReduce : channelReduces) {
-//                DeviceChannel deviceChannel = deviceChannelMapper.getOne(channelReduce.getId());
-//                deviceChannel.setParental(0);
-//                deviceChannel.setCivilCode(catalog.getCivilCode());
-//                deviceChannel.setParentId(catalog.getParentId());
-//                deviceChannel.setBusinessGroupId(catalog.getBusinessGroupId());
-//                deviceChannelList.add(deviceChannel);
-//            }
-//        }
-        return deviceChannelList;
+    public PageInfo<PlatformChannel> queryChannelList(int page, int count, String query, Boolean online, Integer platformId, Boolean hasShare) {
+        PageHelper.startPage(page, count);
+        List<PlatformChannel> all = platformChannelMapper.queryForPlatformSearch(platformId, query, online, hasShare);
+        return new PageInfo<>(all);
     }
 
     @Override
-    public int delAllChannelForGB(String platformId, String catalogId) {
-
-        int result;
-        if (platformId == null) {
-            return 0;
+    public int addAllChannel(Integer platformId) {
+        List<CommonGBChannel> channelListNotShare = platformChannelMapper.queryNotShare(platformId, null);
+        Assert.notEmpty(channelListNotShare, "所有通道已共享");
+        int result = platformChannelMapper.addChannels(platformId, channelListNotShare);
+        if (result > 0) {
+            // 发送消息
+            try {
+                // 发送catalog
+                eventPublisher.catalogEventPublish(platformId, channelListNotShare, CatalogEvent.ADD);
+            } catch (Exception e) {
+                log.warn("[关联全部通道] 发送失败，数量：{}", channelListNotShare.size(), e);
+            }
         }
-        Platform platform = platformMapper.getParentPlatByServerGBId(platformId);
-        if (platform == null) {
-            return 0;
-        }
-        if (ObjectUtils.isEmpty(catalogId)) {
-           catalogId = null;
-        }
+        return result;
+    }
 
-        List<CommonGBChannel> deviceChannels = platformChannelMapper.queryAllChannelInCatalog(platformId, catalogId);
-        eventPublisher.catalogEventPublish(platform.getId(), deviceChannels, CatalogEvent.DEL);
+    @Override
+    public int addChannels(Integer platformId, List<Integer> channelIds) {
+        List<CommonGBChannel> channelListNotShare = platformChannelMapper.queryNotShare(platformId, channelIds);
+        Assert.notEmpty(channelListNotShare, "通道已共享");
+        int result = platformChannelMapper.addChannels(platformId, channelListNotShare);
+        if (result > 0) {
+            // 发送消息
+            try {
+                // 发送catalog
+                eventPublisher.catalogEventPublish(platformId, channelListNotShare, CatalogEvent.ADD);
+            } catch (Exception e) {
+                log.warn("[关联通道] 发送失败，数量：{}", channelListNotShare.size(), e);
+            }
+        }
+        return result;
+    }
 
-        return platformChannelMapper.delChannelForGBByCatalogId(platformId, catalogId);
+    @Override
+    public int removeAllChannel(Integer platformId) {
+        List<CommonGBChannel> channelListNotShare = platformChannelMapper.queryNotShare(platformId,  null);
+        Assert.notEmpty(channelListNotShare, "未共享任何通道");
+        int result = platformChannelMapper.removeChannels(platformId, channelListNotShare);
+        if (result > 0) {
+            // 发送消息
+            try {
+                // 发送catalog
+                eventPublisher.catalogEventPublish(platformId, channelListNotShare, CatalogEvent.DEL);
+            } catch (Exception e) {
+                log.warn("[移除全部关联通道] 发送失败，数量：{}", channelListNotShare.size(), e);
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public int removeChannels(Integer platformId, List<Integer> channelIds) {
+        List<CommonGBChannel> channelList = platformChannelMapper.queryShare(platformId, channelIds);
+        Assert.notEmpty(channelList, "所选通道未共享");
+        int result = platformChannelMapper.removeChannels(platformId, channelList);
+        if (result > 0) {
+            // 发送消息
+            try {
+                // 发送catalog
+                eventPublisher.catalogEventPublish(platformId, channelList, CatalogEvent.DEL);
+            } catch (Exception e) {
+                log.warn("[移除关联通道] 发送失败，数量：{}", channelList.size(), e);
+            }
+        }
+        return result;
     }
 }

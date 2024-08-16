@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.service;
 
-import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
+import com.genersoft.iot.vmp.gb28181.bean.PlatformChannel;
+import com.github.pagehelper.PageInfo;
 
 import java.util.List;
 
@@ -10,20 +11,13 @@ import java.util.List;
  */
 public interface IPlatformChannelService {
 
-    /**
-     * 更新目录下的通道
-     * @param platformId 平台编号
-     * @param channelReduces 通道信息
-     * @param catalogId 目录编号
-     * @return
-     */
-    int updateChannelForGB(String platformId, List<ChannelReduce> channelReduces, String catalogId);
+    PageInfo<PlatformChannel> queryChannelList(int page, int count, String query, Boolean online, Integer platformId, Boolean hasShare);
 
-    /**
-     * 移除目录下的所有通道
-     * @param platformId
-     * @param catalogId
-     * @return
-     */
-    int delAllChannelForGB(String platformId, String catalogId);
+    int addAllChannel(Integer platformId);
+
+    int removeAllChannel(Integer platformId);
+
+    int addChannels(Integer platformId, List<Integer> channelIds);
+
+    int removeChannels(Integer platformId, List<Integer> channelIds);
 }

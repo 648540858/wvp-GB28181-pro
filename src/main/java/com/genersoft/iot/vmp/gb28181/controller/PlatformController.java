@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.controller;
 
-import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
@@ -9,12 +8,11 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
 import com.genersoft.iot.vmp.gb28181.controller.bean.UpdateChannelParam;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -33,7 +31,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
-import java.util.List;
 
 /**
  * 级联平台管理
@@ -289,17 +286,6 @@ public class PlatformController {
         return parentPlatform != null;
     }
 
-    /**
-     * 分页查询级联平台的所有所有通道
-     *
-     * @param page        当前页
-     * @param count       每页条数
-     * @param platformId  上级平台ID
-     * @param query       查询内容
-     * @param online      是否在线
-     * @param channelType 通道类型
-     * @return
-     */
     @Operation(summary = "分页查询级联平台的所有所有通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页条数", required = true)
@@ -309,11 +295,11 @@ public class PlatformController {
     @Parameter(name = "hasShare", description = "是否已经共享")
     @GetMapping("/channel/list")
     @ResponseBody
-    public PageInfo<CommonGBChannel> channelList(int page, int count,
-                                                 @RequestParam(required = false) Integer platformId,
-                                                 @RequestParam(required = false) String query,
-                                                 @RequestParam(required = false) Boolean online,
-                                                 @RequestParam(required = false) Boolean hasShare) {
+    public PageInfo<PlatformChannel> queryChannelList(int page, int count,
+                                                      @RequestParam(required = false) Integer platformId,
+                                                      @RequestParam(required = false) String query,
+                                                      @RequestParam(required = false) Boolean online,
+                                                      @RequestParam(required = false) Boolean hasShare) {
 
         Assert.notNull(platformId, "上级平台的数据ID不可为NULL");
         if (ObjectUtils.isEmpty(query)) {
@@ -323,29 +309,22 @@ public class PlatformController {
         return platformChannelService.queryChannelList(page, count, query, online, platformId, hasShare);
     }
 
-    /**
-     * 向上级平台添加国标通道
-     *
-     * @param param 通道关联参数
-     * @return
-     */
     @Operation(summary = "向上级平台添加国标通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @PostMapping("/update_channel_for_gb")
+    @PostMapping("/channel/add")
     @ResponseBody
-    public void updateChannelForGB(@RequestBody UpdateChannelParam param) {
+    public void addChannel(@RequestBody UpdateChannelParam param) {
 
         if (log.isDebugEnabled()) {
             log.debug("给上级平台添加国标通道API调用");
         }
         int result = 0;
-        if (param.getChannelReduces() == null || param.getChannelReduces().size() == 0) {
+        if (param.getChannelIds() == null || param.getChannelIds().isEmpty()) {
             if (param.isAll()) {
                 log.info("[国标级联]添加所有通道到上级平台， {}", param.getPlatformId());
-                List<ChannelReduce> allChannelForDevice = deviceChannelService.queryAllChannelList(param.getPlatformId());
-                result = platformChannelService.updateChannelForGB(param.getPlatformId(), allChannelForDevice, param.getCatalogId());
+                result = platformChannelService.addAllChannel(param.getPlatformId());
             }
         }else {
-            result = platformChannelService.updateChannelForGB(param.getPlatformId(), param.getChannelReduces(), param.getCatalogId());
+            result = platformChannelService.addChannels(param.getPlatformId(), param.getChannelIds());
         }
         if (result <= 0) {
             throw new ControllerException(ErrorCode.ERROR100);
@@ -359,7 +338,7 @@ public class PlatformController {
      * @return
      */
     @Operation(summary = "从上级平台移除国标通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @DeleteMapping("/del_channel_for_gb")
+    @DeleteMapping("/channel/remove")
     @ResponseBody
     public void delChannelForGB(@RequestBody UpdateChannelParam param) {
 
@@ -367,39 +346,16 @@ public class PlatformController {
             log.debug("给上级平台删除国标通道API调用");
         }
         int result = 0;
-        if (param.getChannelReduces() == null || param.getChannelReduces().size() == 0) {
+        if (param.getChannelIds() == null || param.getChannelIds().isEmpty()) {
             if (param.isAll()) {
                 log.info("[国标级联]移除所有通道，上级平台， {}", param.getPlatformId());
-                result = platformChannelService.delAllChannelForGB(param.getPlatformId(), param.getCatalogId());
+                result = platformChannelService.removeAllChannel(param.getPlatformId());
             }
         }else {
-            result = storager.delChannelForGB(param.getPlatformId(), param.getChannelReduces());
+            result = platformChannelService.removeChannels(param.getPlatformId(), param.getChannelIds());
         }
         if (result <= 0) {
             throw new ControllerException(ErrorCode.ERROR100);
         }
     }
-
-    /**
-     * 删除关联
-     *
-     * @param platformCatalog 关联的信息
-     * @return
-     */
-    @Operation(summary = "删除关联", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @DeleteMapping("/catalog/relation/del")
-    @ResponseBody
-    public void delRelation(@RequestBody PlatformCatalog platformCatalog) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("删除关联,{}", JSON.toJSONString(platformCatalog));
-        }
-//        int delResult = storager.delRelation(platformCatalog);
-//
-//        if (delResult <= 0) {
-//            throw new ControllerException(ErrorCode.ERROR100.getCode(), "写入数据库失败");
-//        }
-    }
-
-
 }

@@ -153,7 +153,7 @@ export default {
         });
     },
     chooseChannel: function(platform) {
-      this.$refs.shareChannel.openDialog(platform.serverGBId, this.initData)
+      this.$refs.shareChannel.openDialog(platform.id, this.initData)
     },
     initData: function() {
       this.$axios({

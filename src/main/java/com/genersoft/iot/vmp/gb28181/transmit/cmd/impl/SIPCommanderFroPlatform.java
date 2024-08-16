@@ -204,19 +204,19 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         }
         sendCatalogResponse(channels, parentPlatform, sn, fromTag, 0, true);
     }
-    private String getCatalogXml(List<CommonGBChannel> channels, String sn, Platform parentPlatform, int size) {
-        String characterSet = parentPlatform.getCharacterSet();
+    private String getCatalogXml(List<CommonGBChannel> channels, String sn, Platform platform, int size) {
+        String characterSet = platform.getCharacterSet();
         StringBuffer catalogXml = new StringBuffer(600);
         catalogXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet +"\"?>\r\n")
                 .append("<Response>\r\n")
                 .append("<CmdType>Catalog</CmdType>\r\n")
                 .append("<SN>" +sn + "</SN>\r\n")
-                .append("<DeviceID>" + parentPlatform.getDeviceGBId() + "</DeviceID>\r\n")
+                .append("<DeviceID>" + platform.getDeviceGBId() + "</DeviceID>\r\n")
                 .append("<SumNum>" + size + "</SumNum>\r\n")
                 .append("<DeviceList Num=\"" + channels.size() +"\">\r\n");
         if (!channels.isEmpty()) {
             for (CommonGBChannel channel : channels) {
-                catalogXml.append(channel.encode());
+                catalogXml.append(channel.encode(platform.getDeviceGBId()));
             }
         }
 
@@ -464,19 +464,19 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         sipSender.transmitRequest(parentPlatform.getDeviceIp(), notifyRequest, errorEvent, okEvent);
     }
 
-    private  String getCatalogXmlContentForCatalogAddOrUpdate(Platform parentPlatform, List<CommonGBChannel> channels, int sumNum, String type, SubscribeInfo subscribeInfo) {
+    private  String getCatalogXmlContentForCatalogAddOrUpdate(Platform platform, List<CommonGBChannel> channels, int sumNum, String type, SubscribeInfo subscribeInfo) {
         StringBuffer catalogXml = new StringBuffer(600);
-        String characterSet = parentPlatform.getCharacterSet();
+        String characterSet = platform.getCharacterSet();
         catalogXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n")
                 .append("<Notify>\r\n")
                 .append("<CmdType>Catalog</CmdType>\r\n")
                 .append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n")
-                .append("<DeviceID>" + parentPlatform.getDeviceGBId() + "</DeviceID>\r\n")
+                .append("<DeviceID>" + platform.getDeviceGBId() + "</DeviceID>\r\n")
                 .append("<SumNum>"+ sumNum +"</SumNum>\r\n")
                 .append("<DeviceList Num=\"" + channels.size() + "\">\r\n");
         if (!channels.isEmpty()) {
             for (CommonGBChannel channel : channels) {
-                catalogXml.append(channel.encode(type));
+                catalogXml.append(channel.encode(type, platform.getDeviceGBId()));
             }
         }
         catalogXml.append("</DeviceList>\r\n")
@@ -523,20 +523,20 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         });
     }
 
-    private String getCatalogXmlContentForCatalogOther(Platform parentPlatform, List<CommonGBChannel> channels, String type) {
+    private String getCatalogXmlContentForCatalogOther(Platform platform, List<CommonGBChannel> channels, String type) {
 
-        String characterSet = parentPlatform.getCharacterSet();
+        String characterSet = platform.getCharacterSet();
         StringBuffer catalogXml = new StringBuffer(600);
         catalogXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n")
                 .append("<Notify>\r\n")
                 .append("<CmdType>Catalog</CmdType>\r\n")
                 .append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n")
-                .append("<DeviceID>" + parentPlatform.getDeviceGBId() + "</DeviceID>\r\n")
+                .append("<DeviceID>" + platform.getDeviceGBId() + "</DeviceID>\r\n")
                 .append("<SumNum>1</SumNum>\r\n")
                 .append("<DeviceList Num=\" " + channels.size() + " \">\r\n");
         if (!channels.isEmpty()) {
             for (CommonGBChannel channel : channels) {
-               catalogXml.append(channel.encode(type));
+               catalogXml.append(channel.encode(type, platform.getDeviceGBId()));
             }
         }
         catalogXml.append("</DeviceList>\r\n")

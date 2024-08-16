@@ -218,13 +218,16 @@ public class CommonGBChannel {
     private String updateTime;
 
 
-    public String encode(){
-        return encode(null);
+
+
+    public String encode(String serverDeviceId) {
+        return encode(null, serverDeviceId);
     }
-    public String encode(String event){
+
+    public String encode(String event,String serverDeviceId) {
         String content;
         if (event == null) {
-            return getFullContent(null);
+            return getFullContent(null, serverDeviceId);
         }
         switch (event) {
             case CatalogEvent.DEL:
@@ -244,7 +247,7 @@ public class CommonGBChannel {
                 break;
             case CatalogEvent.ADD:
             case CatalogEvent.UPDATE:
-                content = getFullContent(event);
+                content = getFullContent(event, serverDeviceId);
                 break;
             default:
                 content = null;
@@ -253,69 +256,156 @@ public class CommonGBChannel {
         return content;
     }
 
-    private String getFullContent(String event) {
+    private String getFullContent(String event, String serverDeviceId) {
         StringBuilder content = new StringBuilder();
         // 行政区划目录项
         content.append("<Item>\n")
                 .append("<DeviceID>" + this.getGbDeviceId() + "</DeviceID>\n")
                 .append("<Name>" + this.getGbName() + "</Name>\n");
 
+
         if (this.getGbDeviceId().length() > 8) {
 
-            String type = this.getGbDeviceId().substring(10,13);
+            String type = this.getGbDeviceId().substring(10, 13);
             if (type.equals("200")) {
                 // 业务分组目录项
-                content.append("<Manufacturer>" + this.getGbManufacturer() + "</Manufacturer>\n")
-                        .append("<Model>" + this.getGbModel() + "</Model>\n")
-                        .append("<Owner>" + this.getGbOwner() + "</Owner>\n")
-                        .append("<CivilCode>" + this.getGbCivilCode() + "</CivilCode>\n")
-                        .append("<Address>" + this.getGbAddress() + "</Address>\n")
-                        .append("<RegisterWay>" + this.getGbRegisterWay() + "</RegisterWay>\n")
-                        .append("<Secrecy>" + this.getGbSecrecy() + "</Secrecy>\n");
-            }else if (type.equals("215")) {
+                if (this.getGbManufacturer() != null) {
+                    content.append("<Manufacturer>" + this.getGbManufacturer() + "</Manufacturer>\n");
+                }
+                if (this.getGbModel() != null) {
+                    content.append("<Model>" + this.getGbModel() + "</Model>\n");
+                }
+                if (this.getGbOwner() != null) {
+                    content.append("<Owner>" + this.getGbOwner() + "</Owner>\n");
+                }
+                if (this.getGbCivilCode() != null) {
+                    content.append("<CivilCode>" + this.getGbCivilCode() + "</CivilCode>\n");
+                }
+                if (this.getGbAddress() != null) {
+                    content.append("<Address>" + this.getGbAddress() + "</Address>\n");
+                }
+                if (this.getGbRegisterWay() != null) {
+                    content.append("<RegisterWay>" + this.getGbRegisterWay() + "</RegisterWay>\n");
+                }
+                if (this.getGbSecrecy() != null) {
+                    content.append("<Secrecy>" + this.getGbSecrecy() + "</Secrecy>\n");
+                }
+            } else if (type.equals("215")) {
                 // 业务分组
-                content.append("<ParentID>" + this.getGbParentId() + "</ParentID>\n");
-            }else if (type.equals("216")) {
+                if (this.getGbCivilCode() != null) {
+                    content.append("<CivilCode>" + this.getGbCivilCode() + "</CivilCode>\n");
+                }
+                content.append("<ParentID>" + serverDeviceId + "</ParentID>\n");
+            } else if (type.equals("216")) {
                 // 虚拟组织目录项
+                if (this.getGbCivilCode() != null) {
+                    content.append("<CivilCode>" + this.getGbCivilCode() + "</CivilCode>\n");
+                }
                 content.append("<ParentID>" + this.getGbParentId() + "</ParentID>\n")
                         .append("<BusinessGroupID>" + this.getGbBusinessGroupId() + "</BusinessGroupID>\n");
-            }else {
-                // 设备目录项
-                content.append("<Manufacturer>" + this.getGbManufacturer() + "</Manufacturer>\n")
-                        .append("<Model>" + this.getGbModel() + "</Model>\n")
-                        .append("<Owner>" + this.getGbOwner() + "</Owner>\n")
-                        .append("<CivilCode>" + this.getGbCivilCode() + "</CivilCode>\n")
-                        .append("<Block>" + this.getGbBlock() + "</Block>\n")
-                        .append("<Address>" + this.getGbAddress() + "</Address>\n")
-                        .append("<Parental>" + this.getGbParental() + "</Parental>\n")
-                        .append("<ParentID>" + this.getGbParentId() + "</ParentID>\n")
-                        .append("<SafetyWay>" + this.getGbSafetyWay() + "</SafetyWay>\n")
-                        .append("<RegisterWay>" + this.getGbRegisterWay() + "</RegisterWay>\n")
-                        .append("<CertNum>" + this.getGbCertNum() + "</CertNum>\n")
-                        .append("<Certifiable>" + this.getGbCertifiable() + "</Certifiable>\n")
-                        .append("<ErrCode>" + this.getGbErrCode() + "</ErrCode>\n")
-                        .append("<EndTime>" + this.getGbEndTime() + "</EndTime>\n")
-                        .append("<Secrecy>" + this.getGbSecrecy() + "</Secrecy>\n")
-                        .append("<IPAddress>" + this.getGbIpAddress() + "</IPAddress>\n")
-                        .append("<Port>" + this.getGbPort() + "</Port>\n")
-                        .append("<Password>" + this.getGbPassword() + "</Password>\n")
-                        .append("<Status>" + this.getGbStatus() + "</Status>\n")
-                        .append("<Longitude>" + this.getGbLongitude() + "</Longitude>\n")
-                        .append("<Latitude>" + this.getGbLatitude() + "</Latitude>\n")
-                        .append("<Info>\n")
-                        .append("  <PTZType>" + this.getGbPtzType() + "</PTZType>\n")
-                        .append("  <PositionType>" + this.getGbPositionType() + "</PositionType>\n")
-                        .append("  <RoomType>" + this.getGbRoomType() + "</RoomType>\n")
-                        .append("  <UseType>" + this.getGbUseType() + "</UseType>\n")
-                        .append("  <SupplyLightType>" + this.getGbSupplyLightType() + "</SupplyLightType>\n")
-                        .append("  <DirectionType>" + this.getGbDirectionType() + "</DirectionType>\n")
-                        .append("  <Resolution>" + this.getGbResolution() + "</Resolution>\n")
-                        .append("  <BusinessGroupID>" + this.getGbBusinessGroupId() + "</BusinessGroupID>\n")
-                        .append("  <DownloadSpeed>" + this.getGbDownloadSpeed() + "</DownloadSpeed>\n")
-                        .append("  <SVCSpaceSupportMode>" + this.getGbSvcSpaceSupportMod() + "</SVCSpaceSupportMode>\n")
-                        .append("  <SVCTimeSupportMode>" + this.getGbSvcTimeSupportMode() + "</SVCTimeSupportMode>\n")
-                        .append("</Info>")
-                ;
+            } else {
+                if (this.getGbManufacturer() != null) {
+                    content.append("<Manufacturer>" + this.getGbManufacturer() + "</Manufacturer>\n");
+                }
+                if (this.getGbModel() != null) {
+                    content.append("<Model>" + this.getGbModel() + "</Model>\n");
+                }
+                if (this.getGbOwner() != null) {
+                    content.append("<Owner>" + this.getGbOwner() + "</Owner>\n");
+                }
+                if (this.getGbCivilCode() != null) {
+                    content.append("<CivilCode>" + this.getGbCivilCode() + "</CivilCode>\n");
+                }
+                if (this.getGbAddress() != null) {
+                    content.append("<Address>" + this.getGbAddress() + "</Address>\n");
+                }
+                if (this.getGbRegisterWay() != null) {
+                    content.append("<RegisterWay>" + this.getGbRegisterWay() + "</RegisterWay>\n");
+                }
+                if (this.getGbSecrecy() != null) {
+                    content.append("<Secrecy>" + this.getGbSecrecy() + "</Secrecy>\n");
+                }
+                if (this.getGbParentId() != null) {
+                    content.append("<ParentID>" + this.getGbParentId() + "</ParentID>\n");
+                }
+                if (this.getGbParental() != null) {
+                    content.append("<Parental>" + this.getGbParental() + "</Parental>\n");
+                }
+                if (this.getGbSafetyWay() != null) {
+                    content.append("<SafetyWay>" + this.getGbSafetyWay() + "</SafetyWay>\n");
+                }
+                if (this.getGbRegisterWay() != null) {
+                    content.append("<RegisterWay>" + this.getGbRegisterWay() + "</RegisterWay>\n");
+                }
+                if (this.getGbCertNum() != null) {
+                    content.append("<CertNum>" + this.getGbCertNum() + "</CertNum>\n");
+                }
+                if (this.getGbCertifiable() != null) {
+                    content.append("<Certifiable>" + this.getGbCertifiable() + "</Certifiable>\n");
+                }
+                if (this.getGbErrCode() != null) {
+                    content.append("<ErrCode>" + this.getGbErrCode() + "</ErrCode>\n");
+                }
+                if (this.getGbEndTime() != null) {
+                    content.append("<EndTime>" + this.getGbEndTime() + "</EndTime>\n");
+                }
+                if (this.getGbSecrecy() != null) {
+                    content.append("<Secrecy>" + this.getGbSecrecy() + "</Secrecy>\n");
+                }
+                if (this.getGbIpAddress() != null) {
+                    content.append("<IPAddress>" + this.getGbIpAddress() + "</IPAddress>\n");
+                }
+                if (this.getGbPort() != null) {
+                    content.append("<Port>" + this.getGbPort() + "</Port>\n");
+                }
+                if (this.getGbPassword() != null) {
+                    content.append("<Password>" + this.getGbPassword() + "</Password>\n");
+                }
+                if (this.getGbStatus() != null) {
+                    content.append("<Status>" + this.getGbStatus() + "</Status>\n");
+                }
+                if (this.getGbLongitude() != null) {
+                    content.append("<Longitude>" + this.getGbLongitude() + "</Longitude>\n");
+                }
+                if (this.getGbLatitude() != null) {
+                    content.append("<Latitude>" + this.getGbLatitude() + "</Latitude>\n");
+                }
+                content.append("<Info>\n");
+
+                if (this.getGbPtzType() != null) {
+                    content.append("  <PTZType>" + this.getGbPtzType() + "</PTZType>\n");
+                }
+                if (this.getGbPositionType() != null) {
+                    content.append("  <PositionType>" + this.getGbPositionType() + "</PositionType>\n");
+                }
+                if (this.getGbRoomType() != null) {
+                    content.append("  <RoomType>" + this.getGbRoomType() + "</RoomType>\n");
+                }
+                if (this.getGbUseType() != null) {
+                    content.append("  <UseType>" + this.getGbUseType() + "</UseType>\n");
+                }
+                if (this.getGbSupplyLightType() != null) {
+                    content.append("  <SupplyLightType>" + this.getGbSupplyLightType() + "</SupplyLightType>\n");
+                }
+                if (this.getGbDirectionType() != null) {
+                    content.append("  <DirectionType>" + this.getGbDirectionType() + "</DirectionType>\n");
+                }
+                if (this.getGbResolution() != null) {
+                    content.append("  <Resolution>" + this.getGbResolution() + "</Resolution>\n");
+                }
+                if (this.getGbBusinessGroupId() != null) {
+                    content.append("  <BusinessGroupID>" + this.getGbBusinessGroupId() + "</BusinessGroupID>\n");
+                }
+                if (this.getGbDownloadSpeed() != null) {
+                    content.append("  <DownloadSpeed>" + this.getGbDownloadSpeed() + "</DownloadSpeed>\n");
+                }
+                if (this.getGbSvcSpaceSupportMod() != null) {
+                    content.append("  <SVCSpaceSupportMode>" + this.getGbSvcSpaceSupportMod() + "</SVCSpaceSupportMode>\n");
+                }
+                if (this.getGbSvcTimeSupportMode() != null) {
+                    content.append("  <SVCTimeSupportMode>" + this.getGbSvcTimeSupportMode() + "</SVCTimeSupportMode>\n");
+                }
+                content.append("</Info>\n");
             }
         }
         if (event != null) {
@@ -332,7 +422,7 @@ public class CommonGBChannel {
             // 业务分组
             channel.setGbName(group.getName());
             channel.setGbDeviceId(group.getDeviceId());
-        }else {
+        } else {
             // 虚拟组织
             channel.setGbName(group.getName());
             channel.setGbDeviceId(group.getDeviceId());
@@ -352,8 +442,15 @@ public class CommonGBChannel {
         commonGBChannel.setGbAddress(platform.getAddress());
         commonGBChannel.setGbRegisterWay(platform.getRegisterWay());
         commonGBChannel.setGbSecrecy(platform.getSecrecy());
-        commonGBChannel.setGbStatus(platform.isStatus()?"ON":"OFF");
+        commonGBChannel.setGbStatus(platform.isStatus() ? "ON" : "OFF");
         return commonGBChannel;
+    }
+
+    public static CommonGBChannel build(Region region) {
+        CommonGBChannel commonGBChannel = new CommonGBChannel();
+        commonGBChannel.setGbDeviceId(region.getDeviceId());
+        commonGBChannel.setGbName(region.getName());
+        return null;
     }
 
 }

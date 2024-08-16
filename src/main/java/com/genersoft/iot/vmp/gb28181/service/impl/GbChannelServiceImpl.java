@@ -328,19 +328,37 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
         // 是否包含行政区划信息
         if (platform.getCatalogWithRegion()) {
-            List<CommonGBChannel> regionChannelList = regionMapper.queryInChannelList(commonGBChannelList);
+            List<Region> regionChannelList = regionMapper.queryInChannelList(commonGBChannelList);
             if (!regionChannelList.isEmpty()) {
-                channelList.addAll(regionChannelList);
+                // 获取这些节点的所有父节点
+                List<Region> allRegion = getAllRegion(regionChannelList);
+                for (Region region : allRegion) {
+                    channelList.add(CommonGBChannel.build(region));
+                }
             }
         }
         // 是否包含分组信息
         if (platform.getCatalogWithGroup()) {
             List<CommonGBChannel> groupChannelList = groupMapper.queryInChannelList(commonGBChannelList);
             if (!groupChannelList.isEmpty()) {
+                // 获取这些节点的所有父节点
                 channelList.addAll(groupChannelList);
             }
         }
         channelList.addAll(commonGBChannelList);
+        return channelList;
+    }
+
+    private List<Region> getAllRegion(List<Region> regionChannelList ) {
+        if (regionChannelList.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<Region> channelList = regionMapper.queryParentInChannelList(regionChannelList);
+        if (channelList.isEmpty()) {
+            return channelList;
+        }
+        List<Region> allParentRegion = getAllRegion(channelList);
+        channelList.addAll(allParentRegion);
         return channelList;
     }
 

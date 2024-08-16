@@ -100,11 +100,20 @@ public interface RegionMapper {
 
     @Select(" <script>" +
             " SELECT " +
-            " device_id as gb_device_id" +
-            " name as gb_name" +
+            " * " +
             " from wvp_common_region " +
             " where device_id in " +
             " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.gbCivilCode}</foreach>" +
             " </script>")
-    List<CommonGBChannel> queryInChannelList(List<CommonGBChannel> channelList);
+    List<Region> queryInChannelList(List<CommonGBChannel> channelList);
+
+
+    @Select(" <script>" +
+            " SELECT " +
+            " * " +
+            " from wvp_common_region " +
+            " where device_id in " +
+            " <foreach collection='regionChannelList'  item='item'  open='(' separator=',' close=')' > #{item.parentDeviceId}</foreach>" +
+            " </script>")
+    List<Region> queryParentInChannelList(List<Region> regionChannelList);
 }

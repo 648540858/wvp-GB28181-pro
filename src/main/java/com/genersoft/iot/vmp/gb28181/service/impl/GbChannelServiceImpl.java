@@ -436,6 +436,14 @@ public class GbChannelServiceImpl implements IGbChannelService {
         }
         // 这个多加一个参数,为了防止将非国标的通道通过此方法清空内容,导致意外发生
         commonGBChannelMapper.reset(id, channel.getGbDeviceDbId(), DateUtil.getNow());
+        CommonGBChannel channelNew = getOne(id);
+        // 发送通过更新通知
+        try {
+            // 发送通知
+            eventPublisher.catalogEventPublish(null, channelNew, CatalogEvent.UPDATE);
+        } catch (Exception e) {
+            log.warn("[通道移除通知] 发送失败，{}", channelNew.getGbDeviceId(), e);
+        }
     }
 
     @Override

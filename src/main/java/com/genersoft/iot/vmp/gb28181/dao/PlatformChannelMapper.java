@@ -89,7 +89,7 @@ public interface PlatformChannelMapper {
             "FROM " +
             "wvp_platform pp " +
             "left join wvp_platform_gb_channel pgc on " +
-            "pp.server_gb_id = pgc.platform_id " +
+            "pp.id = pgc.platform_id " +
             "left join wvp_device_channel dc on " +
             "dc.id = pgc.device_channel_id " +
             "WHERE " +

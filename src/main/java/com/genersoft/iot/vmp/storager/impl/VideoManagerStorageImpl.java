@@ -573,6 +573,19 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	}
 
 	@Override
+	public PageInfo<StreamProxyItem> queryStreamProxyList(Integer page, Integer count, String query, String name, String app, String stream, String url, Boolean online) {
+		PageHelper.startPage(page, count);
+		List<StreamProxyItem> all;
+		if (query != null && !query.isEmpty()) {
+			all = streamProxyMapper.selectByKeywordAndStatus(query, online);
+		} else {
+			all = streamProxyMapper.selectByNameAndAppAndStreamAndUrlAndStatus(name, app, stream, url, online);
+		}
+
+		return new PageInfo<>(all);
+	}
+
+	@Override
 	public void outlineForAllParentPlatform() {
 		platformMapper.outlineForAllParentPlatform();
 	}

@@ -381,4 +381,6 @@ public interface IVideoManagerStorage {
 	List<ParentPlatform> queryEnablePlatformListWithAsMessageChannel();
 
 	List<Device> queryDeviceWithAsMessageChannel();
+
+	PageInfo<StreamProxyItem> queryStreamProxyList(Integer page, Integer count, String query, String name, String app, String stream, String url, Boolean online);
 }

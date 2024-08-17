@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.genersoft.iot.vmp.storager.dao.StreamProxyMapper">
+
+    <select id="selectByKeywordAndStatus" resultType="com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem">
+        <!-- @formatter:off -->
+        SELECT
+            st.*,
+            pgs.gb_id,
+            pgs.name,
+            pgs.longitude,
+            pgs.latitude
+        FROM
+            wvp_stream_proxy st
+        LEFT JOIN
+            wvp_gb_stream pgs ON st.app = pgs.app AND st.stream = pgs.stream
+        <where>
+            <if test="keyword != null and keyword.length() > 0">
+                AND (st.name LIKE CONCAT('%', #{keyword} ,'%') OR st.app LIKE CONCAT('%', #{keyword} ,'%') OR st.stream LIKE CONCAT('%', #{keyword} ,'%') OR st.url LIKE CONCAT('%', #{keyword} ,'%'))
+            </if>
+            <if test="status != null">
+                AND st.status = #{status}
+            </if>
+        </where>
+        ORDER BY
+            st.create_time DESC
+        <!-- @formatter:on -->
+    </select>
+
+    <select id="selectByNameAndAppAndStreamAndUrlAndStatus" resultType="com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem">
+        <!-- @formatter:off -->
+        SELECT
+            st.*,
+            pgs.gb_id,
+            pgs.name,
+            pgs.longitude,
+            pgs.latitude
+        FROM
+            wvp_stream_proxy st
+        LEFT JOIN
+            wvp_gb_stream pgs ON st.app = pgs.app AND st.stream = pgs.stream
+        <where>
+            <if test="name != null and name.length() > 0">
+                AND st.name LIKE CONCAT('%', #{name} ,'%')
+            </if>
+            <if test="app != null and app.length() > 0">
+                AND st.app LIKE CONCAT('%', #{app} ,'%')
+            </if>
+            <if test="stream != null and stream.length() > 0">
+                AND st.stream LIKE CONCAT('%', #{stream} ,'%')
+            </if>
+            <if test="url != null and url.length() > 0">
+                AND st.url LIKE CONCAT('%', #{url} ,'%')
+            </if>
+            <if test="status != null">
+                AND st.status = #{status}
+            </if>
+        </where>
+        ORDER BY
+            st.create_time DESC
+        <!-- @formatter:on -->
+    </select>
+
+</mapper>

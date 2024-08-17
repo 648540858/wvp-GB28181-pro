@@ -580,6 +580,11 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         return new ResourceBaseInfo(total, online);
     }
 
+    @Override
+    public PageInfo<StreamProxyItem> getAll(Integer page, Integer count, String query, String name, String app, String stream, String url, Boolean online) {
+        return videoManagerStorager.queryStreamProxyList(page, count, query, name, app, stream, url, online);
+    }
+
 
     @Scheduled(cron = "* 0/10 * * * ?")
     public void asyncCheckStreamProxyStatus() {

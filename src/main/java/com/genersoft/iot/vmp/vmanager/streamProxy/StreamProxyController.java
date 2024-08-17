@@ -59,15 +59,23 @@ public class StreamProxyController {
     @Parameter(name = "page", description = "当前页")
     @Parameter(name = "count", description = "每页查询数量")
     @Parameter(name = "query", description = "查询内容")
+    @Parameter(name = "name", description = "名称")
+    @Parameter(name = "app", description = "流应用名")
+    @Parameter(name = "stream", description = "流Id")
+    @Parameter(name = "url", description = "流地址")
     @Parameter(name = "online", description = "是否在线")
     @GetMapping(value = "/list")
     @ResponseBody
     public PageInfo<StreamProxyItem> list(@RequestParam(required = false)Integer page,
                                           @RequestParam(required = false)Integer count,
                                           @RequestParam(required = false)String query,
+                                          @RequestParam(required = false)String name,
+                                          @RequestParam(required = false)String app,
+                                          @RequestParam(required = false)String stream,
+                                          @RequestParam(required = false)String url,
                                           @RequestParam(required = false)Boolean online ){
 
-        return streamProxyService.getAll(page, count);
+        return streamProxyService.getAll(page, count, query, name, app, stream, url, online);
     }
 
     @Operation(summary = "查询流代理", security = @SecurityRequirement(name = JwtUtils.HEADER))

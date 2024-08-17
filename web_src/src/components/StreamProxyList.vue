@@ -3,6 +3,22 @@
     <div class="page-header">
       <div class="page-title">拉流代理列表</div>
       <div class="page-header-btn">
+        名称:
+        <el-input @input="getStreamProxyList" style="margin-right: 1rem; width: auto;" size="mini"
+                  placeholder="名称"
+                  prefix-icon="el-icon-search" v-model="name" clearable></el-input>
+        流应用名:
+        <el-input @input="getStreamProxyList" style="margin-right: 1rem; width: auto;" size="mini"
+                  placeholder="流应用名"
+                  prefix-icon="el-icon-search" v-model="app" clearable></el-input>
+        流ID:
+        <el-input @input="getStreamProxyList" style="margin-right: 1rem; width: auto;" size="mini"
+                  placeholder="流ID"
+                  prefix-icon="el-icon-search" v-model="stream" clearable></el-input>
+        流地址:
+        <el-input @input="getStreamProxyList" style="margin-right: 1rem; width: auto;" size="mini"
+                  placeholder="流地址"
+                  prefix-icon="el-icon-search" v-model="url" clearable></el-input>
         <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addStreamProxy">添加代理</el-button>
         <el-button v-if="false" icon="el-icon-search" size="mini" style="margin-right: 1rem;" type="primary" @click="addOnvif">搜索ONVIF</el-button>
         <el-button icon="el-icon-refresh-right" circle size="mini" @click="refresh()"></el-button>
@@ -131,6 +147,10 @@
 				updateLooper: 0, //数据刷新轮训标志
 				currentDeviceChannelsLenth:0,
 				winHeight: window.innerHeight - 250,
+        name: '',
+        app: '',
+        stream: '',
+        url: '',
 				currentPage:1,
 				count:15,
 				total:0,
@@ -170,10 +190,14 @@
 				this.$axios({
 					method: 'get',
 					url:`/api/proxy/list`,
-					params: {
-						page: that.currentPage,
-						count: that.count
-					}
+          params: {
+            name: that.name ? that.name : '',
+            app: that.app ? that.app : '',
+            stream: that.stream ? that.stream : '',
+            url: that.url ? that.url : '',
+            page: that.currentPage ? that.currentPage : 1,
+            count: that.count ? that.count : 15
+          }
 				}).then(function (res) {
           if (res.data.code === 0) {
             that.total = res.data.data.total;

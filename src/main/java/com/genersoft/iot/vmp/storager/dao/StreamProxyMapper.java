@@ -87,4 +87,9 @@ public interface StreamProxyMapper {
 
     @Select("select count(1) from wvp_stream_proxy where status = true")
     int getOnline();
+
+    List<StreamProxyItem> selectByKeywordAndStatus(@Param("keyword") String keyword, @Param("status") Boolean status);
+
+
+    List<StreamProxyItem> selectByNameAndAppAndStreamAndUrlAndStatus(@Param("name") String name, @Param("app") String app, @Param("stream") String stream, @Param("url") String url, @Param("status") Boolean status);
 }

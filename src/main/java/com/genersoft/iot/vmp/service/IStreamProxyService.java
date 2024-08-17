@@ -116,4 +116,17 @@ public interface IStreamProxyService {
      */
     ResourceBaseInfo getOverview();
 
+    /**
+     * 分页查询
+     * @param page   当前页
+     * @param count  每页查询数量
+     * @param query  查询内容
+     * @param name   名称
+     * @param app    流应用名
+     * @param stream 流Id
+     * @param url    流地址
+     * @param online 是否在线
+     * @return
+     */
+    PageInfo<StreamProxyItem> getAll(Integer page, Integer count, String query, String name, String app, String stream, String url, Boolean online);
 }

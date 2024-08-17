@@ -93,7 +93,7 @@ public interface PlatformChannelMapper {
             "left join wvp_device_channel dc on " +
             "dc.id = pgc.device_channel_id " +
             "WHERE " +
-            "dc.channel_id = #{channelId} and pp.status = true " +
+            "dc.device_id = #{channelId} and pp.status = true " +
             "AND pp.server_gb_id IN" +
             "<foreach collection='platforms' item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
             "</script> ")

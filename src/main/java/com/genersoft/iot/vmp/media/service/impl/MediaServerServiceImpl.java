@@ -847,7 +847,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             log.info("[startSendRtpStream] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到mediaServer对应的实现类");
         }
-        log.info("[开始推流] rtp/{}, 目标={}:{}，SSRC={}, RTCP={}", sendRtpItem.getStream(),
+        log.info("[开始推流] {}/{}, 目标={}:{}，SSRC={}, RTCP={}", sendRtpItem.getApp(), sendRtpItem.getStream(),
                 sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc(), sendRtpItem.isRtcp());
         mediaNodeServerService.startSendRtpStream(mediaServer, sendRtpItem);
     }

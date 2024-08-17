@@ -38,32 +38,33 @@ public class SipPlatformRunner implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         // 获取所有启用的平台
-        List<Platform> parentPlatforms = storager.queryEnableParentPlatformList(true);
+        List<Platform> parentPlatforms = platformService.queryEnablePlatformList();
 
-        for (Platform parentPlatform : parentPlatforms) {
+        for (Platform platform : parentPlatforms) {
 
-            PlatformCatch parentPlatformCatchOld = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
+            PlatformCatch parentPlatformCatchOld = redisCatchStorage.queryPlatformCatchInfo(platform.getServerGBId());
 
             // 更新缓存
             PlatformCatch parentPlatformCatch = new PlatformCatch();
-            parentPlatformCatch.setPlatform(parentPlatform);
-            parentPlatformCatch.setId(parentPlatform.getServerGBId());
+            parentPlatformCatch.setPlatform(platform);
+            parentPlatformCatch.setId(platform.getServerGBId());
             redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
             if (parentPlatformCatchOld != null) {
                 // 取消订阅
                 try {
-                    sipCommanderForPlatform.unregister(parentPlatform, parentPlatformCatchOld.getSipTransactionInfo(), null, (eventResult)->{
-                        platformService.login(parentPlatform);
+                    log.info("[平台主动注销] {}({})", platform.getName(), platform.getServerGBId());
+                    sipCommanderForPlatform.unregister(platform, parentPlatformCatchOld.getSipTransactionInfo(), null, (eventResult)->{
+                        platformService.login(platform);
                     });
                 } catch (Exception e) {
                     log.error("[命令发送失败] 国标级联 注销: {}", e.getMessage());
-                    platformService.offline(parentPlatform, true);
+                    platformService.offline(platform, true);
                     continue;
                 }
             }
 
-            // 设置所有平台离线
-            platformService.offline(parentPlatform, false);
+            // 设置平台离线
+            platformService.offline(platform, false);
         }
     }
 }

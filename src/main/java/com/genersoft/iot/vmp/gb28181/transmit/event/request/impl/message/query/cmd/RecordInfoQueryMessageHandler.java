@@ -106,7 +106,7 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
             }
             return;
         }
-        if (channel.getStreamProxyId() > 0 || channel.getStreamPushId() > 0) {
+        if (channel.getStreamProxyId() != null || channel.getStreamPushId() != null ) {
             log.info("[平台查询录像记录] 不支持查询推流和拉流代理的录像数据 {}/{}", parentPlatform.getName(), channelId );
             try {
                 responseAck(request, Response.NOT_IMPLEMENTED); // 回复未实现
@@ -126,7 +126,7 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
             return;
         }
         // 接收录像数据
-        recordEndEventListener.addEndEventHandler(channel.getGbDeviceId(), channelId, (recordInfo)->{
+        recordEndEventListener.addEndEventHandler(device.getDeviceId(), channelId, (recordInfo)->{
             try {
                 log.info("[国标级联] 录像查询收到数据， 通道： {}，准备转发===", channelId);
                 cmderFroPlatform.recordInfo(channel, parentPlatform, request.getFromTag(), recordInfo);

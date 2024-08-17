@@ -83,4 +83,7 @@ public interface PlatformMapper {
     @Update("UPDATE wvp_platform SET status=#{online} WHERE server_gb_id=#{platformGbID}" )
     int updateStatus(@Param("platformGbID") String platformGbID, @Param("online") boolean online);
 
+    @Select("SELECT * FROM wvp_platform WHERE enable=true")
+    List<Platform> queryEnablePlatformList();
+
 }

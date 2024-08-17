@@ -12,6 +12,7 @@ import com.github.pagehelper.PageInfo;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
+import java.util.List;
 
 /**
  * 国标平台的业务类
@@ -84,4 +85,8 @@ public interface IPlatformService {
     void addSimulatedSubscribeInfo(Platform parentPlatform);
 
     Platform queryOne(Integer platformId);
+
+    List<Platform> queryEnablePlatformList();
+
+
 }

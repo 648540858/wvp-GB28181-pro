@@ -370,7 +370,6 @@ public class GbChannelServiceImpl implements IGbChannelService {
         return channelList;
     }
 
-
     private Set<Group> getAllGroup(Set<Group> regionChannelList ) {
         if (regionChannelList.isEmpty()) {
             return new HashSet<>();

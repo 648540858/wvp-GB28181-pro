@@ -28,11 +28,11 @@ public class RecordEndEventListener implements ApplicationListener<RecordEndEven
         String channelId = event.getRecordInfo().getChannelId();
         int count = event.getRecordInfo().getCount();
         int sumNum = event.getRecordInfo().getSumNum();
-        log.info("录像查询完成事件触发，deviceId：{}, channelId: {}, 录像数量{}/{}条", event.getRecordInfo().getDeviceId(),
+        log.info("录像查询事件触发，deviceId：{}, channelId: {}, 录像数量{}/{}条", event.getRecordInfo().getDeviceId(),
                 event.getRecordInfo().getChannelId(), count,sumNum);
         if (!handlerMap.isEmpty()) {
             RecordEndEventHandler handler = handlerMap.get(deviceId + channelId);
-            log.info("录像查询完成事件触发, 发送订阅，deviceId：{}, channelId: {}",
+            log.info("录像查询事件触发, 发送订阅，deviceId：{}, channelId: {}",
                     event.getRecordInfo().getDeviceId(), event.getRecordInfo().getChannelId());
             if (handler !=null){
                 handler.handler(event.getRecordInfo());

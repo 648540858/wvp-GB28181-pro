@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.gb28181.bean.PlayException;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
 import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
+import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyPlayService;
 import com.genersoft.iot.vmp.streamPush.service.IStreamPushPlayService;
 import lombok.extern.slf4j.Slf4j;
@@ -38,13 +39,13 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
         }
         log.info("[点播通用通道] 类型：{}， 通道： {}({})", inviteInfo.getSessionName(), channel.getGbName(), channel.getGbDeviceId());
         if ("Play".equalsIgnoreCase(inviteInfo.getSessionName())) {
-            if (channel.getGbDeviceDbId() > 0) {
+            if (channel.getGbDeviceDbId() != null) {
                 // 国标通道
                 playGbDeviceChannel(channel, callback);
-            } else if (channel.getStreamProxyId() > 0) {
+            } else if (channel.getStreamProxyId() != null) {
                 // 拉流代理
                 playProxy(channel, callback);
-            } else if (channel.getStreamPushId() > 0) {
+            } else if (channel.getStreamPushId() != null) {
                 // 推流
                 playPush(channel, platform.getServerGBId(), platform.getName(), callback);
             } else {
@@ -53,14 +54,14 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
                 throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
             }
         }else if ("Playback".equals(inviteInfo.getSessionName())) {
-            if (channel.getGbDeviceDbId() > 0) {
+            if (channel.getGbDeviceDbId() != null) {
                 // 国标通道
                 playbackGbDeviceChannel(channel, inviteInfo.getStartTime(), inviteInfo.getStopTime(), callback);
-            } else if (channel.getStreamProxyId() > 0) {
+            } else if (channel.getStreamProxyId() != null) {
                 // 拉流代理
                 log.warn("[回放通用通道] 不支持回放拉流代理的录像： {}({})", channel.getGbName(), channel.getGbDeviceId());
                 throw new PlayException(Response.FORBIDDEN, "forbidden");
-            } else if (channel.getStreamPushId() > 0) {
+            } else if (channel.getStreamPushId() != null) {
                 // 推流
                 log.warn("[回放通用通道] 不支持回放推流的录像： {}({})", channel.getGbName(), channel.getGbDeviceId());
                 throw new PlayException(Response.FORBIDDEN, "forbidden");
@@ -70,7 +71,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
                 throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
             }
         }else if ("Download".equals(inviteInfo.getSessionName())) {
-            if (channel.getGbDeviceDbId() > 0) {
+            if (channel.getGbDeviceDbId() != null) {
                 int downloadSpeed = 4;
                 try {
                     if (inviteInfo.getDownloadSpeed() != null){
@@ -80,11 +81,11 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
 
                 // 国标通道
                 downloadGbDeviceChannel(channel, inviteInfo.getStartTime(), inviteInfo.getStopTime(), downloadSpeed, callback);
-            } else if (channel.getStreamProxyId() > 0) {
+            } else if (channel.getStreamProxyId() != null) {
                 // 拉流代理
                 log.warn("[下载通用通道录像] 不支持下载拉流代理的录像： {}({})", channel.getGbName(), channel.getGbDeviceId());
                 throw new PlayException(Response.FORBIDDEN, "forbidden");
-            } else if (channel.getStreamPushId() > 0) {
+            } else if (channel.getStreamPushId() != null) {
                 // 推流
                 log.warn("[下载通用通道录像] 不支持下载推流的录像： {}({})", channel.getGbName(), channel.getGbDeviceId());
                 throw new PlayException(Response.FORBIDDEN, "forbidden");
@@ -107,6 +108,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
         } catch (PlayException e) {
             callback.run(e.getCode(), e.getMsg(), null);
         } catch (Exception e) {
+            log.error("[点播失败] {}({})", channel.getGbName(), channel.getGbDeviceId(), e);
             callback.run(Response.BUSY_HERE, "busy here", null);
         }
     }
@@ -118,7 +120,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
             if (streamInfo == null) {
                 callback.run(Response.BUSY_HERE, "busy here", null);
             }else {
-                callback.run(Response.OK, "success", streamInfo);
+                callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
             }
         }catch (Exception e) {
             callback.run(Response.BUSY_HERE, "busy here", null);

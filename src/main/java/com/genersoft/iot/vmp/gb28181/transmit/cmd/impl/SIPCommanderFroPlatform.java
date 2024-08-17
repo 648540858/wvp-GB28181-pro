@@ -585,7 +585,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
         recordXml.append("</RecordList>\r\n")
                 .append("</Response>\r\n");
-        log.info("[国标级联] 发送录像数据通道：{}, 内容： {}", recordInfo.getChannelId(), recordXml);
+        log.debug("[国标级联] 发送录像数据通道：{}, 内容： {}", recordInfo.getChannelId(), recordXml);
         // callid
         CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
 

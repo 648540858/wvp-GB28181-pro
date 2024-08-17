@@ -28,10 +28,6 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
     @Autowired
     private IMediaServerService mediaServerService;
 
-
-
-
-
     @Override
     public StreamInfo start(int id) {
         StreamProxy streamProxy = streamProxyMapper.select(id);

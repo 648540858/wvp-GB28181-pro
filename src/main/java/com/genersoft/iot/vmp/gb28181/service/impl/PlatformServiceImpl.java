@@ -43,6 +43,7 @@ import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
 import javax.sip.SipException;
 import java.text.ParseException;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
@@ -365,7 +366,7 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Override
     public void offline(Platform platform, boolean stopRegister) {
-        log.info("[平台离线]：{}", platform.getServerGBId());
+        log.info("[平台离线]：{}({})", platform.getName(), platform.getServerGBId());
         PlatformCatch platformCatch = redisCatchStorage.queryPlatformCatchInfo(platform.getServerGBId());
         platformCatch.setKeepAliveReply(0);
         platformCatch.setRegisterAliveReply(0);
@@ -376,17 +377,17 @@ public class PlatformServiceImpl implements IPlatformService {
         platformMapper.updateStatus(platform.getServerGBId(), false);
 
         // 停止所有推流
-        log.info("[平台离线] {}, 停止所有推流", platform.getServerGBId());
+        log.info("[平台离线] {}({}), 停止所有推流", platform.getName(),  platform.getServerGBId());
         stopAllPush(platform.getServerGBId());
 
         // 清除注册定时
-        log.info("[平台离线] {}, 停止定时注册任务", platform.getServerGBId());
+        log.info("[平台离线] {}({}), 停止定时注册任务", platform.getName(), platform.getServerGBId());
         final String registerTaskKey = REGISTER_KEY_PREFIX + platform.getServerGBId();
         if (dynamicTask.contains(registerTaskKey)) {
             dynamicTask.stop(registerTaskKey);
         }
         // 清除心跳定时
-        log.info("[平台离线] {}, 停止定时发送心跳任务", platform.getServerGBId());
+        log.info("[平台离线] {}({}), 停止定时发送心跳任务", platform.getName(), platform.getServerGBId());
         final String keepaliveTaskKey = KEEPALIVE_KEY_PREFIX + platform.getServerGBId();
         if (dynamicTask.contains(keepaliveTaskKey)) {
             // 清除心跳任务
@@ -396,11 +397,11 @@ public class PlatformServiceImpl implements IPlatformService {
         SubscribeInfo catalogSubscribe = subscribeHolder.getCatalogSubscribe(platform.getServerGBId());
         if (catalogSubscribe != null) {
             if (catalogSubscribe.getExpires() > 0) {
-                log.info("[平台离线] {}, 停止目录订阅回复", platform.getServerGBId());
+                log.info("[平台离线] {}({}), 停止目录订阅回复", platform.getName(), platform.getServerGBId());
                 subscribeHolder.removeCatalogSubscribe(platform.getServerGBId());
             }
         }
-        log.info("[平台离线] {}, 停止移动位置订阅回复", platform.getServerGBId());
+        log.info("[平台离线] {}({}), 停止移动位置订阅回复", platform.getName(), platform.getServerGBId());
         subscribeHolder.removeMobilePositionSubscribe(platform.getServerGBId());
         // 发起定时自动重新注册
         if (!stopRegister) {
@@ -436,7 +437,7 @@ public class PlatformServiceImpl implements IPlatformService {
                 // 添加注册任务
                 dynamicTask.startCron(registerTaskKey,
                         // 注册失败（注册成功时由程序直接调用了online方法）
-                        ()-> log.info("[国标级联] {},平台离线后持续发起注册，失败", platform.getServerGBId()),
+                        ()-> log.info("[国标级联] {}({}),平台离线后持续发起注册，失败", platform.getName(), platform.getServerGBId()),
                         60*1000);
             }, null);
         } catch (InvalidArgumentException | ParseException | SipException e) {
@@ -808,5 +809,10 @@ public class PlatformServiceImpl implements IPlatformService {
     @Override
     public Platform queryOne(Integer platformId) {
         return platformMapper.query(platformId);
+    }
+
+    @Override
+    public List<Platform> queryEnablePlatformList() {
+        return platformMapper.queryEnablePlatformList();
     }
 }

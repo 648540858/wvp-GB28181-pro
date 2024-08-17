@@ -28,6 +28,7 @@ import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
+import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.service.redisMsg.RedisPushStreamResponseListener;
@@ -180,7 +181,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 }
 
                 channelPlayService.start(channel, inviteInfo, platform, ((code, msg, streamInfo) -> {
-                    if (code != Response.OK) {
+                    if (code != InviteErrorCode.SUCCESS.getCode()) {
                         try {
                             responseAck(request, code, msg);
                         } catch (SipException | InvalidArgumentException | ParseException e) {

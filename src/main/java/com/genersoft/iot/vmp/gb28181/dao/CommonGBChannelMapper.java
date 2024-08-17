@@ -420,7 +420,7 @@ public interface CommonGBChannelMapper {
             "    coalesce(wpgc.manufacturer, wdc.gb_manufacturer, wdc.manufacturer) as gb_manufacturer,\n" +
             "    coalesce(wpgc.model, wdc.gb_model, wdc.model) as gb_model,\n" +
             "    coalesce(wpgc.owner, wdc.gb_owner, wdc.owner) as gb_owner,\n" +
-            "    coalesce(wpgc.civil_code, wdc.gb_civil_code, wdc.civil_code),\n" +
+            "    coalesce(wpgc.civil_code, wdc.gb_civil_code, wdc.civil_code) as gb_civil_code,\n" +
             "    coalesce(wpgc.block, wdc.gb_block, wdc.block) as gb_block,\n" +
             "    coalesce(wpgc.address, wdc.gb_address, wdc.address) as gb_address,\n" +
             "    coalesce(wpgc.parental, wdc.gb_parental, wdc.parental) as gb_parental,\n" +

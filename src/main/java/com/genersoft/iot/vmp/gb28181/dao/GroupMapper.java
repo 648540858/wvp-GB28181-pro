@@ -179,4 +179,13 @@ public interface GroupMapper {
             " <foreach collection='regionChannelList'  item='item'  open='(' separator=',' close=')' > #{item.parentDeviceId}</foreach>" +
             " </script>")
     Set<Group> queryParentInChannelList(Set<Group> regionChannelList);
+
+    @Select(" <script>" +
+            " SELECT " +
+            " * " +
+            " from wvp_common_group " +
+            " where device_id in " +
+            " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.gbBusinessGroupId}</foreach>" +
+            " </script>")
+    Set<Group> queryBusinessGroupInChannelList(List<CommonGBChannel> channelList);
 }

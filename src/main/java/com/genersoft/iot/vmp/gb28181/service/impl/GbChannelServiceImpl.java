@@ -329,6 +329,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
             if (!regionChannelList.isEmpty()) {
                 // 获取这些节点的所有父节点, 使用set滤重
                 Set<Region> allRegion = getAllRegion(regionChannelList);
+                allRegion.addAll(regionChannelList);
                 for (Region region : allRegion) {
                     channelList.add(CommonGBChannel.build(region));
                 }
@@ -336,10 +337,17 @@ public class GbChannelServiceImpl implements IGbChannelService {
         }
         // 是否包含分组信息
         if (platform.getCatalogWithGroup()) {
+            // 虚拟组织
             Set<Group> groupChannelList = groupMapper.queryInChannelList(commonGBChannelList);
+            // 业务分组
+            Set<Group> businessGroupChannelList = groupMapper.queryBusinessGroupInChannelList(commonGBChannelList);
             if (!groupChannelList.isEmpty()) {
                 // 获取这些节点的所有父节点
                 Set<Group> allGroup = getAllGroup(groupChannelList);
+                allGroup.addAll(groupChannelList);
+                if (!businessGroupChannelList.isEmpty()) {
+                    allGroup.addAll(businessGroupChannelList);
+                }
                 for (Group group : allGroup) {
                     channelList.add(CommonGBChannel.build(group));
                 }

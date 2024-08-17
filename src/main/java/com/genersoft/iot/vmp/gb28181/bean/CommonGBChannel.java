@@ -450,7 +450,7 @@ public class CommonGBChannel {
         CommonGBChannel commonGBChannel = new CommonGBChannel();
         commonGBChannel.setGbDeviceId(region.getDeviceId());
         commonGBChannel.setGbName(region.getName());
-        return null;
+        return commonGBChannel;
     }
 
 }

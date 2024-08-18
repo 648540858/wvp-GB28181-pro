@@ -61,6 +61,8 @@ public class SipPlatformRunner implements CommandLineRunner {
                     platformService.offline(platform, true);
                     continue;
                 }
+            }else {
+                platformService.login(platform);
             }
 
             // 设置平台离线

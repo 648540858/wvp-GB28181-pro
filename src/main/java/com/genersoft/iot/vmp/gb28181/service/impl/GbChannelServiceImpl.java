@@ -322,37 +322,22 @@ public class GbChannelServiceImpl implements IGbChannelService {
             CommonGBChannel channel = CommonGBChannel.build(platform);
             channelList.add(channel);
         }
-
-        // 是否包含行政区划信息
+        // 关联的行政区划信息
         if (platform.getCatalogWithRegion()) {
-            Set<Region> regionChannelList = regionMapper.queryInChannelList(commonGBChannelList);
+            // 查询关联平台的行政区划信息
+            List<CommonGBChannel> regionChannelList = regionMapper.queryByPlatform(platform.getId());
             if (!regionChannelList.isEmpty()) {
-                // 获取这些节点的所有父节点, 使用set滤重
-                Set<Region> allRegion = getAllRegion(regionChannelList);
-                allRegion.addAll(regionChannelList);
-                for (Region region : allRegion) {
-                    channelList.add(CommonGBChannel.build(region));
-                }
+                channelList.addAll(regionChannelList);
             }
         }
-        // 是否包含分组信息
         if (platform.getCatalogWithGroup()) {
-            // 虚拟组织
-            Set<Group> groupChannelList = groupMapper.queryInChannelList(commonGBChannelList);
-            // 业务分组
-            Set<Group> businessGroupChannelList = groupMapper.queryBusinessGroupInChannelList(commonGBChannelList);
+            // 关联的分组信息
+            List<CommonGBChannel> groupChannelList =  groupMapper.queryForPlatform(platform.getId());
             if (!groupChannelList.isEmpty()) {
-                // 获取这些节点的所有父节点
-                Set<Group> allGroup = getAllGroup(groupChannelList);
-                allGroup.addAll(groupChannelList);
-                if (!businessGroupChannelList.isEmpty()) {
-                    allGroup.addAll(businessGroupChannelList);
-                }
-                for (Group group : allGroup) {
-                    channelList.add(CommonGBChannel.build(group));
-                }
+                channelList.addAll(groupChannelList);
             }
         }
+
         channelList.addAll(commonGBChannelList);
         return channelList;
     }
@@ -370,18 +355,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
         return channelList;
     }
 
-    private Set<Group> getAllGroup(Set<Group> regionChannelList ) {
-        if (regionChannelList.isEmpty()) {
-            return new HashSet<>();
-        }
-        Set<Group> channelList = groupMapper.queryParentInChannelList(regionChannelList);
-        if (channelList.isEmpty()) {
-            return channelList;
-        }
-        Set<Group> allParentRegion = getAllGroup(channelList);
-        channelList.addAll(allParentRegion);
-        return channelList;
-    }
+
 
 
     @Override

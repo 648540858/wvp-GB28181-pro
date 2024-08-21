@@ -282,47 +282,63 @@ create table wvp_platform
 );
 
 
-create table wvp_platform_gb_channel
+create table wvp_platform_channel
 (
-    id                serial primary key,
-    platform_id       integer,
-    device_channel_id integer,
-    device_id         character varying(50),
-    name              character varying(255),
-    manufacturer                 character varying(50),
-    model                        character varying(50),
-    owner                        character varying(50),
-    civil_code                   character varying(50),
-    block                        character varying(50),
-    address                      character varying(50),
-    parental                     integer,
-    parent_id                    character varying(50),
-    safety_way                   integer,
-    register_way                 integer,
-    cert_num                     character varying(50),
-    certifiable                  integer,
-    err_code                     integer,
-    end_time                     character varying(50),
-    secrecy                      integer,
-    ip_address                   character varying(50),
-    port                         integer,
-    password                     character varying(255),
-    status                       character varying(50),
-    longitude                    double precision,
-    latitude                     double precision,
-    ptz_type                     integer,
-    position_type                integer,
-    room_type                    integer,
-    use_type                     integer,
-    supply_light_type            integer,
-    direction_type               integer,
-    resolution                   character varying(255),
-    business_group_id            character varying(255),
-    download_speed               character varying(255),
-    svc_space_support_mod        integer,
-    svc_time_support_mode        integer,
+    id                    serial primary key,
+    platform_id           integer,
+    device_channel_id     integer,
+    device_id             character varying(50),
+    name                  character varying(255),
+    manufacturer          character varying(50),
+    model                 character varying(50),
+    owner                 character varying(50),
+    civil_code            character varying(50),
+    block                 character varying(50),
+    address               character varying(50),
+    parental              integer,
+    parent_id             character varying(50),
+    safety_way            integer,
+    register_way          integer,
+    cert_num              character varying(50),
+    certifiable           integer,
+    err_code              integer,
+    end_time              character varying(50),
+    secrecy               integer,
+    ip_address            character varying(50),
+    port                  integer,
+    password              character varying(255),
+    status                character varying(50),
+    longitude             double precision,
+    latitude              double precision,
+    ptz_type              integer,
+    position_type         integer,
+    room_type             integer,
+    use_type              integer,
+    supply_light_type     integer,
+    direction_type        integer,
+    resolution            character varying(255),
+    business_group_id     character varying(255),
+    download_speed        character varying(255),
+    svc_space_support_mod integer,
+    svc_time_support_mode integer,
     constraint uk_platform_gb_channel_platform_id_catalog_id_device_channel_id unique (platform_id, device_channel_id),
     constraint uk_platform_gb_channel_device_id unique (device_id)
+);
+
+create table wvp_platform_group
+(
+    id          serial primary key,
+    platform_id integer,
+    group_id    integer,
+    constraint uk_wvp_platform_group_id_catalog_platform_id_group_id unique (platform_id, group_id)
+);
+
+create table wvp_platform_region
+(
+    id          serial primary key,
+    platform_id integer,
+    region_id   integer,
+    constraint uk_wvp_platform_group_id_catalog_platform_id_group_id unique (platform_id, region_id)
 );
 
 create table wvp_stream_proxy

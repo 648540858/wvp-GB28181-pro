@@ -343,4 +343,22 @@ public interface PlatformChannelMapper {
             "</script>")
     int removeChannels(@Param("platformId") Integer platformId, List<CommonGBChannel> channelList);
 
+    @Insert("<script> "+
+            "INSERT INTO wvp_platform_group (platform_id, group_id) VALUES" +
+            "<foreach collection='groupListNotShare'  item='item' separator=','>" +
+            " (#{platformId}, #{item.id} )" +
+            "</foreach>" +
+            "</script>")
+    int addPlatformGroup(List<Group> groupListNotShare, @Param("platformId") Integer platformId);
+
+    @Delete("<script> "+
+            "DELETE from wvp_platform_group WHERE platform_id=#{platformId} AND group_id in" +
+            "<foreach collection='groupList'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
+            "</script>")
+    int removePlatformGroup(List<Group> groupList, @Param("platformId") Integer platformId);
+
+    @Delete("<script> "+
+            "DELETE from wvp_platform_group WHERE platform_id=#{platformId} AND group_id  =#{id}" +
+            "</script>")
+    void removePlatformGroupById(@Param("id") int id, @Param("platformId") Integer platformId);
 }

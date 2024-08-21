@@ -116,4 +116,15 @@ public interface RegionMapper {
             " <foreach collection='regionChannelList'  item='item'  open='(' separator=',' close=')' > #{item.parentDeviceId}</foreach>" +
             " </script>")
     Set<Region> queryParentInChannelList(Set<Region> regionChannelList);
+
+    @Select(" <script>" +
+            " SELECT " +
+            " wcr.device_id as gb_device_id," +
+            " wcr.name as gb_name" +
+            " from wvp_common_region wcr" +
+            " left join wvp_platform_region wpr on wcr.id = wpr.region_id" +
+            " where wpr.platform_id  = #{platformId} " +
+            " </script>")
+    List<CommonGBChannel> queryByPlatform(@Param("platformId") Integer platformId);
+
 }

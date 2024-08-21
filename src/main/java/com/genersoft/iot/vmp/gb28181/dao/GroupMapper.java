@@ -188,4 +188,44 @@ public interface GroupMapper {
             " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.gbBusinessGroupId}</foreach>" +
             " </script>")
     Set<Group> queryBusinessGroupInChannelList(List<CommonGBChannel> channelList);
+
+    @Select(" <script>" +
+            " SELECT " +
+            " wcg.device_id as gb_device_id," +
+            " wcg.name as gb_name," +
+            " wcg.business_group as gb_business_group," +
+            " 1 as gb_parental," +
+            " wcg.parent_device_id as gb_parent_id" +
+            " from wvp_common_group wcg" +
+            " left join wvp_platform_group wpg on wpg.group_id = wcg.id" +
+            " where wpg.platform_id = #{platformId} " +
+            " </script>")
+    List<CommonGBChannel> queryForPlatform(@Param("platformId") Integer platformId);
+
+    @Select(" <script>" +
+            " SELECT * " +
+            " from wvp_common_group wcg" +
+            " left join wvp_platform_group wpg on wpg.group_id = wcg.id and wpg.platform_id = #{platformId}" +
+            " where wpg.platform_id = null and wcg.device_id in " +
+            " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.gbParentId}</foreach>" +
+            " </script>")
+    Set<Group> queryNotShareForPlatformByChannelList(List<CommonGBChannel> channelList, @Param("platformId") Integer platformId);
+
+    @Select(" <script>" +
+            " SELECT * " +
+            " from wvp_common_group wcg" +
+            " left join wvp_platform_group wpg on wpg.group_id = wcg.id and wpg.platform_id = #{platformId}" +
+            " where wpg.platform_id = null and wcg.id in " +
+            " <foreach collection='allGroup'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
+            " </script>")
+    Set<Group> queryNotShareForPlatformByGroupList(Set<Group> allGroup, @Param("platformId") Integer platformId);
+
+    @Select(" <script>" +
+            " SELECT " +
+            " * " +
+            " from wvp_common_group " +
+            " where device_id in " +
+            " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.gbParentId}</foreach>" +
+            " </script>")
+    Set<Group> queryByChannelList(List<CommonGBChannel> channelList);
 }

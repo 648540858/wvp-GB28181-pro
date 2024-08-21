@@ -18,6 +18,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.security.sasl.AuthenticationException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -42,6 +48,12 @@ public class UserController {
     @Autowired
     private IRoleService roleService;
 
+    private final UserDetailsService userDetailsService;
+
+    public UserController(UserDetailsService userDetailsService) {
+        this.userDetailsService = userDetailsService;
+    }
+
     @GetMapping("/login")
     @PostMapping("/login")
     @Operation(summary = "登录", description = "登录成功后返回AccessToken， 可以从返回值获取到也可以从响应头中获取到，" +
@@ -51,18 +63,16 @@ public class UserController {
     @Parameter(name = "password", description = "密码（32位md5加密）", required = true)
     public LoginUser login(HttpServletRequest request, HttpServletResponse response, @RequestParam String username, @RequestParam String password){
         LoginUser user;
-        try {
-            user = SecurityUtils.login(username, password, authenticationManager);
-        } catch (AuthenticationException e) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
-        }
-        if (user == null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "用户名或密码错误");
-        }else {
-            String jwt = JwtUtils.createToken(username);
-            response.setHeader(JwtUtils.getHeader(), jwt);
-            user.setAccessToken(jwt);
-        }
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null,userDetails.getAuthorities());
+
+        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+        user = (LoginUser) userDetails;
+        String jwt = JwtUtils.createToken(username);
+        response.setHeader(JwtUtils.getHeader(), jwt);
+        user.setAccessToken(jwt);
         return user;
     }
 
@@ -210,14 +220,21 @@ public class UserController {
 
     @PostMapping("/userInfo")
     @Operation(summary = "管理员修改普通用户密码")
-    public LoginUser getUserInfo() {
+    public LoginUser getUserInfo(Principal principal) {
+        if (principal == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "用户不存在");
+        }
+
         // 获取当前登录用户id
         LoginUser userInfo = SecurityUtils.getUserInfo();
 
         if (userInfo == null) {
             throw new ControllerException(ErrorCode.ERROR100);
         }
-        User user = userService.getUser(userInfo.getUsername(), userInfo.getPassword());
-        return new LoginUser(user, LocalDateTime.now());
+//        User user = userService.getUser(userInfo.getUsername(), userInfo.getPassword());
+//        if (user == null) {
+//            throw new ControllerException(ErrorCode.ERROR100.getCode(), "用户不存在");
+//        }
+        return userInfo;
     }
 }

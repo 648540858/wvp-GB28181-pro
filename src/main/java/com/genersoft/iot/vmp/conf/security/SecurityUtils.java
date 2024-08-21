@@ -7,6 +7,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import javax.security.sasl.AuthenticationException;
@@ -32,7 +34,6 @@ public class SecurityUtils {
         LoginUser user = (LoginUser) authenticate.getPrincipal();
 
         SecurityContextHolder.getContext().setAuthentication(token);
-
         return user;
     }
 
@@ -55,8 +56,8 @@ public class SecurityUtils {
             Object principal = authentication.getPrincipal();
             if(principal!=null && !"anonymousUser".equals(principal.toString())){
 
-                User user = (User) principal;
-                return new LoginUser(user, LocalDateTime.now());
+                return (LoginUser) principal;
+//                return new LoginUser(user, LocalDateTime.now());
             }
         }
         return null;

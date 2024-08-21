@@ -1,7 +1,0 @@
-#!/bin/sh -e
-
-/bin/bash /home/jetson/polaris/sip/sip.sh start
-/bin/bash /home/jetson/polaris/sip/zlm.sh start
-
-exit 0
-~

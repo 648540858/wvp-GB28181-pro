@@ -44,23 +44,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
 
-        // 忽略登录请求的token验证
-//        String requestURI = request.getRequestURI();
-//        if ((requestURI.startsWith("/doc.html") || requestURI.startsWith("/swagger-ui") ) && !userSetting.getDocEnable()) {
-//            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-//            return;
-//        }
-//        if (requestURI.equalsIgnoreCase("/api/user/login")) {
-//            chain.doFilter(request, response);
-//            return;
-//        }
-//
-//        if (!userSetting.isInterfaceAuthentication()) {
-//            UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(null, null, new ArrayList<>() );
-//            SecurityContextHolder.getContext().setAuthentication(token);
-//            chain.doFilter(request, response);
-//            return;
-//        }
         String jwt = request.getHeader(JwtUtils.getHeader());
         if(jwt != null) {
             JwtUser jwtUser = JwtUtils.verifyToken(jwt);

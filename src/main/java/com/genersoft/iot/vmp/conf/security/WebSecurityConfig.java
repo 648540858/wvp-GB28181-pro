@@ -134,42 +134,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .logoutSuccessHandler(logoutHandler)
         ;
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-//        ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry = http
-//                .authorizeRequests();
-//                //允许跨域请求的OPTIONS请求
-//        registry.antMatchers(HttpMethod.OPTIONS)
-//                .permitAll();
-//        registry.and()
-//                .authorizeRequests()
-//                .antMatchers(HttpMethod.GET,
-//                        "/",
-//                        "/swagger-ui/",
-//                        "/doc.html")
-//                .permitAll()
-//                .antMatchers("/api/user/login", "/api/ptz/**", "/zlm/**", "/api/server/**","/index/hook/**","/index/hook/abl/**", "/swagger-ui/**", "/doc.html#/**")
-//                .permitAll()
-//                .anyRequest()
-//                .authenticated()
-//                // 关闭跨站请求防护及不使用session
-//                .and()
-//                .headers().contentTypeOptions().disable()
-//                .and()
-//                .cors().configurationSource(configurationSource())
-//                .and()
-//                .csrf()
-//                .disable()
-//                .sessionManagement()
-//                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-//                // 自定义权限拒绝处理类
-//                .and()
-//                .exceptionHandling()
-//                .authenticationEntryPoint(anonymousAuthenticationEntryPoint)
-//                .and().logout().logoutUrl("/api/user/logout").permitAll()
-//                .logoutSuccessHandler(logoutHandler)
-//                // 自定义权限拦截器JWT过滤器
-//                .and()
-//                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
     }
 
     CorsConfigurationSource configurationSource() {

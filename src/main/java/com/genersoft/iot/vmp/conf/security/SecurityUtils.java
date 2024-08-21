@@ -57,7 +57,6 @@ public class SecurityUtils {
             if(principal!=null && !"anonymousUser".equals(principal.toString())){
 
                 return (LoginUser) principal;
-//                return new LoginUser(user, LocalDateTime.now());
             }
         }
         return null;

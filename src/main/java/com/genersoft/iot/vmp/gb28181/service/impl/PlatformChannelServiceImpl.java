@@ -99,7 +99,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     private Set<Group> deleteEmptyGroup(Set<Group> groupSet, Integer platformId) {
         for (Group group : groupSet) {
             // 获取分组子节点
-            List<Group> children = platformChannelMapper.getShareChildrenGroup(group.getDeviceId(), platformId);
+            Set<Group> children = platformChannelMapper.queryShareChildrenGroup(group.getDeviceId(), platformId);
             if (!children.isEmpty()) {
                 groupSet.remove(group);
                 continue;
@@ -112,11 +112,17 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
             }
             platformChannelMapper.removePlatformGroupById(group.getId(), platformId);
         }
-        if (!groupSet.isEmpty()) {
-
+        if (groupSet.isEmpty()) {
+            return new HashSet<>();
         }
-
-
+        Set<Group> parent =  platformChannelMapper.queryShareParentGroupByGroupSet(groupSet, platformId);
+        if (parent.isEmpty()) {
+            return groupSet;
+        }else {
+            Set<Group> parentGroupSet = deleteEmptyGroup(parent, platformId);
+            groupSet.addAll(parentGroupSet);
+            return groupSet;
+        }
     }
 
     private Set<Group> getAllGroup(Set<Group> groupList ) {

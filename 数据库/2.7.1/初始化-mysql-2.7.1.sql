@@ -217,7 +217,7 @@ create table wvp_platform_catalog (
                                       constraint uk_platform_catalog_id_platform_id unique (id, platform_id)
 );
 
-create table wvp_platform_gb_channel (
+create table wvp_platform_channel (
                                          id serial primary key ,
                                          platform_id character varying(50),
                                          catalog_id character varying(50),

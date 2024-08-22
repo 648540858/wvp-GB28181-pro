@@ -105,7 +105,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
                 continue;
             }
             // 获取分组关联的通道
-            List<CommonGBChannel> channelList = platformChannelMapper.queryShareChannelByParentId(group.getDeviceId(), platformId);
+            List<CommonGBChannel> channelList = commonGBChannelMapper.queryShareChannelByParentId(group.getDeviceId(), platformId);
             if (!channelList.isEmpty()) {
                 groupSet.remove(group);
                 continue;
@@ -129,6 +129,11 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         if (groupList.isEmpty()) {
             return new HashSet<>();
         }
+        for (Group group : groupList) {
+            if (group.getParentDeviceId() == null) {
+
+            }
+        }
         Set<Group> channelList = groupMapper.queryParentInChannelList(groupList);
         if (channelList.isEmpty()) {
             return channelList;
@@ -147,13 +152,16 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         if (result > 0) {
             // 查询通道相关的分组信息是否共享，如果没共享就添加
             Set<Group> groupListNotShare =  getGroupNotShareByChannelList(channelListNotShare, platformId);
-            int addGroupResult = platformChannelMapper.addPlatformGroup(new ArrayList<>(groupListNotShare), platformId);
-            if (addGroupResult > 0) {
-                for (Group group : groupListNotShare) {
-                    // 分组信息排序时需要将顶层排在最后
-                    channelListNotShare.add(0, CommonGBChannel.build(group));
+            if (!groupListNotShare.isEmpty()) {
+                int addGroupResult = platformChannelMapper.addPlatformGroup(new ArrayList<>(groupListNotShare), platformId);
+                if (addGroupResult > 0) {
+                    for (Group group : groupListNotShare) {
+                        // 分组信息排序时需要将顶层排在最后
+                        channelListNotShare.add(0, CommonGBChannel.build(group));
+                    }
                 }
             }
+
             // 发送消息
             try {
                 // 发送catalog
@@ -175,7 +183,9 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
             Set<Group> groupSet = groupMapper.queryByChannelList(channelListNotShare);
             Set<Group> deleteGroup = deleteEmptyGroup(groupSet, platformId);
             if (!deleteGroup.isEmpty()) {
-                channelListNotShare.add(0, CommonGBChannel.build(group));
+                for (Group group : deleteGroup) {
+                    channelListNotShare.add(0, CommonGBChannel.build(group));
+                }
             }
             // 发送消息
             try {
@@ -195,11 +205,10 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         int result = platformChannelMapper.removeChannels(platformId, channelList);
         if (result > 0) {
             // 查询通道相关的分组信息是否共享，如果没共享就添加
-            List<Group> groupListShareEmptyChannel =  getGroupShareEmptyChannel(channelList, platformId);
-            int addGroupResult = platformChannelMapper.removePlatformGroup(groupListShareEmptyChannel, platformId);
-            if (addGroupResult > 0) {
-                for (Group group : groupListShareEmptyChannel) {
-                    // 分组信息排序时需要将顶层排在最后
+            Set<Group> groupSet = groupMapper.queryByChannelList(channelList);
+            Set<Group> deleteGroup = deleteEmptyGroup(groupSet, platformId);
+            if (!deleteGroup.isEmpty()) {
+                for (Group group : deleteGroup) {
                     channelList.add(0, CommonGBChannel.build(group));
                 }
             }

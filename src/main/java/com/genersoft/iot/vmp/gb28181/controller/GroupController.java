@@ -36,21 +36,16 @@ public class GroupController {
     @Operation(summary = "查询分组")
     @Parameter(name = "query", description = "要搜索的内容", required = true)
     @Parameter(name = "parent", description = "所属分组编号", required = true)
-    @Parameter(name = "platformId", description = "上级平台ID", required = true)
     @ResponseBody
     @GetMapping("/tree/list")
     public List<GroupTree> queryForTree(
             @RequestParam(required = false) String query,
-            @RequestParam(required = false) String parent,
-            @RequestParam(required = false) Integer platformId
+            @RequestParam(required = false) Integer parent
     ){
-        if (ObjectUtils.isEmpty(parent)) {
-            parent = null;
-        }
         if (ObjectUtils.isEmpty(query)) {
             query = null;
         }
-        return groupService.queryForTree(query, parent, platformId);
+        return groupService.queryForTree(query, parent);
     }
 
     @Operation(summary = "更新分组")

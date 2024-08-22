@@ -298,6 +298,7 @@ public class PlatformController {
     public PageInfo<PlatformChannel> queryChannelList(int page, int count,
                                                       @RequestParam(required = false) Integer platformId,
                                                       @RequestParam(required = false) String query,
+                                                      @RequestParam(required = false) Boolean channelType,
                                                       @RequestParam(required = false) Boolean online,
                                                       @RequestParam(required = false) Boolean hasShare) {
 

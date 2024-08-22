@@ -1,6 +1,9 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
-import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.GbCode;
+import com.genersoft.iot.vmp.gb28181.bean.Group;
+import com.genersoft.iot.vmp.gb28181.bean.GroupTree;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.GroupMapper;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
@@ -19,7 +22,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 区域管理类
@@ -73,15 +75,6 @@ public class GroupServiceImpl implements IGroupService {
         group.setCreateTime(DateUtil.getNow());
         group.setUpdateTime(DateUtil.getNow());
         groupManager.add(group);
-        if (group.getPlatformId() != null) {
-            CommonGBChannel channel = CommonGBChannel.build(group);
-            try {
-                // 发送catalog
-                eventPublisher.catalogEventPublish(group.getPlatformId(), channel, CatalogEvent.ADD);
-            }catch (Exception e) {
-                log.warn("[添加虚拟组织] 发送失败， {}-{}", channel.getGbName(), channel.getGbDeviceDbId(), e);
-            }
-        }
     }
 
     private void addBusinessGroup(Group group) {
@@ -89,24 +82,15 @@ public class GroupServiceImpl implements IGroupService {
         group.setCreateTime(DateUtil.getNow());
         group.setUpdateTime(DateUtil.getNow());
         groupManager.addBusinessGroup(group);
-        if (group.getPlatformId() != null) {
-            CommonGBChannel channel = CommonGBChannel.build(group);
-            try {
-                // 发送catalog
-                eventPublisher.catalogEventPublish(group.getPlatformId(), channel, CatalogEvent.ADD);
-            }catch (Exception e) {
-                log.warn("[添加虚拟组织] 发送失败， {}-{}", channel.getGbName(), channel.getGbDeviceDbId(), e);
-            }
-        }
     }
 
-    private List<Group> queryAllChildren(String deviceId, Integer platformId) {
-        List<Group> children = groupManager.getChildren(deviceId, platformId);
+    private List<Group> queryAllChildren(Integer id) {
+        List<Group> children = groupManager.getChildren(id);
         if (ObjectUtils.isEmpty(children)) {
             return children;
         }
         for (int i = 0; i < children.size(); i++) {
-            children.addAll(queryAllChildren(children.get(i).getDeviceId(), platformId));
+            children.addAll(queryAllChildren(children.get(i).getId()));
         }
         return children;
     }
@@ -126,9 +110,9 @@ public class GroupServiceImpl implements IGroupService {
         // 修改他的子节点
         if (!group.getDeviceId().equals(groupInDb.getDeviceId())
                 || !group.getBusinessGroup().equals(groupInDb.getBusinessGroup())) {
-            List<Group> groupList = queryAllChildren(groupInDb.getDeviceId(), groupInDb.getPlatformId());
+            List<Group> groupList = queryAllChildren(groupInDb.getId());
             if (!groupList.isEmpty()) {
-               int result =  groupManager.updateChild(groupInDb.getDeviceId(), group);
+               int result =  groupManager.updateChild(groupInDb.getId(), group);
                if (result > 0) {
                    for (Group chjildGroup : groupList) {
                        chjildGroup.setParentDeviceId(group.getDeviceId());
@@ -173,32 +157,21 @@ public class GroupServiceImpl implements IGroupService {
     }
 
     @Override
-    public List<GroupTree> queryForTree(String query, String parent, Integer platformId) {
-        if (parent == null) {
-            // 查询所有业务分组
-            return groupManager.queryBusinessGroupForTree(query, platformId);
-        }else {
-            GbCode gbCode = GbCode.decode(parent);
-            if (gbCode.getTypeCode().equals("215")) {
-                return groupManager.queryForTreeByBusinessGroup(query, parent, platformId);
-            }else {
-                // 查询业务分组以及所属的通道
-                List<GroupTree> groupTrees = groupManager.queryForTree(query, parent, platformId);
-                if (platformId == null) {
-                    List<GroupTree> channelList = commonGBChannelMapper.queryForGroupTreeByParentId(query, parent);
-                    List<GroupTree> channelListForResult = channelList.stream().filter(groupTree -> {
-                       GbCode gbCodeForChannel = GbCode.decode(groupTree.getId());
-                       return !gbCodeForChannel.getTypeCode().equals("215") && !gbCodeForChannel.getTypeCode().equals("216");
-                    }).collect(Collectors.toList());
-                    groupTrees.addAll(channelListForResult);
-                }else {
-                    // TODO 查询平台独属的关联通道
-                }
+    public List<GroupTree> queryForTree(String query, Integer parentId) {
 
-                return groupTrees;
-            }
-
+        List<GroupTree> groupTrees = groupManager.queryForTree(query, parentId);
+        if (parentId == null) {
+            return groupTrees;
         }
+        // 查询含有的通道
+        Group parentGroup = groupManager.queryOne(parentId);
+        if (parentGroup != null && !parentGroup.getDeviceId().equals(parentGroup.getBusinessGroup())) {
+            List<GroupTree> groupTreesForChannel = commonGBChannelMapper.queryForGroupTreeByParentId(query, parentGroup.getDeviceId());
+            if (ObjectUtils.isEmpty(groupTreesForChannel)) {
+                groupTrees.addAll(groupTreesForChannel);
+            }
+        }
+        return groupTrees;
     }
 
     @Override
@@ -221,7 +194,7 @@ public class GroupServiceImpl implements IGroupService {
             // 业务分组
             gbChannelService.removeParentIdByBusinessGroup(group.getDeviceId());
         }else {
-            List<Group> groupList = queryAllChildren(group.getDeviceId(), group.getPlatformId());
+            List<Group> groupList = queryAllChildren(group.getId());
             if (!groupList.isEmpty()) {
                 groupListForDelete.addAll(groupList);
             }
@@ -252,10 +225,10 @@ public class GroupServiceImpl implements IGroupService {
             groupMapForVerification.put(group.getDeviceId(), group);
         }
         // 查询数据库中已经存在的.
-        List<Region> regionListInDb = groupManager.queryInGroupList(groupList);
+        List<Group> regionListInDb = groupManager.queryInGroupListByDeviceId(groupList);
         if (!regionListInDb.isEmpty()) {
-            for (Region region : regionListInDb) {
-                groupMapForVerification.remove(region.getDeviceId());
+            for (Group group : regionListInDb) {
+                groupMapForVerification.remove(group.getDeviceId());
             }
         }
         if (!groupMapForVerification.isEmpty()) {

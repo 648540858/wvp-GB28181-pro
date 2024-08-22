@@ -15,11 +15,11 @@ public interface PlatformMapper {
 
     @Insert("INSERT INTO wvp_platform (enable, name, server_gb_id, server_gb_domain, server_ip, server_port,device_gb_id,device_ip,"+
             " device_port,username,password,expires,keep_timeout,transport,character_set,ptz,rtcp,status,catalog_group, update_time," +
-            " create_time, as_message_channel, send_stream_ip, auto_push_channel, catalog_with_platform, custom_group, custom_civil_code, "+
+            " create_time, as_message_channel, send_stream_ip, auto_push_channel, catalog_with_platform,catalog_with_group,catalog_with_region, "+
             " civil_code,manufacturer,model,address,register_way,secrecy) " +
             " VALUES (#{enable}, #{name}, #{serverGBId}, #{serverGBDomain}, #{serverIp}, #{serverPort}, #{deviceGBId}, #{deviceIp}, " +
             " #{devicePort}, #{username}, #{password}, #{expires}, #{keepTimeout}, #{transport}, #{characterSet}, #{ptz}, #{rtcp}, #{status}, #{catalogGroup},#{updateTime}," +
-            " #{createTime}, #{asMessageChannel}, #{sendStreamIp}, #{autoPushChannel}, #{catalogWithPlatform}, #{customGroup},#{customCivilCode}, " +
+            " #{createTime}, #{asMessageChannel}, #{sendStreamIp}, #{autoPushChannel}, #{catalogWithPlatform}, #{catalogWithGroup},#{catalogWithRegion}, " +
             " #{civilCode}, #{manufacturer}, #{model}, #{address}, #{registerWay}, #{secrecy})")
     int add(Platform parentPlatform);
 
@@ -48,8 +48,8 @@ public interface PlatformMapper {
             " send_stream_ip=#{sendStreamIp}, " +
             " auto_push_channel=#{autoPushChannel}, " +
             " catalog_with_platform=#{catalogWithPlatform}, " +
-            " custom_group=#{customGroup}, " +
-            " custom_civil_code=#{customCivilCode}, " +
+            " catalog_with_group=#{catalogWithGroup}, " +
+            " catalog_with_region=#{catalogWithRegion}, " +
             " civil_code=#{civilCode}, " +
             " manufacturer=#{manufacturer}, " +
             " model=#{model}, " +
@@ -63,7 +63,7 @@ public interface PlatformMapper {
     int delParentPlatform(Platform parentPlatform);
 
     @Select(" SELECT pp.*, " +
-            " (SELECT count(0) FROM wvp_platform_gb_channel pc WHERE pc.platform_id = pp.id  ) as channel_count" +
+            " (SELECT count(0) FROM wvp_platform_channel pc WHERE pc.platform_id = pp.id  ) as channel_count" +
             " FROM wvp_platform pp "
     )
     List<Platform> queryList();

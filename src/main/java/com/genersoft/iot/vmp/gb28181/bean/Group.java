@@ -30,6 +30,12 @@ public class Group implements Comparable<Group>{
     private String name;
 
     /**
+     * 父分组ID
+     */
+    @Schema(description = "父分组ID")
+    private Integer parentId;
+
+    /**
      * 父区域国标ID
      */
     @Schema(description = "父区域国标ID")
@@ -52,12 +58,6 @@ public class Group implements Comparable<Group>{
      */
     @Schema(description = "更新时间")
     private String updateTime;
-
-    /**
-     * 平台ID
-     */
-    @Schema(description = "平台ID")
-    private Integer platformId;
 
     public static Group getInstance(DeviceChannel channel) {
         GbCode gbCode = GbCode.decode(channel.getDeviceId());

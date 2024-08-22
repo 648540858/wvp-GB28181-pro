@@ -60,6 +60,8 @@ public class GbChannelServiceImpl implements IGbChannelService {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), "此代理已经关联通道");
             }
         }
+        commonGBChannel.setCreateTime(DateUtil.getNow());
+        commonGBChannel.setUpdateTime(DateUtil.getNow());
         return commonGBChannelMapper.insert(commonGBChannel);
     }
 

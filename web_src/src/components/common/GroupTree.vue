@@ -21,18 +21,19 @@
         style="padding: 2rem 0 2rem 0.5rem"
         :load="loadNode"
         :data="treeData"
+        :props="props"
         :default-expanded-keys="['']"
         @node-contextmenu="contextmenuEventHandler"
         @node-click="nodeClickHandler"
       >
         <span class="custom-tree-node" slot-scope="{ node, data }">
           <span @click.stop >
-            <el-radio v-if="node.data.type === 0 && node.level > 2 " style="margin-right: 0" v-model="chooseId" @input="chooseIdChange(node.data.id, node.data.businessGroup)" :label="node.data.id">{{''}}</el-radio>
+            <el-radio v-if="node.data.type === 0 && node.level > 2 " style="margin-right: 0" v-model="chooseId" @input="chooseIdChange(node.data.deviceId, node.data.businessGroup)" :label="node.data.deviceId">{{''}}</el-radio>
           </span>
           <span v-if="node.data.type === 0" style="color: #409EFF" class="iconfont icon-bianzubeifen3"></span>
           <span v-if="node.data.type === 1" style="color: #409EFF" class="iconfont icon-shexiangtou2"></span>
-          <span style=" padding-left: 1px" v-if="node.data.id !=='' && showCode" :title="node.data.id">{{ node.label }}（编号：{{ node.data.id }}）</span>
-          <span style=" padding-left: 1px" v-if="node.data.id ==='' || !showCode" :title="node.data.id">{{ node.label }}</span>
+          <span style=" padding-left: 1px" v-if="node.data.deviceId !=='' && showCode" :title="node.data.deviceId">{{ node.label }}（编号：{{ node.data.deviceId }}）</span>
+          <span style=" padding-left: 1px" v-if="node.data.deviceId ==='' || !showCode" :title="node.data.deviceId">{{ node.label }}</span>
         </span>
       </vue-easy-tree>
     </div>
@@ -53,6 +54,10 @@ export default {
   },
   data() {
     return {
+      props: {
+        id: "treeId",
+        label: "name",
+      },
       showCode: false,
       searchSrt: "",
       chooseId: "",
@@ -70,7 +75,7 @@ export default {
       if (node.level === 0) {
         resolve([{
           id: "",
-          label: "根资源组",
+          name: "根资源组",
           isLeaf: false,
           type: 0
         }]);
@@ -112,7 +117,7 @@ export default {
                   method: "post",
                   url: `/api/common/channel/group/delete`,
                   data: {
-                    channelIds: [data.dbId]
+                    channelIds: [data.id]
                   }
                 }).then((res) => {
                   console.log("移除成功")
@@ -225,7 +230,7 @@ export default {
         method: "delete",
         url: `/api/group/delete`,
         params: {
-          id: node.data.dbId,
+          id: node.data.id,
         }
       }).then((res) => {
         if (res.data.code === 0) {

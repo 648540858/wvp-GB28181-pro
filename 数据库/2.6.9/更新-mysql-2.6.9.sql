@@ -445,7 +445,7 @@ rename table log to wvp_log;
 rename table media_server to wvp_media_server;
 rename table parent_platform to wvp_platform;
 rename table platform_catalog to wvp_platform_catalog;
-rename table platform_gb_channel to wvp_platform_gb_channel;
+rename table platform_gb_channel to wvp_platform_channel;
 rename table platform_gb_stream to wvp_platform_gb_stream;
 rename table stream_proxy to wvp_stream_proxy;
 rename table stream_push to wvp_stream_push;

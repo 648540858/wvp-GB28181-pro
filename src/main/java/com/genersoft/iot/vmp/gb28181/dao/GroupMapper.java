@@ -3,7 +3,6 @@ package com.genersoft.iot.vmp.gb28181.dao;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.gb28181.bean.GroupTree;
-import com.genersoft.iot.vmp.gb28181.bean.Region;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -12,13 +11,13 @@ import java.util.Set;
 @Mapper
 public interface GroupMapper {
 
-    @Insert("INSERT INTO wvp_common_group (device_id, name, parent_device_id, business_group, platform_id, create_time, update_time) " +
-            "VALUES (#{deviceId}, #{name}, #{parentDeviceId}, #{businessGroup}, #{platformId}, #{createTime}, #{updateTime})")
+    @Insert("INSERT INTO wvp_common_group (device_id, name, parent_id, parent_device_id, business_group, create_time, update_time) " +
+            "VALUES (#{deviceId}, #{name}, #{parentId}, #{parentDeviceId}, #{businessGroup}, #{createTime}, #{updateTime})")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int add(Group group);
 
-    @Insert("INSERT INTO wvp_common_group (device_id, name, business_group, platform_id, create_time, update_time) " +
-            "VALUES (#{deviceId}, #{name}, #{businessGroup}, #{platformId}, #{createTime}, #{updateTime})")
+    @Insert("INSERT INTO wvp_common_group (device_id, name, business_group, create_time, update_time) " +
+            "VALUES (#{deviceId}, #{name}, #{businessGroup}, #{createTime}, #{updateTime})")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int addBusinessGroup(Group group);
 
@@ -26,7 +25,7 @@ public interface GroupMapper {
     int delete(@Param("id") int id);
 
     @Update(" UPDATE wvp_common_group " +
-            " SET update_time=#{updateTime}, device_id=#{deviceId}, name=#{name}, parent_device_id=#{parentDeviceId}, business_group=#{businessGroup}" +
+            " SET update_time=#{updateTime}, device_id=#{deviceId}, name=#{name}, parent_id=#{parentId}, parent_device_id=#{parentDeviceId}, business_group=#{businessGroup}" +
             " WHERE id = #{id}")
     int update(Group group);
 
@@ -38,28 +37,11 @@ public interface GroupMapper {
             " </script>"})
     List<Group> query(@Param("query") String query, @Param("parentId") String parentId, @Param("businessGroup") String businessGroup);
 
-    @Select(value = {" <script>" +
-            "SELECT * from wvp_common_group WHERE parent_device_id = #{parentId} "+
-            " <if test='platformId != null'> AND platform_id = #{platformId}</if> " +
-            " <if test='platformId == null'> AND platform_id is null</if> " +
-            " </script>"})
-    List<Group> getChildren(@Param("parentId") String parentId , @Param("platformId") Integer platformId);
+    @Select("SELECT * from wvp_common_group WHERE parent_id = #{parentId} ")
+    List<Group> getChildren(@Param("parentId") int parentId);
 
     @Select("SELECT * from wvp_common_group WHERE id = #{id} ")
     Group queryOne(@Param("id") int id);
-
-    @Select(" select coalesce(dc.gb_civil_code, dc.civil_code) as civil_code " +
-            " from wvp_device_channel dc " +
-            " where coalesce(dc.gb_civil_code, dc.civil_code) not in " +
-            " (select device_id from wvp_common_group)")
-    List<String> getUninitializedCivilCode();
-
-    @Select(" <script>" +
-            " SELECT device_id from wvp_common_group " +
-            " where device_id in " +
-            " <foreach collection='codes'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
-            " </script>")
-    List<String> queryInList(Set<String> codes);
 
 
     @Insert(" <script>" +
@@ -67,70 +49,55 @@ public interface GroupMapper {
             " device_id," +
             " name, " +
             " parent_device_id," +
+            " parent_id," +
             " business_group," +
             " create_time," +
             " update_time) " +
             " VALUES " +
             " <foreach collection='groupList' index='index' item='item' separator=','> " +
-            " (#{item.deviceId}, #{item.name}, #{item.parentDeviceId}, #{item.businessGroup},#{item.createTime},#{item.updateTime})" +
+            " (#{item.deviceId}, #{item.name}, #{item.parentDeviceId}, #{item.parentId}, #{item.businessGroup},#{item.createTime},#{item.updateTime})" +
             " </foreach> " +
             " </script>")
     int batchAdd(List<Group> groupList);
 
     @Select(" <script>" +
             " SELECT " +
-            " device_id as id," +
-            " name as label, " +
-            " parent_device_id," +
-            " business_group," +
-            " id as db_id," +
+            " *," +
+            " concat('group_', id) as tree_id," +
             " 0 as type," +
             " false as is_leaf" +
             " from wvp_common_group " +
             " where 1=1 " +
-            " <if test='parentId != null'> and parent_device_id = #{parentId} </if> " +
-            " <if test='parentId == null'> and parent_device_id is null </if> " +
-            " <if test='platformId != null'> and platform_id = #{platformId} </if> " +
-            " <if test='platformId == null'> and platform_id is null </if> " +
+            " <if test='parentId != null'> and parent_id = #{parentId} </if> " +
+            " <if test='parentId == null'> and parent_id is null </if> " +
             " <if test='query != null'> AND (device_id LIKE concat('%',#{query},'%') OR name LIKE concat('%',#{query},'%'))</if> " +
             " </script>")
-    List<GroupTree> queryForTree(@Param("query") String query, @Param("parentId") String parentId,
-                                 @Param("platformId") Integer platformId);
+    List<GroupTree> queryForTree(@Param("query") String query, @Param("parentId") Integer parentId);
 
     @Select(" <script>" +
             " SELECT " +
-            " device_id as id," +
-            " name as label, " +
-            " parent_device_id," +
-            " business_group," +
-            " id as db_id," +
+            " concat('group_', id) as tree_id," +
+            " *, " +
             " 0 as type," +
             " false as is_leaf" +
             " from wvp_common_group " +
-            " where parent_device_id is null and business_group = #{businessGroup} and device_id != #{businessGroup}" +
-            " <if test='platformId != null'> and platform_id = #{platformId} </if> " +
-            " <if test='platformId == null'> and platform_id is null </if> " +
+            " where parent_id is not null and business_group = #{businessGroup} and device_id != #{businessGroup}" +
             " <if test='query != null'> AND (device_id LIKE concat('%',#{query},'%') OR name LIKE concat('%',#{query},'%'))</if> " +
             " </script>")
     List<GroupTree> queryForTreeByBusinessGroup(@Param("query") String query,
-                                                @Param("businessGroup") String businessGroup,
-                                 @Param("platformId") Integer platformId);
+                                                @Param("businessGroup") String businessGroup);
 
     @Select(" <script>" +
             " SELECT " +
-            " device_id as id," +
-            " name as label, " +
-            " parent_device_id," +
-            " id as db_id," +
+            " *," +
+            " concat('group_', id) as tree_id," +
             " 0 as type," +
             " false as is_leaf" +
             " from wvp_common_group " +
             " where device_id=business_group" +
-            " <if test='platformId != null'> AND platform_id = #{platformId} </if> " +
-            " <if test='platformId == null'> AND platform_id is null </if> " +
             " <if test='query != null'> AND (device_id LIKE concat('%',#{query},'%') OR name LIKE concat('%',#{query},'%'))</if> " +
             " </script>")
-    List<GroupTree> queryBusinessGroupForTree(String query, Integer platformId);
+    List<GroupTree> queryBusinessGroupForTree(@Param("query") String query);
 
     @Select("SELECT * from wvp_common_group WHERE device_id = #{deviceId} and business_group = #{businessGroup}")
     Group queryOneByDeviceId(@Param("deviceId") String deviceId, @Param("businessGroup") String businessGroup);
@@ -152,15 +119,15 @@ public interface GroupMapper {
 
     @Update(" UPDATE wvp_common_group " +
             " SET parent_device_id=#{group.deviceId}, business_group = #{group.businessGroup}" +
-            " WHERE parent_device_id = #{oldDeviceId}")
-    int updateChild(@Param("oldDeviceId") String oldDeviceId, Group group);
+            " WHERE parentId = #{parentId}")
+    int updateChild(@Param("parentId") Integer parentId, Group group);
 
     @Select(" <script>" +
             " SELECT * from wvp_common_group " +
             " where device_id in " +
             " <foreach collection='groupList'  item='item'  open='(' separator=',' close=')' > #{item.deviceId}</foreach>" +
             " </script>")
-    List<Region> queryInGroupList(List<Group> groupList);
+    List<Group> queryInGroupListByDeviceId(List<Group> groupList);
 
     @Select(" <script>" +
             " SELECT " +
@@ -175,19 +142,10 @@ public interface GroupMapper {
             " SELECT " +
             " * " +
             " from wvp_common_group " +
-            " where device_id in " +
-            " <foreach collection='regionChannelList'  item='item'  open='(' separator=',' close=')' > #{item.parentDeviceId}</foreach>" +
+            " where id in " +
+            " <foreach collection='groupSet'  item='item'  open='(' separator=',' close=')' > #{item.parentId}</foreach>" +
             " </script>")
-    Set<Group> queryParentInChannelList(Set<Group> regionChannelList);
-
-    @Select(" <script>" +
-            " SELECT " +
-            " * " +
-            " from wvp_common_group " +
-            " where device_id in " +
-            " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.gbBusinessGroupId}</foreach>" +
-            " </script>")
-    Set<Group> queryBusinessGroupInChannelList(List<CommonGBChannel> channelList);
+    Set<Group> queryParentInChannelList(Set<Group> groupSet);
 
     @Select(" <script>" +
             " SELECT " +
@@ -206,7 +164,7 @@ public interface GroupMapper {
             " SELECT * " +
             " from wvp_common_group wcg" +
             " left join wvp_platform_group wpg on wpg.group_id = wcg.id and wpg.platform_id = #{platformId}" +
-            " where wpg.platform_id = null and wcg.device_id in " +
+            " where wpg.platform_id is null and wcg.device_id in " +
             " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.gbParentId}</foreach>" +
             " </script>")
     Set<Group> queryNotShareForPlatformByChannelList(List<CommonGBChannel> channelList, @Param("platformId") Integer platformId);
@@ -215,7 +173,7 @@ public interface GroupMapper {
             " SELECT * " +
             " from wvp_common_group wcg" +
             " left join wvp_platform_group wpg on wpg.group_id = wcg.id and wpg.platform_id = #{platformId}" +
-            " where wpg.platform_id = null and wcg.id in " +
+            " where wpg.platform_id IS NULL and wcg.id in " +
             " <foreach collection='allGroup'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
             " </script>")
     Set<Group> queryNotShareForPlatformByGroupList(Set<Group> allGroup, @Param("platformId") Integer platformId);

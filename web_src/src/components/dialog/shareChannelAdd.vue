@@ -14,6 +14,14 @@
             <el-option label="在线" value="true"></el-option>
             <el-option label="离线" value="false"></el-option>
           </el-select>
+          类型:
+          <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="search" v-model="channelType" placeholder="请选择"
+                     default-first-option>
+            <el-option label="全部" value=""></el-option>
+            <el-option label="国标设备" value="gb"></el-option>
+            <el-option label="推流设备" value="push"></el-option>
+            <el-option label="拉流代理" value="proxy"></el-option>
+          </el-select>
           添加状态:
           <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="search" v-model="hasShare" placeholder="请选择"
                      default-first-option>
@@ -46,9 +54,9 @@
       <el-table-column label="类型" min-width="100">
         <template slot-scope="scope">
           <div slot="reference" class="name-wrapper">
-            <el-tag size="medium" v-if="scope.row.gbDeviceDbId">国标设备</el-tag>
-            <el-tag size="medium" v-if="scope.row.streamPushId">推流设备</el-tag>
-            <el-tag size="medium" v-if="scope.row.streamProxyId">拉流代理</el-tag>
+            <el-tag size="medium" effect="plain" v-if="scope.row.gbDeviceDbId">国标设备</el-tag>
+            <el-tag size="medium" effect="plain" type="success" v-if="scope.row.streamPushId">推流设备</el-tag>
+            <el-tag size="medium" effect="plain" type="warning" v-if="scope.row.streamProxyId">拉流代理</el-tag>
           </div>
         </template>
       </el-table-column>
@@ -131,6 +139,7 @@ export default {
           count: this.count,
           query: this.searchSrt,
           online: this.online,
+          channelType: this.channelType,
           platformId: this.platformId,
           hasShare: this.hasShare
         }

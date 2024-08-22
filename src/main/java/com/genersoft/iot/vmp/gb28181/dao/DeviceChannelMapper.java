@@ -328,7 +328,7 @@ public interface DeviceChannelMapper {
             " pgc.catalog_id as catalog_id " +
             " FROM wvp_device_channel dc " +
             " LEFT JOIN wvp_device de ON dc.device_db_id = de.id " +
-            " LEFT JOIN wvp_platform_gb_channel pgc on pgc.device_channel_id = dc.id " +
+            " LEFT JOIN wvp_platform_channel pgc on pgc.device_channel_id = dc.id " +
             " WHERE 1=1 " +
             " <if test='query != null'> " +
             "AND " +
@@ -338,7 +338,7 @@ public interface DeviceChannelMapper {
             " <if test='online == false' > AND dc.status=0</if> " +
             " <if test='hasSubChannel!= null and hasSubChannel == true' >  AND dc.sub_count > 0</if> " +
             " <if test='hasSubChannel!= null and hasSubChannel == false' >  AND dc.sub_count = 0</if> " +
-            " <if test='catalogId == null ' >  AND dc.id not in (select device_channel_id from wvp_platform_gb_channel where platform_id=#{platformId} ) </if> " +
+            " <if test='catalogId == null ' >  AND dc.id not in (select device_channel_id from wvp_platform_channel where platform_id=#{platformId} ) </if> " +
             " <if test='catalogId != null ' >  AND pgc.platform_id = #{platformId} and pgc.catalog_id=#{catalogId} </if> " +
             " ORDER BY COALESCE(dc.gb_device_id, dc.device_id) ASC" +
             " </script>"})

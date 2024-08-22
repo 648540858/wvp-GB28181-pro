@@ -31,7 +31,7 @@ public class UserSetting {
 
     private Boolean recordSip = Boolean.TRUE;
 
-    private Boolean logInDatabase = Boolean.TRUE;
+    private Boolean logInDatabase = Boolean.FALSE;
 
     private Boolean usePushingAsStatus = Boolean.FALSE;
 

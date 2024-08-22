@@ -8,37 +8,10 @@ import lombok.Data;
  */
 @Data
 @Schema(description = "业务分组树")
-public class GroupTree {
+public class GroupTree extends Group{
 
-    /**
-     * 数据库Id
-     */
-    @Schema(description = "数据库Id")
-    private int dbId;
-
-    /**
-     * 区域国标编号
-     */
-    @Schema(description = "区域国标编号")
-    private String id;
-
-    /**
-     * 区域名称
-     */
-    @Schema(description = "区域名称")
-    private String label;
-
-    /**
-     * 父区域国标ID
-     */
-    @Schema(description = "父区域国标ID")
-    private String parentDeviceId;
-
-    /**
-     * 业务分组ID
-     */
-    @Schema(description = "父区域国标ID")
-    private String businessGroup;
+    @Schema(description = "树节点Id")
+    private String treeId;
 
     @Schema(description = "是否有子节点")
     private boolean isLeaf;
@@ -46,13 +19,4 @@ public class GroupTree {
     @Schema(description = "类型, 行政区划:0 摄像头: 1")
     private int type;
 
-    public static GroupTree getInstance(CommonGBChannel channel) {
-        GroupTree regionTree = new GroupTree();
-        regionTree.setId(channel.getGbDeviceId());
-        regionTree.setLabel(channel.getGbName());
-        regionTree.setParentDeviceId(channel.getGbCivilCode());
-        regionTree.setType(1);
-        regionTree.setLeaf(true);
-        return regionTree;
-    }
 }

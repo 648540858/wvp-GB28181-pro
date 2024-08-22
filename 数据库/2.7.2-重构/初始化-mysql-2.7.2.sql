@@ -456,12 +456,12 @@ CREATE TABLE wvp_common_group
     id               serial primary key,
     device_id        varchar(50)  NOT NULL,
     name             varchar(255) NOT NULL,
+    parent_id        int,
     parent_device_id varchar(50) DEFAULT NULL,
     business_group   varchar(50)  NOT NULL,
-    platform_id      int,
     create_time      varchar(50)  NOT NULL,
     update_time      varchar(50)  NOT NULL,
-    UNIQUE KEY common_group_device_platform (device_id, platform_id)
+    UNIQUE KEY common_group_device_platform (device_id)
 );
 
 CREATE TABLE wvp_common_region
@@ -469,6 +469,7 @@ CREATE TABLE wvp_common_region
     id               serial primary key,
     device_id        varchar(50)  NOT NULL,
     name             varchar(255) NOT NULL,
+    parent_id        int,
     parent_device_id varchar(50) DEFAULT NULL,
     create_time      varchar(50)  NOT NULL,
     update_time      varchar(50)  NOT NULL,

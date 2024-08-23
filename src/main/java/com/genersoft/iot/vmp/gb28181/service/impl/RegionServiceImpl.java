@@ -175,6 +175,7 @@ public class RegionServiceImpl implements IRegionService {
     }
 
     @Override
+    @Transactional
     public boolean batchAdd(List<Region> regionList) {
         if (regionList== null || regionList.isEmpty()) {
             return false;
@@ -190,7 +191,12 @@ public class RegionServiceImpl implements IRegionService {
                 regionMapForVerification.remove(region.getDeviceId());
             }
         }
-        regionMapper.batchAdd(new ArrayList<>(regionMapForVerification.values()));
-        return false;
+        if (!regionMapForVerification.isEmpty()) {
+            List<Region> regions = new ArrayList<>(regionMapForVerification.values());
+            regionMapper.batchAdd(regions);
+            regionMapper.updateParentId(regions);
+        }
+
+        return true;
     }
 }

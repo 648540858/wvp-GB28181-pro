@@ -640,7 +640,6 @@ public class PlatformServiceImpl implements IPlatformService {
         inviteInfo.setStatus(InviteSessionStatus.ok);
         ResponseEvent responseEvent = (ResponseEvent) eventResult.event;
         String contentString = new String(responseEvent.getResponse().getRawContent());
-        System.out.println(contentString);
         String ssrcInResponse = SipUtils.getSsrcFromSdp(contentString);
         // 兼容回复的消息中缺少ssrc(y字段)的情况
         if (ssrcInResponse == null) {

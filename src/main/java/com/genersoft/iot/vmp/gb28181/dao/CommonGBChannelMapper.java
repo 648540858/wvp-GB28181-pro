@@ -262,7 +262,10 @@ public interface CommonGBChannelMapper {
 
     @Select("<script>" +
             " select " +
-            "    *, " +
+            "    id," +
+            "    coalesce(gb_device_id, device_id) as device_id," +
+            "    coalesce(gb_name, name) as name, " +
+            "    coalesce(gb_parent_id, parent_id) as parent_device_id, " +
             "    1 as type, " +
             "    true as is_leaf " +
             " from wvp_device_channel " +

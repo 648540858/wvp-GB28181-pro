@@ -511,10 +511,10 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     if (i + limitCount > addChannels.size()) {
                         toIndex = addChannels.size();
                     }
-                    result = result || channelMapper.batchAdd(addChannels.subList(i, toIndex)) < 0;
+                    result = result || channelMapper.batchAdd(addChannels.subList(i, toIndex)) > 0;
                 }
             }else {
-                result = result || channelMapper.batchAdd(addChannels) < 0;
+                result = channelMapper.batchAdd(addChannels) > 0;
             }
         }
         if (!result && !updateChannels.isEmpty()) {
@@ -524,14 +524,13 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     if (i + limitCount > updateChannels.size()) {
                         toIndex = updateChannels.size();
                     }
-                    result = result || channelMapper.batchUpdate(updateChannels.subList(i, toIndex)) < 0;
+                    result = result || channelMapper.batchUpdate(updateChannels.subList(i, toIndex)) > 0;
                 }
             }else {
-                result = result || channelMapper.batchUpdate(updateChannels) < 0;
+                result = channelMapper.batchUpdate(updateChannels) > 0;
             }
         }
         if (!result && !deleteChannels.isEmpty()) {
-            System.out.println("删除： " + deleteChannels.size());
             if (deleteChannels.size() > limitCount) {
                 for (int i = 0; i < deleteChannels.size(); i += limitCount) {
                     int toIndex = i + limitCount;
@@ -541,11 +540,10 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     result = result || channelMapper.batchDel(deleteChannels.subList(i, toIndex)) < 0;
                 }
             }else {
-                result = result || channelMapper.batchDel(deleteChannels) < 0;
+                result = channelMapper.batchDel(deleteChannels) < 0;
             }
         }
-
-        return true;
+        return result;
 
     }
 

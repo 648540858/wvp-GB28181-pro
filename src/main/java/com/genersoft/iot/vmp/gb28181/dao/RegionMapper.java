@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.gb28181.bean.Region;
 import com.genersoft.iot.vmp.gb28181.bean.RegionTree;
 import org.apache.ibatis.annotations.*;
@@ -103,5 +104,15 @@ public interface RegionMapper {
             " where wpr.platform_id  = #{platformId} " +
             " </script>")
     List<CommonGBChannel> queryByPlatform(@Param("platformId") Integer platformId);
+
+
+    @Update(" <script>" +
+            " update wvp_common_region w1 " +
+            " inner join (select * from wvp_common_region ) w2 on w1.parent_device_id = w2.device_id " +
+            " set w1.parent_id = w2.id" +
+            " where w1.id in " +
+            " <foreach collection='regionListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
+            " </script>")
+    void updateParentId(List<Region> regionListForAdd);
 
 }

@@ -74,7 +74,6 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     @Transactional
     public void handForDevice(RequestEvent evt, Device device, Element element) {
         taskQueue.offer(new HandlerCatchData(evt, device, element));
-        System.out.println(evt.getRequest());
         // 回复200 OK
         try {
             responseAck((SIPRequest) evt.getRequest(), Response.OK);
@@ -187,7 +186,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
 
         List<Region> regionList = catalogDataCatch.getRegionList(device.getDeviceId());
         if ( regionList!= null && !regionList.isEmpty()) {
-            result &= regionService.batchAdd(catalogDataCatch.getRegionList(device.getDeviceId()));
+            result &= regionService.batchAdd(regionList);
         }
 
         List<Group> groupList = catalogDataCatch.getGroupList(device.getDeviceId());

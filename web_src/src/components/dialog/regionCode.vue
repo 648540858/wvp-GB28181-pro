@@ -200,56 +200,13 @@ export default {
         let parent = ''
         if (this.activeKey === '1') {
           parent = this.allVal[0].val
-
-          if (parent === '11' || parent === '12' || parent === '31') {
-            this.regionList = []
-            this.regionList.push({
-              // 数据库自增ID
-              commonRegionId: -1,
-              // 区域国标编号
-              deviceId: parent + '01',
-              // 区域名称
-              name: '市辖区',
-              // 父区域国标ID
-              commonRegionParentId: parent,
-            })
-            console.log(this.regionList)
-            return
-          } else if (parent === '50') {
-            this.regionList = [
-              {
-                // 数据库自增ID
-                commonRegionId: -1,
-                // 区域国标编号
-                deviceId: parent + '01',
-                // 区域名称
-                name: '市辖区',
-                // 父区域国标ID
-                commonRegionParentId: parent,
-              },
-              {
-                // 数据库自增ID
-                commonRegionId: -1,
-                // 区域国标编号
-                deviceId: parent + '02',
-                // 区域名称
-                name: '县',
-                // 父区域国标ID
-                commonRegionParentId: parent,
-              },
-            ]
-            return
-          }
         }
         if (this.activeKey === '2') {
           if (this.allVal[1].val === ""){
             parent = ""
-          }else if (this.allVal[0].val === '11' || this.allVal[0].val === '12' || this.allVal[0].val === '31' || this.allVal[0].val === '50') {
-            parent = this.allVal[0].val
           } else {
             parent = this.allVal[0].val + this.allVal[1].val
           }
-
         }
         if (this.activeKey !== '0' && parent === '') {
           this.$message.error('请先选择上级行政区划');

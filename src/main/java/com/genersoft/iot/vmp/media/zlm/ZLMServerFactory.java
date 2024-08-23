@@ -227,7 +227,6 @@ public class ZLMServerFactory {
         if (sendRtpItem.getLocalPort() != 0) {
             if (sendRtpItem.isTcpActive()) {
                 startSendRtpStreamResult = startSendRtpPassive(mediaInfo, param);
-                System.out.println(JSON.toJSON(param));
             }else {
                 param.put("is_udp", is_Udp);
                 param.put("dst_url", sendRtpItem.getIp());

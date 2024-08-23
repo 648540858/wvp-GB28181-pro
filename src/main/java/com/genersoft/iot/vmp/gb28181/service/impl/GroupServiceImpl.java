@@ -165,9 +165,9 @@ public class GroupServiceImpl implements IGroupService {
         }
         // 查询含有的通道
         Group parentGroup = groupManager.queryOne(parentId);
-        if (parentGroup != null && !parentGroup.getDeviceId().equals(parentGroup.getBusinessGroup())) {
+        if (parentGroup != null ) {
             List<GroupTree> groupTreesForChannel = commonGBChannelMapper.queryForGroupTreeByParentId(query, parentGroup.getDeviceId());
-            if (ObjectUtils.isEmpty(groupTreesForChannel)) {
+            if (!ObjectUtils.isEmpty(groupTreesForChannel)) {
                 groupTrees.addAll(groupTreesForChannel);
             }
         }

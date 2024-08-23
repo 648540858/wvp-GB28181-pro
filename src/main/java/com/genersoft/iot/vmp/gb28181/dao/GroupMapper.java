@@ -62,8 +62,7 @@ public interface GroupMapper {
 
     @Select(" <script>" +
             " SELECT " +
-            " *," +
-            " concat('group_', id) as tree_id," +
+            " * , " +
             " 0 as type," +
             " false as is_leaf" +
             " from wvp_common_group " +
@@ -76,8 +75,7 @@ public interface GroupMapper {
 
     @Select(" <script>" +
             " SELECT " +
-            " concat('group_', id) as tree_id," +
-            " *, " +
+            " * , " +
             " 0 as type," +
             " false as is_leaf" +
             " from wvp_common_group " +
@@ -90,7 +88,6 @@ public interface GroupMapper {
     @Select(" <script>" +
             " SELECT " +
             " *," +
-            " concat('group_', id) as tree_id," +
             " 0 as type," +
             " false as is_leaf" +
             " from wvp_common_group " +
@@ -119,7 +116,7 @@ public interface GroupMapper {
 
     @Update(" UPDATE wvp_common_group " +
             " SET parent_device_id=#{group.deviceId}, business_group = #{group.businessGroup}" +
-            " WHERE parentId = #{parentId}")
+            " WHERE parent_id = #{parentId}")
     int updateChild(@Param("parentId") Integer parentId, Group group);
 
     @Select(" <script>" +

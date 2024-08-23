@@ -618,7 +618,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Override
     public void deleteChannelToGroup(String parentId, String businessGroup, List<Integer> channelIds) {
-        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(channelIds);
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByIds(channelIds);
         if (channelList.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }

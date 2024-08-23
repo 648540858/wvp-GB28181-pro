@@ -50,9 +50,9 @@
           <el-table-column label="类型" min-width="100">
             <template slot-scope="scope">
               <div slot="reference" class="name-wrapper">
-                <el-tag size="medium" v-if="scope.row.gbDeviceDbId">国标设备</el-tag>
-                <el-tag size="medium" v-if="scope.row.streamPushId">推流设备</el-tag>
-                <el-tag size="medium" v-if="scope.row.streamProxyId">拉流代理</el-tag>
+                <el-tag size="medium" effect="plain" v-if="scope.row.gbDeviceDbId">国标设备</el-tag>
+                <el-tag size="medium" effect="plain" type="success" v-if="scope.row.streamPushId">推流设备</el-tag>
+                <el-tag size="medium" effect="plain" type="warning" v-if="scope.row.streamProxyId">拉流代理</el-tag>
               </div>
             </template>
           </el-table-column>

@@ -15,7 +15,7 @@
       <vue-easy-tree
         class="flow-tree"
         ref="veTree"
-        node-key="id"
+        node-key="deviceId"
         height="78vh"
         lazy
         style="padding: 2rem 0 2rem 0.5rem"
@@ -55,7 +55,6 @@ export default {
   data() {
     return {
       props: {
-        id: "treeId",
         label: "name",
       },
       showCode: false,
@@ -74,7 +73,7 @@ export default {
     loadNode: function (node, resolve) {
       if (node.level === 0) {
         resolve([{
-          id: "",
+          deviceId: "",
           name: "根资源组",
           isLeaf: false,
           type: 0
@@ -255,7 +254,7 @@ export default {
           method: 'post',
           url: `/api/common/channel/group/device/add`,
           data: {
-            parentId: node.data.id,
+            parentId: node.data.deviceId,
             businessGroup: node.data.businessGroup,
             deviceIds: deviceIds,
           }
@@ -322,8 +321,9 @@ export default {
         id: 0,
         name: "",
         deviceId: "",
-        parentDeviceId: node.level > 2 ? node.data.id:"",
-        businessGroup: node.level > 2 ? node.data.businessGroup: node.data.id,
+        parentDeviceId: node.level > 2 ? node.data.deviceId:"",
+        parentId: node.data.id,
+        businessGroup: node.level > 2 ? node.data.businessGroup: node.data.deviceId,
       },form => {
         node.loaded = false
         node.expand();
@@ -331,13 +331,7 @@ export default {
     },
     editGroup: function (id, node) {
       console.log(node)
-      this.$refs.groupEdit.openDialog({
-        id: node.data.dbId,
-        name: node.data.label,
-        deviceId: node.data.id,
-        parentDeviceId: node.data.parentDeviceId,
-        businessGroup: node.data.businessGroup,
-      },form => {
+      this.$refs.groupEdit.openDialog(node.data,form => {
         node.parent.loaded = false
         node.parent.expand();
       }, id);

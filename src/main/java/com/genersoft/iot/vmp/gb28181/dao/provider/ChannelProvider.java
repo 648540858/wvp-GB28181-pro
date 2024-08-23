@@ -142,6 +142,24 @@ public class ChannelProvider {
     public String queryByGbDeviceIds(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
+        sqlBuild.append("where device_db_id in ( ");
+
+        Collection<Integer> ids = (Collection<Integer>)params.get("deviceIds");
+        boolean first = true;
+        for (Integer id : ids) {
+            if (!first) {
+                sqlBuild.append(",");
+            }
+            sqlBuild.append(id);
+            first = false;
+        }
+        sqlBuild.append(" )");
+        return sqlBuild.toString() ;
+    }
+
+    public String queryByDeviceIds(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(getBaseSelectSql());
         sqlBuild.append("where id in ( ");
 
         Collection<Integer> ids = (Collection<Integer>)params.get("deviceIds");

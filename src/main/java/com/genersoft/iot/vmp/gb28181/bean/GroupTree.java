@@ -10,7 +10,7 @@ import lombok.Data;
 @Schema(description = "业务分组树")
 public class GroupTree extends Group{
 
-    @Schema(description = "树节点Id")
+    @Schema(description = "是否有子节点")
     private String treeId;
 
     @Schema(description = "是否有子节点")

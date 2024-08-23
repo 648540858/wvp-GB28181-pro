@@ -45,7 +45,7 @@ public class RegionServiceImpl implements IRegionService {
     public void add(Region region) {
         Assert.hasLength(region.getName(), "名称必须存在");
         Assert.hasLength(region.getDeviceId(), "国标编号必须存在");
-        if (ObjectUtils.isEmpty(region.getParentDeviceId().trim())) {
+        if (ObjectUtils.isEmpty(region.getParentDeviceId()) || ObjectUtils.isEmpty(region.getParentDeviceId().trim())) {
             region.setParentDeviceId(null);
         }
         region.setCreateTime(DateUtil.getNow());
@@ -60,8 +60,8 @@ public class RegionServiceImpl implements IRegionService {
 
     @Override
     @Transactional
-    public boolean deleteByDeviceId(String regionDeviceId) {
-        Region region = regionMapper.queryOneByDeviceId(regionDeviceId);
+    public boolean deleteByDeviceId(Integer regionDeviceId) {
+        Region region = regionMapper.queryOne(regionDeviceId);
         // 获取所有子节点
         List<Region> allChildren = getAllChildren(regionDeviceId);
         allChildren.add(region);
@@ -71,8 +71,8 @@ public class RegionServiceImpl implements IRegionService {
         return true;
     }
 
-    private List<Region> getAllChildren(String deviceId) {
-        if (deviceId == null || deviceId.length() >= 8) {
+    private List<Region> getAllChildren(Integer deviceId) {
+        if (deviceId == null) {
             return new ArrayList<>();
         }
         List<Region> children = regionMapper.getChildren(deviceId);
@@ -82,7 +82,7 @@ public class RegionServiceImpl implements IRegionService {
         List<Region> regions = new ArrayList<>(children);
         for (Region region : children) {
             if (region.getDeviceId().length() < 8) {
-                regions.addAll(getAllChildren(region.getDeviceId()));
+                regions.addAll(getAllChildren(region.getId()));
             }
         }
         return regions;
@@ -93,14 +93,6 @@ public class RegionServiceImpl implements IRegionService {
         PageHelper.startPage(page, count);
         List<Region> regionList =  regionMapper.query(query, null);
         return new PageInfo<>(regionList);
-    }
-
-    @Override
-    public PageInfo<Region> queryChildRegionList(String regionParentId, int page, int count) {
-        Assert.hasLength(regionParentId, "上级行政区划编号必须存在");
-        PageHelper.startPage(page, count);
-        List<Region> all = regionMapper.getChildren(regionParentId);
-        return new PageInfo<>(all);
     }
 
     @Override
@@ -122,11 +114,14 @@ public class RegionServiceImpl implements IRegionService {
     }
 
     @Override
-    public List<RegionTree> queryForTree(String query, String parent) {
+    public List<RegionTree> queryForTree(String query, Integer parent) {
         List<RegionTree> regionList = regionMapper.queryForTree(query, parent);
         if (parent != null) {
-            List<RegionTree> channelList = commonGBChannelMapper.queryForRegionTreeByCivilCode(query, parent);
-            regionList.addAll(channelList);
+            Region parentRegion = regionMapper.queryOne(parent);
+            if (parentRegion != null) {
+                List<RegionTree> channelList = commonGBChannelMapper.queryForRegionTreeByCivilCode(query, parentRegion.getDeviceId());
+                regionList.addAll(channelList);
+            }
         }
         return regionList;
     }
@@ -189,7 +184,7 @@ public class RegionServiceImpl implements IRegionService {
             regionMapForVerification.put(region.getDeviceId(), region);
         }
         // 查询数据库中已经存在的.
-        List<Region> regionListInDb = regionMapper.queryInRegionList(regionList);
+        List<Region> regionListInDb = regionMapper.queryInRegionListByDeviceId(regionList);
         if (!regionListInDb.isEmpty()) {
             for (Region region : regionListInDb) {
                 regionMapForVerification.remove(region.getDeviceId());

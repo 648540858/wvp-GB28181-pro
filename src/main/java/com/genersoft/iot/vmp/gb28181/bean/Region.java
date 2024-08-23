@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 import com.genersoft.iot.vmp.common.CivilCodePo;
-import com.genersoft.iot.vmp.jt1078.proc.request.Re;
 import com.genersoft.iot.vmp.utils.CivilCodeUtil;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -31,6 +30,12 @@ public class Region implements Comparable<Region>{
      */
     @Schema(description = "区域名称")
     private String name;
+
+    /**
+     * 父区域国标ID
+     */
+    @Schema(description = "父区域ID")
+    private Integer parentId;
 
     /**
      * 父区域国标ID

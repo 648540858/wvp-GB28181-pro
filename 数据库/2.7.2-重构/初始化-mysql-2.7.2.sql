@@ -145,6 +145,7 @@ create table wvp_device_channel
     has_audio                    bool default false,
     gps_time                     character varying(50),
     stream_identification        character varying(50),
+    channel_type                  int  default 0        not null,
     gb_device_id                 character varying(50),
     gb_name                      character varying(255),
     gb_manufacturer              character varying(255),

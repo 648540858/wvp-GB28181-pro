@@ -136,10 +136,12 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                         // 行政区划
                                         Region region = Region.getInstance(channel);
                                         regionList.add(region);
+                                        channel.setChannelType(1);
                                     }else if (channel.getDeviceId().length() == 20){
                                         // 业务分组/虚拟组织
                                         Group group = Group.getInstance(channel);
                                         if (group != null) {
+                                            channel.setChannelType(2);
                                             groupList.add(group);
                                         }
                                     }

@@ -43,7 +43,7 @@ public interface PlatformChannelMapper {
             "DELETE from wvp_platform_channel WHERE device_channel_id in " +
             "( select  temp.device_channel_id from " +
             "(select pgc.device_channel_id from wvp_platform_channel pgc " +
-            "left join wvp_device_channel dc on dc.id = pgc.device_channel_id where dc.device_id  =#{deviceId} " +
+            "left join wvp_device_channel dc on dc.id = pgc.device_channel_id where dc.channel_type = 0 and dc.device_id  =#{deviceId} " +
             ") temp)" +
             "</script>")
     int delChannelForDeviceId(String deviceId);
@@ -53,25 +53,25 @@ public interface PlatformChannelMapper {
             "</script>")
     int cleanChannelForGB(String platformId);
 
-    @Select("SELECT dc.* from wvp_platform_channel pgc left join wvp_device_channel dc on dc.id = pgc.device_channel_id WHERE dc.channel_id=#{channelId} and pgc.platform_id=#{platformId}")
+    @Select("SELECT dc.* from wvp_platform_channel pgc left join wvp_device_channel dc on dc.id = pgc.device_channel_id WHERE dc.channel_type = 0 and dc.channel_id=#{channelId} and pgc.platform_id=#{platformId}")
     List<DeviceChannel> queryChannelInParentPlatform(@Param("platformId") String platformId, @Param("channelId") String channelId);
 
     @Select("<script> "+
-            "SELECT dc.* from wvp_platform_channel pgc left join wvp_device_channel dc on dc.id = pgc.device_channel_id WHERE pgc.platform_id=#{platformId} " +
+            "SELECT dc.* from wvp_platform_channel pgc left join wvp_device_channel dc on dc.id = pgc.device_channel_id WHERE dc.channel_type = 0 and pgc.platform_id=#{platformId} " +
             " <if test='catalogId != null' > and pgc.catalog_id=#{catalogId}</if>" +
             "</script>")
     List<CommonGBChannel> queryAllChannelInCatalog(@Param("platformId") String platformId, @Param("catalogId") String catalogId);
 
     @Select(" select dc.channel_id as id, dc.name as name, pgc.platform_id as platform_id, pgc.catalog_id as parent_id, 0 as children_count, 1 as type " +
             " from wvp_device_channel dc left join wvp_platform_channel pgc on dc.id = pgc.device_channel_id " +
-            " where pgc.platform_id=#{platformId} and pgc.catalog_id=#{catalogId}")
+            " where  dc.channel_type = 0 and pgc.platform_id=#{platformId} and pgc.catalog_id=#{catalogId}")
     List<PlatformCatalog> queryChannelInParentPlatformAndCatalog(@Param("platformId") String platformId, @Param("catalogId") String catalogId);
 
     @Select("select d.*\n" +
             "from wvp_platform_channel pgc\n" +
             "         left join wvp_device_channel dc on dc.id = pgc.device_channel_id\n" +
             "         left join wvp_device d on dc.device_id = d.device_id\n" +
-            "where dc.channel_id = #{channelId} and pgc.platform_id=#{platformId}")
+            "where  dc.channel_type = 0 and dc.channel_id = #{channelId} and pgc.platform_id=#{platformId}")
     List<Device> queryVideoDeviceByPlatformIdAndChannelId(@Param("platformId") String platformId, @Param("channelId") String channelId);
 
     @Delete("<script> "+
@@ -85,17 +85,17 @@ public interface PlatformChannelMapper {
     int delByCatalogIdAndChannelIdAndPlatformId(PlatformCatalog platformCatalog);
 
     @Select("<script> " +
-            "SELECT " +
-            "pp.* " +
-            "FROM " +
-            "wvp_platform pp " +
-            "left join wvp_platform_channel pgc on " +
-            "pp.id = pgc.platform_id " +
-            "left join wvp_device_channel dc on " +
-            "dc.id = pgc.device_channel_id " +
-            "WHERE " +
-            "dc.device_id = #{channelId} and pp.status = true " +
-            "AND pp.server_gb_id IN" +
+            " SELECT " +
+            " pp.* " +
+            " FROM " +
+            " wvp_platform pp " +
+            " left join wvp_platform_channel pgc on " +
+            " pp.id = pgc.platform_id " +
+            " left join wvp_device_channel dc on " +
+            " dc.id = pgc.device_channel_id " +
+            " WHERE " +
+            "  dc.channel_type = 0 and dc.device_id = #{channelId} and pp.status = true " +
+            " AND pp.server_gb_id IN" +
             "<foreach collection='platforms' item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
             "</script> ")
     List<Platform> queryPlatFormListForGBWithGBId(@Param("channelId") String channelId, @Param("platforms") List<String> platforms);
@@ -115,13 +115,11 @@ public interface PlatformChannelMapper {
             "from wvp_platform_channel pgc\n" +
             "         left join wvp_device_channel dc on dc.id = pgc.device_channel_id\n" +
             "         left join wvp_device d on dc.device_id = d.device_id\n" +
-            "where dc.channel_id = #{channelId} and pgc.platform_id=#{platformId}")
+            "where dc.channel_type = 0 and dc.channel_id = #{channelId} and pgc.platform_id=#{platformId}")
     List<Device> queryDeviceInfoByPlatformIdAndChannelId(@Param("platformId") String platformId, @Param("channelId") String channelId);
 
-    @Select("SELECT pgc.platform_id from wvp_platform_channel pgc left join wvp_device_channel dc on dc.id = pgc.device_channel_id WHERE dc.device_id=#{channelId}")
+    @Select("SELECT pgc.platform_id from wvp_platform_channel pgc left join wvp_device_channel dc on dc.id = pgc.device_channel_id WHERE  dc.channel_type = 0 and dc.device_id=#{channelId}")
     List<Integer> queryParentPlatformByChannelId(@Param("channelId") String channelId);
-
-
 
     @Select("<script>" +
             " select " +
@@ -168,7 +166,7 @@ public interface PlatformChannelMapper {
             "    wpgc.platform_id " +
             " from wvp_device_channel wdc" +
             " left join wvp_platform_channel wpgc on wdc.id = wpgc.device_channel_id and wpgc.platform_id = #{platformId}" +
-            " where  1=1" +
+            " where wdc.channel_type = 0 " +
             " <if test='query != null'> AND (coalesce(wpgc.device_id, wdc.gb_device_id, wdc.device_id) LIKE concat('%',#{query},'%') " +
             " OR coalesce(wpgc.name, wdc.gb_name, wdc.name)  LIKE concat('%',#{query},'%'))</if> " +
             " <if test='online == true'> AND coalesce(wpgc.status, wdc.gb_status, wdc.status) = 'ON'</if> " +
@@ -223,7 +221,7 @@ public interface PlatformChannelMapper {
             "    coalesce(wpgc.svc_time_support_mode, wdc.gb_svc_time_support_mode, wdc.svc_time_support_mode) as gb_svc_time_support_mode\n" +
             " from wvp_device_channel wdc" +
             " left join wvp_platform_channel wpgc on wdc.id = wpgc.device_channel_id" +
-            " where wpgc.platform_id = #{platformId} and coalesce(wpgc.device_id, wdc.gb_device_id, wdc.device_id) = #{channelDeviceId}"
+            " where wdc.channel_type = 0 and wpgc.platform_id = #{platformId} and coalesce(wpgc.device_id, wdc.gb_device_id, wdc.device_id) = #{channelDeviceId}"
 
     )
     CommonGBChannel queryOneWithPlatform(@Param("platformId") Integer platformId, @Param("channelDeviceId") String channelDeviceId);
@@ -273,7 +271,7 @@ public interface PlatformChannelMapper {
             "    coalesce(wpgc.svc_time_support_mode, wdc.gb_svc_time_support_mode, wdc.svc_time_support_mode) as gb_svc_time_support_mode\n" +
             " from wvp_device_channel wdc" +
             " left join wvp_platform_channel wpgc on wdc.id = wpgc.device_channel_id and wpgc.platform_id = #{platformId}" +
-            " where  wpgc.platform_id is null" +
+            " where wdc.channel_type = 0 and wpgc.platform_id is null" +
             "<if test='channelIds != null'> AND wdc.id in " +
             "<foreach item='item' index='index' collection='channelIds' open='(' separator=',' close=')'> #{item} </foreach> " +
             "</if>" +
@@ -324,7 +322,7 @@ public interface PlatformChannelMapper {
             "    coalesce(wpgc.svc_time_support_mode, wdc.gb_svc_time_support_mode, wdc.svc_time_support_mode) as gb_svc_time_support_mode\n" +
             " from wvp_device_channel wdc" +
             " left join wvp_platform_channel wpgc on wdc.id = wpgc.device_channel_id" +
-            " where  wpgc.platform_id = #{platformId}" +
+            " where wdc.channel_type = 0 and wpgc.platform_id = #{platformId}" +
             "<if test='channelIds != null'> AND wdc.id in " +
             "   <foreach item='item' index='index' collection='channelIds' open='(' separator=',' close=')'>" +
             "   #{item} " +

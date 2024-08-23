@@ -58,6 +58,7 @@ public interface GroupMapper {
             " (#{item.deviceId}, #{item.name}, #{item.parentDeviceId}, #{item.parentId}, #{item.businessGroup},#{item.createTime},#{item.updateTime})" +
             " </foreach> " +
             " </script>")
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int batchAdd(List<Group> groupList);
 
     @Select(" <script>" +
@@ -183,4 +184,28 @@ public interface GroupMapper {
             " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.gbParentId}</foreach>" +
             " </script>")
     Set<Group> queryByChannelList(List<CommonGBChannel> channelList);
+
+    @Update(" <script>" +
+            " update wvp_common_group w1 " +
+            " inner join (select * from wvp_common_group ) w2 on w1.parent_device_id = w2.device_id " +
+            " set w1.parent_id = w2.id" +
+            " where w1.id in " +
+            " <foreach collection='groupListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
+            " </script>")
+    void updateParentId(List<Group> groupListForAdd);
+
+    @Update(" <script>" +
+            " update wvp_common_group w1 " +
+            "    inner join (select * from wvp_common_group ) w2" +
+            "    on w1.parent_device_id is null" +
+            "           and w2.parent_device_id is null" +
+            "           and w2.device_id = w2.business_group " +
+            "           and w1.business_group = w2.device_id " +
+            "            and w1.device_id != w1.business_group " +
+            " set w1.parent_id = w2.id" +
+            " where w1.id in " +
+            " <foreach collection='groupListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
+            " </script>")
+    void updateParentIdWithBusinessGroup(List<Group> groupListForAdd);
+
 }

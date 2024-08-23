@@ -188,6 +188,9 @@ public class DeviceChannel extends CommonGBChannel {
 			"用于选择码流时组成码流标识。默认为null，不设置。可选值: stream/streamnumber/streamprofile/streamMode")
 	private String streamIdentification;
 
+	@Schema(description = "通道类型， 默认0, 0： 普通通道，1 行政区划 2 业务分组/虚拟组织")
+	private int channelType;
+
 	public void setPtzType(int ptzType) {
 		this.ptzType = ptzType;
 		switch (ptzType) {

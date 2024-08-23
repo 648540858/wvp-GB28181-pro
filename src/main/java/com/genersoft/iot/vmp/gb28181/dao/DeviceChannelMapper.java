@@ -20,12 +20,12 @@ public interface DeviceChannelMapper {
             "address, parental, parent_id, safety_way, register_way, cert_num, certifiable, err_code, end_time, secrecy, " +
             "ip_address, port, password, status, longitude, latitude, ptz_type, position_type, room_type, use_type, " +
             "supply_light_type, direction_type, resolution, business_group_id, download_speed, svc_space_support_mod, " +
-            "svc_time_support_mode, create_time, update_time, sub_count，stream_id, has_audio, gps_time, stream_identification) " +
+            "svc_time_support_mode, create_time, update_time, sub_count，stream_id, has_audio, gps_time, stream_identification, channel_type) " +
             "VALUES (#{deviceId}, #{deviceDbId}, #{name}, #{manufacturer}, #{model}, #{owner}, #{civilCode}, #{block}," +
             "#{address}, #{parental}, #{parentId}, #{safetyWay}, #{registerWay}, #{certNum}, #{certifiable}, #{errCode}, #{endTime}, #{secrecy}, " +
             "#{ipAddress}, #{port}, #{password}, #{status}, #{longitude}, #{latitude}, #{ptzType}, #{positionType}, #{roomType}, #{useType}, " +
             "#{supplyLightType}, #{directionType}, #{resolution}, #{businessGroupId}, #{downloadSpeed}, #{svcSpaceSupportMod}," +
-            " #{svcTimeSupportMode}, #{createTime}, #{updateTime}, #{subCount}, #{streamId}, #{hasAudio}, #{gpsTime}, #{streamIdentification})")
+            " #{svcTimeSupportMode}, #{createTime}, #{updateTime}, #{subCount}, #{streamId}, #{hasAudio}, #{gpsTime}, #{streamIdentification}, #{channelType})")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int add(DeviceChannel channel);
 
@@ -72,6 +72,7 @@ public interface DeviceChannelMapper {
             ", has_audio=#{hasAudio}" +
             ", gps_time=#{gpsTime}" +
             ", stream_identification=#{streamIdentification}" +
+            ", channel_type=#{channelType}" +
             " WHERE id=#{id}" +
             " </script>"})
     int update(DeviceChannel channel);
@@ -127,6 +128,7 @@ public interface DeviceChannelMapper {
             " dc.has_audio,\n" +
             " dc.gps_time,\n" +
             " dc.stream_identification,\n" +
+            " dc.channel_type,\n" +
             " coalesce(dc.gb_device_id, dc.device_id) as device_id,\n" +
             " coalesce(dc.gb_name, dc.name) as name,\n" +
             " coalesce(dc.gb_manufacturer, dc.manufacturer) as manufacturer,\n" +
@@ -192,6 +194,7 @@ public interface DeviceChannelMapper {
             " has_audio,\n" +
             " gps_time,\n" +
             " stream_identification,\n" +
+            " channel_type,\n" +
             " coalesce(gb_device_id, device_id) as device_id,\n" +
             " coalesce(gb_name, name) as name,\n" +
             " coalesce(gb_manufacturer, manufacturer) as manufacturer,\n" +
@@ -264,6 +267,7 @@ public interface DeviceChannelMapper {
             " dc.has_audio,\n" +
             " dc.gps_time,\n" +
             " dc.stream_identification,\n" +
+            " dc.channel_type,\n" +
             " coalesce(dc.gb_device_id, dc.device_id) as device_id,\n" +
             " coalesce(dc.gb_name, dc.name) as name,\n" +
             " coalesce(dc.gb_manufacturer, dc.manufacturer) as manufacturer,\n" +
@@ -354,6 +358,7 @@ public interface DeviceChannelMapper {
             " has_audio,\n" +
             " gps_time,\n" +
             " stream_identification,\n" +
+            " channel_type,\n" +
             " coalesce(gb_device_id, device_id) as device_id,\n" +
             " coalesce(gb_name, name) as name,\n" +
             " coalesce(gb_manufacturer, manufacturer) as manufacturer,\n" +
@@ -400,14 +405,14 @@ public interface DeviceChannelMapper {
             "address, parental, parent_id, safety_way, register_way, cert_num, certifiable, err_code, end_time, secrecy, " +
             "ip_address, port, password, status, longitude, latitude, ptz_type, position_type, room_type, use_type, " +
             "supply_light_type, direction_type, resolution, business_group_id, download_speed, svc_space_support_mod, " +
-            "svc_time_support_mode, create_time, update_time, sub_count, stream_id, has_audio, gps_time, stream_identification) " +
+            "svc_time_support_mode, create_time, update_time, sub_count, stream_id, has_audio, gps_time, stream_identification, channel_type) " +
             "values " +
             "<foreach collection='addChannels' index='index' item='item' separator=','> " +
             "(#{item.deviceId}, #{item.deviceDbId}, #{item.name}, #{item.manufacturer}, #{item.model}, #{item.owner}, #{item.civilCode}, #{item.block}, " +
             "#{item.address}, #{item.parental}, #{item.parentId}, #{item.safetyWay}, #{item.registerWay}, #{item.certNum}, #{item.certifiable}, #{item.errCode}, #{item.endTime}, #{item.secrecy}, " +
             "#{item.ipAddress}, #{item.port}, #{item.password}, #{item.status}, #{item.longitude}, #{item.latitude}, #{item.ptzType}, #{item.positionType}, #{item.roomType}, #{item.useType}, " +
             "#{item.supplyLightType}, #{item.directionType}, #{item.resolution}, #{item.businessGroupId}, #{item.downloadSpeed}, #{item.svcSpaceSupportMod}," +
-            " #{item.svcTimeSupportMode}, #{item.createTime}, #{item.updateTime}, #{item.subCount}, #{item.streamId}, #{item.hasAudio}, #{item.gpsTime}, #{item.streamIdentification}) " +
+            " #{item.svcTimeSupportMode}, #{item.createTime}, #{item.updateTime}, #{item.subCount}, #{item.streamId}, #{item.hasAudio}, #{item.gpsTime}, #{item.streamIdentification}, #{item.channelType}) " +
             "</foreach> " +
             "</script>")
     int batchAdd(@Param("addChannels") List<DeviceChannel> addChannels);
@@ -461,6 +466,7 @@ public interface DeviceChannelMapper {
             ", has_audio=#{item.hasAudio}" +
             ", gps_time=#{item.gpsTime}" +
             ", stream_identification=#{item.streamIdentification}" +
+            ", channel_type=#{item.channelType}" +
             " WHERE id=#{item.id}" +
             "</foreach>" +
             "</script>"})
@@ -494,6 +500,7 @@ public interface DeviceChannelMapper {
             " has_audio,\n" +
             " gps_time,\n" +
             " stream_identification,\n" +
+            " channel_type,\n" +
             " coalesce(gb_device_id, device_id) as device_id,\n" +
             " coalesce(gb_name, name) as name,\n" +
             " coalesce(gb_manufacturer, manufacturer) as manufacturer,\n" +
@@ -574,6 +581,7 @@ public interface DeviceChannelMapper {
             " has_audio,\n" +
             " gps_time,\n" +
             " stream_identification,\n" +
+            " channel_type,\n" +
             " coalesce(gb_device_id, device_id) as device_id,\n" +
             " coalesce(gb_name, name) as name,\n" +
             " coalesce(gb_manufacturer, manufacturer) as manufacturer,\n" +
@@ -647,6 +655,7 @@ public interface DeviceChannelMapper {
             " has_audio,\n" +
             " gps_time,\n" +
             " stream_identification,\n" +
+            " channel_type,\n" +
             " coalesce(gb_device_id, device_id) as device_id,\n" +
             " coalesce(gb_name, name) as name,\n" +
             " coalesce(gb_manufacturer, manufacturer) as manufacturer,\n" +
@@ -697,6 +706,7 @@ public interface DeviceChannelMapper {
             " has_audio,\n" +
             " gps_time,\n" +
             " stream_identification,\n" +
+            " channel_type,\n" +
             " coalesce(gb_device_id, device_id) as device_id,\n" +
             " coalesce(gb_name, name) as name,\n" +
             " coalesce(gb_manufacturer, manufacturer) as manufacturer,\n" +

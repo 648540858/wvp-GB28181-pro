@@ -11,17 +11,12 @@ public interface IRegionService {
 
     void add(Region region);
 
-    boolean deleteByDeviceId(String regionDeviceId);
+    boolean deleteByDeviceId(Integer regionDeviceId);
 
     /**
      * 查询区划列表
      */
     PageInfo<Region> query(String query, int page, int count);
-
-    /**
-     * 查询子区划列表
-     */
-    PageInfo<Region> queryChildRegionList(String regionParentId, int page, int count);
 
     /**
      * 更新区域
@@ -32,7 +27,7 @@ public interface IRegionService {
 
     Region queryRegionByDeviceId(String regionDeviceId);
 
-    List<RegionTree> queryForTree(String query, String parent);
+    List<RegionTree> queryForTree(String query, Integer parent);
 
     void syncFromChannel();
 

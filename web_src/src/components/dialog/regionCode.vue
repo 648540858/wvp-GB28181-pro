@@ -89,7 +89,7 @@ export default {
       form: {
         name: "",
         deviceId: "",
-        parentDeviceId: ""
+        parentId: ""
       },
       allVal: [
         {
@@ -129,11 +129,12 @@ export default {
     };
   },
   methods: {
-    openDialog: function (endCallBck, parentDeviceId, code, lockContent) {
+    openDialog: function (endCallBck, parentDeviceId, parentId, code, lockContent) {
       this.showVideoDialog = true
       this.activeKey= '0';
       this.regionList = []
       this.form.parentDeviceId = parentDeviceId
+      this.form.parentId = parentId
       this.allVal =  [
         {
           id: [1, 2],

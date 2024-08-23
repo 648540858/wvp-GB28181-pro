@@ -15,24 +15,25 @@
       <vue-easy-tree
         class="flow-tree"
         ref="veTree"
-        node-key="id"
+        node-key="deviceId"
         height="78vh"
         lazy
         style="padding: 2rem 0 2rem 0.5rem"
         :load="loadNode"
         :data="treeData"
+        :props="props"
         :default-expanded-keys="['']"
         @node-contextmenu="contextmenuEventHandler"
         @node-click="nodeClickHandler"
       >
         <span class="custom-tree-node" slot-scope="{ node, data }">
           <span @click.stop >
-            <el-radio v-if="node.data.type === 0 && node.level !== 1 " style="margin-right: 0" v-model="chooseId" @input="chooseIdChange" :label="node.data.id">{{''}}</el-radio>
+            <el-radio v-if="node.data.type === 0 && node.level !== 1 " style="margin-right: 0" v-model="chooseId" @input="chooseIdChange" :label="node.data.deviceId">{{''}}</el-radio>
           </span>
           <span v-if="node.data.type === 0" style="color: #409EFF" class="iconfont icon-bianzubeifen3"></span>
           <span v-if="node.data.type === 1" style="color: #409EFF" class="iconfont icon-shexiangtou2"></span>
-          <span style=" padding-left: 1px" v-if="node.data.id !=='' && showCode" :title="node.data.id">{{ node.label }}（编号：{{ node.data.id }}）</span>
-          <span style=" padding-left: 1px" v-if="node.data.id ==='' || !showCode" :title="node.data.id">{{ node.label }}</span>
+          <span style=" padding-left: 1px" v-if="node.data.deviceId !=='' && showCode" :title="node.data.deviceId">{{ node.label }}（编号：{{ node.data.deviceId }}）</span>
+          <span style=" padding-left: 1px" v-if="node.data.deviceId ==='' || !showCode" :title="node.data.deviceId">{{ node.label }}</span>
         </span>
       </vue-easy-tree>
     </div>
@@ -53,6 +54,9 @@ export default {
   },
   data() {
     return {
+      props: {
+        label: "name",
+      },
       showCode: false,
       searchSrt: "",
       chooseId: "",
@@ -69,12 +73,12 @@ export default {
     loadNode: function (node, resolve) {
       if (node.level === 0) {
         resolve([{
-          id: "",
-          label: "根资源组",
+          deviceId: "",
+          name: "根资源组",
           isLeaf: false,
           type: 0
         }]);
-      } else if (node.data.id.length <= 8) {
+      } else if (node.data.deviceId.length <= 8) {
         this.$axios({
           method: 'get',
           url: `/api/region/tree/list`,
@@ -114,7 +118,7 @@ export default {
                   method: "post",
                   url: `/api/common/channel/region/delete`,
                   data: {
-                    channelIds: [data.dbId]
+                    channelIds: [data.id]
                   }
                 }).then((res) => {
                   console.log("移除成功")
@@ -227,7 +231,7 @@ export default {
         method: "delete",
         url: `/api/region/delete`,
         params: {
-          deviceId: id,
+          id: node.data.id,
         }
       }).then((res) => {
         if (res.data.code === 0) {
@@ -249,7 +253,7 @@ export default {
           method: 'post',
           url: `/api/common/channel/region/device/add`,
           data: {
-            civilCode: node.data.id,
+            civilCode: node.data.deviceId,
             deviceIds: deviceIds,
           }
         }).then((res)=> {
@@ -317,7 +321,7 @@ export default {
       this.$refs.regionCode.openDialog(form => {
         node.loaded = false
         node.expand();
-      }, id);
+      }, node.data.deviceId, node.data.id);
     },
     nodeClickHandler: function (data, node, tree) {
       console.log(data)

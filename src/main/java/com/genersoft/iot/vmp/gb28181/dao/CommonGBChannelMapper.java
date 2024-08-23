@@ -262,17 +262,15 @@ public interface CommonGBChannelMapper {
 
     @Select("<script>" +
             " select " +
-            "    coalesce(gb_device_id, device_id) as id," +
-            "    coalesce(gb_name, name) as label, " +
-            "    id as db_id, " +
+            "    *, " +
             "    1 as type, " +
             "    true as is_leaf " +
             " from wvp_device_channel " +
-            " where coalesce(gb_civil_code, civil_code) = #{parent} " +
+            " where coalesce(gb_civil_code, civil_code) = #{parentDeviceId} " +
             " <if test='query != null'> AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%') " +
             " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%'))</if> " +
             " </script>")
-    List<RegionTree> queryForRegionTreeByCivilCode(@Param("query") String query, @Param("parent") String parent);
+    List<RegionTree> queryForRegionTreeByCivilCode(@Param("query") String query, @Param("parentDeviceId") String parentDeviceId);
 
     @Update(value = {" <script>" +
             " UPDATE wvp_device_channel " +
@@ -351,7 +349,7 @@ public interface CommonGBChannelMapper {
             "    1 as type, " +
             "    true as is_leaf " +
             " from wvp_device_channel " +
-            " where coalesce(gb_parent_id, parent_id) = #{parent} " +
+            " where channel_type = 0 and coalesce(gb_parent_id, parent_id) = #{parent} " +
             " <if test='query != null'> AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%') " +
             " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%'))</if> " +
             " </script>")

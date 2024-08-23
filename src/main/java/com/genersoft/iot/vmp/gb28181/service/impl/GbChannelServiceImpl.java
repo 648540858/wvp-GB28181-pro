@@ -344,22 +344,6 @@ public class GbChannelServiceImpl implements IGbChannelService {
         return channelList;
     }
 
-    private Set<Region> getAllRegion(Set<Region> regionChannelList ) {
-        if (regionChannelList.isEmpty()) {
-            return new HashSet<>();
-        }
-        Set<Region> channelList = regionMapper.queryParentInChannelList(regionChannelList);
-        if (channelList.isEmpty()) {
-            return channelList;
-        }
-        Set<Region> allParentRegion = getAllRegion(channelList);
-        channelList.addAll(allParentRegion);
-        return channelList;
-    }
-
-
-
-
     @Override
     public CommonGBChannel getOne(int id) {
         return commonGBChannelMapper.queryById(id);

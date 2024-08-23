@@ -216,6 +216,7 @@ public class GroupServiceImpl implements IGroupService {
     }
 
     @Override
+    @Transactional
     public boolean batchAdd(List<Group> groupList) {
         if (groupList== null || groupList.isEmpty()) {
             return false;
@@ -225,15 +226,20 @@ public class GroupServiceImpl implements IGroupService {
             groupMapForVerification.put(group.getDeviceId(), group);
         }
         // 查询数据库中已经存在的.
-        List<Group> regionListInDb = groupManager.queryInGroupListByDeviceId(groupList);
-        if (!regionListInDb.isEmpty()) {
-            for (Group group : regionListInDb) {
+        List<Group> groupListInDb = groupManager.queryInGroupListByDeviceId(groupList);
+        if (!groupListInDb.isEmpty()) {
+            for (Group group : groupListInDb) {
                 groupMapForVerification.remove(group.getDeviceId());
             }
         }
         if (!groupMapForVerification.isEmpty()) {
-            groupManager.batchAdd(new ArrayList<>(groupMapForVerification.values()));
+            List<Group> groupListForAdd = new ArrayList<>(groupMapForVerification.values());
+            groupManager.batchAdd(groupListForAdd);
+            // 更新分组关系
+            groupManager.updateParentId(groupListForAdd);
+            groupManager.updateParentIdWithBusinessGroup(groupListForAdd);
         }
+
         return true;
     }
 }

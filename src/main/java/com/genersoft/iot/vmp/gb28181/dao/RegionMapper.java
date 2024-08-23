@@ -11,8 +11,8 @@ import java.util.Set;
 @Mapper
 public interface RegionMapper {
 
-    @Insert("INSERT INTO wvp_common_region (device_id, name, parent_device_id, create_time, update_time) " +
-            "VALUES (#{deviceId}, #{name}, #{parentDeviceId}, #{createTime}, #{updateTime})")
+    @Insert("INSERT INTO wvp_common_region (device_id, name, parent_id, parent_device_id, create_time, update_time) " +
+            "VALUES (#{deviceId}, #{name}, #{parentId}, #{parentDeviceId}, #{createTime}, #{updateTime})")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     void add(Region region);
 
@@ -20,7 +20,7 @@ public interface RegionMapper {
     int delete(@Param("id") int id);
 
     @Update(" UPDATE wvp_common_region " +
-            " SET update_time=#{updateTime}, device_id=#{deviceId}, name=#{name}, parent_device_id=#{parentDeviceId}" +
+            " SET update_time=#{updateTime}, device_id=#{deviceId}, name=#{name}, parent_id=#{parentId}, parent_device_id=#{parentDeviceId}" +
             " WHERE id = #{id}")
     int update(Region region);
 
@@ -32,8 +32,8 @@ public interface RegionMapper {
             " </script>"})
     List<Region> query(@Param("query") String query, @Param("parentId") String parentId);
 
-    @Select("SELECT * from wvp_common_region WHERE parent_device_id = #{parentId} ORDER BY id ")
-    List<Region> getChildren(@Param("parentId") String parentId);
+    @Select("SELECT * from wvp_common_region WHERE parent_id = #{parentId} ORDER BY id ")
+    List<Region> getChildren(@Param("parentId") Integer parentId);
 
     @Select("SELECT * from wvp_common_region WHERE id = #{id} ")
     Region queryOne(@Param("id") int id);
@@ -57,33 +57,29 @@ public interface RegionMapper {
             " device_id," +
             " name, " +
             " parent_device_id," +
+            " parent_id," +
             " create_time," +
             " update_time) " +
             " VALUES " +
             " <foreach collection='regionList' index='index' item='item' separator=','> " +
-            " (#{item.deviceId}, #{item.name}, #{item.parentDeviceId},#{item.createTime},#{item.updateTime})" +
+            " (#{item.deviceId}, #{item.name}, #{item.parentDeviceId},#{item.parentId},#{item.createTime},#{item.updateTime})" +
             " </foreach> " +
             " </script>")
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int batchAdd(List<Region> regionList);
 
     @Select(" <script>" +
             " SELECT " +
-            " device_id as id," +
-            " name as label, " +
-            " parent_device_id," +
-            " id as db_id," +
+            " *, " +
             " 0 as type," +
             " false as is_leaf" +
             " from wvp_common_region " +
             " where " +
-            " <if test='parentId != null'> parent_device_id = #{parentId} </if> " +
-            " <if test='parentId == null'> parent_device_id is null </if> " +
+            " <if test='parentId != null'> parent_id = #{parentId} </if> " +
+            " <if test='parentId == null'> parent_id is null </if> " +
             " <if test='query != null'> AND (device_id LIKE concat('%',#{query},'%') OR name LIKE concat('%',#{query},'%'))</if> " +
             " </script>")
-    List<RegionTree> queryForTree(@Param("query") String query, @Param("parentId") String parentId);
-
-    @Select("SELECT * from wvp_common_region WHERE device_id = #{deviceId} ")
-    Region queryOneByDeviceId(@Param("deviceId") String deviceId);
+    List<RegionTree> queryForTree(@Param("query") String query, @Param("parentId") Integer parentId);
 
     @Delete("<script>" +
             " DELETE FROM wvp_common_region WHERE id in " +
@@ -96,26 +92,7 @@ public interface RegionMapper {
             " where device_id in " +
             " <foreach collection='regionList'  item='item'  open='(' separator=',' close=')' > #{item.deviceId}</foreach>" +
             " </script>")
-    List<Region> queryInRegionList(List<Region> regionList);
-
-    @Select(" <script>" +
-            " SELECT " +
-            " * " +
-            " from wvp_common_region " +
-            " where device_id in " +
-            " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.gbCivilCode}</foreach>" +
-            " </script>")
-    Set<Region> queryInChannelList(List<CommonGBChannel> channelList);
-
-
-    @Select(" <script>" +
-            " SELECT " +
-            " * " +
-            " from wvp_common_region " +
-            " where device_id in " +
-            " <foreach collection='regionChannelList'  item='item'  open='(' separator=',' close=')' > #{item.parentDeviceId}</foreach>" +
-            " </script>")
-    Set<Region> queryParentInChannelList(Set<Region> regionChannelList);
+    List<Region> queryInRegionListByDeviceId(List<Region> regionList);
 
     @Select(" <script>" +
             " SELECT " +

@@ -57,11 +57,8 @@ public class RegionController {
     @GetMapping("/tree/list")
     public List<RegionTree> queryForTree(
             @RequestParam(required = false) String query,
-            @RequestParam(required = false) String parent
+            @RequestParam(required = false) Integer parent
     ){
-        if (ObjectUtils.isEmpty(parent)) {
-            parent = null;
-        }
         if (ObjectUtils.isEmpty(query)) {
             query = null;
         }
@@ -77,32 +74,15 @@ public class RegionController {
     }
 
     @Operation(summary = "删除区域")
-    @Parameter(name = "deviceId", description = "区域编码", required = true)
+    @Parameter(name = "id", description = "区域ID", required = true)
     @ResponseBody
     @DeleteMapping("/delete")
-    public void delete(String deviceId){
-        Assert.hasLength(deviceId, "区域编码（deviceId）不需要存在");
-        boolean result = regionService.deleteByDeviceId(deviceId);
+    public void delete(Integer id){
+        Assert.notNull(id, "区域ID需要存在");
+        boolean result = regionService.deleteByDeviceId(id);
         if (!result) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "移除失败");
         }
-    }
-
-    @Operation(summary = "分页区域子节点")
-    @Parameter(name = "regionParentId", description = "行政区划父节点编号", required = true)
-    @Parameter(name = "page", description = "当前页", required = true)
-    @Parameter(name = "count", description = "每页查询数量", required = true)
-    @ResponseBody
-    @GetMapping("/child/list")
-    public PageInfo<Region> queryChildRegionList(
-            @RequestParam(required = true) String regionParentId,
-            @RequestParam(required = true) int page,
-            @RequestParam(required = true) int count
-    ){
-        if (ObjectUtils.isEmpty(regionParentId.trim())) {
-            regionParentId = null;
-        }
-        return regionService.queryChildRegionList(regionParentId, page, count);
     }
 
     @Operation(summary = "根据区域Id查询区域")

@@ -323,6 +323,14 @@ export default {
         node.expand();
       }, node.data.deviceId, node.data.id);
     },
+    editCatalog: function (data, node){
+      // 打开添加弹窗
+      this.$refs.regionCode.openDialog(form => {
+        node.loaded = false
+        node.expand();
+      }, node.data.deviceId, node.data.id);
+
+    },
     nodeClickHandler: function (data, node, tree) {
       console.log(data)
       console.log(node)

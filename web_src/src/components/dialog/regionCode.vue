@@ -166,8 +166,6 @@ export default {
         }
       ]
       if (parentDeviceId) {
-        console.log(parentDeviceId)
-        console.log(parentDeviceId.length)
         if (parentDeviceId.length >= 2) {
           this.allVal[0].val = parentDeviceId.substring(0, 2)
           this.activeKey = "1"

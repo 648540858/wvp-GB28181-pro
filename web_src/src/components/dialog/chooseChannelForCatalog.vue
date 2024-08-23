@@ -100,11 +100,8 @@ export default {
 
         },
         addCatalog: function (parentId, node){
-          let that = this;
-          console.log(this.platformId)
-          console.log(parentId)
           // 打开添加弹窗
-          that.$refs.catalogEdit.openDialog(false, null, null, parentId, node.level, ()=>{
+          this.$refs.catalogEdit.openDialog(false, null, null, parentId, node.level, ()=>{
             node.loaded = false
             node.expand();
           });
@@ -121,9 +118,8 @@ export default {
           }
         },
         editCatalog: function (data, node){
-          let that = this;
           // 打开添加弹窗
-          that.$refs.catalogEdit.openDialog(true, data.id, data.name, data.parentId, (newData)=>{
+          this.$refs.catalogEdit.openDialog(true, data.id, data.name, data.parentId, node.level, (newData)=>{
             node.parent.loaded = false
             node.parent.expand();
             if (data.id === this.chooseId && newData.name !== data.name) {

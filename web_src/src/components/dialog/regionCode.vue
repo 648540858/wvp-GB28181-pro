@@ -129,12 +129,11 @@ export default {
     };
   },
   methods: {
-    openDialog: function (endCallBck, parentDeviceId, parentId, code, lockContent) {
+    openDialog: function (endCallBck, region, code, lockContent) {
       this.showVideoDialog = true
       this.activeKey= '0';
       this.regionList = []
-      this.form.parentDeviceId = parentDeviceId
-      this.form.parentId = parentId
+      this.form = region
       this.allVal =  [
         {
           id: [1, 2],
@@ -165,29 +164,41 @@ export default {
           lock: false,
         }
       ]
-      if (parentDeviceId) {
-        if (parentDeviceId.length >= 2) {
-          this.allVal[0].val = parentDeviceId.substring(0, 2)
+      if (this.form.deviceId) {
+        if (this.form.deviceId.length >= 2) {
+          this.allVal[0].val = this.form.deviceId.substring(0, 2)
+          this.activeKey = "0"
+        }
+        if (this.form.deviceId.length >= 4) {
+          this.allVal[1].val = this.form.deviceId.substring(2, 4)
           this.activeKey = "1"
         }
-        if (parentDeviceId.length >= 4) {
-          this.allVal[1].val = parentDeviceId.substring(2, 4)
+        if (this.form.deviceId.length >= 6) {
+          this.allVal[2].val = this.form.deviceId.substring(4, 6)
           this.activeKey = "2"
         }
-        if (parentDeviceId.length >= 6) {
-          this.allVal[2].val = parentDeviceId.substring(4, 6)
+        if (this.form.deviceId.length === 8) {
+          this.allVal[3].val = this.form.deviceId.substring(6, 8)
           this.activeKey = "3"
         }
+      }else {
+        if (this.form.parentDeviceId) {
+          if (this.form.parentDeviceId.length >= 2) {
+            this.allVal[0].val = this.form.parentDeviceId.substring(0, 2)
+            this.activeKey = "1"
+          }
+          if (this.form.parentDeviceId.length >= 4) {
+            this.allVal[1].val = this.form.parentDeviceId.substring(2, 4)
+            this.activeKey = "2"
+          }
+          if (this.form.parentDeviceId.length >= 6) {
+            this.allVal[2].val = this.form.parentDeviceId.substring(4, 6)
+            this.activeKey = "3"
+          }
+        }
       }
-      this.getRegionList()
-      // if (typeof code != 'undefined' && code.length === 8) {
-      //   this.allVal[0].val = code.substring(0, 2)
-      //   this.allVal[1].val = code.substring(2, 4)
-      //   this.allVal[2].val = code.substring(4, 6)
-      //   this.allVal[3].val = code.substring(6, 8)
-      // }
 
-      console.log(this.allVal)
+      this.getRegionList()
       this.endCallBck = endCallBck;
     },
     getRegionList: function() {
@@ -263,22 +274,42 @@ export default {
 
     },
     handleOk: function() {
-      this.$axios({
-        method: 'post',
-        url: "/api/region/add/",
-        data: this.form
-      }).then((res) => {
-        if (res.data.code === 0) {
-          if (typeof this.endCallBck == "function") {
-            this.endCallBck(this.form)
+      if (this.form.id) {
+        this.$axios({
+          method: 'post',
+          url: "/api/region/update",
+          data: this.form
+        }).then((res) => {
+          if (res.data.code === 0) {
+            if (typeof this.endCallBck == "function") {
+              this.endCallBck(this.form)
+            }
+            this.showVideoDialog = false
+          } else {
+            this.$message.error(res.data.msg);
           }
-          this.showVideoDialog = false
-        } else {
-          this.$message.error(res.data.msg);
-        }
-      }).catch((error) => {
-        this.$message.error(error);
-      });
+        }).catch((error) => {
+          this.$message.error(error);
+        });
+      }else {
+        this.$axios({
+          method: 'post',
+          url: "/api/region/add",
+          data: this.form
+        }).then((res) => {
+          if (res.data.code === 0) {
+            if (typeof this.endCallBck == "function") {
+              this.endCallBck(this.form)
+            }
+            this.showVideoDialog = false
+          } else {
+            this.$message.error(res.data.msg);
+          }
+        }).catch((error) => {
+          this.$message.error(error);
+        });
+      }
+
 
     }
   },

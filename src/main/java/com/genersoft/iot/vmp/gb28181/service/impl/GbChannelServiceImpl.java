@@ -648,4 +648,25 @@ public class GbChannelServiceImpl implements IGbChannelService {
     public CommonGBChannel queryOneWithPlatform(Integer platformId, String channelDeviceId) {
         return platformChannelMapper.queryOneWithPlatform(platformId, channelDeviceId);
     }
+
+    @Override
+    public void updateCivilCode(String oldCivilCode, String newCivilCode) {
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByCivilCode(oldCivilCode);
+        if (channelList.isEmpty()) {
+            return;
+        }
+
+        int result = commonGBChannelMapper.updateCivilCodeByChannelList(newCivilCode, channelList);
+        if (result > 0) {
+            for (CommonGBChannel channel : channelList) {
+                channel.setGbCivilCode(newCivilCode);
+            }
+            // 发送catalog
+            try {
+                eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
+            } catch (Exception e) {
+                log.warn("[多个通道业务分组] 发送失败，数量：{}", channelList.size(), e);
+            }
+        }
+    }
 }

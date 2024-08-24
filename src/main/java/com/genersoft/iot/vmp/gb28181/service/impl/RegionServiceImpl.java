@@ -2,10 +2,13 @@ package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.genersoft.iot.vmp.common.CivilCodePo;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Region;
 import com.genersoft.iot.vmp.gb28181.bean.RegionTree;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.RegionMapper;
+import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IRegionService;
 import com.genersoft.iot.vmp.utils.CivilCodeUtil;
@@ -40,6 +43,9 @@ public class RegionServiceImpl implements IRegionService {
 
     @Autowired
     private IGbChannelService gbChannelService;
+
+    @Autowired
+    private EventPublisher eventPublisher;
 
     @Override
     public void add(Region region) {
@@ -98,7 +104,26 @@ public class RegionServiceImpl implements IRegionService {
     @Override
     @Transactional
     public void update(Region region) {
-
+        Assert.notNull(region.getDeviceId(), "编号不可为NULL");
+        Assert.notNull(region.getName(), "名称不可为NULL");
+        Region regionInDb = regionMapper.queryOne(region.getId());
+        Assert.notNull(regionInDb, "待更新行政区划在数据库中不存在");
+        if (!regionInDb.getDeviceId().equals(region.getDeviceId())) {
+            Region regionNewInDb = regionMapper.queryByDeviceId(region.getDeviceId());
+            Assert.isNull(regionNewInDb, "此行政区划已存在");
+            // 编号发生变化，把分配了这个行政区划的通道全部更新，并发送数据
+            gbChannelService.updateCivilCode(regionInDb.getDeviceId(), region.getDeviceId());
+            // 子节点信息更新
+            regionMapper.updateChild(region.getId(), region.getDeviceId());
+        }
+        regionMapper.update(region);
+        // 发送变化通知
+        try {
+            // 发送catalog
+            eventPublisher.catalogEventPublish(null, CommonGBChannel.build(region), CatalogEvent.UPDATE);
+        }catch (Exception e) {
+            log.warn("[行政区划变化] 发送失败，{}", region.getDeviceId(), e);
+        }
     }
 
     @Override

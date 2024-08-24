@@ -157,7 +157,7 @@ export default {
               }
             },
             {
-              label: "重命名",
+              label: "编辑节点",
               icon: "el-icon-edit",
               disabled: node.level === 1,
               onClick: () => {
@@ -321,15 +321,19 @@ export default {
       this.$refs.regionCode.openDialog(form => {
         node.loaded = false
         node.expand();
-      }, node.data.deviceId, node.data.id);
+      }, {
+        deviceId: "",
+        name: "",
+        parentId: node.data.id,
+        parentDeviceId: node.data.deviceId,
+      });
     },
     editCatalog: function (data, node){
       // 打开添加弹窗
       this.$refs.regionCode.openDialog(form => {
         node.loaded = false
         node.expand();
-      }, node.data.deviceId, node.data.id);
-
+      }, node.data);
     },
     nodeClickHandler: function (data, node, tree) {
       console.log(data)

@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.gb28181.bean.Region;
 import com.genersoft.iot.vmp.gb28181.bean.RegionTree;
 import org.apache.ibatis.annotations.*;
@@ -123,4 +124,42 @@ public interface RegionMapper {
 
     @Select("SELECT * from wvp_common_region WHERE device_id = #{deviceId} ")
     Region queryByDeviceId(@Param("deviceId") String deviceId);
+
+    @Select(" <script>" +
+            " SELECT " +
+            " * " +
+            " from wvp_common_region " +
+            " where id in " +
+            " <foreach collection='regionSet'  item='item'  open='(' separator=',' close=')' > #{item.parentId}</foreach>" +
+            " </script>")
+    Set<Region> queryParentInChannelList(Set<Region> regionSet);
+
+    @Select(" <script>" +
+            " SELECT " +
+            " * " +
+            " from wvp_common_region " +
+            " where device_id in " +
+            " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.gbCivilCode}</foreach>" +
+            " order by id " +
+            "</script>")
+    Set<Region> queryByChannelList(List<CommonGBChannel> channelList);
+
+    @Select(" <script>" +
+            " SELECT * " +
+            " from wvp_common_region wcr" +
+            " left join wvp_platform_region wpr on wpr.region_id = wcr.id and wpr.platform_id = #{platformId}" +
+            " where wpr.platform_id is null and wcr.device_id in " +
+            " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.gbCivilCode}</foreach>" +
+            " </script>")
+    Set<Region> queryNotShareRegionForPlatformByChannelList(List<CommonGBChannel> channelList, @Param("platformId") Integer platformId);
+
+    @Select(" <script>" +
+            " SELECT * " +
+            " from wvp_common_region wcr" +
+            " left join wvp_platform_region wpr on wpr.region_id = wcr.id and wpr.platform_id = #{platformId}" +
+            " where wpr.platform_id IS NULL and wcr.id in " +
+            " <foreach collection='allRegion'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
+            " </script>")
+    Set<Region> queryNotShareRegionForPlatformByRegionList(Set<Region> allRegion, @Param("platformId") Integer platformId);
+
 }

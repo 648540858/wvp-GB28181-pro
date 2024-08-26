@@ -165,7 +165,7 @@ public interface GroupMapper {
             " where wpg.platform_id is null and wcg.device_id in " +
             " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.gbParentId}</foreach>" +
             " </script>")
-    Set<Group> queryNotShareForPlatformByChannelList(List<CommonGBChannel> channelList, @Param("platformId") Integer platformId);
+    Set<Group> queryNotShareGroupForPlatformByChannelList(List<CommonGBChannel> channelList, @Param("platformId") Integer platformId);
 
     @Select(" <script>" +
             " SELECT * " +
@@ -174,7 +174,8 @@ public interface GroupMapper {
             " where wpg.platform_id IS NULL and wcg.id in " +
             " <foreach collection='allGroup'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
             " </script>")
-    Set<Group> queryNotShareForPlatformByGroupList(Set<Group> allGroup, @Param("platformId") Integer platformId);
+    Set<Group> queryNotShareGroupForPlatformByGroupList(Set<Group> allGroup, @Param("platformId") Integer platformId);
+
 
     @Select(" <script>" +
             " SELECT " +
@@ -182,7 +183,8 @@ public interface GroupMapper {
             " from wvp_common_group " +
             " where device_id in " +
             " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.gbParentId}</foreach>" +
-            " </script>")
+            " order by id " +
+            "</script>")
     Set<Group> queryByChannelList(List<CommonGBChannel> channelList);
 
     @Update(" <script>" +

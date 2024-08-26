@@ -134,7 +134,7 @@ public interface PlatformChannelMapper {
             "    coalesce(wpgc.manufacturer, wdc.gb_manufacturer, wdc.manufacturer) as gb_manufacturer,\n" +
             "    coalesce(wpgc.model, wdc.gb_model, wdc.model) as gb_model,\n" +
             "    coalesce(wpgc.owner, wdc.gb_owner, wdc.owner) as gb_owner,\n" +
-            "    coalesce(wpgc.civil_code, wdc.gb_civil_code, wdc.civil_code),\n" +
+            "    coalesce(wpgc.civil_code, wdc.gb_civil_code, wdc.civil_code) as gb_civil_code,\n" +
             "    coalesce(wpgc.block, wdc.gb_block, wdc.block) as gb_block,\n" +
             "    coalesce(wpgc.address, wdc.gb_address, wdc.address) as gb_address,\n" +
             "    coalesce(wpgc.parental, wdc.gb_parental, wdc.parental) as gb_parental,\n" +
@@ -190,7 +190,7 @@ public interface PlatformChannelMapper {
             "    coalesce(wpgc.manufacturer, wdc.gb_manufacturer, wdc.manufacturer) as gb_manufacturer,\n" +
             "    coalesce(wpgc.model, wdc.gb_model, wdc.model) as gb_model,\n" +
             "    coalesce(wpgc.owner, wdc.gb_owner, wdc.owner) as gb_owner,\n" +
-            "    coalesce(wpgc.civil_code, wdc.gb_civil_code, wdc.civil_code),\n" +
+            "    coalesce(wpgc.civil_code, wdc.gb_civil_code, wdc.civil_code) as gb_civil_code,\n" +
             "    coalesce(wpgc.block, wdc.gb_block, wdc.block) as gb_block,\n" +
             "    coalesce(wpgc.address, wdc.gb_address, wdc.address) as gb_address,\n" +
             "    coalesce(wpgc.parental, wdc.gb_parental, wdc.parental) as gb_parental,\n" +
@@ -240,7 +240,7 @@ public interface PlatformChannelMapper {
             "    coalesce(wpgc.manufacturer, wdc.gb_manufacturer, wdc.manufacturer) as gb_manufacturer,\n" +
             "    coalesce(wpgc.model, wdc.gb_model, wdc.model) as gb_model,\n" +
             "    coalesce(wpgc.owner, wdc.gb_owner, wdc.owner) as gb_owner,\n" +
-            "    coalesce(wpgc.civil_code, wdc.gb_civil_code, wdc.civil_code),\n" +
+            "    coalesce(wpgc.civil_code, wdc.gb_civil_code, wdc.civil_code) as gb_civil_code,\n" +
             "    coalesce(wpgc.block, wdc.gb_block, wdc.block) as gb_block,\n" +
             "    coalesce(wpgc.address, wdc.gb_address, wdc.address) as gb_address,\n" +
             "    coalesce(wpgc.parental, wdc.gb_parental, wdc.parental) as gb_parental,\n" +
@@ -291,7 +291,7 @@ public interface PlatformChannelMapper {
             "    coalesce(wpgc.manufacturer, wdc.gb_manufacturer, wdc.manufacturer) as gb_manufacturer,\n" +
             "    coalesce(wpgc.model, wdc.gb_model, wdc.model) as gb_model,\n" +
             "    coalesce(wpgc.owner, wdc.gb_owner, wdc.owner) as gb_owner,\n" +
-            "    coalesce(wpgc.civil_code, wdc.gb_civil_code, wdc.civil_code),\n" +
+            "    coalesce(wpgc.civil_code, wdc.gb_civil_code, wdc.civil_code) as gb_civil_code,\n" +
             "    coalesce(wpgc.block, wdc.gb_block, wdc.block) as gb_block,\n" +
             "    coalesce(wpgc.address, wdc.gb_address, wdc.address) as gb_address,\n" +
             "    coalesce(wpgc.parental, wdc.gb_parental, wdc.parental) as gb_parental,\n" +
@@ -349,6 +349,14 @@ public interface PlatformChannelMapper {
             "</script>")
     int addPlatformGroup(List<Group> groupListNotShare, @Param("platformId") Integer platformId);
 
+    @Insert("<script> "+
+            "INSERT INTO wvp_platform_region (platform_id, region_id) VALUES " +
+            "<foreach collection='regionListNotShare'  item='item' separator=','>" +
+            " (#{platformId}, #{item.id} )" +
+            "</foreach>" +
+            "</script>")
+    int addPlatformRegion(List<Region> regionListNotShare, @Param("platformId") Integer platformId);
+
     @Delete("<script> "+
             "DELETE from wvp_platform_group WHERE platform_id=#{platformId} AND group_id in" +
             "<foreach collection='groupList'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
@@ -360,6 +368,11 @@ public interface PlatformChannelMapper {
             "</script>")
     void removePlatformGroupById(@Param("id") int id, @Param("platformId") Integer platformId);
 
+    @Delete("<script> "+
+            "DELETE from wvp_platform_region WHERE platform_id=#{platformId} AND region_id  =#{id}" +
+            "</script>")
+    void removePlatformRegionById(@Param("id") int id, @Param("platformId") Integer platformId);
+
     @Select(" <script>" +
             " SELECT wcg.* " +
             " from wvp_common_group wcg" +
@@ -369,11 +382,28 @@ public interface PlatformChannelMapper {
     Set<Group> queryShareChildrenGroup(@Param("parentId") String parentId, @Param("platformId") Integer platformId);
 
     @Select(" <script>" +
+            " SELECT wcr.* " +
+            " from wvp_common_region wcr" +
+            " left join wvp_platform_region wpr on wpr.region_id = wcr.id and wpr.platform_id = #{platformId}" +
+            " where wpr.platform_id IS NOT NULL and wcr.parent_device_id = #{parentId} " +
+            " </script>")
+    Set<Region> queryShareChildrenRegion(@Param("parentId") String parentId, @Param("platformId") Integer platformId);
+
+    @Select(" <script>" +
             " SELECT wcg.* " +
             " from wvp_common_group wcg" +
             " left join wvp_platform_group wpg on wpg.group_id = wcg.id and wpg.platform_id = #{platformId}" +
-            " where wpg.platform_id is not null and wcg.parent_device_id in " +
-            "<foreach collection='groupSet'  item='item'  open='(' separator=',' close=')' > #{item.deviceId}</foreach>" +
+            " where wpg.platform_id is not null and wcg.id in " +
+            "<foreach collection='groupSet'  item='item'  open='(' separator=',' close=')' > #{item.parentId}</foreach>" +
             " </script>")
     Set<Group> queryShareParentGroupByGroupSet(Set<Group> groupSet, @Param("platformId") Integer platformId);
+
+    @Select(" <script>" +
+            " SELECT wcr.* " +
+            " from wvp_common_region wcr" +
+            " left join wvp_platform_region wpr on wpr.region_id = wcr.id and wpr.platform_id = #{platformId}" +
+            " where wpr.platform_id is not null and wcr.id in " +
+            "<foreach collection='regionSet'  item='item'  open='(' separator=',' close=')' > #{item.parentId}</foreach>" +
+            " </script>")
+    Set<Region> queryShareParentRegionByRegionSet(Set<Region> regionSet, @Param("platformId") Integer platformId);
 }

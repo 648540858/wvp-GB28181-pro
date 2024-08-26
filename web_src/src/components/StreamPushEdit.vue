@@ -73,12 +73,21 @@ export default {
           data: this.streamPush
         }).then((res) => {
           if (res.data.code === 0) {
-            this.$message.success("保存成功");
+            this.$message.success({
+              showClose: true,
+              message: '保存成功',
+            });
           }else {
-            this.$message.error(res.data.msg)
+            this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
           }
         }).catch((error) => {
-          this.$message.error(error)
+          this.$message.error({
+            showClose: true,
+            message: error
+          })
         }).finally(()=>[
           this.locading = false
         ])
@@ -89,13 +98,23 @@ export default {
           data: this.streamPush
         }).then((res) => {
           if (res.data.code === 0) {
-            this.$message.success("保存成功");
+            this.$message.success({
+              showClose: true,
+              message: '保存成功',
+            });
+
             this.streamPush = res.data.data
           }else {
-            this.$message.error(res.data.msg)
+            this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
           }
         }).catch((error) => {
-          this.$message.error(error)
+          this.$message.error({
+            showClose: true,
+            message: error
+          })
         }).finally(()=>[
           this.locading = false
         ])

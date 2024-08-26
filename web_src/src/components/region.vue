@@ -181,7 +181,10 @@ export default {
     },
     add: function (row) {
       if (!this.regionId) {
-        this.$message.info("请选择左侧行政区划节点")
+        this.$message.info({
+          showClose: true,
+          message: "请选择左侧行政区划节点"
+        })
         return;
       }
       let channels = []
@@ -189,7 +192,10 @@ export default {
         channels.push(this.multipleSelection[i].gbId)
       }
       if (channels.length === 0) {
-        this.$message.info("请选择右侧通道")
+        this.$message.info({
+          showClose: true,
+          message: "请选择右侧通道"
+        })
         return;
       }
       this.loading = true
@@ -203,16 +209,25 @@ export default {
         }
       }).then((res)=> {
         if (res.data.code === 0) {
-          this.$message.success("保存成功")
+          this.$message.success({
+            showClose: true,
+            message: "保存成功"
+          })
           this.getChannelList()
           // 刷新树节点
           this.$refs.regionTree.refresh(this.regionId)
         }else {
-          this.$message.error(res.data.msg)
+          this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
         }
         this.loading = false
       }).catch((error)=> {
-        this.$message.error(error)
+        this.$message.error({
+            showClose: true,
+            message: error
+          })
         this.loading = false
       });
     },
@@ -222,7 +237,10 @@ export default {
         channels.push(this.multipleSelection[i].gbId)
       }
       if (channels.length === 0) {
-        this.$message.info("请选择右侧通道")
+        this.$message.info({
+          showClose: true,
+          message: "请选择右侧通道"
+        })
         return;
       }
       this.loading = true
@@ -235,16 +253,25 @@ export default {
         }
       }).then((res)=> {
         if (res.data.code === 0) {
-          this.$message.success("保存成功")
+          this.$message.success({
+            showClose: true,
+            message: "保存成功"
+          })
           this.getChannelList()
           // 刷新树节点
           this.$refs.regionTree.refresh(this.regionId)
         }else {
-          this.$message.error(res.data.msg)
+          this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
         }
         this.loading = false
       }).catch((error)=> {
-        this.$message.error(error)
+        this.$message.error({
+            showClose: true,
+            message: error
+          })
         this.loading = false
       });
     },

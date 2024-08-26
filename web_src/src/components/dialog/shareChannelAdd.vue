@@ -178,7 +178,10 @@ export default {
         channels.push(this.multipleSelection[i].gbId)
       }
       if (channels.length === 0) {
-        this.$message.info("请选择右侧通道")
+        this.$message.info({
+          showClose: true,
+          message: "请选择右侧通道"
+        })
         return;
       }
       this.loading = true
@@ -192,14 +195,23 @@ export default {
         }
       }).then((res)=> {
         if (res.data.code === 0) {
-          this.$message.success("保存成功")
+          this.$message.success({
+            showClose: true,
+            message: "保存成功"
+          })
           this.getChannelList()
         }else {
-          this.$message.error(res.data.msg)
+          this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
         }
         this.loading = false
       }).catch((error)=> {
-        this.$message.error(error)
+        this.$message.error({
+            showClose: true,
+            message: error
+          })
         this.loading = false
       });
     },
@@ -221,14 +233,23 @@ export default {
           }
         }).then((res)=> {
           if (res.data.code === 0) {
-            this.$message.success("保存成功")
+            this.$message.success({
+            showClose: true,
+            message: "保存成功"
+          })
             this.getChannelList()
           }else {
-            this.$message.error(res.data.msg)
+            this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
           }
           this.loading = false
         }).catch((error)=> {
-          this.$message.error(error)
+          this.$message.error({
+            showClose: true,
+            message: error
+          })
           this.loading = false
         });
       }).catch(() => {
@@ -245,7 +266,10 @@ export default {
         channels.push(this.multipleSelection[i].gbId)
       }
       if (channels.length === 0) {
-        this.$message.info("请选择右侧通道")
+        this.$message.info({
+          showClose: true,
+          message: "请选择右侧通道"
+        })
         return;
       }
       this.loading = true
@@ -259,14 +283,23 @@ export default {
         }
       }).then((res)=> {
         if (res.data.code === 0) {
-          this.$message.success("保存成功")
+          this.$message.success({
+            showClose: true,
+            message: "保存成功"
+          })
           this.getChannelList()
         }else {
-          this.$message.error(res.data.msg)
+          this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
         }
         this.loading = false
       }).catch((error)=> {
-        this.$message.error(error)
+        this.$message.error({
+            showClose: true,
+            message: error
+          })
         this.loading = false
       });
     },
@@ -288,14 +321,23 @@ export default {
           }
         }).then((res)=> {
           if (res.data.code === 0) {
-            this.$message.success("保存成功")
+            this.$message.success({
+            showClose: true,
+            message: "保存成功"
+          })
             this.getChannelList()
           }else {
-            this.$message.error(res.data.msg)
+            this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
           }
           this.loading = false
         }).catch((error)=> {
-          this.$message.error(error)
+          this.$message.error({
+            showClose: true,
+            message: error
+          })
           this.loading = false
         });
       }).catch(() => {

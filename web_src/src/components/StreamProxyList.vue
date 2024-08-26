@@ -225,14 +225,23 @@
                   }
               })
             }else {
-              this.$message.success("未找到可用设备");
+              this.$message.success({
+                showClose: true,
+                message: "未找到可用设备"
+              });
             }
         }else {
-            this.$message.error(res.data.msg);
+            this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
           }
 
         }).catch((error)=> {
-          this.$message.error(error.response.data.msg);
+          this.$message.error({
+            showClose: true,
+            message: error
+          })
         });
 
 			},
@@ -302,21 +311,24 @@
         this.$router.push(`/cloudRecordDetail/${row.app}/${row.stream}`)
       },
 			deleteStreamProxy: function(row){
-				let that = this;
         this.$confirm('确定删除此代理吗？', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          that.$axios({
+          this.$axios({
             method:"delete",
             url:"/api/proxy/delete",
             params:{
               id: row.id,
             }
           }).then((res)=>{
-            that.initData()
-          }).catch(function (error) {
+            this.$message.success({
+              showClose: true,
+              message: "删除成功"
+            })
+            this.initData()
+          }).catch((error) =>{
             console.log(error);
           });
         }).catch(() => {

@@ -78,7 +78,10 @@ export default {
         data: this.group
       }).then((res)=> {
         if (res.data.code === 0) {
-          this.$message.success("保存成功")
+          this.$message.success({
+            showClose: true,
+            message: "保存成功"
+          })
           if (this.submitCallback)this.submitCallback(this.group)
         }else {
           this.$message({

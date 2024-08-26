@@ -103,7 +103,10 @@ export default {
       if (data.channelId && !isCatalog) {
         // 点击通道
         if (data[this.longitudeStr] * data[this.latitudeStr] === 0) {
-          this.$message.error('未获取到位置信息');
+          this.$message.error({
+            showClose: true,
+            message: "未获取到位置信息"
+          })
         } else {
           if (this.layer != null) {
             this.$refs.map.removeLayer(this.layer);
@@ -235,10 +238,16 @@ export default {
         } else if (params.length > 1) {
           this.$refs.map.fit(this.layer)
         } else {
-          this.$message.error('未获取到位置信息');
+          this.$message.error({
+            showClose: true,
+            message: "未获取到位置信息"
+          })
         }
       } else {
-        this.$message.error('未获取到位置信息');
+        this.$message.error({
+          showClose: true,
+          message: "未获取到位置信息"
+        })
       }
     },
     getImageByChannel: function (channel) {
@@ -314,7 +323,10 @@ export default {
       });
     },
     edit: function (data) {
-      this.$message.warning('暂不支持');
+      this.$message.warning({
+        showClose: true,
+        message: "暂不支持"
+      })
     },
     getTrace: function (data) {
       // this.$message.warning('暂不支持');
@@ -323,7 +335,10 @@ export default {
         console.log("getTrace")
         console.log(channelPositions)
         if (channelPositions.length === 0) {
-          this.$message.success('未查询到轨迹信息');
+          this.$message.info({
+            showClose: true,
+            message: "未查询到轨迹信息"
+          })
         } else {
           let positions = [];
           for (let i = 0; i < channelPositions.length; i++) {
@@ -333,7 +348,10 @@ export default {
 
           }
           if (positions.length === 0) {
-            this.$message.success('未查询到轨迹信息');
+            this.$message.info({
+              showClose: true,
+              message: "未查询到轨迹信息"
+            })
             return;
           }
           this.lineLayer = this.$refs.map.addLineLayer(positions)

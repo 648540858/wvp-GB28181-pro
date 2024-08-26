@@ -258,18 +258,27 @@ export default {
           }
         }).then((res)=> {
           if (res.data.code === 0) {
-            this.$message.success("保存成功")
+            this.$message.success({
+            showClose: true,
+            message: "保存成功"
+          })
             if (this.onChannelChange) {
               this.onChannelChange()
             }
             node.loaded = false
             node.expand();
           }else {
-            this.$message.error(res.data.msg)
+            this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
           }
           this.loading = false
         }).catch((error)=> {
-          this.$message.error(error)
+          this.$message.error({
+            showClose: true,
+            message: error
+          })
           this.loading = false
         });
       })
@@ -288,18 +297,27 @@ export default {
           }
         }).then((res)=> {
           if (res.data.code === 0) {
-            this.$message.success("保存成功")
+            this.$message.success({
+              showClose: true,
+              message: "保存成功"
+            })
             if (this.onChannelChange) {
               this.onChannelChange()
             }
             node.loaded = false
             node.expand();
           }else {
-            this.$message.error(res.data.msg)
+            this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
           }
           this.loading = false
         }).catch((error)=> {
-          this.$message.error(error)
+          this.$message.error({
+            showClose: true,
+            message: error
+          })
           this.loading = false
         });
       })

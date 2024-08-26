@@ -218,7 +218,10 @@ export default {
           }
         }
         if (this.activeKey !== '0' && parent === '') {
-          this.$message.error('请先选择上级行政区划');
+          this.$message.error({
+            showClose: true,
+            message: "请先选择上级行政区划"
+          })
         }
         if (parent !== "") {
           this.queryChildList(parent);
@@ -241,10 +244,16 @@ export default {
         if (res.data.code === 0) {
           this.regionList = res.data.data
         } else {
-          this.$message.error(res.data.msg);
+          this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
         }
       }).catch((error) => {
-        this.$message.error(error);
+        this.$message.error({
+            showClose: true,
+            message: error
+          });
       });
     },
     closeModel: function (){
@@ -286,10 +295,16 @@ export default {
             }
             this.showVideoDialog = false
           } else {
-            this.$message.error(res.data.msg);
+            this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
           }
         }).catch((error) => {
-          this.$message.error(error);
+          this.$message.error({
+            showClose: true,
+            message: error
+          });
         });
       }else {
         this.$axios({
@@ -303,10 +318,16 @@ export default {
             }
             this.showVideoDialog = false
           } else {
-            this.$message.error(res.data.msg);
+            this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
           }
         }).catch((error) => {
-          this.$message.error(error);
+          this.$message.error({
+            showClose: true,
+            message: error
+          });
         });
       }
 

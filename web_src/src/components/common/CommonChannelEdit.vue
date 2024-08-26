@@ -245,15 +245,24 @@ export default {
           data: this.form
         }).then((res) => {
           if (res.data.code === 0) {
-            this.$message.success("保存成功");
+            this.$message.success({
+            showClose: true,
+            message: "保存成功"
+          });
             if (this.saveSuccess) {
               this.saveSuccess()
             }
           }else {
-            this.$message.error(res.data.msg);
+            this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
           }
         }).catch((error) => {
-          this.$message.error(error);
+          this.$message.error({
+            showClose: true,
+            message: error
+          });
         }).finally(()=>[
           this.locading = false
         ])
@@ -264,16 +273,25 @@ export default {
           data: this.form
         }).then((res) => {
           if (res.data.code === 0) {
-            this.$message.success("保存成功");
+            this.$message.success({
+              showClose: true,
+              message: "保存成功"
+            });
             this.form = res.data.data
             if (this.saveSuccess) {
               this.saveSuccess()
             }
           }else {
-            this.$message.error(res.data.msg);
+            this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
           }
         }).catch((error) => {
-          this.$message.error(error);
+          this.$message.error({
+            showClose: true,
+            message: error
+          });
         }).finally(()=>[
           this.locading = false
         ])
@@ -296,7 +314,10 @@ export default {
           }
         }).then((res) => {
           if (res.data.code === 0) {
-            this.$message.success("重置成功 已保存");
+            this.$message.success({
+              showClose: true,
+              message: "重置成功 已保存"
+            });
             this.getCommonChannel()
           }
         }).catch((error) => {

@@ -110,7 +110,10 @@ export default {
     clickEvent: function (device, data, isCatalog) {
       if (data.channelId && !isCatalog) {
         if (device.online === 0) {
-          this.$message.error('设备离线!不允许点播');
+          this.$message.error({
+            showClose: true,
+            message: "设备离线!不允许点播"
+          })
         }else {
           this.sendDevicePush(data)
         }

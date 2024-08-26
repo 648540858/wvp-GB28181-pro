@@ -7,7 +7,7 @@
                  v-if="Object.keys(this.player).length > 1">
           <el-tab-pane label="Jessibuca" name="jessibuca">
             <jessibucaPlayer v-if="activePlayer === 'jessibuca'" ref="jessibuca" :visible.sync="showVideoDialog"
-                             :videoUrl="videoUrl" :error="videoError" :message="videoError" 
+                             :videoUrl="videoUrl" :error="videoError" :message="videoError"
                              :hasAudio="hasAudio" fluent autoplay live></jessibucaPlayer>
           </el-tab-pane>
           <el-tab-pane label="WebRTC" name="webRTC">
@@ -636,7 +636,10 @@ export default {
     copyUrl: function (dropdownItem) {
       console.log(dropdownItem)
       this.$copyText(dropdownItem).then((e) => {
-        this.$message.success("成功拷贝到粘贴板");
+        this.$message.success({
+          showClose: true,
+          message: "成功拷贝到粘贴板"
+        })
       }, (e) => {
 
       })

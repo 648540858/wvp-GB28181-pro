@@ -163,15 +163,23 @@ export default {
         }).then((res)=> {
           this.saveLoading = false;
           if (typeof (res.data.code) != "undefined" && res.data.code === 0) {
-            this.$message.success("保存成功");
-            console.log(res.data.data)
+            this.$message.success({
+              showClose: true,
+              message: "保存成功"
+            });
             this.streamProxy = res.data.data
           }else {
-            this.$message.error(res.data.msg);
+            this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
           }
           this.saveLoading = false;
         }).catch((error) =>{
-          this.$message.error(error);
+          this.$message.error({
+            showClose: true,
+            message: error
+          });
           this.saveLoading = false;
         }).finally(()=>{
           console.log("finally==finally")
@@ -185,13 +193,22 @@ export default {
         }).then((res)=> {
           this.saveLoading = false;
           if (typeof (res.data.code) != "undefined" && res.data.code === 0) {
-            this.$message.success("保存成功");
+            this.$message.success({
+            showClose: true,
+            message: "保存成功"
+          });
             this.streamProxy = res.data.data
           }else {
-            this.$message.error(res.data.msg);
+            this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
           }
         }).catch((error) =>{
-          this.$message.error(res.data.error);
+          this.$message.error({
+            showClose: true,
+            message: error
+          })
           this.saveLoading = false;
         }).finally(()=>{
           this.saveLoading = false;

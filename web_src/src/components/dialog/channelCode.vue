@@ -229,7 +229,11 @@ export default {
           parent = this.allVal[0].val + this.allVal[1].val
         }
         if (this.activeKey !== '0' && parent === '') {
-          this.$message.error('请先选择上级行政区划');
+          this.$message.error({
+            showClose: true,
+            message: '请先选择上级行政区划'
+          })
+
         }
         this.queryChildList(parent);
       } else if (this.activeKey === '4') {
@@ -253,10 +257,16 @@ export default {
         if (res.data.code === 0) {
           this.regionList = res.data.data
         } else {
-          this.$message.error(res.data.msg);
+          this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
         }
       }).catch((error) => {
-        this.$message.error(error);
+        this.$message.error({
+            showClose: true,
+            message: error
+          });
       });
     },
     queryIndustryCodeList: function(){
@@ -268,10 +278,16 @@ export default {
         if (res.data.code === 0) {
           this.industryCodeTypeList = res.data.data
         } else {
-          this.$message.error(res.data.msg);
+          this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
         }
       }).catch((error) => {
-        this.$message.error(error);
+        this.$message.error({
+            showClose: true,
+            message: error
+          });
       });
     },
     queryDeviceTypeList: function(){
@@ -283,10 +299,16 @@ export default {
         if (res.data.code === 0) {
           this.deviceTypeList = res.data.data
         } else {
-          this.$message.error(res.data.msg);
+          this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
         }
       }).catch((error) => {
-        this.$message.error(error);
+        this.$message.error({
+            showClose: true,
+            message: error
+          });
       });
     },
     queryNetworkIdentificationTypeList: function(){
@@ -298,10 +320,16 @@ export default {
         if (res.data.code === 0) {
           this.networkIdentificationTypeList = res.data.data
         } else {
-          this.$message.error(res.data.msg);
+          this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
         }
       }).catch((error) => {
-        this.$message.error(error);
+        this.$message.error({
+            showClose: true,
+            message: error
+          });
       });
     },
     closeModel: function (){

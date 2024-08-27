@@ -145,7 +145,7 @@ create table wvp_device_channel
     has_audio                    bool default false,
     gps_time                     character varying(50),
     stream_identification        character varying(50),
-    channel_type                  int  default 0        not null,
+    channel_type                 int  default 0        not null,
     gb_device_id                 character varying(50),
     gb_name                      character varying(255),
     gb_manufacturer              character varying(255),
@@ -462,6 +462,7 @@ CREATE TABLE wvp_common_group
     business_group   varchar(50)  NOT NULL,
     create_time      varchar(50)  NOT NULL,
     update_time      varchar(50)  NOT NULL,
+    civil_code       varchar(50)  default null,
     UNIQUE KEY common_group_device_platform (device_id)
 );
 

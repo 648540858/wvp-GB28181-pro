@@ -20,6 +20,11 @@
           <el-form-item label="节点名称" prop="name">
             <el-input v-model="group.name" clearable></el-input>
           </el-form-item>
+          <el-form-item label="行政区划" prop="name">
+            <el-input v-model="group.civilCode" >
+              <el-button slot="append" @click="buildCivilCode(group.civilCode)">生成</el-button>
+            </el-input>
+          </el-form-item>
 
           <el-form-item>
             <div style="float: right;">
@@ -32,15 +37,17 @@
       </div>
     </el-dialog>
     <channelCode ref="channelCode"></channelCode>
+    <regionCode ref="regionCode"></regionCode>
   </div>
 </template>
 
 <script>
 import channelCode from "./channelCode.vue";
+import regionCode from "./regionCode.vue";
 
 export default {
   name: "groupEdit",
-  components: {channelCode},
+  components: {channelCode, regionCode},
   computed: {},
   props: [],
   created() {},
@@ -56,6 +63,7 @@ export default {
         name: "",
         parentDeviceId: "",
         businessGroup: "",
+        civilCode: "",
         platformId: "",
 
       },
@@ -106,6 +114,13 @@ export default {
       this.$refs.channelCode.openDialog(code=>{
         this.group.deviceId = code;
       }, deviceId, 5 , lockContent);
+    },
+    buildCivilCode: function (deviceId){
+      this.$refs.regionCode.openDialog(code=>{
+        console.log("2222")
+        console.log(code)
+        this.group.civilCode = code;
+      }, deviceId)
     },
     close: function () {
       this.showDialog = false;

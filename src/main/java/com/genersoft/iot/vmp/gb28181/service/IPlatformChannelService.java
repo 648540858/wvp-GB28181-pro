@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.service;
 
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformChannel;
 import com.github.pagehelper.PageInfo;
 
@@ -20,4 +21,6 @@ public interface IPlatformChannelService {
     int addChannels(Integer platformId, List<Integer> channelIds);
 
     int removeChannels(Integer platformId, List<Integer> channelIds);
+
+    void removeChannels(List<CommonGBChannel> channelList);
 }

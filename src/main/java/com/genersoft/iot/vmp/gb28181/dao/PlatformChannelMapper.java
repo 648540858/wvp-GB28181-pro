@@ -339,7 +339,17 @@ public interface PlatformChannelMapper {
             "   </foreach> " +
             "</if>" +
             "</script>")
-    int removeChannels(@Param("platformId") Integer platformId, List<CommonGBChannel> channelList);
+    int removeChannelsWithPlatform(@Param("platformId") Integer platformId, List<CommonGBChannel> channelList);
+
+    @Delete("<script> " +
+            "DELETE from wvp_platform_channel WHERE " +
+            "<if test='channelList != null'> AND device_channel_id in " +
+            "   <foreach item='item' index='index' collection='channelList' open='(' separator=',' close=')'>" +
+            "   #{item.gbId} " +
+            "   </foreach> " +
+            "</if>" +
+            "</script>")
+    int removeChannels(List<CommonGBChannel> channelList);
 
     @Insert("<script> "+
             "INSERT INTO wvp_platform_group (platform_id, group_id) VALUES " +
@@ -406,4 +416,19 @@ public interface PlatformChannelMapper {
             "<foreach collection='regionSet'  item='item'  open='(' separator=',' close=')' > #{item.parentId}</foreach>" +
             " </script>")
     Set<Region> queryShareParentRegionByRegionSet(Set<Region> regionSet, @Param("platformId") Integer platformId);
+
+    @Select("<script> " +
+            " SELECT " +
+            " pp.* " +
+            " FROM " +
+            " wvp_platform pp " +
+            " left join wvp_platform_channel pgc on " +
+            " pp.id = pgc.platform_id " +
+            " left join wvp_device_channel dc on " +
+            " dc.id = pgc.device_channel_id " +
+            " WHERE " +
+            "  pgc.device_channel_id IN" +
+            "<foreach collection='channelList' item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
+            "</script> ")
+    List<Platform> queryPlatFormListByChannelList(List<CommonGBChannel> channelList);
 }

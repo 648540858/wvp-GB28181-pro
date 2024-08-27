@@ -1,10 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.baomidou.dynamic.datasource.annotation.DS;
-import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.Group;
-import com.genersoft.iot.vmp.gb28181.bean.PlatformChannel;
-import com.genersoft.iot.vmp.gb28181.bean.Region;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.GroupMapper;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
@@ -273,7 +270,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     public int removeAllChannel(Integer platformId) {
         List<CommonGBChannel> channelListShare = platformChannelMapper.queryShare(platformId,  null);
         Assert.notEmpty(channelListShare, "未共享任何通道");
-        int result = platformChannelMapper.removeChannels(platformId, channelListShare);
+        int result = platformChannelMapper.removeChannelsWithPlatform(platformId, channelListShare);
         if (result > 0) {
             // 查询通道相关的分组信息
             Set<Region> regionSet = regionMapper.queryByChannelList(channelListShare);
@@ -308,7 +305,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     public int removeChannels(Integer platformId, List<Integer> channelIds) {
         List<CommonGBChannel> channelList = platformChannelMapper.queryShare(platformId, channelIds);
         Assert.notEmpty(channelList, "所选通道未共享");
-        int result = platformChannelMapper.removeChannels(platformId, channelList);
+        int result = platformChannelMapper.removeChannelsWithPlatform(platformId, channelList);
         if (result > 0) {
             // 查询通道相关的分组信息
             Set<Region> regionSet = regionMapper.queryByChannelList(channelList);
@@ -336,5 +333,47 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
             }
         }
         return result;
+    }
+
+    @Override
+    public void removeChannels(List<CommonGBChannel> channelList) {
+        List<Platform> platformList = platformChannelMapper.queryPlatFormListByChannelList(channelList);
+        if (platformList.isEmpty()) {
+            return;
+        }
+
+
+
+
+        // TODO 不对呀
+        for (Platform platform : platformList) {
+            int result = platformChannelMapper.removeChannelsWithPlatform(platform.getId(), channelList);
+            if (result > 0) {
+                // 查询通道相关的分组信息
+                Set<Region> regionSet = regionMapper.queryByChannelList(channelList);
+                Set<Region> deleteRegion = deleteEmptyRegion(regionSet, platform.getId());
+                if (!deleteRegion.isEmpty()) {
+                    for (Region region : deleteRegion) {
+                        channelList.add(0, CommonGBChannel.build(region));
+                    }
+                }
+
+                // 查询通道相关的分组信息
+                Set<Group> groupSet = groupMapper.queryByChannelList(channelList);
+                Set<Group> deleteGroup = deleteEmptyGroup(groupSet, platform.getId());
+                if (!deleteGroup.isEmpty()) {
+                    for (Group group : deleteGroup) {
+                        channelList.add(0, CommonGBChannel.build(group));
+                    }
+                }
+            }
+            // 发送消息
+            try {
+                // 发送catalog
+                eventPublisher.catalogEventPublish(platform.getId(), channelList, CatalogEvent.DEL);
+            } catch (Exception e) {
+                log.warn("[移除关联通道] 发送失败，数量：{}", channelList.size(), e);
+            }
+        }
     }
 }

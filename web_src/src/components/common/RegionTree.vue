@@ -37,20 +37,20 @@
         </span>
       </vue-easy-tree>
     </div>
-    <regionCode ref="regionCode"></regionCode>
+    <regionEdit ref="regionEdit"></regionEdit>
     <gbDeviceSelect ref="gbDeviceSelect"></gbDeviceSelect>
   </div>
 </template>
 
 <script>
 import VueEasyTree from "@wchbrad/vue-easy-tree";
-import regionCode from './../dialog/regionCode'
+import regionEdit from './../dialog/regionEdit'
 import gbDeviceSelect from './../dialog/GbDeviceSelect'
 
 export default {
   name: 'DeviceTree',
   components: {
-    VueEasyTree, regionCode, gbDeviceSelect
+    VueEasyTree, regionEdit, gbDeviceSelect
   },
   data() {
     return {
@@ -336,7 +336,7 @@ export default {
 
       console.log(node)
 
-      this.$refs.regionCode.openDialog(form => {
+      this.$refs.regionEdit.openDialog(form => {
         node.loaded = false
         node.expand();
       }, {
@@ -348,7 +348,7 @@ export default {
     },
     editCatalog: function (data, node){
       // 打开添加弹窗
-      this.$refs.regionCode.openDialog(form => {
+      this.$refs.regionEdit.openDialog(form => {
         node.loaded = false
         node.expand();
       }, node.data);

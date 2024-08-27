@@ -6,9 +6,11 @@ import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
+import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceMobilePositionMapper;
@@ -17,11 +19,11 @@ import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
+import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
-import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
 import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -67,6 +69,10 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private IPlatformChannelService platformChannelService;
+
 
     @Override
     public void updateChannel(String deviceId, DeviceChannel channel) {
@@ -503,7 +509,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             return false;
         }
         int limitCount = 50;
-        boolean result = false;
         if (!addChannels.isEmpty()) {
             if (addChannels.size() > limitCount) {
                 for (int i = 0; i < addChannels.size(); i += limitCount) {
@@ -511,39 +516,52 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     if (i + limitCount > addChannels.size()) {
                         toIndex = addChannels.size();
                     }
-                    result = result || channelMapper.batchAdd(addChannels.subList(i, toIndex)) > 0;
+                    channelMapper.batchAdd(addChannels.subList(i, toIndex));
                 }
             }else {
-                result = channelMapper.batchAdd(addChannels) > 0;
+                channelMapper.batchAdd(addChannels);
             }
         }
-        if (!result && !updateChannels.isEmpty()) {
+        if (!updateChannels.isEmpty()) {
             if (updateChannels.size() > limitCount) {
                 for (int i = 0; i < updateChannels.size(); i += limitCount) {
                     int toIndex = i + limitCount;
                     if (i + limitCount > updateChannels.size()) {
                         toIndex = updateChannels.size();
                     }
-                    result = result || channelMapper.batchUpdate(updateChannels.subList(i, toIndex)) > 0;
+                    channelMapper.batchUpdate(updateChannels.subList(i, toIndex));
                 }
             }else {
-                result = channelMapper.batchUpdate(updateChannels) > 0;
+                channelMapper.batchUpdate(updateChannels);
             }
+            // 不对收到的通道做比较，已确定是否真的发生变化，所以不发送更新通知
+
         }
-        if (!result && !deleteChannels.isEmpty()) {
+        if (!deleteChannels.isEmpty()) {
             if (deleteChannels.size() > limitCount) {
                 for (int i = 0; i < deleteChannels.size(); i += limitCount) {
                     int toIndex = i + limitCount;
                     if (i + limitCount > deleteChannels.size()) {
                         toIndex = deleteChannels.size();
                     }
-                    result = result || channelMapper.batchDel(deleteChannels.subList(i, toIndex)) < 0;
+                    channelMapper.batchDel(deleteChannels.subList(i, toIndex));
                 }
             }else {
-                result = channelMapper.batchDel(deleteChannels) < 0;
+                channelMapper.batchDel(deleteChannels);
             }
+            // 这些通道可能关联了，上级平台需要删除同时发送消息
+
+            List<CommonGBChannel> channelList = new ArrayList<>();
+            deleteChannels.stream().forEach(deviceChannel -> {
+                CommonGBChannel commonGBChannel = new CommonGBChannel();
+                commonGBChannel.setGbId(deviceChannel.getId());
+                commonGBChannel.setGbDeviceId(deviceChannel.getDeviceId());
+                commonGBChannel.setGbName(deviceChannel.getName());
+                channelList.add(commonGBChannel);
+            });
+            platformChannelService.removeChannels(channelList);
         }
-        return result;
+        return true;
 
     }
 

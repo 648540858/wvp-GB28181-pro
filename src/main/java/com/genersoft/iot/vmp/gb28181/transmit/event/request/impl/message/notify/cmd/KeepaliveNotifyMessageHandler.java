@@ -60,7 +60,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             return;
         }
         SIPRequest request = (SIPRequest) evt.getRequest();
-        log.info("[收到心跳] device: {}, callId: {}", device.getDeviceId(), request.getCallIdHeader().getCallId());
+        log.debug("[收到心跳] device: {}, callId: {}", device.getDeviceId(), request.getCallIdHeader().getCallId());
         if (userSetting.getGbDeviceOnline() == 0 && !device.isOnLine()) {
             log.warn("[收到心跳] 设备离线，心跳不进行回复， device: {}, callId: {}", device.getDeviceId(), request.getCallIdHeader().getCallId());
             return;

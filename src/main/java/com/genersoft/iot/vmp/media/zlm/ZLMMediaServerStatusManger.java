@@ -105,7 +105,7 @@ public class ZLMMediaServerStatusManger {
         if (serverItem == null) {
             return;
         }
-        log.info("[ZLM-HOOK事件-心跳] ID：" + event.getMediaServerItem().getId());
+        log.debug("[ZLM-HOOK事件-心跳] ID：" + event.getMediaServerItem().getId());
         online(serverItem, null);
     }
 

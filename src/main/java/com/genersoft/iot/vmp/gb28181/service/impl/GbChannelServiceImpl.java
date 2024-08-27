@@ -536,6 +536,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
             return;
         }
         commonGBChannelMapper.removeParentIdByChannels(channelList);
+        // TODO 可能需要发送通道更新通知
     }
 
     @Override

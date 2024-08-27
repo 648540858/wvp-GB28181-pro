@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.gb28181.dao;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.gb28181.bean.GroupTree;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -11,13 +12,13 @@ import java.util.Set;
 @Mapper
 public interface GroupMapper {
 
-    @Insert("INSERT INTO wvp_common_group (device_id, name, parent_id, parent_device_id, business_group, create_time, update_time) " +
-            "VALUES (#{deviceId}, #{name}, #{parentId}, #{parentDeviceId}, #{businessGroup}, #{createTime}, #{updateTime})")
+    @Insert("INSERT INTO wvp_common_group (device_id, name, parent_id, parent_device_id, business_group, create_time, update_time, civil_code) " +
+            "VALUES (#{deviceId}, #{name}, #{parentId}, #{parentDeviceId}, #{businessGroup}, #{createTime}, #{updateTime}, #{civilCode})")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int add(Group group);
 
-    @Insert("INSERT INTO wvp_common_group (device_id, name, business_group, create_time, update_time) " +
-            "VALUES (#{deviceId}, #{name}, #{businessGroup}, #{createTime}, #{updateTime})")
+    @Insert("INSERT INTO wvp_common_group (device_id, name, business_group, create_time, update_time, civil_code) " +
+            "VALUES (#{deviceId}, #{name}, #{businessGroup}, #{createTime}, #{updateTime}, #{civilCode})")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int addBusinessGroup(Group group);
 
@@ -25,7 +26,8 @@ public interface GroupMapper {
     int delete(@Param("id") int id);
 
     @Update(" UPDATE wvp_common_group " +
-            " SET update_time=#{updateTime}, device_id=#{deviceId}, name=#{name}, parent_id=#{parentId}, parent_device_id=#{parentDeviceId}, business_group=#{businessGroup}" +
+            " SET update_time=#{updateTime}, device_id=#{deviceId}, name=#{name}, parent_id=#{parentId}, " +
+            " parent_device_id=#{parentDeviceId}, business_group=#{businessGroup}, civil_code=#{civilCode}" +
             " WHERE id = #{id}")
     int update(Group group);
 
@@ -52,10 +54,11 @@ public interface GroupMapper {
             " parent_id," +
             " business_group," +
             " create_time," +
+            " civil_code," +
             " update_time) " +
             " VALUES " +
             " <foreach collection='groupList' index='index' item='item' separator=','> " +
-            " (#{item.deviceId}, #{item.name}, #{item.parentDeviceId}, #{item.parentId}, #{item.businessGroup},#{item.createTime},#{item.updateTime})" +
+            " (#{item.deviceId}, #{item.name}, #{item.parentDeviceId}, #{item.parentId}, #{item.businessGroup},#{item.createTime},#{item.civilCode},#{item.updateTime})" +
             " </foreach> " +
             " </script>")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
@@ -210,4 +213,15 @@ public interface GroupMapper {
             " </script>")
     void updateParentIdWithBusinessGroup(List<Group> groupListForAdd);
 
+    @Select(" <script>" +
+            " SELECT " +
+            " wp.* " +
+            " from wvp_platform_group wpg " +
+            " left join wvp_platform wp on wp.id = wpg.platform_id " +
+            " where wpg.group_id = #{groupId} " +
+            "</script>")
+    List<Platform> queryForPlatformByGroupId(@Param("groupId") int groupId);
+
+    @Delete("DELETE FROM wvp_platform_group WHERE group_id = #{groupId}")
+    void deletePlatformGroup(@Param("groupId") int groupId);
 }

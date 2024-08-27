@@ -1,9 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
-import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.GbCode;
-import com.genersoft.iot.vmp.gb28181.bean.Group;
-import com.genersoft.iot.vmp.gb28181.bean.GroupTree;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.GroupMapper;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
@@ -202,14 +199,22 @@ public class GroupServiceImpl implements IGroupService {
             gbChannelService.removeParentIdByGroupList(groupListForDelete);
         }
         groupManager.batchDelete(groupListForDelete);
+
         for (Group groupForDelete : groupListForDelete) {
-            // 将变化信息发送通知
-            CommonGBChannel channel = CommonGBChannel.build(groupForDelete);
-            try {
-                // 发送catalog
-                eventPublisher.catalogEventPublish(null, channel, CatalogEvent.DEL);
-            }catch (Exception e) {
-                log.warn("[业务分组/虚拟组织删除] 发送失败，{}", groupForDelete.getDeviceId(), e);
+            // 删除平台关联的分组信息。同时发送通知
+            List<Platform> platformList = groupManager.queryForPlatformByGroupId(groupForDelete.getId());
+            if ( !platformList.isEmpty()) {
+                groupManager.deletePlatformGroup(groupForDelete.getId());
+                // 将变化信息发送通知
+                CommonGBChannel channel = CommonGBChannel.build(groupForDelete);
+                for (Platform platform : platformList) {
+                    try {
+                        // 发送catalog
+                        eventPublisher.catalogEventPublish(platform.getId(), channel, CatalogEvent.DEL);
+                    }catch (Exception e) {
+                        log.warn("[业务分组/虚拟组织删除] 发送失败，{}", groupForDelete.getDeviceId(), e);
+                    }
+                }
             }
         }
         return true;

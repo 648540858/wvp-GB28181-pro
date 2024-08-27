@@ -422,12 +422,14 @@ public class CommonGBChannel {
             // 业务分组
             channel.setGbName(group.getName());
             channel.setGbDeviceId(group.getDeviceId());
+            channel.setGbCivilCode(group.getCivilCode());
         } else {
             // 虚拟组织
             channel.setGbName(group.getName());
             channel.setGbDeviceId(group.getDeviceId());
             channel.setGbParentId(group.getParentDeviceId());
             channel.setGbBusinessGroupId(group.getBusinessGroup());
+            channel.setGbCivilCode(group.getCivilCode());
         }
         return channel;
     }

@@ -60,8 +60,13 @@
           </el-input>
         </el-tab-pane>
     </el-tabs>
-    <el-form style="">
-
+    <el-form ref="form" style="  display: grid; padding: 1rem 2rem 0 2rem;grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+      <el-form-item label="名称" prop="name" size="mini" >
+        <el-input v-model="form.name" autocomplete="off"></el-input>
+      </el-form-item>
+      <el-form-item label="编号" prop="deviceId" size="mini" >
+        <el-input v-model="form.deviceId" autocomplete="off"></el-input>
+      </el-form-item>
       <el-form-item style="margin-top: 22px; margin-bottom: 0;">
         <div style="float:right;">
           <el-button type="primary" @click="handleOk">保存</el-button>
@@ -81,6 +86,11 @@ export default {
     return {
       showVideoDialog: false,
       activeKey: '0',
+      form: {
+        name: "",
+        deviceId: "",
+        parentId: ""
+      },
       allVal: [
         {
           id: [1, 2],
@@ -119,10 +129,11 @@ export default {
     };
   },
   methods: {
-    openDialog: function (endCallBck, code, lockContent) {
+    openDialog: function (endCallBck, region, code, lockContent) {
       this.showVideoDialog = true
       this.activeKey= '0';
       this.regionList = []
+      this.form = region
       this.allVal =  [
         {
           id: [1, 2],
@@ -153,22 +164,37 @@ export default {
           lock: false,
         }
       ]
-      if (code) {
-        if (code.length >= 2) {
-          this.allVal[0].val = code.substring(0, 2)
+      if (this.form.deviceId) {
+        if (this.form.deviceId.length >= 2) {
+          this.allVal[0].val = this.form.deviceId.substring(0, 2)
           this.activeKey = "0"
         }
-        if (code.length >= 4) {
-          this.allVal[1].val = code.substring(2, 4)
+        if (this.form.deviceId.length >= 4) {
+          this.allVal[1].val = this.form.deviceId.substring(2, 4)
           this.activeKey = "1"
         }
-        if (code.length >= 6) {
-          this.allVal[2].val = code.substring(4, 6)
+        if (this.form.deviceId.length >= 6) {
+          this.allVal[2].val = this.form.deviceId.substring(4, 6)
           this.activeKey = "2"
         }
-        if (code.length === 8) {
-          this.allVal[3].val = code.substring(6, 8)
+        if (this.form.deviceId.length === 8) {
+          this.allVal[3].val = this.form.deviceId.substring(6, 8)
           this.activeKey = "3"
+        }
+      }else {
+        if (this.form.parentDeviceId) {
+          if (this.form.parentDeviceId.length >= 2) {
+            this.allVal[0].val = this.form.parentDeviceId.substring(0, 2)
+            this.activeKey = "1"
+          }
+          if (this.form.parentDeviceId.length >= 4) {
+            this.allVal[1].val = this.form.parentDeviceId.substring(2, 4)
+            this.activeKey = "2"
+          }
+          if (this.form.parentDeviceId.length >= 6) {
+            this.allVal[2].val = this.form.parentDeviceId.substring(4, 6)
+            this.activeKey = "3"
+          }
         }
       }
 
@@ -230,18 +256,6 @@ export default {
           });
       });
     },
-    handleOk: function (){
-      const code =
-        this.allVal[0].val +
-        this.allVal[1].val +
-        this.allVal[2].val +
-        this.allVal[3].val
-      console.log(code)
-      if (this.endCallBck) {
-        this.endCallBck(code)
-      }
-      this.showVideoDialog = false
-    },
     closeModel: function (){
       this.showVideoDialog = false
     },
@@ -262,7 +276,63 @@ export default {
         this.allVal[2].val = ""
         this.allVal[3].val = ""
       }
+      this.form.deviceId = code
+      if (item) {
+        this.form.name = item.name
+      }
+
     },
+    handleOk: function() {
+      if (this.form.id) {
+        this.$axios({
+          method: 'post',
+          url: "/api/region/update",
+          data: this.form
+        }).then((res) => {
+          if (res.data.code === 0) {
+            if (typeof this.endCallBck == "function") {
+              this.endCallBck(this.form)
+            }
+            this.showVideoDialog = false
+          } else {
+            this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
+          }
+        }).catch((error) => {
+          this.$message.error({
+            showClose: true,
+            message: error
+          });
+        });
+      }else {
+        this.$axios({
+          method: 'post',
+          url: "/api/region/add",
+          data: this.form
+        }).then((res) => {
+          if (res.data.code === 0) {
+            if (typeof this.endCallBck == "function") {
+              this.endCallBck(this.form)
+            }
+            this.showVideoDialog = false
+          } else {
+            this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
+          }
+        }).catch((error) => {
+          this.$message.error({
+            showClose: true,
+            message: error
+          });
+        });
+      }
+
+
+    }
   },
 };
 </script>

@@ -238,12 +238,10 @@ export default {
             type: 'error'
           });
         } else {
-          // that.$message({
-          // 	showClose: true,
-          // 	message: res.data.msg,
-          // 	type: 'success'
-          // });
-          this.$refs.syncChannelProgress.openDialog(itemData.deviceId)
+          this.$refs.syncChannelProgress.openDialog(itemData.deviceId, ()=>{
+            console.log(32322)
+            this.initData()
+          })
         }
         that.initData()
       }).catch((e) => {

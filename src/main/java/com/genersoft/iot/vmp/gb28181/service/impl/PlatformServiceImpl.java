@@ -1,14 +1,13 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.baomidou.dynamic.datasource.annotation.DS;
+import com.genersoft.iot.vmp.common.*;
 import com.genersoft.iot.vmp.common.InviteInfo;
-import com.genersoft.iot.vmp.common.InviteSessionStatus;
-import com.genersoft.iot.vmp.common.InviteSessionType;
-import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformMapper;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
@@ -36,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import javax.sdp.*;
@@ -92,6 +92,9 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Autowired
     private IInviteStreamService inviteStreamService;
+
+    @Autowired
+    private PlatformChannelMapper platformChannelMapper;
 
 
     /**
@@ -392,6 +395,7 @@ public class PlatformServiceImpl implements IPlatformService {
                 subscribeHolder.removeCatalogSubscribe(platform.getServerGBId());
             }
         }
+
         log.info("[平台离线] {}({}), 停止移动位置订阅回复", platform.getName(), platform.getServerGBId());
         subscribeHolder.removeMobilePositionSubscribe(platform.getServerGBId());
         // 发起定时自动重新注册
@@ -804,5 +808,62 @@ public class PlatformServiceImpl implements IPlatformService {
     @Override
     public List<Platform> queryEnablePlatformList() {
         return platformMapper.queryEnablePlatformList();
+    }
+
+    @Override
+    @Transactional
+    public void delete(Integer platformId, CommonCallback<Object> callback) {
+        Platform platform = platformMapper.query(platformId);
+        Assert.notNull(platform, "平台不存在");
+        // 发送离线消息,无论是否成功都删除缓存
+        PlatformCatch platformCatch = redisCatchStorage.queryPlatformCatchInfo(platform.getServerGBId());
+        if (platformCatch != null) {
+            String key = UUID.randomUUID().toString();
+            dynamicTask.startDelay(key, ()->{
+                deletePlatformInfo(platform);
+                if (callback != null) {
+                    callback.run(null);
+                }
+            }, 2000);
+            try {
+                commanderForPlatform.unregister(platform, platformCatch.getSipTransactionInfo(), (event -> {
+                    dynamicTask.stop(key);
+                    // 移除平台相关的信息
+                    deletePlatformInfo(platform);
+                    if (callback != null) {
+                        callback.run(null);
+                    }
+                }), (event -> {
+                    dynamicTask.stop(key);
+                    // 移除平台相关的信息
+                    deletePlatformInfo(platform);
+                    if (callback != null) {
+                        callback.run(null);
+                    }
+                }));
+            } catch (InvalidArgumentException | ParseException | SipException e) {
+                log.error("[命令发送失败] 国标级联 注销: {}", e.getMessage());
+            }
+        }else {
+            deletePlatformInfo(platform);
+            if (callback != null) {
+                callback.run(null);
+            }
+        }
+
+    }
+
+    @Transactional
+    public void deletePlatformInfo(Platform platform) {
+        // 删除关联的通道
+        platformChannelMapper.removeChannelsByPlatformId(platform.getId());
+        // 删除关联的分组
+        platformChannelMapper.removePlatformGroupsByPlatformId(platform.getId());
+        // 删除关联的行政区划
+        platformChannelMapper.removePlatformRegionByPlatformId(platform.getId());
+        // 删除redis缓存
+        redisCatchStorage.delPlatformCatchInfo(platform.getServerGBId());
+        // 删除平台信息
+        platformMapper.delete(platform.getId());
     }
 }

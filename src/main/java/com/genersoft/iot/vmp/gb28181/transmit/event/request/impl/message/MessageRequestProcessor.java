@@ -5,13 +5,13 @@ import com.genersoft.iot.vmp.gb28181.bean.DeviceNotFoundEvent;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.DocumentException;
@@ -41,7 +41,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
     private SIPProcessorObserver sipProcessorObserver;
 
     @Autowired
-    private IVideoManagerStorage storage;
+    private IPlatformService platformService;
 
     @Autowired
     private SipSubscribe sipSubscribe;
@@ -78,7 +78,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
         // 查询设备是否存在
         Device device = redisCatchStorage.getDevice(deviceId);
         // 查询上级平台是否存在
-        Platform parentPlatform = storage.queryParentPlatByServerGBId(deviceId);
+        Platform parentPlatform = platformService.queryPlatformByServerGBId(deviceId);
         try {
             if (device != null && parentPlatform != null) {
                 String hostAddress = request.getRemoteAddress().getHostAddress();

@@ -1,12 +1,13 @@
 package com.genersoft.iot.vmp.gb28181.service;
 
+import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
-import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
-import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.service.bean.InviteTimeOutCallback;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
+import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
+import com.genersoft.iot.vmp.service.bean.InviteTimeOutCallback;
 import com.github.pagehelper.PageInfo;
 
 import javax.sip.InvalidArgumentException;
@@ -88,5 +89,5 @@ public interface IPlatformService {
 
     List<Platform> queryEnablePlatformList();
 
-
+    void delete(Integer platformId, CommonCallback<Object> callback);
 }

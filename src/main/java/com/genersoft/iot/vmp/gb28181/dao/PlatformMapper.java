@@ -59,8 +59,8 @@ public interface PlatformMapper {
             "WHERE id=#{id}")
     int update(Platform parentPlatform);
 
-    @Delete("DELETE FROM wvp_platform WHERE server_gb_id=#{serverGBId}")
-    int delParentPlatform(Platform parentPlatform);
+    @Delete("DELETE FROM wvp_platform WHERE id=#{id}")
+    int delete(@Param("id") Integer id);
 
     @Select(" SELECT pp.*, " +
             " (SELECT count(0) FROM wvp_platform_channel pc WHERE pc.platform_id = pp.id  ) as channel_count" +

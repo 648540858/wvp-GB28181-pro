@@ -11,10 +11,7 @@ import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.controller.bean.AudioBroadcastEvent;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
-import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
-import com.genersoft.iot.vmp.gb28181.service.IPlayService;
+import com.genersoft.iot.vmp.gb28181.service.*;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
@@ -119,6 +116,9 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private SSRCFactory ssrcFactory;
+
+    @Autowired
+    private IPlatformService platformService;
 
     /**
      * 流到来的处理
@@ -1155,7 +1155,7 @@ public class PlayServiceImpl implements IPlayService {
         if (sendRtpItems.size() > 0) {
             for (SendRtpItem sendRtpItem : sendRtpItems) {
                 if (sendRtpItem.getMediaServerId().equals(mediaServerId)) {
-                    Platform platform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
+                    Platform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
                     try {
                         sipCommanderFroPlatform.streamByeCmd(platform, sendRtpItem.getCallId());
                     } catch (SipException | InvalidArgumentException | ParseException e) {

@@ -1,10 +1,8 @@
 package com.genersoft.iot.vmp.storager;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
-import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
 
 import java.util.List;
 
@@ -17,41 +15,6 @@ import java.util.List;
 public interface IVideoManagerStorage {
 
 
-	/**
-	 * 更新上级平台
-	 * @param parentPlatform
-	 */
-	boolean updateParentPlatform(Platform parentPlatform);
-
-	/**
-	 * 删除上级平台
-	 * @param parentPlatform
-	 */
-	boolean deleteParentPlatform(Platform parentPlatform);
-
-	/**
-	 * 获取所有已启用的平台
-	 * @return
-	 */
-	List<Platform> queryEnableParentPlatformList(boolean enable);
-
-	/**
-	 * 获取上级平台
-	 * @param platformGbId
-	 * @return
-	 */
-	Platform queryParentPlatByServerGBId(String platformGbId);
-
-	/**
-	 *  移除上级平台的通道信息
-	 * @param platformId
-	 * @param channelReduces
-	 * @return
-	 */
-	int delChannelForGB(String platformId, List<ChannelReduce> channelReduces);
-
-
-    DeviceChannel queryChannelInParentPlatform(String platformId, String channelId);
 
     Device queryVideoDeviceByPlatformIdAndChannelId(String platformId, String channelId);
 

@@ -12,11 +12,11 @@ import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
-import java.beans.Transient;
 import java.text.ParseException;
 import java.util.*;
 
@@ -59,7 +59,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     }
 
     @Override
-    @Transient
+    @Transactional
     public int addAllChannel(Integer platformId) {
         List<CommonGBChannel> channelListNotShare = platformChannelMapper.queryNotShare(platformId, null);
         Assert.notEmpty(channelListNotShare, "所有通道已共享");
@@ -232,7 +232,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     }
 
     @Override
-    @Transient
+    @Transactional
     public int addChannels(Integer platformId, List<Integer> channelIds) {
         List<CommonGBChannel> channelListNotShare = platformChannelMapper.queryNotShare(platformId, channelIds);
         Assert.notEmpty(channelListNotShare, "通道已共享");
@@ -308,7 +308,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     }
 
     @Override
-    @Transient
+    @Transactional
     public int removeChannels(Integer platformId, List<Integer> channelIds) {
         List<CommonGBChannel> channelList = platformChannelMapper.queryShare(platformId, channelIds);
         Assert.notEmpty(channelList, "所选通道未共享");
@@ -343,7 +343,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     }
 
     @Override
-    @Transient
+    @Transactional
     public void removeChannels(List<Integer> ids) {
         List<Platform> platformList = platformChannelMapper.queryPlatFormListByChannelList(ids);
         if (platformList.isEmpty()) {

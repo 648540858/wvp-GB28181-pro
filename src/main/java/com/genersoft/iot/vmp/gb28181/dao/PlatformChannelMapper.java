@@ -410,4 +410,19 @@ public interface PlatformChannelMapper {
             "  pgc.device_channel_id = #{channelId}" +
             "</script> ")
     List<Platform> queryPlatFormListByChannelId(@Param("channelId") int channelId);
+
+    @Delete("<script> "+
+            "DELETE from wvp_platform_channel WHERE platform_id=#{platformId}" +
+            "</script>")
+    void removeChannelsByPlatformId(@Param("platformId") Integer platformId);
+
+    @Delete("<script> "+
+            "DELETE from wvp_platform_group WHERE platform_id=#{platformId}" +
+            "</script>")
+    void removePlatformGroupsByPlatformId(@Param("platformId") Integer platformId);
+
+    @Delete("<script> "+
+            "DELETE from wvp_platform_region WHERE platform_id=#{platformId}" +
+            "</script>")
+    void removePlatformRegionByPlatformId(@Param("platformId") Integer platformId);
 }

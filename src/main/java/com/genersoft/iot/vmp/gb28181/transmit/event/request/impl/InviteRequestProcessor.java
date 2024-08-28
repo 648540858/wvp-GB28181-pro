@@ -11,12 +11,12 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
-import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -104,7 +104,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     private IPlayService playService;
 
     @Autowired
-    private SIPSender sipSender;
+    private IPlatformService platformService;
 
     @Autowired
     private AudioBroadcastManager audioBroadcastManager;
@@ -153,7 +153,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             InviteInfo inviteInfo = decode(evt);
 
             // 查询请求是否来自上级平台\设备
-            Platform platform = storager.queryParentPlatByServerGBId(inviteInfo.getRequesterId());
+            Platform platform = platformService.queryPlatformByServerGBId(inviteInfo.getRequesterId());
             if (platform == null) {
                 inviteFromDeviceHandle(request, inviteInfo.getRequesterId(), inviteInfo.getChannelId());
             } else {
@@ -266,7 +266,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 //
 //
 //            // 查询请求是否来自上级平台\设备
-//            Platform platform = storager.queryParentPlatByServerGBId(requesterId);
+//            Platform platform = platformService.queryPlatformByServerGBId(requesterId);
 //
 //            if (platform == null) {
 //                inviteFromDeviceHandle(request, requesterId, channelId);

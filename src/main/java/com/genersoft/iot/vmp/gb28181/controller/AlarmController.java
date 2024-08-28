@@ -5,11 +5,11 @@ import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceAlarmService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageInfo;
@@ -44,7 +44,7 @@ public class AlarmController {
     private ISIPCommanderForPlatform commanderForPlatform;
 
     @Autowired
-    private IVideoManagerStorage storage;
+    private IPlatformService platformService;
 
     @Autowired
     private IDeviceService deviceService;
@@ -100,7 +100,7 @@ public class AlarmController {
     @Parameter(name = "deviceId", description = "设备国标编号")
     public void delete(@RequestParam String deviceId) {
         Device device = deviceService.getDeviceByDeviceId(deviceId);
-        Platform platform = storage.queryParentPlatByServerGBId(deviceId);
+        Platform platform = platformService.queryPlatformByServerGBId(deviceId);
         DeviceAlarm deviceAlarm = new DeviceAlarm();
         deviceAlarm.setChannelId(deviceId);
         deviceAlarm.setAlarmDescription("test");

@@ -4,15 +4,15 @@ import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
+import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
-import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
@@ -40,7 +40,7 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
     private SIPProcessorObserver sipProcessorObserver;
 
     @Autowired
-    private IVideoManagerStorage storage;
+    private IPlatformService platformService;
 
     @Autowired
     private SipSubscribe sipSubscribe;
@@ -77,7 +77,7 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
         // 查询设备是否存在
         Device device = redisCatchStorage.getDevice(ssrcTransaction.getDeviceId());
         // 查询上级平台是否存在
-        Platform parentPlatform = storage.queryParentPlatByServerGBId(ssrcTransaction.getDeviceId());
+        Platform parentPlatform = platformService.queryPlatformByServerGBId(ssrcTransaction.getDeviceId());
         try {
             if (device != null && parentPlatform != null) {
                 log.warn("[重复]平台与设备编号重复：{}", ssrcTransaction.getDeviceId());

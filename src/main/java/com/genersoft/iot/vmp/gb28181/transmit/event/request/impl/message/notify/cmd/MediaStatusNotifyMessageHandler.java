@@ -7,6 +7,8 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
+import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
+import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
@@ -16,9 +18,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.
 import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
-import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
@@ -57,10 +57,7 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
-    private IVideoManagerStorage storage;
-
-    @Autowired
-    private VideoStreamSessionManager sessionManager;
+    private IPlatformService platformService;
 
     @Autowired
     private HookSubscribe subscribe;
@@ -110,7 +107,7 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
                 // 如果级联播放，需要给上级发送此通知 TODO 多个上级同时观看一个下级 可能存在停错的问题，需要将点播CallId进行上下级绑定
                 SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(null, ssrcTransaction.getChannelId(), null, null);
                 if (sendRtpItem != null) {
-                    Platform parentPlatform = storage.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
+                    Platform parentPlatform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
                     if (parentPlatform == null) {
                         log.warn("[级联消息发送]：发送MediaStatus发现上级平台{}不存在", sendRtpItem.getPlatformId());
                         return;

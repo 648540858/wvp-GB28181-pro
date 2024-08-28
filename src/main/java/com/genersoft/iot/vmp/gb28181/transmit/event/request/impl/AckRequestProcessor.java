@@ -6,16 +6,16 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
+import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
-import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
@@ -50,6 +50,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 
 	@Autowired
     private IRedisCatchStorage redisCatchStorage;
+
 	@Autowired
     private IRedisRpcService redisRpcService;
 
@@ -57,7 +58,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
     private UserSetting userSetting;
 
 	@Autowired
-	private IVideoManagerStorage storager;
+	private IPlatformService platformService;
 
 	@Autowired
 	private IDeviceService deviceService;
@@ -100,7 +101,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 				sendRtpItem.getSsrc(),
 				sendRtpItem.isTcp()?(sendRtpItem.isTcpActive()?"TCP主动":"TCP被动"):"UDP"
 		);
-		Platform parentPlatform = storager.queryParentPlatByServerGBId(fromUserId);
+		Platform parentPlatform = platformService.queryPlatformByServerGBId(fromUserId);
 
 		if (parentPlatform != null) {
 			if (!userSetting.getServerId().equals(sendRtpItem.getServerId())) {

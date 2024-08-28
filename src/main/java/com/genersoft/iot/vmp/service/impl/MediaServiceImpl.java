@@ -10,15 +10,16 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
+import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
-import com.genersoft.iot.vmp.service.*;
+import com.genersoft.iot.vmp.service.IMediaService;
+import com.genersoft.iot.vmp.service.IUserService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -66,7 +67,7 @@ public class MediaServiceImpl implements IMediaService {
     private VideoStreamSessionManager sessionManager;
 
     @Autowired
-    private IVideoManagerStorage storager;
+    private IPlatformService platformService;
 
     @Autowired
     private IDeviceService deviceService;
@@ -234,7 +235,7 @@ public class MediaServiceImpl implements IMediaService {
                             inviteInfo.getChannelId());
                     if (!sendRtpItems.isEmpty()) {
                         for (SendRtpItem sendRtpItem : sendRtpItems) {
-                            Platform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
+                            Platform parentPlatform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
                             try {
                                 commanderForPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
                             } catch (SipException | InvalidArgumentException | ParseException e) {

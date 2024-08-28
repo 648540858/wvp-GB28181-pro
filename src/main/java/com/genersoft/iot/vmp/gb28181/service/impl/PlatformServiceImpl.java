@@ -319,6 +319,7 @@ public class PlatformServiceImpl implements IPlatformService {
             if (subscribeHolder.getCatalogSubscribe(platform.getServerGBId()) == null) {
                 log.info("[国标级联]：{}, 添加自动通道推送模拟订阅信息", platform.getServerGBId());
                 addSimulatedSubscribeInfo(platform);
+
             }
         }else {
             SubscribeInfo catalogSubscribe = subscribeHolder.getCatalogSubscribe(platform.getServerGBId());

@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.gb28181.bean;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,9 @@ public class SubscribeHolder {
     @Autowired
     private UserSetting userSetting;
 
+    @Autowired
+    private EventPublisher eventPublisher;
+
     private final String taskOverduePrefix = "subscribe_overdue_";
 
     private static ConcurrentHashMap<String, SubscribeInfo> catalogMap = new ConcurrentHashMap<>();
@@ -37,6 +41,8 @@ public class SubscribeHolder {
             // 添加任务处理订阅过期
             dynamicTask.startDelay(taskOverdueKey, () -> removeCatalogSubscribe(subscribeInfo.getId()),
                     subscribeInfo.getExpires() * 1000);
+            // 发送目录订阅添加通知
+            eventPublisher.catalogSubscribePutEventPublish(platformId, subscribeInfo);
         }
     }
 

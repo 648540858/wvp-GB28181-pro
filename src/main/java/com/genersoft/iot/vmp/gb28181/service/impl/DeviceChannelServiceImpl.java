@@ -6,7 +6,6 @@ import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
@@ -538,6 +537,16 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
         }
         if (!deleteChannels.isEmpty()) {
+            try {
+                // 这些通道可能关联了，上级平台需要删除同时发送消息
+                List<Integer> ids = new ArrayList<>();
+                deleteChannels.stream().forEach(deviceChannel -> {
+                    ids.add(deviceChannel.getId());
+                });
+                platformChannelService.removeChannels(ids);
+            }catch (Exception e) {
+                log.error("[移除通道国标级联共享失败]", e);
+            }
             if (deleteChannels.size() > limitCount) {
                 for (int i = 0; i < deleteChannels.size(); i += limitCount) {
                     int toIndex = i + limitCount;
@@ -549,17 +558,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             }else {
                 channelMapper.batchDel(deleteChannels);
             }
-            // 这些通道可能关联了，上级平台需要删除同时发送消息
-
-            List<CommonGBChannel> channelList = new ArrayList<>();
-            deleteChannels.stream().forEach(deviceChannel -> {
-                CommonGBChannel commonGBChannel = new CommonGBChannel();
-                commonGBChannel.setGbId(deviceChannel.getId());
-                commonGBChannel.setGbDeviceId(deviceChannel.getDeviceId());
-                commonGBChannel.setGbName(deviceChannel.getName());
-                channelList.add(commonGBChannel);
-            });
-            platformChannelService.removeChannels(channelList);
         }
         return true;
 

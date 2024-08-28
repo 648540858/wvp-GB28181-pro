@@ -2,13 +2,11 @@ package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
-import com.genersoft.iot.vmp.gb28181.dao.GroupMapper;
-import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
-import com.genersoft.iot.vmp.gb28181.dao.RegionMapper;
+import com.genersoft.iot.vmp.gb28181.dao.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
 import java.beans.Transient;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -42,6 +43,12 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
 
     @Autowired
     private CommonGBChannelMapper commonGBChannelMapper;
+
+    @Autowired
+    private PlatformMapper platformMapper;
+
+    @Autowired
+    private ISIPCommanderForPlatform sipCommanderFroPlatform;
 
 
     @Override
@@ -336,44 +343,82 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     }
 
     @Override
-    public void removeChannels(List<CommonGBChannel> channelList) {
-        List<Platform> platformList = platformChannelMapper.queryPlatFormListByChannelList(channelList);
+    @Transient
+    public void removeChannels(List<Integer> ids) {
+        List<Platform> platformList = platformChannelMapper.queryPlatFormListByChannelList(ids);
         if (platformList.isEmpty()) {
             return;
         }
 
-
-
-
-        // TODO 不对呀
         for (Platform platform : platformList) {
-            int result = platformChannelMapper.removeChannelsWithPlatform(platform.getId(), channelList);
-            if (result > 0) {
-                // 查询通道相关的分组信息
-                Set<Region> regionSet = regionMapper.queryByChannelList(channelList);
-                Set<Region> deleteRegion = deleteEmptyRegion(regionSet, platform.getId());
-                if (!deleteRegion.isEmpty()) {
-                    for (Region region : deleteRegion) {
-                        channelList.add(0, CommonGBChannel.build(region));
-                    }
-                }
+            removeChannels(platform.getId(), ids);
+        }
+    }
 
-                // 查询通道相关的分组信息
-                Set<Group> groupSet = groupMapper.queryByChannelList(channelList);
-                Set<Group> deleteGroup = deleteEmptyGroup(groupSet, platform.getId());
-                if (!deleteGroup.isEmpty()) {
-                    for (Group group : deleteGroup) {
-                        channelList.add(0, CommonGBChannel.build(group));
-                    }
-                }
+    @Override
+    public void removeChannel(int channelId) {
+        List<Platform> platformList = platformChannelMapper.queryPlatFormListByChannelId(channelId);
+        if (platformList.isEmpty()) {
+            return;
+        }
+
+        for (Platform platform : platformList) {
+            ArrayList<Integer> ids = new ArrayList<>();
+            ids.add(channelId);
+            removeChannels(platform.getId(), ids);
+        }
+    }
+
+    @Override
+    public List<CommonGBChannel> queryByPlatform(Platform platform) {
+        if (platform == null) {
+            return null;
+        }
+        List<CommonGBChannel> commonGBChannelList = commonGBChannelMapper.queryWithPlatform(platform.getId());
+        if (commonGBChannelList.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<CommonGBChannel> channelList = new ArrayList<>();
+        // 是否包含平台信息
+        if (platform.getCatalogWithPlatform()) {
+            CommonGBChannel channel = CommonGBChannel.build(platform);
+            channelList.add(channel);
+        }
+        // 关联的行政区划信息
+        if (platform.getCatalogWithRegion()) {
+            // 查询关联平台的行政区划信息
+            List<CommonGBChannel> regionChannelList = regionMapper.queryByPlatform(platform.getId());
+            if (!regionChannelList.isEmpty()) {
+                channelList.addAll(regionChannelList);
             }
-            // 发送消息
-            try {
-                // 发送catalog
-                eventPublisher.catalogEventPublish(platform.getId(), channelList, CatalogEvent.DEL);
-            } catch (Exception e) {
-                log.warn("[移除关联通道] 发送失败，数量：{}", channelList.size(), e);
+        }
+        if (platform.getCatalogWithGroup()) {
+            // 关联的分组信息
+            List<CommonGBChannel> groupChannelList =  groupMapper.queryForPlatform(platform.getId());
+            if (!groupChannelList.isEmpty()) {
+                channelList.addAll(groupChannelList);
             }
+        }
+
+        channelList.addAll(commonGBChannelList);
+        return channelList;
+    }
+
+    @Override
+    public void pushChannel(Integer platformId) {
+        Platform platform = platformMapper.query(platformId);
+        Assert.notNull(platform, "平台不存在");
+        List<CommonGBChannel> channelList = queryByPlatform(platform);
+        if (channelList.isEmpty()){
+            return;
+        }
+        SubscribeInfo subscribeInfo = SubscribeInfo.buildSimulated(platform.getServerGBId(), platform.getServerIp());
+
+        try {
+            sipCommanderFroPlatform.sendNotifyForCatalogAddOrUpdate(CatalogEvent.UPDATE, platform, channelList, subscribeInfo, null);
+        } catch (InvalidArgumentException | ParseException | NoSuchFieldException |
+                 SipException | IllegalAccessException e) {
+            log.error("[命令发送失败] 国标级联 Catalog通知: {}", e.getMessage());
         }
     }
 }

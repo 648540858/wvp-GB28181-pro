@@ -30,8 +30,6 @@ public interface IGbChannelService {
 
     void updateStatus(List<CommonGBChannel> channelList);
 
-    List<CommonGBChannel> queryByPlatform(Platform platform);
-
     CommonGBChannel getOne(int id);
 
     List<IndustryCodeType> getIndustryCodeList();

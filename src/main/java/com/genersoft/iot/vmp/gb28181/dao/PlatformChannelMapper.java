@@ -2,13 +2,10 @@ package com.genersoft.iot.vmp.gb28181.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
-import org.apache.ibatis.annotations.Delete;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -56,33 +53,12 @@ public interface PlatformChannelMapper {
     @Select("SELECT dc.* from wvp_platform_channel pgc left join wvp_device_channel dc on dc.id = pgc.device_channel_id WHERE dc.channel_type = 0 and dc.channel_id=#{channelId} and pgc.platform_id=#{platformId}")
     List<DeviceChannel> queryChannelInParentPlatform(@Param("platformId") String platformId, @Param("channelId") String channelId);
 
-    @Select("<script> "+
-            "SELECT dc.* from wvp_platform_channel pgc left join wvp_device_channel dc on dc.id = pgc.device_channel_id WHERE dc.channel_type = 0 and pgc.platform_id=#{platformId} " +
-            " <if test='catalogId != null' > and pgc.catalog_id=#{catalogId}</if>" +
-            "</script>")
-    List<CommonGBChannel> queryAllChannelInCatalog(@Param("platformId") String platformId, @Param("catalogId") String catalogId);
-
-    @Select(" select dc.channel_id as id, dc.name as name, pgc.platform_id as platform_id, pgc.catalog_id as parent_id, 0 as children_count, 1 as type " +
-            " from wvp_device_channel dc left join wvp_platform_channel pgc on dc.id = pgc.device_channel_id " +
-            " where  dc.channel_type = 0 and pgc.platform_id=#{platformId} and pgc.catalog_id=#{catalogId}")
-    List<PlatformCatalog> queryChannelInParentPlatformAndCatalog(@Param("platformId") String platformId, @Param("catalogId") String catalogId);
-
     @Select("select d.*\n" +
             "from wvp_platform_channel pgc\n" +
             "         left join wvp_device_channel dc on dc.id = pgc.device_channel_id\n" +
             "         left join wvp_device d on dc.device_id = d.device_id\n" +
             "where  dc.channel_type = 0 and dc.channel_id = #{channelId} and pgc.platform_id=#{platformId}")
     List<Device> queryVideoDeviceByPlatformIdAndChannelId(@Param("platformId") String platformId, @Param("channelId") String channelId);
-
-    @Delete("<script> "+
-            "DELETE from wvp_platform_channel WHERE platform_id=#{platformId} and catalog_id=#{id}"  +
-            "</script>")
-    int delByCatalogId(@Param("platformId") String platformId, @Param("id") String id);
-
-    @Delete("<script> "+
-           "DELETE from wvp_platform_channel  WHERE catalog_id=#{parentId} AND platform_id=#{platformId} AND channel_id=#{id}"  +
-           "</script>")
-    int delByCatalogIdAndChannelIdAndPlatformId(PlatformCatalog platformCatalog);
 
     @Select("<script> " +
             " SELECT " +
@@ -99,17 +75,6 @@ public interface PlatformChannelMapper {
             "<foreach collection='platforms' item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
             "</script> ")
     List<Platform> queryPlatFormListForGBWithGBId(@Param("channelId") String channelId, @Param("platforms") List<String> platforms);
-
-    @Delete("<script> " +
-           "DELETE from wvp_platform_channel WHERE platform_id=#{serverGBId}"  +
-           "</script>")
-    void delByPlatformId(String serverGBId);
-
-    @Delete("<script> " +
-            "DELETE from wvp_platform_channel WHERE platform_id=#{platformId} " +
-            " <if test=\"catalogId != null\" >  and catalog_id=#{catalogId}</if>" +
-            "</script>")
-    int delChannelForGBByCatalogId(@Param("platformId") String platformId, @Param("catalogId") String catalogId);
 
     @Select("select dc.channel_id dc.device_id,dc.name,d.manufacturer,d.model,d.firmware\n" +
             "from wvp_platform_channel pgc\n" +
@@ -428,7 +393,21 @@ public interface PlatformChannelMapper {
             " dc.id = pgc.device_channel_id " +
             " WHERE " +
             "  pgc.device_channel_id IN" +
-            "<foreach collection='channelList' item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
+            "<foreach collection='ids' item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
             "</script> ")
-    List<Platform> queryPlatFormListByChannelList(List<CommonGBChannel> channelList);
+    List<Platform> queryPlatFormListByChannelList(Collection<Integer> ids);
+
+    @Select("<script> " +
+            " SELECT " +
+            " pp.* " +
+            " FROM " +
+            " wvp_platform pp " +
+            " left join wvp_platform_channel pgc on " +
+            " pp.id = pgc.platform_id " +
+            " left join wvp_device_channel dc on " +
+            " dc.id = pgc.device_channel_id " +
+            " WHERE " +
+            "  pgc.device_channel_id = #{channelId}" +
+            "</script> ")
+    List<Platform> queryPlatFormListByChannelId(@Param("channelId") int channelId);
 }

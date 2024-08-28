@@ -1,16 +1,14 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.cmd;
 
-import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
-import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.QueryMessageHandler;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
@@ -37,6 +35,9 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
 
     @Autowired
     private IGbChannelService channelService;
+
+    @Autowired
+    private IPlatformChannelService platformChannelService;
 
     @Autowired
     private SIPCommanderFroPlatform cmderFroPlatform;
@@ -67,7 +68,7 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
         }
         Element snElement = rootElement.element("SN");
         String sn = snElement.getText();
-        List<CommonGBChannel> channelList = channelService.queryByPlatform(platform);
+        List<CommonGBChannel> channelList = platformChannelService.queryByPlatform(platform);
 
         try {
             if (!channelList.isEmpty()) {

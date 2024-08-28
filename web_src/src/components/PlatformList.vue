@@ -54,6 +54,7 @@
           <template slot-scope="scope">
             <el-button size="medium" icon="el-icon-edit" type="text" @click="editPlatform(scope.row)">编辑</el-button>
             <el-button size="medium" icon="el-icon-share"  type="text"  @click="chooseChannel(scope.row)">通道共享</el-button>
+            <el-button size="medium" icon="el-icon-top" type="text" :loading="pushChannelLoading" @click="pushChannel(scope.row)">推送通道</el-button>
             <el-button size="medium" icon="el-icon-delete"  type="text" style="color: #f56c6c" @click="deletePlatform(scope.row)">删除</el-button>
           </template>
         </el-table-column>
@@ -94,6 +95,7 @@ export default {
       deviceIps: [], //设备列表
       defaultPlatform: null,
       platform: null,
+      pushChannelLoading: false,
       winHeight: window.innerHeight - 260,
       currentPage:1,
       count:15,
@@ -154,6 +156,36 @@ export default {
     },
     chooseChannel: function(platform) {
       this.$refs.shareChannel.openDialog(platform.id, this.initData)
+    },
+    pushChannel: function(row) {
+      this.pushChannelLoading = true;
+      this.$axios({
+        method: 'get',
+        url: `/api/platform/channel/push`,
+        params: {
+          id: row.id,
+        }
+      }).then((res)=> {
+        this.pushChannelLoading = false;
+        if (res.data.code === 0) {
+          this.$message.success({
+            showClose: true,
+            message: '推送成功',
+          });
+        }else {
+          this.$message.error({
+            showClose: true,
+            message: res.data.msg,
+          });
+        }
+      }).catch((error)=> {
+        console.log(error);
+        this.pushChannelLoading = false;
+        this.$message.error({
+          showClose: true,
+          message: error,
+        });
+      });
     },
     initData: function() {
       this.$axios({

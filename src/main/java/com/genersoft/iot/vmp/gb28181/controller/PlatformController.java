@@ -359,4 +359,13 @@ public class PlatformController {
             throw new ControllerException(ErrorCode.ERROR100);
         }
     }
+
+    @Operation(summary = "推送通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "id", description = "平台ID", required = true)
+    @GetMapping("/channel/push")
+    @ResponseBody
+    public void pushChannel(Integer id) {
+        Assert.notNull(id, "平台ID不可为空");
+        platformChannelService.pushChannel(id);
+    }
 }

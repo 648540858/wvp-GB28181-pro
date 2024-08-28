@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.gb28181.dao.RegionMapper;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageHelper;
@@ -34,6 +35,9 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Autowired
     private PlatformChannelMapper platformChannelMapper;
+
+    @Autowired
+    private IPlatformChannelService platformChannelService;
 
     @Autowired
     private RegionMapper regionMapper;
@@ -66,7 +70,15 @@ public class GbChannelServiceImpl implements IGbChannelService {
     }
 
     @Override
+    @Transactional
     public int delete(int gbId) {
+        // 移除国标级联关联的信息
+        try {
+            platformChannelService.removeChannel(gbId);
+        }catch (Exception e) {
+            log.error("[移除通道国标级联共享失败]", e);
+        }
+
         CommonGBChannel channel = commonGBChannelMapper.queryById(gbId);
         if (channel != null) {
             commonGBChannelMapper.delete(gbId);
@@ -81,18 +93,19 @@ public class GbChannelServiceImpl implements IGbChannelService {
     }
 
     @Override
+    @Transactional
     public void delete(Collection<Integer> ids) {
+        // 移除国标级联关联的信息
+        try {
+            platformChannelService.removeChannels(new ArrayList<>(ids));
+        }catch (Exception e) {
+            log.error("[移除通道国标级联共享失败]", e);
+        }
         List<CommonGBChannel> channelListInDb = commonGBChannelMapper.queryByIds(ids);
         if (channelListInDb.isEmpty()) {
             return;
         }
         commonGBChannelMapper.batchDelete(channelListInDb);
-        try {
-            // 发送通知
-            eventPublisher.catalogEventPublish(null, channelListInDb, CatalogEvent.DEL);
-        } catch (Exception e) {
-            log.warn("[通道移除通知] 发送失败，{}条", channelListInDb.size(), e);
-        }
     }
 
     @Override
@@ -309,40 +322,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
         }
     }
 
-    @Override
-    public List<CommonGBChannel> queryByPlatform(Platform platform) {
-        if (platform == null) {
-            return null;
-        }
-        List<CommonGBChannel> commonGBChannelList = commonGBChannelMapper.queryWithPlatform(platform.getId());
-        if (commonGBChannelList.isEmpty()) {
-            return new ArrayList<>();
-        }
-        List<CommonGBChannel> channelList = new ArrayList<>();
-        // 是否包含平台信息
-        if (platform.getCatalogWithPlatform()) {
-            CommonGBChannel channel = CommonGBChannel.build(platform);
-            channelList.add(channel);
-        }
-        // 关联的行政区划信息
-        if (platform.getCatalogWithRegion()) {
-            // 查询关联平台的行政区划信息
-            List<CommonGBChannel> regionChannelList = regionMapper.queryByPlatform(platform.getId());
-            if (!regionChannelList.isEmpty()) {
-                channelList.addAll(regionChannelList);
-            }
-        }
-        if (platform.getCatalogWithGroup()) {
-            // 关联的分组信息
-            List<CommonGBChannel> groupChannelList =  groupMapper.queryForPlatform(platform.getId());
-            if (!groupChannelList.isEmpty()) {
-                channelList.addAll(groupChannelList);
-            }
-        }
 
-        channelList.addAll(commonGBChannelList);
-        return channelList;
-    }
 
     @Override
     public CommonGBChannel getOne(int id) {

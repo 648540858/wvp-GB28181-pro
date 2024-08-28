@@ -43,7 +43,6 @@ import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
 import javax.sip.SipException;
 import java.text.ParseException;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
@@ -329,16 +328,8 @@ public class PlatformServiceImpl implements IPlatformService {
     @Override
     public void addSimulatedSubscribeInfo(Platform platform) {
         // 自动添加一条模拟的订阅信息
-        SubscribeInfo subscribeInfo = new SubscribeInfo();
-        subscribeInfo.setId(platform.getServerGBId());
-        subscribeInfo.setExpires(-1);
-        subscribeInfo.setEventType("Catalog");
-        int random = (int) Math.floor(Math.random() * 10000);
-        subscribeInfo.setEventId(random + "");
-        subscribeInfo.setSimulatedCallId(UUID.randomUUID().toString().replace("-", "") + "@" + platform.getServerIp());
-        subscribeInfo.setSimulatedFromTag(UUID.randomUUID().toString().replace("-", ""));
-        subscribeInfo.setSimulatedToTag(UUID.randomUUID().toString().replace("-", ""));
-        subscribeHolder.putCatalogSubscribe(platform.getServerGBId(), subscribeInfo);
+        subscribeHolder.putCatalogSubscribe(platform.getServerGBId(),
+                SubscribeInfo.buildSimulated(platform.getServerGBId(), platform.getServerIp()));
     }
 
     private void registerTask(Platform platform, SipTransactionInfo sipTransactionInfo){

@@ -63,7 +63,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 
 	@Override
 	public Device queryVideoDeviceByPlatformIdAndChannelId(String platformId, String channelId) {
-		List<Device> devices = platformChannelMapper.queryVideoDeviceByPlatformIdAndChannelId(platformId, channelId);
+		List<Device> devices = platformChannelMapper.queryDeviceByPlatformIdAndChannelId(platformId, channelId);
 		if (devices.size() > 1) {
 			// 出现长度大于0的时候肯定是国标通道的ID重复了
 			log.warn("国标ID存在重复：{}", channelId);

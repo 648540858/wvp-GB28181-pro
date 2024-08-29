@@ -56,7 +56,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     @Override
     public PageInfo<PlatformChannel> queryChannelList(int page, int count, String query, Boolean online, Integer platformId, Boolean hasShare) {
         PageHelper.startPage(page, count);
-        List<PlatformChannel> all = platformChannelMapper.queryForPlatformSearch(platformId, query, online, hasShare);
+        List<PlatformChannel> all = platformChannelMapper.queryForPlatformForWebList(platformId, query, online, hasShare);
         return new PageInfo<>(all);
     }
 
@@ -411,6 +411,20 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         } catch (InvalidArgumentException | ParseException | NoSuchFieldException |
                  SipException | IllegalAccessException e) {
             log.error("[命令发送失败] 国标级联 Catalog通知: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    public void updateCustomChannel(PlatformChannel channel) {
+        platformChannelMapper.updateCustomChannel(channel);
+        CommonGBChannel commonGBChannel = platformChannelMapper.queryShareChannel(channel.getPlatformId(), channel.getGbId());
+        // 发送消息
+        try {
+            // 发送catalog
+            eventPublisher.catalogEventPublish(channel.getPlatformId(), commonGBChannel, CatalogEvent.UPDATE);
+        } catch (Exception e) {
+            log.warn("[自定义通道信息] 发送失败， 平台ID： {}， 通道： {}（{}）", channel.getPlatformId(),
+                    channel.getGbName(), channel.getGbDeviceDbId(), e);
         }
     }
 }

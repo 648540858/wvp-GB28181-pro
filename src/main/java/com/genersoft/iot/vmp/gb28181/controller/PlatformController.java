@@ -279,4 +279,12 @@ public class PlatformController {
         Assert.notEmpty(param.getDeviceIds(), "设备ID不可为空");
         platformChannelService.removeChannelByDevice(param.getPlatformId(), param.getDeviceIds());
     }
+
+    @Operation(summary = "自定义共享通道信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @PostMapping("/channel/custom/update")
+    @ResponseBody
+    public void updateCustomChannel(@RequestBody PlatformChannel channel) {
+        Assert.isTrue(channel.getId() > 0, "共享通道ID必须存在");
+        platformChannelService.updateCustomChannel(channel);
+    }
 }

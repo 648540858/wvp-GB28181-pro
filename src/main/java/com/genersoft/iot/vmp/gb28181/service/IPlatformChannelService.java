@@ -34,4 +34,6 @@ public interface IPlatformChannelService {
     void addChannelByDevice(Integer platformId, List<Integer> deviceIds);
 
     void removeChannelByDevice(Integer platformId, List<Integer> deviceIds);
+
+    void updateCustomChannel(PlatformChannel channel);
 }

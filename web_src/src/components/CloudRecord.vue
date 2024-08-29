@@ -7,7 +7,7 @@
 
       <div class="page-header-btn">
         搜索:
-        <el-input @input="getMediaServerList" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
+        <el-input @input="getRecordList" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
                   prefix-icon="el-icon-search" v-model="search"  clearable></el-input>
         开始时间:
         <el-date-picker

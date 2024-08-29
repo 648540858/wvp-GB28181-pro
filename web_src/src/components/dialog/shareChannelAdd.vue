@@ -35,6 +35,8 @@
           <el-button v-if="hasShare ==='true'" size="mini" type="danger" @click="remove()">
             移除
           </el-button>
+          <el-button size="mini" @click="addByDevice()">按设备添加</el-button>
+          <el-button size="mini" @click="removeByDevice()">按设备移除</el-button>
           <el-button size="mini" @click="addAll()">全部添加</el-button>
           <el-button size="mini" @click="removeAll()">全部移除</el-button>
           <el-button size="mini" @click="getChannelList()">刷新</el-button>
@@ -87,15 +89,17 @@
       layout="total, sizes, prev, pager, next"
       :total="total">
     </el-pagination>
-
+    <gbDeviceSelect ref="gbDeviceSelect"></gbDeviceSelect>
   </div>
 </template>
 
 <script>
 
+import gbDeviceSelect from "./GbDeviceSelect.vue";
+
 export default {
   name: 'shareChannelAdd',
-  components: {},
+  components: {gbDeviceSelect},
   props: [ 'platformId'],
   data() {
     return {
@@ -254,11 +258,78 @@ export default {
         });
       }).catch(() => {
       });
+    },
 
+    addByDevice: function (row) {
+      this.$refs.gbDeviceSelect.openDialog((rows)=>{
+        let deviceIds = []
+        for (let i = 0; i < rows.length; i++) {
+          deviceIds.push(rows[i].id)
+        }
+        this.$axios({
+          method: 'post',
+          url: `/api/platform/channel/device/add`,
+          data: {
+            platformId: this.platformId,
+            deviceIds: deviceIds,
+          }
+        }).then((res)=> {
+          if (res.data.code === 0) {
+            this.$message.success({
+              showClose: true,
+              message: "保存成功"
+            })
+            this.initData()
+          }else {
+            this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
+          }
+        }).catch((error)=> {
+          this.$message.error({
+            showClose: true,
+            message: error
+          })
+          this.loading = false
+        });
+      })
+    },
 
-
-
-
+    removeByDevice: function (row) {
+      this.$refs.gbDeviceSelect.openDialog((rows)=>{
+        let deviceIds = []
+        for (let i = 0; i < rows.length; i++) {
+          deviceIds.push(rows[i].id)
+        }
+        this.$axios({
+          method: 'post',
+          url: `/api/platform/channel/device/remove`,
+          data: {
+            platformId: this.platformId,
+            deviceIds: deviceIds,
+          }
+        }).then((res)=> {
+          if (res.data.code === 0) {
+            this.$message.success({
+              showClose: true,
+              message: "保存成功"
+            })
+            this.initData()
+          }else {
+            this.$message.error({
+              showClose: true,
+              message: res.data.msg
+            })
+          }
+        }).catch((error)=> {
+          this.$message.error({
+            showClose: true,
+            message: error
+          })
+          this.loading = false
+        });
+      })
     },
     remove: function (row) {
       let channels = []

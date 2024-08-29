@@ -5,7 +5,6 @@ import com.genersoft.iot.vmp.gb28181.event.alarm.AlarmEvent;
 import com.genersoft.iot.vmp.gb28181.event.device.RequestTimeoutEvent;
 import com.genersoft.iot.vmp.gb28181.event.record.RecordEndEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
-import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogSubscribePutEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.mobilePosition.MobilePositionEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOfflineEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOnlineEvent;
@@ -105,12 +104,5 @@ public class EventPublisher {
 		RecordEndEvent outEvent = new RecordEndEvent(this);
 		outEvent.setRecordInfo(recordInfo);
 		applicationEventPublisher.publishEvent(outEvent);
-	}
-
-	public void catalogSubscribePutEventPublish(String platformId, SubscribeInfo subscribeInfo) {
-		CatalogSubscribePutEvent event = new CatalogSubscribePutEvent(this);
-		event.setPlatformId(platformId);
-		event.setSubscribeInfo(subscribeInfo);
-		applicationEventPublisher.publishEvent(event);
 	}
 }

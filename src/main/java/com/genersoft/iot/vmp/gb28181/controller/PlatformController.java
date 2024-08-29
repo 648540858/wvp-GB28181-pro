@@ -259,4 +259,24 @@ public class PlatformController {
         Assert.notNull(id, "平台ID不可为空");
         platformChannelService.pushChannel(id);
     }
+
+    @Operation(summary = "添加通道-通过设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @PostMapping("/channel/device/add")
+    @ResponseBody
+    public void addChannelByDevice(@RequestBody UpdateChannelParam param) {
+        Assert.notNull(param.getPlatformId(), "平台ID不可为空");
+        Assert.notNull(param.getDeviceIds(), "设备ID不可为空");
+        Assert.notEmpty(param.getDeviceIds(), "设备ID不可为空");
+        platformChannelService.addChannelByDevice(param.getPlatformId(), param.getDeviceIds());
+    }
+
+    @Operation(summary = "移除通道-通过设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @PostMapping("/channel/device/remove")
+    @ResponseBody
+    public void removeChannelByDevice(@RequestBody UpdateChannelParam param) {
+        Assert.notNull(param.getPlatformId(), "平台ID不可为空");
+        Assert.notNull(param.getDeviceIds(), "设备ID不可为空");
+        Assert.notEmpty(param.getDeviceIds(), "设备ID不可为空");
+        platformChannelService.removeChannelByDevice(param.getPlatformId(), param.getDeviceIds());
+    }
 }

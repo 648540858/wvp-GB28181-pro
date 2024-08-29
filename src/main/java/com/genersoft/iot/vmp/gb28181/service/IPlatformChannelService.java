@@ -30,4 +30,8 @@ public interface IPlatformChannelService {
     List<CommonGBChannel> queryByPlatform(Platform platform);
 
     void pushChannel(Integer platformId);
+
+    void addChannelByDevice(Integer platformId, List<Integer> deviceIds);
+
+    void removeChannelByDevice(Integer platformId, List<Integer> deviceIds);
 }

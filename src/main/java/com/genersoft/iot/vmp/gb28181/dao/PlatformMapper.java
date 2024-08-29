@@ -63,7 +63,11 @@ public interface PlatformMapper {
     int delete(@Param("id") Integer id);
 
     @Select(" SELECT pp.*, " +
-            " (SELECT count(0) FROM wvp_platform_channel pc WHERE pc.platform_id = pp.id  ) as channel_count" +
+            " ( (SELECT count(0) FROM wvp_platform_channel pc WHERE pc.platform_id = pp.id ) + " +
+            "  (SELECT count(0) FROM wvp_platform_group pg WHERE pg.platform_id = pp.id ) * pp.catalog_with_group  + " +
+            "  (SELECT count(0) FROM wvp_platform_region pr WHERE pr.platform_id = pp.id ) * pp.catalog_with_region + " +
+            "  pp.catalog_with_platform " +
+            "    ) as channel_count" +
             " FROM wvp_platform pp "
     )
     List<Platform> queryList();

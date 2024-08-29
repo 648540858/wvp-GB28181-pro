@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -48,12 +49,15 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
             mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
         }else {
             mediaServer = mediaServerService.getOne(mediaServerId);
+            if (mediaServer == null) {
+                mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
+            }
         }
         if (mediaServer == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的媒体节点");
         }
         StreamInfo streamInfo = mediaServerService.startProxy(mediaServer, streamProxy);
-        if (mediaServerId == null) {
+        if (mediaServerId == null || !mediaServerId.equals(mediaServer.getId())) {
             streamProxy.setMediaServerId(mediaServer.getId());
             streamProxyMapper.update(streamProxy);
         }
@@ -72,15 +76,12 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
     @Override
     public void stopProxy(StreamProxy streamProxy){
 
-        MediaServer mediaServer;
         String mediaServerId = streamProxy.getMediaServerId();
-        if (mediaServerId == null) {
-            mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
-        }else {
-            mediaServer = mediaServerService.getOne(mediaServerId);
-        }
+        Assert.notNull(mediaServerId, "代理节点不存在");
+
+        MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
         if (mediaServer == null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的媒体节点");
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体节点不存在");
         }
         if (ObjectUtils.isEmpty(streamProxy.getStreamKey())) {
             mediaServerService.closeStreams(mediaServer, streamProxy.getApp(), streamProxy.getStream());

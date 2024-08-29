@@ -18,4 +18,7 @@ public class UpdateChannelParam {
 
     @Schema(description = "待关联的通道ID")
     List<Integer> channelIds;
+
+    @Schema(description = "待关联的设备ID")
+    List<Integer> deviceIds;
 }

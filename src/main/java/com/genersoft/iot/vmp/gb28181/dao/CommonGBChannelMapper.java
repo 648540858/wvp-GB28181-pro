@@ -309,6 +309,13 @@ public interface CommonGBChannelMapper {
     @SelectProvider(type = ChannelProvider.class, method = "queryByGbDeviceIds")
     List<CommonGBChannel> queryByGbDeviceIds(List<Integer> deviceIds);
 
+    @Select(value = {" <script>" +
+            " select id from wvp_device_channel " +
+            " where channel_type = 0 and device_db_id in  "+
+            " <foreach collection='deviceIds'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
+            " </script>"})
+    List<Integer> queryByGbDeviceIdsForIds(List<Integer> deviceIds);
+
     @SelectProvider(type = ChannelProvider.class, method = "queryByGroupList")
     List<CommonGBChannel> queryByGroupList(List<Group> groupList);
 

@@ -1,14 +1,15 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.baomidou.dynamic.datasource.annotation.DS;
-import com.genersoft.iot.vmp.common.*;
 import com.genersoft.iot.vmp.common.InviteInfo;
+import com.genersoft.iot.vmp.common.*;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformMapper;
+import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
@@ -96,6 +97,8 @@ public class PlatformServiceImpl implements IPlatformService {
     @Autowired
     private PlatformChannelMapper platformChannelMapper;
 
+    @Autowired
+    private EventPublisher eventPublisher;
 
     /**
      * 流离开的处理
@@ -146,7 +149,6 @@ public class PlatformServiceImpl implements IPlatformService {
             }
         }
     }
-
 
     @Override
     public Platform queryPlatformByServerGBId(String platformGbId) {

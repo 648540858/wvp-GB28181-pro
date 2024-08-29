@@ -19,12 +19,12 @@
               :value="item.id">
             </el-option>
           </el-select>
-          推流状态:
+          拉流状态:
           <el-select size="mini" style="margin-right: 1rem;" @change="getStreamProxyList" v-model="pulling" placeholder="请选择"
                      default-first-option>
             <el-option label="全部" value=""></el-option>
             <el-option label="正在拉流" value="true"></el-option>
-            <el-option label="拉流未进行" value="false"></el-option>
+            <el-option label="尚未拉流" value="false"></el-option>
           </el-select>
           <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addStreamProxy">添加代理</el-button>
           <el-button v-if="false" icon="el-icon-search" size="mini" style="margin-right: 1rem;" type="primary" @click="addOnvif">搜索ONVIF</el-button>
@@ -58,8 +58,8 @@
         <el-table-column label="拉流状态" min-width="120" >
           <template slot-scope="scope">
             <div slot="reference" class="name-wrapper">
-              <el-tag size="medium" v-if="scope.row.pulling">在线</el-tag>
-              <el-tag size="medium" type="info" v-if="!scope.row.pulling">离线</el-tag>
+              <el-tag size="medium" v-if="scope.row.pulling">正在拉流</el-tag>
+              <el-tag size="medium" type="info" v-if="!scope.row.pulling">尚未拉流</el-tag>
             </div>
           </template>
         </el-table-column>
@@ -72,7 +72,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间"  min-width="150" show-overflow-tooltip/>
-        <el-table-column label="操作" width="360"  fixed="right">
+        <el-table-column label="操作" width="400"  fixed="right">
           <template slot-scope="scope">
             <el-button size="medium" icon="el-icon-video-play" type="text" @click="play(scope.row)">播放</el-button>
             <el-divider direction="vertical"></el-divider>

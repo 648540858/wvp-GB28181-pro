@@ -41,8 +41,6 @@ public class SubscribeHolder {
             // 添加任务处理订阅过期
             dynamicTask.startDelay(taskOverdueKey, () -> removeCatalogSubscribe(subscribeInfo.getId()),
                     subscribeInfo.getExpires() * 1000);
-            // 发送目录订阅添加通知
-            eventPublisher.catalogSubscribePutEventPublish(platformId, subscribeInfo);
         }
     }
 

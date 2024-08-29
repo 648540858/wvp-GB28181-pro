@@ -627,7 +627,12 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Override
     public CommonGBChannel queryOneWithPlatform(Integer platformId, String channelDeviceId) {
-        return platformChannelMapper.queryOneWithPlatform(platformId, channelDeviceId);
+        List<CommonGBChannel> channelList = platformChannelMapper.queryOneWithPlatform(platformId, channelDeviceId);
+        if (!channelList.isEmpty()) {
+            return channelList.get(channelList.size() - 1);
+        }else {
+            return null;
+        }
     }
 
     @Override

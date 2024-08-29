@@ -199,10 +199,10 @@ public interface PlatformChannelMapper {
             "    coalesce(wpgc.custom_svc_time_support_mode, wdc.gb_svc_time_support_mode, wdc.svc_time_support_mode) as gb_svc_time_support_mode\n" +
             " from wvp_device_channel wdc" +
             " left join wvp_platform_channel wpgc on wdc.id = wpgc.device_channel_id" +
-            " where wdc.channel_type = 0 and wpgc.platform_id = #{platformId} and coalesce(wpgc.custom_device_id, wdc.gb_device_id, wdc.device_id) = #{channelDeviceId}"
+            " where wdc.channel_type = 0 and wpgc.platform_id = #{platformId} and coalesce(wpgc.custom_device_id, wdc.gb_device_id, wdc.device_id) = #{channelDeviceId} order by wdc.id "
 
     )
-    CommonGBChannel queryOneWithPlatform(@Param("platformId") Integer platformId, @Param("channelDeviceId") String channelDeviceId);
+    List<CommonGBChannel> queryOneWithPlatform(@Param("platformId") Integer platformId, @Param("channelDeviceId") String channelDeviceId);
 
 
     @Select("<script>" +
@@ -306,6 +306,7 @@ public interface PlatformChannelMapper {
             "   #{item} " +
             "   </foreach> " +
             "</if>" +
+            " order by wdc.id" +
             "</script>")
     List<CommonGBChannel> queryShare(@Param("platformId") Integer platformId, List<Integer> channelIds);
 

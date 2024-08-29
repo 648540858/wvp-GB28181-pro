@@ -70,13 +70,15 @@ public class PlatformController {
         }
     }
 
-    @GetMapping("/query/{count}/{page}")
+    @GetMapping("/query")
     @Operation(summary = "分页查询级联平台", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "page", description = "当前页", required = true)
-    @Parameter(name = "count", description = "每页条数", required = true)
-    public PageInfo<Platform> platforms(@PathVariable int page, @PathVariable int count) {
+    @Parameter(name = "page", description = "当前页")
+    @Parameter(name = "count", description = "每页查询数量")
+    @Parameter(name = "query", description = "查询内容")
+    public PageInfo<Platform> platforms(int page, int count,
+                                        @RequestParam(required = false) String query) {
 
-        PageInfo<Platform> parentPlatformPageInfo = platformService.queryPlatformList(page, count);
+        PageInfo<Platform> parentPlatformPageInfo = platformService.queryPlatformList(page, count, query);
         if (parentPlatformPageInfo != null && !parentPlatformPageInfo.getList().isEmpty()) {
             for (Platform platform : parentPlatformPageInfo.getList()) {
                 platform.setMobilePositionSubscribe(subscribeHolder.getMobilePositionSubscribe(platform.getServerGBId()) != null);

@@ -4,6 +4,9 @@
       <div class="page-header">
         <div class="page-title">上级平台列表</div>
         <div class="page-header-btn">
+          搜索:
+          <el-input @input="getPlatformList" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
+                    prefix-icon="el-icon-search" v-model="searchSrt" clearable></el-input>
           <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary"
                      @click="addParentPlatform">添加
           </el-button>
@@ -111,6 +114,7 @@ export default {
       platform: null,
       pushChannelLoading: false,
       winHeight: window.innerHeight - 260,
+      searchSrt: "",
       currentPage: 1,
       count: 15,
       total: 0
@@ -258,15 +262,18 @@ export default {
       this.getPlatformList();
     },
     getPlatformList: function () {
-      let that = this;
-
       this.$axios({
         method: 'get',
-        url: `/api/platform/query/${that.count}/${that.currentPage}`
-      }).then(function (res) {
+        url: `/api/platform/query`,
+        params: {
+          count: this.count,
+          page: this.currentPage,
+          query: this.searchSrt
+        }
+      }).then((res)=> {
         if (res.data.code === 0) {
-          that.total = res.data.data.total;
-          that.platformList = res.data.data.list;
+          this.total = res.data.data.total;
+          this.platformList = res.data.data.list;
         }
 
       }).catch(function (error) {

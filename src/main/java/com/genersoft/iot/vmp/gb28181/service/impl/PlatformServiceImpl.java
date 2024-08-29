@@ -156,9 +156,9 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public PageInfo<Platform> queryPlatformList(int page, int count) {
+    public PageInfo<Platform> queryPlatformList(int page, int count, String query) {
         PageHelper.startPage(page, count);
-        List<Platform> all = platformMapper.queryList();
+        List<Platform> all = platformMapper.queryList(query);
         return new PageInfo<>(all);
     }
 

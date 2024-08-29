@@ -29,7 +29,7 @@ public interface IPlatformService {
      * @param count
      * @return
      */
-    PageInfo<Platform> queryPlatformList(int page, int count);
+    PageInfo<Platform> queryPlatformList(int page, int count, String query);
 
     /**
      * 添加级联平台

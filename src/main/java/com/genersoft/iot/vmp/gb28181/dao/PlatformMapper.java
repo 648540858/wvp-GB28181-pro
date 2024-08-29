@@ -62,15 +62,18 @@ public interface PlatformMapper {
     @Delete("DELETE FROM wvp_platform WHERE id=#{id}")
     int delete(@Param("id") Integer id);
 
-    @Select(" SELECT pp.*, " +
+    @Select(" <script>" +
+            " SELECT pp.*, " +
             " ( (SELECT count(0) FROM wvp_platform_channel pc WHERE pc.platform_id = pp.id ) + " +
             "  (SELECT count(0) FROM wvp_platform_group pg WHERE pg.platform_id = pp.id ) * pp.catalog_with_group  + " +
             "  (SELECT count(0) FROM wvp_platform_region pr WHERE pr.platform_id = pp.id ) * pp.catalog_with_region + " +
             "  pp.catalog_with_platform " +
             "    ) as channel_count" +
-            " FROM wvp_platform pp "
-    )
-    List<Platform> queryList();
+            " FROM wvp_platform pp where 1=1 " +
+            " <if test='query != null'> " +
+            " AND (pp.name LIKE concat('%',#{query},'%') OR pp.server_gb_id  LIKE concat('%',#{query},'%') )</if> " +
+            " </script>")
+    List<Platform> queryList(@Param("query") String query);
 
     @Select("SELECT * FROM wvp_platform WHERE enable=#{enable} ")
     List<Platform> getEnableParentPlatformList(boolean enable);

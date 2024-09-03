@@ -21,7 +21,7 @@ import java.text.ParseException;
  */
 public interface IPlayService {
 
-    void play(MediaServer mediaServerItem, SSRCInfo ssrcInfo, Device device, DeviceChannel channelId,
+    void play(MediaServer mediaServerItem, SSRCInfo ssrcInfo, Device device, DeviceChannel channel,
               ErrorCallback<StreamInfo> callback);
     SSRCInfo play(MediaServer mediaServerItem, String deviceId, String channelId, String ssrc, ErrorCallback<StreamInfo> callback);
 
@@ -30,7 +30,6 @@ public interface IPlayService {
     MediaServer getNewMediaServerItem(Device device);
 
     void playBack(String deviceId, String channelId, String startTime, String endTime, ErrorCallback<StreamInfo> callback);
-    void playBack(MediaServer mediaServerItem, SSRCInfo ssrcInfo, String deviceId, String channelId, String startTime, String endTime, ErrorCallback<StreamInfo> callback);
     void zlmServerOffline(String mediaServerId);
 
     void download(String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, ErrorCallback<StreamInfo> callback);

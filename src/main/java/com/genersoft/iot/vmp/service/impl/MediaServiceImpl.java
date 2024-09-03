@@ -161,7 +161,7 @@ public class MediaServiceImpl implements IMediaService {
             }
 
             // 设置音频信息及录制信息
-            List<SsrcTransaction> ssrcTransactionForAll = sessionManager.getSsrcTransactionForAll(null, null, null, stream);
+            List<SsrcTransaction> ssrcTransactionForAll = sessionManager.getSsrcTransactionForAll(null, null, stream);
             if (ssrcTransactionForAll != null && ssrcTransactionForAll.size() == 1) {
 
                 // 为录制国标模拟一个鉴权信息, 方便后续写入录像文件时使用
@@ -173,15 +173,15 @@ public class MediaServiceImpl implements IMediaService {
                 redisCatchStorage.updateStreamAuthorityInfo(app, ssrcTransactionForAll.get(0).getStream(), streamAuthorityInfo);
 
                 String deviceId = ssrcTransactionForAll.get(0).getDeviceId();
-                String channelId = ssrcTransactionForAll.get(0).getChannelId();
-                DeviceChannel deviceChannel = deviceChannelService.getOne(deviceId, channelId);
+                Integer channelId = ssrcTransactionForAll.get(0).getChannelId();
+                DeviceChannel deviceChannel = deviceChannelService.getOneById(channelId);
                 if (deviceChannel != null) {
                     result.setEnable_audio(deviceChannel.isHasAudio());
                 }
                 // 如果是录像下载就设置视频间隔十秒
                 if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.DOWNLOAD) {
                     // 获取录像的总时长，然后设置为这个视频的时长
-                    InviteInfo inviteInfoForDownload = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, deviceId, channelId, stream);
+                    InviteInfo inviteInfoForDownload = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD,  channelId, stream);
                     if (inviteInfoForDownload != null && inviteInfoForDownload.getStreamInfo() != null) {
                         String startTime = inviteInfoForDownload.getStreamInfo().getStartTime();
                         String endTime = inviteInfoForDownload.getStreamInfo().getEndTime();
@@ -231,8 +231,7 @@ public class MediaServiceImpl implements IMediaService {
                 }
                 // 收到无人观看说明流也没有在往上级推送
                 if (redisCatchStorage.isChannelSendingRTP(inviteInfo.getChannelId())) {
-                    List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByChannelId(
-                            inviteInfo.getChannelId());
+                    List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByChannelId(inviteInfo.getChannelId());
                     if (!sendRtpItems.isEmpty()) {
                         for (SendRtpItem sendRtpItem : sendRtpItems) {
                             Platform parentPlatform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
@@ -252,12 +251,11 @@ public class MediaServiceImpl implements IMediaService {
                 Device device = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
                 if (device != null) {
                     try {
+                        DeviceChannel channel = deviceChannelService.getOneById(inviteInfo.getChannelId());
                         // 多查询一次防止已经被处理了
-                        InviteInfo info = inviteStreamService.getInviteInfo(inviteInfo.getType(),
-                                inviteInfo.getDeviceId(), inviteInfo.getChannelId(), inviteInfo.getStream());
-                        if (info != null) {
-                            commander.streamByeCmd(device, inviteInfo.getChannelId(),
-                                    inviteInfo.getStream(), null);
+                        InviteInfo info = inviteStreamService.getInviteInfo(inviteInfo.getType(), inviteInfo.getChannelId(), inviteInfo.getStream());
+                        if (info != null && channel != null) {
+                            commander.streamByeCmd(device, channel.getDeviceId(), inviteInfo.getStream(), null);
                         } else {
                             log.info("[无人观看] 未找到设备的点播信息： {}， 流：{}", inviteInfo.getDeviceId(), stream);
                         }
@@ -269,9 +267,8 @@ public class MediaServiceImpl implements IMediaService {
                     log.info("[无人观看] 未找到设备： {}，流：{}", inviteInfo.getDeviceId(), stream);
                 }
 
-                inviteStreamService.removeInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(),
-                        inviteInfo.getChannelId(), inviteInfo.getStream());
-                deviceChannelService.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
+                inviteStreamService.removeInviteInfo(inviteInfo.getType(), inviteInfo.getChannelId(), inviteInfo.getStream());
+                deviceChannelService.stopPlay(inviteInfo.getChannelId());
                 return result;
             }
             SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(null, null, stream, null);

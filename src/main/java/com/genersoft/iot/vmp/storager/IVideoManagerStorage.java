@@ -47,9 +47,7 @@ public interface IVideoManagerStorage {
 	 * @return
 	 */
     Device queryVideoDeviceByChannelId(String channelId);
-
-	List<Platform> queryPlatFormListForGBWithGBId(String channelId, List<String> platforms);
-
+	
 	List<Platform> queryEnablePlatformListWithAsMessageChannel();
 
 }

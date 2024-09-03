@@ -3,7 +3,9 @@ package com.genersoft.iot.vmp.gb28181.bean;
 import com.genersoft.iot.vmp.service.bean.RequestPushStreamMsg;
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import lombok.Data;
 
+@Data
 public class SendRtpItem {
 
     /**
@@ -44,7 +46,7 @@ public class SendRtpItem {
    /**
      * 通道id
      */
-    private String channelId;
+    private Integer channelId;
 
     /**
      * 推流状态
@@ -174,214 +176,6 @@ public class SendRtpItem {
         return sendRtpItem;
     }
 
-    public String getIp() {
-        return ip;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    public String getSsrc() {
-        return ssrc;
-    }
-
-    public void setSsrc(String ssrc) {
-        this.ssrc = ssrc;
-    }
-
-    public String getPlatformId() {
-        return platformId;
-    }
-
-    public void setPlatformId(String platformId) {
-        this.platformId = platformId;
-    }
-
-    public String getDeviceId() {
-        return deviceId;
-    }
-
-    public void setDeviceId(String deviceId) {
-        this.deviceId = deviceId;
-    }
-
-    public String getChannelId() {
-        return channelId;
-    }
-
-    public void setChannelId(String channelId) {
-        this.channelId = channelId;
-    }
-
-    public int getStatus() {
-        return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
-    }
-
-    public String getApp() {
-        return app;
-    }
-
-    public void setApp(String app) {
-        this.app = app;
-    }
-
-    public String getStream() {
-        return stream;
-    }
-
-    public void setStream(String stream) {
-        this.stream = stream;
-    }
-
-    public boolean isTcp() {
-        return tcp;
-    }
-
-    public void setTcp(boolean tcp) {
-        this.tcp = tcp;
-    }
-
-    public int getLocalPort() {
-        return localPort;
-    }
-
-    public void setLocalPort(int localPort) {
-        this.localPort = localPort;
-    }
-
-    public boolean isTcpActive() {
-        return tcpActive;
-    }
-
-    public void setTcpActive(boolean tcpActive) {
-        this.tcpActive = tcpActive;
-    }
-
-    public String getMediaServerId() {
-        return mediaServerId;
-    }
-
-    public void setMediaServerId(String mediaServerId) {
-        this.mediaServerId = mediaServerId;
-    }
-
-    public String getCallId() {
-        return callId;
-    }
-
-    public void setCallId(String callId) {
-        this.callId = callId;
-    }
-
-    public InviteStreamType getPlayType() {
-        return playType;
-    }
-
-    public void setPlayType(InviteStreamType playType) {
-        this.playType = playType;
-    }
-
-    public int getPt() {
-        return pt;
-    }
-
-    public void setPt(int pt) {
-        this.pt = pt;
-    }
-
-    public boolean isUsePs() {
-        return usePs;
-    }
-
-    public void setUsePs(boolean usePs) {
-        this.usePs = usePs;
-    }
-
-    public boolean isOnlyAudio() {
-        return onlyAudio;
-    }
-
-    public void setOnlyAudio(boolean onlyAudio) {
-        this.onlyAudio = onlyAudio;
-    }
-
-    public String getServerId() {
-        return serverId;
-    }
-
-    public void setServerId(String serverId) {
-        this.serverId = serverId;
-    }
-
-    public String getFromTag() {
-        return fromTag;
-    }
-
-    public void setFromTag(String fromTag) {
-        this.fromTag = fromTag;
-    }
-
-    public String getToTag() {
-        return toTag;
-    }
-
-    public void setToTag(String toTag) {
-        this.toTag = toTag;
-    }
-
-    public boolean isRtcp() {
-        return rtcp;
-    }
-
-    public void setRtcp(boolean rtcp) {
-        this.rtcp = rtcp;
-    }
-
-    public String getReceiveStream() {
-        return receiveStream;
-    }
-
-    public void setReceiveStream(String receiveStream) {
-        this.receiveStream = receiveStream;
-    }
-
-    public String getPlatformName() {
-        return platformName;
-    }
-
-    public void setPlatformName(String platformName) {
-        this.platformName = platformName;
-    }
-
-    public String getLocalIp() {
-        return localIp;
-    }
-
-    public void setLocalIp(String localIp) {
-        this.localIp = localIp;
-    }
-
-    public String getSessionName() {
-        return sessionName;
-    }
-
-    public void setSessionName(String sessionName) {
-        this.sessionName = sessionName;
-    }
-
     @Override
     public String toString() {
         return "SendRtpItem{" +
@@ -415,13 +209,12 @@ public class SendRtpItem {
     }
 
     public String getRedisKey() {
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX +
+        return VideoManagerConstants.SEND_RTP_INFO_PREFIX +
                 serverId + "_"
                 + mediaServerId + "_"
                 + platformId + "_"
                 + channelId + "_"
                 + stream + "_"
                 + callId;
-        return key;
     }
 }

@@ -301,8 +301,10 @@ public class CommonGBChannel {
                 if (this.getGbCivilCode() != null) {
                     content.append("<CivilCode>" + this.getGbCivilCode() + "</CivilCode>\n");
                 }
-                content.append("<ParentID>" + this.getGbParentId() + "</ParentID>\n")
-                        .append("<BusinessGroupID>" + this.getGbBusinessGroupId() + "</BusinessGroupID>\n");
+                if (this.getGbParentId() != null) {
+                    content.append("<ParentID>" + this.getGbParentId() + "</ParentID>\n");
+                }
+                content.append("<BusinessGroupID>" + this.getGbBusinessGroupId() + "</BusinessGroupID>\n");
             } else {
                 if (this.getGbManufacturer() != null) {
                     content.append("<Manufacturer>" + this.getGbManufacturer() + "</Manufacturer>\n");

@@ -69,54 +69,57 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
                 }
                 return;
             }
-            MobilePosition mobilePosition = new MobilePosition();
-            mobilePosition.setCreateTime(DateUtil.getNow());
-            if (!ObjectUtils.isEmpty(device.getName())) {
-                mobilePosition.setDeviceName(device.getName());
-            }
-            mobilePosition.setDeviceId(device.getDeviceId());
-            mobilePosition.setChannelId(getText(rootElement, "DeviceID"));
-            //兼容ISO 8601格式时间
-            String time = getText(rootElement, "Time");
-            if (ObjectUtils.isEmpty(time)){
-                mobilePosition.setTime(DateUtil.getNow());
+            String channelId = getText(rootElement, "DeviceID");
+            DeviceChannel deviceChannel = deviceChannelService.getOne(device.getDeviceId(), channelId);
+            if (deviceChannel == null) {
+                log.warn("[解析报警消息] 未找到通道：{}/{}", device.getDeviceId(), channelId);
             }else {
-                mobilePosition.setTime(SipUtils.parseTime(time));
-            }
-            mobilePosition.setLongitude(Double.parseDouble(getText(rootElement, "Longitude")));
-            mobilePosition.setLatitude(Double.parseDouble(getText(rootElement, "Latitude")));
-            if (NumericUtil.isDouble(getText(rootElement, "Speed"))) {
-                mobilePosition.setSpeed(Double.parseDouble(getText(rootElement, "Speed")));
-            } else {
-                mobilePosition.setSpeed(0.0);
-            }
-            if (NumericUtil.isDouble(getText(rootElement, "Direction"))) {
-                mobilePosition.setDirection(Double.parseDouble(getText(rootElement, "Direction")));
-            } else {
-                mobilePosition.setDirection(0.0);
-            }
-            if (NumericUtil.isDouble(getText(rootElement, "Altitude"))) {
-                mobilePosition.setAltitude(Double.parseDouble(getText(rootElement, "Altitude")));
-            } else {
-                mobilePosition.setAltitude(0.0);
-            }
-            mobilePosition.setReportSource("Mobile Position");
+                MobilePosition mobilePosition = new MobilePosition();
+                mobilePosition.setCreateTime(DateUtil.getNow());
+                if (!ObjectUtils.isEmpty(device.getName())) {
+                    mobilePosition.setDeviceName(device.getName());
+                }
+                mobilePosition.setDeviceId(device.getDeviceId());
+                mobilePosition.setChannelId(deviceChannel.getId());
+                //兼容ISO 8601格式时间
+                String time = getText(rootElement, "Time");
+                if (ObjectUtils.isEmpty(time)){
+                    mobilePosition.setTime(DateUtil.getNow());
+                }else {
+                    mobilePosition.setTime(SipUtils.parseTime(time));
+                }
+                mobilePosition.setLongitude(Double.parseDouble(getText(rootElement, "Longitude")));
+                mobilePosition.setLatitude(Double.parseDouble(getText(rootElement, "Latitude")));
+                if (NumericUtil.isDouble(getText(rootElement, "Speed"))) {
+                    mobilePosition.setSpeed(Double.parseDouble(getText(rootElement, "Speed")));
+                } else {
+                    mobilePosition.setSpeed(0.0);
+                }
+                if (NumericUtil.isDouble(getText(rootElement, "Direction"))) {
+                    mobilePosition.setDirection(Double.parseDouble(getText(rootElement, "Direction")));
+                } else {
+                    mobilePosition.setDirection(0.0);
+                }
+                if (NumericUtil.isDouble(getText(rootElement, "Altitude"))) {
+                    mobilePosition.setAltitude(Double.parseDouble(getText(rootElement, "Altitude")));
+                } else {
+                    mobilePosition.setAltitude(0.0);
+                }
+                mobilePosition.setReportSource("Mobile Position");
 
-            // 更新device channel 的经纬度
-            DeviceChannel deviceChannel = new DeviceChannel();
-            deviceChannel.setGbDeviceDbId(device.getId());
-            deviceChannel.setDeviceId(mobilePosition.getChannelId());
-            deviceChannel.setLongitude(mobilePosition.getLongitude());
-            deviceChannel.setLatitude(mobilePosition.getLatitude());
-            deviceChannel.setGpsTime(mobilePosition.getTime());
+                // 更新device channel 的经纬度
+                deviceChannel.setLongitude(mobilePosition.getLongitude());
+                deviceChannel.setLatitude(mobilePosition.getLatitude());
+                deviceChannel.setGpsTime(mobilePosition.getTime());
 
-            deviceChannelService.updateChannelGPS(device, deviceChannel, mobilePosition);
+                deviceChannelService.updateChannelGPS(device, deviceChannel, mobilePosition);
 
-            String key = DeferredResultHolder.CALLBACK_CMD_MOBILE_POSITION + device.getDeviceId();
-            RequestMessage msg = new RequestMessage();
-            msg.setKey(key);
-            msg.setData(mobilePosition);
-            resultHolder.invokeAllResult(msg);
+                String key = DeferredResultHolder.CALLBACK_CMD_MOBILE_POSITION + device.getDeviceId();
+                RequestMessage msg = new RequestMessage();
+                msg.setKey(key);
+                msg.setData(mobilePosition);
+                resultHolder.invokeAllResult(msg);
+            }
 
             //回复 200 OK
             try {

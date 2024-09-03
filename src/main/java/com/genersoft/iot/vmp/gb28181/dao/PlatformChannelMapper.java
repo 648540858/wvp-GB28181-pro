@@ -39,19 +39,17 @@ public interface PlatformChannelMapper {
 
     @Select("<script> " +
             " SELECT " +
-            " pp.* " +
+            " wp.* " +
             " FROM " +
-            " wvp_platform pp " +
-            " left join wvp_platform_channel pgc on " +
-            " pp.id = pgc.platform_id " +
-            " left join wvp_device_channel dc on " +
-            " dc.id = pgc.device_channel_id " +
+            " wvp_platform wp " +
+            " left join wvp_platform_channel wpgc on " +
+            " wp.id = wpgc.platform_id " +
             " WHERE " +
-            "  dc.channel_type = 0 and dc.device_id = #{channelId} and pp.status = true " +
-            " AND pp.server_gb_id IN" +
+            " wpgc.device_channel_id = #{channelId} and wp.status = true " +
+            " AND wp.server_gb_id in " +
             "<foreach collection='platforms' item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
             "</script> ")
-    List<Platform> queryPlatFormListForGBWithGBId(@Param("channelId") String channelId, @Param("platforms") List<String> platforms);
+    List<Platform> queryPlatFormListForGBWithGBId(@Param("channelId") Integer channelId, List<String> platforms);
 
     @Select("select dc.channel_id, dc.device_id,dc.name,d.manufacturer,d.model,d.firmware\n" +
             "from wvp_platform_channel pgc\n" +
@@ -336,7 +334,7 @@ public interface PlatformChannelMapper {
             " (#{platformId}, #{item.id} )" +
             "</foreach>" +
             "</script>")
-    int addPlatformGroup(List<Group> groupListNotShare, @Param("platformId") Integer platformId);
+    int addPlatformGroup(Collection<Group> groupListNotShare, @Param("platformId") Integer platformId);
 
     @Insert("<script> "+
             "INSERT INTO wvp_platform_region (platform_id, region_id) VALUES " +
@@ -366,9 +364,9 @@ public interface PlatformChannelMapper {
             " SELECT wcg.* " +
             " from wvp_common_group wcg" +
             " left join wvp_platform_group wpg on wpg.group_id = wcg.id and wpg.platform_id = #{platformId}" +
-            " where wpg.platform_id IS NOT NULL and wcg.parent_device_id = #{parentId} " +
+            " where wpg.platform_id IS NOT NULL and wcg.parent_id = #{parentId} " +
             " </script>")
-    Set<Group> queryShareChildrenGroup(@Param("parentId") String parentId, @Param("platformId") Integer platformId);
+    Set<Group> queryShareChildrenGroup(@Param("parentId") Integer parentId, @Param("platformId") Integer platformId);
 
     @Select(" <script>" +
             " SELECT wcr.* " +
@@ -528,4 +526,15 @@ public interface PlatformChannelMapper {
             " where wdc.channel_type = 0 and wpgc.platform_id = #{platformId} and wdc.id = #{gbId}" +
             "</script>")
     CommonGBChannel queryShareChannel(@Param("platformId") int platformId, @Param("gbId") int gbId);
+
+
+    @Select(" <script>" +
+            " SELECT wcg.* " +
+            " from wvp_common_group wcg" +
+            " left join wvp_platform_group wpg on wpg.group_id = wcg.id " +
+            " where wpg.platform_id = #{platformId}" +
+            " order by wcg.id DESC" +
+            " </script>")
+    Set<Group> queryShareGroup(@Param("platformId") Integer platformId);
+
 }

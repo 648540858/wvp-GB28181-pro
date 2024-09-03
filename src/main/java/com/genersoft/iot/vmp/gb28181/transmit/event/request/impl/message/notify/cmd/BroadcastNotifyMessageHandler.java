@@ -125,7 +125,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
 
                 // 消息发送成功， 向上级发送invite，获取推流
                 try {
-                    platformService.broadcastInvite(platform, channel.getGbDeviceId(), mediaServerForMinimumLoad,  (hookData)->{
+                    platformService.broadcastInvite(platform, channel, mediaServerForMinimumLoad,  (hookData)->{
                         // 上级平台推流成功
                         AudioBroadcastCatch broadcastCatch = audioBroadcastManager.get(device.getDeviceId(), targetId);
                         if (broadcastCatch != null ) {

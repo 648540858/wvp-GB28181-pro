@@ -500,12 +500,15 @@ public class GbChannelServiceImpl implements IGbChannelService {
     }
 
     @Override
+    @Transactional
     public void removeParentIdByBusinessGroup(String businessGroup) {
         List<CommonGBChannel> channelList = commonGBChannelMapper.queryByBusinessGroup(businessGroup);
         if (channelList.isEmpty()) {
             return;
         }
         int result = commonGBChannelMapper.removeParentIdByChannels(channelList);
+        List<Group> groupList = groupMapper.queryByBusinessGroup(businessGroup);
+        platformChannelService.checkGroupRemove(channelList, groupList);
 
     }
 
@@ -516,7 +519,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
             return;
         }
         commonGBChannelMapper.removeParentIdByChannels(channelList);
-        // TODO 可能需要发送通道更新通知
+        platformChannelService.checkGroupRemove(channelList, groupList);
     }
 
     @Override
@@ -560,18 +563,21 @@ public class GbChannelServiceImpl implements IGbChannelService {
     }
 
     @Override
+    @Transactional
     public void addChannelToGroup(String parentId, String businessGroup, List<Integer> channelIds) {
         List<CommonGBChannel> channelList = commonGBChannelMapper.queryByIds(channelIds);
         if (channelList.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }
         int result = commonGBChannelMapper.updateGroup(parentId, businessGroup, channelList);
+        for (CommonGBChannel commonGBChannel : channelList) {
+            commonGBChannel.setGbParentId(parentId);
+            commonGBChannel.setGbBusinessGroupId(businessGroup);
+        }
+
         // 发送通知
         if (result > 0) {
-            for (CommonGBChannel channel : channelList) {
-                channel.setGbBusinessGroupId(businessGroup);
-                channel.setGbParentId(parentId);
-            }
+            platformChannelService.checkGroupAdd(channelList);
             try {
                 // 发送catalog
                 eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
@@ -587,10 +593,20 @@ public class GbChannelServiceImpl implements IGbChannelService {
         if (channelList.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }
-        int result = commonGBChannelMapper.removeParentIdByChannels(channelList);
+        commonGBChannelMapper.removeParentIdByChannels(channelList);
+
+        Group group = groupMapper.queryOneByDeviceId(parentId, businessGroup);
+        if (group == null) {
+            platformChannelService.checkGroupRemove(channelList, null);
+        }else {
+            List<Group> groupList = new ArrayList<>();
+            groupList.add(group);
+            platformChannelService.checkGroupRemove(channelList, groupList);
+        }
     }
 
     @Override
+    @Transactional
     public void addChannelToGroupByGbDevice(String parentId, String businessGroup, List<Integer> deviceIds) {
         List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(deviceIds);
         if (channelList.isEmpty()) {
@@ -601,12 +617,14 @@ public class GbChannelServiceImpl implements IGbChannelService {
             channel.setGbBusinessGroupId(businessGroup);
         }
         int result = commonGBChannelMapper.updateGroup(parentId, businessGroup, channelList);
+
+        for (CommonGBChannel commonGBChannel : channelList) {
+            commonGBChannel.setGbParentId(parentId);
+            commonGBChannel.setGbBusinessGroupId(businessGroup);
+        }
         // 发送通知
         if (result > 0) {
-            for (CommonGBChannel channel : channelList) {
-                channel.setGbBusinessGroupId(businessGroup);
-                channel.setGbParentId(parentId);
-            }
+            platformChannelService.checkGroupAdd(channelList);
             try {
                 // 发送catalog
                 eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);
@@ -623,10 +641,12 @@ public class GbChannelServiceImpl implements IGbChannelService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }
         commonGBChannelMapper.removeParentIdByChannels(channelList);
+        platformChannelService.checkGroupRemove(channelList, null);
     }
 
     @Override
     public CommonGBChannel queryOneWithPlatform(Integer platformId, String channelDeviceId) {
+        // 防止共享的通道编号重复
         List<CommonGBChannel> channelList = platformChannelMapper.queryOneWithPlatform(platformId, channelDeviceId);
         if (!channelList.isEmpty()) {
             return channelList.get(channelList.size() - 1);

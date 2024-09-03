@@ -244,7 +244,7 @@ public class ApiStreamController {
             return result;
         }
         inviteStreamService.removeInviteInfo(inviteInfo);
-        deviceChannelService.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
+        deviceChannelService.stopPlay(inviteInfo.getChannelId());
         return null;
     }
 

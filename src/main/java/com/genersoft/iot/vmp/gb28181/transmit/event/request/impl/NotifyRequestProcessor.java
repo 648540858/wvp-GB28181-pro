@@ -147,24 +147,26 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			}
 			log.info("[收到Notify-Alarm]：{}/{}", device.getDeviceId(), deviceAlarm.getChannelId());
 			if ("4".equals(deviceAlarm.getAlarmMethod())) {
-				MobilePosition mobilePosition = new MobilePosition();
-				mobilePosition.setChannelId(channelId);
-				mobilePosition.setCreateTime(DateUtil.getNow());
-				mobilePosition.setDeviceId(deviceAlarm.getDeviceId());
-				mobilePosition.setTime(deviceAlarm.getAlarmTime());
-				mobilePosition.setLongitude(deviceAlarm.getLongitude());
-				mobilePosition.setLatitude(deviceAlarm.getLatitude());
-				mobilePosition.setReportSource("GPS Alarm");
+				DeviceChannel deviceChannel = deviceChannelService.getOne(device.getDeviceId(), channelId);
+				if (deviceChannel == null) {
+					log.warn("[解析报警通知] 未找到通道：{}/{}", device.getDeviceId(), channelId);
+				}else {
+					MobilePosition mobilePosition = new MobilePosition();
+					mobilePosition.setChannelId(deviceChannel.getId());
+					mobilePosition.setCreateTime(DateUtil.getNow());
+					mobilePosition.setDeviceId(deviceAlarm.getDeviceId());
+					mobilePosition.setTime(deviceAlarm.getAlarmTime());
+					mobilePosition.setLongitude(deviceAlarm.getLongitude());
+					mobilePosition.setLatitude(deviceAlarm.getLatitude());
+					mobilePosition.setReportSource("GPS Alarm");
 
-				// 更新device channel 的经纬度
-				DeviceChannel deviceChannel = new DeviceChannel();
-				deviceChannel.setGbDeviceDbId(device.getId());
-				deviceChannel.setDeviceId(channelId);
-				deviceChannel.setLongitude(mobilePosition.getLongitude());
-				deviceChannel.setLatitude(mobilePosition.getLatitude());
-				deviceChannel.setGpsTime(mobilePosition.getTime());
+					// 更新device channel 的经纬度
+					deviceChannel.setLongitude(mobilePosition.getLongitude());
+					deviceChannel.setLatitude(mobilePosition.getLatitude());
+					deviceChannel.setGpsTime(mobilePosition.getTime());
 
-				deviceChannelService.updateChannelGPS(device, deviceChannel, mobilePosition);
+					deviceChannelService.updateChannelGPS(device, deviceChannel, mobilePosition);
+				}
 			}
 
 			// 回复200 OK

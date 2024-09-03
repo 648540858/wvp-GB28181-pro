@@ -92,7 +92,7 @@ public interface ISIPCommanderForPlatform {
      * @param subscribeInfo  订阅相关的信息
      * @return
      */
-    void sendNotifyMobilePosition(Platform parentPlatform, GPSMsgInfo gpsMsgInfo, SubscribeInfo subscribeInfo)
+    void sendNotifyMobilePosition(Platform parentPlatform, GPSMsgInfo gpsMsgInfo, CommonGBChannel channel, SubscribeInfo subscribeInfo)
             throws InvalidArgumentException, ParseException, NoSuchFieldException, SipException, IllegalAccessException;
 
     /**

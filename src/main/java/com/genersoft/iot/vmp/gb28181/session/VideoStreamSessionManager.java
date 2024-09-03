@@ -53,21 +53,21 @@ public class VideoStreamSessionManager {
 				+ ":" +  deviceId + ":" + channelId + ":" + callId + ":" + stream, ssrcTransaction);
 	}
 
-	public SsrcTransaction getSsrcTransaction(String deviceId, String channelId, String callId, String stream){
+	public void put(SsrcTransaction ssrcTransaction){
+		redisTemplate.opsForValue().set(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId()
+				+ ":" + ssrcTransaction.getChannelId() + ":" + ssrcTransaction.getCallId() + ":" + ssrcTransaction.getStream(), ssrcTransaction);
+	}
 
-		if (ObjectUtils.isEmpty(deviceId)) {
-			deviceId ="*";
-		}
-		if (ObjectUtils.isEmpty(channelId)) {
-			channelId ="*";
-		}
+	public SsrcTransaction getSsrcTransaction(Integer channelId, String callId, String stream){
+
+		String chanelStr = channelId==null?"*":channelId.toString();
 		if (ObjectUtils.isEmpty(callId)) {
 			callId ="*";
 		}
 		if (ObjectUtils.isEmpty(stream)) {
 			stream ="*";
 		}
-		String key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + ":" + deviceId + ":" + channelId + ":" + callId+ ":" + stream;
+		String key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + ":" + chanelStr + ":" + callId+ ":" + stream;
 		List<Object> scanResult = RedisUtil.scan(redisTemplate, key);
 		if (scanResult.size() == 0) {
 			return null;
@@ -80,12 +80,12 @@ public class VideoStreamSessionManager {
 		if (ObjectUtils.isEmpty(callId)) {
 			return null;
 		}
-		String key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + ":*:*:" + callId+ ":*";
+		String key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + ":*:" + callId+ ":*";
 		List<Object> scanResult = RedisUtil.scan(redisTemplate, key);
 		if (!scanResult.isEmpty()) {
 			return (SsrcTransaction)redisTemplate.opsForValue().get(scanResult.get(0));
 		}else {
-			key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + ":*:*:play:*";
+			key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + ":*:play:*";
 			scanResult = RedisUtil.scan(redisTemplate, key);
 			if (scanResult.isEmpty()) {
 				return null;
@@ -102,20 +102,15 @@ public class VideoStreamSessionManager {
 
 	}
 
-	public List<SsrcTransaction> getSsrcTransactionForAll(String deviceId, String channelId, String callId, String stream){
-		if (ObjectUtils.isEmpty(deviceId)) {
-			deviceId ="*";
-		}
-		if (ObjectUtils.isEmpty(channelId)) {
-			channelId ="*";
-		}
+	public List<SsrcTransaction> getSsrcTransactionForAll(Integer channelId, String callId, String stream){
+		String chanelStr = channelId==null?"*":channelId.toString();
 		if (ObjectUtils.isEmpty(callId)) {
 			callId ="*";
 		}
 		if (ObjectUtils.isEmpty(stream)) {
 			stream ="*";
 		}
-		String key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + ":" + deviceId + ":" + channelId + ":" + callId+ ":" + stream;
+		String key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + ":" + chanelStr + ":" + callId+ ":" + stream;
 		List<Object> scanResult = RedisUtil.scan(redisTemplate, key);
 		if (scanResult.size() == 0) {
 			return null;
@@ -127,24 +122,24 @@ public class VideoStreamSessionManager {
 		return result;
 	}
 
-	public String getMediaServerId(String deviceId, String channelId, String stream){
-		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId, null, stream);
+	public String getMediaServerId(Integer channelId, String stream){
+		SsrcTransaction ssrcTransaction = getSsrcTransaction( channelId, null, stream);
 		if (ssrcTransaction == null) {
 			return null;
 		}
 		return ssrcTransaction.getMediaServerId();
 	}
 
-	public String getSSRC(String deviceId, String channelId, String stream){
-		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId, null, stream);
+	public String getSSRC(Integer channelId, String stream){
+		SsrcTransaction ssrcTransaction = getSsrcTransaction(channelId, null, stream);
 		if (ssrcTransaction == null) {
 			return null;
 		}
 		return ssrcTransaction.getSsrc();
 	}
 	
-	public void remove(String deviceId, String channelId, String stream) {
-		List<SsrcTransaction> ssrcTransactionList = getSsrcTransactionForAll(deviceId, channelId, null, stream);
+	public void remove(String deviceId, Integer channelId, String stream) {
+		List<SsrcTransaction> ssrcTransactionList = getSsrcTransactionForAll(channelId, null, stream);
 		if (ssrcTransactionList == null || ssrcTransactionList.isEmpty()) {
 			return;
 		}
@@ -154,8 +149,8 @@ public class VideoStreamSessionManager {
 		}
 	}
 
-	public void removeByCallId(String deviceId, String channelId, String callId) {
-		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId, callId, null);
+	public void removeByCallId(String deviceId, Integer channelId, String callId) {
+		SsrcTransaction ssrcTransaction = getSsrcTransaction(channelId, callId, null);
 		if (ssrcTransaction == null ) {
 			return;
 		}

@@ -18,7 +18,7 @@ public class MobilePosition {
     /**
      * 通道Id
      */
-    private String channelId;
+    private Integer channelId;
 
     /**
      * 设备名称

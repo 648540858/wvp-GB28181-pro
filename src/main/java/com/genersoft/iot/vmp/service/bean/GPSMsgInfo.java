@@ -8,9 +8,9 @@ import lombok.Data;
 public class GPSMsgInfo {
 
     /**
-     * ID
+     * 通道ID
      */
-    private String id;
+    private Integer channelId;
 
     /**
      * 经度 (必选)
@@ -46,7 +46,7 @@ public class GPSMsgInfo {
 
     public static GPSMsgInfo getInstance(MobilePosition mobilePosition) {
         GPSMsgInfo gpsMsgInfo = new GPSMsgInfo();
-        gpsMsgInfo.setId(mobilePosition.getChannelId());
+        gpsMsgInfo.setChannelId(mobilePosition.getChannelId());
         gpsMsgInfo.setAltitude(mobilePosition.getAltitude() + "");
         gpsMsgInfo.setLng(mobilePosition.getLongitude());
         gpsMsgInfo.setLat(mobilePosition.getLatitude());

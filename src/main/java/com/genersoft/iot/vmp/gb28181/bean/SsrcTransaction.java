@@ -1,11 +1,14 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 import com.genersoft.iot.vmp.common.InviteSessionType;
+import lombok.Data;
 
+@Data
 public class SsrcTransaction {
 
     private String deviceId;
-    private String channelId;
+    private String platformId;
+    private Integer channelId;
     private String callId;
     private String stream;
     private String mediaServerId;
@@ -15,67 +18,20 @@ public class SsrcTransaction {
 
     private InviteSessionType type;
 
-    public String getDeviceId() {
-        return deviceId;
-    }
-
-    public void setDeviceId(String deviceId) {
+    public SsrcTransaction(String deviceId, String platformId, Integer channelId, String callId,
+                           String stream, String mediaServerId, String ssrc,
+                           SipTransactionInfo sipTransactionInfo, InviteSessionType type) {
         this.deviceId = deviceId;
-    }
-
-    public String getChannelId() {
-        return channelId;
-    }
-
-    public void setChannelId(String channelId) {
+        this.platformId = platformId;
         this.channelId = channelId;
-    }
-
-    public String getCallId() {
-        return callId;
-    }
-
-    public void setCallId(String callId) {
         this.callId = callId;
-    }
-
-    public String getStream() {
-        return stream;
-    }
-
-    public void setStream(String stream) {
         this.stream = stream;
-    }
-
-    public String getMediaServerId() {
-        return mediaServerId;
-    }
-
-    public void setMediaServerId(String mediaServerId) {
         this.mediaServerId = mediaServerId;
-    }
-
-    public String getSsrc() {
-        return ssrc;
-    }
-
-    public void setSsrc(String ssrc) {
         this.ssrc = ssrc;
-    }
-
-    public InviteSessionType getType() {
-        return type;
-    }
-
-    public void setType(InviteSessionType type) {
+        this.sipTransactionInfo = sipTransactionInfo;
         this.type = type;
     }
 
-    public SipTransactionInfo getSipTransactionInfo() {
-        return sipTransactionInfo;
-    }
-
-    public void setSipTransactionInfo(SipTransactionInfo sipTransactionInfo) {
-        this.sipTransactionInfo = sipTransactionInfo;
+    public SsrcTransaction() {
     }
 }

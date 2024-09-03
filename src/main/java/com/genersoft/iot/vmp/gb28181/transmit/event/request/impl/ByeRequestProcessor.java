@@ -183,7 +183,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 		if (ssrcTransaction == null) {
 			return;
 		}
-		log.info("[收到bye] 来自设备：{}, 通道: {}, 类型： {}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getType());
+		log.info("[收到bye] 来自：{}, 通道: {}, 类型： {}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getType());
 
 		Platform platform = platformService.queryPlatformByServerGBId(ssrcTransaction.getDeviceId());
 		if (platform != null ) {
@@ -240,8 +240,6 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 						audioBroadcastManager.del(ssrcTransaction.getDeviceId(), channel.getDeviceId());
 					}
 					break;
-
-
 			}
 			// 释放ssrc
 			MediaServer mediaServerItem = mediaServerService.getOne(ssrcTransaction.getMediaServerId());

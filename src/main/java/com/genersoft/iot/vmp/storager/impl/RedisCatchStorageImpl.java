@@ -140,7 +140,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public List<SendRtpItem> querySendRTPServer(String platformGbId, String channelId, String streamId) {
-        String scanKey = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
+        String scanKey = VideoManagerConstants.SEND_RTP_INFO_PREFIX
                 + userSetting.getServerId() + "_*_"
                 + platformGbId + "_"
                 + channelId + "_"
@@ -171,7 +171,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         if (callId == null) {
             callId = "*";
         }
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
+        String key = VideoManagerConstants.SEND_RTP_INFO_PREFIX
                 + "*_*_"
                 + platformGbId + "_"
                 + channelId + "_"
@@ -193,7 +193,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         String platformGbId = "*";
         String callId = "*";
         String streamId = "*";
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
+        String key = VideoManagerConstants.SEND_RTP_INFO_PREFIX
                 + userSetting.getServerId() + "_*_"
                 + platformGbId + "_"
                 + channelId + "_"
@@ -215,7 +215,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         String platformGbId = "*";
         String callId = "*";
         String channelId = "*";
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
+        String key = VideoManagerConstants.SEND_RTP_INFO_PREFIX
                 + userSetting.getServerId() + "_*_"
                 + platformGbId + "_"
                 + channelId + "_"
@@ -234,7 +234,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         if (platformGbId == null) {
             platformGbId = "*";
         }
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
+        String key = VideoManagerConstants.SEND_RTP_INFO_PREFIX
                 + userSetting.getServerId() + "_*_"
                 + platformGbId + "_*" + "_*" + "_*";
         List<Object> queryResult = RedisUtil.scan(redisTemplate, key);
@@ -259,7 +259,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         if (callId == null) {
             callId = "*";
         }
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
+        String key = VideoManagerConstants.SEND_RTP_INFO_PREFIX
                 + userSetting.getServerId() + "_*_"
                 + platformGbId + "_"
                 + channelId + "_"
@@ -284,7 +284,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public List<SendRtpItem> queryAllSendRTPServer() {
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
+        String key = VideoManagerConstants.SEND_RTP_INFO_PREFIX
                 + userSetting.getServerId() + "_*";
         List<Object> queryResult = RedisUtil.scan(redisTemplate, key);
         List<SendRtpItem> result= new ArrayList<>();
@@ -302,7 +302,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
      */
     @Override
     public boolean isChannelSendingRTP(String channelId) {
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
+        String key = VideoManagerConstants.SEND_RTP_INFO_PREFIX
                 + userSetting.getServerId() + "_*_*_"
                 + channelId + "*_" + "*_";
         List<Object> RtpStreams = RedisUtil.scan(redisTemplate, key);
@@ -414,7 +414,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public void updateGpsMsgInfo(GPSMsgInfo gpsMsgInfo) {
-        String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetting.getServerId() + "_" + gpsMsgInfo.getId();
+        String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetting.getServerId() + "_" + gpsMsgInfo.getChannelId();
         Duration duration = Duration.ofSeconds(60L);
         redisTemplate.opsForValue().set(key, gpsMsgInfo, duration);
         // 默认GPS消息保存1分钟
@@ -626,7 +626,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public int getGbSendCount(String id) {
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
+        String key = VideoManagerConstants.SEND_RTP_INFO_PREFIX
                 + userSetting.getServerId() + "_*_" + id + "_*";
         return RedisUtil.scan(redisTemplate, key).size();
     }

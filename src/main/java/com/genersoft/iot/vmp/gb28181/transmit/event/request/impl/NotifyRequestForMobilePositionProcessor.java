@@ -95,7 +95,10 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 						case "DeviceID":
 							String channelId = element.getStringValue();
 							if (!deviceId.equals(channelId)) {
-								mobilePosition.setChannelId(channelId);
+								DeviceChannel deviceChannel = deviceChannelService.getOne(device.getDeviceId(), channelId);
+								if (deviceChannel != null) {
+									mobilePosition.setChannelId(deviceChannel.getId());
+								}
 							}
 							continue;
 						case "Time":

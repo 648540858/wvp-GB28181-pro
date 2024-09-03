@@ -34,7 +34,7 @@ public class SendRtpPortManager {
             return -1;
         }
         String sendIndexKey = KEY + userSetting.getServerId() + "_" +  mediaServer.getId();
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
+        String key = VideoManagerConstants.SEND_RTP_INFO_PREFIX
                 + userSetting.getServerId() + "_*";
         List<Object> queryResult = RedisUtil.scan(redisTemplate, key);
         Map<Integer, SendRtpItem> sendRtpItemMap = new HashMap<>();

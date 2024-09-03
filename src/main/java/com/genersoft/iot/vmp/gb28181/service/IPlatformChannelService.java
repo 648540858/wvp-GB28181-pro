@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.service;
 
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformChannel;
 import com.github.pagehelper.PageInfo;
@@ -36,4 +37,12 @@ public interface IPlatformChannelService {
     void removeChannelByDevice(Integer platformId, List<Integer> deviceIds);
 
     void updateCustomChannel(PlatformChannel channel);
+
+    void checkGroupRemove(List<CommonGBChannel> channelList, List<Group> groups);
+
+    void checkGroupAdd(List<CommonGBChannel> channelList);
+
+    List<Platform> queryPlatFormListByChannelDeviceId(Integer channelId, List<String> platforms);
+
+    CommonGBChannel queryChannelByPlatformIdAndChannelId(Integer platformId, Integer channelId);
 }

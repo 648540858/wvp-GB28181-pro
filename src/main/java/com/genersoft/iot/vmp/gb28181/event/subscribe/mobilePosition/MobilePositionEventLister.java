@@ -1,11 +1,12 @@
 package com.genersoft.iot.vmp.gb28181.event.subscribe.mobilePosition;
 
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeInfo;
+import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
@@ -24,7 +25,7 @@ import java.util.List;
 public class MobilePositionEventLister implements ApplicationListener<MobilePositionEvent> {
 
     @Autowired
-    private IVideoManagerStorage storager;
+    private IPlatformChannelService platformChannelService;
 
     @Autowired
     private SIPCommanderFroPlatform sipCommanderFroPlatform;
@@ -39,14 +40,18 @@ public class MobilePositionEventLister implements ApplicationListener<MobilePosi
         if (platforms.isEmpty()) {
             return;
         }
-        List<Platform> parentPlatformsForGB = storager.queryPlatFormListForGBWithGBId(event.getMobilePosition().getChannelId(), platforms);
+
+        List<Platform> parentPlatformsForGB = platformChannelService.queryPlatFormListByChannelDeviceId(event.getMobilePosition().getChannelId(), platforms);
 
         for (Platform platform : parentPlatformsForGB) {
             log.info("[向上级发送MobilePosition] 通道：{}，平台：{}， 位置： {}:{}", event.getMobilePosition().getChannelId(),
                     platform.getServerGBId(), event.getMobilePosition().getLongitude(), event.getMobilePosition().getLatitude());
             SubscribeInfo subscribe = subscribeHolder.getMobilePositionSubscribe(platform.getServerGBId());
             try {
-                sipCommanderFroPlatform.sendNotifyMobilePosition(platform, GPSMsgInfo.getInstance(event.getMobilePosition()),
+                GPSMsgInfo gpsMsgInfo = GPSMsgInfo.getInstance(event.getMobilePosition());
+                // 获取通道编号
+                CommonGBChannel commonGBChannel = platformChannelService.queryChannelByPlatformIdAndChannelId(platform.getId(), event.getMobilePosition().getChannelId());
+                sipCommanderFroPlatform.sendNotifyMobilePosition(platform, gpsMsgInfo, commonGBChannel,
                         subscribe);
             } catch (InvalidArgumentException | ParseException | NoSuchFieldException | SipException |
                      IllegalAccessException e) {

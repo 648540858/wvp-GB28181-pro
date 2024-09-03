@@ -208,7 +208,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     @Override
     public List<Device> getDeviceByChannelId(String channelId) {
 
-        return channelMapper.getDeviceByChannelId(channelId);
+        return channelMapper.getDeviceByChannelDeviceId(channelId);
     }
 
     @Override
@@ -340,7 +340,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         }
         for (DeviceChannel channel : deviceChannels) {
             // 向关联了该通道并且开启移动位置订阅的上级平台发送移动位置订阅消息
-            mobilePosition.setChannelId(channel.getDeviceId());
+            mobilePosition.setChannelId(channel.getId());
             try {
                 eventPublisher.mobilePositionEventPublish(mobilePosition);
             }catch (Exception e) {
@@ -376,6 +376,11 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备： " +deviceId);
         }
         channelMapper.stopPlay(device.getId(), channelId);
+    }
+
+    @Override
+    public void stopPlay(Integer channelId) {
+        channelMapper.stopPlayById(channelId);
     }
 
     @Override
@@ -595,5 +600,10 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     @Override
     public DeviceChannel getRawChannel(int id) {
         return deviceMapper.getRawChannel(id);
+    }
+
+    @Override
+    public DeviceChannel getOneById(Integer channelId) {
+        return channelMapper.getOne(channelId);
     }
 }

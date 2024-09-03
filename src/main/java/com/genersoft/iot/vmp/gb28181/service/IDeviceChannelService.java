@@ -93,6 +93,8 @@ public interface IDeviceChannelService {
 
     void stopPlay(String deviceId, String channelId);
 
+    void stopPlay(Integer channelId);
+
     void batchUpdateChannelGPS(List<DeviceChannel> channelList);
 
     void batchAddMobilePosition(List<MobilePosition> addMobilePositionList);
@@ -118,4 +120,5 @@ public interface IDeviceChannelService {
 
     DeviceChannel getRawChannel(int id);
 
+    DeviceChannel getOneById(Integer channelId);
 }

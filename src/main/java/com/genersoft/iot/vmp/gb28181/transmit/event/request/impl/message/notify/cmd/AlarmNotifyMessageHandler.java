@@ -134,21 +134,21 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                             deviceAlarm.setLatitude(0.00);
                         }
 
-                        if (!ObjectUtils.isEmpty(deviceAlarm.getAlarmMethod())) {
-                            if ( deviceAlarm.getAlarmMethod().contains(DeviceAlarmMethod.GPS.getVal() + "")) {
+                        if (!ObjectUtils.isEmpty(deviceAlarm.getAlarmMethod()) &&  deviceAlarm.getAlarmMethod().contains(DeviceAlarmMethod.GPS.getVal() + "")) {
+                            DeviceChannel deviceChannel = deviceChannelService.getOne(device.getDeviceId(), channelId);
+                            if (deviceChannel == null) {
+                                log.warn("[解析报警消息] 未找到通道：{}/{}", device.getDeviceId(), channelId);
+                            } else {
                                 MobilePosition mobilePosition = new MobilePosition();
                                 mobilePosition.setCreateTime(DateUtil.getNow());
                                 mobilePosition.setDeviceId(deviceAlarm.getDeviceId());
-                                mobilePosition.setChannelId(channelId);
+                                mobilePosition.setChannelId(deviceChannel.getId());
                                 mobilePosition.setTime(deviceAlarm.getAlarmTime());
                                 mobilePosition.setLongitude(deviceAlarm.getLongitude());
                                 mobilePosition.setLatitude(deviceAlarm.getLatitude());
                                 mobilePosition.setReportSource("GPS Alarm");
 
                                 // 更新device channel 的经纬度
-                                DeviceChannel deviceChannel = new DeviceChannel();
-                                deviceChannel.setGbDeviceDbId(sipMsgInfo.getDevice().getId());
-                                deviceChannel.setDeviceId(channelId);
                                 deviceChannel.setLongitude(mobilePosition.getLongitude());
                                 deviceChannel.setLatitude(mobilePosition.getLatitude());
                                 deviceChannel.setGpsTime(mobilePosition.getTime());

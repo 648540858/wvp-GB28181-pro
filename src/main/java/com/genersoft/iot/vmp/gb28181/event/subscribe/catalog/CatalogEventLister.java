@@ -4,9 +4,9 @@ import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeInfo;
+import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
@@ -28,7 +28,7 @@ import java.util.Map;
 public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
 
     @Autowired
-    private IVideoManagerStorage storager;
+    private IPlatformChannelService platformChannelService;
 
     @Autowired
     private IPlatformService platformService;
@@ -62,7 +62,8 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
             if (event.getChannels() != null) {
                 if (!platforms.isEmpty()) {
                     for (CommonGBChannel deviceChannel : event.getChannels()) {
-                        List<Platform> parentPlatformsForGB = storager.queryPlatFormListForGBWithGBId(deviceChannel.getGbDeviceId(), platforms);
+                        List<Platform> parentPlatformsForGB = platformChannelService.queryPlatFormListByChannelDeviceId(
+                                deviceChannel.getGbId(), platforms);
                         parentPlatformMap.put(deviceChannel.getGbDeviceId(), parentPlatformsForGB);
                         channelMap.put(deviceChannel.getGbDeviceId(), deviceChannel);
                     }

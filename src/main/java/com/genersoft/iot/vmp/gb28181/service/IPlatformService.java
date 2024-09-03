@@ -75,7 +75,7 @@ public interface IPlatformService {
      * @param errorEvent 信令错误事件
      * @param timeoutCallback 超时事件
      */
-    void broadcastInvite(Platform platform, String channelId, MediaServer mediaServerItem, HookSubscribe.Event hookEvent,
+    void broadcastInvite(Platform platform, CommonGBChannel channelId, MediaServer mediaServerItem, HookSubscribe.Event hookEvent,
                          SipSubscribe.Event errorEvent, InviteTimeOutCallback timeoutCallback) throws InvalidArgumentException, ParseException, SipException;
 
     /**

@@ -26,7 +26,7 @@ public class VideoManagerConstants {
 	public static final String KEEPLIVEKEY_PREFIX = "VMP_KEEPALIVE_";
 
 	// TODO 此处多了一个_，暂不修改
-	public static final String INVITE_PREFIX = "VMP_INVITE";
+	public static final String INVITE_PREFIX = "VMP_INVITE_INFO_";
 	public static final String PLAYER_PREFIX = "VMP_INVITE_PLAY_";
 	public static final String PLAY_BLACK_PREFIX = "VMP_INVITE_PLAYBACK_";
 	public static final String DOWNLOAD_PREFIX = "VMP_INVITE_DOWNLOAD_";
@@ -39,7 +39,7 @@ public class VideoManagerConstants {
 
 	public static final String PLATFORM_REGISTER_INFO_PREFIX = "VMP_PLATFORM_REGISTER_INFO_";
 
-	public static final String PLATFORM_SEND_RTP_INFO_PREFIX = "VMP_PLATFORM_SEND_RTP_INFO_";
+	public static final String SEND_RTP_INFO_PREFIX = "VMP_SEND_RTP_INFO";
 
 	public static final String EVENT_ONLINE_REGISTER = "1";
 

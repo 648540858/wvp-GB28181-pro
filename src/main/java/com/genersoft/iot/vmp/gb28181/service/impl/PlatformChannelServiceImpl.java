@@ -63,7 +63,8 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     /**
      * 获取通道使用的分组中未分享的
      */
-    private Set<Group> getGroupNotShareByChannelList(List<CommonGBChannel> channelList, Integer platformId) {
+    @Transactional
+    public Set<Group> getGroupNotShareByChannelList(List<CommonGBChannel> channelList, Integer platformId) {
         // 获取分组中未分享的节点
         Set<Group> groupList = groupMapper.queryNotShareGroupForPlatformByChannelList(channelList, platformId);
         // 获取这些节点的所有父节点
@@ -92,16 +93,19 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         return regionMapper.queryNotShareRegionForPlatformByRegionList(allRegion, platformId);
     }
 
+
+
     /**
      * 移除空的共享，并返回移除的分组
      */
-    private Set<Group> deleteEmptyGroup(Set<Group> groupSet, Integer platformId) {
+    @Transactional
+    public Set<Group> deleteEmptyGroup(Set<Group> groupSet, Integer platformId) {
         Iterator<Group> iterator = groupSet.iterator();
         while (iterator.hasNext()) {
             Group group = iterator.next();
             // groupSet 为当前通道直接使用的分组，如果已经没有子分组与其他的通道，则可以移除
             // 获取分组子节点
-            Set<Group> children = platformChannelMapper.queryShareChildrenGroup(group.getDeviceId(), platformId);
+            Set<Group> children = platformChannelMapper.queryShareChildrenGroup(group.getId(), platformId);
             if (!children.isEmpty()) {
                 iterator.remove();
                 continue;
@@ -426,5 +430,86 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
             log.warn("[自定义通道信息] 发送失败， 平台ID： {}， 通道： {}（{}）", channel.getPlatformId(),
                     channel.getGbName(), channel.getGbDeviceDbId(), e);
         }
+    }
+
+    @Override
+    @Transactional
+    public void checkGroupRemove(List<CommonGBChannel> channelList, List<Group> groupList) {
+
+        List<Integer> channelIds = new ArrayList<>();
+        channelList.stream().forEach(commonGBChannel -> {
+            channelIds.add(commonGBChannel.getGbId());
+        });
+        // 获取关联这些通道的平台
+        List<Platform> platformList = platformChannelMapper.queryPlatFormListByChannelList(channelIds);
+        if (platformList.isEmpty()) {
+            return;
+        }
+        for (Platform platform : platformList) {
+            Set<Group> groupSet;
+            if (groupList == null || groupList.isEmpty()) {
+                groupSet = platformChannelMapper.queryShareGroup(platform.getId());
+            }else {
+                groupSet = new HashSet<>(groupList);
+            }
+            // 清理空的分组并发送消息
+            Set<Group> deleteGroup = deleteEmptyGroup(groupSet, platform.getId());
+
+            List<CommonGBChannel> channelListForEvent = new ArrayList<>();
+            if (!deleteGroup.isEmpty()) {
+                for (Group group : deleteGroup) {
+                    channelListForEvent.add(0, CommonGBChannel.build(group));
+                }
+            }
+            // 发送消息
+            try {
+                // 发送catalog
+                eventPublisher.catalogEventPublish(platform.getId(), channelListForEvent, CatalogEvent.DEL);
+            } catch (Exception e) {
+                log.warn("[移除关联通道] 发送失败，数量：{}", channelList.size(), e);
+            }
+        }
+    }
+
+    @Override
+    @Transactional
+    public void checkGroupAdd(List<CommonGBChannel> channelList) {
+        List<Integer> channelIds = new ArrayList<>();
+        channelList.stream().forEach(commonGBChannel -> {
+            channelIds.add(commonGBChannel.getGbId());
+        });
+        List<Platform> platformList = platformChannelMapper.queryPlatFormListByChannelList(channelIds);
+        if (platformList.isEmpty()) {
+            return;
+        }
+        for (Platform platform : platformList) {
+
+            Set<Group> addGroup =  getGroupNotShareByChannelList(channelList, platform.getId());
+
+            List<CommonGBChannel> channelListForEvent = new ArrayList<>();
+            if (!addGroup.isEmpty()) {
+                for (Group group : addGroup) {
+                    channelListForEvent.add(0, CommonGBChannel.build(group));
+                }
+                platformChannelMapper.addPlatformGroup(addGroup, platform.getId());
+                // 发送消息
+                try {
+                    // 发送catalog
+                    eventPublisher.catalogEventPublish(platform.getId(), channelListForEvent, CatalogEvent.ADD);
+                } catch (Exception e) {
+                    log.warn("[移除关联通道] 发送失败，数量：{}", channelList.size(), e);
+                }
+            }
+        }
+    }
+
+    @Override
+    public List<Platform> queryPlatFormListByChannelDeviceId(Integer channelId, List<String> platforms) {
+        return platformChannelMapper.queryPlatFormListForGBWithGBId(channelId, platforms);
+    }
+
+    @Override
+    public CommonGBChannel queryChannelByPlatformIdAndChannelId(Integer platformId, Integer channelId) {
+        return platformChannelMapper.queryShareChannel(platformId, channelId);
     }
 }

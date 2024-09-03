@@ -6,7 +6,6 @@ import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.dao.*;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,9 +36,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 
 	@Autowired
     private PlatformMapper platformMapper;
-
-	@Autowired
-    private IRedisCatchStorage redisCatchStorage;
 
 	@Autowired
     private PlatformChannelMapper platformChannelMapper;
@@ -111,8 +107,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		return result;
 	}
 
-	@Override
-	public List<Platform> queryPlatFormListForGBWithGBId(String channelId, List<String> platforms) {
-		return platformChannelMapper.queryPlatFormListForGBWithGBId(channelId, platforms);
-	}
+
+
 }

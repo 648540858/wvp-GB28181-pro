@@ -539,7 +539,7 @@ public interface DeviceChannelMapper {
     List<DeviceChannel> queryAllChannels(@Param("deviceDbId") int deviceDbId);
 
     @Select("select de.* from wvp_device de left join wvp_device_channel dc on de.device_id = dc.deviceId where dc.device_id=#{channelId}")
-    List<Device> getDeviceByChannelId(String channelId);
+    List<Device> getDeviceByChannelDeviceId(String channelId);
 
 
     @Delete({"<script>" +
@@ -745,4 +745,8 @@ public interface DeviceChannelMapper {
             " where device_db_id=#{deviceDbId} and coalesce(gb_device_id, device_id) = #{channelId}" +
             " </script>"})
     DeviceChannel getOneByDeviceId(@Param("deviceDbId") int deviceDbId, @Param("channelId") String channelId);
+
+
+    @Update(value = {"UPDATE wvp_device_channel SET stream_id=null WHERE id=#{channelId}"})
+    void stopPlayById(@Param("channelId") Integer channelId);
 }

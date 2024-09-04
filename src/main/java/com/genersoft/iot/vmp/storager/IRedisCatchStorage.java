@@ -210,7 +210,7 @@ public interface IRedisCatchStorage {
 
     void sendPlatformStartPlayMsg(SendRtpItem sendRtpItem, Platform platform);
 
-    void sendPlatformStopPlayMsg(SendRtpItem sendRtpItem, Platform platform);
+    void sendPlatformStopPlayMsg(SendRtpItem sendRtpItem, Platform platform, CommonGBChannel channel);
 
     void addPushListItem(String app, String stream, MediaInfo param);
 

@@ -116,7 +116,8 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 
 		// 收流端发送的停止
 		if (sendRtpItem != null){
-			log.info("[收到bye] 来自{}，停止通道：{}, 类型： {}, callId: {}", sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(), sendRtpItem.getPlayType(), callIdHeader.getCallId());
+			CommonGBChannel channel = channelService.getOne(sendRtpItem.getChannelId());
+			log.info("[收到bye] 来自{}，停止通道：{}, 类型： {}, callId: {}", sendRtpItem.getPlatformId(), channel.getGbDeviceId(), sendRtpItem.getPlayType(), callIdHeader.getCallId());
 
 			String streamId = sendRtpItem.getStream();
 			log.info("[收到bye] 停止推流：{}, 媒体节点： {}", streamId, sendRtpItem.getMediaServerId());
@@ -125,7 +126,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 				// 不是本平台的就发送redis消息让其他wvp停止发流
 				Platform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
 				if (platform != null) {
-					redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem, platform);
+					redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem, platform, channel);
 					if (!userSetting.getServerId().equals(sendRtpItem.getServerId())) {
 						redisRpcService.stopSendRtp(sendRtpItem.getRedisKey());
 						redisCatchStorage.deleteSendRTPServer(null, null, sendRtpItem.getCallId(), null);

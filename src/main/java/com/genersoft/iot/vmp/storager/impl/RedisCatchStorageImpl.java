@@ -675,10 +675,10 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void sendPlatformStopPlayMsg(SendRtpItem sendRtpItem, Platform platform) {
+    public void sendPlatformStopPlayMsg(SendRtpItem sendRtpItem, Platform platform, CommonGBChannel channel) {
 
         MessageForPushChannel msg = MessageForPushChannel.getInstance(0,
-                sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getChannelId(),
+                sendRtpItem.getApp(), sendRtpItem.getStream(), channel.getGbDeviceId(),
                 sendRtpItem.getPlatformId(), platform.getName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
         msg.setPlatFormIndex(platform.getId());
 

@@ -260,7 +260,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
         ssrcFactory.reset(mediaServer.getId());
     }
 
-
     @Override
     public void update(MediaServer mediaSerItem) {
         mediaServerMapper.update(mediaSerItem);

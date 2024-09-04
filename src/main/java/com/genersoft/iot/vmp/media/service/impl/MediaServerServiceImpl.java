@@ -187,6 +187,22 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
+    public int createRTPServer(MediaServer mediaServer, String streamId, long ssrc, Integer port, boolean onlyAuto, boolean disableAudio, boolean reUsePort, Integer tcpMode) {
+        int rtpServerPort;
+        if (mediaServer.isRtpEnable()) {
+            IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
+            if (mediaNodeServerService == null) {
+                log.info("[openRTPServer] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
+                return 0;
+            }
+            rtpServerPort = mediaNodeServerService.createRTPServer(mediaServer, streamId, ssrc, port, onlyAuto, disableAudio, reUsePort, tcpMode);
+        } else {
+            rtpServerPort = mediaServer.getRtpProxyPort();
+        }
+        return rtpServerPort;
+    }
+
+    @Override
     public void closeRTPServer(MediaServer mediaServer, String streamId) {
         if (mediaServer == null) {
             return;

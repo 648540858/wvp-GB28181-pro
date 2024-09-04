@@ -160,4 +160,7 @@ public interface IMediaServerService {
     void stopProxy(MediaServer mediaServer, String streamKey);
 
     StreamInfo getMediaByAppAndStream(String app, String stream);
+
+    int createRTPServer(MediaServer mediaServerItem, String streamId, long ssrc, Integer port, boolean onlyAuto, boolean disableAudio, boolean reUsePort, Integer tcpMode);
+
 }

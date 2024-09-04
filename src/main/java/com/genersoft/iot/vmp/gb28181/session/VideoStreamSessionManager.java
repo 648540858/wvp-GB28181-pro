@@ -38,7 +38,7 @@ public class VideoStreamSessionManager {
 	 * @param mediaServerId 所使用的流媒体ID
 	 * @param response 回复
 	 */
-	public void put(String deviceId, String channelId, String callId, String stream, String ssrc, String mediaServerId, SIPResponse response, InviteSessionType type){
+	public void put(String deviceId, Integer channelId, String callId, String stream, String ssrc, String mediaServerId, SIPResponse response, InviteSessionType type){
 		SsrcTransaction ssrcTransaction = new SsrcTransaction();
 		ssrcTransaction.setDeviceId(deviceId);
 		ssrcTransaction.setChannelId(channelId);

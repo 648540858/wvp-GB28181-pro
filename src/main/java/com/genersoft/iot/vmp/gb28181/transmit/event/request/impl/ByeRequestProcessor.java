@@ -152,11 +152,11 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			}
 			MediaServer mediaServer = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 			if (mediaServer != null) {
-				AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+				AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.getByDeviceId(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
 				if (audioBroadcastCatch != null && audioBroadcastCatch.getSipTransactionInfo().getCallId().equals(callIdHeader.getCallId())) {
 					// 来自上级平台的停止对讲
 					log.info("[停止对讲] 来自上级，平台：{}, 通道：{}", sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
-					audioBroadcastManager.del(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+					audioBroadcastManager.del(sendRtpItem.getChannelId());
 				}
 
 				MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, sendRtpItem.getApp(), streamId);
@@ -231,7 +231,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 				case TALK:
 					// 查找来源的对讲设备，发送停止
 					Device sourceDevice = storager.queryVideoDeviceByPlatformIdAndChannelId(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
-					AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(ssrcTransaction.getDeviceId(), channel.getDeviceId());
+					AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.getByDeviceId(ssrcTransaction.getDeviceId(), channel.getDeviceId());
 					if (sourceDevice != null) {
 						playService.stopAudioBroadcast(sourceDevice.getDeviceId(), channel.getDeviceId());
 					}

@@ -8,7 +8,6 @@ import com.genersoft.iot.vmp.conf.redis.RedisRpcConfig;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcMessage;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
-import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
@@ -27,10 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-
-import javax.sip.InvalidArgumentException;
-import javax.sip.SipException;
-import java.text.ParseException;
 
 /**
  * 其他wvp发起的rpc调用，这里的方法被 RedisRpcConfig 通过反射寻找对应的方法名称调用
@@ -300,35 +295,6 @@ public class RedisRpcController {
         }
         log.info("[redis-rpc] 停止推流成功： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort() );
         response.setBody(WVPResult.success());
-        return response;
-    }
-
-    /**
-     * 其他wvp通知推流已经停止了
-     */
-    public RedisRpcResponse rtpSendStopped(RedisRpcRequest request) {
-        String sendRtpItemKey = request.getParam().toString();
-        SendRtpItem sendRtpItem = (SendRtpItem) redisTemplate.opsForValue().get(sendRtpItemKey);
-        RedisRpcResponse response = request.getResponse();
-        response.setStatusCode(200);
-        if (sendRtpItem == null) {
-            log.info("[redis-rpc] 推流已经停止, 未找到redis中的发流信息， key：{}", sendRtpItemKey);
-            return response;
-        }
-        log.info("[redis-rpc] 推流已经停止： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort() );
-        String platformId = sendRtpItem.getPlatformId();
-        Platform platform = platformService.queryPlatformByServerGBId(platformId);
-        if (platform == null) {
-            return response;
-        }
-        try {
-            commanderFroPlatform.streamByeCmd(platform, sendRtpItem);
-            redisCatchStorage.deleteSendRTPServer(platformId, sendRtpItem.getChannelId(),
-                    sendRtpItem.getCallId(), sendRtpItem.getStream());
-            redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem, platform);
-        } catch (SipException | InvalidArgumentException | ParseException e) {
-            log.error("[命令发送失败] 发送BYE: {}", e.getMessage());
-        }
         return response;
     }
 

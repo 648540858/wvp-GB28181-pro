@@ -70,7 +70,7 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
             // 回复200 OK
             responseAck(request, Response.OK);
             if (result.equalsIgnoreCase("OK")) {
-                AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(device.getDeviceId(), channelId);
+                AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.getByDeviceId(device.getDeviceId(), channelId);
                 audioBroadcastCatch.setStatus(AudioBroadcastCatchStatus.WaiteInvite);
                 audioBroadcastManager.update(audioBroadcastCatch);
             }else {

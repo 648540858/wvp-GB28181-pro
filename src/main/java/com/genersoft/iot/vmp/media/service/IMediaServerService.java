@@ -146,10 +146,10 @@ public interface IMediaServerService {
 
     void startSendRtp(MediaServer mediaServer, SendRtpItem sendRtpItem);
 
-    SendRtpItem createSendRtpItem(MediaServer mediaServerItem, String addressStr, int port, String ssrc, String requesterId, String deviceId, String channelId, boolean mediaTransmissionTCP, boolean rtcp);
+    SendRtpItem createSendRtpItem(MediaServer mediaServerItem, String addressStr, int port, String ssrc, String requesterId, String deviceId, Integer channelId, boolean mediaTransmissionTCP, boolean rtcp);
 
     SendRtpItem createSendRtpItem(MediaServer serverItem, String ip, int port, String ssrc, String platformId,
-                                  String app, String stream, String channelId, boolean tcp, boolean rtcp);
+                                  String app, String stream, Integer channelId, boolean tcp, boolean rtcp);
 
     MediaServer getMediaServerByAppAndStream(String app, String stream);
 

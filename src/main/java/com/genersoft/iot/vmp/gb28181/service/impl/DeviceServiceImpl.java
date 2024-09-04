@@ -235,7 +235,7 @@ public class DeviceServiceImpl implements IDeviceService {
         removeCatalogSubscribe(device, null);
         removeMobilePositionSubscribe(device, null);
 
-        List<AudioBroadcastCatch> audioBroadcastCatches = audioBroadcastManager.get(deviceId);
+        List<AudioBroadcastCatch> audioBroadcastCatches = audioBroadcastManager.getByDeviceId(deviceId);
         if (audioBroadcastCatches.size() > 0) {
             for (AudioBroadcastCatch audioBroadcastCatch : audioBroadcastCatches) {
 

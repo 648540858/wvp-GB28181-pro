@@ -180,11 +180,11 @@ public class PlayServiceImpl implements IPlayService {
                             cmder.streamByeCmd(device, sendRtpItem.getChannelId(), event.getStream(), sendRtpItem.getCallId());
                             if (sendRtpItem.getPlayType().equals(InviteStreamType.BROADCAST)
                                     || sendRtpItem.getPlayType().equals(InviteStreamType.TALK)) {
-                                AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+                                AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.getByDeviceId(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
                                 if (audioBroadcastCatch != null) {
                                     // 来自上级平台的停止对讲
                                     log.info("[停止对讲] 来自上级，平台：{}, 通道：{}", sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
-                                    audioBroadcastManager.del(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+                                    audioBroadcastManager.del(sendRtpItem.getChannelId());
                                 }
                             }
                         }
@@ -1284,9 +1284,9 @@ public class PlayServiceImpl implements IPlayService {
         log.info("[停止对讲] 设备：{}, 通道：{}", deviceId, channelId);
         List<AudioBroadcastCatch> audioBroadcastCatchList = new ArrayList<>();
         if (channelId == null) {
-            audioBroadcastCatchList.addAll(audioBroadcastManager.get(deviceId));
+            audioBroadcastCatchList.addAll(audioBroadcastManager.getByDeviceId(deviceId));
         } else {
-            audioBroadcastCatchList.add(audioBroadcastManager.get(deviceId, channelId));
+            audioBroadcastCatchList.add(audioBroadcastManager.getByDeviceId(deviceId, channelId));
         }
         if (audioBroadcastCatchList.size() > 0) {
             for (AudioBroadcastCatch audioBroadcastCatch : audioBroadcastCatchList) {
@@ -1450,7 +1450,7 @@ public class PlayServiceImpl implements IPlayService {
     public void startSendRtpStreamFailHand(SendRtpItem sendRtpItem, Platform platform, CallIdHeader callIdHeader) {
         if (sendRtpItem.isOnlyAudio()) {
             Device device = deviceService.getDeviceByDeviceId(sendRtpItem.getDeviceId());
-            AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+            AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getChannelId());
             if (audioBroadcastCatch != null) {
                 try {
                     cmder.streamByeCmd(device, sendRtpItem.getChannelId(), audioBroadcastCatch.getSipTransactionInfo(), null);

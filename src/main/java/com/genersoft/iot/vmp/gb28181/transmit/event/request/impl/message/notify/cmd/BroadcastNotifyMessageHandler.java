@@ -127,7 +127,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
                 try {
                     platformService.broadcastInvite(platform, channel, mediaServerForMinimumLoad,  (hookData)->{
                         // 上级平台推流成功
-                        AudioBroadcastCatch broadcastCatch = audioBroadcastManager.get(device.getDeviceId(), targetId);
+                        AudioBroadcastCatch broadcastCatch = audioBroadcastManager.getByDeviceId(device.getDeviceId(), targetId);
                         if (broadcastCatch != null ) {
                             if (playService.audioBroadcastInUse(device, targetId)) {
                                 log.info("[国标级联] 语音喊话 设备正在使用中 platform： {}， channel: {}",

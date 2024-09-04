@@ -112,7 +112,6 @@ public class PlatformServiceImpl implements IPlatformService {
                 if (sendRtpItem != null && sendRtpItem.getApp().equals(event.getApp())) {
                     String platformId = sendRtpItem.getPlatformId();
                     Platform platform = platformMapper.getParentPlatByServerGBId(platformId);
-
                     try {
                         if (platform != null) {
                             commanderForPlatform.streamByeCmd(platform, sendRtpItem);
@@ -552,7 +551,7 @@ public class PlatformServiceImpl implements IPlatformService {
                 log.info("[国标级联] 发起语音喊话 收流超时 deviceId: {}, channelId: {}，端口：{}, SSRC: {}", platform.getServerGBId(), channel.getGbDeviceId(), ssrcInfo.getPort(), ssrcInfo.getSsrc());
                 // 点播超时回复BYE 同时释放ssrc以及此次点播的资源
                 try {
-                    commanderForPlatform.streamByeCmd(platform, channel.getGbDeviceId(), ssrcInfo.getStream(), null, null);
+                    commanderForPlatform.streamByeCmd(platform, channel, ssrcInfo.getStream(), null, null);
                 } catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
                     log.error("[点播超时]， 发送BYE失败 {}", e.getMessage());
                 } finally {
@@ -564,7 +563,7 @@ public class PlatformServiceImpl implements IPlatformService {
                 }
             }
         }, userSetting.getPlayTimeout());
-        commanderForPlatform.broadcastInviteCmd(platform, channel.getGbDeviceId(), mediaServerItem, ssrcInfo, (hookData)->{
+        commanderForPlatform.broadcastInviteCmd(platform, channel, mediaServerItem, ssrcInfo, (hookData)->{
             log.info("[国标级联] 发起语音喊话 收到上级推流 deviceId: {}, channelId: {}", platform.getServerGBId(), channel.getGbDeviceId());
             dynamicTask.stop(timeOutTaskKey);
             // hook响应

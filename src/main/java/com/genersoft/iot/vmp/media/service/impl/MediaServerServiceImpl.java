@@ -852,7 +852,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public SendRtpItem createSendRtpItem(MediaServer mediaServer, String ip, int port, String ssrc, String requesterId, String deviceId, String channelId, boolean isTcp, boolean rtcp) {
+    public SendRtpItem createSendRtpItem(MediaServer mediaServer, String ip, int port, String ssrc, String requesterId, String deviceId, Integer channelId, boolean isTcp, boolean rtcp) {
         int localPort = sendRtpPortManager.getNextPort(mediaServer);
         if (localPort == 0) {
             return null;
@@ -861,7 +861,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
         sendRtpItem.setIp(ip);
         sendRtpItem.setPort(port);
         sendRtpItem.setSsrc(ssrc);
-        sendRtpItem.setPlatformId(deviceId);
         sendRtpItem.setDeviceId(deviceId);
         sendRtpItem.setChannelId(channelId);
         sendRtpItem.setTcp(isTcp);
@@ -875,7 +874,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Override
     public SendRtpItem createSendRtpItem(MediaServer serverItem, String ip, int port, String ssrc, String platformId,
-                                         String app, String stream, String channelId, boolean tcp, boolean rtcp){
+                                         String app, String stream, Integer channelId, boolean tcp, boolean rtcp){
 
         int localPort = sendRtpPortManager.getNextPort(serverItem);
         if (localPort <= 0) {

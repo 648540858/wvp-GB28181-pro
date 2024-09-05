@@ -1,17 +1,12 @@
 package com.genersoft.iot.vmp.service.impl;
 
-import com.genersoft.iot.vmp.common.InviteInfo;
-import com.genersoft.iot.vmp.common.InviteSessionType;
-import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
-import com.genersoft.iot.vmp.gb28181.bean.AudioBroadcastCatch;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.InviteStreamType;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
+import com.genersoft.iot.vmp.media.event.hook.HookData;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
@@ -26,14 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 
-import javax.sip.InvalidArgumentException;
-import javax.sip.SipException;
-import java.text.ParseException;
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -51,6 +40,9 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
 
     @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private HookSubscribe subscribe;
 
     /**
      * 流到来的处理
@@ -71,7 +63,7 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
     }
 
     @Override
-    public SSRCInfo openRTPServer(RTPServerParam rtpServerParam, ErrorCallback<StreamInfo> callback) {
+    public SSRCInfo openRTPServer(RTPServerParam rtpServerParam, ErrorCallback<HookData> callback) {
         if (callback == null) {
             log.warn("[开启RTP收流] 失败，回调为NULL");
             return null;
@@ -112,9 +104,14 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
         }
         if (rtpServerPort == 0) {
             callback.run(InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode(), InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getMsg(), null);
+            // 释放ssrc
+            if (rtpServerParam.getPresetSsrc() == null) {
+                ssrcFactory.releaseSsrc(rtpServerParam.getMediaServerItem().getId(), ssrc);
+            }
             return null;
         }
         SSRCInfo ssrcInfo = new SSRCInfo(rtpServerPort, ssrc, streamId);
+
         // 设置流超时的定时任务
         String timeOutTaskKey = UUID.randomUUID().toString();
         dynamicTask.startDelay(timeOutTaskKey, () -> {
@@ -126,11 +123,23 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
             // 关闭收流端口
             mediaServerService.closeRTPServer(rtpServerParam.getMediaServerItem(), streamId);
         }, userSetting.getPlayTimeout());
+
         // 开启流到来的监听
+        Hook rtpHook = Hook.getInstance(HookType.on_media_arrival, "rtp", streamId, rtpServerParam.getMediaServerItem().getId());
+        subscribe.addSubscribe(rtpHook, (hookData) -> {
+            dynamicTask.stop(timeOutTaskKey);
+            // hook响应
+            callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), hookData);
+        });
+        return ssrcInfo;
+    }
 
-
-
-
+    @Override
+    public void closeRTPServer(MediaServer mediaServer, String streamId) {
+        if (mediaServer == null) {
+            return;
+        }
+        // 释放ssrc
 
     }
 

@@ -8,10 +8,12 @@ import com.genersoft.iot.vmp.media.event.media.MediaPublishEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaRecordMp4Event;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
 /**
  * Hook返回的内容
  */
+@Data
 public class HookData {
     /**
      * 应用名
@@ -72,61 +74,5 @@ public class HookData {
             hookData.setMediaServer(mediaEvent.getMediaServer());
         }
         return hookData;
-    }
-
-    public String getApp() {
-        return app;
-    }
-
-    public void setApp(String app) {
-        this.app = app;
-    }
-
-    public String getStream() {
-        return stream;
-    }
-
-    public void setStream(String stream) {
-        this.stream = stream;
-    }
-
-    public MediaServer getMediaServer() {
-        return mediaServer;
-    }
-
-    public void setMediaServer(MediaServer mediaServer) {
-        this.mediaServer = mediaServer;
-    }
-
-    public String getSchema() {
-        return schema;
-    }
-
-    public void setSchema(String schema) {
-        this.schema = schema;
-    }
-
-    public MediaInfo getMediaInfo() {
-        return mediaInfo;
-    }
-
-    public void setMediaInfo(MediaInfo mediaInfo) {
-        this.mediaInfo = mediaInfo;
-    }
-
-    public String getParams() {
-        return params;
-    }
-
-    public void setParams(String params) {
-        this.params = params;
-    }
-
-    public RecordInfo getRecordInfo() {
-        return recordInfo;
-    }
-
-    public void setRecordInfo(RecordInfo recordInfo) {
-        this.recordInfo = recordInfo;
     }
 }

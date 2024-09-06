@@ -44,4 +44,8 @@ window.baseUrl = "http://xxx.com:18080"
 ```
 `这里的地址是需要客户电脑能访问到的，因为请求是客户端电脑发起，与代理不同`  
 [接入设备](./_content/ability/device.md)
+### 默认账号和密码
+部署完毕后，可以通过访问 ip加端口的方式访问 WVP ，WVP的默认登录账号和密码均为 admin。
+
+
 

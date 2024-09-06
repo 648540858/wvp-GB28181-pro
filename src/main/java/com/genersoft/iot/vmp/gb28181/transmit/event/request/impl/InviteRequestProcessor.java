@@ -10,7 +10,7 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.service.*;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
-import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
@@ -117,7 +117,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     private SipConfig config;
 
     @Autowired
-    private VideoStreamSessionManager streamSession;
+    private SipInviteSessionManager sessionManager;
 
     @Autowired
     private SendRtpPortManager sendRtpPortManager;
@@ -182,7 +182,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     }else {
                         // 点播成功， TODO 可以在此处检测cancel命令是否存在，存在则不发送
                         // 构建sendRTP内容
-                        SendRtpItem sendRtpItem = mediaServerService.createSendRtpItem(streamInfo.getMediaServer(),
+                        SendRtpInfo sendRtpItem = mediaServerService.createSendRtpItem(streamInfo.getMediaServer(),
                                 inviteInfo.getIp(), inviteInfo.getPort(), inviteInfo.getSsrc(), platform.getServerGBId(),
                                 streamInfo.getApp(), streamInfo.getStream(),
                                 channel.getGbId(), inviteInfo.isTcp(), platform.isRtcp());
@@ -700,7 +700,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
     }
 
-    private String createSendSdp(SendRtpItem sendRtpItem, InviteInfo inviteInfo, String sdpIp) {
+    private String createSendSdp(SendRtpInfo sendRtpItem, InviteInfo inviteInfo, String sdpIp) {
         StringBuilder content = new StringBuilder(200);
         content.append("v=0\r\n");
         content.append("o=" + inviteInfo.getChannelId() + " 0 0 IN IP4 " + sdpIp + "\r\n");
@@ -867,7 +867,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         mediaTransmissionTCP ? (tcpActive ? "TCP主动" : "TCP被动") : "UDP", sdp.getSessionName().getValue());
                 CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
 
-                SendRtpItem sendRtpItem = mediaServerService.createSendRtpItem(mediaServerItem, addressStr, port, gb28181Sdp.getSsrc(), requesterId,
+                SendRtpInfo sendRtpItem = mediaServerService.createSendRtpItem(mediaServerItem, addressStr, port, gb28181Sdp.getSsrc(), requesterId,
                         device.getDeviceId(), deviceChannel.getId(),
                         mediaTransmissionTCP, false);
 
@@ -929,7 +929,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         }
     }
 
-    SIPResponse sendOk(Device device, SendRtpItem sendRtpItem, SessionDescription sdp, SIPRequest request, MediaServer mediaServerItem, boolean mediaTransmissionTCP, String ssrc) {
+    SIPResponse sendOk(Device device, SendRtpInfo sendRtpItem, SessionDescription sdp, SIPRequest request, MediaServer mediaServerItem, boolean mediaTransmissionTCP, String ssrc) {
         SIPResponse sipResponse = null;
         try {
             sendRtpItem.setStatus(2);
@@ -973,7 +973,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             audioBroadcastCatch.setStatus(AudioBroadcastCatchStatus.Ok);
             audioBroadcastCatch.setSipTransactionInfoByRequest(sipResponse);
             audioBroadcastManager.update(audioBroadcastCatch);
-            streamSession.put(device.getDeviceId(), sendRtpItem.getChannelId(), request.getCallIdHeader().getCallId(), sendRtpItem.getStream(), sendRtpItem.getSsrc(), sendRtpItem.getMediaServerId(), sipResponse, InviteSessionType.BROADCAST);
+            SsrcTransaction ssrcTransaction = SsrcTransaction.buildForDevice(device.getDeviceId(), sendRtpItem.getChannelId(), request.getCallIdHeader().getCallId(), sendRtpItem.getStream(), sendRtpItem.getSsrc(), sendRtpItem.getMediaServerId(), sipResponse, InviteSessionType.BROADCAST);
+            sessionManager.put(ssrcTransaction);
             // 开启发流，大华在收到200OK后就会开始建立连接
             if (!device.isBroadcastPushAfterAck()) {
                 log.info("[语音喊话] 回复200OK后发现 BroadcastPushAfterAck为False，现在开始推流");

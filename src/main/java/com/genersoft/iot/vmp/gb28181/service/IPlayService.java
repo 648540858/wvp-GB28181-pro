@@ -51,9 +51,9 @@ public interface IPlayService {
 
     void resumeRtp(String streamId) throws ServiceException, InvalidArgumentException, ParseException, SipException;
 
-    void startPushStream(SendRtpItem sendRtpItem, SIPResponse sipResponse, Platform platform, CallIdHeader callIdHeader);
+    void startPushStream(SendRtpInfo sendRtpItem, SIPResponse sipResponse, Platform platform, CallIdHeader callIdHeader);
 
-    void startSendRtpStreamFailHand(SendRtpItem sendRtpItem, Platform platform, CallIdHeader callIdHeader);
+    void startSendRtpStreamFailHand(SendRtpInfo sendRtpItem, Platform platform, CallIdHeader callIdHeader);
 
     void talkCmd(Device device, String channelId, MediaServer mediaServerItem, String stream, AudioBroadcastEvent event);
 

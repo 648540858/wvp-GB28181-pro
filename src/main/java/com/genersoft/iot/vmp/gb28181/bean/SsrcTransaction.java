@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 import com.genersoft.iot.vmp.common.InviteSessionType;
+import gov.nist.javax.sip.message.SIPResponse;
 import lombok.Data;
 
 @Data
@@ -18,18 +19,31 @@ public class SsrcTransaction {
 
     private InviteSessionType type;
 
-    public SsrcTransaction(String deviceId, String platformId, Integer channelId, String callId,
-                           String stream, String mediaServerId, String ssrc,
-                           SipTransactionInfo sipTransactionInfo, InviteSessionType type) {
-        this.deviceId = deviceId;
-        this.platformId = platformId;
-        this.channelId = channelId;
-        this.callId = callId;
-        this.stream = stream;
-        this.mediaServerId = mediaServerId;
-        this.ssrc = ssrc;
-        this.sipTransactionInfo = sipTransactionInfo;
-        this.type = type;
+    public static SsrcTransaction buildForDevice(String deviceId, Integer channelId, String callId, String stream,
+                                                 String ssrc, String mediaServerId, SIPResponse response, InviteSessionType type) {
+        SsrcTransaction ssrcTransaction = new SsrcTransaction();
+        ssrcTransaction.setDeviceId(deviceId);
+        ssrcTransaction.setChannelId(channelId);
+        ssrcTransaction.setCallId(callId);
+        ssrcTransaction.setStream(stream);
+        ssrcTransaction.setMediaServerId(mediaServerId);
+        ssrcTransaction.setSsrc(ssrc);
+        ssrcTransaction.setSipTransactionInfo(new SipTransactionInfo(response));
+        ssrcTransaction.setType(type);
+        return ssrcTransaction;
+    }
+    public static SsrcTransaction buildForPlatform(String platformId, Integer channelId, String callId, String stream,
+                                                 String ssrc, String mediaServerId, SIPResponse response, InviteSessionType type) {
+        SsrcTransaction ssrcTransaction = new SsrcTransaction();
+        ssrcTransaction.setPlatformId(platformId);
+        ssrcTransaction.setChannelId(channelId);
+        ssrcTransaction.setCallId(callId);
+        ssrcTransaction.setStream(stream);
+        ssrcTransaction.setMediaServerId(mediaServerId);
+        ssrcTransaction.setSsrc(ssrc);
+        ssrcTransaction.setSipTransactionInfo(new SipTransactionInfo(response));
+        ssrcTransaction.setType(type);
+        return ssrcTransaction;
     }
 
     public SsrcTransaction() {

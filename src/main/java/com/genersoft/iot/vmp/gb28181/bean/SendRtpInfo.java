@@ -6,7 +6,7 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import lombok.Data;
 
 @Data
-public class SendRtpItem {
+public class SendRtpInfo {
 
     /**
      * 推流ip
@@ -143,8 +143,8 @@ public class SendRtpItem {
      */
     private String sessionName;
 
-    public static SendRtpItem getInstance(RequestPushStreamMsg requestPushStreamMsg) {
-        SendRtpItem sendRtpItem = new SendRtpItem();
+    public static SendRtpInfo getInstance(RequestPushStreamMsg requestPushStreamMsg) {
+        SendRtpInfo sendRtpItem = new SendRtpInfo();
         sendRtpItem.setMediaServerId(requestPushStreamMsg.getMediaServerId());
         sendRtpItem.setApp(requestPushStreamMsg.getApp());
         sendRtpItem.setStream(requestPushStreamMsg.getStream());
@@ -160,8 +160,8 @@ public class SendRtpItem {
 
     }
 
-    public static SendRtpItem getInstance(String app, String stream, String ssrc, String dstIp, Integer dstPort, boolean tcp, int sendLocalPort, Integer pt) {
-        SendRtpItem sendRtpItem = new SendRtpItem();
+    public static SendRtpInfo getInstance(String app, String stream, String ssrc, String dstIp, Integer dstPort, boolean tcp, int sendLocalPort, Integer pt) {
+        SendRtpInfo sendRtpItem = new SendRtpInfo();
         sendRtpItem.setApp(app);
         sendRtpItem.setStream(stream);
         sendRtpItem.setSsrc(ssrc);

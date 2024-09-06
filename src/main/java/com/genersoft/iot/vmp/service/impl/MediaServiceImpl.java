@@ -11,7 +11,7 @@ import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
-import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -64,7 +64,7 @@ public class MediaServiceImpl implements IMediaService {
     private IDeviceChannelService deviceChannelService;
 
     @Autowired
-    private VideoStreamSessionManager sessionManager;
+    private SipInviteSessionManager sessionManager;
 
     @Autowired
     private IPlatformService platformService;
@@ -161,25 +161,25 @@ public class MediaServiceImpl implements IMediaService {
             }
 
             // 设置音频信息及录制信息
-            List<SsrcTransaction> ssrcTransactionForAll = sessionManager.getSsrcTransactionForAll(null, null, stream);
-            if (ssrcTransactionForAll != null && ssrcTransactionForAll.size() == 1) {
+            SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(stream);
+            if (ssrcTransaction != null ) {
 
                 // 为录制国标模拟一个鉴权信息, 方便后续写入录像文件时使用
                 StreamAuthorityInfo streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(app, stream, mediaServer.getId());
                 streamAuthorityInfo.setApp(app);
-                streamAuthorityInfo.setStream(ssrcTransactionForAll.get(0).getStream());
-                streamAuthorityInfo.setCallId(ssrcTransactionForAll.get(0).getSipTransactionInfo().getCallId());
+                streamAuthorityInfo.setStream(ssrcTransaction.getStream());
+                streamAuthorityInfo.setCallId(ssrcTransaction.getSipTransactionInfo().getCallId());
 
-                redisCatchStorage.updateStreamAuthorityInfo(app, ssrcTransactionForAll.get(0).getStream(), streamAuthorityInfo);
+                redisCatchStorage.updateStreamAuthorityInfo(app, ssrcTransaction.getStream(), streamAuthorityInfo);
 
-                String deviceId = ssrcTransactionForAll.get(0).getDeviceId();
-                Integer channelId = ssrcTransactionForAll.get(0).getChannelId();
+                String deviceId = ssrcTransaction.getDeviceId();
+                Integer channelId = ssrcTransaction.getChannelId();
                 DeviceChannel deviceChannel = deviceChannelService.getOneById(channelId);
                 if (deviceChannel != null) {
                     result.setEnable_audio(deviceChannel.isHasAudio());
                 }
                 // 如果是录像下载就设置视频间隔十秒
-                if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.DOWNLOAD) {
+                if (ssrcTransaction.getType() == InviteSessionType.DOWNLOAD) {
                     // 获取录像的总时长，然后设置为这个视频的时长
                     InviteInfo inviteInfoForDownload = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD,  channelId, stream);
                     if (inviteInfoForDownload != null && inviteInfoForDownload.getStreamInfo() != null) {
@@ -193,7 +193,7 @@ public class MediaServiceImpl implements IMediaService {
                     }
                 }
                 // 如果是talk对讲，则默认获取声音
-                if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.TALK) {
+                if (ssrcTransaction.getType() == InviteSessionType.TALK) {
                     result.setEnable_audio(true);
                 }
             }
@@ -231,9 +231,9 @@ public class MediaServiceImpl implements IMediaService {
                 }
                 // 收到无人观看说明流也没有在往上级推送
                 if (redisCatchStorage.isChannelSendingRTP(inviteInfo.getChannelId())) {
-                    List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByChannelId(inviteInfo.getChannelId());
+                    List<SendRtpInfo> sendRtpItems = redisCatchStorage.querySendRTPServerByChannelId(inviteInfo.getChannelId());
                     if (!sendRtpItems.isEmpty()) {
-                        for (SendRtpItem sendRtpItem : sendRtpItems) {
+                        for (SendRtpInfo sendRtpItem : sendRtpItems) {
                             Platform parentPlatform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
                             try {
                                 commanderForPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
@@ -271,7 +271,7 @@ public class MediaServiceImpl implements IMediaService {
                 deviceChannelService.stopPlay(inviteInfo.getChannelId());
                 return result;
             }
-            SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(null, null, stream, null);
+            SendRtpInfo sendRtpItem = redisCatchStorage.querySendRTPServer(null, null, stream, null);
             if (sendRtpItem != null && "talk".equals(sendRtpItem.getApp())) {
                 return false;
             }

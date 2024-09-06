@@ -6,7 +6,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
-import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -50,7 +50,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
-    private VideoStreamSessionManager sessionManager;
+    private SipInviteSessionManager sessionManager;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -69,7 +69,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
         String deviceId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
         CallIdHeader callIdHeader = sipRequest.getCallIdHeader();
         // 先从会话内查找
-        SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransaction(null, null, callIdHeader.getCallId(), null);
+        SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByCallId(callIdHeader.getCallId());
         // 兼容海康 媒体通知 消息from字段不是设备ID的问题
         if (ssrcTransaction != null) {
             deviceId = ssrcTransaction.getDeviceId();

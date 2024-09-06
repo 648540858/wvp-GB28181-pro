@@ -13,7 +13,7 @@ import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.service.IPlayService;
-import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -52,7 +52,7 @@ import java.util.UUID;
 public class PlayController {
 
 	@Autowired
-	private VideoStreamSessionManager streamSession;
+	private SipInviteSessionManager sessionManager;
 
 	@Autowired
 	private IInviteStreamService inviteStreamService;
@@ -240,7 +240,7 @@ public class PlayController {
 			log.debug("获取所有的ssrc");
 		}
 		JSONArray objects = new JSONArray();
-		List<SsrcTransaction> allSsrc = streamSession.getAllSsrc();
+		List<SsrcTransaction> allSsrc = sessionManager.getAll();
 		for (SsrcTransaction transaction : allSsrc) {
 			JSONObject jsonObject = new JSONObject();
 			jsonObject.put("deviceId", transaction.getDeviceId());

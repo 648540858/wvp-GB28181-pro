@@ -8,14 +8,13 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.service.IPlayService;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -37,9 +36,6 @@ public class ApiStreamController {
 
     @Autowired
     private SIPCommander cmder;
-
-    @Autowired
-    private IVideoManagerStorage storager;
 
     @Autowired
     private UserSetting userSetting;
@@ -94,15 +90,7 @@ public class ApiStreamController {
             result.setResult(resultJSON);
             return result;
         }
-        result.onTimeout(()->{
-            log.info("播放等待超时");
-            JSONObject resultJSON = new JSONObject();
-            resultJSON.put("error","timeout");
-            result.setResult(resultJSON);
-            inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, serial, code);
-            deviceChannelService.stopPlay(serial, code);
-             // 清理RTP server
-        });
+
 
         DeviceChannel deviceChannel = deviceChannelService.getOne(serial, code);
         if (deviceChannel == null) {
@@ -116,6 +104,17 @@ public class ApiStreamController {
             result.setResult(resultJSON);
             return result;
         }
+
+        result.onTimeout(()->{
+            log.info("播放等待超时");
+            JSONObject resultJSON = new JSONObject();
+            resultJSON.put("error","timeout");
+            result.setResult(resultJSON);
+            inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceChannel.getId());
+            deviceChannelService.stopPlay(serial, code);
+            // 清理RTP server
+        });
+
         MediaServer newMediaServerItem = playService.getNewMediaServerItem(device);
 
         playService.play(newMediaServerItem, serial, code, null, (errorCode, msg, data) -> {
@@ -224,18 +223,26 @@ public class ApiStreamController {
 
     ){
 
-        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, serial, code);
-        if (inviteInfo == null) {
-            JSONObject result = new JSONObject();
-            result.put("error","未找到流信息");
-            return result;
-        }
+
         Device device = deviceService.getDeviceByDeviceId(serial);
         if (device == null) {
             JSONObject result = new JSONObject();
             result.put("error","未找到设备");
             return result;
         }
+        DeviceChannel deviceChannel = deviceChannelService.getOne(serial, code);
+        if (deviceChannel == null) {
+            JSONObject result = new JSONObject();
+            result.put("error","未找到通道");
+            return result;
+        }
+        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceChannel.getId());
+        if (inviteInfo == null) {
+            JSONObject result = new JSONObject();
+            result.put("error","未找到流信息");
+            return result;
+        }
+
         try {
             cmder.streamByeCmd(device, code, inviteInfo.getStream(), null);
         } catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {

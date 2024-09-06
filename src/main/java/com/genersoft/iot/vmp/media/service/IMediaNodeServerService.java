@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.media.service;
 
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
@@ -58,9 +58,9 @@ public interface IMediaNodeServerService {
 
     Map<String, String> getFFmpegCMDs(MediaServer mediaServer);
 
-    void startSendRtpPassive(MediaServer mediaServer, SendRtpItem sendRtpItem, Integer timeout);
+    void startSendRtpPassive(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout);
 
-    void startSendRtpStream(MediaServer mediaServer, SendRtpItem sendRtpItem);
+    void startSendRtpStream(MediaServer mediaServer, SendRtpInfo sendRtpItem);
 
     Long updateDownloadProcess(MediaServer mediaServer, String app, String stream);
 

@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.media.service;
 
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
@@ -142,13 +142,13 @@ public interface IMediaServerService {
 
     Boolean isStreamReady(MediaServer mediaServer, String rtp, String streamId);
 
-    void startSendRtpPassive(MediaServer mediaServer, SendRtpItem sendRtpItem, Integer timeout);
+    void startSendRtpPassive(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout);
 
-    void startSendRtp(MediaServer mediaServer, SendRtpItem sendRtpItem);
+    void startSendRtp(MediaServer mediaServer, SendRtpInfo sendRtpItem);
 
-    SendRtpItem createSendRtpItem(MediaServer mediaServerItem, String addressStr, int port, String ssrc, String requesterId, String deviceId, Integer channelId, boolean mediaTransmissionTCP, boolean rtcp);
+    SendRtpInfo createSendRtpItem(MediaServer mediaServerItem, String addressStr, int port, String ssrc, String requesterId, String deviceId, Integer channelId, boolean mediaTransmissionTCP, boolean rtcp);
 
-    SendRtpItem createSendRtpItem(MediaServer serverItem, String ip, int port, String ssrc, String platformId,
+    SendRtpInfo createSendRtpItem(MediaServer serverItem, String ip, int port, String ssrc, String platformId,
                                   String app, String stream, Integer channelId, boolean tcp, boolean rtcp);
 
     MediaServer getMediaServerByAppAndStream(String app, String stream);

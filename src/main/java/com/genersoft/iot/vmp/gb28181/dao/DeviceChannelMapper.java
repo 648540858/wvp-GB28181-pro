@@ -749,4 +749,57 @@ public interface DeviceChannelMapper {
 
     @Update(value = {"UPDATE wvp_device_channel SET stream_id=null WHERE id=#{channelId}"})
     void stopPlayById(@Param("channelId") Integer channelId);
+
+
+    @Select(value = {" <script>" +
+            " SELECT " +
+            " id,\n" +
+            " device_db_id,\n" +
+            " create_time,\n" +
+            " update_time,\n" +
+            " sub_count,\n" +
+            " stream_id,\n" +
+            " has_audio,\n" +
+            " gps_time,\n" +
+            " stream_identification,\n" +
+            " channel_type,\n" +
+            " coalesce(gb_device_id, device_id) as device_id,\n" +
+            " coalesce(gb_name, name) as name,\n" +
+            " coalesce(gb_manufacturer, manufacturer) as manufacturer,\n" +
+            " coalesce(gb_model, model) as model,\n" +
+            " coalesce(gb_owner, owner) as owner,\n" +
+            " coalesce(gb_civil_code, civil_code) as civil_code,\n" +
+            " coalesce(gb_block, block) as block,\n" +
+            " coalesce(gb_address, address) as address,\n" +
+            " coalesce(gb_parental, parental) as parental,\n" +
+            " coalesce(gb_parent_id, parent_id) as parent_id,\n" +
+            " coalesce(gb_safety_way, safety_way) as safety_way,\n" +
+            " coalesce(gb_register_way, register_way) as register_way,\n" +
+            " coalesce(gb_cert_num, cert_num) as cert_num,\n" +
+            " coalesce(gb_certifiable, certifiable) as certifiable,\n" +
+            " coalesce(gb_err_code, err_code) as err_code,\n" +
+            " coalesce(gb_end_time, end_time) as end_time,\n" +
+            " coalesce(gb_secrecy, secrecy) as secrecy,\n" +
+            " coalesce(gb_ip_address, ip_address) as ip_address,\n" +
+            " coalesce(gb_port, port) as port,\n" +
+            " coalesce(gb_password, password) as password,\n" +
+            " coalesce(gb_status, status) as status,\n" +
+            " coalesce(gb_longitude, longitude) as longitude,\n" +
+            " coalesce(gb_latitude, latitude) as latitude,\n" +
+            " coalesce(gb_ptz_type, ptz_type) as ptz_type,\n" +
+            " coalesce(gb_position_type, position_type) as position_type,\n" +
+            " coalesce(gb_room_type, room_type) as room_type,\n" +
+            " coalesce(gb_use_type, use_type) as use_type,\n" +
+            " coalesce(gb_supply_light_type, supply_light_type) as supply_light_type,\n" +
+            " coalesce(gb_direction_type, direction_type) as direction_type,\n" +
+            " coalesce(gb_resolution, resolution) as resolution,\n" +
+            " coalesce(gb_business_group_id, business_group_id) as business_group_id,\n" +
+            " coalesce(gb_download_speed, download_speed) as download_speed,\n" +
+            " coalesce(gb_svc_space_support_mod, svc_space_support_mod) as svc_space_support_mod,\n" +
+            " coalesce(gb_svc_time_support_mode, svc_time_support_mode) as svc_time_support_mode\n" +
+            " from wvp_device_channel " +
+            " where device_db_id=#{deviceDbId}" +
+            " </script>"})
+    List<DeviceChannel> getByDeviceId(@Param("deviceDbId") int deviceDbId);
+
 }

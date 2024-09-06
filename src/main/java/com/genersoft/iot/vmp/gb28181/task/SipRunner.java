@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.gb28181.task;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -86,9 +86,9 @@ public class SipRunner implements CommandLineRunner {
 
 
         // 查找国标推流
-        List<SendRtpItem> sendRtpItems = redisCatchStorage.queryAllSendRTPServer();
+        List<SendRtpInfo> sendRtpItems = redisCatchStorage.queryAllSendRTPServer();
         if (sendRtpItems.size() > 0) {
-            for (SendRtpItem sendRtpItem : sendRtpItems) {
+            for (SendRtpInfo sendRtpItem : sendRtpItems) {
                 MediaServer mediaServerItem = mediaServerService.getOne(sendRtpItem.getMediaServerId());
                 redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(),sendRtpItem.getChannelId(), sendRtpItem.getCallId(),sendRtpItem.getStream());
                 if (mediaServerItem != null) {

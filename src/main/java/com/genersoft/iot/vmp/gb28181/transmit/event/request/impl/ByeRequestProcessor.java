@@ -7,7 +7,7 @@ import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.service.*;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
-import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
@@ -79,7 +79,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 	private SIPProcessorObserver sipProcessorObserver;
 
 	@Autowired
-	private VideoStreamSessionManager streamSession;
+	private SipInviteSessionManager sessionManager;
 
 	@Autowired
 	private IPlayService playService;
@@ -112,7 +112,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			log.error("[回复BYE信息失败]，{}", e.getMessage());
 		}
 		CallIdHeader callIdHeader = (CallIdHeader)evt.getRequest().getHeader(CallIdHeader.NAME);
-		SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(null, null, null, callIdHeader.getCallId());
+		SendRtpInfo sendRtpItem =  redisCatchStorage.querySendRTPServer(null, null, null, callIdHeader.getCallId());
 
 		// 收流端发送的停止
 		if (sendRtpItem != null){
@@ -180,7 +180,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			}
 		}
 		// 可能是设备发送的停止
-		SsrcTransaction ssrcTransaction = streamSession.getSsrcTransactionByCallId(callIdHeader.getCallId());
+		SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByCallId(callIdHeader.getCallId());
 		if (ssrcTransaction == null) {
 			return;
 		}
@@ -247,7 +247,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			if (mediaServerItem != null) {
 				mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcTransaction.getSsrc());
 			}
-			streamSession.removeByCallId(device.getDeviceId(), channel.getDeviceId(), ssrcTransaction.getCallId());
+			sessionManager.removeByCallId(ssrcTransaction.getCallId());
 		}
 	}
 }

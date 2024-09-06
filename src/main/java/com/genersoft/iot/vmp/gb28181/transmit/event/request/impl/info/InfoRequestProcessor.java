@@ -7,7 +7,7 @@ import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
-import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
@@ -58,7 +58,7 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
     private SIPCommander cmder;
 
     @Autowired
-    private VideoStreamSessionManager sessionManager;
+    private SipInviteSessionManager sessionManager;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -72,7 +72,7 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
         SIPRequest request = (SIPRequest) evt.getRequest();
         CallIdHeader callIdHeader = request.getCallIdHeader();
         // 先从会话内查找
-        SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransaction(null, null, callIdHeader.getCallId(), null);
+        SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByCallId(callIdHeader.getCallId());
 
         // 查询设备是否存在
         Device device = redisCatchStorage.getDevice(ssrcTransaction.getDeviceId());
@@ -104,7 +104,7 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
                 String contentType = header.getContentType();
                 String contentSubType = header.getContentSubType();
                 if ("Application".equalsIgnoreCase(contentType) && "MANSRTSP".equalsIgnoreCase(contentSubType)) {
-                    SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(null, null, null, callIdHeader.getCallId());
+                    SendRtpInfo sendRtpItem = redisCatchStorage.querySendRTPServer(null, null, null, callIdHeader.getCallId());
                     String streamId = sendRtpItem.getStream();
                     InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, streamId);
                     if (null == inviteInfo) {

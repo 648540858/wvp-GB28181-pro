@@ -8,7 +8,7 @@ import com.genersoft.iot.vmp.conf.redis.RedisRpcConfig;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcMessage;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
@@ -69,7 +69,7 @@ public class RedisRpcController {
      */
     public RedisRpcResponse getSendRtpItem(RedisRpcRequest request) {
         String sendRtpItemKey = request.getParam().toString();
-        SendRtpItem sendRtpItem = (SendRtpItem) redisTemplate.opsForValue().get(sendRtpItemKey);
+        SendRtpInfo sendRtpItem = (SendRtpInfo) redisTemplate.opsForValue().get(sendRtpItemKey);
         if (sendRtpItem == null) {
             log.info("[redis-rpc] 获取发流的信息, 未找到redis中的发流信息， key：{}", sendRtpItemKey);
             RedisRpcResponse response = request.getResponse();
@@ -111,7 +111,7 @@ public class RedisRpcController {
      * 监听流上线
      */
     public RedisRpcResponse waitePushStreamOnline(RedisRpcRequest request) {
-        SendRtpItem sendRtpItem = JSONObject.parseObject(request.getParam().toString(), SendRtpItem.class);
+        SendRtpInfo sendRtpItem = JSONObject.parseObject(request.getParam().toString(), SendRtpInfo.class);
         log.info("[redis-rpc] 监听流上线： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort());
         // 查询本级是否有这个流
         MediaServer mediaServer = mediaServerService.getMediaServerByAppAndStream(sendRtpItem.getApp(), sendRtpItem.getStream());
@@ -195,7 +195,7 @@ public class RedisRpcController {
      * 停止监听流上线
      */
     public RedisRpcResponse stopWaitePushStreamOnline(RedisRpcRequest request) {
-        SendRtpItem sendRtpItem = JSONObject.parseObject(request.getParam().toString(), SendRtpItem.class);
+        SendRtpInfo sendRtpItem = JSONObject.parseObject(request.getParam().toString(), SendRtpInfo.class);
         log.info("[redis-rpc] 停止监听流上线： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort() );
         // 监听流上线。 流上线直接发送sendRtpItem消息给实际的信令处理者
         Hook hook = Hook.getInstance(HookType.on_media_arrival, sendRtpItem.getApp(), sendRtpItem.getStream(), null);
@@ -225,7 +225,7 @@ public class RedisRpcController {
      */
     public RedisRpcResponse startSendRtp(RedisRpcRequest request) {
         String sendRtpItemKey = request.getParam().toString();
-        SendRtpItem sendRtpItem = (SendRtpItem) redisTemplate.opsForValue().get(sendRtpItemKey);
+        SendRtpInfo sendRtpItem = (SendRtpInfo) redisTemplate.opsForValue().get(sendRtpItemKey);
         RedisRpcResponse response = request.getResponse();
         response.setStatusCode(200);
         if (sendRtpItem == null) {
@@ -268,7 +268,7 @@ public class RedisRpcController {
      */
     public RedisRpcResponse stopSendRtp(RedisRpcRequest request) {
         String sendRtpItemKey = request.getParam().toString();
-        SendRtpItem sendRtpItem = (SendRtpItem) redisTemplate.opsForValue().get(sendRtpItemKey);
+        SendRtpInfo sendRtpItem = (SendRtpInfo) redisTemplate.opsForValue().get(sendRtpItemKey);
         RedisRpcResponse response = request.getResponse();
         response.setStatusCode(200);
         if (sendRtpItem == null) {

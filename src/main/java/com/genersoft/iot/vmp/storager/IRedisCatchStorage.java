@@ -38,9 +38,9 @@ public interface IRedisCatchStorage {
 
     void delPlatformRegisterInfo(String callId);
 
-    void updateSendRTPSever(SendRtpItem sendRtpItem);
+    void updateSendRTPSever(SendRtpInfo sendRtpItem);
 
-    List<SendRtpItem> querySendRTPServer(String platformGbId, String channelId, String streamId);
+    List<SendRtpInfo> querySendRTPServer(String platformGbId, String channelId, String streamId);
 
     /**
      * 查询RTP推送信息缓存
@@ -48,9 +48,9 @@ public interface IRedisCatchStorage {
      * @param channelId
      * @return sendRtpItem
      */
-    SendRtpItem querySendRTPServer(String platformGbId, String channelId, String streamId, String callId);
+    SendRtpInfo querySendRTPServer(String platformGbId, String channelId, String streamId, String callId);
 
-    List<SendRtpItem> querySendRTPServer(String platformGbId);
+    List<SendRtpInfo> querySendRTPServer(String platformGbId);
 
     /**
      * 删除RTP推送信息缓存
@@ -182,9 +182,9 @@ public interface IRedisCatchStorage {
      */
     void sendStreamPushRequestedMsgForStatus();
 
-    List<SendRtpItem> querySendRTPServerByChannelId(String channelId);
+    List<SendRtpInfo> querySendRTPServerByChannelId(String channelId);
 
-    List<SendRtpItem> querySendRTPServerByStream(String stream);
+    List<SendRtpInfo> querySendRTPServerByStream(String stream);
 
     SystemAllInfo getSystemInfo();
 
@@ -196,9 +196,9 @@ public interface IRedisCatchStorage {
 
     void addDiskInfo(List<Map<String, Object>> diskInfo);
 
-    void deleteSendRTPServer(SendRtpItem sendRtpItem);
+    void deleteSendRTPServer(SendRtpInfo sendRtpItem);
 
-    List<SendRtpItem> queryAllSendRTPServer();
+    List<SendRtpInfo> queryAllSendRTPServer();
 
     List<Device> getAllDevices();
 
@@ -208,9 +208,9 @@ public interface IRedisCatchStorage {
 
     void sendChannelAddOrDelete(String deviceId, String channelId, boolean add);
 
-    void sendPlatformStartPlayMsg(SendRtpItem sendRtpItem, Platform platform);
+    void sendPlatformStartPlayMsg(SendRtpInfo sendRtpItem, Platform platform);
 
-    void sendPlatformStopPlayMsg(SendRtpItem sendRtpItem, Platform platform, CommonGBChannel channel);
+    void sendPlatformStopPlayMsg(SendRtpInfo sendRtpItem, Platform platform, CommonGBChannel channel);
 
     void addPushListItem(String app, String stream, MediaInfo param);
 
@@ -220,11 +220,11 @@ public interface IRedisCatchStorage {
 
     void sendPushStreamClose(MessageForPushChannel messageForPushChannel);
 
-    void addWaiteSendRtpItem(SendRtpItem sendRtpItem, int platformPlayTimeout);
+    void addWaiteSendRtpItem(SendRtpInfo sendRtpItem, int platformPlayTimeout);
 
-    SendRtpItem getWaiteSendRtpItem(String app, String stream);
+    SendRtpInfo getWaiteSendRtpItem(String app, String stream);
 
-    void sendStartSendRtp(SendRtpItem sendRtpItem);
+    void sendStartSendRtp(SendRtpInfo sendRtpItem);
 
-    void sendPushStreamOnline(SendRtpItem sendRtpItem);
+    void sendPushStreamOnline(SendRtpInfo sendRtpItem);
 }

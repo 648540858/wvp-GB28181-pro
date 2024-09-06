@@ -121,4 +121,6 @@ public interface IDeviceChannelService {
     DeviceChannel getRawChannel(int id);
 
     DeviceChannel getOneById(Integer channelId);
+
+    DeviceChannel getBroadcastChannel(int deviceDbId);
 }

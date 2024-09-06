@@ -1,10 +1,9 @@
 package com.genersoft.iot.vmp.media.zlm;
 
-import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -202,7 +201,7 @@ public class ZLMServerFactory {
         return mediaInfo.getInteger("totalReaderCount");
     }
 
-    public JSONObject startSendRtp(MediaServer mediaInfo, SendRtpItem sendRtpItem) {
+    public JSONObject startSendRtp(MediaServer mediaInfo, SendRtpInfo sendRtpItem) {
         String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
         log.info("rtp/{}开始推流, 目标={}:{}，SSRC={}", sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc());
         Map<String, Object> param = new HashMap<>(12);
@@ -261,7 +260,7 @@ public class ZLMServerFactory {
         return result;
     }
 
-    public JSONObject stopSendRtpStream(MediaServer mediaServerItem, SendRtpItem sendRtpItem) {
+    public JSONObject stopSendRtpStream(MediaServer mediaServerItem, SendRtpInfo sendRtpItem) {
         Map<String, Object> param = new HashMap<>();
         param.put("vhost", "__defaultVhost__");
         param.put("app", sendRtpItem.getApp());

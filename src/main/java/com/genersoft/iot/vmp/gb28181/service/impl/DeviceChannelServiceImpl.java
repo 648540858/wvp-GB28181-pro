@@ -19,6 +19,7 @@ import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
+import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -605,5 +606,20 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     @Override
     public DeviceChannel getOneById(Integer channelId) {
         return channelMapper.getOne(channelId);
+    }
+
+    @Override
+    public DeviceChannel getBroadcastChannel(int deviceDbId) {
+        List<DeviceChannel> channels = channelMapper.getByDeviceId(deviceDbId);
+        if (channels.size() == 1) {
+            return channels.get(0);
+        }
+        for (DeviceChannel channel : channels) {
+            // 获取137类型的
+            if (SipUtils.isFrontEnd(channel.getDeviceId())) {
+                return channel;
+            }
+        }
+        return null;
     }
 }

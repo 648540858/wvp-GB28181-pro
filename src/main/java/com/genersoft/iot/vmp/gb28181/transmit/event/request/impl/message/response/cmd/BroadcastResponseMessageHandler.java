@@ -1,10 +1,8 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd;
 
 import com.genersoft.iot.vmp.conf.DynamicTask;
-import com.genersoft.iot.vmp.gb28181.bean.AudioBroadcastCatch;
-import com.genersoft.iot.vmp.gb28181.bean.AudioBroadcastCatchStatus;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.Platform;
+import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
@@ -35,7 +33,7 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
     private ResponseMessageHandler responseMessageHandler;
 
     @Autowired
-    private DynamicTask dynamicTask;
+    private IDeviceChannelService deviceChannelService;
 
     @Autowired
     private AudioBroadcastManager audioBroadcastManager;
@@ -54,7 +52,19 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
         SIPRequest request = (SIPRequest) evt.getRequest();
         try {
             String channelId = getText(rootElement, "DeviceID");
-            if (!audioBroadcastManager.exit(device.getDeviceId(), channelId)) {
+            DeviceChannel channel = null;
+            if (!channelId.equals(device.getDeviceId())) {
+                channel = deviceChannelService.getOne(device.getDeviceId(), channelId);
+            }else {
+                channel = deviceChannelService.getBroadcastChannel(device.getId());
+            }
+            if (channel == null) {
+                log.info("[语音广播]回复： 未找到通道{}/{}", device.getDeviceId(), channelId );
+                // 回复410
+                responseAck((SIPRequest) evt.getRequest(), Response.NOT_FOUND);
+                return;
+            }
+            if (!audioBroadcastManager.exit(channel.getId())) {
                 // 回复410
                 responseAck((SIPRequest) evt.getRequest(), Response.GONE);
                 return;
@@ -70,7 +80,7 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
             // 回复200 OK
             responseAck(request, Response.OK);
             if (result.equalsIgnoreCase("OK")) {
-                AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.getByDeviceId(device.getDeviceId(), channelId);
+                AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(channel.getId());
                 audioBroadcastCatch.setStatus(AudioBroadcastCatchStatus.WaiteInvite);
                 audioBroadcastManager.update(audioBroadcastCatch);
             }else {

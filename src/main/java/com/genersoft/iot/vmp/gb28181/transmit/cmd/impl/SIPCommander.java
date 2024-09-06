@@ -8,7 +8,7 @@ import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.SipLayer;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
-import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderProvider;
@@ -36,7 +36,6 @@ import javax.sip.SipFactory;
 import javax.sip.header.CallIdHeader;
 import javax.sip.message.Request;
 import java.text.ParseException;
-import java.util.List;
 
 /**
  * @description:设备能力接口，用于定义设备的控制、查询能力
@@ -61,7 +60,7 @@ public class SIPCommander implements ISIPCommander {
     private SIPRequestHeaderProvider headerProvider;
 
     @Autowired
-    private VideoStreamSessionManager streamSession;
+    private SipInviteSessionManager sessionManager;
 
     @Autowired
     private UserSetting userSetting;
@@ -350,15 +349,16 @@ public class SIPCommander implements ISIPCommander {
 
         Request request = headerProvider.createInviteRequest(device, channel.getDeviceId(), content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, ssrcInfo.getSsrc(),sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, (e -> {
-            streamSession.remove(device.getDeviceId(), channel.getDeviceId(), ssrcInfo.getStream());
+            sessionManager.removeByStream(ssrcInfo.getStream());
             mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
             errorEvent.response(e);
         }), e -> {
             ResponseEvent responseEvent = (ResponseEvent) e.event;
             SIPResponse response = (SIPResponse) responseEvent.getResponse();
             String callId = response.getCallIdHeader().getCallId();
-            streamSession.put(device.getDeviceId(), channel.getDeviceId(), callId, stream, ssrcInfo.getSsrc(), mediaServerItem.getId(), response,
+            SsrcTransaction ssrcTransaction = SsrcTransaction.buildForDevice(device.getDeviceId(), channel.getId(), callId, stream, ssrcInfo.getSsrc(), mediaServerItem.getId(), response,
                     InviteSessionType.PLAY);
+            sessionManager.put(ssrcTransaction);
             okEvent.response(e);
         });
     }
@@ -367,12 +367,12 @@ public class SIPCommander implements ISIPCommander {
      * 请求回放视频流
      *
      * @param device    视频设备
-     * @param channelId 预览通道
+     * @param channel 预览通道
      * @param startTime 开始时间,格式要求：yyyy-MM-dd HH:mm:ss
      * @param endTime   结束时间,格式要求：yyyy-MM-dd HH:mm:ss
      */
     @Override
-    public void playbackStreamCmd(MediaServer mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
+    public void playbackStreamCmd(MediaServer mediaServerItem, SSRCInfo ssrcInfo, Device device, DeviceChannel channel,
                                   String startTime, String endTime, HookSubscribe.Event hookEvent,
                                   SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
 
@@ -386,9 +386,9 @@ public class SIPCommander implements ISIPCommander {
         }
         StringBuffer content = new StringBuffer(200);
         content.append("v=0\r\n");
-        content.append("o=" + channelId + " 0 0 IN IP4 " + sdpIp + "\r\n");
+        content.append("o=" + channel.getDeviceId() + " 0 0 IN IP4 " + sdpIp + "\r\n");
         content.append("s=Playback\r\n");
-        content.append("u=" + channelId + ":0\r\n");
+        content.append("u=" + channel.getDeviceId() + ":0\r\n");
         content.append("c=IN IP4 " + sdpIp + "\r\n");
         content.append("t=" + DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime) + " "
                 + DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) + "\r\n");
@@ -454,27 +454,23 @@ public class SIPCommander implements ISIPCommander {
             }
             subscribe.removeSubscribe(rtpHook);
         });
-        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()), ssrcInfo.getSsrc());
+        Request request = headerProvider.createPlaybackInviteRequest(device, channel.getDeviceId(), content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()), ssrcInfo.getSsrc());
 
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent, event -> {
             ResponseEvent responseEvent = (ResponseEvent) event.event;
             SIPResponse response = (SIPResponse) responseEvent.getResponse();
-            streamSession.put(device.getDeviceId(), channelId,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()).getCallId(), ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), response, InviteSessionType.PLAYBACK);
+            SsrcTransaction ssrcTransaction = SsrcTransaction.buildForDevice(device.getDeviceId(),
+                    channel.getId(), sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()).getCallId(), ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), response, InviteSessionType.PLAYBACK);
+            sessionManager.put(ssrcTransaction);
             okEvent.response(event);
         });
     }
 
     /**
      * 请求历史媒体下载
-     *
-     * @param device        视频设备
-     * @param channelId     预览通道
-     * @param startTime     开始时间,格式要求：yyyy-MM-dd HH:mm:ss
-     * @param endTime       结束时间,格式要求：yyyy-MM-dd HH:mm:ss
-     * @param downloadSpeed 下载倍速参数
      */
     @Override
-    public void downloadStreamCmd(MediaServer mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
+    public void downloadStreamCmd(MediaServer mediaServerItem, SSRCInfo ssrcInfo, Device device, DeviceChannel channel,
                                   String startTime, String endTime, int downloadSpeed,
                                   HookSubscribe.Event hookEvent,
                                   SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
@@ -488,9 +484,9 @@ public class SIPCommander implements ISIPCommander {
         }
         StringBuffer content = new StringBuffer(200);
         content.append("v=0\r\n");
-        content.append("o=" + channelId + " 0 0 IN IP4 " + sdpIp + "\r\n");
+        content.append("o=" + channel.getDeviceId() + " 0 0 IN IP4 " + sdpIp + "\r\n");
         content.append("s=Download\r\n");
-        content.append("u=" + channelId + ":0\r\n");
+        content.append("u=" + channel.getDeviceId() + ":0\r\n");
         content.append("c=IN IP4 " + sdpIp + "\r\n");
         content.append("t=" + DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime) + " "
                 + DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) + "\r\n");
@@ -561,7 +557,7 @@ public class SIPCommander implements ISIPCommander {
                     (departureHookData) -> {
                         log.info("[录像]下载结束， 发送BYE");
                         try {
-                            streamByeCmd(device, channelId, ssrcInfo.getStream(), callId);
+                            streamByeCmd(device, channel.getDeviceId(), ssrcInfo.getStream(), callId);
                         } catch (InvalidArgumentException | ParseException | SipException |
                                  SsrcTransactionNotFoundException e) {
                             log.error("[录像]下载结束， 发送BYE失败 {}", e.getMessage());
@@ -569,20 +565,21 @@ public class SIPCommander implements ISIPCommander {
                     });
         });
 
-        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,newCallIdHeader, ssrcInfo.getSsrc());
+        Request request = headerProvider.createPlaybackInviteRequest(device, channel.getDeviceId(), content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,newCallIdHeader, ssrcInfo.getSsrc());
 
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent, event -> {
             ResponseEvent responseEvent = (ResponseEvent) event.event;
             SIPResponse response = (SIPResponse) responseEvent.getResponse();
             String contentString =new String(response.getRawContent());
             String ssrc = SipUtils.getSsrcFromSdp(contentString);
-            streamSession.put(device.getDeviceId(), channelId, response.getCallIdHeader().getCallId(), ssrcInfo.getStream(), ssrc, mediaServerItem.getId(), response, InviteSessionType.DOWNLOAD);
+            SsrcTransaction ssrcTransaction = SsrcTransaction.buildForDevice(device.getDeviceId(), channel.getId(), response.getCallIdHeader().getCallId(), ssrcInfo.getStream(), ssrc, mediaServerItem.getId(), response, InviteSessionType.DOWNLOAD);
+            sessionManager.put(ssrcTransaction);
             okEvent.response(event);
         });
     }
 
     @Override
-    public void talkStreamCmd(MediaServer mediaServerItem, SendRtpItem sendRtpItem, Device device, String channelId, String callId, HookSubscribe.Event event, HookSubscribe.Event eventForPush, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void talkStreamCmd(MediaServer mediaServerItem, SendRtpInfo sendRtpItem, Device device, DeviceChannel channel, String callId, HookSubscribe.Event event, HookSubscribe.Event eventForPush, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
 
         String stream = sendRtpItem.getStream();
 
@@ -615,7 +612,7 @@ public class SIPCommander implements ISIPCommander {
         //
         StringBuffer content = new StringBuffer(200);
         content.append("v=0\r\n");
-        content.append("o=" + channelId + " 0 0 IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
+        content.append("o=" + channel.getDeviceId() + " 0 0 IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
         content.append("s=Talk\r\n");
         content.append("c=IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
         content.append("t=0 0\r\n");
@@ -630,17 +627,18 @@ public class SIPCommander implements ISIPCommander {
         // f字段:f= v/编码格式/分辨率/帧率/码率类型/码率大小a/编码格式/码率大小/采样率
         content.append("f=v/////a/1/8/1" + "\r\n");
 
-        Request request = headerProvider.createInviteRequest(device, channelId, content.toString(),
+        Request request = headerProvider.createInviteRequest(device, channel.getDeviceId(), content.toString(),
                 SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, sendRtpItem.getSsrc(), callIdHeader);
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, (e -> {
-            streamSession.remove(device.getDeviceId(), channelId, sendRtpItem.getStream());
+            sessionManager.removeByStream(sendRtpItem.getStream());
             mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpItem.getSsrc());
             errorEvent.response(e);
         }), e -> {
             // 这里为例避免一个通道的点播只有一个callID这个参数使用一个固定值
             ResponseEvent responseEvent = (ResponseEvent) e.event;
             SIPResponse response = (SIPResponse) responseEvent.getResponse();
-            streamSession.put(device.getDeviceId(), channelId, "talk", stream, sendRtpItem.getSsrc(), mediaServerItem.getId(), response, InviteSessionType.TALK);
+            SsrcTransaction ssrcTransaction = SsrcTransaction.buildForDevice(device.getDeviceId(), channel.getId(), "talk", stream, sendRtpItem.getSsrc(), mediaServerItem.getId(), response, InviteSessionType.TALK);
+            sessionManager.put(ssrcTransaction);
             okEvent.response(e);
         });
     }
@@ -662,21 +660,25 @@ public class SIPCommander implements ISIPCommander {
             log.warn("[发送BYE] device为null");
             return;
         }
-        List<SsrcTransaction> ssrcTransactionList = streamSession.getSsrcTransactionForAll(device.getDeviceId(), channelId, callId, stream);
-        if (ssrcTransactionList == null || ssrcTransactionList.isEmpty()) {
+        SsrcTransaction ssrcTransaction = null;
+        if (callId != null) {
+            ssrcTransaction = sessionManager.getSsrcTransactionByCallId(callId);
+        }else if (stream != null) {
+            ssrcTransaction = sessionManager.getSsrcTransactionByStream(stream);
+        }
+
+        if (ssrcTransaction == null) {
             log.info("[发送BYE] 未找到事务信息,设备： device: {}, channel: {}", device.getDeviceId(), channelId);
             throw new SsrcTransactionNotFoundException(device.getDeviceId(), channelId, callId, stream);
         }
 
-        for (SsrcTransaction ssrcTransaction : ssrcTransactionList) {
-            log.info("[发送BYE] 设备： device: {}, channel: {}, callId: {}", device.getDeviceId(), channelId, ssrcTransaction.getCallId());
-            mediaServerService.releaseSsrc(ssrcTransaction.getMediaServerId(), ssrcTransaction.getSsrc());
+        log.info("[发送BYE] 设备： device: {}, channel: {}, callId: {}", device.getDeviceId(), channelId, ssrcTransaction.getCallId());
+        mediaServerService.releaseSsrc(ssrcTransaction.getMediaServerId(), ssrcTransaction.getSsrc());
 
-            mediaServerService.closeRTPServer(ssrcTransaction.getMediaServerId(), ssrcTransaction.getStream());
-            streamSession.removeByCallId(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getCallId());
-            Request byteRequest = headerProvider.createByteRequest(device, channelId, ssrcTransaction.getSipTransactionInfo());
-            sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), byteRequest, null, okEvent);
-        }
+        mediaServerService.closeRTPServer(ssrcTransaction.getMediaServerId(), ssrcTransaction.getStream());
+        sessionManager.removeByCallId(ssrcTransaction.getCallId());
+        Request byteRequest = headerProvider.createByteRequest(device, channelId, ssrcTransaction.getSipTransactionInfo());
+        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), byteRequest, null, okEvent);
     }
 
     @Override
@@ -1403,7 +1405,7 @@ public class SIPCommander implements ISIPCommander {
     @Override
     public void playbackControlCmd(Device device, StreamInfo streamInfo, String content, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws SipException, InvalidArgumentException, ParseException {
 
-        SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(device.getDeviceId(), streamInfo.getChannelId(), null, streamInfo.getStream());
+        SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(streamInfo.getStream());
         if (ssrcTransaction == null) {
             log.info("[回放控制]未找到视频流信息，设备：{}, 流ID: {}", device.getDeviceId(), streamInfo.getStream());
             return;

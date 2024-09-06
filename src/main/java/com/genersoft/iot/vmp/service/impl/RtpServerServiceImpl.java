@@ -2,7 +2,9 @@ package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
+import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookData;
@@ -10,7 +12,6 @@ import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
-import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IReceiveRtpServerService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
@@ -43,6 +44,9 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
 
     @Autowired
     private HookSubscribe subscribe;
+
+    @Autowired
+    private SipInviteSessionManager sessionManager;
 
     /**
      * 流到来的处理
@@ -135,12 +139,15 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
     }
 
     @Override
-    public void closeRTPServer(MediaServer mediaServer, String streamId) {
+    public void closeRTPServer(MediaServer mediaServer, String stream) {
         if (mediaServer == null) {
             return;
         }
-        // 释放ssrc
-
+        SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(stream);
+        if (ssrcTransaction != null) {
+            // 释放ssrc
+            ssrcFactory.releaseSsrc(ssrcTransaction.getMediaServerId(), ssrcTransaction.getSsrc());
+        }
+        mediaServerService.closeRTPServer(mediaServer, stream);
     }
-
 }

@@ -51,7 +51,9 @@ public class VideoManagerConstants {
 
 	public static final String MEDIA_SSRC_USED_PREFIX = "VMP_MEDIA_USED_SSRC_";
 
-	public static final String MEDIA_TRANSACTION_USED_PREFIX = "VMP_MEDIA_TRANSACTION_";
+	public static final String SIP_INVITE_SESSION = "VMP_SIP_INVITE_SESSION:";
+	public static final String SIP_INVITE_SESSION_CALL_ID = SIP_INVITE_SESSION + "CALL_ID" + ":";
+	public static final String SIP_INVITE_SESSION_STREAM = SIP_INVITE_SESSION + "STREAM" + ":";
 
 	public static final String MEDIA_STREAM_AUTHORITY = "VMP_MEDIA_STREAM_AUTHORITY_";
 

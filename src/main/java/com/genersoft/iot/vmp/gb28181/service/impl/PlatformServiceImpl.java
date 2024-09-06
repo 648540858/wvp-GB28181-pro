@@ -14,7 +14,7 @@ import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
-import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
@@ -89,7 +89,7 @@ public class PlatformServiceImpl implements IPlatformService {
     private UserSetting userSetting;
 
     @Autowired
-    private VideoStreamSessionManager streamSession;
+    private SipInviteSessionManager sessionManager;
 
     @Autowired
     private IInviteStreamService inviteStreamService;
@@ -106,9 +106,9 @@ public class PlatformServiceImpl implements IPlatformService {
     @Async("taskExecutor")
     @EventListener
     public void onApplicationEvent(MediaDepartureEvent event) {
-        List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(event.getStream());
+        List<SendRtpInfo> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(event.getStream());
         if (!sendRtpItems.isEmpty()) {
-            for (SendRtpItem sendRtpItem : sendRtpItems) {
+            for (SendRtpInfo sendRtpItem : sendRtpItems) {
                 if (sendRtpItem != null && sendRtpItem.getApp().equals(event.getApp())) {
                     String platformId = sendRtpItem.getPlatformId();
                     Platform platform = platformMapper.getParentPlatByServerGBId(platformId);
@@ -133,9 +133,9 @@ public class PlatformServiceImpl implements IPlatformService {
     @Async("taskExecutor")
     @EventListener
     public void onApplicationEvent(MediaSendRtpStoppedEvent event) {
-        List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(event.getStream());
+        List<SendRtpInfo> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(event.getStream());
         if (sendRtpItems != null && !sendRtpItems.isEmpty()) {
-            for (SendRtpItem sendRtpItem : sendRtpItems) {
+            for (SendRtpInfo sendRtpItem : sendRtpItems) {
                 Platform platform = platformMapper.getParentPlatByServerGBId(sendRtpItem.getPlatformId());
                 ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
                 try {
@@ -414,9 +414,9 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     private void stopAllPush(String platformId) {
-        List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServer(platformId);
+        List<SendRtpInfo> sendRtpItems = redisCatchStorage.querySendRTPServer(platformId);
         if (sendRtpItems != null && sendRtpItems.size() > 0) {
-            for (SendRtpItem sendRtpItem : sendRtpItems) {
+            for (SendRtpInfo sendRtpItem : sendRtpItems) {
                 ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
                 redisCatchStorage.deleteSendRTPServer(platformId, sendRtpItem.getChannelId(), null, null);
                 MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
@@ -558,7 +558,7 @@ public class PlatformServiceImpl implements IPlatformService {
                     timeoutCallback.run(1, "收流超时");
                     mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
                     mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
-                    streamSession.remove(platform.getServerGBId(), channel.getGbDeviceId(), ssrcInfo.getStream());
+                    sessionManager.removeByStream(ssrcInfo.getStream());
                     mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                 }
             }
@@ -684,7 +684,7 @@ public class PlatformServiceImpl implements IPlatformService {
                         // 释放ssrc
                         mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
 
-                        streamSession.remove(platform.getServerGBId(), channel.getGbDeviceId(), ssrcInfo.getStream());
+                        sessionManager.removeByStream(ssrcInfo.getStream());
 
                         callback.run(InviteErrorCode.ERROR_FOR_RESET_SSRC.getCode(),
                                 "下级自定义了ssrc,重新设置收流信息失败", null);
@@ -724,9 +724,8 @@ public class PlatformServiceImpl implements IPlatformService {
                 if (ssrcInResponse != null) {
                     // 单端口
                     // 重新订阅流上线
-                    SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(inviteInfo.getChannelId(), null, inviteInfo.getStream());
-                    streamSession.remove(inviteInfo.getDeviceId(),
-                            inviteInfo.getChannelId(), inviteInfo.getStream());
+                    SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(inviteInfo.getStream());
+                    sessionManager.removeByStream(inviteInfo.getStream());
                     inviteStreamService.updateInviteInfoForSSRC(inviteInfo, ssrcInResponse);
 
                     ssrcTransaction.setPlatformId(platform.getServerGBId());
@@ -737,7 +736,7 @@ public class PlatformServiceImpl implements IPlatformService {
                     ssrcTransaction.setSipTransactionInfo(new SipTransactionInfo((SIPResponse) responseEvent.getResponse()));
                     ssrcTransaction.setType(inviteSessionType);
 
-                    streamSession.put(ssrcTransaction);
+                    sessionManager.put(ssrcTransaction);
                 }
             }
         }
@@ -782,7 +781,7 @@ public class PlatformServiceImpl implements IPlatformService {
             // 释放ssrc
             mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
 
-            streamSession.remove(platform.getServerGBId(), channelId, ssrcInfo.getStream());
+            sessionManager.removeByStream(ssrcInfo.getStream());
 
             callback.run(InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getCode(),
                     InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getMsg(), null);
@@ -797,19 +796,19 @@ public class PlatformServiceImpl implements IPlatformService {
 
         try {
             if (sendBye) {
-                commanderForPlatform.streamByeCmd(platform, channel.getGbDeviceId(), stream, null, null);
+                commanderForPlatform.streamByeCmd(platform, channel, stream, null, null);
             }
         } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
             log.warn("[消息发送失败] 停止语音对讲， 平台：{}，通道：{}", platform.getId(), channel.getGbDeviceId() );
         } finally {
             mediaServerService.closeRTPServer(mediaServerItem, stream);
-            InviteInfo inviteInfo = inviteStreamService.getInviteInfo(null, platform.getServerGBId(), channel.getGbDeviceId(), stream);
+            InviteInfo inviteInfo = inviteStreamService.getInviteInfo(null, channel.getGbId(), stream);
             if (inviteInfo != null) {
                 // 释放ssrc
                 mediaServerService.releaseSsrc(mediaServerItem.getId(), inviteInfo.getSsrcInfo().getSsrc());
                 inviteStreamService.removeInviteInfo(inviteInfo);
             }
-            streamSession.remove(platform.getServerGBId(), channel.getGbDeviceId(), stream);
+            sessionManager.removeByStream(stream);
         }
     }
 

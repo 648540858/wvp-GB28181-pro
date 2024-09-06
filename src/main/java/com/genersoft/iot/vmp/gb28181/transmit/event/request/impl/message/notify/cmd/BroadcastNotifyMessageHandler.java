@@ -127,7 +127,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
                 try {
                     platformService.broadcastInvite(platform, channel, mediaServerForMinimumLoad,  (hookData)->{
                         // 上级平台推流成功
-                        AudioBroadcastCatch broadcastCatch = audioBroadcastManager.getByDeviceId(device.getDeviceId(), targetId);
+                        AudioBroadcastCatch broadcastCatch = audioBroadcastManager.get(channel.getGbId());
                         if (broadcastCatch != null ) {
                             if (playService.audioBroadcastInUse(device, targetId)) {
                                 log.info("[国标级联] 语音喊话 设备正在使用中 platform： {}， channel: {}",
@@ -141,7 +141,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
                                 broadcastCatch.setMediaServerItem(hookData.getMediaServer());
                                 audioBroadcastManager.update(broadcastCatch);
                                 // 推流到设备
-                                SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(null, targetId, hookData.getStream(), null);
+                                SendRtpInfo sendRtpItem = redisCatchStorage.querySendRTPServer(null, targetId, hookData.getStream(), null);
                                 if (sendRtpItem == null) {
                                     log.warn("[国标级联] 语音喊话 异常，未找到发流信息， channelId: {}, stream: {}", targetId, hookData.getStream());
                                     log.info("[国标级联] 语音喊话 重新开始，channelId: {}, stream: {}", targetId, hookData.getStream());

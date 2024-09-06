@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.media.zlm;
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -37,10 +37,10 @@ public class SendRtpPortManager {
         String key = VideoManagerConstants.SEND_RTP_INFO_PREFIX
                 + userSetting.getServerId() + "_*";
         List<Object> queryResult = RedisUtil.scan(redisTemplate, key);
-        Map<Integer, SendRtpItem> sendRtpItemMap = new HashMap<>();
+        Map<Integer, SendRtpInfo> sendRtpItemMap = new HashMap<>();
 
         for (Object o : queryResult) {
-            SendRtpItem sendRtpItem = (SendRtpItem) redisTemplate.opsForValue().get(o);
+            SendRtpInfo sendRtpItem = (SendRtpInfo) redisTemplate.opsForValue().get(o);
             if (sendRtpItem != null) {
                 sendRtpItemMap.put(sendRtpItem.getLocalPort(), sendRtpItem);
             }
@@ -80,7 +80,7 @@ public class SendRtpPortManager {
         return getSendPort(startPort, endPort, sendIndexKey, sendRtpItemMap);
     }
 
-    private synchronized int getSendPort(int startPort, int endPort, String sendIndexKey, Map<Integer, SendRtpItem> sendRtpItemMap){
+    private synchronized int getSendPort(int startPort, int endPort, String sendIndexKey, Map<Integer, SendRtpInfo> sendRtpItemMap){
         // TODO 这里改为只取偶数端口
         RedisAtomicInteger redisAtomicInteger = new RedisAtomicInteger(sendIndexKey , redisTemplate.getConnectionFactory());
         if (redisAtomicInteger.get() < startPort) {

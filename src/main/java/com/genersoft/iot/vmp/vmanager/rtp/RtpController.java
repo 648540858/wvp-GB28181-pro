@@ -5,7 +5,7 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
@@ -225,15 +225,15 @@ public class RtpController {
         sendInfo.setPushSSRC(ssrc);
 
 
-        SendRtpItem sendRtpItemForVideo;
-        SendRtpItem sendRtpItemForAudio;
+        SendRtpInfo sendRtpItemForVideo;
+        SendRtpInfo sendRtpItemForAudio;
         if (!ObjectUtils.isEmpty(dstIpForAudio) && dstPortForAudio > 0) {
-            sendRtpItemForAudio = SendRtpItem.getInstance(app, stream, ssrc, dstIpForAudio, dstPortForAudio, !isUdp, sendInfo.getSendLocalPortForAudio(), ptForAudio);
+            sendRtpItemForAudio = SendRtpInfo.getInstance(app, stream, ssrc, dstIpForAudio, dstPortForAudio, !isUdp, sendInfo.getSendLocalPortForAudio(), ptForAudio);
         } else {
             sendRtpItemForAudio = null;
         }
         if (!ObjectUtils.isEmpty(dstIpForVideo) && dstPortForVideo > 0) {
-            sendRtpItemForVideo = SendRtpItem.getInstance(app, stream, ssrc, dstIpForAudio, dstPortForAudio, !isUdp, sendInfo.getSendLocalPortForVideo(), ptForVideo);
+            sendRtpItemForVideo = SendRtpInfo.getInstance(app, stream, ssrc, dstIpForAudio, dstPortForAudio, !isUdp, sendInfo.getSendLocalPortForVideo(), ptForVideo);
         } else {
             sendRtpItemForVideo = null;
         }

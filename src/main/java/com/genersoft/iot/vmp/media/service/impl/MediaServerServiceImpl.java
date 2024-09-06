@@ -8,7 +8,7 @@ import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.PlayException;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -846,7 +846,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public void startSendRtpPassive(MediaServer mediaServer, SendRtpItem sendRtpItem, Integer timeout) {
+    public void startSendRtpPassive(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout) {
         IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
             log.info("[startSendRtpPassive] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
@@ -856,7 +856,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public void startSendRtp(MediaServer mediaServer, SendRtpItem sendRtpItem) {
+    public void startSendRtp(MediaServer mediaServer, SendRtpInfo sendRtpItem) {
         IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
             log.info("[startSendRtpStream] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
@@ -868,12 +868,12 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public SendRtpItem createSendRtpItem(MediaServer mediaServer, String ip, int port, String ssrc, String requesterId, String deviceId, Integer channelId, boolean isTcp, boolean rtcp) {
+    public SendRtpInfo createSendRtpItem(MediaServer mediaServer, String ip, int port, String ssrc, String requesterId, String deviceId, Integer channelId, boolean isTcp, boolean rtcp) {
         int localPort = sendRtpPortManager.getNextPort(mediaServer);
         if (localPort == 0) {
             return null;
         }
-        SendRtpItem sendRtpItem = new SendRtpItem();
+        SendRtpInfo sendRtpItem = new SendRtpInfo();
         sendRtpItem.setIp(ip);
         sendRtpItem.setPort(port);
         sendRtpItem.setSsrc(ssrc);
@@ -889,14 +889,14 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public SendRtpItem createSendRtpItem(MediaServer serverItem, String ip, int port, String ssrc, String platformId,
+    public SendRtpInfo createSendRtpItem(MediaServer serverItem, String ip, int port, String ssrc, String platformId,
                                          String app, String stream, Integer channelId, boolean tcp, boolean rtcp){
 
         int localPort = sendRtpPortManager.getNextPort(serverItem);
         if (localPort <= 0) {
             throw new PlayException(javax.sip.message.Response.SERVER_INTERNAL_ERROR, "server internal error");
         }
-        SendRtpItem sendRtpItem = new SendRtpItem();
+        SendRtpInfo sendRtpItem = new SendRtpInfo();
         sendRtpItem.setIp(ip);
         sendRtpItem.setPort(port);
         sendRtpItem.setSsrc(ssrc);

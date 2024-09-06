@@ -78,7 +78,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     public void updateChannel(String deviceId, DeviceChannel channel) {
         String channelId = channel.getDeviceId();
         channel.setDeviceId(deviceId);
-        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
+        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
         if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
             channel.setStreamId(inviteInfo.getStreamInfo().getStream());
         }
@@ -105,7 +105,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             if (channelList.isEmpty()) {
                 for (DeviceChannel channel : channels) {
                     channel.setDeviceDbId(device.getId());
-                    InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channel.getDeviceId());
+                    InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
                     if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
                         channel.setStreamId(inviteInfo.getStreamInfo().getStream());
                     }
@@ -119,7 +119,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     channelsInStore.put(deviceChannel.getDeviceDbId() + deviceChannel.getDeviceId(), deviceChannel);
                 }
                 for (DeviceChannel channel : channels) {
-                    InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channel.getDeviceId());
+                    InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
                     if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
                         channel.setStreamId(inviteInfo.getStreamInfo().getStream());
                     }

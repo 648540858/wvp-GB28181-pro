@@ -111,7 +111,7 @@ public class ApiStreamController {
             resultJSON.put("error","timeout");
             result.setResult(resultJSON);
             inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceChannel.getId());
-            deviceChannelService.stopPlay(serial, code);
+            deviceChannelService.stopPlay(deviceChannel.getId());
             // 清理RTP server
         });
 

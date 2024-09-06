@@ -217,10 +217,9 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 				case PLAY:
 				case PLAYBACK:
 				case DOWNLOAD:
-					InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY,
-							device.getDeviceId(), channel.getDeviceId());
+					InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
 					if (inviteInfo != null) {
-						deviceChannelService.stopPlay(ssrcTransaction.getDeviceId(), channel.getDeviceId());
+						deviceChannelService.stopPlay(channel.getId());
 						inviteStreamService.removeInviteInfo(inviteInfo);
 						if (inviteInfo.getStreamInfo() != null) {
 							mediaServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServer(), inviteInfo.getStreamInfo().getStream());

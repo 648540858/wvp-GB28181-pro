@@ -627,12 +627,12 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         }
         SendRtpInfo sendRtpItem = redisCatchStorage.querySendRTPServer(platform.getServerGBId(), null, null, callId);
         if (sendRtpItem != null) {
-            streamByeCmd(platform, sendRtpItem);
+            streamByeCmd(platform, sendRtpItem, );
         }
     }
 
     @Override
-    public synchronized void streamByeCmd(Platform platform, SendRtpInfo sendRtpItem) throws SipException, InvalidArgumentException, ParseException {
+    public synchronized void streamByeCmd(Platform platform, SendRtpInfo sendRtpItem, CommonGBChannel channel) throws SipException, InvalidArgumentException, ParseException {
         if (sendRtpItem == null ) {
             log.info("[向上级发送BYE]， sendRtpItem 为NULL");
             return;
@@ -648,7 +648,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpItem.getSsrc());
             mediaServerService.closeRTPServer(mediaServerItem, sendRtpItem.getStream());
         }
-        SIPRequest byeRequest = headerProviderPlatformProvider.createByeRequest(platform, sendRtpItem);
+        SIPRequest byeRequest = headerProviderPlatformProvider.createByeRequest(platform, sendRtpItem, channel);
         if (byeRequest == null) {
             log.warn("[向上级发送bye]：无法创建 byeRequest");
         }

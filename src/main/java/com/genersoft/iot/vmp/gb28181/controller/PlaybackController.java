@@ -9,6 +9,8 @@ import com.genersoft.iot.vmp.conf.exception.ServiceException;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
@@ -71,6 +73,9 @@ public class PlaybackController {
 	@Autowired
 	private IDeviceService deviceService;
 
+	@Autowired
+	private IDeviceChannelService channelService;
+
 	@Operation(summary = "开始视频回放", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
@@ -92,8 +97,18 @@ public class PlaybackController {
 		RequestMessage requestMessage = new RequestMessage();
 		requestMessage.setKey(key);
 		requestMessage.setId(uuid);
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
+		if (device == null) {
+			log.warn("[录像回放] 未找到设备 deviceId: {},channelId:{}", deviceId, channelId);
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备：" + deviceId);
+		}
 
-		playService.playBack(deviceId, channelId, startTime, endTime,
+		DeviceChannel channel = channelService.getOne(deviceId, channelId);
+		if (channel == null) {
+			log.warn("[录像回放] 未找到通道 deviceId: {},channelId:{}", deviceId, channelId);
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到通道：" + channelId);
+		}
+		playService.playBack(device, channel, startTime, endTime,
 				(code, msg, data)->{
 
 					WVPResult<StreamContent> wvpResult = new WVPResult<>();

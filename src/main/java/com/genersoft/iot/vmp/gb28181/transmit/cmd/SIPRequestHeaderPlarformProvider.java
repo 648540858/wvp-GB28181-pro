@@ -2,10 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.cmd;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.SipLayer;
-import com.genersoft.iot.vmp.gb28181.bean.Platform;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
-import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
-import com.genersoft.iot.vmp.gb28181.bean.SubscribeInfo;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.GitUtil;
@@ -269,7 +266,7 @@ public class SIPRequestHeaderPlarformProvider {
 		return request;
     }
 
-	public SIPRequest createByeRequest(Platform platform, SendRtpInfo sendRtpItem) throws PeerUnavailableException, ParseException, InvalidArgumentException {
+	public SIPRequest createByeRequest(Platform platform, SendRtpInfo sendRtpItem, CommonGBChannel channel) throws PeerUnavailableException, ParseException, InvalidArgumentException {
 
 		if (sendRtpItem == null ) {
 			return null;
@@ -285,7 +282,7 @@ public class SIPRequestHeaderPlarformProvider {
 		viaHeader.setRPort();
 		viaHeaders.add(viaHeader);
 		// from
-		SipURI fromSipURI = SipFactory.getInstance().createAddressFactory().createSipURI(sendRtpItem.getChannelId(),
+		SipURI fromSipURI = SipFactory.getInstance().createAddressFactory().createSipURI(channel.getGbDeviceId(),
 				platform.getDeviceIp() + ":" + platform.getDevicePort());
 		Address fromAddress = SipFactory.getInstance().createAddressFactory().createAddress(fromSipURI);
 		FromHeader fromHeader = SipFactory.getInstance().createHeaderFactory().createFromHeader(fromAddress, sendRtpItem.getToTag());

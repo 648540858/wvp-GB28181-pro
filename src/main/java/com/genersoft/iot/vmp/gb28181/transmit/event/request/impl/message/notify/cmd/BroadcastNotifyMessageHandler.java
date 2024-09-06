@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify
 
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
+import com.genersoft.iot.vmp.gb28181.service.*;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -10,9 +10,6 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessag
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
-import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
-import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -57,6 +54,9 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
 
     @Autowired
     private IDeviceService deviceService;
+
+    @Autowired
+    private IDeviceChannelService deviceChannelService;
 
     @Autowired
     private IPlatformService platformService;
@@ -110,10 +110,15 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
                 responseAck(request, Response.NOT_FOUND, "device not found");
                 return;
             }
+            DeviceChannel deviceChannel = deviceChannelService.getOneById(channel.getGbId());
+            if (deviceChannel == null) {
+                responseAck(request, Response.NOT_FOUND, "channel not found");
+                return;
+            }
             responseAck(request, Response.OK);
 
             // 查看语音通道是否已经建立并且已经在使用
-            if (playService.audioBroadcastInUse(device, targetId)) {
+            if (playService.audioBroadcastInUse(device, deviceChannel)) {
                 commanderForPlatform.broadcastResultCmd(platform, channel, sn, false,null, null);
                 return;
             }
@@ -129,7 +134,8 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
                         // 上级平台推流成功
                         AudioBroadcastCatch broadcastCatch = audioBroadcastManager.get(channel.getGbId());
                         if (broadcastCatch != null ) {
-                            if (playService.audioBroadcastInUse(device, targetId)) {
+
+                            if (playService.audioBroadcastInUse(device, deviceChannel)) {
                                 log.info("[国标级联] 语音喊话 设备正在使用中 platform： {}， channel: {}",
                                         platform.getServerGBId(), channel.getGbDeviceId());
                                 //  查看语音通道已经建立且已经占用 回复BYE
@@ -146,7 +152,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
                                     log.warn("[国标级联] 语音喊话 异常，未找到发流信息， channelId: {}, stream: {}", targetId, hookData.getStream());
                                     log.info("[国标级联] 语音喊话 重新开始，channelId: {}, stream: {}", targetId, hookData.getStream());
                                     try {
-                                        playService.audioBroadcastCmd(device, targetId, hookData.getMediaServer(), hookData.getApp(), hookData.getStream(), 60, true, msg -> {
+                                        playService.audioBroadcastCmd(device, deviceChannel, hookData.getMediaServer(), hookData.getApp(), hookData.getStream(), 60, true, msg -> {
                                             log.info("[语音喊话] 通道建立成功, device: {}, channel: {}", device.getDeviceId(), targetId);
                                         });
                                     } catch (SipException | InvalidArgumentException | ParseException e) {
@@ -165,7 +171,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
                             }
                         }else {
                             try {
-                                playService.audioBroadcastCmd(device, targetId, hookData.getMediaServer(), hookData.getApp(), hookData.getStream(), 60, true, msg -> {
+                                playService.audioBroadcastCmd(device, deviceChannel, hookData.getMediaServer(), hookData.getApp(), hookData.getStream(), 60, true, msg -> {
                                     log.info("[语音喊话] 通道建立成功, device: {}, channel: {}", device.getDeviceId(), targetId);
                                 });
                             } catch (SipException | InvalidArgumentException | ParseException e) {

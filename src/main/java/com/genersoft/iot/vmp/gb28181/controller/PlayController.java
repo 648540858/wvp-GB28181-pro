@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
@@ -87,6 +88,9 @@ public class PlayController {
 		Assert.notNull(channelId, "通道国标编号不可为NULL");
 		// 获取可用的zlm
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
+		Assert.notNull(deviceId, "设备不存在");
+		DeviceChannel channel = deviceChannelService.getOne(deviceId, channelId);
+		Assert.notNull(channel, "通道不存在");
 		MediaServer newMediaServerItem = playService.getNewMediaServerItem(device);
 
 		RequestMessage requestMessage = new RequestMessage();
@@ -104,8 +108,8 @@ public class PlayController {
 			wvpResult.setMsg("点播超时");
 			requestMessage.setData(wvpResult);
 			resultHolder.invokeAllResult(requestMessage);
-			inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
-			deviceChannelService.stopPlay(deviceId, channelId);
+			inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
+			deviceChannelService.stopPlay(channel.getId());
 		});
 
 		// 录像查询以channelId作为deviceId查询
@@ -161,11 +165,11 @@ public class PlayController {
 		}
 
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		if (device == null) {
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备[" + deviceId + "]不存在");
-		}
+		DeviceChannel channel = deviceChannelService.getOne(deviceId, channelId);
+		Assert.notNull(device, "设备不存在");
+		Assert.notNull(channel, "通道不存在");
 
-		playService.stopPlay(device, channelId);
+		playService.stopPlay(device, channel);
 		JSONObject json = new JSONObject();
 		json.put("deviceId", deviceId);
 		json.put("channelId", channelId);
@@ -259,9 +263,8 @@ public class PlayController {
 	@Operation(summary = "获取截图", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
-	@Parameter(name = "isSubStream", description = "是否子码流（true-子码流，false-主码流），默认为false", required = true)
 	@GetMapping("/snap")
-	public DeferredResult<String> getSnap(String deviceId, String channelId,boolean isSubStream) {
+	public DeferredResult<String> getSnap(String deviceId, String channelId) {
 		if (log.isDebugEnabled()) {
 			log.debug("获取截图: {}/{}", deviceId, channelId);
 		}

@@ -316,8 +316,8 @@ public interface DeviceChannelMapper {
     @Update(value = {"UPDATE wvp_device_channel SET stream_id=null WHERE device_db_id=#{deviceId} AND device_id=#{channelId}"})
     void stopPlay(@Param("deviceId") int deviceId, @Param("channelId") String channelId);
 
-    @Update(value = {"UPDATE wvp_device_channel SET stream_id=#{streamId} WHERE device_db_id=#{deviceId} AND device_id=#{channelId}"})
-    void startPlay(@Param("deviceId") int deviceId, @Param("channelId") String channelId, @Param("streamId") String streamId);
+    @Update(value = {"UPDATE wvp_device_channel SET stream_id=#{streamId} WHERE id=#{channelId}"})
+    void startPlay(@Param("channelId") Integer channelId, @Param("streamId") String streamId);
 
 
     @Select(value = {" <script>" +

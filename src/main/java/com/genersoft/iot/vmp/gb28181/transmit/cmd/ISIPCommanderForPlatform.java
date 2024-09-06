@@ -150,7 +150,7 @@ public interface ISIPCommanderForPlatform {
      */
     void streamByeCmd(Platform platform, String callId) throws SipException, InvalidArgumentException, ParseException;
 
-    void streamByeCmd(Platform platform, SendRtpInfo sendRtpItem) throws SipException, InvalidArgumentException, ParseException;
+    void streamByeCmd(Platform platform, SendRtpInfo sendRtpItem, CommonGBChannel channel) throws SipException, InvalidArgumentException, ParseException;
 
     void streamByeCmd(Platform platform, CommonGBChannel channel, String stream, String callId, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException;
 

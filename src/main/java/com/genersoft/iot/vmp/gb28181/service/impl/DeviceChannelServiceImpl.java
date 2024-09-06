@@ -362,21 +362,8 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
-    public void startPlay(String deviceId, String channelId, String stream) {
-        Device device = deviceMapper.getDeviceByDeviceId(deviceId);
-        if (device == null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备： " +deviceId);
-        }
-        channelMapper.startPlay(device.getId(), channelId, stream);
-    }
-
-    @Override
-    public void stopPlay(String deviceId, String channelId) {
-        Device device = deviceMapper.getDeviceByDeviceId(deviceId);
-        if (device == null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备： " +deviceId);
-        }
-        channelMapper.stopPlay(device.getId(), channelId);
+    public void startPlay(Integer channelId, String stream) {
+        channelMapper.startPlay(channelId, stream);
     }
 
     @Override

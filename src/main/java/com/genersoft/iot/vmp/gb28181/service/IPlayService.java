@@ -25,27 +25,27 @@ public interface IPlayService {
               ErrorCallback<StreamInfo> callback);
     SSRCInfo play(MediaServer mediaServerItem, String deviceId, String channelId, String ssrc, ErrorCallback<StreamInfo> callback);
 
-    StreamInfo onPublishHandlerForPlay(MediaServer mediaServerItem, MediaInfo mediaInfo, String deviceId, String channelId);
+    StreamInfo onPublishHandlerForPlay(MediaServer mediaServerItem, MediaInfo mediaInfo, Device device, DeviceChannel channel);
 
     MediaServer getNewMediaServerItem(Device device);
 
-    void playBack(String deviceId, String channelId, String startTime, String endTime, ErrorCallback<StreamInfo> callback);
+    void playBack(Device device, DeviceChannel channel, String startTime, String endTime, ErrorCallback<StreamInfo> callback);
     void zlmServerOffline(String mediaServerId);
 
-    void download(String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, ErrorCallback<StreamInfo> callback);
-    void download(MediaServer mediaServerItem, SSRCInfo ssrcInfo, String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, ErrorCallback<StreamInfo> callback);
+    void download(Device device, DeviceChannel channel, String startTime, String endTime, int downloadSpeed, ErrorCallback<StreamInfo> callback);
+    void download(MediaServer mediaServerItem, SSRCInfo ssrcInfo, Device device, DeviceChannel channel, String startTime, String endTime, int downloadSpeed, ErrorCallback<StreamInfo> callback);
 
-    StreamInfo getDownLoadInfo(String deviceId, String channelId, String stream);
+    StreamInfo getDownLoadInfo(Device deviceId, DeviceChannel channelId, String stream);
 
     void zlmServerOnline(String mediaServerId);
 
     AudioBroadcastResult audioBroadcast(Device device, String channelId, Boolean broadcastMode);
 
-    boolean audioBroadcastCmd(Device device, String channelId, MediaServer mediaServerItem, String app, String stream, int timeout, boolean isFromPlatform, AudioBroadcastEvent event) throws InvalidArgumentException, ParseException, SipException;
+    boolean audioBroadcastCmd(Device device, DeviceChannel channelId, MediaServer mediaServerItem, String app, String stream, int timeout, boolean isFromPlatform, AudioBroadcastEvent event) throws InvalidArgumentException, ParseException, SipException;
 
-    boolean audioBroadcastInUse(Device device, String channelId);
+    boolean audioBroadcastInUse(Device device, DeviceChannel channelId);
 
-    void stopAudioBroadcast(String deviceId, String channelId);
+    void stopAudioBroadcast(Device deviceId, DeviceChannel channelId);
 
     void pauseRtp(String streamId) throws ServiceException, InvalidArgumentException, ParseException, SipException;
 
@@ -55,13 +55,13 @@ public interface IPlayService {
 
     void startSendRtpStreamFailHand(SendRtpInfo sendRtpItem, Platform platform, CallIdHeader callIdHeader);
 
-    void talkCmd(Device device, String channelId, MediaServer mediaServerItem, String stream, AudioBroadcastEvent event);
+    void talkCmd(Device device, DeviceChannel channel, MediaServer mediaServerItem, String stream, AudioBroadcastEvent event);
 
-    void stopTalk(Device device, String channelId, Boolean streamIsReady);
+    void stopTalk(Device device, DeviceChannel channel, Boolean streamIsReady);
 
     void getSnap(String deviceId, String channelId, String fileName, ErrorCallback errorCallback);
 
-    void stopPlay(Device device, String channelId);
+    void stopPlay(Device device, DeviceChannel channel);
 
     void play(CommonGBChannel channel, ErrorCallback<StreamInfo> callback);
 

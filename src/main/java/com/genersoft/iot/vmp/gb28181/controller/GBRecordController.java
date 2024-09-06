@@ -6,12 +6,13 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
-import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -56,7 +57,7 @@ public class GBRecordController {
 	private IPlayService playService;
 
 	@Autowired
-	private IInviteStreamService inviteStreamService;
+	private IDeviceChannelService channelService;
 
 	@Autowired
 	private IDeviceService deviceService;
@@ -140,8 +141,18 @@ public class GBRecordController {
 		requestMessage.setId(uuid);
 		requestMessage.setKey(key);
 
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
+		if (device == null) {
+			log.warn("[开始历史媒体下载] 未找到设备 deviceId: {},channelId:{}", deviceId, channelId);
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备：" + deviceId);
+		}
 
-		playService.download(deviceId, channelId, startTime, endTime, Integer.parseInt(downloadSpeed),
+		DeviceChannel channel = channelService.getOne(deviceId, channelId);
+		if (channel == null) {
+			log.warn("[开始历史媒体下载] 未找到通道 deviceId: {},channelId:{}", deviceId, channelId);
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到通道：" + channelId);
+		}
+		playService.download(device, channel, startTime, endTime, Integer.parseInt(downloadSpeed),
 		(code, msg, data)->{
 
 			WVPResult<StreamContent> wvpResult = new WVPResult<>();
@@ -201,7 +212,18 @@ public class GBRecordController {
 	@Parameter(name = "stream", description = "流ID", required = true)
 	@GetMapping("/download/progress/{deviceId}/{channelId}/{stream}")
 	public StreamContent getProgress(@PathVariable String deviceId, @PathVariable String channelId, @PathVariable String stream) {
-		StreamInfo downLoadInfo = playService.getDownLoadInfo(deviceId, channelId, stream);
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
+		if (device == null) {
+			log.warn("[获取历史媒体下载进度] 未找到设备 deviceId: {},channelId:{}", deviceId, channelId);
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备：" + deviceId);
+		}
+
+		DeviceChannel channel = channelService.getOne(deviceId, channelId);
+		if (channel == null) {
+			log.warn("[获取历史媒体下载进度] 未找到通道 deviceId: {},channelId:{}", deviceId, channelId);
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到通道：" + channelId);
+		}
+		StreamInfo downLoadInfo = playService.getDownLoadInfo(device, channel, stream);
 		if (downLoadInfo == null) {
 			throw new ControllerException(ErrorCode.ERROR404);
 		}

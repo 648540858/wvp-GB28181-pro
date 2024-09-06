@@ -89,9 +89,7 @@ public interface IDeviceChannelService {
 
     void updateChannelGPS(Device device, DeviceChannel deviceChannel, MobilePosition mobilePosition);
 
-    void startPlay(String deviceId, String channelId, String stream);
-
-    void stopPlay(String deviceId, String channelId);
+    void startPlay(Integer channelId, String stream);
 
     void stopPlay(Integer channelId);
 

@@ -1,8 +1,10 @@
 package com.genersoft.iot.vmp.gb28181.task;
 
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -49,6 +51,9 @@ public class SipRunner implements CommandLineRunner {
     private IPlatformService platformService;
 
     @Autowired
+    private IGbChannelService channelService;
+
+    @Autowired
     private ISIPCommanderForPlatform commanderForPlatform;
 
     @Override
@@ -67,11 +72,11 @@ public class SipRunner implements CommandLineRunner {
         // 清理redis
         // 清理数据库不存在但是redis中存在的数据
         List<Device> devicesInDb = deviceService.getAll();
-        if (devicesInDb.size() == 0) {
+        if (devicesInDb.isEmpty()) {
             redisCatchStorage.removeAllDevice();
         }else {
             List<Device> devicesInRedis = redisCatchStorage.getAllDevices();
-            if (devicesInRedis.size() > 0) {
+            if (!devicesInRedis.isEmpty()) {
                 Map<String, Device> deviceMapInDb = new HashMap<>();
                 devicesInDb.parallelStream().forEach(device -> {
                     deviceMapInDb.put(device.getDeviceId(), device);
@@ -87,18 +92,23 @@ public class SipRunner implements CommandLineRunner {
 
         // 查找国标推流
         List<SendRtpInfo> sendRtpItems = redisCatchStorage.queryAllSendRTPServer();
-        if (sendRtpItems.size() > 0) {
+        if (!sendRtpItems.isEmpty()) {
             for (SendRtpInfo sendRtpItem : sendRtpItems) {
                 MediaServer mediaServerItem = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-                redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(),sendRtpItem.getChannelId(), sendRtpItem.getCallId(),sendRtpItem.getStream());
+                CommonGBChannel channel = channelService.getOne(sendRtpItem.getChannelId());
+                if (channel == null){
+                    continue;
+                }
+                redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(),channel.getGbDeviceId(), sendRtpItem.getCallId(),sendRtpItem.getStream());
                 if (mediaServerItem != null) {
                     ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
                     boolean stopResult = mediaServerService.initStopSendRtp(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getSsrc());
                     if (stopResult) {
                         Platform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
+
                         if (platform != null) {
                             try {
-                                commanderForPlatform.streamByeCmd(platform, sendRtpItem.getCallId());
+                                commanderForPlatform.streamByeCmd(platform, sendRtpItem, channel);
                             } catch (InvalidArgumentException | ParseException | SipException e) {
                                 log.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
                             }

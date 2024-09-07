@@ -217,7 +217,10 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             MediaServer mediaServer = mediaServerService.getOne(sendRtpItem.getMediaServerId());
                             try {
                                 mediaServerService.startSendRtpPassive(mediaServer, sendRtpItem, 5);
-                                redisCatchStorage.sendPlatformStartPlayMsg(sendRtpItem, platform);
+                                DeviceChannel deviceChannel = deviceChannelService.getOneById(sendRtpItem.getChannelId());
+                                if (deviceChannel != null) {
+                                    redisCatchStorage.sendPlatformStartPlayMsg(sendRtpItem, deviceChannel, platform);
+                                }
                             }catch (ControllerException e) {
                                 log.warn("[上级Invite] tcp主动模式 发流失败", e);
                                 sendBye(platform, inviteInfo.getCallId());
@@ -911,7 +914,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
                 Boolean streamReady = mediaServerService.isStreamReady(mediaServerItem, broadcastCatch.getApp(), broadcastCatch.getStream());
                 if (streamReady) {
-                    sendOk(device, sendRtpItem, sdp, request, mediaServerItem, mediaTransmissionTCP, gb28181Sdp.getSsrc());
+                    sendOk(device, deviceChannel, sendRtpItem, sdp, request, mediaServerItem, mediaTransmissionTCP, gb28181Sdp.getSsrc());
                 } else {
                     log.warn("[语音通话]， 未发现待推送的流,app={},stream={}", broadcastCatch.getApp(), broadcastCatch.getStream());
                     try {
@@ -937,7 +940,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         }
     }
 
-    SIPResponse sendOk(Device device, SendRtpInfo sendRtpItem, SessionDescription sdp, SIPRequest request, MediaServer mediaServerItem, boolean mediaTransmissionTCP, String ssrc) {
+    SIPResponse sendOk(Device device, DeviceChannel channel,  SendRtpInfo sendRtpItem, SessionDescription sdp, SIPRequest request, MediaServer mediaServerItem, boolean mediaTransmissionTCP, String ssrc) {
         SIPResponse sipResponse = null;
         try {
             sendRtpItem.setStatus(2);
@@ -986,7 +989,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             // 开启发流，大华在收到200OK后就会开始建立连接
             if (!device.isBroadcastPushAfterAck()) {
                 log.info("[语音喊话] 回复200OK后发现 BroadcastPushAfterAck为False，现在开始推流");
-                playService.startPushStream(sendRtpItem, sipResponse, parentPlatform, request.getCallIdHeader());
+                playService.startPushStream(sendRtpItem, channel, sipResponse, parentPlatform, request.getCallIdHeader());
             }
 
         } catch (SipException | InvalidArgumentException | ParseException | SdpParseException e) {

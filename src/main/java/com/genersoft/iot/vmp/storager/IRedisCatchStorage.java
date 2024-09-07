@@ -208,7 +208,7 @@ public interface IRedisCatchStorage {
 
     void sendChannelAddOrDelete(String deviceId, String channelId, boolean add);
 
-    void sendPlatformStartPlayMsg(SendRtpInfo sendRtpItem, Platform platform);
+    void sendPlatformStartPlayMsg(SendRtpInfo sendRtpItem, DeviceChannel channel, Platform platform);
 
     void sendPlatformStopPlayMsg(SendRtpInfo sendRtpItem, Platform platform, CommonGBChannel channel);
 

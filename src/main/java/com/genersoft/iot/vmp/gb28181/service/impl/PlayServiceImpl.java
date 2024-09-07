@@ -1414,7 +1414,7 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public void startPushStream(SendRtpInfo sendRtpItem, SIPResponse sipResponse, Platform platform, CallIdHeader callIdHeader) {
+    public void startPushStream(SendRtpInfo sendRtpItem, DeviceChannel channel, SIPResponse sipResponse, Platform platform, CallIdHeader callIdHeader) {
         // 开始发流
         MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 
@@ -1425,7 +1425,7 @@ public class PlayServiceImpl implements IPlayService {
                 } else {
                     mediaServerService.startSendRtp(mediaInfo, sendRtpItem);
                 }
-                redisCatchStorage.sendPlatformStartPlayMsg(sendRtpItem, platform);
+                redisCatchStorage.sendPlatformStartPlayMsg(sendRtpItem, channel, platform);
             }catch (ControllerException e) {
                 log.error("RTP推流失败: {}", e.getMessage());
                 startSendRtpStreamFailHand(sendRtpItem, platform, callIdHeader);

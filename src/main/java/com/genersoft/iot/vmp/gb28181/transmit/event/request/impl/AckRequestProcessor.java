@@ -4,8 +4,10 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.gb28181.service.IPlayService;
@@ -64,6 +66,9 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 	private IDeviceService deviceService;
 
 	@Autowired
+	private IDeviceChannelService deviceChannelService;
+
+	@Autowired
 	private IMediaServerService mediaServerService;
 
 	@Autowired
@@ -103,11 +108,13 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 		);
 		Platform parentPlatform = platformService.queryPlatformByServerGBId(fromUserId);
 
+
 		if (parentPlatform != null) {
+			DeviceChannel deviceChannel = deviceChannelService.getOneById(sendRtpItem.getChannelId());
 			if (!userSetting.getServerId().equals(sendRtpItem.getServerId())) {
 				WVPResult wvpResult = redisRpcService.startSendRtp(sendRtpItem.getRedisKey(), sendRtpItem);
 				if (wvpResult.getCode() == 0) {
-					redisCatchStorage.sendPlatformStartPlayMsg(sendRtpItem, parentPlatform);
+					redisCatchStorage.sendPlatformStartPlayMsg(sendRtpItem, deviceChannel, parentPlatform);
 				}
 			} else {
 				try {
@@ -116,7 +123,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 					} else {
 						mediaServerService.startSendRtp(mediaInfo, sendRtpItem);
 					}
-					redisCatchStorage.sendPlatformStartPlayMsg(sendRtpItem, parentPlatform);
+					redisCatchStorage.sendPlatformStartPlayMsg(sendRtpItem, deviceChannel, parentPlatform);
 				}catch (ControllerException e) {
 					log.error("RTP推流失败: {}", e.getMessage());
 					playService.startSendRtpStreamFailHand(sendRtpItem, parentPlatform, callIdHeader);

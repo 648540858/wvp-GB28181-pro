@@ -662,10 +662,10 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void sendPlatformStartPlayMsg(SendRtpInfo sendRtpItem, Platform platform) {
+    public void sendPlatformStartPlayMsg(SendRtpInfo sendRtpItem, DeviceChannel channel, Platform platform) {
         if (sendRtpItem.getPlayType() == InviteStreamType.PUSH && platform  != null) {
             MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0, sendRtpItem.getApp(), sendRtpItem.getStream(),
-                    sendRtpItem.getChannelId(), platform.getServerGBId(), platform.getName(), userSetting.getServerId(),
+                    channel.getDeviceId(), platform.getServerGBId(), platform.getName(), userSetting.getServerId(),
                     sendRtpItem.getMediaServerId());
             messageForPushChannel.setPlatFormIndex(platform.getId());
             String key = VideoManagerConstants.VM_MSG_STREAM_START_PLAY_NOTIFY;

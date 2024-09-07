@@ -51,7 +51,7 @@ public interface IPlayService {
 
     void resumeRtp(String streamId) throws ServiceException, InvalidArgumentException, ParseException, SipException;
 
-    void startPushStream(SendRtpInfo sendRtpItem, SIPResponse sipResponse, Platform platform, CallIdHeader callIdHeader);
+    void startPushStream(SendRtpInfo sendRtpItem, DeviceChannel channel, SIPResponse sipResponse, Platform platform, CallIdHeader callIdHeader);
 
     void startSendRtpStreamFailHand(SendRtpInfo sendRtpItem, Platform platform, CallIdHeader callIdHeader);
 

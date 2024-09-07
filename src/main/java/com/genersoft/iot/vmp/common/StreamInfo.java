@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -17,9 +18,9 @@ public class StreamInfo implements Serializable, Cloneable{
     @Schema(description = "流ID")
     private String stream;
     @Schema(description = "设备编号")
-    private String deviceID;
-    @Schema(description = "通道编号")
-    private String channelId;
+    private String deviceId;
+    @Schema(description = "通道ID")
+    private Integer channelId;
 
     @Schema(description = "IP")
     private String ip;
@@ -357,19 +358,19 @@ public class StreamInfo implements Serializable, Cloneable{
         this.app = app;
     }
 
-    public String getDeviceID() {
-        return deviceID;
+    public String getDeviceId() {
+        return deviceId;
     }
 
-    public void setDeviceID(String deviceID) {
-        this.deviceID = deviceID;
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
     }
 
-    public String getChannelId() {
+    public Integer getChannelId() {
         return channelId;
     }
 
-    public void setChannelId(String channelId) {
+    public void setChannelId(Integer channelId) {
         this.channelId = channelId;
     }
 

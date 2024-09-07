@@ -7,10 +7,7 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
-import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
-import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
+import com.genersoft.iot.vmp.gb28181.service.*;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
@@ -68,6 +65,9 @@ public class MediaServiceImpl implements IMediaService {
 
     @Autowired
     private IPlatformService platformService;
+
+    @Autowired
+    private IGbChannelService channelService;
 
     @Autowired
     private IDeviceService deviceService;
@@ -229,21 +229,29 @@ public class MediaServiceImpl implements IMediaService {
                 if (inviteInfo.getType() == InviteSessionType.DOWNLOAD) {
                     return false;
                 }
+                DeviceChannel deviceChannel = deviceChannelService.getOneById(inviteInfo.getChannelId());
+                if (deviceChannel == null) {
+                    return false;
+                }
                 // 收到无人观看说明流也没有在往上级推送
-                if (redisCatchStorage.isChannelSendingRTP(inviteInfo.getChannelId())) {
-                    List<SendRtpInfo> sendRtpItems = redisCatchStorage.querySendRTPServerByChannelId(inviteInfo.getChannelId());
+                if (redisCatchStorage.isChannelSendingRTP(deviceChannel.getDeviceId())) {
+                    List<SendRtpInfo> sendRtpItems = redisCatchStorage.querySendRTPServerByChannelId(deviceChannel.getDeviceId());
                     if (!sendRtpItems.isEmpty()) {
                         for (SendRtpInfo sendRtpItem : sendRtpItems) {
                             Platform parentPlatform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
+                            CommonGBChannel channel = channelService.getOne(sendRtpItem.getChannelId());
+                            if (channel == null) {
+                                continue;
+                            }
                             try {
-                                commanderForPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
+                                commanderForPlatform.streamByeCmd(parentPlatform, sendRtpItem, channel);
                             } catch (SipException | InvalidArgumentException | ParseException e) {
                                 log.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
                             }
-                            redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
+                            redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), channel.getGbDeviceId(),
                                     sendRtpItem.getCallId(), sendRtpItem.getStream());
                             if (InviteStreamType.PUSH == sendRtpItem.getPlayType()) {
-                                redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem,parentPlatform);
+                                redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem, parentPlatform, channel);
                             }
                         }
                     }

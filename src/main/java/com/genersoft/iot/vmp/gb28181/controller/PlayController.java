@@ -228,13 +228,11 @@ public class PlayController {
 		if (log.isDebugEnabled()) {
 			log.debug("停止语音广播API调用");
 		}
-//		try {
-//			playService.stopAudioBroadcast(deviceId, channelId);
-//		} catch (InvalidArgumentException | ParseException  | SipException e) {
-//			logger.error("[命令发送失败] 停止语音: {}", e.getMessage());
-//			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " +  e.getMessage());
-//		}
-		playService.stopAudioBroadcast(deviceId, channelId);
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
+		Assert.notNull(device, "设备不存在");
+		DeviceChannel channel = deviceChannelService.getOne(deviceId, channelId);
+		Assert.notNull(channel, "通道不存在");
+		playService.stopAudioBroadcast(device, channel);
 	}
 
 	@Operation(summary = "获取所有的ssrc", security = @SecurityRequirement(name = JwtUtils.HEADER))

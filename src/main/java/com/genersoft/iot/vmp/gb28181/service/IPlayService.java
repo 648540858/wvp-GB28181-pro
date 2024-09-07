@@ -35,17 +35,17 @@ public interface IPlayService {
     void download(Device device, DeviceChannel channel, String startTime, String endTime, int downloadSpeed, ErrorCallback<StreamInfo> callback);
     void download(MediaServer mediaServerItem, SSRCInfo ssrcInfo, Device device, DeviceChannel channel, String startTime, String endTime, int downloadSpeed, ErrorCallback<StreamInfo> callback);
 
-    StreamInfo getDownLoadInfo(Device deviceId, DeviceChannel channelId, String stream);
+    StreamInfo getDownLoadInfo(Device device, DeviceChannel channel, String stream);
 
     void zlmServerOnline(String mediaServerId);
 
     AudioBroadcastResult audioBroadcast(Device device, String channelId, Boolean broadcastMode);
 
-    boolean audioBroadcastCmd(Device device, DeviceChannel channelId, MediaServer mediaServerItem, String app, String stream, int timeout, boolean isFromPlatform, AudioBroadcastEvent event) throws InvalidArgumentException, ParseException, SipException;
+    boolean audioBroadcastCmd(Device device, DeviceChannel channel, MediaServer mediaServerItem, String app, String stream, int timeout, boolean isFromPlatform, AudioBroadcastEvent event) throws InvalidArgumentException, ParseException, SipException;
 
-    boolean audioBroadcastInUse(Device device, DeviceChannel channelId);
+    boolean audioBroadcastInUse(Device device, DeviceChannel channel);
 
-    void stopAudioBroadcast(Device deviceId, DeviceChannel channelId);
+    void stopAudioBroadcast(Device device, DeviceChannel channel);
 
     void pauseRtp(String streamId) throws ServiceException, InvalidArgumentException, ParseException, SipException;
 

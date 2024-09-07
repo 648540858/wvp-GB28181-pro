@@ -1129,8 +1129,8 @@ public class PlayServiceImpl implements IPlayService {
 
     public StreamInfo onPublishHandler(MediaServer mediaServerItem, MediaInfo mediaInfo, Device device, DeviceChannel channel) {
         StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServerItem, "rtp", mediaInfo.getStream(), mediaInfo, null);
-        streamInfo.setDeviceID(device.getDeviceId());
-        streamInfo.setChannelId(channel.getDeviceId());
+        streamInfo.setDeviceId(device.getDeviceId());
+        streamInfo.setChannelId(channel.getId());
         return streamInfo;
     }
 
@@ -1380,7 +1380,8 @@ public class PlayServiceImpl implements IPlayService {
             throw new ServiceException("暂停RTP接收失败");
         }
         Device device = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
-        cmder.playPauseCmd(device, inviteInfo.getStreamInfo());
+        DeviceChannel channel = deviceChannelService.getOneById(inviteInfo.getChannelId());
+        cmder.playPauseCmd(device, channel, inviteInfo.getStreamInfo());
     }
 
     @Override
@@ -1408,7 +1409,8 @@ public class PlayServiceImpl implements IPlayService {
             throw new ServiceException("继续RTP接收失败");
         }
         Device device = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
-        cmder.playResumeCmd(device, inviteInfo.getStreamInfo());
+        DeviceChannel channel = deviceChannelService.getOneById(inviteInfo.getChannelId());
+        cmder.playResumeCmd(device, channel, inviteInfo.getStreamInfo());
     }
 
     @Override

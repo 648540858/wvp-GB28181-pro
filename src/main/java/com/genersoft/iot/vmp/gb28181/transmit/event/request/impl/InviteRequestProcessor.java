@@ -730,7 +730,15 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
     private void sendBye(Platform platform, String callId) {
         try {
-            cmderFroPlatform.streamByeCmd(platform, callId);
+            SendRtpInfo sendRtpItem = redisCatchStorage.querySendRTPServer(platform.getServerGBId(), null, null, callId);
+            if (sendRtpItem == null) {
+                return;
+            }
+            CommonGBChannel channel = channelService.getOne(sendRtpItem.getChannelId());
+            if (channel == null) {
+                return;
+            }
+            cmderFroPlatform.streamByeCmd(platform, sendRtpItem, channel);
         } catch (SipException | InvalidArgumentException | ParseException e) {
             log.error("[命令发送失败] 上级Invite 发送BYE: {}", e.getMessage());
         }
@@ -798,7 +806,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 responseAck(request, Response.TRYING);
             } catch (SipException | InvalidArgumentException | ParseException e) {
                 log.error("[命令发送失败] invite BAD_REQUEST: {}", e.getMessage());
-                playService.stopAudioBroadcast(device.getDeviceId(), deviceChannel.getDeviceId());
+                playService.stopAudioBroadcast(device, deviceChannel);
                 return;
             }
             String contentString = new String(request.getRawContent());
@@ -843,7 +851,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         responseAck(request, Response.UNSUPPORTED_MEDIA_TYPE); // 不支持的格式，发415
                     } catch (SipException | InvalidArgumentException | ParseException e) {
                         log.error("[命令发送失败] invite 不支持的媒体格式: {}", e.getMessage());
-                        playService.stopAudioBroadcast(device.getDeviceId(), deviceChannel.getDeviceId());
+                        playService.stopAudioBroadcast(device, deviceChannel);
                         return;
                     }
                     return;
@@ -859,7 +867,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         responseAck(request, Response.BUSY_HERE);
                     } catch (SipException | InvalidArgumentException | ParseException e) {
                         log.error("[命令发送失败] invite 未找到可用的zlm: {}", e.getMessage());
-                        playService.stopAudioBroadcast(device.getDeviceId(), deviceChannel.getDeviceId());
+                        playService.stopAudioBroadcast(device, deviceChannel);
                     }
                     return;
                 }
@@ -877,7 +885,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         responseAck(request, Response.BUSY_HERE);
                     } catch (SipException | InvalidArgumentException | ParseException e) {
                         log.error("[命令发送失败] invite 服务器端口资源不足: {}", e.getMessage());
-                        playService.stopAudioBroadcast(device.getDeviceId(), deviceChannel.getDeviceId());
+                        playService.stopAudioBroadcast(device, deviceChannel);
                         return;
                     }
                     return;
@@ -912,11 +920,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         log.error("[命令发送失败] 语音通话 回复410失败， {}", e.getMessage());
                         return;
                     }
-                    playService.stopAudioBroadcast(device.getDeviceId(), deviceChannel.getDeviceId());
+                    playService.stopAudioBroadcast(device, deviceChannel);
                 }
             } catch (SdpException e) {
                 log.error("[SDP解析异常]", e);
-                playService.stopAudioBroadcast(device.getDeviceId(), deviceChannel.getDeviceId());
+                playService.stopAudioBroadcast(device, deviceChannel);
             }
         } else {
             log.warn("来自无效设备/平台的请求");

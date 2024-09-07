@@ -1349,13 +1349,13 @@ public class SIPCommander implements ISIPCommander {
      * 回放暂停
      */
     @Override
-    public void playPauseCmd(Device device, StreamInfo streamInfo) throws InvalidArgumentException, ParseException, SipException {
+    public void playPauseCmd(Device device, DeviceChannel channel, StreamInfo streamInfo) throws InvalidArgumentException, ParseException, SipException {
         StringBuffer content = new StringBuffer(200);
         content.append("PAUSE RTSP/1.0\r\n");
         content.append("CSeq: " + getInfoCseq() + "\r\n");
         content.append("PauseTime: now\r\n");
 
-        playbackControlCmd(device, streamInfo, content.toString(), null, null);
+        playbackControlCmd(device, channel, streamInfo, content.toString(), null, null);
     }
 
 
@@ -1363,39 +1363,39 @@ public class SIPCommander implements ISIPCommander {
      * 回放恢复
      */
     @Override
-    public void playResumeCmd(Device device, StreamInfo streamInfo) throws InvalidArgumentException, ParseException, SipException {
+    public void playResumeCmd(Device device, DeviceChannel channel, StreamInfo streamInfo) throws InvalidArgumentException, ParseException, SipException {
         StringBuffer content = new StringBuffer(200);
         content.append("PLAY RTSP/1.0\r\n");
         content.append("CSeq: " + getInfoCseq() + "\r\n");
         content.append("Range: npt=now-\r\n");
 
-        playbackControlCmd(device, streamInfo, content.toString(), null, null);
+        playbackControlCmd(device, channel, streamInfo, content.toString(), null, null);
     }
 
     /**
      * 回放拖动播放
      */
     @Override
-    public void playSeekCmd(Device device, StreamInfo streamInfo, long seekTime) throws InvalidArgumentException, ParseException, SipException {
+    public void playSeekCmd(Device device, DeviceChannel channel, StreamInfo streamInfo, long seekTime) throws InvalidArgumentException, ParseException, SipException {
         StringBuffer content = new StringBuffer(200);
         content.append("PLAY RTSP/1.0\r\n");
         content.append("CSeq: " + getInfoCseq() + "\r\n");
         content.append("Range: npt=" + Math.abs(seekTime) + "-\r\n");
 
-        playbackControlCmd(device, streamInfo, content.toString(), null, null);
+        playbackControlCmd(device, channel, streamInfo, content.toString(), null, null);
     }
 
     /**
      * 回放倍速播放
      */
     @Override
-    public void playSpeedCmd(Device device, StreamInfo streamInfo, Double speed) throws InvalidArgumentException, ParseException, SipException {
+    public void playSpeedCmd(Device device, DeviceChannel channel, StreamInfo streamInfo, Double speed) throws InvalidArgumentException, ParseException, SipException {
         StringBuffer content = new StringBuffer(200);
         content.append("PLAY RTSP/1.0\r\n");
         content.append("CSeq: " + getInfoCseq() + "\r\n");
         content.append("Scale: " + String.format("%.6f", speed) + "\r\n");
 
-        playbackControlCmd(device, streamInfo, content.toString(), null, null);
+        playbackControlCmd(device, channel, streamInfo, content.toString(), null, null);
     }
 
     private int getInfoCseq() {
@@ -1403,7 +1403,7 @@ public class SIPCommander implements ISIPCommander {
     }
 
     @Override
-    public void playbackControlCmd(Device device, StreamInfo streamInfo, String content, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws SipException, InvalidArgumentException, ParseException {
+    public void playbackControlCmd(Device device, DeviceChannel channel, StreamInfo streamInfo, String content, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws SipException, InvalidArgumentException, ParseException {
 
         SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(streamInfo.getStream());
         if (ssrcTransaction == null) {
@@ -1411,7 +1411,7 @@ public class SIPCommander implements ISIPCommander {
             return;
         }
 
-        SIPRequest request = headerProvider.createInfoRequest(device, streamInfo.getChannelId(), content.toString(), ssrcTransaction.getSipTransactionInfo());
+        SIPRequest request = headerProvider.createInfoRequest(device, channel.getDeviceId(), content, ssrcTransaction.getSipTransactionInfo());
         if (request == null) {
             log.info("[回放控制]构建Request信息失败，设备：{}, 流ID: {}", device.getDeviceId(), streamInfo.getStream());
             return;

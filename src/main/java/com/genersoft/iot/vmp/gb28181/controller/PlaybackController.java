@@ -211,8 +211,9 @@ public class PlaybackController {
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), "streamId不存在");
 		}
 		Device device = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
+		DeviceChannel channel = channelService.getOneById(inviteInfo.getChannelId());
 		try {
-			cmder.playSeekCmd(device, inviteInfo.getStreamInfo(), seekTime);
+			cmder.playSeekCmd(device, channel, inviteInfo.getStreamInfo(), seekTime);
 		} catch (InvalidArgumentException | ParseException | SipException e) {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
 		}
@@ -235,8 +236,9 @@ public class PlaybackController {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "不支持的speed（0.25 0.5 1、2、4）");
 		}
 		Device device = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
+		DeviceChannel channel = channelService.getOneById(inviteInfo.getChannelId());
 		try {
-			cmder.playSpeedCmd(device, inviteInfo.getStreamInfo(), speed);
+			cmder.playSpeedCmd(device, channel, inviteInfo.getStreamInfo(), speed);
 		} catch (InvalidArgumentException | ParseException | SipException e) {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
 		}

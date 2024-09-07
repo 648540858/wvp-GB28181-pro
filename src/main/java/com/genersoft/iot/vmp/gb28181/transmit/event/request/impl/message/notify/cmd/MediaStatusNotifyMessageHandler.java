@@ -3,10 +3,8 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.Platform;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
-import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
+import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
@@ -68,6 +66,9 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
     @Autowired
     private SipInviteSessionManager sessionManager;
 
+    @Autowired
+    private IDeviceChannelService deviceChannelService;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         notifyMessageHandler.addHandler(cmdType, this);
@@ -95,9 +96,13 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
                     inviteInfo.getStreamInfo().setProgress(1);
                     inviteStreamService.updateInviteInfo(inviteInfo);
                 }
-
+                DeviceChannel deviceChannel = deviceChannelService.getOneById(ssrcTransaction.getChannelId());
+                if (deviceChannel == null) {
+                    log.warn("[级联消息发送]：未找到国标设备通道: {}", ssrcTransaction.getChannelId());
+                    return;
+                }
                 try {
-                    cmder.streamByeCmd(device, ssrcTransaction.getChannelId(), null, callIdHeader.getCallId());
+                    cmder.streamByeCmd(device, deviceChannel.getDeviceId(), null, callIdHeader.getCallId());
                 } catch (InvalidArgumentException | ParseException  | SipException | SsrcTransactionNotFoundException e) {
                     log.error("[录像流]推送完毕，收到关流通知， 发送BYE失败 {}", e.getMessage());
                 }

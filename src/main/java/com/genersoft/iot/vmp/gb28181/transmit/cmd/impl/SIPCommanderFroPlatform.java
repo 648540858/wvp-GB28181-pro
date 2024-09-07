@@ -621,17 +621,6 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public void streamByeCmd(Platform platform, String callId) throws SipException, InvalidArgumentException, ParseException {
-        if (platform == null) {
-            return;
-        }
-        SendRtpInfo sendRtpItem = redisCatchStorage.querySendRTPServer(platform.getServerGBId(), null, null, callId);
-        if (sendRtpItem != null) {
-            streamByeCmd(platform, sendRtpItem, );
-        }
-    }
-
-    @Override
     public synchronized void streamByeCmd(Platform platform, SendRtpInfo sendRtpItem, CommonGBChannel channel) throws SipException, InvalidArgumentException, ParseException {
         if (sendRtpItem == null ) {
             log.info("[向上级发送BYE]， sendRtpItem 为NULL");

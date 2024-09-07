@@ -84,7 +84,7 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
                 audioBroadcastCatch.setStatus(AudioBroadcastCatchStatus.WaiteInvite);
                 audioBroadcastManager.update(audioBroadcastCatch);
             }else {
-                playService.stopAudioBroadcast(device.getDeviceId(), channelId);
+                playService.stopAudioBroadcast(device, channel);
             }
         } catch (ParseException | SipException | InvalidArgumentException e) {
             log.error("[命令发送失败] 国标级联 语音喊话: {}", e.getMessage());

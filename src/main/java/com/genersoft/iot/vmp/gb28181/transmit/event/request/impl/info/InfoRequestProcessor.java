@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
@@ -53,6 +54,9 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
 
     @Autowired
     private IDeviceService deviceService;
+
+    @Autowired
+    private IDeviceChannelService deviceChannelService;
 
     @Autowired
     private SIPCommander cmder;
@@ -112,9 +116,10 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
                         return;
                     }
                     Device device1 = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
-                    if (inviteInfo.getStreamInfo() != null) {
+                    DeviceChannel deviceChannel = deviceChannelService.getOneById(inviteInfo.getChannelId());
+                    if (device1 != null && deviceChannel != null && inviteInfo.getStreamInfo() != null) {
                         // 不解析协议， 直接转发给对应的设备
-                        cmder.playbackControlCmd(device1,inviteInfo.getStreamInfo(),new String(evt.getRequest().getRawContent()),eventResult -> {
+                        cmder.playbackControlCmd(device1, deviceChannel, inviteInfo.getStreamInfo(),new String(evt.getRequest().getRawContent()), eventResult -> {
                             // 失败的回复
                             try {
                                 responseAck(request, eventResult.statusCode, eventResult.msg);
@@ -129,6 +134,8 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
                                 log.error("[命令发送失败] 国标级联 录像控制: {}", e.getMessage());
                             }
                         });
+                    }else {
+                        responseAck(request, Response.NOT_FOUND, "not found");
                     }
 
                 }

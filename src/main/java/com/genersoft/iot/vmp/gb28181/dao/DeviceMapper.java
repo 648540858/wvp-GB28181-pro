@@ -350,4 +350,7 @@ public interface DeviceMapper {
 
     @Select("select * from wvp_device where id = #{id}")
     Device query(@Param("id") Integer id);
+
+    @Select("select wd.* from wvp_device wd left join wvp_device_channel wdc on wd.id = wdc.device_db_id  where wdc.id = #{channelId}")
+    Device queryByChannelId(@Param("channelId") Integer channelId);
 }

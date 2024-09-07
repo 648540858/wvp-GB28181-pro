@@ -246,7 +246,7 @@ public class DeviceServiceImpl implements IDeviceService {
                     mediaServerService.stopSendRtp(mediaInfo, sendRtpItem.getApp(), sendRtpItem.getStream(), null);
                 }
 
-                audioBroadcastManager.del(deviceId, audioBroadcastCatch.getChannelId());
+                audioBroadcastManager.del(audioBroadcastCatch.getChannelId());
             }
         }
     }
@@ -572,5 +572,10 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     public Device getDevice(Integer id) {
         return deviceMapper.query(id);
+    }
+
+    @Override
+    public Device getDeviceByChannelId(Integer channelId) {
+        return deviceMapper.queryByChannelId(channelId);
     }
 }

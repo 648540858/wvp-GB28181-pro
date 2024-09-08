@@ -23,6 +23,7 @@ import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
+import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -83,10 +84,7 @@ public class DeviceServiceImpl implements IDeviceService {
     private DeviceChannelMapper deviceChannelMapper;
 
     @Autowired
-    DataSourceTransactionManager dataSourceTransactionManager;
-
-    @Autowired
-    TransactionDefinition transactionDefinition;
+    private ISendRtpServerService sendRtpServerService;
 
     @Autowired
     private UserSetting userSetting;
@@ -239,9 +237,9 @@ public class DeviceServiceImpl implements IDeviceService {
         if (audioBroadcastCatches.size() > 0) {
             for (AudioBroadcastCatch audioBroadcastCatch : audioBroadcastCatches) {
 
-                SendRtpInfo sendRtpItem = redisCatchStorage.querySendRTPServer(deviceId, audioBroadcastCatch.getChannelId(), null, null);
+                SendRtpInfo sendRtpItem = sendRtpServerService.queryByChannelId(audioBroadcastCatch.getChannelId());
                 if (sendRtpItem != null) {
-                    redisCatchStorage.deleteSendRTPServer(deviceId, sendRtpItem.getChannelId(), null, null);
+                    sendRtpServerService.delete(sendRtpItem);
                     MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
                     mediaServerService.stopSendRtp(mediaInfo, sendRtpItem.getApp(), sendRtpItem.getStream(), null);
                 }

@@ -82,11 +82,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Autowired
     private MediaConfig mediaConfig;
 
-    @Autowired
-    private SendRtpPortManager sendRtpPortManager;
-
-
-
     /**
      * 流到来的处理
      */
@@ -867,50 +862,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         mediaNodeServerService.startSendRtpStream(mediaServer, sendRtpItem);
     }
 
-    @Override
-    public SendRtpInfo createSendRtpItem(MediaServer mediaServer, String ip, int port, String ssrc, String requesterId, String deviceId, Integer channelId, boolean isTcp, boolean rtcp) {
-        int localPort = sendRtpPortManager.getNextPort(mediaServer);
-        if (localPort == 0) {
-            return null;
-        }
-        SendRtpInfo sendRtpItem = new SendRtpInfo();
-        sendRtpItem.setIp(ip);
-        sendRtpItem.setPort(port);
-        sendRtpItem.setSsrc(ssrc);
-        sendRtpItem.setDeviceId(deviceId);
-        sendRtpItem.setChannelId(channelId);
-        sendRtpItem.setTcp(isTcp);
-        sendRtpItem.setRtcp(rtcp);
-        sendRtpItem.setApp("rtp");
-        sendRtpItem.setLocalPort(localPort);
-        sendRtpItem.setServerId(userSetting.getServerId());
-        sendRtpItem.setMediaServerId(mediaServer.getId());
-        return sendRtpItem;
-    }
 
-    @Override
-    public SendRtpInfo createSendRtpItem(MediaServer serverItem, String ip, int port, String ssrc, String platformId,
-                                         String app, String stream, Integer channelId, boolean tcp, boolean rtcp){
-
-        int localPort = sendRtpPortManager.getNextPort(serverItem);
-        if (localPort <= 0) {
-            throw new PlayException(javax.sip.message.Response.SERVER_INTERNAL_ERROR, "server internal error");
-        }
-        SendRtpInfo sendRtpItem = new SendRtpInfo();
-        sendRtpItem.setIp(ip);
-        sendRtpItem.setPort(port);
-        sendRtpItem.setSsrc(ssrc);
-        sendRtpItem.setApp(app);
-        sendRtpItem.setStream(stream);
-        sendRtpItem.setPlatformId(platformId);
-        sendRtpItem.setChannelId(channelId);
-        sendRtpItem.setTcp(tcp);
-        sendRtpItem.setLocalPort(localPort);
-        sendRtpItem.setServerId(userSetting.getServerId());
-        sendRtpItem.setMediaServerId(serverItem.getId());
-        sendRtpItem.setRtcp(rtcp);
-        return sendRtpItem;
-    }
 
     @Override
     public MediaServer getMediaServerByAppAndStream(String app, String stream) {

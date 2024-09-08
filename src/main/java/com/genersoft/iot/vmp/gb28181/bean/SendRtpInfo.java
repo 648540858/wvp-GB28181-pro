@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.RequestPushStreamMsg;
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
@@ -24,19 +25,14 @@ public class SendRtpInfo {
     private String ssrc;
 
     /**
-     * 平台id
+     * 目标平台或设备的编号
      */
-    private String platformId;
+    private String targetId;
 
     /**
-     * 平台名称
+     * 目标平台或设备的名称
      */
-    private String platformName;
-
-     /**
-     * 对应设备id
-     */
-    private String deviceId;
+    private String targetName;
 
     /**
      * 直播流的应用名
@@ -176,6 +172,28 @@ public class SendRtpInfo {
         return sendRtpItem;
     }
 
+    public static SendRtpInfo getInstance(Integer localPort, MediaServer mediaServer, String ip, int port, String ssrc,
+                                          String deviceId, String platformId, Integer channelId, boolean isTcp, boolean rtcp,
+                                          String serverId) {
+        if (localPort == 0) {
+            return null;
+        }
+        SendRtpInfo sendRtpItem = new SendRtpInfo();
+        sendRtpItem.setIp(ip);
+        sendRtpItem.setPort(port);
+        sendRtpItem.setSsrc(ssrc);
+        sendRtpItem.setDeviceId(deviceId);
+        sendRtpItem.setPlatformId(platformId);
+        sendRtpItem.setChannelId(channelId);
+        sendRtpItem.setTcp(isTcp);
+        sendRtpItem.setRtcp(rtcp);
+        sendRtpItem.setApp("rtp");
+        sendRtpItem.setLocalPort(localPort);
+        sendRtpItem.setServerId(serverId);
+        sendRtpItem.setMediaServerId(mediaServer.getId());
+        return sendRtpItem;
+    }
+
     @Override
     public String toString() {
         return "SendRtpItem{" +
@@ -208,13 +226,5 @@ public class SendRtpInfo {
                 '}';
     }
 
-    public String getRedisKey() {
-        return VideoManagerConstants.SEND_RTP_INFO_PREFIX +
-                serverId + "_"
-                + mediaServerId + "_"
-                + platformId + "_"
-                + channelId + "_"
-                + stream + "_"
-                + callId;
-    }
+
 }

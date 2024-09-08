@@ -25,6 +25,7 @@ import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaSendRtpStoppedEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
@@ -101,28 +102,29 @@ public class PlatformServiceImpl implements IPlatformService {
     @Autowired
     private IGbChannelService channelService;
 
+    @Autowired
+    private ISendRtpServerService sendRtpServerService;
+
     /**
      * 流离开的处理
      */
     @Async("taskExecutor")
     @EventListener
     public void onApplicationEvent(MediaDepartureEvent event) {
-        List<SendRtpInfo> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(event.getStream());
-        if (!sendRtpItems.isEmpty()) {
-            for (SendRtpInfo sendRtpItem : sendRtpItems) {
-                if (sendRtpItem != null && sendRtpItem.getApp().equals(event.getApp())) {
-                    String platformId = sendRtpItem.getPlatformId();
-                    Platform platform = platformMapper.getParentPlatByServerGBId(platformId);
-                    CommonGBChannel channel = channelService.getOne(sendRtpItem.getChannelId());
-                    try {
-                        if (platform != null && channel != null) {
-                            commanderForPlatform.streamByeCmd(platform, sendRtpItem, channel);
-                            redisCatchStorage.deleteSendRTPServer(platformId, channel.getGbDeviceId(),
-                                    sendRtpItem.getCallId(), sendRtpItem.getStream());
-                        }
-                    } catch (SipException | InvalidArgumentException | ParseException e) {
-                        log.error("[命令发送失败] 发送BYE: {}", e.getMessage());
+        SendRtpInfo sendRtpItems = sendRtpServerService.queryByStream(event.getStream());
+        if (sendRtpItems != null) {
+            if (sendRtpItem != null && sendRtpItem.getApp().equals(event.getApp())) {
+                String platformId = sendRtpItem.getPlatformId();
+                Platform platform = platformMapper.getParentPlatByServerGBId(platformId);
+                CommonGBChannel channel = channelService.getOne(sendRtpItem.getChannelId());
+                try {
+                    if (platform != null && channel != null) {
+                        commanderForPlatform.streamByeCmd(platform, sendRtpItem, channel);
+                        redisCatchStorage.deleteSendRTPServer(platformId, channel.getGbDeviceId(),
+                                sendRtpItem.getCallId(), sendRtpItem.getStream());
                     }
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    log.error("[命令发送失败] 发送BYE: {}", e.getMessage());
                 }
             }
         }

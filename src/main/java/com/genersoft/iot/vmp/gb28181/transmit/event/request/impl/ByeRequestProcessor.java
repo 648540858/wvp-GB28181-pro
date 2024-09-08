@@ -16,6 +16,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -46,7 +47,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 	private ISIPCommander cmder;
 
 	@Autowired
-	private ISIPCommanderForPlatform commanderForPlatform;
+	private ISendRtpServerService sendRtpServerService;
 
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
@@ -112,7 +113,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			log.error("[回复BYE信息失败]，{}", e.getMessage());
 		}
 		CallIdHeader callIdHeader = (CallIdHeader)evt.getRequest().getHeader(CallIdHeader.NAME);
-		SendRtpInfo sendRtpItem =  redisCatchStorage.querySendRTPServer(null, null, null, callIdHeader.getCallId());
+		SendRtpInfo sendRtpItem =  sendRtpServerService.queryByCallId(callIdHeader.getCallId());
 
 		// 收流端发送的停止
 		if (sendRtpItem != null){
@@ -128,11 +129,11 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 				if (platform != null) {
 					redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem, platform, channel);
 					if (!userSetting.getServerId().equals(sendRtpItem.getServerId())) {
-						redisRpcService.stopSendRtp(sendRtpItem.getRedisKey());
-						redisCatchStorage.deleteSendRTPServer(null, null, sendRtpItem.getCallId(), null);
+						redisRpcService.stopSendRtp(sendRtpItem.getChannelId());
+						sendRtpServerService.deleteByCallId(sendRtpItem.getCallId());
 					}else {
 						MediaServer mediaServer = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-						redisCatchStorage.deleteSendRTPServer(null, null, callIdHeader.getCallId(), null);
+						sendRtpServerService.deleteByCallId(callIdHeader.getCallId());
 						mediaServerService.stopSendRtp(mediaServer, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getSsrc());
 						if (userSetting.getUseCustomSsrcForParentInvite()) {
 							mediaServerService.releaseSsrc(mediaServer.getId(), sendRtpItem.getSsrc());
@@ -143,8 +144,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 				}
 			}else {
 				MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-				redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(),
-						callIdHeader.getCallId(), null);
+				sendRtpServerService.delete(sendRtpItem);
 				mediaServerService.stopSendRtp(mediaInfo, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getSsrc());
 				if (userSetting.getUseCustomSsrcForParentInvite()) {
 					mediaServerService.releaseSsrc(mediaInfo.getId(), sendRtpItem.getSsrc());

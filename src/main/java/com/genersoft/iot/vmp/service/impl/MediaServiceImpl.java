@@ -252,6 +252,7 @@ public class MediaServiceImpl implements IMediaService {
                                     sendRtpItem.getCallId(), sendRtpItem.getStream());
                             if (InviteStreamType.PUSH == sendRtpItem.getPlayType()) {
                                 redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem, parentPlatform, channel);
+                                redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem, parentPlatform, channel);
                             }
                         }
                     }

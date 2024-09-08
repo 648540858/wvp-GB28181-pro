@@ -19,6 +19,8 @@ import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
+import com.genersoft.iot.vmp.service.ISendRtpServerService;
+import com.genersoft.iot.vmp.service.impl.SendRtpServerServiceImpl;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
@@ -62,6 +64,8 @@ public class RedisRpcController {
 
     @Autowired
     private IPlatformService platformService;
+    @Autowired
+    private ISendRtpServerService sendRtpServerService;
 
 
     /**
@@ -99,7 +103,7 @@ public class RedisRpcController {
             String ssrc = "Play".equalsIgnoreCase(sendRtpItem.getSessionName()) ? ssrcFactory.getPlaySsrc(mediaServerItem.getId()) : ssrcFactory.getPlayBackSsrc(mediaServerItem.getId());
             sendRtpItem.setSsrc(ssrc);
         }
-        redisCatchStorage.updateSendRTPSever(sendRtpItem);
+        sendRtpServerService.update(sendRtpItem);
         redisTemplate.opsForValue().set(sendRtpItemKey, sendRtpItem);
         RedisRpcResponse response = request.getResponse();
         response.setStatusCode(200);
@@ -127,9 +131,9 @@ public class RedisRpcController {
             sendRtpItem.setLocalIp(mediaServer.getSdpIp());
             sendRtpItem.setServerId(userSetting.getServerId());
 
-            redisTemplate.opsForValue().set(sendRtpItem.getRedisKey(), sendRtpItem);
+            sendRtpServerService.update(sendRtpItem);
             RedisRpcResponse response = request.getResponse();
-            response.setBody(sendRtpItem.getRedisKey());
+            response.setBody(sendRtpItem.getChannelId());
             response.setStatusCode(200);
         }
         // 监听流上线。 流上线直接发送sendRtpItem消息给实际的信令处理者
@@ -146,9 +150,9 @@ public class RedisRpcController {
             sendRtpItem.setLocalIp(hookData.getMediaServer().getSdpIp());
             sendRtpItem.setServerId(userSetting.getServerId());
 
-            redisTemplate.opsForValue().set(sendRtpItem.getRedisKey(), sendRtpItem);
+            redisTemplate.opsForValue().set(sendRtpItem.getChannelId(), sendRtpItem);
             RedisRpcResponse response = request.getResponse();
-            response.setBody(sendRtpItem.getRedisKey());
+            response.setBody(sendRtpItem.getChannelId());
             response.setStatusCode(200);
             // 手动发送结果
             sendResponse(response);

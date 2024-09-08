@@ -20,8 +20,8 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
+import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
-import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.service.redisMsg.RedisPushStreamResponseListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -75,13 +75,13 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     private IGbChannelPlayService channelPlayService;
 
     @Autowired
-    private IStreamProxyService streamProxyService;
+    private ISendRtpServerService sendRtpServerService;
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
-    private IRedisRpcService redisRpcService;
+    private IMediaServerService mediaServerService;
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
@@ -100,9 +100,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
     @Autowired
     private AudioBroadcastManager audioBroadcastManager;
-
-    @Autowired
-    private IMediaServerService mediaServerService;
 
     @Autowired
     private HookSubscribe hookSubscribe;
@@ -182,7 +179,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     }else {
                         // 点播成功， TODO 可以在此处检测cancel命令是否存在，存在则不发送
                         // 构建sendRTP内容
-                        SendRtpInfo sendRtpItem = mediaServerService.createSendRtpItem(streamInfo.getMediaServer(),
+                        SendRtpInfo sendRtpItem = sendRtpServerService.createSendRtpInfo(streamInfo.getMediaServer(),
                                 inviteInfo.getIp(), inviteInfo.getPort(), inviteInfo.getSsrc(), platform.getServerGBId(),
                                 streamInfo.getApp(), streamInfo.getStream(),
                                 channel.getGbId(), inviteInfo.isTcp(), platform.isRtcp());
@@ -193,7 +190,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         sendRtpItem.setCallId(inviteInfo.getCallId());
                         sendRtpItem.setPlayType("Play".equalsIgnoreCase(inviteInfo.getSessionName()) ? InviteStreamType.PLAY : InviteStreamType.PLAYBACK);
 
-                        redisCatchStorage.updateSendRTPSever(sendRtpItem);
+                        sendRtpServerService.update(sendRtpItem);
                         String sdpIp = streamInfo.getMediaServer().getSdpIp();
                         if (!ObjectUtils.isEmpty(platform.getSendStreamIp())) {
                             sdpIp = platform.getSendStreamIp();
@@ -733,7 +730,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
     private void sendBye(Platform platform, String callId) {
         try {
-            SendRtpInfo sendRtpItem = redisCatchStorage.querySendRTPServer(platform.getServerGBId(), null, null, callId);
+            SendRtpInfo sendRtpItem = sendRtpServerService.queryByCallId(callId);
             if (sendRtpItem == null) {
                 return;
             }
@@ -878,7 +875,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         mediaTransmissionTCP ? (tcpActive ? "TCP主动" : "TCP被动") : "UDP", sdp.getSessionName().getValue());
                 CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
 
-                SendRtpInfo sendRtpItem = mediaServerService.createSendRtpItem(mediaServerItem, addressStr, port, gb28181Sdp.getSsrc(), requesterId,
+                SendRtpInfo sendRtpItem = sendRtpServerService.createSendRtpInfo(mediaServerItem, addressStr, port, gb28181Sdp.getSsrc(), requesterId,
                         device.getDeviceId(), deviceChannel.getId(),
                         mediaTransmissionTCP, false);
 
@@ -893,7 +890,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     }
                     return;
                 }
-
 
                 sendRtpItem.setPlayType(InviteStreamType.BROADCAST);
                 sendRtpItem.setCallId(callIdHeader.getCallId());
@@ -910,7 +906,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     sendRtpItem.setTcpActive(tcpActive);
                 }
 
-                redisCatchStorage.updateSendRTPSever(sendRtpItem);
+                sendRtpServerService.update(sendRtpItem);
 
                 Boolean streamReady = mediaServerService.isStreamReady(mediaServerItem, broadcastCatch.getApp(), broadcastCatch.getStream());
                 if (streamReady) {
@@ -944,7 +940,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         SIPResponse sipResponse = null;
         try {
             sendRtpItem.setStatus(2);
-            redisCatchStorage.updateSendRTPSever(sendRtpItem);
+            sendRtpServerService.update(sendRtpItem);
             StringBuffer content = new StringBuffer(200);
             content.append("v=0\r\n");
             content.append("o=" + config.getId() + " " + sdp.getOrigin().getSessionId() + " " + sdp.getOrigin().getSessionVersion() + " IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");

@@ -146,11 +146,6 @@ public interface IMediaServerService {
 
     void startSendRtp(MediaServer mediaServer, SendRtpInfo sendRtpItem);
 
-    SendRtpInfo createSendRtpItem(MediaServer mediaServerItem, String addressStr, int port, String ssrc, String requesterId, String deviceId, Integer channelId, boolean mediaTransmissionTCP, boolean rtcp);
-
-    SendRtpInfo createSendRtpItem(MediaServer serverItem, String ip, int port, String ssrc, String platformId,
-                                  String app, String stream, Integer channelId, boolean tcp, boolean rtcp);
-
     MediaServer getMediaServerByAppAndStream(String app, String stream);
 
     Long updateDownloadProcess(MediaServer mediaServerItem, String app, String stream);

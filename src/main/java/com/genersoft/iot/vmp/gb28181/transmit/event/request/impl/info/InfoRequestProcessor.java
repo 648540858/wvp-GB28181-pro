@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
+import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -64,6 +65,9 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
     @Autowired
     private SipInviteSessionManager sessionManager;
 
+    @Autowired
+    private ISendRtpServerService sendRtpServerService;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         // 添加消息处理的订阅
@@ -108,7 +112,7 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
                 String contentType = header.getContentType();
                 String contentSubType = header.getContentSubType();
                 if ("Application".equalsIgnoreCase(contentType) && "MANSRTSP".equalsIgnoreCase(contentSubType)) {
-                    SendRtpInfo sendRtpItem = redisCatchStorage.querySendRTPServer(null, null, null, callIdHeader.getCallId());
+                    SendRtpInfo sendRtpItem = sendRtpServerService.queryByCallId(callIdHeader.getCallId());
                     String streamId = sendRtpItem.getStream();
                     InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, streamId);
                     if (null == inviteInfo) {

@@ -11,6 +11,8 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
+import com.genersoft.iot.vmp.service.ISendRtpServerService;
+import com.genersoft.iot.vmp.service.impl.SendRtpServerServiceImpl;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +58,9 @@ public class SipRunner implements CommandLineRunner {
     @Autowired
     private ISIPCommanderForPlatform commanderForPlatform;
 
+    @Autowired
+    private ISendRtpServerService sendRtpServerService;
+
     @Override
     public void run(String... args) throws Exception {
         List<Device> deviceList = deviceService.getAllOnlineDevice();
@@ -99,7 +104,7 @@ public class SipRunner implements CommandLineRunner {
                 if (channel == null){
                     continue;
                 }
-                redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(),channel.getGbDeviceId(), sendRtpItem.getCallId(),sendRtpItem.getStream());
+                sendRtpServerService.delete(sendRtpItem);
                 if (mediaServerItem != null) {
                     ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
                     boolean stopResult = mediaServerService.initStopSendRtp(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getSsrc());

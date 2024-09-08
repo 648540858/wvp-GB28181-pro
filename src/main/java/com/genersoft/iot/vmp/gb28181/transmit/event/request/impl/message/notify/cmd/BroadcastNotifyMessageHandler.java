@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessag
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -66,6 +67,9 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private ISendRtpServerService sendRtpServerService;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -147,7 +151,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
                                 broadcastCatch.setMediaServerItem(hookData.getMediaServer());
                                 audioBroadcastManager.update(broadcastCatch);
                                 // 推流到设备
-                                SendRtpInfo sendRtpItem = redisCatchStorage.querySendRTPServer(null, targetId, hookData.getStream(), null);
+                                SendRtpInfo sendRtpItem = sendRtpServerService.queryByStream(null, targetId, hookData.getStream(), null);
                                 if (sendRtpItem == null) {
                                     log.warn("[国标级联] 语音喊话 异常，未找到发流信息， channelId: {}, stream: {}", targetId, hookData.getStream());
                                     log.info("[国标级联] 语音喊话 重新开始，channelId: {}, stream: {}", targetId, hookData.getStream());

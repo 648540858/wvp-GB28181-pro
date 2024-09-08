@@ -33,6 +33,7 @@ import java.util.*;
 @Component
 public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
+
     @Autowired
     private DeviceChannelMapper deviceChannelMapper;
 
@@ -47,6 +48,11 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
+
+    @Override
+    public List<SendRtpInfo> queryAllSendRTPServer() {
+        return Collections.emptyList();
+    }
 
     @Override
     public Long getCSEQ() {
@@ -133,181 +139,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
          redisTemplate.delete(VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + userSetting.getServerId() + "_" + callId);
     }
 
-    @Override
-    public void updateSendRTPSever(SendRtpInfo sendRtpItem) {
-        redisTemplate.opsForValue().set(sendRtpItem.getRedisKey(), sendRtpItem);
-    }
 
-    @Override
-    public List<SendRtpInfo> querySendRTPServer(String platformGbId, String channelId, String streamId) {
-        String scanKey = VideoManagerConstants.SEND_RTP_INFO_PREFIX
-                + userSetting.getServerId() + "_*_"
-                + platformGbId + "_"
-                + channelId + "_"
-                + streamId + "_"
-                + "*";
-        List<SendRtpInfo> result = new ArrayList<>();
-        List<Object> scan = RedisUtil.scan(redisTemplate, scanKey);
-        if (!scan.isEmpty()) {
-            for (Object o : scan) {
-                String key = (String) o;
-                result.add(JsonUtil.redisJsonToObject(redisTemplate, key, SendRtpInfo.class));
-            }
-        }
-        return result;
-    }
-
-    @Override
-    public SendRtpInfo querySendRTPServer(String platformGbId, String channelId, String streamId, String callId) {
-        if (platformGbId == null) {
-            platformGbId = "*";
-        }
-        if (channelId == null) {
-            channelId = "*";
-        }
-        if (streamId == null) {
-            streamId = "*";
-        }
-        if (callId == null) {
-            callId = "*";
-        }
-        String key = VideoManagerConstants.SEND_RTP_INFO_PREFIX
-                + "*_*_"
-                + platformGbId + "_"
-                + channelId + "_"
-                + streamId + "_"
-                + callId;
-        List<Object> scan = RedisUtil.scan(redisTemplate, key);
-        if (scan.size() > 0) {
-            return (SendRtpInfo)redisTemplate.opsForValue().get(scan.get(0));
-        }else {
-            return null;
-        }
-    }
-
-    @Override
-    public List<SendRtpInfo> querySendRTPServerByChannelId(String channelId) {
-        if (channelId == null) {
-            return null;
-        }
-        String platformGbId = "*";
-        String callId = "*";
-        String streamId = "*";
-        String key = VideoManagerConstants.SEND_RTP_INFO_PREFIX
-                + userSetting.getServerId() + "_*_"
-                + platformGbId + "_"
-                + channelId + "_"
-                + streamId + "_"
-                + callId;
-        List<Object> scan = RedisUtil.scan(redisTemplate, key);
-        List<SendRtpInfo> result = new ArrayList<>();
-        for (Object o : scan) {
-            result.add((SendRtpInfo) redisTemplate.opsForValue().get(o));
-        }
-        return result;
-    }
-
-    @Override
-    public List<SendRtpInfo> querySendRTPServerByStream(String stream) {
-        if (stream == null) {
-            return null;
-        }
-        String platformGbId = "*";
-        String callId = "*";
-        String channelId = "*";
-        String key = VideoManagerConstants.SEND_RTP_INFO_PREFIX
-                + userSetting.getServerId() + "_*_"
-                + platformGbId + "_"
-                + channelId + "_"
-                + stream + "_"
-                + callId;
-        List<Object> scan = RedisUtil.scan(redisTemplate, key);
-        List<SendRtpInfo> result = new ArrayList<>();
-        for (Object o : scan) {
-            result.add((SendRtpInfo) redisTemplate.opsForValue().get(o));
-        }
-        return result;
-    }
-
-    @Override
-    public List<SendRtpInfo> querySendRTPServer(String platformGbId) {
-        if (platformGbId == null) {
-            platformGbId = "*";
-        }
-        String key = VideoManagerConstants.SEND_RTP_INFO_PREFIX
-                + userSetting.getServerId() + "_*_"
-                + platformGbId + "_*" + "_*" + "_*";
-        List<Object> queryResult = RedisUtil.scan(redisTemplate, key);
-        List<SendRtpInfo> result= new ArrayList<>();
-
-        for (Object o : queryResult) {
-            String keyItem = (String) o;
-            result.add((SendRtpInfo) redisTemplate.opsForValue().get(keyItem));
-        }
-
-        return result;
-    }
-
-    /**
-     * 删除RTP推送信息缓存
-     */
-    @Override
-    public void deleteSendRTPServer(String platformGbId, String channelId, String callId, String streamId) {
-        if (streamId == null) {
-            streamId = "*";
-        }
-        if (callId == null) {
-            callId = "*";
-        }
-        String key = VideoManagerConstants.SEND_RTP_INFO_PREFIX
-                + userSetting.getServerId() + "_*_"
-                + platformGbId + "_"
-                + channelId + "_"
-                + streamId + "_"
-                + callId;
-        List<Object> scan = RedisUtil.scan(redisTemplate, key);
-        if (scan.size() > 0) {
-            for (Object keyStr : scan) {
-                log.info("[删除 redis的SendRTP]： {}", keyStr.toString());
-                redisTemplate.delete(keyStr);
-            }
-        }
-    }
-
-    /**
-     * 删除RTP推送信息缓存
-     */
-    @Override
-    public void deleteSendRTPServer(SendRtpInfo sendRtpItem) {
-        deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(),sendRtpItem.getCallId(), sendRtpItem.getStream());
-    }
-
-    @Override
-    public List<SendRtpInfo> queryAllSendRTPServer() {
-        String key = VideoManagerConstants.SEND_RTP_INFO_PREFIX
-                + userSetting.getServerId() + "_*";
-        List<Object> queryResult = RedisUtil.scan(redisTemplate, key);
-        List<SendRtpInfo> result= new ArrayList<>();
-
-        for (Object o : queryResult) {
-            String keyItem = (String) o;
-            result.add((SendRtpInfo) redisTemplate.opsForValue().get(keyItem));
-        }
-
-        return result;
-    }
-
-    /**
-     * 查询某个通道是否存在上级点播（RTP推送）
-     */
-    @Override
-    public boolean isChannelSendingRTP(String channelId) {
-        String key = VideoManagerConstants.SEND_RTP_INFO_PREFIX
-                + userSetting.getServerId() + "_*_*_"
-                + channelId + "*_" + "*_";
-        List<Object> RtpStreams = RedisUtil.scan(redisTemplate, key);
-        return RtpStreams.size() > 0;
-    }
 
     @Override
     public void updateWVPInfo(JSONObject jsonObject, int time) {
@@ -626,7 +458,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public int getGbSendCount(String id) {
-        String key = VideoManagerConstants.SEND_RTP_INFO_PREFIX
+        String key = VideoManagerConstants.SEND_RTP_INFO
                 + userSetting.getServerId() + "_*_" + id + "_*";
         return RedisUtil.scan(redisTemplate, key).size();
     }

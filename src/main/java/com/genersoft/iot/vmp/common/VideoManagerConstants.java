@@ -39,7 +39,10 @@ public class VideoManagerConstants {
 
 	public static final String PLATFORM_REGISTER_INFO_PREFIX = "VMP_PLATFORM_REGISTER_INFO_";
 
-	public static final String SEND_RTP_INFO_PREFIX = "VMP_SEND_RTP_INFO";
+	public static final String SEND_RTP_INFO = "VMP_SEND_RTP_INFO:";
+	public static final String SEND_RTP_INFO_CALLID = "VMP_SEND_RTP_INFO:CALL_ID";
+	public static final String SEND_RTP_INFO_STREAM = "VMP_SEND_RTP_INFO:STREAM";
+	public static final String SEND_RTP_INFO_CHANNEL = "VMP_SEND_RTP_INFO:CHANNEL";
 
 	public static final String EVENT_ONLINE_REGISTER = "1";
 

@@ -16,6 +16,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.
 import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
+import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -69,6 +70,9 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
     @Autowired
     private IDeviceChannelService deviceChannelService;
 
+    @Autowired
+    private ISendRtpServerService sendRtpServerService;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         notifyMessageHandler.addHandler(cmdType, this);
@@ -110,7 +114,7 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
                 Hook hook = Hook.getInstance(HookType.on_media_arrival, "rtp", ssrcTransaction.getStream(), ssrcTransaction.getMediaServerId());
                 subscribe.removeSubscribe(hook);
                 // 如果级联播放，需要给上级发送此通知 TODO 多个上级同时观看一个下级 可能存在停错的问题，需要将点播CallId进行上下级绑定
-                SendRtpInfo sendRtpItem =  redisCatchStorage.querySendRTPServer(null, ssrcTransaction.getChannelId(), null, null);
+                SendRtpInfo sendRtpItem =  sendRtpServerService.queryByChannelId(ssrcTransaction.getChannelId());
                 if (sendRtpItem != null) {
                     Platform parentPlatform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
                     if (parentPlatform == null) {

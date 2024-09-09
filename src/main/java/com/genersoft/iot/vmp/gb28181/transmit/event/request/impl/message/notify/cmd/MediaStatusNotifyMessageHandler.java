@@ -114,11 +114,11 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
                 Hook hook = Hook.getInstance(HookType.on_media_arrival, "rtp", ssrcTransaction.getStream(), ssrcTransaction.getMediaServerId());
                 subscribe.removeSubscribe(hook);
                 // 如果级联播放，需要给上级发送此通知 TODO 多个上级同时观看一个下级 可能存在停错的问题，需要将点播CallId进行上下级绑定
-                SendRtpInfo sendRtpItem =  sendRtpServerService.queryByChannelId(ssrcTransaction.getChannelId());
+                SendRtpInfo sendRtpItem =  sendRtpServerService.queryByChannelId(ssrcTransaction.getChannelId(), ssrcTransaction.getPlatformId());
                 if (sendRtpItem != null) {
-                    Platform parentPlatform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
+                    Platform parentPlatform = platformService.queryPlatformByServerGBId(sendRtpItem.getTargetId());
                     if (parentPlatform == null) {
-                        log.warn("[级联消息发送]：发送MediaStatus发现上级平台{}不存在", sendRtpItem.getPlatformId());
+                        log.warn("[级联消息发送]：发送MediaStatus发现上级平台{}不存在", sendRtpItem.getTargetId());
                         return;
                     }
                     try {

@@ -13,7 +13,7 @@ public interface IRedisRpcService {
 
     WVPResult stopSendRtp(Integer sendRtpChannelId);
 
-    long waitePushStreamOnline(SendRtpInfo sendRtpItem, CommonCallback<String> callback);
+    long waitePushStreamOnline(SendRtpInfo sendRtpItem, CommonCallback<Integer> callback);
 
     void stopWaitePushStreamOnline(SendRtpInfo sendRtpItem);
 

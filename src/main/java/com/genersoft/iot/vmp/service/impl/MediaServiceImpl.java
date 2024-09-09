@@ -15,6 +15,7 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.service.IMediaService;
+import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.IUserService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
@@ -77,6 +78,9 @@ public class MediaServiceImpl implements IMediaService {
 
     @Autowired
     private ISIPCommander commander;
+
+    @Autowired
+    private ISendRtpServerService sendRtpServerService;
 
     @Override
     public boolean authenticatePlay(String app, String stream, String callId) {
@@ -234,11 +238,11 @@ public class MediaServiceImpl implements IMediaService {
                     return false;
                 }
                 // 收到无人观看说明流也没有在往上级推送
-                if (redisCatchStorage.isChannelSendingRTP(deviceChannel.getDeviceId())) {
-                    List<SendRtpInfo> sendRtpItems = redisCatchStorage.querySendRTPServerByChannelId(deviceChannel.getDeviceId());
+                if (sendRtpServerService.isChannelSendingRTP(deviceChannel.getId())) {
+                    List<SendRtpInfo> sendRtpItems = sendRtpServerService.queryByChannelId(deviceChannel.getId());
                     if (!sendRtpItems.isEmpty()) {
                         for (SendRtpInfo sendRtpItem : sendRtpItems) {
-                            Platform parentPlatform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
+                            Platform parentPlatform = platformService.queryPlatformByServerGBId(sendRtpItem.getTargetId());
                             CommonGBChannel channel = channelService.getOne(sendRtpItem.getChannelId());
                             if (channel == null) {
                                 continue;
@@ -248,8 +252,7 @@ public class MediaServiceImpl implements IMediaService {
                             } catch (SipException | InvalidArgumentException | ParseException e) {
                                 log.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
                             }
-                            redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), channel.getGbDeviceId(),
-                                    sendRtpItem.getCallId(), sendRtpItem.getStream());
+                            sendRtpServerService.delete(sendRtpItem);
                             if (InviteStreamType.PUSH == sendRtpItem.getPlayType()) {
                                 redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem, parentPlatform, channel);
                                 redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem, parentPlatform, channel);
@@ -280,8 +283,8 @@ public class MediaServiceImpl implements IMediaService {
                 deviceChannelService.stopPlay(inviteInfo.getChannelId());
                 return result;
             }
-            SendRtpInfo sendRtpItem = redisCatchStorage.querySendRTPServer(null, null, stream, null);
-            if (sendRtpItem != null && "talk".equals(sendRtpItem.getApp())) {
+            List<SendRtpInfo> sendRtpItemList = sendRtpServerService.queryByStream(stream);
+            if (!sendRtpItemList.isEmpty()) {
                 return false;
             }
         } else if ("talk".equals(app) || "broadcast".equals(app)) {

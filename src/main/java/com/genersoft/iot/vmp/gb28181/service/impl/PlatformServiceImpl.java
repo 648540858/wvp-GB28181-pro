@@ -9,7 +9,6 @@ import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformMapper;
-import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
@@ -111,20 +110,21 @@ public class PlatformServiceImpl implements IPlatformService {
     @Async("taskExecutor")
     @EventListener
     public void onApplicationEvent(MediaDepartureEvent event) {
-        SendRtpInfo sendRtpItems = sendRtpServerService.queryByStream(event.getStream());
-        if (sendRtpItems != null) {
-            if (sendRtpItem != null && sendRtpItem.getApp().equals(event.getApp())) {
-                String platformId = sendRtpItem.getPlatformId();
-                Platform platform = platformMapper.getParentPlatByServerGBId(platformId);
-                CommonGBChannel channel = channelService.getOne(sendRtpItem.getChannelId());
-                try {
-                    if (platform != null && channel != null) {
-                        commanderForPlatform.streamByeCmd(platform, sendRtpItem, channel);
-                        redisCatchStorage.deleteSendRTPServer(platformId, channel.getGbDeviceId(),
-                                sendRtpItem.getCallId(), sendRtpItem.getStream());
+        List<SendRtpInfo> sendRtpItems = sendRtpServerService.queryByStream(event.getStream());
+        if (!sendRtpItems.isEmpty()) {
+            for (SendRtpInfo sendRtpItem : sendRtpItems) {
+                if (sendRtpItem != null && sendRtpItem.getApp().equals(event.getApp()) && sendRtpItem.isSendToPlatform()) {
+                    String platformId = sendRtpItem.getTargetId();
+                    Platform platform = platformMapper.getParentPlatByServerGBId(platformId);
+                    CommonGBChannel channel = channelService.getOne(sendRtpItem.getChannelId());
+                    try {
+                        if (platform != null && channel != null) {
+                            commanderForPlatform.streamByeCmd(platform, sendRtpItem, channel);
+                            sendRtpServerService.delete(sendRtpItem);
+                        }
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        log.error("[命令发送失败] 发送BYE: {}", e.getMessage());
                     }
-                } catch (SipException | InvalidArgumentException | ParseException e) {
-                    log.error("[命令发送失败] 发送BYE: {}", e.getMessage());
                 }
             }
         }
@@ -137,19 +137,20 @@ public class PlatformServiceImpl implements IPlatformService {
     @Async("taskExecutor")
     @EventListener
     public void onApplicationEvent(MediaSendRtpStoppedEvent event) {
-        List<SendRtpInfo> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(event.getStream());
+        List<SendRtpInfo> sendRtpItems = sendRtpServerService.queryByStream(event.getStream());
         if (sendRtpItems != null && !sendRtpItems.isEmpty()) {
             for (SendRtpInfo sendRtpItem : sendRtpItems) {
-                Platform platform = platformMapper.getParentPlatByServerGBId(sendRtpItem.getPlatformId());
-                CommonGBChannel channel = channelService.getOne(sendRtpItem.getChannelId());
-                ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
-                try {
-                    commanderForPlatform.streamByeCmd(platform, sendRtpItem, channel);
-                } catch (SipException | InvalidArgumentException | ParseException e) {
-                    log.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+                if (sendRtpItem != null && sendRtpItem.getApp().equals(event.getApp()) && sendRtpItem.isSendToPlatform()) {
+                    Platform platform = platformMapper.getParentPlatByServerGBId(sendRtpItem.getTargetId());
+                    CommonGBChannel channel = channelService.getOne(sendRtpItem.getChannelId());
+                    ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
+                    try {
+                        commanderForPlatform.streamByeCmd(platform, sendRtpItem, channel);
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        log.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+                    }
+                    sendRtpServerService.delete(sendRtpItem);
                 }
-                redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), sendRtpItem.getChannelId(),
-                        sendRtpItem.getCallId(), sendRtpItem.getStream());
             }
         }
     }
@@ -419,11 +420,11 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     private void stopAllPush(String platformId) {
-        List<SendRtpInfo> sendRtpItems = redisCatchStorage.querySendRTPServer(platformId);
+        List<SendRtpInfo> sendRtpItems = sendRtpServerService.queryForPlatform(platformId);
         if (sendRtpItems != null && sendRtpItems.size() > 0) {
             for (SendRtpInfo sendRtpItem : sendRtpItems) {
                 ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
-                redisCatchStorage.deleteSendRTPServer(platformId, sendRtpItem.getChannelId(), null, null);
+                sendRtpServerService.delete(sendRtpItem);
                 MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
                 mediaServerService.stopSendRtp(mediaInfo, sendRtpItem.getApp(), sendRtpItem.getStream(), null);
             }

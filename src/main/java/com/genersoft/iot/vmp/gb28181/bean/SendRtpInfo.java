@@ -2,8 +2,6 @@ package com.genersoft.iot.vmp.gb28181.bean;
 
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.RequestPushStreamMsg;
-
-import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import lombok.Data;
 
 @Data
@@ -33,6 +31,11 @@ public class SendRtpInfo {
      * 目标平台或设备的名称
      */
     private String targetName;
+
+    /**
+     * 是否是发送给上级平台
+     */
+    private boolean sendToPlatform;
 
     /**
      * 直播流的应用名
@@ -182,8 +185,13 @@ public class SendRtpInfo {
         sendRtpItem.setIp(ip);
         sendRtpItem.setPort(port);
         sendRtpItem.setSsrc(ssrc);
-        sendRtpItem.setDeviceId(deviceId);
-        sendRtpItem.setPlatformId(platformId);
+        if (deviceId != null) {
+            sendRtpItem.setTargetId(deviceId);
+            sendRtpItem.setSendToPlatform(false);
+        }else {
+            sendRtpItem.setTargetId(platformId);
+            sendRtpItem.setSendToPlatform(true);
+        }
         sendRtpItem.setChannelId(channelId);
         sendRtpItem.setTcp(isTcp);
         sendRtpItem.setRtcp(rtcp);
@@ -200,9 +208,7 @@ public class SendRtpInfo {
                 "ip='" + ip + '\'' +
                 ", port=" + port +
                 ", ssrc='" + ssrc + '\'' +
-                ", platformId='" + platformId + '\'' +
-                ", platformName='" + platformName + '\'' +
-                ", deviceId='" + deviceId + '\'' +
+                ", targetId='" + targetId + '\'' +
                 ", app='" + app + '\'' +
                 ", channelId='" + channelId + '\'' +
                 ", status=" + status +

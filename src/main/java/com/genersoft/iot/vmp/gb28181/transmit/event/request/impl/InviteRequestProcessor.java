@@ -25,7 +25,6 @@ import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.redisMsg.RedisPushStreamResponseListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
 import gov.nist.javax.sdp.TimeDescriptionImpl;
 import gov.nist.javax.sdp.fields.TimeField;
 import gov.nist.javax.sdp.fields.URIField;
@@ -893,7 +892,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
                 sendRtpItem.setPlayType(InviteStreamType.BROADCAST);
                 sendRtpItem.setCallId(callIdHeader.getCallId());
-                sendRtpItem.setPlatformId(requesterId);
                 sendRtpItem.setStatus(1);
                 sendRtpItem.setApp(broadcastCatch.getApp());
                 sendRtpItem.setStream(broadcastCatch.getStream());

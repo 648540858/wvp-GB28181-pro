@@ -16,6 +16,7 @@ import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOnlineEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OriginType;
+import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
@@ -29,10 +30,8 @@ import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -57,10 +56,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     private IMediaServerService mediaServerService;
 
     @Autowired
-    DataSourceTransactionManager dataSourceTransactionManager;
-
-    @Autowired
-    TransactionDefinition transactionDefinition;
+    private ISendRtpServerService sendRtpServerService;
 
     @Autowired
     private IGbChannelService gbChannelService;
@@ -290,7 +286,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         if (userSetting.isUsePushingAsStatus()) {
             gbChannelService.offline(streamPush.buildCommonGBChannel());
         }
-        redisCatchStorage.deleteSendRTPServer(null, streamPush.getGbDeviceId(), null, streamPush.getStream());
+        sendRtpServerService.deleteByStream(streamPush.getStream());
         mediaServerService.stopSendRtp(mediaServer, streamPush.getApp(), streamPush.getStream(), null);
         streamPush.setUpdateTime(DateUtil.getNow());
         streamPushMapper.update(streamPush);

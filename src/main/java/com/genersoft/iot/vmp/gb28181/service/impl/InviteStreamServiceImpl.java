@@ -160,6 +160,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     public InviteInfo getInviteInfo(InviteSessionType type, Integer channelId, String stream) {
         String key = VideoManagerConstants.INVITE_PREFIX +
                 ":" + (type != null ? type : "*") +
+                ":*" +
                 ":" + (channelId != null ? channelId : "*") +
                 ":" + (stream != null ? stream : "*")
                 + ":*";
@@ -178,6 +179,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     public List<InviteInfo> getAllInviteInfo(InviteSessionType type, Integer channelId, String stream) {
         String key = VideoManagerConstants.INVITE_PREFIX +
                 ":" + (type != null ? type : "*") +
+                ":*" +
                 ":" + (channelId != null ? channelId : "*") +
                 ":" + (stream != null ? stream : "*")
                 + ":*";
@@ -206,6 +208,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     public void removeInviteInfo(InviteSessionType type,  Integer channelId, String stream) {
         String scanKey = VideoManagerConstants.INVITE_PREFIX +
                 ":" + (type != null ? type : "*") +
+                ":*" +
                 ":" + (channelId != null ? channelId : "*") +
                 ":" + (stream != null ? stream : "*") +
                 ":*";

@@ -258,26 +258,16 @@ public class SIPCommander implements ISIPCommander {
      *
      * @param device     视频设备
      * @param channel  预览通道
-     * @param event      hook订阅
      * @param errorEvent sip错误订阅
      */
     @Override
     public void playStreamCmd(MediaServer mediaServerItem, SSRCInfo ssrcInfo, Device device, DeviceChannel channel,
-                              HookSubscribe.Event event, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+                              SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
         String stream = ssrcInfo.getStream();
 
         if (device == null) {
             return;
         }
-
-        log.info("{} 分配的ZLM为: {} [{}:{}]", stream, mediaServerItem.getId(), mediaServerItem.getSdpIp(), ssrcInfo.getPort());
-        Hook rtpHook = Hook.getInstance(HookType.on_media_arrival, "rtp", stream, mediaServerItem.getId());
-        subscribe.addSubscribe(rtpHook, (hookData) -> {
-            if (event != null) {
-                event.response(hookData);
-                subscribe.removeSubscribe(rtpHook);
-            }
-        });
         String sdpIp;
         if (!ObjectUtils.isEmpty(device.getSdpIp())) {
             sdpIp = device.getSdpIp();
@@ -373,7 +363,7 @@ public class SIPCommander implements ISIPCommander {
      */
     @Override
     public void playbackStreamCmd(MediaServer mediaServerItem, SSRCInfo ssrcInfo, Device device, DeviceChannel channel,
-                                  String startTime, String endTime, HookSubscribe.Event hookEvent,
+                                  String startTime, String endTime,
                                   SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
 
 
@@ -446,14 +436,6 @@ public class SIPCommander implements ISIPCommander {
         //ssrc
         content.append("y=" + ssrcInfo.getSsrc() + "\r\n");
 
-        Hook rtpHook = Hook.getInstance(HookType.on_media_arrival, "rtp", ssrcInfo.getStream(), mediaServerItem.getId());
-        // 添加订阅
-        subscribe.addSubscribe(rtpHook, (hookData) -> {
-            if (hookEvent != null) {
-                hookEvent.response(hookData);
-            }
-            subscribe.removeSubscribe(rtpHook);
-        });
         Request request = headerProvider.createPlaybackInviteRequest(device, channel.getDeviceId(), content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()), ssrcInfo.getSsrc());
 
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent, event -> {
@@ -472,7 +454,6 @@ public class SIPCommander implements ISIPCommander {
     @Override
     public void downloadStreamCmd(MediaServer mediaServerItem, SSRCInfo ssrcInfo, Device device, DeviceChannel channel,
                                   String startTime, String endTime, int downloadSpeed,
-                                  HookSubscribe.Event hookEvent,
                                   SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
 
         log.info("{} 分配的ZLM为: {} [{}:{}]", ssrcInfo.getStream(), mediaServerItem.getId(), mediaServerItem.getSdpIp(), ssrcInfo.getPort());
@@ -549,7 +530,6 @@ public class SIPCommander implements ISIPCommander {
         String callId= newCallIdHeader.getCallId();
         subscribe.addSubscribe(rtpHook, (hookData) -> {
             log.debug("sipc 添加订阅===callId {}",callId);
-            hookEvent.response(hookData);
             subscribe.removeSubscribe(rtpHook);
             // 添加流注销的订阅，注销了后向设备发送bye
             Hook departureHook = Hook.getInstance(HookType.on_media_departure, "rtp", ssrcInfo.getStream(), mediaServerItem.getId());

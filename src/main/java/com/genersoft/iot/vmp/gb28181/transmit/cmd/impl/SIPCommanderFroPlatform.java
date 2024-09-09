@@ -139,7 +139,6 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                         errorEvent.response(event);
                     }
                 });
-
             }else {
                 request = headerProviderPlatformProvider.createRegisterRequest(parentPlatform, fromTag, toTag, www, callIdHeader, isRegister? parentPlatform.getExpires() : 0);
             }

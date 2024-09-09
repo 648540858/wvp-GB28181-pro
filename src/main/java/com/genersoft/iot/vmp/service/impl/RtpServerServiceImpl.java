@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -107,17 +106,21 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
             rtpServerPort = rtpServerParam.getMediaServerItem().getRtpProxyPort();
         }
         if (rtpServerPort == 0) {
-            callback.run(InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode(), InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getMsg(), null);
+            callback.run(InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode(), "开启RTPServer失败", null);
             // 释放ssrc
             if (rtpServerParam.getPresetSsrc() == null) {
                 ssrcFactory.releaseSsrc(rtpServerParam.getMediaServerItem().getId(), ssrc);
             }
             return null;
         }
-        SSRCInfo ssrcInfo = new SSRCInfo(rtpServerPort, ssrc, streamId);
 
         // 设置流超时的定时任务
         String timeOutTaskKey = UUID.randomUUID().toString();
+
+        SSRCInfo ssrcInfo = new SSRCInfo(rtpServerPort, ssrc, streamId, timeOutTaskKey);
+
+
+        Hook rtpHook = Hook.getInstance(HookType.on_media_arrival, "rtp", streamId, rtpServerParam.getMediaServerItem().getId());
         dynamicTask.startDelay(timeOutTaskKey, () -> {
             // 收流超时
             // 释放ssrc
@@ -126,28 +129,32 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
             }
             // 关闭收流端口
             mediaServerService.closeRTPServer(rtpServerParam.getMediaServerItem(), streamId);
+            subscribe.removeSubscribe(rtpHook);
+            callback.run(InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode(), InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getMsg(), null);
         }, userSetting.getPlayTimeout());
 
         // 开启流到来的监听
-        Hook rtpHook = Hook.getInstance(HookType.on_media_arrival, "rtp", streamId, rtpServerParam.getMediaServerItem().getId());
         subscribe.addSubscribe(rtpHook, (hookData) -> {
             dynamicTask.stop(timeOutTaskKey);
             // hook响应
             callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), hookData);
+            subscribe.removeSubscribe(rtpHook);
         });
         return ssrcInfo;
     }
 
     @Override
-    public void closeRTPServer(MediaServer mediaServer, String stream) {
+    public void closeRTPServer(MediaServer mediaServer, SSRCInfo ssrcInfo) {
         if (mediaServer == null) {
             return;
         }
-        SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(stream);
-        if (ssrcTransaction != null) {
-            // 释放ssrc
-            ssrcFactory.releaseSsrc(ssrcTransaction.getMediaServerId(), ssrcTransaction.getSsrc());
+        if (ssrcInfo.getTimeOutTaskKey() != null) {
+            dynamicTask.stop(ssrcInfo.getTimeOutTaskKey());
         }
-        mediaServerService.closeRTPServer(mediaServer, stream);
+        if (ssrcInfo.getSsrc() != null) {
+            // 释放ssrc
+            ssrcFactory.releaseSsrc(mediaServer.getId(), ssrcInfo.getSsrc());
+        }
+        mediaServerService.closeRTPServer(mediaServer, ssrcInfo.getStream());
     }
 }

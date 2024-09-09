@@ -9,5 +9,5 @@ import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 public interface IReceiveRtpServerService {
     SSRCInfo openRTPServer(RTPServerParam rtpServerParam, ErrorCallback<HookData> callback);
 
-    void closeRTPServer(MediaServer mediaServer, String stream);
+    void closeRTPServer(MediaServer mediaServer, SSRCInfo ssrcInfo);
 }

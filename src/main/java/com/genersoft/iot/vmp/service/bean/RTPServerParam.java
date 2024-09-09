@@ -20,4 +20,6 @@ public class RTPServerParam {
      * tcp模式，0时为不启用tcp监听，1时为启用tcp监听，2时为tcp主动连接模式
      */
     private Integer tcpMode;
+
+
 }

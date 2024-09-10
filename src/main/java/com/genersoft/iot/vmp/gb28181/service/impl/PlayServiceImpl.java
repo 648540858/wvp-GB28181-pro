@@ -669,11 +669,9 @@ public class PlayServiceImpl implements IPlayService {
         if (streamInfo != null) {
             streamInfo.setStartTime(startTime);
             streamInfo.setEndTime(endTime);
-            deviceChannelService.startPlay(channel.getId(), streamInfo.getStream());
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, mediaInfo.getStream());
             if (inviteInfo != null) {
                 inviteInfo.setStatus(InviteSessionStatus.ok);
-
                 inviteInfo.setStreamInfo(streamInfo);
                 inviteStreamService.updateInviteInfo(inviteInfo);
             }

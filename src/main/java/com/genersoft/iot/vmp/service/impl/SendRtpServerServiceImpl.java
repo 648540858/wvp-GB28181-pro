@@ -52,8 +52,14 @@ public class SendRtpServerServiceImpl implements ISendRtpServerService {
         if (localPort <= 0) {
             throw new PlayException(javax.sip.message.Response.SERVER_INTERNAL_ERROR, "server internal error");
         }
-        return SendRtpInfo.getInstance(localPort, mediaServer, ip, port, ssrc, null, platformId, channelId,
+        SendRtpInfo sendRtpInfo = SendRtpInfo.getInstance(localPort, mediaServer, ip, port, ssrc, null, platformId, channelId,
                 tcp, rtcp, userSetting.getServerId());
+        if (sendRtpInfo == null) {
+            return null;
+        }
+        sendRtpInfo.setApp(app);
+        sendRtpInfo.setStream(stream);
+        return sendRtpInfo;
     }
 
     @Override

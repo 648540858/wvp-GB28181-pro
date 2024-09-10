@@ -22,8 +22,8 @@
           <el-select size="mini" style="margin-right: 1rem;" @change="getPushList" v-model="pushing" placeholder="请选择"
                      default-first-option>
             <el-option label="全部" value=""></el-option>
-            <el-option label="推流进行中" value="true"></el-option>
-            <el-option label="推流未进行" value="false"></el-option>
+            <el-option label="推流中" value="true"></el-option>
+            <el-option label="已停止" value="false"></el-option>
           </el-select>
           <el-button icon="el-icon-upload2" size="mini" style="margin-right: 1rem;" type="primary" @click="importChannel">
             通道导入

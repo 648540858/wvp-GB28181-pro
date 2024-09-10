@@ -2,11 +2,11 @@ package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.gb28181.bean.OpenRTPServerResult;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
-import com.genersoft.iot.vmp.media.event.hook.HookData;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
@@ -66,7 +66,7 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
     }
 
     @Override
-    public SSRCInfo openRTPServer(RTPServerParam rtpServerParam, ErrorCallback<HookData> callback) {
+    public SSRCInfo openRTPServer(RTPServerParam rtpServerParam, ErrorCallback<OpenRTPServerResult> callback) {
         if (callback == null) {
             log.warn("[开启RTP收流] 失败，回调为NULL");
             return null;
@@ -118,7 +118,8 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
         String timeOutTaskKey = UUID.randomUUID().toString();
 
         SSRCInfo ssrcInfo = new SSRCInfo(rtpServerPort, ssrc, streamId, timeOutTaskKey);
-
+        OpenRTPServerResult openRTPServerResult = new OpenRTPServerResult();
+        openRTPServerResult.setSsrcInfo(ssrcInfo);
 
         Hook rtpHook = Hook.getInstance(HookType.on_media_arrival, "rtp", streamId, rtpServerParam.getMediaServerItem().getId());
         dynamicTask.startDelay(timeOutTaskKey, () -> {
@@ -130,21 +131,23 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
             // 关闭收流端口
             mediaServerService.closeRTPServer(rtpServerParam.getMediaServerItem(), streamId);
             subscribe.removeSubscribe(rtpHook);
-            callback.run(InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode(), InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getMsg(), null);
+            callback.run(InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode(), InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getMsg(), openRTPServerResult);
         }, userSetting.getPlayTimeout());
-
         // 开启流到来的监听
         subscribe.addSubscribe(rtpHook, (hookData) -> {
             dynamicTask.stop(timeOutTaskKey);
             // hook响应
-            callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), hookData);
+            openRTPServerResult.setHookData(hookData);
+            callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), openRTPServerResult);
             subscribe.removeSubscribe(rtpHook);
         });
+
         return ssrcInfo;
     }
 
     @Override
     public void closeRTPServer(MediaServer mediaServer, SSRCInfo ssrcInfo) {
+        System.out.println(4444);
         if (mediaServer == null) {
             return;
         }

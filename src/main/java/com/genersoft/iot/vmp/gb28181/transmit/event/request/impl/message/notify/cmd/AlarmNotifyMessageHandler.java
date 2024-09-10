@@ -85,7 +85,6 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
 
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
-        log.info("[收到报警通知]设备：{}", device.getDeviceId());
         boolean isEmpty = taskQueue.isEmpty();
         taskQueue.offer(new SipMsgInfo(evt, device, rootElement));
         // 回复200 OK
@@ -96,7 +95,9 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
         }
         if (isEmpty) {
             taskExecutor.execute(() -> {
-                log.info("[处理报警通知]待处理数量：{}", taskQueue.size() );
+                if (log.isDebugEnabled()) {
+                    log.info("[处理报警通知]待处理数量：{}", taskQueue.size() );
+                }
                 while (!taskQueue.isEmpty()) {
                     try {
                         SipMsgInfo sipMsgInfo = taskQueue.poll();
@@ -161,7 +162,9 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                                 deviceAlarm.setAlarmType(getText(sipMsgInfo.getRootElement().element("Info"), "AlarmType"));
                             }
                         }
-                        log.info("[收到报警通知]内容：{}", JSON.toJSONString(deviceAlarm));
+                        if (log.isDebugEnabled()) {
+                            log.debug("[收到报警通知]设备：{}， 内容：{}", device.getDeviceId(), JSON.toJSONString(deviceAlarm));
+                        }
                         // 作者自用判断，其他小伙伴需要此消息可以自行修改，但是不要提在pr里
                         if (DeviceAlarmMethod.Other.getVal() == Integer.parseInt(deviceAlarm.getAlarmMethod())) {
                             // 发送给平台的报警信息。 发送redis通知

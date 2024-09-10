@@ -179,7 +179,9 @@ public class ZLMRESTfulUtils {
         Request request = new Request.Builder()
                 .url(httpBuilder.build())
                 .build();
-        log.info(request.toString());
+        if (log.isDebugEnabled()){
+            log.debug(request.toString());
+        }
         try {
             OkHttpClient client = getClient();
             Response response = client.newCall(request).execute();

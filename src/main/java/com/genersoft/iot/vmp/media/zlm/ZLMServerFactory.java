@@ -39,7 +39,6 @@ public class ZLMServerFactory {
         int result = -1;
         // 查询此rtp server 是否已经存在
         JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaServerItem, streamId);
-        log.info(JSONObject.toJSONString(rtpInfo));
         if(rtpInfo.getInteger("code") == 0){
             if (rtpInfo.getBoolean("exist")) {
                 result = rtpInfo.getInteger("local_port");
@@ -87,7 +86,6 @@ public class ZLMServerFactory {
         }
 
         JSONObject openRtpServerResultJson = zlmresTfulUtils.openRtpServer(mediaServerItem, param);
-        log.info(JSONObject.toJSONString(openRtpServerResultJson));
         if (openRtpServerResultJson != null) {
             if (openRtpServerResultJson.getInteger("code") == 0) {
                 result= openRtpServerResultJson.getInteger("port");

@@ -82,7 +82,9 @@ public class ZLMHttpHookListener {
             log.info("[ZLM HOOK] 播放鉴权 失败：{}->{}", param.getMediaServerId(), param);
             return new HookResult(401, "Unauthorized");
         }
-        log.info("[ZLM HOOK] 播放鉴权成功：{}->{}", param.getMediaServerId(), param);
+        if (log.isDebugEnabled()){
+            log.debug("[ZLM HOOK] 播放鉴权成功：{}->{}", param.getMediaServerId(), param);
+        }
         return HookResult.SUCCESS();
     }
 

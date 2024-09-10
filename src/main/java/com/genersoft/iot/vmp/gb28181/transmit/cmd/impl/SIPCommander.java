@@ -456,7 +456,7 @@ public class SIPCommander implements ISIPCommander {
                                   String startTime, String endTime, int downloadSpeed,
                                   SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
 
-        log.info("{} 分配的ZLM为: {} [{}:{}]", ssrcInfo.getStream(), mediaServerItem.getId(), mediaServerItem.getSdpIp(), ssrcInfo.getPort());
+        log.info("[发送-请求历史媒体下载-命令] 流ID： {}，节点为: {} [{}:{}]", ssrcInfo.getStream(), mediaServerItem.getId(), mediaServerItem.getSdpIp(), ssrcInfo.getPort());
         String sdpIp;
         if (!ObjectUtils.isEmpty(device.getSdpIp())) {
             sdpIp = device.getSdpIp();
@@ -524,27 +524,8 @@ public class SIPCommander implements ISIPCommander {
 
         content.append("y=" + ssrcInfo.getSsrc() + "\r\n");//ssrc
         log.debug("此时请求下载信令的ssrc===>{}",ssrcInfo.getSsrc());
-        Hook rtpHook = Hook.getInstance(HookType.on_media_arrival, "rtp", ssrcInfo.getStream(), mediaServerItem.getId());
         // 添加订阅
         CallIdHeader newCallIdHeader = sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()), device.getTransport());
-        String callId= newCallIdHeader.getCallId();
-        subscribe.addSubscribe(rtpHook, (hookData) -> {
-            log.debug("sipc 添加订阅===callId {}",callId);
-            subscribe.removeSubscribe(rtpHook);
-            // 添加流注销的订阅，注销了后向设备发送bye
-            Hook departureHook = Hook.getInstance(HookType.on_media_departure, "rtp", ssrcInfo.getStream(), mediaServerItem.getId());
-            subscribe.addSubscribe(departureHook,
-                    (departureHookData) -> {
-                        log.info("[录像]下载结束， 发送BYE");
-                        try {
-                            streamByeCmd(device, channel.getDeviceId(), ssrcInfo.getStream(), callId);
-                        } catch (InvalidArgumentException | ParseException | SipException |
-                                 SsrcTransactionNotFoundException e) {
-                            log.error("[录像]下载结束， 发送BYE失败 {}", e.getMessage());
-                        }
-                    });
-        });
-
         Request request = headerProvider.createPlaybackInviteRequest(device, channel.getDeviceId(), content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,newCallIdHeader, ssrcInfo.getSsrc());
 
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent, event -> {
@@ -653,9 +634,6 @@ public class SIPCommander implements ISIPCommander {
         }
 
         log.info("[发送BYE] 设备： device: {}, channel: {}, callId: {}", device.getDeviceId(), channelId, ssrcTransaction.getCallId());
-        mediaServerService.releaseSsrc(ssrcTransaction.getMediaServerId(), ssrcTransaction.getSsrc());
-
-        mediaServerService.closeRTPServer(ssrcTransaction.getMediaServerId(), ssrcTransaction.getStream());
         sessionManager.removeByCallId(ssrcTransaction.getCallId());
         Request byteRequest = headerProvider.createByteRequest(device, channelId, ssrcTransaction.getSipTransactionInfo());
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), byteRequest, null, okEvent);

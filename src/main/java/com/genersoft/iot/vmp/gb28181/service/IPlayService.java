@@ -31,7 +31,6 @@ public interface IPlayService {
     void zlmServerOffline(String mediaServerId);
 
     void download(Device device, DeviceChannel channel, String startTime, String endTime, int downloadSpeed, ErrorCallback<StreamInfo> callback);
-    void download(MediaServer mediaServerItem, SSRCInfo ssrcInfo, Device device, DeviceChannel channel, String startTime, String endTime, int downloadSpeed, ErrorCallback<StreamInfo> callback);
 
     StreamInfo getDownLoadInfo(Device device, DeviceChannel channel, String stream);
 

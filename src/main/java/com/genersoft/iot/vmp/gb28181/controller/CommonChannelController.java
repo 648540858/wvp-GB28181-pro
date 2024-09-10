@@ -134,10 +134,6 @@ public class CommonChannelController {
         channelService.deleteChannelToRegionByGbDevice(param.getDeviceIds());
     }
 
-
-
-
-
     @Operation(summary = "通道设置业务分组", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @PostMapping("/group/add")
     public void addChannelToGroup(@RequestBody ChannelToGroupParam param){

@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.gb28181.session;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.AudioBroadcastCatch;
-import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -52,15 +51,9 @@ public class AudioBroadcastManager {
 
     public List<AudioBroadcastCatch> getByDeviceId(String deviceId) {
         List<AudioBroadcastCatch> audioBroadcastCatchList= new ArrayList<>();
-        if (SipUtils.isFrontEnd(deviceId)) {
-            if (data.get(deviceId) != null) {
-                audioBroadcastCatchList.add(data.get(deviceId));
-            }
-        }else {
-            for (AudioBroadcastCatch broadcastCatch : data.values()) {
-                if (broadcastCatch.getDeviceId().equals(deviceId)) {
-                    audioBroadcastCatchList.add(broadcastCatch);
-                }
+        for (AudioBroadcastCatch broadcastCatch : data.values()) {
+            if (broadcastCatch.getDeviceId().equals(deviceId)) {
+                audioBroadcastCatchList.add(broadcastCatch);
             }
         }
 

@@ -293,11 +293,13 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     public void call(InviteSessionType type, Integer channelId, String stream, int code, String msg, StreamInfo data) {
         String key = buildSubStreamKey(type, channelId, stream);
         List<ErrorCallback<StreamInfo>> callbacks = inviteErrorCallbackMap.get(key);
-        if (callbacks == null) {
+        if (callbacks == null || callbacks.isEmpty()) {
             return;
         }
         for (ErrorCallback<StreamInfo> callback : callbacks) {
-            callback.run(code, msg, data);
+            if (callback != null) {
+                callback.run(code, msg, data);
+            }
         }
         inviteErrorCallbackMap.remove(key);
     }

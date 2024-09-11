@@ -459,6 +459,7 @@ public class DeviceServiceImpl implements IDeviceService {
         if (!ObjectUtils.isEmpty(device.getStreamMode())) {
             deviceInStore.setStreamMode(device.getStreamMode());
         }
+        deviceInStore.setBroadcastPushAfterAck(device.isBroadcastPushAfterAck());
         //  目录订阅相关的信息
         if (deviceInStore.getSubscribeCycleForCatalog() != device.getSubscribeCycleForCatalog()) {
             if (device.getSubscribeCycleForCatalog() > 0) {

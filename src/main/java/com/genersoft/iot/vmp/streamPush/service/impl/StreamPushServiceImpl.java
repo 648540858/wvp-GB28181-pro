@@ -457,7 +457,10 @@ public class StreamPushServiceImpl implements IStreamPushService {
         }
         List<CommonGBChannel> commonGBChannelList = new ArrayList<>();
         for (StreamPush streamPush : streamPushList) {
-            commonGBChannelList.add(streamPush.buildCommonGBChannel());
+            CommonGBChannel commonGBChannel = streamPush.buildCommonGBChannel();
+            if (commonGBChannel != null) {
+                commonGBChannelList.add(streamPush.buildCommonGBChannel());
+            }
         }
         gbChannelService.offline(commonGBChannelList);
     }

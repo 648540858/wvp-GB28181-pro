@@ -6,7 +6,8 @@ import lombok.Data;
 @Data
 public class InviteInfo {
     private String requesterId;
-    private String channelId;
+    private String targetChannelId;
+    private String sourceChannelId;
     private String sessionName;
     private String ssrc;
     private boolean tcp;

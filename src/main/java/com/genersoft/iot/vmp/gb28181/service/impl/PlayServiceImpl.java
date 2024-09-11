@@ -127,7 +127,7 @@ public class PlayServiceImpl implements IPlayService {
     @Async("taskExecutor")
     @org.springframework.context.event.EventListener
     public void onApplicationEvent(MediaArrivalEvent event) {
-        if ("broadcast".equals(event.getApp())) {
+        if ("broadcast".equals(event.getApp()) || "talk".equals(event.getApp())) {
             if (event.getStream().indexOf("_") > 0) {
                 String[] streamArray = event.getStream().split("_");
                 if (streamArray.length == 2) {

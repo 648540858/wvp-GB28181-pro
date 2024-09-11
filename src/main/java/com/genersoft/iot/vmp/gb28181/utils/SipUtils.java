@@ -18,7 +18,7 @@ import javax.sdp.SessionDescription;
 import javax.sip.PeerUnavailableException;
 import javax.sip.SipFactory;
 import javax.sip.header.FromHeader;
-import javax.sip.header.Header;
+import javax.sip.header.SubjectHeader;
 import javax.sip.header.UserAgentHeader;
 import javax.sip.message.Request;
 import java.text.ParseException;
@@ -44,13 +44,22 @@ public class SipUtils {
     /**
      * 从subject读取channelId
      * */
-    public static String getChannelIdFromRequest(Request request) {
-        Header subject = request.getHeader("subject");
+    public static String[] getChannelIdFromRequest(Request request) {
+        SubjectHeader subject = (Subject)request.getHeader("subject");
         if (subject == null) {
             // 如果缺失subject
             return null;
         }
-        return ((Subject) subject).getSubject().split(":")[0];
+        String[] result = new String[2];
+        String subjectStr = subject.getSubject();
+        if (subjectStr.indexOf(",") > 0) {
+            String[] subjectSplit = subjectStr.split(",");
+            result[0] = subjectSplit[0].split(":")[0];
+            result[1] = subjectSplit[1].split(":")[0];
+        }else {
+            result[0] = subjectStr.split(":")[0];
+        }
+        return result;
     }
 
     public static String getUserIdFromFromHeader(FromHeader fromHeader) {

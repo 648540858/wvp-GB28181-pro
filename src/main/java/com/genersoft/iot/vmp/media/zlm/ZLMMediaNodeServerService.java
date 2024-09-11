@@ -376,7 +376,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         param.put("is_udp", sendRtpItem.isTcp() ? "0" : "1");
         if (!sendRtpItem.isTcp()) {
             // udp模式下开启rtcp保活
-            param.put("udp_rtcp_timeout", sendRtpItem.isRtcp() ? "1" : "0");
+            param.put("udp_rtcp_timeout", sendRtpItem.isRtcp() ? "500" : "0");
         }
         param.put("dst_url", sendRtpItem.getIp());
         param.put("dst_port", sendRtpItem.getPort());
@@ -384,6 +384,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         if (jsonObject == null || jsonObject.getInteger("code") != 0 ) {
             throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
         }
+        log.info("[推流结果]：{} ，参数： {}",jsonObject, JSONObject.toJSONString(param));
     }
 
     @Override

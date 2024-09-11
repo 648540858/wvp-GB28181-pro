@@ -675,4 +675,12 @@ public class GbChannelServiceImpl implements IGbChannelService {
             }
         }
     }
+
+    @Override
+    public List<CommonGBChannel> queryTree(Integer parentId, String parentDeviceId, Boolean showRegion, Boolean showGroup) {
+        if (parentId == null || Objects.isNull(parentDeviceId)) {
+            // 查询顶级节点
+        }
+        return Collections.emptyList();
+    }
 }

@@ -77,4 +77,6 @@ public interface IGbChannelService {
     CommonGBChannel queryOneWithPlatform(Integer platformId, String channelDeviceId);
 
     void updateCivilCode(String oldCivilCode, String newCivilCode);
+
+    List<CommonGBChannel> queryTree(Integer parentId, String parentDeviceId, Boolean showRegion, Boolean showGroup);
 }

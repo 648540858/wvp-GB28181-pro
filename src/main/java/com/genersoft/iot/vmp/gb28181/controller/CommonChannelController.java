@@ -167,4 +167,25 @@ public class CommonChannelController {
         Assert.notEmpty(param.getDeviceIds(),"参数异常");
         channelService.deleteChannelToGroupByGbDevice(param.getDeviceIds());
     }
+
+    @Operation(summary = "获取树节点", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "parentId", description = "父节点ID", required = false)
+    @Parameter(name = "parentDeviceId", description = "父节点国标编号", required = false)
+    @Parameter(name = "showRegion", description = "显示行政区划", required = false)
+    @Parameter(name = "showGroup", description = "显示分组", required = false)
+    @GetMapping("/tree")
+    public List<CommonGBChannel> queryTree(
+            @RequestParam(required = false) Integer parentId,
+            @RequestParam(required = false) String parentDeviceId,
+            @RequestParam(required = false) Boolean showRegion,
+            @RequestParam(required = false) Boolean showGroup
+    ){
+        if (showRegion == null) {
+            showRegion = false;
+        }
+        if (showGroup == null) {
+            showRegion = false;
+        }
+        return channelService.queryTree(parentId, parentDeviceId, showRegion, showGroup);
+    }
 }

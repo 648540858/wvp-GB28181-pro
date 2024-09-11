@@ -25,6 +25,8 @@ import javax.sip.message.Request;
 import javax.validation.constraints.NotNull;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -91,7 +93,6 @@ public class SIPRequestHeaderPlarformProvider {
 	public Request createRegisterRequest(@NotNull ParentPlatform parentPlatform, String fromTag, String toTag,
 										 WWWAuthenticateHeader www , CallIdHeader callIdHeader, int expires) throws ParseException, PeerUnavailableException, InvalidArgumentException {
 
-
 		Request registerRequest = createRegisterRequest(parentPlatform, redisCatchStorage.getCSEQ(), fromTag, toTag, callIdHeader, expires);
 		SipURI requestURI = SipFactory.getInstance().createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerIP() + ":" + parentPlatform.getServerPort());
 		if (www == null) {
@@ -115,17 +116,31 @@ public class SIPRequestHeaderPlarformProvider {
 		// 参考 https://blog.csdn.net/y673533511/article/details/88388138
 		// qop 保护质量 包含auth（默认的）和auth-int（增加了报文完整性检测）两种策略
 		String qop = www.getQop();
+		String opaque = www.getOpaque();
 
 		String cNonce = null;
 		String nc = "00000001";
 		if (qop != null) {
-			if ("auth".equalsIgnoreCase(qop)) {
-				// 客户端随机数，这是一个不透明的字符串值，由客户端提供，并且客户端和服务器都会使用，以避免用明文文本。
-				// 这使得双方都可以查验对方的身份，并对消息的完整性提供一些保护
-				cNonce = UUID.randomUUID().toString();
+			if (qop.indexOf(",") > 0) {
+				String[] qopArray = qop.split(",");
+				Set<String> qopSet = new HashSet<String>();
+				for (String qopItem : qopArray) {
+					qopSet.add(qopItem);
+				}
+				if (qopSet.contains("auth")) {
+					cNonce = UUID.randomUUID().toString();
+				}else if ("auth-int".equalsIgnoreCase(qop)){
+					// TODO
+				}
+			}else {
+				if ("auth".equalsIgnoreCase(qop)) {
+					// 客户端随机数，这是一个不透明的字符串值，由客户端提供，并且客户端和服务器都会使用，以避免用明文文本。
+					// 这使得双方都可以查验对方的身份，并对消息的完整性提供一些保护
 
-			}else if ("auth-int".equalsIgnoreCase(qop)){
-				// TODO
+
+				}else if ("auth-int".equalsIgnoreCase(qop)){
+					// TODO
+				}
 			}
 		}
 		String HA1 = DigestUtils.md5DigestAsHex((parentPlatform.getDeviceGBId() + ":" + realm + ":" + parentPlatform.getPassword()).getBytes());
@@ -157,8 +172,13 @@ public class SIPRequestHeaderPlarformProvider {
 		authorizationHeader.setAlgorithm("MD5");
 		if (qop != null) {
 			authorizationHeader.setQop(qop);
+		}
+		if (cNonce != null) {
 			authorizationHeader.setCNonce(cNonce);
 			authorizationHeader.setNonceCount(1);
+		}
+		if (opaque != null) {
+			authorizationHeader.setOpaque(opaque);
 		}
 		registerRequest.addHeader(authorizationHeader);
 

@@ -1,7 +1,7 @@
 <template>
     <div id="devicePosition" style="width: 100vw; height: 91vh;">
       <el-container v-if="onOff" style="height: 91vh;" v-loading="isLoging">
-        <el-aside width="auto" style="background-color: #ffffff">
+        <el-aside width="400px" style="background-color: #ffffff">
           <DeviceTree ref="deviceTree" :clickEvent="clickEvent" :contextMenuEvent="contextmenuEventHandler" ></DeviceTree>
         </el-aside>
         <el-main style="height: 91vh; padding: 0">
@@ -98,7 +98,41 @@ export default {
 
   },
   methods: {
-    clickEvent: function (device, data, isCatalog) {
+    clickEvent: function (channelId) {
+      this.$axios({
+        method: 'get',
+        url: `/api/common/channel/one`,
+        params: {
+          id: channelId,
+        }
+      }).then((res) => {
+        if (res.data.code === 0) {
+          if (!res.data.gbLongitude || res.data.gbLatitude) {
+            this.$message.error({
+              showClose: true,
+              message: "位置信息不存在"
+            })
+          }else {
+            if (this.layer != null) {
+              this.$refs.map.removeLayer(this.layer);
+            }
+            this.closeInfoBox()
+            this.layer = this.$refs.map.addLayer([{
+              position: [res.data.gbLongitude, res.data.gbLatitude],
+              image: {
+                src: this.getImageByChannel(res.data),
+                anchor: [0.5, 1]
+              },
+              data: data
+            }], this.featureClickEvent)
+            this.$refs.map.panTo([data[this.longitudeStr], data[this.latitudeStr]], mapParam.maxZoom)
+          }
+        }
+
+      }).catch(function (error) {
+        console.log(error);
+      });
+
       this.device = device;
       if (data.channelId && !isCatalog) {
         // 点击通道
@@ -252,30 +286,30 @@ export default {
     },
     getImageByChannel: function (channel) {
       let src = "static/images/gis/camera.png"
-      switch (channel.ptzType) {
+      switch (channel.gbPtzType) {
         case 1:
-          if (channel.status === 1) {
+          if (channel.gbStatus === "ON") {
             src = "static/images/gis/camera1.png"
           } else {
             src = "static/images/gis/camera1-offline.png"
           }
           break;
         case 2:
-          if (channel.status === 1) {
+          if (channel.gbStatus === "ON") {
             src = "static/images/gis/camera2.png"
           } else {
             src = "static/images/gis/camera2-offline.png"
           }
           break;
         case 3:
-          if (channel.status === 1) {
+          if (channel.gbStatus === "ON") {
             src = "static/images/gis/camera3.png"
           } else {
             src = "static/images/gis/camera3-offline.png"
           }
           break;
         default:
-          if (channel.status === 1) {
+          if (channel.gbStatus === "ON") {
             src = "static/images/gis/camera.png"
           } else {
             src = "static/images/gis/camera-offline.png"

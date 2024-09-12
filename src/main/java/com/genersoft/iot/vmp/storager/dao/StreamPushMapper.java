@@ -38,7 +38,7 @@ public interface StreamPushMapper {
     int update(StreamPushItem streamPushItem);
 
     @Delete("DELETE FROM wvp_stream_push WHERE app=#{app} AND stream=#{stream}")
-    int del(String app, String stream);
+    int del(@Param("app") String app, @Param("stream") String stream);
 
     @Delete("<script> "+
             "DELETE sp FROM wvp_stream_push sp left join wvp_gb_stream gs on sp.app = gs.app AND sp.stream = gs.stream where " +

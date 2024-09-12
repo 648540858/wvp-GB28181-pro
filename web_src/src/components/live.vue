@@ -5,15 +5,20 @@
         <DeviceTree :clickEvent="clickEvent" :contextMenuEvent="contextMenuEvent"></DeviceTree>
       </el-aside>
       <el-container>
-        <el-header height="5vh" style="text-align: left;font-size: 17px;line-height:5vh">
-          分屏:
-          <i class="iconfont icon-a-mti-1fenpingshi btn" :class="{active:spiltIndex === 0}" @click="spiltIndex=0"/>
-          <i class="iconfont icon-a-mti-4fenpingshi btn" :class="{active: spiltIndex === 1}" @click="spiltIndex=1"/>
-          <i class="iconfont icon-a-mti-6fenpingshi btn" :class="{active: spiltIndex === 2}" @click="spiltIndex=2"/>
-          <i class="iconfont icon-a-mti-9fenpingshi btn" :class="{active: spiltIndex === 3}" @click="spiltIndex=3"/>
+        <el-header height="5vh" style="font-size: 17px;line-height:5vh; display: grid; grid-template-columns: 1fr 1fr">
+          <div style="text-align: left">
+            分屏:
+            <i class="iconfont icon-a-mti-1fenpingshi btn" :class="{active:spiltIndex === 0}" @click="spiltIndex=0"/>
+            <i class="iconfont icon-a-mti-4fenpingshi btn" :class="{active: spiltIndex === 1}" @click="spiltIndex=1"/>
+            <i class="iconfont icon-a-mti-6fenpingshi btn" :class="{active: spiltIndex === 2}" @click="spiltIndex=2"/>
+            <i class="iconfont icon-a-mti-9fenpingshi btn" :class="{active: spiltIndex === 3}" @click="spiltIndex=3"/>
+          </div>
+          <div style="text-align: right">
+            <i class="iconfont icon-quanping1 btn" @click="fullScreen()"/>
+          </div>
         </el-header>
         <el-main style="padding: 0; margin: 0 auto; background-color: #a9a8a8" >
-          <div :style="{width: '151vh', height: '85vh', display: 'grid', gridTemplateColumns: layout[spiltIndex].columns,
+          <div ref="playBox" :style="{width: '151vh', height: '85vh', display: 'grid', gridTemplateColumns: layout[spiltIndex].columns,
            gridTemplateRows: layout[spiltIndex].rows, gap: '4px', backgroundColor: '#a9a8a8'}">
             <div v-for="i in layout[spiltIndex].spilt" :key="i" class="play-box" :class="getPlayerClass(spiltIndex, i)"
                  @click="playerIdx = (i-1)">
@@ -32,6 +37,7 @@
 import uiHeader from "../layout/UiHeader.vue";
 import player from './common/jessibuca.vue'
 import DeviceTree from './common/DeviceTree.vue'
+import screenfull from "screenfull";
 
 export default {
   name: "live",
@@ -236,6 +242,11 @@ export default {
       console.log(data);
       window.localStorage.setItem('playData', JSON.stringify(data))
     },
+    fullScreen: function (){
+      if (screenfull.isEnabled) {
+        screenfull.toggle(this.$refs.playBox);
+      }
+    }
   }
 };
 </script>
@@ -255,12 +266,11 @@ export default {
 }
 
 .redborder {
-  border: 2px solid rgb(64, 158, 255) !important;
+  border: 4px solid rgb(0, 198, 255) !important;
 }
 
 .play-box {
   background-color: #000000;
-  //border: 2px solid #505050;
   display: flex;
   align-items: center;
   justify-content: center;

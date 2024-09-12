@@ -80,6 +80,10 @@ export default {
           type: 0
         }]);
       } else if (node.data.deviceId.length <= 8) {
+        if (node.data.leaf) {
+          resolve([]);
+          return
+        }
         this.$axios({
           method: 'get',
           url: `/api/region/tree/list`,

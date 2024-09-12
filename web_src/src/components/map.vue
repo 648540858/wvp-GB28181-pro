@@ -107,7 +107,10 @@ export default {
         }
       }).then((res) => {
         if (res.data.code === 0) {
-          if (!res.data.gbLongitude || res.data.gbLatitude) {
+          console.log(res.data.data)
+          console.log(res.data.data.gbLongitude)
+          console.log(res.data.data.gbLatitude)
+          if (!res.data.data.gbLongitude || !res.data.data.gbLatitude) {
             this.$message.error({
               showClose: true,
               message: "位置信息不存在"
@@ -118,45 +121,20 @@ export default {
             }
             this.closeInfoBox()
             this.layer = this.$refs.map.addLayer([{
-              position: [res.data.gbLongitude, res.data.gbLatitude],
+              position: [res.data.data.gbLongitude, res.data.data.gbLatitude],
               image: {
-                src: this.getImageByChannel(res.data),
+                src: this.getImageByChannel(res.data.data),
                 anchor: [0.5, 1]
               },
-              data: data
+              data: res.data.data
             }], this.featureClickEvent)
-            this.$refs.map.panTo([data[this.longitudeStr], data[this.latitudeStr]], mapParam.maxZoom)
+            this.$refs.map.panTo([res.data.data.gbLongitude, res.data.data.gbLatitude], mapParam.maxZoom)
           }
         }
 
       }).catch(function (error) {
         console.log(error);
       });
-
-      this.device = device;
-      if (data.channelId && !isCatalog) {
-        // 点击通道
-        if (data[this.longitudeStr] * data[this.latitudeStr] === 0) {
-          this.$message.error({
-            showClose: true,
-            message: "未获取到位置信息"
-          })
-        } else {
-          if (this.layer != null) {
-            this.$refs.map.removeLayer(this.layer);
-          }
-          this.closeInfoBox()
-          this.layer = this.$refs.map.addLayer([{
-            position: [data[this.longitudeStr], data[this.latitudeStr]],
-            image: {
-              src: this.getImageByChannel(data),
-              anchor: [0.5, 1]
-            },
-            data: data
-          }], this.featureClickEvent)
-          this.$refs.map.panTo([data[this.longitudeStr], data[this.latitudeStr]], mapParam.maxZoom)
-        }
-      }
     },
     contextmenuEventHandler: function (device, event, data, isCatalog) {
       console.log(device)

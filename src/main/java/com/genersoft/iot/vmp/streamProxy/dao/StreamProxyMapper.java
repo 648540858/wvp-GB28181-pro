@@ -84,4 +84,10 @@ public interface StreamProxyMapper {
 
     @SelectProvider(type = StreamProxyProvider.class, method = "select")
     StreamProxy select(@Param("id") int id);
+
+    @Update("UPDATE wvp_stream_proxy " +
+            "SET pulling=false, " +
+            "stream_key = null " +
+            "WHERE id=#{id}")
+    void removeStream(@Param("id")int id);
 }

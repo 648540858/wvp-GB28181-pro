@@ -209,7 +209,8 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         if (streamProxyInDb  == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "代理不存在");
         }
-        if (streamProxyMapper.update(streamProxy) > 0 && !ObjectUtils.isEmpty(streamProxy.getGbDeviceId())) {
+        int updateResult = streamProxyMapper.update(streamProxy);
+        if (updateResult > 0 && !ObjectUtils.isEmpty(streamProxy.getGbDeviceId())) {
             if (streamProxy.getGbId() > 0) {
                 gbChannelService.update(streamProxy.buildCommonGBChannel());
             }else {

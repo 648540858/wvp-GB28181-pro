@@ -1,17 +1,21 @@
 package com.genersoft.iot.vmp.gb28181.controller;
 
+import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
-import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceType;
-import com.genersoft.iot.vmp.gb28181.bean.IndustryCodeType;
-import com.genersoft.iot.vmp.gb28181.bean.NetworkIdentificationType;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelToGroupByGbDeviceParam;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelToGroupParam;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelToRegionByGbDeviceParam;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelToRegionParam;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
+import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -22,7 +26,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.sip.message.Response;
 import java.util.List;
 
 
@@ -40,6 +46,12 @@ public class CommonChannelController {
 
     @Autowired
     private IMediaServerService mediaServerService;
+
+    @Autowired
+    private IGbChannelPlayService channelPlayService;
+
+    @Autowired
+    private UserSetting userSetting;
 
 
     @Operation(summary = "查询通道信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -166,5 +178,39 @@ public class CommonChannelController {
     public void deleteChannelToGroupByGbDevice(@RequestBody ChannelToGroupByGbDeviceParam param){
         Assert.notEmpty(param.getDeviceIds(),"参数异常");
         channelService.deleteChannelToGroupByGbDevice(param.getDeviceIds());
+    }
+
+    @Operation(summary = "播放通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @GetMapping("/play")
+    public DeferredResult<WVPResult<StreamContent>> deleteChannelToGroupByGbDevice(Integer channelId){
+        Assert.notNull(channelId,"参数异常");
+        CommonGBChannel channel = channelService.getOne(channelId);
+        Assert.notNull(channel, "通道不存在");
+
+        DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
+
+        ErrorCallback<StreamInfo> callback = (code, msg, data) -> {
+            if (code == InviteErrorCode.SUCCESS.getCode()) {
+                result.setResult(WVPResult.success(new StreamContent(data)));
+            }else {
+                result.setResult(WVPResult.fail(code, msg));
+            }
+        };
+
+        if (channel.getGbDeviceDbId() != null) {
+            // 国标通道
+            channelPlayService.playGbDeviceChannel(channel, callback);
+        } else if (channel.getStreamProxyId() != null) {
+            // 拉流代理
+            channelPlayService.playProxy(channel, callback);
+        } else if (channel.getStreamPushId() != null) {
+            // 推流
+            channelPlayService.playPush(channel, null, null, callback);
+        } else {
+            // 通道数据异常
+            log.error("[点播通用通道] 通道数据异常，无法识别通道来源： {}({})", channel.getGbName(), channel.getGbDeviceId());
+            throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
+        }
+        return result;
     }
 }

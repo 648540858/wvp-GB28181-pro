@@ -1,6 +1,6 @@
 <template>
   <div id="DeviceTree">
-    <div class="page-header" style="margin-bottom: 1rem;">
+    <div v-if="showHeader" class="page-header" style="margin-bottom: 1rem;">
       <div class="page-title">业务分组</div>
       <div class="page-header-btn">
         <div style="display: inline;">
@@ -11,6 +11,7 @@
         </div>
       </div>
     </div>
+    <div v-if="showHeader" style="height: 2rem; background-color: #FFFFFF" ></div>
     <div>
       <vue-easy-tree
         class="flow-tree"
@@ -18,7 +19,7 @@
         node-key="deviceId"
         height="78vh"
         lazy
-        style="padding: 2rem 0 2rem 0.5rem"
+        style="padding: 0 0 2rem 0.5rem"
         :load="loadNode"
         :data="treeData"
         :props="props"
@@ -27,8 +28,8 @@
         @node-click="nodeClickHandler"
       >
         <span class="custom-tree-node" slot-scope="{ node, data }">
-          <span @click.stop >
-            <el-radio v-if="node.data.type === 0 && node.level > 2 " style="margin-right: 0" v-model="chooseId" @input="chooseIdChange(node.data.deviceId, node.data.businessGroup)" :label="node.data.deviceId">{{''}}</el-radio>
+          <span @click.stop v-if="edit">
+            <el-radio v-if="node.data.type === 0 && node.level > 2" style="margin-right: 0" v-model="chooseId" @input="chooseIdChange(node.data.deviceId, node.data.businessGroup)" :label="node.data.deviceId">{{''}}</el-radio>
           </span>
           <span v-if="node.data.type === 0" style="color: #409EFF" class="iconfont icon-bianzubeifen3"></span>
           <span v-if="node.data.type === 1" style="color: #409EFF" class="iconfont icon-shexiangtou2"></span>
@@ -63,7 +64,7 @@ export default {
       treeData: [],
     }
   },
-  props: ['edit', 'clickEvent', 'chooseIdChange', 'onChannelChange'],
+  props: ['edit', 'clickEvent', 'chooseIdChange', 'onChannelChange', 'showHeader'],
   created() {
   },
   methods: {
@@ -100,7 +101,9 @@ export default {
       this.$forceUpdate();
     },
     contextmenuEventHandler: function (event, data, node, element) {
-
+      if (!this.edit) {
+        return;
+      }
       console.log(node.level)
       if (node.data.type === 1) {
         data.parentId = node.parent.data.id;
@@ -356,11 +359,9 @@ export default {
       }, id);
     },
     nodeClickHandler: function (data, node, tree) {
-      console.log(data)
-      console.log(node)
-      // this.chooseId = data.id;
-      // this.chooseName = data.name;
-      // if (this.catalogIdChange)this.catalogIdChange(this.chooseId, this.chooseName);
+      if (this.clickEvent) {
+        this.clickEvent(data)
+      }
     }
   },
   destroyed() {

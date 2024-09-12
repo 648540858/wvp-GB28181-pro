@@ -9,4 +9,10 @@ import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 public interface IGbChannelPlayService {
 
     void start(CommonGBChannel channel, InviteInfo inviteInfo, Platform platform, ErrorCallback<StreamInfo> callback);
+
+    void playGbDeviceChannel(CommonGBChannel channel, ErrorCallback<StreamInfo> callback);
+
+    void playProxy(CommonGBChannel channel, ErrorCallback<StreamInfo> callback);
+
+    void playPush(CommonGBChannel channel, String platformDeviceId, String platformName, ErrorCallback<StreamInfo> callback);
 }

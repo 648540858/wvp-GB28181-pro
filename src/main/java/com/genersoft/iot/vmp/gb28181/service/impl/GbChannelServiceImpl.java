@@ -675,5 +675,4 @@ public class GbChannelServiceImpl implements IGbChannelService {
             }
         }
     }
-
 }

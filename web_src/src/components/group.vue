@@ -2,7 +2,7 @@
   <div id="region" style="width: 100%">
     <el-container v-loading="loading" >
       <el-aside width="400px" >
-        <GroupTree ref="groupTree" :edit="true" :clickEvent="treeNodeClickEvent" :chooseIdChange="chooseIdChange" :onChannelChange="getChannelList"></GroupTree>
+        <GroupTree ref="groupTree" :show-header="true" :edit="true" :clickEvent="treeNodeClickEvent" :chooseIdChange="chooseIdChange" :onChannelChange="getChannelList"></GroupTree>
       </el-aside>
       <el-main style="padding: 5px;">
         <div class="page-header">

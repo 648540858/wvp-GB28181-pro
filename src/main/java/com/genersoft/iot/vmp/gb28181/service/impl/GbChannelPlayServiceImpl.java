@@ -101,7 +101,8 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
         }
     }
 
-    private void playGbDeviceChannel(CommonGBChannel channel, ErrorCallback<StreamInfo> callback){
+    @Override
+    public void playGbDeviceChannel(CommonGBChannel channel, ErrorCallback<StreamInfo> callback){
         // 国标通道
         try {
             deviceChannelPlayService.play(channel, callback);
@@ -113,7 +114,8 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
         }
     }
 
-    private void playProxy(CommonGBChannel channel, ErrorCallback<StreamInfo> callback){
+    @Override
+    public void playProxy(CommonGBChannel channel, ErrorCallback<StreamInfo> callback){
         // 拉流代理通道
         try {
             StreamInfo streamInfo = streamProxyPlayService.start(channel.getStreamProxyId());
@@ -127,7 +129,8 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
         }
     }
 
-    private void playPush(CommonGBChannel channel, String platformDeviceId,  String platformName, ErrorCallback<StreamInfo> callback){
+    @Override
+    public void playPush(CommonGBChannel channel, String platformDeviceId, String platformName, ErrorCallback<StreamInfo> callback){
         // 推流
         try {
             streamPushPlayService.start(channel.getStreamPushId(), callback, platformDeviceId, platformName);

@@ -91,7 +91,7 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
         streamProxy.setMediaServerId(mediaServer.getId());
         streamProxy.setStreamKey(null);
         streamProxy.setPulling(false);
-        streamProxyMapper.update(streamProxy);
+        streamProxyMapper.removeStream(streamProxy.getId());
     }
 
 }

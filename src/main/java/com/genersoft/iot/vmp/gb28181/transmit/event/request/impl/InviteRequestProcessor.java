@@ -440,7 +440,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         try {
                             // 超时未收到Ack应该回复bye,当前等待时间为10秒
                             dynamicTask.startDelay(callIdHeader.getCallId(), () -> {
-                                logger.info("Ack 等待超时");
+                                logger.info("[Ack] 等待超时, {}/{}", platform.getServerGBId(), channelId);
                                 mediaServerService.releaseSsrc(mediaServerItemInUSe.getId(), sendRtpItem.getSsrc());
                                 // 回复bye
                                 try {

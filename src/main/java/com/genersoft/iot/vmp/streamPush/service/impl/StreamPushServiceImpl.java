@@ -355,24 +355,6 @@ public class StreamPushServiceImpl implements IStreamPushService {
             }
         }
 
-
-//        if (!changedStreamPushList.isEmpty()) {
-//            String type = "PUSH";
-//            int runLimit = 300;
-//            if (changedStreamPushList.size() > runLimit) {
-//                for (int i = 0; i < changedStreamPushList.size(); i += runLimit) {
-//                    int toIndex = i + runLimit;
-//                    if (i + runLimit > changedStreamPushList.size()) {
-//                        toIndex = changedStreamPushList.size();
-//                    }
-//                    List<StreamPush> streamPushItemsSub = changedStreamPushList.subList(i, toIndex);
-//                    streamPushMapper.delAll(streamPushItemsSub);
-//                }
-//            }else {
-//                streamPushMapper.delAll(changedStreamPushList);
-//            }
-//
-//        }
         Collection<MediaInfo> mediaInfos = streamInfoPushItemMap.values();
         if (!mediaInfos.isEmpty()) {
             String type = "PUSH";

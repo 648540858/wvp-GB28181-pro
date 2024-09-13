@@ -4,7 +4,6 @@ import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -83,6 +82,8 @@ public class StreamInfo implements Serializable, Cloneable{
     private double progress;
     @Schema(description = "文件下载地址（录像下载使用）")
     private DownloadFileInfo downLoadFilePath;
+    @Schema(description = "点播请求的callId")
+    private String callId;
 
     @Schema(description = "是否暂停（录像回放使用）")
     private boolean pause;
@@ -659,5 +660,13 @@ public class StreamInfo implements Serializable, Cloneable{
 
     public void setServerId(String serverId) {
         this.serverId = serverId;
+    }
+
+    public String getCallId() {
+        return callId;
+    }
+
+    public void setCallId(String callId) {
+        this.callId = callId;
     }
 }

@@ -85,6 +85,7 @@ export default {
                   }else {
                     this.downloadFile = this.streamInfo.downLoadFilePath.httpPath;
                   }
+                  this.percentage = 100
                   this.getProgressRun = false;
                   this.downloadFileClientEvent()
                 }

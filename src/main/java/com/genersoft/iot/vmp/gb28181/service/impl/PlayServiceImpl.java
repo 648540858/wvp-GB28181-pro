@@ -28,6 +28,7 @@ import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaNotFoundEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.service.IReceiveRtpServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.*;
@@ -120,6 +121,9 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private IReceiveRtpServerService receiveRtpServerService;
+
+    @Autowired
+    private ICloudRecordService cloudRecordService;
 
     /**
      * 流到来的处理
@@ -1053,8 +1057,40 @@ public class PlayServiceImpl implements IPlayService {
     @Override
     public StreamInfo getDownLoadInfo(Device device, DeviceChannel channel, String stream) {
         InviteInfo inviteInfo = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, channel.getId(), stream);
+        if (inviteInfo == null) {
+            String app = "rtp";
+            StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(app, stream);
+            if (streamAuthorityInfo != null) {
+                List<CloudRecordItem> allList = cloudRecordService.getAllList(null, app, stream, null, null, null, streamAuthorityInfo.getCallId(), null);
+                if (allList.isEmpty()) {
+                    log.warn("[获取下载进度] 未查询到录像下载的信息 {}/{}-{}", device.getDeviceId(), channel.getDeviceId(), stream);
+                    return null;
+                }
+                String filePath = allList.get(0).getFilePath();
+                if (filePath == null) {
+                    log.warn("[获取下载进度] 未查询到录像下载的文件路径 {}/{}-{}", device.getDeviceId(), channel.getDeviceId(), stream);
+                    return null;
+                }
+                String mediaServerId = allList.get(0).getMediaServerId();
+                MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+                if (mediaServer == null) {
+                    log.warn("[获取下载进度] 未查询到录像下载的节点信息 {}/{}-{}", device.getDeviceId(), channel.getDeviceId(), stream);
+                    return null;
+                }
+                log.warn("[获取下载进度] 发现下载已经结束，直接从数据库获取到文件 {}/{}-{}", device.getDeviceId(), channel.getDeviceId(), stream);
+                DownloadFileInfo downloadFileInfo = CloudRecordUtils.getDownloadFilePath(mediaServer, filePath);
+                StreamInfo streamInfo = new StreamInfo();
+                streamInfo.setDownLoadFilePath(downloadFileInfo);
+                streamInfo.setApp(app);
+                streamInfo.setStream(stream);
+                streamInfo.setServerId(mediaServerId);
+                streamInfo.setProgress(1.0);
+                return streamInfo;
+            }
+        }
+
         if (inviteInfo == null || inviteInfo.getStreamInfo() == null) {
-            log.warn("[获取下载进度] 未查询到录像下载的信息");
+            log.warn("[获取下载进度] 未查询到录像下载的信息 {}/{}-{}", device.getDeviceId(), channel.getDeviceId(), stream);
             return null;
         }
 

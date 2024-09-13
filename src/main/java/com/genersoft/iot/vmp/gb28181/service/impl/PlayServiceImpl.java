@@ -226,6 +226,15 @@ public class PlayServiceImpl implements IPlayService {
                     }
                 }
             }
+        }else if ("rtp".equals(event.getApp())) {
+            // 释放ssrc
+            InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, event.getStream());
+            if (inviteInfo != null && inviteInfo.getStatus() == InviteSessionStatus.ok
+                    && inviteInfo.getStreamInfo() != null && inviteInfo.getSsrcInfo() != null) {
+                // 发送bye
+                stop(inviteInfo);
+            }
+
         }
     }
 
@@ -286,7 +295,7 @@ public class PlayServiceImpl implements IPlayService {
             log.warn("[点播] 单端口收流时不支持TCP主动方式收流 deviceId: {},channelId:{}", deviceId, channelId);
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "单端口收流时不支持TCP主动方式收流");
         }
-        DeviceChannel channel = deviceChannelService.getOne(deviceId, channelId);
+        DeviceChannel channel = deviceChannelService.getOneForSource(deviceId, channelId);
         if (channel == null) {
             log.warn("[点播] 未找到通道 deviceId: {},channelId:{}", deviceId, channelId);
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到通道");
@@ -1529,24 +1538,56 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public void stopPlay(Device device, DeviceChannel channel) {
-        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
+    public void stop(InviteSessionType type, Device device, DeviceChannel channel, String stream) {
+        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(type, stream);
         if (inviteInfo == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "点播未找到");
         }
         if (InviteSessionStatus.ok == inviteInfo.getStatus()) {
             try {
-                log.info("[停止点播] {}/{}", device.getDeviceId(), channel.getDeviceId());
+                log.info("[停止点播/回放/下载] {}/{}", device.getDeviceId(), channel.getDeviceId());
                 cmder.streamByeCmd(device, channel.getDeviceId(), inviteInfo.getStream(), null, null);
             } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
-                log.error("[命令发送失败] 停止点播， 发送BYE: {}", e.getMessage());
+                log.error("[命令发送失败] 停止点播/回放/下载， 发送BYE: {}", e.getMessage());
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
             }
         }
-        inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
-        deviceChannelService.stopPlay(channel.getId());
+        inviteStreamService.removeInviteInfoByDeviceAndChannel(inviteInfo.getType(), channel.getId());
+        if (inviteInfo.getType() == InviteSessionType.PLAY) {
+            deviceChannelService.stopPlay(channel.getId());
+        }
         if (inviteInfo.getStreamInfo() != null) {
-            mediaServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServer(), inviteInfo.getStream());
+            receiveRtpServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServer(), inviteInfo.getSsrcInfo());
+        }
+    }
+
+    @Override
+    public void stop(InviteInfo inviteInfo) {
+        Assert.notNull(inviteInfo, "参数异常");
+        DeviceChannel channel = deviceChannelService.getOneForSourceById(inviteInfo.getChannelId());
+        if (channel == null) {
+            log.warn("[停止点播] 发现通道不存在");
+            return;
+        }
+        Device device = deviceService.getDevice(channel.getDeviceDbId());
+        if (device == null) {
+            log.warn("[停止点播] 发现设备不存在");
+            return;
+        }
+        if (InviteSessionStatus.ok == inviteInfo.getStatus()) {
+            try {
+                log.info("[停止点播/回放/下载] {}/{}", device.getDeviceId(), channel.getDeviceId());
+                cmder.streamByeCmd(device, channel.getDeviceId(), inviteInfo.getStream(), null, null);
+            } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
+                log.warn("[命令发送失败] 停止点播/回放/下载， 发送BYE: {}", e.getMessage());
+            }
+        }
+        inviteStreamService.removeInviteInfoByDeviceAndChannel(inviteInfo.getType(), channel.getId());
+        if (inviteInfo.getType() == InviteSessionType.PLAY) {
+            deviceChannelService.stopPlay(channel.getId());
+        }
+        if (inviteInfo.getStreamInfo() != null) {
+            receiveRtpServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServer(), inviteInfo.getSsrcInfo());
         }
     }
 

@@ -165,11 +165,11 @@ public class PlayController {
 		}
 
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		DeviceChannel channel = deviceChannelService.getOne(deviceId, channelId);
+		DeviceChannel channel = deviceChannelService.getOneForSource(deviceId, channelId);
 		Assert.notNull(device, "设备不存在");
 		Assert.notNull(channel, "通道不存在");
-
-		playService.stopPlay(device, channel);
+		String streamId = String.format("%s_%s", device.getDeviceId(), channel.getDeviceId());
+		playService.stop(InviteSessionType.PLAY, device, channel, streamId);
 		JSONObject json = new JSONObject();
 		json.put("deviceId", deviceId);
 		json.put("channelId", channelId);

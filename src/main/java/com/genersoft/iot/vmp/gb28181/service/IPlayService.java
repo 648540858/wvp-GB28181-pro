@@ -1,14 +1,16 @@
 package com.genersoft.iot.vmp.gb28181.service;
 
+import com.genersoft.iot.vmp.common.InviteInfo;
+import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ServiceException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.controller.bean.AudioBroadcastEvent;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
-import com.genersoft.iot.vmp.gb28181.controller.bean.AudioBroadcastEvent;
 import gov.nist.javax.sip.message.SIPResponse;
 
 import javax.sip.InvalidArgumentException;
@@ -58,11 +60,14 @@ public interface IPlayService {
 
     void getSnap(String deviceId, String channelId, String fileName, ErrorCallback errorCallback);
 
-    void stopPlay(Device device, DeviceChannel channel);
+    void stop(InviteSessionType type, Device device, DeviceChannel channel, String stream);
+
+    void stop(InviteInfo inviteInfo);
 
     void play(CommonGBChannel channel, ErrorCallback<StreamInfo> callback);
 
     void playBack(CommonGBChannel channel, Long startTime, Long stopTime, ErrorCallback<StreamInfo> callback);
 
     void download(CommonGBChannel channel, Long startTime, Long stopTime, Integer downloadSpeed, ErrorCallback<StreamInfo> callback);
+
 }

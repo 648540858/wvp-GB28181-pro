@@ -253,6 +253,15 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
+    public DeviceChannel getOneForSource(String deviceId, String channelId){
+        Device device = deviceMapper.getDeviceByDeviceId(deviceId);
+        if (device == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备：" + deviceId);
+        }
+        return channelMapper.getOneByDeviceIdForSource(device.getId(), channelId);
+    }
+
+    @Override
     public synchronized void batchUpdateChannel(List<DeviceChannel> channels) {
         String now = DateUtil.getNow();
         for (DeviceChannel channel : channels) {
@@ -593,6 +602,11 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     @Override
     public DeviceChannel getOneById(Integer channelId) {
         return channelMapper.getOne(channelId);
+    }
+
+    @Override
+    public DeviceChannel getOneForSourceById(Integer channelId) {
+        return channelMapper.getOneForSource(channelId);
     }
 
     @Override

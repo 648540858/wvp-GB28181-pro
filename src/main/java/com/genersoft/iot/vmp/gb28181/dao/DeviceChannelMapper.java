@@ -755,6 +755,57 @@ public interface DeviceChannelMapper {
             " gps_time,\n" +
             " stream_identification,\n" +
             " channel_type,\n" +
+            " device_id,\n" +
+            " name,\n" +
+            " manufacturer,\n" +
+            " model,\n" +
+            " owner,\n" +
+            " civil_code,\n" +
+            " block,\n" +
+            " address,\n" +
+            " parental,\n" +
+            " parent_id,\n" +
+            " safety_way,\n" +
+            " register_way,\n" +
+            " cert_num,\n" +
+            " certifiable,\n" +
+            " err_code,\n" +
+            " end_time,\n" +
+            " secrecy,\n" +
+            " ip_address,\n" +
+            " port,\n" +
+            " password,\n" +
+            " status,\n" +
+            " longitude,\n" +
+            " latitude,\n" +
+            " ptz_type,\n" +
+            " position_type,\n" +
+            " room_type,\n" +
+            " use_type,\n" +
+            " supply_light_type,\n" +
+            " direction_type,\n" +
+            " resolution,\n" +
+            " business_group_id,\n" +
+            " download_speed,\n" +
+            " svc_space_support_mod,\n" +
+            " svc_time_support_mode\n" +
+            " from wvp_device_channel " +
+            " where id=#{id}" +
+            " </script>"})
+    DeviceChannel getOneForSource(@Param("id") int id);
+
+    @Select(value = {" <script>" +
+            " SELECT " +
+            " id,\n" +
+            " device_db_id,\n" +
+            " create_time,\n" +
+            " update_time,\n" +
+            " sub_count,\n" +
+            " stream_id,\n" +
+            " has_audio,\n" +
+            " gps_time,\n" +
+            " stream_identification,\n" +
+            " channel_type,\n" +
             " coalesce(gb_device_id, device_id) as device_id,\n" +
             " coalesce(gb_name, name) as name,\n" +
             " coalesce(gb_manufacturer, manufacturer) as manufacturer,\n" +
@@ -793,6 +844,58 @@ public interface DeviceChannelMapper {
             " where device_db_id=#{deviceDbId} and coalesce(gb_device_id, device_id) = #{channelId}" +
             " </script>"})
     DeviceChannel getOneByDeviceId(@Param("deviceDbId") int deviceDbId, @Param("channelId") String channelId);
+
+
+    @Select(value = {" <script>" +
+            " SELECT " +
+            " id,\n" +
+            " device_db_id,\n" +
+            " create_time,\n" +
+            " update_time,\n" +
+            " sub_count,\n" +
+            " stream_id,\n" +
+            " has_audio,\n" +
+            " gps_time,\n" +
+            " stream_identification,\n" +
+            " channel_type,\n" +
+            " device_id,\n" +
+            " name,\n" +
+            " manufacturer,\n" +
+            " model,\n" +
+            " owner,\n" +
+            " civil_code,\n" +
+            " block,\n" +
+            " address,\n" +
+            " parental,\n" +
+            " parent_id,\n" +
+            " safety_way,\n" +
+            " register_way,\n" +
+            " cert_num,\n" +
+            " certifiable,\n" +
+            " err_code,\n" +
+            " end_time,\n" +
+            " secrecy,\n" +
+            " ip_address,\n" +
+            " port,\n" +
+            " password,\n" +
+            " status,\n" +
+            " longitude,\n" +
+            " latitude,\n" +
+            " ptz_type,\n" +
+            " position_type,\n" +
+            " room_type,\n" +
+            " use_type,\n" +
+            " supply_light_type,\n" +
+            " direction_type,\n" +
+            " resolution,\n" +
+            " business_group_id,\n" +
+            " download_speed,\n" +
+            " svc_space_support_mod,\n" +
+            " svc_time_support_mode\n" +
+            " from wvp_device_channel " +
+            " where device_db_id=#{deviceDbId} and coalesce(gb_device_id, device_id) = #{channelId}" +
+            " </script>"})
+    DeviceChannel getOneByDeviceIdForSource(@Param("deviceDbId") int deviceDbId, @Param("channelId") String channelId);
 
 
     @Update(value = {"UPDATE wvp_device_channel SET stream_id=null WHERE id=#{channelId}"})

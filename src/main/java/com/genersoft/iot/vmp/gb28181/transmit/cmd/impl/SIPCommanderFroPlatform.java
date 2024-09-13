@@ -360,7 +360,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         if (parentPlatform == null) {
             return;
         }
-        log.info("[发送 移动位置订阅] {}/{}->{},{}", parentPlatform.getServerGBId(), gpsMsgInfo.getChannelId(), gpsMsgInfo.getLng(), gpsMsgInfo.getLat());
+        if (log.isDebugEnabled()) {
+            log.info("[发送 移动位置订阅] {}/{}->{},{}", parentPlatform.getServerGBId(), gpsMsgInfo.getChannelId(), gpsMsgInfo.getLng(), gpsMsgInfo.getLat());
+        }
 
         String characterSet = parentPlatform.getCharacterSet();
         StringBuffer deviceStatusXml = new StringBuffer(600);

@@ -1,13 +1,15 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.common.InviteInfo;
+import com.genersoft.iot.vmp.common.InviteSessionStatus;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
-import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.service.*;
+import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
@@ -30,10 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import javax.sip.InvalidArgumentException;
-import javax.sip.SipException;
-import java.text.ParseException;
-import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -57,6 +55,9 @@ public class MediaServiceImpl implements IMediaService {
 
     @Autowired
     private IInviteStreamService inviteStreamService;
+
+    @Autowired
+    private SSRCFactory ssrcFactory;
 
     @Autowired
     private IDeviceChannelService deviceChannelService;
@@ -228,7 +229,7 @@ public class MediaServiceImpl implements IMediaService {
             // 国标流， 点播/录像回放/录像下载
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, stream);
             // 点播
-            if (inviteInfo != null) {
+            if (inviteInfo != null && inviteInfo.getStatus() == InviteSessionStatus.ok) {
                 // 录像下载
                 if (inviteInfo.getType() == InviteSessionType.DOWNLOAD) {
                     return false;
@@ -237,54 +238,8 @@ public class MediaServiceImpl implements IMediaService {
                 if (deviceChannel == null) {
                     return false;
                 }
-                // 收到无人观看说明流也没有在往上级推送
-                if (sendRtpServerService.isChannelSendingRTP(deviceChannel.getId())) {
-                    List<SendRtpInfo> sendRtpItems = sendRtpServerService.queryByChannelId(deviceChannel.getId());
-                    if (!sendRtpItems.isEmpty()) {
-                        for (SendRtpInfo sendRtpItem : sendRtpItems) {
-                            Platform parentPlatform = platformService.queryPlatformByServerGBId(sendRtpItem.getTargetId());
-                            CommonGBChannel channel = channelService.getOne(sendRtpItem.getChannelId());
-                            if (channel == null) {
-                                continue;
-                            }
-                            try {
-                                commanderForPlatform.streamByeCmd(parentPlatform, sendRtpItem, channel);
-                            } catch (SipException | InvalidArgumentException | ParseException e) {
-                                log.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
-                            }
-                            sendRtpServerService.delete(sendRtpItem);
-                            if (InviteStreamType.PUSH == sendRtpItem.getPlayType()) {
-                                redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem, parentPlatform, channel);
-                                redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem, parentPlatform, channel);
-                            }
-                        }
-                    }
-                }
-                Device device = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
-                if (device != null) {
-                    try {
-                        DeviceChannel channel = deviceChannelService.getOneById(inviteInfo.getChannelId());
-                        // 多查询一次防止已经被处理了
-                        InviteInfo info = inviteStreamService.getInviteInfo(inviteInfo.getType(), inviteInfo.getChannelId(), inviteInfo.getStream());
-                        if (info != null && channel != null) {
-                            commander.streamByeCmd(device, channel.getDeviceId(), inviteInfo.getStream(), null);
-                        } else {
-                            log.info("[无人观看] 未找到设备的点播信息： {}， 流：{}", inviteInfo.getDeviceId(), stream);
-                        }
-                    } catch (InvalidArgumentException | ParseException | SipException |
-                             SsrcTransactionNotFoundException e) {
-                        log.error("[无人观看]点播， 发送BYE失败 {}", e.getMessage());
-                    }
-                } else {
-                    log.info("[无人观看] 未找到设备： {}，流：{}", inviteInfo.getDeviceId(), stream);
-                }
-
-                inviteStreamService.removeInviteInfo(inviteInfo.getType(), inviteInfo.getChannelId(), inviteInfo.getStream());
-                deviceChannelService.stopPlay(inviteInfo.getChannelId());
                 return result;
-            }
-            List<SendRtpInfo> sendRtpItemList = sendRtpServerService.queryByStream(stream);
-            if (!sendRtpItemList.isEmpty()) {
+            }else {
                 return false;
             }
         } else if ("talk".equals(app) || "broadcast".equals(app)) {
@@ -296,20 +251,21 @@ public class MediaServiceImpl implements IMediaService {
             if (streamProxy != null) {
                 if (streamProxy.isEnableRemoveNoneReader()) {
                     // 无人观看自动移除
-                    result = true;
                     streamProxyService.delteByAppAndStream(app, stream);
                     log.info("[{}/{}]<-[{}] 拉流代理无人观看已经移除", app, stream, streamProxy.getSrcUrl());
+                    return true;
                 } else if (streamProxy.isEnableDisableNoneReader()) {
                     // 无人观看停用
-                    result = true;
                     // 修改数据
                     streamProxyService.stopByAppAndStream(app, stream);
+                    return true;
                 } else {
                     // 无人观看不做处理
-                    result = false;
+                    return false;
                 }
+            }else {
+                return false;
             }
         }
-        return result;
     }
 }

@@ -70,6 +70,8 @@ public interface IDeviceChannelService {
      */
     DeviceChannel getOne(String deviceId, String channelId);
 
+    DeviceChannel getOneForSource(String deviceId, String channelId);
+
     /**
      * 直接批量更新通道
      */
@@ -119,6 +121,8 @@ public interface IDeviceChannelService {
     DeviceChannel getRawChannel(int id);
 
     DeviceChannel getOneById(Integer channelId);
+
+    DeviceChannel getOneForSourceById(Integer channelId);
 
     DeviceChannel getBroadcastChannel(int deviceDbId);
 }

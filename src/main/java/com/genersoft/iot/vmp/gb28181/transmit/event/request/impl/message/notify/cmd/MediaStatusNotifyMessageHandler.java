@@ -2,11 +2,14 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify
 
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
-import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
-import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
+import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
+import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
@@ -71,6 +74,9 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
     private IDeviceChannelService deviceChannelService;
 
     @Autowired
+    private IPlayService playService;
+
+    @Autowired
     private ISendRtpServerService sendRtpServerService;
 
     @Override
@@ -96,19 +102,8 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
             if (ssrcTransaction != null) {
                 log.info("[录像流]推送完毕，关流通知， device: {}, channelId: {}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
                 InviteInfo inviteInfo = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
-                if (inviteInfo.getStreamInfo() != null) {
-                    inviteInfo.getStreamInfo().setProgress(1);
-                    inviteStreamService.updateInviteInfo(inviteInfo);
-                }
-                DeviceChannel deviceChannel = deviceChannelService.getOneById(ssrcTransaction.getChannelId());
-                if (deviceChannel == null) {
-                    log.warn("[级联消息发送]：未找到国标设备通道: {}", ssrcTransaction.getChannelId());
-                    return;
-                }
-                try {
-                    cmder.streamByeCmd(device, deviceChannel.getDeviceId(), null, callIdHeader.getCallId());
-                } catch (InvalidArgumentException | ParseException  | SipException | SsrcTransactionNotFoundException e) {
-                    log.error("[录像流]推送完毕，收到关流通知， 发送BYE失败 {}", e.getMessage());
+                if (inviteInfo != null) {
+                    playService.stop(inviteInfo);
                 }
                 // 去除监听流注销自动停止下载的监听
                 Hook hook = Hook.getInstance(HookType.on_media_arrival, "rtp", ssrcTransaction.getStream(), ssrcTransaction.getMediaServerId());

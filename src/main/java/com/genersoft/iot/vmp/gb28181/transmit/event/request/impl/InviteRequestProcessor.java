@@ -198,7 +198,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         String content = createSendSdp(sendRtpItem, inviteInfo, sdpIp);
                         // 超时未收到Ack应该回复bye,当前等待时间为10秒
                         dynamicTask.startDelay(inviteInfo.getCallId(), () -> {
-                            log.info("Ack 等待超时");
+                            log.info("[Ack ] 等待超时, {}/{}", inviteInfo.getCallId(), channel.getGbDeviceId());
                             mediaServerService.releaseSsrc(streamInfo.getMediaServer().getId(), sendRtpItem.getSsrc());
                             // 回复bye
                             sendBye(platform, inviteInfo.getCallId());

@@ -538,6 +538,54 @@ public interface DeviceChannelMapper {
             " from wvp_device_channel where device_db_id = #{deviceDbId}")
     List<DeviceChannel> queryAllChannels(@Param("deviceDbId") int deviceDbId);
 
+    @Select("select " +
+            " id,\n" +
+            " device_db_id,\n" +
+            " create_time,\n" +
+            " update_time,\n" +
+            " sub_count,\n" +
+            " stream_id,\n" +
+            " has_audio,\n" +
+            " gps_time,\n" +
+            " stream_identification,\n" +
+            " channel_type,\n" +
+            " device_id,\n" +
+            " name,\n" +
+            " manufacturer,\n" +
+            " model,\n" +
+            " owner,\n" +
+            " civil_code,\n" +
+            " block,\n" +
+            " address,\n" +
+            " parental,\n" +
+            " parent_id,\n" +
+            " safety_way,\n" +
+            " register_way,\n" +
+            " cert_num,\n" +
+            " certifiable,\n" +
+            " err_code,\n" +
+            " end_time,\n" +
+            " secrecy,\n" +
+            " ip_address,\n" +
+            " port,\n" +
+            " password,\n" +
+            " status,\n" +
+            " longitude,\n" +
+            " latitude,\n" +
+            " ptz_type,\n" +
+            " position_type,\n" +
+            " room_type,\n" +
+            " use_type,\n" +
+            " supply_light_type,\n" +
+            " direction_type,\n" +
+            " resolution,\n" +
+            " business_group_id,\n" +
+            " download_speed,\n" +
+            " svc_space_support_mod,\n" +
+            " svc_time_support_mode\n" +
+            " from wvp_device_channel where device_db_id = #{deviceDbId}")
+    List<DeviceChannel> queryAllChannelsForRefresh(@Param("deviceDbId") int deviceDbId);
+
     @Select("select de.* from wvp_device de left join wvp_device_channel dc on de.device_id = dc.deviceId where dc.device_id=#{channelId}")
     List<Device> getDeviceByChannelDeviceId(String channelId);
 

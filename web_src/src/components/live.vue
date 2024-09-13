@@ -14,7 +14,7 @@
             <i class="iconfont icon-a-mti-9fenpingshi btn" :class="{active: spiltIndex === 3}" @click="spiltIndex=3"/>
           </div>
           <div style="text-align: right">
-            <i class="iconfont icon-quanping1 btn" @click="fullScreen()"/>
+            <i class="el-icon-full-screen btn" @click="fullScreen()"/>
           </div>
         </el-header>
         <el-main style="padding: 0; margin: 0 auto; background-color: #a9a8a8" >

@@ -147,7 +147,6 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
 
     @Override
     public void closeRTPServer(MediaServer mediaServer, SSRCInfo ssrcInfo) {
-        System.out.println(4444);
         if (mediaServer == null) {
             return;
         }

@@ -235,6 +235,12 @@ public class ZLMMediaServerStatusManger {
         if (mediaServerItem.getRtpProxyPort() == 0) {
             mediaServerItem.setRtpProxyPort(zlmServerConfig.getRtpProxyPort());
         }
+        if (mediaServerItem.getFlvSSLPort() == 0) {
+            mediaServerItem.setFlvSSLPort(zlmServerConfig.getHttpSSLport());
+        }
+        if (mediaServerItem.getWsFlvSSLPort() == 0) {
+            mediaServerItem.setWsFlvSSLPort(zlmServerConfig.getHttpSSLport());
+        }
         mediaServerItem.setHookAliveInterval(10F);
     }
 

@@ -493,6 +493,8 @@ public class DeviceServiceImpl implements IDeviceService {
         device.setOnLine(false);
         device.setCreateTime(DateUtil.getNow());
         device.setUpdateTime(DateUtil.getNow());
+        // 添加设备默认流媒体格式为UDP
+        device.setStreamMode("UDP");
         deviceMapper.addCustomDevice(device);
     }
 

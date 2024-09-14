@@ -272,6 +272,7 @@ public interface DeviceMapper {
             "broadcast_push_after_ack,"+
             "geo_coord_sys,"+
             "on_line,"+
+            "stream_mode,"+
             "media_server_id"+
             ") VALUES (" +
             "#{deviceId}," +
@@ -286,6 +287,7 @@ public interface DeviceMapper {
             "#{broadcastPushAfterAck}," +
             "#{geoCoordSys}," +
             "#{onLine}," +
+            "#{streamMode}," +
             "#{mediaServerId}" +
             ")")
     void addCustomDevice(Device device);

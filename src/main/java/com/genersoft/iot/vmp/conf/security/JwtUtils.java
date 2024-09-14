@@ -29,6 +29,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -108,6 +109,69 @@ public class JwtUtils implements InitializingBean {
         return rsaJsonWebKey;
     }
 
+    /**
+     * 从token中获取用户名
+     *
+     */
+    public static String getUserNameFromToken(String token){
+        String username = null;
+
+        JwtUser jwtUser = new JwtUser();
+
+        try {
+            JwtConsumer consumer = new JwtConsumerBuilder()
+                    .setAllowedClockSkewInSeconds(30)
+                    .setRequireSubject()
+                    .setExpectedAudience(AUDIENCE)
+                    .setVerificationKey(rsaJsonWebKey.getPublicKey())
+                    .build();
+
+            JwtClaims claims = consumer.processToClaims(token);
+            NumericDate expirationTime = claims.getExpirationTime();
+            if (expirationTime != null) {
+                // 判断是否即将过期, 默认剩余时间小于5分钟未即将过期
+                // 剩余时间 （秒）
+                long timeRemaining = LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(8)) - expirationTime.getValue();
+                if (timeRemaining < 5 * 60) {
+                    jwtUser.setStatus(JwtUser.TokenStatus.EXPIRING_SOON);
+                } else {
+                    jwtUser.setStatus(JwtUser.TokenStatus.NORMAL);
+                }
+            } else {
+                jwtUser.setStatus(JwtUser.TokenStatus.NORMAL);
+            }
+
+            Long apiKeyId = claims.getClaimValue("apiKeyId", Long.class);
+            if (apiKeyId != null) {
+                UserApiKey userApiKey = userApiKeyService.getUserApiKeyById(apiKeyId.intValue());
+                if (userApiKey == null || !userApiKey.isEnable()) {
+                    jwtUser.setStatus(JwtUser.TokenStatus.EXPIRED);
+                }
+            }
+
+            username = (String) claims.getClaimValue("userName");
+            User user = userService.getUserByUsername(username);
+
+            jwtUser.setUserName(username);
+            jwtUser.setPassword(user.getPassword());
+            jwtUser.setRoleId(user.getRole().getId());
+            jwtUser.setUserId(user.getId());
+
+            return username;
+        } catch (InvalidJwtException e) {
+            if (e.hasErrorCode(ErrorCodes.EXPIRED)) {
+                jwtUser.setStatus(JwtUser.TokenStatus.EXPIRED);
+            } else {
+                jwtUser.setStatus(JwtUser.TokenStatus.EXCEPTION);
+            }
+            return username;
+        } catch (Exception e) {
+            logger.error("[Token解析失败]： {}", e.getMessage());
+            jwtUser.setStatus(JwtUser.TokenStatus.EXPIRED);
+            return username;
+        }
+    }
+
     public static String createToken(String username, Long expirationTime, Map<String, Object> extra) {
         try {
             /*
@@ -176,13 +240,12 @@ public class JwtUtils implements InitializingBean {
                     .setExpectedAudience(AUDIENCE)
                     .setVerificationKey(rsaJsonWebKey.getPublicKey())
                     .build();
-
             JwtClaims claims = consumer.processToClaims(token);
             NumericDate expirationTime = claims.getExpirationTime();
             if (expirationTime != null) {
                 // 判断是否即将过期, 默认剩余时间小于5分钟未即将过期
                 // 剩余时间 （秒）
-                long timeRemaining = LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(8)) - expirationTime.getValue();
+                long timeRemaining = expirationTime.getValue() - LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(8));
                 if (timeRemaining < 5 * 60) {
                     jwtUser.setStatus(JwtUser.TokenStatus.EXPIRING_SOON);
                 } else {

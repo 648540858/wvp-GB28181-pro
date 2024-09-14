@@ -396,7 +396,7 @@ public class DeviceServiceImpl implements IDeviceService {
 
         String now = DateUtil.getNow();
         device.setUpdateTime(now);
-        device.setCharset(device.getCharset().toUpperCase());
+        device.setCharset(device.getCharset() == null ? "" : device.getCharset().toUpperCase());
         device.setUpdateTime(DateUtil.getNow());
         if (deviceMapper.update(device) > 0) {
             redisCatchStorage.updateDevice(device);

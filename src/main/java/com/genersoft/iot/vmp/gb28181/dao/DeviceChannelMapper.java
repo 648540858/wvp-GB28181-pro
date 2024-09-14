@@ -612,7 +612,7 @@ public interface DeviceChannelMapper {
     int batchOffline(List<DeviceChannel> channels);
 
 
-    @Select("select count(1) from wvp_device_channel where status = true")
+    @Select("select count(1) from wvp_device_channel where status = 'ON'")
     int getOnlineCount();
 
     @Select("select count(1) from wvp_device_channel")

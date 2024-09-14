@@ -97,7 +97,7 @@ public interface IRedisCatchStorage {
 
     void updateGpsMsgInfo(GPSMsgInfo gpsMsgInfo);
 
-    GPSMsgInfo getGpsMsgInfo(String gbId);
+    GPSMsgInfo getGpsMsgInfo(Integer gbId);
     List<GPSMsgInfo> getAllGpsMsgInfo();
 
     Long getSN(String method);

@@ -253,8 +253,8 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public GPSMsgInfo getGpsMsgInfo(String gbId) {
-        String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetting.getServerId() + "_" + gbId;
+    public GPSMsgInfo getGpsMsgInfo(Integer channelId) {
+        String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetting.getServerId() + "_" + channelId;
         return JsonUtil.redisJsonToObject(redisTemplate, key, GPSMsgInfo.class);
     }
 

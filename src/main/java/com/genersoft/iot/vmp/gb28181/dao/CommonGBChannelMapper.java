@@ -154,13 +154,13 @@ public interface CommonGBChannelMapper {
 
     @Update("<script> " +
             "<foreach collection='commonGBChannels' index='index' item='item' separator=';'> " +
-            "UPDATE wvp_device_channel SET gb_status = #{gbStatus} WHERE id = #{item.gbId}" +
+            "UPDATE wvp_device_channel SET gb_status = #{status} WHERE id = #{item.gbId}" +
             "</foreach> " +
             "</script>")
-    int updateStatusForListById(List<CommonGBChannel> commonGBChannels, @Param("status") int status);
+    int updateStatusForListById(List<CommonGBChannel> commonGBChannels, @Param("status") String status);
 
     @SelectProvider(type = ChannelProvider.class, method = "queryInListByStatus")
-    List<CommonGBChannel> queryInListByStatus(List<CommonGBChannel> commonGBChannelList, @Param("status") int status);
+    List<CommonGBChannel> queryInListByStatus(List<CommonGBChannel> commonGBChannelList, @Param("status") String status);
 
 
     @Insert(" <script>" +
@@ -411,7 +411,7 @@ public interface CommonGBChannelMapper {
             ", gb_download_speed=#{item.gbDownloadSpeed}" +
             ", gb_svc_space_support_mod=#{item.gbSvcSpaceSupportMod}" +
             ", gb_svc_time_support_mode=#{item.gbSvcTimeSupportMode}" +
-            " WHERE id=#{item.id}" +
+            " WHERE id=#{item.gbId}" +
             "</foreach>" +
             "</script>"})
     int batchUpdate(List<CommonGBChannel> commonGBChannels);

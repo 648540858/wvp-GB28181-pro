@@ -51,7 +51,7 @@ public class CommonGBChannel {
 
     // 2016
     @Schema(description = "国标-证书序列号")
-    private Integer gbCertNum;
+    private String gbCertNum;
 
     // 2016
     @Schema(description = "国标-证书有效标识")
@@ -63,7 +63,7 @@ public class CommonGBChannel {
 
     // 2016
     @Schema(description = "国标-证书终止有效期(有证书且证书无效的设备必选)")
-    private Integer gbEndTime;
+    private String gbEndTime;
 
     // 2022
     @Schema(description = "国标-摄像机安全能力等级代码")

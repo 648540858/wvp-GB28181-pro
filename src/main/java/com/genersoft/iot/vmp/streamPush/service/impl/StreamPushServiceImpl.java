@@ -542,16 +542,14 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Override
     public void batchUpdate(List<StreamPush> streamPushItemForUpdate) {
-        int result = streamPushMapper.batchUpdate(streamPushItemForUpdate);
-        if (result > 0) {
-            List<CommonGBChannel> commonGBChannels = new ArrayList<>();
-            for (StreamPush streamPush : streamPushItemForUpdate) {
-                if (!ObjectUtils.isEmpty(streamPush.getGbDeviceId())) {
-                    commonGBChannels.add(streamPush.buildCommonGBChannel());
-                }
+        streamPushMapper.batchUpdate(streamPushItemForUpdate);
+        List<CommonGBChannel> commonGBChannels = new ArrayList<>();
+        for (StreamPush streamPush : streamPushItemForUpdate) {
+            if (!ObjectUtils.isEmpty(streamPush.getGbDeviceId())) {
+                commonGBChannels.add(streamPush.buildCommonGBChannel());
             }
-            gbChannelService.batchUpdate(commonGBChannels);
         }
+        gbChannelService.batchUpdate(commonGBChannels);
     }
 
     @Override

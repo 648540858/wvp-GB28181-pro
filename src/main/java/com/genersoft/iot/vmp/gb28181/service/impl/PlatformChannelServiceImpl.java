@@ -376,19 +376,19 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         }
         List<CommonGBChannel> channelList = new ArrayList<>();
         // 是否包含平台信息
-        if (platform.getCatalogWithPlatform()) {
+        if (platform.getCatalogWithPlatform() > 0) {
             CommonGBChannel channel = CommonGBChannel.build(platform);
             channelList.add(channel);
         }
         // 关联的行政区划信息
-        if (platform.getCatalogWithRegion()) {
+        if (platform.getCatalogWithRegion() > 0) {
             // 查询关联平台的行政区划信息
             List<CommonGBChannel> regionChannelList = regionMapper.queryByPlatform(platform.getId());
             if (!regionChannelList.isEmpty()) {
                 channelList.addAll(regionChannelList);
             }
         }
-        if (platform.getCatalogWithGroup()) {
+        if (platform.getCatalogWithGroup() > 0) {
             // 关联的分组信息
             List<CommonGBChannel> groupChannelList =  groupMapper.queryForPlatform(platform.getId());
             if (!groupChannelList.isEmpty()) {

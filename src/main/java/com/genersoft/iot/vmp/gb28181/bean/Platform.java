@@ -97,14 +97,14 @@ public class Platform {
     @Schema(description = "是否自动推送通道变化")
     private Boolean autoPushChannel;
 
-    @Schema(description = "目录信息包含平台信息")
-    private Boolean catalogWithPlatform;
+    @Schema(description = "目录信息包含平台信息, 0：关闭，1：打开")
+    private int catalogWithPlatform;
 
-    @Schema(description = "目录信息包含分组信息")
-    private Boolean catalogWithGroup;
+    @Schema(description = "目录信息包含分组信息, 0：关闭，1：打开")
+    private int catalogWithGroup;
 
-    @Schema(description = "目录信息包含行政区划")
-    private Boolean catalogWithRegion;
+    @Schema(description = "目录信息包含行政区划, 0：关闭，1：打开")
+    private int catalogWithRegion;
 
     @Schema(description = "行政区划")
     private String civilCode;

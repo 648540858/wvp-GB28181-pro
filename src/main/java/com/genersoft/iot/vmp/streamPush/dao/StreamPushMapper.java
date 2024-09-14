@@ -103,15 +103,15 @@ public interface StreamPushMapper {
             " </script>"})
     int getAllPushing(Boolean usePushingAsStatus);
 
-    @MapKey("vhost")
-    @Select("SELECT CONCAT(wsp.app, wsp.stream) as vhost, wsp.*, wsp.* , wsp.id as gb_id " +
+    @MapKey("uniqueKey")
+    @Select("SELECT CONCAT(wsp.app, wsp.stream) as unique_key, wsp.*, wsp.* , wdc.id as gb_id " +
             " from wvp_stream_push wsp " +
             " LEFT join wvp_device_channel wdc on wsp.id = wdc.stream_push_id")
     Map<String, StreamPush> getAllAppAndStreamMap();
 
 
-    @MapKey("gb_device_id")
-    @Select("SELECT wdc.gb_device_id, wsp.id as stream_push_id, wsp.*, wsp.* , wsp.id as gb_id " +
+    @MapKey("gbDeviceId")
+    @Select("SELECT wdc.gb_device_id, wsp.id as stream_push_id, wsp.*, wsp.* , wdc.id as gb_id " +
             " from wvp_stream_push wsp " +
             " LEFT join wvp_device_channel wdc on wsp.id = wdc.stream_push_id")
     Map<String, StreamPush> getAllGBId();
@@ -150,7 +150,7 @@ public interface StreamPushMapper {
             ", push_time=#{item.pushTime}" +
             ", pushing=#{item.pushing}" +
             ", start_offline_push=#{item.startOfflinePush}" +
-            " WHERE id=#{item.item.id}" +
+            " WHERE id=#{item.id}" +
             "</foreach>" +
             "</script>"})
     int batchUpdate(List<StreamPush> streamPushItemForUpdate);

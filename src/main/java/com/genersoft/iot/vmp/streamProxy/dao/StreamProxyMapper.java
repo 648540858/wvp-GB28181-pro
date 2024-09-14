@@ -24,8 +24,6 @@ public interface StreamProxyMapper {
             "SET type=#{type}, " +
             "app=#{app}," +
             "stream=#{stream}," +
-            "app=#{app}," +
-            "stream=#{stream}," +
             "media_server_id=#{mediaServerId}, " +
             "src_url=#{srcUrl}," +
             "timeout=#{timeout}, " +

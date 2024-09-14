@@ -153,7 +153,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
             log.warn("[多个通道离线] 通道数量为0，更新失败");
             return 0;
         }
-        List<CommonGBChannel> onlineChannelList = commonGBChannelMapper.queryInListByStatus(commonGBChannelList, 1);
+        List<CommonGBChannel> onlineChannelList = commonGBChannelMapper.queryInListByStatus(commonGBChannelList, "ON");
         if (onlineChannelList.isEmpty()) {
             log.warn("[多个通道离线] 更新失败, 参数内通道已经离线");
             return 0;
@@ -166,10 +166,10 @@ public class GbChannelServiceImpl implements IGbChannelService {
                 if (i + limitCount > onlineChannelList.size()) {
                     toIndex = onlineChannelList.size();
                 }
-                result += commonGBChannelMapper.updateStatusForListById(onlineChannelList.subList(i, toIndex), 0);
+                result += commonGBChannelMapper.updateStatusForListById(onlineChannelList.subList(i, toIndex), "OFF");
             }
         } else {
-            result += commonGBChannelMapper.updateStatusForListById(onlineChannelList, 0);
+            result += commonGBChannelMapper.updateStatusForListById(onlineChannelList, "OFF");
         }
         if (result > 0) {
             try {
@@ -207,7 +207,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
             log.warn("[多个通道上线] 通道数量为0，更新失败");
             return 0;
         }
-        List<CommonGBChannel> offlineChannelList = commonGBChannelMapper.queryInListByStatus(commonGBChannelList, 0);
+        List<CommonGBChannel> offlineChannelList = commonGBChannelMapper.queryInListByStatus(commonGBChannelList, "OFF");
         if (offlineChannelList.isEmpty()) {
             log.warn("[多个通道上线] 更新失败, 参数内通道已经上线线");
             return 0;
@@ -221,10 +221,10 @@ public class GbChannelServiceImpl implements IGbChannelService {
                 if (i + limitCount > offlineChannelList.size()) {
                     toIndex = offlineChannelList.size();
                 }
-                result += commonGBChannelMapper.updateStatusForListById(offlineChannelList.subList(i, toIndex), 1);
+                result += commonGBChannelMapper.updateStatusForListById(offlineChannelList.subList(i, toIndex), "ON");
             }
         } else {
-            result += commonGBChannelMapper.updateStatusForListById(offlineChannelList, 1);
+            result += commonGBChannelMapper.updateStatusForListById(offlineChannelList, "ON");
         }
         if (result > 0) {
             try {
@@ -282,7 +282,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
         } else {
             result += commonGBChannelMapper.batchUpdate(commonGBChannels);
         }
-        log.warn("[更新多个通道] 通道数量为{}，成功保存：{}", commonGBChannels.size(), result);
+        log.info("[更新多个通道] 通道数量为{}，成功保存：{}", commonGBChannels.size(), result);
         // 发送通过更新通知
         try {
             // 发送通知

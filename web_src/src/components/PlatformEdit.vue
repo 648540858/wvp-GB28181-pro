@@ -124,9 +124,9 @@
                 <el-checkbox label="RTCP保活" v-model="value.rtcp" @change="rtcpCheckBoxChange"></el-checkbox>
                 <el-checkbox label="消息通道" v-model="value.asMessageChannel"></el-checkbox>
                 <el-checkbox label="主动推送通道" v-model="value.autoPushChannel"></el-checkbox>
-                <el-checkbox label="推送平台信息" v-model="value.catalogWithPlatform"></el-checkbox>
-                <el-checkbox label="推送分组信息" v-model="value.catalogWithGroup"></el-checkbox>
-                <el-checkbox label="推送行政区划" v-model="value.catalogWithRegion"></el-checkbox>
+                <el-checkbox label="推送平台信息" :true-label="1" :false-label="0" v-model="value.catalogWithPlatform"></el-checkbox>
+                <el-checkbox label="推送分组信息" :true-label="1" :false-label="0" v-model="value.catalogWithGroup"></el-checkbox>
+                <el-checkbox label="推送行政区划" :true-label="1" :false-label="0" v-model="value.catalogWithRegion"></el-checkbox>
               </div>
 
 

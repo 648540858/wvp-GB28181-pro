@@ -27,7 +27,6 @@ import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -82,9 +81,6 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Autowired
     private SubscribeHolder subscribeHolder;
-
-    @Autowired
-    private GbStreamMapper gbStreamMapper;
 
     @Autowired
     private UserSetting userSetting;
@@ -457,27 +453,21 @@ public class PlatformServiceImpl implements IPlatformService {
         SubscribeInfo subscribe = subscribeHolder.getMobilePositionSubscribe(platform.getServerGBId());
         if (subscribe != null) {
 
-            // TODO 暂时只处理视频流的回复,后续增加对国标设备的支持
-            List<DeviceChannel> gbStreams = gbStreamMapper.queryGbStreamListInPlatform(platform.getServerGBId(), userSetting.isUsePushingAsStatus());
-            if (gbStreams.size() == 0) {
+            List<CommonGBChannel> channelList = platformChannelMapper.queryShare(platform.getId(), null);
+            if (channelList.isEmpty()) {
                 return;
             }
-            for (DeviceChannel deviceChannel : gbStreams) {
-                String gbId = deviceChannel.getDeviceId();
-                GPSMsgInfo gpsMsgInfo = redisCatchStorage.getGpsMsgInfo(gbId);
+            for (CommonGBChannel channel : channelList) {
+                GPSMsgInfo gpsMsgInfo = redisCatchStorage.getGpsMsgInfo(channel.getGbId());
                 // 无最新位置不发送
                 if (gpsMsgInfo != null) {
                     // 经纬度都为0不发送
                     if (gpsMsgInfo.getLng() == 0 && gpsMsgInfo.getLat() == 0) {
                         continue;
                     }
-                    CommonGBChannel commonGBChannel = platformChannelMapper.queryShareChannel(platform.getId(), deviceChannel.getId());
-                    if (commonGBChannel == null) {
-                        continue;
-                    }
                     // 发送GPS消息
                     try {
-                        commanderForPlatform.sendNotifyMobilePosition(platform, gpsMsgInfo, commonGBChannel, subscribe);
+                        commanderForPlatform.sendNotifyMobilePosition(platform, gpsMsgInfo, channel, subscribe);
                     } catch (InvalidArgumentException | ParseException | NoSuchFieldException | SipException |
                              IllegalAccessException e) {
                         log.error("[命令发送失败] 国标级联 移动位置通知: {}", e.getMessage());

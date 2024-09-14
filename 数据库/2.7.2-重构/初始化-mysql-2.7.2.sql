@@ -158,10 +158,10 @@ create table wvp_device_channel
     gb_parent_id                 character varying(255),
     gb_safety_way                integer,
     gb_register_way              integer,
-    gb_cert_num                  integer,
+    gb_cert_num                  character varying(50),
     gb_certifiable               integer,
     gb_err_code                  integer,
-    gb_end_time                  integer,
+    gb_end_time                  character varying(50),
     gb_security_level_code       character varying(255),
     gb_secrecy                   integer,
     gb_ip_address                character varying(50),
@@ -274,9 +274,9 @@ create table wvp_platform
     create_time           character varying(50),
     update_time           character varying(50),
     as_message_channel    bool default false,
-    catalog_with_platform bool default true,
-    catalog_with_group    bool default true,
-    catalog_with_region   bool default true,
+    catalog_with_platform integer default 1,
+    catalog_with_group    integer default 1,
+    catalog_with_region   integer default 1,
     auto_push_channel     bool default true,
     send_stream_ip        character varying(50),
     constraint uk_platform_unique_server_gb_id unique (server_gb_id)
@@ -331,7 +331,7 @@ create table wvp_platform_group
     id          serial primary key,
     platform_id integer,
     group_id    integer,
-    constraint uk_wvp_platform_group_id_catalog_platform_id_group_id unique (platform_id, group_id)
+    constraint uk_wvp_platform_group_platform_id_group_id unique (platform_id, group_id)
 );
 
 create table wvp_platform_region
@@ -339,7 +339,7 @@ create table wvp_platform_region
     id          serial primary key,
     platform_id integer,
     region_id   integer,
-    constraint uk_wvp_platform_group_id_catalog_platform_id_group_id unique (platform_id, region_id)
+    constraint uk_wvp_platform_region_platform_id_group_id unique (platform_id, region_id)
 );
 
 create table wvp_stream_proxy
@@ -463,7 +463,7 @@ CREATE TABLE wvp_common_group
     create_time      varchar(50)  NOT NULL,
     update_time      varchar(50)  NOT NULL,
     civil_code       varchar(50) default null,
-    UNIQUE KEY common_group_device_platform (device_id)
+    constraint uk_common_group_device_platform unique (device_id)
 );
 
 CREATE TABLE wvp_common_region
@@ -475,6 +475,6 @@ CREATE TABLE wvp_common_region
     parent_device_id varchar(50) DEFAULT NULL,
     create_time      varchar(50)  NOT NULL,
     update_time      varchar(50)  NOT NULL,
-    UNIQUE KEY common_region_device_id (device_id)
+    constraint uk_common_region_device_id unique (device_id)
 );
 

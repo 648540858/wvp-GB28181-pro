@@ -20,6 +20,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * 接收来自redis的GPS更新通知
  * @author lin
+ * 监听：  SUBSCRIBE VM_MSG_GPS
+ * 发布   PUBLISH VM_MSG_GPS ''
  */
 @Slf4j
 @Component

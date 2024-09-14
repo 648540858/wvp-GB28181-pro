@@ -40,9 +40,7 @@ public class RedisPushStreamStatusMsgListener implements MessageListener, Applic
     @Autowired
     private UserSetting userSetting;
 
-
-
-    private ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 
     @Qualifier("taskExecutor")
     @Autowired
@@ -59,26 +57,26 @@ public class RedisPushStreamStatusMsgListener implements MessageListener, Applic
                 while (!taskQueue.isEmpty()) {
                     Message msg = taskQueue.poll();
                     try {
-                        PushStreamStatusChangeFromRedisDto statusChangeFromPushStream = JSON.parseObject(msg.getBody(), PushStreamStatusChangeFromRedisDto.class);
-                        if (statusChangeFromPushStream == null) {
+                        PushStreamStatusChangeFromRedisDto streamStatusMessage = JSON.parseObject(msg.getBody(), PushStreamStatusChangeFromRedisDto.class);
+                        if (streamStatusMessage == null) {
                             log.warn("[REDIS消息]推流设备状态变化消息解析失败");
                             continue;
                         }
                         // 取消定时任务
                         dynamicTask.stop(VideoManagerConstants.VM_MSG_GET_ALL_ONLINE_REQUESTED);
-                        if (statusChangeFromPushStream.isSetAllOffline()) {
+                        if (streamStatusMessage.isSetAllOffline()) {
                             // 所有设备离线
                             streamPushService.allOffline();
                         }
-                        if (statusChangeFromPushStream.getOfflineStreams() != null
-                                && statusChangeFromPushStream.getOfflineStreams().size() > 0) {
+                        if (streamStatusMessage.getOfflineStreams() != null
+                                && !streamStatusMessage.getOfflineStreams().isEmpty()) {
                             // 更新部分设备离线
-                            streamPushService.offline(statusChangeFromPushStream.getOfflineStreams());
+                            streamPushService.offline(streamStatusMessage.getOfflineStreams());
                         }
-                        if (statusChangeFromPushStream.getOnlineStreams() != null &&
-                                statusChangeFromPushStream.getOnlineStreams().size() > 0) {
+                        if (streamStatusMessage.getOnlineStreams() != null &&
+                                !streamStatusMessage.getOnlineStreams().isEmpty()) {
                             // 更新部分设备上线
-                            streamPushService.online(statusChangeFromPushStream.getOnlineStreams());
+                            streamPushService.online(streamStatusMessage.getOnlineStreams());
                         }
                     }catch (Exception e) {
                         log.warn("[REDIS消息-推流设备状态变化] 发现未处理的异常, \r\n{}", JSON.toJSONString(message));

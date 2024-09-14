@@ -89,7 +89,7 @@ public interface IDeviceService {
      */
     List<Device> getAllOnlineDevice();
 
-    List<Device> getAllByStatus(boolean status);
+    List<Device> getAllByStatus(Boolean status);
 
     /**
      * 判断是否注册已经失效

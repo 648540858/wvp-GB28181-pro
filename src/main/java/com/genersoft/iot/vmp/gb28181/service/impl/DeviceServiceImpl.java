@@ -364,7 +364,7 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public List<Device> getAllByStatus(boolean status) {
+    public List<Device> getAllByStatus(Boolean status) {
         return deviceMapper.getDevices(status);
     }
 

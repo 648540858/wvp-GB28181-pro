@@ -29,6 +29,10 @@ import java.text.ParseException;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+/**
+ * 监听 SUBSCRIBE alarm_receive
+ * 发布 PUBLISH alarm_receive '{ "gbId": "", "alarmSn": 1, "alarmType": "111", "alarmDescription": "222", }'
+ */
 @Slf4j
 @Component
 public class RedisAlarmMsgListener implements MessageListener {
@@ -62,7 +66,6 @@ public class RedisAlarmMsgListener implements MessageListener {
 
     @Override
     public void onMessage(@NotNull Message message, byte[] bytes) {
-        // 消息示例：  PUBLISH alarm_receive '{ "gbId": "", "alarmSn": 1, "alarmType": "111", "alarmDescription": "222", }'
         log.info("收到来自REDIS的ALARM通知： {}", new String(message.getBody()));
         boolean isEmpty = taskQueue.isEmpty();
         taskQueue.offer(message);

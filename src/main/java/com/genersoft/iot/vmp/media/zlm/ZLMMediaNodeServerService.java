@@ -182,6 +182,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
                 }
                 JSONObject mediaJSON = data.getJSONObject(0);
                 MediaInfo mediaInfo = MediaInfo.getInstance(mediaJSON, mediaServer);
+                mediaInfo.setOnline(true);
                 StreamInfo streamInfo = getStreamInfoByAppAndStream(mediaServer, app, stream, mediaInfo, callId, true);
                 if (streamInfo != null) {
                     streamInfoList.add(streamInfo);
@@ -232,7 +233,9 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         if (jsonObject.getInteger("code") != 0) {
             return null;
         }
-        return MediaInfo.getInstance(jsonObject, mediaServer);
+        MediaInfo mediaInfo = MediaInfo.getInstance(jsonObject, mediaServer);
+        mediaInfo.setOnline(true);
+        return mediaInfo;
     }
 
     @Override

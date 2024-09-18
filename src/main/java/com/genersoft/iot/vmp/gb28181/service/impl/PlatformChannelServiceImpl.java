@@ -411,7 +411,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         SubscribeInfo subscribeInfo = SubscribeInfo.buildSimulated(platform.getServerGBId(), platform.getServerIp());
 
         try {
-            sipCommanderFroPlatform.sendNotifyForCatalogAddOrUpdate(CatalogEvent.UPDATE, platform, channelList, subscribeInfo, null);
+            sipCommanderFroPlatform.sendNotifyForCatalogAddOrUpdate(CatalogEvent.ADD, platform, channelList, subscribeInfo, null);
         } catch (InvalidArgumentException | ParseException | NoSuchFieldException |
                  SipException | IllegalAccessException e) {
             log.error("[命令发送失败] 国标级联 Catalog通知: {}", e.getMessage());

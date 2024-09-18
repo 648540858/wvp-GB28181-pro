@@ -149,7 +149,6 @@ public interface PlatformChannelMapper {
             " <if test='online == false'> AND coalesce(wpgc.status, wdc.gb_status, wdc.status) = 'OFF'</if> " +
             " <if test='hasShare == true'> AND wpgc.platform_id = #{platformId}</if> " +
             " <if test='hasShare == false'> AND wpgc.platform_id is null</if> " +
-
             "</script>")
     List<PlatformChannel> queryForPlatformForWebList(@Param("platformId") Integer platformId, @Param("query") String query,
                                                  @Param("online") Boolean online, @Param("hasShare") Boolean hasShare);

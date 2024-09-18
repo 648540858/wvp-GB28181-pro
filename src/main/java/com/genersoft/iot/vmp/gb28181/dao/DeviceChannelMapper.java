@@ -234,29 +234,6 @@ public interface DeviceChannelMapper {
     List<DeviceChannel> queryChannelsByDeviceDbId(@Param("deviceDbId") int deviceDbId);
 
 
-    @Select(value = {" <script>" +
-            " SELECT " +
-            " dc.*, " +
-            " de.name as device_name, " +
-            " de.on_line as device_online " +
-            " from " +
-            " wvp_device_channel dc " +
-            " LEFT JOIN wvp_device de ON dc.device_db_id = de.id " +
-            " WHERE 1=1" +
-            " <if test='deviceId != null'> AND de.device_id = #{deviceId} </if> " +
-            " <if test='query != null'> AND (dc.device_id LIKE '%${query}%' OR dc.name LIKE '%${query}%' OR dc.name LIKE '%${query}%')</if> " +
-            " <if test='parentChannelId != null'> AND dc.parent_id=#{parentChannelId} </if> " +
-            " <if test='online == true' > AND dc.status='ON'</if>" +
-            " <if test='online == false' > AND dc.status='OFF'</if>" +
-            " <if test='hasSubChannel == true' >  AND dc.sub_count > 0 </if>" +
-            " <if test='hasSubChannel == false' >  AND dc.sub_count = 0 </if>" +
-            "<if test='channelIds != null'> AND dc.device_id in <foreach item='item' index='index' collection='channelIds' open='(' separator=',' close=')'>" +
-            "#{item} " +
-            "</foreach> </if>" +
-            "ORDER BY dc.device_id ASC" +
-            " </script>"})
-    List<DeviceChannelExtend> queryChannelsWithDeviceInfo(@Param("deviceId") String deviceId, @Param("parentChannelId") String parentChannelId, @Param("query") String query, @Param("hasSubChannel") Boolean hasSubChannel, @Param("online") Boolean online, @Param("channelIds") List<String> channelIds);
-
     @Select("SELECT " +
             " dc.id,\n" +
             " dc.device_db_id,\n" +
@@ -312,6 +289,58 @@ public interface DeviceChannelMapper {
 
     @Delete("DELETE FROM wvp_device_channel WHERE id=#{id}")
     int del(@Param("id") int id);
+
+    @Select(value = {" <script>" +
+            " SELECT " +
+            " dc.id,\n" +
+            " dc.create_time,\n" +
+            " dc.update_time,\n" +
+            " dc.sub_count,\n" +
+            " coalesce(dc.gb_device_id, dc.device_id) as channel_id,\n" +
+            " de.device_id as device_id,\n" +
+            " coalesce(dc.gb_name, dc.name) as name,\n" +
+            " de.name as device_name,\n" +
+            " de.on_line as device_online,\n" +
+            " coalesce(dc.gb_manufacturer, dc.manufacturer) as manufacture,\n" +
+            " coalesce(dc.gb_model, dc.model) as model,\n" +
+            " coalesce(dc.gb_owner, dc.owner) as owner,\n" +
+            " coalesce(dc.gb_civil_code, dc.civil_code) as civil_code,\n" +
+            " coalesce(dc.gb_block, dc.block) as block,\n" +
+            " coalesce(dc.gb_address, dc.address) as address,\n" +
+            " coalesce(dc.gb_parental, dc.parental) as parental,\n" +
+            " coalesce(dc.gb_parent_id, dc.parent_id) as parent_id,\n" +
+            " coalesce(dc.gb_safety_way, dc.safety_way) as safety_way,\n" +
+            " coalesce(dc.gb_register_way, dc.register_way) as register_way,\n" +
+            " coalesce(dc.gb_cert_num, dc.cert_num) as cert_num,\n" +
+            " coalesce(dc.gb_certifiable, dc.certifiable) as certifiable,\n" +
+            " coalesce(dc.gb_err_code, dc.err_code) as err_code,\n" +
+            " coalesce(dc.gb_end_time, dc.end_time) as end_time,\n" +
+            " coalesce(dc.gb_secrecy, dc.secrecy) as secrecy,\n" +
+            " coalesce(dc.gb_ip_address, dc.ip_address) as ip_address,\n" +
+            " coalesce(dc.gb_port, dc.port) as port,\n" +
+            " coalesce(dc.gb_password, dc.password) as password,\n" +
+            " coalesce(dc.gb_ptz_type, dc.ptz_type) as ptz_type,\n" +
+            " coalesce(dc.gb_status, dc.status) as status,\n" +
+            " coalesce(dc.gb_longitude, dc.longitude) as longitude,\n" +
+            " coalesce(dc.gb_latitude, dc.latitude) as latitude,\n" +
+            " coalesce(dc.gb_business_group_id, dc.business_group_id) as business_group_id " +
+            " from " +
+            " wvp_device_channel dc " +
+            " LEFT JOIN wvp_device de ON dc.device_db_id = de.id " +
+            " WHERE 1=1" +
+            " <if test='deviceId != null'> AND de.device_id = #{deviceId} </if> " +
+            " <if test='query != null'> AND (dc.device_id LIKE '%${query}%' OR dc.name LIKE '%${query}%' OR dc.name LIKE '%${query}%')</if> " +
+            " <if test='parentChannelId != null'> AND dc.parent_id=#{parentChannelId} </if> " +
+            " <if test='online == true' > AND dc.status='ON'</if>" +
+            " <if test='online == false' > AND dc.status='OFF'</if>" +
+            " <if test='hasSubChannel == true' >  AND dc.sub_count > 0 </if>" +
+            " <if test='hasSubChannel == false' >  AND dc.sub_count = 0 </if>" +
+            "<if test='channelIds != null'> AND dc.device_id in <foreach item='item' index='index' collection='channelIds' open='(' separator=',' close=')'>" +
+            "#{item} " +
+            "</foreach> </if>" +
+            "ORDER BY dc.device_id ASC" +
+            " </script>"})
+    List<DeviceChannelExtend> queryChannelsWithDeviceInfo(@Param("deviceId") String deviceId, @Param("parentChannelId") String parentChannelId, @Param("query") String query, @Param("hasSubChannel") Boolean hasSubChannel, @Param("online") Boolean online, @Param("channelIds") List<String> channelIds);
 
     @Update(value = {"UPDATE wvp_device_channel SET stream_id=null WHERE device_db_id=#{deviceId} AND device_id=#{channelId}"})
     void stopPlay(@Param("deviceId") int deviceId, @Param("channelId") String channelId);

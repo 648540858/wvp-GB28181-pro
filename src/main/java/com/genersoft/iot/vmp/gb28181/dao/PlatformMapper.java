@@ -72,6 +72,7 @@ public interface PlatformMapper {
             " FROM wvp_platform pp where 1=1 " +
             " <if test='query != null'> " +
             " AND (pp.name LIKE concat('%',#{query},'%') OR pp.server_gb_id  LIKE concat('%',#{query},'%') )</if> " +
+            " order by pp.id desc"+
             " </script>")
     List<Platform> queryList(@Param("query") String query);
 

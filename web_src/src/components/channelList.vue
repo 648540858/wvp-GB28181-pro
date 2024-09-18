@@ -40,8 +40,6 @@
           </el-select>
         </div>
         <el-button icon="el-icon-refresh-right" circle size="mini" @click="refresh()"></el-button>
-        <el-button v-if="showTree" icon="iconfont icon-list" circle size="mini" @click="switchList()"></el-button>
-        <el-button v-if="!showTree" icon="iconfont icon-tree" circle size="mini" @click="switchTree()"></el-button>
       </div>
     </div>
     <devicePlayer ref="devicePlayer"></devicePlayer>

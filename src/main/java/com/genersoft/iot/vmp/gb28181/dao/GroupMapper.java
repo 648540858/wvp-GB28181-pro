@@ -190,16 +190,32 @@ public interface GroupMapper {
             "</script>")
     Set<Group> queryByChannelList(List<CommonGBChannel> channelList);
 
-    @Update(" <script>" +
+    @Update(value = " <script>" +
             " update wvp_common_group w1 " +
             " inner join (select * from wvp_common_group ) w2 on w1.parent_device_id = w2.device_id " +
             " set w1.parent_id = w2.id" +
             " where w1.id in " +
             " <foreach collection='groupListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
-            " </script>")
+            " </script>", databaseId = "mysql")
+    @Update( value = " <script>" +
+            " update wvp_common_group w1\n" +
+            " set parent_id = w2.id\n" +
+            " from wvp_common_group w2\n" +
+            " where w1.parent_device_id = w2.device_id\n" +
+            "  and w1.id in " +
+            " <foreach collection='groupListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
+            " </script>", databaseId = "postgresql")
+    @Update( value = " <script>" +
+            " update wvp_common_group w1\n" +
+            " set parent_id = w2.id\n" +
+            " from wvp_common_group w2\n" +
+            " where w1.parent_device_id = w2.device_id\n" +
+            "  and w1.id in " +
+            " <foreach collection='groupListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
+            " </script>", databaseId = "kingbase")
     void updateParentId(List<Group> groupListForAdd);
 
-    @Update(" <script>" +
+    @Update(value = " <script>" +
             " update wvp_common_group w1 " +
             "    inner join (select * from wvp_common_group ) w2" +
             "    on w1.parent_device_id is null" +
@@ -210,7 +226,31 @@ public interface GroupMapper {
             " set w1.parent_id = w2.id" +
             " where w1.id in " +
             " <foreach collection='groupListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
-            " </script>")
+            " </script>", databaseId = "mysql")
+    @Update( value = " <script>" +
+            " update wvp_common_group w1 " +
+            " set parent_id = w2.id " +
+            " from wvp_common_group w2 " +
+            " where w1.parent_device_id is null " +
+            "       and w2.parent_device_id is null " +
+            "       and w2.device_id = w2.business_group " +
+            "       and w1.business_group = w2.device_id " +
+            "       and w1.device_id != w1.business_group " +
+            "       and w1.id in " +
+            " <foreach collection='groupListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
+            " </script>", databaseId = "kingbase")
+    @Update( value = " <script>" +
+            " update wvp_common_group w1 " +
+            " set parent_id = w2.id " +
+            " from wvp_common_group w2 " +
+            " where w1.parent_device_id is null " +
+            "       and w2.parent_device_id is null " +
+            "       and w2.device_id = w2.business_group " +
+            "       and w1.business_group = w2.device_id " +
+            "       and w1.device_id != w1.business_group " +
+            "       and w1.id in " +
+            " <foreach collection='groupListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
+            " </script>", databaseId = "postgresql")
     void updateParentIdWithBusinessGroup(List<Group> groupListForAdd);
 
     @Select(" <script>" +

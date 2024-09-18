@@ -106,13 +106,29 @@ public interface RegionMapper {
     List<CommonGBChannel> queryByPlatform(@Param("platformId") Integer platformId);
 
 
-    @Update(" <script>" +
+    @Update(value = " <script>" +
             " update wvp_common_region w1 " +
             " inner join (select * from wvp_common_region ) w2 on w1.parent_device_id = w2.device_id " +
             " set w1.parent_id = w2.id" +
             " where w1.id in " +
             " <foreach collection='regionListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
-            " </script>")
+            " </script>", databaseId = "mysql")
+    @Update( value = " <script>" +
+            " update wvp_common_region w1\n" +
+            " set parent_id = w2.id\n" +
+            " from wvp_common_region w2\n" +
+            " where w1.parent_device_id = w2.device_id\n" +
+            "  and w1.id in " +
+            " <foreach collection='regionListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
+            " </script>", databaseId = "kingbase")
+    @Update( value = " <script>" +
+            " update wvp_common_region w1\n" +
+            " set parent_id = w2.id\n" +
+            " from wvp_common_region w2\n" +
+            " where w1.parent_device_id = w2.device_id\n" +
+            "  and w1.id in " +
+            " <foreach collection='regionListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
+            " </script>", databaseId = "postgresql")
     void updateParentId(List<Region> regionListForAdd);
 
     @Update(" <script>" +

@@ -29,7 +29,7 @@ public interface UserMapper {
     @Delete("DELETE from wvp_user WHERE id != 1 and id=#{id}")
     int delete(int id);
 
-    @Select("select u.*, r.id as role_id, r.name as roleName, r.authority as roleAuthority , r.create_time as role_create_time , r.update_time as role_update_time from wvp_user u, wvp_user_role r WHERE u.role_id=r.id and u.username=#{username} AND u.password=#{password}")
+    @Select("select u.*,  r.name as roleName, r.authority as roleAuthority , r.create_time as role_create_time , r.update_time as role_update_time from wvp_user u, wvp_user_role r WHERE u.role_id=r.id and u.username=#{username} AND u.password=#{password}")
     @Results(id = "roleMap", value = {
             @Result(column = "role_id", property = "role.id"),
             @Result(column = "role_name", property = "role.name"),
@@ -39,19 +39,19 @@ public interface UserMapper {
     })
     User select(@Param("username") String username, @Param("password") String password);
 
-    @Select("select u.*, r.id as role_id, r.name as role_name, r.authority as role_authority , r.create_time as role_create_time , r.update_time as role_update_time from wvp_user u, wvp_user_role r WHERE u.role_id=r.id and u.id=#{id}")
+    @Select("select u.*, r.name as role_name, r.authority as role_authority , r.create_time as role_create_time , r.update_time as role_update_time from wvp_user u, wvp_user_role r WHERE u.role_id=r.id and u.id=#{id}")
     @ResultMap(value="roleMap")
     User selectById(int id);
 
-    @Select("select u.*, r.id as role_id, r.name as role_name, r.authority as role_authority , r.create_time as role_create_time , r.update_time as role_update_time from wvp_user u, wvp_user_role r WHERE u.role_id=r.id and u.username=#{username}")
+    @Select("select u.*, r.name as role_name, r.authority as role_authority , r.create_time as role_create_time , r.update_time as role_update_time from wvp_user u, wvp_user_role r WHERE u.role_id=r.id and u.username=#{username}")
     @ResultMap(value="roleMap")
     User getUserByUsername(String username);
 
-    @Select("select u.*, r.id as role_id, r.name as role_name, r.authority as role_authority , r.create_time as role_create_time , r.update_time as role_update_time from wvp_user u, wvp_user_role r WHERE u.role_id=r.id")
+    @Select("select u.*, r.name as role_name, r.authority as role_authority , r.create_time as role_create_time , r.update_time as role_update_time from wvp_user u, wvp_user_role r WHERE u.role_id=r.id")
     @ResultMap(value="roleMap")
     List<User> selectAll();
 
-    @Select("select u.id, u.username,u.push_key,u.role_id, r.id as role_id, r.name as role_name, r.authority as role_authority , r.create_time as role_create_time , r.update_time as role_update_time from wvp_user u join wvp_user_role r on u.role_id=r.id")
+    @Select("select u.id, u.username,u.push_key,u.role_id, r.name as role_name, r.authority as role_authority , r.create_time as role_create_time , r.update_time as role_update_time from wvp_user u join wvp_user_role r on u.role_id=r.id")
     @ResultMap(value="roleMap")
     List<User> getUsers();
 

@@ -58,15 +58,11 @@ public class MediaInfo {
         String schema = jsonObject.getString("schema");
         mediaInfo.setSchema(schema);
         Integer totalReaderCount = jsonObject.getInteger("totalReaderCount");
-        Boolean online = jsonObject.getBoolean("online");
         Integer originType = jsonObject.getInteger("originType");
         Long aliveSecond = jsonObject.getLong("aliveSecond");
         Long bytesSpeed = jsonObject.getLong("bytesSpeed");
         if (totalReaderCount != null) {
             mediaInfo.setReaderCount(totalReaderCount);
-        }
-        if (online != null) {
-            mediaInfo.setOnline(online);
         }
         if (originType != null) {
             mediaInfo.setOriginType(originType);

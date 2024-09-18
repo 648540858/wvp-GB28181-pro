@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerChangeEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerDeleteEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
@@ -48,6 +49,9 @@ public class ZLMMediaServerStatusManger {
 
     @Autowired
     private DynamicTask dynamicTask;
+
+    @Autowired
+    private EventPublisher publisher;
 
     @Value("${server.ssl.enabled:false}")
     private boolean sslEnabled;
@@ -203,6 +207,7 @@ public class ZLMMediaServerStatusManger {
                 }
             }
             mediaServerService.update(mediaServerItem);
+            publisher.mediaServerOnlineEventPublish(mediaServerItem.getId());
         }
         // 设置两次心跳未收到则认为zlm离线
         String key = "zlm-keepalive-" + mediaServerItem.getId();

@@ -231,7 +231,7 @@ public class DeviceChannel extends CommonGBChannel {
 			// 此处对于不在wvp缓存中的行政区划,默认直接存储.保证即使出现wvp的行政区划缓存过老,也可以通过用户自主创建的方式正常使用系统
 		}
 		GbCode gbCode = GbCode.decode(deviceChannel.getDeviceId());
-		if ("138".equals(gbCode.getTypeCode())) {
+		if (gbCode != null && "138".equals(gbCode.getTypeCode())) {
 			deviceChannel.setHasAudio(true);
 		}
 		return deviceChannel;

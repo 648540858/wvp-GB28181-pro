@@ -334,7 +334,9 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     @Transactional
     public int removeChannels(Integer platformId, List<Integer> channelIds) {
         List<CommonGBChannel> channelList = platformChannelMapper.queryShare(platformId, channelIds);
-        Assert.notEmpty(channelList, "所选通道未共享");
+        if (channelList.isEmpty()) {
+            return 0;
+        }
         return removeChannelList(platformId, channelList);
     }
 

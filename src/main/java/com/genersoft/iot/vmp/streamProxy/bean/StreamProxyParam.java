@@ -16,6 +16,9 @@ public class StreamProxyParam {
     @Schema(description = "应用名")
     private String app;
 
+    @Schema(description = "名称")
+    private String name;
+
     @Schema(description = "流ID")
     private String stream;
 
@@ -64,7 +67,7 @@ public class StreamProxyParam {
         streamProxy.setEnableRemoveNoneReader(enableRemoveNoneReader);
         streamProxy.setEnableDisableNoneReader(enableDisableNoneReader);
         streamProxy.setFfmpegCmdKey(ffmpegCmdKey);
-
+        streamProxy.setGbName(name);
         return streamProxy;
 
     }

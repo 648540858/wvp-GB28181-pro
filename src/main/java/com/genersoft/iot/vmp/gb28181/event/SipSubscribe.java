@@ -37,7 +37,9 @@ public class SipSubscribe {
     //    @Scheduled(fixedRate= 100 * 60 * 60 )
     @Scheduled(cron="0 0/5 * * * ?")   //每5分钟执行一次
     public void execute(){
-        log.info("[定时任务] 清理过期的SIP订阅信息");
+        if(log.isDebugEnabled()){
+            log.info("[定时任务] 清理过期的SIP订阅信息");
+        }
 
         Instant instant = Instant.now().minusMillis(TimeUnit.MINUTES.toMillis(5));
 
@@ -53,10 +55,12 @@ public class SipSubscribe {
                 errorTimeSubscribes.remove(key);
             }
         }
-        log.debug("okTimeSubscribes.size:{}",okTimeSubscribes.size());
-        log.debug("okSubscribes.size:{}",okSubscribes.size());
-        log.debug("errorTimeSubscribes.size:{}",errorTimeSubscribes.size());
-        log.debug("errorSubscribes.size:{}",errorSubscribes.size());
+        if(log.isDebugEnabled()){
+            log.debug("okTimeSubscribes.size:{}",okTimeSubscribes.size());
+            log.debug("okSubscribes.size:{}",okSubscribes.size());
+            log.debug("errorTimeSubscribes.size:{}",errorTimeSubscribes.size());
+            log.debug("errorSubscribes.size:{}",errorSubscribes.size());
+        }
     }
 
     public interface Event { void response(EventResult eventResult);

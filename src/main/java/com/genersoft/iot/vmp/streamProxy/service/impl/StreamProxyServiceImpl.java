@@ -140,21 +140,35 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     public StreamInfo save(StreamProxyParam param) {
         // 兼容旧接口
         StreamProxy streamProxyInDb = getStreamProxyByAppAndStream(param.getApp(), param.getStream());
-        if (streamProxyInDb  != null && streamProxyInDb.getPulling()) {
+        if (streamProxyInDb != null && streamProxyInDb.getPulling() != null && streamProxyInDb.getPulling()) {
             playService.stopProxy(streamProxyInDb);
         }
-        if (streamProxyInDb  == null){
-            return add(param.buildStreamProxy());
-        }else {
-            playService.stopProxy(streamProxyInDb);
+        if (param.getMediaServerId().equals("auto")) {
+            param.setMediaServerId(null);
+        }
+        StreamProxy streamProxy = param.buildStreamProxy();
+
+        if (streamProxyInDb == null) {
+            add(streamProxy);
+        } else {
+            try {
+                playService.stopProxy(streamProxyInDb);
+            } catch (ControllerException ignored) {
+            }
             streamProxyMapper.delete(streamProxyInDb.getId());
-            return add(param.buildStreamProxy());
+            add(streamProxy);
+        }
+
+        if (param.isEnable()) {
+            return playService.startProxy(streamProxy);
+        } else {
+            return null;
         }
     }
 
     @Override
     @Transactional
-    public StreamInfo add(StreamProxy streamProxy) {
+    public void add(StreamProxy streamProxy) {
         StreamProxy streamProxyInDb = streamProxyMapper.selectOneByAppAndStream(streamProxy.getApp(), streamProxy.getStream());
         if (streamProxyInDb != null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "APP+STREAM已经存在");
@@ -166,7 +180,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         streamProxy.setUpdateTime(DateUtil.getNow());
         streamProxyMapper.add(streamProxy);
         streamProxy.setStreamProxyId(streamProxy.getId());
-        return null;
     }
 
     @Override
@@ -183,7 +196,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         if (streamProxy.getPulling() != null && streamProxy.getPulling()) {
             playService.stopProxy(streamProxy);
         }
-        if(streamProxy.getGbId() > 0) {
+        if (streamProxy.getGbId() > 0) {
             gbChannelService.delete(streamProxy.getGbId());
         }
         streamProxyMapper.delete(streamProxy.getId());
@@ -206,14 +219,14 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     public boolean update(StreamProxy streamProxy) {
         streamProxy.setUpdateTime(DateUtil.getNow());
         StreamProxy streamProxyInDb = streamProxyMapper.select(streamProxy.getId());
-        if (streamProxyInDb  == null) {
+        if (streamProxyInDb == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "代理不存在");
         }
         int updateResult = streamProxyMapper.update(streamProxy);
         if (updateResult > 0 && !ObjectUtils.isEmpty(streamProxy.getGbDeviceId())) {
             if (streamProxy.getGbId() > 0) {
                 gbChannelService.update(streamProxy.buildCommonGBChannel());
-            }else {
+            } else {
                 gbChannelService.add(streamProxy.buildCommonGBChannel());
             }
         }
@@ -231,7 +244,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     @Override
-    public PageInfo<StreamProxy> getAll(Integer page, Integer count, String query, Boolean pulling,String mediaServerId) {
+    public PageInfo<StreamProxy> getAll(Integer page, Integer count, String query, Boolean pulling, String mediaServerId) {
         PageHelper.startPage(page, count);
         List<StreamProxy> all = streamProxyMapper.selectAll(query, pulling, mediaServerId);
         return new PageInfo<>(all);
@@ -258,7 +271,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
 
-
     @Override
     public Map<String, String> getFFmpegCMDs(MediaServer mediaServer) {
         return mediaServerService.getFFmpegCMDs(mediaServer);
@@ -281,7 +293,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         redisCatchStorage.removeStream(mediaServerId, "pull");
 
         List<StreamProxy> streamProxies = streamProxyMapper.selectForEnableInMediaServer(mediaServerId, true);
-        if (streamProxies.isEmpty()){
+        if (streamProxies.isEmpty()) {
             return;
         }
         Map<String, StreamProxy> streamProxyMapForDb = new HashMap<>();
@@ -300,7 +312,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 continue;
             }
             if (streamInfo.getOriginType() == OriginType.PULL.ordinal()
-                    || streamInfo.getOriginType() == OriginType.FFMPEG_PULL.ordinal() ) {
+                    || streamInfo.getOriginType() == OriginType.FFMPEG_PULL.ordinal()) {
                 if (streamProxyMapForDb.get(key) != null) {
                     redisCatchStorage.addStream(mediaServer, "pull", streamInfo.getApp(), streamInfo.getStream(), streamInfo.getMediaInfo());
                     if ("OFF".equalsIgnoreCase(streamProxy.getGbStatus()) && streamProxy.getGbId() > 0) {
@@ -353,7 +365,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         // 清理redis相关的缓存
         redisCatchStorage.removeStream(mediaServerId, "pull");
 
-        if (streamProxies.isEmpty()){
+        if (streamProxies.isEmpty()) {
             return;
         }
         List<StreamProxy> streamProxiesForRemove = new ArrayList<>();
@@ -402,11 +414,11 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }
         streamProxy.setUpdateTime(DateUtil.getNow());
         streamProxyMapper.update(streamProxy);
-        streamProxy.setGbStatus(status?"ON":"OFF");
+        streamProxy.setGbStatus(status ? "ON" : "OFF");
         if (streamProxy.getGbId() > 0) {
             if (status) {
                 gbChannelService.online(streamProxy.buildCommonGBChannel());
-            }else {
+            } else {
                 gbChannelService.offline(streamProxy.buildCommonGBChannel());
             }
         }

@@ -87,7 +87,7 @@ public interface IStreamProxyService {
      */
     ResourceBaseInfo getOverview();
 
-    StreamInfo add(StreamProxy streamProxy);
+    void add(StreamProxy streamProxy);
 
     StreamProxy getStreamProxy(int id);
 

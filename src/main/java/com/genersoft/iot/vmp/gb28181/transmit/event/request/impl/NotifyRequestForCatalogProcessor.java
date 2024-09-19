@@ -186,6 +186,9 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 									channel.setUpdateTime(DateUtil.getNow());
 									updateChannelMap.put(catalogChannelEvent.getChannel().getDeviceId(), channel);
 								} else {
+									catalogChannelEvent.getChannel().setUpdateTime(DateUtil.getNow());
+									catalogChannelEvent.getChannel().setCreateTime(DateUtil.getNow());
+
 									addChannelMap.put(catalogChannelEvent.getChannel().getDeviceId(), catalogChannelEvent.getChannel());
 									if (userSetting.getDeviceStatusNotify()) {
 										// 发送redis消息
@@ -213,8 +216,11 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 									channel.setId(deviceChannelForUpdate.getId());
 									channel.setHasAudio(deviceChannelForUpdate.isHasAudio());
 									channel.setUpdateTime(DateUtil.getNow());
+									channel.setUpdateTime(DateUtil.getNow());
 									updateChannelMap.put(catalogChannelEvent.getChannel().getDeviceId(), channel);
 								} else {
+									catalogChannelEvent.getChannel().setCreateTime(DateUtil.getNow());
+									catalogChannelEvent.getChannel().setUpdateTime(DateUtil.getNow());
 									addChannelMap.put(catalogChannelEvent.getChannel().getDeviceId(), catalogChannelEvent.getChannel());
 									if (userSetting.getDeviceStatusNotify()) {
 										// 发送redis消息

@@ -155,7 +155,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
         }
         List<CommonGBChannel> onlineChannelList = commonGBChannelMapper.queryInListByStatus(commonGBChannelList, "ON");
         if (onlineChannelList.isEmpty()) {
-            log.warn("[多个通道离线] 更新失败, 参数内通道已经离线");
+            log.warn("[多个通道离线] 更新失败, 参数内通道已经离线, 无需更新");
             return 0;
         }
         int limitCount = 1000;
@@ -209,7 +209,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
         }
         List<CommonGBChannel> offlineChannelList = commonGBChannelMapper.queryInListByStatus(commonGBChannelList, "OFF");
         if (offlineChannelList.isEmpty()) {
-            log.warn("[多个通道上线] 更新失败, 参数内通道已经上线线");
+            log.warn("[多个通道上线] 更新失败, 参数内通道已经上线");
             return 0;
         }
         // 批量更新

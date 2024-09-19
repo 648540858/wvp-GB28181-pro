@@ -189,6 +189,7 @@ public class PlatformController {
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页条数", required = true)
     @Parameter(name = "platformId", description = "上级平台的数据ID")
+    @Parameter(name = "channelType", description = "通道类型， 0：国标设备，1：推流设备，2：拉流代理")
     @Parameter(name = "query", description = "查询内容")
     @Parameter(name = "online", description = "是否在线")
     @Parameter(name = "hasShare", description = "是否已经共享")
@@ -197,7 +198,7 @@ public class PlatformController {
     public PageInfo<PlatformChannel> queryChannelList(int page, int count,
                                                       @RequestParam(required = false) Integer platformId,
                                                       @RequestParam(required = false) String query,
-                                                      @RequestParam(required = false) Boolean channelType,
+                                                      @RequestParam(required = false) Integer channelType,
                                                       @RequestParam(required = false) Boolean online,
                                                       @RequestParam(required = false) Boolean hasShare) {
 
@@ -206,7 +207,7 @@ public class PlatformController {
             query = null;
         }
 
-        return platformChannelService.queryChannelList(page, count, query, online, platformId, hasShare);
+        return platformChannelService.queryChannelList(page, count, query, channelType,  online, platformId, hasShare);
     }
 
     @Operation(summary = "向上级平台添加国标通道", security = @SecurityRequirement(name = JwtUtils.HEADER))

@@ -18,9 +18,9 @@
           <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="search" v-model="channelType" placeholder="请选择"
                      default-first-option>
             <el-option label="全部" value=""></el-option>
-            <el-option label="国标设备" value="gb"></el-option>
-            <el-option label="推流设备" value="push"></el-option>
-            <el-option label="拉流代理" value="proxy"></el-option>
+            <el-option label="国标设备" :value="0"></el-option>
+            <el-option label="推流设备" :value="1"></el-option>
+            <el-option label="拉流代理" :value="2"></el-option>
           </el-select>
           添加状态:
           <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="search" v-model="hasShare" placeholder="请选择"

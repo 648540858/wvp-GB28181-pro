@@ -149,9 +149,13 @@ public interface PlatformChannelMapper {
             " <if test='online == false'> AND coalesce(wpgc.status, wdc.gb_status, wdc.status) = 'OFF'</if> " +
             " <if test='hasShare == true'> AND wpgc.platform_id = #{platformId}</if> " +
             " <if test='hasShare == false'> AND wpgc.platform_id is null</if> " +
+            " <if test='channelType == 0'> AND wdc.device_db_id is not null</if> " +
+            " <if test='channelType == 1'> AND wdc.stream_push_id is not null</if> " +
+            " <if test='channelType == 2'> AND wdc.stream_proxy_id is not null</if> " +
             "</script>")
     List<PlatformChannel> queryForPlatformForWebList(@Param("platformId") Integer platformId, @Param("query") String query,
-                                                 @Param("online") Boolean online, @Param("hasShare") Boolean hasShare);
+                                                     @Param("channelType") Integer channelType, @Param("online") Boolean online,
+                                                     @Param("hasShare") Boolean hasShare);
 
     @Select("select\n" +
             "    wdc.id as gb_id,\n" +

@@ -54,9 +54,9 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
 
 
     @Override
-    public PageInfo<PlatformChannel> queryChannelList(int page, int count, String query, Boolean online, Integer platformId, Boolean hasShare) {
+    public PageInfo<PlatformChannel> queryChannelList(int page, int count, String query, Integer channelType, Boolean online, Integer platformId, Boolean hasShare) {
         PageHelper.startPage(page, count);
-        List<PlatformChannel> all = platformChannelMapper.queryForPlatformForWebList(platformId, query, online, hasShare);
+        List<PlatformChannel> all = platformChannelMapper.queryForPlatformForWebList(platformId, query, channelType, online, hasShare);
         return new PageInfo<>(all);
     }
 

@@ -14,7 +14,7 @@ import java.util.List;
  */
 public interface IPlatformChannelService {
 
-    PageInfo<PlatformChannel> queryChannelList(int page, int count, String query, Boolean online, Integer platformId, Boolean hasShare);
+    PageInfo<PlatformChannel> queryChannelList(int page, int count, String query, Integer channelType, Boolean online, Integer platformId, Boolean hasShare);
 
     int addAllChannel(Integer platformId);
 

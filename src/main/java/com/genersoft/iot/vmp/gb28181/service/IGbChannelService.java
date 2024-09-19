@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.service;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.github.pagehelper.PageInfo;
 
 import java.util.Collection;
@@ -77,5 +78,7 @@ public interface IGbChannelService {
     CommonGBChannel queryOneWithPlatform(Integer platformId, String channelDeviceId);
 
     void updateCivilCode(String oldCivilCode, String newCivilCode);
+
+    List<CommonGBChannel> queryListByStreamPushList(List<StreamPush> streamPushList);
 
 }

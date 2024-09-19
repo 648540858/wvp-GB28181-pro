@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.dao.provider;
 
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Group;
+import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 
 import java.util.Collection;
 import java.util.List;
@@ -234,6 +235,25 @@ public class ChannelProvider {
                 sqlBuild.append(",");
             }
             sqlBuild.append(group.getDeviceId());
+            first = false;
+        }
+        sqlBuild.append(" )");
+
+        return sqlBuild.toString() ;
+    }
+
+    public String queryListByStreamPushList(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(getBaseSelectSql());
+
+        sqlBuild.append(" where channel_type = 0 and stream_push_id in ( ");
+        Collection<StreamPush> ids = (Collection<StreamPush>)params.get("streamPushList");
+        boolean first = true;
+        for (StreamPush streamPush : ids) {
+            if (!first) {
+                sqlBuild.append(",");
+            }
+            sqlBuild.append(streamPush.getId());
             first = false;
         }
         sqlBuild.append(" )");

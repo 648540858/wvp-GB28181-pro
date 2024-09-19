@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
+import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageHelper;
@@ -674,5 +675,10 @@ public class GbChannelServiceImpl implements IGbChannelService {
                 log.warn("[多个通道业务分组] 发送失败，数量：{}", channelList.size(), e);
             }
         }
+    }
+
+    @Override
+    public List<CommonGBChannel> queryListByStreamPushList(List<StreamPush> streamPushList) {
+        return commonGBChannelMapper.queryListByStreamPushList(streamPushList);
     }
 }

@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.provider.ChannelProvider;
+import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -570,5 +571,8 @@ public interface CommonGBChannelMapper {
             " <foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.gbId}</foreach>" +
             " </script>"})
     int updateCivilCodeByChannelList(@Param("civilCode") String civilCode, List<CommonGBChannel> channelList);
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryListByStreamPushList")
+    List<CommonGBChannel> queryListByStreamPushList(List<StreamPush> streamPushList);
 
 }

@@ -451,10 +451,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     public void offline(List<StreamPushItemFromRedis> offlineStreams) {
         // 更新部分设备离线
         List<StreamPush> streamPushList = streamPushMapper.getListFromRedis(offlineStreams);
-        List<CommonGBChannel> commonGBChannelList = new ArrayList<>();
-        for (StreamPush onlinePusher : streamPushList) {
-            commonGBChannelList.add(onlinePusher.buildCommonGBChannel());
-        }
+        List<CommonGBChannel> commonGBChannelList = gbChannelService.queryListByStreamPushList(streamPushList);
         gbChannelService.offline(commonGBChannelList);
     }
 
@@ -462,16 +459,12 @@ public class StreamPushServiceImpl implements IStreamPushService {
     public void online(List<StreamPushItemFromRedis> onlineStreams) {
         // 更新部分设备上线streamPushService
         List<StreamPush> streamPushList = streamPushMapper.getListFromRedis(onlineStreams);
-        List<CommonGBChannel> commonGBChannelList = new ArrayList<>();
-        for (StreamPush onlinePusher : streamPushList) {
-            commonGBChannelList.add(onlinePusher.buildCommonGBChannel());
-        }
+        List<CommonGBChannel> commonGBChannelList = gbChannelService.queryListByStreamPushList(streamPushList);
         gbChannelService.online(commonGBChannelList);
     }
 
     @Override
     public List<String> getAllAppAndStream() {
-
         return streamPushMapper.getAllAppAndStream();
     }
 

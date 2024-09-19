@@ -624,21 +624,21 @@ public interface DeviceChannelMapper {
             "DELETE FROM wvp_device_channel WHERE id=#{item.id}" +
             "</foreach>" +
             "</script>"})
-    int batchDel(@Param("deleteChannelList") List<DeviceChannel> deleteChannelList);
+    int batchDel(List<DeviceChannel> deleteChannelList);
 
     @Update({"<script>" +
             "<foreach collection='channels' item='item' separator=';'>" +
-            "UPDATE wvp_device_channel SET status='ON' WHERE id=#{item.id}" +
+            "UPDATE wvp_device_channel SET status='ON' WHERE device_id=#{item.deviceId}" +
             "</foreach>" +
             "</script>"})
-    int batchOnline(@Param("channels") List<DeviceChannel> channels);
+    int batchOnlineForNotify(List<DeviceChannel> channels);
 
     @Update({"<script>" +
             "<foreach collection='channels' item='item' separator=';'>" +
-            "UPDATE wvp_device_channel SET status='OFF' WHERE id=#{item.id}" +
+            "UPDATE wvp_device_channel SET status='OFF' WHERE device_id=#{item.deviceId}" +
             "</foreach>" +
             "</script>"})
-    int batchOffline(List<DeviceChannel> channels);
+    int batchOfflineForNotify(List<DeviceChannel> channels);
 
 
     @Select("select count(1) from wvp_device_channel where status = 'ON'")

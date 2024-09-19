@@ -112,6 +112,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								log.info("[解析CatalogChannelEvent]成功：但是解析通道信息失败， 原文如下： \n{}", new String(evt.getRequest().getRawContent()));
 								continue;
 							}
+							catalogChannelEvent.getChannel().setDeviceDbId(device.getId());
                         } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
                                  IllegalAccessException e) {
                             log.error("[解析CatalogChannelEvent]失败，", e);
@@ -305,20 +306,15 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 
 	private void executeSaveForOnline(){
 		if (!updateChannelOnlineList.isEmpty()) {
-			deviceChannelService.channelsOnline(updateChannelOnlineList);
+			deviceChannelService.channelsOnlineForNotify(updateChannelOnlineList);
 			updateChannelOnlineList.clear();
 		}
 	}
 
 	private void executeSaveForOffline(){
 		if (!updateChannelOfflineList.isEmpty()) {
-			deviceChannelService.channelsOffline(updateChannelOfflineList);
+			deviceChannelService.channelsOfflineForNotify(updateChannelOfflineList);
 			updateChannelOfflineList.clear();
 		}
 	}
-
-//	@Scheduled(fixedRate = 10000)   //每1秒执行一次
-//	public void execute(){
-//		logger.info("[待处理Notify-目录订阅消息数量]: {}", taskQueue.size());
-//	}
 }

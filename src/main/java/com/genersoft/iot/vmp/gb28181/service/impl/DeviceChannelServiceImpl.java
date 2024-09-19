@@ -198,8 +198,8 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
-    public int channelsOnline(List<DeviceChannel> channels) {
-        return channelMapper.batchOnline(channels);
+    public int channelsOnlineForNotify(List<DeviceChannel> channels) {
+        return channelMapper.batchOnlineForNotify(channels);
     }
 
     @Override
@@ -208,8 +208,8 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
-    public int channelsOffline(List<DeviceChannel> channels) {
-        return channelMapper.batchOffline(channels);
+    public int channelsOfflineForNotify(List<DeviceChannel> channels) {
+        return channelMapper.batchOfflineForNotify(channels);
     }
 
 

@@ -475,8 +475,11 @@ export default {
     updateChannel: function (row) {
       this.$axios({
         method: 'post',
-        url: `/api/device/query/channel/update/${this.deviceId}`,
-        params: row
+        url: `/api/device/query/channel/audio`,
+        params: {
+          channelId: row.id,
+          audio: row.hasAudio
+        }
       }).then(function (res) {
         console.log(JSON.stringify(res));
       });

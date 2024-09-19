@@ -75,26 +75,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
 
     @Override
-    public void updateChannel(String deviceId, DeviceChannel channel) {
-        String channelId = channel.getDeviceId();
-        channel.setDeviceId(deviceId);
-        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
-        if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
-            channel.setStreamId(inviteInfo.getStreamInfo().getStream());
-        }
-        String now = DateUtil.getNow();
-        channel.setUpdateTime(now);
-        DeviceChannel deviceChannel = getOne(deviceId, channelId);
-        if (deviceChannel == null) {
-            channel.setCreateTime(now);
-            channelMapper.add(channel);
-        }else {
-            channelMapper.update(channel);
-        }
-        channelMapper.updateChannelSubCount(channel.getDeviceDbId(),channel.getParentId());
-    }
-
-    @Override
     public int updateChannels(Device device, List<DeviceChannel> channels) {
         List<DeviceChannel> addChannels = new ArrayList<>();
         List<DeviceChannel> updateChannels = new ArrayList<>();
@@ -622,5 +602,10 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             }
         }
         return null;
+    }
+
+    @Override
+    public void changeAudio(Integer channelId, Boolean audio) {
+        channelMapper.changeAudio(channelId, audio);
     }
 }

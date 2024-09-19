@@ -17,14 +17,6 @@ import java.util.List;
 public interface IDeviceChannelService {
 
     /**
-     * 添加设备通道
-     *
-     * @param deviceId 设备id
-     * @param channel 通道
-     */
-    void updateChannel(String deviceId, DeviceChannel channel);
-
-    /**
      * 批量添加设备通道
      */
     int updateChannels(Device device, List<DeviceChannel> channels);
@@ -125,4 +117,6 @@ public interface IDeviceChannelService {
     DeviceChannel getOneForSourceById(Integer channelId);
 
     DeviceChannel getBroadcastChannel(int deviceDbId);
+
+    void changeAudio(Integer channelId, Boolean audio);
 }

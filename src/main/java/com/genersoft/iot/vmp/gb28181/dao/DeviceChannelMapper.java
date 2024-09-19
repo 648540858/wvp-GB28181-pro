@@ -982,4 +982,10 @@ public interface DeviceChannelMapper {
             " </script>"})
     List<DeviceChannel> getByDeviceId(@Param("deviceDbId") int deviceDbId);
 
+    @Update(value = {" <script>" +
+            "UPDATE wvp_device_channel " +
+            "SET has_audio=#{audio}" +
+            " WHERE id=#{channelId}" +
+            " </script>"})
+    void changeAudio(@Param("channelId") int channelId, @Param("audio") boolean audio);
 }

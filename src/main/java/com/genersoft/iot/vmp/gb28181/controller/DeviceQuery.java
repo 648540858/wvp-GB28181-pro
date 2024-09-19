@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -239,18 +240,14 @@ public class DeviceQuery {
 		return deviceChannelService.getSubChannels(deviceChannel.getDeviceDbId(), channelId, query, channelType, online, page, count);
 	}
 
-	/**
-	 * 更新通道信息
-	 * @param deviceId 设备id
-	 * @param channel 通道
-	 * @return
-	 */
-	@Operation(summary = "更新通道信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
-	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
-	@Parameter(name = "channel", description = "通道信息", required = true)
-	@PostMapping("/channel/update/{deviceId}")
-	public void updateChannel(@PathVariable String deviceId,DeviceChannel channel){
-		deviceChannelService.updateChannel(deviceId, channel);
+	@Operation(summary = "开启/关闭通道的音频", security = @SecurityRequirement(name = JwtUtils.HEADER))
+	@Parameter(name = "channelId", description = "通道的数据库ID", required = true)
+	@Parameter(name = "audio", description = "开启/关闭音频", required = true)
+	@PostMapping("/channel/audio")
+	public void changeAudio(Integer channelId, Boolean audio){
+		Assert.notNull(channelId, "通道的数据库ID不可为NULL");
+		Assert.notNull(audio, "开启/关闭音频不可为NULL");
+		deviceChannelService.changeAudio(channelId, audio);
 	}
 
 	@Operation(summary = "修改通道的码流类型", security = @SecurityRequirement(name = JwtUtils.HEADER))

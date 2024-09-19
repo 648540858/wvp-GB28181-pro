@@ -548,7 +548,7 @@ public interface DeviceChannelMapper {
             ", gps_time=#{item.gpsTime}" +
             ", stream_identification=#{item.streamIdentification}" +
             ", channel_type=#{item.channelType}" +
-            " WHERE device_id=#{item.deviceId}" +
+            " WHERE device_db_id = #{item.deviceDbId} and device_id=#{item.deviceId}" +
             "</foreach>" +
             "</script>"})
     int batchUpdateForNotify(List<DeviceChannel> updateChannels);

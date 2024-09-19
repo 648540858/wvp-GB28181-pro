@@ -512,10 +512,12 @@ public class StreamPushServiceImpl implements IStreamPushService {
         if (ObjectUtils.isEmpty(streamPush.getGbDeviceId())) {
             return;
         }
-        if ("ON".equalsIgnoreCase(streamPush.getGbStatus())) {
-            gbChannelService.online(streamPush.buildCommonGBChannel());
-        }else {
-            gbChannelService.offline(streamPush.buildCommonGBChannel());
+        if (userSetting.isUsePushingAsStatus()) {
+            if ("ON".equalsIgnoreCase(streamPush.getGbStatus()) ) {
+                gbChannelService.online(streamPush.buildCommonGBChannel());
+            }else {
+                gbChannelService.offline(streamPush.buildCommonGBChannel());
+            }
         }
     }
 

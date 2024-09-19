@@ -501,6 +501,58 @@ public interface DeviceChannelMapper {
             "</script>"})
     int batchUpdate(List<DeviceChannel> updateChannels);
 
+
+    @Update({"<script>" +
+            "<foreach collection='updateChannels' item='item' separator=';'>" +
+            " UPDATE" +
+            " wvp_device_channel" +
+            " SET update_time=#{item.updateTime}" +
+            ", device_id=#{item.deviceId}" +
+            ", device_db_id=#{item.deviceDbId}" +
+            ", name=#{item.name}" +
+            ", manufacturer=#{item.manufacturer}" +
+            ", model=#{item.model}" +
+            ", owner=#{item.owner}" +
+            ", civil_code=#{item.civilCode}" +
+            ", block=#{item.block}" +
+            ", address=#{item.address}" +
+            ", parental=#{item.parental}" +
+            ", parent_id=#{item.parentId}" +
+            ", safety_way=#{item.safetyWay}" +
+            ", register_way=#{item.registerWay}" +
+            ", cert_num=#{item.certNum}" +
+            ", certifiable=#{item.certifiable}" +
+            ", err_code=#{item.errCode}" +
+            ", end_time=#{item.endTime}" +
+            ", secrecy=#{item.secrecy}" +
+            ", ip_address=#{item.ipAddress}" +
+            ", port=#{item.port}" +
+            ", password=#{item.password}" +
+            ", status=#{item.status}" +
+            ", longitude=#{item.longitude}" +
+            ", latitude=#{item.latitude}" +
+            ", ptz_type=#{item.ptzType}" +
+            ", position_type=#{item.positionType}" +
+            ", room_type=#{item.roomType}" +
+            ", use_type=#{item.useType}" +
+            ", supply_light_type=#{item.supplyLightType}" +
+            ", direction_type=#{item.directionType}" +
+            ", resolution=#{item.resolution}" +
+            ", business_group_id=#{item.businessGroupId}" +
+            ", download_speed=#{item.downloadSpeed}" +
+            ", svc_space_support_mod=#{item.svcSpaceSupportMod}" +
+            ", svc_time_support_mode=#{item.svcTimeSupportMode}" +
+            ", sub_count=#{item.subCount}" +
+            ", stream_id=#{item.streamId}" +
+            ", has_audio=#{item.hasAudio}" +
+            ", gps_time=#{item.gpsTime}" +
+            ", stream_identification=#{item.streamIdentification}" +
+            ", channel_type=#{item.channelType}" +
+            " WHERE device_id=#{item.deviceId}" +
+            "</foreach>" +
+            "</script>"})
+    int batchUpdateForNotify(List<DeviceChannel> updateChannels);
+
     @Update(" update wvp_device_channel" +
             " set sub_count = (select *" +
             "             from (select count(0)" +
@@ -625,6 +677,13 @@ public interface DeviceChannelMapper {
             "</foreach>" +
             "</script>"})
     int batchDel(List<DeviceChannel> deleteChannelList);
+
+    @Delete({"<script>" +
+            "<foreach collection='deleteChannelList' item='item' separator=';'>" +
+            "DELETE FROM wvp_device_channel WHERE device_id=#{item.deviceId}" +
+            "</foreach>" +
+            "</script>"})
+    int batchDelForNotify(List<DeviceChannel> deleteChannelList);
 
     @Update({"<script>" +
             "<foreach collection='channels' item='item' separator=';'>" +

@@ -45,7 +45,7 @@ public interface IDeviceChannelService {
      * 批量删除通道
      * @param deleteChannelList 待删除的通道列表
      */
-    int deleteChannels(List<DeviceChannel> deleteChannelList);
+    int deleteChannelsForNotify(List<DeviceChannel> deleteChannelList);
 
     /**
      * 批量上线
@@ -67,7 +67,7 @@ public interface IDeviceChannelService {
     /**
      * 直接批量更新通道
      */
-    void batchUpdateChannel(List<DeviceChannel> channels);
+    void batchUpdateChannelForNotify(List<DeviceChannel> channels);
 
     /**
      * 直接批量添加

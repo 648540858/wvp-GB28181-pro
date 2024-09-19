@@ -193,8 +193,8 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
-    public int deleteChannels(List<DeviceChannel> deleteChannelList) {
-       return channelMapper.batchDel(deleteChannelList);
+    public int deleteChannelsForNotify(List<DeviceChannel> deleteChannelList) {
+       return channelMapper.batchDelForNotify(deleteChannelList);
     }
 
     @Override
@@ -242,7 +242,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
-    public synchronized void batchUpdateChannel(List<DeviceChannel> channels) {
+    public synchronized void batchUpdateChannelForNotify(List<DeviceChannel> channels) {
         String now = DateUtil.getNow();
         for (DeviceChannel channel : channels) {
             channel.setUpdateTime(now);
@@ -255,10 +255,10 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     if (i + limitCount > channels.size()) {
                         toIndex = channels.size();
                     }
-                    channelMapper.batchUpdate(channels.subList(i, toIndex));
+                    channelMapper.batchUpdateForNotify(channels.subList(i, toIndex));
                 }
             }else {
-                channelMapper.batchUpdate(channels);
+                channelMapper.batchUpdateForNotify(channels);
             }
         }
     }

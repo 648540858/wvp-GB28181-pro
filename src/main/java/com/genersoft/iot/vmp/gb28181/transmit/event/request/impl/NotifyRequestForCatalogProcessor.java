@@ -284,7 +284,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 		if (!updateChannelMap.values().isEmpty()) {
 			log.info("[存储收到的更新通道], 数量： {}", updateChannelMap.size());
 			ArrayList<DeviceChannel> deviceChannels = new ArrayList<>(updateChannelMap.values());
-			deviceChannelService.batchUpdateChannel(deviceChannels);
+			deviceChannelService.batchUpdateChannelForNotify(deviceChannels);
 			updateChannelMap.clear();
 		}
 	}
@@ -299,7 +299,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 
 	private void executeSaveForDelete(){
 		if (!deleteChannelList.isEmpty()) {
-			deviceChannelService.deleteChannels(deleteChannelList);
+			deviceChannelService.deleteChannelsForNotify(deleteChannelList);
 			deleteChannelList.clear();
 		}
 	}

@@ -233,7 +233,6 @@ public interface CommonGBChannelMapper {
             " gb_port = null, gb_password = null, gb_status = null, gb_longitude = null, gb_latitude = null, " +
             " gb_ptz_type = null, gb_position_type = null, gb_room_type = null, gb_use_type = null, gb_supply_light_type = null, " +
             " gb_direction_type = null, gb_resolution = null, gb_business_group_id = null, gb_download_speed = null, gb_svc_space_support_mod = null, " +
-            " gb_direction_type = null, gb_resolution = null, gb_business_group_id = null, gb_download_speed = null, gb_svc_space_support_mod = null, " +
             " gb_svc_time_support_mode = null" +
             " WHERE id = #{id} and device_db_id = #{gbDeviceDbId}"+
             " </script>"})

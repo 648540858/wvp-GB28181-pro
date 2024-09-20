@@ -159,7 +159,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     return;
                 }
                 log.info("[上级Invite] 平台：{}， 通道：{}({}), 收流地址：{}:{}，收流方式：{}, 点播类型：{},  ssrc：{}",
-                        platform.getName(), channel.getGbName(), channel.getGbDeviceDbId(), inviteInfo.getIp(),
+                        platform.getName(), channel.getGbName(), channel.getGbDeviceId(), inviteInfo.getIp(),
                         inviteInfo.getPort(), inviteInfo.isTcp()?(inviteInfo.isTcpActive()?"TCP主动":"TCP被动"): "UDP",
                         inviteInfo.getSessionName(), inviteInfo.getSsrc());
                 // 通道存在，发100，TRYING

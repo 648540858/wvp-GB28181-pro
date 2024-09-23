@@ -467,7 +467,7 @@ public interface DeviceChannelMapper {
             "and(latitude_gcj02=0 or latitude_wgs84=0 or longitude_wgs84= 0 or longitude_gcj02 = 0)")
     List<DeviceChannel> getChannelsWithoutTransform(String deviceId);
 
-    @Select("select de.* from wvp_device de left join wvp_device_channel dc on de.device_id = dc.deviceId where dc.channel_id=#{channelId}")
+    @Select("select de.* from wvp_device de left join wvp_device_channel dc on de.device_id = dc.device_id where dc.channel_id=#{channelId}")
     List<Device> getDeviceByChannelId(String channelId);
 
 

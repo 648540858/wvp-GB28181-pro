@@ -5,12 +5,11 @@ import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.PresetQuerySipReq;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.DeferredResultEx;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
@@ -37,9 +36,6 @@ import java.util.*;
 @RestController
 @RequestMapping(value = "/api/v1/device")
 public class ApiDeviceController {
-
-    @Autowired
-    private IVideoManagerStorage storager;
 
     @Autowired
     private SIPCommander cmder;

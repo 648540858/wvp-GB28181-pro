@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.gb28181.session;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -16,9 +15,6 @@ import java.util.concurrent.TimeUnit;
 public class CatalogDataCatch {
 
     public static Map<String, CatalogData> data = new ConcurrentHashMap<>();
-
-    @Autowired
-    private IVideoManagerStorage storager;
 
     @Autowired
     private IDeviceChannelService deviceChannelService;

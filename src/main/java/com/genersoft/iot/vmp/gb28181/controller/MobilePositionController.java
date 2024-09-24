@@ -4,12 +4,11 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.service.IMobilePositionService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.util.StringUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -37,7 +36,7 @@ import java.util.UUID;
 public class MobilePositionController {
 
     @Autowired
-    private IVideoManagerStorage storager;
+    private IMobilePositionService mobilePositionService;
     
 	@Autowired
 	private SIPCommander cmder;
@@ -48,8 +47,6 @@ public class MobilePositionController {
 	@Autowired
 	private IDeviceService deviceService;
 
-	@Autowired
-	private IDeviceChannelService deviceChannelService;
 
     /**
      * 查询历史轨迹
@@ -75,7 +72,7 @@ public class MobilePositionController {
         if (StringUtil.isEmpty(end)) {
             end = null;
         }
-        return storager.queryMobilePositions(deviceId, channelId, start, end);
+        return mobilePositionService.queryMobilePositions(deviceId, channelId, start, end);
     }
 
     /**
@@ -87,7 +84,7 @@ public class MobilePositionController {
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @GetMapping("/latest/{deviceId}")
     public MobilePosition latestPosition(@PathVariable String deviceId) {
-        return storager.queryLatestPosition(deviceId);
+        return mobilePositionService.queryLatestPosition(deviceId);
     }
 
     /**

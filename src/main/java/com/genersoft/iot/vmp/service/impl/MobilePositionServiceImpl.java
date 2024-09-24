@@ -3,6 +3,8 @@ package com.genersoft.iot.vmp.service.impl;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
+import com.genersoft.iot.vmp.gb28181.dao.PlatformMapper;
 import com.genersoft.iot.vmp.service.IMobilePositionService;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceMobilePositionMapper;
@@ -30,6 +32,10 @@ public class MobilePositionServiceImpl implements IMobilePositionService {
 
     @Autowired
     private UserSetting userSetting;
+
+
+    @Autowired
+    private PlatformMapper platformMapper;
 
     @Autowired
     private RedisTemplate<String, MobilePosition> redisTemplate;
@@ -60,6 +66,30 @@ public class MobilePositionServiceImpl implements IMobilePositionService {
             mobilePositions = redisTemplate.opsForList().rightPop(REDIS_MOBILE_POSITION_LIST, size);
         }
         return  mobilePositions;
+    }
+
+
+
+    /**
+     * 查询移动位置轨迹
+     */
+    @Override
+    public synchronized List<MobilePosition> queryMobilePositions(String deviceId, String channelId, String startTime, String endTime) {
+        return mobilePositionMapper.queryPositionByDeviceIdAndTime(deviceId, channelId, startTime, endTime);
+    }
+
+    @Override
+    public List<Platform> queryEnablePlatformListWithAsMessageChannel() {
+        return platformMapper.queryEnablePlatformListWithAsMessageChannel();
+    }
+
+    /**
+     * 查询最新移动位置
+     * @param deviceId
+     */
+    @Override
+    public MobilePosition queryLatestPosition(String deviceId) {
+        return mobilePositionMapper.queryLatestPositionByDevice(deviceId);
     }
 
 

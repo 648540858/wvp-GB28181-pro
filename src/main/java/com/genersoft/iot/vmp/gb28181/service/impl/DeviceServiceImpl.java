@@ -575,4 +575,9 @@ public class DeviceServiceImpl implements IDeviceService {
     public Device getDeviceByChannelId(Integer channelId) {
         return deviceMapper.queryByChannelId(channelId);
     }
+
+    @Override
+    public Device getDeviceBySourceChannelDeviceId(String channelId) {
+        return deviceMapper.getDeviceBySourceChannelDeviceId(channelId);
+    }
 }

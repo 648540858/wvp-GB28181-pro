@@ -10,7 +10,6 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.QueryMessageHandler;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
@@ -38,9 +37,6 @@ public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent imp
 
     @Autowired
     private SIPCommanderForPlatform cmderFroPlatform;
-
-    @Autowired
-    private IVideoManagerStorage storager;
 
     @Autowired
     private IDeviceService deviceService;

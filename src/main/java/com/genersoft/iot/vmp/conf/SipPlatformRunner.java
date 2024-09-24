@@ -2,10 +2,9 @@ package com.genersoft.iot.vmp.conf;
 
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformCatch;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -22,9 +21,6 @@ import java.util.List;
 @Component
 @Order(value=13)
 public class SipPlatformRunner implements CommandLineRunner {
-
-    @Autowired
-    private IVideoManagerStorage storager;
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;

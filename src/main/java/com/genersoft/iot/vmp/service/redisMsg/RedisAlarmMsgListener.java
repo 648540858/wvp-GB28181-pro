@@ -6,12 +6,12 @@ import com.genersoft.iot.vmp.gb28181.bean.AlarmChannelMessage;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.service.IMobilePositionService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +50,7 @@ public class RedisAlarmMsgListener implements MessageListener {
     private IDeviceChannelService channelService;
 
     @Autowired
-    private IVideoManagerStorage storage;
+    private IMobilePositionService mobilePositionService;
 
     @Autowired
     private IPlatformService platformService;
@@ -109,7 +109,7 @@ public class RedisAlarmMsgListener implements MessageListener {
                                 }
                             }else {
                                 // 获取开启了消息推送的设备和平台
-                                List<Platform> parentPlatforms = storage.queryEnablePlatformListWithAsMessageChannel();
+                                List<Platform> parentPlatforms = mobilePositionService.queryEnablePlatformListWithAsMessageChannel();
                                 if (parentPlatforms.size() > 0) {
                                     for (Platform parentPlatform : parentPlatforms) {
                                         try {

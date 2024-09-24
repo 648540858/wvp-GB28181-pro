@@ -24,7 +24,6 @@ import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.redisMsg.RedisPushStreamResponseListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sdp.TimeDescriptionImpl;
 import gov.nist.javax.sdp.fields.TimeField;
 import gov.nist.javax.sdp.fields.URIField;
@@ -63,10 +62,10 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     private ISIPCommanderForPlatform cmderFroPlatform;
 
     @Autowired
-    private IVideoManagerStorage storager;
+    private IDeviceChannelService deviceChannelService;
 
     @Autowired
-    private IDeviceChannelService deviceChannelService;
+    private IDeviceService deviceService;
 
     @Autowired
     private IGbChannelService channelService;
@@ -423,11 +422,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         Device device = redisCatchStorage.getDevice(inviteInfo.getRequesterId());
         // 判断requesterId是设备还是通道
         if (device == null) {
-            device = storager.queryVideoDeviceByChannelId(inviteInfo.getRequesterId());
+            device = deviceService.getDeviceBySourceChannelDeviceId(inviteInfo.getRequesterId());
         }
         if (device == null) {
             // 检查channelID是否可用
-            device = storager.queryVideoDeviceByChannelId(inviteInfo.getSourceChannelId());
+            device = deviceService.getDeviceBySourceChannelDeviceId(inviteInfo.getSourceChannelId());
         }
 
         if (device == null) {

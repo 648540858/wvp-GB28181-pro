@@ -168,4 +168,6 @@ public interface IDeviceService {
     Device getDevice(Integer gbDeviceDbId);
 
     Device getDeviceByChannelId(Integer channelId);
+
+    Device getDeviceBySourceChannelDeviceId(String requesterId);
 }

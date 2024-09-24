@@ -1,16 +1,15 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.control.cmd;
 
 import com.genersoft.iot.vmp.common.enums.DeviceControlType;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DragZoomRequest;
-import com.genersoft.iot.vmp.gb28181.bean.HomePositionRequest;
-import com.genersoft.iot.vmp.gb28181.bean.Platform;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.control.ControlMessageHandler;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
@@ -40,7 +39,13 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
     private ControlMessageHandler controlMessageHandler;
 
     @Autowired
-    private IVideoManagerStorage storager;
+    private IGbChannelService channelService;
+
+    @Autowired
+    private IDeviceService deviceService;
+
+    @Autowired
+    private IDeviceChannelService deviceChannelService;
 
     @Autowired
     private SIPCommander cmder;
@@ -56,7 +61,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, Platform parentPlatform, Element rootElement) {
+    public void handForPlatform(RequestEvent evt, Platform platform, Element rootElement) {
 
         SIPRequest request = (SIPRequest) evt.getRequest();
 
@@ -66,7 +71,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
         // 远程启动功能
         if (!ObjectUtils.isEmpty(getText(rootElement, "TeleBoot"))) {
             // 拒绝远程启动命令
-            log.warn("[国标级联]收到平台的远程启动命令， 禁用，不允许上级平台随意重启下级平台");
+            log.warn("[deviceControl] 远程启动命令， 禁用，不允许上级平台随意重启下级平台");
             try {
                 responseAck(request, Response.FORBIDDEN);
             } catch (SipException | InvalidArgumentException | ParseException e) {
@@ -75,45 +80,75 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             return;
         }
         DeviceControlType deviceControlType = DeviceControlType.typeOf(rootElement);
-        log.info("[接受deviceControl命令] 命令: {}", deviceControlType);
-        if (!ObjectUtils.isEmpty(deviceControlType) && !parentPlatform.getServerGBId().equals(targetGBId)) {
-            //判断是否存在该通道
-            Device deviceForPlatform = storager.queryVideoDeviceByPlatformIdAndChannelId(parentPlatform.getServerGBId(), channelId);
-            if (deviceForPlatform == null) {
-                try {
-                    responseAck(request, Response.NOT_FOUND);
-                } catch (SipException | InvalidArgumentException | ParseException e) {
-                    log.error("[命令发送失败] 错误信息: {}", e.getMessage());
-                }
-                return;
+
+        CommonGBChannel channel = channelService.queryOneWithPlatform(platform.getId(), channelId);
+        if (channel == null) {
+            // 拒绝远程启动命令
+            log.warn("[deviceControl] 未找到通道， 平台： {}（{}），通道编号：{}", platform.getName(),
+                    platform.getServerGBId(), channelId);
+            try {
+                responseAck(request, Response.NOT_FOUND, "channel not found");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
             }
+            return;
+        }
+        // 根据通道ID，获取所属设备
+        Device device = deviceService.getDeviceByChannelId(channel.getGbId());
+        if (device == null) {
+            // 不存在则回复404
+            log.warn("[INFO 消息] 通道所属设备不存在， 通道ID： {}", channel.getGbId());
+            try {
+                responseAck(request, Response.NOT_FOUND, "device  not found");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
+
+        log.info("[deviceControl] 命令: {}, 平台： {}（{}）->{}（{}）/{}", deviceControlType, platform.getName(),
+                platform.getServerGBId(), device.getName(), device.getDeviceId(), channel.getGbId());
+        DeviceChannel deviceChannel = deviceChannelService.getOneById(channel.getGbId());
+        if (deviceChannel == null) {
+            // 拒绝远程启动命令
+            log.warn("[deviceControl] 未找到设备原始通道， 平台： {}（{}），通道编号：{}", platform.getName(),
+                    platform.getServerGBId(), channelId);
+            try {
+                responseAck(request, Response.NOT_FOUND, "channel not found");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
+        // !platform.getServerGBId().equals(targetGBId) 判断是为了过滤本平台内互相级联的情况
+        if (!ObjectUtils.isEmpty(deviceControlType)) {
             switch (deviceControlType) {
                 case PTZ:
-                    handlePtzCmd(deviceForPlatform, channelId, rootElement, request, DeviceControlType.PTZ);
+                    handlePtzCmd(device, deviceChannel.getDeviceId(), rootElement, request, DeviceControlType.PTZ);
                     break;
                 case ALARM:
-                    handleAlarmCmd(deviceForPlatform, rootElement, request);
+                    handleAlarmCmd(device, rootElement, request);
                     break;
                 case GUARD:
-                    handleGuardCmd(deviceForPlatform, rootElement, request, DeviceControlType.GUARD);
+                    handleGuardCmd(device, rootElement, request, DeviceControlType.GUARD);
                     break;
                 case RECORD:
-                    handleRecordCmd(deviceForPlatform, channelId, rootElement, request, DeviceControlType.RECORD);
+                    handleRecordCmd(device, deviceChannel.getDeviceId(), rootElement, request, DeviceControlType.RECORD);
                     break;
                 case I_FRAME:
-                    handleIFameCmd(deviceForPlatform, request, channelId);
+                    handleIFameCmd(device, request, deviceChannel.getDeviceId());
                     break;
                 case TELE_BOOT:
-                    handleTeleBootCmd(deviceForPlatform, request);
+                    handleTeleBootCmd(device, request);
                     break;
                 case DRAG_ZOOM_IN:
-                    handleDragZoom(deviceForPlatform, channelId, rootElement, request, DeviceControlType.DRAG_ZOOM_IN);
+                    handleDragZoom(device, deviceChannel.getDeviceId(), rootElement, request, DeviceControlType.DRAG_ZOOM_IN);
                     break;
                 case DRAG_ZOOM_OUT:
-                    handleDragZoom(deviceForPlatform, channelId, rootElement, request, DeviceControlType.DRAG_ZOOM_OUT);
+                    handleDragZoom(device, deviceChannel.getDeviceId(), rootElement, request, DeviceControlType.DRAG_ZOOM_OUT);
                     break;
                 case HOME_POSITION:
-                    handleHomePositionCmd(deviceForPlatform, channelId, rootElement, request, DeviceControlType.HOME_POSITION);
+                    handleHomePositionCmd(device, deviceChannel.getDeviceId(), rootElement, request, DeviceControlType.HOME_POSITION);
                     break;
                 default:
                     break;

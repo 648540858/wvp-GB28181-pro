@@ -93,34 +93,9 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             }
             return;
         }
-        // 根据通道ID，获取所属设备
-        Device device = deviceService.getDeviceByChannelId(channel.getGbId());
-        if (device == null) {
-            // 不存在则回复404
-            log.warn("[INFO 消息] 通道所属设备不存在， 通道ID： {}", channel.getGbId());
-            try {
-                responseAck(request, Response.NOT_FOUND, "device  not found");
-            } catch (SipException | InvalidArgumentException | ParseException e) {
-                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
-            }
-            return;
-        }
+        log.info("[deviceControl] 命令: {}, 平台： {}（{}）->{}", deviceControlType, platform.getName(),
+                platform.getServerGBId(), channel.getGbId());
 
-        log.info("[deviceControl] 命令: {}, 平台： {}（{}）->{}（{}）/{}", deviceControlType, platform.getName(),
-                platform.getServerGBId(), device.getName(), device.getDeviceId(), channel.getGbId());
-        DeviceChannel deviceChannel = deviceChannelService.getOneById(channel.getGbId());
-        if (deviceChannel == null) {
-            // 拒绝远程启动命令
-            log.warn("[deviceControl] 未找到设备原始通道， 平台： {}（{}），通道编号：{}", platform.getName(),
-                    platform.getServerGBId(), channelId);
-            try {
-                responseAck(request, Response.NOT_FOUND, "channel not found");
-            } catch (SipException | InvalidArgumentException | ParseException e) {
-                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
-            }
-            return;
-        }
-        // !platform.getServerGBId().equals(targetGBId) 判断是为了过滤本平台内互相级联的情况
         if (!ObjectUtils.isEmpty(deviceControlType)) {
             switch (deviceControlType) {
                 case PTZ:
@@ -158,13 +133,35 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
 
     /**
      * 处理云台指令
-     *
-     * @param device      设备
-     * @param channelId   通道id
-     * @param rootElement
-     * @param request
      */
-    private void handlePtzCmd(Device device, String channelId, Element rootElement, SIPRequest request, DeviceControlType type) {
+    private void handlePtzCmd(CommonGBChannel channel, Element rootElement, SIPRequest request, DeviceControlType type) {
+        // 根据通道ID，获取所属设备
+        Device device = deviceService.getDeviceByChannelId(channel.getGbId());
+        if (device == null) {
+            // 不存在则回复404
+            log.warn("[INFO 消息] 通道所属设备不存在， 通道ID： {}", channel.getGbId());
+            try {
+                responseAck(request, Response.NOT_FOUND, "device  not found");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
+
+        DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
+        if (deviceChannel == null) {
+            // 拒绝远程启动命令
+            log.warn("[deviceControl] 未找到设备原始通道， 平台： {}（{}），通道编号：{}", platform.getName(),
+                    platform.getServerGBId(), channelId);
+            try {
+                responseAck(request, Response.NOT_FOUND, "channel not found");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
+        log.info("[deviceControl] 命令: {}, 设备： {}（{}）， 通道{}（{}", type,  device.getName(), device.getDeviceId(),
+                deviceChannel.getName(), deviceChannel.getDeviceId());
         String cmdString = getText(rootElement, type.getVal());
         try {
             cmder.fronEndCmd(device, channelId, cmdString,

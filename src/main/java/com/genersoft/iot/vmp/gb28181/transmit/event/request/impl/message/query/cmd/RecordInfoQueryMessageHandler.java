@@ -124,7 +124,7 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
             return;
         }
         // 获取通道的原始信息
-        DeviceChannel deviceChannel = deviceChannelService.getOneById(channel.getGbId());
+        DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
         // 接收录像数据
         recordEndEventListener.addEndEventHandler(device.getDeviceId(), deviceChannel.getDeviceId(), (recordInfo)->{
             try {

@@ -179,7 +179,7 @@ public class MediaServiceImpl implements IMediaService {
 
                 String deviceId = ssrcTransaction.getDeviceId();
                 Integer channelId = ssrcTransaction.getChannelId();
-                DeviceChannel deviceChannel = deviceChannelService.getOneById(channelId);
+                DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channelId);
                 if (deviceChannel != null) {
                     result.setEnable_audio(deviceChannel.isHasAudio());
                 }
@@ -234,7 +234,7 @@ public class MediaServiceImpl implements IMediaService {
                 if (inviteInfo.getType() == InviteSessionType.DOWNLOAD) {
                     return false;
                 }
-                DeviceChannel deviceChannel = deviceChannelService.getOneById(inviteInfo.getChannelId());
+                DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(inviteInfo.getChannelId());
                 if (deviceChannel == null) {
                     return false;
                 }

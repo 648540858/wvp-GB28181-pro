@@ -117,7 +117,7 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
                 return;
             }
             // 获取通道的原始信息
-            DeviceChannel deviceChannel = deviceChannelService.getOneById(sendRtpInfo.getChannelId());
+            DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(sendRtpInfo.getChannelId());
             // 向原始通道转发控制消息
             ContentTypeHeader header = (ContentTypeHeader)evt.getRequest().getHeader(ContentTypeHeader.NAME);
             String contentType = header.getContentType();

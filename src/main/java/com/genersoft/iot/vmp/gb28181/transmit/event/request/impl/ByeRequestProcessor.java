@@ -160,7 +160,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 							log.info("[收到bye] {} 通知设备停止推流时未找到设备信息", streamId);
 							return;
 						}
-						DeviceChannel deviceChannel = deviceChannelService.getOneById(sendRtpItem.getChannelId());
+						DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(sendRtpItem.getChannelId());
 						if (deviceChannel == null) {
 							log.info("[收到bye] {} 通知设备停止推流时未找到通道信息", streamId);
 							return;
@@ -196,7 +196,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 				platformService.stopBroadcast(platform, channel, ssrcTransaction.getStream(), false,
 						mediaServerService.getOne(mediaServerId));
 				Device device = deviceService.getDeviceByDeviceId(ssrcTransaction.getDeviceId());
-				DeviceChannel deviceChannel = deviceChannelService.getOneById(ssrcTransaction.getChannelId());
+				DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(ssrcTransaction.getChannelId());
 				playService.stopAudioBroadcast(device, deviceChannel);
 			}
 
@@ -206,7 +206,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 				log.info("[收到bye] 未找到设备：{} ", ssrcTransaction.getDeviceId());
 				return;
 			}
-			DeviceChannel channel = deviceChannelService.getOneById(ssrcTransaction.getChannelId());
+			DeviceChannel channel = deviceChannelService.getOneForSourceById(ssrcTransaction.getChannelId());
 			if (channel == null) {
 				log.info("[收到bye] 未找到通道，设备：{}， 通道：{}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
 				return;

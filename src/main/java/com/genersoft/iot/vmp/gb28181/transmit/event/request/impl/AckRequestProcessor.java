@@ -113,7 +113,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 		Platform parentPlatform = platformService.queryPlatformByServerGBId(fromUserId);
 
 		if (parentPlatform != null) {
-			DeviceChannel deviceChannel = deviceChannelService.getOneById(sendRtpItem.getChannelId());
+			DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(sendRtpItem.getChannelId());
 			if (!userSetting.getServerId().equals(sendRtpItem.getServerId())) {
 				WVPResult wvpResult = redisRpcService.startSendRtp(sendRtpItem.getChannelId(), sendRtpItem);
 				if (wvpResult.getCode() == 0) {

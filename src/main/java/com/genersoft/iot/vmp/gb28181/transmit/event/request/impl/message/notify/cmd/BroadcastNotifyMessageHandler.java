@@ -106,7 +106,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
                 responseAck(request, Response.NOT_FOUND, "device not found");
                 return;
             }
-            DeviceChannel deviceChannel = deviceChannelService.getOneById(channel.getGbId());
+            DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
             if (deviceChannel == null) {
                 responseAck(request, Response.NOT_FOUND, "channel not found");
                 return;

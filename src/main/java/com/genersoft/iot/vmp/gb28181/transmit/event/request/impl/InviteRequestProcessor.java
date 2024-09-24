@@ -214,7 +214,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             MediaServer mediaServer = mediaServerService.getOne(sendRtpItem.getMediaServerId());
                             try {
                                 mediaServerService.startSendRtpPassive(mediaServer, sendRtpItem, 5);
-                                DeviceChannel deviceChannel = deviceChannelService.getOneById(sendRtpItem.getChannelId());
+                                DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(sendRtpItem.getChannelId());
                                 if (deviceChannel != null) {
                                     redisCatchStorage.sendPlatformStartPlayMsg(sendRtpItem, deviceChannel, platform);
                                 }
@@ -451,7 +451,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 }
                 return;
             }else {
-                deviceChannel = deviceChannelService.getOneById(audioBroadcastCatchList.get(0).getChannelId());
+                deviceChannel = deviceChannelService.getOneForSourceById(audioBroadcastCatchList.get(0).getChannelId());
             }
         }
         AudioBroadcastCatch broadcastCatch = audioBroadcastManager.get(deviceChannel.getId());

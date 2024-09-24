@@ -48,7 +48,7 @@ import java.util.List;
 @Slf4j
 @Component
 @DependsOn("sipLayer")
-public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
+public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
 
     @Autowired
     private SIPRequestHeaderPlarformProvider headerProviderPlatformProvider;

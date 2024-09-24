@@ -12,7 +12,7 @@ import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
@@ -53,7 +53,7 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
     private SIPCommander cmder;
 
     @Autowired
-    private SIPCommanderFroPlatform sipCommanderFroPlatform;
+    private SIPCommanderForPlatform sipCommanderFroPlatform;
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;

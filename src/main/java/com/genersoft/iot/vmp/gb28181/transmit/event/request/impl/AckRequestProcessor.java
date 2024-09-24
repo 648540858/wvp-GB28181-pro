@@ -112,7 +112,6 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 		);
 		Platform parentPlatform = platformService.queryPlatformByServerGBId(fromUserId);
 
-
 		if (parentPlatform != null) {
 			DeviceChannel deviceChannel = deviceChannelService.getOneById(sendRtpItem.getChannelId());
 			if (!userSetting.getServerId().equals(sendRtpItem.getServerId())) {

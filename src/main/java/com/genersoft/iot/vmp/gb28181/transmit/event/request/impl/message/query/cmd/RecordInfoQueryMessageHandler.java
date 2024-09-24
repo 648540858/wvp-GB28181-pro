@@ -9,7 +9,7 @@ import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.QueryMessageHandler;
@@ -46,7 +46,7 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
     private IDeviceChannelService deviceChannelService;
 
     @Autowired
-    private SIPCommanderFroPlatform cmderFroPlatform;
+    private SIPCommanderForPlatform cmderFroPlatform;
 
     @Autowired
     private SIPCommander commander;

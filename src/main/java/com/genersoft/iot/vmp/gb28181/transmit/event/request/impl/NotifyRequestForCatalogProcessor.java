@@ -119,11 +119,8 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
                             log.error("[解析CatalogChannelEvent]失败原文: \n{}", new String(evt.getRequest().getRawContent(), Charset.forName(device.getCharset())));
 							continue;
                         }
-						if (catalogChannelEvent == null) {
-							continue;
-						}
 
-						log.info("[收到目录订阅]：{}/{}-{}", device.getDeviceId(),
+                        log.info("[收到目录订阅]：{}/{}-{}", device.getDeviceId(),
 								catalogChannelEvent.getChannel().getDeviceId(), catalogChannelEvent.getEvent());
 						switch (catalogChannelEvent.getEvent()) {
 							case CatalogEvent.ON:

@@ -18,8 +18,6 @@ import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import com.genersoft.iot.vmp.streamPush.service.IStreamPushService;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
@@ -67,9 +65,6 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 	private AudioBroadcastManager audioBroadcastManager;
 
 	@Autowired
-	private IVideoManagerStorage storager;
-
-	@Autowired
 	private IGbChannelService channelService;
 
 	@Autowired
@@ -86,9 +81,6 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 
 	@Autowired
 	private UserSetting userSetting;
-
-	@Autowired
-	private IStreamPushService pushService;
 
 	@Autowired
 	private IRedisRpcService redisRpcService;

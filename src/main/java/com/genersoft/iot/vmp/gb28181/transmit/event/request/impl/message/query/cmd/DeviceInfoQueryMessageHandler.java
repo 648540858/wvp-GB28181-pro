@@ -1,7 +1,11 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.cmd;
 
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
@@ -34,8 +38,18 @@ public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent imp
 
     @Autowired
     private SIPCommanderFroPlatform cmderFroPlatform;
+
     @Autowired
     private IVideoManagerStorage storager;
+
+    @Autowired
+    private IDeviceService deviceService;
+
+    @Autowired
+    private IGbChannelService channelService;
+
+    @Autowired
+    private IDeviceChannelService deviceChannelService;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -50,14 +64,9 @@ public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent imp
     @Override
     public void handForPlatform(RequestEvent evt, Platform platform, Element rootElement) {
         log.info("[DeviceInfo查询]消息");
+        SIPRequest request = (SIPRequest) evt.getRequest();
         FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
-        try {
-            // 回复200 OK
-            responseAck((SIPRequest) evt.getRequest(), Response.OK);
-        } catch (SipException | InvalidArgumentException | ParseException e) {
-            log.error("[命令发送失败] DeviceInfo查询回复: {}", e.getMessage());
-            return;
-        }
+
         String sn = rootElement.element("SN").getText();
 
         /*根据WVP原有的数据结构，设备和通道是分开放置，设备信息都是存放在设备表里，通道表里的设备信息不可作为真实信息处理
@@ -66,14 +75,60 @@ public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent imp
 
         String channelId = getText(rootElement, "DeviceID");
         // 查询这是通道id还是设备id
-        Device device = null;
-        // 如果id指向平台的国标编号，那么就是查询平台的信息
-        if (!platform.getDeviceGBId().equals(channelId)) {
-            device = storager.queryDeviceInfoByPlatformIdAndChannelId(platform.getServerGBId(), channelId);
-            if (device ==null){
-                log.error("[平台没有该通道的使用权限]:platformId"+platform.getServerGBId()+"  deviceID:"+channelId);
+        if (platform.getDeviceGBId().equals(channelId)) {
+            // id指向平台的国标编号，那么就是查询平台的信息
+            try {
+                cmderFroPlatform.deviceInfoResponse(platform, null, sn, fromHeader.getTag());
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 国标级联 DeviceInfo查询回复: {}", e.getMessage());
+            }
+            return;
+        }
+        CommonGBChannel channel = channelService.queryOneWithPlatform(platform.getId(), channelId);
+        if (channel == null) {
+            // 不存在则回复404
+            log.warn("[DeviceInfo] 通道不存在： 通道编号： {}", channelId);
+            try {
+                responseAck(request, Response.NOT_FOUND, "channel not found or offline");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] DeviceInfo查询回复: {}", e.getMessage());
                 return;
             }
+            return;
+        }
+        // 判断通道类型
+        if (channel.getGbDeviceId() == null) {
+            // 非国标通道不支持录像回放控制
+            log.warn("[DeviceInfo] 非国标通道不支持录像回放控制： 通道ID： {}", channel.getGbId());
+            try {
+                responseAck(request, Response.FORBIDDEN, "");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] DeviceInfo查询回复: {}", e.getMessage());
+                return;
+            }
+            return;
+        }
+
+        // 根据通道ID，获取所属设备
+        Device device = deviceService.getDeviceByChannelId(channel.getGbId());
+        if (device == null) {
+            // 不存在则回复404
+            log.warn("[DeviceInfo] 通道所属设备不存在， 通道ID： {}", channel.getGbId());
+
+            try {
+                responseAck(request, Response.NOT_FOUND, "device not found ");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] DeviceInfo查询回复: {}", e.getMessage());
+                return;
+            }
+            return;
+        }
+        try {
+            // 回复200 OK
+            responseAck((SIPRequest) evt.getRequest(), Response.OK);
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            log.error("[命令发送失败] DeviceInfo查询回复: {}", e.getMessage());
+            return;
         }
         try {
             cmderFroPlatform.deviceInfoResponse(platform, device, sn, fromHeader.getTag());

@@ -98,7 +98,6 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
                             continue;
                         }
 
-
                         MobilePosition mobilePosition = new MobilePosition();
                         mobilePosition.setCreateTime(DateUtil.getNow());
                         if (!ObjectUtils.isEmpty(sipMsgInfo.getDevice().getName())) {

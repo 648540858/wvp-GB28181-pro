@@ -11,8 +11,6 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
@@ -27,7 +25,7 @@ import javax.sip.message.Response;
 import java.text.ParseException;
 
 /**
- * 状态信息(心跳)报送
+ * 语音喊话请求
  */
 @Slf4j
 @Component
@@ -37,9 +35,6 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
 
     @Autowired
     private NotifyMessageHandler notifyMessageHandler;
-
-    @Autowired
-    private IVideoManagerStorage storage;
 
     @Autowired
     private IGbChannelService channelService;
@@ -64,9 +59,6 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
 
     @Autowired
     private AudioBroadcastManager audioBroadcastManager;
-
-    @Autowired
-    private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
     private ISendRtpServerService sendRtpServerService;

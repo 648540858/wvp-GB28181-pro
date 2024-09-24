@@ -86,7 +86,6 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
 
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
-
         // 回复200 OK
         try {
              responseAck((SIPRequest) evt.getRequest(), Response.OK);

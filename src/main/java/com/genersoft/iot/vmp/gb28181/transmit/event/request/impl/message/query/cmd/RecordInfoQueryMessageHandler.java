@@ -2,8 +2,10 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.
 
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.event.record.RecordEndEventListener;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
@@ -41,6 +43,9 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
     private IDeviceService deviceService;
 
     @Autowired
+    private IDeviceChannelService deviceChannelService;
+
+    @Autowired
     private SIPCommanderFroPlatform cmderFroPlatform;
 
     @Autowired
@@ -60,7 +65,7 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, Platform parentPlatform, Element rootElement) {
+    public void handForPlatform(RequestEvent evt, Platform platform, Element rootElement) {
 
         SIPRequest request = (SIPRequest) evt.getRequest();
         Element snElement = rootElement.element("SN");
@@ -89,9 +94,9 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
         }
 
         // 向国标设备请求录像数据
-        CommonGBChannel channel = channelService.queryOneWithPlatform(parentPlatform.getId(), channelId);
+        CommonGBChannel channel = channelService.queryOneWithPlatform(platform.getId(), channelId);
         if (channel == null) {
-            log.info("[平台查询录像记录] 未找到通道 {}/{}", parentPlatform.getName(), channelId );
+            log.info("[平台查询录像记录] 未找到通道 {}/{}", platform.getName(), channelId );
             try {
                 responseAck(request, Response.BAD_REQUEST);
             } catch (SipException | InvalidArgumentException | ParseException e) {
@@ -99,8 +104,8 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
             }
             return;
         }
-        if (channel.getStreamProxyId() != null || channel.getStreamPushId() != null ) {
-            log.info("[平台查询录像记录] 不支持查询推流和拉流代理的录像数据 {}/{}", parentPlatform.getName(), channelId );
+        if (channel.getGbId() == 0 ) {
+            log.info("[平台查询录像记录] 不支持查询推流和拉流代理的录像数据 {}/{}", platform.getName(), channelId );
             try {
                 responseAck(request, Response.NOT_IMPLEMENTED); // 回复未实现
             } catch (SipException | InvalidArgumentException | ParseException e) {
@@ -110,7 +115,7 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
         }
         Device device = deviceService.getDevice(channel.getGbDeviceDbId());
         if (device == null) {
-            log.warn("[平台查询录像记录] 未找到通道对应的设备 {}/{}", parentPlatform.getName(), channelId );
+            log.warn("[平台查询录像记录] 未找到通道对应的设备 {}/{}", platform.getName(), channelId );
             try {
                 responseAck(request, Response.BAD_REQUEST);
             } catch (SipException | InvalidArgumentException | ParseException e) {
@@ -118,17 +123,19 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
             }
             return;
         }
+        // 获取通道的原始信息
+        DeviceChannel deviceChannel = deviceChannelService.getOneById(channel.getGbId());
         // 接收录像数据
-        recordEndEventListener.addEndEventHandler(device.getDeviceId(), channelId, (recordInfo)->{
+        recordEndEventListener.addEndEventHandler(device.getDeviceId(), deviceChannel.getDeviceId(), (recordInfo)->{
             try {
                 log.info("[国标级联] 录像查询收到数据， 通道： {}，准备转发===", channelId);
-                cmderFroPlatform.recordInfo(channel, parentPlatform, request.getFromTag(), recordInfo);
+                cmderFroPlatform.recordInfo(channel, platform, request.getFromTag(), recordInfo);
             } catch (SipException | InvalidArgumentException | ParseException e) {
                 log.error("[命令发送失败] 国标级联 回复录像数据: {}", e.getMessage());
             }
         });
         try {
-            commander.recordInfoQuery(device, channelId, DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(startTime),
+            commander.recordInfoQuery(device, deviceChannel.getDeviceId(), DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(startTime),
                     DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(endTime), sn, secrecy, type, (eventResult -> {
                         // 回复200 OK
                         try {

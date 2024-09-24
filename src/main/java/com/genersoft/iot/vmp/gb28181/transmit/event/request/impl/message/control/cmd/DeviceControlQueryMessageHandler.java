@@ -134,7 +134,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
      * 处理云台指令
      */
     private void handlePtzCmd(CommonGBChannel channel, Element rootElement, SIPRequest request, DeviceControlType type) {
-        if (channel.getGbId() == 0) {
+        if (channel.getGbDeviceDbId() == 0) {
             // 只支持国标的云台控制
             log.warn("[INFO 消息] 只支持国标的云台控制， 通道ID： {}", channel.getGbId());
             try {
@@ -184,7 +184,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
      * 处理强制关键帧
      */
     private void handleIFameCmd(CommonGBChannel channel, SIPRequest request) {
-        if (channel.getGbId() == 0) {
+        if (channel.getGbDeviceDbId() == 0) {
             // 只支持国标的云台控制
             log.warn("[INFO 消息] 只支持国标的处理强制关键帧， 通道ID： {}", channel.getGbId());
             try {
@@ -232,7 +232,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
      * 处理重启命令
      */
     private void handleTeleBootCmd(CommonGBChannel channel, SIPRequest request) {
-        if (channel.getGbId() == 0) {
+        if (channel.getGbDeviceDbId() == 0) {
             // 只支持国标的云台控制
             log.warn("[INFO 消息] 只支持国标的重启命令， 通道ID： {}", channel.getGbId());
             try {
@@ -267,7 +267,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
      * 处理拉框控制
      */
     private void handleDragZoom(CommonGBChannel channel, Element rootElement, SIPRequest request, DeviceControlType type) {
-        if (channel.getGbId() == 0) {
+        if (channel.getGbDeviceDbId() == 0) {
             // 只支持国标的云台控制
             log.warn("[INFO 消息] 只支持国标的拉框控制， 通道ID： {}", channel.getGbId());
             try {
@@ -330,7 +330,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
      * 处理看守位命令
      */
     private void handleHomePositionCmd(CommonGBChannel channel, Element rootElement, SIPRequest request, DeviceControlType type) {
-        if (channel.getGbId() == 0) {
+        if (channel.getGbDeviceDbId() == 0) {
             // 只支持国标的云台控制
             log.warn("[INFO 消息] 只支持国标的看守位命令， 通道ID： {}", channel.getGbId());
             try {
@@ -382,7 +382,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
      * 处理告警消息
      */
     private void handleAlarmCmd(CommonGBChannel channel, Element rootElement, SIPRequest request) {
-        if (channel.getGbId() == 0) {
+        if (channel.getGbDeviceDbId() == 0) {
             // 只支持国标的云台控制
             log.warn("[INFO 消息] 只支持国标的告警消息， 通道ID： {}", channel.getGbId());
             try {
@@ -428,7 +428,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
      * 处理录像控制
      */
     private void handleRecordCmd(CommonGBChannel channel, Element rootElement, SIPRequest request, DeviceControlType type) {
-        if (channel.getGbId() == 0) {
+        if (channel.getGbDeviceDbId() == 0) {
             // 只支持国标的云台控制
             log.warn("[INFO 消息] 只支持国标的息录像控制， 通道ID： {}", channel.getGbId());
             try {
@@ -480,7 +480,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
      * 处理报警布防/撤防命令
      */
     private void handleGuardCmd(CommonGBChannel channel, Element rootElement, SIPRequest request, DeviceControlType type) {
-        if (channel.getGbId() == 0) {
+        if (channel.getGbDeviceDbId() == 0) {
             // 只支持国标的云台控制
             log.warn("[INFO 消息] 只支持国标的报警布防/撤防命令， 通道ID： {}", channel.getGbId());
             try {

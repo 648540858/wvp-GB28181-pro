@@ -83,7 +83,6 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
 
         CommonGBChannel channel = channelService.queryOneWithPlatform(platform.getId(), channelId);
         if (channel == null) {
-            // 拒绝远程启动命令
             log.warn("[deviceControl] 未找到通道， 平台： {}（{}），通道编号：{}", platform.getName(),
                     platform.getServerGBId(), channelId);
             try {
@@ -99,31 +98,31 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
         if (!ObjectUtils.isEmpty(deviceControlType)) {
             switch (deviceControlType) {
                 case PTZ:
-                    handlePtzCmd(device, deviceChannel.getDeviceId(), rootElement, request, DeviceControlType.PTZ);
+                    handlePtzCmd(channel, rootElement, request, DeviceControlType.PTZ);
                     break;
                 case ALARM:
-                    handleAlarmCmd(device, rootElement, request);
+                    handleAlarmCmd(channel, rootElement, request);
                     break;
                 case GUARD:
-                    handleGuardCmd(device, rootElement, request, DeviceControlType.GUARD);
+                    handleGuardCmd(channel, rootElement, request, DeviceControlType.GUARD);
                     break;
                 case RECORD:
-                    handleRecordCmd(device, deviceChannel.getDeviceId(), rootElement, request, DeviceControlType.RECORD);
+                    handleRecordCmd(channel, rootElement, request, DeviceControlType.RECORD);
                     break;
                 case I_FRAME:
-                    handleIFameCmd(device, request, deviceChannel.getDeviceId());
+                    handleIFameCmd(channel, request);
                     break;
                 case TELE_BOOT:
-                    handleTeleBootCmd(device, request);
+                    handleTeleBootCmd(channel, request);
                     break;
                 case DRAG_ZOOM_IN:
-                    handleDragZoom(device, deviceChannel.getDeviceId(), rootElement, request, DeviceControlType.DRAG_ZOOM_IN);
+                    handleDragZoom(channel, rootElement, request, DeviceControlType.DRAG_ZOOM_IN);
                     break;
                 case DRAG_ZOOM_OUT:
-                    handleDragZoom(device, deviceChannel.getDeviceId(), rootElement, request, DeviceControlType.DRAG_ZOOM_OUT);
+                    handleDragZoom(channel, rootElement, request, DeviceControlType.DRAG_ZOOM_OUT);
                     break;
                 case HOME_POSITION:
-                    handleHomePositionCmd(device, deviceChannel.getDeviceId(), rootElement, request, DeviceControlType.HOME_POSITION);
+                    handleHomePositionCmd(channel, rootElement, request, DeviceControlType.HOME_POSITION);
                     break;
                 default:
                     break;
@@ -135,6 +134,16 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
      * 处理云台指令
      */
     private void handlePtzCmd(CommonGBChannel channel, Element rootElement, SIPRequest request, DeviceControlType type) {
+        if (channel.getGbId() == 0) {
+            // 只支持国标的云台控制
+            log.warn("[INFO 消息] 只支持国标的云台控制， 通道ID： {}", channel.getGbId());
+            try {
+                responseAck(request, Response.FORBIDDEN, "");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
         // 根据通道ID，获取所属设备
         Device device = deviceService.getDeviceByChannelId(channel.getGbId());
         if (device == null) {
@@ -150,9 +159,8 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
 
         DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
         if (deviceChannel == null) {
-            // 拒绝远程启动命令
-            log.warn("[deviceControl] 未找到设备原始通道， 平台： {}（{}），通道编号：{}", platform.getName(),
-                    platform.getServerGBId(), channelId);
+            log.warn("[deviceControl] 未找到设备原始通道， 设备： {}（{}），通道编号：{}", device.getName(),
+                    device.getDeviceId(), channel.getGbId());
             try {
                 responseAck(request, Response.NOT_FOUND, "channel not found");
             } catch (SipException | InvalidArgumentException | ParseException e) {
@@ -164,7 +172,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                 deviceChannel.getName(), deviceChannel.getDeviceId());
         String cmdString = getText(rootElement, type.getVal());
         try {
-            cmder.fronEndCmd(device, channelId, cmdString,
+            cmder.fronEndCmd(device, deviceChannel.getDeviceId(), cmdString,
                     errorResult -> onError(request, errorResult),
                     okResult -> onOk(request, okResult));
         } catch (InvalidArgumentException | SipException | ParseException e) {
@@ -174,13 +182,46 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
 
     /**
      * 处理强制关键帧
-     *
-     * @param device    设备
-     * @param channelId 通道id
      */
-    private void handleIFameCmd(Device device, SIPRequest request, String channelId) {
+    private void handleIFameCmd(CommonGBChannel channel, SIPRequest request) {
+        if (channel.getGbId() == 0) {
+            // 只支持国标的云台控制
+            log.warn("[INFO 消息] 只支持国标的处理强制关键帧， 通道ID： {}", channel.getGbId());
+            try {
+                responseAck(request, Response.FORBIDDEN, "");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
+        // 根据通道ID，获取所属设备
+        Device device = deviceService.getDeviceByChannelId(channel.getGbId());
+        if (device == null) {
+            // 不存在则回复404
+            log.warn("[INFO 消息] 通道所属设备不存在， 通道ID： {}", channel.getGbId());
+            try {
+                responseAck(request, Response.NOT_FOUND, "device  not found");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
+
+        DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
+        if (deviceChannel == null) {
+            log.warn("[deviceControl] 未找到设备原始通道， 设备： {}（{}），通道编号：{}", device.getName(),
+                    device.getDeviceId(), channel.getGbId());
+            try {
+                responseAck(request, Response.NOT_FOUND, "channel not found");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
+        log.info("[deviceControl] 命令: 强制关键帧, 设备： {}（{}）， 通道{}（{}",  device.getName(), device.getDeviceId(),
+                deviceChannel.getName(), deviceChannel.getDeviceId());
         try {
-            cmder.iFrameCmd(device, channelId);
+            cmder.iFrameCmd(device, deviceChannel.getDeviceId());
             responseAck(request, Response.OK);
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error("[命令发送失败] 强制关键帧: {}", e.getMessage());
@@ -189,10 +230,30 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
 
     /**
      * 处理重启命令
-     *
-     * @param device 设备信息
      */
-    private void handleTeleBootCmd(Device device, SIPRequest request) {
+    private void handleTeleBootCmd(CommonGBChannel channel, SIPRequest request) {
+        if (channel.getGbId() == 0) {
+            // 只支持国标的云台控制
+            log.warn("[INFO 消息] 只支持国标的重启命令， 通道ID： {}", channel.getGbId());
+            try {
+                responseAck(request, Response.FORBIDDEN, "");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
+        // 根据通道ID，获取所属设备
+        Device device = deviceService.getDeviceByChannelId(channel.getGbId());
+        if (device == null) {
+            // 不存在则回复404
+            log.warn("[INFO 消息] 通道所属设备不存在， 通道ID： {}", channel.getGbId());
+            try {
+                responseAck(request, Response.NOT_FOUND, "device  not found");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
         try {
             cmder.teleBootCmd(device);
             responseAck(request, Response.OK);
@@ -203,14 +264,45 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
     }
 
     /**
-     * 处理拉框控制***
-     *
-     * @param device      设备信息
-     * @param channelId   通道id
-     * @param rootElement 根节点
-     * @param type        消息类型
+     * 处理拉框控制
      */
-    private void handleDragZoom(Device device, String channelId, Element rootElement, SIPRequest request, DeviceControlType type) {
+    private void handleDragZoom(CommonGBChannel channel, Element rootElement, SIPRequest request, DeviceControlType type) {
+        if (channel.getGbId() == 0) {
+            // 只支持国标的云台控制
+            log.warn("[INFO 消息] 只支持国标的拉框控制， 通道ID： {}", channel.getGbId());
+            try {
+                responseAck(request, Response.FORBIDDEN, "");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
+        // 根据通道ID，获取所属设备
+        Device device = deviceService.getDeviceByChannelId(channel.getGbId());
+        if (device == null) {
+            // 不存在则回复404
+            log.warn("[INFO 消息] 通道所属设备不存在， 通道ID： {}", channel.getGbId());
+            try {
+                responseAck(request, Response.NOT_FOUND, "device  not found");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
+
+        DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
+        if (deviceChannel == null) {
+            log.warn("[deviceControl] 未找到设备原始通道， 设备： {}（{}），通道编号：{}", device.getName(),
+                    device.getDeviceId(), channel.getGbId());
+            try {
+                responseAck(request, Response.NOT_FOUND, "channel not found");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
+        log.info("[deviceControl] 命令: {}, 设备： {}（{}）， 通道{}（{}", type,  device.getName(), device.getDeviceId(),
+                deviceChannel.getName(), deviceChannel.getDeviceId());
         try {
             DragZoomRequest dragZoomRequest = loadElement(rootElement, DragZoomRequest.class);
             DragZoomRequest.DragZoom dragZoom = dragZoomRequest.getDragZoomIn();
@@ -226,7 +318,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             cmdXml.append("<LengthX>" + dragZoom.getLengthX() + "</LengthX>\r\n");
             cmdXml.append("<LengthY>" + dragZoom.getLengthY() + "</LengthY>\r\n");
             cmdXml.append("</" + type.getVal() + ">\r\n");
-            cmder.dragZoomCmd(device, channelId, cmdXml.toString());
+            cmder.dragZoomCmd(device, deviceChannel.getDeviceId(), cmdXml.toString());
             responseAck(request, Response.OK);
         } catch (Exception e) {
             log.error("[命令发送失败] 拉框控制: {}", e.getMessage());
@@ -235,20 +327,50 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
     }
 
     /**
-     * 处理看守位命令***
-     *
-     * @param device      设备信息
-     * @param channelId   通道id
-     * @param rootElement 根节点
-     * @param request     请求信息
-     * @param type        消息类型
+     * 处理看守位命令
      */
-    private void handleHomePositionCmd(Device device, String channelId, Element rootElement, SIPRequest request, DeviceControlType type) {
+    private void handleHomePositionCmd(CommonGBChannel channel, Element rootElement, SIPRequest request, DeviceControlType type) {
+        if (channel.getGbId() == 0) {
+            // 只支持国标的云台控制
+            log.warn("[INFO 消息] 只支持国标的看守位命令， 通道ID： {}", channel.getGbId());
+            try {
+                responseAck(request, Response.FORBIDDEN, "");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
+        // 根据通道ID，获取所属设备
+        Device device = deviceService.getDeviceByChannelId(channel.getGbId());
+        if (device == null) {
+            // 不存在则回复404
+            log.warn("[INFO 消息] 通道所属设备不存在， 通道ID： {}", channel.getGbId());
+            try {
+                responseAck(request, Response.NOT_FOUND, "device  not found");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
+
+        DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
+        if (deviceChannel == null) {
+            log.warn("[deviceControl] 未找到设备原始通道， 设备： {}（{}），通道编号：{}", device.getName(),
+                    device.getDeviceId(), channel.getGbId());
+            try {
+                responseAck(request, Response.NOT_FOUND, "channel not found");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
+        log.info("[deviceControl] 命令: {}, 设备： {}（{}）， 通道{}（{}", type,  device.getName(), device.getDeviceId(),
+                deviceChannel.getName(), deviceChannel.getDeviceId());
         try {
             HomePositionRequest homePosition = loadElement(rootElement, HomePositionRequest.class);
             //获取整个消息主体，我们只需要修改请求头即可
             HomePositionRequest.HomePosition info = homePosition.getHomePosition();
-            cmder.homePositionCmd(device, channelId, !"0".equals(info.getEnabled()), Integer.parseInt(info.getResetTime()), Integer.parseInt(info.getPresetIndex()),
+            cmder.homePositionCmd(device, deviceChannel.getDeviceId(), !"0".equals(info.getEnabled()), Integer.parseInt(info.getResetTime()), Integer.parseInt(info.getPresetIndex()),
                     errorResult -> onError(request, errorResult),
                     okResult -> onOk(request, okResult));
         } catch (Exception e) {
@@ -257,13 +379,31 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
     }
 
     /**
-     * 处理告警消息***
-     *
-     * @param device      设备信息
-     * @param rootElement 根节点
-     * @param request     请求信息
+     * 处理告警消息
      */
-    private void handleAlarmCmd(Device device, Element rootElement, SIPRequest request) {
+    private void handleAlarmCmd(CommonGBChannel channel, Element rootElement, SIPRequest request) {
+        if (channel.getGbId() == 0) {
+            // 只支持国标的云台控制
+            log.warn("[INFO 消息] 只支持国标的告警消息， 通道ID： {}", channel.getGbId());
+            try {
+                responseAck(request, Response.FORBIDDEN, "");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
+        // 根据通道ID，获取所属设备
+        Device device = deviceService.getDeviceByChannelId(channel.getGbId());
+        if (device == null) {
+            // 不存在则回复404
+            log.warn("[INFO 消息] 通道所属设备不存在， 通道ID： {}", channel.getGbId());
+            try {
+                responseAck(request, Response.NOT_FOUND, "device  not found");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
         //告警方法
         String alarmMethod = "";
         //告警类型
@@ -286,18 +426,49 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
 
     /**
      * 处理录像控制
-     *
-     * @param device      设备信息
-     * @param channelId   通道id
-     * @param rootElement 根节点
-     * @param request     请求信息
-     * @param type        消息类型
      */
-    private void handleRecordCmd(Device device, String channelId, Element rootElement, SIPRequest request, DeviceControlType type) {
+    private void handleRecordCmd(CommonGBChannel channel, Element rootElement, SIPRequest request, DeviceControlType type) {
+        if (channel.getGbId() == 0) {
+            // 只支持国标的云台控制
+            log.warn("[INFO 消息] 只支持国标的息录像控制， 通道ID： {}", channel.getGbId());
+            try {
+                responseAck(request, Response.FORBIDDEN, "");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
+        // 根据通道ID，获取所属设备
+        Device device = deviceService.getDeviceByChannelId(channel.getGbId());
+        if (device == null) {
+            // 不存在则回复404
+            log.warn("[INFO 消息] 通道所属设备不存在， 通道ID： {}", channel.getGbId());
+            try {
+                responseAck(request, Response.NOT_FOUND, "device  not found");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
+
+        DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
+        if (deviceChannel == null) {
+            // 拒绝远程启动命令
+            log.warn("[deviceControl] 未找到设备原始通道， 设备： {}（{}），通道编号：{}", device.getName(),
+                    device.getDeviceId(), channel.getGbId());
+            try {
+                responseAck(request, Response.NOT_FOUND, "channel not found");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
+        log.info("[deviceControl] 命令: {}, 设备： {}（{}）， 通道{}（{}", type,  device.getName(), device.getDeviceId(),
+                deviceChannel.getName(), deviceChannel.getDeviceId());
         //获取整个消息主体，我们只需要修改请求头即可
         String cmdString = getText(rootElement, type.getVal());
         try {
-            cmder.recordCmd(device, channelId, cmdString,
+            cmder.recordCmd(device, deviceChannel.getDeviceId(), cmdString,
                     errorResult -> onError(request, errorResult),
                     okResult -> onOk(request, okResult));
         } catch (InvalidArgumentException | SipException | ParseException e) {
@@ -307,13 +478,30 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
 
     /**
      * 处理报警布防/撤防命令
-     *
-     * @param device      设备信息
-     * @param rootElement 根节点
-     * @param request     请求信息
-     * @param type        消息类型
      */
-    private void handleGuardCmd(Device device, Element rootElement, SIPRequest request, DeviceControlType type) {
+    private void handleGuardCmd(CommonGBChannel channel, Element rootElement, SIPRequest request, DeviceControlType type) {
+        if (channel.getGbId() == 0) {
+            // 只支持国标的云台控制
+            log.warn("[INFO 消息] 只支持国标的报警布防/撤防命令， 通道ID： {}", channel.getGbId());
+            try {
+                responseAck(request, Response.FORBIDDEN, "");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
+        // 根据通道ID，获取所属设备
+        Device device = deviceService.getDeviceByChannelId(channel.getGbId());
+        if (device == null) {
+            // 不存在则回复404
+            log.warn("[INFO 消息] 通道所属设备不存在， 通道ID： {}", channel.getGbId());
+            try {
+                responseAck(request, Response.NOT_FOUND, "device  not found");
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+            }
+            return;
+        }
         //获取整个消息主体，我们只需要修改请求头即可
         String cmdString = getText(rootElement, type.getVal());
         try {

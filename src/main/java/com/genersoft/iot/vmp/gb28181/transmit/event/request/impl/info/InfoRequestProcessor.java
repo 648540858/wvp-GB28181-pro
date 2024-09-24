@@ -1,13 +1,8 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.info;
 
-import com.genersoft.iot.vmp.common.InviteInfo;
-import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
-import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
-import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
+import com.genersoft.iot.vmp.gb28181.service.*;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
@@ -57,6 +52,9 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
     private IDeviceService deviceService;
 
     @Autowired
+    private IGbChannelService channelService;
+
+    @Autowired
     private IDeviceChannelService deviceChannelService;
 
     @Autowired
@@ -76,73 +74,73 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
 
     @Override
     public void process(RequestEvent evt) {
-        log.debug("接收到消息：" + evt.getRequest());
         SIPRequest request = (SIPRequest) evt.getRequest();
         CallIdHeader callIdHeader = request.getCallIdHeader();
         // 先从会话内查找
-        SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByCallId(callIdHeader.getCallId());
-
-        // 查询设备是否存在
-        Device device = redisCatchStorage.getDevice(ssrcTransaction.getDeviceId());
-        // 查询上级平台是否存在
-        Platform parentPlatform = platformService.queryPlatformByServerGBId(ssrcTransaction.getDeviceId());
         try {
-            if (device != null && parentPlatform != null) {
-                log.warn("[重复]平台与设备编号重复：{}", ssrcTransaction.getDeviceId());
-                String hostAddress = request.getRemoteAddress().getHostAddress();
-                int remotePort = request.getRemotePort();
-                if (device.getHostAddress().equals(hostAddress + ":" + remotePort)) {
-                    parentPlatform = null;
-                }else {
-                    device = null;
-                }
-            }
-            if (device == null && parentPlatform == null) {
+            SendRtpInfo sendRtpInfo = sendRtpServerService.queryByCallId(callIdHeader.getCallId());
+            if (sendRtpInfo == null || !sendRtpInfo.isSendToPlatform()) {
                 // 不存在则回复404
-                responseAck(request, Response.NOT_FOUND, "device "+ ssrcTransaction.getDeviceId() +" not found");
-                log.warn("[设备未找到 ]： {}", ssrcTransaction.getDeviceId());
-                if (sipSubscribe.getErrorSubscribe(callIdHeader.getCallId()) != null){
-                    DeviceNotFoundEvent deviceNotFoundEvent = new DeviceNotFoundEvent(evt.getDialog());
-                    deviceNotFoundEvent.setCallId(callIdHeader.getCallId());
-                    SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(deviceNotFoundEvent);
-                    sipSubscribe.getErrorSubscribe(callIdHeader.getCallId()).response(eventResult);
-                };
-            }else {
-                ContentTypeHeader header = (ContentTypeHeader)evt.getRequest().getHeader(ContentTypeHeader.NAME);
-                String contentType = header.getContentType();
-                String contentSubType = header.getContentSubType();
-                if ("Application".equalsIgnoreCase(contentType) && "MANSRTSP".equalsIgnoreCase(contentSubType)) {
-                    SendRtpInfo sendRtpItem = sendRtpServerService.queryByCallId(callIdHeader.getCallId());
-                    String streamId = sendRtpItem.getStream();
-                    InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, streamId);
-                    if (null == inviteInfo) {
-                        responseAck(request, Response.NOT_FOUND, "stream " + streamId + " not found");
-                        return;
-                    }
-                    Device device1 = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
-                    DeviceChannel deviceChannel = deviceChannelService.getOneById(inviteInfo.getChannelId());
-                    if (device1 != null && deviceChannel != null && inviteInfo.getStreamInfo() != null) {
-                        // 不解析协议， 直接转发给对应的设备
-                        cmder.playbackControlCmd(device1, deviceChannel, inviteInfo.getStreamInfo(),new String(evt.getRequest().getRawContent()), eventResult -> {
-                            // 失败的回复
-                            try {
-                                responseAck(request, eventResult.statusCode, eventResult.msg);
-                            } catch (SipException | InvalidArgumentException | ParseException e) {
-                                log.error("[命令发送失败] 国标级联 录像控制: {}", e.getMessage());
-                            }
-                        }, eventResult -> {
-                            // 成功的回复
-                            try {
-                                responseAck(request, eventResult.statusCode);
-                            } catch (SipException | InvalidArgumentException | ParseException e) {
-                                log.error("[命令发送失败] 国标级联 录像控制: {}", e.getMessage());
-                            }
-                        });
-                    }else {
-                        responseAck(request, Response.NOT_FOUND, "not found");
-                    }
+                log.warn("[INFO 消息] 事务未找到， callID： {}", callIdHeader.getCallId());
+                responseAck(request, Response.NOT_FOUND, "transaction not found");
+                return;
+            }
+            // 查询上级平台是否存在
+            Platform platform = platformService.queryPlatformByServerGBId(sendRtpInfo.getTargetId());
+            if (platform == null || !platform.isStatus()) {
+                // 不存在则回复404
+                log.warn("[INFO 消息] 平台未找到或者已离线： 平台： {}", sendRtpInfo.getTargetId());
+                responseAck(request, Response.NOT_FOUND, "platform "+ sendRtpInfo.getTargetId() +" not found or offline");
+                return;
+            }
+            CommonGBChannel channel = channelService.getOne(sendRtpInfo.getChannelId());
+            if (channel == null) {
+                // 不存在则回复404
+                log.warn("[INFO 消息] 通道不存在： 通道ID： {}", sendRtpInfo.getChannelId());
+                responseAck(request, Response.NOT_FOUND, "channel not found or offline");
+                return;
+            }
+            // 判断通道类型
+            if (channel.getGbDeviceId() == null) {
+                // 非国标通道不支持录像回放控制
+                log.warn("[INFO 消息] 非国标通道不支持录像回放控制： 通道ID： {}", sendRtpInfo.getChannelId());
+                responseAck(request, Response.FORBIDDEN, "");
+                return;
+            }
 
-                }
+            // 根据通道ID，获取所属设备
+            Device device = deviceService.getDeviceByChannelId(sendRtpInfo.getChannelId());
+            if (device == null) {
+                // 不存在则回复404
+                log.warn("[INFO 消息] 通道所属设备不存在， 通道ID： {}", sendRtpInfo.getChannelId());
+                responseAck(request, Response.NOT_FOUND, "platform "+ sendRtpInfo.getChannelId() +" not found or offline");
+                return;
+            }
+            // 获取通道的原始信息
+            DeviceChannel deviceChannel = deviceChannelService.getOneById(sendRtpInfo.getChannelId());
+            // 向原始通道转发控制消息
+            ContentTypeHeader header = (ContentTypeHeader)evt.getRequest().getHeader(ContentTypeHeader.NAME);
+            String contentType = header.getContentType();
+            String contentSubType = header.getContentSubType();
+            if ("Application".equalsIgnoreCase(contentType) && "MANSRTSP".equalsIgnoreCase(contentSubType)) {
+                log.info("[INFO 消息] 平台： {}->{}({})/{}", platform.getServerGBId(), device.getName(),
+                        device.getDeviceId(), deviceChannel.getId());
+                // 不解析协议， 直接转发给对应的设备
+                cmder.playbackControlCmd(device, deviceChannel, sendRtpInfo.getStream(), new String(evt.getRequest().getRawContent()), eventResult -> {
+                    // 失败的回复
+                    try {
+                        responseAck(request, eventResult.statusCode, eventResult.msg);
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        log.error("[命令发送失败] 国标级联 录像控制: {}", e.getMessage());
+                    }
+                }, eventResult -> {
+                    // 成功的回复
+                    try {
+                        responseAck(request, eventResult.statusCode);
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        log.error("[命令发送失败] 国标级联 录像控制: {}", e.getMessage());
+                    }
+                });
             }
         } catch (SipException e) {
             log.warn("SIP 回复错误", e);

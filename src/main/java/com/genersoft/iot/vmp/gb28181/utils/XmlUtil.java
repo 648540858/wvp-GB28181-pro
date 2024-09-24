@@ -706,6 +706,9 @@ public class XmlUtil {
      * @return
      */
     private static Object simpleTypeDeal(Class<?> tClass, Object val) {
+        if (val == null || val.toString().equalsIgnoreCase("null")) {
+            return null;
+        }
         if (tClass.equals(String.class)) {
             return val.toString();
         }

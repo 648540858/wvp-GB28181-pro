@@ -350,7 +350,9 @@ public interface ISIPCommander {
 	void dragZoomCmd(Device device, String channelId, String cmdString) throws InvalidArgumentException, SipException, ParseException;
 
 
-	/**
+    void playbackControlCmd(Device device, DeviceChannel channel, String stream, String content, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws SipException, InvalidArgumentException, ParseException;
+
+    /**
 	 * 向设备发送报警NOTIFY消息， 用于互联结构下，此时将设备当成一个平级平台看待
 	 * @param device 设备
 	 * @param deviceAlarm 报警信息信息

@@ -178,6 +178,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         }
                     }else {
                         // 点播成功， TODO 可以在此处检测cancel命令是否存在，存在则不发送
+
                         // 构建sendRTP内容
                         SendRtpInfo sendRtpItem = sendRtpServerService.createSendRtpInfo(streamInfo.getMediaServer(),
                                 inviteInfo.getIp(), inviteInfo.getPort(), inviteInfo.getSsrc(), platform.getServerGBId(),

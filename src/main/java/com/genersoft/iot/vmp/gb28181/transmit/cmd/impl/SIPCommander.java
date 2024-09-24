@@ -1363,15 +1363,21 @@ public class SIPCommander implements ISIPCommander {
     @Override
     public void playbackControlCmd(Device device, DeviceChannel channel, StreamInfo streamInfo, String content, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws SipException, InvalidArgumentException, ParseException {
 
-        SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(streamInfo.getStream());
+        playbackControlCmd(device, channel, streamInfo.getStream(), content, errorEvent, okEvent);
+    }
+
+    @Override
+    public void playbackControlCmd(Device device, DeviceChannel channel, String stream, String content, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws SipException, InvalidArgumentException, ParseException {
+
+        SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(stream);
         if (ssrcTransaction == null) {
-            log.info("[回放控制]未找到视频流信息，设备：{}, 流ID: {}", device.getDeviceId(), streamInfo.getStream());
+            log.info("[回放控制]未找到视频流信息，设备：{}, 流ID: {}", device.getDeviceId(), stream);
             return;
         }
 
         SIPRequest request = headerProvider.createInfoRequest(device, channel.getDeviceId(), content, ssrcTransaction.getSipTransactionInfo());
         if (request == null) {
-            log.info("[回放控制]构建Request信息失败，设备：{}, 流ID: {}", device.getDeviceId(), streamInfo.getStream());
+            log.info("[回放控制]构建Request信息失败，设备：{}, 流ID: {}", device.getDeviceId(), stream);
             return;
         }
 

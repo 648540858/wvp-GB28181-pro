@@ -94,7 +94,7 @@ public class SIPRequestHeaderPlarformProvider {
 		if (www == null) {
 			AuthorizationHeader authorizationHeader = SipFactory.getInstance().createHeaderFactory().createAuthorizationHeader("Digest");
 			String username = parentPlatform.getUsername();
-			if ( username == null || username == "" )
+			if ( username == null || username.isEmpty())
 			{
 				authorizationHeader.setUsername(parentPlatform.getDeviceGBId());
 			} else {

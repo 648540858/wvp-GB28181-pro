@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.service.redisMsg;
 
 import com.alibaba.fastjson2.JSON;
+import com.genersoft.iot.vmp.service.IMobilePositionService;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,9 @@ public class RedisGpsMsgListener implements MessageListener {
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private IMobilePositionService mobilePositionService;
 
     private ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 
@@ -63,10 +67,10 @@ public class RedisGpsMsgListener implements MessageListener {
      */
     @Scheduled(fixedRate = 2 * 1000)   //每2秒执行一次
     public void execute(){
-        List<GPSMsgInfo> gpsMsgInfo = redisCatchStorage.getAllGpsMsgInfo();
-        if (gpsMsgInfo.size() > 0) {
-//            storager.updateStreamGPS(gpsMsgInfo);
-            for (GPSMsgInfo msgInfo : gpsMsgInfo) {
+        List<GPSMsgInfo> gpsMsgInfoList = redisCatchStorage.getAllGpsMsgInfo();
+        if (!gpsMsgInfoList.isEmpty()) {
+            mobilePositionService.updateStreamGPS(gpsMsgInfoList);
+            for (GPSMsgInfo msgInfo : gpsMsgInfoList) {
                 msgInfo.setStored(true);
                 redisCatchStorage.updateGpsMsgInfo(msgInfo);
             }

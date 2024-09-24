@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.gb28181.dao;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
+import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
@@ -1047,4 +1048,11 @@ public interface DeviceChannelMapper {
             " WHERE id=#{channelId}" +
             " </script>"})
     void changeAudio(@Param("channelId") int channelId, @Param("audio") boolean audio);
+
+    @Update("<script> " +
+            "<foreach collection='gpsMsgInfoList' index='index' item='item' separator=';'> " +
+            "UPDATE wvp_device_channel SET gb_longitude = #{item.lng}, gb_latitude=#{item.lat} WHERE id = #{item.channelId}" +
+            "</foreach> " +
+            "</script>")
+    void updateStreamGPS(List<GPSMsgInfo> gpsMsgInfoList);
 }

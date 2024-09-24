@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.gb28181.dao.PlatformMapper;
 import com.genersoft.iot.vmp.service.IMobilePositionService;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceMobilePositionMapper;
+import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -92,7 +93,10 @@ public class MobilePositionServiceImpl implements IMobilePositionService {
         return mobilePositionMapper.queryLatestPositionByDevice(deviceId);
     }
 
-
+    @Override
+    public void updateStreamGPS(List<GPSMsgInfo> gpsMsgInfoList) {
+        channelMapper.updateStreamGPS(gpsMsgInfoList);
+    }
 
     @Scheduled(fixedRate = 1000)
     @Transactional

@@ -133,8 +133,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		}
 
 		try {
-			Platform parentPlatform = platformService.queryPlatformByServerGBId(platformId);
-			SIPResponse response = responseXmlAck(request, resultXml.toString(), parentPlatform, subscribeInfo.getExpires());
+			SIPResponse response = responseXmlAck(request, resultXml.toString(), platform, subscribeInfo.getExpires());
 			if (subscribeInfo.getExpires() == 0) {
 				subscribeHolder.removeMobilePositionSubscribe(platformId);
 			}else {

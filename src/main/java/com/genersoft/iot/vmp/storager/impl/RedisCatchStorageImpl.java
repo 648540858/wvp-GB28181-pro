@@ -11,7 +11,6 @@ import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -247,14 +246,14 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public void updateGpsMsgInfo(GPSMsgInfo gpsMsgInfo) {
-        String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetting.getServerId() + "_" + gpsMsgInfo.getChannelId();
+        String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetting.getServerId() + "_" + gpsMsgInfo.getId();
         Duration duration = Duration.ofSeconds(60L);
         redisTemplate.opsForValue().set(key, gpsMsgInfo, duration);
         // 默认GPS消息保存1分钟
     }
 
     @Override
-    public GPSMsgInfo getGpsMsgInfo(Integer channelId) {
+    public GPSMsgInfo getGpsMsgInfo(String channelId) {
         String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetting.getServerId() + "_" + channelId;
         return JsonUtil.redisJsonToObject(redisTemplate, key, GPSMsgInfo.class);
     }

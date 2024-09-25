@@ -458,7 +458,7 @@ public class PlatformServiceImpl implements IPlatformService {
                 return;
             }
             for (CommonGBChannel channel : channelList) {
-                GPSMsgInfo gpsMsgInfo = redisCatchStorage.getGpsMsgInfo(channel.getGbId());
+                GPSMsgInfo gpsMsgInfo = redisCatchStorage.getGpsMsgInfo(channel.getGbDeviceId());
                 // 无最新位置不发送
                 if (gpsMsgInfo != null) {
                     // 经纬度都为0不发送

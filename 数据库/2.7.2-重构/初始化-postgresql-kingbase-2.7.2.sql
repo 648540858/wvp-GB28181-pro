@@ -64,10 +64,6 @@ create table wvp_device_mobile_position
     speed           double precision,
     direction       double precision,
     report_source   character varying(50),
-    longitude_gcj02 double precision,
-    latitude_gcj02  double precision,
-    longitude_wgs84 double precision,
-    latitude_wgs84  double precision,
     create_time     character varying(50)
 );
 

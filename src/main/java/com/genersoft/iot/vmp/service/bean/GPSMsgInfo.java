@@ -8,6 +8,11 @@ import lombok.Data;
 public class GPSMsgInfo {
 
     /**
+     * 通道国标ID
+     */
+    private String id;
+
+    /**
      * 通道ID
      */
     private Integer channelId;

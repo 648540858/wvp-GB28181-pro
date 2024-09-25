@@ -57,8 +57,8 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     }
 
     @Override
-    public SendRtpInfo getSendRtpItem(Integer sendRtpItemKey) {
-        RedisRpcRequest request = buildRequest("getSendRtpItem", sendRtpItemKey);
+    public SendRtpInfo getSendRtpItem(String callId) {
+        RedisRpcRequest request = buildRequest("getSendRtpItem", callId);
         RedisRpcResponse response = redisRpcConfig.request(request, 10);
         if (response.getBody() == null) {
             return null;
@@ -67,23 +67,23 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     }
 
     @Override
-    public WVPResult startSendRtp(Integer sendRtpItemKey, SendRtpInfo sendRtpItem) {
+    public WVPResult startSendRtp(String callId, SendRtpInfo sendRtpItem) {
         log.info("[请求其他WVP] 开始推流，wvp：{}， {}/{}", sendRtpItem.getServerId(), sendRtpItem.getApp(), sendRtpItem.getStream());
-        RedisRpcRequest request = buildRequest("startSendRtp", sendRtpItemKey);
+        RedisRpcRequest request = buildRequest("startSendRtp", callId);
         request.setToId(sendRtpItem.getServerId());
         RedisRpcResponse response = redisRpcConfig.request(request, 10);
         return JSON.parseObject(response.getBody().toString(), WVPResult.class);
     }
 
     @Override
-    public WVPResult stopSendRtp(Integer sendRtpItemKey) {
-        SendRtpInfo sendRtpItem = (SendRtpInfo)redisTemplate.opsForValue().get(sendRtpItemKey);
+    public WVPResult stopSendRtp(String callId) {
+        SendRtpInfo sendRtpItem = (SendRtpInfo)redisTemplate.opsForValue().get(callId);
         if (sendRtpItem == null) {
-            log.info("[请求其他WVP] 停止推流, 未找到redis中的发流信息， key：{}", sendRtpItemKey);
+            log.info("[请求其他WVP] 停止推流, 未找到redis中的发流信息， key：{}", callId);
             return WVPResult.fail(ErrorCode.ERROR100.getCode(), "未找到发流信息");
         }
         log.info("[请求其他WVP] 停止推流，wvp：{}， {}/{}", sendRtpItem.getServerId(), sendRtpItem.getApp(), sendRtpItem.getStream());
-        RedisRpcRequest request = buildRequest("stopSendRtp", sendRtpItemKey);
+        RedisRpcRequest request = buildRequest("stopSendRtp", callId);
         request.setToId(sendRtpItem.getServerId());
         RedisRpcResponse response = redisRpcConfig.request(request, 10);
         return JSON.parseObject(response.getBody().toString(), WVPResult.class);
@@ -141,13 +141,13 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     }
 
     @Override
-    public void rtpSendStopped(Integer sendRtpItemKey) {
-        SendRtpInfo sendRtpItem = (SendRtpInfo)redisTemplate.opsForValue().get(sendRtpItemKey);
+    public void rtpSendStopped(String callId) {
+        SendRtpInfo sendRtpItem = (SendRtpInfo)redisTemplate.opsForValue().get(callId);
         if (sendRtpItem == null) {
-            log.info("[停止WVP监听流上线] 未找到redis中的发流信息， key：{}", sendRtpItemKey);
+            log.info("[停止WVP监听流上线] 未找到redis中的发流信息， key：{}", callId);
             return;
         }
-        RedisRpcRequest request = buildRequest("rtpSendStopped", sendRtpItemKey);
+        RedisRpcRequest request = buildRequest("rtpSendStopped", callId);
         request.setToId(sendRtpItem.getServerId());
         redisRpcConfig.request(request, 10);
     }

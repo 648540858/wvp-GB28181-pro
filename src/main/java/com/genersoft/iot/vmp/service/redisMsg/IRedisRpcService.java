@@ -7,17 +7,17 @@ import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 
 public interface IRedisRpcService {
 
-    SendRtpInfo getSendRtpItem(Integer sendRtpChannelId);
+    SendRtpInfo getSendRtpItem(String callId);
 
-    WVPResult startSendRtp(Integer sendRtpChannelId, SendRtpInfo sendRtpItem);
+    WVPResult startSendRtp(String callId, SendRtpInfo sendRtpItem);
 
-    WVPResult stopSendRtp(Integer sendRtpChannelId);
+    WVPResult stopSendRtp(String callId);
 
     long waitePushStreamOnline(SendRtpInfo sendRtpItem, CommonCallback<Integer> callback);
 
     void stopWaitePushStreamOnline(SendRtpInfo sendRtpItem);
 
-    void rtpSendStopped(Integer sendRtpChannelId);
+    void rtpSendStopped(String callId);
 
     void removeCallback(long key);
 

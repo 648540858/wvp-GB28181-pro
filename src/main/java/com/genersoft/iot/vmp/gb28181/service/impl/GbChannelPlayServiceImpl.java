@@ -137,6 +137,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
         }catch (PlayException e) {
             callback.run(e.getCode(), e.getMsg(), null);
         }catch (Exception e) {
+            log.error("[点播推流通道失败] 通道： {}({})", channel.getGbName(), channel.getGbDeviceId(), e);
             callback.run(Response.BUSY_HERE, "busy here", null);
         }
     }

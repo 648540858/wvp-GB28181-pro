@@ -115,17 +115,23 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 		if (parentPlatform != null) {
 			DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(sendRtpItem.getChannelId());
 			if (!userSetting.getServerId().equals(sendRtpItem.getServerId())) {
-				WVPResult wvpResult = redisRpcService.startSendRtp(sendRtpItem.getChannelId(), sendRtpItem);
+				WVPResult wvpResult = redisRpcService.startSendRtp(callIdHeader.getCallId(), sendRtpItem);
 				if (wvpResult.getCode() == 0) {
 					redisCatchStorage.sendPlatformStartPlayMsg(sendRtpItem, deviceChannel, parentPlatform);
 				}
 			} else {
 				try {
-					if (sendRtpItem.isTcpActive()) {
-						mediaServerService.startSendRtpPassive(mediaInfo,sendRtpItem, null);
-					} else {
-						mediaServerService.startSendRtp(mediaInfo, sendRtpItem);
+					if (mediaInfo != null) {
+						if (sendRtpItem.isTcpActive()) {
+							mediaServerService.startSendRtpPassive(mediaInfo,sendRtpItem, null);
+						} else {
+							mediaServerService.startSendRtp(mediaInfo, sendRtpItem);
+						}
+					}else {
+						// mediaInfo 在集群的其他wvp里
+
 					}
+
 					redisCatchStorage.sendPlatformStartPlayMsg(sendRtpItem, deviceChannel, parentPlatform);
 				}catch (ControllerException e) {
 					log.error("RTP推流失败: {}", e.getMessage());

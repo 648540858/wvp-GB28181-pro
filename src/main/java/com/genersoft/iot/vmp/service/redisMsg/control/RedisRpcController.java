@@ -9,7 +9,6 @@ import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcMessage;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
-import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
@@ -20,7 +19,6 @@ import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
-import com.genersoft.iot.vmp.service.impl.SendRtpServerServiceImpl;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
@@ -61,9 +59,6 @@ public class RedisRpcController {
     @Autowired
     private ISIPCommanderForPlatform commanderFroPlatform;
 
-
-    @Autowired
-    private IPlatformService platformService;
     @Autowired
     private ISendRtpServerService sendRtpServerService;
 
@@ -72,10 +67,10 @@ public class RedisRpcController {
      * 获取发流的信息
      */
     public RedisRpcResponse getSendRtpItem(RedisRpcRequest request) {
-        String sendRtpItemKey = request.getParam().toString();
-        SendRtpInfo sendRtpItem = (SendRtpInfo) redisTemplate.opsForValue().get(sendRtpItemKey);
+        String callId = request.getParam().toString();
+        SendRtpInfo sendRtpItem = sendRtpServerService.queryByCallId(callId);
         if (sendRtpItem == null) {
-            log.info("[redis-rpc] 获取发流的信息, 未找到redis中的发流信息， key：{}", sendRtpItemKey);
+            log.info("[redis-rpc] 获取发流的信息, 未找到redis中的发流信息， callId：{}", callId);
             RedisRpcResponse response = request.getResponse();
             response.setStatusCode(200);
             return response;
@@ -104,10 +99,9 @@ public class RedisRpcController {
             sendRtpItem.setSsrc(ssrc);
         }
         sendRtpServerService.update(sendRtpItem);
-        redisTemplate.opsForValue().set(sendRtpItemKey, sendRtpItem);
         RedisRpcResponse response = request.getResponse();
         response.setStatusCode(200);
-        response.setBody(sendRtpItemKey);
+        response.setBody(callId);
         return response;
     }
 
@@ -228,12 +222,12 @@ public class RedisRpcController {
      * 开始发流
      */
     public RedisRpcResponse startSendRtp(RedisRpcRequest request) {
-        String sendRtpItemKey = request.getParam().toString();
-        SendRtpInfo sendRtpItem = (SendRtpInfo) redisTemplate.opsForValue().get(sendRtpItemKey);
+        String callId = request.getParam().toString();
+        SendRtpInfo sendRtpItem = sendRtpServerService.queryByCallId(callId);
         RedisRpcResponse response = request.getResponse();
         response.setStatusCode(200);
         if (sendRtpItem == null) {
-            log.info("[redis-rpc] 开始发流, 未找到redis中的发流信息， key：{}", sendRtpItemKey);
+            log.info("[redis-rpc] 开始发流, 未找到redis中的发流信息， callId：{}", callId);
             WVPResult wvpResult = WVPResult.fail(ErrorCode.ERROR100.getCode(), "未找到redis中的发流信息");
             response.setBody(wvpResult);
             return response;
@@ -271,12 +265,12 @@ public class RedisRpcController {
      * 停止发流
      */
     public RedisRpcResponse stopSendRtp(RedisRpcRequest request) {
-        String sendRtpItemKey = request.getParam().toString();
-        SendRtpInfo sendRtpItem = (SendRtpInfo) redisTemplate.opsForValue().get(sendRtpItemKey);
+        String callId = request.getParam().toString();
+        SendRtpInfo sendRtpItem = sendRtpServerService.queryByCallId(callId);
         RedisRpcResponse response = request.getResponse();
         response.setStatusCode(200);
         if (sendRtpItem == null) {
-            log.info("[redis-rpc] 停止推流, 未找到redis中的发流信息， key：{}", sendRtpItemKey);
+            log.info("[redis-rpc] 停止推流, 未找到redis中的发流信息， key：{}", callId);
             WVPResult wvpResult = WVPResult.fail(ErrorCode.ERROR100.getCode(), "未找到redis中的发流信息");
             response.setBody(wvpResult);
             return response;

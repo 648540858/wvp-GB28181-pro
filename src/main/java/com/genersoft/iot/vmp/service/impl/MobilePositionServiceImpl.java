@@ -114,6 +114,7 @@ public class MobilePositionServiceImpl implements IMobilePositionService {
         Map<String, DeviceChannel> updateChannelMap = new HashMap<>();
         for (MobilePosition mobilePosition : mobilePositions) {
             DeviceChannel deviceChannel = new DeviceChannel();
+            deviceChannel.setId(mobilePosition.getChannelId());
             deviceChannel.setDeviceId(mobilePosition.getDeviceId());
             deviceChannel.setLongitude(mobilePosition.getLongitude());
             deviceChannel.setLatitude(mobilePosition.getLatitude());

@@ -102,7 +102,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			log.info("收到ACK，rtp/{} TCP主动方式后续处理", sendRtpItem.getStream());
 			return;
 		}
-		MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+		MediaServer mediaServer = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 		log.info("收到ACK，rtp/{}开始向上级推流, 目标={}:{}，SSRC={}, 协议:{}",
 				sendRtpItem.getStream(),
 				sendRtpItem.getIp(),
@@ -121,11 +121,11 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 				}
 			} else {
 				try {
-					if (mediaInfo != null) {
+					if (mediaServer != null) {
 						if (sendRtpItem.isTcpActive()) {
-							mediaServerService.startSendRtpPassive(mediaInfo,sendRtpItem, null);
+							mediaServerService.startSendRtpPassive(mediaServer,sendRtpItem, null);
 						} else {
-							mediaServerService.startSendRtp(mediaInfo, sendRtpItem);
+							mediaServerService.startSendRtp(mediaServer, sendRtpItem);
 						}
 					}else {
 						// mediaInfo 在集群的其他wvp里
@@ -148,15 +148,15 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			if (!device.isBroadcastPushAfterAck()) {
 				return;
 			}
-			if (mediaInfo == null) {
+			if (mediaServer == null) {
 				log.warn("[收到ACK]：来自{}，目标为({})的推流信息为找到流体服务[{}]信息",fromUserId, toUserId, sendRtpItem.getMediaServerId());
 				return;
 			}
 			try {
 				if (sendRtpItem.isTcpActive()) {
-					mediaServerService.startSendRtpPassive(mediaInfo, sendRtpItem, null);
+					mediaServerService.startSendRtpPassive(mediaServer, sendRtpItem, null);
 				} else {
-					mediaServerService.startSendRtp(mediaInfo, sendRtpItem);
+					mediaServerService.startSendRtp(mediaServer, sendRtpItem);
 				}
 			}catch (ControllerException e) {
 				log.error("RTP推流失败: {}", e.getMessage());

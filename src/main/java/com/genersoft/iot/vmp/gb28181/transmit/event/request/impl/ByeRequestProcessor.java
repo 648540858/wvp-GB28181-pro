@@ -125,9 +125,11 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 					}else {
 						MediaServer mediaServer = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 						sendRtpServerService.deleteByCallId(callIdHeader.getCallId());
-						mediaServerService.stopSendRtp(mediaServer, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getSsrc());
-						if (userSetting.getUseCustomSsrcForParentInvite()) {
-							mediaServerService.releaseSsrc(mediaServer.getId(), sendRtpItem.getSsrc());
+						if (mediaServer != null) {
+							mediaServerService.stopSendRtp(mediaServer, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getSsrc());
+							if (userSetting.getUseCustomSsrcForParentInvite()) {
+								mediaServerService.releaseSsrc(mediaServer.getId(), sendRtpItem.getSsrc());
+							}
 						}
 					}
 				}else {

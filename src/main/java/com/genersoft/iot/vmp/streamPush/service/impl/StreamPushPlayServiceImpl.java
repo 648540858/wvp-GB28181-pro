@@ -61,7 +61,7 @@ public class StreamPushPlayServiceImpl implements IStreamPushPlayService {
                 callId = streamAuthorityInfo.getCallId();
             }
             callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), mediaServerService.getStreamInfoByAppAndStream(mediaInfo.getMediaServer(),
-                    streamPush.getApp(), streamPush.getStream(), null, callId));
+                    streamPush.getApp(), streamPush.getStream(), mediaInfo, callId));
             return;
         }
         Assert.isTrue(streamPush.isStartOfflinePush(), "通道未推流");

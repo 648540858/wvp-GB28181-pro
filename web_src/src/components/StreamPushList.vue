@@ -58,8 +58,6 @@
         </el-table-column>
         <el-table-column prop="gbDeviceId" label="国标编码" min-width="200" >
         </el-table-column>
-        <el-table-column prop="gbDeviceId" label="位置" min-width="200" >
-        </el-table-column>
         <el-table-column prop="mediaServerId" label="流媒体" min-width="200" >
         </el-table-column>
         <el-table-column label="开始时间"  min-width="200">

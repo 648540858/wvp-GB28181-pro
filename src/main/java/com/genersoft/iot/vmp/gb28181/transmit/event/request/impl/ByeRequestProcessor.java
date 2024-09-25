@@ -120,7 +120,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 				if (platform != null) {
 					redisCatchStorage.sendPlatformStopPlayMsg(sendRtpItem, platform, channel);
 					if (!userSetting.getServerId().equals(sendRtpItem.getServerId())) {
-						redisRpcService.stopSendRtp(sendRtpItem.getChannelId());
+						redisRpcService.stopSendRtp(sendRtpItem.getCallId());
 						sendRtpServerService.deleteByCallId(sendRtpItem.getCallId());
 					}else {
 						MediaServer mediaServer = mediaServerService.getOne(sendRtpItem.getMediaServerId());

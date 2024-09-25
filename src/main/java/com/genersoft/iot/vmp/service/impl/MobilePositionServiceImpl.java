@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.service.IMobilePositionService;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceMobilePositionMapper;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -117,6 +118,7 @@ public class MobilePositionServiceImpl implements IMobilePositionService {
             deviceChannel.setLongitude(mobilePosition.getLongitude());
             deviceChannel.setLatitude(mobilePosition.getLatitude());
             deviceChannel.setGpsTime(mobilePosition.getTime());
+            deviceChannel.setUpdateTime(DateUtil.getNow());
             updateChannelMap.put(mobilePosition.getDeviceId() + mobilePosition.getChannelId(), deviceChannel);
         }
         List<DeviceChannel> channels = new ArrayList<>(updateChannelMap.values());

@@ -39,8 +39,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Component
 public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent {
 
-	private final List<DeviceChannel> updateChannelOnlineList = new CopyOnWriteArrayList<>();
-	private final List<DeviceChannel> updateChannelOfflineList = new CopyOnWriteArrayList<>();
+	private final List<DeviceChannel> updateChannelForStatusChange = new CopyOnWriteArrayList<>();
 	private final Map<String, DeviceChannel> updateChannelMap = new ConcurrentHashMap<>();
 
 	private final Map<String, DeviceChannel> addChannelMap = new ConcurrentHashMap<>();
@@ -60,6 +59,10 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 	@Autowired
 	private IDeviceChannelService deviceChannelService;
 
+//	@Scheduled(fixedRate = 2000)   //每400毫秒执行一次
+//	public void showSize(){
+//		log.warn("[notify-目录订阅] 待处理消息数量： {}", taskQueue.size() );
+//	}
 
 	@Transactional
 	public void process(RequestEvent evt) {
@@ -75,7 +78,14 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 		if (taskQueue.isEmpty()) {
 			return;
 		}
-		for (HandlerCatchData take : taskQueue) {
+		List<HandlerCatchData> handlerCatchDataList = new ArrayList<>();
+		while (!taskQueue.isEmpty()) {
+			handlerCatchDataList.add(taskQueue.poll());
+		}
+		if (handlerCatchDataList.isEmpty()) {
+			return;
+		}
+		for (HandlerCatchData take : handlerCatchDataList) {
 			if (take == null) {
 				continue;
 			}
@@ -119,14 +129,17 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
                             log.error("[解析CatalogChannelEvent]失败原文: \n{}", new String(evt.getRequest().getRawContent(), Charset.forName(device.getCharset())));
 							continue;
                         }
-
-                        log.info("[收到目录订阅]：{}/{}-{}", device.getDeviceId(),
-								catalogChannelEvent.getChannel().getDeviceId(), catalogChannelEvent.getEvent());
+						if (log.isDebugEnabled()){
+							log.debug("[收到目录订阅]：{}/{}-{}", device.getDeviceId(),
+									catalogChannelEvent.getChannel().getDeviceId(), catalogChannelEvent.getEvent());
+						}
+						DeviceChannel channel = catalogChannelEvent.getChannel();
 						switch (catalogChannelEvent.getEvent()) {
 							case CatalogEvent.ON:
 								// 上线
 								log.info("[收到通道上线通知] 来自设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
-								updateChannelOnlineList.add(catalogChannelEvent.getChannel());
+								channel.setStatus("ON");
+								updateChannelForStatusChange.add(channel);
 								if (userSetting.getDeviceStatusNotify()) {
 									// 发送redis消息
 									redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId(), true);
@@ -138,7 +151,8 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								if (userSetting.getRefuseChannelStatusChannelFormNotify()) {
 									log.info("[收到通道离线通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
 								} else {
-									updateChannelOfflineList.add(catalogChannelEvent.getChannel());
+									channel.setStatus("OFF");
+									updateChannelForStatusChange.add(channel);
 									if (userSetting.getDeviceStatusNotify()) {
 										// 发送redis消息
 										redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId(), false);
@@ -151,7 +165,8 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								if (userSetting.getRefuseChannelStatusChannelFormNotify()) {
 									log.info("[收到通道视频丢失通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
 								} else {
-									updateChannelOfflineList.add(catalogChannelEvent.getChannel());
+									channel.setStatus("OFF");
+									updateChannelForStatusChange.add(channel);
 									if (userSetting.getDeviceStatusNotify()) {
 										// 发送redis消息
 										redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId(), false);
@@ -164,7 +179,8 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								if (userSetting.getRefuseChannelStatusChannelFormNotify()) {
 									log.info("[收到通道视频故障通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
 								} else {
-									updateChannelOfflineList.add(catalogChannelEvent.getChannel());
+									channel.setStatus("OFF");
+									updateChannelForStatusChange.add(channel);
 									if (userSetting.getDeviceStatusNotify()) {
 										// 发送redis消息
 										redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId(), false);
@@ -178,7 +194,6 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								DeviceChannel deviceChannel = deviceChannelService.getOne(deviceId, catalogChannelEvent.getChannel().getDeviceId());
 								if (deviceChannel != null) {
 									log.info("[增加通道] 已存在，不发送通知只更新，设备: {}, 通道 {}", device.getDeviceId(), catalogChannelEvent.getChannel().getDeviceId());
-									DeviceChannel channel = catalogChannelEvent.getChannel();
 									channel.setId(deviceChannel.getId());
 									channel.setHasAudio(deviceChannel.isHasAudio());
 									channel.setUpdateTime(DateUtil.getNow());
@@ -210,7 +225,6 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								// 判断此通道是否存在
 								DeviceChannel deviceChannelForUpdate = deviceChannelService.getOne(deviceId, catalogChannelEvent.getChannel().getDeviceId());
 								if (deviceChannelForUpdate != null) {
-									DeviceChannel channel = catalogChannelEvent.getChannel();
 									channel.setId(deviceChannelForUpdate.getId());
 									channel.setHasAudio(deviceChannelForUpdate.isHasAudio());
 									channel.setUpdateTime(DateUtil.getNow());
@@ -242,8 +256,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 		taskQueue.clear();
 		if (!updateChannelMap.keySet().isEmpty()
 				|| !addChannelMap.keySet().isEmpty()
-				|| !updateChannelOnlineList.isEmpty()
-				|| !updateChannelOfflineList.isEmpty()
+				|| !updateChannelForStatusChange.isEmpty()
 				|| !deleteChannelList.isEmpty()) {
 			executeSave();
 		}
@@ -256,14 +269,9 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 			log.error("[存储收到的增加通道] 异常： ", e );
 		}
 		try {
-			executeSaveForOnline();
+			executeSaveForStatus();
 		} catch (Exception e) {
-			log.error("[存储收到的通道上线] 异常： ", e );
-		}
-		try {
-			executeSaveForOffline();
-		} catch (Exception e) {
-			log.error("[存储收到的通道离线] 异常： ", e );
+			log.error("[存储收到的通道状态变化] 异常： ", e );
 		}
 		try {
 			executeSaveForUpdate();
@@ -301,17 +309,10 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 		}
 	}
 
-	private void executeSaveForOnline(){
-		if (!updateChannelOnlineList.isEmpty()) {
-			deviceChannelService.channelsOnlineForNotify(updateChannelOnlineList);
-			updateChannelOnlineList.clear();
-		}
-	}
-
-	private void executeSaveForOffline(){
-		if (!updateChannelOfflineList.isEmpty()) {
-			deviceChannelService.channelsOfflineForNotify(updateChannelOfflineList);
-			updateChannelOfflineList.clear();
+	private void executeSaveForStatus(){
+		if (!updateChannelForStatusChange.isEmpty()) {
+			deviceChannelService.updateChannelsStatus(updateChannelForStatusChange);
+			updateChannelForStatusChange.clear();
 		}
 	}
 }

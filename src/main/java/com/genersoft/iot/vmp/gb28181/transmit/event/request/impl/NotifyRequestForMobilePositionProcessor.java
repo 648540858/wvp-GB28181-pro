@@ -24,6 +24,7 @@ import org.springframework.util.ObjectUtils;
 
 import javax.sip.RequestEvent;
 import javax.sip.header.FromHeader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -65,7 +66,14 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 		if (taskQueue.isEmpty()) {
 			return;
 		}
-		for (HandlerCatchData take : taskQueue) {
+		List<HandlerCatchData> handlerCatchDataList = new ArrayList<>();
+		while (!taskQueue.isEmpty()) {
+			handlerCatchDataList.add(taskQueue.poll());
+		}
+		if (handlerCatchDataList.isEmpty()) {
+			return;
+		}
+		for (HandlerCatchData take : handlerCatchDataList) {
 			if (take == null) {
 				continue;
 			}

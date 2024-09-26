@@ -3,8 +3,8 @@ package com.genersoft.iot.vmp.gb28181.service;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
-import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
 import com.github.pagehelper.PageInfo;
 
@@ -47,15 +47,7 @@ public interface IDeviceChannelService {
      */
     int deleteChannelsForNotify(List<DeviceChannel> deleteChannelList);
 
-    /**
-     * 批量上线
-     */
-    int channelsOnlineForNotify(List<DeviceChannel> channels);
-
-    /**
-     * 批量下线
-     */
-    int channelsOfflineForNotify(List<DeviceChannel> channels);
+    int updateChannelsStatus(List<DeviceChannel> channels);
 
     /**
      *  获取一个通道

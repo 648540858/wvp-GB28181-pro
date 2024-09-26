@@ -241,7 +241,7 @@ public class RedisRpcController {
             return response;
         }
         MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, sendRtpItem.getApp(), sendRtpItem.getStream());
-        if (mediaInfo != null) {
+        if (mediaInfo == null) {
             log.info("[redis-rpc] startSendRtp->流不在线： {}/{}", sendRtpItem.getApp(), sendRtpItem.getStream() );
             WVPResult wvpResult = WVPResult.fail(ErrorCode.ERROR100.getCode(), "流不在线");
             response.setBody(wvpResult);

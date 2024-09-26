@@ -386,7 +386,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("time", DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
             jsonObject.put("serial", mobilePosition.getDeviceId());
-            jsonObject.put("code", mobilePosition.getChannelId());
+            jsonObject.put("code", channel.getDeviceId());
             jsonObject.put("longitude", mobilePosition.getLongitude());
             jsonObject.put("latitude", mobilePosition.getLatitude());
             jsonObject.put("altitude", mobilePosition.getAltitude());

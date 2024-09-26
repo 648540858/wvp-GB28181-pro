@@ -97,13 +97,15 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 				mobilePosition.setDeviceId(device.getDeviceId());
 				mobilePosition.setDeviceName(device.getName());
 				mobilePosition.setCreateTime(DateUtil.getNow());
+
+				DeviceChannel deviceChannel = null;
 				List<Element> elements = rootElement.elements();
 				for (Element element : elements) {
 					switch (element.getName()){
 						case "DeviceID":
 							String channelId = element.getStringValue();
 							if (!deviceId.equals(channelId)) {
-								DeviceChannel deviceChannel = deviceChannelService.getOne(device.getDeviceId(), channelId);
+								deviceChannel = deviceChannelService.getOne(device.getDeviceId(), channelId);
 								if (deviceChannel != null) {
 									mobilePosition.setChannelId(deviceChannel.getId());
 								}
@@ -162,13 +164,13 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 				}catch (Exception e) {
 					log.error("[向上级转发移动位置失败] ", e);
 				}
-				if (mobilePosition.getChannelId() == null || mobilePosition.getChannelId().equals(mobilePosition.getDeviceId())) {
+				if (mobilePosition.getChannelId() == null) {
 					List<DeviceChannel> channels = deviceChannelService.queryChaneListByDeviceId(mobilePosition.getDeviceId());
 					channels.forEach(channel -> {
 						// 发送redis消息。 通知位置信息的变化
 						JSONObject jsonObject = new JSONObject();
 						jsonObject.put("time", DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
-						jsonObject.put("serial", channel.getDeviceId());
+						jsonObject.put("serial", device.getDeviceId());
 						jsonObject.put("code", channel.getDeviceId());
 						jsonObject.put("longitude", mobilePosition.getLongitude());
 						jsonObject.put("latitude", mobilePosition.getLatitude());
@@ -179,16 +181,18 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 					});
 				}else {
 					// 发送redis消息。 通知位置信息的变化
-					JSONObject jsonObject = new JSONObject();
-					jsonObject.put("time", DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
-					jsonObject.put("serial", mobilePosition.getDeviceId());
-					jsonObject.put("code", mobilePosition.getChannelId());
-					jsonObject.put("longitude", mobilePosition.getLongitude());
-					jsonObject.put("latitude", mobilePosition.getLatitude());
-					jsonObject.put("altitude", mobilePosition.getAltitude());
-					jsonObject.put("direction", mobilePosition.getDirection());
-					jsonObject.put("speed", mobilePosition.getSpeed());
-					redisCatchStorage.sendMobilePositionMsg(jsonObject);
+					if (deviceChannel != null) {
+						JSONObject jsonObject = new JSONObject();
+						jsonObject.put("time", DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
+						jsonObject.put("serial", mobilePosition.getDeviceId());
+						jsonObject.put("code", deviceChannel.getDeviceId());
+						jsonObject.put("longitude", mobilePosition.getLongitude());
+						jsonObject.put("latitude", mobilePosition.getLatitude());
+						jsonObject.put("altitude", mobilePosition.getAltitude());
+						jsonObject.put("direction", mobilePosition.getDirection());
+						jsonObject.put("speed", mobilePosition.getSpeed());
+						redisCatchStorage.sendMobilePositionMsg(jsonObject);
+					}
 				}
 			} catch (DocumentException e) {
 				log.error("未处理的异常 ", e);

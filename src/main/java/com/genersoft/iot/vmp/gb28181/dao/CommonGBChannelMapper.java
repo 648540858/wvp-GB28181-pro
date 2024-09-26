@@ -263,6 +263,7 @@ public interface CommonGBChannelMapper {
     @Select("<script>" +
             " select " +
             "    id," +
+            "    concat('channel', id) as tree_id," +
             "    coalesce(gb_device_id, device_id) as device_id," +
             "    coalesce(gb_name, name) as name, " +
             "    coalesce(gb_parent_id, parent_id) as parent_device_id, " +
@@ -352,6 +353,7 @@ public interface CommonGBChannelMapper {
     @Select("<script>" +
             " select " +
             "    id," +
+            "    concat('channel', id) as tree_id," +
             "    coalesce(gb_device_id, device_id) as device_id," +
             "    coalesce(gb_name, name) as name, " +
             "    coalesce(gb_parent_id, parent_id) as parent_device_id, " +

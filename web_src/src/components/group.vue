@@ -67,8 +67,8 @@
           <el-table-column label="添加状态" min-width="100">
             <template slot-scope="scope">
               <div slot="reference" class="name-wrapper">
-                <el-tag size="medium" :title="scope.row.gbBusinessGroupId" v-if="scope.row.gbBusinessGroupId">已添加</el-tag>
-                <el-tag size="medium" type="info" v-if="!scope.row.gbBusinessGroupId">未添加</el-tag>
+                <el-tag size="medium" :title="scope.row.gbParentId" v-if="scope.row.gbParentId">已添加</el-tag>
+                <el-tag size="medium" type="info" v-if="!scope.row.gbParentId">未添加</el-tag>
               </div>
             </template>
           </el-table-column>

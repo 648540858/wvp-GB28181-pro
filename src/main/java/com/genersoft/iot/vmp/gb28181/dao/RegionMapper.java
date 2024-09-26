@@ -72,6 +72,7 @@ public interface RegionMapper {
     @Select(" <script>" +
             " SELECT " +
             " *, " +
+            " concat('region', id) as tree_id," +
             " 0 as type," +
             " false as is_leaf" +
             " from wvp_common_region " +

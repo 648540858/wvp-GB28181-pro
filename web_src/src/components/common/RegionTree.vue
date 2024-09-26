@@ -16,7 +16,7 @@
       <vue-easy-tree
         class="flow-tree"
         ref="veTree"
-        node-key="deviceId"
+        node-key="treeId"
         height="78vh"
         lazy
         style="padding: 0 0 2rem 0.5rem"
@@ -74,6 +74,7 @@ export default {
     loadNode: function (node, resolve) {
       if (node.level === 0) {
         resolve([{
+          treeId: "",
           deviceId: "",
           name: "根资源组",
           isLeaf: false,

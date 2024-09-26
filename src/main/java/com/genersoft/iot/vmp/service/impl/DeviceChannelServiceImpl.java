@@ -239,25 +239,51 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
-    public int deleteChannels(List<DeviceChannel> deleteChannelList) {
-       return channelMapper.batchDel(deleteChannelList);
+    @Transactional
+    public int deleteChannels(List<DeviceChannel> channels) {
+        int limitCount = 1000;
+        int result = 0;
+        if (!channels.isEmpty()) {
+            if (channels.size() > limitCount) {
+                for (int i = 0; i < channels.size(); i += limitCount) {
+                    int toIndex = i + limitCount;
+                    if (i + limitCount > channels.size()) {
+                        toIndex = channels.size();
+                    }
+                    result += channelMapper.batchDel(channels.subList(i, toIndex));
+                }
+            }else {
+                result += channelMapper.batchDel(channels);
+            }
+        }
+       return result;
     }
 
     @Override
-    public int channelsOnline(List<DeviceChannel> channels) {
-        return channelMapper.batchOnline(channels);
+    @Transactional
+    public int updateChannelsStaus(List<DeviceChannel> channels) {
+        int limitCount = 1000;
+        int result = 0;
+        if (!channels.isEmpty()) {
+            if (channels.size() > limitCount) {
+                for (int i = 0; i < channels.size(); i += limitCount) {
+                    int toIndex = i + limitCount;
+                    if (i + limitCount > channels.size()) {
+                        toIndex = channels.size();
+                    }
+                    result += channelMapper.batchUpdateStatus(channels.subList(i, toIndex));
+                }
+            }else {
+                result += channelMapper.batchUpdateStatus(channels);
+            }
+        }
+        return result;
     }
 
     @Override
     public void online(DeviceChannel channel) {
         channelMapper.online(channel.getDeviceId(), channel.getChannelId());
     }
-
-    @Override
-    public int channelsOffline(List<DeviceChannel> channels) {
-        return channelMapper.batchOffline(channels);
-    }
-
 
     @Override
     public void offline(DeviceChannel channel) {
@@ -275,6 +301,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
+    @Transactional
     public synchronized void batchUpdateChannel(List<DeviceChannel> channels) {
         String now = DateUtil.getNow();
         for (DeviceChannel channel : channels) {
@@ -297,8 +324,27 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
+    @Transactional
     public void batchAddChannel(List<DeviceChannel> channels) {
-        channelMapper.batchAdd(channels);
+        String now = DateUtil.getNow();
+        for (DeviceChannel channel : channels) {
+            channel.setUpdateTime(now);
+            channel.setCreateTime(now);
+        }
+        int limitCount = 1000;
+        if (!channels.isEmpty()) {
+            if (channels.size() > limitCount) {
+                for (int i = 0; i < channels.size(); i += limitCount) {
+                    int toIndex = i + limitCount;
+                    if (i + limitCount > channels.size()) {
+                        toIndex = channels.size();
+                    }
+                    channelMapper.batchAdd(channels.subList(i, toIndex));
+                }
+            }else {
+                channelMapper.batchAdd(channels);
+            }
+        }
         for (DeviceChannel channel : channels) {
             if (channel.getParentId() != null) {
                 channelMapper.updateChannelSubCount(channel.getDeviceId(), channel.getParentId());

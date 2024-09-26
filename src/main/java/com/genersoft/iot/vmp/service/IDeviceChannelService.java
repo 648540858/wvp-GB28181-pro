@@ -67,12 +67,7 @@ public interface IDeviceChannelService {
     /**
      * 批量上线
      */
-    int channelsOnline(List<DeviceChannel> channels);
-
-    /**
-     * 批量下线
-     */
-    int channelsOffline(List<DeviceChannel> channels);
+    int updateChannelsStaus(List<DeviceChannel> channels);
 
     /**
      *  获取一个通道

@@ -479,10 +479,10 @@ public interface DeviceChannelMapper {
 
     @Update({"<script>" +
             "<foreach collection='channels' item='item' separator=';'>" +
-            "UPDATE wvp_device_channel SET status=true WHERE device_id=#{item.deviceId} AND channel_id=#{item.channelId}" +
+            "UPDATE wvp_device_channel SET status=#{item.status} WHERE device_id=#{item.deviceId} AND channel_id=#{item.channelId}" +
             "</foreach>" +
             "</script>"})
-    int batchOnline(@Param("channels") List<DeviceChannel> channels);
+    int batchUpdateStatus(@Param("channels") List<DeviceChannel> channels);
 
     @Update({"<script>" +
             "<foreach collection='channels' item='item' separator=';'>" +

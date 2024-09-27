@@ -29,7 +29,7 @@
       >
         <span class="custom-tree-node" slot-scope="{ node, data }">
           <span @click.stop v-if="edit">
-            <el-radio v-if="node.data.type === 0 && node.level !== 1 " style="margin-right: 0" v-model="chooseId" @input="chooseIdChange" :label="node.data.deviceId">{{''}}</el-radio>
+            <el-radio v-if="node.data.type === 0 && node.level !== 1 " style="margin-right: 0" v-model="chooseId" @input="chooseIdChange(node.data.treeId, node.data.deviceId)" :label="node.data.deviceId">{{''}}</el-radio>
           </span>
           <span v-if="node.data.type === 0" style="color: #409EFF" class="iconfont icon-bianzubeifen3"></span>
           <span v-if="node.data.type === 1" style="color: #409EFF" class="iconfont icon-shexiangtou2"></span>
@@ -337,8 +337,11 @@ export default {
     refresh: function (id) {
       // 查询node
       let node = this.$refs.veTree.getNode(id)
-      node.loaded = false
-      node.expand();
+      if (node) {
+        node.loaded = false
+        node.expand();
+      }
+
     },
     addRegion: function (id, node) {
 

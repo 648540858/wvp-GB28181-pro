@@ -29,7 +29,7 @@
       >
         <span class="custom-tree-node" slot-scope="{ node, data }">
           <span @click.stop v-if="edit">
-            <el-radio v-if="node.data.type === 0 && node.level > 2" style="margin-right: 0" v-model="chooseId" @input="chooseIdChange(node.data.deviceId, node.data.businessGroup)" :label="node.data.deviceId">{{''}}</el-radio>
+            <el-radio v-if="node.data.type === 0 && node.level > 2" style="margin-right: 0" v-model="chooseId" @input="chooseIdChange(node.data.treeId, node.data.deviceId, node.data.businessGroup)" :label="node.data.deviceId">{{''}}</el-radio>
           </span>
           <span v-if="node.data.type === 0" style="color: #409EFF" class="iconfont icon-bianzubeifen3"></span>
           <span v-if="node.data.type === 1" style="color: #409EFF" class="iconfont icon-shexiangtou2"></span>
@@ -57,6 +57,7 @@ export default {
     return {
       props: {
         label: "name",
+        id: "treeId"
       },
       showCode: false,
       searchSrt: "",
@@ -128,6 +129,7 @@ export default {
                   }
                 }).then((res) => {
                   console.log("移除成功")
+                  console.log(node)
                   if (this.onChannelChange) {
                     this.onChannelChange()
                   }
@@ -275,6 +277,7 @@ export default {
             if (this.onChannelChange) {
               this.onChannelChange()
             }
+            console.log(node)
             node.loaded = false
             node.expand();
           }else {
@@ -333,14 +336,18 @@ export default {
       })
     },
     refreshNode: function (node) {
+      console.log(node)
       node.loaded = false
       node.expand();
     },
     refresh: function (id) {
+      console.log("刷新节点： " + id)
       // 查询node
       let node = this.$refs.veTree.getNode(id)
-      node.loaded = false
-      node.expand();
+      if (node) {
+        node.loaded = false
+        node.expand();
+      }
     },
     addGroup: function (id, node) {
       this.$refs.groupEdit.openDialog({
@@ -352,6 +359,7 @@ export default {
         parentId: node.data.id,
         businessGroup: node.level > 2 ? node.data.businessGroup: node.data.deviceId,
       },form => {
+        console.log(node)
         node.loaded = false
         node.expand();
       }, id);
@@ -359,6 +367,7 @@ export default {
     editGroup: function (id, node) {
       console.log(node)
       this.$refs.groupEdit.openDialog(node.data,form => {
+        console.log(node)
         node.parent.loaded = false
         node.parent.expand();
       }, id);

@@ -29,7 +29,6 @@ public class RedisPushStreamResponseListener implements MessageListener {
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
 
-
     private Map<String, PushStreamResponseEvent> responseEvents = new ConcurrentHashMap<>();
 
     public interface PushStreamResponseEvent{

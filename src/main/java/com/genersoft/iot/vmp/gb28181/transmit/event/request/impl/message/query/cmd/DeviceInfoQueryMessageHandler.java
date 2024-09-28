@@ -93,7 +93,7 @@ public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent imp
             return;
         }
         // 判断通道类型
-        if (channel.getGbDeviceId() == null) {
+        if (channel.getGbDeviceDbId() == null) {
             // 非国标通道不支持录像回放控制
             log.warn("[DeviceInfo] 非国标通道不支持录像回放控制： 通道ID： {}", channel.getGbId());
             try {

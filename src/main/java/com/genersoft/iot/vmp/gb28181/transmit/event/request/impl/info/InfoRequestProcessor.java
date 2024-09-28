@@ -101,7 +101,7 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
                 return;
             }
             // 判断通道类型
-            if (channel.getGbDeviceId() == null) {
+            if (channel.getGbDeviceDbId() == null) {
                 // 非国标通道不支持录像回放控制
                 log.warn("[INFO 消息] 非国标通道不支持录像回放控制： 通道ID： {}", sendRtpInfo.getChannelId());
                 responseAck(request, Response.FORBIDDEN, "");

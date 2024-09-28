@@ -10,6 +10,9 @@ import lombok.Data;
 @Schema(description = "区域树")
 public class RegionTree extends Region {
 
+    @Schema(description = "树节点ID")
+    private String treeId;
+
     @Schema(description = "是否有子节点")
     private boolean isLeaf;
 

@@ -67,8 +67,8 @@
           <el-table-column label="添加状态" min-width="100">
             <template slot-scope="scope">
               <div slot="reference" class="name-wrapper">
-                <el-tag size="medium" :title="scope.row.gbBusinessGroupId" v-if="scope.row.gbBusinessGroupId">已添加</el-tag>
-                <el-tag size="medium" type="info" v-if="!scope.row.gbBusinessGroupId">未添加</el-tag>
+                <el-tag size="medium" :title="scope.row.gbParentId" v-if="scope.row.gbParentId">已添加</el-tag>
+                <el-tag size="medium" type="info" v-if="!scope.row.gbParentId">未添加</el-tag>
               </div>
             </template>
           </el-table-column>
@@ -113,6 +113,7 @@ export default {
       total: 0,
       loading: false,
       loadSnap: {},
+      groupDeviceId: "",
       groupId: "",
       businessGroup: "",
       multipleSelection: []
@@ -175,12 +176,10 @@ export default {
       }
     },
     rowDblclick: function (row, rowIndex) {
-      if (row.gbParentId) {
-        this.$refs.groupTree.refresh(row.gbParentId)
-      }
+
     },
     add: function (row) {
-      if (!this.groupId) {
+      if (!this.groupDeviceId) {
         this.$message.info({
           showClose: true,
           message: "请选择左侧行政区划节点"
@@ -204,7 +203,7 @@ export default {
         method: 'post',
         url: `/api/common/channel/group/add`,
         data: {
-          parentId: this.groupId,
+          parentId: this.groupDeviceId,
           businessGroup: this.businessGroup,
           channelIds: channels
         }
@@ -261,7 +260,7 @@ export default {
           })
           this.getChannelList()
           // 刷新树节点
-          this.$refs.groupTree.refresh(this.groupId)
+          this.$refs.groupTree.refresh(this.groupDeviceId)
         }else {
           this.$message.error({
               showClose: true,
@@ -292,8 +291,9 @@ export default {
     treeNodeClickEvent: function (device, data, isCatalog) {
 
     },
-    chooseIdChange: function (id, businessGroup) {
+    chooseIdChange: function (id, deviceId, businessGroup) {
       this.groupId = id;
+      this.groupDeviceId = deviceId;
       this.businessGroup = businessGroup;
     },
   }

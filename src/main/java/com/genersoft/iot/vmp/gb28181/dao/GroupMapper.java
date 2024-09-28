@@ -67,6 +67,7 @@ public interface GroupMapper {
     @Select(" <script>" +
             " SELECT " +
             " * , " +
+            " concat('group', id) as tree_id," +
             " 0 as type," +
             " false as is_leaf" +
             " from wvp_common_group " +

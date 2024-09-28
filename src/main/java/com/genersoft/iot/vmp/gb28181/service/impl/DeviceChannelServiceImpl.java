@@ -193,25 +193,51 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
-    public int deleteChannelsForNotify(List<DeviceChannel> deleteChannelList) {
-       return channelMapper.batchDelForNotify(deleteChannelList);
+    @Transactional
+    public int deleteChannelsForNotify(List<DeviceChannel> channels) {
+        int limitCount = 1000;
+        int result = 0;
+        if (!channels.isEmpty()) {
+            if (channels.size() > limitCount) {
+                for (int i = 0; i < channels.size(); i += limitCount) {
+                    int toIndex = i + limitCount;
+                    if (i + limitCount > channels.size()) {
+                        toIndex = channels.size();
+                    }
+                    result += channelMapper.batchDel(channels.subList(i, toIndex));
+                }
+            }else {
+                result += channelMapper.batchDel(channels);
+            }
+        }
+        return result;
     }
 
+    @Transactional
     @Override
-    public int channelsOnlineForNotify(List<DeviceChannel> channels) {
-        return channelMapper.batchOnlineForNotify(channels);
+    public int updateChannelsStatus(List<DeviceChannel> channels) {
+        int limitCount = 1000;
+        int result = 0;
+        if (!channels.isEmpty()) {
+            if (channels.size() > limitCount) {
+                for (int i = 0; i < channels.size(); i += limitCount) {
+                    int toIndex = i + limitCount;
+                    if (i + limitCount > channels.size()) {
+                        toIndex = channels.size();
+                    }
+                    result += channelMapper.batchUpdateStatus(channels.subList(i, toIndex));
+                }
+            }else {
+                result += channelMapper.batchUpdateStatus(channels);
+            }
+        }
+        return result;
     }
 
     @Override
     public void online(DeviceChannel channel) {
         channelMapper.online(channel.getId());
     }
-
-    @Override
-    public int channelsOfflineForNotify(List<DeviceChannel> channels) {
-        return channelMapper.batchOfflineForNotify(channels);
-    }
-
 
     @Override
     public void offline(DeviceChannel channel) {
@@ -242,6 +268,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
+    @Transactional
     public synchronized void batchUpdateChannelForNotify(List<DeviceChannel> channels) {
         String now = DateUtil.getNow();
         for (DeviceChannel channel : channels) {
@@ -264,8 +291,27 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
+    @Transactional
     public void batchAddChannel(List<DeviceChannel> channels) {
-        channelMapper.batchAdd(channels);
+        String now = DateUtil.getNow();
+        for (DeviceChannel channel : channels) {
+            channel.setUpdateTime(now);
+            channel.setCreateTime(now);
+        }
+        int limitCount = 1000;
+        if (!channels.isEmpty()) {
+            if (channels.size() > limitCount) {
+                for (int i = 0; i < channels.size(); i += limitCount) {
+                    int toIndex = i + limitCount;
+                    if (i + limitCount > channels.size()) {
+                        toIndex = channels.size();
+                    }
+                    channelMapper.batchAdd(channels.subList(i, toIndex));
+                }
+            }else {
+                channelMapper.batchAdd(channels);
+            }
+        }
         for (DeviceChannel channel : channels) {
             if (channel.getParentId() != null) {
                 channelMapper.updateChannelSubCount(channel.getDeviceDbId(), channel.getParentId());
@@ -340,7 +386,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("time", DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
             jsonObject.put("serial", mobilePosition.getDeviceId());
-            jsonObject.put("code", mobilePosition.getChannelId());
+            jsonObject.put("code", channel.getDeviceId());
             jsonObject.put("longitude", mobilePosition.getLongitude());
             jsonObject.put("latitude", mobilePosition.getLatitude());
             jsonObject.put("altitude", mobilePosition.getAltitude());

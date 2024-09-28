@@ -688,18 +688,10 @@ public interface DeviceChannelMapper {
 
     @Update({"<script>" +
             "<foreach collection='channels' item='item' separator=';'>" +
-            "UPDATE wvp_device_channel SET status='ON' WHERE device_id=#{item.deviceId}" +
+            "UPDATE wvp_device_channel SET status=#{item.status} WHERE device_id=#{item.deviceId}" +
             "</foreach>" +
             "</script>"})
-    int batchOnlineForNotify(List<DeviceChannel> channels);
-
-    @Update({"<script>" +
-            "<foreach collection='channels' item='item' separator=';'>" +
-            "UPDATE wvp_device_channel SET status='OFF' WHERE device_id=#{item.deviceId}" +
-            "</foreach>" +
-            "</script>"})
-    int batchOfflineForNotify(List<DeviceChannel> channels);
-
+    int batchUpdateStatus(List<DeviceChannel> channels);
 
     @Select("select count(1) from wvp_device_channel where status = 'ON'")
     int getOnlineCount();

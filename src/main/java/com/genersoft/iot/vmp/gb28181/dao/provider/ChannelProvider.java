@@ -96,10 +96,10 @@ public class ChannelProvider {
             sqlBuild.append(" AND coalesce(gb_civil_code, civil_code) is null");
         }
         if (params.get("hasGroup") != null && (Boolean)params.get("hasGroup")) {
-            sqlBuild.append(" AND coalesce(gb_business_group_id, business_group_id) is not null");
+            sqlBuild.append(" AND coalesce(gb_parent_id, parent_id) is not null");
         }
         if (params.get("hasGroup") != null && !(Boolean)params.get("hasGroup")) {
-            sqlBuild.append(" AND coalesce(gb_business_group_id, business_group_id) is null");
+            sqlBuild.append(" AND coalesce(gb_parent_id, parent_id) is null");
         }
         return sqlBuild.toString();
     }

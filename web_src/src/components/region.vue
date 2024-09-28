@@ -114,6 +114,7 @@ export default {
       loading: false,
       loadSnap: {},
       regionId: "",
+      regionDeviceId: "",
       multipleSelection: []
     };
   },
@@ -175,12 +176,12 @@ export default {
       }
     },
     rowDblclick: function (row, rowIndex) {
-      if (row.gbCivilCode) {
-        this.$refs.regionTree.refresh(row.gbCivilCode)
-      }
+      // if (row.gbCivilCode) {
+      //   this.$refs.regionTree.refresh(row.gbCivilCode)
+      // }
     },
     add: function (row) {
-      if (!this.regionId) {
+      if (!this.regionDeviceId) {
         this.$message.info({
           showClose: true,
           message: "请选择左侧行政区划节点"
@@ -204,7 +205,7 @@ export default {
         method: 'post',
         url: `/api/common/channel/region/add`,
         data: {
-          civilCode: this.regionId,
+          civilCode: this.regionDeviceId,
           channelIds: channels
         }
       }).then((res)=> {
@@ -290,7 +291,8 @@ export default {
     treeNodeClickEvent: function (device, data, isCatalog) {
 
     },
-    chooseIdChange: function (id) {
+    chooseIdChange: function (id, deviceId) {
+      this.regionDeviceId = deviceId;
       this.regionId = id;
     },
   }

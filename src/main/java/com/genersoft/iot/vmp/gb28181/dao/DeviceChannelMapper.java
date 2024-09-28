@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.gb28181.dao;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
+import com.genersoft.iot.vmp.gb28181.dao.provider.DeviceChannelProvider;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
 import org.apache.ibatis.annotations.*;
@@ -78,110 +79,7 @@ public interface DeviceChannelMapper {
             " </script>"})
     int update(DeviceChannel channel);
 
-    @Update(value = {" <script>" +
-            "UPDATE wvp_device_channel " +
-            "SET update_time=#{updateTime}" +
-            ", gb_name = #{gbName}" +
-            ", gb_manufacturer = #{gbManufacturer}" +
-            ", gb_model = #{gbModel}" +
-            ", gb_owner = #{gbOwner}" +
-            ", gb_civil_code = #{gbCivilCode}" +
-            ", gb_block = #{gbBlock}" +
-            ", gb_address = #{gbAddress}" +
-            ", gb_parental = #{gbParental}" +
-            ", gb_parent_id  = #{gbParentId}" +
-            ", gb_safety_way = #{gbSafetyWay}" +
-            ", gb_register_way = #{gbRegisterWay}" +
-            ", gb_cert_num = #{gbCertNum}" +
-            ", gb_certifiable = #{gbCertifiable}" +
-            ", gb_err_code = #{gbErrCode}" +
-            ", gb_end_time = #{gbEndTime}" +
-            ", gb_secrecy = #{gbSecrecy}" +
-            ", gb_ip_address = #{gbIpAddress}" +
-            ", gb_port = #{gbPort}" +
-            ", gb_password = #{gbPassword}" +
-            ", gb_status = #{gbStatus}" +
-            ", gb_longitude = #{gbLongitude}" +
-            ", gb_latitude = #{gbLatitude}" +
-            ", gb_ptz_type = #{gbPtzType}" +
-            ", gb_position_type = #{gbPositionType}" +
-            ", gb_room_type = #{gbRoomType}" +
-            ", gb_use_type = #{gbUseType}" +
-            ", gb_supply_light_type = #{gbSupplyLightType}" +
-            ", gb_direction_type = #{gbDirectionType}" +
-            ", gb_resolution = #{gbResolution}" +
-            ", gb_business_group_id = #{gbBusinessGroupId}" +
-            ", gb_download_speed = #{gbDownloadSpeed}" +
-            ", gb_svc_space_support_mod = #{gbSvcSpaceSupportMod}" +
-            ", gb_svc_time_support_mode = #{gbSvcTimeSupportMode}" +
-            " WHERE id = #{id}" +
-            " </script>"})
-    int updateCustomInfo(DeviceChannel channel);
-
-    @Select(value = {" <script>" +
-            "SELECT " +
-            " dc.id,\n" +
-            " dc.device_db_id,\n" +
-            " dc.create_time,\n" +
-            " dc.update_time,\n" +
-            " dc.sub_count,\n" +
-            " dc.stream_id,\n" +
-            " dc.has_audio,\n" +
-            " dc.gps_time,\n" +
-            " dc.stream_identification,\n" +
-            " dc.channel_type,\n" +
-            " coalesce(dc.gb_device_id, dc.device_id) as device_id,\n" +
-            " coalesce(dc.gb_name, dc.name) as name,\n" +
-            " coalesce(dc.gb_manufacturer, dc.manufacturer) as manufacturer,\n" +
-            " coalesce(dc.gb_model, dc.model) as model,\n" +
-            " coalesce(dc.gb_owner, dc.owner) as owner,\n" +
-            " coalesce(dc.gb_civil_code, dc.civil_code) as civil_code,\n" +
-            " coalesce(dc.gb_block, dc.block) as block,\n" +
-            " coalesce(dc.gb_address, dc.address) as address,\n" +
-            " coalesce(dc.gb_parental, dc.parental) as parental,\n" +
-            " coalesce(dc.gb_parent_id, dc.parent_id) as parent_id,\n" +
-            " coalesce(dc.gb_safety_way, dc.safety_way) as safety_way,\n" +
-            " coalesce(dc.gb_register_way, dc.register_way) as register_way,\n" +
-            " coalesce(dc.gb_cert_num, dc.cert_num) as cert_num,\n" +
-            " coalesce(dc.gb_certifiable, dc.certifiable) as certifiable,\n" +
-            " coalesce(dc.gb_err_code, dc.err_code) as err_code,\n" +
-            " coalesce(dc.gb_end_time, dc.end_time) as end_time,\n" +
-            " coalesce(dc.gb_secrecy, dc.secrecy) as secrecy,\n" +
-            " coalesce(dc.gb_ip_address, dc.ip_address) as ip_address,\n" +
-            " coalesce(dc.gb_port, dc.port) as port,\n" +
-            " coalesce(dc.gb_password, dc.password) as password,\n" +
-            " coalesce(dc.gb_status, dc.status) as status,\n" +
-            " coalesce(dc.gb_longitude, dc.longitude) as longitude,\n" +
-            " coalesce(dc.gb_latitude, dc.latitude) as latitude,\n" +
-            " coalesce(dc.gb_ptz_type, dc.ptz_type) as ptz_type,\n" +
-            " coalesce(dc.gb_position_type, dc.position_type) as position_type,\n" +
-            " coalesce(dc.gb_room_type, dc.room_type) as room_type,\n" +
-            " coalesce(dc.gb_use_type, dc.use_type) as use_type,\n" +
-            " coalesce(dc.gb_supply_light_type, dc.supply_light_type) as supply_light_type,\n" +
-            " coalesce(dc.gb_direction_type, dc.direction_type) as direction_type,\n" +
-            " coalesce(dc.gb_resolution, dc.resolution) as resolution,\n" +
-            " coalesce(dc.gb_business_group_id, dc.business_group_id) as business_group_id,\n" +
-            " coalesce(dc.gb_download_speed, dc.download_speed) as download_speed,\n" +
-            " coalesce(dc.gb_svc_space_support_mod, dc.svc_space_support_mod) as svc_space_support_mod,\n" +
-            " coalesce(dc.gb_svc_time_support_mode,dc.svc_time_support_mode) as svc_time_support_mode\n" +
-            " from " +
-            " wvp_device_channel dc " +
-            " WHERE " +
-            " dc.device_db_id = #{deviceDbId} " +
-            " <if test='query != null'> AND (" +
-            "coalesce(dc.gb_device_id, dc.device_id) LIKE concat('%',#{query},'%') " +
-            "OR coalesce(dc.gb_name, dc.name) LIKE concat('%',#{query},'%') " +
-            ")</if> " +
-            " <if test='parentChannelId != null'> AND (dc.parent_id=#{parentChannelId} OR coalesce(dc.gb_civil_code, dc.civil_code) = #{parentChannelId}) </if> " +
-            " <if test='online == true' > AND dc.status= 'ON'</if>" +
-            " <if test='online == false' > AND dc.status= 'OFF'</if>" +
-            " <if test='hasSubChannel == true' >  AND dc.sub_count > 0 </if>" +
-            " <if test='hasSubChannel == false' >  AND dc.sub_count = 0 </if>" +
-            "<if test='channelIds != null'> AND dc.device_id in <foreach item='item' index='index' collection='channelIds' open='(' separator=',' close=')'>" +
-            "#{item} " +
-            "</foreach> </if>" +
-            "ORDER BY dc.device_id " +
-            " </script>"})
+    @SelectProvider(type = DeviceChannelProvider.class, method = "queryChannels")
     List<DeviceChannel> queryChannels(@Param("deviceDbId") int deviceDbId, @Param("parentChannelId") String parentChannelId, @Param("query") String query, @Param("hasSubChannel") Boolean hasSubChannel, @Param("online") Boolean online, @Param("channelIds") List<String> channelIds);
 
 

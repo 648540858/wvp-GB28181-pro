@@ -70,9 +70,6 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
 
-    @Autowired
-    private EventPublisher eventPublisher;
-
 
     @Override
     public void afterPropertiesSet() throws Exception {

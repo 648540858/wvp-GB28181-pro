@@ -106,10 +106,10 @@ public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent imp
         }
 
         // 根据通道ID，获取所属设备
-        Device device = deviceService.getDeviceByChannelId(channel.getGbId());
+        Device device = deviceService.getDevice(channel.getGbDeviceDbId());
         if (device == null) {
             // 不存在则回复404
-            log.warn("[DeviceInfo] 通道所属设备不存在， 通道ID： {}", channel.getGbId());
+            log.warn("[DeviceInfo] 通道所属设备不存在， 通道ID： {}", channel.getGbDeviceDbId());
 
             try {
                 responseAck(request, Response.NOT_FOUND, "device not found ");

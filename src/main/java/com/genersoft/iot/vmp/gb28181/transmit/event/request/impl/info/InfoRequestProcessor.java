@@ -109,7 +109,7 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
             }
 
             // 根据通道ID，获取所属设备
-            Device device = deviceService.getDeviceByChannelId(sendRtpInfo.getChannelId());
+            Device device = deviceService.getDevice(channel.getGbDeviceDbId());
             if (device == null) {
                 // 不存在则回复404
                 log.warn("[INFO 消息] 通道所属设备不存在， 通道ID： {}", sendRtpInfo.getChannelId());

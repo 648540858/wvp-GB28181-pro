@@ -185,8 +185,9 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 		}
 		log.info("[收到bye] 来自：{}, 通道: {}, 类型： {}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getType());
 
-		Platform platform = platformService.queryPlatformByServerGBId(ssrcTransaction.getDeviceId());
-		if (platform != null ) {
+
+		if (ssrcTransaction.getPlatformId() != null ) {
+			Platform platform = platformService.queryPlatformByServerGBId(ssrcTransaction.getDeviceId());
 			if (ssrcTransaction.getType().equals(InviteSessionType.BROADCAST)) {
 				log.info("[收到bye] 上级停止语音对讲，来自：{}, 通道已停止推流: {}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
 				CommonGBChannel channel = channelService.getOne(ssrcTransaction.getChannelId());

@@ -145,7 +145,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             return;
         }
         // 根据通道ID，获取所属设备
-        Device device = deviceService.getDeviceByChannelId(channel.getGbId());
+        Device device = deviceService.getDevice(channel.getGbDeviceDbId());
         if (device == null) {
             // 不存在则回复404
             log.warn("[INFO 消息] 通道所属设备不存在， 通道ID： {}", channel.getGbId());
@@ -195,7 +195,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             return;
         }
         // 根据通道ID，获取所属设备
-        Device device = deviceService.getDeviceByChannelId(channel.getGbId());
+        Device device = deviceService.getDevice(channel.getGbDeviceDbId());
         if (device == null) {
             // 不存在则回复404
             log.warn("[INFO 消息] 通道所属设备不存在， 通道ID： {}", channel.getGbId());
@@ -243,7 +243,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             return;
         }
         // 根据通道ID，获取所属设备
-        Device device = deviceService.getDeviceByChannelId(channel.getGbId());
+        Device device = deviceService.getDevice(channel.getGbDeviceDbId());
         if (device == null) {
             // 不存在则回复404
             log.warn("[INFO 消息] 通道所属设备不存在， 通道ID： {}", channel.getGbId());
@@ -278,7 +278,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             return;
         }
         // 根据通道ID，获取所属设备
-        Device device = deviceService.getDeviceByChannelId(channel.getGbId());
+        Device device = deviceService.getDevice(channel.getGbDeviceDbId());
         if (device == null) {
             // 不存在则回复404
             log.warn("[INFO 消息] 通道所属设备不存在， 通道ID： {}", channel.getGbId());
@@ -341,7 +341,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             return;
         }
         // 根据通道ID，获取所属设备
-        Device device = deviceService.getDeviceByChannelId(channel.getGbId());
+        Device device = deviceService.getDevice(channel.getGbDeviceDbId());
         if (device == null) {
             // 不存在则回复404
             log.warn("[INFO 消息] 通道所属设备不存在， 通道ID： {}", channel.getGbId());
@@ -393,7 +393,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             return;
         }
         // 根据通道ID，获取所属设备
-        Device device = deviceService.getDeviceByChannelId(channel.getGbId());
+        Device device = deviceService.getDevice(channel.getGbDeviceDbId());
         if (device == null) {
             // 不存在则回复404
             log.warn("[INFO 消息] 通道所属设备不存在， 通道ID： {}", channel.getGbId());
@@ -439,7 +439,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             return;
         }
         // 根据通道ID，获取所属设备
-        Device device = deviceService.getDeviceByChannelId(channel.getGbId());
+        Device device = deviceService.getDevice(channel.getGbDeviceDbId());
         if (device == null) {
             // 不存在则回复404
             log.warn("[INFO 消息] 通道所属设备不存在， 通道ID： {}", channel.getGbId());
@@ -491,7 +491,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             return;
         }
         // 根据通道ID，获取所属设备
-        Device device = deviceService.getDeviceByChannelId(channel.getGbId());
+        Device device = deviceService.getDevice(channel.getGbDeviceDbId());
         if (device == null) {
             // 不存在则回复404
             log.warn("[INFO 消息] 通道所属设备不存在， 通道ID： {}", channel.getGbId());

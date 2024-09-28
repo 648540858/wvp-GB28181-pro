@@ -2,4 +2,4 @@ spring:
   application:
     name: wvp
   profiles:
-    active: 272重构-postgre
+    active: 272重构

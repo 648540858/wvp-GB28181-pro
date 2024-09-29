@@ -147,7 +147,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="补光" >
-          <el-select v-model="form.gbUseType" style="width: 100%" placeholder="请选择位置类型">
+          <el-select v-model="form.gbSupplyLightType" style="width: 100%" placeholder="请选择位置类型">
             <el-option label="无补光" :value="1"></el-option>
             <el-option label="红外补光" :value="2"></el-option>
             <el-option label="白光补光" :value="3"></el-option>
@@ -156,7 +156,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="监视方位" >
-          <el-select v-model="form.gbUseType" style="width: 100%" placeholder="请选择位置类型">
+          <el-select v-model="form.gbDirectionType" style="width: 100%" placeholder="请选择位置类型">
             <el-option label="东(西向东)" :value="1"></el-option>
             <el-option label="西(东向西)" :value="2"></el-option>
             <el-option label="南(北向南)" :value="3"></el-option>

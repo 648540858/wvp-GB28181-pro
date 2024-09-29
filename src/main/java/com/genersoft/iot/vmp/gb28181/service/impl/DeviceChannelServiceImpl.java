@@ -338,7 +338,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         if (device == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到通道：" + deviceId);
         }
-        return channelMapper.queryAllChannels(device.getId());
+        return channelMapper.queryChannelsByDeviceDbId(device.getId());
     }
 
     @Override
@@ -637,7 +637,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public DeviceChannel getBroadcastChannel(int deviceDbId) {
-        List<DeviceChannel> channels = channelMapper.getByDeviceId(deviceDbId);
+        List<DeviceChannel> channels = channelMapper.queryChannelsByDeviceDbId(deviceDbId);
         if (channels.size() == 1) {
             return channels.get(0);
         }

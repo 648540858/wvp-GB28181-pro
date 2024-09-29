@@ -168,7 +168,7 @@ public class DeviceServiceImpl implements IDeviceService {
                 }
 
             }else {
-                if (deviceChannelMapper.queryAllChannels(device.getId()).isEmpty()) {
+                if (deviceChannelMapper.queryChannelsByDeviceDbId(device.getId()).isEmpty()) {
                     log.info("[设备上线]: {}，通道数为0,查询通道信息", device.getDeviceId());
                     sync(device);
                 }
@@ -402,18 +402,6 @@ public class DeviceServiceImpl implements IDeviceService {
         device.setUpdateTime(DateUtil.getNow());
         if (deviceMapper.update(device) > 0) {
             redisCatchStorage.updateDevice(device);
-        }
-    }
-    @Override
-    public List<DeviceChannel> queryVideoDeviceInTreeNode(String deviceId, String parentId) {
-        Device device = deviceMapper.getDeviceByDeviceId(deviceId);
-        if (device == null) {
-            return null;
-        }
-        if (ObjectUtils.isEmpty(parentId) || parentId.equals(deviceId)) {
-            return deviceChannelMapper.getSubChannelsByDeviceId(device.getId(), null, false);
-        }else {
-            return deviceChannelMapper.getSubChannelsByDeviceId(device.getId(), parentId, false);
         }
     }
 

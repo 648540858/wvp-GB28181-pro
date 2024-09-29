@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * 接收redis返回的推流结果
  * @author lin
+ * PUBLISH VM_MSG_STREAM_PUSH_RESPONSE '{"code":0,"msg":"失败","app":"1000","stream":"10000022"}'
  */
 @Slf4j
 @Component

@@ -1,10 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.dao.provider;
 
-import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.Group;
-import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
-
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -101,6 +96,34 @@ public class DeviceChannelProvider {
     }
 
 
+    public String queryChannelsByDeviceDbId(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(getBaseSelectSql());
+        sqlBuild.append(" where dc.device_db_id = #{deviceDbId}");
+        return sqlBuild.toString();
+    }
+
+    public String queryAllChannels(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(getBaseSelectSql());
+        sqlBuild.append(" where dc.device_db_id = #{deviceDbId}");
+        return sqlBuild.toString();
+    }
+
+    public String getOne(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(getBaseSelectSql());
+        sqlBuild.append(" where dc.id=#{id}");
+        return sqlBuild.toString();
+    }
+
+    public String getOneByDeviceId(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(getBaseSelectSql());
+        sqlBuild.append(" where dc.device_db_id=#{deviceDbId} and coalesce(dc.gb_device_id, dc.device_id) = #{channelId}");
+        return sqlBuild.toString();
+    }
+
 
 
     public String queryByDeviceId(Map<String, Object> params ){
@@ -148,165 +171,5 @@ public class DeviceChannelProvider {
             sqlBuild.append(" AND coalesce(gb_parent_id, parent_id) is null");
         }
         return sqlBuild.toString();
-    }
-
-
-
-
-    public String queryInListByStatus(Map<String, Object> params ){
-        StringBuilder sqlBuild = new StringBuilder();
-        sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append("where channel_type = 0 and gb_status=#{status} and id in ( ");
-
-        List<CommonGBChannel> commonGBChannelList = (List<CommonGBChannel>)params.get("commonGBChannelList");
-        boolean first = true;
-        for (CommonGBChannel channel : commonGBChannelList) {
-            if (!first) {
-                sqlBuild.append(",");
-            }
-            sqlBuild.append(channel.getGbId());
-            first = false;
-        }
-        sqlBuild.append(" )");
-        return sqlBuild.toString() ;
-    }
-
-    public String queryByIds(Map<String, Object> params ){
-        StringBuilder sqlBuild = new StringBuilder();
-        sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append("where channel_type = 0 and id in ( ");
-
-        Collection<Integer> ids = (Collection<Integer>)params.get("ids");
-        boolean first = true;
-        for (Integer id : ids) {
-            if (!first) {
-                sqlBuild.append(",");
-            }
-            sqlBuild.append(id);
-            first = false;
-        }
-        sqlBuild.append(" )");
-        return sqlBuild.toString() ;
-    }
-
-    public String queryByGbDeviceIds(Map<String, Object> params ){
-        StringBuilder sqlBuild = new StringBuilder();
-        sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append("where channel_type = 0 and device_db_id in ( ");
-
-        Collection<Integer> ids = (Collection<Integer>)params.get("deviceIds");
-        boolean first = true;
-        for (Integer id : ids) {
-            if (!first) {
-                sqlBuild.append(",");
-            }
-            sqlBuild.append(id);
-            first = false;
-        }
-        sqlBuild.append(" )");
-        return sqlBuild.toString() ;
-    }
-
-    public String queryByDeviceIds(Map<String, Object> params ){
-        StringBuilder sqlBuild = new StringBuilder();
-        sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append("where channel_type = 0 and id in ( ");
-
-        Collection<Integer> ids = (Collection<Integer>)params.get("deviceIds");
-        boolean first = true;
-        for (Integer id : ids) {
-            if (!first) {
-                sqlBuild.append(",");
-            }
-            sqlBuild.append(id);
-            first = false;
-        }
-        sqlBuild.append(" )");
-        return sqlBuild.toString() ;
-    }
-
-    public String queryByIdsOrCivilCode(Map<String, Object> params ){
-        StringBuilder sqlBuild = new StringBuilder();
-        sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append("where channel_type = 0 and ");
-        if (params.get("civilCode") != null) {
-            sqlBuild.append(" coalesce(gb_civil_code, civil_code) = #{civilCode} ");
-            if (params.get("ids") != null) {
-                sqlBuild.append(" OR ");
-            }
-        }
-        if (params.get("ids") != null) {
-            sqlBuild.append(" id in ( ");
-            Collection<Integer> ids = (Collection<Integer>)params.get("ids");
-            boolean first = true;
-            for (Integer id : ids) {
-                if (!first) {
-                    sqlBuild.append(",");
-                }
-                sqlBuild.append(id);
-                first = false;
-            }
-            sqlBuild.append(" )");
-        }
-        return sqlBuild.toString() ;
-    }
-
-    public String queryByCivilCode(Map<String, Object> params ){
-        StringBuilder sqlBuild = new StringBuilder();
-        sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append("where channel_type = 0 and coalesce(gb_civil_code, civil_code) = #{civilCode} ");
-        return sqlBuild.toString();
-    }
-
-    public String queryByBusinessGroup(Map<String, Object> params ){
-        StringBuilder sqlBuild = new StringBuilder();
-        sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append("where channel_type = 0 and coalesce(gb_business_group_id, business_group_id) = #{businessGroup} ");
-        return sqlBuild.toString() ;
-    }
-
-    public String queryByParentId(Map<String, Object> params ){
-        StringBuilder sqlBuild = new StringBuilder();
-        sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append("where channel_type = 0 and gb_parent_id = #{parentId} ");
-        return sqlBuild.toString() ;
-    }
-
-    public String queryByGroupList(Map<String, Object> params ){
-        StringBuilder sqlBuild = new StringBuilder();
-        sqlBuild.append(getBaseSelectSql());
-
-        sqlBuild.append(" where channel_type = 0 and gb_parent_id in ( ");
-        Collection<Group> ids = (Collection<Group>)params.get("groupList");
-        boolean first = true;
-        for (Group group : ids) {
-            if (!first) {
-                sqlBuild.append(",");
-            }
-            sqlBuild.append(group.getDeviceId());
-            first = false;
-        }
-        sqlBuild.append(" )");
-
-        return sqlBuild.toString() ;
-    }
-
-    public String queryListByStreamPushList(Map<String, Object> params ){
-        StringBuilder sqlBuild = new StringBuilder();
-        sqlBuild.append(getBaseSelectSql());
-
-        sqlBuild.append(" where channel_type = 0 and stream_push_id in ( ");
-        Collection<StreamPush> ids = (Collection<StreamPush>)params.get("streamPushList");
-        boolean first = true;
-        for (StreamPush streamPush : ids) {
-            if (!first) {
-                sqlBuild.append(",");
-            }
-            sqlBuild.append(streamPush.getId());
-            first = false;
-        }
-        sqlBuild.append(" )");
-
-        return sqlBuild.toString() ;
     }
 }

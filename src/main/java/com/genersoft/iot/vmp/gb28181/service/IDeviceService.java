@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.gb28181.service;
 
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
@@ -117,14 +116,6 @@ public interface IDeviceService {
      * @param device 设备信息
      */
     void updateDevice(Device device);
-
-    /**
-     * 查询树节点下的通道
-     * @param deviceId 设备ID
-     * @param parentId 父ID
-     * @return
-     */
-    List<DeviceChannel> queryVideoDeviceInTreeNode(String deviceId, String parentId);
 
     /**
      * 检查设备编号是否已经存在

@@ -43,9 +43,6 @@
               <el-option key="UTF-8" label="UTF-8" value="utf-8"></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="语音发送通道" prop="name">
-            <el-input v-model="form.audioChannelForReceive" clearable></el-input>
-          </el-form-item>
           <el-form-item label="地理坐标系" prop="geoCoordSys" >
             <el-select v-model="form.geoCoordSys" style="float: left; width: 100%" >
               <el-option key="WGS84" label="WGS84" value="WGS84"></el-option>

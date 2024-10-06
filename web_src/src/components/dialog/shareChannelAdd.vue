@@ -204,7 +204,7 @@ export default {
       if (channels.length === 0) {
         this.$message.info({
           showClose: true,
-          message: "请选择右侧通道"
+          message: "请选择通道"
         })
         return;
       }
@@ -359,7 +359,7 @@ export default {
       if (channels.length === 0) {
         this.$message.info({
           showClose: true,
-          message: "请选择右侧通道"
+          message: "请选择通道"
         })
         return;
       }

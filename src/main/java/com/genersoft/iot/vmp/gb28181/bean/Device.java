@@ -173,7 +173,7 @@ public class Device {
 	private boolean ssrcCheck = false;
 
 	/**
-	 * 地理坐标系， 目前支持 WGS84,GCJ02
+	 * 地理坐标系， 目前支持 WGS84,GCJ02, 此字段保留，暂无用
 	 */
 	@Schema(description = "地理坐标系， 目前支持 WGS84,GCJ02")
 	private String geoCoordSys;

@@ -169,7 +169,7 @@ create table wvp_device_channel
     gb_business_group_id         character varying(50),
     gb_ptz_type                  integer,
     gb_position_type             integer,
-    gb_photoelectric_imaging_typ integer,
+    gb_photoelectric_imaging_type integer,
     gb_capture_position_type     integer,
     gb_room_type                 integer,
     gb_use_type                  integer,

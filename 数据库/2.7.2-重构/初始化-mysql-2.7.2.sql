@@ -158,7 +158,6 @@ create table wvp_device_channel
     gb_certifiable               integer,
     gb_err_code                  integer,
     gb_end_time                  character varying(50),
-    gb_security_level_code       character varying(255),
     gb_secrecy                   integer,
     gb_ip_address                character varying(50),
     gb_port                      integer,
@@ -176,26 +175,9 @@ create table wvp_device_channel
     gb_supply_light_type         integer,
     gb_direction_type            integer,
     gb_resolution                character varying(255),
-    gb_stream_number_list        character varying(255),
     gb_download_speed            character varying(255),
     gb_svc_space_support_mod     integer,
     gb_svc_time_support_mode     integer,
-    gb_ssvc_ratio_support_list   character varying(255),
-    gb_mobile_device_type        integer,
-    gb_horizontal_field_angle    double,
-    gb_vertical_field_angle      double,
-    gb_max_view_distance         double,
-    gb_grassroots_code           character varying(255),
-    gb_po_type                   integer,
-    gb_po_common_name            character varying(255),
-    gb_mac                       character varying(255),
-    gb_function_type             character varying(255),
-    gb_encode_type               character varying(255),
-    gb_install_time              character varying(255),
-    gb_management_unit           character varying(255),
-    gb_contact_info              character varying(255),
-    gb_record_save_days          integer,
-    gb_industrial_classification character varying(255),
     stream_push_id               integer,
     stream_proxy_id              integer,
     constraint uk_wvp_device_channel_unique_device_channel unique (device_db_id, device_id),
@@ -203,6 +185,8 @@ create table wvp_device_channel
     constraint uk_wvp_unique_stream_push_id unique (stream_push_id),
     constraint uk_wvp_unique_stream_proxy_id unique (stream_proxy_id)
 );
+
+
 
 create table wvp_media_server
 (

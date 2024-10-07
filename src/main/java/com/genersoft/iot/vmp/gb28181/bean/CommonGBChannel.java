@@ -97,12 +97,6 @@ public class CommonGBChannel {
             "8-校园周边、9-治安复杂区域、10-交通干线。当目录项为摄像机时可选。")
     private Integer gbPositionType;
 
-    @Schema(description = "国标-摄像机光电成像类型。1-可见光成像;2-热成像;3-雷达成像;4-X光成像;5-深度光场成像;9-其他。可多值,")
-    private String gbPhotoelectricImagingTyp;
-
-    @Schema(description = "国标-摄像机采集部位类型")
-    private String gbCapturePositionType;
-
     @Schema(description = "国标-摄像机安装位置室外、室内属性。1-室外、2-室内。")
     private Integer gbRoomType;
 

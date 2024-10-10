@@ -77,10 +77,6 @@
                      @click="showChannelList(scope.row)">通道
           </el-button>
           <el-divider direction="vertical"></el-divider>
-          <el-button size="medium" icon="el-icon-location" type="text"
-                     @click="showDevicePosition(scope.row)">定位
-          </el-button>
-          <el-divider direction="vertical"></el-divider>
           <el-button size="medium" icon="el-icon-edit" type="text" @click="edit(scope.row)">编辑</el-button>
           <el-divider direction="vertical"></el-divider>
           <el-button size="medium" icon="el-icon-delete" type="text" @click="deleteDevice(scope.row)" style="color: #f56c6c">删除</el-button>

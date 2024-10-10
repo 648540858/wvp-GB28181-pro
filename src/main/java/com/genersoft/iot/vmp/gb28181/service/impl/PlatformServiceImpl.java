@@ -246,6 +246,31 @@ public class PlatformServiceImpl implements IPlatformService {
         return false;
     }
 
+    private void unregister(Platform platform) {
+        // 停止心跳定时
+        final String keepaliveTaskKey = KEEPALIVE_KEY_PREFIX + platform.getServerGBId();
+        dynamicTask.stop(keepaliveTaskKey);
+        // 停止注册定时
+        final String registerTaskKey = REGISTER_KEY_PREFIX + platform.getServerGBId();
+        dynamicTask.stop(registerTaskKey);
+
+        PlatformCatch platformCatchOld = redisCatchStorage.queryPlatformCatchInfo(platform.getServerGBId());
+        // 注销旧的
+        try {
+            if (platform.isStatus()) {
+                commanderForPlatform.unregister(platform, platformCatchOld.getSipTransactionInfo(), null, eventResult -> {
+                    log.info("[国标级联] 注销命令发送成功，平台：{}", platform.getServerGBId());
+                });
+            }
+        } catch (InvalidArgumentException | ParseException | SipException e) {
+            log.error("[命令发送失败] 国标级联 注销: {}", e.getMessage());
+        }
+    }
+
+    private void register(Platform platform) {
+
+    }
+
 
     @Override
     public void online(Platform platform, SipTransactionInfo sipTransactionInfo) {

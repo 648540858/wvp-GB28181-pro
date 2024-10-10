@@ -58,7 +58,7 @@ public class DeviceChannelProvider {
     public String queryChannels(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append(" where 1=1");
+        sqlBuild.append(" where dc.device_db_id = #{deviceDbId}");
         if (params.get("query") != null) {
             sqlBuild.append(" AND coalesce(dc.gb_device_id, dc.device_id) LIKE concat('%',#{query},'%')" +
                     " OR coalesce(dc.gb_name, dc.name) LIKE concat('%',#{query},'%')")

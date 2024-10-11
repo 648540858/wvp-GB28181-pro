@@ -59,25 +59,28 @@ export default {
           maxZoom: mapParam.maxZoom || 19,
           minZoom: mapParam.minZoom || 1,
         });
-        let tileLayer = null;
+        let tileLayers = [];
         if (mapParam.tilesUrl) {
-          tileLayer = new Tile({
-            source: new XYZ({
-              projection: getProj("EPSG:3857"),
-              wrapX: false,
-              tileSize: 256 || mapParam.tileSize,
-              url: mapParam.tilesUrl
-            })
+          const tilesUrls = Array.isArray(mapParam.tilesUrl) ? mapParam.tilesUrl : [mapParam.tilesUrl]
+          tilesUrls.forEach(tilesUrl => {
+            tileLayers.push(new Tile({
+              source: new XYZ({
+                projection: getProj("EPSG:3857"),
+                wrapX: false,
+                tileSize: 256 || mapParam.tileSize,
+                url: tilesUrl
+              })
+            }))
           })
         }else {
-          tileLayer = new Tile({
-            preload: 4,
-            source: new OSM(),
-          })
+          tileLayers.push(new Tile({
+              preload: 4,
+              source: new OSM(),
+          }))
         }
         olMap = new Map({
           target: this.$refs.mapContainer, // 容器ID
-          layers:  [tileLayer], // 默认图层
+          layers: tileLayers, // 默认图层
           view: view,  // 视图
           controls:[   // 控件
             // new ZoomSlider(),

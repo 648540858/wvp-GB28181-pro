@@ -8,6 +8,7 @@ window.mapParam = {
   // 坐标系 GCJ-02 WGS-84,
   coordinateSystem: "GCJ-02",
   // 地图瓦片地址
+  // 地图瓦片地址 , 支持string[]类型作为多层地图瓦片
   tilesUrl: "http://webrd0{1-4}.is.autonavi.com/appmaptile?x={x}&y={y}&z={z}&lang=zh_cn&size=1&scale=1&style=8",
   // 瓦片大小
   tileSize: 256,

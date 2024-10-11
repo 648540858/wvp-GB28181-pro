@@ -39,7 +39,7 @@ public class SIPRequestHeaderPlarformProvider {
 
 	@Autowired
 	private SipConfig sipConfig;
-	
+
 	@Autowired
 	private SipLayer sipLayer;
 

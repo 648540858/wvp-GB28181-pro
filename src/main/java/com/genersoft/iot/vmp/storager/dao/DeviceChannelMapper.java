@@ -17,14 +17,22 @@ import java.util.List;
 @Repository
 public interface DeviceChannelMapper {
 
-    @Insert("INSERT INTO wvp_device_channel (channel_id, device_id, name, manufacture, model, owner, civil_code, block, " +
-            "address, parental, parent_id, safety_way, register_way, cert_num, certifiable, err_code, secrecy, " +
-            "ip_address, port, password, ptz_type, status, stream_id, longitude, latitude, longitude_gcj02, latitude_gcj02, " +
-            "longitude_wgs84, latitude_wgs84, has_audio, create_time, update_time, business_group_id, gps_time, stream_identification) " +
-            "VALUES (#{channelId}, #{deviceId}, #{name}, #{manufacture}, #{model}, #{owner}, #{civilCode}, #{block}," +
-            "#{address}, #{parental}, #{parentId}, #{safetyWay}, #{registerWay}, #{certNum}, #{certifiable}, #{errCode}, #{secrecy}, " +
-            "#{ipAddress}, #{port}, #{password}, #{ptzType}, #{status}, #{streamId}, #{longitude}, #{latitude}, #{longitudeGcj02}, " +
-            "#{latitudeGcj02}, #{longitudeWgs84}, #{latitudeWgs84}, #{hasAudio}, #{createTime}, #{updateTime}, #{businessGroupId}, #{gpsTime}, #{streamIdentification})")
+    @Insert("<script> " +
+            "insert into wvp_device_channel " +
+            "(channel_id, device_id, name, manufacture, model, owner, civil_code, block, sub_count, " +
+            "  address, parental, parent_id, safety_way, register_way, cert_num, certifiable, err_code, secrecy, " +
+            "  ip_address,port,password,ptz_type,status,stream_id,longitude,latitude,longitude_gcj02,latitude_gcj02,"+
+            "  longitude_wgs84,latitude_wgs84,has_audio,create_time,update_time,business_group_id,gps_time,stream_identification)"+
+            "values " +
+            "(#{channelId}, #{deviceId}, #{name}, #{manufacture}, #{model}, " +
+            "#{owner}, #{civilCode}, #{block},#{subCount}," +
+            "#{address}, #{parental}, #{parentId}, #{safetyWay}, #{registerWay}, " +
+            "#{certNum}, #{certifiable}, #{errCode}, #{secrecy}, " +
+            "#{ipAddress}, #{port}, #{password}, #{ptzType}, #{status}, " +
+            "#{streamId}, #{longitude}, #{latitude},#{longitudeGcj02}, " +
+            "#{latitudeGcj02},#{longitudeWgs84}, #{latitudeWgs84}, #{hasAudio}, now(), now(), " +
+            "#{businessGroupId}, #{gpsTime}, #{streamIdentification}) " +
+            "</script>")
     int add(DeviceChannel channel);
 
     @Update(value = {" <script>" +
@@ -64,6 +72,49 @@ public interface DeviceChannelMapper {
             "WHERE device_id=#{deviceId} AND channel_id=#{channelId}"+
             " </script>"})
     int update(DeviceChannel channel);
+
+    @Update(value = {" <script>" +
+            " UPDATE" +
+            " wvp_device_channel" +
+            " SET update_time=#{updateTime}" +
+            "<if test='name != null'>, name=#{name}</if>" +
+            "<if test='manufacture != null'>, manufacture=#{manufacture}</if>" +
+            "<if test='model != null'>, model=#{model}</if>" +
+            "<if test='owner != null'>, owner=#{owner}</if>" +
+            "<if test='civilCode != null'>, civil_code=#{civilCode}</if>" +
+            "<if test='block != null'>, block=#{block}</if>" +
+            "<if test='subCount != null'>, sub_count=#{subCount}</if>" +
+            "<if test='address != null'>, address=#{address}</if>" +
+            "<if test='parental != null'>, parental=#{parental}</if>" +
+            "<if test='parentId != null'>, parent_id=#{parentId}</if>" +
+            "<if test='safetyWay != null'>, safety_way=#{safetyWay}</if>" +
+            "<if test='registerWay != null'>, register_way=#{registerWay}</if>" +
+            "<if test='certNum != null'>, cert_num=#{certNum}</if>" +
+            "<if test='certifiable != null'>, certifiable=#{certifiable}</if>" +
+            "<if test='errCode != null'>, err_code=#{errCode}</if>" +
+            "<if test='secrecy != null'>, secrecy=#{secrecy}</if>" +
+            "<if test='ipAddress != null'>, ip_address=#{ipAddress}</if>" +
+            "<if test='port != null'>, port=#{port}</if>" +
+            "<if test='password != null'>, password=#{password}</if>" +
+            "<if test='ptzType != null'>, ptz_type=#{ptzType}</if>" +
+            "<if test='status != null'>, status=#{status}</if>" +
+            "<if test='streamId != null'>, stream_id=#{streamId}</if>" +
+            "<if test='hasAudio != null'>, has_audio=#{hasAudio}</if>" +
+            "<if test='longitude != null'>, longitude=#{longitude}</if>" +
+            "<if test='latitude != null'>, latitude=#{latitude}</if>" +
+            "<if test='customLongitude != null'>, custom_longitude=#{customLongitude}</if>" +
+            "<if test='customLatitude != null'>, custom_latitude=#{customLatitude}</if>" +
+            "<if test='longitudeGcj02 != null'>, longitude_gcj02=#{longitudeGcj02}</if>" +
+            "<if test='latitudeGcj02 != null'>, latitude_gcj02=#{latitudeGcj02}</if>" +
+            "<if test='longitudeWgs84 != null'>, longitude_wgs84=#{longitudeWgs84}</if>" +
+            "<if test='latitudeWgs84 != null'>, latitude_wgs84=#{latitudeWgs84}</if>" +
+            "<if test='businessGroupId != null'>, business_group_id=#{businessGroupId}</if>" +
+            "<if test='gpsTime != null'>, gps_time=#{gpsTime}</if>" +
+            "<if test='streamIdentification != null'>, stream_identification=#{streamIdentification}</if>" +
+            "<if test='id > 0'>WHERE id=#{id}</if>" +
+            "<if test='id == 0'>WHERE device_id=#{deviceId} AND channel_id=#{channelId}</if>" +
+            " </script>"})
+    int updateForNotify(DeviceChannel channel);
 
     @Select(value = {" <script>" +
             "SELECT " +
@@ -573,5 +624,8 @@ public interface DeviceChannelMapper {
             "</foreach>" +
             "</script>"})
     void batchUpdatePosition(List<DeviceChannel> channelList);
+
+    @Update("UPDATE wvp_device_channel SET status=#{status} WHERE device_id=#{deviceId} AND channel_id=#{channelId}")
+    void updateStatus(DeviceChannel channel);
 
 }

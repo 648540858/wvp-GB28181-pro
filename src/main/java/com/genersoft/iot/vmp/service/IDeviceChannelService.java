@@ -25,7 +25,7 @@ public interface IDeviceChannelService {
      * @param deviceId 设备id
      * @param channel 通道
      */
-    void updateChannel(String deviceId, DeviceChannel channel);
+    void updateChannelForNotify(String deviceId, DeviceChannel channel);
 
     /**
      * 批量添加设备通道
@@ -102,4 +102,10 @@ public interface IDeviceChannelService {
     void offline(DeviceChannel channel);
 
     void delete(DeviceChannel channel);
+
+    void updateChannelStatus(DeviceChannel channel);
+
+    void addChannel(DeviceChannel channel);
+
+    void updateChannelForNotify(DeviceChannel channel);
 }

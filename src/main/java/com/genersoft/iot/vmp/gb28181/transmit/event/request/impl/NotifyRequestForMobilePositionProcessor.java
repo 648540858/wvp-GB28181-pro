@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import javax.sip.RequestEvent;
@@ -71,7 +72,10 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 		}
 		List<HandlerCatchData> handlerCatchDataList = new ArrayList<>();
 		while (!taskQueue.isEmpty()) {
-			handlerCatchDataList.add(taskQueue.poll());
+			HandlerCatchData poll = taskQueue.poll();
+			if (poll != null) {
+				handlerCatchDataList.add(poll);
+			}
 		}
 		if (handlerCatchDataList.isEmpty()) {
 			return;
@@ -89,12 +93,12 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 				Element rootElement = getRootElement(evt);
 				if (rootElement == null) {
 					logger.error("处理MobilePosition移动位置Notify时未获取到消息体,{}", evt.getRequest());
-					return;
+					continue;
 				}
 				Device device = redisCatchStorage.getDevice(deviceId);
 				if (device == null) {
 					logger.error("处理MobilePosition移动位置Notify时未获取到device,{}", deviceId);
-					return;
+					continue;
 				}
 				MobilePosition mobilePosition = new MobilePosition();
 				mobilePosition.setDeviceId(device.getDeviceId());
@@ -151,7 +155,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 					}
 				}
 
-			logger.debug("[收到移动位置订阅通知]：{}/{}->{}.{}, 时间： {}", mobilePosition.getDeviceId(), mobilePosition.getChannelId(),
+				logger.debug("[收到移动位置订阅通知]：{}/{}->{}.{}, 时间： {}", mobilePosition.getDeviceId(), mobilePosition.getChannelId(),
 					mobilePosition.getLongitude(), mobilePosition.getLatitude(), System.currentTimeMillis() - startTime);
 				mobilePosition.setReportSource("Mobile Position");
 
@@ -194,7 +198,6 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 				logger.error("未处理的异常 ", e);
 			}
 		}
-		taskQueue.clear();
 	}
 //	@Scheduled(fixedRate = 10000)
 //	public void execute(){

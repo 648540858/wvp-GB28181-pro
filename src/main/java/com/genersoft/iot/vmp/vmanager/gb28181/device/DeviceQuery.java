@@ -261,7 +261,7 @@ public class DeviceQuery {
 	@Parameter(name = "channel", description = "通道信息", required = true)
 	@PostMapping("/channel/update/{deviceId}")
 	public void updateChannel(@PathVariable String deviceId,DeviceChannel channel){
-		deviceChannelService.updateChannel(deviceId, channel);
+		deviceChannelService.updateChannelForNotify(deviceId, channel);
 	}
 
 	@Operation(summary = "修改通道的码流类型", security = @SecurityRequirement(name = JwtUtils.HEADER))

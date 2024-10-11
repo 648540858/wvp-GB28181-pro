@@ -96,7 +96,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
-    public void updateChannel(String deviceId, DeviceChannel channel) {
+    public void updateChannelForNotify(String deviceId, DeviceChannel channel) {
         String channelId = channel.getChannelId();
         channel.setDeviceId(deviceId);
         InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
@@ -114,6 +114,11 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             channelMapper.update(channel);
         }
         channelMapper.updateChannelSubCount(deviceId,channel.getParentId());
+    }
+
+    @Override
+    public void updateChannelForNotify(DeviceChannel channel) {
+        channelMapper.updateForNotify(channel);
     }
 
     @Override
@@ -278,6 +283,16 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             }
         }
         return result;
+    }
+
+    @Override
+    public void updateChannelStatus(DeviceChannel channel) {
+        channelMapper.updateStatus(channel);
+    }
+
+    @Override
+    public void addChannel(DeviceChannel channel) {
+        channelMapper.add(channel);
     }
 
     @Override

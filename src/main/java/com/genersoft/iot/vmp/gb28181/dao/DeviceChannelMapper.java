@@ -378,7 +378,7 @@ public interface DeviceChannelMapper {
             " from wvp_device_channel where device_db_id = #{deviceDbId}")
     List<DeviceChannel> queryAllChannelsForRefresh(@Param("deviceDbId") int deviceDbId);
 
-    @Select("select de.* from wvp_device de left join wvp_device_channel dc on de.device_id = dc.deviceId where dc.device_id=#{channelId}")
+    @Select("select de.* from wvp_device de left join wvp_device_channel dc on de.device_id = dc.device_id where dc.device_id=#{channelId}")
     List<Device> getDeviceByChannelDeviceId(String channelId);
 
 

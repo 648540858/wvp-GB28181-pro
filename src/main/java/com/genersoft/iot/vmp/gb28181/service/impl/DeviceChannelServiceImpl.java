@@ -268,6 +268,11 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
+    public DeviceChannel getOneForSource(int deviceDbId, String channelId) {
+        return channelMapper.getOneByDeviceIdForSource(deviceDbId, channelId);
+    }
+
+    @Override
     @Transactional
     public synchronized void batchUpdateChannelForNotify(List<DeviceChannel> channels) {
         String now = DateUtil.getNow();
@@ -653,5 +658,20 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     @Override
     public void changeAudio(Integer channelId, Boolean audio) {
         channelMapper.changeAudio(channelId, audio);
+    }
+
+    @Override
+    public void updateChannelStatus(DeviceChannel channel) {
+        channelMapper.updateStatus(channel);
+    }
+
+    @Override
+    public void addChannel(DeviceChannel channel) {
+        channelMapper.add(channel);
+    }
+
+    @Override
+    public void updateChannelForNotify(DeviceChannel channel) {
+        channelMapper.updateChannelForNotify(channel);
     }
 }

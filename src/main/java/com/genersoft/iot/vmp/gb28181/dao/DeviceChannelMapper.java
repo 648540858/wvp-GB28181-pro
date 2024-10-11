@@ -18,16 +18,21 @@ import java.util.List;
 @Repository
 public interface DeviceChannelMapper {
 
-    @Insert("INSERT INTO wvp_device_channel (device_id, device_db_id, name, manufacturer, model, owner, civil_code, block, " +
+
+    @Insert("<script> " +
+            "insert into wvp_device_channel " +
+            "(device_id, device_db_id, name, manufacturer, model, owner, civil_code, block, " +
             "address, parental, parent_id, safety_way, register_way, cert_num, certifiable, err_code, end_time, secrecy, " +
             "ip_address, port, password, status, longitude, latitude, ptz_type, position_type, room_type, use_type, " +
             "supply_light_type, direction_type, resolution, business_group_id, download_speed, svc_space_support_mod, " +
-            "svc_time_support_mode, create_time, update_time, sub_count，stream_id, has_audio, gps_time, stream_identification, channel_type) " +
-            "VALUES (#{deviceId}, #{deviceDbId}, #{name}, #{manufacturer}, #{model}, #{owner}, #{civilCode}, #{block}," +
+            "svc_time_support_mode, create_time, update_time, sub_count, stream_id, has_audio, gps_time, stream_identification, channel_type) " +
+            "values " +
+            "(#{deviceId}, #{deviceDbId}, #{name}, #{manufacturer}, #{model}, #{owner}, #{civilCode}, #{block}, " +
             "#{address}, #{parental}, #{parentId}, #{safetyWay}, #{registerWay}, #{certNum}, #{certifiable}, #{errCode}, #{endTime}, #{secrecy}, " +
             "#{ipAddress}, #{port}, #{password}, #{status}, #{longitude}, #{latitude}, #{ptzType}, #{positionType}, #{roomType}, #{useType}, " +
             "#{supplyLightType}, #{directionType}, #{resolution}, #{businessGroupId}, #{downloadSpeed}, #{svcSpaceSupportMod}," +
-            " #{svcTimeSupportMode}, #{createTime}, #{updateTime}, #{subCount}, #{streamId}, #{hasAudio}, #{gpsTime}, #{streamIdentification}, #{channelType})")
+            " #{svcTimeSupportMode}, #{createTime}, #{updateTime}, #{subCount}, #{streamId}, #{hasAudio}, #{gpsTime}, #{streamIdentification}, #{channelType}) " +
+            "</script>")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int add(DeviceChannel channel);
 
@@ -543,4 +548,57 @@ public interface DeviceChannelMapper {
             "</foreach> " +
             "</script>")
     void updateStreamGPS(List<GPSMsgInfo> gpsMsgInfoList);
+
+    @Update("UPDATE wvp_device_channel SET status=#{status} WHERE device_id=#{deviceId} AND channel_id=#{channelId}")
+    void updateStatus(DeviceChannel channel);
+
+
+    @Update({"<script>" +
+            " UPDATE" +
+            " wvp_device_channel" +
+            " SET update_time=#{updateTime}" +
+            ", device_id=#{deviceId}" +
+            ", device_db_id=#{deviceDbId}" +
+            ", name=#{name}" +
+            ", manufacturer=#{manufacturer}" +
+            ", model=#{model}" +
+            ", owner=#{owner}" +
+            ", civil_code=#{civilCode}" +
+            ", block=#{block}" +
+            ", address=#{address}" +
+            ", parental=#{parental}" +
+            ", parent_id=#{parentId}" +
+            ", safety_way=#{safetyWay}" +
+            ", register_way=#{registerWay}" +
+            ", cert_num=#{certNum}" +
+            ", certifiable=#{certifiable}" +
+            ", err_code=#{errCode}" +
+            ", end_time=#{endTime}" +
+            ", secrecy=#{secrecy}" +
+            ", ip_address=#{ipAddress}" +
+            ", port=#{port}" +
+            ", password=#{password}" +
+            ", status=#{status}" +
+            ", longitude=#{longitude}" +
+            ", latitude=#{latitude}" +
+            ", ptz_type=#{ptzType}" +
+            ", position_type=#{positionType}" +
+            ", room_type=#{roomType}" +
+            ", use_type=#{useType}" +
+            ", supply_light_type=#{supplyLightType}" +
+            ", direction_type=#{directionType}" +
+            ", resolution=#{resolution}" +
+            ", business_group_id=#{businessGroupId}" +
+            ", download_speed=#{downloadSpeed}" +
+            ", svc_space_support_mod=#{svcSpaceSupportMod}" +
+            ", svc_time_support_mode=#{svcTimeSupportMode}" +
+            ", sub_count=#{subCount}" +
+            ", stream_id=#{streamId}" +
+            ", has_audio=#{hasAudio}" +
+            ", gps_time=#{gpsTime}" +
+            ", stream_identification=#{streamIdentification}" +
+            ", channel_type=#{channelType}" +
+            " WHERE id = #{id}" +
+            "</script>"})
+    void updateChannelForNotify(DeviceChannel channel);
 }

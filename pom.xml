@@ -133,6 +133,14 @@
             <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
 
+        <!-- 数据库监控页面 -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-starter</artifactId>
+            <version>1.2.23</version>
+        </dependency>
+
+
         <!-- mysql数据库 -->
         <dependency>
             <groupId>com.mysql</groupId>

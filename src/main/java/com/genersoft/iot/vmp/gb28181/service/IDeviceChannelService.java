@@ -111,4 +111,12 @@ public interface IDeviceChannelService {
     DeviceChannel getBroadcastChannel(int deviceDbId);
 
     void changeAudio(Integer channelId, Boolean audio);
+
+    void updateChannelStatus(DeviceChannel channel);
+
+    void addChannel(DeviceChannel channel);
+
+    void updateChannelForNotify(DeviceChannel channel);
+
+    DeviceChannel getOneForSource(int deviceDbId, String channelId);
 }

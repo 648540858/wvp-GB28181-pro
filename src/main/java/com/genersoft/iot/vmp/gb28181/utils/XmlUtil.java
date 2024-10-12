@@ -266,7 +266,6 @@ public class XmlUtil {
             deviceChannel.setName(channelId);
         }
         if(channelId.length() <= 8) {
-            deviceChannel.setHasAudio(false);
             CivilCodePo parentCode = civilCodeFileConf.getParentCode(channelId);
             if (parentCode != null) {
                 deviceChannel.setParentId(parentCode.getCode());
@@ -274,6 +273,8 @@ public class XmlUtil {
             }else {
                 logger.warn("[xml解析] 无法确定行政区划{}的上级行政区划", channelId);
             }
+            deviceChannel.setParental(1);
+            deviceChannel.setHasAudio(false);
             deviceChannel.setStatus(true);
             return deviceChannel;
         }else {
@@ -333,6 +334,7 @@ public class XmlUtil {
                     if (!ObjectUtils.isEmpty(address)) {
                         deviceChannel.setAddress(address);
                     }
+                    deviceChannel.setParental(1);
                     deviceChannel.setStatus(true);
                     if (!ObjectUtils.isEmpty(registerWay)) {
                         try {
@@ -348,6 +350,7 @@ public class XmlUtil {
                 case 215:
                     // 业务分组
                     deviceChannel.setStatus(true);
+                    deviceChannel.setParental(1);
                     if (!ObjectUtils.isEmpty(parentID)) {
                         if (!parentID.trim().equalsIgnoreCase(device.getDeviceId())) {
                             deviceChannel.setParentId(parentID);
@@ -362,6 +365,7 @@ public class XmlUtil {
                 case 216:
                     // 虚拟组织
                     deviceChannel.setStatus(true);
+                    deviceChannel.setParental(1);
                     if (!ObjectUtils.isEmpty(businessGroupID)) {
                         deviceChannel.setBusinessGroupId(businessGroupID);
                     }

@@ -42,7 +42,6 @@ export default {
       volume: 1,
       rotate: 0,
       vod: true, // 点播
-      forceNoOffscreen: false,
     };
   },
   props: ['videoUrl', 'error', 'hasAudio', 'height'],
@@ -123,7 +122,7 @@ export default {
         supportDblclickFullscreen: false,
         timeout: 10,
         useMSE: true,
-        useWCS: location.hostname === "localhost" || location.protocol === "https:",
+        useWCS: false,
         useWebFullScreen: true,
         videoBuffer: 0.1,
         wasmDecodeErrorReplay: true,

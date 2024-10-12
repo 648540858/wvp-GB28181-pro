@@ -2,4 +2,4 @@ spring:
   application:
     name: wvp
   profiles:
-    active: 272-postgresql
+    active: dev

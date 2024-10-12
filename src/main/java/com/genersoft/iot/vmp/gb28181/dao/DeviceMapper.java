@@ -340,10 +340,11 @@ public interface DeviceMapper {
             " FROM wvp_device de" +
             " where 1 = 1 "+
             " <if test='status != null'> AND de.on_line=${status}</if>"+
+            " <if test='deviceId != null'> AND de.device_id=#{deviceId}</if>"+
             " <if test='query != null'> AND coalesce(custom_name, name) LIKE '%${query}%'</if> " +
             " order by create_time desc "+
             " </script>")
-    List<Device> getDeviceList(@Param("query") String query, @Param("status") Boolean status);
+    List<Device> getDeviceList(@Param("query") String query, @Param("deviceId") String deviceId, @Param("status") Boolean status);
 
     @Select("select * from wvp_device_channel where id = #{id}")
     DeviceChannel getRawChannel(@Param("id") int id);

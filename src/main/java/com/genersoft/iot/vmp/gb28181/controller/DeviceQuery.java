@@ -97,14 +97,15 @@ public class DeviceQuery {
 	@Parameter(name = "page", description = "当前页", required = true)
 	@Parameter(name = "count", description = "每页查询数量", required = true)
 	@Parameter(name = "query", description = "搜索", required = false)
+	@Parameter(name = "deviceId", description = "设备编号", required = false)
 	@Parameter(name = "status", description = "状态", required = false)
 	@GetMapping("/devices")
 	@Options()
-	public PageInfo<Device> devices(int page, int count, String query, Boolean status){
+	public PageInfo<Device> devices(int page, int count, String query, String deviceId, Boolean status){
 		if (ObjectUtils.isEmpty(query)){
 			query = null;
 		}
-		return deviceService.getAll(page, count, query, status);
+		return deviceService.getAll(page, count, query, deviceId, status);
 	}
 
 	/**

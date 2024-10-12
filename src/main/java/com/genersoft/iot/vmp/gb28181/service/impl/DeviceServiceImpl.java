@@ -548,9 +548,9 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public PageInfo<Device> getAll(int page, int count, String query, Boolean status) {
+    public PageInfo<Device> getAll(int page, int count, String query, String deviceId, Boolean status) {
         PageHelper.startPage(page, count);
-        List<Device> all = deviceMapper.getDeviceList(query, status);
+        List<Device> all = deviceMapper.getDeviceList(query, deviceId, status);
         return new PageInfo<>(all);
     }
 

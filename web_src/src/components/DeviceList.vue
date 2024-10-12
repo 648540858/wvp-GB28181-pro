@@ -6,6 +6,9 @@
         搜索:
         <el-input @input="getDeviceList" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
                   prefix-icon="el-icon-search" v-model="searchSrt" clearable></el-input>
+        设备编号:
+        <el-input @input="getDeviceList" style="margin-right: 1rem; width: auto;" size="mini" placeholder="设备编号"
+                  prefix-icon="el-icon-search" v-model="deviceId" clearable></el-input>
         在线状态:
         <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="getDeviceList" v-model="online" placeholder="请选择"
                    default-first-option>
@@ -118,6 +121,7 @@ export default {
       deviceList: [], //设备列表
       currentDevice: {}, //当前操作设备对象
       searchSrt: "",
+      deviceId: "",
       online: null,
       videoComponentList: [],
       updateLooper: 0, //数据刷新轮训标志
@@ -171,6 +175,7 @@ export default {
           page: this.currentPage,
           count: this.count,
           query: this.searchSrt,
+          deviceId: this.deviceId,
           status: this.online,
         }
       }).then( (res)=> {

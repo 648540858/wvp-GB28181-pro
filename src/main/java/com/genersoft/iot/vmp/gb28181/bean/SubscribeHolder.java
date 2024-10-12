@@ -52,7 +52,7 @@ public class SubscribeHolder {
         Runnable runnable = dynamicTask.get(taskOverdueKey);
         if (runnable instanceof ISubscribeTask) {
             ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
-            subscribeTask.stop();
+            subscribeTask.stop(null);
         }
         // 添加任务处理订阅过期
         dynamicTask.stop(taskOverdueKey);
@@ -87,7 +87,7 @@ public class SubscribeHolder {
         Runnable runnable = dynamicTask.get(taskOverdueKey);
         if (runnable instanceof ISubscribeTask) {
             ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
-            subscribeTask.stop();
+            subscribeTask.stop(null);
         }
         // 添加任务处理订阅过期
         dynamicTask.stop(taskOverdueKey);

@@ -13,7 +13,7 @@ public class AuthController {
     @Autowired
     private IUserService userService;
 
-    @RequestMapping("/login")
+    @GetMapping("/login")
     public String devices(String name, String passwd){
         User user = userService.getUser(name, passwd);
         if (user != null) {

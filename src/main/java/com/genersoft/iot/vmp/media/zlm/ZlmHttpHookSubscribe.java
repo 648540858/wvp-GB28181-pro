@@ -39,6 +39,7 @@ public class ZlmHttpHookSubscribe {
             hookSubscribe.setExpires(expiresInstant);
         }
         allSubscribes.computeIfAbsent(hookSubscribe.getHookType(), k -> new ConcurrentHashMap<>()).put(hookSubscribe, event);
+        System.out.println(allSubscribes);
     }
 
     public ZlmHttpHookSubscribe.Event sendNotify(HookType type, JSONObject hookResponse) {
@@ -49,6 +50,7 @@ public class ZlmHttpHookSubscribe {
         }
         for (IHookSubscribe key : eventMap.keySet()) {
             Boolean result = null;
+
             for (String s : key.getContent().keySet()) {
                 if (result == null) {
                     result = key.getContent().getString(s).equals(hookResponse.getString(s));

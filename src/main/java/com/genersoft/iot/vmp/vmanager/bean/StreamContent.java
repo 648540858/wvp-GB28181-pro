@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.bean;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "流信息")
@@ -93,6 +94,9 @@ public class StreamContent {
     @Schema(description = "结束时间")
     private String endTime;
 
+    @Schema(description = "文件下载地址（录像下载使用）")
+    private DownloadFileInfo downLoadFilePath;
+
     private double progress;
 
     public StreamContent(StreamInfo streamInfo) {
@@ -170,6 +174,10 @@ public class StreamContent {
         this.startTime = streamInfo.getStartTime();
         this.endTime = streamInfo.getEndTime();
         this.progress = streamInfo.getProgress();
+
+        if (streamInfo.getDownLoadFilePath() != null) {
+            this.downLoadFilePath = streamInfo.getDownLoadFilePath();
+        }
     }
 
     public String getApp() {
@@ -410,5 +418,13 @@ public class StreamContent {
 
     public void setProgress(double progress) {
         this.progress = progress;
+    }
+
+    public DownloadFileInfo getDownLoadFilePath() {
+        return downLoadFilePath;
+    }
+
+    public void setDownLoadFilePath(DownloadFileInfo downLoadFilePath) {
+        this.downLoadFilePath = downLoadFilePath;
     }
 }

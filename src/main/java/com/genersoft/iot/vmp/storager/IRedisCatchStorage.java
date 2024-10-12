@@ -208,4 +208,8 @@ public interface IRedisCatchStorage {
     void sendPlatformStartPlayMsg(MessageForPushChannel messageForPushChannel);
 
     void sendPlatformStopPlayMsg(MessageForPushChannel messageForPushChannel);
+
+    void addPushListItem(String app, String stream, OnStreamChangedHookParam param);
+
+    void removePushListItem(String app, String stream, String mediaServerId);
 }

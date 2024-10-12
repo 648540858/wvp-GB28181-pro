@@ -20,6 +20,7 @@
   * [树形结构](_content/theory/channel_tree.md)
   * [注册流程](_content/theory/register.md)
   * [点播流程](_content/theory/play.md)
+  * [级联语音喊话流程](_content/theory/broadcast_cascade.md)
 * **必备技巧**
   * [抓包](_content/skill/tcpdump.md)
 

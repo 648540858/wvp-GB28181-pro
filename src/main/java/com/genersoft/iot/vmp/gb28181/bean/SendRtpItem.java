@@ -49,7 +49,7 @@ public class SendRtpItem {
     /**
      * 设备推流的streamId
      */
-    private String streamId;
+    private String stream;
 
     /**
      * 是否为tcp
@@ -117,6 +117,11 @@ public class SendRtpItem {
      */
     private InviteStreamType playType;
 
+    /**
+     * 发流的同时收流
+     */
+    private String receiveStream;
+
     public String getIp() {
         return ip;
     }
@@ -181,12 +186,12 @@ public class SendRtpItem {
         this.app = app;
     }
 
-    public String getStreamId() {
-        return streamId;
+    public String getStream() {
+        return stream;
     }
 
-    public void setStreamId(String streamId) {
-        this.streamId = streamId;
+    public void setStream(String stream) {
+        this.stream = stream;
     }
 
     public boolean isTcp() {
@@ -291,5 +296,13 @@ public class SendRtpItem {
 
     public void setRtcp(boolean rtcp) {
         this.rtcp = rtcp;
+    }
+
+    public String getReceiveStream() {
+        return receiveStream;
+    }
+
+    public void setReceiveStream(String receiveStream) {
+        this.receiveStream = receiveStream;
     }
 }

@@ -72,7 +72,7 @@ public class RequestSendItemMsg {
 
 
     public static RequestSendItemMsg getInstance(String serverId, String mediaServerId, String app, String stream, String ip, int port,
-                                                 String ssrc, String platformId, String channelId, Boolean isTcp, Boolean rtcp, String platformName) {
+                                                          String ssrc, String platformId, String channelId, Boolean isTcp, Boolean rtcp, String platformName) {
         RequestSendItemMsg requestSendItemMsg = new RequestSendItemMsg();
         requestSendItemMsg.setServerId(serverId);
         requestSendItemMsg.setMediaServerId(mediaServerId);

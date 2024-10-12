@@ -2,6 +2,8 @@ package com.genersoft.iot.vmp.gb28181.event;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceNotFoundEvent;
 import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.message.SIPResponse;
+import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -11,8 +13,7 @@ import javax.sip.DialogTerminatedEvent;
 import javax.sip.ResponseEvent;
 import javax.sip.TimeoutEvent;
 import javax.sip.TransactionTerminatedEvent;
-import javax.sip.header.CallIdHeader;
-import javax.sip.message.Response;
+import javax.sip.header.WarningHeader;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -60,7 +61,7 @@ public class SipSubscribe {
         logger.debug("errorSubscribes.size:{}",errorSubscribes.size());
     }
 
-    public interface Event { void response(EventResult eventResult) ;
+    public interface Event { void response(EventResult eventResult);
     }
 
     /**
@@ -77,8 +78,10 @@ public class SipSubscribe {
         dialogTerminated,
         // 设备未找到
         deviceNotFoundEvent,
-        // 设备未找到
-        cmdSendFailEvent
+        // 消息发送失败
+        cmdSendFailEvent,
+        // 消息发送失败
+        failedToGetPort
     }
 
     public static class EventResult<EventObject>{
@@ -95,14 +98,27 @@ public class SipSubscribe {
             this.event = event;
             if (event instanceof ResponseEvent) {
                 ResponseEvent responseEvent = (ResponseEvent)event;
-                Response response = responseEvent.getResponse();
+                SIPResponse response = (SIPResponse)responseEvent.getResponse();
                 this.type = EventResultType.response;
                 if (response != null) {
-                    this.msg = response.getReasonPhrase();
+                    WarningHeader warningHeader = (WarningHeader)response.getHeader(WarningHeader.NAME);
+                    if (warningHeader != null && !ObjectUtils.isEmpty(warningHeader.getText())) {
+                        this.msg = "";
+                        if (warningHeader.getCode() > 0) {
+                            this.msg += warningHeader.getCode() + ":";
+                        }
+                        if (warningHeader.getAgent() != null) {
+                            this.msg += warningHeader.getCode() + ":";
+                        }
+                        if (warningHeader.getText() != null) {
+                            this.msg += warningHeader.getText();
+                        }
+                    }else {
+                        this.msg = response.getReasonPhrase();
+                    }
                     this.statusCode = response.getStatusCode();
+                    this.callId = response.getCallIdHeader().getCallId();
                 }
-                this.callId = ((CallIdHeader)response.getHeader(CallIdHeader.NAME)).getCallId();
-
             }else if (event instanceof TimeoutEvent) {
                 TimeoutEvent timeoutEvent = (TimeoutEvent)event;
                 this.type = EventResultType.timeout;

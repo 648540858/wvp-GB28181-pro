@@ -75,6 +75,33 @@ public class VideoStreamSessionManager {
 		return (SsrcTransaction)redisTemplate.opsForValue().get(scanResult.get(0));
 	}
 
+	public SsrcTransaction getSsrcTransactionByCallId(String callId){
+
+		if (ObjectUtils.isEmpty(callId)) {
+			return null;
+		}
+		String key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + "_*_*_" + callId+ "_*";
+		List<Object> scanResult = RedisUtil.scan(redisTemplate, key);
+		if (!scanResult.isEmpty()) {
+			return (SsrcTransaction)redisTemplate.opsForValue().get(scanResult.get(0));
+		}else {
+			key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + "_*_*_play_*";
+			scanResult = RedisUtil.scan(redisTemplate, key);
+			if (scanResult.isEmpty()) {
+				return null;
+			}
+			for (Object keyObj : scanResult) {
+				SsrcTransaction ssrcTransaction = (SsrcTransaction)redisTemplate.opsForValue().get(keyObj);
+				if (ssrcTransaction.getSipTransactionInfo() != null &&
+						ssrcTransaction.getSipTransactionInfo().getCallId().equals(callId)) {
+					return ssrcTransaction;
+				}
+			}
+			return null;
+		}
+
+	}
+
 	public List<SsrcTransaction> getSsrcTransactionForAll(String deviceId, String channelId, String callId, String stream){
 		if (ObjectUtils.isEmpty(deviceId)) {
 			deviceId ="*";

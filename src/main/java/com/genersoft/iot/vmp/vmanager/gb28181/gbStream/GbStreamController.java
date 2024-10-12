@@ -86,7 +86,7 @@ public class GbStreamController {
     @ResponseBody
     public void del(@RequestBody GbStreamParam gbStreamParam){
 
-        if (gbStreamParam.getGbStreams() == null || gbStreamParam.getGbStreams().size() == 0) {
+        if (gbStreamParam.getGbStreams() == null || gbStreamParam.getGbStreams().isEmpty()) {
             if (gbStreamParam.isAll()) {
                 gbStreamService.delAllPlatformInfo(gbStreamParam.getPlatformId(), gbStreamParam.getCatalogId());
             }
@@ -105,7 +105,7 @@ public class GbStreamController {
     @PostMapping(value = "/add")
     @ResponseBody
     public void add(@RequestBody GbStreamParam gbStreamParam){
-        if (gbStreamParam.getGbStreams() == null || gbStreamParam.getGbStreams().size() == 0) {
+        if (gbStreamParam.getGbStreams() == null || gbStreamParam.getGbStreams().isEmpty()) {
             if (gbStreamParam.isAll()) {
                 List<GbStream> allGBChannels = gbStreamService.getAllGBChannels(gbStreamParam.getPlatformId());
                 gbStreamService.addPlatformInfo(allGBChannels, gbStreamParam.getPlatformId(), gbStreamParam.getCatalogId());

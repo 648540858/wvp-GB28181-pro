@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.storager.impl;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -38,6 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @SuppressWarnings("rawtypes")
 @Component
+@DS("master")
 public class VideoManagerStorageImpl implements IVideoManagerStorage {
 
 	private final Logger logger = LoggerFactory.getLogger(VideoManagerStorageImpl.class);
@@ -93,12 +95,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 
 	@Autowired
     private PlatformGbStreamMapper platformGbStreamMapper;
-
-	@Autowired
-    private IGbStreamService gbStreamService;
-
-	@Autowired
-    private ParentPlatformMapper parentPlatformMapper;
 
 	/**
 	 * 根据设备ID判断设备是否存在

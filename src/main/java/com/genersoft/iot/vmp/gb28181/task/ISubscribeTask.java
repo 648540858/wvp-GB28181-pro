@@ -1,10 +1,10 @@
 package com.genersoft.iot.vmp.gb28181.task;
 
-import javax.sip.DialogState;
+import com.genersoft.iot.vmp.common.CommonCallback;
 
 /**
  * @author lin
  */
 public interface ISubscribeTask extends Runnable{
-    void stop();
+    void stop(CommonCallback<Boolean> callback);
 }

@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -17,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,6 +29,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @author lin
  */
 @Service
+@DS("master")
 public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     private final static Logger logger = LoggerFactory.getLogger(DeviceChannelServiceImpl.class);
@@ -265,5 +268,16 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         }
     }
 
-
+    @Override
+    public void updateChannelStreamIdentification(DeviceChannel channel) {
+        assert !ObjectUtils.isEmpty(channel.getDeviceId());
+        assert !ObjectUtils.isEmpty(channel.getStreamIdentification());
+        if (ObjectUtils.isEmpty(channel.getStreamIdentification())) {
+            logger.info("[重置通道码流类型] 设备: {}, 码流： {}", channel.getDeviceId(), channel.getStreamIdentification());
+        }else {
+            logger.info("[更新通道码流类型] 设备: {}, 通道：{}， 码流： {}", channel.getDeviceId(), channel.getChannelId(),
+                    channel.getStreamIdentification());
+        }
+        channelMapper.updateChannelStreamIdentification(channel);
+    }
 }

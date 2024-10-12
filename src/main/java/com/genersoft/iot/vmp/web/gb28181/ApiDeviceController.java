@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -59,7 +60,7 @@ public class ApiDeviceController {
      * @param online
      * @return
      */
-    @RequestMapping(value = "/list")
+    @GetMapping(value = "/list")
     public JSONObject list( @RequestParam(required = false)Integer start,
                             @RequestParam(required = false)Integer limit,
                             @RequestParam(required = false)String q,
@@ -68,6 +69,7 @@ public class ApiDeviceController {
 //        if (logger.isDebugEnabled()) {
 //            logger.debug("查询所有视频设备API调用");
 //        }
+
         JSONObject result = new JSONObject();
         List<Device> devices;
         if (start == null || limit ==null) {
@@ -80,7 +82,7 @@ public class ApiDeviceController {
         }
 
         JSONArray deviceJSONList = new JSONArray();
-        for (Device device : devices) {
+        devices.stream().forEach(device -> {
             JSONObject deviceJsonObject = new JSONObject();
             deviceJsonObject.put("ID", device.getDeviceId());
             deviceJsonObject.put("Name", device.getName());
@@ -99,12 +101,12 @@ public class ApiDeviceController {
             deviceJsonObject.put("UpdatedAt", "");
             deviceJsonObject.put("CreatedAt", "");
             deviceJSONList.add(deviceJsonObject);
-        }
+        });
         result.put("DeviceList",deviceJSONList);
         return result;
     }
 
-    @RequestMapping(value = "/channellist")
+    @GetMapping(value = "/channellist")
     public JSONObject channellist( String serial,
                                    @RequestParam(required = false)String channel_type,
                                    @RequestParam(required = false)String code ,
@@ -113,7 +115,6 @@ public class ApiDeviceController {
                                    @RequestParam(required = false)Integer limit,
                                    @RequestParam(required = false)String q,
                                    @RequestParam(required = false)Boolean online ){
-
 
         JSONObject result = new JSONObject();
         List<DeviceChannelExtend> deviceChannels;
@@ -127,13 +128,19 @@ public class ApiDeviceController {
             deviceChannels = allDeviceChannelList;
             result.put("ChannelCount", deviceChannels.size());
         }else {
-            deviceChannels = storager.queryChannelsByDeviceIdWithStartAndLimit(serial,channelIds, null, null, online,start, limit);
-            int total = allDeviceChannelList.size();
-            result.put("ChannelCount", total);
+            if (start > allDeviceChannelList.size()) {
+                deviceChannels = new ArrayList<>();
+            }else {
+                if (start + limit < allDeviceChannelList.size()) {
+                    deviceChannels = allDeviceChannelList.subList(start, start + limit);
+                }else {
+                    deviceChannels = allDeviceChannelList.subList(start, allDeviceChannelList.size());
+                }
+            }
+            result.put("ChannelCount", allDeviceChannelList.size());
         }
-
         JSONArray channleJSONList = new JSONArray();
-        for (DeviceChannelExtend deviceChannelExtend : deviceChannels) {
+        deviceChannels.stream().forEach(deviceChannelExtend -> {
             JSONObject deviceJOSNChannel = new JSONObject();
             deviceJOSNChannel.put("ID", deviceChannelExtend.getChannelId());
             deviceJOSNChannel.put("DeviceID", deviceChannelExtend.getDeviceId());
@@ -166,7 +173,7 @@ public class ApiDeviceController {
             deviceJOSNChannel.put("StreamID", deviceChannelExtend.getStreamId()); // StreamID 直播流ID, 有值表示正在直播
             deviceJOSNChannel.put("NumOutputs ", -1); // 直播在线人数
             channleJSONList.add(deviceJOSNChannel);
-        }
+        });
         result.put("ChannelList", channleJSONList);
         return result;
     }
@@ -180,7 +187,7 @@ public class ApiDeviceController {
      * @param timeout 超时时间(秒) 默认值: 15
      * @return
      */
-    @RequestMapping(value = "/fetchpreset")
+    @GetMapping(value = "/fetchpreset")
     private DeferredResult<Object>  list(String serial,
                       @RequestParam(required = false)Integer channel,
                       @RequestParam(required = false)String code,

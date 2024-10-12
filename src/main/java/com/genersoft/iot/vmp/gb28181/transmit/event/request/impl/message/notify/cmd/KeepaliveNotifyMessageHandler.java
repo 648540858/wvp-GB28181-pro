@@ -76,14 +76,15 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
 
         RemoteAddressInfo remoteAddressInfo = SipUtils.getRemoteAddressFromRequest(request, userSetting.getSipUseSourceIpAsRemoteAddress());
         if (!device.getIp().equalsIgnoreCase(remoteAddressInfo.getIp()) || device.getPort() != remoteAddressInfo.getPort()) {
-            logger.info("[心跳] 设备{}地址变化, 远程地址为: {}:{}", device.getDeviceId(), remoteAddressInfo.getIp(), remoteAddressInfo.getPort());
+            logger.info("[收到心跳] 设备{}地址变化, 远程地址为: {}:{}", device.getDeviceId(), remoteAddressInfo.getIp(), remoteAddressInfo.getPort());
             device.setPort(remoteAddressInfo.getPort());
             device.setHostAddress(remoteAddressInfo.getIp().concat(":").concat(String.valueOf(remoteAddressInfo.getPort())));
             device.setIp(remoteAddressInfo.getIp());
             // 设备地址变化会引起目录订阅任务失效，需要重新添加
             if (device.getSubscribeCycleForCatalog() > 0) {
-                deviceService.removeCatalogSubscribe(device);
-                deviceService.addCatalogSubscribe(device);
+                deviceService.removeCatalogSubscribe(device, result->{
+                    deviceService.addCatalogSubscribe(device);
+                });
             }
         }
         if (device.getKeepaliveTime() == null) {

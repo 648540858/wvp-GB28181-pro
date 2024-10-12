@@ -1,0 +1,13 @@
+delete from  wvp-device;
+delete from  wvp-device_alarm;
+delete from  wvp-device_channel;
+delete from  wvp-device_mobile_position;
+delete from  wvp-gb_stream;
+delete from  wvp-log;
+delete from  wvp-media_server;
+delete from  wvp-parent_platform;
+delete from  wvp-platform_catalog;
+delete from  wvp-platform_gb_channel;
+delete from  wvp-platform_gb_stream;
+delete from  wvp-stream_proxy;
+delete from  wvp-stream_push;

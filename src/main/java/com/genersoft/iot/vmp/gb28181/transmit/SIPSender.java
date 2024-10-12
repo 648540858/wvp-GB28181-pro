@@ -66,17 +66,17 @@ public class SIPSender {
             // 添加错误订阅
             if (errorEvent != null) {
                 sipSubscribe.addErrorSubscribe(callIdHeader.getCallId(), (eventResult -> {
-                    errorEvent.response(eventResult);
                     sipSubscribe.removeErrorSubscribe(eventResult.callId);
                     sipSubscribe.removeOkSubscribe(eventResult.callId);
+                    errorEvent.response(eventResult);
                 }));
             }
             // 添加订阅
             if (okEvent != null) {
                 sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), eventResult -> {
-                    okEvent.response(eventResult);
                     sipSubscribe.removeOkSubscribe(eventResult.callId);
                     sipSubscribe.removeErrorSubscribe(eventResult.callId);
+                    okEvent.response(eventResult);
                 });
             }
             if ("TCP".equals(transport)) {

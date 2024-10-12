@@ -109,7 +109,7 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
                 String contentSubType = header.getContentSubType();
                 if ("Application".equalsIgnoreCase(contentType) && "MANSRTSP".equalsIgnoreCase(contentSubType)) {
                     SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(null, null, null, callIdHeader.getCallId());
-                    String streamId = sendRtpItem.getStreamId();
+                    String streamId = sendRtpItem.getStream();
                     InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, streamId);
                     if (null == inviteInfo) {
                         responseAck(request, Response.NOT_FOUND, "stream " + streamId + " not found");

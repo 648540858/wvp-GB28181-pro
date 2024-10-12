@@ -35,7 +35,7 @@ public class RecordEndEventListener implements ApplicationListener<RecordEndEven
         int sumNum = event.getRecordInfo().getSumNum();
         logger.info("录像查询完成事件触发，deviceId：{}, channelId: {}, 录像数量{}/{}条", event.getRecordInfo().getDeviceId(),
                 event.getRecordInfo().getChannelId(), count,sumNum);
-        if (handlerMap.size() > 0) {
+        if (!handlerMap.isEmpty()) {
             RecordEndEventHandler handler = handlerMap.get(deviceId + channelId);
             if (handler !=null){
                 handler.handler(event.getRecordInfo());
@@ -43,6 +43,9 @@ public class RecordEndEventListener implements ApplicationListener<RecordEndEven
                     handlerMap.remove(deviceId + channelId);
                 }
             }
+        }else {
+            logger.info("录像查询完成事件触发, 但是订阅为空，取消发送，deviceId：{}, channelId: {}",
+                    event.getRecordInfo().getDeviceId(), event.getRecordInfo().getChannelId());
         }
     }
 
@@ -53,6 +56,7 @@ public class RecordEndEventListener implements ApplicationListener<RecordEndEven
      * @param recordEndEventHandler
      */
     public void addEndEventHandler(String device, String channelId, RecordEndEventHandler recordEndEventHandler) {
+        logger.info("录像查询事件添加监听，deviceId：{}, channelId: {}", device, channelId);
         handlerMap.put(device + channelId, recordEndEventHandler);
     }
     /**
@@ -61,6 +65,7 @@ public class RecordEndEventListener implements ApplicationListener<RecordEndEven
      * @param channelId
      */
     public void delEndEventHandler(String device, String channelId) {
+        logger.info("录像查询事件移除监听，deviceId：{}, channelId: {}", device, channelId);
         handlerMap.remove(device + channelId);
     }
 

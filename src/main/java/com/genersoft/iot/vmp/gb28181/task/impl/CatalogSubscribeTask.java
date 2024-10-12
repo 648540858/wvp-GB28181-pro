@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.task.impl;
 
+import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
@@ -7,14 +8,13 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import javax.sip.*;
+import javax.sip.DialogState;
+import javax.sip.InvalidArgumentException;
+import javax.sip.ResponseEvent;
+import javax.sip.SipException;
 import javax.sip.header.ToHeader;
 import java.text.ParseException;
-import java.util.Timer;
-import java.util.TimerTask;
 
 /**
  * 目录订阅任务
@@ -71,7 +71,7 @@ public class CatalogSubscribeTask implements ISubscribeTask {
     }
 
     @Override
-    public void stop() {
+    public void stop(CommonCallback<Boolean> callback) {
         /**
          * dialog 的各个状态
          * EARLY-> Early state状态-初始请求发送以后，收到了一个临时响应消息
@@ -93,6 +93,9 @@ public class CatalogSubscribeTask implements ISubscribeTask {
                 }else {
                     // 成功
                     logger.info("[取消目录订阅]成功： {}", device.getDeviceId());
+                }
+                if (callback != null) {
+                    callback.run(event.getResponse().getRawContent() != null);
                 }
             },eventResult -> {
                 // 失败

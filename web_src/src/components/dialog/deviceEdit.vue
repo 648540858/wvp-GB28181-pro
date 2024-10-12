@@ -20,7 +20,7 @@
             <el-input v-model="form.name" clearable></el-input>
           </el-form-item>
           <el-form-item label="密码" prop="password">
-            <el-input type="password" v-model="form.password" clearable></el-input>
+            <el-input v-model="form.password" clearable></el-input>
           </el-form-item>
           <el-form-item label="收流IP" prop="sdpIp">
             <el-input type="sdpIp" v-model="form.sdpIp" clearable></el-input>
@@ -43,6 +43,9 @@
               <el-option key="UTF-8" label="UTF-8" value="utf-8"></el-option>
             </el-select>
           </el-form-item>
+          <el-form-item label="语音发送通道" prop="name">
+            <el-input v-model="form.audioChannelForReceive" clearable></el-input>
+          </el-form-item>
           <el-form-item label="地理坐标系" prop="geoCoordSys" >
             <el-select v-model="form.geoCoordSys" style="float: left; width: 100%" >
               <el-option key="WGS84" label="WGS84" value="WGS84"></el-option>
@@ -58,15 +61,10 @@
           <el-form-item v-if="form.subscribeCycleForMobilePosition > 0" label="移动位置报送间隔" prop="subscribeCycleForCatalog" >
             <el-input v-model="form.mobilePositionSubmissionInterval" clearable ></el-input>
           </el-form-item>
-          <el-form-item label="主子码流开关" prop="switchPrimarySubStream" >
-            <el-select v-model="form.switchPrimarySubStream" style="float: left; width: 100%" >
-              <el-option key="true" label="开启" :value="true"></el-option>
-              <el-option key="false" label="关闭" :value="false"></el-option>
-            </el-select>
-          </el-form-item>
           <el-form-item label="其他选项">
             <el-checkbox label="SSRC校验" v-model="form.ssrcCheck" style="float: left"></el-checkbox>
             <el-checkbox label="作为消息通道" v-model="form.asMessageChannel" style="float: left"></el-checkbox>
+            <el-checkbox label="收到ACK后发流" v-model="form.broadcastPushAfterAck" style="float: left"></el-checkbox>
           </el-form-item>
           <el-form-item>
             <div style="float: right;">

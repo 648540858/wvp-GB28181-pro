@@ -87,4 +87,9 @@ public interface IDeviceChannelService {
      * 直接批量添加
      */
     void batchAddChannel(List<DeviceChannel> deviceChannels);
+
+    /**
+     * 修改通道的码流类型
+     */
+    void updateChannelStreamIdentification(DeviceChannel channel);
 }

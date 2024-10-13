@@ -17,7 +17,7 @@ WVP-PRO通过调用ZLMediaKit的RESTful接口实现对ZLMediaKit行为的控制;
 ## 1 WVP配置文件位置
 
 基于spring boot的开发方式，配置文件的加载是很灵活的。默认在src/main/resources/application.yml，部分配置项是可选，你不需要全部配置在配置文件中，
-完全的配置说明可以参看all-application.yml。
+完全的配置说明可以参看"src/main/resources/配置详情.yml"。
 
 ### 1.1 默认加载配置文件方式
 
@@ -166,7 +166,7 @@ user-settings:
   stream-on-demand: true
 ```
 
-更多完整的配置信息参考all-application.yml文件，需要那个配置项，复制到正在使用的配置文件中对应的文件即可。
+更多完整的配置信息参考"src/main/resources/配置详情.yml"文件，需要那个配置项，复制到正在使用的配置文件中对应的文件即可。
 
 如果配置信息无误，你可以启动zlm，再启动wvp来测试了，启动成功的话，你可以在wvp的日志下看到zlm已连接的提示。
 接下来[部署到服务器](./_content/introduction/deployment.md)， 如果你只是本地运行直接在本地运行即可。

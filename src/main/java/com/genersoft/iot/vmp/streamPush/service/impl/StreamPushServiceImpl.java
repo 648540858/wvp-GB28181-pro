@@ -284,7 +284,10 @@ public class StreamPushServiceImpl implements IStreamPushService {
         }
         streamPush.setPushing(false);
         if (userSetting.isUsePushingAsStatus()) {
-            gbChannelService.offline(streamPush.buildCommonGBChannel());
+            CommonGBChannel commonGBChannel = streamPush.buildCommonGBChannel();
+            if (commonGBChannel != null) {
+                gbChannelService.offline(commonGBChannel);
+            }
         }
         sendRtpServerService.deleteByStream(streamPush.getStream());
         mediaServerService.stopSendRtp(mediaServer, streamPush.getApp(), streamPush.getStream(), null);

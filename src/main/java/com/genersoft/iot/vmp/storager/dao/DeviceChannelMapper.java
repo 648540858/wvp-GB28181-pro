@@ -99,11 +99,8 @@ public interface DeviceChannelMapper {
             "<if test='ptzType != null'>, ptz_type=#{ptzType}</if>" +
             "<if test='status != null'>, status=#{status}</if>" +
             "<if test='streamId != null'>, stream_id=#{streamId}</if>" +
-            "<if test='hasAudio != null'>, has_audio=#{hasAudio}</if>" +
             "<if test='longitude != null'>, longitude=#{longitude}</if>" +
             "<if test='latitude != null'>, latitude=#{latitude}</if>" +
-            "<if test='customLongitude != null'>, custom_longitude=#{customLongitude}</if>" +
-            "<if test='customLatitude != null'>, custom_latitude=#{customLatitude}</if>" +
             "<if test='longitudeGcj02 != null'>, longitude_gcj02=#{longitudeGcj02}</if>" +
             "<if test='latitudeGcj02 != null'>, latitude_gcj02=#{latitudeGcj02}</if>" +
             "<if test='longitudeWgs84 != null'>, longitude_wgs84=#{longitudeWgs84}</if>" +

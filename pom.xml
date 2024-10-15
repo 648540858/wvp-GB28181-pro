@@ -408,7 +408,7 @@
                 <version>3.3.0</version>
                 <configuration>
                     <excludes>
-                        <exclude>**/all-application.yml</exclude>
+                        <exclude>**/配置详情.yml</exclude>
                         <exclude>**/application.yml</exclude>
                         <exclude>**/application-*.yml</exclude>
                         <exclude>**/local.jks</exclude>

@@ -86,12 +86,12 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 				Element rootElement = getRootElement(evt);
 				if (rootElement == null) {
 					log.error("处理MobilePosition移动位置Notify时未获取到消息体,{}", evt.getRequest());
-					return;
+					continue;
 				}
 				Device device = redisCatchStorage.getDevice(deviceId);
 				if (device == null) {
 					log.error("处理MobilePosition移动位置Notify时未获取到device,{}", deviceId);
-					return;
+					continue;
 				}
 				MobilePosition mobilePosition = new MobilePosition();
 				mobilePosition.setDeviceId(device.getDeviceId());
@@ -100,17 +100,18 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 
 				DeviceChannel deviceChannel = null;
 				List<Element> elements = rootElement.elements();
-				for (Element element : elements) {
+				readDocument: for (Element element : elements) {
 					switch (element.getName()){
 						case "DeviceID":
 							String channelId = element.getStringValue();
-							if (!deviceId.equals(channelId)) {
-								deviceChannel = deviceChannelService.getOne(device.getDeviceId(), channelId);
-								if (deviceChannel != null) {
-									mobilePosition.setChannelId(deviceChannel.getId());
-								}
+							deviceChannel = deviceChannelService.getOne(device.getDeviceId(), channelId);
+							if (deviceChannel != null) {
+								mobilePosition.setChannelId(deviceChannel.getId());
+							}else {
+								log.error("[notify-移动位置] 未找到通道 {}/{}", device.getDeviceId(), channelId);
+								break readDocument;
 							}
-							continue;
+							break;
 						case "Time":
 							String timeVal = element.getStringValue();
 							if (ObjectUtils.isEmpty(timeVal)) {
@@ -118,13 +119,13 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 							} else {
 								mobilePosition.setTime(SipUtils.parseTime(timeVal));
 							}
-							continue;
+							break;
 						case "Longitude":
 							mobilePosition.setLongitude(Double.parseDouble(element.getStringValue()));
-							continue;
+							break;
 						case "Latitude":
 							mobilePosition.setLatitude(Double.parseDouble(element.getStringValue()));
-							continue;
+							break;
 						case "Speed":
 							String speedVal = element.getStringValue();
 							if (NumericUtil.isDouble(speedVal)) {
@@ -132,7 +133,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 							} else {
 								mobilePosition.setSpeed(0.0);
 							}
-							continue;
+							break;
 						case "Direction":
 							String directionVal = element.getStringValue();
 							if (NumericUtil.isDouble(directionVal)) {
@@ -140,7 +141,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 							} else {
 								mobilePosition.setDirection(0.0);
 							}
-							continue;
+							break;
 						case "Altitude":
 							String altitudeVal = element.getStringValue();
 							if (NumericUtil.isDouble(altitudeVal)) {
@@ -148,9 +149,12 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 							} else {
 								mobilePosition.setAltitude(0.0);
 							}
-							continue;
+							break;
 
 					}
+				}
+				if (deviceChannel == null) {
+					continue;
 				}
 
 				log.info("[收到移动位置订阅通知]：{}/{}->{}.{}, 时间： {}", mobilePosition.getDeviceId(), mobilePosition.getChannelId(),
@@ -198,7 +202,6 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 				log.error("未处理的异常 ", e);
 			}
 		}
-		taskQueue.clear();
 	}
 //	@Scheduled(fixedRate = 10000)
 //	public void execute(){

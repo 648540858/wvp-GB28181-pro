@@ -340,7 +340,7 @@ public interface DeviceMapper {
             " FROM wvp_device de" +
             " where 1 = 1 "+
             " <if test='status != null'> AND de.on_line=${status}</if>"+
-            " <if test='query != null'> AND coalesce(custom_name, name) LIKE '%${query}%'</if> " +
+            " <if test='query != null'> AND (coalesce(custom_name, name) LIKE '%${query}%' OR device_id LIKE '%${query}%')</if> " +
             " order by create_time desc "+
             " </script>")
     List<Device> getDeviceList(@Param("query") String query, @Param("status") Boolean status);

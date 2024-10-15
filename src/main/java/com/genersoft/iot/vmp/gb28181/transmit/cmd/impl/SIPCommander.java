@@ -276,7 +276,7 @@ public class SIPCommander implements ISIPCommander {
         }
         StringBuffer content = new StringBuffer(200);
         content.append("v=0\r\n");
-        content.append("o=" + channel.getDeviceId() + " 0 0 IN IP4 " + sdpIp + "\r\n");
+        content.append("o=" + device.getDeviceId() + " 0 0 IN IP4 " + sdpIp + "\r\n");
         content.append("s=Play\r\n");
         content.append("c=IN IP4 " + sdpIp + "\r\n");
         content.append("t=0 0\r\n");
@@ -376,7 +376,7 @@ public class SIPCommander implements ISIPCommander {
         }
         StringBuffer content = new StringBuffer(200);
         content.append("v=0\r\n");
-        content.append("o=" + channel.getDeviceId() + " 0 0 IN IP4 " + sdpIp + "\r\n");
+        content.append("o=" + device.getDeviceId() + " 0 0 IN IP4 " + sdpIp + "\r\n");
         content.append("s=Playback\r\n");
         content.append("u=" + channel.getDeviceId() + ":0\r\n");
         content.append("c=IN IP4 " + sdpIp + "\r\n");
@@ -465,7 +465,7 @@ public class SIPCommander implements ISIPCommander {
         }
         StringBuffer content = new StringBuffer(200);
         content.append("v=0\r\n");
-        content.append("o=" + channel.getDeviceId() + " 0 0 IN IP4 " + sdpIp + "\r\n");
+        content.append("o=" + device.getDeviceId() + " 0 0 IN IP4 " + sdpIp + "\r\n");
         content.append("s=Download\r\n");
         content.append("u=" + channel.getDeviceId() + ":0\r\n");
         content.append("c=IN IP4 " + sdpIp + "\r\n");
@@ -573,7 +573,7 @@ public class SIPCommander implements ISIPCommander {
         //
         StringBuffer content = new StringBuffer(200);
         content.append("v=0\r\n");
-        content.append("o=" + channel.getDeviceId() + " 0 0 IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
+        content.append("o=" + device.getDeviceId() + " 0 0 IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
         content.append("s=Talk\r\n");
         content.append("c=IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
         content.append("t=0 0\r\n");

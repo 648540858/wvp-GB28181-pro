@@ -211,11 +211,12 @@ public class PlayController {
 		if (device == null) {
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), "未找到设备： " + deviceId);
 		}
-		if (channelId == null) {
+		DeviceChannel channel = deviceChannelService.getOneForSource(device.getId(), channelId);
+		if (channel == null) {
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), "未找到通道： " + channelId);
 		}
 
-		return playService.audioBroadcast(device, channelId, broadcastMode);
+		return playService.audioBroadcast(device, channel, broadcastMode);
 
 	}
 

@@ -1197,23 +1197,18 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public AudioBroadcastResult audioBroadcast(Device device, String channelId, Boolean broadcastMode) {
+    public AudioBroadcastResult audioBroadcast(Device device, DeviceChannel deviceChannel, Boolean broadcastMode) {
         // TODO 必须多端口模式才支持语音喊话鹤语音对讲
-        if (device == null || channelId == null) {
+        if (device == null || deviceChannel == null) {
             return null;
         }
-        log.info("[语音喊话] device： {}, channel: {}", device.getDeviceId(), channelId);
-        DeviceChannel deviceChannel = deviceChannelService.getOne(device.getDeviceId(), channelId);
-        if (deviceChannel == null) {
-            log.warn("开启语音广播的时候未找到通道： {}", channelId);
-            return null;
-        }
+        log.info("[语音喊话] device： {}, channel: {}", device.getDeviceId(), deviceChannel.getDeviceId());
         MediaServer mediaServerItem = mediaServerService.getMediaServerForMinimumLoad(null);
         if (broadcastMode == null) {
             broadcastMode = true;
         }
         String app = broadcastMode?"broadcast":"talk";
-        String stream = device.getDeviceId() + "_" + channelId;
+        String stream = device.getDeviceId() + "_" + deviceChannel.getDeviceId();
         AudioBroadcastResult audioBroadcastResult = new AudioBroadcastResult();
         audioBroadcastResult.setApp(app);
         audioBroadcastResult.setStream(stream);

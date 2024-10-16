@@ -2,18 +2,18 @@ package com.genersoft.iot.vmp.gb28181.transmit;
 
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.gb28181.event.sip.SipEvent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.response.ISIPResponseProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.timeout.ITimeoutProcessor;
+import gov.nist.javax.sip.message.SIPResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import javax.sip.*;
-import javax.sip.header.CSeqHeader;
 import javax.sip.header.CallIdHeader;
-import javax.sip.message.Request;
 import javax.sip.message.Response;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -88,40 +88,40 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
     @Override
     @Async("taskExecutor")
     public void processResponse(ResponseEvent responseEvent) {
-        Response response = responseEvent.getResponse();
+        SIPResponse response = (SIPResponse)responseEvent.getResponse();
         int status = response.getStatusCode();
 
         // Success
         if (((status >= Response.OK) && (status < Response.MULTIPLE_CHOICES)) || status == Response.UNAUTHORIZED) {
-            CSeqHeader cseqHeader = (CSeqHeader) responseEvent.getResponse().getHeader(CSeqHeader.NAME);
-            String method = cseqHeader.getMethod();
-            ISIPResponseProcessor sipRequestProcessor = responseProcessorMap.get(method);
-            if (sipRequestProcessor != null) {
-                sipRequestProcessor.process(responseEvent);
-            }
-            if (status != Response.UNAUTHORIZED && responseEvent.getResponse() != null && sipSubscribe.getOkSubscribesSize() > 0 ) {
-                CallIdHeader callIdHeader = (CallIdHeader)responseEvent.getResponse().getHeader(CallIdHeader.NAME);
+            if (status != Response.UNAUTHORIZED && responseEvent.getResponse() != null && !sipSubscribe.isEmpty() ) {
+                CallIdHeader callIdHeader = response.getCallIdHeader();
                 if (callIdHeader != null) {
-                    SipSubscribe.Event subscribe = sipSubscribe.getOkSubscribe(callIdHeader.getCallId());
-                    if (subscribe != null) {
-                        SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(responseEvent);
-                        sipSubscribe.removeOkSubscribe(callIdHeader.getCallId());
-                        subscribe.response(eventResult);
+                    SipEvent sipEvent = sipSubscribe.getSubscribe(callIdHeader.getCallId());
+                    if (sipEvent != null && sipEvent.getOkEvent() != null) {
+                        SipSubscribe.EventResult<ResponseEvent> eventResult = new SipSubscribe.EventResult<>(responseEvent);
+                        sipSubscribe.removeSubscribe(callIdHeader.getCallId());
+                        sipEvent.getOkEvent().response(eventResult);
                     }
                 }
             }
+            ISIPResponseProcessor sipRequestProcessor = responseProcessorMap.get(response.getCSeqHeader().getMethod());
+            if (sipRequestProcessor != null) {
+                sipRequestProcessor.process(responseEvent);
+            }
         } else if ((status >= Response.TRYING) && (status < Response.OK)) {
             // 增加其它无需回复的响应，如101、180等
+            // 更新sip订阅的时间
+//            sipSubscribe.updateTimeout(response.getCallIdHeader().getCallId());
         } else {
             log.warn("接收到失败的response响应！status：" + status + ",message:" + response.getReasonPhrase());
-            if (responseEvent.getResponse() != null && sipSubscribe.getErrorSubscribesSize() > 0 ) {
+            if (responseEvent.getResponse() != null && !sipSubscribe.isEmpty() ) {
                 CallIdHeader callIdHeader = (CallIdHeader)responseEvent.getResponse().getHeader(CallIdHeader.NAME);
                 if (callIdHeader != null) {
-                    SipSubscribe.Event subscribe = sipSubscribe.getErrorSubscribe(callIdHeader.getCallId());
-                    if (subscribe != null) {
+                    SipEvent sipEvent = sipSubscribe.getSubscribe(callIdHeader.getCallId());
+                    if (sipEvent != null && sipEvent.getErrorEvent() != null) {
                         SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(responseEvent);
-                        subscribe.response(eventResult);
-                        sipSubscribe.removeErrorSubscribe(callIdHeader.getCallId());
+                        sipSubscribe.removeSubscribe(callIdHeader.getCallId());
+                        sipEvent.getErrorEvent().response(eventResult);
                     }
                 }
             }
@@ -140,27 +140,27 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
     @Override
     public void processTimeout(TimeoutEvent timeoutEvent) {
         log.info("[消息发送超时]");
-        ClientTransaction clientTransaction = timeoutEvent.getClientTransaction();
-
-        if (clientTransaction != null) {
-            log.info("[发送错误订阅] clientTransaction != null");
-            Request request = clientTransaction.getRequest();
-            if (request != null) {
-                log.info("[发送错误订阅] request != null");
-                CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
-                if (callIdHeader != null) {
-                    log.info("[发送错误订阅]");
-                    SipSubscribe.Event subscribe = sipSubscribe.getErrorSubscribe(callIdHeader.getCallId());
-                    SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(timeoutEvent);
-                    if (subscribe != null){
-                        subscribe.response(eventResult);
-                    }
-                    sipSubscribe.removeOkSubscribe(callIdHeader.getCallId());
-                    sipSubscribe.removeErrorSubscribe(callIdHeader.getCallId());
-                }
-            }
-        }
-        eventPublisher.requestTimeOut(timeoutEvent);
+//        ClientTransaction clientTransaction = timeoutEvent.getClientTransaction();
+//
+//        if (clientTransaction != null) {
+//            log.info("[发送错误订阅] clientTransaction != null");
+//            Request request = clientTransaction.getRequest();
+//            if (request != null) {
+//                log.info("[发送错误订阅] request != null");
+//                CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
+//                if (callIdHeader != null) {
+//                    log.info("[发送错误订阅]");
+//                    SipSubscribe.Event subscribe = sipSubscribe.getErrorSubscribe(callIdHeader.getCallId());
+//                    SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(timeoutEvent);
+//                    if (subscribe != null){
+//                        subscribe.response(eventResult);
+//                    }
+//                    sipSubscribe.removeOkSubscribe(callIdHeader.getCallId());
+//                    sipSubscribe.removeErrorSubscribe(callIdHeader.getCallId());
+//                }
+//            }
+//        }
+//        eventPublisher.requestTimeOut(timeoutEvent);
     }
 
     @Override
@@ -197,6 +197,8 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
     public void processDialogTerminated(DialogTerminatedEvent dialogTerminatedEvent) {
         CallIdHeader callId = dialogTerminatedEvent.getDialog().getCallId();
     }
+
+
 
 
 }

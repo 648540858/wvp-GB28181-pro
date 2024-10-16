@@ -38,13 +38,11 @@ public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 	@Autowired
 	private SIPProcessorObserver sipProcessorObserver;
 
-
 	@Autowired
 	private SIPSender sipSender;
 
 	@Autowired
 	private SIPRequestHeaderProvider headerProvider;
-
 
 	@Override
 	public void afterPropertiesSet() throws Exception {

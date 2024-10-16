@@ -436,7 +436,7 @@ public class PlayServiceImpl implements IPlayService {
                 // 处理收到200ok后的TCP主动连接以及SSRC不一致的问题
                 InviteOKHandler(eventResult, ssrcInfo, mediaServerItem, device, channel, callback, inviteInfo, InviteSessionType.PLAY);
             }, (event) -> {
-                log.info("[点播失败] deviceId: {}, channelId:{}, {}: {}", device.getDeviceId(), channel.getDeviceId(), event.statusCode, event.msg);
+                log.info("[点播失败]{}:{} deviceId: {}, channelId:{}",event.statusCode, event.msg, device.getDeviceId(), channel.getDeviceId());
                 receiveRtpServerService.closeRTPServer(mediaServerItem, ssrcInfo);
 
                 sessionManager.removeByStream(ssrcInfo.getStream());
@@ -447,7 +447,7 @@ public class PlayServiceImpl implements IPlayService {
                         event.statusCode, event.msg, null);
 
                 inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
-            });
+            }, userSetting.getPlayTimeout().longValue());
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error("[命令发送失败] 点播消息: {}", e.getMessage());
             receiveRtpServerService.closeRTPServer(mediaServerItem, ssrcInfo);
@@ -565,7 +565,7 @@ public class PlayServiceImpl implements IPlayService {
                 mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpInfo.getSsrc());
                 sessionManager.removeByStream(sendRtpInfo.getStream());
                 errorEvent.response(event);
-            });
+            }, userSetting.getPlayTimeout().longValue());
         } catch (InvalidArgumentException | SipException | ParseException e) {
 
             log.error("[命令发送失败] 对讲消息: {}", e.getMessage());
@@ -820,7 +820,7 @@ public class PlayServiceImpl implements IPlayService {
                         receiveRtpServerService.closeRTPServer(mediaServerItem, ssrcInfo);
                         sessionManager.removeByStream(ssrcInfo.getStream());
                         inviteStreamService.removeInviteInfo(inviteInfo);
-                    });
+                    }, userSetting.getPlayTimeout().longValue());
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error("[命令发送失败] 录像回放: {}", e.getMessage());
             if (callback != null) {
@@ -1044,7 +1044,7 @@ public class PlayServiceImpl implements IPlayService {
                         // 设置过期时间，下载失败时自动处理订阅数据
                         hook.setExpireTime(System.currentTimeMillis() + 24 * 60 * 60 * 1000);
                         subscribe.addSubscribe(hook, hookEventForRecord);
-                    });
+                    }, userSetting.getPlayTimeout().longValue());
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error("[命令发送失败] 录像下载: {}", e.getMessage());
             callback.run(InviteErrorCode.FAIL.getCode(),e.getMessage(), null);

@@ -127,23 +127,19 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
                 // 将 callid 写入缓存， 等注册成功可以更新状态
                 String callIdFromHeader = callIdHeader.getCallId();
                 redisCatchStorage.updatePlatformRegisterInfo(callIdFromHeader, PlatformRegisterInfo.getInstance(parentPlatform.getServerGBId(), isRegister));
-
-                sipSubscribe.addErrorSubscribe(callIdHeader.getCallId(), (event)->{
-                    if (event != null) {
-                        log.info("向上级平台 [ {} ] 注册发生错误： {} ",
-                                parentPlatform.getServerGBId(),
-                                event.msg);
-                    }
-                    redisCatchStorage.delPlatformRegisterInfo(callIdFromHeader);
-                    if (errorEvent != null ) {
-                        errorEvent.response(event);
-                    }
-                });
             }else {
                 request = headerProviderPlatformProvider.createRegisterRequest(parentPlatform, fromTag, toTag, www, callIdHeader, isRegister? parentPlatform.getExpires() : 0);
             }
 
-            sipSender.transmitRequest(parentPlatform.getDeviceIp(), request, null, okEvent);
+            sipSender.transmitRequest(parentPlatform.getDeviceIp(), request, (event)->{
+                if (event != null) {
+                    log.info("[国标级联]：{},  注册失败: {} ", parentPlatform.getServerGBId(), event.msg);
+                }
+                redisCatchStorage.delPlatformRegisterInfo(callIdHeader.getCallId());
+                if (errorEvent != null ) {
+                    errorEvent.response(event);
+                }
+            }, okEvent, 5L);
     }
 
     @Override
@@ -167,6 +163,7 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
                 SipUtils.getNewFromTag(),
                 SipUtils.getNewViaTag(),
                 callIdHeader);
+
         sipSender.transmitRequest(parentPlatform.getDeviceIp(), request, errorEvent, okEvent);
         return callIdHeader.getCallId();
     }
@@ -249,16 +246,17 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
         log.debug(catalogXml);
         if (sendAfterResponse) {
             // 默认按照收到200回复后发送下一条， 如果超时收不到回复，就以30毫秒的间隔直接发送。
-            dynamicTask.startDelay(timeoutTaskKey, ()->{
-                sipSubscribe.removeOkSubscribe(callId);
-                int indexNext = index + parentPlatform.getCatalogGroup();
-                try {
-                    sendCatalogResponse(channels, parentPlatform, sn, fromTag, indexNext, false);
-                } catch (SipException | InvalidArgumentException | ParseException e) {
-                    log.error("[命令发送失败] 国标级联 目录查询回复: {}", e.getMessage());
-                }
-            }, 3000);
             sipSender.transmitRequest(parentPlatform.getDeviceIp(), request, eventResult -> {
+                if (eventResult.type.equals(SipSubscribe.EventResultType.timeout)) {
+                    // 消息发送超时, 以30毫秒的间隔直接发送
+                    int indexNext = index + parentPlatform.getCatalogGroup();
+                    try {
+                        sendCatalogResponse(channels, parentPlatform, sn, fromTag, indexNext, false);
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        log.error("[命令发送失败] 国标级联 目录查询回复: {}", e.getMessage());
+                    }
+                    return;
+                }
                 log.error("[目录推送失败] 国标级联 platform : {}, code: {}, msg: {}, 停止发送", parentPlatform.getServerGBId(), eventResult.statusCode, eventResult.msg);
                 dynamicTask.stop(timeoutTaskKey);
             }, eventResult -> {

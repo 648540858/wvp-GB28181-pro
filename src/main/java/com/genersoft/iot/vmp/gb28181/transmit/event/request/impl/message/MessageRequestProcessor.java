@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.gb28181.bean.DeviceNotFoundEvent;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.gb28181.event.sip.SipEvent;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
@@ -93,11 +94,12 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
                 // 不存在则回复404
                 responseAck(request, Response.NOT_FOUND, "device "+ deviceId +" not found");
                 log.warn("[设备未找到 ]deviceId: {}, callId: {}", deviceId, callIdHeader.getCallId());
-                if (sipSubscribe.getErrorSubscribe(callIdHeader.getCallId()) != null){
+                SipEvent sipEvent = sipSubscribe.getSubscribe(callIdHeader.getCallId());
+                if (sipEvent != null && sipEvent.getErrorEvent() != null){
                     DeviceNotFoundEvent deviceNotFoundEvent = new DeviceNotFoundEvent(evt.getDialog());
                     deviceNotFoundEvent.setCallId(callIdHeader.getCallId());
                     SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(deviceNotFoundEvent);
-                    sipSubscribe.getErrorSubscribe(callIdHeader.getCallId()).response(eventResult);
+                    sipEvent.getErrorEvent().response(eventResult);
                 }
             }else {
                 Element rootElement;

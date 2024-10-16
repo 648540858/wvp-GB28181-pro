@@ -380,7 +380,9 @@ public class PlatformServiceImpl implements IPlatformService {
             commanderForPlatform.register(platform, sipTransactionInfo,  eventResult -> {
                 log.info("[国标级联] 平台：{}注册失败，{}:{}", platform.getServerGBId(),
                         eventResult.statusCode, eventResult.msg);
-                offline(platform, false);
+                if (platform.isStatus()) {
+                    offline(platform, false);
+                }
             }, null);
         } catch (Exception e) {
             log.error("[命令发送失败] 国标级联定时注册: {}", e.getMessage());

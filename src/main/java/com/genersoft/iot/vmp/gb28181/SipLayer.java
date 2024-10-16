@@ -125,7 +125,7 @@ public class SipLayer implements CommandLineRunner {
 
 			SipProviderImpl udpSipProvider = (SipProviderImpl)sipStack.createSipProvider(udpListeningPoint);
 			udpSipProvider.addSipListener(sipProcessorObserver);
-
+			udpSipProvider.setDialogErrorsAutomaticallyHandled();
 			udpSipProviderMap.put(monitorIp, udpSipProvider);
 
 			log.info("[SIP SERVER] udp://{}:{} 启动成功", monitorIp, port);

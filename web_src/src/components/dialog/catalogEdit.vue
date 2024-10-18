@@ -1,7 +1,7 @@
 <template>
   <div id="catalogEdit" v-loading="isLoging">
     <el-dialog
-      title="节点编辑"
+      title="通道共享"
       width="40%"
       top="2rem"
       :append-to-body="true"

@@ -5,9 +5,8 @@ import com.genersoft.iot.vmp.conf.security.SecurityUtils;
 import com.genersoft.iot.vmp.service.ILogService;
 import com.genersoft.iot.vmp.storager.dao.dto.LogDto;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -24,12 +23,10 @@ import java.io.IOException;
 /**
  * @author lin
  */
+@Slf4j
 @WebFilter(filterName = "ApiAccessFilter", urlPatterns = "/api/*", asyncSupported=true)
 @Component
 public class ApiAccessFilter extends OncePerRequestFilter {
-
-    private final static Logger logger = LoggerFactory.getLogger(ApiAccessFilter.class);
-
 
     @Autowired
     private UserSetting userSetting;

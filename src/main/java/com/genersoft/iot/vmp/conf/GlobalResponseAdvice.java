@@ -1,12 +1,9 @@
 package com.genersoft.iot.vmp.conf;
 
 import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.support.spring.http.converter.FastJsonHttpMessageConverter;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
-import org.springframework.context.annotation.Bean;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -14,6 +11,8 @@ import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
+
+import java.util.LinkedHashMap;
 
 /**
  * 全局统一返回结果
@@ -50,6 +49,13 @@ public class GlobalResponseAdvice implements ResponseBodyAdvice<Object> {
 
         if (body instanceof String) {
             return JSON.toJSONString(WVPResult.success(body));
+        }
+
+        if (body instanceof LinkedHashMap) {
+            LinkedHashMap<String, Object> bodyMap = (LinkedHashMap<String, Object>) body;
+            if (bodyMap.get("status") != null && (Integer)bodyMap.get("status") != 200) {
+                return body;
+            }
         }
 
         return WVPResult.success(body);

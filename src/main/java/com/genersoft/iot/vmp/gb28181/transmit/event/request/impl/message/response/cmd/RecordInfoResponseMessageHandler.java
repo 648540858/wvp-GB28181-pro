@@ -1,7 +1,10 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd;
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
-import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
+import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
+import com.genersoft.iot.vmp.gb28181.bean.RecordItem;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
@@ -11,9 +14,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.respons
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.UJson;
 import gov.nist.javax.sip.message.SIPRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,7 +30,6 @@ import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -37,13 +38,11 @@ import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 /**
  * @author lin
  */
+@Slf4j
 @Component
 public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private final Logger logger = LoggerFactory.getLogger(RecordInfoResponseMessageHandler.class);
     private final String cmdType = "RecordInfo";
-
-    private ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
 
     @Autowired
     private ResponseMessageHandler responseMessageHandler;
@@ -74,7 +73,7 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
             // 回复200 OK
              responseAck((SIPRequest) evt.getRequest(), Response.OK);
         }catch (SipException | InvalidArgumentException | ParseException e) {
-            logger.error("[命令发送失败] 国标级联 国标录像: {}", e.getMessage());
+            log.error("[命令发送失败] 国标级联 国标录像: {}", e.getMessage());
         }
         taskExecutor.execute(()->{
             try {
@@ -93,7 +92,7 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                 recordInfo.setSumNum(sumNum);
                 Element recordListElement = rootElement.element("RecordList");
                 if (recordListElement == null || sumNum == 0) {
-                    logger.info("无录像数据");
+                    log.info("无录像数据");
                     recordInfo.setCount(sumNum);
                     eventPublisher.recordEndEventPush(recordInfo);
                     releaseRequest(device.getDeviceId(), sn,recordInfo);
@@ -106,7 +105,7 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                             Element itemRecord = recordListIterator.next();
                             Element recordElement = itemRecord.element("DeviceID");
                             if (recordElement == null) {
-                                logger.info("记录为空，下一个...");
+                                log.info("记录为空，下一个...");
                                 continue;
                             }
                             RecordItem record = new RecordItem();
@@ -154,14 +153,14 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                     }
                 }
             } catch (Exception e) {
-                logger.error("[国标录像] 发现未处理的异常, \r\n{}", evt.getRequest());
-                logger.error("[国标录像] 异常内容： ", e);
+                log.error("[国标录像] 发现未处理的异常, \r\n{}", evt.getRequest());
+                log.error("[国标录像] 异常内容： ", e);
             }
         });
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element element) {
+    public void handForPlatform(RequestEvent evt, Platform parentPlatform, Element element) {
 
     }
 

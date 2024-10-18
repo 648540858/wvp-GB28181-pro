@@ -59,13 +59,12 @@ export default {
           if (!this.getProgressRun) {
             return;
           }
-          if (this.percentage == 100 ) {
-
+          if (this.downloadFile) {
             return;
           }
           setTimeout( ()=>{
             if (!this.showDialog) return;
-            this.getProgress(this.getProgressTimer())
+            this.getProgress(this.getProgressTimer)
           }, 5000)
         },
         getProgress: function (callback){
@@ -75,7 +74,7 @@ export default {
           }).then((res)=> {
               if (res.data.code === 0) {
                 this.streamInfo = res.data.data;
-                if (parseFloat(res.data.progress) == 1) {
+                if (parseFloat(res.data.progress) === 1) {
                   this.percentage = 100;
                 }else {
                   this.percentage = (parseFloat(res.data.data.progress)*100).toFixed(1);
@@ -86,6 +85,7 @@ export default {
                   }else {
                     this.downloadFile = this.streamInfo.downLoadFilePath.httpPath;
                   }
+                  this.percentage = 100
                   this.getProgressRun = false;
                   this.downloadFileClientEvent()
                 }

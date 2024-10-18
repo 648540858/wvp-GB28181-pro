@@ -1,18 +1,17 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
-import com.genersoft.iot.vmp.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import gov.nist.javax.sip.message.SIPRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -29,10 +28,10 @@ import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 /**
  * @author lin
  */
+@Slf4j
 @Component
 public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(DeviceInfoResponseMessageHandler.class);
     private final String cmdType = "DeviceInfo";
 
     @Autowired
@@ -52,10 +51,10 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
 
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
-        logger.debug("接收到DeviceInfo应答消息");
+        log.debug("接收到DeviceInfo应答消息");
         // 检查设备是否存在， 不存在则不回复
         if (device == null || !device.isOnLine()) {
-            logger.warn("[接收到DeviceInfo应答消息,但是设备已经离线]：" + (device != null ? device.getDeviceId():"" ));
+            log.warn("[接收到DeviceInfo应答消息,但是设备已经离线]：" + (device != null ? device.getDeviceId():"" ));
             return;
         }
         SIPRequest request = (SIPRequest) evt.getRequest();
@@ -63,11 +62,11 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
             rootElement = getRootElement(evt, device.getCharset());
 
             if (rootElement == null) {
-                logger.warn("[ 接收到DeviceInfo应答消息 ] content cannot be null, {}", evt.getRequest());
+                log.warn("[ 接收到DeviceInfo应答消息 ] content cannot be null, {}", evt.getRequest());
                 try {
                     responseAck((SIPRequest) evt.getRequest(), Response.BAD_REQUEST);
                 } catch (SipException | InvalidArgumentException | ParseException e) {
-                    logger.error("[命令发送失败] DeviceInfo应答消息 BAD_REQUEST: {}", e.getMessage());
+                    log.error("[命令发送失败] DeviceInfo应答消息 BAD_REQUEST: {}", e.getMessage());
                 }
                 return;
             }
@@ -95,13 +94,13 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
             // 回复200 OK
             responseAck(request, Response.OK);
         } catch (SipException | InvalidArgumentException | ParseException e) {
-            logger.error("[命令发送失败] DeviceInfo应答消息 200: {}", e.getMessage());
+            log.error("[命令发送失败] DeviceInfo应答消息 200: {}", e.getMessage());
         }
 
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element rootElement) {
+    public void handForPlatform(RequestEvent evt, Platform parentPlatform, Element rootElement) {
 
     }
 }

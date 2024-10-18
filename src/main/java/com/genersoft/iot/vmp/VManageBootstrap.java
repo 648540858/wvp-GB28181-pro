@@ -2,8 +2,7 @@ package com.genersoft.iot.vmp;
 
 import com.genersoft.iot.vmp.utils.GitUtil;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -26,19 +25,22 @@ import java.util.Collections;
 @SpringBootApplication
 @EnableScheduling
 @EnableCaching
+@Slf4j
 public class VManageBootstrap extends SpringBootServletInitializer {
-
-	private final static Logger logger = LoggerFactory.getLogger(VManageBootstrap.class);
 
 	private static String[] args;
 	private static ConfigurableApplicationContext context;
 	public static void main(String[] args) {
 		VManageBootstrap.args = args;
 		VManageBootstrap.context = SpringApplication.run(VManageBootstrap.class, args);
-		GitUtil gitUtil1 = SpringBeanFactory.getBean("gitUtil");
-		logger.info("构建版本： {}", gitUtil1.getBuildVersion());
-		logger.info("构建时间： {}", gitUtil1.getBuildDate());
-		logger.info("GIT最后提交时间： {}", gitUtil1.getCommitTime());
+		GitUtil gitUtil = SpringBeanFactory.getBean("gitUtil");
+		if (gitUtil == null) {
+			log.info("获取版本信息失败");
+		}else {
+			log.info("构建版本： {}", gitUtil.getBuildVersion());
+			log.info("构建时间： {}", gitUtil.getBuildDate());
+			log.info("GIT最后提交时间： {}", gitUtil.getCommitTime());
+		}
 	}
 	// 项目重启
 	public static void restart() {

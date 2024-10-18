@@ -7,7 +7,7 @@
 
       <div class="page-header-btn">
         搜索:
-        <el-input @input="getMediaServerList" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
+        <el-input @input="getRecordList" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
                   prefix-icon="el-icon-search" v-model="search"  clearable></el-input>
         开始时间:
         <el-date-picker
@@ -42,7 +42,7 @@
       </div>
     </div>
     <!--设备列表-->
-    <el-table :data="recordList" style="width: 100%" :height="winHeight">
+    <el-table size="medium"  :data="recordList" style="width: 100%" :height="winHeight">
       <el-table-column
         type="selection"
         width="55">
@@ -83,7 +83,7 @@
       </el-table-column>
     </el-table>
     <el-pagination
-      style="float: right"
+      style="text-align: right"
       @size-change="handleSizeChange"
       @current-change="currentChange"
       :current-page="currentPage"

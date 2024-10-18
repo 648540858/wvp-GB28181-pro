@@ -6,20 +6,18 @@ import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceAlarmService;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
-import com.genersoft.iot.vmp.service.IDeviceAlarmService;
-import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import gov.nist.javax.sip.message.SIPRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -39,10 +37,10 @@ import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 /**
  * 报警事件的处理，参考：9.4
  */
+@Slf4j
 @Component
 public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private final Logger logger = LoggerFactory.getLogger(AlarmNotifyMessageHandler.class);
     private final String cmdType = "Alarm";
 
     @Autowired
@@ -56,9 +54,6 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
 
     @Autowired
     private SipConfig sipConfig;
-
-    @Autowired
-    private IVideoManagerStorage storager;
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -75,9 +70,6 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
 
-    @Autowired
-    private EventPublisher eventPublisher;
-
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -86,18 +78,19 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
 
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
-        logger.info("[收到报警通知]设备：{}", device.getDeviceId());
         boolean isEmpty = taskQueue.isEmpty();
         taskQueue.offer(new SipMsgInfo(evt, device, rootElement));
         // 回复200 OK
         try {
             responseAck((SIPRequest) evt.getRequest(), Response.OK);
         } catch (SipException | InvalidArgumentException | ParseException e) {
-            logger.error("[命令发送失败] 报警通知回复: {}", e.getMessage());
+            log.error("[命令发送失败] 报警通知回复: {}", e.getMessage());
         }
         if (isEmpty) {
             taskExecutor.execute(() -> {
-                logger.info("[处理报警通知]待处理数量：{}", taskQueue.size() );
+                if (log.isDebugEnabled()) {
+                    log.info("[处理报警通知]待处理数量：{}", taskQueue.size() );
+                }
                 while (!taskQueue.isEmpty()) {
                     try {
                         SipMsgInfo sipMsgInfo = taskQueue.poll();
@@ -135,31 +128,24 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                             deviceAlarm.setLatitude(0.00);
                         }
 
-                        if (!ObjectUtils.isEmpty(deviceAlarm.getAlarmMethod())) {
-                            if ( deviceAlarm.getAlarmMethod().contains(DeviceAlarmMethod.GPS.getVal() + "")) {
+                        if (!ObjectUtils.isEmpty(deviceAlarm.getAlarmMethod()) &&  deviceAlarm.getAlarmMethod().contains(DeviceAlarmMethod.GPS.getVal() + "")) {
+                            DeviceChannel deviceChannel = deviceChannelService.getOne(device.getDeviceId(), channelId);
+                            if (deviceChannel == null) {
+                                log.warn("[解析报警消息] 未找到通道：{}/{}", device.getDeviceId(), channelId);
+                            } else {
                                 MobilePosition mobilePosition = new MobilePosition();
                                 mobilePosition.setCreateTime(DateUtil.getNow());
                                 mobilePosition.setDeviceId(deviceAlarm.getDeviceId());
-                                mobilePosition.setChannelId(channelId);
+                                mobilePosition.setChannelId(deviceChannel.getId());
                                 mobilePosition.setTime(deviceAlarm.getAlarmTime());
                                 mobilePosition.setLongitude(deviceAlarm.getLongitude());
                                 mobilePosition.setLatitude(deviceAlarm.getLatitude());
                                 mobilePosition.setReportSource("GPS Alarm");
 
                                 // 更新device channel 的经纬度
-                                DeviceChannel deviceChannel = new DeviceChannel();
-                                deviceChannel.setDeviceId(sipMsgInfo.getDevice().getDeviceId());
-                                deviceChannel.setChannelId(channelId);
                                 deviceChannel.setLongitude(mobilePosition.getLongitude());
                                 deviceChannel.setLatitude(mobilePosition.getLatitude());
                                 deviceChannel.setGpsTime(mobilePosition.getTime());
-
-                                deviceChannel = deviceChannelService.updateGps(deviceChannel, sipMsgInfo.getDevice());
-
-                                mobilePosition.setLongitudeWgs84(deviceChannel.getLongitudeWgs84());
-                                mobilePosition.setLatitudeWgs84(deviceChannel.getLatitudeWgs84());
-                                mobilePosition.setLongitudeGcj02(deviceChannel.getLongitudeGcj02());
-                                mobilePosition.setLatitudeGcj02(deviceChannel.getLatitudeGcj02());
 
                                 deviceChannelService.updateChannelGPS(device, deviceChannel, mobilePosition);
                             }
@@ -169,11 +155,13 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                                 deviceAlarm.setAlarmType(getText(sipMsgInfo.getRootElement().element("Info"), "AlarmType"));
                             }
                         }
-                        logger.info("[收到报警通知]内容：{}", JSON.toJSONString(deviceAlarm));
+                        if (log.isDebugEnabled()) {
+                            log.debug("[收到报警通知]设备：{}， 内容：{}", device.getDeviceId(), JSON.toJSONString(deviceAlarm));
+                        }
                         // 作者自用判断，其他小伙伴需要此消息可以自行修改，但是不要提在pr里
                         if (DeviceAlarmMethod.Other.getVal() == Integer.parseInt(deviceAlarm.getAlarmMethod())) {
                             // 发送给平台的报警信息。 发送redis通知
-                            logger.info("[发送给平台的报警信息]内容：{}", JSONObject.toJSONString(deviceAlarm));
+                            log.info("[发送给平台的报警信息]内容：{}", JSONObject.toJSONString(deviceAlarm));
                             AlarmChannelMessage alarmChannelMessage = new AlarmChannelMessage();
                             if (deviceAlarm.getAlarmMethod() != null) {
                                 alarmChannelMessage.setAlarmSn(Integer.parseInt(deviceAlarm.getAlarmMethod()));
@@ -187,7 +175,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                             continue;
                         }
 
-                        logger.debug("存储报警信息、报警分类");
+                        log.debug("存储报警信息、报警分类");
                         // 存储报警信息、报警分类
                         if (sipConfig.isAlarm()) {
                             deviceAlarmService.add(deviceAlarm);
@@ -197,8 +185,8 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                             publisher.deviceAlarmEventPublish(deviceAlarm);
                         }
                     }catch (Exception e) {
-                        logger.error("未处理的异常 ", e);
-                        logger.warn("[收到报警通知] 发现未处理的异常, {}\r\n{}",e.getMessage(), evt.getRequest());
+                        log.error("未处理的异常 ", e);
+                        log.warn("[收到报警通知] 发现未处理的异常, {}\r\n{}",e.getMessage(), evt.getRequest());
                     }
                 }
             });
@@ -206,13 +194,13 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element rootElement) {
-        logger.info("收到来自平台[{}]的报警通知", parentPlatform.getServerGBId());
+    public void handForPlatform(RequestEvent evt, Platform parentPlatform, Element rootElement) {
+        log.info("收到来自平台[{}]的报警通知", parentPlatform.getServerGBId());
         // 回复200 OK
         try {
             responseAck((SIPRequest) evt.getRequest(), Response.OK);
         } catch (SipException | InvalidArgumentException | ParseException e) {
-            logger.error("[命令发送失败] 国标级联 报警通知回复: {}", e.getMessage());
+            log.error("[命令发送失败] 国标级联 报警通知回复: {}", e.getMessage());
         }
         Element deviceIdElement = rootElement.element("DeviceID");
         String channelId = deviceIdElement.getText().toString();

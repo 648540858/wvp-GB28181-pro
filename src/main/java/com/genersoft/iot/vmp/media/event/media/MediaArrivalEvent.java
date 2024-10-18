@@ -4,65 +4,51 @@ import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.Map;
 
 /**
  * 流到来事件
  */
+
 public class MediaArrivalEvent extends MediaEvent {
     public MediaArrivalEvent(Object source) {
         super(source);
     }
 
-    public static MediaArrivalEvent getInstance(Object source, OnStreamChangedHookParam hookParam, MediaServer mediaServer){
+    public static MediaArrivalEvent getInstance(Object source, OnStreamChangedHookParam hookParam, MediaServer mediaServer, String serverId){
         MediaArrivalEvent mediaArrivalEvent = new MediaArrivalEvent(source);
-        mediaArrivalEvent.setMediaInfo(MediaInfo.getInstance(hookParam, mediaServer));
+        mediaArrivalEvent.setMediaInfo(MediaInfo.getInstance(hookParam, mediaServer, serverId));
         mediaArrivalEvent.setApp(hookParam.getApp());
         mediaArrivalEvent.setStream(hookParam.getStream());
         mediaArrivalEvent.setMediaServer(mediaServer);
         mediaArrivalEvent.setSchema(hookParam.getSchema());
         mediaArrivalEvent.setSchema(hookParam.getSchema());
-        mediaArrivalEvent.setHookParam(hookParam);
+        mediaArrivalEvent.setParamMap(hookParam.getParamMap());
         return mediaArrivalEvent;
     }
 
+    @Getter
+    @Setter
     private MediaInfo mediaInfo;
 
+    @Getter
+    @Setter
     private String callId;
 
-    private OnStreamChangedHookParam hookParam;
-
+    @Getter
+    @Setter
     private StreamContent streamInfo;
 
-    public MediaInfo getMediaInfo() {
-        return mediaInfo;
-    }
+    @Getter
+    @Setter
+    private Map<String, String> paramMap;
 
-    public void setMediaInfo(MediaInfo mediaInfo) {
-        this.mediaInfo = mediaInfo;
-    }
+    @Getter
+    @Setter
+    private String serverId;
 
 
-    public String getCallId() {
-        return callId;
-    }
-
-    public void setCallId(String callId) {
-        this.callId = callId;
-    }
-
-    public OnStreamChangedHookParam getHookParam() {
-        return hookParam;
-    }
-
-    public void setHookParam(OnStreamChangedHookParam hookParam) {
-        this.hookParam = hookParam;
-    }
-
-    public StreamContent getStreamInfo() {
-        return streamInfo;
-    }
-
-    public void setStreamInfo(StreamContent streamInfo) {
-        this.streamInfo = streamInfo;
-    }
 }

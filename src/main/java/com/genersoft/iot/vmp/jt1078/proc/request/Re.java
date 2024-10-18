@@ -8,6 +8,7 @@ import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEvent;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 
 /**
@@ -15,8 +16,8 @@ import org.springframework.util.StringUtils;
  * @date 2023/4/27 18:50
  * @email qingtaij@163.com
  */
+@Slf4j
 public abstract class Re {
-    private final static Logger log = LoggerFactory.getLogger(Re.class);
 
     protected abstract Rs decode0(ByteBuf buf, Header header, Session session);
 

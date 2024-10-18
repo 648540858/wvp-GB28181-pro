@@ -1,22 +1,26 @@
 package com.genersoft.iot.vmp.service.redisMsg;
 
 import com.genersoft.iot.vmp.common.CommonCallback;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 
 public interface IRedisRpcService {
 
-    SendRtpItem getSendRtpItem(String sendRtpItemKey);
+    SendRtpInfo getSendRtpItem(String callId);
 
-    WVPResult startSendRtp(String sendRtpItemKey, SendRtpItem sendRtpItem);
+    WVPResult startSendRtp(String callId, SendRtpInfo sendRtpItem);
 
-    WVPResult stopSendRtp(String sendRtpItemKey);
+    WVPResult stopSendRtp(String callId);
 
-    long waitePushStreamOnline(SendRtpItem sendRtpItem, CommonCallback<String> callback);
+    long waitePushStreamOnline(SendRtpInfo sendRtpItem, CommonCallback<Integer> callback);
 
-    void stopWaitePushStreamOnline(SendRtpItem sendRtpItem);
+    void stopWaitePushStreamOnline(SendRtpInfo sendRtpItem);
 
-    void rtpSendStopped(String sendRtpItemKey);
+    void rtpSendStopped(String callId);
 
     void removeCallback(long key);
+
+    long onStreamOnlineEvent(String app, String stream, CommonCallback<StreamInfo> callback);
+    void unPushStreamOnlineEvent(String app, String stream);
 }

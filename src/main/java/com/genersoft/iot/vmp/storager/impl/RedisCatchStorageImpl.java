@@ -6,24 +6,20 @@ import com.genersoft.iot.vmp.common.SystemAllInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
+import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
-import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
 import com.genersoft.iot.vmp.storager.dao.dto.PlatformRegisterInfo;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.JsonUtil;
 import com.genersoft.iot.vmp.utils.SystemInfoUtils;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -33,10 +29,10 @@ import java.time.Duration;
 import java.util.*;
 
 @SuppressWarnings("rawtypes")
+@Slf4j
 @Component
 public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
-    private final Logger logger = LoggerFactory.getLogger(RedisCatchStorageImpl.class);
 
     @Autowired
     private DeviceChannelMapper deviceChannelMapper;
@@ -52,6 +48,11 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
+
+    @Override
+    public List<SendRtpInfo> queryAllSendRTPServer() {
+        return Collections.emptyList();
+    }
 
     @Override
     public Long getCSEQ() {
@@ -94,14 +95,14 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void updatePlatformCatchInfo(ParentPlatformCatch parentPlatformCatch) {
+    public void updatePlatformCatchInfo(PlatformCatch parentPlatformCatch) {
         String key = VideoManagerConstants.PLATFORM_CATCH_PREFIX  + userSetting.getServerId() + "_" +  parentPlatformCatch.getId();
         redisTemplate.opsForValue().set(key, parentPlatformCatch);
     }
 
     @Override
-    public ParentPlatformCatch queryPlatformCatchInfo(String platformGbId) {
-        return (ParentPlatformCatch)redisTemplate.opsForValue().get(VideoManagerConstants.PLATFORM_CATCH_PREFIX + userSetting.getServerId() + "_" + platformGbId);
+    public PlatformCatch queryPlatformCatchInfo(String platformGbId) {
+        return (PlatformCatch)redisTemplate.opsForValue().get(VideoManagerConstants.PLATFORM_CATCH_PREFIX + userSetting.getServerId() + "_" + platformGbId);
     }
 
     @Override
@@ -138,181 +139,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
          redisTemplate.delete(VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + userSetting.getServerId() + "_" + callId);
     }
 
-    @Override
-    public void updateSendRTPSever(SendRtpItem sendRtpItem) {
-        redisTemplate.opsForValue().set(sendRtpItem.getRedisKey(), sendRtpItem);
-    }
 
-    @Override
-    public List<SendRtpItem> querySendRTPServer(String platformGbId, String channelId, String streamId) {
-        String scanKey = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
-                + userSetting.getServerId() + "_*_"
-                + platformGbId + "_"
-                + channelId + "_"
-                + streamId + "_"
-                + "*";
-        List<SendRtpItem> result = new ArrayList<>();
-        List<Object> scan = RedisUtil.scan(redisTemplate, scanKey);
-        if (!scan.isEmpty()) {
-            for (Object o : scan) {
-                String key = (String) o;
-                result.add(JsonUtil.redisJsonToObject(redisTemplate, key, SendRtpItem.class));
-            }
-        }
-        return result;
-    }
-
-    @Override
-    public SendRtpItem querySendRTPServer(String platformGbId, String channelId, String streamId, String callId) {
-        if (platformGbId == null) {
-            platformGbId = "*";
-        }
-        if (channelId == null) {
-            channelId = "*";
-        }
-        if (streamId == null) {
-            streamId = "*";
-        }
-        if (callId == null) {
-            callId = "*";
-        }
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
-                + "*_*_"
-                + platformGbId + "_"
-                + channelId + "_"
-                + streamId + "_"
-                + callId;
-        List<Object> scan = RedisUtil.scan(redisTemplate, key);
-        if (scan.size() > 0) {
-            return (SendRtpItem)redisTemplate.opsForValue().get(scan.get(0));
-        }else {
-            return null;
-        }
-    }
-
-    @Override
-    public List<SendRtpItem> querySendRTPServerByChannelId(String channelId) {
-        if (channelId == null) {
-            return null;
-        }
-        String platformGbId = "*";
-        String callId = "*";
-        String streamId = "*";
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
-                + userSetting.getServerId() + "_*_"
-                + platformGbId + "_"
-                + channelId + "_"
-                + streamId + "_"
-                + callId;
-        List<Object> scan = RedisUtil.scan(redisTemplate, key);
-        List<SendRtpItem> result = new ArrayList<>();
-        for (Object o : scan) {
-            result.add((SendRtpItem) redisTemplate.opsForValue().get(o));
-        }
-        return result;
-    }
-
-    @Override
-    public List<SendRtpItem> querySendRTPServerByStream(String stream) {
-        if (stream == null) {
-            return null;
-        }
-        String platformGbId = "*";
-        String callId = "*";
-        String channelId = "*";
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
-                + userSetting.getServerId() + "_*_"
-                + platformGbId + "_"
-                + channelId + "_"
-                + stream + "_"
-                + callId;
-        List<Object> scan = RedisUtil.scan(redisTemplate, key);
-        List<SendRtpItem> result = new ArrayList<>();
-        for (Object o : scan) {
-            result.add((SendRtpItem) redisTemplate.opsForValue().get(o));
-        }
-        return result;
-    }
-
-    @Override
-    public List<SendRtpItem> querySendRTPServer(String platformGbId) {
-        if (platformGbId == null) {
-            platformGbId = "*";
-        }
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
-                + userSetting.getServerId() + "_*_"
-                + platformGbId + "_*" + "_*" + "_*";
-        List<Object> queryResult = RedisUtil.scan(redisTemplate, key);
-        List<SendRtpItem> result= new ArrayList<>();
-
-        for (Object o : queryResult) {
-            String keyItem = (String) o;
-            result.add((SendRtpItem) redisTemplate.opsForValue().get(keyItem));
-        }
-
-        return result;
-    }
-
-    /**
-     * 删除RTP推送信息缓存
-     */
-    @Override
-    public void deleteSendRTPServer(String platformGbId, String channelId, String callId, String streamId) {
-        if (streamId == null) {
-            streamId = "*";
-        }
-        if (callId == null) {
-            callId = "*";
-        }
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
-                + userSetting.getServerId() + "_*_"
-                + platformGbId + "_"
-                + channelId + "_"
-                + streamId + "_"
-                + callId;
-        List<Object> scan = RedisUtil.scan(redisTemplate, key);
-        if (scan.size() > 0) {
-            for (Object keyStr : scan) {
-                logger.info("[删除 redis的SendRTP]： {}", keyStr.toString());
-                redisTemplate.delete(keyStr);
-            }
-        }
-    }
-
-    /**
-     * 删除RTP推送信息缓存
-     */
-    @Override
-    public void deleteSendRTPServer(SendRtpItem sendRtpItem) {
-        deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(),sendRtpItem.getCallId(), sendRtpItem.getStream());
-    }
-
-    @Override
-    public List<SendRtpItem> queryAllSendRTPServer() {
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
-                + userSetting.getServerId() + "_*";
-        List<Object> queryResult = RedisUtil.scan(redisTemplate, key);
-        List<SendRtpItem> result= new ArrayList<>();
-
-        for (Object o : queryResult) {
-            String keyItem = (String) o;
-            result.add((SendRtpItem) redisTemplate.opsForValue().get(keyItem));
-        }
-
-        return result;
-    }
-
-    /**
-     * 查询某个通道是否存在上级点播（RTP推送）
-     */
-    @Override
-    public boolean isChannelSendingRTP(String channelId) {
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
-                + userSetting.getServerId() + "_*_*_"
-                + channelId + "*_" + "*_";
-        List<Object> RtpStreams = RedisUtil.scan(redisTemplate, key);
-        return RtpStreams.size() > 0;
-    }
 
     @Override
     public void updateWVPInfo(JSONObject jsonObject, int time) {
@@ -324,7 +151,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void sendStreamChangeMsg(String type, JSONObject jsonObject) {
         String key = VideoManagerConstants.WVP_MSG_STREAM_CHANGE_PREFIX + type;
-        logger.info("[redis 流变化事件] 发送 {}: {}", key, jsonObject.toString());
+        log.info("[redis 流变化事件] 发送 {}: {}", key, jsonObject.toString());
         redisTemplate.convertAndSend(key, jsonObject);
     }
 
@@ -426,8 +253,8 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public GPSMsgInfo getGpsMsgInfo(String gbId) {
-        String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetting.getServerId() + "_" + gbId;
+    public GPSMsgInfo getGpsMsgInfo(String channelId) {
+        String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetting.getServerId() + "_" + channelId;
         return JsonUtil.redisJsonToObject(redisTemplate, key, GPSMsgInfo.class);
     }
 
@@ -583,14 +410,14 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void sendMobilePositionMsg(JSONObject jsonObject) {
         String key = VideoManagerConstants.VM_MSG_SUBSCRIBE_MOBILE_POSITION;
-        logger.debug("[redis发送通知] 发送 移动位置 {}: {}", key, jsonObject.toString());
+        log.debug("[redis发送通知] 发送 移动位置 {}: {}", key, jsonObject.toString());
         redisTemplate.convertAndSend(key, jsonObject);
     }
 
     @Override
     public void sendStreamPushRequestedMsg(MessageForPushChannel msg) {
         String key = VideoManagerConstants.VM_MSG_STREAM_PUSH_REQUESTED;
-        logger.info("[redis发送通知] 发送 推流被请求 {}: {}/{}", key, msg.getApp(), msg.getStream());
+        log.info("[redis发送通知] 发送 推流被请求 {}: {}/{}", key, msg.getApp(), msg.getStream());
         redisTemplate.convertAndSend(key, JSON.toJSON(msg));
     }
 
@@ -598,7 +425,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     public void sendAlarmMsg(AlarmChannelMessage msg) {
         // 此消息用于对接第三方服务下级来的消息内容
         String key = VideoManagerConstants.VM_MSG_SUBSCRIBE_ALARM;
-        logger.info("[redis发送通知] 发送 报警{}: {}", key, JSON.toJSON(msg));
+        log.info("[redis发送通知] 发送 报警{}: {}", key, JSON.toJSON(msg));
         redisTemplate.convertAndSend(key, JSON.toJSON(msg));
     }
 
@@ -611,7 +438,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void sendStreamPushRequestedMsgForStatus() {
         String key = VideoManagerConstants.VM_MSG_GET_ALL_ONLINE_REQUESTED;
-        logger.info("[redis通知] 发送 获取所有推流设备的状态");
+        log.info("[redis通知] 发送 获取所有推流设备的状态");
         JSONObject jsonObject = new JSONObject();
         jsonObject.put(key, key);
         redisTemplate.convertAndSend(key, jsonObject);
@@ -631,7 +458,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public int getGbSendCount(String id) {
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
+        String key = VideoManagerConstants.SEND_RTP_INFO
                 + userSetting.getServerId() + "_*_" + id + "_*";
         return RedisUtil.scan(redisTemplate, key).size();
     }
@@ -645,7 +472,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
             msg.append(":").append(channelId);
         }
         msg.append(" ").append(online? "ON":"OFF");
-        logger.info("[redis通知] 推送设备/通道状态-> {} ", msg);
+        log.info("[redis通知] 推送设备/通道状态-> {} ", msg);
         // 使用 RedisTemplate<Object, Object> 发送字符串消息会导致发送的消息多带了双引号
         stringRedisTemplate.convertAndSend(key, msg.toString());
     }
@@ -661,89 +488,88 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
             msg.append(":").append(channelId);
         }
         msg.append(" ").append(add? "ADD":"DELETE");
-        logger.info("[redis通知] 推送通道-> {}", msg);
+        log.info("[redis通知] 推送通道-> {}", msg);
         // 使用 RedisTemplate<Object, Object> 发送字符串消息会导致发送的消息多带了双引号
         stringRedisTemplate.convertAndSend(key, msg.toString());
     }
 
     @Override
-    public void sendPlatformStartPlayMsg(SendRtpItem sendRtpItem, ParentPlatform platform) {
+    public void sendPlatformStartPlayMsg(SendRtpInfo sendRtpItem, DeviceChannel channel, Platform platform) {
         if (sendRtpItem.getPlayType() == InviteStreamType.PUSH && platform  != null) {
             MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0, sendRtpItem.getApp(), sendRtpItem.getStream(),
-                    sendRtpItem.getChannelId(), platform.getServerGBId(), platform.getName(), userSetting.getServerId(),
+                    channel.getDeviceId(), platform.getServerGBId(), platform.getName(), userSetting.getServerId(),
                     sendRtpItem.getMediaServerId());
             messageForPushChannel.setPlatFormIndex(platform.getId());
             String key = VideoManagerConstants.VM_MSG_STREAM_START_PLAY_NOTIFY;
-            logger.info("[redis发送通知] 发送 推流被上级平台观看 {}: {}/{}->{}", key, sendRtpItem.getApp(), sendRtpItem.getStream(), platform.getServerGBId());
+            log.info("[redis发送通知] 发送 推流被上级平台观看 {}: {}/{}->{}", key, sendRtpItem.getApp(), sendRtpItem.getStream(), platform.getServerGBId());
             redisTemplate.convertAndSend(key, JSON.toJSON(messageForPushChannel));
         }
     }
 
     @Override
-    public void sendPlatformStopPlayMsg(SendRtpItem sendRtpItem, ParentPlatform platform) {
+    public void sendPlatformStopPlayMsg(SendRtpInfo sendRtpItem, Platform platform, CommonGBChannel channel) {
 
         MessageForPushChannel msg = MessageForPushChannel.getInstance(0,
-                sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getChannelId(),
-                sendRtpItem.getPlatformId(), platform.getName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
+                sendRtpItem.getApp(), sendRtpItem.getStream(), channel.getGbDeviceId(),
+                sendRtpItem.getTargetId(), platform.getName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
         msg.setPlatFormIndex(platform.getId());
 
         String key = VideoManagerConstants.VM_MSG_STREAM_STOP_PLAY_NOTIFY;
-        logger.info("[redis发送通知] 发送 上级平台停止观看 {}: {}/{}->{}", key, sendRtpItem.getApp(), sendRtpItem.getStream(), platform.getServerGBId());
+        log.info("[redis发送通知] 发送 上级平台停止观看 {}: {}/{}->{}", key, sendRtpItem.getApp(), sendRtpItem.getStream(), platform.getServerGBId());
         redisTemplate.convertAndSend(key, JSON.toJSON(msg));
     }
 
     @Override
-    public void addPushListItem(String app, String stream, MediaArrivalEvent event) {
+    public void addPushListItem(String app, String stream, MediaInfo mediaInfo) {
         String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
-        redisTemplate.opsForValue().set(key, event.getHookParam());
+        redisTemplate.opsForValue().set(key, mediaInfo);
     }
 
     @Override
-    public OnStreamChangedHookParam getPushListItem(String app, String stream) {
+    public MediaInfo getPushListItem(String app, String stream) {
         String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
-        return (OnStreamChangedHookParam)redisTemplate.opsForValue().get(key);
+        return (MediaInfo)redisTemplate.opsForValue().get(key);
     }
 
     @Override
     public void removePushListItem(String app, String stream, String mediaServerId) {
         String key = VideoManagerConstants.PUSH_STREAM_LIST + app + "_" + stream;
-        StreamPushItem param = (StreamPushItem)redisTemplate.opsForValue().get(key);
-        if (param != null && param.getMediaServerId().equalsIgnoreCase(mediaServerId)) {
+        MediaInfo param = (MediaInfo)redisTemplate.opsForValue().get(key);
+        if (param != null && param.getMediaServer().getId().equalsIgnoreCase(mediaServerId)) {
             redisTemplate.delete(key);
         }
-
     }
 
     @Override
     public void sendPushStreamClose(MessageForPushChannel msg) {
         String key = VideoManagerConstants.VM_MSG_STREAM_PUSH_CLOSE_REQUESTED;
-        logger.info("[redis发送通知] 发送 停止向上级推流 {}: {}/{}->{}", key, msg.getApp(), msg.getStream(), msg.getPlatFormId());
+        log.info("[redis发送通知] 发送 停止向上级推流 {}: {}/{}->{}", key, msg.getApp(), msg.getStream(), msg.getPlatFormId());
         redisTemplate.convertAndSend(key, JSON.toJSON(msg));
     }
 
     @Override
-    public void addWaiteSendRtpItem(SendRtpItem sendRtpItem, int platformPlayTimeout) {
+    public void addWaiteSendRtpItem(SendRtpInfo sendRtpItem, int platformPlayTimeout) {
         String key = VideoManagerConstants.WAITE_SEND_PUSH_STREAM + sendRtpItem.getApp() + "_" + sendRtpItem.getStream();
         redisTemplate.opsForValue().set(key, sendRtpItem);
     }
 
     @Override
-    public SendRtpItem getWaiteSendRtpItem(String app, String stream) {
+    public SendRtpInfo getWaiteSendRtpItem(String app, String stream) {
         String key = VideoManagerConstants.WAITE_SEND_PUSH_STREAM + app + "_" + stream;
-        return JsonUtil.redisJsonToObject(redisTemplate, key, SendRtpItem.class);
+        return JsonUtil.redisJsonToObject(redisTemplate, key, SendRtpInfo.class);
     }
 
     @Override
-    public void sendStartSendRtp(SendRtpItem sendRtpItem) {
+    public void sendStartSendRtp(SendRtpInfo sendRtpItem) {
         String key = VideoManagerConstants.START_SEND_PUSH_STREAM + sendRtpItem.getApp() + "_" + sendRtpItem.getStream();
-        logger.info("[redis发送通知] 通知其他WVP推流 {}: {}/{}->{}", key, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getPlatformId());
+        log.info("[redis发送通知] 通知其他WVP推流 {}: {}/{}->{}", key, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getTargetId());
         redisTemplate.convertAndSend(key, JSON.toJSON(sendRtpItem));
     }
 
     @Override
-    public void sendPushStreamOnline(SendRtpItem sendRtpItem) {
+    public void sendPushStreamOnline(SendRtpInfo sendRtpItem) {
         String key = VideoManagerConstants.VM_MSG_STREAM_PUSH_CLOSE_REQUESTED;
-        logger.info("[redis发送通知] 流上线 {}: {}/{}->{}", key, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getPlatformId());
+        log.info("[redis发送通知] 流上线 {}: {}/{}->{}", key, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getTargetId());
         redisTemplate.convertAndSend(key, JSON.toJSON(sendRtpItem));
     }
 }

@@ -39,7 +39,6 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
 ![3](doc/_media/3.png "3.png")
 ![3-1](doc/_media/3-1.png "3-1.png")
 ![3-2](doc/_media/3-2.png "3-2.png")
-![3-3](doc/_media/3-3.png "3-3.png")
 ![build_1](https://images.gitee.com/uploads/images/2022/0304/101919_ee5b8c79_1018729.png "2022-03-04_10-13.png")
 
 # 功能特性 

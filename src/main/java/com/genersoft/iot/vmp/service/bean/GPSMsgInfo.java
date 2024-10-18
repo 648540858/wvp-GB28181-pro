@@ -2,13 +2,20 @@ package com.genersoft.iot.vmp.service.bean;
 
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import lombok.Data;
 
+@Data
 public class GPSMsgInfo {
 
     /**
-     *
+     * 通道国标ID
      */
     private String id;
+
+    /**
+     * 通道ID
+     */
+    private Integer channelId;
 
     /**
      * 经度 (必选)
@@ -44,7 +51,7 @@ public class GPSMsgInfo {
 
     public static GPSMsgInfo getInstance(MobilePosition mobilePosition) {
         GPSMsgInfo gpsMsgInfo = new GPSMsgInfo();
-        gpsMsgInfo.setId(mobilePosition.getChannelId());
+        gpsMsgInfo.setChannelId(mobilePosition.getChannelId());
         gpsMsgInfo.setAltitude(mobilePosition.getAltitude() + "");
         gpsMsgInfo.setLng(mobilePosition.getLongitude());
         gpsMsgInfo.setLat(mobilePosition.getLatitude());
@@ -52,70 +59,5 @@ public class GPSMsgInfo {
         gpsMsgInfo.setDirection(mobilePosition.getDirection() + "");
         gpsMsgInfo.setTime(DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
         return gpsMsgInfo;
-    }
-
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public double getLng() {
-        return lng;
-    }
-
-    public void setLng(double lng) {
-        this.lng = lng;
-    }
-
-    public double getLat() {
-        return lat;
-    }
-
-    public void setLat(double lat) {
-        this.lat = lat;
-    }
-
-    public double getSpeed() {
-        return speed;
-    }
-
-    public void setSpeed(double speed) {
-        this.speed = speed;
-    }
-
-    public String getTime() {
-        return time;
-    }
-
-    public void setTime(String time) {
-        this.time = time;
-    }
-
-    public String getDirection() {
-        return direction;
-    }
-
-    public void setDirection(String direction) {
-        this.direction = direction;
-    }
-
-    public String getAltitude() {
-        return altitude;
-    }
-
-    public void setAltitude(String altitude) {
-        this.altitude = altitude;
-    }
-
-    public boolean isStored() {
-        return stored;
-    }
-
-    public void setStored(boolean stored) {
-        this.stored = stored;
     }
 }

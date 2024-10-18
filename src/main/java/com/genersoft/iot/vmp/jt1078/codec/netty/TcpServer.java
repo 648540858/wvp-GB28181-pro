@@ -25,6 +25,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.TimeUnit;
 
@@ -34,9 +35,8 @@ import java.util.concurrent.TimeUnit;
  * @email qingtaij@163.com
  */
 
-
-public class TcpServer{
-    private final static Logger log = LoggerFactory.getLogger(TcpServer.class);
+@Slf4j
+public class TcpServer {
 
     private final Integer port;
     private boolean isRunning = false;

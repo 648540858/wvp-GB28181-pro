@@ -3,11 +3,14 @@ package com.genersoft.iot.vmp.service.impl;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
+import com.genersoft.iot.vmp.gb28181.dao.PlatformMapper;
 import com.genersoft.iot.vmp.service.IMobilePositionService;
-import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
-import com.genersoft.iot.vmp.storager.dao.DeviceMobilePositionMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
+import com.genersoft.iot.vmp.gb28181.dao.DeviceMobilePositionMapper;
+import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
+import com.genersoft.iot.vmp.utils.DateUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -19,7 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
+@Slf4j
 @Service
 public class MobilePositionServiceImpl implements IMobilePositionService {
 
@@ -32,10 +35,12 @@ public class MobilePositionServiceImpl implements IMobilePositionService {
     @Autowired
     private UserSetting userSetting;
 
+
+    @Autowired
+    private PlatformMapper platformMapper;
+
     @Autowired
     private RedisTemplate<String, MobilePosition> redisTemplate;
-
-    private final static Logger logger = LoggerFactory.getLogger(MobilePositionServiceImpl.class);
 
     private final String REDIS_MOBILE_POSITION_LIST = "redis_mobile_position_list";
 
@@ -67,6 +72,33 @@ public class MobilePositionServiceImpl implements IMobilePositionService {
 
 
 
+    /**
+     * 查询移动位置轨迹
+     */
+    @Override
+    public synchronized List<MobilePosition> queryMobilePositions(String deviceId, String channelId, String startTime, String endTime) {
+        return mobilePositionMapper.queryPositionByDeviceIdAndTime(deviceId, channelId, startTime, endTime);
+    }
+
+    @Override
+    public List<Platform> queryEnablePlatformListWithAsMessageChannel() {
+        return platformMapper.queryEnablePlatformListWithAsMessageChannel();
+    }
+
+    /**
+     * 查询最新移动位置
+     * @param deviceId
+     */
+    @Override
+    public MobilePosition queryLatestPosition(String deviceId) {
+        return mobilePositionMapper.queryLatestPositionByDevice(deviceId);
+    }
+
+    @Override
+    public void updateStreamGPS(List<GPSMsgInfo> gpsMsgInfoList) {
+        channelMapper.updateStreamGPS(gpsMsgInfoList);
+    }
+
     @Scheduled(fixedRate = 1000)
     @Transactional
     public void executeTaskQueue() {
@@ -78,14 +110,16 @@ public class MobilePositionServiceImpl implements IMobilePositionService {
         if (userSetting.getSavePositionHistory()) {
             mobilePositionMapper.batchadd(mobilePositions);
         }
-        logger.info("[移动位置订阅]更新通道位置： {}", mobilePositions.size());
+        log.info("[移动位置订阅]更新通道位置： {}", mobilePositions.size());
         Map<String, DeviceChannel> updateChannelMap = new HashMap<>();
         for (MobilePosition mobilePosition : mobilePositions) {
             DeviceChannel deviceChannel = new DeviceChannel();
+            deviceChannel.setId(mobilePosition.getChannelId());
             deviceChannel.setDeviceId(mobilePosition.getDeviceId());
             deviceChannel.setLongitude(mobilePosition.getLongitude());
             deviceChannel.setLatitude(mobilePosition.getLatitude());
             deviceChannel.setGpsTime(mobilePosition.getTime());
+            deviceChannel.setUpdateTime(DateUtil.getNow());
             updateChannelMap.put(mobilePosition.getDeviceId() + mobilePosition.getChannelId(), deviceChannel);
         }
         List<DeviceChannel> channels = new ArrayList<>(updateChannelMap.values());

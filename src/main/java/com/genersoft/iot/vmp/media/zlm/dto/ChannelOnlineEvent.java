@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.media.zlm.dto;
 
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 
 import java.text.ParseException;
 
@@ -9,5 +9,5 @@ import java.text.ParseException;
  */
 public interface ChannelOnlineEvent {
 
-    void run(SendRtpItem sendRtpItem) throws ParseException;
+    void run(SendRtpInfo sendRtpItem) throws ParseException;
 }

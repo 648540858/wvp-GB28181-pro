@@ -10,14 +10,13 @@ import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
-import com.genersoft.iot.vmp.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IMobilePositionService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -25,17 +24,16 @@ import org.springframework.util.ObjectUtils;
 
 import javax.sip.RequestEvent;
 import javax.sip.header.FromHeader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * SIP命令类型： NOTIFY请求中的移动位置请求处理
  */
+@Slf4j
 @Component
 public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessorParent {
-
-
-    private final static Logger logger = LoggerFactory.getLogger(NotifyRequestForMobilePositionProcessor.class);
 
 	private ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
 
@@ -57,7 +55,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 	public void process(RequestEvent evt) {
 
 		if (taskQueue.size() >= userSetting.getMaxNotifyCountQueue()) {
-			logger.error("[notify-移动位置] 待处理消息队列已满 {}，返回486 BUSY_HERE，消息不做处理", userSetting.getMaxNotifyCountQueue());
+			log.error("[notify-移动位置] 待处理消息队列已满 {}，返回486 BUSY_HERE，消息不做处理", userSetting.getMaxNotifyCountQueue());
 			return;
 		}
 		taskQueue.offer(new HandlerCatchData(evt, null, null));
@@ -68,7 +66,14 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 		if (taskQueue.isEmpty()) {
 			return;
 		}
-		for (HandlerCatchData take : taskQueue) {
+		List<HandlerCatchData> handlerCatchDataList = new ArrayList<>();
+		while (!taskQueue.isEmpty()) {
+			handlerCatchDataList.add(taskQueue.poll());
+		}
+		if (handlerCatchDataList.isEmpty()) {
+			return;
+		}
+		for (HandlerCatchData take : handlerCatchDataList) {
 			if (take == null) {
 				continue;
 			}
@@ -80,27 +85,33 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 				// 回复 200 OK
 				Element rootElement = getRootElement(evt);
 				if (rootElement == null) {
-					logger.error("处理MobilePosition移动位置Notify时未获取到消息体,{}", evt.getRequest());
-					return;
+					log.error("处理MobilePosition移动位置Notify时未获取到消息体,{}", evt.getRequest());
+					continue;
 				}
 				Device device = redisCatchStorage.getDevice(deviceId);
 				if (device == null) {
-					logger.error("处理MobilePosition移动位置Notify时未获取到device,{}", deviceId);
-					return;
+					log.error("处理MobilePosition移动位置Notify时未获取到device,{}", deviceId);
+					continue;
 				}
 				MobilePosition mobilePosition = new MobilePosition();
 				mobilePosition.setDeviceId(device.getDeviceId());
 				mobilePosition.setDeviceName(device.getName());
 				mobilePosition.setCreateTime(DateUtil.getNow());
+
+				DeviceChannel deviceChannel = null;
 				List<Element> elements = rootElement.elements();
-				for (Element element : elements) {
+				readDocument: for (Element element : elements) {
 					switch (element.getName()){
 						case "DeviceID":
 							String channelId = element.getStringValue();
-							if (!deviceId.equals(channelId)) {
-								mobilePosition.setChannelId(channelId);
+							deviceChannel = deviceChannelService.getOne(device.getDeviceId(), channelId);
+							if (deviceChannel != null) {
+								mobilePosition.setChannelId(deviceChannel.getId());
+							}else {
+								log.error("[notify-移动位置] 未找到通道 {}/{}", device.getDeviceId(), channelId);
+								break readDocument;
 							}
-							continue;
+							break;
 						case "Time":
 							String timeVal = element.getStringValue();
 							if (ObjectUtils.isEmpty(timeVal)) {
@@ -108,13 +119,13 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 							} else {
 								mobilePosition.setTime(SipUtils.parseTime(timeVal));
 							}
-							continue;
+							break;
 						case "Longitude":
 							mobilePosition.setLongitude(Double.parseDouble(element.getStringValue()));
-							continue;
+							break;
 						case "Latitude":
 							mobilePosition.setLatitude(Double.parseDouble(element.getStringValue()));
-							continue;
+							break;
 						case "Speed":
 							String speedVal = element.getStringValue();
 							if (NumericUtil.isDouble(speedVal)) {
@@ -122,7 +133,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 							} else {
 								mobilePosition.setSpeed(0.0);
 							}
-							continue;
+							break;
 						case "Direction":
 							String directionVal = element.getStringValue();
 							if (NumericUtil.isDouble(directionVal)) {
@@ -130,7 +141,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 							} else {
 								mobilePosition.setDirection(0.0);
 							}
-							continue;
+							break;
 						case "Altitude":
 							String altitudeVal = element.getStringValue();
 							if (NumericUtil.isDouble(altitudeVal)) {
@@ -138,12 +149,15 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 							} else {
 								mobilePosition.setAltitude(0.0);
 							}
-							continue;
+							break;
 
 					}
 				}
+				if (deviceChannel == null) {
+					continue;
+				}
 
-			logger.debug("[收到移动位置订阅通知]：{}/{}->{}.{}, 时间： {}", mobilePosition.getDeviceId(), mobilePosition.getChannelId(),
+				log.info("[收到移动位置订阅通知]：{}/{}->{}.{}, 时间： {}", mobilePosition.getDeviceId(), mobilePosition.getChannelId(),
 					mobilePosition.getLongitude(), mobilePosition.getLatitude(), System.currentTimeMillis() - startTime);
 				mobilePosition.setReportSource("Mobile Position");
 
@@ -152,16 +166,16 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 				try {
 					eventPublisher.mobilePositionEventPublish(mobilePosition);
 				}catch (Exception e) {
-					logger.error("[向上级转发移动位置失败] ", e);
+					log.error("[向上级转发移动位置失败] ", e);
 				}
-				if (mobilePosition.getChannelId() == null || mobilePosition.getChannelId().equals(mobilePosition.getDeviceId())) {
+				if (mobilePosition.getChannelId() == null) {
 					List<DeviceChannel> channels = deviceChannelService.queryChaneListByDeviceId(mobilePosition.getDeviceId());
 					channels.forEach(channel -> {
 						// 发送redis消息。 通知位置信息的变化
 						JSONObject jsonObject = new JSONObject();
 						jsonObject.put("time", DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
-						jsonObject.put("serial", channel.getDeviceId());
-						jsonObject.put("code", channel.getChannelId());
+						jsonObject.put("serial", device.getDeviceId());
+						jsonObject.put("code", channel.getDeviceId());
 						jsonObject.put("longitude", mobilePosition.getLongitude());
 						jsonObject.put("latitude", mobilePosition.getLatitude());
 						jsonObject.put("altitude", mobilePosition.getAltitude());
@@ -171,22 +185,23 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 					});
 				}else {
 					// 发送redis消息。 通知位置信息的变化
-					JSONObject jsonObject = new JSONObject();
-					jsonObject.put("time", DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
-					jsonObject.put("serial", mobilePosition.getDeviceId());
-					jsonObject.put("code", mobilePosition.getChannelId());
-					jsonObject.put("longitude", mobilePosition.getLongitude());
-					jsonObject.put("latitude", mobilePosition.getLatitude());
-					jsonObject.put("altitude", mobilePosition.getAltitude());
-					jsonObject.put("direction", mobilePosition.getDirection());
-					jsonObject.put("speed", mobilePosition.getSpeed());
-					redisCatchStorage.sendMobilePositionMsg(jsonObject);
+					if (deviceChannel != null) {
+						JSONObject jsonObject = new JSONObject();
+						jsonObject.put("time", DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
+						jsonObject.put("serial", mobilePosition.getDeviceId());
+						jsonObject.put("code", deviceChannel.getDeviceId());
+						jsonObject.put("longitude", mobilePosition.getLongitude());
+						jsonObject.put("latitude", mobilePosition.getLatitude());
+						jsonObject.put("altitude", mobilePosition.getAltitude());
+						jsonObject.put("direction", mobilePosition.getDirection());
+						jsonObject.put("speed", mobilePosition.getSpeed());
+						redisCatchStorage.sendMobilePositionMsg(jsonObject);
+					}
 				}
 			} catch (DocumentException e) {
-				logger.error("未处理的异常 ", e);
+				log.error("未处理的异常 ", e);
 			}
 		}
-		taskQueue.clear();
 	}
 //	@Scheduled(fixedRate = 10000)
 //	public void execute(){

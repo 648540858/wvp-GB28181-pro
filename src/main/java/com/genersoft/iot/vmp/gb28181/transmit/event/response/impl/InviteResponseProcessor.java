@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.response.impl;
 
-import com.genersoft.iot.vmp.gb28181.SipLayer;
 import com.genersoft.iot.vmp.gb28181.bean.Gb28181Sdp;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
@@ -9,16 +8,12 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.response.SIPResponseProcesso
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import gov.nist.javax.sip.ResponseEventExt;
 import gov.nist.javax.sip.message.SIPResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.sdp.SdpParseException;
 import javax.sdp.SessionDescription;
-import javax.sip.InvalidArgumentException;
-import javax.sip.ResponseEvent;
-import javax.sip.SipException;
 import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
 import javax.sip.SipException;
@@ -34,25 +29,20 @@ import java.text.ParseException;
  * @author: panlinlin
  * @date: 2021年11月5日 16：40
  */
+@Slf4j
 @Component
 public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 
-	private final static Logger logger = LoggerFactory.getLogger(InviteResponseProcessor.class);
 	private final String method = "INVITE";
 
 	@Autowired
 	private SIPProcessorObserver sipProcessorObserver;
-
-
-	@Autowired
-	private SipLayer sipLayer;
 
 	@Autowired
 	private SIPSender sipSender;
 
 	@Autowired
 	private SIPRequestHeaderProvider headerProvider;
-
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -70,7 +60,7 @@ public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 	 */
 	@Override
 	public void process(ResponseEvent evt ){
-		logger.debug("接收到消息：" + evt.getResponse());
+		log.debug("接收到消息：" + evt.getResponse());
 		try {
 			SIPResponse response = (SIPResponse)evt.getResponse();
 			int statusCode = response.getStatusCode();
@@ -88,11 +78,11 @@ public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 				SipURI requestUri = SipFactory.getInstance().createAddressFactory().createSipURI(sdp.getOrigin().getUsername(), event.getRemoteIpAddress() + ":" + event.getRemotePort());
 				Request reqAck = headerProvider.createAckRequest(response.getLocalAddress().getHostAddress(), requestUri, response);
 
-				logger.info("[回复ack] {}-> {}:{} ", sdp.getOrigin().getUsername(), event.getRemoteIpAddress(), event.getRemotePort());
+				log.info("[回复ack] {}-> {}:{} ", sdp.getOrigin().getUsername(), event.getRemoteIpAddress(), event.getRemotePort());
 				sipSender.transmitRequest( response.getLocalAddress().getHostAddress(), reqAck);
 			}
 		} catch (InvalidArgumentException | ParseException | SipException | SdpParseException e) {
-			logger.info("[点播回复ACK]，异常：", e );
+			log.info("[点播回复ACK]，异常：", e );
 		}
 	}
 

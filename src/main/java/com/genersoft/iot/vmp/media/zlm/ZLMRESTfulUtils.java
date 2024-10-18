@@ -3,14 +3,15 @@ package com.genersoft.iot.vmp.media.zlm;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import okhttp3.logging.HttpLoggingInterceptor;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
@@ -18,10 +19,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Component
 public class ZLMRESTfulUtils {
-
-    private final static Logger logger = LoggerFactory.getLogger(ZLMRESTfulUtils.class);
 
     private OkHttpClient client;
 
@@ -46,9 +46,9 @@ public class ZLMRESTfulUtils {
             httpClientBuilder.readTimeout(readTimeOut,TimeUnit.SECONDS);
             // 设置连接池
             httpClientBuilder.connectionPool(new ConnectionPool(16, 5, TimeUnit.MINUTES));
-            if (logger.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 HttpLoggingInterceptor logging = new HttpLoggingInterceptor(message -> {
-                    logger.debug("http请求参数：" + message);
+                    log.debug("http请求参数：" + message);
                 });
                 logging.setLevel(HttpLoggingInterceptor.Level.BASIC);
                 // OkHttp進行添加攔截器loggingInterceptor
@@ -107,19 +107,19 @@ public class ZLMRESTfulUtils {
                         Objects.requireNonNull(response.body()).close();
                     }
                 }catch (IOException e) {
-                    logger.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
+                    log.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
 
                     if(e instanceof SocketTimeoutException){
                         //读取超时超时异常
-                        logger.error(String.format("读取ZLM数据超时失败: %s, %s", url, e.getMessage()));
+                        log.error(String.format("读取ZLM数据超时失败: %s, %s", url, e.getMessage()));
                     }
                     if(e instanceof ConnectException){
                         //判断连接异常，我这里是报Failed to connect to 10.7.5.144
-                        logger.error(String.format("连接ZLM连接失败: %s, %s", url, e.getMessage()));
+                        log.error(String.format("连接ZLM连接失败: %s, %s", url, e.getMessage()));
                     }
 
                 }catch (Exception e){
-                    logger.error(String.format("访问ZLM失败: %s, %s", url, e.getMessage()));
+                    log.error(String.format("访问ZLM失败: %s, %s", url, e.getMessage()));
                 }
             }else {
                 client.newCall(request).enqueue(new Callback(){
@@ -131,7 +131,7 @@ public class ZLMRESTfulUtils {
                                 String responseStr = Objects.requireNonNull(response.body()).string();
                                 callback.run(JSON.parseObject(responseStr));
                             } catch (IOException e) {
-                                logger.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
+                                log.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
                             }
 
                         }else {
@@ -142,15 +142,15 @@ public class ZLMRESTfulUtils {
 
                     @Override
                     public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                        logger.error(String.format("连接ZLM失败: %s, %s", call.request().toString(), e.getMessage()));
+                        log.error(String.format("连接ZLM失败: %s, %s", call.request().toString(), e.getMessage()));
 
                         if(e instanceof SocketTimeoutException){
                             //读取超时超时异常
-                            logger.error(String.format("读取ZLM数据失败: %s, %s", call.request().toString(), e.getMessage()));
+                            log.error(String.format("读取ZLM数据失败: %s, %s", call.request().toString(), e.getMessage()));
                         }
                         if(e instanceof ConnectException){
                             //判断连接异常，我这里是报Failed to connect to 10.7.5.144
-                            logger.error(String.format("连接ZLM失败: %s, %s", call.request().toString(), e.getMessage()));
+                            log.error(String.format("连接ZLM失败: %s, %s", call.request().toString(), e.getMessage()));
                         }
                     }
                 });
@@ -179,7 +179,9 @@ public class ZLMRESTfulUtils {
         Request request = new Request.Builder()
                 .url(httpBuilder.build())
                 .build();
-        logger.info(request.toString());
+        if (log.isDebugEnabled()){
+            log.debug(request.toString());
+        }
         try {
             OkHttpClient client = getClient();
             Response response = client.newCall(request).execute();
@@ -188,7 +190,7 @@ public class ZLMRESTfulUtils {
                     File snapFolder = new File(targetPath);
                     if (!snapFolder.exists()) {
                         if (!snapFolder.mkdirs()) {
-                            logger.warn("{}路径创建失败", snapFolder.getAbsolutePath());
+                            log.warn("{}路径创建失败", snapFolder.getAbsolutePath());
                         }
 
                     }
@@ -199,17 +201,17 @@ public class ZLMRESTfulUtils {
                     outStream.flush();
                     outStream.close();
                 } else {
-                    logger.error(String.format("[ %s ]请求失败: %s %s", url, response.code(), response.message()));
+                    log.error(String.format("[ %s ]请求失败: %s %s", url, response.code(), response.message()));
                 }
             } else {
-                logger.error(String.format("[ %s ]请求失败: %s %s", url, response.code(), response.message()));
+                log.error(String.format("[ %s ]请求失败: %s %s", url, response.code(), response.message()));
             }
             Objects.requireNonNull(response.body()).close();
         } catch (ConnectException e) {
-            logger.error(String.format("连接ZLM失败: %s, %s", e.getCause().getMessage(), e.getMessage()));
-            logger.info("请检查media配置并确认ZLM已启动...");
+            log.error(String.format("连接ZLM失败: %s, %s", e.getCause().getMessage(), e.getMessage()));
+            log.info("请检查media配置并确认ZLM已启动...");
         } catch (IOException e) {
-            logger.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
+            log.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
         }
     }
 
@@ -266,14 +268,14 @@ public class ZLMRESTfulUtils {
         return sendPost(mediaServerItem, "getRtpInfo",param, null);
     }
 
-    public JSONObject addFFmpegSource(MediaServer mediaServerItem, String src_url, String dst_url, Integer timeout_ms,
+    public JSONObject addFFmpegSource(MediaServer mediaServerItem, String src_url, String dst_url, Integer timeout_sec,
                                       boolean enable_audio, boolean enable_mp4, String ffmpeg_cmd_key){
-        logger.info(src_url);
-        logger.info(dst_url);
+        log.info(src_url);
+        log.info(dst_url);
         Map<String, Object> param = new HashMap<>();
         param.put("src_url", src_url);
         param.put("dst_url", dst_url);
-        param.put("timeout_ms", timeout_ms);
+        param.put("timeout_ms", timeout_sec*1000);
         param.put("enable_mp4", enable_mp4);
         param.put("ffmpeg_cmd_key", ffmpeg_cmd_key);
         return sendPost(mediaServerItem, "addFFmpegSource",param, null);
@@ -335,7 +337,7 @@ public class ZLMRESTfulUtils {
         return sendPost(mediaServerItem, "restartServer",null, null);
     }
 
-    public JSONObject addStreamProxy(MediaServer mediaServerItem, String app, String stream, String url, boolean enable_audio, boolean enable_mp4, String rtp_type) {
+    public JSONObject addStreamProxy(MediaServer mediaServerItem, String app, String stream, String url, boolean enable_audio, boolean enable_mp4, String rtp_type, Integer timeOut) {
         Map<String, Object> param = new HashMap<>();
         param.put("vhost", "__defaultVhost__");
         param.put("app", app);
@@ -344,6 +346,9 @@ public class ZLMRESTfulUtils {
         param.put("enable_mp4", enable_mp4?1:0);
         param.put("enable_audio", enable_audio?1:0);
         param.put("rtp_type", rtp_type);
+        param.put("timeout_sec", timeOut);
+        // 拉流重试次数,默认为3
+        param.put("retry_count", 3);
         return sendPost(mediaServerItem, "addStreamProxy",param, null, 20);
     }
 

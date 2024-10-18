@@ -1,20 +1,19 @@
 package com.genersoft.iot.vmp.gb28181.task;
 
-import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.service.IPlatformService;
-import com.genersoft.iot.vmp.service.impl.PlatformServiceImpl;
+import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
@@ -32,21 +31,16 @@ import java.util.Map;
  * 系统启动时控制设备
  * @author lin
  */
+@Slf4j
 @Component
 @Order(value=14)
 public class SipRunner implements CommandLineRunner {
-
-    @Autowired
-    private IVideoManagerStorage storager;
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
     private SSRCFactory ssrcFactory;
-
-    @Autowired
-    private UserSetting userSetting;
 
     @Autowired
     private IDeviceService deviceService;
@@ -58,9 +52,13 @@ public class SipRunner implements CommandLineRunner {
     private IPlatformService platformService;
 
     @Autowired
+    private IGbChannelService channelService;
+
+    @Autowired
     private ISIPCommanderForPlatform commanderForPlatform;
 
-    private final static Logger logger = LoggerFactory.getLogger(PlatformServiceImpl.class);
+    @Autowired
+    private ISendRtpServerService sendRtpServerService;
 
     @Override
     public void run(String... args) throws Exception {
@@ -78,11 +76,11 @@ public class SipRunner implements CommandLineRunner {
         // 清理redis
         // 清理数据库不存在但是redis中存在的数据
         List<Device> devicesInDb = deviceService.getAll();
-        if (devicesInDb.size() == 0) {
+        if (devicesInDb.isEmpty()) {
             redisCatchStorage.removeAllDevice();
         }else {
             List<Device> devicesInRedis = redisCatchStorage.getAllDevices();
-            if (devicesInRedis.size() > 0) {
+            if (!devicesInRedis.isEmpty()) {
                 Map<String, Device> deviceMapInDb = new HashMap<>();
                 devicesInDb.parallelStream().forEach(device -> {
                     deviceMapInDb.put(device.getDeviceId(), device);
@@ -97,21 +95,26 @@ public class SipRunner implements CommandLineRunner {
 
 
         // 查找国标推流
-        List<SendRtpItem> sendRtpItems = redisCatchStorage.queryAllSendRTPServer();
-        if (sendRtpItems.size() > 0) {
-            for (SendRtpItem sendRtpItem : sendRtpItems) {
+        List<SendRtpInfo> sendRtpItems = redisCatchStorage.queryAllSendRTPServer();
+        if (!sendRtpItems.isEmpty()) {
+            for (SendRtpInfo sendRtpItem : sendRtpItems) {
                 MediaServer mediaServerItem = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-                redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(),sendRtpItem.getChannelId(), sendRtpItem.getCallId(),sendRtpItem.getStream());
+                CommonGBChannel channel = channelService.getOne(sendRtpItem.getChannelId());
+                if (channel == null){
+                    continue;
+                }
+                sendRtpServerService.delete(sendRtpItem);
                 if (mediaServerItem != null) {
                     ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
                     boolean stopResult = mediaServerService.initStopSendRtp(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getSsrc());
                     if (stopResult) {
-                        ParentPlatform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
+                        Platform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getTargetId());
+
                         if (platform != null) {
                             try {
-                                commanderForPlatform.streamByeCmd(platform, sendRtpItem.getCallId());
+                                commanderForPlatform.streamByeCmd(platform, sendRtpItem, channel);
                             } catch (InvalidArgumentException | ParseException | SipException e) {
-                                logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+                                log.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
                             }
                         }
                     }

@@ -7,8 +7,7 @@ import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcMessage;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
 import com.genersoft.iot.vmp.service.redisMsg.control.RedisRpcController;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.Message;
@@ -26,10 +25,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Component
 public class RedisRpcConfig implements MessageListener {
-
-    private final static Logger logger = LoggerFactory.getLogger(RedisRpcConfig.class);
 
     public final static String REDIS_REQUEST_CHANNEL_KEY = "WVP_REDIS_REQUEST_CHANNEL_KEY";
 
@@ -65,10 +63,10 @@ public class RedisRpcConfig implements MessageListener {
                         } else if (redisRpcMessage.getResponse() != null){
                             handlerResponse(redisRpcMessage.getResponse());
                         } else {
-                            logger.error("[redis rpc 解析失败] {}", JSON.toJSONString(redisRpcMessage));
+                            log.error("[redis rpc 解析失败] {}", JSON.toJSONString(redisRpcMessage));
                         }
                     } catch (Exception e) {
-                        logger.error("[redis rpc 解析异常] ", e);
+                        log.error("[redis rpc 解析异常] ", e);
                     }
                 }
             });
@@ -79,7 +77,7 @@ public class RedisRpcConfig implements MessageListener {
         if (userSetting.getServerId().equals(response.getToId())) {
             return;
         }
-        logger.info("[redis-rpc] << {}", response);
+        log.info("[redis-rpc] << {}", response);
         response(response);
     }
 
@@ -88,7 +86,7 @@ public class RedisRpcConfig implements MessageListener {
             if (userSetting.getServerId().equals(request.getFromId())) {
                 return;
             }
-            logger.info("[redis-rpc] << {}", request);
+            log.info("[redis-rpc] << {}", request);
             Method method = getMethod(request.getUri());
             // 没有携带目标ID的可以理解为哪个wvp有结果就哪个回复，携带目标ID，但是如果是不存在的uri则直接回复404
             if (userSetting.getServerId().equals(request.getToId())) {
@@ -113,7 +111,7 @@ public class RedisRpcConfig implements MessageListener {
                 }
             }
         }catch (InvocationTargetException | IllegalAccessException e) {
-            logger.error("[redis rpc ] 处理请求失败 ", e);
+            log.error("[redis rpc ] 处理请求失败 ", e);
         }
 
     }
@@ -130,7 +128,7 @@ public class RedisRpcConfig implements MessageListener {
     }
 
     private void sendResponse(RedisRpcResponse response){
-        logger.info("[redis-rpc] >> {}", response);
+        log.info("[redis-rpc] >> {}", response);
         response.setToId(userSetting.getServerId());
         RedisRpcMessage message = new RedisRpcMessage();
         message.setResponse(response);
@@ -138,7 +136,7 @@ public class RedisRpcConfig implements MessageListener {
     }
 
     private void sendRequest(RedisRpcRequest request){
-        logger.info("[redis-rpc] >> {}", request);
+        log.info("[redis-rpc] >> {}", request);
         RedisRpcMessage message = new RedisRpcMessage();
         message.setRequest(request);
         redisTemplate.convertAndSend(REDIS_REQUEST_CHANNEL_KEY, message);
@@ -156,7 +154,7 @@ public class RedisRpcConfig implements MessageListener {
             sendRequest(request);
             return subscribe.poll(timeOut, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            logger.warn("[redis rpc timeout] uri: {}, sn: {}", request.getUri(), request.getSn(), e);
+            log.warn("[redis rpc timeout] uri: {}, sn: {}", request.getUri(), request.getSn(), e);
         } finally {
             this.unsubscribe(request.getSn());
         }
@@ -176,7 +174,7 @@ public class RedisRpcConfig implements MessageListener {
             try {
                 return queue.offer(response, 2, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
-                logger.error("{}", e.getMessage(), e);
+                log.error("{}", e.getMessage(), e);
             }
         }else if (callback != null) {
             callback.run(response);

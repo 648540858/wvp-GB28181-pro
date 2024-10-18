@@ -6,6 +6,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -20,6 +22,7 @@ public class HookSubscribe {
      * 订阅数据过期时间
      */
     private final long subscribeExpire = 5 * 60 * 1000;
+
 
     @FunctionalInterface
     public interface Event{
@@ -70,7 +73,7 @@ public class HookSubscribe {
     private final Map<String, Hook> allHook = new ConcurrentHashMap<>();
 
     private void sendNotify(HookType hookType, MediaEvent event) {
-        Hook paramHook = Hook.getInstance(hookType, event.getApp(), event.getStream(), event.getMediaServer().getId());
+        Hook paramHook = Hook.getInstance(hookType, event.getApp(), event.getStream());
         Event hookSubscribeEvent = allSubscribes.get(paramHook.toString());
         if (hookSubscribeEvent != null) {
             HookData data = HookData.getInstance(event);
@@ -79,6 +82,7 @@ public class HookSubscribe {
     }
 
     public void addSubscribe(Hook hook, HookSubscribe.Event event) {
+        System.out.println("add==" + hook.toString());
         if (hook.getExpireTime() == null) {
             hook.setExpireTime(System.currentTimeMillis() + subscribeExpire);
         }
@@ -103,5 +107,9 @@ public class HookSubscribe {
                 allHook.remove(hook.toString());
             }
         }
+    }
+
+    public List<Hook> getAll() {
+        return new ArrayList<>(allHook.values());
     }
 }

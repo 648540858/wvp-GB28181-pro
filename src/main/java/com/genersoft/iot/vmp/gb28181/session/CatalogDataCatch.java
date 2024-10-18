@@ -1,10 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.session;
 
-import com.genersoft.iot.vmp.gb28181.bean.CatalogData;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -20,7 +17,7 @@ public class CatalogDataCatch {
     public static Map<String, CatalogData> data = new ConcurrentHashMap<>();
 
     @Autowired
-    private IVideoManagerStorage storager;
+    private IDeviceChannelService deviceChannelService;
 
     public void addReady(Device device, int sn ) {
         CatalogData catalogData = data.get(device.getDeviceId());
@@ -35,7 +32,8 @@ public class CatalogDataCatch {
         }
     }
 
-    public void put(String deviceId, int sn, int total, Device device, List<DeviceChannel> deviceChannelList) {
+    public void put(String deviceId, int sn, int total, Device device, List<DeviceChannel> deviceChannelList,
+                    List<Region> regionList, List<Group> groupList) {
         CatalogData catalogData = data.get(deviceId);
         if (catalogData == null) {
             catalogData = new CatalogData();
@@ -43,6 +41,8 @@ public class CatalogDataCatch {
             catalogData.setTotal(total);
             catalogData.setDevice(device);
             catalogData.setChannelList(deviceChannelList);
+            catalogData.setRegionListList(regionList);
+            catalogData.setGroupListListList(groupList);
             catalogData.setStatus(CatalogData.CatalogDataStatus.runIng);
             catalogData.setLastTime(Instant.now());
             data.put(deviceId, catalogData);
@@ -54,17 +54,52 @@ public class CatalogDataCatch {
             catalogData.setTotal(total);
             catalogData.setDevice(device);
             catalogData.setStatus(CatalogData.CatalogDataStatus.runIng);
-            catalogData.getChannelList().addAll(deviceChannelList);
+
+            if (deviceChannelList != null && !deviceChannelList.isEmpty()) {
+                if (catalogData.getChannelList() != null) {
+                    catalogData.getChannelList().addAll(deviceChannelList);
+                }
+            }
+            if (regionList != null && !regionList.isEmpty()) {
+                if (catalogData.getRegionListList() != null) {
+                    catalogData.getRegionListList().addAll(regionList);
+                }else {
+                    catalogData.setRegionListList(regionList);
+                }
+            }
+            if (groupList != null && !groupList.isEmpty()) {
+                if (catalogData.getGroupListListList() != null) {
+                    catalogData.getGroupListListList().addAll(groupList);
+                }else {
+                    catalogData.setGroupListListList(groupList);
+                }
+            }
             catalogData.setLastTime(Instant.now());
         }
     }
 
-    public List<DeviceChannel> get(String deviceId) {
+    public List<DeviceChannel> getDeviceChannelList(String deviceId) {
         CatalogData catalogData = data.get(deviceId);
         if (catalogData == null) {
             return null;
         }
         return catalogData.getChannelList();
+    }
+
+    public List<Region> getRegionList(String deviceId) {
+        CatalogData catalogData = data.get(deviceId);
+        if (catalogData == null) {
+            return null;
+        }
+        return catalogData.getRegionListList();
+    }
+
+    public List<Group> getGroupList(String deviceId) {
+        CatalogData catalogData = data.get(deviceId);
+        if (catalogData == null) {
+            return null;
+        }
+        return catalogData.getGroupListListList();
     }
 
     public int getTotal(String deviceId) {
@@ -113,9 +148,9 @@ public class CatalogDataCatch {
                 // 超过五秒收不到消息任务超时， 只更新这一部分数据, 收到数据与声明的总数一致，则重置通道数据，数据不全则只对收到的数据做更新操作
                 if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.runIng)) {
                     if (catalogData.getTotal() == catalogData.getChannelList().size()) {
-                        storager.resetChannels(catalogData.getDevice().getDeviceId(), catalogData.getChannelList());
+                        deviceChannelService.resetChannels(catalogData.getDevice().getId(), catalogData.getChannelList());
                     }else {
-                        storager.updateChannels(catalogData.getDevice().getDeviceId(), catalogData.getChannelList());
+                        deviceChannelService.updateChannels(catalogData.getDevice(), catalogData.getChannelList());
                     }
                     String errorMsg = "更新成功，共" + catalogData.getTotal() + "条，已更新" + catalogData.getChannelList().size() + "条";
                     catalogData.setErrorMsg(errorMsg);

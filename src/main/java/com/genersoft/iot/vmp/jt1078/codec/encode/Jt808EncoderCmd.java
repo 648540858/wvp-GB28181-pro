@@ -13,8 +13,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.util.ByteProcessor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 
 import java.util.LinkedList;
@@ -25,8 +24,8 @@ import java.util.List;
  * @date 2023/4/27 18:25
  * @email qingtaij@163.com
  */
+@Slf4j
 public class Jt808EncoderCmd extends MessageToByteEncoder<Cmd> {
-    private final static Logger log = LoggerFactory.getLogger(Jt808EncoderCmd.class);
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Cmd cmd, ByteBuf out) throws Exception {

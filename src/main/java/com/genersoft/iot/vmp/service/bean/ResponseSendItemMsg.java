@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.service.bean;
 
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 
 /**
@@ -9,15 +9,15 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
  */
 public class ResponseSendItemMsg {
 
-    private SendRtpItem sendRtpItem;
+    private SendRtpInfo sendRtpItem;
 
     private MediaServer mediaServerItem;
 
-    public SendRtpItem getSendRtpItem() {
+    public SendRtpInfo getSendRtpItem() {
         return sendRtpItem;
     }
 
-    public void setSendRtpItem(SendRtpItem sendRtpItem) {
+    public void setSendRtpItem(SendRtpInfo sendRtpItem) {
         this.sendRtpItem = sendRtpItem;
     }
 

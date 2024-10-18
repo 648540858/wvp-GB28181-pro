@@ -2,13 +2,18 @@ package com.genersoft.iot.vmp.gb28181.bean;
 
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
 /**
  * 国标设备/平台
  * @author lin
  */
+@Data
 @Schema(description = "国标设备/平台")
 public class Device {
+
+	@Schema(description = "数据库自增ID")
+	private int id;
 
 	/**
 	 * 设备国标编号
@@ -168,7 +173,7 @@ public class Device {
 	private boolean ssrcCheck = false;
 
 	/**
-	 * 地理坐标系， 目前支持 WGS84,GCJ02
+	 * 地理坐标系， 目前支持 WGS84,GCJ02, 此字段保留，暂无用
 	 */
 	@Schema(description = "地理坐标系， 目前支持 WGS84,GCJ02")
 	private String geoCoordSys;
@@ -190,273 +195,4 @@ public class Device {
 
 	@Schema(description = "控制语音对讲流程，释放收到ACK后发流")
 	private boolean broadcastPushAfterAck;
-
-	public String getDeviceId() {
-		return deviceId;
-	}
-
-	public void setDeviceId(String deviceId) {
-		this.deviceId = deviceId;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getManufacturer() {
-		return manufacturer;
-	}
-
-	public void setManufacturer(String manufacturer) {
-		this.manufacturer = manufacturer;
-	}
-
-	public String getModel() {
-		return model;
-	}
-
-	public void setModel(String model) {
-		this.model = model;
-	}
-
-	public String getFirmware() {
-		return firmware;
-	}
-
-	public void setFirmware(String firmware) {
-		this.firmware = firmware;
-	}
-
-	public String getTransport() {
-		return transport;
-	}
-
-	public void setTransport(String transport) {
-		this.transport = transport;
-	}
-
-	public String getStreamMode() {
-		return streamMode;
-	}
-
-	public Integer getStreamModeForParam() {
-		if (streamMode == null) {
-			return 0;
-		}
-		if (streamMode.equalsIgnoreCase("UDP")) {
-			return 0;
-		}else if (streamMode.equalsIgnoreCase("TCP-PASSIVE")) {
-			return 1;
-		}else if (streamMode.equalsIgnoreCase("TCP-ACTIVE")) {
-			return 2;
-		}
-		return 0;
-	}
-
-	public void setStreamMode(String streamMode) {
-		this.streamMode = streamMode;
-	}
-
-	public String getIp() {
-		return ip;
-	}
-
-	public void setIp(String ip) {
-		this.ip = ip;
-	}
-
-	public int getPort() {
-		return port;
-	}
-
-	public void setPort(int port) {
-		this.port = port;
-	}
-
-	public String getHostAddress() {
-		return hostAddress;
-	}
-
-	public void setHostAddress(String hostAddress) {
-		this.hostAddress = hostAddress;
-	}
-
-	public boolean isOnLine() {
-		return onLine;
-	}
-
-	public void setOnLine(boolean onLine) {
-		this.onLine = onLine;
-	}
-
-	public int getChannelCount() {
-		return channelCount;
-	}
-
-	public void setChannelCount(int channelCount) {
-		this.channelCount = channelCount;
-	}
-
-	public String getRegisterTime() {
-		return registerTime;
-	}
-
-	public void setRegisterTime(String registerTime) {
-		this.registerTime = registerTime;
-	}
-
-	public String getKeepaliveTime() {
-		return keepaliveTime;
-	}
-
-	public void setKeepaliveTime(String keepaliveTime) {
-		this.keepaliveTime = keepaliveTime;
-	}
-
-	public int getExpires() {
-		return expires;
-	}
-
-	public void setExpires(int expires) {
-		this.expires = expires;
-	}
-
-	public String getCreateTime() {
-		return createTime;
-	}
-
-	public void setCreateTime(String createTime) {
-		this.createTime = createTime;
-	}
-
-	public String getUpdateTime() {
-		return updateTime;
-	}
-
-	public void setUpdateTime(String updateTime) {
-		this.updateTime = updateTime;
-	}
-
-	public String getMediaServerId() {
-		return mediaServerId;
-	}
-
-	public void setMediaServerId(String mediaServerId) {
-		this.mediaServerId = mediaServerId;
-	}
-
-	public String getCharset() {
-		return charset;
-	}
-
-	public void setCharset(String charset) {
-		this.charset = charset;
-	}
-
-	public int getSubscribeCycleForCatalog() {
-		return subscribeCycleForCatalog;
-	}
-
-	public void setSubscribeCycleForCatalog(int subscribeCycleForCatalog) {
-		this.subscribeCycleForCatalog = subscribeCycleForCatalog;
-	}
-
-	public int getSubscribeCycleForMobilePosition() {
-		return subscribeCycleForMobilePosition;
-	}
-
-	public void setSubscribeCycleForMobilePosition(int subscribeCycleForMobilePosition) {
-		this.subscribeCycleForMobilePosition = subscribeCycleForMobilePosition;
-	}
-
-	public int getMobilePositionSubmissionInterval() {
-		return mobilePositionSubmissionInterval;
-	}
-
-	public void setMobilePositionSubmissionInterval(int mobilePositionSubmissionInterval) {
-		this.mobilePositionSubmissionInterval = mobilePositionSubmissionInterval;
-	}
-
-	public int getSubscribeCycleForAlarm() {
-		return subscribeCycleForAlarm;
-	}
-
-	public void setSubscribeCycleForAlarm(int subscribeCycleForAlarm) {
-		this.subscribeCycleForAlarm = subscribeCycleForAlarm;
-	}
-
-	public boolean isSsrcCheck() {
-		return ssrcCheck;
-	}
-
-	public void setSsrcCheck(boolean ssrcCheck) {
-		this.ssrcCheck = ssrcCheck;
-	}
-
-	public String getGeoCoordSys() {
-		return geoCoordSys;
-	}
-
-	public void setGeoCoordSys(String geoCoordSys) {
-		this.geoCoordSys = geoCoordSys;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public String getSdpIp() {
-		return sdpIp;
-	}
-
-	public void setSdpIp(String sdpIp) {
-		this.sdpIp = sdpIp;
-	}
-
-	public String getLocalIp() {
-		return localIp;
-	}
-
-	public void setLocalIp(String localIp) {
-		this.localIp = localIp;
-	}
-
-	public int getKeepaliveIntervalTime() {
-		return keepaliveIntervalTime;
-	}
-
-	public void setKeepaliveIntervalTime(int keepaliveIntervalTime) {
-		this.keepaliveIntervalTime = keepaliveIntervalTime;
-	}
-
-	public boolean isAsMessageChannel() {
-		return asMessageChannel;
-	}
-
-	public void setAsMessageChannel(boolean asMessageChannel) {
-		this.asMessageChannel = asMessageChannel;
-	}
-
-	public SipTransactionInfo getSipTransactionInfo() {
-		return sipTransactionInfo;
-	}
-
-	public void setSipTransactionInfo(SipTransactionInfo sipTransactionInfo) {
-		this.sipTransactionInfo = sipTransactionInfo;
-	}
-    public boolean isBroadcastPushAfterAck() {
-        return broadcastPushAfterAck;
-    }
-
-    public void setBroadcastPushAfterAck(boolean broadcastPushAfterAck) {
-        this.broadcastPushAfterAck = broadcastPushAfterAck;
-    }
 }

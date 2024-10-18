@@ -11,11 +11,11 @@ import jtChannelEdit from '../components/JTChannelEdit.vue'
 import jtDeviceParams from '../components/JTDeviceParam.vue'
 import channelList from '../components/channelList.vue'
 import gbRecordDetail from '../components/GBRecordDetail.vue'
-import pushVideoList from '../components/PushVideoList.vue'
+import streamPushList from '../components/StreamPushList.vue'
 import streamProxyList from '../components/StreamProxyList.vue'
 import map from '../components/map.vue'
 import login from '../components/Login.vue'
-import parentPlatformList from '../components/ParentPlatformList.vue'
+import platform from '../components/PlatformList.vue'
 import cloudRecord from '../components/CloudRecord.vue'
 import cloudRecordDetail from '../components/CloudRecordDetail.vue'
 import mediaServerManger from '../components/MediaServerManger.vue'
@@ -28,6 +28,8 @@ import userManager from '../components/UserManager.vue'
 import userApiKeyManager from '../components/UserApiKeyManager.vue'
 import wasmPlayer from '../components/common/jessibuca.vue'
 import rtcPlayer from '../components/dialog/rtcPlayer.vue'
+import region from '../components/region.vue'
+import group from '../components/group.vue'
 
 const originalPush = VueRouter.prototype.push
 VueRouter.prototype.push = function push(location) {
@@ -59,6 +61,10 @@ export default new VueRouter({
           component: deviceList,
         },
         {
+          path: '/streamPushList',
+          component: streamPushList,
+        },
+        {
           path: '/jtDeviceList',
           component: jtDeviceList,
         },
@@ -83,6 +89,11 @@ export default new VueRouter({
           path: '/gbRecordDetail/:deviceId/:channelId/',
           name: 'gbRecordDetail',
           component: gbRecordDetail,
+        },
+        {
+          path: '/platformList/:count/:page',
+          name: 'platformList',
+          component: platform,
         },
         {
           path: '/jtRecordDetail/:phoneNumber/:channelId/',
@@ -163,6 +174,16 @@ export default new VueRouter({
           path: '/userApiKeyManager/:userId',
           name: 'userApiKeyManager',
           component: userApiKeyManager,
+        },
+        {
+          path: '/channel/region',
+          name: 'region',
+          component: region,
+        },
+        {
+          path: '/channel/group',
+          name: 'group',
+          component: group,
         }
         ,
         ]

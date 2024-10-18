@@ -2,8 +2,7 @@ package com.genersoft.iot.vmp.conf;
 
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.utils.DateUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -13,12 +12,10 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.regex.Pattern;
 
-
+@Slf4j
 @Configuration("mediaConfig")
 @Order(0)
 public class MediaConfig{
-
-    private final static Logger logger = LoggerFactory.getLogger(MediaConfig.class);
 
     // 修改必须配置，不再支持自动获取
     @Value("${media.id}")
@@ -179,7 +176,7 @@ public class MediaConfig{
                 try {
                     hostAddress = InetAddress.getByName(sdpIp).getHostAddress();
                 } catch (UnknownHostException e) {
-                    logger.error("[获取SDP IP]: 域名解析失败");
+                    log.error("[获取SDP IP]: 域名解析失败");
                 }
                 return hostAddress;
             }

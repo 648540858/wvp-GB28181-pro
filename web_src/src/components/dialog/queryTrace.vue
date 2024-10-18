@@ -84,7 +84,10 @@ export default {
             this.callback(res.data.data)
             this.close()
           }else {
-            this.$message.error(res.data.msg);
+            this.$message.error({
+              showClose: true,
+              message: res.data.msg,
+            });
           }
 
         }

@@ -2,18 +2,17 @@ package com.genersoft.iot.vmp.conf;
 
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.springframework.core.annotation.Order;
 import org.mitre.dsmiley.httpproxy.ProxyServlet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.util.ObjectUtils;
 
 import javax.servlet.ServletException;
@@ -28,9 +27,8 @@ import java.net.ConnectException;
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Configuration
 @Order(1)
+@Slf4j
 public class ProxyServletConfig {
-
-    private final static Logger logger = LoggerFactory.getLogger(ProxyServletConfig.class);
 
     @Autowired
     private IMediaServerService mediaServerService;
@@ -44,7 +42,7 @@ public class ProxyServletConfig {
         servletRegistrationBean.setName("zlm_Proxy");
         servletRegistrationBean.addInitParameter("targetUri", "http://127.0.0.1:6080");
         servletRegistrationBean.addUrlMappings();
-        if (logger.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             servletRegistrationBean.addInitParameter("log", "true");
         }
         return servletRegistrationBean;
@@ -85,15 +83,15 @@ public class ProxyServletConfig {
             try {
                 super.handleRequestException(proxyRequest, proxyResonse, e);
             } catch (ServletException servletException) {
-                logger.error("zlm 代理失败： ", e);
+                log.error("zlm 代理失败： ", e);
             } catch (IOException ioException) {
                 if (ioException instanceof ConnectException) {
-                    logger.error("zlm 连接失败");
+                    log.error("zlm 连接失败");
                 }  else {
-                    logger.error("zlm 代理失败： ", e);
+                    log.error("zlm 代理失败： ", e);
                 }
             } catch (RuntimeException exception){
-                logger.error("zlm 代理失败： ", e);
+                log.error("zlm 代理失败： ", e);
             }
         }
 
@@ -154,7 +152,7 @@ public class ProxyServletConfig {
             MediaServer mediaInfo = getMediaInfoByUri(requestURI);
             String url = super.rewriteUrlFromRequest(servletRequest);
             if (mediaInfo == null) {
-                logger.error("[ZLM服务访问代理]，错误：处理url信息时未找到流媒体信息=>{}", requestURI);
+                log.error("[ZLM服务访问代理]，错误：处理url信息时未找到流媒体信息=>{}", requestURI);
                 return  url;
             }
             if (!ObjectUtils.isEmpty(mediaInfo.getId())) {
@@ -170,7 +168,7 @@ public class ProxyServletConfig {
         servletRegistrationBean.setName("record_proxy");
         servletRegistrationBean.addInitParameter("targetUri", "http://127.0.0.1:18081");
         servletRegistrationBean.addUrlMappings();
-        if (logger.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             servletRegistrationBean.addInitParameter("log", "true");
         }
         return servletRegistrationBean;
@@ -214,10 +212,10 @@ public class ProxyServletConfig {
             try {
                 super.handleRequestException(proxyRequest, proxyResponse, e);
             } catch (ServletException servletException) {
-                logger.error("录像服务 代理失败： ", e);
+                log.error("录像服务 代理失败： ", e);
             } catch (IOException ioException) {
                 if (ioException instanceof ConnectException) {
-                    logger.error("录像服务 连接失败");
+                    log.error("录像服务 连接失败");
 //                }else if (ioException instanceof ClientAbortException) {
 //                    /**
 //                     * TODO 使用这个代理库实现代理在遇到代理视频文件时，如果是206结果，会遇到报错蛋市目前功能正常，
@@ -225,10 +223,10 @@ public class ProxyServletConfig {
 //                     */
 
                 }else {
-                    logger.error("录像服务 代理失败： ", e);
+                    log.error("录像服务 代理失败： ", e);
                 }
             } catch (RuntimeException exception){
-                logger.error("录像服务 代理失败： ", e);
+                log.error("录像服务 代理失败： ", e);
             }
         }
 
@@ -290,7 +288,7 @@ public class ProxyServletConfig {
             MediaServer mediaInfo = getMediaInfoByUri(requestURI);
             String url = super.rewriteUrlFromRequest(servletRequest);
             if (mediaInfo == null) {
-                logger.error("[录像服务访问代理]，错误：处理url信息时未找到流媒体信息=>{}", requestURI);
+                log.error("[录像服务访问代理]，错误：处理url信息时未找到流媒体信息=>{}", requestURI);
                 return  url;
             }
             if (!ObjectUtils.isEmpty(mediaInfo.getId())) {

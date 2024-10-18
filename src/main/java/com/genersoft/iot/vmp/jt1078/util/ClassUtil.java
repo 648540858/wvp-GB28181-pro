@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.jt1078.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -10,17 +9,15 @@ import java.lang.annotation.Annotation;
 import java.util.LinkedList;
 import java.util.List;
 
+@Slf4j
 public class ClassUtil {
-
-    private static final Logger logger = LoggerFactory.getLogger(ClassUtil.class);
-
 
     public static Object getBean(Class<?> clazz) {
         if (clazz != null) {
             try {
                 return clazz.getDeclaredConstructor().newInstance();
             } catch (Exception ex) {
-                logger.error("ClassUtil:找不到指定的类", ex);
+                log.error("ClassUtil:找不到指定的类", ex);
             }
         }
         return null;
@@ -32,14 +29,14 @@ public class ClassUtil {
         try {
             clazz = Class.forName(className);
         } catch (Exception ex) {
-            logger.error("ClassUtil:找不到指定的类");
+            log.error("ClassUtil:找不到指定的类");
         }
         if (clazz != null) {
             try {
                 //获取声明的构造器--》创建实例
                 return clazz.getDeclaredConstructor().newInstance();
             } catch (Exception ex) {
-                logger.error("ClassUtil:找不到指定的类", ex);
+                log.error("ClassUtil:找不到指定的类", ex);
             }
         }
         return null;

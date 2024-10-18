@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,8 +26,8 @@ import java.util.List;
  * @date 2023/4/27 18:10
  * @email qingtaij@163.com
  */
+@Slf4j
 public class Jt808Decoder extends ByteToMessageDecoder {
-    private final static Logger log = LoggerFactory.getLogger(Jt808Decoder.class);
 
     private ApplicationEventPublisher applicationEventPublisher = null;
     private Ijt1078Service service = null;

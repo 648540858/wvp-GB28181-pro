@@ -26,7 +26,7 @@ public class VideoManagerConstants {
 	public static final String KEEPLIVEKEY_PREFIX = "VMP_KEEPALIVE_";
 
 	// TODO 此处多了一个_，暂不修改
-	public static final String INVITE_PREFIX = "VMP_INVITE";
+	public static final String INVITE_PREFIX = "VMP_INVITE_INFO";
 	public static final String PLAYER_PREFIX = "VMP_INVITE_PLAY_";
 	public static final String PLAY_BLACK_PREFIX = "VMP_INVITE_PLAYBACK_";
 	public static final String DOWNLOAD_PREFIX = "VMP_INVITE_DOWNLOAD_";
@@ -39,7 +39,10 @@ public class VideoManagerConstants {
 
 	public static final String PLATFORM_REGISTER_INFO_PREFIX = "VMP_PLATFORM_REGISTER_INFO_";
 
-	public static final String PLATFORM_SEND_RTP_INFO_PREFIX = "VMP_PLATFORM_SEND_RTP_INFO_";
+	public static final String SEND_RTP_INFO = "VMP_SEND_RTP_INFO:";
+	public static final String SEND_RTP_INFO_CALLID = "VMP_SEND_RTP_INFO:CALL_ID";
+	public static final String SEND_RTP_INFO_STREAM = "VMP_SEND_RTP_INFO:STREAM";
+	public static final String SEND_RTP_INFO_CHANNEL = "VMP_SEND_RTP_INFO:CHANNEL";
 
 	public static final String EVENT_ONLINE_REGISTER = "1";
 
@@ -51,7 +54,9 @@ public class VideoManagerConstants {
 
 	public static final String MEDIA_SSRC_USED_PREFIX = "VMP_MEDIA_USED_SSRC_";
 
-	public static final String MEDIA_TRANSACTION_USED_PREFIX = "VMP_MEDIA_TRANSACTION_";
+	public static final String SIP_INVITE_SESSION = "VMP_SIP_INVITE_SESSION:";
+	public static final String SIP_INVITE_SESSION_CALL_ID = SIP_INVITE_SESSION + "CALL_ID" + ":";
+	public static final String SIP_INVITE_SESSION_STREAM = SIP_INVITE_SESSION + "STREAM" + ":";
 
 	public static final String MEDIA_STREAM_AUTHORITY = "VMP_MEDIA_STREAM_AUTHORITY_";
 

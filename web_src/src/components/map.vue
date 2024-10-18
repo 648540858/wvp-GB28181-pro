@@ -1,7 +1,7 @@
 <template>
     <div id="devicePosition" style="width: 100vw; height: 91vh;">
       <el-container v-if="onOff" style="height: 91vh;" v-loading="isLoging">
-        <el-aside width="auto" style="background-color: #ffffff">
+        <el-aside width="400px" style="background-color: #ffffff">
           <DeviceTree ref="deviceTree" :clickEvent="clickEvent" :contextMenuEvent="contextmenuEventHandler" ></DeviceTree>
         </el-aside>
         <el-main style="height: 91vh; padding: 0">
@@ -98,28 +98,43 @@ export default {
 
   },
   methods: {
-    clickEvent: function (device, data, isCatalog) {
-      this.device = device;
-      if (data.channelId && !isCatalog) {
-        // 点击通道
-        if (data[this.longitudeStr] * data[this.latitudeStr] === 0) {
-          this.$message.error('未获取到位置信息');
-        } else {
-          if (this.layer != null) {
-            this.$refs.map.removeLayer(this.layer);
-          }
-          this.closeInfoBox()
-          this.layer = this.$refs.map.addLayer([{
-            position: [data[this.longitudeStr], data[this.latitudeStr]],
-            image: {
-              src: this.getImageByChannel(data),
-              anchor: [0.5, 1]
-            },
-            data: data
-          }], this.featureClickEvent)
-          this.$refs.map.panTo([data[this.longitudeStr], data[this.latitudeStr]], mapParam.maxZoom)
+    clickEvent: function (channelId) {
+      this.$axios({
+        method: 'get',
+        url: `/api/common/channel/one`,
+        params: {
+          id: channelId,
         }
-      }
+      }).then((res) => {
+        if (res.data.code === 0) {
+          console.log(res.data.data)
+          console.log(res.data.data.gbLongitude)
+          console.log(res.data.data.gbLatitude)
+          if (!res.data.data.gbLongitude || !res.data.data.gbLatitude) {
+            this.$message.error({
+              showClose: true,
+              message: "位置信息不存在"
+            })
+          }else {
+            if (this.layer != null) {
+              this.$refs.map.removeLayer(this.layer);
+            }
+            this.closeInfoBox()
+            this.layer = this.$refs.map.addLayer([{
+              position: [res.data.data.gbLongitude, res.data.data.gbLatitude],
+              image: {
+                src: this.getImageByChannel(res.data.data),
+                anchor: [0.5, 1]
+              },
+              data: res.data.data
+            }], this.featureClickEvent)
+            this.$refs.map.panTo([res.data.data.gbLongitude, res.data.data.gbLatitude], mapParam.maxZoom)
+          }
+        }
+
+      }).catch(function (error) {
+        console.log(error);
+      });
     },
     contextmenuEventHandler: function (device, event, data, isCatalog) {
       console.log(device)
@@ -235,38 +250,44 @@ export default {
         } else if (params.length > 1) {
           this.$refs.map.fit(this.layer)
         } else {
-          this.$message.error('未获取到位置信息');
+          this.$message.error({
+            showClose: true,
+            message: "未获取到位置信息"
+          })
         }
       } else {
-        this.$message.error('未获取到位置信息');
+        this.$message.error({
+          showClose: true,
+          message: "未获取到位置信息"
+        })
       }
     },
     getImageByChannel: function (channel) {
       let src = "static/images/gis/camera.png"
-      switch (channel.ptzType) {
+      switch (channel.gbPtzType) {
         case 1:
-          if (channel.status === 1) {
+          if (channel.gbStatus === "ON") {
             src = "static/images/gis/camera1.png"
           } else {
             src = "static/images/gis/camera1-offline.png"
           }
           break;
         case 2:
-          if (channel.status === 1) {
+          if (channel.gbStatus === "ON") {
             src = "static/images/gis/camera2.png"
           } else {
             src = "static/images/gis/camera2-offline.png"
           }
           break;
         case 3:
-          if (channel.status === 1) {
+          if (channel.gbStatus === "ON") {
             src = "static/images/gis/camera3.png"
           } else {
             src = "static/images/gis/camera3-offline.png"
           }
           break;
         default:
-          if (channel.status === 1) {
+          if (channel.gbStatus === "ON") {
             src = "static/images/gis/camera.png"
           } else {
             src = "static/images/gis/camera-offline.png"
@@ -314,7 +335,10 @@ export default {
       });
     },
     edit: function (data) {
-      this.$message.warning('暂不支持');
+      this.$message.warning({
+        showClose: true,
+        message: "暂不支持"
+      })
     },
     getTrace: function (data) {
       // this.$message.warning('暂不支持');
@@ -323,7 +347,10 @@ export default {
         console.log("getTrace")
         console.log(channelPositions)
         if (channelPositions.length === 0) {
-          this.$message.success('未查询到轨迹信息');
+          this.$message.info({
+            showClose: true,
+            message: "未查询到轨迹信息"
+          })
         } else {
           let positions = [];
           for (let i = 0; i < channelPositions.length; i++) {
@@ -333,7 +360,10 @@ export default {
 
           }
           if (positions.length === 0) {
-            this.$message.success('未查询到轨迹信息');
+            this.$message.info({
+              showClose: true,
+              message: "未查询到轨迹信息"
+            })
             return;
           }
           this.lineLayer = this.$refs.map.addLineLayer(positions)

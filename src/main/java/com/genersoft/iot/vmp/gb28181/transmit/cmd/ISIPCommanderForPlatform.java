@@ -22,12 +22,12 @@ public interface ISIPCommanderForPlatform {
      * @param parentPlatform
      * @return
      */
-    void register(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException;
+    void register(Platform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException;
 
-    void register(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException;
+    void register(Platform parentPlatform, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException;
 
 
-    void register(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo, WWWAuthenticateHeader www, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent, boolean isRegister) throws SipException, InvalidArgumentException, ParseException;
+    void register(Platform parentPlatform, SipTransactionInfo sipTransactionInfo, WWWAuthenticateHeader www, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent, boolean isRegister) throws SipException, InvalidArgumentException, ParseException;
 
     /**
      * 向上级平台注销
@@ -35,7 +35,7 @@ public interface ISIPCommanderForPlatform {
      * @param parentPlatform
      * @return
      */
-    void unregister(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException;
+    void unregister(Platform parentPlatform, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException;
 
 
     /**
@@ -44,7 +44,7 @@ public interface ISIPCommanderForPlatform {
      * @param parentPlatform
      * @return callId(作为接受回复的判定)
      */
-    String keepalive(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent)
+    String keepalive(Platform parentPlatform, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent)
             throws SipException, InvalidArgumentException, ParseException;
 
 
@@ -58,10 +58,10 @@ public interface ISIPCommanderForPlatform {
      * @param size
      * @return
      */
-    void catalogQuery(DeviceChannel channel, ParentPlatform parentPlatform, String sn, String fromTag, int size)
+    void catalogQuery(CommonGBChannel channel, Platform parentPlatform, String sn, String fromTag, int size)
             throws SipException, InvalidArgumentException, ParseException;
 
-    void catalogQuery(List<DeviceChannel> channels, ParentPlatform parentPlatform, String sn, String fromTag)
+    void catalogQuery(List<CommonGBChannel> channels, Platform parentPlatform, String sn, String fromTag)
             throws InvalidArgumentException, ParseException, SipException;
 
     /**
@@ -72,7 +72,7 @@ public interface ISIPCommanderForPlatform {
      * @param fromTag FROM头的tag信息
      * @return
      */
-    void deviceInfoResponse(ParentPlatform parentPlatform,Device device, String sn, String fromTag) throws SipException, InvalidArgumentException, ParseException;
+    void deviceInfoResponse(Platform parentPlatform, Device device, String sn, String fromTag) throws SipException, InvalidArgumentException, ParseException;
 
     /**
      * 向上级回复DeviceStatus查询信息
@@ -82,7 +82,7 @@ public interface ISIPCommanderForPlatform {
      * @param fromTag
      * @return
      */
-    void deviceStatusResponse(ParentPlatform parentPlatform,String channelId, String sn, String fromTag,boolean status) throws SipException, InvalidArgumentException, ParseException;
+    void deviceStatusResponse(Platform parentPlatform, String channelId, String sn, String fromTag, boolean status) throws SipException, InvalidArgumentException, ParseException;
 
     /**
      * 向上级回复移动位置订阅消息
@@ -92,7 +92,7 @@ public interface ISIPCommanderForPlatform {
      * @param subscribeInfo  订阅相关的信息
      * @return
      */
-    void sendNotifyMobilePosition(ParentPlatform parentPlatform, GPSMsgInfo gpsMsgInfo, SubscribeInfo subscribeInfo)
+    void sendNotifyMobilePosition(Platform parentPlatform, GPSMsgInfo gpsMsgInfo, CommonGBChannel channel, SubscribeInfo subscribeInfo)
             throws InvalidArgumentException, ParseException, NoSuchFieldException, SipException, IllegalAccessException;
 
     /**
@@ -102,7 +102,7 @@ public interface ISIPCommanderForPlatform {
      * @param deviceAlarm    报警信息信息
      * @return
      */
-    void sendAlarmMessage(ParentPlatform parentPlatform, DeviceAlarm deviceAlarm) throws SipException, InvalidArgumentException, ParseException;
+    void sendAlarmMessage(Platform parentPlatform, DeviceAlarm deviceAlarm) throws SipException, InvalidArgumentException, ParseException;
 
     /**
      * 回复catalog事件-增加/更新
@@ -110,7 +110,7 @@ public interface ISIPCommanderForPlatform {
      * @param parentPlatform
      * @param deviceChannels
      */
-    void sendNotifyForCatalogAddOrUpdate(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels, SubscribeInfo subscribeInfo, Integer index) throws InvalidArgumentException, ParseException, NoSuchFieldException, SipException, IllegalAccessException;
+    void sendNotifyForCatalogAddOrUpdate(String type, Platform parentPlatform, List<CommonGBChannel> deviceChannels, SubscribeInfo subscribeInfo, Integer index) throws InvalidArgumentException, ParseException, NoSuchFieldException, SipException, IllegalAccessException;
 
     /**
      * 回复catalog事件-删除
@@ -118,7 +118,7 @@ public interface ISIPCommanderForPlatform {
      * @param parentPlatform
      * @param deviceChannels
      */
-    void sendNotifyForCatalogOther(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels,
+    void sendNotifyForCatalogOther(String type, Platform parentPlatform, List<CommonGBChannel> deviceChannels,
                                    SubscribeInfo subscribeInfo, Integer index) throws InvalidArgumentException,
             ParseException, NoSuchFieldException, SipException, IllegalAccessException;
 
@@ -130,7 +130,7 @@ public interface ISIPCommanderForPlatform {
      * @param fromTag        fromTag
      * @param recordInfo     录像信息
      */
-    void recordInfo(DeviceChannel deviceChannel, ParentPlatform parentPlatform, String fromTag, RecordInfo recordInfo)
+    void recordInfo(CommonGBChannel deviceChannel, Platform parentPlatform, String fromTag, RecordInfo recordInfo)
             throws SipException, InvalidArgumentException, ParseException;
 
     /**
@@ -140,23 +140,15 @@ public interface ISIPCommanderForPlatform {
      * @param sendRtpItem
      * @return
      */
-    void sendMediaStatusNotify(ParentPlatform platform, SendRtpItem sendRtpItem) throws SipException, InvalidArgumentException, ParseException;
+    void sendMediaStatusNotify(Platform platform, SendRtpInfo sendRtpItem) throws SipException, InvalidArgumentException, ParseException;
 
-    /**
-     * 向发起点播的上级回复bye
-     *
-     * @param platform 平台信息
-     * @param callId   callId
-     */
-    void streamByeCmd(ParentPlatform platform, String callId) throws SipException, InvalidArgumentException, ParseException;
+    void streamByeCmd(Platform platform, SendRtpInfo sendRtpItem, CommonGBChannel channel) throws SipException, InvalidArgumentException, ParseException;
 
-    void streamByeCmd(ParentPlatform platform, SendRtpItem sendRtpItem) throws SipException, InvalidArgumentException, ParseException;
+    void streamByeCmd(Platform platform, CommonGBChannel channel, String stream, String callId, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException;
 
-    void streamByeCmd(ParentPlatform platform, String channelId, String stream, String callId, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException;
-
-    void broadcastInviteCmd(ParentPlatform platform, String channelId, MediaServer mediaServerItem,
+    void broadcastInviteCmd(Platform platform, CommonGBChannel channel, MediaServer mediaServerItem,
                             SSRCInfo ssrcInfo, HookSubscribe.Event event, SipSubscribe.Event okEvent,
                             SipSubscribe.Event errorEvent) throws ParseException, SipException, InvalidArgumentException;
 
-    void broadcastResultCmd(ParentPlatform platform, DeviceChannel deviceChannel, String sn, boolean result, SipSubscribe.Event errorEvent,  SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
+    void broadcastResultCmd(Platform platform, CommonGBChannel deviceChannel, String sn, boolean result, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
 }

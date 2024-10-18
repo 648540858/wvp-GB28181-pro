@@ -11,7 +11,7 @@
       </div>
     </div>
     <!--ApiKey列表-->
-    <el-table :data="userList" style="width: 100%;font-size: 12px;" :height="winHeight"
+    <el-table size="medium"  :data="userList" style="width: 100%;font-size: 12px;" :height="winHeight"
               header-row-class-name="table-header">
       <el-table-column prop="user.username" label="用户名" min-width="120"/>
       <el-table-column prop="app" label="应用名" min-width="160"/>
@@ -64,7 +64,7 @@
     <addUserApiKey ref="addUserApiKey"></addUserApiKey>
     <remarkUserApiKey ref="remarkUserApiKey"></remarkUserApiKey>
     <el-pagination
-      style="float: right"
+      style="text-align: right"
       @size-change="handleSizeChange"
       @current-change="currentChange"
       :current-page="currentPage"

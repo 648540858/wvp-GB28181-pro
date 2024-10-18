@@ -1,14 +1,11 @@
 package com.genersoft.iot.vmp.conf;
 
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
+import com.genersoft.iot.vmp.gb28181.bean.PlatformCatch;
+import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
-import com.genersoft.iot.vmp.service.IPlatformService;
-import com.genersoft.iot.vmp.service.impl.PlatformServiceImpl;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
@@ -20,12 +17,10 @@ import java.util.List;
  * 系统启动时控制上级平台重新注册
  * @author lin
  */
+@Slf4j
 @Component
 @Order(value=13)
 public class SipPlatformRunner implements CommandLineRunner {
-
-    @Autowired
-    private IVideoManagerStorage storager;
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -36,37 +31,38 @@ public class SipPlatformRunner implements CommandLineRunner {
     @Autowired
     private ISIPCommanderForPlatform sipCommanderForPlatform;
 
-    private final static Logger logger = LoggerFactory.getLogger(PlatformServiceImpl.class);
-
     @Override
     public void run(String... args) throws Exception {
         // 获取所有启用的平台
-        List<ParentPlatform> parentPlatforms = storager.queryEnableParentPlatformList(true);
+        List<Platform> parentPlatforms = platformService.queryEnablePlatformList();
 
-        for (ParentPlatform parentPlatform : parentPlatforms) {
+        for (Platform platform : parentPlatforms) {
 
-            ParentPlatformCatch parentPlatformCatchOld = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
+            PlatformCatch platformCatchOld = redisCatchStorage.queryPlatformCatchInfo(platform.getServerGBId());
 
             // 更新缓存
-            ParentPlatformCatch parentPlatformCatch = new ParentPlatformCatch();
-            parentPlatformCatch.setParentPlatform(parentPlatform);
-            parentPlatformCatch.setId(parentPlatform.getServerGBId());
-            redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
-            if (parentPlatformCatchOld != null) {
+            PlatformCatch platformCatch = new PlatformCatch();
+            platformCatch.setPlatform(platform);
+            platformCatch.setId(platform.getServerGBId());
+            redisCatchStorage.updatePlatformCatchInfo(platformCatch);
+            if (platformCatchOld != null) {
                 // 取消订阅
                 try {
-                    sipCommanderForPlatform.unregister(parentPlatform, parentPlatformCatchOld.getSipTransactionInfo(), null, (eventResult)->{
-                        platformService.login(parentPlatform);
+                    log.info("[平台主动注销] {}({})", platform.getName(), platform.getServerGBId());
+                    sipCommanderForPlatform.unregister(platform, platformCatchOld.getSipTransactionInfo(), null, (eventResult)->{
+                        platformService.login(platform);
                     });
                 } catch (Exception e) {
-                    logger.error("[命令发送失败] 国标级联 注销: {}", e.getMessage());
-                    platformService.offline(parentPlatform, true);
+                    log.error("[命令发送失败] 国标级联 注销: {}", e.getMessage());
+                    platformService.offline(platform, true);
                     continue;
                 }
+            }else {
+                platformService.login(platform);
             }
 
-            // 设置所有平台离线
-            platformService.offline(parentPlatform, false);
+            // 设置平台离线
+            platformService.offline(platform, false);
         }
     }
 }

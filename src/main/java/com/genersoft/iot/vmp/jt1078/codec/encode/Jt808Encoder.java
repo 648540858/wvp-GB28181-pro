@@ -7,8 +7,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
@@ -17,8 +16,8 @@ import java.util.List;
  * @date 2023/4/27 18:10
  * @email qingtaij@163.com
  */
+@Slf4j
 public class Jt808Encoder extends MessageToByteEncoder<Rs> {
-    private final static Logger log = LoggerFactory.getLogger(Jt808Encoder.class);
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Rs msg, ByteBuf out) throws Exception {

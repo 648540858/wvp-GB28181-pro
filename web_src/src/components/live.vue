@@ -1,22 +1,28 @@
 <template>
   <div id="devicePosition" style="width:100vw; height: 91vh">
     <el-container v-loading="loading" style="height: 91vh;" element-loading-text="拼命加载中">
-      <el-aside width="300px" style="background-color: #ffffff">
+      <el-aside width="400px" style="background-color: #ffffff">
         <DeviceTree :clickEvent="clickEvent" :contextMenuEvent="contextMenuEvent"></DeviceTree>
       </el-aside>
       <el-container>
-        <el-header height="5vh" style="text-align: left;font-size: 17px;line-height:5vh">
-          分屏:
-          <i class="el-icon-full-screen btn" :class="{active:spilt==1}" @click="spilt=1"/>
-          <i class="el-icon-menu btn" :class="{active:spilt==4}" @click="spilt=4"/>
-          <i class="el-icon-s-grid btn" :class="{active:spilt==9}" @click="spilt=9"/>
+        <el-header height="5vh" style="font-size: 17px;line-height:5vh; display: grid; grid-template-columns: 1fr 1fr">
+          <div style="text-align: left">
+            分屏:
+            <i class="iconfont icon-a-mti-1fenpingshi btn" :class="{active:spiltIndex === 0}" @click="spiltIndex=0"/>
+            <i class="iconfont icon-a-mti-4fenpingshi btn" :class="{active: spiltIndex === 1}" @click="spiltIndex=1"/>
+            <i class="iconfont icon-a-mti-6fenpingshi btn" :class="{active: spiltIndex === 2}" @click="spiltIndex=2"/>
+            <i class="iconfont icon-a-mti-9fenpingshi btn" :class="{active: spiltIndex === 3}" @click="spiltIndex=3"/>
+          </div>
+          <div style="text-align: right">
+            <i class="el-icon-full-screen btn" @click="fullScreen()"/>
+          </div>
         </el-header>
-        <el-main style="padding: 0;">
-          <div style="width: 99%;height: 85vh;display: flex;flex-wrap: wrap;background-color: #000;">
-            <div v-for="i in spilt" :key="i" class="play-box"
-                 :style="liveStyle" :class="{redborder:playerIdx == (i-1)}"
+        <el-main style="padding: 0; margin: 0 auto; background-color: #a9a8a8" >
+          <div ref="playBox" :style="{width: '151vh', height: '85vh', display: 'grid', gridTemplateColumns: layout[spiltIndex].columns,
+           gridTemplateRows: layout[spiltIndex].rows, gap: '4px', backgroundColor: '#a9a8a8'}">
+            <div v-for="i in layout[spiltIndex].spilt" :key="i" class="play-box" :class="getPlayerClass(spiltIndex, i)"
                  @click="playerIdx = (i-1)">
-              <div v-if="!videoUrl[i-1]" style="color: #ffffff;font-size: 30px;font-weight: bold;">{{ i }}</div>
+              <div v-if="!videoUrl[i-1]" style="color: #ffffff;font-size: 15px;font-weight: bold;">无信号</div>
               <player ref="player" v-else :videoUrl="videoUrl[i-1]" fluent autoplay @screenshot="shot"
                       @destroy="destroy"/>
             </div>
@@ -26,21 +32,23 @@
     </el-container>
   </div>
 </template>
-
 <script>
+
 import uiHeader from "../layout/UiHeader.vue";
 import player from './common/jessibuca.vue'
 import DeviceTree from './common/DeviceTree.vue'
+import screenfull from "screenfull";
 
 export default {
   name: "live",
   components: {
     uiHeader, player, DeviceTree
   },
+
   data() {
     return {
       videoUrl: [''],
-      spilt: 1,//分屏
+      spiltIndex: 2,//分屏
       playerIdx: 0,//激活播放器
 
       updateLooper: 0, //数据刷新轮训标志
@@ -48,7 +56,42 @@ export default {
       total: 0,
 
       //channel
-      loading: false
+      loading: false,
+      layout: [
+        {
+          spilt: 1,
+          columns: "1fr",
+          rows: "1fr",
+          style: function (){}
+        },
+        {
+          spilt: 4,
+          columns: "1fr 1fr",
+          rows: "1fr 1fr",
+          style: function (){}
+        },
+        {
+          spilt: 6,
+          columns: "1fr 1fr 1fr",
+          rows: "1fr 1fr 1fr",
+          style: function (index){
+            console.log(index)
+            if (index === 0) {
+              return {
+                gridColumn: ' 1 / span 2',
+                gridRow: ' 1 / span 2',
+              }
+            }
+          }
+
+        },
+        {
+          spilt: 9,
+          columns: "1fr 1fr 1fr",
+          rows: "1fr 1fr 1fr",
+          style: function (){}
+        },
+      ]
     };
   },
   mounted() {
@@ -107,36 +150,31 @@ export default {
       console.log(idx);
       this.clear(idx.substring(idx.length - 1))
     },
-    clickEvent: function (device, data, isCatalog) {
-      if (data.channelId && !isCatalog) {
-        if (device.online === 0) {
-          this.$message.error('设备离线!不允许点播');
-        }else {
-          this.sendDevicePush(data)
-        }
+    clickEvent: function (channelId) {
+      this.sendDevicePush(channelId)
+    },
+    getPlayerClass: function (splitIndex, i) {
+      let classStr = "play-box-" + splitIndex + "-" +i
+      if (this.playerIdx === (i-1)) {
+        classStr += " redborder"
       }
+      return classStr
     },
     contextMenuEvent: function (device, event, data, isCatalog) {
 
     },
     //通知设备上传媒体流
-    sendDevicePush: function (itemData) {
-      // if (itemData.status === 0) {
-      //   this.$message.error('设备离线!');
-      //   return
-      // }
-      this.save(itemData)
-      let deviceId = itemData.deviceId;
-      // this.isLoging = true;
-      let channelId = itemData.channelId;
-      console.log("通知设备推流1：" + deviceId + " : " + channelId);
+    sendDevicePush: function (channelId) {
+
+      this.save(channelId)
       let idxTmp = this.playerIdx
-      let that = this;
-      this.loading = true
       this.$axios({
         method: 'get',
-        url: '/api/play/start/' + deviceId + '/' + channelId
-      }).then(function (res) {
+        url: '/api/common/channel/play',
+        params: {
+          channelId: channelId
+        }
+      }).then((res)=> {
         if (res.data.code === 0 && res.data.data) {
           let videoUrl;
           if (location.protocol === "https:") {
@@ -144,14 +182,13 @@ export default {
           } else {
             videoUrl = res.data.data.ws_flv;
           }
-          itemData.playUrl = videoUrl;
-          that.setPlayUrl(videoUrl, idxTmp);
+          this.setPlayUrl(videoUrl, idxTmp);
         } else {
-          that.$message.error(res.data.msg);
+          this.$message.error(res.data.msg);
         }
       }).catch(function (e) {
       }).finally(() => {
-        that.loading = false
+        this.loading = false
       });
     },
     setPlayUrl(url, idx) {
@@ -163,9 +200,9 @@ export default {
 
     },
     checkPlayByParam() {
-      let {deviceId, channelId} = this.$route.query
-      if (deviceId && channelId) {
-        this.sendDevicePush({deviceId, channelId})
+      let channelId = this.$route.query
+      if (channelId) {
+        this.sendDevicePush(channelId)
       }
     },
     shot(e) {
@@ -205,6 +242,11 @@ export default {
       console.log(data);
       window.localStorage.setItem('playData', JSON.stringify(data))
     },
+    fullScreen: function (){
+      if (screenfull.isEnabled) {
+        screenfull.toggle(this.$refs.playBox);
+      }
+    }
   }
 };
 </script>
@@ -224,15 +266,18 @@ export default {
 }
 
 .redborder {
-  border: 2px solid red !important;
+  border: 4px solid rgb(0, 198, 255) !important;
 }
 
 .play-box {
   background-color: #000000;
-  border: 2px solid #505050;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.play-box-2-1 {
+  grid-column: 1 / span 2;
+  grid-row: 1 / span 2;
 }
 </style>
 <style>

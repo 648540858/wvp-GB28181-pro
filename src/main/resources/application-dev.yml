@@ -44,7 +44,7 @@ spring:
             max-lifetime: 1200000                 # 是池中连接关闭后的最长生命周期（以毫秒为单位)
 #[可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
 server:
-  port: 8080
+  port: 18080
   # [可选] HTTPS配置， 默认不开启
   ssl:
     # [可选] 是否开启HTTPS访问
@@ -68,21 +68,17 @@ sip:
   # [可选]
   id: 41010500002000000001
   # [可选] 默认设备认证密码，后续扩展使用设备单独密码, 移除密码将不进行校验
-  password: bajiuwulian1006
+  password: 12345678
   # 是否存储alarm信息
-  alarm: true
+  alarm: false
 
 #zlm 默认服务器配置
 media:
   id: zlmediakit-local
   # [必须修改] zlm服务器的内网IP
-  ip: 172.19.128.50
-  # [可选] 有公网IP就配置公网IP, 不可用域名
-  wan_ip:
+  ip: 192.168.1.10
   # [必须修改] zlm服务器的http.port
   http-port: 9092
-  # [可选] zlm服务器访问WVP所使用的IP, 默认使用127.0.0.1，zlm和wvp没有部署在同一台服务器时必须配置
-  hook-ip: 172.19.128.50
   # [必选选] zlm服务器的hook.admin_params=secret
   secret: TWSYFgYJOQWB4ftgeYut8DW4wbs7pQnj
   # 启用多端口模式, 多端口模式使用端口区分每路流，兼容性更好。 单端口使用流的ssrc区分， 点播超时建议使用多端口测试
@@ -90,9 +86,9 @@ media:
     # [可选] 是否启用多端口模式, 开启后会在portRange范围内选择端口用于媒体流传输
     enable: true
     # [可选] 在此范围内选择端口用于媒体流传输, 必须提前在zlm上配置该属性，不然自动配置此属性可能不成功
-    port-range: 50000,50300 # 端口范围
+    port-range: 40000,45000 # 端口范围
     # [可选] 国标级联在此范围内选择端口发送媒体流,
-    send-port-range: 50000,50300 # 端口范围
+    send-port-range: 50000,55000 # 端口范围
 # [根据业务需求配置]
 user-settings:
   # 点播/录像回放 等待超时时间,单位：毫秒

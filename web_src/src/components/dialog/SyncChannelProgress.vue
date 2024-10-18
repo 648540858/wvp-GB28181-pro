@@ -27,6 +27,7 @@ export default {
   created() {},
   data() {
     return {
+      endCallBack: null,
       syncStatus: null,
       percentage: 0,
       total: 0,
@@ -40,7 +41,7 @@ export default {
     };
   },
   methods: {
-    openDialog: function (deviceId) {
+    openDialog: function (deviceId, endCallBack) {
       console.log("deviceId: " + deviceId)
       this.deviceId = deviceId;
       this.showDialog = true;
@@ -50,6 +51,7 @@ export default {
       this.current= 0;
       this.syncFlag= false;
       this.syncStatus = null;
+      this.endCallBack = endCallBack;
       this.getProgress()
     },
     getProgress(){
@@ -105,6 +107,9 @@ export default {
       });
     },
     close: function (){
+      if (this.endCallBack) {
+        this.endCallBack()
+      }
       window.clearTimeout(this.timmer)
     }
   },

@@ -132,6 +132,9 @@ public class CommonGBChannel {
     @Schema(description = "关联的拉流代理Id（流来源是拉流代理时有效）")
     private Integer streamProxyId;
 
+    @Schema(description = "关联的部标标通道ID")
+    private Integer jtChannelId;
+
     @Schema(description = "创建时间")
     private String createTime;
 

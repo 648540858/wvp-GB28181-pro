@@ -25,20 +25,6 @@ public interface Ijt1078Service {
 
     void updateDeviceStatus(boolean connected, String phoneNumber);
 
-    void play(String phoneNumber, Integer channelId, int type, GeneralCallback<StreamInfo> callback);
-
-    void playback(String phoneNumber, Integer channelId, String startTime, String endTime, Integer type,
-                  Integer rate, Integer playbackType, Integer playbackSpeed, GeneralCallback<StreamInfo> callback);
-
-    void stopPlay(String phoneNumber, Integer channelId);
-
-    void pausePlay(String phoneNumber, Integer channelId);
-
-    void continueLivePlay(String phoneNumber, Integer channelId);
-
-    List<J1205.JRecordItem> getRecordList(String phoneNumber, Integer channelId, String startTime, String endTime);
-
-    void stopPlayback(String phoneNumber, Integer channelId);
 
     void ptzControl(String phoneNumber, Integer channelId, String command, int speed);
 
@@ -112,13 +98,7 @@ public interface Ijt1078Service {
 
     JTMediaAttribute queryMediaAttribute(String phoneNumber);
 
-    void startTalk(String phoneNumber, Integer channelId, String app, String stream, String mediaServerId, Boolean onlySend, GeneralCallback<StreamInfo> callback);
-
-    void stopTalk(String phoneNumber, Integer channelId);
-
     void changeStreamType(String phoneNumber, Integer channelId, Integer streamType);
-
-    void playbackControl(String phoneNumber, Integer channelId, Integer command, Integer playbackSpeed, String time);
 
     void recordDownload(String phoneNumber, Integer channelId, String startTime, String endTime, Integer alarmSign, Integer mediaType, Integer streamType, Integer storageType, GeneralCallback<String> fileCallback);
 

@@ -71,7 +71,7 @@ public class JT1078Controller {
 
     @Operation(summary = "1078-开始点播", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "phoneNumber", description = "设备手机号", required = true)
-    @Parameter(name = "channelId", description = "通道国标编号, 一般为从1开始的数字", required = true)
+    @Parameter(name = "channelId", description = "通道编号, 一般为从1开始的数字", required = true)
     @Parameter(name = "type", description = "类型：0:音视频,1:视频,3:音频", required = true)
     @GetMapping("/live/start")
     public DeferredResult<WVPResult<StreamContent>> startLive(HttpServletRequest request,

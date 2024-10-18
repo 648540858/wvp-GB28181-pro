@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.util.ObjectUtils;
 
 /**
  * JT 通道
@@ -48,5 +49,17 @@ public class JTChannel extends CommonGBChannel {
                 ", updateTime='" + updateTime + '\'' +
                 ", hasAudio='" + hasAudio + '\'' +
                 '}';
+    }
+
+    public CommonGBChannel buildCommonGBChannel() {
+        if (ObjectUtils.isEmpty(this.getGbDeviceId())) {
+            return null;
+        }
+        if (ObjectUtils.isEmpty(this.getGbName())) {
+            this.setGbName(this.getName());
+        }
+        this.setJtChannelId(this.getId());
+        return this;
+
     }
 }

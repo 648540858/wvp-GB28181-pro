@@ -72,17 +72,18 @@ public class SIPSender {
         if (okEvent != null || errorEvent != null) {
             CallIdHeader callIdHeader = (CallIdHeader) message.getHeader(CallIdHeader.NAME);
             SipEvent sipEvent = SipEvent.getInstance(callIdHeader.getCallId(), eventResult -> {
-                sipSubscribe.removeSubscribe(eventResult.callId);
+                sipSubscribe.removeSubscribe(callIdHeader.getCallId());
                 if(okEvent != null) {
                     okEvent.response(eventResult);
                 }
             }, (eventResult -> {
-                sipSubscribe.removeSubscribe(eventResult.callId);
+                sipSubscribe.removeSubscribe(callIdHeader.getCallId());
                 if (errorEvent != null) {
                     errorEvent.response(eventResult);
                 }
             }), timeout == null ? sipConfig.getTimeout() : timeout);
             sipSubscribe.addSubscribe(callIdHeader.getCallId(), sipEvent);
+            System.out.println("订阅数量" + sipSubscribe.size());
         }
 
         if ("TCP".equals(transport)) {

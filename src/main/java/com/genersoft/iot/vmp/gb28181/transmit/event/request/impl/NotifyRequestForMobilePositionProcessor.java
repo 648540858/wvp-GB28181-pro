@@ -65,7 +65,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 		taskQueue.offer(new HandlerCatchData(evt, null, null));
 	}
 
-	@Scheduled(fixedRate = 200) //每200毫秒执行一次
+	@Scheduled(fixedRate = 400) //每200毫秒执行一次
 	public void executeTaskQueue() {
 		if (taskQueue.isEmpty()) {
 			return;
@@ -112,7 +112,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 							if (!deviceId.equals(channelId)) {
 								mobilePosition.setChannelId(channelId);
 							}
-							continue;
+							break;
 						case "Time":
 							String timeVal = element.getStringValue();
 							if (ObjectUtils.isEmpty(timeVal)) {
@@ -120,13 +120,13 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 							} else {
 								mobilePosition.setTime(SipUtils.parseTime(timeVal));
 							}
-							continue;
+							break;
 						case "Longitude":
 							mobilePosition.setLongitude(Double.parseDouble(element.getStringValue()));
-							continue;
+							break;
 						case "Latitude":
 							mobilePosition.setLatitude(Double.parseDouble(element.getStringValue()));
-							continue;
+							break;
 						case "Speed":
 							String speedVal = element.getStringValue();
 							if (NumericUtil.isDouble(speedVal)) {
@@ -134,7 +134,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 							} else {
 								mobilePosition.setSpeed(0.0);
 							}
-							continue;
+							break;
 						case "Direction":
 							String directionVal = element.getStringValue();
 							if (NumericUtil.isDouble(directionVal)) {
@@ -142,7 +142,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 							} else {
 								mobilePosition.setDirection(0.0);
 							}
-							continue;
+							break;
 						case "Altitude":
 							String altitudeVal = element.getStringValue();
 							if (NumericUtil.isDouble(altitudeVal)) {
@@ -150,7 +150,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 							} else {
 								mobilePosition.setAltitude(0.0);
 							}
-							continue;
+							break;
 
 					}
 				}

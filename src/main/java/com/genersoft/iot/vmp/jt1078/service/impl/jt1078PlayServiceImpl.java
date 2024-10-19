@@ -547,26 +547,13 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         }
         // 开启收流端口, zlm发送1078的rtp流需要将ssrc字段设置为 imei_channel格式
         String ssrc = phoneNumber + "_" + channelId;
-        sendRtpServerService.createSendRtpInfo(mediaServer, )
-
-        SendRtpInfo.getInstance(app, stream, ssrc, )
-
-        SendRtpInfo sendRtpInfo = new SendRtpInfo();
-        sendRtpInfo.setMediaServerId(mediaServerId);
-        sendRtpInfo.setPort(0);
-        sendRtpInfo.setSsrc(ssrc);
-        sendRtpInfo.setChannelId(channelId );
-        sendRtpInfo.setRtcp(false);
-        sendRtpInfo.setApp(app);
-        sendRtpInfo.setStream(stream);
-        sendRtpInfo.setTcp(true);
+        SendRtpInfo sendRtpInfo = sendRtpServerService.createSendRtpInfo(mediaServer, null, null, ssrc, phoneNumber, app, stream, channelId, true, false);
         sendRtpInfo.setTcpActive(true);
         sendRtpInfo.setUsePs(false);
         sendRtpInfo.setOnlyAudio(true);
         if (onlySend == null || !onlySend) {
             sendRtpInfo.setReceiveStream(receiveStream);
         }
-        sendRtpInfo.setPlatformId(phoneNumber);
         if (onlySend == null || !onlySend) {
             // 设置hook监听
             Hook hook = Hook.getInstance(HookType.on_media_arrival, "rtp", receiveStream, mediaServer.getId());
@@ -581,7 +568,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
                 subscribe.removeSubscribe(hook);
                 redisTemplate.opsForValue().set(playKey, info);
                 // 存储发流信息
-                redisCatchStorage.updateSendRTPSever(sendRtpInfo);
+                sendRtpServerService.update(sendRtpInfo);
             });
             Hook hookForDeparture = Hook.getInstance(HookType.on_media_departure, "rtp", receiveStream, mediaServer.getId());
             subscribe.addSubscribe(hookForDeparture, (hookData) -> {
@@ -599,16 +586,14 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
             }, userSetting.getPlayTimeout());
         }
 
-        Integer localPort = mediaServerService.startSendRtpPassive(mediaServer, sendRtpInfo, 15000);
-
         log.info("[1078-对讲] phoneNumber： {}， channelId： {}， 收发端口： {}， app: {}, stream: {}",
-                phoneNumber, channelId, localPort, app, stream);
+                phoneNumber, channelId, sendRtpInfo.getLocalPort(), app, stream);
         J9101 j9101 = new J9101();
         j9101.setChannel(Integer.valueOf(channelId));
         j9101.setIp(mediaServer.getSdpIp());
         j9101.setRate(1);
-        j9101.setTcpPort(localPort);
-        j9101.setUdpPort(localPort);
+        j9101.setTcpPort(sendRtpInfo.getLocalPort());
+        j9101.setUdpPort(sendRtpInfo.getLocalPort());
         j9101.setType(2);
         jt1078Template.startLive(phoneNumber, j9101, 6);
         if (onlySend != null && onlySend) {
@@ -617,7 +602,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
                 errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), null);
             }
             // 存储发流信息
-            redisCatchStorage.updateSendRTPSever(sendRtpInfo);
+            sendRtpServerService.update(sendRtpInfo);
         }
     }
 
@@ -638,7 +623,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         if (streamInfo != null) {
             redisTemplate.delete(playKey);
             // 关闭rtpServer
-            mediaServerService.closeRTPServer(streamInfo.getMediaServerId(), streamInfo.getStream());
+            mediaServerService.closeRTPServer(streamInfo.getMediaServer(), streamInfo.getStream());
         }
         // 清理回调
         List<GeneralCallback<StreamInfo>> generalCallbacks = inviteErrorCallbackMap.get(playKey);

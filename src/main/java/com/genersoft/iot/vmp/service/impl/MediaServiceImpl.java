@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.service.*;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
@@ -14,6 +15,7 @@ import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.jt1078.bean.JTMediaStreamType;
+import com.genersoft.iot.vmp.jt1078.service.Ijt1078PlayService;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
@@ -34,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -84,6 +87,9 @@ public class MediaServiceImpl implements IMediaService {
 
     @Autowired
     private Ijt1078Service ijt1078Service;
+
+    @Autowired
+    private Ijt1078PlayService jt1078PlayService;
 
     @Autowired
     private ISendRtpServerService sendRtpServerService;
@@ -233,15 +239,16 @@ public class MediaServiceImpl implements IMediaService {
             result = userSetting.getStreamOnDemand();
             // 国标流， 点播/录像回放/录像下载
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, stream);
-            // 点播
-            if (inviteInfo != null && inviteInfo.getStatus() == InviteSessionStatus.ok) {
-                // 录像下载
-                if (inviteInfo.getType() == InviteSessionType.DOWNLOAD) {
-                    return false;
-                }
-                DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(inviteInfo.getChannelId());
-                if (deviceChannel == null) {
-                    return false;
+            if (inviteInfo != null) {
+                if (inviteInfo.getStatus() == InviteSessionStatus.ok){
+                    // 录像下载
+                    if (inviteInfo.getType() == InviteSessionType.DOWNLOAD) {
+                        return false;
+                    }
+                    DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(inviteInfo.getChannelId());
+                    if (deviceChannel == null) {
+                        return false;
+                    }
                 }
                 return result;
             }else {
@@ -250,18 +257,13 @@ public class MediaServiceImpl implements IMediaService {
                 if (jtMediaStreamType != null) {
                     String[] streamParamArray = stream.split("_");
                     if (jtMediaStreamType.equals(JTMediaStreamType.PLAY)) {
-                        ijt1078Service.stopPlay(streamParamArray[1], Integer.parseInt(streamParamArray[2]));
+                        jt1078PlayService.stopPlay(streamParamArray[1], Integer.parseInt(streamParamArray[2]));
                     }else if (jtMediaStreamType.equals(JTMediaStreamType.PLAYBACK)) {
-                        ijt1078Service.stopPlayback(streamParamArray[1], Integer.parseInt(streamParamArray[2]));
+                        jt1078PlayService.stopPlayback(streamParamArray[1], Integer.parseInt(streamParamArray[2]));
                     }
                 }else {
                     return false;
                 }
-            }
-
-            SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(null, null, stream, null);
-            if (sendRtpItem != null && "talk".equals(sendRtpItem.getApp() )) {
-                return false;
             }
         } else if ("talk".equals(app) || "broadcast".equals(app)) {
             return false;
@@ -288,5 +290,6 @@ public class MediaServiceImpl implements IMediaService {
                 return false;
             }
         }
+        return result;
     }
 }

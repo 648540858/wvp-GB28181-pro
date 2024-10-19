@@ -200,9 +200,9 @@ export default {
 
     },
     checkPlayByParam() {
-      let channelId = this.$route.query
-      if (channelId) {
-        this.sendDevicePush(channelId)
+      let query = this.$route.query
+      if (query.channelId) {
+        this.sendDevicePush(query.channelId)
       }
     },
     shot(e) {

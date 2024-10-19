@@ -83,7 +83,6 @@ public class SIPSender {
                 }
             }), timeout == null ? sipConfig.getTimeout() : timeout);
             sipSubscribe.addSubscribe(callIdHeader.getCallId(), sipEvent);
-            System.out.println("订阅数量" + sipSubscribe.size());
         }
 
         if ("TCP".equals(transport)) {

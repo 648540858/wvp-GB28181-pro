@@ -153,7 +153,6 @@ public class SipSubscribe {
 
 
     public void addSubscribe(String key, SipEvent event) {
-        System.out.println(event.getDelay());
         SipEvent sipEvent = subscribes.get(key);
         if (sipEvent != null) {
             subscribes.remove(key);

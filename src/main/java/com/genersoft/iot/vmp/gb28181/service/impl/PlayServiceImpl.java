@@ -304,44 +304,6 @@ public class PlayServiceImpl implements IPlayService {
             log.warn("[点播] 未找到通道 deviceId: {},channelId:{}", deviceId, channelId);
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到通道");
         }
-        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
-        if (inviteInfo != null ) {
-            if (inviteInfo.getStreamInfo() == null) {
-                // 释放生成的ssrc，使用上一次申请的
-                ssrcFactory.releaseSsrc(mediaServerItem.getId(), ssrc);
-                // 点播发起了但是尚未成功, 仅注册回调等待结果即可
-                inviteStreamService.once(InviteSessionType.PLAY, channel.getId(), null, callback);
-                log.info("[点播开始] 已经请求中，等待结果， deviceId: {}, channelId: {}", device.getDeviceId(), channelId);
-                return inviteInfo.getSsrcInfo();
-            }else {
-                StreamInfo streamInfo = inviteInfo.getStreamInfo();
-                String streamId = streamInfo.getStream();
-                if (streamId == null) {
-                    callback.run(InviteErrorCode.ERROR_FOR_CATCH_DATA.getCode(), "点播失败， redis缓存streamId等于null", null);
-                    inviteStreamService.call(InviteSessionType.PLAY, channel.getId(), null,
-                            InviteErrorCode.ERROR_FOR_CATCH_DATA.getCode(),
-                            "点播失败， redis缓存streamId等于null",
-                            null);
-                    return inviteInfo.getSsrcInfo();
-                }
-                MediaServer mediaInfo = streamInfo.getMediaServer();
-                Boolean ready = mediaServerService.isStreamReady(mediaInfo, "rtp", streamId);
-                if (ready != null && ready) {
-                    callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
-                    inviteStreamService.call(InviteSessionType.PLAY, channel.getId(), null,
-                            InviteErrorCode.SUCCESS.getCode(),
-                            InviteErrorCode.SUCCESS.getMsg(),
-                            streamInfo);
-                    log.info("[点播已存在] 直接返回， deviceId: {}, channelId: {}", device.getDeviceId(), channelId);
-                    return inviteInfo.getSsrcInfo();
-                }else {
-                    // 点播发起了但是尚未成功, 仅注册回调等待结果即可
-                    inviteStreamService.once(InviteSessionType.PLAY, channel.getId(), null, callback);
-                    deviceChannelService.stopPlay(channel.getId());
-                    inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
-                }
-            }
-        }
 
         return play(mediaServerItem, device, channel, ssrc, callback);
     }
@@ -356,6 +318,46 @@ public class PlayServiceImpl implements IPlayService {
             }
             return null;
         }
+
+        InviteInfo inviteInfoInCatch = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
+        if (inviteInfoInCatch != null ) {
+            if (inviteInfoInCatch.getStreamInfo() == null) {
+                // 释放生成的ssrc，使用上一次申请的
+                ssrcFactory.releaseSsrc(mediaServerItem.getId(), ssrc);
+                // 点播发起了但是尚未成功, 仅注册回调等待结果即可
+                inviteStreamService.once(InviteSessionType.PLAY, channel.getId(), null, callback);
+                log.info("[点播开始] 已经请求中，等待结果， deviceId: {}, channelId: {}", device.getDeviceId(), channel.getDeviceId());
+                return inviteInfoInCatch.getSsrcInfo();
+            }else {
+                StreamInfo streamInfo = inviteInfoInCatch.getStreamInfo();
+                String streamId = streamInfo.getStream();
+                if (streamId == null) {
+                    callback.run(InviteErrorCode.ERROR_FOR_CATCH_DATA.getCode(), "点播失败， redis缓存streamId等于null", null);
+                    inviteStreamService.call(InviteSessionType.PLAY, channel.getId(), null,
+                            InviteErrorCode.ERROR_FOR_CATCH_DATA.getCode(),
+                            "点播失败， redis缓存streamId等于null",
+                            null);
+                    return inviteInfoInCatch.getSsrcInfo();
+                }
+                MediaServer mediaInfo = streamInfo.getMediaServer();
+                Boolean ready = mediaServerService.isStreamReady(mediaInfo, "rtp", streamId);
+                if (ready != null && ready) {
+                    callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
+                    inviteStreamService.call(InviteSessionType.PLAY, channel.getId(), null,
+                            InviteErrorCode.SUCCESS.getCode(),
+                            InviteErrorCode.SUCCESS.getMsg(),
+                            streamInfo);
+                    log.info("[点播已存在] 直接返回， deviceId: {}, channelId: {}", device.getDeviceId(), channel.getDeviceId());
+                    return inviteInfoInCatch.getSsrcInfo();
+                }else {
+                    // 点播发起了但是尚未成功, 仅注册回调等待结果即可
+                    inviteStreamService.once(InviteSessionType.PLAY, channel.getId(), null, callback);
+                    deviceChannelService.stopPlay(channel.getId());
+                    inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
+                }
+            }
+        }
+
         String streamId = String.format("%s_%s", device.getDeviceId(), channel.getDeviceId());
         int tcpMode = device.getStreamMode().equals("TCP-ACTIVE")? 2: (device.getStreamMode().equals("TCP-PASSIVE")? 1:0);
         RTPServerParam rtpServerParam = new RTPServerParam();

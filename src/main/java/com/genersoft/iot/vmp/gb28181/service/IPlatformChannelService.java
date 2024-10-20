@@ -45,4 +45,6 @@ public interface IPlatformChannelService {
     List<Platform> queryPlatFormListByChannelDeviceId(Integer channelId, List<String> platforms);
 
     CommonGBChannel queryChannelByPlatformIdAndChannelId(Integer platformId, Integer channelId);
+
+    void checkRegionAdd(List<CommonGBChannel> channelList);
 }

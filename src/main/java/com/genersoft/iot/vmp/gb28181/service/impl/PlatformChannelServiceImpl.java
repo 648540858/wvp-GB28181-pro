@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
+import com.genersoft.iot.vmp.jt1078.proc.request.Re;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -494,6 +495,36 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
                     channelListForEvent.add(0, CommonGBChannel.build(group));
                 }
                 platformChannelMapper.addPlatformGroup(addGroup, platform.getId());
+                // 发送消息
+                try {
+                    // 发送catalog
+                    eventPublisher.catalogEventPublish(platform.getId(), channelListForEvent, CatalogEvent.ADD);
+                } catch (Exception e) {
+                    log.warn("[移除关联通道] 发送失败，数量：{}", channelList.size(), e);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void checkRegionAdd(List<CommonGBChannel> channelList) {
+        List<Integer> channelIds = new ArrayList<>();
+        channelList.stream().forEach(commonGBChannel -> {
+            channelIds.add(commonGBChannel.getGbId());
+        });
+        List<Platform> platformList = platformChannelMapper.queryPlatFormListByChannelList(channelIds);
+        if (platformList.isEmpty()) {
+            return;
+        }
+        for (Platform platform : platformList) {
+
+            Set<Region> addRegion =  getRegionNotShareByChannelList(channelList, platform.getId());
+            List<CommonGBChannel> channelListForEvent = new ArrayList<>();
+            if (!addRegion.isEmpty()) {
+                for (Region region : addRegion) {
+                    channelListForEvent.add(0, CommonGBChannel.build(region));
+                }
+                platformChannelMapper.addPlatformRegion(new ArrayList<>(addRegion), platform.getId());
                 // 发送消息
                 try {
                     // 发送catalog

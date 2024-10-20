@@ -414,6 +414,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
         int result = commonGBChannelMapper.updateRegion(civilCode, channelList);
         // 发送通知
         if (result > 0) {
+            platformChannelService.checkRegionAdd(channelList);
             try {
                 // 发送catalog
                 eventPublisher.catalogEventPublish(null, channelList, CatalogEvent.UPDATE);

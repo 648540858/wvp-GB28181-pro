@@ -45,13 +45,6 @@ public interface JTChannelMapper {
     @SelectProvider(type = JTChannelProvider.class, method = "selectChannelByChannelId")
     JTChannel selectChannelByChannelId(@Param("terminalDbId") int terminalDbId, @Param("channelId") Integer channelId);
 
-    @Select(value = {" <script>" +
-            " SELECT * " +
-            " from " +
-            " wvp_jt_channel" +
-            " WHERE " +
-            " id = #{id}" +
-            " </script>"})
     @SelectProvider(type = JTChannelProvider.class, method = "selectChannelById")
     JTChannel selectChannelById(@Param("id") Integer id);
 }

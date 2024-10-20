@@ -1,9 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.service;
 
-import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.Group;
-import com.genersoft.iot.vmp.gb28181.bean.Platform;
-import com.genersoft.iot.vmp.gb28181.bean.PlatformChannel;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
@@ -47,4 +44,6 @@ public interface IPlatformChannelService {
     CommonGBChannel queryChannelByPlatformIdAndChannelId(Integer platformId, Integer channelId);
 
     void checkRegionAdd(List<CommonGBChannel> channelList);
+
+    void checkRegionRemove(List<CommonGBChannel> channelList, List<Region> regionList);
 }

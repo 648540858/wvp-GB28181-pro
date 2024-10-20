@@ -442,6 +442,14 @@ public class GbChannelServiceImpl implements IGbChannelService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }
         int result = commonGBChannelMapper.removeCivilCodeByChannels(channelList);
+        Region region = regionMapper.queryByDeviceId(civilCode);
+        if (region == null) {
+            platformChannelService.checkRegionRemove(channelList, null);
+        }else {
+            List<Region> regionList = new ArrayList<>();
+            regionList.add(region);
+            platformChannelService.checkRegionRemove(channelList, regionList);
+        }
         // TODO 发送通知
 //        if (result > 0) {
 //            try {
@@ -460,6 +468,8 @@ public class GbChannelServiceImpl implements IGbChannelService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }
         int result = commonGBChannelMapper.removeCivilCodeByChannels(channelList);
+
+        platformChannelService.checkRegionRemove(channelList, null);
         // TODO 发送通知
 //        if (result > 0) {
 //            try {
@@ -499,6 +509,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }
         int result = commonGBChannelMapper.removeCivilCodeByChannels(channelList);
+        platformChannelService.checkRegionRemove(channelList, null);
     }
 
     @Override

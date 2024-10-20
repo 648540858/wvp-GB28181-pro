@@ -52,8 +52,6 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     private ISIPCommanderForPlatform sipCommanderFroPlatform;
 
 
-
-
     @Override
     public PageInfo<PlatformChannel> queryChannelList(int page, int count, String query, Integer channelType, Boolean online, Integer platformId, Boolean hasShare) {
         PageHelper.startPage(page, count);
@@ -93,8 +91,6 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         // 获取全部节点中未分享的
         return regionMapper.queryNotShareRegionForPlatformByRegionList(allRegion, platformId);
     }
-
-
 
     /**
      * 移除空的共享，并返回移除的分组
@@ -462,6 +458,44 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
             if (!deleteGroup.isEmpty()) {
                 for (Group group : deleteGroup) {
                     channelListForEvent.add(0, CommonGBChannel.build(group));
+                }
+            }
+            // 发送消息
+            try {
+                // 发送catalog
+                eventPublisher.catalogEventPublish(platform.getId(), channelListForEvent, CatalogEvent.DEL);
+            } catch (Exception e) {
+                log.warn("[移除关联通道] 发送失败，数量：{}", channelList.size(), e);
+            }
+        }
+    }
+
+    @Override
+    @Transactional
+    public void checkRegionRemove(List<CommonGBChannel> channelList, List<Region> regionList) {
+        List<Integer> channelIds = new ArrayList<>();
+        channelList.stream().forEach(commonGBChannel -> {
+            channelIds.add(commonGBChannel.getGbId());
+        });
+        // 获取关联这些通道的平台
+        List<Platform> platformList = platformChannelMapper.queryPlatFormListByChannelList(channelIds);
+        if (platformList.isEmpty()) {
+            return;
+        }
+        for (Platform platform : platformList) {
+            Set<Region> regionSet;
+            if (regionList == null || regionList.isEmpty()) {
+                regionSet = platformChannelMapper.queryShareRegion(platform.getId());
+            }else {
+                regionSet = new HashSet<>(regionList);
+            }
+            // 清理空的分组并发送消息
+            Set<Region> deleteRegion = deleteEmptyRegion(regionSet, platform.getId());
+
+            List<CommonGBChannel> channelListForEvent = new ArrayList<>();
+            if (!deleteRegion.isEmpty()) {
+                for (Region region : deleteRegion) {
+                    channelListForEvent.add(0, CommonGBChannel.build(region));
                 }
             }
             // 发送消息

@@ -22,8 +22,8 @@
            gridTemplateRows: layout[spiltIndex].rows, gap: '4px', backgroundColor: '#a9a8a8'}">
             <div v-for="i in layout[spiltIndex].spilt" :key="i" class="play-box" :class="getPlayerClass(spiltIndex, i)"
                  @click="playerIdx = (i-1)">
-              <div v-if="!videoUrl[i-1]" style="color: #ffffff;font-size: 15px;font-weight: bold;">无信号</div>
-              <player ref="player" v-else :videoUrl="videoUrl[i-1]" fluent autoplay @screenshot="shot"
+              <div v-if="!videoUrl[i-1]" style="color: #ffffff;font-size: 15px;font-weight: bold;">{{videoTip[i-1]?videoTip[i-1]:"无信号"}}</div>
+              <player :ref="'player'[i-1]" v-else :videoUrl="videoUrl[i-1]" fluent autoplay @screenshot="shot"
                       @destroy="destroy"/>
             </div>
           </div>
@@ -48,6 +48,7 @@ export default {
   data() {
     return {
       videoUrl: [''],
+      videoTip: [''],
       spiltIndex: 2,//分屏
       playerIdx: 0,//激活播放器
 
@@ -168,6 +169,8 @@ export default {
 
       this.save(channelId)
       let idxTmp = this.playerIdx
+      this.setPlayUrl("", idxTmp);
+      this.$set(this.videoTip, idxTmp, "正在拉流...")
       this.$axios({
         method: 'get',
         url: '/api/common/channel/play',
@@ -184,7 +187,7 @@ export default {
           }
           this.setPlayUrl(videoUrl, idxTmp);
         } else {
-          this.$message.error(res.data.msg);
+          this.$set(this.videoTip, idxTmp, "播放失败: " + res.data.msg)
         }
       }).catch(function (e) {
       }).finally(() => {

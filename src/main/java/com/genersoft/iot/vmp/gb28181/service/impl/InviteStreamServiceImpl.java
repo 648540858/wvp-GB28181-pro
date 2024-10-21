@@ -79,10 +79,8 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
         InviteInfo inviteInfoForUpdate;
 
         if (InviteSessionStatus.ready == inviteInfo.getStatus()) {
-            if (inviteInfo.getDeviceId() == null
-                    || inviteInfo.getChannelId() == null
-                    || inviteInfo.getType() == null
-                    || inviteInfo.getStream() == null
+            if (inviteInfo.getDeviceId() == null || inviteInfo.getChannelId() == null
+                    || inviteInfo.getType() == null || inviteInfo.getStream() == null
             ) {
                 return;
             }
@@ -118,7 +116,6 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
         }
         String key = VideoManagerConstants.INVITE_PREFIX +
                 ":" + inviteInfoForUpdate.getType() +
-                ":" + inviteInfoForUpdate.getDeviceId() +
                 ":" + inviteInfoForUpdate.getChannelId() +
                 ":" + inviteInfoForUpdate.getStream()+
                 ":" + inviteInfoForUpdate.getSsrcInfo().getSsrc();
@@ -139,7 +136,6 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
         removeInviteInfo(inviteInfoInDb);
         String key = VideoManagerConstants.INVITE_PREFIX +
                 ":" + inviteInfo.getType() +
-                ":" + inviteInfo.getDeviceId() +
                 ":" + inviteInfo.getChannelId() +
                 ":" + stream +
                 ":" + inviteInfo.getSsrcInfo().getSsrc();
@@ -160,7 +156,6 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     public InviteInfo getInviteInfo(InviteSessionType type, Integer channelId, String stream) {
         String key = VideoManagerConstants.INVITE_PREFIX +
                 ":" + (type != null ? type : "*") +
-                ":*" +
                 ":" + (channelId != null ? channelId : "*") +
                 ":" + (stream != null ? stream : "*")
                 + ":*";
@@ -179,7 +174,6 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     public List<InviteInfo> getAllInviteInfo(InviteSessionType type, Integer channelId, String stream) {
         String key = VideoManagerConstants.INVITE_PREFIX +
                 ":" + (type != null ? type : "*") +
-                ":*" +
                 ":" + (channelId != null ? channelId : "*") +
                 ":" + (stream != null ? stream : "*")
                 + ":*";
@@ -208,7 +202,6 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     public void removeInviteInfo(InviteSessionType type,  Integer channelId, String stream) {
         String scanKey = VideoManagerConstants.INVITE_PREFIX +
                 ":" + (type != null ? type : "*") +
-                ":*" +
                 ":" + (channelId != null ? channelId : "*") +
                 ":" + (stream != null ? stream : "*") +
                 ":*";
@@ -267,7 +260,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     @Override
     public int getStreamInfoCount(String mediaServerId) {
         int count = 0;
-        String key = VideoManagerConstants.INVITE_PREFIX + ":*:*:*:*:*";
+        String key = VideoManagerConstants.INVITE_PREFIX + ":*:*:*:*";
         List<Object> scanResult = RedisUtil.scan(redisTemplate, key);
         if (scanResult.isEmpty()) {
             return 0;
@@ -316,7 +309,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
 
     @Override
     public InviteInfo getInviteInfoBySSRC(String ssrc) {
-        String key = VideoManagerConstants.INVITE_PREFIX + ":*:*:*:*:" + ssrc;
+        String key = VideoManagerConstants.INVITE_PREFIX + ":*:*:*:" + ssrc;
         List<Object> scanResult = RedisUtil.scan(redisTemplate, key);
         if (scanResult.size() != 1) {
             return null;
@@ -334,7 +327,6 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
         removeInviteInfo(inviteInfoInDb);
         String key = VideoManagerConstants.INVITE_PREFIX +
                 ":" + inviteInfo.getType() +
-                ":" + inviteInfo.getDeviceId() +
                 ":" + inviteInfo.getChannelId() +
                 ":" + inviteInfo.getStream() +
                 ":" + ssrc;

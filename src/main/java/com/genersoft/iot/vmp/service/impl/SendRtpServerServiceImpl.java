@@ -65,14 +65,14 @@ public class SendRtpServerServiceImpl implements ISendRtpServerService {
     @Override
     public void update(SendRtpInfo sendRtpItem) {
         redisTemplate.opsForValue().set(VideoManagerConstants.SEND_RTP_INFO_CALLID + sendRtpItem.getCallId(), sendRtpItem);
-        redisTemplate.opsForValue().set(VideoManagerConstants.SEND_RTP_INFO_STREAM + sendRtpItem.getStream() + ":" + sendRtpItem.getTargetId(), sendRtpItem);
-        redisTemplate.opsForValue().set(VideoManagerConstants.SEND_RTP_INFO_CHANNEL + sendRtpItem.getChannelId() + ":" + sendRtpItem.getTargetId(), sendRtpItem);
+        redisTemplate.opsForHash().put(VideoManagerConstants.SEND_RTP_INFO_STREAM + sendRtpItem.getStream(), sendRtpItem.getTargetId(), sendRtpItem);
+        redisTemplate.opsForHash().put(VideoManagerConstants.SEND_RTP_INFO_CHANNEL + sendRtpItem.getChannelId(), sendRtpItem.getTargetId(), sendRtpItem);
     }
 
     @Override
     public SendRtpInfo queryByChannelId(Integer channelId, String targetId) {
-        String key = VideoManagerConstants.SEND_RTP_INFO_CHANNEL + channelId + ":" + targetId;
-        return JsonUtil.redisJsonToObject(redisTemplate, key, SendRtpInfo.class);
+        String key = VideoManagerConstants.SEND_RTP_INFO_CHANNEL + channelId;
+        return JsonUtil.redisHashJsonToObject(redisTemplate, key, targetId, SendRtpInfo.class);
     }
 
     @Override
@@ -83,19 +83,17 @@ public class SendRtpServerServiceImpl implements ISendRtpServerService {
 
     @Override
     public SendRtpInfo queryByStream(String stream, String targetId) {
-        String key = VideoManagerConstants.SEND_RTP_INFO_STREAM + stream + ":" + targetId;
-        return JsonUtil.redisJsonToObject(redisTemplate, key, SendRtpInfo.class);
+        String key = VideoManagerConstants.SEND_RTP_INFO_STREAM + stream;
+        return JsonUtil.redisHashJsonToObject(redisTemplate, key, targetId, SendRtpInfo.class);
     }
 
     @Override
     public List<SendRtpInfo> queryByStream(String stream) {
-        String key = VideoManagerConstants.SEND_RTP_INFO_STREAM + stream + ":*";
-        List<Object> queryResult = RedisUtil.scan(redisTemplate, key);
+        String key = VideoManagerConstants.SEND_RTP_INFO_STREAM + stream;
+        List<Object> values = redisTemplate.opsForHash().values(key);
         List<SendRtpInfo> result= new ArrayList<>();
-
-        for (Object o : queryResult) {
-            String keyItem = (String) o;
-            result.add((SendRtpInfo) redisTemplate.opsForValue().get(keyItem));
+        for (Object o : values) {
+            result.add((SendRtpInfo) o);
         }
 
         return result;
@@ -110,8 +108,16 @@ public class SendRtpServerServiceImpl implements ISendRtpServerService {
             return;
         }
         redisTemplate.delete(VideoManagerConstants.SEND_RTP_INFO_CALLID + sendRtpInfo.getCallId());
-        redisTemplate.delete(VideoManagerConstants.SEND_RTP_INFO_STREAM + sendRtpInfo.getStream() + ":" + sendRtpInfo.getTargetId());
-        redisTemplate.delete(VideoManagerConstants.SEND_RTP_INFO_CHANNEL + sendRtpInfo.getChannelId() + ":" + sendRtpInfo.getTargetId());
+        if (redisTemplate.opsForHash().size(VideoManagerConstants.SEND_RTP_INFO_STREAM + sendRtpInfo.getStream()) == 0) {
+            redisTemplate.delete(VideoManagerConstants.SEND_RTP_INFO_STREAM + sendRtpInfo.getStream());
+        }else {
+            redisTemplate.opsForHash().delete(VideoManagerConstants.SEND_RTP_INFO_STREAM + sendRtpInfo.getStream(), sendRtpInfo.getTargetId());
+        }
+        if (redisTemplate.opsForHash().size(VideoManagerConstants.SEND_RTP_INFO_CHANNEL + sendRtpInfo.getChannelId()) == 0) {
+            redisTemplate.delete(VideoManagerConstants.SEND_RTP_INFO_CHANNEL + sendRtpInfo.getChannelId());
+        }else {
+            redisTemplate.opsForHash().delete(VideoManagerConstants.SEND_RTP_INFO_CHANNEL + sendRtpInfo.getChannelId(), sendRtpInfo.getTargetId());
+        }
     }
     @Override
     public void deleteByCallId(String callId) {
@@ -149,22 +155,18 @@ public class SendRtpServerServiceImpl implements ISendRtpServerService {
 
     @Override
     public List<SendRtpInfo> queryByChannelId(int channelId) {
-        String key = VideoManagerConstants.SEND_RTP_INFO_CHANNEL + channelId + ":*";
-        List<Object> queryResult = RedisUtil.scan(redisTemplate, key);
+        String key = VideoManagerConstants.SEND_RTP_INFO_CHANNEL + channelId;
+        List<Object> values = redisTemplate.opsForHash().values(key);
         List<SendRtpInfo> result= new ArrayList<>();
-
-        for (Object o : queryResult) {
-            String keyItem = (String) o;
-            result.add((SendRtpInfo) redisTemplate.opsForValue().get(keyItem));
+        for (Object o : values) {
+            result.add((SendRtpInfo) o);
         }
-
         return result;
     }
 
     @Override
     public List<SendRtpInfo> queryAll() {
-        String key = VideoManagerConstants.SEND_RTP_INFO_CALLID
-                + userSetting.getServerId() + ":*";
+        String key = VideoManagerConstants.SEND_RTP_INFO_CALLID + ":*";
         List<Object> queryResult = RedisUtil.scan(redisTemplate, key);
         List<SendRtpInfo> result= new ArrayList<>();
 

@@ -98,6 +98,7 @@ public interface IRedisCatchStorage {
     void updateGpsMsgInfo(GPSMsgInfo gpsMsgInfo);
 
     GPSMsgInfo getGpsMsgInfo(String gbId);
+
     List<GPSMsgInfo> getAllGpsMsgInfo();
 
     MediaInfo getStreamInfo(String app, String streamId, String mediaServerId);

@@ -59,6 +59,7 @@ public interface DeviceMapper {
                 "firmware, " +
                 "transport," +
                 "stream_mode," +
+                "media_server_id," +
                 "ip," +
                 "sdp_ip," +
                 "local_ip," +
@@ -88,6 +89,7 @@ public interface DeviceMapper {
                 "#{firmware}," +
                 "#{transport}," +
                 "#{streamMode}," +
+                "#{mediaServerId}," +
                 "#{ip}," +
                 "#{sdpIp}," +
                 "#{localIp}," +

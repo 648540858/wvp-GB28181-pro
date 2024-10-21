@@ -168,15 +168,13 @@ public class DeviceServiceImpl implements IDeviceService {
                 }
 
             }else {
-                if (deviceChannelMapper.queryChannelsByDeviceDbId(device.getId()).isEmpty()) {
-                    log.info("[设备上线]: {}，通道数为0,查询通道信息", device.getDeviceId());
-                    sync(device);
-                }
-
                 deviceMapper.update(device);
                 redisCatchStorage.updateDevice(device);
             }
-
+            if (deviceChannelMapper.queryChannelsByDeviceDbId(device.getId()).isEmpty()) {
+                log.info("[设备上线]: {}，通道数为0,查询通道信息", device.getDeviceId());
+                sync(device);
+            }
         }
 
         // 刷新过期任务

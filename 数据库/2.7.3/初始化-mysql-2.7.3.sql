@@ -25,7 +25,7 @@ create table wvp_device
     charset                             character varying(50),
     ssrc_check                          bool    default false,
     geo_coord_sys                       character varying(50),
-    media_server_id                     character varying(50),
+    media_server_id                     character varying(50) default 'auto',
     custom_name                         character varying(255),
     sdp_ip                              character varying(50),
     local_ip                            character varying(50),

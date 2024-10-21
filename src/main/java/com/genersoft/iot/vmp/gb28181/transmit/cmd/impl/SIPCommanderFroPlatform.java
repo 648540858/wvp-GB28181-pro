@@ -660,9 +660,14 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
                     if (channel.getChannelType() != 2) {  // 业务分组/虚拟组织/行政区划 不设置以下属性
                         catalogXml.append("<Model>" + channel.getModel() + "</Model>\r\n")
-                                .append("<Owner> " + channel.getOwner()+ "</Owner>\r\n")
-                                .append("<CivilCode>" + channel.getCivilCode() + "</CivilCode>\r\n")
-                                .append("<Address>" + channel.getAddress() + "</Address>\r\n");
+                                .append("<Owner> " + channel.getOwner()+ "</Owner>\r\n");
+                        if (channel.getCivilCode() != null) {
+                            catalogXml.append("<CivilCode>" + channel.getCivilCode() + "</CivilCode>\r\n");
+                        }else {
+                            catalogXml.append("<CivilCode>" + parentPlatform.getAdministrativeDivision() + "</CivilCode>\r\n");
+                        }
+
+                        catalogXml.append("<Address>" + channel.getAddress() + "</Address>\r\n");
                         catalogXml.append("<Longitude>" + channel.getLongitude() + "</Longitude>\r\n");
                         catalogXml.append("<Latitude>" + channel.getLatitude() + "</Latitude>\r\n");
                     }

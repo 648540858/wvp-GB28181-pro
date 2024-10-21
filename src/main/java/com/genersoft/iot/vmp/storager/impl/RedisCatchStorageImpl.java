@@ -67,31 +67,9 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public Long getSN(String method) {
-        String key = VideoManagerConstants.SIP_SN_PREFIX  + userSetting.getServerId() + "_" +  method;
-
-        Long result =  redisTemplate.opsForValue().increment(key, 1L);
-        if (result != null && result > Integer.MAX_VALUE) {
-            redisTemplate.opsForValue().set(key, 1);
-            result = 1L;
-        }
-        return result;
-    }
-
-    @Override
     public void resetAllCSEQ() {
         String key = VideoManagerConstants.SIP_CSEQ_PREFIX  + userSetting.getServerId();
         redisTemplate.opsForValue().set(key, 1);
-    }
-
-    @Override
-    public void resetAllSN() {
-        String scanKey = VideoManagerConstants.SIP_SN_PREFIX  + userSetting.getServerId() + "_*";
-        List<Object> keys = RedisUtil.scan(redisTemplate, scanKey);
-        for (Object o : keys) {
-            String key = (String) o;
-            redisTemplate.opsForValue().set(key, 1);
-        }
     }
 
     @Override

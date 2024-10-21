@@ -100,10 +100,6 @@ public interface IRedisCatchStorage {
     GPSMsgInfo getGpsMsgInfo(String gbId);
     List<GPSMsgInfo> getAllGpsMsgInfo();
 
-    Long getSN(String method);
-
-    void resetAllSN();
-
     MediaInfo getStreamInfo(String app, String streamId, String mediaServerId);
 
     MediaInfo getProxyStream(String app, String streamId);

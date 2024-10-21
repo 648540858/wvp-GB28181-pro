@@ -267,6 +267,7 @@ public interface CommonGBChannelMapper {
             "    coalesce(gb_device_id, device_id) as device_id," +
             "    coalesce(gb_name, name) as name, " +
             "    coalesce(gb_parent_id, parent_id) as parent_device_id, " +
+            "    coalesce(gb_status, status) as status, " +
             "    1 as type, " +
             "    true as is_leaf " +
             " from wvp_device_channel " +
@@ -358,6 +359,7 @@ public interface CommonGBChannelMapper {
             "    coalesce(gb_name, name) as name, " +
             "    coalesce(gb_parent_id, parent_id) as parent_device_id, " +
             "    coalesce(gb_business_group_id, business_group_id) as business_group, " +
+            "    coalesce(gb_status, status) as status, " +
             "    1 as type, " +
             "    true as is_leaf " +
             " from wvp_device_channel " +

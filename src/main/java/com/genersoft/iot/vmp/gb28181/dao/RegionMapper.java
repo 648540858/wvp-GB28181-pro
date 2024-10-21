@@ -74,6 +74,7 @@ public interface RegionMapper {
             " *, " +
             " concat('region', id) as tree_id," +
             " 0 as type," +
+            " 'ON' as status," +
             " false as is_leaf" +
             " from wvp_common_region " +
             " where " +

@@ -32,7 +32,8 @@
             <el-radio v-if="node.data.type === 0 && node.level !== 1 " style="margin-right: 0" v-model="chooseId" @input="chooseIdChange(node.data.treeId, node.data.deviceId)" :label="node.data.deviceId">{{''}}</el-radio>
           </span>
           <span v-if="node.data.type === 0" style="color: #409EFF" class="iconfont icon-bianzubeifen3"></span>
-          <span v-if="node.data.type === 1" style="color: #409EFF" class="iconfont icon-shexiangtou2"></span>
+          <span v-if="node.data.type === 1 && node.data.status === 'ON'" style="color: #409EFF" class="iconfont icon-shexiangtou2"></span>
+          <span v-if="node.data.type === 1 && node.data.status !== 'ON'" style="color: #808181" class="iconfont icon-shexiangtou2"></span>
           <span style=" padding-left: 1px" v-if="node.data.deviceId !=='' && showCode" :title="node.data.deviceId">{{ node.label }}（编号：{{ node.data.deviceId }}）</span>
           <span style=" padding-left: 1px" v-if="node.data.deviceId ==='' || !showCode" :title="node.data.deviceId">{{ node.label }}</span>
         </span>

@@ -69,7 +69,8 @@ public interface GroupMapper {
             " * , " +
             " concat('group', id) as tree_id," +
             " 0 as type," +
-            " false as is_leaf" +
+            " false as is_leaf," +
+            " 'ON' as status" +
             " from wvp_common_group " +
             " where 1=1 " +
             " <if test='parentId != null'> and parent_id = #{parentId} </if> " +

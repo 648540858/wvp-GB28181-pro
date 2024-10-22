@@ -19,7 +19,7 @@ public class WVPTimerTask {
     @Autowired
     private SipConfig sipConfig;
 
-    @Scheduled(fixedRate = 2 * 1000)   //每3秒执行一次
+    @Scheduled(fixedDelay = 2 * 1000)   //每3秒执行一次
     public void execute(){
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("ip", sipConfig.getShowIp());

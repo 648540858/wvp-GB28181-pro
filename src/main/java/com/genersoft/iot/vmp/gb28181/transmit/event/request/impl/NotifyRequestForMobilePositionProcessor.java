@@ -61,7 +61,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 		taskQueue.offer(new HandlerCatchData(evt, null, null));
 	}
 
-	@Scheduled(fixedRate = 200) //每200毫秒执行一次
+	@Scheduled(fixedDelay = 200) //每200毫秒执行一次
 	public void executeTaskQueue() {
 		if (taskQueue.isEmpty()) {
 			return;

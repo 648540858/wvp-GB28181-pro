@@ -99,7 +99,7 @@ public class MobilePositionServiceImpl implements IMobilePositionService {
         channelMapper.updateStreamGPS(gpsMsgInfoList);
     }
 
-    @Scheduled(fixedRate = 1000)
+    @Scheduled(fixedDelay = 1000)
     @Transactional
     public void executeTaskQueue() {
         int countLimit = 3000;

@@ -65,7 +65,7 @@ public class RedisGpsMsgListener implements MessageListener {
     /**
      * 定时将经纬度更新到数据库
      */
-    @Scheduled(fixedRate = 2 * 1000)   //每2秒执行一次
+    @Scheduled(fixedDelay = 2 * 1000)   //每2秒执行一次
     public void execute(){
         List<GPSMsgInfo> gpsMsgInfoList = redisCatchStorage.getAllGpsMsgInfo();
         if (!gpsMsgInfoList.isEmpty()) {

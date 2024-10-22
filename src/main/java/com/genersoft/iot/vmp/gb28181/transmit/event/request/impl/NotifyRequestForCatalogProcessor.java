@@ -62,7 +62,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 		taskQueue.offer(new HandlerCatchData(evt, null, null));
 	}
 
-	@Scheduled(fixedRate = 400)   //每400毫秒执行一次
+	@Scheduled(fixedDelay = 400)   //每400毫秒执行一次
 	public void executeTaskQueue(){
 		if (taskQueue.isEmpty()) {
 			return;

@@ -494,8 +494,9 @@ export default {
           method: 'post',
           url: `/api/device/query/channel/stream/identification/update/`,
           params: {
-            deviceId: this.deviceId,
+            deviceDbId: this.device.id,
             streamIdentification: this.subStream
+
           }
         }).then((res)=> {
           console.log(JSON.stringify(res));
@@ -513,8 +514,8 @@ export default {
         method: 'post',
         url: `/api/device/query/channel/stream/identification/update/`,
         params: {
-          deviceId: this.deviceId,
-          channelId: row.channelId,
+          deviceDbId: row.deviceDbId,
+          id: row.id,
           streamIdentification: row.streamIdentification
         }
       }).then(function (res) {

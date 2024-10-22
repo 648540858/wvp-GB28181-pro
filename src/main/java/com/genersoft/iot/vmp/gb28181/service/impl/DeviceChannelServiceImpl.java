@@ -327,7 +327,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public void updateChannelStreamIdentification(DeviceChannel channel) {
-        Assert.isTrue(channel.getId() > 0, "通道ID必须存在");
         Assert.hasLength(channel.getStreamIdentification(), "码流标识必须存在");
         if (ObjectUtils.isEmpty(channel.getStreamIdentification())) {
             log.info("[重置通道码流类型] 设备: {}, 码流： {}", channel.getDeviceId(), channel.getStreamIdentification());

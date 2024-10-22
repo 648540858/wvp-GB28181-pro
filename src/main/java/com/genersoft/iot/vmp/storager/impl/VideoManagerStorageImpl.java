@@ -814,8 +814,14 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		if (platform == null) {
 			return 0;
 		}
+		if (platformCatalog.getParentId().equals(platform.getDeviceGBId())) {
+			platformCatalog.setParentId(null);
+		}
 		if (platformCatalog.getId().length() <= 8) {
-			platformCatalog.setCivilCode(platformCatalog.getParentId());
+			if (platformCatalog.getParentId() != null) {
+				platformCatalog.setCivilCode(platformCatalog.getParentId());
+			}
+			platformCatalog.setCivilCodeForChannel(platformCatalog.getId());
 		}else {
 			if (platformCatalog.getId().length() != 20) {
 				return 0;
@@ -826,9 +832,15 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 					case 215:
 						if (platformCatalog.getParentId().length() <= 8) {
 							platformCatalog.setCivilCode(platformCatalog.getParentId());
+							platformCatalog.setCivilCodeForChannel(platformCatalog.getParentId());
 						}else {
 							PlatformCatalog catalog = catalogMapper.selectByPlatFormAndCatalogId(platformCatalog.getPlatformId(), platformCatalog.getParentId());
 							if (catalog != null) {
+								if (catalog.getId().length() <= 8) {
+									platformCatalog.setCivilCodeForChannel(platformCatalog.getParentId());
+								}else {
+									platformCatalog.setCivilCodeForChannel(platformCatalog.getCivilCode());
+								}
 								platformCatalog.setCivilCode(catalog.getCivilCode());
 							}
 						}
@@ -836,12 +848,14 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 					case 216:
 						if (platformCatalog.getParentId().length() <= 8) {
 							platformCatalog.setCivilCode(platformCatalog.getParentId());
+							platformCatalog.setCivilCodeForChannel(platformCatalog.getParentId());
 						}else {
 							PlatformCatalog catalog = catalogMapper.selectByPlatFormAndCatalogId(platformCatalog.getPlatformId(),platformCatalog.getParentId());
 							if (catalog == null) {
 								logger.warn("[添加目录] 无法获取目录{}的CivilCode和BusinessGroupId", platformCatalog.getPlatformId());
 								break;
 							}
+							platformCatalog.setCivilCodeForChannel(catalog.getCivilCode());
 							platformCatalog.setCivilCode(catalog.getCivilCode());
 							if (Integer.parseInt(platformCatalog.getParentId().substring(10, 13)) == 215) {
 								platformCatalog.setBusinessGroupId(platformCatalog.getParentId());

@@ -78,7 +78,7 @@ public interface GbStreamMapper {
 
     @Select("<script> "+
             "select gt.gb_id as channel_id, gt.name, 'wvp-pro' as manufacture,  st.status, gt.longitude, gt.latitude, pc.id as parent_id," +
-            "       '1' as register_way, pc.civil_code, 'live' as model, 'wvp-pro' as owner, '0' as parental,'0' as secrecy" +
+            "       '1' as register_way, pc.civil_code_for_channel as civil_code, 'live' as model, 'wvp-pro' as owner, '0' as parental,'0' as secrecy" +
             " from wvp_gb_stream gt " +
             " left join (" +
             "    select " +

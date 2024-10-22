@@ -208,6 +208,7 @@ create table wvp_platform_catalog (
                                       name character varying(255),
                                       parent_id character varying(50),
                                       civil_code character varying(50),
+                                      civil_code_for_channel character varying(50),,
                                       business_group_id character varying(50),
                                       constraint uk_platform_catalog_id_platform_id unique (id, platform_id)
 );

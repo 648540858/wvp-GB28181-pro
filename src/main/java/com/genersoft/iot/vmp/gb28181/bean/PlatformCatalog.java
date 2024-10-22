@@ -23,6 +23,9 @@ public class PlatformCatalog {
     @Schema(description = "行政区划")
     private String civilCode;
 
+    @Schema(description = "为所关联的通道缓存的行政区划")
+    private String civilCodeForChannel;
+
     @Schema(description = "目录分组")
     private String businessGroupId;
 
@@ -100,6 +103,15 @@ public class PlatformCatalog {
 
     public String getCivilCode() {
         return civilCode;
+    }
+
+
+    public String getCivilCodeForChannel() {
+        return civilCodeForChannel;
+    }
+
+    public void setCivilCodeForChannel(String civilCodeForChannel) {
+        this.civilCodeForChannel = civilCodeForChannel;
     }
 
     public void setCivilCode(String civilCode) {

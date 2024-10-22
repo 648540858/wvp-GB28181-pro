@@ -126,7 +126,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
 
     private List<DeviceChannel> getDeviceChannelListByChannelReduceList(List<ChannelReduce> channelReduces, String catalogId, ParentPlatform platform) {
         List<DeviceChannel> deviceChannelList = new ArrayList<>();
-        if (channelReduces.size() > 0){
+        if (!channelReduces.isEmpty()){
             PlatformCatalog catalog = catalogManager.selectByPlatFormAndCatalogId(platform.getServerGBId(),catalogId);
             if (catalog == null && catalogId.equals(platform.getDeviceGBId())) {
                 for (ChannelReduce channelReduce : channelReduces) {
@@ -143,7 +143,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
             for (ChannelReduce channelReduce : channelReduces) {
                 DeviceChannel deviceChannel = deviceChannelMapper.queryChannel(channelReduce.getDeviceId(), channelReduce.getChannelId());
                 deviceChannel.setParental(0);
-                deviceChannel.setCivilCode(catalog.getCivilCode());
+                deviceChannel.setCivilCode(catalog.getCivilCodeForChannel());
                 deviceChannel.setParentId(catalog.getParentId());
                 deviceChannel.setBusinessGroupId(catalog.getBusinessGroupId());
                 deviceChannelList.add(deviceChannel);

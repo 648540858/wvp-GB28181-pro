@@ -117,7 +117,7 @@ public class GbStreamServiceImpl implements IGbStreamService {
 
         PlatformCatalog catalog = catalogMapper.selectByPlatFormAndCatalogId(platform.getServerGBId(), catalogId);
         if (catalog != null) {
-            deviceChannel.setCivilCode(catalog.getCivilCode());
+            deviceChannel.setCivilCode(catalog.getCivilCodeForChannel());
             deviceChannel.setParentId(catalog.getParentId());
             deviceChannel.setBusinessGroupId(catalog.getBusinessGroupId());
         }else {
@@ -219,7 +219,7 @@ public class GbStreamServiceImpl implements IGbStreamService {
         deviceChannel.setRegisterWay(1);
         PlatformCatalog catalog = catalogMapper.selectByPlatFormAndCatalogId(platform.getServerGBId(), catalogId);
         if (catalog != null) {
-            deviceChannel.setCivilCode(catalog.getCivilCode());
+            deviceChannel.setCivilCode(catalog.getCivilCodeForChannel());
             deviceChannel.setParentId(catalog.getParentId());
             deviceChannel.setBusinessGroupId(catalog.getBusinessGroupId());
         }else {

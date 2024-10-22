@@ -13,8 +13,8 @@ import java.util.List;
 @Repository
 public interface PlatformCatalogMapper {
 
-    @Insert("INSERT INTO wvp_platform_catalog (id, name, platform_id, parent_id, civil_code, business_group_id) VALUES" +
-            "(#{id}, #{name}, #{platformId}, #{parentId}, #{civilCode}, #{businessGroupId})")
+    @Insert("INSERT INTO wvp_platform_catalog (id, name, platform_id, parent_id, civil_code, civil_code_for_channel, business_group_id) VALUES" +
+            "(#{id}, #{name}, #{platformId}, #{parentId}, #{civilCode}, #{civilCodeForChannel}, #{businessGroupId})")
     int add(PlatformCatalog platformCatalog);
 
     @Delete("DELETE from wvp_platform_catalog WHERE platform_id=#{platformId} and id=#{id}")
@@ -23,10 +23,13 @@ public interface PlatformCatalogMapper {
     @Delete("DELETE from wvp_platform_catalog WHERE platform_id=#{platformId}")
     int delByPlatformId(@Param("platformId") String platformId);
 
-    @Select("SELECT pc.*, count(pc2.id) as children_count from wvp_platform_catalog pc " +
+    @Select(
+            value = {" <script>" +
+            "SELECT pc.*, count(pc2.id) as children_count from wvp_platform_catalog pc " +
             "left join wvp_platform_catalog pc2 on pc.id = pc2.parent_id " +
-            "WHERE pc.parent_id=#{parentId} AND pc.platform_id=#{platformId} " +
-            "group by pc.id, pc.name, pc.platform_id, pc.business_group_id, pc.civil_code, pc.parent_id")
+            "WHERE  pc.platform_id=#{platformId} " +
+            "group by pc.id, pc.name, pc.platform_id, pc.business_group_id, pc.civil_code, pc.parent_id, pc.civil_code_for_channel"
+                    "</script>"})
     List<PlatformCatalog> selectByParentId(@Param("platformId") String platformId, @Param("parentId") String parentId);
 
     @Update(value = {" <script>" +

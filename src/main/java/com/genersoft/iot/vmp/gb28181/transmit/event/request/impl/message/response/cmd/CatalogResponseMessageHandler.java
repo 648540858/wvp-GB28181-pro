@@ -140,6 +140,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                         // 业务分组/虚拟组织
                                         Group group = Group.getInstance(channel);
                                         if (group != null) {
+                                            channel.setParental(1);
                                             channel.setChannelType(2);
                                             groupList.add(group);
                                         }

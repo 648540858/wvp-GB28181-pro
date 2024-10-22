@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.GbCode;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
@@ -601,12 +602,18 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         PageHelper.startPage(page, count);
         String civilCode = null;
         String parentId = null;
+        String businessGroupId = null;
         if (channelId.length() <= 8) {
             civilCode = channelId;
         }else {
-            parentId = channelId;
+            GbCode decode = GbCode.decode(channelId);
+            if (Integer.parseInt(decode.getTypeCode()) == 215) {
+                businessGroupId = channelId;
+            }else {
+                parentId = channelId;
+            }
         }
-        List<DeviceChannel> all = channelMapper.queryChannels(deviceDbId, civilCode, parentId, query, channelType, online,null);
+        List<DeviceChannel> all = channelMapper.queryChannels(deviceDbId, civilCode, businessGroupId, parentId, query, channelType, online,null);
         return new PageInfo<>(all);
     }
 
@@ -623,7 +630,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         }
         // 获取到所有正在播放的流
         PageHelper.startPage(page, count);
-        List<DeviceChannel> all = channelMapper.queryChannels(device.getId(), null,null, query, hasSubChannel, online,null);
+        List<DeviceChannel> all = channelMapper.queryChannels(device.getId(), null,null, null, query, hasSubChannel, online,null);
         return new PageInfo<>(all);
     }
 

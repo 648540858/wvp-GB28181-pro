@@ -61,7 +61,9 @@ public class DeviceChannelProvider {
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
         sqlBuild.append(" where dc.device_db_id = #{deviceDbId} ");
-        if (params.get("parentChannelId") != null ) {
+        if (params.get("businessGroupId") != null ) {
+            sqlBuild.append(" AND coalesce(dc.gb_business_group_id, dc.business_group_id)=#{businessGroupId} AND coalesce(dc.gb_parent_id, dc.parent_id) is null");
+        }else if (params.get("parentChannelId") != null ) {
             sqlBuild.append(" AND coalesce(dc.gb_parent_id, dc.parent_id)=#{parentChannelId}");
         }
         if (params.get("civilCode") != null ) {

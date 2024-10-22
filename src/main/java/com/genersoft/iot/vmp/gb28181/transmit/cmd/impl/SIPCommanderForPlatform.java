@@ -222,7 +222,7 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
     }
 
     private void sendCatalogResponse(List<CommonGBChannel> channels, Platform parentPlatform, String sn, String fromTag, int index, boolean sendAfterResponse) throws SipException, InvalidArgumentException, ParseException {
-        if (index >= channels.size()) {
+        if (index > channels.size()) {
             return;
         }
         List<CommonGBChannel> deviceChannels;
@@ -230,6 +230,9 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
             deviceChannels = channels.subList(index, index + parentPlatform.getCatalogGroup());
         }else {
             deviceChannels = channels.subList(index, channels.size());
+        }
+        if(deviceChannels.isEmpty()) {
+            return;
         }
         String catalogXml = getCatalogXml(deviceChannels, sn, parentPlatform, channels.size());
         // callid
@@ -280,7 +283,7 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
                 } catch (SipException | InvalidArgumentException | ParseException e) {
                     log.error("[命令发送失败] 国标级联 目录查询回复: {}", e.getMessage());
                 }
-            }, 30);
+            }, 100);
         }
     }
 

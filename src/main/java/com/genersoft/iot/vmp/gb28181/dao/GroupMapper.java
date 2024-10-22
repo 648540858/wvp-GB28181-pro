@@ -154,7 +154,7 @@ public interface GroupMapper {
             " SELECT " +
             " wcg.device_id as gb_device_id," +
             " wcg.name as gb_name," +
-            " wcg.business_group as gb_business_group," +
+            " wcg.business_group as gb_business_group_id," +
             " 1 as gb_parental," +
             " wcg.parent_device_id as gb_parent_id" +
             " from wvp_common_group wcg" +

@@ -67,22 +67,6 @@ create table wvp_device_mobile_position
     create_time     character varying(50)
 );
 
-create table wvp_gb_stream
-(
-    gb_stream_id    serial primary key,
-    app             character varying(255) not null,
-    stream          character varying(255) not null,
-    gb_id           character varying(50)  not null,
-    name            character varying(255),
-    longitude       double precision,
-    latitude        double precision,
-    stream_type     character varying(50),
-    media_server_id character varying(50),
-    create_time     character varying(50),
-    constraint uk_gb_stream_unique_gb_id unique (gb_id),
-    constraint uk_gb_stream_unique_app_stream unique (app, stream)
-);
-
 create table wvp_log
 (
     id          serial primary key,

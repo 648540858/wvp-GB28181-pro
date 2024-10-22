@@ -599,7 +599,14 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     @Override
     public PageInfo<DeviceChannel> getSubChannels(int deviceDbId, String channelId, String query, Boolean channelType, Boolean online, int page, int count) {
         PageHelper.startPage(page, count);
-        List<DeviceChannel> all = channelMapper.queryChannels(deviceDbId, channelId, query, channelType, online,null);
+        String civilCode = null;
+        String parentId = null;
+        if (channelId.length() <= 8) {
+            civilCode = channelId;
+        }else {
+            parentId = channelId;
+        }
+        List<DeviceChannel> all = channelMapper.queryChannels(deviceDbId, civilCode, parentId, query, channelType, online,null);
         return new PageInfo<>(all);
     }
 
@@ -616,7 +623,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         }
         // 获取到所有正在播放的流
         PageHelper.startPage(page, count);
-        List<DeviceChannel> all = channelMapper.queryChannels(device.getId(), null, query, hasSubChannel, online,null);
+        List<DeviceChannel> all = channelMapper.queryChannels(device.getId(), null,null, query, hasSubChannel, online,null);
         return new PageInfo<>(all);
     }
 

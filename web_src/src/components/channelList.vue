@@ -129,10 +129,10 @@
               </el-button>
               <el-divider direction="vertical"></el-divider>
               <el-button size="medium" icon="el-icon-s-open" type="text"
-                         v-if="scope.row.subCount > 0 || scope.row.parental === 1"
+                         v-if="scope.row.subCount > 0 || scope.row.parental === 1 || scope.row.deviceId.length <= 8"
                          @click="changeSubchannel(scope.row)">查看
               </el-button>
-              <el-divider v-if="scope.row.subCount > 0 || scope.row.parental === 1" direction="vertical"></el-divider>
+              <el-divider v-if="scope.row.subCount > 0 || scope.row.parental === 1 || scope.row.deviceId.length <= 8" direction="vertical"></el-divider>
               <el-dropdown @command="(command)=>{moreClick(command, scope.row)}">
                 <el-button size="medium" type="text" >
                   更多功能<i class="el-icon-arrow-down el-icon--right"></i>

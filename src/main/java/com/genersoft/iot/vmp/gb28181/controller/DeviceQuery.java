@@ -467,7 +467,7 @@ public class DeviceQuery {
 			in.close();
 			outputStream.close();
 		} catch (IOException e) {
-			resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
 		}
 	}
 

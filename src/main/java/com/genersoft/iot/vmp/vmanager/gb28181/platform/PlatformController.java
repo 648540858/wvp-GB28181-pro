@@ -411,10 +411,6 @@ public class PlatformController {
 //            parentId = platform.getDeviceGBId();
 //        }
 
-        if (platformId.equals(platform.getDeviceGBId())) {
-            parentId = null;
-        }
-
         return storager.getChildrenCatalogByPlatform(platformId, parentId);
     }
 

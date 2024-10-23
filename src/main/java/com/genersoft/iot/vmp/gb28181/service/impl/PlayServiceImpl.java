@@ -1636,7 +1636,7 @@ public class PlayServiceImpl implements IPlayService {
             log.warn("[点播] 未找到可用媒体节点");
             throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
         }
-        DeviceChannel deviceChannel = deviceChannelService.getOneById(channel.getGbId());
+        DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
         play(mediaServer, device, deviceChannel, null, callback);
     }
 

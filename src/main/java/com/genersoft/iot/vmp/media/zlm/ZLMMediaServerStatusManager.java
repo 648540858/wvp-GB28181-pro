@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 @Component
-public class ZLMMediaServerStatusManger {
+public class ZLMMediaServerStatusManager {
 
     private final Map<Object, MediaServer> offlineZlmPrimaryMap = new ConcurrentHashMap<>();
     private final Map<Object, MediaServer> offlineZlmsecondaryMap = new ConcurrentHashMap<>();

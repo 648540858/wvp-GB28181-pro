@@ -123,7 +123,6 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
             commanderForPlatform.broadcastResultCmd(platform, channel, sn, true,  eventResult->{
                 log.info("[国标级联] 语音喊话 回复失败 platform： {}， 错误：{}/{}", platform.getServerGBId(), eventResult.statusCode, eventResult.msg);
             }, eventResult->{
-
                 // 消息发送成功， 向上级发送invite，获取推流
                 try {
                     platformService.broadcastInvite(platform, channel, mediaServerForMinimumLoad,  (hookData)->{

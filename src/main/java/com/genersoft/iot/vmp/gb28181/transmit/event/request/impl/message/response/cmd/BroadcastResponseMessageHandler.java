@@ -65,7 +65,7 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
             }
             if (!audioBroadcastManager.exit(channel.getId())) {
                 // 回复410
-                responseAck((SIPRequest) evt.getRequest(), Response.GONE);
+                responseAck((SIPRequest) evt.getRequest(), Response.BUSY_HERE);
                 return;
             }
             String result = getText(rootElement, "Result");

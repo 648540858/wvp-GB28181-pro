@@ -187,19 +187,19 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 
 
 		if (ssrcTransaction.getPlatformId() != null ) {
-			Platform platform = platformService.queryPlatformByServerGBId(ssrcTransaction.getDeviceId());
+			Platform platform = platformService.queryPlatformByServerGBId(ssrcTransaction.getPlatformId());
 			if (ssrcTransaction.getType().equals(InviteSessionType.BROADCAST)) {
-				log.info("[收到bye] 上级停止语音对讲，来自：{}, 通道已停止推流: {}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
+				log.info("[收到bye] 上级停止语音对讲，来自：{}, 通道已停止推流: {}", ssrcTransaction.getPlatformId(), ssrcTransaction.getChannelId());
 				CommonGBChannel channel = channelService.getOne(ssrcTransaction.getChannelId());
 				if (channel == null) {
-					log.info("[收到bye] 未找到通道，设备：{}， 通道：{}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
+					log.info("[收到bye] 未找到通道，上级：{}， 通道：{}", ssrcTransaction.getPlatformId(), ssrcTransaction.getChannelId());
 					return;
 				}
 				String mediaServerId = ssrcTransaction.getMediaServerId();
 				platformService.stopBroadcast(platform, channel, ssrcTransaction.getStream(), false,
 						mediaServerService.getOne(mediaServerId));
-				Device device = deviceService.getDeviceByDeviceId(ssrcTransaction.getDeviceId());
-				DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(ssrcTransaction.getChannelId());
+				DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
+				Device device = deviceService.getDevice(channel.getGbDeviceDbId());
 				playService.stopAudioBroadcast(device, deviceChannel);
 			}
 

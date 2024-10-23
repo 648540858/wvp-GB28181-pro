@@ -1,13 +1,12 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd;
 
-import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
-import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
@@ -54,7 +53,7 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
             String channelId = getText(rootElement, "DeviceID");
             DeviceChannel channel = null;
             if (!channelId.equals(device.getDeviceId())) {
-                channel = deviceChannelService.getOne(device.getDeviceId(), channelId);
+                channel = deviceChannelService.getOneBySourceId(device.getId(), channelId);
             }else {
                 channel = deviceChannelService.getBroadcastChannel(device.getId());
             }

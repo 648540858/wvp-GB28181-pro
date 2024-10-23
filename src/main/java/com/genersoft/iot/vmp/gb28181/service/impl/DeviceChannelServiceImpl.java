@@ -274,6 +274,11 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
+    public DeviceChannel getOneBySourceId(int deviceDbId, String channelId) {
+        return channelMapper.getOneBySourceChannelId(deviceDbId, channelId);
+    }
+
+    @Override
     @Transactional
     public synchronized void batchUpdateChannelForNotify(List<DeviceChannel> channels) {
         String now = DateUtil.getNow();

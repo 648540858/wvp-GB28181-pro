@@ -138,7 +138,7 @@ public class PlayServiceImpl implements IPlayService {
                     String deviceId = streamArray[0];
                     String channelId = streamArray[1];
                     Device device = deviceService.getDeviceByDeviceId(deviceId);
-                    DeviceChannel channel = deviceChannelService.getOne(deviceId, channelId);
+                    DeviceChannel channel = deviceChannelService.getOneForSource(deviceId, channelId);
                     if (device == null) {
                         log.info("[语音对讲/喊话] 未找到设备：{}", deviceId);
                         return;
@@ -218,7 +218,7 @@ public class PlayServiceImpl implements IPlayService {
                         log.info("[语音对讲/喊话] 未找到设备：{}", deviceId);
                         return;
                     }
-                    DeviceChannel channel = deviceChannelService.getOne(deviceId, channelId);
+                    DeviceChannel channel = deviceChannelService.getOneForSource(deviceId, channelId);
                     if (channel == null) {
                         log.info("[语音对讲/喊话] 未找到通道：{}", channelId);
                         return;
@@ -1220,36 +1220,30 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public boolean audioBroadcastCmd(Device device, DeviceChannel channel, MediaServer mediaServerItem, String app, String stream, int timeout, boolean isFromPlatform, AudioBroadcastEvent event) throws InvalidArgumentException, ParseException, SipException {
+    public boolean audioBroadcastCmd(Device device, DeviceChannel deviceChannel, MediaServer mediaServerItem, String app, String stream, int timeout, boolean isFromPlatform, AudioBroadcastEvent event) throws InvalidArgumentException, ParseException, SipException {
         Assert.notNull(device, "设备不存在");
-        Assert.notNull(channel, "通道不存在");
-        log.info("[语音喊话] device： {}, channel: {}", device.getDeviceId(), channel.getDeviceId());
-        DeviceChannel deviceChannel = deviceChannelService.getOne(device.getDeviceId(), channel.getDeviceId());
-        if (deviceChannel == null) {
-            log.warn("开启语音广播的时候未找到通道： {}", channel.getDeviceId());
-            event.call("开启语音广播的时候未找到通道");
-            return false;
-        }
+        Assert.notNull(deviceChannel, "通道不存在");
+        log.info("[语音喊话] device： {}, channel: {}", device.getDeviceId(), deviceChannel.getDeviceId());
         // 查询通道使用状态
         if (audioBroadcastManager.exit(deviceChannel.getId())) {
-            SendRtpInfo sendRtpInfo = sendRtpServerService.queryByChannelId(channel.getId(), device.getDeviceId());
+            SendRtpInfo sendRtpInfo = sendRtpServerService.queryByChannelId(deviceChannel.getId(), device.getDeviceId());
             if (sendRtpInfo != null && sendRtpInfo.isOnlyAudio()) {
                 // 查询流是否存在，不存在则认为是异常状态
                 Boolean streamReady = mediaServerService.isStreamReady(mediaServerItem, sendRtpInfo.getApp(), sendRtpInfo.getStream());
                 if (streamReady) {
-                    log.warn("语音广播已经开启： {}", channel.getDeviceId());
+                    log.warn("语音广播已经开启： {}", deviceChannel.getDeviceId());
                     event.call("语音广播已经开启");
                     return false;
                 } else {
-                    stopAudioBroadcast(device, channel);
+                    stopAudioBroadcast(device, deviceChannel);
                 }
             }
         }
 
         // 发送通知
-        cmder.audioBroadcastCmd(device, channel.getDeviceId(), eventResultForOk -> {
+        cmder.audioBroadcastCmd(device, deviceChannel.getDeviceId(), eventResultForOk -> {
             // 发送成功
-            AudioBroadcastCatch audioBroadcastCatch = new AudioBroadcastCatch(device.getDeviceId(), channel.getId(), mediaServerItem, app, stream, event, AudioBroadcastCatchStatus.Ready, isFromPlatform);
+            AudioBroadcastCatch audioBroadcastCatch = new AudioBroadcastCatch(device.getDeviceId(), deviceChannel.getId(), mediaServerItem, app, stream, event, AudioBroadcastCatchStatus.Ready, isFromPlatform);
             audioBroadcastManager.update(audioBroadcastCatch);
             // 等待invite消息， 超时则结束
             String key = VideoManagerConstants.BROADCAST_WAITE_INVITE +  device.getDeviceId();
@@ -1257,14 +1251,14 @@ public class PlayServiceImpl implements IPlayService {
                 key += audioBroadcastCatch.getChannelId();
             }
             dynamicTask.startDelay(key, ()->{
-                log.info("[语音广播]等待invite消息超时：{}/{}", device.getDeviceId(), channel.getDeviceId());
-                stopAudioBroadcast(device, channel);
+                log.info("[语音广播]等待invite消息超时：{}/{}", device.getDeviceId(), deviceChannel.getDeviceId());
+                stopAudioBroadcast(device, deviceChannel);
             }, 10*1000);
         }, eventResultForError -> {
             // 发送失败
-            log.error("语音广播发送失败： {}:{}", channel.getDeviceId(), eventResultForError.msg);
+            log.error("语音广播发送失败： {}:{}", deviceChannel.getDeviceId(), eventResultForError.msg);
             event.call("语音广播发送失败");
-            stopAudioBroadcast(device, channel);
+            stopAudioBroadcast(device, deviceChannel);
         });
         return true;
     }

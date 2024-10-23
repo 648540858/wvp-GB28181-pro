@@ -81,4 +81,5 @@ public interface IGbChannelService {
 
     List<CommonGBChannel> queryListByStreamPushList(List<StreamPush> streamPushList);
 
+    void updateGpsByDeviceIdForStreamPush(List<CommonGBChannel> channels);
 }

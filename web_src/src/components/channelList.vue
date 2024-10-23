@@ -72,7 +72,11 @@
           </el-table-column>
           <el-table-column prop="manufacturer" label="厂家" min-width="100">
           </el-table-column>
-          <el-table-column prop="location" label="位置信息" min-width="120">
+          <el-table-column label="位置信息" min-width="120">
+            <template slot-scope="scope">
+              <span size="medium" v-if="scope.row.longitude && scope.row.latitude">{{scope.row.longitude}}<br/>{{scope.row.latitude}}</span>
+              <span size="medium" v-if="!scope.row.longitude || !scope.row.latitude">无</span>
+            </template>
           </el-table-column>
           <el-table-column prop="ptzType" label="云台类型" min-width="100">
             <template v-slot:default="scope">
@@ -275,10 +279,6 @@ export default {
           that.deviceChannelList = res.data.data.list;
           that.deviceChannelList.forEach(e => {
             e.ptzType = e.ptzType + "";
-            that.$set(e, "location", "");
-            if (e.longitude && e.latitude) {
-              that.$set(e, "location", e.longitude + "," + e.latitude);
-            }
           });
           // 防止出现表格错位
           that.$nextTick(() => {
@@ -429,10 +429,6 @@ export default {
             this.deviceChannelList = res.data.data.list;
             this.deviceChannelList.forEach(e => {
               e.ptzType = e.ptzType + "";
-              this.$set(e, "location", "");
-              if (e.longitude && e.latitude) {
-                this.$set(e, "location", e.longitude + "," + e.latitude);
-              }
             });
             // 防止出现表格错位
             this.$nextTick(() => {

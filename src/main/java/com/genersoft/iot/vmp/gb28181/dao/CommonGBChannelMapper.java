@@ -440,4 +440,13 @@ public interface CommonGBChannelMapper {
     @SelectProvider(type = ChannelProvider.class, method = "queryListByStreamPushList")
     List<CommonGBChannel> queryListByStreamPushList(List<StreamPush> streamPushList);
 
+    @Update(value = {" <script>" +
+            " <foreach collection='channels' item='item' separator=';' >" +
+            " UPDATE wvp_device_channel " +
+            " SET gb_longitude=#{item.gbLongitude}, gb_latitude=#{item.gbLatitude} " +
+            " WHERE stream_push_id IS NOT NULL AND gb_device_id=#{item.gbDeviceId} "+
+             "</foreach>"+
+            " </script>"})
+    void updateGpsByDeviceIdForStreamPush(List<CommonGBChannel> channels);
+
 }

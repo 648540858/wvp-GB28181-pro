@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.streamPush.service;
 
+import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
@@ -97,4 +98,6 @@ public interface IStreamPushService {
     int delete(int id);
 
     void batchRemove(Set<Integer> ids);
+
+    void updateGPSFromGPSMsgInfo(List<GPSMsgInfo> gpsMsgInfoList);
 }

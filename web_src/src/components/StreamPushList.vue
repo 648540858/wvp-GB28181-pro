@@ -46,7 +46,7 @@
         </el-table-column>
         <el-table-column prop="gbName" label="名称" min-width="200">
         </el-table-column>
-        <el-table-column prop="app" label="应用名" min-width="200">
+        <el-table-column prop="app" label="应用名" min-width="100">
         </el-table-column>
         <el-table-column prop="stream" label="流ID" min-width="200">
         </el-table-column>
@@ -57,6 +57,12 @@
           </template>
         </el-table-column>
         <el-table-column prop="gbDeviceId" label="国标编码" min-width="200" >
+        </el-table-column>
+        <el-table-column label="位置信息" min-width="200">
+          <template slot-scope="scope">
+            <span size="medium" v-if="scope.row.gbLongitude && scope.row.gbLatitude">{{scope.row.gbLongitude}}<br/>{{scope.row.gbLatitude}}</span>
+            <span size="medium" v-if="!scope.row.gbLongitude || !scope.row.gbLatitude">无</span>
+          </template>
         </el-table-column>
         <el-table-column prop="mediaServerId" label="流媒体" min-width="200" >
         </el-table-column>
@@ -181,6 +187,12 @@ export default {
           if (res.data.code === 0) {
             that.total = res.data.data.total;
             that.pushList = res.data.data.list;
+            that.pushList.forEach(e => {
+              that.$set(e, "location", "");
+              if (e.gbLongitude && e.gbLatitude) {
+                that.$set(e, "location", e.gbLongitude + "," + e.gbLatitude);
+              }
+            });
           }
 
       }).catch(function (error) {

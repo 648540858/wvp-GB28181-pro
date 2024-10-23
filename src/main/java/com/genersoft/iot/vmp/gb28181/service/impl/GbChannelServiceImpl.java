@@ -693,4 +693,9 @@ public class GbChannelServiceImpl implements IGbChannelService {
     public List<CommonGBChannel> queryListByStreamPushList(List<StreamPush> streamPushList) {
         return commonGBChannelMapper.queryListByStreamPushList(streamPushList);
     }
+
+    @Override
+    public void updateGpsByDeviceIdForStreamPush(List<CommonGBChannel> channels) {
+        commonGBChannelMapper.updateGpsByDeviceIdForStreamPush(channels);
+    }
 }

@@ -243,8 +243,6 @@ public class DeviceQuery {
 	}
 
 	@Operation(summary = "修改通道的码流类型", security = @SecurityRequirement(name = JwtUtils.HEADER))
-	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
-	@Parameter(name = "channel", description = "通道信息", required = true)
 	@PostMapping("/channel/stream/identification/update/")
 	public void updateChannelStreamIdentification(DeviceChannel channel){
 		deviceChannelService.updateChannelStreamIdentification(channel);
@@ -469,7 +467,7 @@ public class DeviceQuery {
 			in.close();
 			outputStream.close();
 		} catch (IOException e) {
-			resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
 		}
 	}
 

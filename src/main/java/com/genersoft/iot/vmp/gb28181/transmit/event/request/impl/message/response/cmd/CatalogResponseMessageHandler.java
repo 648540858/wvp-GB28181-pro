@@ -84,6 +84,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     }
 
     @Scheduled(fixedDelay = 200)
+    @Transactional
     public void executeTaskQueue(){
         if (taskQueue.isEmpty()) {
             return;

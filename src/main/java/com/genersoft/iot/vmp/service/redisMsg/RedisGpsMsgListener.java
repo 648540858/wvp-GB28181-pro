@@ -33,11 +33,12 @@ public class RedisGpsMsgListener implements MessageListener {
     @Autowired
     private IStreamPushService streamPushService;
 
-    private ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 
 
     @Override
     public void onMessage(@NotNull Message message, byte[] bytes) {
+        log.debug("[REDIS: GPS]： {}", new String(message.getBody()));
         taskQueue.offer(message);
     }
 

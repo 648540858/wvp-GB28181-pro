@@ -134,7 +134,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 
 					redisCatchStorage.sendPlatformStartPlayMsg(sendRtpItem, deviceChannel, parentPlatform);
 				}catch (ControllerException e) {
-					log.error("RTP推流失败: {}", e.getMessage());
+					log.error("RTP推流失败: ", e);
 					playService.startSendRtpStreamFailHand(sendRtpItem, parentPlatform, callIdHeader);
 				}
 			}

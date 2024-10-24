@@ -4,10 +4,12 @@ import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.SipConfig;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.service.*;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
+import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
@@ -96,6 +98,12 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     @Autowired
     private SipInviteSessionManager sessionManager;
 
+    @Autowired
+    private UserSetting userSetting;
+
+    @Autowired
+    private SSRCFactory ssrcFactory;
+
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -136,6 +144,16 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         platform.getName(), channel.getGbName(), channel.getGbDeviceId(), inviteInfo.getIp(),
                         inviteInfo.getPort(), inviteInfo.isTcp()?(inviteInfo.isTcpActive()?"TCP主动":"TCP被动"): "UDP",
                         inviteInfo.getSessionName(), inviteInfo.getSsrc());
+                if(!userSetting.getUseCustomSsrcForParentInvite() && ObjectUtils.isEmpty(inviteInfo.getSsrc())) {
+                    log.warn("[上级INVITE] 点播失败, 上级为携带SSRC, 并且本级未设置使用自定义ssrc");
+                    // 通道存在，发100，TRYING
+                    try {
+                        responseAck(request, Response.BAD_REQUEST);
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        log.error("[命令发送失败] 上级Invite TRYING: {}", e.getMessage());
+                    }
+                    return;
+                }
                 // 通道存在，发100，TRYING
                 try {
                     responseAck(request, Response.TRYING);
@@ -152,7 +170,13 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         }
                     }else {
                         // 点播成功， TODO 可以在此处检测cancel命令是否存在，存在则不发送
-
+                        if (userSetting.getUseCustomSsrcForParentInvite()) {
+                            // 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
+                            String ssrc = "Play".equalsIgnoreCase(inviteInfo.getSessionName())
+                                        ? ssrcFactory.getPlaySsrc(streamInfo.getMediaServer().getId())
+                                    : ssrcFactory.getPlayBackSsrc(streamInfo.getMediaServer().getId());
+                            inviteInfo.setSsrc(ssrc);
+                        }
                         // 构建sendRTP内容
                         SendRtpInfo sendRtpItem = sendRtpServerService.createSendRtpInfo(streamInfo.getMediaServer(),
                                 inviteInfo.getIp(), inviteInfo.getPort(), inviteInfo.getSsrc(), platform.getServerGBId(),

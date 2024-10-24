@@ -54,7 +54,7 @@ public class SipInviteSessionManager {
 		List<SsrcTransaction> result = new ArrayList<>();
 		for (Object keyObj : scanResult) {
 			SsrcTransaction ssrcTransaction = (SsrcTransaction)redisTemplate.opsForValue().get(keyObj);
-			if (ssrcTransaction != null && ssrcTransaction.getDeviceId().equals(deviceId)) {
+			if (ssrcTransaction != null && deviceId.equals(ssrcTransaction.getDeviceId())) {
 				result.add(ssrcTransaction);
 			}
 		}

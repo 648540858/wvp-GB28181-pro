@@ -381,7 +381,9 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         param.put("dst_url", sendRtpItem.getIp());
         param.put("dst_port", sendRtpItem.getPort());
         JSONObject jsonObject = zlmresTfulUtils.startSendRtp(mediaServer, param);
-        if (jsonObject == null || jsonObject.getInteger("code") != 0 ) {
+        if (jsonObject == null ) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "连接zlm失败");
+        }else if (jsonObject.getInteger("code") != 0) {
             throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
         }
         log.info("[推流结果]：{} ，参数： {}",jsonObject, JSONObject.toJSONString(param));

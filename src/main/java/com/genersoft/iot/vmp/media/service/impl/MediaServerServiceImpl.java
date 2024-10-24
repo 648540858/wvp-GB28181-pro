@@ -28,8 +28,6 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.MediaServerMapper;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.utils.DateUtil;
-import com.genersoft.iot.vmp.utils.JsonUtil;
-import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import lombok.extern.slf4j.Slf4j;
@@ -153,10 +151,10 @@ public class MediaServerServiceImpl implements IMediaServerService {
                 ssrcFactory.initMediaServerSSRC(mediaServer.getId(), null);
             }
             // 查询redis是否存在此mediaServer
-            String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + ":" + mediaServer.getId();
+            String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId();
             Boolean hasKey = redisTemplate.hasKey(key);
-            if (hasKey != null && ! hasKey) {
-                redisTemplate.opsForValue().set(key, mediaServer);
+            if (hasKey != null && !hasKey) {
+                redisTemplate.opsForHash().put(key, mediaServer.getId(), mediaServer);
             }
         }
     }
@@ -305,8 +303,8 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if (mediaServerInRedis == null || !ssrcFactory.hasMediaServerSSRC(mediaServerInDataBase.getId())) {
             ssrcFactory.initMediaServerSSRC(mediaServerInDataBase.getId(),null);
         }
-        String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + ":" + mediaServerInDataBase.getId();
-        redisTemplate.opsForValue().set(key, mediaServerInDataBase);
+        String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId();
+        redisTemplate.opsForHash().put(key, mediaServerInDataBase.getId(), mediaServerInDataBase);
         if (mediaServerInDataBase.isStatus()) {
             resetOnlineServerItem(mediaServerInDataBase);
         }else {
@@ -321,14 +319,14 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Override
     public List<MediaServer> getAllOnlineList() {
         List<MediaServer> result = new ArrayList<>();
-        List<Object> mediaServerKeys = RedisUtil.scan(redisTemplate, String.format("%S*", VideoManagerConstants.MEDIA_SERVER_PREFIX+ userSetting.getServerId() + ":" ));
+        String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId();
         String onlineKey = VideoManagerConstants.ONLINE_MEDIA_SERVERS_PREFIX + userSetting.getServerId();
-        for (Object mediaServerKey : mediaServerKeys) {
-            String key = (String) mediaServerKey;
-            MediaServer mediaServer = JsonUtil.redisJsonToObject(redisTemplate, key, MediaServer.class);
-            if (Objects.isNull(mediaServer)) {
+        List<Object> values = redisTemplate.opsForHash().values(key);
+        for (Object value : values) {
+            if (Objects.isNull(value)) {
                 continue;
             }
+            MediaServer mediaServer = (MediaServer) value;
             // 检查状态
             Double aDouble = redisTemplate.opsForZSet().score(onlineKey, mediaServer.getId());
             if (aDouble != null) {
@@ -377,8 +375,8 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if (mediaServerIdSet != null && !mediaServerIdSet.isEmpty()) {
             for (Object mediaServerId : mediaServerIdSet) {
                 String mediaServerIdStr = (String) mediaServerId;
-                String serverKey = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + ":" + mediaServerIdStr;
-                result.add((MediaServer) redisTemplate.opsForValue().get(serverKey));
+                String serverKey = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId();
+                result.add((MediaServer) redisTemplate.opsForHash().get(serverKey, mediaServerIdStr));
             }
         }
         Collections.reverse(result);
@@ -395,8 +393,8 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if (mediaServerId == null) {
             return null;
         }
-        String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + ":" + mediaServerId;
-        return JsonUtil.redisJsonToObject(redisTemplate, key, MediaServer.class);
+        String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId();
+        return (MediaServer) redisTemplate.opsForHash().get(key, mediaServerId);
     }
 
 

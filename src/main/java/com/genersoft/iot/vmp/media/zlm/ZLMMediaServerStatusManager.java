@@ -129,7 +129,8 @@ public class ZLMMediaServerStatusManager {
         }
         if (!offlineZlmPrimaryMap.isEmpty()) {
             for (MediaServer mediaServerItem : offlineZlmPrimaryMap.values()) {
-                if (offlineZlmTimeMap.get(mediaServerItem.getId()) <  System.currentTimeMillis() - 30*60*1000) {
+                if (offlineZlmTimeMap.get(mediaServerItem.getId()) != null
+                        && offlineZlmTimeMap.get(mediaServerItem.getId()) <  System.currentTimeMillis() - 30*60*1000) {
                     offlineZlmsecondaryMap.put(mediaServerItem.getId(), mediaServerItem);
                     offlineZlmPrimaryMap.remove(mediaServerItem.getId());
                     continue;
@@ -281,6 +282,8 @@ public class ZLMMediaServerStatusManager {
         // 等zlm支持给每个rtpServer设置关闭音频的时候可以不设置此选项
         if (mediaServerItem.isRtpEnable() && !ObjectUtils.isEmpty(mediaServerItem.getRtpPortRange())) {
             param.put("rtp_proxy.port_range", mediaServerItem.getRtpPortRange().replace(",", "-"));
+        }else {
+            param.put("rtp_proxy.port", mediaServerItem.getRtpProxyPort());
         }
 
         if (!ObjectUtils.isEmpty(mediaServerItem.getRecordPath())) {

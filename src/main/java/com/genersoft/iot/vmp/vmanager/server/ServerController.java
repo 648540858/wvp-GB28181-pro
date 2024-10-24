@@ -228,7 +228,7 @@ public class ServerController {
     public List<MediaServerLoad> getMediaLoad() {
         List<MediaServerLoad> result = new ArrayList<>();
         List<MediaServer> allOnline = mediaServerService.getAllOnline();
-        if (allOnline.size() == 0) {
+        if (allOnline.isEmpty()) {
             return result;
         }else {
             for (MediaServer mediaServerItem : allOnline) {

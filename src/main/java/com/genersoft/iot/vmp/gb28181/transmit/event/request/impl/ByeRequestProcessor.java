@@ -184,7 +184,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			return;
 		}
 		log.info("[收到bye] 来自：{}, 通道: {}, 类型： {}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getType());
-
+		// TODO 结束点播 避免等待
 
 		if (ssrcTransaction.getPlatformId() != null ) {
 			Platform platform = platformService.queryPlatformByServerGBId(ssrcTransaction.getPlatformId());

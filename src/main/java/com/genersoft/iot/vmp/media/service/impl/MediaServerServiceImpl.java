@@ -273,6 +273,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     public void update(MediaServer mediaSerItem) {
         mediaServerMapper.update(mediaSerItem);
         MediaServer mediaServerInRedis = getOne(mediaSerItem.getId());
+        // 获取完整数据
         MediaServer mediaServerInDataBase = mediaServerMapper.queryOne(mediaSerItem.getId());
         if (mediaServerInDataBase == null) {
             return;
@@ -350,7 +351,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         Set<Object> mediaServerIdSet = redisTemplate.opsForZSet().reverseRange(key, 0, -1);
 
         List<MediaServer> result = new ArrayList<>();
-        if (mediaServerIdSet != null && mediaServerIdSet.size() > 0) {
+        if (mediaServerIdSet != null && !mediaServerIdSet.isEmpty()) {
             for (Object mediaServerId : mediaServerIdSet) {
                 String mediaServerIdStr = (String) mediaServerId;
                 String serverKey = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + ":" + mediaServerIdStr;

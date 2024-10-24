@@ -173,46 +173,39 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public void updateDevice(Device device) {
-        String key = VideoManagerConstants.DEVICE_PREFIX + userSetting.getServerId() + "_" + device.getDeviceId();
-        redisTemplate.opsForValue().set(key, device);
+        String key = VideoManagerConstants.DEVICE_PREFIX + userSetting.getServerId();
+        redisTemplate.opsForHash().put(key, device.getDeviceId(), device);
     }
 
     @Override
     public void removeDevice(String deviceId) {
-        String key = VideoManagerConstants.DEVICE_PREFIX + userSetting.getServerId() + "_" + deviceId;
-        redisTemplate.delete(key);
+        String key = VideoManagerConstants.DEVICE_PREFIX + userSetting.getServerId();
+        redisTemplate.opsForHash().delete(key, deviceId);
     }
 
     @Override
     public void removeAllDevice() {
-        String scanKey = VideoManagerConstants.DEVICE_PREFIX + userSetting.getServerId() + "_*";
-        List<Object> keys = RedisUtil.scan(redisTemplate, scanKey);
-        for (Object key : keys) {
-            redisTemplate.delete(key);
-        }
+        String key = VideoManagerConstants.DEVICE_PREFIX + userSetting.getServerId();
+        redisTemplate.delete(key);
     }
 
     @Override
     public List<Device> getAllDevices() {
-        String scanKey = VideoManagerConstants.DEVICE_PREFIX + userSetting.getServerId() + "_*";
+        String key = VideoManagerConstants.DEVICE_PREFIX + userSetting.getServerId();
         List<Device> result = new ArrayList<>();
-        List<Object> keys = RedisUtil.scan(redisTemplate, scanKey);
-        for (Object o : keys) {
-            String key = (String) o;
-            Device device = JsonUtil.redisJsonToObject(redisTemplate, key, Device.class);
-            if (Objects.nonNull(device)) {
-                // 只取没有存过得
-                result.add(JsonUtil.redisJsonToObject(redisTemplate, key, Device.class));
+        List<Object> values = redisTemplate.opsForHash().values(key);
+        for (Object value : values) {
+            if (Objects.nonNull(value)) {
+                result.add((Device)value);
             }
         }
-
         return result;
     }
 
     @Override
     public Device getDevice(String deviceId) {
-        String key = VideoManagerConstants.DEVICE_PREFIX + userSetting.getServerId() + "_" + deviceId;
-        Device device = JsonUtil.redisJsonToObject(redisTemplate, key, Device.class);
+        String key = VideoManagerConstants.DEVICE_PREFIX + userSetting.getServerId();
+        Device device = (Device)redisTemplate.opsForHash().get(key, deviceId);
         if (device == null){
             device = deviceMapper.getDeviceByDeviceId(deviceId);
             if (device != null) {

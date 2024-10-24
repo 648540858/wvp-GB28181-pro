@@ -16,7 +16,7 @@ public class VideoManagerConstants {
 
 	public static final String ONLINE_MEDIA_SERVERS_PREFIX = "VMP_ONLINE_MEDIA_SERVERS:";
 
-	public static final String DEVICE_PREFIX = "VMP_DEVICE_";
+	public static final String DEVICE_PREFIX = "VMP_DEVICE:";
 
 	public static final String INVITE_PREFIX = "VMP_INVITE_INFO";
 

@@ -172,4 +172,9 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
 
         return platformChannelMapper.delChannelForGBByCatalogId(platformId, catalogId);
     }
+
+    @Override
+    public DeviceChannel queryChannel(String serverGBId, String deviceId, String channelId) {
+        return platformChannelMapper.queryChannel(serverGBId, deviceId, channelId);
+    }
 }

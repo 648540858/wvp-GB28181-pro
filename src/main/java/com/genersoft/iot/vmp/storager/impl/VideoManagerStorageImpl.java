@@ -814,11 +814,8 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		if (platform == null) {
 			return 0;
 		}
-		if (platformCatalog.getParentId().equals(platform.getDeviceGBId())) {
-			platformCatalog.setParentId(null);
-		}
 		if (platformCatalog.getId().length() <= 8) {
-			if (platformCatalog.getParentId() != null) {
+			if (platformCatalog.getParentId() != null && platformCatalog.getParentId().length() <= 8) {
 				platformCatalog.setCivilCode(platformCatalog.getParentId());
 			}
 			platformCatalog.setCivilCodeForChannel(platformCatalog.getId());
@@ -1021,7 +1018,11 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		deviceChannel.setManufacture("wvp-pro");
 		deviceChannel.setStatus(true);
 		deviceChannel.setParental(1);
-
+		if (catalog.getId().length() <= 8) {
+			deviceChannel.setCivilCode(catalog.getId());
+		}else {
+			deviceChannel.setCivilCode(catalog.getCivilCode());
+		}
 		deviceChannel.setRegisterWay(1);
 		deviceChannel.setParentId(catalog.getParentId());
 		deviceChannel.setBusinessGroupId(catalog.getBusinessGroupId());

@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.service.IGbStreamService;
+import com.genersoft.iot.vmp.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +43,9 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
 
     @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private IPlatformChannelService platformChannelService;
 
     @Override
     public void onApplicationEvent(CatalogEvent event) {
@@ -177,6 +181,13 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                                 logger.info("[Catalog事件: {}]平台：{}，影响通道{}", event.getType(), platform.getServerGBId(), gbId);
                                 List<DeviceChannel> deviceChannelList = new ArrayList<>();
                                 DeviceChannel deviceChannel = channelMap.get(gbId);
+                                // 查询通道的关联信息
+                                DeviceChannel deviceChannelInDb = platformChannelService.queryChannel(platform.getServerGBId(), deviceChannel.getDeviceId(), deviceChannel.getChannelId());
+                                if (deviceChannelInDb != null) {
+                                    deviceChannel.setCivilCode(deviceChannelInDb.getCivilCode());
+                                    deviceChannel.setParentId(deviceChannelInDb.getParentId());
+                                    deviceChannel.setBusinessGroupId(deviceChannelInDb.getBusinessGroupId());
+                                }
                                 deviceChannelList.add(deviceChannel);
                                 GbStream gbStream = storager.queryStreamInParentPlatform(platform.getServerGBId(), gbId);
                                 if(gbStream != null){

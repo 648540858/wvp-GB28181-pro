@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service;
 
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 
 import java.util.List;
@@ -26,4 +27,6 @@ public interface IPlatformChannelService {
      * @return
      */
     int delAllChannelForGB(String platformId, String catalogId);
+
+    DeviceChannel queryChannel(String serverGBId, String deviceId, String channelId);
 }

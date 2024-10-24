@@ -122,4 +122,14 @@ public interface PlatformChannelMapper {
 
     @Select("SELECT pgc.platform_id from wvp_platform_gb_channel pgc left join wvp_device_channel dc on dc.id = pgc.device_channel_id WHERE dc.channel_id=#{channelId}")
     List<String> queryParentPlatformByChannelId(@Param("channelId") String channelId);
+
+    @Select("select dc.id, dc.channel_id, dc.device_id, COALESCE(dc.custom_name, dc.name) AS name, dc.manufacture,dc.model,dc.owner, pc.civil_code_for_channel as civil_code, dc.block, " +
+            " dc.address, '0' as parental,'0' as channel_type, pc.id as parent_id, dc.safety_way, dc.register_way,dc.cert_num, dc.certifiable,  " +
+            " dc.err_code,dc.end_time, dc.secrecy,   dc.ip_address,  dc.port,  COALESCE(dc.custom_ptz_type, dc.ptz_type) AS ptz_type,  dc.password, dc.status, " +
+            " COALESCE(dc.custom_longitude, dc.longitude) AS longitude, COALESCE(dc.custom_latitude, dc.latitude) AS latitude,  pc.business_group_id " +
+            " from wvp_device_channel dc" +
+            " LEFT JOIN wvp_platform_gb_channel pgc on  dc.id = pgc.device_channel_id" +
+            " LEFT JOIN wvp_platform_catalog pc on pgc.catalog_id = pc.id and pgc.platform_id = pc.platform_id" +
+            " where pgc.platform_id=#{serverGBId} and dc.device_id = #{deviceId} and dc.channel_id = #{channelId}")
+    DeviceChannel queryChannel(@Param("serverGBId") String serverGBId, @Param("deviceId") String deviceId, @Param("channelId") String channelId);
 }

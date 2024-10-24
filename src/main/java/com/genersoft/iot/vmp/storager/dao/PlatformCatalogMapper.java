@@ -27,9 +27,9 @@ public interface PlatformCatalogMapper {
             value = {" <script>" +
             "SELECT pc.*, count(pc2.id) as children_count from wvp_platform_catalog pc " +
             "left join wvp_platform_catalog pc2 on pc.id = pc2.parent_id " +
-            "WHERE  pc.platform_id=#{platformId} " +
-            "group by pc.id, pc.name, pc.platform_id, pc.business_group_id, pc.civil_code, pc.parent_id, pc.civil_code_for_channel"
-                    "</script>"})
+            "WHERE pc.parent_id=#{parentId} AND pc.platform_id=#{platformId} " +
+            "group by pc.id, pc.name, pc.platform_id, pc.business_group_id, pc.civil_code, pc.parent_id, pc.civil_code_for_channel" +
+             "</script>"})
     List<PlatformCatalog> selectByParentId(@Param("platformId") String platformId, @Param("parentId") String parentId);
 
     @Update(value = {" <script>" +

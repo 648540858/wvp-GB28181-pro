@@ -486,10 +486,10 @@ public interface DeviceChannelMapper {
     @Select("select * from wvp_device_channel where device_id=#{deviceId} and SUBSTRING(channel_id, 11, 3)=#{typeCode}")
     List<DeviceChannel> getBusinessGroups(@Param("deviceId") String deviceId, @Param("typeCode") String typeCode);
 
-    @Select("select dc.id, dc.channel_id, dc.device_id, COALESCE(dc.custom_name, dc.name) AS name, dc.manufacture,dc.model,dc.owner, pc.civil_code_for_channel as civil_code,dc.block, " +
+    @Select("select dc.id, dc.channel_id, dc.device_id, COALESCE(dc.custom_name, dc.name) AS name, dc.manufacture,dc.model,dc.owner, pc.civil_code_for_channel as civil_code, dc.block, " +
             " dc.address, '0' as parental,'0' as channel_type, pc.id as parent_id, dc.safety_way, dc.register_way,dc.cert_num, dc.certifiable,  " +
             " dc.err_code,dc.end_time, dc.secrecy,   dc.ip_address,  dc.port,  COALESCE(dc.custom_ptz_type, dc.ptz_type) AS ptz_type,  dc.password, dc.status, " +
-            " COALESCE(dc.custom_longitude, dc.longitude) A S longitude, COALESCE(dc.custom_latitude, dc.latitude) AS latitude,  pc.business_group_id " +
+            " COALESCE(dc.custom_longitude, dc.longitude) AS longitude, COALESCE(dc.custom_latitude, dc.latitude) AS latitude,  pc.business_group_id " +
             " from wvp_device_channel dc" +
             " LEFT JOIN wvp_platform_gb_channel pgc on  dc.id = pgc.device_channel_id" +
             " LEFT JOIN wvp_platform_catalog pc on pgc.catalog_id = pc.id and pgc.platform_id = pc.platform_id" +

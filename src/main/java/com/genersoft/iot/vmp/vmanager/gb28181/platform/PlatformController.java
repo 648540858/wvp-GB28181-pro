@@ -407,9 +407,6 @@ public class PlatformController {
         if (platform == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台未找到");
         }
-//        if (platformId.equals(parentId)) {
-//            parentId = platform.getDeviceGBId();
-//        }
 
         return storager.getChildrenCatalogByPlatform(platformId, parentId);
     }

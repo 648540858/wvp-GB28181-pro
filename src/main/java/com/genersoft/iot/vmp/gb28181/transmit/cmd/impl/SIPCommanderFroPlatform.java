@@ -663,8 +663,6 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                                 .append("<Owner> " + channel.getOwner()+ "</Owner>\r\n");
                         if (channel.getCivilCode() != null) {
                             catalogXml.append("<CivilCode>" + channel.getCivilCode() + "</CivilCode>\r\n");
-                        }else {
-                            catalogXml.append("<CivilCode>" + parentPlatform.getAdministrativeDivision() + "</CivilCode>\r\n");
                         }
 
                         catalogXml.append("<Address>" + channel.getAddress() + "</Address>\r\n");

@@ -100,15 +100,21 @@ public class RedisPushStreamStatusMsgListener implements MessageListener, Applic
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        if (!userSetting.isUsePushingAsStatus()) {
-            //  启动时设置所有推流通道离线，发起查询请求
-            redisCatchStorage.sendStreamPushRequestedMsgForStatus();
-            dynamicTask.startDelay(VideoManagerConstants.VM_MSG_GET_ALL_ONLINE_REQUESTED, () -> {
-                log.info("[REDIS消息]未收到redis回复推流设备状态，执行推流设备离线");
-                // 五秒收不到请求就设置通道离线，然后通知上级离线
-                streamPushService.allOffline();
-            }, 5000);
+        if (userSetting.isUsePushingAsStatus()) {
+            return;
         }
+        // 查询是否存在推流设备,没有则不发送
+        List<String> allAppAndStream = streamPushService.getAllAppAndStream();
+        if (allAppAndStream == null || allAppAndStream.isEmpty()) {
+            return;
+        }
+        //  启动时设置所有推流通道离线，发起查询请求
+        redisCatchStorage.sendStreamPushRequestedMsgForStatus();
+        dynamicTask.startDelay(VideoManagerConstants.VM_MSG_GET_ALL_ONLINE_REQUESTED, () -> {
+            log.info("[REDIS消息]未收到redis回复推流设备状态，执行推流设备离线");
+            // 五秒收不到请求就设置通道离线，然后通知上级离线
+            streamPushService.allOffline();
+        }, 5000);
     }
 
 }

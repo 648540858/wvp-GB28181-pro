@@ -4,7 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
-import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerChangeEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerDeleteEvent;
@@ -57,7 +57,7 @@ public class ZLMMediaServerStatusManager {
     private String serverServletContextPath;
 
     @Autowired
-    private UserSetting userSetting;
+    private EventPublisher eventPublisher;
 
     private final String type = "zlm";
 
@@ -187,6 +187,8 @@ public class ZLMMediaServerStatusManager {
             mediaServerItem.setStatus(true);
             mediaServerItem.setHookAliveInterval(10F);
             mediaServerService.update(mediaServerItem);
+            // 发送上线通知
+            eventPublisher.mediaServerOnlineEventPublish(mediaServerItem.getId());
             if(mediaServerItem.isAutoConfig()) {
                 if (config == null) {
                     JSONObject responseJSON = zlmresTfulUtils.getMediaServerConfig(mediaServerItem);
@@ -210,7 +212,8 @@ public class ZLMMediaServerStatusManager {
             mediaServerItem.setStatus(false);
             offlineZlmPrimaryMap.put(mediaServerItem.getId(), mediaServerItem);
             offlineZlmTimeMap.put(mediaServerItem.getId(), System.currentTimeMillis());
-            // TODO 发送离线通知
+            // 发送离线通知
+            eventPublisher.mediaServerOfflineEventPublish(mediaServerItem.getId());
             mediaServerService.update(mediaServerItem);
         }, (int)(mediaServerItem.getHookAliveInterval() * 2 * 1000));
     }

@@ -16,6 +16,8 @@ import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerChangeEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerDeleteEvent;
+import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOfflineEvent;
+import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOnlineEvent;
 import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
@@ -40,6 +42,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
@@ -111,6 +114,26 @@ public class MediaServerServiceImpl implements IMediaServerService {
             String type = OriginType.values()[mediaInfo.getOriginType()].getType();
             redisCatchStorage.removeStream(mediaInfo.getMediaServer().getId(), type, event.getApp(), event.getStream());
         }
+    }
+
+    /**
+     * 流媒体节点上线
+     */
+    @Async("taskExecutor")
+    @EventListener
+    @Transactional
+    public void onApplicationEvent(MediaServerOnlineEvent event) {
+        // 查看是否有未处理的RTP流
+
+    }
+
+    /**
+     * 流媒体节点离线
+     */
+    @Async("taskExecutor")
+    @EventListener
+    @Transactional
+    public void onApplicationEvent(MediaServerOfflineEvent event) {
 
     }
 

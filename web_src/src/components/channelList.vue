@@ -68,8 +68,8 @@
               </el-image>
             </template>
           </el-table-column>
-          <el-table-column prop="subCount" label="子节点数" min-width="100">
-          </el-table-column>
+<!--          <el-table-column prop="subCount" label="子节点数" min-width="100">-->
+<!--          </el-table-column>-->
           <el-table-column prop="manufacturer" label="厂家" min-width="100">
           </el-table-column>
           <el-table-column label="位置信息" min-width="120">

@@ -20,10 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Service("zlm")
@@ -136,9 +133,14 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
             param.put("ssrc", ssrc);
         }
         JSONObject jsonObject = zlmresTfulUtils.stopSendRtp(mediaInfo, param);
-        log.info("停止发流结果: {}, 参数：{}", jsonObject.getString("msg"), JSON.toJSONString(param));
-        return true;
-
+        System.out.println(jsonObject);
+        if (jsonObject.getInteger("code") != null && jsonObject.getInteger("code") == 0) {
+            log.info("[停止发流] 成功: 参数：{}", JSON.toJSONString(param));
+            return true;
+        }else {
+            log.info("停止发流结果: {}, 参数：{}", jsonObject.getString("msg"), JSON.toJSONString(param));
+            return false;
+        }
     }
 
     @Override
@@ -495,5 +497,23 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         }else if (jsonObject.getInteger("code") != 0) {
             throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
         }
+    }
+
+    @Override
+    public List<String> listRtpServer(MediaServer mediaServer) {
+        JSONObject jsonObject = zlmresTfulUtils.listRtpServer(mediaServer);
+        List<String> result = new ArrayList<>();
+        if (jsonObject == null || jsonObject.getInteger("code") != 0) {
+            return result;
+        }
+        JSONArray data = jsonObject.getJSONArray("data");
+        if (data == null || data.isEmpty()) {
+            return result;
+        }
+        for (int i = 0; i < data.size(); i++) {
+            JSONObject dataJSONObject = data.getJSONObject(i);
+            result.add(dataJSONObject.getString("stream_id"));
+        }
+        return result;
     }
 }

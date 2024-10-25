@@ -139,7 +139,11 @@ public class ServerController {
     @DeleteMapping(value = "/media_server/delete")
     @ResponseBody
     public void deleteMediaServer(@RequestParam String id) {
-        mediaServerService.delete(id);
+        MediaServer mediaServer = mediaServerService.getOne(id);
+        if(mediaServer == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "流媒体不存在");
+        }
+        mediaServerService.delete(mediaServer);
     }
 
 

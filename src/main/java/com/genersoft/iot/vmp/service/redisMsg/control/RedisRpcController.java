@@ -10,16 +10,13 @@ import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import lombok.extern.slf4j.Slf4j;
@@ -41,10 +38,7 @@ public class RedisRpcController {
     private IMediaServerService mediaServerService;
 
     @Autowired
-    private SendRtpPortManager sendRtpPortManager;
-
-    @Autowired
-    private IRedisCatchStorage redisCatchStorage;
+    private ISendRtpServerService sendRtpServerService;
 
     @Autowired
     private UserSetting userSetting;
@@ -54,13 +48,6 @@ public class RedisRpcController {
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
-
-
-    @Autowired
-    private ISIPCommanderForPlatform commanderFroPlatform;
-
-    @Autowired
-    private ISendRtpServerService sendRtpServerService;
 
 
     /**
@@ -83,7 +70,7 @@ public class RedisRpcController {
             response.setStatusCode(200);
         }
         // 自平台内容
-        int localPort = sendRtpPortManager.getNextPort(mediaServerItem);
+        int localPort = sendRtpServerService.getNextPort(mediaServerItem);
         if (localPort == 0) {
             log.info("[redis-rpc] getSendRtpItem->服务器端口资源不足" );
             RedisRpcResponse response = request.getResponse();

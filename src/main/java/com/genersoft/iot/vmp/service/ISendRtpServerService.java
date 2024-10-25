@@ -40,4 +40,6 @@ public interface ISendRtpServerService {
     List<SendRtpInfo> queryByChannelId(int id);
 
     void deleteByStream(String stream);
+
+    int getNextPort(MediaServer mediaServer);
 }

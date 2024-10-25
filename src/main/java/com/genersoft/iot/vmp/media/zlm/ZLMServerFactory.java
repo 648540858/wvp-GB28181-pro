@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.CommonCallback;
-import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import lombok.extern.slf4j.Slf4j;
@@ -17,12 +16,6 @@ import java.util.Map;
 public class ZLMServerFactory {
     @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;
-
-    @Autowired
-    private UserSetting userSetting;
-
-    @Autowired
-    private SendRtpPortManager sendRtpPortManager;
 
 
     /**

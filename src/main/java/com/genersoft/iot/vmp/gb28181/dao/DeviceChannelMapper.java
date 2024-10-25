@@ -151,9 +151,6 @@ public interface DeviceChannelMapper {
             " </script>"})
     List<DeviceChannelExtend> queryChannelsWithDeviceInfo(@Param("deviceId") String deviceId, @Param("parentChannelId") String parentChannelId, @Param("query") String query, @Param("hasSubChannel") Boolean hasSubChannel, @Param("online") Boolean online, @Param("channelIds") List<String> channelIds);
 
-    @Update(value = {"UPDATE wvp_device_channel SET stream_id=null WHERE device_db_id=#{deviceId} AND device_id=#{channelId}"})
-    void stopPlay(@Param("deviceId") int deviceId, @Param("channelId") String channelId);
-
     @Update(value = {"UPDATE wvp_device_channel SET stream_id=#{streamId} WHERE id=#{channelId}"})
     void startPlay(@Param("channelId") Integer channelId, @Param("streamId") String streamId);
 

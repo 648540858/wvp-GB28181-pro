@@ -112,13 +112,13 @@ public class ZLMMediaServerStatusManager {
     @Async("taskExecutor")
     @EventListener
     public void onApplicationEvent(MediaServerDeleteEvent event) {
-        if (event.getMediaServerId() == null) {
+        if (event.getMediaServer() == null) {
             return;
         }
-        log.info("[ZLM-节点被移除] ID：" + event.getMediaServerId());
-        offlineZlmPrimaryMap.remove(event.getMediaServerId());
-        offlineZlmsecondaryMap.remove(event.getMediaServerId());
-        offlineZlmTimeMap.remove(event.getMediaServerId());
+        log.info("[ZLM-节点被移除] ID：" + event.getMediaServer().getId());
+        offlineZlmPrimaryMap.remove(event.getMediaServer().getId());
+        offlineZlmsecondaryMap.remove(event.getMediaServer().getId());
+        offlineZlmTimeMap.remove(event.getMediaServer().getId());
     }
 
     @Scheduled(fixedDelay = 10*1000)   //每隔10秒检查一次
@@ -188,7 +188,7 @@ public class ZLMMediaServerStatusManager {
             mediaServerItem.setHookAliveInterval(10F);
             mediaServerService.update(mediaServerItem);
             // 发送上线通知
-            eventPublisher.mediaServerOnlineEventPublish(mediaServerItem.getId());
+            eventPublisher.mediaServerOnlineEventPublish(mediaServerItem);
             if(mediaServerItem.isAutoConfig()) {
                 if (config == null) {
                     JSONObject responseJSON = zlmresTfulUtils.getMediaServerConfig(mediaServerItem);
@@ -213,7 +213,7 @@ public class ZLMMediaServerStatusManager {
             offlineZlmPrimaryMap.put(mediaServerItem.getId(), mediaServerItem);
             offlineZlmTimeMap.put(mediaServerItem.getId(), System.currentTimeMillis());
             // 发送离线通知
-            eventPublisher.mediaServerOfflineEventPublish(mediaServerItem.getId());
+            eventPublisher.mediaServerOfflineEventPublish(mediaServerItem);
             mediaServerService.update(mediaServerItem);
         }, (int)(mediaServerItem.getHookAliveInterval() * 2 * 1000));
     }

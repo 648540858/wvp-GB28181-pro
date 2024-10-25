@@ -16,7 +16,7 @@ public class VideoManagerConstants {
 
 	public static final String ONLINE_MEDIA_SERVERS_PREFIX = "VMP_ONLINE_MEDIA_SERVERS:";
 
-	public static final String DEVICE_PREFIX = "VMP_DEVICE:";
+	public static final String DEVICE_PREFIX = "VMP_DEVICE_INFO";
 
 	public static final String INVITE_PREFIX = "VMP_INVITE_INFO";
 
@@ -24,7 +24,7 @@ public class VideoManagerConstants {
 
 	public static final String PLATFORM_REGISTER_INFO_PREFIX = "VMP_PLATFORM_REGISTER_INFO_";
 
-	public static final String SEND_RTP_INFO = "VMP_SEND_RTP_INFO:";
+	public static final String SEND_RTP_PORT = "VM_SEND_RTP_PORT:";
 	public static final String SEND_RTP_INFO_CALLID = "VMP_SEND_RTP_INFO:CALL_ID:";
 	public static final String SEND_RTP_INFO_STREAM = "VMP_SEND_RTP_INFO:STREAM:";
 	public static final String SEND_RTP_INFO_CHANNEL = "VMP_SEND_RTP_INFO:CHANNEL:";

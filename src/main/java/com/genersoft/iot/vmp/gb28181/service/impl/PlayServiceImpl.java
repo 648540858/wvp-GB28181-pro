@@ -1157,12 +1157,12 @@ public class PlayServiceImpl implements IPlayService {
 
 
     @Override
-    public void zlmServerOffline(String mediaServerId) {
+    public void zlmServerOffline(MediaServer mediaServer) {
         // 处理正在向上推流的上级平台
         List<SendRtpInfo> sendRtpInfos = sendRtpServerService.queryAll();
         if (!sendRtpInfos.isEmpty()) {
             for (SendRtpInfo sendRtpInfo : sendRtpInfos) {
-                if (sendRtpInfo.getMediaServerId().equals(mediaServerId) && sendRtpInfo.isSendToPlatform()) {
+                if (sendRtpInfo.getMediaServerId().equals(mediaServer.getId()) && sendRtpInfo.isSendToPlatform()) {
                     Platform platform = platformService.queryPlatformByServerGBId(sendRtpInfo.getTargetId());
                     CommonGBChannel channel = channelService.getOne(sendRtpInfo.getChannelId());
                     try {
@@ -1177,7 +1177,7 @@ public class PlayServiceImpl implements IPlayService {
         List<SsrcTransaction> allSsrc = sessionManager.getAll();
         if (allSsrc.size() > 0) {
             for (SsrcTransaction ssrcTransaction : allSsrc) {
-                if (ssrcTransaction.getMediaServerId().equals(mediaServerId)) {
+                if (ssrcTransaction.getMediaServerId().equals(mediaServer.getId())) {
                     Device device = deviceService.getDeviceByDeviceId(ssrcTransaction.getDeviceId());
                     if (device == null) {
                         continue;
@@ -1314,7 +1314,22 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public void zlmServerOnline(String mediaServerId) {
+    public void zlmServerOnline(MediaServer mediaServer) {
+        // 获取
+        List<InviteInfo> inviteInfoList = inviteStreamService.getAllInviteInfo();
+        if (inviteInfoList.isEmpty()) {
+            return;
+        }
+
+        List<String> rtpServerList = mediaServerService.listRtpServer(mediaServer);
+        if (rtpServerList.isEmpty()) {
+            return;
+        }
+        for (InviteInfo inviteInfo : inviteInfoList) {
+            if (!rtpServerList.contains(inviteInfo.getStream())){
+                inviteStreamService.removeInviteInfo(inviteInfo);
+            }
+        }
     }
 
     @Override
@@ -1568,7 +1583,10 @@ public class PlayServiceImpl implements IPlayService {
     public void stop(InviteSessionType type, Device device, DeviceChannel channel, String stream) {
         InviteInfo inviteInfo = inviteStreamService.getInviteInfo(type, channel.getId(), stream);
         if (inviteInfo == null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "点播未找到");
+            if (type == InviteSessionType.PLAY) {
+                deviceChannelService.stopPlay(channel.getId());
+            }
+            return;
         }
         inviteStreamService.removeInviteInfo(inviteInfo);
         if (InviteSessionStatus.ok == inviteInfo.getStatus()) {

@@ -64,17 +64,17 @@ public interface IStreamProxyService {
 
     /**
      * 新的节点加入
-     * @param mediaServerId
+     * @param mediaServer
      * @return
      */
-    void zlmServerOnline(String mediaServerId);
+    void zlmServerOnline(MediaServer mediaServer);
 
     /**
      * 节点离线
-     * @param mediaServerId
+     * @param mediaServer
      * @return
      */
-    void zlmServerOffline(String mediaServerId);
+    void zlmServerOffline(MediaServer mediaServer);
 
     /**
      * 更新代理流

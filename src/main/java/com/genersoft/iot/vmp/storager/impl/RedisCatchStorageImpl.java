@@ -162,25 +162,25 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public void updateDevice(Device device) {
-        String key = VideoManagerConstants.DEVICE_PREFIX + userSetting.getServerId();
+        String key = VideoManagerConstants.DEVICE_PREFIX;
         redisTemplate.opsForHash().put(key, device.getDeviceId(), device);
     }
 
     @Override
     public void removeDevice(String deviceId) {
-        String key = VideoManagerConstants.DEVICE_PREFIX + userSetting.getServerId();
+        String key = VideoManagerConstants.DEVICE_PREFIX;
         redisTemplate.opsForHash().delete(key, deviceId);
     }
 
     @Override
     public void removeAllDevice() {
-        String key = VideoManagerConstants.DEVICE_PREFIX + userSetting.getServerId();
+        String key = VideoManagerConstants.DEVICE_PREFIX;
         redisTemplate.delete(key);
     }
 
     @Override
     public List<Device> getAllDevices() {
-        String key = VideoManagerConstants.DEVICE_PREFIX + userSetting.getServerId();
+        String key = VideoManagerConstants.DEVICE_PREFIX;
         List<Device> result = new ArrayList<>();
         List<Object> values = redisTemplate.opsForHash().values(key);
         for (Object value : values) {
@@ -193,13 +193,16 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public Device getDevice(String deviceId) {
-        String key = VideoManagerConstants.DEVICE_PREFIX + userSetting.getServerId();
-        Device device = (Device)redisTemplate.opsForHash().get(key, deviceId);
-        if (device == null){
+        String key = VideoManagerConstants.DEVICE_PREFIX;
+        Device device;
+        Object object = redisTemplate.opsForHash().get(key, deviceId);
+        if (object == null){
             device = deviceMapper.getDeviceByDeviceId(deviceId);
             if (device != null) {
                 updateDevice(device);
             }
+        }else {
+            device = (Device)object;
         }
         return device;
     }
@@ -418,9 +421,8 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public int getGbSendCount(String id) {
-        String key = VideoManagerConstants.SEND_RTP_INFO
-                + userSetting.getServerId() + "_*_" + id + "_*";
-        return RedisUtil.scan(redisTemplate, key).size();
+        String key = VideoManagerConstants.SEND_RTP_INFO_CALLID;
+        return redisTemplate.opsForHash().size(key).intValue();
     }
 
     @Override

@@ -210,9 +210,6 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
                     ":" + inviteInfo.getSsrcInfo().getSsrc();
             redisTemplate.opsForHash().delete(key, objectKey);
         }
-        if (redisTemplate.opsForHash().size(key) == 0) {
-            redisTemplate.opsForHash().delete(key);
-        }
     }
 
     @Override

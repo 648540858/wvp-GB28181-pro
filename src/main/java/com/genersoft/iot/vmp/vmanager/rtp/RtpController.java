@@ -11,7 +11,7 @@ import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
+import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 public class RtpController {
 
     @Autowired
-    private SendRtpPortManager sendRtpPortManager;
+    private ISendRtpServerService sendRtpServerService;
 
     @Autowired
     private HookSubscribe hookSubscribe;
@@ -130,8 +130,8 @@ public class RtpController {
         redisTemplate.opsForValue().set(receiveKey, otherRtpSendInfo);
         if (isSend != null && isSend) {
             // 预创建发流信息
-            int portForVideo = sendRtpPortManager.getNextPort(mediaServer);
-            int portForAudio = sendRtpPortManager.getNextPort(mediaServer);
+            int portForVideo = sendRtpServerService.getNextPort(mediaServer);
+            int portForAudio = sendRtpServerService.getNextPort(mediaServer);
 
             otherRtpSendInfo.setSendLocalIp(mediaServer.getSdpIp());
             otherRtpSendInfo.setSendLocalPortForVideo(portForVideo);

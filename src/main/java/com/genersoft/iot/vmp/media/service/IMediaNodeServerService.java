@@ -67,4 +67,7 @@ public interface IMediaNodeServerService {
     StreamInfo startProxy(MediaServer mediaServer, StreamProxy streamProxy);
 
     void stopProxy(MediaServer mediaServer, String streamKey);
+
+    List<String> listRtpServer(MediaServer mediaServer);
+
 }

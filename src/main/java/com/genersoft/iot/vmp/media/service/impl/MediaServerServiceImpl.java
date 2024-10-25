@@ -81,6 +81,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Autowired
     private MediaConfig mediaConfig;
 
+
     /**
      * 流到来的处理
      */
@@ -214,6 +215,16 @@ public class MediaServerServiceImpl implements IMediaServerService {
             rtpServerPort = mediaServer.getRtpProxyPort();
         }
         return rtpServerPort;
+    }
+
+    @Override
+    public List<String> listRtpServer(MediaServer mediaServer) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
+        if (mediaNodeServerService == null) {
+            log.info("[openRTPServer] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
+            return new ArrayList<>();
+        }
+        return mediaNodeServerService.listRtpServer(mediaServer);
     }
 
     @Override
@@ -561,14 +572,14 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public void delete(String id) {
-        mediaServerMapper.delOne(id);
-        redisTemplate.opsForZSet().remove(VideoManagerConstants.ONLINE_MEDIA_SERVERS_PREFIX + userSetting.getServerId(), id);
-        String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + ":" + id;
+    public void delete(MediaServer mediaServer) {
+        mediaServerMapper.delOne(mediaServer.getId());
+        redisTemplate.opsForZSet().remove(VideoManagerConstants.ONLINE_MEDIA_SERVERS_PREFIX + userSetting.getServerId(), mediaServer.getId());
+        String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + ":" + mediaServer.getId();
         redisTemplate.delete(key);
         // 发送节点移除通知
         MediaServerDeleteEvent event = new MediaServerDeleteEvent(this);
-        event.setMediaServerId(id);
+        event.setMediaServer(mediaServer);
         applicationEventPublisher.publishEvent(event);
     }
 
@@ -589,7 +600,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         for (MediaServer mediaServer : allInCatch) {
             // 清除数据中不存在但redis缓存数据
             if (!mediaServerMap.containsKey(mediaServer.getId())) {
-                delete(mediaServer.getId());
+                delete(mediaServer);
             }
         }
     }

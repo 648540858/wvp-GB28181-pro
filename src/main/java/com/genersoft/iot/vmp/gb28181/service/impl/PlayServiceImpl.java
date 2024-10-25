@@ -1566,10 +1566,11 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void stop(InviteSessionType type, Device device, DeviceChannel channel, String stream) {
-        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(type, stream);
+        InviteInfo inviteInfo = inviteStreamService.getInviteInfo(type, channel.getId(), stream);
         if (inviteInfo == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "点播未找到");
         }
+        inviteStreamService.removeInviteInfoByDeviceAndChannel(inviteInfo.getType(), channel.getId());
         if (InviteSessionStatus.ok == inviteInfo.getStatus()) {
             try {
                 log.info("[停止点播/回放/下载] {}/{}", device.getDeviceId(), channel.getDeviceId());
@@ -1579,7 +1580,7 @@ public class PlayServiceImpl implements IPlayService {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
             }
         }
-        inviteStreamService.removeInviteInfoByDeviceAndChannel(inviteInfo.getType(), channel.getId());
+
         if (inviteInfo.getType() == InviteSessionType.PLAY) {
             deviceChannelService.stopPlay(channel.getId());
         }

@@ -1570,7 +1570,7 @@ public class PlayServiceImpl implements IPlayService {
         if (inviteInfo == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "点播未找到");
         }
-        inviteStreamService.removeInviteInfoByDeviceAndChannel(inviteInfo.getType(), channel.getId());
+        inviteStreamService.removeInviteInfo(inviteInfo);
         if (InviteSessionStatus.ok == inviteInfo.getStatus()) {
             try {
                 log.info("[停止点播/回放/下载] {}/{}", device.getDeviceId(), channel.getDeviceId());
@@ -1602,6 +1602,7 @@ public class PlayServiceImpl implements IPlayService {
             log.warn("[停止点播] 发现设备不存在");
             return;
         }
+        inviteStreamService.removeInviteInfo(inviteInfo);
         if (InviteSessionStatus.ok == inviteInfo.getStatus()) {
             try {
                 log.info("[停止点播/回放/下载] {}/{}", device.getDeviceId(), channel.getDeviceId());
@@ -1610,7 +1611,7 @@ public class PlayServiceImpl implements IPlayService {
                 log.warn("[命令发送失败] 停止点播/回放/下载， 发送BYE: {}", e.getMessage());
             }
         }
-        inviteStreamService.removeInviteInfoByDeviceAndChannel(inviteInfo.getType(), channel.getId());
+
         if (inviteInfo.getType() == InviteSessionType.PLAY) {
             deviceChannelService.stopPlay(channel.getId());
         }

@@ -29,7 +29,7 @@ public class VideoManagerConstants {
 	public static final String SEND_RTP_INFO_STREAM = "VMP_SEND_RTP_INFO:STREAM:";
 	public static final String SEND_RTP_INFO_CHANNEL = "VMP_SEND_RTP_INFO:CHANNEL:";
 
-	public static final String SIP_INVITE_SESSION = "VMP_SIP_INVITE_SESSION:";
+	public static final String SIP_INVITE_SESSION = "VMP_SIP_INVITE_SESSION_INFO:";
 	public static final String SIP_INVITE_SESSION_CALL_ID = SIP_INVITE_SESSION + "CALL_ID:";
 	public static final String SIP_INVITE_SESSION_STREAM = SIP_INVITE_SESSION + "STREAM:";
 

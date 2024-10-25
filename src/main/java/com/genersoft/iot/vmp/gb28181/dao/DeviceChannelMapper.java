@@ -209,7 +209,7 @@ public interface DeviceChannelMapper {
     int batchAdd(@Param("addChannels") List<DeviceChannel> addChannels);
 
 
-    @Update(value = {"UPDATE wvp_device_channel SET status='OFF' WHERE id=#{id}"})
+    @Update(value = {"UPDATE wvp_device_channel SET status='ON' WHERE id=#{id}"})
     void online(@Param("id") int id);
 
     @Update({"<script>" +

@@ -20,11 +20,7 @@ public class VideoManagerConstants {
 
 	public static final String INVITE_PREFIX = "VMP_INVITE_INFO";
 
-	public static final String PLATFORM_KEEPALIVE_PREFIX = "VMP_PLATFORM_KEEPALIVE_";
-
 	public static final String PLATFORM_CATCH_PREFIX = "VMP_PLATFORM_CATCH_";
-
-	public static final String PLATFORM_REGISTER_PREFIX = "VMP_PLATFORM_REGISTER_";
 
 	public static final String PLATFORM_REGISTER_INFO_PREFIX = "VMP_PLATFORM_REGISTER_INFO_";
 

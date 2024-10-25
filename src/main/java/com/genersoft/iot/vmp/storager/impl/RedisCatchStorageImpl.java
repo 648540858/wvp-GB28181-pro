@@ -89,17 +89,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void delPlatformKeepalive(String platformGbId) {
-        redisTemplate.delete(VideoManagerConstants.PLATFORM_KEEPALIVE_PREFIX + userSetting.getServerId() + "_" + platformGbId);
-    }
-
-    @Override
-    public void delPlatformRegister(String platformGbId) {
-        redisTemplate.delete(VideoManagerConstants.PLATFORM_REGISTER_PREFIX + userSetting.getServerId() + "_" + platformGbId);
-    }
-
-
-    @Override
     public void updatePlatformRegisterInfo(String callId, PlatformRegisterInfo platformRegisterInfo) {
         String key = VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + userSetting.getServerId() + "_" + callId;
         Duration duration = Duration.ofSeconds(30L);

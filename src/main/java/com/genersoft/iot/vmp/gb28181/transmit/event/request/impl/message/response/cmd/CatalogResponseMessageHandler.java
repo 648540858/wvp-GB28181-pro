@@ -161,31 +161,30 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                         int sn = Integer.parseInt(snElement.getText());
                         catalogDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, take.getDevice(),
                                 channelList, regionList, groupList);
-                        List<DeviceChannel> deviceChannelList = catalogDataCatch.getDeviceChannelList(take.getDevice().getDeviceId());
-                        log.info("[收到通道]设备: {} -> {}个，{}/{}", take.getDevice().getDeviceId(), channelList.size(), deviceChannelList.size(), sumNum);
-                        if (deviceChannelList.size() == sumNum) {
-                            // 数据已经完整接收， 此时可能存在某个设备离线变上线的情况，但是考虑到性能，此处不做处理，
-                            // 目前支持设备通道上线通知时和设备上线时向上级通知
-                            boolean resetChannelsResult = saveData(take.getDevice(), sn);
-                            if (!resetChannelsResult) {
-                                String errorMsg = "接收成功，写入失败，共" + sumNum + "条，已接收" + catalogDataCatch.getDeviceChannelList(take.getDevice().getDeviceId()).size() + "条";
-                                catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), errorMsg);
-                            } else {
-                                catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null);
-                            }
-                        }
+                        log.info("[收到通道]设备: {} -> {}个，{}/{}", take.getDevice().getDeviceId(), channelList.size(), catalogDataCatch.size(take.getDevice().getDeviceId()), sumNum);
                     }
-
                 }
             } catch (Exception e) {
                 log.warn("[收到通道] 发现未处理的异常, \r\n{}", evt.getRequest());
                 log.error("[收到通道] 异常内容： ", e);
+            } finally {
+                if (catalogDataCatch.size(take.getDevice().getDeviceId()) == catalogDataCatch.sumNum(take.getDevice().getDeviceId())) {
+                    // 数据已经完整接收， 此时可能存在某个设备离线变上线的情况，但是考虑到性能，此处不做处理，
+                    // 目前支持设备通道上线通知时和设备上线时向上级通知
+                    boolean resetChannelsResult = saveData(take.getDevice());
+                    if (!resetChannelsResult) {
+                        String errorMsg = "接收成功，写入失败，共" + catalogDataCatch.sumNum(take.getDevice().getDeviceId()) + "条，已接收" + catalogDataCatch.getDeviceChannelList(take.getDevice().getDeviceId()).size() + "条";
+                        catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), errorMsg);
+                    } else {
+                        catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null);
+                    }
+                }
             }
         }
     }
 
     @Transactional
-    public boolean saveData(Device device, int sn) {
+    public boolean saveData(Device device) {
 
         boolean result = true;
         List<DeviceChannel> deviceChannelList = catalogDataCatch.getDeviceChannelList(device.getDeviceId());

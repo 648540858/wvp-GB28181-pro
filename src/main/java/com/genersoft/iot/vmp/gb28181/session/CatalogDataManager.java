@@ -257,4 +257,20 @@ public class CatalogDataManager implements CommandLineRunner {
         catalogData.setErrorMsg(errorMsg);
         catalogData.setTime(Instant.now());
     }
+
+    public int size(String deviceId) {
+        CatalogData catalogData = dataMap.get(deviceId);
+        if (catalogData == null) {
+            return 0;
+        }
+        return catalogData.getRedisKeysForChannel().size();
+    }
+
+    public int sumNum(String deviceId) {
+        CatalogData catalogData = dataMap.get(deviceId);
+        if (catalogData == null) {
+            return 0;
+        }
+        return catalogData.getTotal();
+    }
 }

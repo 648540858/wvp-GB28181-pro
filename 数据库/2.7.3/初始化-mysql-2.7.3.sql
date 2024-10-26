@@ -165,7 +165,8 @@ create table wvp_device_channel
     constraint uk_wvp_device_channel_unique_device_channel unique (device_db_id, device_id),
     constraint uk_wvp_unique_channel unique (gb_device_id),
     constraint uk_wvp_unique_stream_push_id unique (stream_push_id),
-    constraint uk_wvp_unique_stream_proxy_id unique (stream_proxy_id)
+    constraint uk_wvp_unique_stream_proxy_id unique (stream_proxy_id),
+    index(device_db_id)
 );
 
 

@@ -471,7 +471,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             return false;
         }
         List<DeviceChannel> allChannels = channelMapper.queryAllChannelsForRefresh(deviceDbId);
-        Map<String,DeviceChannel> allChannelMap = new ConcurrentHashMap<>();
+        Map<String,DeviceChannel> allChannelMap = new HashMap<>();
         if (!allChannels.isEmpty()) {
             for (DeviceChannel deviceChannel : allChannels) {
                 allChannelMap.put(deviceChannel.getDeviceDbId() + deviceChannel.getDeviceId(), deviceChannel);
@@ -486,14 +486,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         StringBuilder stringBuilder = new StringBuilder();
         Map<String, Integer> subContMap = new HashMap<>();
 
-        // 数据去重
-        Set<String> gbIdSet = new HashSet<>();
         for (DeviceChannel deviceChannel : deviceChannelList) {
-            if (gbIdSet.contains(deviceChannel.getDeviceDbId() + deviceChannel.getDeviceId())) {
-                stringBuilder.append(deviceChannel.getDeviceId()).append(",");
-                continue;
-            }
-            gbIdSet.add(deviceChannel.getDeviceDbId() + deviceChannel.getDeviceId());
             DeviceChannel channelInDb = allChannelMap.get(deviceChannel.getDeviceDbId() + deviceChannel.getDeviceId());
             if (channelInDb != null) {
                 deviceChannel.setStreamId(channelInDb.getStreamId());

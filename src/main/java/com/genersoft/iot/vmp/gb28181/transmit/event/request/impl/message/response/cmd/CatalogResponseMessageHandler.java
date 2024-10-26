@@ -5,7 +5,7 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IGroupService;
 import com.genersoft.iot.vmp.gb28181.service.IRegionService;
-import com.genersoft.iot.vmp.gb28181.session.CatalogDataCatch;
+import com.genersoft.iot.vmp.gb28181.session.CatalogDataManager;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
@@ -15,9 +15,7 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 目录查询的回复
@@ -56,15 +53,10 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     private IGroupService groupService;
 
     @Autowired
-    private CatalogDataCatch catalogDataCatch;
-
-    @Qualifier("taskExecutor")
-    @Autowired
-    private ThreadPoolTaskExecutor taskExecutor;
+    private CatalogDataManager catalogDataCatch;
 
     @Autowired
     private SipConfig sipConfig;
-    private AtomicBoolean processing = new AtomicBoolean(false);
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -72,7 +64,6 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     }
 
     @Override
-    @Transactional
     public void handForDevice(RequestEvent evt, Device device, Element element) {
         taskQueue.offer(new HandlerCatchData(evt, device, element));
         // 回复200 OK
@@ -83,7 +74,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
         }
     }
 
-    @Scheduled(fixedDelay = 200)
+    @Scheduled(fixedDelay = 50)
     @Transactional
     public void executeTaskQueue(){
         if (taskQueue.isEmpty()) {
@@ -170,11 +161,12 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                         int sn = Integer.parseInt(snElement.getText());
                         catalogDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, take.getDevice(),
                                 channelList, regionList, groupList);
-                        log.info("[收到通道]设备: {} -> {}个，{}/{}", take.getDevice().getDeviceId(), channelList.size(), catalogDataCatch.getDeviceChannelList(take.getDevice().getDeviceId()) == null ? 0 : catalogDataCatch.getDeviceChannelList(take.getDevice().getDeviceId()).size(), sumNum);
-                        if (catalogDataCatch.getDeviceChannelList(take.getDevice().getDeviceId()).size() == sumNum) {
+                        List<DeviceChannel> deviceChannelList = catalogDataCatch.getDeviceChannelList(take.getDevice().getDeviceId());
+                        log.info("[收到通道]设备: {} -> {}个，{}/{}", take.getDevice().getDeviceId(), channelList.size(), deviceChannelList.size(), sumNum);
+                        if (deviceChannelList.size() == sumNum) {
                             // 数据已经完整接收， 此时可能存在某个设备离线变上线的情况，但是考虑到性能，此处不做处理，
                             // 目前支持设备通道上线通知时和设备上线时向上级通知
-                            boolean resetChannelsResult = saveData(take.getDevice());
+                            boolean resetChannelsResult = saveData(take.getDevice(), sn);
                             if (!resetChannelsResult) {
                                 String errorMsg = "接收成功，写入失败，共" + sumNum + "条，已接收" + catalogDataCatch.getDeviceChannelList(take.getDevice().getDeviceId()).size() + "条";
                                 catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), errorMsg);
@@ -193,7 +185,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     }
 
     @Transactional
-    public boolean saveData(Device device) {
+    public boolean saveData(Device device, int sn) {
 
         boolean result = true;
         List<DeviceChannel> deviceChannelList = catalogDataCatch.getDeviceChannelList(device.getDeviceId());
@@ -219,19 +211,11 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     }
 
     public SyncStatus getChannelSyncProgress(String deviceId) {
-        if (catalogDataCatch.getDeviceChannelList(deviceId) == null) {
-            return null;
-        } else {
-            return catalogDataCatch.getSyncStatus(deviceId);
-        }
+        return catalogDataCatch.getSyncStatus(deviceId);
     }
 
     public boolean isSyncRunning(String deviceId) {
-        if (catalogDataCatch.getDeviceChannelList(deviceId) == null) {
-            return false;
-        } else {
-            return catalogDataCatch.isSyncRunning(deviceId);
-        }
+        return catalogDataCatch.isSyncRunning(deviceId);
     }
 
     public void setChannelSyncReady(Device device, int sn) {

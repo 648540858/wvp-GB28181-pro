@@ -1,0 +1,260 @@
+package com.genersoft.iot.vmp.gb28181.session;
+
+import com.genersoft.iot.vmp.common.InviteInfo;
+import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IGroupService;
+import com.genersoft.iot.vmp.gb28181.service.IRegionService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import java.time.Instant;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.DelayQueue;
+import java.util.concurrent.TimeUnit;
+
+@Slf4j
+@Component
+public class CatalogDataManager implements CommandLineRunner {
+
+    @Autowired
+    private IDeviceChannelService deviceChannelService;
+
+    @Autowired
+    private IRegionService regionService;
+
+    @Autowired
+    private IGroupService groupService;
+
+    @Autowired
+    private RedisTemplate<Object, Object> redisTemplate;
+
+    private final Map<String, CatalogData> dataMap = new ConcurrentHashMap<>();
+
+    private final String key = "VMP_CATALOG_DATA";
+
+    public void addReady(Device device, int sn ) {
+        CatalogData catalogData = dataMap.get(device.getDeviceId());
+        if (catalogData != null) {
+            Set<String> redisKeysForChannel = catalogData.getRedisKeysForChannel();
+            if (redisKeysForChannel != null && !redisKeysForChannel.isEmpty()) {
+                for (String deleteKey : redisKeysForChannel) {
+                    redisTemplate.opsForHash().delete(key, deleteKey);
+                }
+            }
+            Set<String> redisKeysForRegion = catalogData.getRedisKeysForRegion();
+            if (redisKeysForRegion != null && !redisKeysForRegion.isEmpty()) {
+                for (String deleteKey : redisKeysForRegion) {
+                    redisTemplate.opsForHash().delete(key, deleteKey);
+                }
+            }
+            Set<String> redisKeysForGroup = catalogData.getRedisKeysForGroup();
+            if (redisKeysForGroup != null && !redisKeysForGroup.isEmpty()) {
+                for (String deleteKey : redisKeysForGroup) {
+                    redisTemplate.opsForHash().delete(key, deleteKey);
+                }
+            }
+            dataMap.remove(device.getDeviceId());
+        }
+        catalogData = new CatalogData();
+        catalogData.setDevice(device);
+        catalogData.setSn(sn);
+        catalogData.setStatus(CatalogData.CatalogDataStatus.ready);
+        catalogData.setTime(Instant.now());
+        dataMap.put(device.getDeviceId(), catalogData);
+    }
+
+    public void put(String deviceId, int sn, int total, Device device, List<DeviceChannel> deviceChannelList,
+                    List<Region> regionList, List<Group> groupList) {
+        CatalogData catalogData = dataMap.get(device.getDeviceId());
+        if (catalogData == null ) {
+            log.warn("[缓存-Catalog] 未找到缓存对象，可能已经结束");
+            return;
+        }
+        catalogData.setStatus(CatalogData.CatalogDataStatus.runIng);
+        catalogData.setTotal(total);
+        catalogData.setTime(Instant.now());
+
+        if (deviceChannelList != null && !deviceChannelList.isEmpty()) {
+            for (DeviceChannel deviceChannel : deviceChannelList) {
+                String keyForChannel = "CHANNEL:" + deviceId + ":" + deviceChannel.getDeviceId() + ":" + sn;
+                redisTemplate.opsForHash().put(key, keyForChannel, deviceChannel);
+                catalogData.getRedisKeysForChannel().add(keyForChannel);
+            }
+        }
+
+        if (regionList != null && !regionList.isEmpty()) {
+            for (Region region : regionList) {
+                String keyForRegion = "REGION:" + deviceId + ":" + region.getDeviceId() + ":" + sn;
+                redisTemplate.opsForHash().put(key, keyForRegion, region);
+                catalogData.getRedisKeysForRegion().add(keyForRegion);
+            }
+        }
+
+        if (groupList != null && !groupList.isEmpty()) {
+            for (Group group : groupList) {
+                String keyForGroup = "GROUP:" + deviceId + ":" + group.getDeviceId() + ":" + sn;
+                redisTemplate.opsForHash().put(key, keyForGroup, group);
+                catalogData.getRedisKeysForGroup().add(keyForGroup);
+            }
+        }
+    }
+
+    public List<DeviceChannel> getDeviceChannelList(String deviceId) {
+        List<DeviceChannel> result = new ArrayList<>();
+        CatalogData catalogData = dataMap.get(deviceId);
+        if (catalogData == null ) {
+            log.warn("[Redis-Catalog] 未找到缓存对象，可能已经结束");
+            return result;
+        }
+        for (String objectKey : catalogData.getRedisKeysForChannel()) {
+            DeviceChannel deviceChannel = (DeviceChannel) redisTemplate.opsForHash().get(key, objectKey);
+            if (deviceChannel != null) {
+                result.add(deviceChannel);
+            }
+        }
+        return result;
+    }
+
+    public List<Region> getRegionList(String deviceId) {
+        List<Region> result = new ArrayList<>();
+        CatalogData catalogData = dataMap.get(deviceId);
+        if (catalogData == null ) {
+            log.warn("[Redis-Catalog] 未找到缓存对象，可能已经结束");
+            return result;
+        }
+        for (String objectKey : catalogData.getRedisKeysForRegion()) {
+            Region region = (Region) redisTemplate.opsForHash().get(key, objectKey);
+            if (region != null) {
+                result.add(region);
+            }
+        }
+        return result;
+    }
+
+    public List<Group> getGroupList(String deviceId) {
+        List<Group> result = new ArrayList<>();
+        CatalogData catalogData = dataMap.get(deviceId);
+        if (catalogData == null ) {
+            log.warn("[Redis-Catalog] 未找到缓存对象，可能已经结束");
+            return result;
+        }
+        for (String objectKey : catalogData.getRedisKeysForGroup()) {
+            Group group = (Group) redisTemplate.opsForHash().get(key, objectKey);
+            if (group != null) {
+                result.add(group);
+            }
+        }
+        return result;
+    }
+
+    public SyncStatus getSyncStatus(String deviceId) {
+        CatalogData catalogData = dataMap.get(deviceId);
+        if (catalogData == null) {
+            return null;
+        }
+        SyncStatus syncStatus = new SyncStatus();
+        syncStatus.setCurrent(catalogData.getRedisKeysForChannel().size());
+        syncStatus.setTotal(catalogData.getTotal());
+        syncStatus.setErrorMsg(catalogData.getErrorMsg());
+        if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end)) {
+            syncStatus.setSyncIng(false);
+        }else {
+            syncStatus.setSyncIng(true);
+        }
+        return syncStatus;
+    }
+
+    public boolean isSyncRunning(String deviceId) {
+        CatalogData catalogData = dataMap.get(deviceId);
+        if (catalogData == null) {
+            return false;
+        }
+        return !catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end);
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
+        // 启动时清理旧的数据
+        redisTemplate.delete(key);
+    }
+
+    @Scheduled(fixedDelay = 5 * 1000)   //每5秒执行一次, 发现数据5秒未更新则移除数据并认为数据接收超时
+    private void timerTask(){
+        if (dataMap.isEmpty()) {
+            return;
+        }
+        Set<String> keys = dataMap.keySet();
+
+        Instant instantBefore5S = Instant.now().minusMillis(TimeUnit.SECONDS.toMillis(5));
+        Instant instantBefore30S = Instant.now().minusMillis(TimeUnit.SECONDS.toMillis(30));
+        for (String dataKey : keys) {
+            CatalogData catalogData = dataMap.get(dataKey);
+            if ( catalogData.getTime().isBefore(instantBefore5S)) {
+                if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.runIng)) {
+                    String deviceId = catalogData.getDevice().getDeviceId();
+                    int sn = catalogData.getSn();
+                    List<DeviceChannel> deviceChannelList = getDeviceChannelList(deviceId);
+                    if (catalogData.getTotal() == deviceChannelList.size()) {
+                        deviceChannelService.resetChannels(catalogData.getDevice().getId(), deviceChannelList);
+                    }else {
+                        deviceChannelService.updateChannels(catalogData.getDevice(), deviceChannelList);
+                    }
+                    List<Region> regionList = getRegionList(deviceId);
+                    if ( regionList!= null && !regionList.isEmpty()) {
+                        regionService.batchAdd(regionList);
+                    }
+                    List<Group> groupList = getGroupList(deviceId);
+                    if (groupList != null && !groupList.isEmpty()) {
+                        groupService.batchAdd(groupList);
+                    }
+                    String errorMsg = "更新成功，共" + catalogData.getTotal() + "条，已更新" + deviceChannelList.size() + "条";
+                    catalogData.setErrorMsg(errorMsg);
+                }else if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.ready)) {
+                    String errorMsg = "同步失败，等待回复超时";
+                    catalogData.setErrorMsg(errorMsg);
+                }
+            }
+            if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end) && catalogData.getTime().isBefore(instantBefore30S)) { // 超过三十秒，如果标记为end则删除
+                dataMap.remove(dataKey);
+                Set<String> redisKeysForChannel = catalogData.getRedisKeysForChannel();
+                if (redisKeysForChannel != null && !redisKeysForChannel.isEmpty()) {
+                    for (String deleteKey : redisKeysForChannel) {
+                        redisTemplate.opsForHash().delete(key, deleteKey);
+                    }
+                }
+                Set<String> redisKeysForRegion = catalogData.getRedisKeysForRegion();
+                if (redisKeysForRegion != null && !redisKeysForRegion.isEmpty()) {
+                    for (String deleteKey : redisKeysForRegion) {
+                        redisTemplate.opsForHash().delete(key, deleteKey);
+                    }
+                }
+                Set<String> redisKeysForGroup = catalogData.getRedisKeysForGroup();
+                if (redisKeysForGroup != null && !redisKeysForGroup.isEmpty()) {
+                    for (String deleteKey : redisKeysForGroup) {
+                        redisTemplate.opsForHash().delete(key, deleteKey);
+                    }
+                }
+            }
+        }
+    }
+
+
+    public void setChannelSyncEnd(String deviceId, String errorMsg) {
+        CatalogData catalogData = dataMap.get(deviceId);
+        if (catalogData == null) {
+            return;
+        }
+        catalogData.setStatus(CatalogData.CatalogDataStatus.end);
+        catalogData.setErrorMsg(errorMsg);
+        catalogData.setTime(Instant.now());
+    }
+}

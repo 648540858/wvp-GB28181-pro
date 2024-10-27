@@ -239,31 +239,33 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public void updateStreamAuthorityInfo(String app, String stream, StreamAuthorityInfo streamAuthorityInfo) {
-        String key = VideoManagerConstants.MEDIA_STREAM_AUTHORITY + userSetting.getServerId() + "_" + app+ "_" + stream;
-        redisTemplate.opsForValue().set(key, streamAuthorityInfo);
+        String key = VideoManagerConstants.MEDIA_STREAM_AUTHORITY + userSetting.getServerId();
+        String objectKey = app+ "_" + stream;
+        redisTemplate.opsForHash().put(key, objectKey, streamAuthorityInfo);
     }
 
     @Override
     public void removeStreamAuthorityInfo(String app, String stream) {
-        String key = VideoManagerConstants.MEDIA_STREAM_AUTHORITY + userSetting.getServerId() + "_" + app+ "_" + stream ;
-        redisTemplate.delete(key);
+        String key = VideoManagerConstants.MEDIA_STREAM_AUTHORITY + userSetting.getServerId();
+        String objectKey = app+ "_" + stream;
+        redisTemplate.opsForHash().delete(key, objectKey);
     }
 
     @Override
     public StreamAuthorityInfo getStreamAuthorityInfo(String app, String stream) {
-        String key = VideoManagerConstants.MEDIA_STREAM_AUTHORITY + userSetting.getServerId() + "_" + app+ "_" + stream ;
-        return JsonUtil.redisJsonToObject(redisTemplate, key, StreamAuthorityInfo.class);
+        String key = VideoManagerConstants.MEDIA_STREAM_AUTHORITY + userSetting.getServerId();
+        String objectKey = app+ "_" + stream;
+        return (StreamAuthorityInfo)redisTemplate.opsForHash().get(key, objectKey);
 
     }
 
     @Override
     public List<StreamAuthorityInfo> getAllStreamAuthorityInfo() {
-        String scanKey = VideoManagerConstants.MEDIA_STREAM_AUTHORITY + userSetting.getServerId() + "_*_*" ;
+        String key = VideoManagerConstants.MEDIA_STREAM_AUTHORITY + userSetting.getServerId();
         List<StreamAuthorityInfo> result = new ArrayList<>();
-        List<Object> keys = RedisUtil.scan(redisTemplate, scanKey);
-        for (Object o : keys) {
-            String key = (String) o;
-            result.add(JsonUtil.redisJsonToObject(redisTemplate, key, StreamAuthorityInfo.class));
+        List<Object> values = redisTemplate.opsForHash().values(key);
+        for (Object value : values) {
+            result.add((StreamAuthorityInfo)value);
         }
         return result;
     }

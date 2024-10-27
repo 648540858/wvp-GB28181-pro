@@ -538,7 +538,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             log.info("通道重设，数据为空={}" , deviceChannelList);
             return false;
         }
-        int limitCount = 50;
+        int limitCount = 500;
         if (!addChannels.isEmpty()) {
             if (addChannels.size() > limitCount) {
                 for (int i = 0; i < addChannels.size(); i += limitCount) {

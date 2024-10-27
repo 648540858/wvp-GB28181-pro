@@ -33,7 +33,7 @@ public class VideoManagerConstants {
 	public static final String SIP_INVITE_SESSION_CALL_ID = SIP_INVITE_SESSION + "CALL_ID:";
 	public static final String SIP_INVITE_SESSION_STREAM = SIP_INVITE_SESSION + "STREAM:";
 
-	public static final String MEDIA_STREAM_AUTHORITY = "VMP_MEDIA_STREAM_AUTHORITY_";
+	public static final String MEDIA_STREAM_AUTHORITY = "VMP_MEDIA_STREAM_AUTHORITY:";
 
 	public static final String SIP_CSEQ_PREFIX = "VMP_SIP_CSEQ_";
 

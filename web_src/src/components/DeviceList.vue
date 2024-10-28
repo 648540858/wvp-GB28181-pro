@@ -80,6 +80,18 @@
           <el-button size="medium" icon="el-icon-edit" type="text" @click="edit(scope.row)">编辑</el-button>
           <el-divider direction="vertical"></el-divider>
           <el-button size="medium" icon="el-icon-delete" type="text" @click="deleteDevice(scope.row)" style="color: #f56c6c">删除</el-button>
+          <el-divider direction="vertical"></el-divider>
+          <el-dropdown @command="(command)=>{moreClick(command, scope.row)}">
+            <el-button size="medium" type="text" >
+              操作<i class="el-icon-arrow-down el-icon--right"></i>
+            </el-button>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item command="setGuard" v-bind:disabled="!scope.row.onLine">
+                布防</el-dropdown-item>
+              <el-dropdown-item command="resetGuard" v-bind:disabled="!scope.row.onLine">
+                撤防</el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
         </template>
       </el-table-column>
     </el-table>
@@ -319,8 +331,60 @@ export default {
         }
       }).catch( (error)=> {
       });
-    }
-
+    },
+    moreClick: function (command, itemData) {
+      if (command === "setGuard") {
+        this.setGuard(itemData)
+      }else if (command === "resetGuard") {
+        this.resetGuard(itemData)
+      }
+    },
+    setGuard: function (itemData) {
+      this.$axios({
+        method: 'get',
+        url: `/api/device/control/guard/${itemData.deviceId}/SetGuard`,
+      }).then( (res)=> {
+        if (res.data.code === 0) {
+          this.$message.success({
+            showClose: true,
+            message: "布防命令已发送"
+          })
+        }else {
+          this.$message.error({
+            showClose: true,
+            message: res.data.msg
+          })
+        }
+      }).catch( (error)=> {
+        this.$message.error({
+          showClose: true,
+          message: error.message
+        })
+      });
+    },
+    resetGuard: function (itemData) {
+      this.$axios({
+        method: 'get',
+        url: `/api/device/control/guard/${itemData.deviceId}/ResetGuard`,
+      }).then( (res)=> {
+        if (res.data.code === 0) {
+          this.$message.success({
+            showClose: true,
+            message: "撤防命令已发送"
+          })
+        }else {
+          this.$message.error({
+            showClose: true,
+            message: res.data.msg
+          })
+        }
+      }).catch( (error)=> {
+        this.$message.error({
+          showClose: true,
+          message: error.message
+        })
+      });
+    },
 
   }
 };

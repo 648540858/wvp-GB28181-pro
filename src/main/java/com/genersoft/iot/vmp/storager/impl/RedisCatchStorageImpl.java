@@ -209,31 +209,27 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public void updateGpsMsgInfo(GPSMsgInfo gpsMsgInfo) {
-        String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetting.getServerId() + "_" + gpsMsgInfo.getId();
+        String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetting.getServerId();
         Duration duration = Duration.ofSeconds(60L);
-        redisTemplate.opsForValue().set(key, gpsMsgInfo, duration);
+        redisTemplate.opsForHash().put(key, gpsMsgInfo.getId(),gpsMsgInfo);
+        redisTemplate.expire(key, duration);
         // 默认GPS消息保存1分钟
     }
 
     @Override
     public GPSMsgInfo getGpsMsgInfo(String channelId) {
-        String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetting.getServerId() + "_" + channelId;
-        return JsonUtil.redisJsonToObject(redisTemplate, key, GPSMsgInfo.class);
+        String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetting.getServerId();
+        return (GPSMsgInfo) redisTemplate.opsForHash().get(key, channelId);
     }
 
     @Override
     public List<GPSMsgInfo> getAllGpsMsgInfo() {
-        String scanKey = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetting.getServerId() + "_*";
+        String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetting.getServerId();
         List<GPSMsgInfo> result = new ArrayList<>();
-        List<Object> keys = RedisUtil.scan(redisTemplate, scanKey);
-        for (Object o : keys) {
-            String key = (String) o;
-            GPSMsgInfo gpsMsgInfo = JsonUtil.redisJsonToObject(redisTemplate, key, GPSMsgInfo.class);
-            if (Objects.nonNull(gpsMsgInfo) && !gpsMsgInfo.isStored()) { // 只取没有存过得
-                result.add(JsonUtil.redisJsonToObject(redisTemplate, key, GPSMsgInfo.class));
-            }
+        List<Object> values = redisTemplate.opsForHash().values(key);
+        for (Object value : values) {
+            result.add((GPSMsgInfo)value);
         }
-
         return result;
     }
 

@@ -8,7 +8,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
-import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
@@ -51,14 +52,19 @@ public class DeviceControlResponseMessageHandler extends SIPRequestProcessorPare
         }
         JSONObject json = new JSONObject();
         String channelId = getText(element, "DeviceID");
-        XmlUtil.node2Json(element, json);
-        if (log.isDebugEnabled()) {
-            log.debug(json.toJSONString());
-        }
+        String result = getText(element, "Result");
+
         RequestMessage msg = new RequestMessage();
         String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL +  device.getDeviceId() + channelId;
         msg.setKey(key);
-        msg.setData(json);
+        if ("OK".equalsIgnoreCase(result)) {
+            msg.setData(WVPResult.success());
+        }else {
+            msg.setData(WVPResult.fail(ErrorCode.ERROR100));
+        }
+        if (log.isDebugEnabled()) {
+            log.debug(json.toJSONString());
+        }
         deferredResultHolder.invokeAllResult(msg);
 
     }

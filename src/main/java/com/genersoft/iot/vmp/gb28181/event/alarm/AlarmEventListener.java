@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.event.alarm;
 
+import com.genersoft.iot.vmp.gb28181.bean.SSEMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationListener;
@@ -25,12 +26,12 @@ public class AlarmEventListener implements ApplicationListener<AlarmEvent> {
 
     public void addSseEmitter(String browserId, PrintWriter writer) {
         SSE_CACHE.put(browserId, writer);
-        log.info("SSE 在线数量: {}", SSE_CACHE.size());
+        log.info("[SSE推送] 连接已建立, 浏览器 ID: {}, 当前在线数: {}", browserId, SSE_CACHE.size());
     }
 
     public void removeSseEmitter(String browserId, PrintWriter writer) {
         SSE_CACHE.remove(browserId, writer);
-        log.info("SSE 在线数量: {}", SSE_CACHE.size());
+        log.info("[SSE推送] 连接已断开, 浏览器 ID: {}, 当前在线数: {}", browserId, SSE_CACHE.size());
     }
 
     @Override
@@ -39,14 +40,17 @@ public class AlarmEventListener implements ApplicationListener<AlarmEvent> {
             log.debug("设备报警事件触发, deviceId: {}, {}", event.getAlarmInfo().getDeviceId(), event.getAlarmInfo().getAlarmDescription());
         }
 
-        String msg = "<strong>设备编号：</strong> <i>" + event.getAlarmInfo().getDeviceId() + "</i>"
+        log.info("设备报警事件触发, deviceId: {}, {}", event.getAlarmInfo().getDeviceId(), event.getAlarmInfo().getAlarmDescription());
+
+
+        String msg = "<strong>设备：</strong> <i>" + event.getAlarmInfo().getDeviceId() + "</i>"
                 + "<br><strong>通道编号：</strong> <i>" + event.getAlarmInfo().getChannelId() + "</i>"
                 + "<br><strong>报警描述：</strong> <i>" + event.getAlarmInfo().getAlarmDescription() + "</i>"
                 + "<br><strong>报警时间：</strong> <i>" + event.getAlarmInfo().getAlarmTime() + "</i>";
 
         for (Iterator<Map.Entry<String, PrintWriter>> it = SSE_CACHE.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<String, PrintWriter> response = it.next();
-            log.info("推送到 SSE 连接, 浏览器 ID: {}", response.getKey());
+
             try {
                 PrintWriter writer = response.getValue();
 
@@ -58,9 +62,13 @@ public class AlarmEventListener implements ApplicationListener<AlarmEvent> {
                 String sseMsg = "event:message\n" +
                         "data:" + msg + "\n" +
                         "\n";
-                writer.write(sseMsg);
+                System.out.println(
+                        SSEMessage.getInstance("message", event.getAlarmInfo()).ecode()
+                );
+                writer.write(SSEMessage.getInstance("message", event.getAlarmInfo()).ecode());
                 writer.flush();
             } catch (Exception e) {
+                log.error("[发送SSE] 失败", e);
                 it.remove();
             }
         }

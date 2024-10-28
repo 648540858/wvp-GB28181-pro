@@ -39,7 +39,7 @@ public class VManageBootstrap extends SpringBootServletInitializer {
 		}else {
 			log.info("构建版本： {}", gitUtil.getBuildVersion());
 			log.info("构建时间： {}", gitUtil.getBuildDate());
-			log.info("GIT最后提交时间： {}", gitUtil.getCommitTime());
+			log.info("GIT信息： 分支: {}, ID: {},  时间: {}", gitUtil.getBranch(), gitUtil.getCommitIdShort(), gitUtil.getCommitTime());
 		}
 	}
 	// 项目重启

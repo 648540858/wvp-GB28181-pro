@@ -139,14 +139,19 @@
               <el-divider v-if="scope.row.subCount > 0 || scope.row.parental === 1 || scope.row.deviceId.length <= 8" direction="vertical"></el-divider>
               <el-dropdown @command="(command)=>{moreClick(command, scope.row)}">
                 <el-button size="medium" type="text" >
-                  更多功能<i class="el-icon-arrow-down el-icon--right"></i>
+                  更多<i class="el-icon-arrow-down el-icon--right"></i>
                 </el-button>
                 <el-dropdown-menu slot="dropdown">
                   <el-dropdown-item command="records" v-bind:disabled="device == null || device.online === 0">
                     设备录像</el-dropdown-item>
                   <el-dropdown-item command="cloudRecords" v-bind:disabled="device == null || device.online === 0" >
                     云端录像</el-dropdown-item>
+                  <el-dropdown-item command="record" v-bind:disabled="device == null || device.online === 0" >
+                    设备录像控制-开始</el-dropdown-item>
+                  <el-dropdown-item command="stopRecord" v-bind:disabled="device == null || device.online === 0" >
+                    设备录像控制-停止</el-dropdown-item>
                 </el-dropdown-menu>
+
               </el-dropdown>
             </template>
           </el-table-column>
@@ -338,6 +343,10 @@ export default {
         this.queryRecords(itemData)
       }else if (command === "cloudRecords") {
         this.queryCloudRecords(itemData)
+      }else if (command === "record") {
+        this.startRecord(itemData)
+      }else if (command === "stopRecord") {
+        this.stopRecord(itemData)
       }
     },
     queryRecords: function (itemData) {
@@ -351,6 +360,58 @@ export default {
       let channelId = itemData.deviceId;
 
       this.$router.push(`/cloudRecordDetail/rtp/${deviceId}_${channelId}`)
+    },
+    startRecord: function (itemData) {
+      this.$axios({
+        method: 'get',
+        url: `/api/device/control/record/${this.deviceId}/Record`,
+        params: {
+          channelId: itemData.deviceId
+        }
+      }).then( (res)=> {
+        if (res.data.code === 0) {
+          this.$message.success({
+            showClose: true,
+            message: "开始录像成功"
+          })
+        }else {
+          this.$message.error({
+            showClose: true,
+            message: res.data.msg
+          })
+        }
+      }).catch( (error)=> {
+        this.$message.error({
+          showClose: true,
+          message: error.message
+        })
+      });
+    },
+    stopRecord: function (itemData) {
+      this.$axios({
+        method: 'get',
+        url: `/api/device/control/record/${this.deviceId}/StopRecord`,
+        params: {
+          channelId: itemData.deviceId
+        }
+      }).then( (res)=> {
+        if (res.data.code === 0) {
+          this.$message.success({
+            showClose: true,
+            message: "停止录像成功"
+          })
+        }else {
+          this.$message.error({
+            showClose: true,
+            message: res.data.msg
+          })
+        }
+      }).catch( (error)=> {
+        this.$message.error({
+          showClose: true,
+          message: error.message
+        })
+      });
     },
     stopDevicePush: function (itemData) {
       var that = this;

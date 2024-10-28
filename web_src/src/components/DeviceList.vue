@@ -347,7 +347,7 @@ export default {
         if (res.data.code === 0) {
           this.$message.success({
             showClose: true,
-            message: "布防命令已发送"
+            message: "布防成功"
           })
         }else {
           this.$message.error({
@@ -370,7 +370,7 @@ export default {
         if (res.data.code === 0) {
           this.$message.success({
             showClose: true,
-            message: "撤防命令已发送"
+            message: "撤防成功"
           })
         }else {
           this.$message.error({

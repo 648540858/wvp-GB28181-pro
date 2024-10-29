@@ -484,12 +484,12 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         // 数据去重
         Set<String> gbIdSet = new HashSet<>();
         for (DeviceChannel deviceChannel : deviceChannelList) {
-            if (gbIdSet.contains(deviceChannel.getDeviceDbId() + deviceChannel.getDeviceId())) {
+            if (gbIdSet.contains(deviceDbId + deviceChannel.getDeviceId())) {
                 stringBuilder.append(deviceChannel.getDeviceId()).append(",");
                 continue;
             }
-            gbIdSet.add(deviceChannel.getDeviceDbId() + deviceChannel.getDeviceId());
-            DeviceChannel channelInDb = allChannelMap.get(deviceChannel.getDeviceDbId() + deviceChannel.getDeviceId());
+            gbIdSet.add(deviceDbId + deviceChannel.getDeviceId());
+            DeviceChannel channelInDb = allChannelMap.get(deviceDbId + deviceChannel.getDeviceId());
             if (channelInDb != null) {
                 deviceChannel.setStreamId(channelInDb.getStreamId());
                 deviceChannel.setHasAudio(channelInDb.isHasAudio());
@@ -509,7 +509,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 deviceChannel.setUpdateTime(DateUtil.getNow());
                 addChannels.add(deviceChannel);
             }
-            allChannelMap.remove(deviceChannel.getDeviceDbId() + deviceChannel.getDeviceId());
+            allChannelMap.remove(deviceDbId + deviceChannel.getDeviceId());
             channels.add(deviceChannel);
             if (!ObjectUtils.isEmpty(deviceChannel.getParentId())) {
                 if (subContMap.get(deviceChannel.getParentId()) == null) {

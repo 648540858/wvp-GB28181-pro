@@ -120,7 +120,8 @@ export default {
           that.$notify({
             title: '报警信息',
             dangerouslyUseHTMLString: true,
-            message: `<strong>设备编号：</strong> <i> ${data.deviceId}</i>` +
+            message: `<strong>设备名称：</strong> <i> ${data.deviceName}</i>` +
+                     `<br><strong>设备编号：</strong> <i>${ data.deviceId}</i>` +
                      `<br><strong>通道编号：</strong> <i>${ data.channelId}</i>` +
                      `<br><strong>报警级别：</strong> <i>${ data.alarmPriorityDescription}</i>` +
                      `<br><strong>报警方式：</strong> <i>${ data.alarmMethodDescription}</i>` +
@@ -128,9 +129,8 @@ export default {
                      `<br><strong>报警时间：</strong> <i>${ data.alarmTime}</i>`,
             type: 'warning',
             position: 'bottom-right',
-            duration: 3000
+            duration: 5000
           });
-
         });
         this.sseSource.addEventListener('open', function (e) {
           console.log("SSE连接打开.");

@@ -102,7 +102,6 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                 continue;
             }
             RequestEvent evt = sipMsgInfo.getEvt();
-            System.out.println(evt.getRequest());
             // 回复200 OK
             try {
                 responseAck((SIPRequest) evt.getRequest(), Response.OK);
@@ -117,6 +116,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                 DeviceAlarm deviceAlarm = new DeviceAlarm();
                 deviceAlarm.setCreateTime(DateUtil.getNow());
                 deviceAlarm.setDeviceId(sipMsgInfo.getDevice().getDeviceId());
+                deviceAlarm.setDeviceName(sipMsgInfo.getDevice().getName());
                 deviceAlarm.setChannelId(channelId);
                 deviceAlarm.setAlarmPriority(getText(sipMsgInfo.getRootElement(), "AlarmPriority"));
                 deviceAlarm.setAlarmMethod(getText(sipMsgInfo.getRootElement(), "AlarmMethod"));
@@ -223,6 +223,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
         DeviceAlarm deviceAlarm = new DeviceAlarm();
         deviceAlarm.setCreateTime(DateUtil.getNow());
         deviceAlarm.setDeviceId(parentPlatform.getServerGBId());
+        deviceAlarm.setDeviceName(parentPlatform.getName());
         deviceAlarm.setChannelId(channelId);
         deviceAlarm.setAlarmPriority(getText(rootElement, "AlarmPriority"));
         deviceAlarm.setAlarmMethod(getText(rootElement, "AlarmMethod"));

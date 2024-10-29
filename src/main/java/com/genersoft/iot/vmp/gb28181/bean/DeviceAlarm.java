@@ -13,17 +13,14 @@ import java.util.Set;
 @Data
 public class DeviceAlarm {
 
-    /**
-     * 数据库id
-     */
     @Schema(description = "数据库id")
     private String id;
 
-    /**
-     * 设备Id
-     */
     @Schema(description = "设备的国标编号")
     private String deviceId;
+
+	@Schema(description = "设备名称")
+	private String deviceName;
 
     /**
      * 通道Id

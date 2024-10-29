@@ -17,6 +17,7 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -115,11 +116,13 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
             inviteInfoForUpdate = inviteInfoInRedis;
 
         }
+        if (inviteInfoForUpdate.getCreateTime() == null) {
+            inviteInfoForUpdate.setCreateTime(System.currentTimeMillis());
+        }
         String key = VideoManagerConstants.INVITE_PREFIX;
         String objectKey = inviteInfoForUpdate.getType() +
                 ":" + inviteInfoForUpdate.getChannelId() +
-                ":" + inviteInfoForUpdate.getStream() +
-                ":" + inviteInfoForUpdate.getSsrcInfo().getSsrc();
+                ":" + inviteInfoForUpdate.getStream();
         if (time != null && time > 0) {
             inviteInfoForUpdate.setExpirationTime(time);
         }
@@ -137,14 +140,16 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
         String key = VideoManagerConstants.INVITE_PREFIX;
         String objectKey = inviteInfo.getType() +
                 ":" + inviteInfo.getChannelId() +
-                ":" + stream +
-                ":" + inviteInfo.getSsrcInfo().getSsrc();
+                ":" + stream;
         inviteInfoInDb.setStream(stream);
         if (inviteInfoInDb.getSsrcInfo() != null) {
             inviteInfoInDb.getSsrcInfo().setStream(stream);
         }
         if (InviteSessionStatus.ready == inviteInfo.getStatus()) {
             inviteInfoInDb.setExpirationTime((long) (userSetting.getPlayTimeout() * 2));
+        }
+        if (inviteInfoInDb.getCreateTime() == null) {
+            inviteInfoInDb.setCreateTime(System.currentTimeMillis());
         }
         redisTemplate.opsForHash().put(key, objectKey, inviteInfoInDb);
         return inviteInfoInDb;
@@ -155,8 +160,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
         String key = VideoManagerConstants.INVITE_PREFIX;
         String keyPattern = (type != null ? type : "*") +
                 ":" + (channelId != null ? channelId : "*") +
-                ":" + (stream != null ? stream : "*")
-                + ":*";
+                ":" + (stream != null ? stream : "*");
         ScanOptions options = ScanOptions.scanOptions().match(keyPattern).count(20).build();
         try (Cursor<Map.Entry<Object, Object>> cursor = redisTemplate.opsForHash().scan(key, options)) {
             if (cursor.hasNext()) {
@@ -206,8 +210,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
         if (inviteInfo != null) {
             String objectKey = inviteInfo.getType() +
                     ":" + inviteInfo.getChannelId() +
-                    ":" + stream +
-                    ":" + inviteInfo.getSsrcInfo().getSsrc();
+                    ":" + inviteInfo.getStream();
             redisTemplate.opsForHash().delete(key, objectKey);
         }
     }
@@ -291,7 +294,6 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
 
     private String buildSubStreamKey(InviteSessionType type, Integer channelId, String stream) {
         String key = type + ":" + channelId;
-        // 如果ssrc为null那么可以实现一个通道只能一次操作，ssrc不为null则可以支持一个通道多次invite
         if (stream != null) {
             key += (":" + stream);
         }
@@ -322,12 +324,33 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
         String key = VideoManagerConstants.INVITE_PREFIX;
         String objectKey = inviteInfo.getType() +
                 ":" + inviteInfo.getChannelId() +
-                ":" + inviteInfo.getStream() +
-                ":" + ssrc;
+                ":" + inviteInfo.getStream();
         if (inviteInfoInDb.getSsrcInfo() != null) {
             inviteInfoInDb.getSsrcInfo().setSsrc(ssrc);
         }
         redisTemplate.opsForHash().put(key, objectKey, inviteInfoInDb);
         return inviteInfoInDb;
+    }
+
+    @Scheduled(fixedRate = 10000)   //定时检测,清理错误的redis数据,防止因为错误数据导致的点播不可用
+    public void execute(){
+        String key = VideoManagerConstants.INVITE_PREFIX;
+        if(redisTemplate.opsForHash().size(key) == 0) {
+            return;
+        }
+        List<Object> values = redisTemplate.opsForHash().values(key);
+        for (Object value : values) {
+            InviteInfo inviteInfo = (InviteInfo)value;
+            if (inviteInfo.getStreamInfo() != null) {
+                continue;
+            }
+            if (inviteInfo.getCreateTime() == null || inviteInfo.getExpirationTime() == 0) {
+                removeInviteInfo(inviteInfo);
+            }
+            long time = inviteInfo.getCreateTime() + inviteInfo.getExpirationTime();
+            if (System.currentTimeMillis() > time) {
+                removeInviteInfo(inviteInfo);
+            }
+        }
     }
 }

@@ -33,6 +33,8 @@ public class InviteInfo {
 
     private Long expirationTime;
 
+    private Long createTime;
+
 
     public static InviteInfo getInviteInfo(String deviceId, Integer channelId, String stream, SSRCInfo ssrcInfo, String mediaServerId,
                                            String receiveIp, Integer receivePort, String streamMode,

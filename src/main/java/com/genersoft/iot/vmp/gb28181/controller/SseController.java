@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.controller;
 
+import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.gb28181.event.alarm.AlarmEventListener;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +29,9 @@ public class SseController {
     @Resource
     private AlarmEventListener alarmEventListener;
 
+    @Resource
+    private DynamicTask dynamicTask;
+
     /**
      * SSE 推送.
      *
@@ -45,11 +49,13 @@ public class SseController {
         PrintWriter writer = response.getWriter();
         alarmEventListener.addSseEmitter(browserId, writer);
 
-        while (!writer.checkError()) {
-            Thread.sleep(1000);
-            writer.write(":keep alive\n\n");
-            writer.flush();
-        }
+        dynamicTask.startCron("sse-key", new Runnable() {
+            @Override
+            public void run() {
+                writer.write(":keep alive\n\n");
+                writer.flush();
+            }
+        }, 1000);
         alarmEventListener.removeSseEmitter(browserId, writer);
     }
 }

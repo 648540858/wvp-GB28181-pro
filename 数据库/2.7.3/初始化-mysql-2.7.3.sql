@@ -67,19 +67,6 @@ create table wvp_device_mobile_position
     create_time     character varying(50)
 );
 
-create table wvp_log
-(
-    id          serial primary key,
-    name        character varying(50),
-    type        character varying(50),
-    uri         character varying(200),
-    address     character varying(50),
-    result      character varying(50),
-    timing      bigint,
-    username    character varying(50),
-    create_time character varying(50)
-);
-
 create table wvp_device_channel
 (
     id                           serial primary key,

@@ -309,7 +309,7 @@ public class PlatformServiceImpl implements IPlatformService {
                                     platformCatchForNow.setKeepAliveReply(0);
                                     redisCatchStorage.updatePlatformCatchInfo(platformCatchForNow);
                                 }
-                                log.info("[发送心跳] 国标级联 发送心跳, code： {}, msg: {}", eventResult.statusCode, eventResult.msg);
+                                log.info("[国标级联] 发送心跳,平台{}({}), code： {}, msg: {}", platform.getName(), platform.getServerGBId(), eventResult.statusCode, eventResult.msg);
                             });
                         } catch (SipException | InvalidArgumentException | ParseException e) {
                             log.error("[命令发送失败] 国标级联 发送心跳: {}", e.getMessage());

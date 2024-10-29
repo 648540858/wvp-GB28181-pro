@@ -171,6 +171,7 @@ create table wvp_device_channel
     constraint uk_wvp_unique_stream_proxy_id unique (stream_proxy_id)
 );
 
+create index uk_wvp_device_db_id on wvp_device_channel (device_db_id);
 
 
 create table wvp_media_server

@@ -12,6 +12,7 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
 
 import javax.sip.*;
 import javax.sip.address.Address;
@@ -171,7 +172,10 @@ public abstract class SIPRequestProcessorParent {
 	public Element getRootElement(RequestEvent evt, String charset) throws DocumentException {
 
 		byte[] rawContent = evt.getRequest().getRawContent();
-		if (rawContent == null) {
+		if (evt.getRequest().getContentLength().getContentLength() == 0
+				|| rawContent == null
+				|| rawContent.length == 0
+				|| ObjectUtils.isEmpty(new String(rawContent))) {
 			return null;
 		}
 

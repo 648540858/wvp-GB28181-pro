@@ -44,7 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        if (!userSetting.isInterfaceAuthentication()) {
+        if (!userSetting.getInterfaceAuthentication()) {
             UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(null, null, new ArrayList<>() );
             SecurityContextHolder.getContext().setAuthentication(token);
             chain.doFilter(request, response);

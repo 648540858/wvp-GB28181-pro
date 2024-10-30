@@ -100,7 +100,7 @@ public class RedisPushStreamStatusMsgListener implements MessageListener, Applic
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        if (userSetting.isUsePushingAsStatus()) {
+        if (userSetting.getUsePushingAsStatus()) {
             return;
         }
         // 查询是否存在推流设备,没有则不发送

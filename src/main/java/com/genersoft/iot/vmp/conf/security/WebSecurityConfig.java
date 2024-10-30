@@ -62,7 +62,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
      **/
     @Override
     public void configure(WebSecurity web) {
-        if (userSetting.isInterfaceAuthentication()) {
+        if (userSetting.getInterfaceAuthentication()) {
             ArrayList<String> matchers = new ArrayList<>();
             matchers.add("/");
             matchers.add("/#/**");

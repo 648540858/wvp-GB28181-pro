@@ -123,7 +123,7 @@ public class MediaServiceImpl implements IMediaService {
         if ("rtp".equals(app)) {
             result.setEnable_mp4(userSetting.getRecordSip());
         } else {
-            result.setEnable_mp4(userSetting.isRecordPushLive());
+            result.setEnable_mp4(userSetting.getRecordPushLive());
         }
         // 国标流
         if ("rtp".equals(app)) {

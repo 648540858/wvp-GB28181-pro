@@ -284,7 +284,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
             mediaServerService.closeStreams(mediaServer, streamPush.getApp(), streamPush.getStream());
         }
         streamPush.setPushing(false);
-        if (userSetting.isUsePushingAsStatus()) {
+        if (userSetting.getUsePushingAsStatus()) {
             CommonGBChannel commonGBChannel = streamPush.buildCommonGBChannel();
             if (commonGBChannel != null) {
                 gbChannelService.offline(commonGBChannel);
@@ -474,7 +474,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Override
     public ResourceBaseInfo getOverview() {
         int total = streamPushMapper.getAllCount();
-        int online = streamPushMapper.getAllPushing(userSetting.isUsePushingAsStatus());
+        int online = streamPushMapper.getAllPushing(userSetting.getUsePushingAsStatus());
 
         return new ResourceBaseInfo(total, online);
     }
@@ -500,7 +500,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Transactional
     public void updatePushStatus(StreamPush streamPush, boolean pushIng) {
         streamPush.setPushing(pushIng);
-        if (userSetting.isUsePushingAsStatus()) {
+        if (userSetting.getUsePushingAsStatus()) {
             streamPush.setGbStatus(pushIng?"ON":"OFF");
         }
         streamPush.setPushTime(DateUtil.getNow());
@@ -508,7 +508,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         if (ObjectUtils.isEmpty(streamPush.getGbDeviceId())) {
             return;
         }
-        if (userSetting.isUsePushingAsStatus()) {
+        if (userSetting.getUsePushingAsStatus()) {
             if ("ON".equalsIgnoreCase(streamPush.getGbStatus()) ) {
                 gbChannelService.online(streamPush.buildCommonGBChannel());
             }else {

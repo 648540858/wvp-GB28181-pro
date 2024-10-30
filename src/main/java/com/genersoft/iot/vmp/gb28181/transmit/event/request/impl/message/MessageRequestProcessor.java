@@ -102,11 +102,6 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
                     sipEvent.getErrorEvent().response(eventResult);
                 }
             }else {
-                byte[] rawContent = request.getRawContent();
-                if (rawContent == null) {
-                    responseAck(request, Response.BAD_REQUEST, "content is null");
-                    return;
-                }
                 Element rootElement;
                 try {
                     rootElement = getRootElement(evt);

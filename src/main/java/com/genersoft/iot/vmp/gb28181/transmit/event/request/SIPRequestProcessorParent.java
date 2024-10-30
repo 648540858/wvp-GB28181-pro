@@ -170,10 +170,14 @@ public abstract class SIPRequestProcessorParent {
 	}
 	public Element getRootElement(RequestEvent evt, String charset) throws DocumentException {
 
+		byte[] rawContent = evt.getRequest().getRawContent();
+		if (rawContent == null) {
+			return null;
+		}
+
 		if (charset == null) {
 			charset = "gb2312";
 		}
-		Request request = evt.getRequest();
 		SAXReader reader = new SAXReader();
 		reader.setEncoding(charset);
 		// 对海康出现的未转义字符做处理。
@@ -182,10 +186,6 @@ public abstract class SIPRequestProcessorParent {
 		char despChar = '&';
 		byte destBye = (byte) despChar;
 		List<Byte> result = new ArrayList<>();
-		byte[] rawContent = request.getRawContent();
-		if (rawContent == null) {
-			return null;
-		}
 		for (int i = 0; i < rawContent.length; i++) {
 			if (rawContent[i] == destBye) {
 				boolean resul = false;

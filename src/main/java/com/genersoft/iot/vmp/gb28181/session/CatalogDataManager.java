@@ -1,7 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.session;
 
-import com.genersoft.iot.vmp.common.InviteInfo;
-import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IGroupService;
@@ -9,16 +7,16 @@ import com.genersoft.iot.vmp.gb28181.service.IRegionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.DelayQueue;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -41,8 +39,12 @@ public class CatalogDataManager implements CommandLineRunner {
 
     private final String key = "VMP_CATALOG_DATA";
 
+    public String buildMapKey(String deviceId, int sn ) {
+        return deviceId + "_" + sn;
+    }
+
     public void addReady(Device device, int sn ) {
-        CatalogData catalogData = dataMap.get(device.getDeviceId());
+        CatalogData catalogData = dataMap.get(buildMapKey(device.getDeviceId(),sn));
         if (catalogData != null) {
             Set<String> redisKeysForChannel = catalogData.getRedisKeysForChannel();
             if (redisKeysForChannel != null && !redisKeysForChannel.isEmpty()) {
@@ -62,19 +64,19 @@ public class CatalogDataManager implements CommandLineRunner {
                     redisTemplate.opsForHash().delete(key, deleteKey);
                 }
             }
-            dataMap.remove(device.getDeviceId());
+            dataMap.remove(buildMapKey(device.getDeviceId(),sn));
         }
         catalogData = new CatalogData();
         catalogData.setDevice(device);
         catalogData.setSn(sn);
         catalogData.setStatus(CatalogData.CatalogDataStatus.ready);
         catalogData.setTime(Instant.now());
-        dataMap.put(device.getDeviceId(), catalogData);
+        dataMap.put(buildMapKey(device.getDeviceId(),sn), catalogData);
     }
 
     public void put(String deviceId, int sn, int total, Device device, List<DeviceChannel> deviceChannelList,
                     List<Region> regionList, List<Group> groupList) {
-        CatalogData catalogData = dataMap.get(device.getDeviceId());
+        CatalogData catalogData = dataMap.get(buildMapKey(device.getDeviceId(),sn));
         if (catalogData == null ) {
             log.warn("[缓存-Catalog] 未找到缓存对象，可能已经结束");
             return;
@@ -108,9 +110,9 @@ public class CatalogDataManager implements CommandLineRunner {
         }
     }
 
-    public List<DeviceChannel> getDeviceChannelList(String deviceId) {
+    public List<DeviceChannel> getDeviceChannelList(String deviceId, int sn) {
         List<DeviceChannel> result = new ArrayList<>();
-        CatalogData catalogData = dataMap.get(deviceId);
+        CatalogData catalogData = dataMap.get(buildMapKey(deviceId,sn));
         if (catalogData == null ) {
             log.warn("[Redis-Catalog] 未找到缓存对象，可能已经结束");
             return result;
@@ -124,9 +126,9 @@ public class CatalogDataManager implements CommandLineRunner {
         return result;
     }
 
-    public List<Region> getRegionList(String deviceId) {
+    public List<Region> getRegionList(String deviceId, int sn) {
         List<Region> result = new ArrayList<>();
-        CatalogData catalogData = dataMap.get(deviceId);
+        CatalogData catalogData = dataMap.get(buildMapKey(deviceId,sn));
         if (catalogData == null ) {
             log.warn("[Redis-Catalog] 未找到缓存对象，可能已经结束");
             return result;
@@ -140,9 +142,9 @@ public class CatalogDataManager implements CommandLineRunner {
         return result;
     }
 
-    public List<Group> getGroupList(String deviceId) {
+    public List<Group> getGroupList(String deviceId, int sn) {
         List<Group> result = new ArrayList<>();
-        CatalogData catalogData = dataMap.get(deviceId);
+        CatalogData catalogData = dataMap.get(buildMapKey(deviceId,sn));
         if (catalogData == null ) {
             log.warn("[Redis-Catalog] 未找到缓存对象，可能已经结束");
             return result;
@@ -157,28 +159,40 @@ public class CatalogDataManager implements CommandLineRunner {
     }
 
     public SyncStatus getSyncStatus(String deviceId) {
-        CatalogData catalogData = dataMap.get(deviceId);
-        if (catalogData == null) {
+        if (dataMap.isEmpty()) {
             return null;
         }
-        SyncStatus syncStatus = new SyncStatus();
-        syncStatus.setCurrent(catalogData.getRedisKeysForChannel().size());
-        syncStatus.setTotal(catalogData.getTotal());
-        syncStatus.setErrorMsg(catalogData.getErrorMsg());
-        if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end)) {
-            syncStatus.setSyncIng(false);
-        }else {
-            syncStatus.setSyncIng(true);
+        Set<String> keySet = dataMap.keySet();
+        for (String key : keySet) {
+            CatalogData catalogData = dataMap.get(key);
+            if (catalogData != null && deviceId.equals(catalogData.getDevice().getDeviceId())) {
+                SyncStatus syncStatus = new SyncStatus();
+                syncStatus.setCurrent(catalogData.getRedisKeysForChannel().size());
+                syncStatus.setTotal(catalogData.getTotal());
+                syncStatus.setErrorMsg(catalogData.getErrorMsg());
+                if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end)) {
+                    syncStatus.setSyncIng(false);
+                }else {
+                    syncStatus.setSyncIng(true);
+                }
+                return syncStatus;
+            }
         }
-        return syncStatus;
+        return null;
     }
 
     public boolean isSyncRunning(String deviceId) {
-        CatalogData catalogData = dataMap.get(deviceId);
-        if (catalogData == null) {
+        if (dataMap.isEmpty()) {
             return false;
         }
-        return !catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end);
+        Set<String> keySet = dataMap.keySet();
+        for (String key : keySet) {
+            CatalogData catalogData = dataMap.get(key);
+            if (catalogData != null && deviceId.equals(catalogData.getDevice().getDeviceId())) {
+                return !catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end);
+            }
+        }
+        return false;
     }
 
     @Override
@@ -202,17 +216,17 @@ public class CatalogDataManager implements CommandLineRunner {
                 if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.runIng)) {
                     String deviceId = catalogData.getDevice().getDeviceId();
                     int sn = catalogData.getSn();
-                    List<DeviceChannel> deviceChannelList = getDeviceChannelList(deviceId);
+                    List<DeviceChannel> deviceChannelList = getDeviceChannelList(deviceId, sn);
                     if (catalogData.getTotal() == deviceChannelList.size()) {
                         deviceChannelService.resetChannels(catalogData.getDevice().getId(), deviceChannelList);
                     }else {
                         deviceChannelService.updateChannels(catalogData.getDevice(), deviceChannelList);
                     }
-                    List<Region> regionList = getRegionList(deviceId);
+                    List<Region> regionList = getRegionList(deviceId, sn);
                     if ( regionList!= null && !regionList.isEmpty()) {
                         regionService.batchAdd(regionList);
                     }
-                    List<Group> groupList = getGroupList(deviceId);
+                    List<Group> groupList = getGroupList(deviceId, sn);
                     if (groupList != null && !groupList.isEmpty()) {
                         groupService.batchAdd(groupList);
                     }
@@ -248,8 +262,8 @@ public class CatalogDataManager implements CommandLineRunner {
     }
 
 
-    public void setChannelSyncEnd(String deviceId, String errorMsg) {
-        CatalogData catalogData = dataMap.get(deviceId);
+    public void setChannelSyncEnd(String deviceId, int sn, String errorMsg) {
+        CatalogData catalogData = dataMap.get(buildMapKey(deviceId,sn));
         if (catalogData == null) {
             return;
         }
@@ -258,16 +272,16 @@ public class CatalogDataManager implements CommandLineRunner {
         catalogData.setTime(Instant.now());
     }
 
-    public int size(String deviceId) {
-        CatalogData catalogData = dataMap.get(deviceId);
+    public int size(String deviceId, int sn) {
+        CatalogData catalogData = dataMap.get(buildMapKey(deviceId,sn));
         if (catalogData == null) {
             return 0;
         }
         return catalogData.getRedisKeysForChannel().size();
     }
 
-    public int sumNum(String deviceId) {
-        CatalogData catalogData = dataMap.get(deviceId);
+    public int sumNum(String deviceId, int sn) {
+        CatalogData catalogData = dataMap.get(buildMapKey(deviceId,sn));
         if (catalogData == null) {
             return 0;
         }

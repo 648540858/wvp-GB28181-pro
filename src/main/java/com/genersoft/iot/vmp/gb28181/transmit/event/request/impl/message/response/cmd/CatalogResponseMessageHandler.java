@@ -96,6 +96,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                 continue;
             }
             RequestEvent evt = take.getEvt();
+            int sn = 0;
             // 全局异常捕获，保证下一条可以得到处理
             try {
                 Element rootElement = null;
@@ -118,7 +119,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                     log.info("[收到通道]设备:{}的: 0个", take.getDevice().getDeviceId());
                     // 数据已经完整接收
                     deviceChannelService.cleanChannelsForDevice(take.getDevice().getId());
-                    catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null);
+                    catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), sn, null);
                 } else {
                     Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
                     if (deviceListIterator != null) {
@@ -132,6 +133,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                             if (channelDeviceElement == null) {
                                 continue;
                             }
+                            // 从xml解析内容到 DeviceChannel 对象
                             DeviceChannel channel = DeviceChannel.decode(itemDevice);
                             if (channel.getDeviceId() == null) {
                                 log.info("[收到目录订阅]：但是解析失败 {}", new String(evt.getRequest().getRawContent()));
@@ -158,25 +160,25 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                             }
                             channelList.add(channel);
                         }
-                        int sn = Integer.parseInt(snElement.getText());
+                        sn = Integer.parseInt(snElement.getText());
                         catalogDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, take.getDevice(),
                                 channelList, regionList, groupList);
-                        log.info("[收到通道]设备: {} -> {}个，{}/{}", take.getDevice().getDeviceId(), channelList.size(), catalogDataCatch.size(take.getDevice().getDeviceId()), sumNum);
+                        log.info("[收到通道]设备: {} -> {}个，{}/{}", take.getDevice().getDeviceId(), channelList.size(), catalogDataCatch.size(take.getDevice().getDeviceId(), sn), sumNum);
                     }
                 }
             } catch (Exception e) {
                 log.warn("[收到通道] 发现未处理的异常, \r\n{}", evt.getRequest());
                 log.error("[收到通道] 异常内容： ", e);
             } finally {
-                if (catalogDataCatch.size(take.getDevice().getDeviceId()) == catalogDataCatch.sumNum(take.getDevice().getDeviceId())) {
+                if (catalogDataCatch.size(take.getDevice().getDeviceId(), sn) == catalogDataCatch.sumNum(take.getDevice().getDeviceId(), sn)) {
                     // 数据已经完整接收， 此时可能存在某个设备离线变上线的情况，但是考虑到性能，此处不做处理，
                     // 目前支持设备通道上线通知时和设备上线时向上级通知
-                    boolean resetChannelsResult = saveData(take.getDevice());
+                    boolean resetChannelsResult = saveData(take.getDevice(), sn);
                     if (!resetChannelsResult) {
-                        String errorMsg = "接收成功，写入失败，共" + catalogDataCatch.sumNum(take.getDevice().getDeviceId()) + "条，已接收" + catalogDataCatch.getDeviceChannelList(take.getDevice().getDeviceId()).size() + "条";
-                        catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), errorMsg);
+                        String errorMsg = "接收成功，写入失败，共" + catalogDataCatch.sumNum(take.getDevice().getDeviceId(), sn) + "条，已接收" + catalogDataCatch.getDeviceChannelList(take.getDevice().getDeviceId(), sn).size() + "条";
+                        catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), sn, errorMsg);
                     } else {
-                        catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null);
+                        catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), sn, null);
                     }
                 }
             }
@@ -184,20 +186,20 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     }
 
     @Transactional
-    public boolean saveData(Device device) {
+    public boolean saveData(Device device, int sn) {
 
         boolean result = true;
-        List<DeviceChannel> deviceChannelList = catalogDataCatch.getDeviceChannelList(device.getDeviceId());
+        List<DeviceChannel> deviceChannelList = catalogDataCatch.getDeviceChannelList(device.getDeviceId(), sn);
         if (deviceChannelList != null && !deviceChannelList.isEmpty()) {
             result &= deviceChannelService.resetChannels(device.getId(), deviceChannelList);
         }
 
-        List<Region> regionList = catalogDataCatch.getRegionList(device.getDeviceId());
+        List<Region> regionList = catalogDataCatch.getRegionList(device.getDeviceId(), sn);
         if ( regionList!= null && !regionList.isEmpty()) {
             result &= regionService.batchAdd(regionList);
         }
 
-        List<Group> groupList = catalogDataCatch.getGroupList(device.getDeviceId());
+        List<Group> groupList = catalogDataCatch.getGroupList(device.getDeviceId(), sn);
         if (groupList != null && !groupList.isEmpty()) {
             result &= groupService.batchAdd(groupList);
         }
@@ -221,7 +223,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
         catalogDataCatch.addReady(device, sn);
     }
 
-    public void setChannelSyncEnd(String deviceId, String errorMsg) {
-        catalogDataCatch.setChannelSyncEnd(deviceId, errorMsg);
+    public void setChannelSyncEnd(String deviceId, int sn, String errorMsg) {
+        catalogDataCatch.setChannelSyncEnd(deviceId, sn, errorMsg);
     }
 }

@@ -37,7 +37,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author lin
@@ -470,6 +469,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         if (CollectionUtils.isEmpty(deviceChannelList)) {
             return false;
         }
+        System.out.println("size: " + deviceChannelList.size());
         List<DeviceChannel> allChannels = channelMapper.queryAllChannelsForRefresh(deviceDbId);
         Map<String,DeviceChannel> allChannelMap = new HashMap<>();
         if (!allChannels.isEmpty()) {

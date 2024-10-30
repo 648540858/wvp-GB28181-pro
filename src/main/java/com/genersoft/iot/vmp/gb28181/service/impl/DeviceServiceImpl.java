@@ -335,12 +335,12 @@ public class DeviceServiceImpl implements IDeviceService {
         try {
             sipCommander.catalogQuery(device, sn, event -> {
                 String errorMsg = String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg);
-                catalogResponseMessageHandler.setChannelSyncEnd(device.getDeviceId(), errorMsg);
+                catalogResponseMessageHandler.setChannelSyncEnd(device.getDeviceId(), sn, errorMsg);
             });
         } catch (SipException | InvalidArgumentException | ParseException e) {
             log.error("[同步通道], 信令发送失败：{}", e.getMessage() );
             String errorMsg = String.format("同步通道失败，信令发送失败： %s", e.getMessage());
-            catalogResponseMessageHandler.setChannelSyncEnd(device.getDeviceId(), errorMsg);
+            catalogResponseMessageHandler.setChannelSyncEnd(device.getDeviceId(), sn, errorMsg);
         }
     }
 

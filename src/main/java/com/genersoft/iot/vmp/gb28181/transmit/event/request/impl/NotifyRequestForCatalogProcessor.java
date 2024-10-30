@@ -35,7 +35,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 
     private final ConcurrentLinkedQueue<NotifyCatalogChannel> channelList = new ConcurrentLinkedQueue<>();
 
-	private ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
+	private final ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
 
 	@Autowired
 	private UserSetting userSetting;

@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 @Component
 public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessorParent {
 
-	private ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
+	private final ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
 
 	@Autowired
 	private UserSetting userSetting;

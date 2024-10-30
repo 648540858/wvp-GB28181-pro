@@ -413,6 +413,9 @@ public class DeviceServiceImpl implements IDeviceService {
         device.setOnLine(false);
         device.setCreateTime(DateUtil.getNow());
         device.setUpdateTime(DateUtil.getNow());
+        if(device.getStreamMode() == null) {
+            device.setStreamMode("UDP");
+        }
         deviceMapper.addCustomDevice(device);
     }
 

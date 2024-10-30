@@ -2,9 +2,7 @@ package com.genersoft.iot.vmp.gb28181.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.github.pagehelper.PageInfo;
 import org.apache.ibatis.annotations.*;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -282,6 +280,7 @@ public interface DeviceMapper {
             "broadcast_push_after_ack,"+
             "geo_coord_sys,"+
             "on_line,"+
+            "stream_mode," +
             "media_server_id"+
             ") VALUES (" +
             "#{deviceId}," +
@@ -296,6 +295,7 @@ public interface DeviceMapper {
             "#{broadcastPushAfterAck}," +
             "#{geoCoordSys}," +
             "#{onLine}," +
+            "#{streamMode}," +
             "#{mediaServerId}" +
             ")")
     void addCustomDevice(Device device);

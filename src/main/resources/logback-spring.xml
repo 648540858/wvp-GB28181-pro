@@ -24,6 +24,14 @@
 		</filter>
 	</appender>
 
+	<!-- WebSocket -->
+	<appender name="websocket" class="com.genersoft.iot.vmp.conf.webLog.WebSocketAppender">
+		<encoder>
+			<pattern>${FILE_LOG_PATTERN}</pattern>
+			<charset>UTF-8</charset>
+		</encoder>
+	</appender>
+
 	<!-- 按照每天生成日志文件 DEBUG以上级别的日志,仅用于测试环境,正式环境为info级别以上的日志-->
 	<appender name="RollingFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
 
@@ -88,6 +96,7 @@
 	<!-- 日志输出级别 -->
 	<root level="INFO">
 		<appender-ref ref="STDOUT" />
+		<appender-ref ref="websocket" />
 	</root>
 
 	<logger name="com.genersoft.iot.vmp" level="info" additivity="true">

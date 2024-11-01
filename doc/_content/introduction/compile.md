@@ -112,7 +112,7 @@ mvn package -P war
 ```
 
 编译如果报错, 一般都是网络问题, 导致的依赖包下载失败  
-编译完成后在target目录下出现wvp-pro-***.jar/wvp-pro-***.war。  
+编译完成后在target目录下出现 `wvp-pro-VERSION.jar` 和 `wvp-pro-VERSION.war` 文件。  
 接下来[配置服务](./_content/introduction/config.md)
 
   

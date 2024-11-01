@@ -14,7 +14,6 @@
     "@femessage/log-viewer": "^1.5.0",
     "@liveqing/liveplayer": "^2.7.10",
     "@wchbrad/vue-easy-tree": "^1.0.12",
-    "ansi_up": "^6.0.2",
     "axios": "^0.24.0",
     "core-js": "^2.6.5",
     "defineProperty": "link:@babel/runtime/helpers/defineProperty",

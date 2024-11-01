@@ -25,7 +25,7 @@ import wasmPlayer from '../components/common/jessibuca.vue'
 import rtcPlayer from '../components/dialog/rtcPlayer.vue'
 import region from '../components/region.vue'
 import group from '../components/group.vue'
-import log from '../components/log.vue'
+import operations from '../components/operations.vue'
 
 const originalPush = VueRouter.prototype.push
 VueRouter.prototype.push = function push(location) {
@@ -145,8 +145,8 @@ export default new VueRouter({
           component: group,
         },
         {
-          path: '/log',
-          component: log,
+          path: '/operations',
+          component: operations,
         },
         ]
     },

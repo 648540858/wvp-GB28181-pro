@@ -267,7 +267,7 @@ public class PlayServiceImpl implements IPlayService {
         }
         if (s.length == 2) {
             log.info("[ZLM HOOK] 预览流未找到, 发起自动点播：{}->{}->{}/{}", event.getMediaServer().getId(), event.getSchema(), event.getApp(), event.getStream());
-            play(event.getMediaServer(), deviceId, channelId, null, null);
+            play(event.getMediaServer(), deviceId, channelId, null, (code, msg, data) -> {});
         } else if (s.length == 4) {
             // 此时为录像回放， 录像回放格式为> 设备ID_通道ID_开始时间_结束时间
             String startTimeStr = s[2];
@@ -283,7 +283,7 @@ public class PlayServiceImpl implements IPlayService {
                     startTime, endTime
             );
 
-            playBack(event.getMediaServer(), device, deviceChannel, startTime, endTime, null);
+            playBack(event.getMediaServer(), device, deviceChannel, startTime, endTime, (code, msg, data) -> {});
         }
     }
 

@@ -19,7 +19,7 @@ export default {
   data() {
     return {
       loading: false,
-      winHeight: window.innerHeight - 160,
+      winHeight: window.innerHeight - 180,
       data: [],
       filter: "",
       websocket: null,

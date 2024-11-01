@@ -1,6 +1,6 @@
 <template>
-  <div id="operations" style="width: 100%;height: 100%">
-    <el-container style="height: 82vh;">
+  <div id="operations" style="width: 100%; height: 100%">
+    <el-container >
       <el-aside width="200px" style="text-align: left">
         <el-menu :default-active="activeIndex" :height="winHeight" @select="handleSelect">
           <el-menu-item index="systemInfo">
@@ -38,7 +38,7 @@ export default {
   data() {
     return {
       loading: false,
-      winHeight: (window.innerHeight - 160) + "px",
+      winHeight: (window.innerHeight - 150) + "px",
       data: [],
       filter: "",
       activeIndex: "logFile"

@@ -1,17 +1,14 @@
 <template>
-  <div id="log" style="width: 100%">
-    <el-container v-loading="loading" >
-      <el-aside width="400px" >
-      </el-aside>
-      <el-main style="padding: 5px;">
-      </el-main>
-    </el-container>
+  <div id="log" style="width: 100%;height: 100%">
+    <log-viewer :log="data" :loading="loading" :auto-scroll="false" :height="winHeight" />
 
   </div>
 </template>
 
 <script>
 // import uiHeader from '../layout/UiHeader.vue'
+import {AnsiUp} from 'ansi_up'
+
 
 export default {
   name: 'log',
@@ -19,6 +16,9 @@ export default {
   data() {
     return {
       loading: false,
+      winHeight: window.innerHeight - 120,
+      data: '',
+      ansiUp: new AnsiUp()
     };
   },
 
@@ -36,6 +36,7 @@ export default {
       }
       websocket.onmessage = e => {
         console.log(e.data);
+        this.data += e.data + "\r\n"
       }
       websocket.onerror = e => {
         console.log(`conn err`)

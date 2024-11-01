@@ -27,7 +27,7 @@
 	<!-- WebSocket -->
 	<appender name="websocket" class="com.genersoft.iot.vmp.conf.webLog.WebSocketAppender">
 		<encoder>
-			<pattern>${FILE_LOG_PATTERN}</pattern>
+			<pattern>${log.pattern}</pattern>
 			<charset>UTF-8</charset>
 		</encoder>
 	</appender>

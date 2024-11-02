@@ -69,8 +69,8 @@ public class LogController {
      * 下载指定日志文件
      */
     @ResponseBody
-    @GetMapping("/file")
-    public void downloadFile(HttpServletResponse response, @RequestParam(required = true) String fileName) {
+    @GetMapping("/file/{fileName}")
+    public void downloadFile(HttpServletResponse response, @PathVariable  String fileName) {
         try {
             File file = logService.getFileByName(fileName);
             if (file == null || !file.exists() || !file.isFile()) {

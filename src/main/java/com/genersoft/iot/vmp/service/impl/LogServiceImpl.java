@@ -77,7 +77,7 @@ public class LogServiceImpl implements ILogService {
     }
 
     private File getLogDir() {
-        Logger logger = (Logger) LoggerFactory.getLogger("com.genersoft.iot.vmp");
+        Logger logger = (Logger) LoggerFactory.getLogger("root");
         RollingFileAppender rollingFileAppender = (RollingFileAppender) logger.getAppender("RollingFile");
         File rollingFile = new File(rollingFileAppender.getFile());
         return rollingFile.getParentFile();

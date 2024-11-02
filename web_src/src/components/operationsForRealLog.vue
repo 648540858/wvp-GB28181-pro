@@ -1,11 +1,14 @@
 <template>
-  <div id="log" style="width: 100%;height: 100%">
-    <div style="width: 100%; height: 40px">
-      <div style="width: 15vw; text-align: center; line-height: 40px">
+  <div id="log" style="width: 100%;height: 100%;">
+    <div style="width: 100%; height: 40px; display: grid; grid-template-columns: 1fr 1fr">
+      <div style="text-align: left; line-height: 40px;">
         <span style="width: 5vw">过滤: </span>
-        <el-input size="mini" v-model="filter" placeholder="请输入过滤关键字" style="width: 10vw"></el-input>
+        <el-input size="mini" v-model="filter" placeholder="请输入过滤关键字" style="width: 20vw"></el-input>
       </div>
-      <div></div>
+      <div style="text-align: right; line-height: 40px;">
+        <el-button size="mini" icon="el-icon-download"  @click="downloadFile()">下载
+        </el-button>
+      </div>
     </div>
     <log-viewer :log="getLogData()" :loading="loading" :auto-scroll="true" :height="winHeight" />
   </div>
@@ -14,6 +17,8 @@
 <script>
 
 import userService from "./service/UserService";
+import moment from "moment/moment";
+import stripAnsi from "strip-ansi";
 
 export default {
   name: 'log',
@@ -21,7 +26,7 @@ export default {
   data() {
     return {
       loading: false,
-      winHeight: window.innerHeight - 180,
+      winHeight: window.innerHeight - 220,
       data: [],
       filter: "",
       websocket: null,
@@ -52,9 +57,6 @@ export default {
         console.log(`conn closed: code=${e.code}, reason=${e.reason}, wasClean=${e.wasClean}`)
       }
       window.websocket.onmessage = e => {
-        console.log(e.data);
-        // this.data += e.data + "\r\n"
-
         this.data.push(e.data);
       }
       window.websocket.onerror = e => {
@@ -80,6 +82,38 @@ export default {
           }
         }
         return result;
+      }
+    },
+    getLogDataWithOutAnsi: function () {
+      if (this.data.length === 0) {
+        return "";
+      }else {
+        let result = '';
+        for (let i = 0; i < this.data.length; i++) {
+          if (this.filter.length === 0) {
+            result += stripAnsi(this.data[i]) + "\r\n"
+          }else {
+            if (this.data[i].indexOf(this.filter) > -1) {
+              result += stripAnsi(this.data[i]) + "\r\n"
+            }
+          }
+        }
+        return result;
+      }
+    },
+    downloadFile() {
+      let blob = new Blob([this.getLogDataWithOutAnsi()], {
+        type: "text/plain;charset=utf-8"
+      });
+      let reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onload = function(e) {
+        let a = document.createElement('a');
+        a.download = `wvp-${moment().format('yyyy-MM-DD')}.log`;
+        a.href = e.target.result;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
       }
     },
   }

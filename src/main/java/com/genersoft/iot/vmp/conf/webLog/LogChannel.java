@@ -5,10 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-@ServerEndpoint(value = "/channel/log")
+    @ServerEndpoint(value = "/channel/log")
 @Slf4j
 public class LogChannel {
 
@@ -30,6 +31,7 @@ public class LogChannel {
     public void onOpen(Session session, EndpointConfig endpointConfig) {
         this.session = session;
         this.session.setMaxIdleTimeout(0);
+        System.out.println();
         CHANNELS.put(this.session.getId(), this);
 
         log.info("[Web-Log] 连接已建立: id={}", this.session.getId());
@@ -45,8 +47,10 @@ public class LogChannel {
 
     @OnError
     public void onError(Throwable throwable) throws IOException {
-        log.info("[Web-Log] 连接错误: id={}, err= ", this.session.getId(), throwable);
-        this.session.close(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, throwable.getMessage()));
+        log.info("[Web-Log] 连接错误: id={}, err= {}", this.session.getId(), throwable.getMessage());
+        if (this.session.isOpen()) {
+            this.session.close(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, throwable.getMessage()));
+        }
     }
 
     /**

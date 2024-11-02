@@ -25,6 +25,7 @@
     "postcss-pxtorem": "^5.1.1",
     "screenfull": "5.1.0",
     "slicedToArray": "link:@babel/runtime/helpers/slicedToArray",
+    "strip-ansi": "^7.1.0",
     "uuid": "^8.3.2",
     "v-charts": "^1.19.0",
     "vue": "^2.6.11",

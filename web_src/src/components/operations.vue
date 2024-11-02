@@ -8,7 +8,7 @@
           </el-menu-item>
           <el-submenu index="log">
             <template slot="title"><i class="el-icon-message"></i>日志信息</template>
-            <el-menu-item index="logFile">日志文件</el-menu-item>
+            <el-menu-item index="historyLog">历史日志</el-menu-item>
             <el-menu-item index="realTimeLog">实时日志</el-menu-item>
           </el-submenu>
           <el-submenu index="senior">
@@ -18,8 +18,9 @@
           </el-submenu>
         </el-menu>
       </el-aside>
-      <el-main>
+      <el-main style="background-color: #FFFFFF; margin: 20px">
         <operationsForRealLog v-if="activeIndex==='realTimeLog'"></operationsForRealLog>
+        <operationsForHistoryLog v-if="activeIndex==='historyLog'"></operationsForHistoryLog>
       </el-main>
     </el-container>
   </div>
@@ -28,20 +29,21 @@
 <script>
 
 import operationsForRealLog from './operationsForRealLog'
+import operationsForHistoryLog from './operationsForHistoryLog.vue'
 
 
 export default {
   name: 'log',
   components: {
-    operationsForRealLog
+    operationsForRealLog, operationsForHistoryLog
   },
   data() {
     return {
       loading: false,
-      winHeight: (window.innerHeight - 150) + "px",
+      winHeight: (window.innerHeight - 170) + "px",
       data: [],
       filter: "",
-      activeIndex: "logFile"
+      activeIndex: "historyLog"
     };
   },
 

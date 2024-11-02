@@ -13,6 +13,8 @@
 
 <script>
 
+import userService from "./service/UserService";
+
 export default {
   name: 'log',
   components: {},
@@ -39,9 +41,13 @@ export default {
       console.log(window.location.host)
       let url = "ws://localhost:18080/channel/log";
       if (process.env.NODE_ENV !== 'development') {
-        url = `ws://${window.location.host}/channel/log`
+        if (location.protocol === "https:") {
+          url = `wss://${window.location.host}/channel/log`
+        }else {
+          url = `ws://${window.location.host}/channel/log`
+        }
       }
-      window.websocket = new WebSocket(url);
+      window.websocket = new WebSocket(url, userService.getToken());
       window.websocket.onclose = e => {
         console.log(`conn closed: code=${e.code}, reason=${e.reason}, wasClean=${e.wasClean}`)
       }

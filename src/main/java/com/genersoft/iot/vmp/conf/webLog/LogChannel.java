@@ -19,8 +19,6 @@ public class LogChannel {
     @OnMessage(maxMessageSize = 1) // MaxMessage 1 byte
     public void onMessage(String message) {
 
-        log.debug("Recv Message: {}", message);
-
         try {
             this.session.close(new CloseReason(CloseReason.CloseCodes.TOO_BIG, "此节点不接收任何客户端信息"));
         } catch (IOException e) {

@@ -50,11 +50,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             chain.doFilter(request, response);
             return;
         }
+
+
+
         String jwt = request.getHeader(JwtUtils.getHeader());
         // 这里如果没有jwt，继续往后走，因为后面还有鉴权管理器等去判断是否拥有身份凭证，所以是可以放行的
         // 没有jwt相当于匿名访问，若有一些接口是需要权限的，则不能访问这些接口
+        System.out.println("sec-websocket-protocol==" + request.getHeader("sec-websocket-protocol"));
         if (StringUtils.isBlank(jwt)) {
-            jwt = request.getParameter(JwtUtils.getHeader());
+            String secWebsocketProtocolHeader = request.getHeader("sec-websocket-protocol");
+            if (secWebsocketProtocolHeader != null) {
+                jwt = secWebsocketProtocolHeader;
+            }else {
+                jwt = request.getParameter(JwtUtils.getHeader());
+            }
             if (StringUtils.isBlank(jwt)) {
                 jwt = request.getHeader(JwtUtils.getApiKeyHeader());
                 if (StringUtils.isBlank(jwt)) {

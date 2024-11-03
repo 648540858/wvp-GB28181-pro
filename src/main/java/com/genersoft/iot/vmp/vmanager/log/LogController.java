@@ -62,6 +62,15 @@ public class LogController {
     public List<LogFileInfo> queryList(@RequestParam(required = false) String query, @RequestParam(required = false) String startTime, @RequestParam(required = false) String endTime
 
     ) {
+        if (ObjectUtils.isEmpty(query)) {
+            query = null;
+        }
+        if (ObjectUtils.isEmpty(startTime)) {
+            startTime = null;
+        }
+        if (ObjectUtils.isEmpty(endTime)) {
+            endTime = null;
+        }
         return logService.queryList(query, startTime, endTime);
     }
 

@@ -2,43 +2,48 @@
   <div id="app" style="width: 100%">
     <div class="page-header">
       <div class="page-title">
-        <div >历史日志</div>
+        <div>历史日志</div>
       </div>
 
       <div class="page-header-btn">
         搜索:
         <el-input @input="getFileList" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
-                  prefix-icon="el-icon-search" v-model="search"  clearable></el-input>
+                  prefix-icon="el-icon-search" v-model="search" clearable></el-input>
         开始时间:
         <el-date-picker
-            v-model="startTime"
-            type="datetime"
-            value-format="yyyy-MM-dd HH:mm:ss"
-            @change="getMediaServerList"
-            placeholder="选择日期时间">
+          size="mini"
+          v-model="startTime"
+          type="datetime"
+          value-format="yyyy-MM-dd HH:mm:ss"
+          @change="getFileList"
+          placeholder="选择日期时间">
         </el-date-picker>
         结束时间:
         <el-date-picker
-            v-model="endTime"
-            type="datetime"
-            value-format="yyyy-MM-dd HH:mm:ss"
-            @change="getMediaServerList"
-            placeholder="选择日期时间">
+          size="mini"
+          v-model="endTime"
+          type="datetime"
+          value-format="yyyy-MM-dd HH:mm:ss"
+          @change="getFileList"
+          placeholder="选择日期时间">
         </el-date-picker>
-<!--        <el-button size="mini" icon="el-icon-delete" type="danger" @click="deleteRecord()">批量删除</el-button>-->
+        <!--        <el-button size="mini" icon="el-icon-delete" type="danger" @click="deleteRecord()">批量删除</el-button>-->
         <el-button icon="el-icon-refresh-right" circle size="mini" :loading="loading"
                    @click="getFileList()"></el-button>
       </div>
     </div>
     <!--日志列表-->
-    <el-table size="medium"  :data="fileList" style="width: 100%" :height="winHeight">
+    <el-table size="medium" :data="fileList" style="width: 100%" :height="winHeight">
       <el-table-column
         type="selection"
         width="55">
       </el-table-column>
-      <el-table-column prop="app" label="应用名">
+      <el-table-column prop="fileName" label="文件名">
       </el-table-column>
-      <el-table-column prop="stream" label="流ID" width="380">
+      <el-table-column prop="fileSize" label="文件大小">
+        <template slot-scope="scope">
+          {{formatFileSize(scope.row.fileSize)}}
+        </template>
       </el-table-column>
       <el-table-column label="开始时间">
         <template slot-scope="scope">
@@ -50,18 +55,9 @@
           {{formatTimeStamp(scope.row.endTime)}}
         </template>
       </el-table-column>
-      <el-table-column  label="时长">
-        <template slot-scope="scope">
-          <el-tag>{{formatTime(scope.row.timeLen)}}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="fileName" label="文件名称">
-      </el-table-column>
-      <el-table-column prop="mediaServerId" label="流媒体">
-      </el-table-column>
       <el-table-column label="操作" width="200" fixed="right">
         <template slot-scope="scope">
-          <el-button size="medium" icon="el-icon-video-play" type="text" @click="play(scope.row)">播放
+          <el-button size="medium" icon="el-icon-document" type="text" @click="showLogView(scope.row)">查看
           </el-button>
           <el-button size="medium" icon="el-icon-download" type="text" @click="downloadFile(scope.row)">下载
           </el-button>
@@ -71,21 +67,12 @@
         </template>
       </el-table-column>
     </el-table>
-    <el-pagination
-      style="text-align: right"
-      @size-change="handleSizeChange"
-      @current-change="currentChange"
-      :current-page="currentPage"
-      :page-size="count"
-      :page-sizes="[15, 25, 35, 50]"
-      layout="total, sizes, prev, pager, next"
-      :total="total">
-    </el-pagination>
     <el-dialog
+      top="10"
       :title="playerTitle"
-      :visible.sync="showPlayer"
-      width="50%">
-      <easyPlayer ref="recordVideoPlayer" :videoUrl="videoUrl" :height="false"  ></easyPlayer>
+      :visible.sync="showLog"
+      width="90%">
+      <operationsFoShowLog ref="recordVideoPlayer" :fileUrl="fileUrl" ></operationsFoShowLog>
     </el-dialog>
   </div>
 </template>
@@ -93,28 +80,27 @@
 <script>
 import uiHeader from '../layout/UiHeader.vue'
 import MediaServer from './service/MediaServer'
-import easyPlayer from './common/easyPlayer.vue'
-import moment  from 'moment'
-import axios from "axios";
+import operationsFoShowLog from './dialog/operationsFoShowLog.vue'
+import moment from 'moment'
 
 export default {
   name: 'app',
   components: {
-    uiHeader,easyPlayer
+    uiHeader, operationsFoShowLog
   },
   data() {
     return {
       search: '',
       startTime: '',
       endTime: '',
-      showPlayer: false,
+      showLog: false,
       playerTitle: '',
-      videoUrl: '',
+      fileUrl: '',
       playerStyle: {
-          "margin": "auto",
-          "margin-bottom": "20px",
-          "width": window.innerWidth/2 + "px",
-          "height": this.winHeight/2 + "px",
+        "margin": "auto",
+        "margin-bottom": "20px",
+        "width": window.innerWidth / 2 + "px",
+        "height": this.winHeight / 2 + "px",
       },
       mediaServerList: [], // 滅体节点列表
       mediaServerId: "", // 媒体服务
@@ -124,9 +110,6 @@ export default {
 
       updateLooper: 0, //数据刷新轮训标志
       winHeight: window.innerHeight - 250,
-      currentPage: 1,
-      count: 15,
-      total: 0,
       loading: false,
       mediaServerObj: new MediaServer(),
 
@@ -137,62 +120,25 @@ export default {
     this.initData();
   },
   destroyed() {
-      this.$destroy('recordVideoPlayer');
+    this.$destroy('recordVideoPlayer');
   },
   methods: {
     initData: function () {
-      // 获取媒体节点列表
-      this.getMediaServerList();
       this.getFileList();
-    },
-    currentChange: function (val) {
-      this.currentPage = val;
-      this.getFileList();
-    },
-    handleSizeChange: function (val) {
-      this.count = val;
-      this.getFileList();
-    },
-    getMediaServerList: function () {
-      let that = this;
-      that.mediaServerObj.getOnlineMediaServerList((data) => {
-        that.mediaServerList = data.data;
-      })
-    },
-    setMediaServerPath: function (serverId) {
-      let that = this;
-      let i;
-      for (i = 0; i < that.mediaServerList.length; i++) {
-        if (serverId === that.mediaServerList[i].id) {
-          break;
-        }
-      }
-      let port = that.mediaServerList[i].httpPort;
-      if (location.protocol === "https:" && that.mediaServerList[i].httpSSlPort) {
-        port = that.mediaServerList[i].httpSSlPort
-      }
-      that.mediaServerPath = location.protocol + "//" + that.mediaServerList[i].streamIp + ":" + port
-      console.log(that.mediaServerPath)
     },
     getFileList: function () {
       this.$axios({
         method: 'get',
-        url: `/api/cloud/record/list`,
+        url: `/api/log/list`,
         params: {
-          app: '',
-          stream: '',
           query: this.search,
           startTime: this.startTime,
           endTime: this.endTime,
-          mediaServerId: this.mediaServerId,
-          page: this.currentPage,
-          count: this.count
         }
       }).then((res) => {
         console.log(res)
         if (res.data.code === 0) {
-          this.total = res.data.data.total;
-          this.fileList = res.data.data.list;
+          this.fileList = res.data.data;
         }
         this.loading = false;
       }).catch((error) => {
@@ -200,54 +146,28 @@ export default {
         this.loading = false;
       });
     },
-    play(row) {
-      console.log(row)
-      this.chooseRecord = row;
-      this.showPlayer = true;
-      this.$axios({
-        method: 'get',
-        url: `/api/cloud/record/play/path`,
-        params: {
-          recordId: row.id,
-        }
-      }).then((res) => {
-        console.log(res)
-        if (res.data.code === 0) {
-          if (location.protocol === "https:") {
-            this.videoUrl = res.data.data.httpsPath;
-          }else {
-            this.videoUrl = res.data.data.httpPath;
-          }
-          console.log(222 )
-          console.log(this.videoUrl )
-        }
-      }).catch((error) => {
-        console.log(error);
-      });
+    showLogView(file) {
+      this.playerTitle = file.fileName
+      this.fileUrl = `/api/log/file/${file.fileName}`
+      // if (process.env.NODE_ENV === 'development') {
+      //   this.fileUrl = `/debug/api/log/file/${file.fileName}`
+      // }else {
+      //
+      // }
+      this.showLog = true
+
     },
-    downloadFile(file){
-      console.log(file)
-      this.$axios({
-        method: 'get',
-        url: `/api/cloud/record/play/path`,
-        params: {
-          recordId: file.id,
-        }
-      }).then((res) => {
-        console.log(res)
-        const link = document.createElement('a');
-        link.target = "_blank";
-        if (res.data.code === 0) {
-          if (location.protocol === "https:") {
-            link.href = res.data.data.httpsPath + "&save_name=" + file.fileName;
-          }else {
-            link.href = res.data.data.httpPath + "&save_name=" + file.fileName;
-          }
-          link.click();
-        }
-      }).catch((error) => {
-        console.log(error);
-      });
+    downloadFile(file) {
+      const link = document.createElement('a');
+      link.target = "_blank";
+      link.download = file.fileName;
+      if (process.env.NODE_ENV === 'development') {
+        link.href = `/debug/api/log/file/${file.fileName}`
+      }else {
+        link.href = `/api/log/file/${file.fileName}`
+      }
+
+      link.click();
     },
     deleteRecord() {
       // TODO
@@ -279,8 +199,26 @@ export default {
       return (h > 0 ? h + `小时` : '') + (minute > 0 ? minute + '分' : '') + (second > 0 ? second + '秒' : '')
     },
     formatTimeStamp(time) {
-      return moment.unix(time/1000).format('yyyy-MM-DD HH:mm:ss')
+      return moment.unix(time / 1000).format('yyyy-MM-DD HH:mm:ss')
+    },
+    formatFileSize(fileSize) {
+      if (fileSize < 1024) {
+        return fileSize + 'B';
+      } else if (fileSize < (1024*1024)) {
+        let temp = fileSize / 1024;
+        temp = temp.toFixed(2);
+        return temp + 'KB';
+      } else if (fileSize < (1024*1024*1024)) {
+        let temp = fileSize / (1024*1024);
+        temp = temp.toFixed(2);
+        return temp + 'MB';
+      } else {
+        let temp = fileSize / (1024*1024*1024);
+        temp = temp.toFixed(2);
+        return temp + 'GB';
+      }
     }
+
 
   }
 };

@@ -1,5 +1,5 @@
 <template>
-  <div id="app" style="width: 100%">
+  <div id="app" style="width: 100%; background-color: #FFFFFF">
     <div class="page-header">
       <div class="page-title">
         <div>历史日志</div>
@@ -109,7 +109,7 @@ export default {
       chooseRecord: null, // 媒体服务
 
       updateLooper: 0, //数据刷新轮训标志
-      winHeight: window.innerHeight - 250,
+      winHeight: window.innerHeight - 180,
       loading: false,
       mediaServerObj: new MediaServer(),
 

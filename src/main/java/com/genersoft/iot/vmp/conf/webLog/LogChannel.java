@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -31,7 +30,6 @@ public class LogChannel {
     public void onOpen(Session session, EndpointConfig endpointConfig) {
         this.session = session;
         this.session.setMaxIdleTimeout(0);
-        System.out.println();
         CHANNELS.put(this.session.getId(), this);
 
         log.info("[Web-Log] 连接已建立: id={}", this.session.getId());
@@ -41,7 +39,6 @@ public class LogChannel {
     public void onClose(CloseReason closeReason) {
 
         log.info("[Web-Log] 连接已断开: id={}, err={}", this.session.getId(), closeReason);
-
         CHANNELS.remove(this.session.getId());
     }
 

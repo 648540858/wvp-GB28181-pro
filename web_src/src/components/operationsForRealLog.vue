@@ -18,8 +18,8 @@ export default {
       winHeight: window.innerHeight - 220,
     };
   },
-
   created() {
+    console.log("removeUrl11 == " + this.removeUrl)
   },
   methods: {
     getURl: function () {

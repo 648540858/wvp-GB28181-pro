@@ -32,6 +32,7 @@ export default {
       filter: "",
       logData: "",
       websocket: null,
+      destroyedCallback: null
     };
   },
   watch: {
@@ -61,7 +62,9 @@ export default {
   },
   destroyed() {
     console.log('destroyed');
-    window.websocket.close();
+    if (this.destroyedCallback) {
+      this.destroyedCallback()
+    }
   },
   methods: {
     initData: function () {
@@ -101,6 +104,9 @@ export default {
         }
         window.websocket.onopen = e => {
           console.log(`conn open: ${e}`);
+          this.destroyedCallback = ()=>{
+            window.websocket.close()
+          }
         }
       }
     },

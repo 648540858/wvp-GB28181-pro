@@ -72,7 +72,7 @@
       :title="playerTitle"
       :visible.sync="showLog"
       width="90%">
-      <operationsFoShowLog ref="recordVideoPlayer" :fileUrl="fileUrl" ></operationsFoShowLog>
+      <operationsFoShowLog ref="recordVideoPlayer" :fileUrl="fileUrl" :loadEnd="loadEnd"></operationsFoShowLog>
     </el-dialog>
   </div>
 </template>
@@ -147,14 +147,10 @@ export default {
       });
     },
     showLogView(file) {
-      this.playerTitle = file.fileName
+      this.playerTitle = '正在加载日志...'
       this.fileUrl = `/api/log/file/${file.fileName}`
-      // if (process.env.NODE_ENV === 'development') {
-      //   this.fileUrl = `/debug/api/log/file/${file.fileName}`
-      // }else {
-      //
-      // }
       this.showLog = true
+      this.file = file
 
     },
     downloadFile(file) {
@@ -168,6 +164,9 @@ export default {
       }
 
       link.click();
+    },
+    loadEnd() {
+      this.playerTitle = this.file.fileName
     },
     deleteRecord() {
       // TODO

@@ -10,7 +10,7 @@
         </el-button>
       </div>
     </div>
-    <log-viewer :log="logData" :loading="loading" :auto-scroll="true" :height="winHeight"/>
+    <log-viewer :log="logData"  :auto-scroll="true" :height="winHeight"/>
   </div>
 </template>
 
@@ -22,11 +22,11 @@ import stripAnsi from "strip-ansi";
 
 export default {
   name: 'log',
-  props: [ 'fileUrl', 'remoteUrl'],
+  props: [ 'fileUrl', 'remoteUrl', 'loadEnd'],
   components: {},
   data() {
     return {
-      loading: false,
+      loading: true,
       winHeight: window.innerHeight - 300,
       data: [],
       filter: "",
@@ -54,6 +54,7 @@ export default {
     }
   },
   created() {
+    this.data = []
     if (this.fileUrl || this.remoteUrl) {
       this.initData();
     }
@@ -64,8 +65,9 @@ export default {
   },
   methods: {
     initData: function () {
-      console.log('remoteUrl ' + this.remoteUrl);
-      console.log('fileUrl ' + this.fileUrl);
+      this.loading = true
+      this.data = []
+      console.log(this.loading)
       if (this.fileUrl) {
         this.$axios({
           method: 'get',
@@ -75,7 +77,10 @@ export default {
           dataArray.forEach(item => {
             this.data.push(item);
           })
-
+          this.loading = false
+          if (this.loadEnd && typeof this.loadEnd === "function") {
+            this.loadEnd()
+          }
         }).catch((error) => {
           console.log(error);
         });
@@ -87,6 +92,7 @@ export default {
           console.log(`conn closed: code=${e.code}, reason=${e.reason}, wasClean=${e.wasClean}`)
         }
         window.websocket.onmessage = e => {
+          this.loading = false
           this.data.push(e.data);
         }
         window.websocket.onerror = e => {
@@ -153,3 +159,17 @@ export default {
   }
 };
 </script>
+
+<style>
+.log-loading{
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: inline-block;
+  text-align: center;
+  background-color: transparent;
+  font-size: 20px;
+  color: rgb(255, 255, 255);
+  z-index: 1000;
+}
+</style>

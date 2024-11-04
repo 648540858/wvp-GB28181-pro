@@ -9,11 +9,11 @@
           <el-submenu index="log">
             <template slot="title"><i class="el-icon-document"></i>日志信息</template>
             <el-menu-item index="historyLog">历史日志</el-menu-item>
-            <el-menu-item index="realTimeLog">实时日志</el-menu-item>
+            <el-menu-item index="realTimeLog">运行日志</el-menu-item>
           </el-submenu>
           <el-submenu index="senior">
             <template slot="title"><i class="el-icon-setting"></i>高级维护</template>
-            <el-menu-item index="tcpdump">网络抓包</el-menu-item>
+            <el-menu-item disabled="disabled" index="tcpdump">网络抓包</el-menu-item>
           </el-submenu>
         </el-menu>
       </el-aside>

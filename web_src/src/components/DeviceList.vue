@@ -28,7 +28,7 @@
       <el-table-column prop="deviceId" label="设备编号" min-width="200" >
       </el-table-column>
       <el-table-column label="地址" min-width="160" >
-        <template slot-scope="scope">
+        <template v-slot:default="scope">
           <div slot="reference" class="name-wrapper">
             <el-tag v-if="scope.row.hostAddress" size="medium">{{ scope.row.hostAddress }}</el-tag>
             <el-tag v-if="!scope.row.hostAddress" size="medium">未知</el-tag>
@@ -40,7 +40,7 @@
       <el-table-column prop="transport" label="信令传输模式" min-width="120" >
       </el-table-column>
       <el-table-column label="流传输模式"  min-width="160" >
-        <template slot-scope="scope">
+        <template v-slot:default="scope">
           <el-select size="mini" @change="transportChange(scope.row)" v-model="scope.row.streamMode" placeholder="请选择" style="width: 120px">
             <el-option key="UDP" label="UDP" value="UDP"></el-option>
             <el-option key="TCP-ACTIVE" label="TCP主动模式"  value="TCP-ACTIVE"></el-option>
@@ -51,7 +51,7 @@
       <el-table-column prop="channelCount" label="通道数" min-width="120" >
       </el-table-column>
       <el-table-column label="状态" min-width="120">
-        <template slot-scope="scope">
+        <template v-slot:default="scope">
           <div slot="reference" class="name-wrapper">
             <el-tag size="medium" v-if="scope.row.onLine">在线</el-tag>
             <el-tag size="medium" type="info" v-if="!scope.row.onLine">离线</el-tag>
@@ -68,7 +68,7 @@
 <!--      </el-table-column>-->
 
       <el-table-column label="操作" min-width="380" fixed="right">
-        <template slot-scope="scope">
+        <template v-slot:default="scope">
           <el-button type="text" size="medium" v-bind:disabled="scope.row.online==0" icon="el-icon-refresh" @click="refDevice(scope.row)"
                      @mouseover="getTooltipContent(scope.row.deviceId)">刷新
           </el-button>

@@ -41,22 +41,22 @@
       <el-table-column prop="fileName" label="文件名">
       </el-table-column>
       <el-table-column prop="fileSize" label="文件大小">
-        <template slot-scope="scope">
+        <template v-slot:default="scope">
           {{formatFileSize(scope.row.fileSize)}}
         </template>
       </el-table-column>
       <el-table-column label="开始时间">
-        <template slot-scope="scope">
+        <template v-slot:default="scope">
           {{formatTimeStamp(scope.row.startTime)}}
         </template>
       </el-table-column>
       <el-table-column label="结束时间">
-        <template slot-scope="scope">
+        <template v-slot:default="scope">
           {{formatTimeStamp(scope.row.endTime)}}
         </template>
       </el-table-column>
       <el-table-column label="操作" width="200" fixed="right">
-        <template slot-scope="scope">
+        <template v-slot:default="scope">
           <el-button size="medium" icon="el-icon-document" type="text" @click="showLogView(scope.row)">查看
           </el-button>
           <el-button size="medium" icon="el-icon-download" type="text" @click="downloadFile(scope.row)">下载

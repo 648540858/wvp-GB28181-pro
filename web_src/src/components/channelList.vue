@@ -73,7 +73,7 @@
           <el-table-column prop="manufacturer" label="厂家" min-width="100">
           </el-table-column>
           <el-table-column label="位置信息" min-width="120">
-            <template slot-scope="scope">
+            <template v-slot:default="scope">
               <span size="medium" v-if="scope.row.longitude && scope.row.latitude">{{scope.row.longitude}}<br/>{{scope.row.latitude}}</span>
               <span size="medium" v-if="!scope.row.longitude || !scope.row.latitude">无</span>
             </template>
@@ -84,13 +84,13 @@
             </template>
           </el-table-column>
           <el-table-column label="开启音频" min-width="100">
-            <template slot-scope="scope">
+            <template v-slot:default="scope">
               <el-switch @change="updateChannel(scope.row)" v-model="scope.row.hasAudio" active-color="#409EFF">
               </el-switch>
             </template>
           </el-table-column>
           <el-table-column label="码流类型" min-width="180">
-            <template slot-scope="scope">
+            <template v-slot:default="scope">
               <el-select size="mini" style="margin-right: 1rem;" @change="channelSubStreamChange(scope.row)" v-model="scope.row.streamIdentification"
                          placeholder="请选择码流类型" default-first-option >
                 <el-option label="stream:0(主码流)" value="stream:0"></el-option>
@@ -105,7 +105,7 @@
             </template>
           </el-table-column>
           <el-table-column label="状态" min-width="100">
-            <template slot-scope="scope">
+            <template v-slot:default="scope">
               <div slot="reference" class="name-wrapper">
                 <el-tag size="medium" v-if="scope.row.status === 'ON'">在线</el-tag>
                 <el-tag size="medium" type="info" v-if="scope.row.status !== 'ON'">离线</el-tag>
@@ -113,7 +113,7 @@
             </template>
           </el-table-column>
           <el-table-column label="操作" min-width="340" fixed="right">
-            <template slot-scope="scope">
+            <template v-slot:default="scope">
               <el-button size="medium" v-bind:disabled="device == null || device.online === 0" icon="el-icon-video-play"
                          type="text" @click="sendDevicePush(scope.row)">播放
               </el-button>

@@ -57,12 +57,13 @@ public class RegionController {
     @GetMapping("/tree/list")
     public List<RegionTree> queryForTree(
             @RequestParam(required = false) String query,
-            @RequestParam(required = false) Integer parent
+            @RequestParam(required = false) Integer parent,
+            @RequestParam(required = false) Boolean hasChannel
     ){
         if (ObjectUtils.isEmpty(query)) {
             query = null;
         }
-        return regionService.queryForTree(query, parent);
+        return regionService.queryForTree(query, parent, hasChannel);
     }
 
     @Operation(summary = "更新区域")
@@ -107,6 +108,14 @@ public class RegionController {
             parent = null;
         }
         return regionService.getAllChild(parent);
+    }
+
+    @Operation(summary = "获取所属的行政区划下的行政区划")
+    @Parameter(name = "deviceId", description = "当前的行政区划", required = false)
+    @ResponseBody
+    @GetMapping("/path")
+    public List<Region> getPath(String deviceId){
+        return regionService.getPath(deviceId);
     }
 
     @Operation(summary = "从通道中同步行政区划")

@@ -103,17 +103,18 @@ public class CommonChannelController {
     @Parameter(name = "count", description = "每页查询数量", required = true)
     @Parameter(name = "query", description = "查询内容")
     @Parameter(name = "online", description = "是否在线")
-    @Parameter(name = "hasCivilCode", description = "是否分配行政区划")
+    @Parameter(name = "civilCode", description = "行政区划")
+    @Parameter(name = "groupDeviceId", description = "业务分组下的父节点ID")
     @GetMapping("/list")
     public PageInfo<CommonGBChannel> queryList(int page, int count,
                                                @RequestParam(required = false) String query,
                                                @RequestParam(required = false) Boolean online,
-                                               @RequestParam(required = false) Boolean hasCivilCode,
-                                               @RequestParam(required = false) Boolean hasGroup){
+                                               @RequestParam(required = false) String civilCode,
+                                               @RequestParam(required = false) String groupDeviceId){
         if (ObjectUtils.isEmpty(query)){
             query = null;
         }
-        return channelService.queryList(page, count, query, online, hasCivilCode, hasGroup);
+        return channelService.queryList(page, count, query, online, civilCode, groupDeviceId);
     }
 
     @Operation(summary = "通道设置行政区划", security = @SecurityRequirement(name = JwtUtils.HEADER))

@@ -132,17 +132,11 @@ public class ChannelProvider {
         if (params.get("online") != null && !(Boolean)params.get("online")) {
             sqlBuild.append(" AND coalesce(gb_status, status) = 'OFF'");
         }
-        if (params.get("hasCivilCode") != null && (Boolean)params.get("hasCivilCode")) {
-            sqlBuild.append(" AND coalesce(gb_civil_code, civil_code) is not null");
+        if (params.get("civilCode") != null) {
+            sqlBuild.append(" AND coalesce(gb_civil_code, civil_code) = #{civilCode}");
         }
-        if (params.get("hasCivilCode") != null && !(Boolean)params.get("hasCivilCode")) {
-            sqlBuild.append(" AND coalesce(gb_civil_code, civil_code) is null");
-        }
-        if (params.get("hasGroup") != null && (Boolean)params.get("hasGroup")) {
-            sqlBuild.append(" AND coalesce(gb_parent_id, parent_id) is not null");
-        }
-        if (params.get("hasGroup") != null && !(Boolean)params.get("hasGroup")) {
-            sqlBuild.append(" AND coalesce(gb_parent_id, parent_id) is null");
+        if (params.get("groupDeviceId") != null) {
+            sqlBuild.append(" AND coalesce(gb_parent_id, parent_id) = #{groupDeviceId}");
         }
         return sqlBuild.toString();
     }

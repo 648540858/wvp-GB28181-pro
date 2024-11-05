@@ -52,21 +52,21 @@
       <el-table-column prop="gbDeviceId" label="编号" min-width="180">
       </el-table-column>
       <el-table-column v-if="hasShare ==='true'" label="自定义名称" min-width="180">
-        <template slot-scope="scope">
+        <template v-slot:default="scope">
           <div slot="—" class="name-wrapper">
             <el-input size="mini" placeholder="不填按原名称" v-model:value="scope.row.customName"></el-input>
           </div>
         </template>
       </el-table-column>
       <el-table-column v-if="hasShare ==='true'" label="自定义编号" min-width="180">
-        <template slot-scope="scope">
+        <template v-slot:default="scope">
           <div slot="—" class="name-wrapper">
             <el-input size="mini" placeholder="不填按原编号" v-model:value="scope.row.customDeviceId"></el-input>
           </div>
         </template>
       </el-table-column>
       <el-table-column v-if="hasShare ==='true'"  label="" min-width="80">
-        <template slot-scope="scope">
+        <template v-slot:default="scope">
           <el-button size="mini" type="primary" @click="saveCustom(scope.row)">保存
           </el-button>
         </template>
@@ -74,7 +74,7 @@
       <el-table-column prop="gbManufacturer" label="厂家" min-width="100">
       </el-table-column>
       <el-table-column label="类型" min-width="100">
-        <template slot-scope="scope">
+        <template v-slot:default="scope">
           <div slot="reference" class="name-wrapper">
             <el-tag size="medium" effect="plain" v-if="scope.row.gbDeviceDbId">国标设备</el-tag>
             <el-tag size="medium" effect="plain" type="success" v-if="scope.row.streamPushId">推流设备</el-tag>
@@ -83,7 +83,7 @@
         </template>
       </el-table-column>
       <el-table-column label="状态" min-width="100">
-        <template slot-scope="scope">
+        <template v-slot:default="scope">
           <div slot="reference" class="name-wrapper">
             <el-tag size="medium" v-if="scope.row.gbStatus === 'ON'">在线</el-tag>
             <el-tag size="medium" type="info" v-if="scope.row.gbStatus !== 'ON'">离线</el-tag>
@@ -91,7 +91,7 @@
         </template>
       </el-table-column>
       <el-table-column label="共享状态" min-width="100">
-        <template slot-scope="scope">
+        <template v-slot:default="scope">
           <div slot="reference" class="name-wrapper">
             <el-tag size="medium" :title="scope.row.platformId" v-if="scope.row.platformId">已共享</el-tag>
             <el-tag size="medium" type="info" v-if="!scope.row.platformId">未共享</el-tag>

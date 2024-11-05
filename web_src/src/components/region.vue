@@ -1,45 +1,45 @@
 <template>
   <div id="region" style="width: 100%">
-    <el-container v-loading="loading" >
-      <el-aside width="400px" >
-        <RegionTree ref="regionTree" :showHeader=true :edit="true" :clickEvent="treeNodeClickEvent" :chooseIdChange="chooseIdChange" :onChannelChange="getChannelList"></RegionTree>
+    <el-container v-loading="loading">
+      <el-aside width="400px">
+        <RegionTree ref="regionTree" :showHeader=true :edit="true" :clickEvent="treeNodeClickEvent"
+                    :onChannelChange="onChannelChange"></RegionTree>
       </el-aside>
       <el-main style="padding: 5px;">
         <div class="page-header">
-          <div class="page-title">通道列表</div>
+          <div class="page-title">
+            <el-breadcrumb separator="/">
+              <el-breadcrumb-item v-for="key in regionParents" >{{key}}</el-breadcrumb-item>
+            </el-breadcrumb>
+          </div>
           <div class="page-header-btn">
-            <div  style="display: inline;">
+            <div style="display: inline;">
               搜索:
               <el-input @input="search" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
                         prefix-icon="el-icon-search" v-model="searchSrt" clearable></el-input>
 
               在线状态:
-              <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="search" v-model="online" placeholder="请选择"
+              <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="search" v-model="online"
+                         placeholder="请选择"
                          default-first-option>
                 <el-option label="全部" value=""></el-option>
                 <el-option label="在线" value="true"></el-option>
                 <el-option label="离线" value="false"></el-option>
               </el-select>
-              添加状态:
-              <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="search" v-model="hasCivilCode" placeholder="请选择"
-                         default-first-option>
-                <el-option label="全部" value=""></el-option>
-                <el-option label="已添加" value="true"></el-option>
-                <el-option label="未添加" value="false"></el-option>
-              </el-select>
-              <el-button v-if="hasCivilCode !=='true'" size="mini" type="primary" @click="add()">
-                添加
+              <el-button size="mini" type="primary" @click="add()">
+                添加通道
               </el-button>
-              <el-button v-if="hasCivilCode ==='true'" size="mini" type="danger" @click="remove()">
-                移除
+              <el-button v-bind:disabled="multipleSelection.length === 0" size="mini" type="danger" @click="remove()">
+                移除通道
               </el-button>
               <el-button icon="el-icon-refresh-right" circle size="mini" @click="getChannelList()"></el-button>
             </div>
           </div>
         </div>
-        <el-table size="medium"  ref="channelListTable" :data="channelList" :height="winHeight" style="width: 100%"
-                  header-row-class-name="table-header" @selection-change="handleSelectionChange" @row-dblclick="rowDblclick">
-          <el-table-column type="selection" width="55" :selectable="selectable">
+        <el-table size="medium" ref="channelListTable" :data="channelList" :height="winHeight" style="width: 100%"
+                  header-row-class-name="table-header" @selection-change="handleSelectionChange"
+                  @row-dblclick="rowDblclick">
+          <el-table-column type="selection" width="55">
           </el-table-column>
           <el-table-column prop="gbName" label="名称" min-width="180">
           </el-table-column>
@@ -48,7 +48,7 @@
           <el-table-column prop="gbManufacturer" label="厂家" min-width="100">
           </el-table-column>
           <el-table-column label="类型" min-width="100">
-            <template slot-scope="scope">
+            <template v-slot:default="scope">
               <div slot="reference" class="name-wrapper">
                 <el-tag size="medium" effect="plain" v-if="scope.row.gbDeviceDbId">国标设备</el-tag>
                 <el-tag size="medium" effect="plain" type="success" v-if="scope.row.streamPushId">推流设备</el-tag>
@@ -57,18 +57,10 @@
             </template>
           </el-table-column>
           <el-table-column label="状态" min-width="100">
-            <template slot-scope="scope">
+            <template v-slot:default="scope">
               <div slot="reference" class="name-wrapper">
                 <el-tag size="medium" v-if="scope.row.gbStatus === 'ON'">在线</el-tag>
                 <el-tag size="medium" type="info" v-if="scope.row.gbStatus !== 'ON'">离线</el-tag>
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column label="添加状态" min-width="100">
-            <template slot-scope="scope">
-              <div slot="reference" class="name-wrapper">
-                <el-tag size="medium" :title="scope.row.gbCivilCode" v-if="scope.row.gbCivilCode">已添加</el-tag>
-                <el-tag size="medium" type="info" v-if="!scope.row.gbCivilCode">未添加</el-tag>
               </div>
             </template>
           </el-table-column>
@@ -106,7 +98,6 @@ export default {
       searchSrt: "",
       channelType: "",
       online: "",
-      hasCivilCode: "false",
       winHeight: window.innerHeight - 180,
       currentPage: 1,
       count: 15,
@@ -115,6 +106,7 @@ export default {
       loadSnap: {},
       regionId: "",
       regionDeviceId: "",
+      regionParents: ["请选择行政区划"],
       multipleSelection: []
     };
   },
@@ -122,7 +114,8 @@ export default {
   created() {
     this.initData();
   },
-  destroyed() {},
+  destroyed() {
+  },
   methods: {
     initData: function () {
       this.getChannelList();
@@ -144,9 +137,9 @@ export default {
           count: this.count,
           query: this.searchSrt,
           online: this.online,
-          hasCivilCode: this.hasCivilCode
+          civilCode: this.regionDeviceId
         }
-      }).then((res)=> {
+      }).then((res) => {
         if (res.data.code === 0) {
           this.total = res.data.data.total;
           this.channelList = res.data.data.list;
@@ -156,24 +149,12 @@ export default {
           })
         }
 
-      }).catch((error)=> {
-
+      }).catch((error) => {
         console.log(error);
       });
     },
-    handleSelectionChange: function (val){
+    handleSelectionChange: function (val) {
       this.multipleSelection = val;
-    },
-    selectable: function (row, rowIndex) {
-      if (this.hasCivilCode === "") {
-        if (row.gbCivilCode) {
-          return false
-        }else {
-          return true
-        }
-      }else {
-        return true
-      }
     },
     rowDblclick: function (row, rowIndex) {
       // if (row.gbCivilCode) {
@@ -195,7 +176,7 @@ export default {
       if (channels.length === 0) {
         this.$message.info({
           showClose: true,
-          message: "请选择右侧通道"
+          message: "请选择通道"
         })
         return;
       }
@@ -208,7 +189,7 @@ export default {
           civilCode: this.regionDeviceId,
           channelIds: channels
         }
-      }).then((res)=> {
+      }).then((res) => {
         if (res.data.code === 0) {
           this.$message.success({
             showClose: true,
@@ -217,18 +198,18 @@ export default {
           this.getChannelList()
           // 刷新树节点
           this.$refs.regionTree.refresh(this.regionId)
-        }else {
+        } else {
           this.$message.error({
-              showClose: true,
-              message: res.data.msg
-            })
+            showClose: true,
+            message: res.data.msg
+          })
         }
         this.loading = false
-      }).catch((error)=> {
+      }).catch((error) => {
         this.$message.error({
-            showClose: true,
-            message: error
-          })
+          showClose: true,
+          message: error
+        })
         this.loading = false
       });
     },
@@ -240,7 +221,7 @@ export default {
       if (channels.length === 0) {
         this.$message.info({
           showClose: true,
-          message: "请选择右侧通道"
+          message: "请选择通道"
         })
         return;
       }
@@ -252,7 +233,7 @@ export default {
         data: {
           channelIds: channels
         }
-      }).then((res)=> {
+      }).then((res) => {
         if (res.data.code === 0) {
           this.$message.success({
             showClose: true,
@@ -261,18 +242,18 @@ export default {
           this.getChannelList()
           // 刷新树节点
           this.$refs.regionTree.refresh(this.regionId)
-        }else {
+        } else {
           this.$message.error({
-              showClose: true,
-              message: res.data.msg
-            })
+            showClose: true,
+            message: res.data.msg
+          })
         }
         this.loading = false
-      }).catch((error)=> {
+      }).catch((error) => {
         this.$message.error({
-            showClose: true,
-            message: error
-          })
+          showClose: true,
+          message: error
+        })
         this.loading = false
       });
     },
@@ -288,67 +269,32 @@ export default {
     refresh: function () {
       this.initData();
     },
-    treeNodeClickEvent: function (device, data, isCatalog) {
+    treeNodeClickEvent: function (region) {
+      this.regionDeviceId = region.deviceId;
+      this.initData();
+      // 获取regionDeviceId对应的节点信息
+      this.$axios({
+        method: 'get',
+        url: `/api/region/path`,
+        params: {
+          deviceId: this.regionDeviceId,
+        }
+      }).then((res) => {
+        if (res.data.code === 0) {
+          let path = []
+          for (let i = 0; i < res.data.data.length; i++) {
+            path.push(res.data.data[i].name)
+          }
+          this.regionParents = path;
+        }
 
+      }).catch((error) => {
+        console.log(error);
+      });
     },
-    chooseIdChange: function (id, deviceId) {
-      this.regionDeviceId = deviceId;
-      this.regionId = id;
+    onChannelChange: function (deviceId) {
+      //
     },
   }
 };
 </script>
-
-<style>
-.videoList {
-  display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
-}
-
-.video-item {
-  position: relative;
-  width: 15rem;
-  height: 10rem;
-  margin-right: 1rem;
-  background-color: #000000;
-}
-
-.video-item-img {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  margin: auto;
-  width: 100%;
-  height: 100%;
-}
-
-.video-item-img:after {
-  content: "";
-  display: inline-block;
-  position: absolute;
-  z-index: 2;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  margin: auto;
-  width: 3rem;
-  height: 3rem;
-  background-image: url("../assets/loading.png");
-  background-size: cover;
-  background-color: #000000;
-}
-
-.video-item-title {
-  position: absolute;
-  bottom: 0;
-  color: #000000;
-  background-color: #ffffff;
-  line-height: 1.5rem;
-  padding: 0.3rem;
-  width: 14.4rem;
-}
-</style>

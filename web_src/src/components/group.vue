@@ -48,7 +48,7 @@
           <el-table-column prop="gbManufacturer" label="厂家" min-width="100">
           </el-table-column>
           <el-table-column label="类型" min-width="100">
-            <template slot-scope="scope">
+            <template v-slot:default="scope">
               <div slot="reference" class="name-wrapper">
                 <el-tag size="medium" effect="plain" v-if="scope.row.gbDeviceDbId">国标设备</el-tag>
                 <el-tag size="medium" effect="plain" type="success" v-if="scope.row.streamPushId">推流设备</el-tag>
@@ -57,7 +57,7 @@
             </template>
           </el-table-column>
           <el-table-column label="状态" min-width="100">
-            <template slot-scope="scope">
+            <template v-slot:default="scope">
               <div slot="reference" class="name-wrapper">
                 <el-tag size="medium" v-if="scope.row.gbStatus === 'ON'">在线</el-tag>
                 <el-tag size="medium" type="info" v-if="scope.row.gbStatus !== 'ON'">离线</el-tag>
@@ -65,7 +65,7 @@
             </template>
           </el-table-column>
           <el-table-column label="添加状态" min-width="100">
-            <template slot-scope="scope">
+            <template v-slot:default="scope">
               <div slot="reference" class="name-wrapper">
                 <el-tag size="medium" :title="scope.row.gbParentId" v-if="scope.row.gbParentId">已添加</el-tag>
                 <el-tag size="medium" type="info" v-if="!scope.row.gbParentId">未添加</el-tag>

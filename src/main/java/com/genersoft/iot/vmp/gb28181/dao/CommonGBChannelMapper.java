@@ -257,8 +257,7 @@ public interface CommonGBChannelMapper {
 
     @SelectProvider(type = ChannelProvider.class, method = "queryList")
     List<CommonGBChannel> queryList(@Param("query") String query, @Param("online") Boolean online,
-                                    @Param("hasCivilCode") Boolean hasCivilCode,
-                                    @Param("hasGroup") Boolean hasGroup);
+                                    @Param("civilCode") String civilCode, @Param("groupDeviceId") String groupDeviceId);
 
     @Select("<script>" +
             " select " +

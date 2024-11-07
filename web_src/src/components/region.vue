@@ -3,7 +3,7 @@
     <el-container v-loading="loading">
       <el-aside width="400px">
         <RegionTree ref="regionTree" :showHeader=true :edit="true" :clickEvent="treeNodeClickEvent"
-                    :onChannelChange="onChannelChange" :addChannelToCivilCode="addChannelToCivilCode"></RegionTree>
+                    :onChannelChange="onChannelChange" :enableAddChannel="true" :addChannelToCivilCode="addChannelToCivilCode"></RegionTree>
       </el-aside>
       <el-main style="padding: 5px;">
         <div class="page-header">

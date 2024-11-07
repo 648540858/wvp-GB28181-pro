@@ -17,7 +17,7 @@
         class="flow-tree"
         ref="veTree"
         node-key="treeId"
-        height="78vh"
+        :height="treeHeight?treeHeight:'78vh'"
         lazy
         style="padding: 0 0 2rem 0.5rem"
         :load="loadNode"
@@ -68,7 +68,7 @@ export default {
       treeData: [],
     }
   },
-  props: ['edit', 'clickEvent', 'onChannelChange', 'showHeader', 'hasChannel', 'addChannelToCivilCode'],
+  props: ['edit', 'enableAddChannel', 'clickEvent', 'onChannelChange', 'showHeader', 'hasChannel', 'addChannelToCivilCode', 'treeHeight'],
   created() {
   },
   methods: {
@@ -118,49 +118,51 @@ export default {
       }
       console.log(node.level)
       if (node.data.type === 0) {
-        this.$contextmenu({
-          items: [
-            {
-              label: "刷新节点",
-              icon: "el-icon-refresh",
-              disabled: false,
-              onClick: () => {
-                this.refreshNode(node);
-              }
-            },
-            {
-              label: "新建节点",
-              icon: "el-icon-plus",
-              disabled: false,
-              onClick: () => {
-                this.addRegion(data.id, node);
-              }
-            },
-            {
-              label: "编辑节点",
-              icon: "el-icon-edit",
-              disabled: node.level === 1,
-              onClick: () => {
-                this.editCatalog(data, node);
-              }
-            },
-            {
-              label: "删除节点",
-              icon: "el-icon-delete",
-              disabled: node.level === 1,
-              divided: true,
-              onClick: () => {
-                this.$confirm('确定删除?', '提示', {
-                  confirmButtonText: '确定',
-                  cancelButtonText: '取消',
-                  type: 'warning'
-                }).then(() => {
-                  this.removeRegion(data.id, node)
-                }).catch(() => {
+        let menuItem = [
+          {
+            label: "刷新节点",
+            icon: "el-icon-refresh",
+            disabled: false,
+            onClick: () => {
+              this.refreshNode(node);
+            }
+          },
+          {
+            label: "新建节点",
+            icon: "el-icon-plus",
+            disabled: false,
+            onClick: () => {
+              this.addRegion(data.id, node);
+            }
+          },
+          {
+            label: "编辑节点",
+            icon: "el-icon-edit",
+            disabled: node.level === 1,
+            onClick: () => {
+              this.editCatalog(data, node);
+            }
+          },
+          {
+            label: "删除节点",
+            icon: "el-icon-delete",
+            disabled: node.level === 1,
+            divided: true,
+            onClick: () => {
+              this.$confirm('确定删除?', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+              }).then(() => {
+                this.removeRegion(data.id, node)
+              }).catch(() => {
 
-                });
-              }
-            },
+              });
+            }
+          },
+        ]
+        if (this.enableAddChannel) {
+          menuItem.push(
             {
               label: "添加设备",
               icon: "el-icon-plus",
@@ -168,7 +170,9 @@ export default {
               onClick: () => {
                 this.addChannelFormDevice(data.id, node)
               }
-            },
+            }
+          )
+          menuItem.push(
             {
               label: "移除设备",
               icon: "el-icon-delete",
@@ -177,7 +181,9 @@ export default {
               onClick: () => {
                 this.removeChannelFormDevice(data.id, node)
               }
-            },
+            }
+          )
+          menuItem.push(
             {
               label: "添加通道",
               icon: "el-icon-plus",
@@ -185,28 +191,13 @@ export default {
               onClick: () => {
                 this.addChannel(data.id, node)
               }
-            },
-            // {
-            //   label: "导出",
-            //   icon: "el-icon-download",
-            //   disabled: false,
-            //   children: [
-            //     {
-            //       label: "导出到文件",
-            //       onClick: () => {
-            //
-            //       },
-            //     },
-            //     {
-            //       label: "导出到其他平台",
-            //       onClick: () => {
-            //
-            //       },
-            //     }
-            //   ]
-            // },
+            }
+          )
+        }
 
-          ],
+
+        this.$contextmenu({
+          items: menuItem,
           event, // 鼠标事件信息
           customClass: "custom-class", // 自定义菜单 class
           zIndex: 3000, // 菜单样式 z-index

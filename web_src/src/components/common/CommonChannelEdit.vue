@@ -7,7 +7,9 @@
         </el-form-item>
         <el-form-item label="编码" >
           <el-input v-model="form.gbDeviceId" placeholder="请输入通道编码">
-            <el-button slot="append" @click="buildDeviceIdCode(form.gbDeviceId)">生成</el-button>
+            <template v-slot:append>
+              <el-button  @click="buildDeviceIdCode(form.gbDeviceId)">生成</el-button>
+            </template>
           </el-input>
         </el-form-item>
         <el-form-item label="设备厂商" >
@@ -18,7 +20,11 @@
         </el-form-item>
 
         <el-form-item label="行政区域" >
-          <el-input v-model="form.gbCivilCode" placeholder="请输入行政区域"></el-input>
+          <el-input v-model="form.gbCivilCode" placeholder="请输入行政区域">
+            <template v-slot:append>
+              <el-button  @click="chooseCivilCode()">选择</el-button>
+            </template>
+          </el-input>
         </el-form-item>
 
         <el-form-item label="安装地址" >
@@ -31,7 +37,11 @@
           </el-select>
         </el-form-item>
         <el-form-item label="父节点编码" >
-          <el-input v-model="form.gbParentId" placeholder="请输入父节点编码"></el-input>
+          <el-input v-model="form.gbParentId" placeholder="请输入父节点编码">
+            <template v-slot:append>
+              <el-button  @click="chooseGroup()">选择</el-button>
+            </template>
+          </el-input>
         </el-form-item>
         <el-form-item label="设备状态" >
           <el-select v-model="form.gbStatus" style="width: 100%" placeholder="请选择设备状态">
@@ -202,16 +212,22 @@
 
     </el-form>
     <channelCode ref="channelCode"></channelCode>
+    <chooseCivilCode ref="chooseCivilCode"></chooseCivilCode>
+    <chooseGroup ref="chooseGroup"></chooseGroup>
   </div>
 </template>
 
 <script>
 import channelCode from './../dialog/channelCode'
+import ChooseCivilCode from "../dialog/chooseCivilCode.vue";
+import ChooseGroup from "../dialog/chooseGroup.vue";
 
 export default {
   name: "CommonChannelEdit",
   props: [ 'id', 'dataForm', 'saveSuccess', 'cancel'],
   components: {
+    ChooseCivilCode,
+    ChooseGroup,
     channelCode,
   },
   created() {
@@ -359,6 +375,17 @@ export default {
         this.form.gbDeviceId = code;
         console.log("code22===> " + code)
       }, deviceId);
+    },
+    chooseCivilCode: function (){
+      this.$refs.chooseCivilCode.openDialog(code=>{
+          this.form.gbCivilCode = code;
+      });
+    },
+    chooseGroup: function (){
+      this.$refs.chooseGroup.openDialog((deviceId, businessGroupId)=>{
+          this.form.gbBusinessGroupId = businessGroupId;
+          this.form.gbParentId = deviceId;
+      });
     },
     cancelSubmit: function (){
       if(this.cancel) {

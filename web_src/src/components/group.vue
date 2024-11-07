@@ -3,7 +3,7 @@
     <el-container v-loading="loading">
       <el-aside width="400px">
         <GroupTree ref="groupTree" :show-header="true" :edit="true" :clickEvent="treeNodeClickEvent"
-                   :onChannelChange="onChannelChange" :addChannelToGroup="addChannelToGroup"></GroupTree>
+                   :onChannelChange="onChannelChange" :enableAddChannel="true" :addChannelToGroup="addChannelToGroup"></GroupTree>
       </el-aside>
       <el-main style="padding: 5px;">
         <div class="page-header">
@@ -95,10 +95,12 @@ import uiHeader from '../layout/UiHeader.vue'
 import DeviceService from "./service/DeviceService";
 import GroupTree from "./common/GroupTree.vue";
 import GbChannelSelect from "./dialog/GbChannelSelect.vue";
+import RegionTree from "./common/RegionTree.vue";
 
 export default {
   name: 'channelList',
   components: {
+    RegionTree,
     GbChannelSelect,
     uiHeader,
     GroupTree,

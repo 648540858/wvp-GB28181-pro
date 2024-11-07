@@ -4,6 +4,7 @@
     width="65rem"
     top="2rem"
     center
+    :append-to-body="true"
     :close-on-click-modal="false"
     :visible.sync="showVideoDialog"
     :destroy-on-close="false"

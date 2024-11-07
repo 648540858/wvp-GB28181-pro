@@ -37,7 +37,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="父节点编码" >
-          <el-input v-model="form.gbParentId" placeholder="请输入父节点编码">
+          <el-input v-model="form.gbParentId" placeholder="请输入父节点编码或选择所属虚拟组织">
             <template v-slot:append>
               <el-button  @click="chooseGroup()">选择</el-button>
             </template>

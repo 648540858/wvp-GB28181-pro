@@ -246,24 +246,12 @@ public interface DeviceMapper {
 
     @Update(value = {" <script>" +
             "UPDATE wvp_device " +
-            "SET update_time=#{updateTime}" +
-            "<if test=\"name != null\">, custom_name=#{name}</if>" +
-            "<if test=\"password != null\">, password=#{password}</if>" +
-            "<if test=\"streamMode != null\">, stream_mode=#{streamMode}</if>" +
-            "<if test=\"ip != null\">, ip=#{ip}</if>" +
-            "<if test=\"sdpIp != null\">, sdp_ip=#{sdpIp}</if>" +
-            "<if test=\"port != null\">, port=#{port}</if>" +
-            "<if test=\"charset != null\">, charset=#{charset}</if>" +
-            "<if test=\"subscribeCycleForCatalog != null\">, subscribe_cycle_for_catalog=#{subscribeCycleForCatalog}</if>" +
-            "<if test=\"subscribeCycleForMobilePosition != null\">, subscribe_cycle_for_mobile_position=#{subscribeCycleForMobilePosition}</if>" +
-            "<if test=\"mobilePositionSubmissionInterval != null\">, mobile_position_submission_interval=#{mobilePositionSubmissionInterval}</if>" +
-            "<if test=\"subscribeCycleForAlarm != null\">, subscribe_cycle_for_alarm=#{subscribeCycleForAlarm}</if>" +
-            "<if test=\"ssrcCheck != null\">, ssrc_check=#{ssrcCheck}</if>" +
-            "<if test=\"asMessageChannel != null\">, as_message_channel=#{asMessageChannel}</if>" +
-            "<if test=\"broadcastPushAfterAck != null\">, broadcast_push_after_ack=#{broadcastPushAfterAck}</if>" +
-            "<if test=\"geoCoordSys != null\">, geo_coord_sys=#{geoCoordSys}</if>" +
-            "<if test=\"mediaServerId != null\">, media_server_id=#{mediaServerId}</if>" +
-            "WHERE device_id=#{deviceId}"+
+            "SET update_time=#{updateTime}, custom_name=#{name} , password=#{password}, stream_mode=#{streamMode}" +
+            ", ip=#{ip}, sdp_ip=#{sdpIp}, port=#{port}, charset=#{charset}, subscribe_cycle_for_catalog=#{subscribeCycleForCatalog}" +
+            ", subscribe_cycle_for_mobile_position=#{subscribeCycleForMobilePosition}, mobile_position_submission_interval=#{mobilePositionSubmissionInterval}" +
+            ", subscribe_cycle_for_alarm=#{subscribeCycleForAlarm}, ssrc_check=#{ssrcCheck}, as_message_channel=#{asMessageChannel}" +
+            ", broadcast_push_after_ack=#{broadcastPushAfterAck}, geo_coord_sys=#{geoCoordSys}, media_server_id=#{mediaServerId}" +
+            " WHERE id=#{id}"+
             " </script>"})
     void updateCustom(Device device);
 

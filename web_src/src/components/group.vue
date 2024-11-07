@@ -1,45 +1,54 @@
 <template>
   <div id="region" style="width: 100%">
-    <el-container v-loading="loading" >
-      <el-aside width="400px" >
-        <GroupTree ref="groupTree" :show-header="true" :edit="true" :clickEvent="treeNodeClickEvent" :chooseIdChange="chooseIdChange" :onChannelChange="getChannelList"></GroupTree>
+    <el-container v-loading="loading">
+      <el-aside width="400px">
+        <GroupTree ref="groupTree" :show-header="true" :edit="true" :clickEvent="treeNodeClickEvent"
+                   :onChannelChange="onChannelChange" :addChannelToGroup="addChannelToGroup"></GroupTree>
       </el-aside>
       <el-main style="padding: 5px;">
         <div class="page-header">
-          <div class="page-title">通道列表</div>
+          <div class="page-title">
+            <el-breadcrumb separator="/">
+              <el-breadcrumb-item v-for="key in regionParents" key="key">{{ key }}</el-breadcrumb-item>
+            </el-breadcrumb>
+          </div>
           <div class="page-header-btn">
-            <div  style="display: inline;">
+            <div style="display: inline;">
               搜索:
               <el-input @input="search" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
                         prefix-icon="el-icon-search" v-model="searchSrt" clearable></el-input>
 
               在线状态:
-              <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="search" v-model="online" placeholder="请选择"
+              <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="search" v-model="online"
+                         placeholder="请选择"
                          default-first-option>
                 <el-option label="全部" value=""></el-option>
                 <el-option label="在线" value="true"></el-option>
                 <el-option label="离线" value="false"></el-option>
               </el-select>
-              添加状态:
-              <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="search" v-model="hasGroup" placeholder="请选择"
+              类型:
+              <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="getChannelList"
+                         v-model="channelType" placeholder="请选择"
                          default-first-option>
                 <el-option label="全部" value=""></el-option>
-                <el-option label="已添加" value="true"></el-option>
-                <el-option label="未添加" value="false"></el-option>
+                <el-option label="国标设备" :value="0"></el-option>
+                <el-option label="推流设备" :value="1"></el-option>
+                <el-option label="拉流代理" :value="2"></el-option>
               </el-select>
-              <el-button v-if="hasGroup !=='true'" size="mini" type="primary" @click="add()">
-                添加
+              <el-button size="mini" type="primary" @click="add()">
+                添加通道
               </el-button>
-              <el-button v-if="hasGroup ==='true'" size="mini" type="danger" @click="remove()">
-                移除
+              <el-button v-bind:disabled="multipleSelection.length === 0" size="mini" type="danger" @click="remove()">
+                移除通道
               </el-button>
               <el-button icon="el-icon-refresh-right" circle size="mini" @click="getChannelList()"></el-button>
             </div>
           </div>
         </div>
-        <el-table size="medium"  ref="channelListTable" :data="channelList" :height="winHeight" style="width: 100%"
-                  header-row-class-name="table-header" @selection-change="handleSelectionChange" @row-dblclick="rowDblclick">
-          <el-table-column type="selection" width="55" :selectable="selectable">
+        <el-table size="medium" ref="channelListTable" :data="channelList" :height="winHeight" style="width: 100%"
+                  header-row-class-name="table-header" @selection-change="handleSelectionChange"
+                  @row-dblclick="rowDblclick">
+          <el-table-column type="selection" width="55" >
           </el-table-column>
           <el-table-column prop="gbName" label="名称" min-width="180">
           </el-table-column>
@@ -64,14 +73,6 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="添加状态" min-width="100">
-            <template v-slot:default="scope">
-              <div slot="reference" class="name-wrapper">
-                <el-tag size="medium" :title="scope.row.gbParentId" v-if="scope.row.gbParentId">已添加</el-tag>
-                <el-tag size="medium" type="info" v-if="!scope.row.gbParentId">未添加</el-tag>
-              </div>
-            </template>
-          </el-table-column>
         </el-table>
         <el-pagination
           style="text-align: right"
@@ -85,7 +86,7 @@
         </el-pagination>
       </el-main>
     </el-container>
-
+    <GbChannelSelect ref="gbChannelSelect" dataType="civilCode"></GbChannelSelect>
   </div>
 </template>
 
@@ -93,10 +94,12 @@
 import uiHeader from '../layout/UiHeader.vue'
 import DeviceService from "./service/DeviceService";
 import GroupTree from "./common/GroupTree.vue";
+import GbChannelSelect from "./dialog/GbChannelSelect.vue";
 
 export default {
   name: 'channelList',
   components: {
+    GbChannelSelect,
     uiHeader,
     GroupTree,
   },
@@ -116,6 +119,7 @@ export default {
       groupDeviceId: "",
       groupId: "",
       businessGroup: "",
+      regionParents: ["请选择虚拟组织"],
       multipleSelection: []
     };
   },
@@ -123,7 +127,8 @@ export default {
   created() {
     this.initData();
   },
-  destroyed() {},
+  destroyed() {
+  },
   methods: {
     initData: function () {
       this.getChannelList();
@@ -139,15 +144,16 @@ export default {
     getChannelList: function () {
       this.$axios({
         method: 'get',
-        url: `/api/common/channel/list`,
+        url: `/api/common/channel/parent/list`,
         params: {
           page: this.currentPage,
           count: this.count,
           query: this.searchSrt,
           online: this.online,
-          hasGroup: this.hasGroup
+          channelType: this.channelType,
+          groupDeviceId: this.groupDeviceId
         }
-      }).then((res)=> {
+      }).then((res) => {
         if (res.data.code === 0) {
           this.total = res.data.data.total;
           this.channelList = res.data.data.list;
@@ -157,77 +163,67 @@ export default {
           })
         }
 
-      }).catch((error)=> {
+      }).catch((error) => {
         console.log(error);
       });
     },
-    handleSelectionChange: function (val){
+    handleSelectionChange: function (val) {
       this.multipleSelection = val;
-    },
-    selectable: function (row, rowIndex) {
-      if (this.hasGroup === "") {
-        if (row.gbParentId) {
-          return false
-        }else {
-          return true
-        }
-      }else {
-        return true
-      }
     },
     rowDblclick: function (row, rowIndex) {
 
     },
     add: function (row) {
-      if (!this.groupDeviceId) {
+      if (this.regionDeviceId === "") {
         this.$message.info({
           showClose: true,
-          message: "请选择左侧行政区划节点"
+          message: "请选择左侧虚拟组织节点"
         })
         return;
       }
-      let channels = []
-      for (let i = 0; i < this.multipleSelection.length; i++) {
-        channels.push(this.multipleSelection[i].gbId)
-      }
-      if (channels.length === 0) {
-        this.$message.info({
-          showClose: true,
-          message: "请选择右侧通道"
-        })
-        return;
-      }
+      this.$refs.gbChannelSelect.openDialog((data) => {
+        console.log("选择的数据")
+        console.log(data)
+        this.addChannelToGroup(this.groupDeviceId, this.businessGroup, data)
+      })
+    },
+    addChannelToGroup: function (groupDeviceId, businessGroup,  data) {
+        if (data.length === 0) {
+          return;
+        }
+        let channels = []
+        for (let i = 0; i < data.length; i++) {
+          channels.push(data[i].gbId)
+        }
       this.loading = true
 
       this.$axios({
         method: 'post',
         url: `/api/common/channel/group/add`,
         data: {
-          parentId: this.groupDeviceId,
-          businessGroup: this.businessGroup,
+          parentId: groupDeviceId,
+          businessGroup: businessGroup,
           channelIds: channels
         }
-      }).then((res)=> {
+      }).then((res) => {
         if (res.data.code === 0) {
           this.$message.success({
             showClose: true,
             message: "保存成功"
           })
           this.getChannelList()
-          // 刷新树节点
-          this.$refs.groupTree.refresh(this.groupId)
-        }else {
+        } else {
           this.$message.error({
-              showClose: true,
-              message: res.data.msg
-            })
+            showClose: true,
+            message: res.data.msg
+          })
         }
         this.loading = false
-      }).catch((error)=> {
+      }).catch((error) => {
         this.$message.error({
-            showClose: true,
-            message: error
-          })
+          showClose: true,
+          message: error
+        })
         this.loading = false
       });
     },
@@ -240,7 +236,7 @@ export default {
       if (channels.length === 0) {
         this.$message.info({
           showClose: true,
-          message: "请选择右侧通道"
+          message: "请选择通道"
         })
         return;
       }
@@ -252,7 +248,7 @@ export default {
         data: {
           channelIds: channels
         }
-      }).then((res)=> {
+      }).then((res) => {
         if (res.data.code === 0) {
           this.$message.success({
             showClose: true,
@@ -261,18 +257,18 @@ export default {
           this.getChannelList()
           // 刷新树节点
           this.$refs.groupTree.refresh(this.groupDeviceId)
-        }else {
+        } else {
           this.$message.error({
-              showClose: true,
-              message: res.data.msg
-            })
+            showClose: true,
+            message: res.data.msg
+          })
         }
         this.loading = false
-      }).catch((error)=> {
+      }).catch((error) => {
         this.$message.error({
-            showClose: true,
-            message: error
-          })
+          showClose: true,
+          message: error
+        })
         this.loading = false
       });
     },
@@ -288,13 +284,38 @@ export default {
     refresh: function () {
       this.initData();
     },
-    treeNodeClickEvent: function (device, data, isCatalog) {
+    treeNodeClickEvent: function (group) {
+      if (group.deviceId === "" || group.deviceId === group.businessGroup) {
+        this.channelList = []
+        this.regionParents = ["请选择虚拟组织"];
+        return
+      }
+      this.groupDeviceId = group.deviceId;
+      this.businessGroup = group.businessGroup;
+      this.initData();
+      // 获取regionDeviceId对应的节点信息
+      this.$axios({
+        method: 'get',
+        url: `/api/group/path`,
+        params: {
+          deviceId: this.groupDeviceId,
+          businessGroup: this.businessGroup,
+        }
+      }).then((res) => {
+        if (res.data.code === 0) {
+          let path = []
+          for (let i = 0; i < res.data.data.length; i++) {
+            path.push(res.data.data[i].name)
+          }
+          this.regionParents = path;
+        }
 
+      }).catch((error) => {
+        console.log(error);
+      });
     },
-    chooseIdChange: function (id, deviceId, businessGroup) {
-      this.groupId = id;
-      this.groupDeviceId = deviceId;
-      this.businessGroup = businessGroup;
+    onChannelChange: function (deviceId) {
+      //
     },
   }
 };

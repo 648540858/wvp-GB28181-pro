@@ -3,13 +3,13 @@
     <el-container v-loading="loading">
       <el-aside width="400px">
         <RegionTree ref="regionTree" :showHeader=true :edit="true" :clickEvent="treeNodeClickEvent"
-                    :onChannelChange="onChannelChange"></RegionTree>
+                    :onChannelChange="onChannelChange" :addChannelToCivilCode="addChannelToCivilCode"></RegionTree>
       </el-aside>
       <el-main style="padding: 5px;">
         <div class="page-header">
           <div class="page-title">
             <el-breadcrumb separator="/">
-              <el-breadcrumb-item v-for="key in regionParents" >{{key}}</el-breadcrumb-item>
+              <el-breadcrumb-item v-for="key in regionParents" key="key">{{ key }}</el-breadcrumb-item>
             </el-breadcrumb>
           </div>
           <div class="page-header-btn">
@@ -25,6 +25,14 @@
                 <el-option label="全部" value=""></el-option>
                 <el-option label="在线" value="true"></el-option>
                 <el-option label="离线" value="false"></el-option>
+              </el-select>
+              类型:
+              <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="getChannelList" v-model="channelType" placeholder="请选择"
+                         default-first-option>
+                <el-option label="全部" value=""></el-option>
+                <el-option label="国标设备" :value="0"></el-option>
+                <el-option label="推流设备" :value="1"></el-option>
+                <el-option label="拉流代理" :value="2"></el-option>
               </el-select>
               <el-button size="mini" type="primary" @click="add()">
                 添加通道
@@ -77,7 +85,7 @@
         </el-pagination>
       </el-main>
     </el-container>
-
+    <GbChannelSelect ref="gbChannelSelect" dataType="civilCode"></GbChannelSelect>
   </div>
 </template>
 
@@ -85,10 +93,12 @@
 import uiHeader from '../layout/UiHeader.vue'
 import DeviceService from "./service/DeviceService";
 import RegionTree from "./common/RegionTree.vue";
+import GbChannelSelect from "./dialog/GbChannelSelect.vue";
 
 export default {
   name: 'channelList',
   components: {
+    GbChannelSelect,
     uiHeader,
     RegionTree,
   },
@@ -131,12 +141,13 @@ export default {
     getChannelList: function () {
       this.$axios({
         method: 'get',
-        url: `/api/common/channel/list`,
+        url: `/api/common/channel/civilcode/list`,
         params: {
           page: this.currentPage,
           count: this.count,
           query: this.searchSrt,
           online: this.online,
+          channelType: this.channelType,
           civilCode: this.regionDeviceId
         }
       }).then((res) => {
@@ -162,23 +173,26 @@ export default {
       // }
     },
     add: function (row) {
-      if (!this.regionDeviceId) {
+      if (this.regionDeviceId === "") {
         this.$message.info({
           showClose: true,
-          message: "请选择左侧行政区划节点"
+          message: "请选择左侧行政区划"
         })
+        return;
+      }
+      this.$refs.gbChannelSelect.openDialog((data) => {
+        console.log("选择的数据")
+        console.log(data)
+        this.addChannelToCivilCode(this.regionDeviceId, data)
+      })
+    },
+    addChannelToCivilCode: function (regionDeviceId, data) {
+      if (data.length === 0) {
         return;
       }
       let channels = []
-      for (let i = 0; i < this.multipleSelection.length; i++) {
-        channels.push(this.multipleSelection[i].gbId)
-      }
-      if (channels.length === 0) {
-        this.$message.info({
-          showClose: true,
-          message: "请选择通道"
-        })
-        return;
+      for (let i = 0; i < data.length; i++) {
+        channels.push(data[i].gbId)
       }
       this.loading = true
 
@@ -186,7 +200,7 @@ export default {
         method: 'post',
         url: `/api/common/channel/region/add`,
         data: {
-          civilCode: this.regionDeviceId,
+          civilCode: regionDeviceId,
           channelIds: channels
         }
       }).then((res) => {
@@ -196,8 +210,6 @@ export default {
             message: "保存成功"
           })
           this.getChannelList()
-          // 刷新树节点
-          this.$refs.regionTree.refresh(this.regionId)
         } else {
           this.$message.error({
             showClose: true,
@@ -271,6 +283,10 @@ export default {
     },
     treeNodeClickEvent: function (region) {
       this.regionDeviceId = region.deviceId;
+      if (region.deviceId === "") {
+        this.channelList = []
+        this.regionParents = ["请选择行政区划"];
+      }
       this.initData();
       // 获取regionDeviceId对应的节点信息
       this.$axios({
@@ -291,6 +307,9 @@ export default {
       }).catch((error) => {
         console.log(error);
       });
+    },
+    gbChannelSelectEnd: function (selectedData) {
+      console.log(selectedData);
     },
     onChannelChange: function (deviceId) {
       //

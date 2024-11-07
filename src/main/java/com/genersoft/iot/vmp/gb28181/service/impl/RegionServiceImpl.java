@@ -242,13 +242,14 @@ public class RegionServiceImpl implements IRegionService {
             return new ArrayList<>();
         }
 
-        List<Region> regionList = new ArrayList<>();
+        List<Region> regionList = new LinkedList<>();
         Region parent = regionMapper.queryByDeviceId(region.getParentDeviceId());
         if (parent == null) {
             return regionList;
         }
+        regionList.add(parent);
         List<Region> allParent = getAllParent(parent);
-        allParent.add(parent);
-        return allParent;
+        regionList.addAll(allParent);
+        return regionList;
     }
 }

@@ -388,9 +388,16 @@ public class GbChannelServiceImpl implements IGbChannelService {
     }
 
     @Override
-    public PageInfo<CommonGBChannel> queryList(int page, int count, String query, Boolean online, String civilCode, String groupDeviceId) {
+    public PageInfo<CommonGBChannel> queryListByCivilCode(int page, int count, String query, Boolean online, Integer channelType, String civilCode) {
         PageHelper.startPage(page, count);
-        List<CommonGBChannel> all = commonGBChannelMapper.queryList(query, online, civilCode, groupDeviceId);
+        List<CommonGBChannel> all = commonGBChannelMapper.queryListByCivilCode(query, online, channelType, civilCode);
+        return new PageInfo<>(all);
+    }
+
+    @Override
+    public PageInfo<CommonGBChannel> queryListByParentId(int page, int count, String query, Boolean online, Integer channelType, String groupDeviceId) {
+        PageHelper.startPage(page, count);
+        List<CommonGBChannel> all = commonGBChannelMapper.queryListByParentId(query, online, channelType, groupDeviceId);
         return new PageInfo<>(all);
     }
 

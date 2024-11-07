@@ -4,14 +4,15 @@
       <div class="page-title">业务分组</div>
       <div class="page-header-btn">
         <div style="display: inline;">
-          <el-input @input="search" style="visibility:hidden; margin-right: 1rem; width: 12rem;" size="mini" placeholder="关键字"
+          <el-input @input="search" style="visibility:hidden; margin-right: 1rem; width: 12rem;" size="mini"
+                    placeholder="关键字"
                     prefix-icon="el-icon-search" v-model="searchSrt" clearable></el-input>
 
           <el-checkbox v-model="showCode">显示编号</el-checkbox>
         </div>
       </div>
     </div>
-    <div v-if="showHeader" style="height: 2rem; background-color: #FFFFFF" ></div>
+    <div v-if="showHeader" style="height: 2rem; background-color: #FFFFFF"></div>
     <div>
       <vue-easy-tree
         class="flow-tree"
@@ -27,22 +28,21 @@
         @node-contextmenu="contextmenuEventHandler"
         @node-click="nodeClickHandler"
       >
-        <template  v-slot:default="{ node, data }">
+        <template v-slot:default="{ node, data }">
           <span class="custom-tree-node">
-            <span @click.stop v-if="edit">
-            <el-radio v-if="node.data.type === 0 && node.level > 2" style="margin-right: 0" v-model="chooseId" @input="chooseIdChange(node.data.treeId, node.data.deviceId, node.data.businessGroup)" :label="node.data.deviceId">{{''}}</el-radio>
-          </span>
-          <span v-if="node.data.type === 0" style="color: #409EFF" class="iconfont icon-bianzubeifen3"></span>
-          <span v-if="node.data.type === 1 && node.data.status === 'ON'" style="color: #409EFF" class="iconfont icon-shexiangtou2"></span>
-          <span v-if="node.data.type === 1 && node.data.status !== 'ON'" style="color: #808181" class="iconfont icon-shexiangtou2"></span>
-          <span style=" padding-left: 1px" v-if="node.data.deviceId !=='' && showCode" :title="node.data.deviceId">{{ node.label }}（编号：{{ node.data.deviceId }}）</span>
-          <span style=" padding-left: 1px" v-if="node.data.deviceId ==='' || !showCode" :title="node.data.deviceId">{{ node.label }}</span>
+            <span v-if="node.data.type === 0 && chooseId !== node.data.deviceId" style="color: #409EFF" class="iconfont icon-bianzubeifen3"></span>
+          <span v-if="node.data.type === 0 && chooseId === node.data.deviceId" style="color: #c60135;" class="iconfont icon-bianzubeifen3"></span>
+            <span v-if="node.data.type === 1 && node.data.status === 'ON'" style="color: #409EFF" class="iconfont icon-shexiangtou2"></span>
+            <span v-if="node.data.type === 1 && node.data.status !== 'ON'" style="color: #808181" class="iconfont icon-shexiangtou2"></span>
+            <span style=" padding-left: 1px" v-if="node.data.deviceId !=='' && showCode" :title="node.data.deviceId">{{ node.label }}（编号：{{ node.data.deviceId }}）</span>
+            <span style=" padding-left: 1px" v-if="node.data.deviceId ==='' || !showCode" :title="node.data.deviceId">{{ node.label }}</span>
           </span>
         </template>
       </vue-easy-tree>
     </div>
     <groupEdit ref="groupEdit"></groupEdit>
     <gbDeviceSelect ref="gbDeviceSelect"></gbDeviceSelect>
+    <gbChannelSelect ref="gbChannelSelect"></gbChannelSelect>
   </div>
 </template>
 
@@ -50,10 +50,12 @@
 import VueEasyTree from "@wchbrad/vue-easy-tree";
 import groupEdit from './../dialog/groupEdit'
 import gbDeviceSelect from './../dialog/GbDeviceSelect'
+import GbChannelSelect from "../dialog/GbChannelSelect.vue";
 
 export default {
   name: 'DeviceTree',
   components: {
+    GbChannelSelect,
     VueEasyTree, groupEdit, gbDeviceSelect
   },
   data() {
@@ -68,7 +70,7 @@ export default {
       treeData: [],
     }
   },
-  props: ['edit', 'clickEvent', 'chooseIdChange', 'onChannelChange', 'showHeader'],
+  props: ['edit', 'clickEvent', 'onChannelChange', 'showHeader', 'hasChannel', 'addChannelToGroup'],
   created() {
   },
   methods: {
@@ -94,7 +96,8 @@ export default {
           url: `/api/group/tree/list`,
           params: {
             query: this.searchSrt,
-            parent: node.data.id
+            parent: node.data.id,
+            hasChannel: this.hasChannel
           }
         }).then((res) => {
           if (res.data.code === 0) {
@@ -113,42 +116,7 @@ export default {
       if (!this.edit) {
         return;
       }
-      console.log(node.level)
-      if (node.data.type === 1) {
-        data.parentId = node.parent.data.id;
-        this.$contextmenu({
-          items: [
-            {
-              label: "移除通道",
-              icon: "el-icon-delete",
-              disabled: false,
-              onClick: () => {
-                console.log(data)
-                this.$axios({
-                  method: "post",
-                  url: `/api/common/channel/group/delete`,
-                  data: {
-                    channelIds: [data.id]
-                  }
-                }).then((res) => {
-                  console.log("移除成功")
-                  console.log(node)
-                  if (this.onChannelChange) {
-                    this.onChannelChange()
-                  }
-                  node.parent.loaded = false
-                  node.parent.expand();
-                }).catch(function (error) {
-                  console.log(error);
-                });
-              }
-            }
-          ],
-          event, // 鼠标事件信息
-          customClass: "custom-class", // 自定义菜单 class
-          zIndex: 3000, // 菜单样式 z-index
-        });
-      } else if (node.data.type === 0) {
+      if (node.data.type === 0) {
         this.$contextmenu({
           items: [
             {
@@ -204,8 +172,17 @@ export default {
               label: "移除设备",
               icon: "el-icon-delete",
               disabled: node.level <= 2,
+              divided: true,
               onClick: () => {
                 this.removeChannelFormDevice(data.id, node)
+              }
+            },
+            {
+              label: "添加通道",
+              icon: "el-icon-plus",
+              disabled: node.level <= 2,
+              onClick: () => {
+                this.addChannel(data.id, node)
               }
             },
             // {
@@ -250,15 +227,15 @@ export default {
           node.parent.loaded = false
           node.parent.expand();
           if (this.onChannelChange) {
-            this.onChannelChange()
+            this.onChannelChange(node.data.deviceId)
           }
         }
       }).catch(function (error) {
-          console.log(error);
+        console.log(error);
       });
     },
     addChannelFormDevice: function (id, node) {
-      this.$refs.gbDeviceSelect.openDialog((rows)=>{
+      this.$refs.gbDeviceSelect.openDialog((rows) => {
         let deviceIds = []
         for (let i = 0; i < rows.length; i++) {
           deviceIds.push(rows[i].id)
@@ -271,26 +248,26 @@ export default {
             businessGroup: node.data.businessGroup,
             deviceIds: deviceIds,
           }
-        }).then((res)=> {
+        }).then((res) => {
           if (res.data.code === 0) {
             this.$message.success({
-            showClose: true,
-            message: "保存成功"
-          })
+              showClose: true,
+              message: "保存成功"
+            })
             if (this.onChannelChange) {
               this.onChannelChange()
             }
             console.log(node)
             node.loaded = false
             node.expand();
-          }else {
+          } else {
             this.$message.error({
               showClose: true,
               message: res.data.msg
             })
           }
           this.loading = false
-        }).catch((error)=> {
+        }).catch((error) => {
           this.$message.error({
             showClose: true,
             message: error
@@ -300,7 +277,7 @@ export default {
       })
     },
     removeChannelFormDevice: function (id, node) {
-      this.$refs.gbDeviceSelect.openDialog((rows)=>{
+      this.$refs.gbDeviceSelect.openDialog((rows) => {
         let deviceIds = []
         for (let i = 0; i < rows.length; i++) {
           deviceIds.push(rows[i].id)
@@ -311,31 +288,38 @@ export default {
           data: {
             deviceIds: deviceIds,
           }
-        }).then((res)=> {
+        }).then((res) => {
           if (res.data.code === 0) {
             this.$message.success({
-            showClose: true,
-            message: "保存成功"
-          })
+              showClose: true,
+              message: "保存成功"
+            })
             if (this.onChannelChange) {
               this.onChannelChange()
             }
             node.loaded = false
             node.expand();
-          }else {
+          } else {
             this.$message.error({
               showClose: true,
               message: res.data.msg
             })
           }
           this.loading = false
-        }).catch((error)=> {
+        }).catch((error) => {
           this.$message.error({
             showClose: true,
             message: error
           })
           this.loading = false
         });
+      })
+    },
+    addChannel: function (id, node) {
+      this.$refs.gbChannelSelect.openDialog((data) => {
+        console.log("选择的数据")
+        console.log(data)
+        this.addChannelToGroup(node.data.deviceId, node.data.businessGroup, data)
       })
     },
     refreshNode: function (node) {
@@ -358,10 +342,10 @@ export default {
         name: "",
         deviceId: "",
         civilCode: "",
-        parentDeviceId: node.level > 2 ? node.data.deviceId:"",
+        parentDeviceId: node.level > 2 ? node.data.deviceId : "",
         parentId: node.data.id,
-        businessGroup: node.level > 2 ? node.data.businessGroup: node.data.deviceId,
-      },form => {
+        businessGroup: node.level > 2 ? node.data.businessGroup : node.data.deviceId,
+      }, form => {
         console.log(node)
         node.loaded = false
         node.expand();
@@ -369,13 +353,14 @@ export default {
     },
     editGroup: function (id, node) {
       console.log(node)
-      this.$refs.groupEdit.openDialog(node.data,form => {
+      this.$refs.groupEdit.openDialog(node.data, form => {
         console.log(node)
         node.parent.loaded = false
         node.parent.expand();
       }, id);
     },
     nodeClickHandler: function (data, node, tree) {
+      this.chooseId = data.deviceId;
       if (this.clickEvent) {
         this.clickEvent(data)
       }
@@ -404,6 +389,7 @@ export default {
 .device-offline {
   color: #727272;
 }
+
 .custom-tree-node .el-radio__label {
   padding-left: 4px !important;
 }

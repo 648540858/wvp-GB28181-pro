@@ -30,7 +30,7 @@
         <template class="custom-tree-node" v-slot:default="{ node, data }">
         <span class="custom-tree-node" >
           <span v-if="node.data.type === 0 && chooseId !== node.data.deviceId" style="color: #409EFF" class="iconfont icon-bianzubeifen3"></span>
-          <span v-if="node.data.type === 0 && chooseId === node.data.deviceId" style="color: #013e83;" class="iconfont icon-bianzubeifen3"></span>
+          <span v-if="node.data.type === 0 && chooseId === node.data.deviceId" style="color: #c60135;" class="iconfont icon-bianzubeifen3"></span>
           <span v-if="node.data.type === 1 && node.data.status === 'ON'" style="color: #409EFF" class="iconfont icon-shexiangtou2"></span>
           <span v-if="node.data.type === 1 && node.data.status !== 'ON'" style="color: #808181" class="iconfont icon-shexiangtou2"></span>
           <span style=" padding-left: 1px" v-if="node.data.deviceId !=='' && showCode" :title="node.data.deviceId">{{ node.label }}（编号：{{ node.data.deviceId }}）</span>
@@ -41,6 +41,7 @@
     </div>
     <regionEdit ref="regionEdit"></regionEdit>
     <gbDeviceSelect ref="gbDeviceSelect"></gbDeviceSelect>
+    <GbChannelSelect ref="gbChannelSelect" dataType="civilCode"></GbChannelSelect>
   </div>
 </template>
 
@@ -48,10 +49,12 @@
 import VueEasyTree from "@wchbrad/vue-easy-tree";
 import regionEdit from './../dialog/regionEdit'
 import gbDeviceSelect from './../dialog/GbDeviceSelect'
+import GbChannelSelect from "../dialog/GbChannelSelect.vue";
 
 export default {
   name: 'DeviceTree',
   components: {
+    GbChannelSelect,
     VueEasyTree, regionEdit, gbDeviceSelect
   },
   data() {
@@ -65,7 +68,7 @@ export default {
       treeData: [],
     }
   },
-  props: ['edit', 'clickEvent', 'onChannelChange', 'showHeader', 'hasChannel'],
+  props: ['edit', 'clickEvent', 'onChannelChange', 'showHeader', 'hasChannel', 'addChannelToCivilCode'],
   created() {
   },
   methods: {
@@ -249,7 +252,7 @@ export default {
             message: "保存成功"
           })
             if (this.onChannelChange) {
-              this.onChannelChange(node.data.deviceId)
+              this.onChannelChange()
             }
             node.loaded = false
             node.expand();
@@ -309,43 +312,10 @@ export default {
       })
     },
     addChannel: function (id, node) {
-      this.$refs.gbDeviceSelect.openDialog((rows)=>{
-        let deviceIds = []
-        for (let i = 0; i < rows.length; i++) {
-          deviceIds.push(rows[i].id)
-        }
-        this.$axios({
-          method: 'post',
-          url: `/api/common/channel/region/device/add`,
-          data: {
-            civilCode: node.data.deviceId,
-            deviceIds: deviceIds,
-          }
-        }).then((res)=> {
-          if (res.data.code === 0) {
-            this.$message.success({
-              showClose: true,
-              message: "保存成功"
-            })
-            if (this.onChannelChange) {
-              this.onChannelChange(node.data.deviceId)
-            }
-            node.loaded = false
-            node.expand();
-          }else {
-            this.$message.error({
-              showClose: true,
-              message: res.data.msg
-            })
-          }
-          this.loading = false
-        }).catch((error)=> {
-          this.$message.error({
-            showClose: true,
-            message: error
-          })
-          this.loading = false
-        });
+      this.$refs.gbChannelSelect.openDialog((data) => {
+        console.log("选择的数据")
+        console.log(data)
+        this.addChannelToCivilCode(node.data.deviceId, data)
       })
     },
     refreshNode: function (node) {
@@ -383,8 +353,7 @@ export default {
       }, node.data);
     },
     nodeClickHandler: function (data, node, tree) {
-      console.log(data)
-      console.log(node)
+
       this.chooseId = data.deviceId;
       if (this.clickEvent) {
         this.clickEvent(data)

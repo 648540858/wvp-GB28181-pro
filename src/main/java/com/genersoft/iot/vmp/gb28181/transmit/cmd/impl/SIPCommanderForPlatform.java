@@ -737,6 +737,8 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
         }
 
         content.append("y=" + ssrcInfo.getSsrc() + "\r\n");//ssrc
+        // f字段:f= v/编码格式/分辨率/帧率/码率类型/码率大小a/编码格式/码率大小/采样率
+        content.append("f=v/////a/1/8/1\r\n");
         CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(sipLayer.getLocalIp(platform.getDeviceIp()), platform.getTransport());
 
         Request request = headerProviderPlatformProvider.createInviteRequest(platform, channel.getGbDeviceId(),

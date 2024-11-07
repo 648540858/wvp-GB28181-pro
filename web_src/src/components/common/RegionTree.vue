@@ -41,7 +41,7 @@
     </div>
     <regionEdit ref="regionEdit"></regionEdit>
     <gbDeviceSelect ref="gbDeviceSelect"></gbDeviceSelect>
-    <GbChannelSelect ref="gbChannelSelect" dataType="civilCode"></GbChannelSelect>
+    <GbChannelSelect ref="gbChannelSelect" dataType="civilCode" ></GbChannelSelect>
   </div>
 </template>
 

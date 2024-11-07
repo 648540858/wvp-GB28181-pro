@@ -86,7 +86,7 @@
         </el-pagination>
       </el-main>
     </el-container>
-    <GbChannelSelect ref="gbChannelSelect" dataType="civilCode"></GbChannelSelect>
+    <GbChannelSelect ref="gbChannelSelect" dataType="group"></GbChannelSelect>
   </div>
 </template>
 

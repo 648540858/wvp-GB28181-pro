@@ -42,7 +42,7 @@
     </div>
     <groupEdit ref="groupEdit"></groupEdit>
     <gbDeviceSelect ref="gbDeviceSelect"></gbDeviceSelect>
-    <gbChannelSelect ref="gbChannelSelect"></gbChannelSelect>
+    <gbChannelSelect ref="gbChannelSelect" dataType="group"></gbChannelSelect>
   </div>
 </template>
 

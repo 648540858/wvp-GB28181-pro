@@ -6,7 +6,7 @@
     </el-tabs>
     <div>
       <div class="page-header">
-        <div class="page-header-btn">
+        <div class="page-header-btn" style="width: 100%;">
           <div  style="display: inline;">
             搜索:
             <el-input @input="search" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
@@ -33,10 +33,10 @@
             <el-button v-if="hasShare ==='true'" size="mini" type="danger" @click="remove()">
               移除
             </el-button>
-            <el-button size="mini" @click="addByDevice()">按设备添加</el-button>
-            <el-button size="mini" @click="removeByDevice()">按设备移除</el-button>
-            <el-button size="mini" @click="addAll()">全部添加</el-button>
-            <el-button size="mini" @click="removeAll()">全部移除</el-button>
+            <el-button size="mini" v-if="hasShare !=='true'" @click="addByDevice()">按设备添加</el-button>
+            <el-button size="mini" v-if="hasShare ==='true'" @click="removeByDevice()">按设备移除</el-button>
+            <el-button size="mini" v-if="hasShare !=='true'" @click="addAll()">全部添加</el-button>
+            <el-button size="mini" v-if="hasShare ==='true'" @click="removeAll()">全部移除</el-button>
             <el-button size="mini" @click="getChannelList()">刷新</el-button>
           </div>
         </div>

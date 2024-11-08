@@ -199,9 +199,7 @@
                 </el-select>
 
                 <ptzPreset :channelDeviceId="channelId" :deviceId="deviceId" v-if="ptzMethod === 'preset'" style="margin-top: 1rem"></ptzPreset>
-                <div v-if="ptzMethod === 'cruising'">
-                  111
-                </div>
+                <ptzCruising :channelDeviceId="channelId" :deviceId="deviceId" v-if="ptzMethod === 'cruising'" style="margin-top: 1rem"></ptzCruising>
                 <div v-if="ptzMethod === 'scan'">
                   111
                 </div>
@@ -357,12 +355,13 @@ import LivePlayer from '@liveqing/liveplayer'
 import crypto from 'crypto'
 import jessibucaPlayer from '../common/jessibuca.vue'
 import PtzPreset from "../common/ptzPreset.vue";
+import PtzCruising from "../common/ptzCruising.vue";
 
 export default {
   name: 'devicePlayer',
   props: {},
   components: {
-    PtzPreset,
+    PtzPreset,PtzCruising,
     LivePlayer, jessibucaPlayer, rtcPlayer,
   },
   computed: {

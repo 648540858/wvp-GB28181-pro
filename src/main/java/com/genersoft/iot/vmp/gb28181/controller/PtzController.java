@@ -119,7 +119,7 @@ public class PtzController {
 	@Parameter(name = "parameter1", description = "数据一", required = true)
 	@Parameter(name = "parameter2", description = "数据二", required = true)
 	@Parameter(name = "combindCode2", description = "组合码二", required = true)
-	@PostMapping("/front_end_command/{deviceId}/{channelId}")
+	@PostMapping("/fi/{deviceId}/{channelId}")
 	public void frontEndCommand(@PathVariable String deviceId,@PathVariable String channelId,int cmdCode, int parameter1, int parameter2, int combindCode2){
 
 		if (log.isDebugEnabled()) {
@@ -136,11 +136,11 @@ public class PtzController {
 	}
 
 
-	@Operation(summary = "预置位查询", security = @SecurityRequirement(name = JwtUtils.HEADER))
+	@Operation(summary = "查询预置位", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@GetMapping("/preset/query/{deviceId}/{channelId}")
-	public DeferredResult<String> presetQueryApi(@PathVariable String deviceId, @PathVariable String channelId) {
+	public DeferredResult<String> queryPreset(@PathVariable String deviceId, @PathVariable String channelId) {
 		if (log.isDebugEnabled()) {
 			log.debug("设备预置位查询API调用");
 		}
@@ -174,5 +174,41 @@ public class PtzController {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
 		}
 		return result;
+	}
+
+	@Operation(summary = "新增预置位", security = @SecurityRequirement(name = JwtUtils.HEADER))
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@Parameter(name = "presetId", description = "预置位编号", required = true)
+	@GetMapping("/preset/add/{deviceId}/{channelId}")
+	public void addPreset(@PathVariable String deviceId, @PathVariable String channelId, Integer presetId) {
+		if (presetId == null || presetId < 1 || presetId > 255) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "预置位编号必须为1-255之间的数字");
+		}
+		frontEndCommand(deviceId, channelId, 0x81, 1, presetId, 0);
+	}
+
+	@Operation(summary = "调用预置位", security = @SecurityRequirement(name = JwtUtils.HEADER))
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@Parameter(name = "presetId", description = "预置位编号", required = true)
+	@GetMapping("/preset/call/{deviceId}/{channelId}")
+	public void callPreset(@PathVariable String deviceId, @PathVariable String channelId, Integer presetId) {
+		if (presetId == null || presetId < 1 || presetId > 255) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "预置位编号必须为1-255之间的数字");
+		}
+		frontEndCommand(deviceId, channelId, 0x82, 1, presetId, 0);
+	}
+
+	@Operation(summary = "删除预置位", security = @SecurityRequirement(name = JwtUtils.HEADER))
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@Parameter(name = "presetId", description = "预置位编号", required = true)
+	@GetMapping("/preset/delete/{deviceId}/{channelId}")
+	public void deletePreset(@PathVariable String deviceId, @PathVariable String channelId, Integer presetId) {
+		if (presetId == null || presetId < 1 || presetId > 255) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "预置位编号必须为1-255之间的数字");
+		}
+		frontEndCommand(deviceId, channelId, 0x83, 1, presetId, 0);
 	}
 }

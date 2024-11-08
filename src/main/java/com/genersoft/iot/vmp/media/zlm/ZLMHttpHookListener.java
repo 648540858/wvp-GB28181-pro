@@ -299,7 +299,7 @@ public class ZLMHttpHookListener {
     @ResponseBody
     @PostMapping(value = "/on_record_mp4", produces = "application/json;charset=UTF-8")
     public HookResult onRecordMp4(HttpServletRequest request, @RequestBody OnRecordMp4HookParam param) {
-        log.info("[ZLM HOOK] 录像完成事件：{}->{}", param.getMediaServerId(), param.getFile_path());
+        log.info("[ZLM HOOK] 录像完成：时长: {}, {}->{}",param.getTime_len(), param.getMediaServerId(), param.getFile_path());
 
         try {
             MediaServer mediaServerItem = mediaServerService.getOne(param.getMediaServerId());

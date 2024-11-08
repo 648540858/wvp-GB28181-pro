@@ -26,6 +26,7 @@
 
       </div>
       <div id="shared" style="text-align: right; margin-top: 1rem;">
+
         <el-tabs v-model="tabActiveName" @tab-click="tabHandleClick">
           <el-tab-pane label="实时视频" name="media">
             <div style="display: flex; margin-bottom: 0.5rem; height: 2.5rem;">
@@ -154,7 +155,7 @@
           <!--{"code":0,"data":{"paths":["22-29-30.mp4"],"rootPath":"/home/kkkkk/Documents/ZLMediaKit/release/linux/Debug/www/record/hls/kkkkk/2020-05-11/"}}-->
           <!--遥控界面-->
           <el-tab-pane label="云台控制" name="control" v-if="showPtz">
-            <div style="display: flex; justify-content: left;">
+            <div style="display: grid; grid-template-columns: 200px auto; height: 180px; overflow: auto">
               <div class="control-wrapper">
                 <div class="control-btn control-top" @mousedown="ptzCamera('up')" @mouseup="ptzCamera('stop')">
                   <i class="el-icon-caret-top"></i>
@@ -180,11 +181,39 @@
                                                      style="font-size: 1.875rem;"></i></div>
                 <div style="position: absolute; left: 7.25rem; top: 3.25rem; font-size: 1.875rem;"
                      @mousedown="ptzCamera('zoomout')" @mouseup="ptzCamera('stop')"><i
-                    class="el-icon-zoom-out control-zoom-btn"></i></div>
+                  class="el-icon-zoom-out control-zoom-btn"></i></div>
                 <div class="contro-speed" style="position: absolute; left: 4px; top: 7rem; width: 9rem;">
                   <el-slider v-model="controSpeed" :max="255"></el-slider>
                 </div>
               </div>
+              <div style="text-align: left" >
+                <el-select
+                  v-model="ptzMethod"
+                  style="width: 100%"
+                  placeholder="请选择云台功能"
+                >
+                  <el-option label="预置点" value="preset"></el-option>
+                  <el-option label="巡航组" value="cruising"></el-option>
+                  <el-option label="线性扫描" value="scan"></el-option>
+                  <el-option label="巡迹" value="cruise"></el-option>
+                </el-select>
+
+                <ptzPreset :channelDeviceId="channelId" :deviceId="deviceId" v-if="ptzMethod === 'preset'" style="margin-top: 1rem"></ptzPreset>
+                <div v-if="ptzMethod === 'cruising'">
+                  111
+                </div>
+                <div v-if="ptzMethod === 'scan'">
+                  111
+                </div>
+                <div v-if="ptzMethod === 'cruise'">
+                  111
+                </div>
+              </div>
+            </div>
+
+
+            <div style="display: flex; justify-content: left;">
+
 
               <div class="control-panel">
                 <el-button-group>
@@ -327,11 +356,13 @@ import rtcPlayer from '../dialog/rtcPlayer.vue'
 import LivePlayer from '@liveqing/liveplayer'
 import crypto from 'crypto'
 import jessibucaPlayer from '../common/jessibuca.vue'
+import PtzPreset from "../common/ptzPreset.vue";
 
 export default {
   name: 'devicePlayer',
   props: {},
   components: {
+    PtzPreset,
     LivePlayer, jessibucaPlayer, rtcPlayer,
   },
   computed: {
@@ -363,6 +394,8 @@ export default {
       },
       showVideoDialog: false,
       streamId: '',
+      ptzMethod: 'preset',
+      ptzPresetId: '',
       app: '',
       mediaServerId: '',
       convertKey: '',

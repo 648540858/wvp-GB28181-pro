@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.respon
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
-import com.genersoft.iot.vmp.gb28181.bean.PresetQuerySipReq;
+import com.genersoft.iot.vmp.gb28181.bean.Preset;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -79,11 +79,11 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
                 return;
             }
             int sumNum = Integer.parseInt(presetListNumElement.attributeValue("Num"));
-            List<PresetQuerySipReq> presetQuerySipReqList = new ArrayList<>();
+            List<Preset> presetQuerySipReqList = new ArrayList<>();
             if (sumNum > 0) {
                 for (Iterator<Element> presetIterator = presetListNumElement.elementIterator(); presetIterator.hasNext(); ) {
                     Element itemListElement = presetIterator.next();
-                    PresetQuerySipReq presetQuerySipReq = new PresetQuerySipReq();
+                    Preset presetQuerySipReq = new Preset();
                     for (Iterator<Element> itemListIterator = itemListElement.elementIterator(); itemListIterator.hasNext(); ) {
                         // 遍历item
                         Element itemOne = itemListIterator.next();

@@ -17,8 +17,8 @@
 
       </el-header>
       <el-main style="background-color: #ffffff;">
-        <RegionTree v-if="showRegion" ref="regionTree" :edit="false" :showHeader="false" :clickEvent="treeNodeClickEvent" ></RegionTree>
-        <GroupTree  v-if="!showRegion" ref="groupTree"  :edit="false" :showHeader="false" :clickEvent="treeNodeClickEvent" ></GroupTree>
+        <RegionTree v-if="showRegion" ref="regionTree" :edit="false" :showHeader="false" :hasChannel="true" :clickEvent="treeNodeClickEvent" ></RegionTree>
+        <GroupTree  v-if="!showRegion" ref="groupTree"  :edit="false" :showHeader="false" :hasChannel="true" :clickEvent="treeNodeClickEvent" ></GroupTree>
       </el-main>
     </el-container>
   </div>

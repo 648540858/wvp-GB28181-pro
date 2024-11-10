@@ -46,22 +46,28 @@
         </el-table-column>
         <el-table-column prop="gbName" label="名称" min-width="200">
         </el-table-column>
-        <el-table-column prop="app" label="应用名" min-width="200">
+        <el-table-column prop="app" label="应用名" min-width="100">
         </el-table-column>
         <el-table-column prop="stream" label="流ID" min-width="200">
         </el-table-column>
         <el-table-column label="推流状态"  min-width="100">
-          <template slot-scope="scope">
+          <template v-slot:default="scope">
             <el-tag size="medium" v-if="scope.row.pushing">推流中</el-tag>
             <el-tag size="medium" type="info" v-if="!scope.row.pushing">已停止</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="gbDeviceId" label="国标编码" min-width="200" >
         </el-table-column>
+        <el-table-column label="位置信息" min-width="200">
+          <template v-slot:default="scope">
+            <span size="medium" v-if="scope.row.gbLongitude && scope.row.gbLatitude">{{scope.row.gbLongitude}}<br/>{{scope.row.gbLatitude}}</span>
+            <span size="medium" v-if="!scope.row.gbLongitude || !scope.row.gbLatitude">无</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="mediaServerId" label="流媒体" min-width="200" >
         </el-table-column>
         <el-table-column label="开始时间"  min-width="200">
-          <template slot-scope="scope">
+          <template v-slot:default="scope">
             <el-button-group>
               {{ scope.row.pushTime == null? "-":scope.row.pushTime }}
             </el-button-group>
@@ -70,7 +76,7 @@
 
 
         <el-table-column label="操作" min-width="360"  fixed="right">
-          <template slot-scope="scope">
+          <template v-slot:default="scope">
             <el-button size="medium" icon="el-icon-video-play"@click="playPush(scope.row)" type="text">播放
             </el-button>
             <el-divider direction="vertical"></el-divider>
@@ -181,6 +187,12 @@ export default {
           if (res.data.code === 0) {
             that.total = res.data.data.total;
             that.pushList = res.data.data.list;
+            that.pushList.forEach(e => {
+              that.$set(e, "location", "");
+              if (e.gbLongitude && e.gbLatitude) {
+                that.$set(e, "location", e.gbLongitude + "," + e.gbLatitude);
+              }
+            });
           }
 
       }).catch(function (error) {

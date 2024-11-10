@@ -29,7 +29,7 @@ public class SipSubscribe {
 
     private final DelayQueue<SipEvent> delayQueue = new DelayQueue<>();
 
-    @Scheduled(fixedRate = 200)   //每200毫秒执行
+    @Scheduled(fixedDelay = 200)   //每200毫秒执行
     public void execute(){
         if (delayQueue.isEmpty()) {
             return;
@@ -179,5 +179,9 @@ public class SipSubscribe {
 
     public boolean isEmpty(){
         return subscribes.isEmpty();
+    }
+
+    public Integer size() {
+        return subscribes.size();
     }
 }

@@ -8,11 +8,9 @@ import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.streamPush.service.IStreamPushService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -38,86 +36,93 @@ public class RedisPushStreamListMsgListener implements MessageListener {
     @Resource
     private IStreamPushService streamPushService;
 
-    private ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
-
-    @Qualifier("taskExecutor")
-    @Autowired
-    private ThreadPoolTaskExecutor taskExecutor;
+    private final ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 
     @Override
     public void onMessage(Message message, byte[] bytes) {
-        log.info("[REDIS消息-推流设备列表更新]： {}", new String(message.getBody()));
-        boolean isEmpty = taskQueue.isEmpty();
+        log.info("[REDIS: 流设备列表更新]： {}", new String(message.getBody()));
         taskQueue.offer(message);
-        if (isEmpty) {
-            taskExecutor.execute(() -> {
-                while (!taskQueue.isEmpty()) {
-                    Message msg = taskQueue.poll();
-                    try {
-                        List<RedisPushStreamMessage> streamPushItems = JSON.parseArray(new String(msg.getBody()), RedisPushStreamMessage.class);
-                        //查询全部的app+stream 用于判断是添加还是修改
-                        Map<String, StreamPush> allAppAndStream = streamPushService.getAllAppAndStreamMap();
-                        Map<String, StreamPush> allGBId = streamPushService.getAllGBId();
+    }
 
-                        /**
-                         * 用于存储更具APP+Stream过滤后的数据，可以直接存入stream_push表与gb_stream表
-                         */
-                        List<StreamPush> streamPushItemForSave = new ArrayList<>();
-                        List<StreamPush> streamPushItemForUpdate = new ArrayList<>();
-                        for (RedisPushStreamMessage pushStreamMessage : streamPushItems) {
-                            String app = pushStreamMessage.getApp();
-                            String stream = pushStreamMessage.getStream();
-                            boolean contains = allAppAndStream.containsKey(app + stream);
-                            //不存在就添加
-                            if (!contains) {
-                                if (allGBId.containsKey(pushStreamMessage.getGbId())) {
-                                    StreamPush streamPushInDb = allGBId.get(pushStreamMessage.getGbId());
-                                    log.warn("[REDIS消息-推流设备列表更新-INSERT] 国标编号重复: {}, 已分配给{}/{}",
-                                            streamPushInDb.getGbDeviceId(), streamPushInDb.getApp(), streamPushInDb.getStream());
-                                    continue;
-                                }
-                                StreamPush streamPush = pushStreamMessage.buildstreamPush();
-                                streamPush.setCreateTime(DateUtil.getNow());
-                                streamPush.setUpdateTime(DateUtil.getNow());
-                                streamPush.setMediaServerId(mediaServerService.getDefaultMediaServer().getId());
-                                streamPushItemForSave.add(streamPush);
-                                allGBId.put(streamPush.getGbDeviceId(), streamPush);
-                            } else {
-                                StreamPush streamPushForGbDeviceId = allGBId.get(pushStreamMessage.getGbId());
-                                if (streamPushForGbDeviceId != null
-                                        && (!streamPushForGbDeviceId.getApp().equals(pushStreamMessage.getApp())
-                                        || !streamPushForGbDeviceId.getStream().equals(pushStreamMessage.getStream()))) {
-                                    StreamPush streamPushInDb = allGBId.get(pushStreamMessage.getGbId());
-                                    log.warn("[REDIS消息-推流设备列表更新-UPDATE] 国标编号重复: {}, 已分配给{}/{}",
-                                            pushStreamMessage.getGbId(), streamPushInDb.getApp(), streamPushInDb.getStream());
-                                    continue;
-                                }
-                                StreamPush streamPush = allAppAndStream.get(app + stream);
-                                streamPush.setUpdateTime(DateUtil.getNow());
-                                streamPush.setGbDeviceId(pushStreamMessage.getGbId());
-                                streamPush.setGbName(pushStreamMessage.getName());
-                                streamPush.setGbStatus(pushStreamMessage.isStatus()?"ON":"OFF");
-                                //存在就只修改 name和gbId
-                                streamPushItemForUpdate.add(streamPush);
-                            }
-                        }
-                        if (!streamPushItemForSave.isEmpty()) {
-                            log.info("添加{}条",streamPushItemForSave.size());
-                            log.info(JSONObject.toJSONString(streamPushItemForSave));
-                            streamPushService.batchAdd(streamPushItemForSave);
+    @Scheduled(fixedDelay = 100)
+    public void executeTaskQueue() {
+        if (taskQueue.isEmpty()) {
+            return;
+        }
+        List<Message> messageDataList = new ArrayList<>();
+        int size = taskQueue.size();
+        for (int i = 0; i < size; i++) {
+            Message msg = taskQueue.poll();
+            if (msg != null) {
+                messageDataList.add(msg);
+            }
+        }
+        if (messageDataList.isEmpty()) {
+            return;
+        }
+        for (Message msg : messageDataList) {
+            try {
+                List<RedisPushStreamMessage> streamPushItems = JSON.parseArray(new String(msg.getBody()), RedisPushStreamMessage.class);
+                //查询全部的app+stream 用于判断是添加还是修改
+                Map<String, StreamPush> allAppAndStream = streamPushService.getAllAppAndStreamMap();
+                Map<String, StreamPush> allGBId = streamPushService.getAllGBId();
 
+                // 用于存储更具APP+Stream过滤后的数据，可以直接存入stream_push表与gb_stream表
+                List<StreamPush> streamPushItemForSave = new ArrayList<>();
+                List<StreamPush> streamPushItemForUpdate = new ArrayList<>();
+                for (RedisPushStreamMessage pushStreamMessage : streamPushItems) {
+                    String app = pushStreamMessage.getApp();
+                    String stream = pushStreamMessage.getStream();
+                    boolean contains = allAppAndStream.containsKey(app + stream);
+                    //不存在就添加
+                    if (!contains) {
+                        if (allGBId.containsKey(pushStreamMessage.getGbId())) {
+                            StreamPush streamPushInDb = allGBId.get(pushStreamMessage.getGbId());
+                            log.warn("[REDIS消息-推流设备列表更新-INSERT] 国标编号重复: {}, 已分配给{}/{}",
+                                    streamPushInDb.getGbDeviceId(), streamPushInDb.getApp(), streamPushInDb.getStream());
+                            continue;
                         }
-                        if(!streamPushItemForUpdate.isEmpty()){
-                            log.info("修改{}条",streamPushItemForUpdate.size());
-                            log.info(JSONObject.toJSONString(streamPushItemForUpdate));
-                            streamPushService.batchUpdate(streamPushItemForUpdate);
+                        StreamPush streamPush = pushStreamMessage.buildstreamPush();
+                        streamPush.setCreateTime(DateUtil.getNow());
+                        streamPush.setUpdateTime(DateUtil.getNow());
+                        streamPush.setMediaServerId(mediaServerService.getDefaultMediaServer().getId());
+                        streamPushItemForSave.add(streamPush);
+                        allGBId.put(streamPush.getGbDeviceId(), streamPush);
+                    } else {
+                        StreamPush streamPushForGbDeviceId = allGBId.get(pushStreamMessage.getGbId());
+                        if (streamPushForGbDeviceId != null
+                                && (!streamPushForGbDeviceId.getApp().equals(pushStreamMessage.getApp())
+                                || !streamPushForGbDeviceId.getStream().equals(pushStreamMessage.getStream()))) {
+                            StreamPush streamPushInDb = allGBId.get(pushStreamMessage.getGbId());
+                            log.warn("[REDIS消息-推流设备列表更新-UPDATE] 国标编号重复: {}, 已分配给{}/{}",
+                                    pushStreamMessage.getGbId(), streamPushInDb.getApp(), streamPushInDb.getStream());
+                            continue;
                         }
-                    }catch (Exception e) {
-                        log.warn("[REDIS消息-推流设备列表更新] 发现未处理的异常, \r\n{}", new String(message.getBody()));
-                        log.error("[REDIS消息-推流设备列表更新] 异常内容： ", e);
+                        StreamPush streamPush = allAppAndStream.get(app + stream);
+                        streamPush.setUpdateTime(DateUtil.getNow());
+                        streamPush.setGbDeviceId(pushStreamMessage.getGbId());
+                        streamPush.setGbName(pushStreamMessage.getName());
+                        streamPush.setGbStatus(pushStreamMessage.isStatus() ? "ON" : "OFF");
+                        //存在就只修改 name和gbId
+                        streamPushItemForUpdate.add(streamPush);
                     }
                 }
-            });
+                if (!streamPushItemForSave.isEmpty()) {
+                    log.info("添加{}条", streamPushItemForSave.size());
+                    log.info(JSONObject.toJSONString(streamPushItemForSave));
+                    streamPushService.batchAdd(streamPushItemForSave);
+
+                }
+                if (!streamPushItemForUpdate.isEmpty()) {
+                    log.info("修改{}条", streamPushItemForUpdate.size());
+                    log.info(JSONObject.toJSONString(streamPushItemForUpdate));
+                    streamPushService.batchUpdate(streamPushItemForUpdate);
+                }
+            } catch (Exception e) {
+                log.warn("[REDIS消息-推流设备列表更新] 发现未处理的异常, \r\n{}", new String(msg.getBody()));
+                log.error("[REDIS消息-推流设备列表更新] 异常内容： ", e);
+            }
         }
+
     }
 }

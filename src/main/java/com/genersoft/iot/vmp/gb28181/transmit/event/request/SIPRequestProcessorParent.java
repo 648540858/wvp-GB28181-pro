@@ -12,6 +12,7 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
 
 import javax.sip.*;
 import javax.sip.address.Address;
@@ -170,10 +171,17 @@ public abstract class SIPRequestProcessorParent {
 	}
 	public Element getRootElement(RequestEvent evt, String charset) throws DocumentException {
 
+		byte[] rawContent = evt.getRequest().getRawContent();
+		if (evt.getRequest().getContentLength().getContentLength() == 0
+				|| rawContent == null
+				|| rawContent.length == 0
+				|| ObjectUtils.isEmpty(new String(rawContent))) {
+			return null;
+		}
+
 		if (charset == null) {
 			charset = "gb2312";
 		}
-		Request request = evt.getRequest();
 		SAXReader reader = new SAXReader();
 		reader.setEncoding(charset);
 		// 对海康出现的未转义字符做处理。
@@ -182,10 +190,6 @@ public abstract class SIPRequestProcessorParent {
 		char despChar = '&';
 		byte destBye = (byte) despChar;
 		List<Byte> result = new ArrayList<>();
-		byte[] rawContent = request.getRawContent();
-		if (rawContent == null) {
-			return null;
-		}
 		for (int i = 0; i < rawContent.length; i++) {
 			if (rawContent[i] == destBye) {
 				boolean resul = false;

@@ -15,10 +15,9 @@ import com.genersoft.iot.vmp.service.IMobilePositionService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
@@ -26,6 +25,7 @@ import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import javax.validation.constraints.NotNull;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -55,111 +55,119 @@ public class RedisAlarmMsgListener implements MessageListener {
     @Autowired
     private IPlatformService platformService;
 
-    private ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
-
-    @Qualifier("taskExecutor")
-    @Autowired
-    private ThreadPoolTaskExecutor taskExecutor;
+    private final ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 
     @Autowired
     private UserSetting userSetting;
 
     @Override
     public void onMessage(@NotNull Message message, byte[] bytes) {
-        log.info("收到来自REDIS的ALARM通知： {}", new String(message.getBody()));
-        boolean isEmpty = taskQueue.isEmpty();
+        log.info("[REDIS: ALARM]： {}", new String(message.getBody()));
         taskQueue.offer(message);
-        if (isEmpty) {
-//            logger.info("[线程池信息]活动线程数：{}, 最大线程数： {}", taskExecutor.getActiveCount(), taskExecutor.getMaxPoolSize());
-            taskExecutor.execute(() -> {
-                while (!taskQueue.isEmpty()) {
-                    Message msg = taskQueue.poll();
-                    try {
-                        AlarmChannelMessage alarmChannelMessage = JSON.parseObject(msg.getBody(), AlarmChannelMessage.class);
-                        if (alarmChannelMessage == null) {
-                            log.warn("[REDIS的ALARM通知]消息解析失败");
-                            continue;
-                        }
-                        String gbId = alarmChannelMessage.getGbId();
+    }
 
-                        DeviceAlarm deviceAlarm = new DeviceAlarm();
-                        deviceAlarm.setCreateTime(DateUtil.getNow());
-                        deviceAlarm.setChannelId(gbId);
-                        deviceAlarm.setAlarmDescription(alarmChannelMessage.getAlarmDescription());
-                        deviceAlarm.setAlarmMethod("" + alarmChannelMessage.getAlarmSn());
-                        deviceAlarm.setAlarmType("" + alarmChannelMessage.getAlarmType());
-                        deviceAlarm.setAlarmPriority("1");
-                        deviceAlarm.setAlarmTime(DateUtil.getNow());
-                        deviceAlarm.setLongitude(0);
-                        deviceAlarm.setLatitude(0);
+    @Scheduled(fixedDelay = 100)
+    public void executeTaskQueue() {
+        if (taskQueue.isEmpty()) {
+            return;
+        }
+        List<Message> messageDataList = new ArrayList<>();
+        int size = taskQueue.size();
+        for (int i = 0; i < size; i++) {
+            Message msg = taskQueue.poll();
+            if (msg != null) {
+                messageDataList.add(msg);
+            }
+        }
+        if (messageDataList.isEmpty()) {
+            return;
+        }
+        for (Message msg : messageDataList) {
+            try {
+                AlarmChannelMessage alarmChannelMessage = JSON.parseObject(msg.getBody(), AlarmChannelMessage.class);
+                if (alarmChannelMessage == null) {
+                    log.warn("[REDIS的ALARM通知]消息解析失败");
+                    continue;
+                }
+                String gbId = alarmChannelMessage.getGbId();
 
-                        if (ObjectUtils.isEmpty(gbId)) {
-                            if (userSetting.getSendToPlatformsWhenIdLost()) {
-                                // 发送给所有的上级
-                                List<Platform> parentPlatforms = platformService.queryEnablePlatformList();
-                                if (!parentPlatforms.isEmpty()) {
-                                    for (Platform parentPlatform : parentPlatforms) {
-                                        try {
-                                            deviceAlarm.setChannelId(parentPlatform.getDeviceGBId());
-                                            commanderForPlatform.sendAlarmMessage(parentPlatform, deviceAlarm);
-                                        } catch (SipException | InvalidArgumentException | ParseException e) {
-                                            log.error("[命令发送失败] 国标级联 发送报警: {}", e.getMessage());
-                                        }
-                                    }
-                                }
-                            }else {
-                                // 获取开启了消息推送的设备和平台
-                                List<Platform> parentPlatforms = mobilePositionService.queryEnablePlatformListWithAsMessageChannel();
-                                if (parentPlatforms.size() > 0) {
-                                    for (Platform parentPlatform : parentPlatforms) {
-                                        try {
-                                            deviceAlarm.setChannelId(parentPlatform.getDeviceGBId());
-                                            commanderForPlatform.sendAlarmMessage(parentPlatform, deviceAlarm);
-                                        } catch (SipException | InvalidArgumentException | ParseException e) {
-                                            log.error("[命令发送失败] 国标级联 发送报警: {}", e.getMessage());
-                                        }
-                                    }
-                                }
+                DeviceAlarm deviceAlarm = new DeviceAlarm();
+                deviceAlarm.setCreateTime(DateUtil.getNow());
+                deviceAlarm.setChannelId(gbId);
+                deviceAlarm.setAlarmDescription(alarmChannelMessage.getAlarmDescription());
+                deviceAlarm.setAlarmMethod("" + alarmChannelMessage.getAlarmSn());
+                deviceAlarm.setAlarmType("" + alarmChannelMessage.getAlarmType());
+                deviceAlarm.setAlarmPriority("1");
+                deviceAlarm.setAlarmTime(DateUtil.getNow());
+                deviceAlarm.setLongitude(0);
+                deviceAlarm.setLatitude(0);
 
-                            }
-                            // 获取开启了消息推送的设备和平台
-                            List<Device> devices = channelService.queryDeviceWithAsMessageChannel();
-                            if (devices.size() > 0) {
-                                for (Device device : devices) {
-                                    try {
-                                        deviceAlarm.setChannelId(device.getDeviceId());
-                                        commander.sendAlarmMessage(device, deviceAlarm);
-                                    } catch (InvalidArgumentException | SipException | ParseException e) {
-                                        log.error("[命令发送失败] 发送报警: {}", e.getMessage());
-                                    }
-                                }
-                            }
-
-                        }else {
-                            Device device = deviceService.getDeviceByDeviceId(gbId);
-                            Platform platform = platformService.queryPlatformByServerGBId(gbId);
-                            if (device != null && platform == null) {
+                if (ObjectUtils.isEmpty(gbId)) {
+                    if (userSetting.getSendToPlatformsWhenIdLost()) {
+                        // 发送给所有的上级
+                        List<Platform> parentPlatforms = platformService.queryEnablePlatformList();
+                        if (!parentPlatforms.isEmpty()) {
+                            for (Platform parentPlatform : parentPlatforms) {
                                 try {
-                                    commander.sendAlarmMessage(device, deviceAlarm);
-                                } catch (InvalidArgumentException | SipException | ParseException e) {
-                                    log.error("[命令发送失败] 发送报警: {}", e.getMessage());
+                                    deviceAlarm.setChannelId(parentPlatform.getDeviceGBId());
+                                    commanderForPlatform.sendAlarmMessage(parentPlatform, deviceAlarm);
+                                } catch (SipException | InvalidArgumentException | ParseException e) {
+                                    log.error("[命令发送失败] 国标级联 发送报警: {}", e.getMessage());
                                 }
-                            }else if (device == null && platform != null){
-                                try {
-                                    commanderForPlatform.sendAlarmMessage(platform, deviceAlarm);
-                                } catch (InvalidArgumentException | SipException | ParseException e) {
-                                    log.error("[命令发送失败] 发送报警: {}", e.getMessage());
-                                }
-                            }else {
-                                log.warn("无法确定" + gbId + "是平台还是设备");
                             }
                         }
-                    }catch (Exception e) {
-                        log.error("未处理的异常 ", e);
-                        log.warn("[REDIS的ALARM通知] 发现未处理的异常, {}",e.getMessage());
+                    } else {
+                        // 获取开启了消息推送的设备和平台
+                        List<Platform> parentPlatforms = mobilePositionService.queryEnablePlatformListWithAsMessageChannel();
+                        if (!parentPlatforms.isEmpty()) {
+                            for (Platform parentPlatform : parentPlatforms) {
+                                try {
+                                    deviceAlarm.setChannelId(parentPlatform.getDeviceGBId());
+                                    commanderForPlatform.sendAlarmMessage(parentPlatform, deviceAlarm);
+                                } catch (SipException | InvalidArgumentException | ParseException e) {
+                                    log.error("[命令发送失败] 国标级联 发送报警: {}", e.getMessage());
+                                }
+                            }
+                        }
+
+                    }
+                    // 获取开启了消息推送的设备和平台
+                    List<Device> devices = channelService.queryDeviceWithAsMessageChannel();
+                    if (!devices.isEmpty()) {
+                        for (Device device : devices) {
+                            try {
+                                deviceAlarm.setChannelId(device.getDeviceId());
+                                commander.sendAlarmMessage(device, deviceAlarm);
+                            } catch (InvalidArgumentException | SipException | ParseException e) {
+                                log.error("[命令发送失败] 发送报警: {}", e.getMessage());
+                            }
+                        }
+                    }
+
+                } else {
+                    Device device = deviceService.getDeviceByDeviceId(gbId);
+                    Platform platform = platformService.queryPlatformByServerGBId(gbId);
+                    if (device != null && platform == null) {
+                        try {
+                            commander.sendAlarmMessage(device, deviceAlarm);
+                        } catch (InvalidArgumentException | SipException | ParseException e) {
+                            log.error("[命令发送失败] 发送报警: {}", e.getMessage());
+                        }
+                    } else if (device == null && platform != null) {
+                        try {
+                            commanderForPlatform.sendAlarmMessage(platform, deviceAlarm);
+                        } catch (InvalidArgumentException | SipException | ParseException e) {
+                            log.error("[命令发送失败] 发送报警: {}", e.getMessage());
+                        }
+                    } else {
+                        log.warn("无法确定" + gbId + "是平台还是设备");
                     }
                 }
-            });
+            } catch (Exception e) {
+                log.error("未处理的异常 ", e);
+                log.warn("[REDIS的ALARM通知] 发现未处理的异常, {}", e.getMessage());
+            }
         }
     }
 }
+

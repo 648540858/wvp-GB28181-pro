@@ -122,6 +122,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			}
 			DeviceAlarm deviceAlarm = new DeviceAlarm();
 			deviceAlarm.setDeviceId(deviceId);
+			deviceAlarm.setDeviceName(device.getName());
 			deviceAlarm.setAlarmPriority(XmlUtil.getText(rootElement, "AlarmPriority"));
 			deviceAlarm.setAlarmMethod(XmlUtil.getText(rootElement, "AlarmMethod"));
 			String alarmTime = XmlUtil.getText(rootElement, "AlarmTime");

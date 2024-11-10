@@ -17,12 +17,9 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
-import com.genersoft.iot.vmp.service.redisMsg.RedisPushStreamResponseListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import gov.nist.javax.sdp.TimeDescriptionImpl;
 import gov.nist.javax.sdp.fields.TimeField;
@@ -34,7 +31,6 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.sdp.*;
@@ -44,7 +40,6 @@ import javax.sip.SipException;
 import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
-import java.time.Instant;
 import java.util.List;
 import java.util.Vector;
 
@@ -83,12 +78,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     private IMediaServerService mediaServerService;
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
-
-    @Autowired
-    private SSRCFactory ssrcFactory;
-
-    @Autowired
     private DynamicTask dynamicTask;
 
     @Autowired
@@ -101,13 +90,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     private AudioBroadcastManager audioBroadcastManager;
 
     @Autowired
-    private HookSubscribe hookSubscribe;
-
-    @Autowired
     private SIPProcessorObserver sipProcessorObserver;
-
-    @Autowired
-    private UserSetting userSetting;
 
     @Autowired
     private SipConfig config;
@@ -116,10 +99,10 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     private SipInviteSessionManager sessionManager;
 
     @Autowired
-    private SendRtpPortManager sendRtpPortManager;
+    private UserSetting userSetting;
 
     @Autowired
-    private RedisPushStreamResponseListener redisPushStreamResponseListener;
+    private SSRCFactory ssrcFactory;
 
 
     @Override
@@ -161,6 +144,16 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         platform.getName(), channel.getGbName(), channel.getGbDeviceId(), inviteInfo.getIp(),
                         inviteInfo.getPort(), inviteInfo.isTcp()?(inviteInfo.isTcpActive()?"TCP主动":"TCP被动"): "UDP",
                         inviteInfo.getSessionName(), inviteInfo.getSsrc());
+                if(!userSetting.getUseCustomSsrcForParentInvite() && ObjectUtils.isEmpty(inviteInfo.getSsrc())) {
+                    log.warn("[上级INVITE] 点播失败, 上级为携带SSRC, 并且本级未设置使用自定义ssrc");
+                    // 通道存在，发100，TRYING
+                    try {
+                        responseAck(request, Response.BAD_REQUEST);
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        log.error("[命令发送失败] 上级Invite TRYING: {}", e.getMessage());
+                    }
+                    return;
+                }
                 // 通道存在，发100，TRYING
                 try {
                     responseAck(request, Response.TRYING);
@@ -177,7 +170,13 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         }
                     }else {
                         // 点播成功， TODO 可以在此处检测cancel命令是否存在，存在则不发送
-
+                        if (userSetting.getUseCustomSsrcForParentInvite()) {
+                            // 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
+                            String ssrc = "Play".equalsIgnoreCase(inviteInfo.getSessionName())
+                                        ? ssrcFactory.getPlaySsrc(streamInfo.getMediaServer().getId())
+                                    : ssrcFactory.getPlayBackSsrc(streamInfo.getMediaServer().getId());
+                            inviteInfo.setSsrc(ssrc);
+                        }
                         // 构建sendRTP内容
                         SendRtpInfo sendRtpItem = sendRtpServerService.createSendRtpInfo(streamInfo.getMediaServer(),
                                 inviteInfo.getIp(), inviteInfo.getPort(), inviteInfo.getSsrc(), platform.getServerGBId(),
@@ -223,7 +222,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                 sendBye(platform, inviteInfo.getCallId());
                             }
                         }
-
                     }
                 }));
             }
@@ -287,16 +285,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         // 如果是录像回放，则会存在录像的开始时间与结束时间
         Long startTime = null;
         Long stopTime = null;
-        Instant start = null;
-        Instant end = null;
-        if (sdp.getTimeDescriptions(false) != null && sdp.getTimeDescriptions(false).size() > 0) {
+        if (sdp.getTimeDescriptions(false) != null && !sdp.getTimeDescriptions(false).isEmpty()) {
             TimeDescriptionImpl timeDescription = (TimeDescriptionImpl) (sdp.getTimeDescriptions(false).get(0));
             TimeField startTimeFiled = (TimeField) timeDescription.getTime();
             startTime = startTimeFiled.getStartTime();
             stopTime = startTimeFiled.getStopTime();
-
-            start = Instant.ofEpochSecond(startTime);
-            end = Instant.ofEpochSecond(stopTime);
         }
         //  获取支持的格式
         Vector mediaDescriptions = sdp.getMediaDescriptions(true);
@@ -338,13 +331,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         inviteInfo.setTcpActive(tcpActive != null? tcpActive: false);
         inviteInfo.setStartTime(startTime);
         inviteInfo.setStopTime(stopTime);
-        String username = sdp.getOrigin().getUsername();
-//        String addressStr;
-//        if(StringUtils.isEmpty(platform.getSendStreamIp())){
-//            addressStr = sdp.getConnection().getAddress();
-//        }else {
-//            addressStr = platform.getSendStreamIp();
-//        }
 
         Vector sdpMediaDescriptions = sdp.getMediaDescriptions(true);
         MediaDescription mediaDescription = null;

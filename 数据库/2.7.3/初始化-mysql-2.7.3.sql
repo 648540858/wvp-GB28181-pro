@@ -25,7 +25,7 @@ create table wvp_device
     charset                             character varying(50),
     ssrc_check                          bool    default false,
     geo_coord_sys                       character varying(50),
-    media_server_id                     character varying(50),
+    media_server_id                     character varying(50) default 'auto',
     custom_name                         character varying(255),
     sdp_ip                              character varying(50),
     local_ip                            character varying(50),
@@ -65,35 +65,6 @@ create table wvp_device_mobile_position
     direction       double precision,
     report_source   character varying(50),
     create_time     character varying(50)
-);
-
-create table wvp_gb_stream
-(
-    gb_stream_id    serial primary key,
-    app             character varying(255) not null,
-    stream          character varying(255) not null,
-    gb_id           character varying(50)  not null,
-    name            character varying(255),
-    longitude       double precision,
-    latitude        double precision,
-    stream_type     character varying(50),
-    media_server_id character varying(50),
-    create_time     character varying(50),
-    constraint uk_gb_stream_unique_gb_id unique (gb_id),
-    constraint uk_gb_stream_unique_app_stream unique (app, stream)
-);
-
-create table wvp_log
-(
-    id          serial primary key,
-    name        character varying(50),
-    type        character varying(50),
-    uri         character varying(200),
-    address     character varying(50),
-    result      character varying(50),
-    timing      bigint,
-    username    character varying(50),
-    create_time character varying(50)
 );
 
 create table wvp_device_channel
@@ -184,7 +155,7 @@ create table wvp_device_channel
     constraint uk_wvp_unique_stream_proxy_id unique (stream_proxy_id)
 );
 
-
+create index uk_wvp_device_db_id on wvp_device_channel (device_db_id);
 
 create table wvp_media_server
 (

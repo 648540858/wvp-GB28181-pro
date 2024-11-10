@@ -30,13 +30,14 @@
 
       </el-aside>
 			<el-main style="padding-bottom: 10px;">
-        <div class="playBox" :style="playerStyle">
+        <div class="playBox" :style="playerBoxStyle">
           <player ref="recordVideoPlayer"
                   :videoUrl="videoUrl"
                   :error="videoError"
                   :message="videoError"
                   :hasAudio="hasAudio"
                   style="max-height: 100%"
+                  :height="playerHeight"
                   fluent autoplay live ></player>
         </div>
         <div class="player-option-box">
@@ -136,10 +137,11 @@
           overflow: "auto",
           margin: "10px auto 10px auto"
         },
-        playerStyle: {
+        playerBoxStyle: {
 			    "margin": "0 auto 20px auto",
           "height": this.winHeight + "px",
         },
+        playerHeight: this.winHeight,
         winHeight: window.innerHeight - 240,
         playTime: null,
         timeRange: null,
@@ -179,7 +181,7 @@
 		},
 		mounted() {
       this.recordListStyle.height = this.winHeight + "px";
-      this.playerStyle["height"] = this.winHeight + "px";
+      this.playerBoxStyle["height"] = this.winHeight + "px";
       this.chooseDate = moment().format('YYYY-MM-DD')
       this.dateChange();
       window.addEventListener('beforeunload', this.stopPlayRecord)

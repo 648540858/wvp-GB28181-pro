@@ -39,7 +39,7 @@ public interface IInviteStreamService {
      */
     void removeInviteInfoByDeviceAndChannel(InviteSessionType inviteSessionType, Integer channelId);
 
-    List<InviteInfo> getAllInviteInfo(InviteSessionType type, Integer channelId, String stream);
+    List<InviteInfo> getAllInviteInfo();
 
     /**
      * 获取点播的状态信息

@@ -540,4 +540,12 @@ public interface PlatformChannelMapper {
             " </script>")
     Set<Group> queryShareGroup(@Param("platformId") Integer platformId);
 
+    @Select(" <script>" +
+            " SELECT wcr.* " +
+            " from wvp_common_region wcr" +
+            " left join wvp_platform_region wpr on wpr.region_id = wcr.id " +
+            " where wpr.platform_id = #{platformId}" +
+            " order by wcr.id DESC" +
+            " </script>")
+    Set<Region> queryShareRegion(Integer id);
 }

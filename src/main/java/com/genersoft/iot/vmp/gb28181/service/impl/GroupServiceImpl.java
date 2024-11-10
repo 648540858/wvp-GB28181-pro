@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.GroupMapper;
@@ -8,6 +9,7 @@ import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IGroupService;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,10 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 区域管理类
@@ -154,7 +153,7 @@ public class GroupServiceImpl implements IGroupService {
     }
 
     @Override
-    public List<GroupTree> queryForTree(String query, Integer parentId) {
+    public List<GroupTree> queryForTree(String query, Integer parentId, Boolean hasChannel) {
 
         List<GroupTree> groupTrees = groupManager.queryForTree(query, parentId);
         if (parentId == null) {
@@ -162,7 +161,7 @@ public class GroupServiceImpl implements IGroupService {
         }
         // 查询含有的通道
         Group parentGroup = groupManager.queryOne(parentId);
-        if (parentGroup != null ) {
+        if (parentGroup != null && hasChannel != null && hasChannel) {
             List<GroupTree> groupTreesForChannel = commonGBChannelMapper.queryForGroupTreeByParentId(query, parentGroup.getDeviceId());
             if (!ObjectUtils.isEmpty(groupTreesForChannel)) {
                 groupTrees.addAll(groupTreesForChannel);
@@ -246,5 +245,38 @@ public class GroupServiceImpl implements IGroupService {
         }
 
         return true;
+    }
+
+    @Override
+    public List<Group> getPath(String deviceId, String businessGroup) {
+        Group businessGroupInDb = groupManager.queryBusinessGroup(businessGroup);
+        if (businessGroupInDb == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "业务分组不存在");
+        }
+        List<Group> groupList = new LinkedList<>();
+        groupList.add(businessGroupInDb);
+        Group group = groupManager.queryOneByDeviceId(deviceId, businessGroup);
+        if (group == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "虚拟组织不存在");
+        }
+        groupList.add(group);
+        List<Group> allParent = getAllParent(group);
+        groupList.addAll(allParent);
+        return groupList;
+    }
+
+    private List<Group> getAllParent(Group group) {
+        if (group.getParentId() == null || group.getBusinessGroup() == null) {
+            return new ArrayList<>();
+        }
+
+        List<Group> groupList = new ArrayList<>();
+        Group parent = groupManager.queryOneByDeviceId(group.getParentDeviceId(), group.getBusinessGroup());
+        if (parent == null) {
+            return groupList;
+        }
+        List<Group> allParent = getAllParent(parent);
+        allParent.add(parent);
+        return allParent;
     }
 }

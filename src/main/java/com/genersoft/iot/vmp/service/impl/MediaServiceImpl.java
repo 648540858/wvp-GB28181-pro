@@ -9,8 +9,8 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
-import com.genersoft.iot.vmp.gb28181.service.*;
-import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
@@ -62,28 +62,10 @@ public class MediaServiceImpl implements IMediaService {
     private IInviteStreamService inviteStreamService;
 
     @Autowired
-    private SSRCFactory ssrcFactory;
-
-    @Autowired
     private IDeviceChannelService deviceChannelService;
 
     @Autowired
     private SipInviteSessionManager sessionManager;
-
-    @Autowired
-    private IPlatformService platformService;
-
-    @Autowired
-    private IGbChannelService channelService;
-
-    @Autowired
-    private IDeviceService deviceService;
-
-    @Autowired
-    private ISIPCommanderForPlatform commanderForPlatform;
-
-    @Autowired
-    private ISIPCommander commander;
 
     @Autowired
     private Ijt1078Service ijt1078Service;
@@ -93,6 +75,7 @@ public class MediaServiceImpl implements IMediaService {
 
     @Autowired
     private ISendRtpServerService sendRtpServerService;
+
 
     @Override
     public boolean authenticatePlay(String app, String stream, String callId) {
@@ -158,7 +141,7 @@ public class MediaServiceImpl implements IMediaService {
         if ("rtp".equals(app)) {
             result.setEnable_mp4(userSetting.getRecordSip());
         } else {
-            result.setEnable_mp4(userSetting.isRecordPushLive());
+            result.setEnable_mp4(userSetting.getRecordPushLive());
         }
         // 国标流
         if ("rtp".equals(app)) {

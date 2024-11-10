@@ -138,7 +138,7 @@ export default {
         supportDblclickFullscreen: false,
         timeout: 10,
         useMSE: true,
-        useWCS: location.hostname === "localhost" || location.protocol === "https:",
+        useWCS: false,
         useWebFullScreen: true,
         videoBuffer: 0.1,
         wasmDecodeErrorReplay: true,

@@ -28,10 +28,6 @@ public interface IRedisCatchStorage {
 
     void delPlatformCatchInfo(String platformGbId);
 
-    void delPlatformKeepalive(String platformGbId);
-
-    void delPlatformRegister(String platformGbId);
-
     void updatePlatformRegisterInfo(String callId, PlatformRegisterInfo platformRegisterInfo);
 
     PlatformRegisterInfo queryPlatformRegisterInfo(String callId);
@@ -98,11 +94,8 @@ public interface IRedisCatchStorage {
     void updateGpsMsgInfo(GPSMsgInfo gpsMsgInfo);
 
     GPSMsgInfo getGpsMsgInfo(String gbId);
+
     List<GPSMsgInfo> getAllGpsMsgInfo();
-
-    Long getSN(String method);
-
-    void resetAllSN();
 
     MediaInfo getStreamInfo(String app, String streamId, String mediaServerId);
 

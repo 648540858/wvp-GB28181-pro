@@ -243,8 +243,6 @@ public class DeviceQuery {
 	}
 
 	@Operation(summary = "修改通道的码流类型", security = @SecurityRequirement(name = JwtUtils.HEADER))
-	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
-	@Parameter(name = "channel", description = "通道信息", required = true)
 	@PostMapping("/channel/stream/identification/update/")
 	public void updateChannelStreamIdentification(DeviceChannel channel){
 		deviceChannelService.updateChannelStreamIdentification(channel);
@@ -298,13 +296,10 @@ public class DeviceQuery {
 	@Parameter(name = "device", description = "设备", required = true)
 	@PostMapping("/device/update/")
 	public void updateDevice(Device device){
-
-		if (device != null && device.getDeviceId() != null) {
-			if (device.getSubscribeCycleForMobilePosition() > 0 && device.getMobilePositionSubmissionInterval() <= 0) {
-				device.setMobilePositionSubmissionInterval(5);
-			}
-			deviceService.updateCustomDevice(device);
+		if (device == null || device.getDeviceId() == null || device.getId() <= 0) {
+			throw new ControllerException(ErrorCode.ERROR400);
 		}
+		deviceService.updateCustomDevice(device);
 	}
 
 	/**
@@ -469,7 +464,7 @@ public class DeviceQuery {
 			in.close();
 			outputStream.close();
 		} catch (IOException e) {
-			resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
 		}
 	}
 

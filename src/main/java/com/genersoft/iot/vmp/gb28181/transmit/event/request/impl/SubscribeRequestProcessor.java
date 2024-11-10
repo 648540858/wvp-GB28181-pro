@@ -68,6 +68,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 			Element rootElement = getRootElement(evt);
 			if (rootElement == null) {
 				log.error("处理SUBSCRIBE请求  未获取到消息体{}", evt.getRequest());
+				responseAck(request, Response.BAD_REQUEST);
 				return;
 			}
 			String cmd = XmlUtil.getText(rootElement, "CmdType");

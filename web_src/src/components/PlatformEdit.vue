@@ -168,7 +168,7 @@ export default {
       } else {
         var exit = await this.deviceGBIdExit(value);
         if (exit) {
-          callback(new Error("设备国标编号已存在"));
+          callback(new Error("设备国标编号格式错误或已存在"));
         } else {
           callback();
         }
@@ -286,6 +286,18 @@ export default {
           type: "warning",
         });
       }
+    },
+    deviceGBIdExit: async function (deviceGbId) {
+      let result = false;
+      await this.$axios({
+        method:"get",
+        url:`/api/platform/exit/${deviceGbId}`
+      }).then((res)=> {
+        result = res.data;
+      }).catch((error)=> {
+        console.log(error);
+      });
+      return result;
     },
     close: function () {
       this.closeEdit()

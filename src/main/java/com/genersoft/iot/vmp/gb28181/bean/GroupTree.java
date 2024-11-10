@@ -19,4 +19,7 @@ public class GroupTree extends Group{
     @Schema(description = "类型, 行政区划:0 摄像头: 1")
     private int type;
 
+    @Schema(description = "在线状态")
+    private String status;
+
 }

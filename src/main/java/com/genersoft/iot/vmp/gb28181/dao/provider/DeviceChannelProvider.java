@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.dao.provider;
 
+import org.springframework.util.ObjectUtils;
+
 import java.util.List;
 import java.util.Map;
 
@@ -58,14 +60,20 @@ public class DeviceChannelProvider {
     public String queryChannels(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append(" where dc.device_db_id = #{deviceDbId}");
-        if (params.get("query") != null) {
-            sqlBuild.append(" AND coalesce(dc.gb_device_id, dc.device_id) LIKE concat('%',#{query},'%')" +
-                    " OR coalesce(dc.gb_name, dc.name) LIKE concat('%',#{query},'%')")
-            ;
+        sqlBuild.append(" where dc.device_db_id = #{deviceDbId} ");
+        if (params.get("businessGroupId") != null ) {
+            sqlBuild.append(" AND coalesce(dc.gb_business_group_id, dc.business_group_id)=#{businessGroupId} AND coalesce(dc.gb_parent_id, dc.parent_id) is null");
+        }else if (params.get("parentChannelId") != null ) {
+            sqlBuild.append(" AND coalesce(dc.gb_parent_id, dc.parent_id)=#{parentChannelId}");
         }
-        if (params.get("parentChannelId") != null ) {
-            sqlBuild.append(" AND (dc.parent_id=#{parentChannelId} OR coalesce(dc.gb_civil_code, dc.civil_code) = #{parentChannelId})");
+        if (params.get("civilCode") != null ) {
+            sqlBuild.append(" AND (coalesce(dc.gb_civil_code, dc.civil_code) = #{civilCode} " +
+                    "OR (LENGTH(coalesce(dc.gb_device_id, dc.device_id))=LENGTH(#{civilCode}) + 2) AND coalesce(dc.gb_device_id, dc.device_id) LIKE concat(#{civilCode},'%'))");
+        }
+        if (params.get("query") != null && !ObjectUtils.isEmpty(params.get("query"))) {
+            sqlBuild.append(" AND (coalesce(dc.gb_device_id, dc.device_id) LIKE concat('%',#{query},'%')" +
+                    " OR coalesce(dc.gb_name, dc.name) LIKE concat('%',#{query},'%'))")
+            ;
         }
         if (params.get("online") != null && (Boolean)params.get("online")) {
             sqlBuild.append(" AND coalesce(gb_status, status) = 'ON'");

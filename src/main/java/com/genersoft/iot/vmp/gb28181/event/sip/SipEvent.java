@@ -23,7 +23,7 @@ public class SipEvent implements Delayed {
     private SipSubscribe.Event errorEvent;
 
     /**
-     * 超时时间
+     * 超时时间(单位： 毫秒)
      */
     private long delay;
 
@@ -38,7 +38,7 @@ public class SipEvent implements Delayed {
 
     @Override
     public long getDelay(@NotNull TimeUnit unit) {
-        return unit.convert(delay - System.currentTimeMillis(),TimeUnit.MILLISECONDS);
+        return unit.convert(delay, TimeUnit.MILLISECONDS);
     }
 
     @Override

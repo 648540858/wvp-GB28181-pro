@@ -68,11 +68,15 @@
               </el-image>
             </template>
           </el-table-column>
-          <el-table-column prop="subCount" label="子节点数" min-width="100">
-          </el-table-column>
+<!--          <el-table-column prop="subCount" label="子节点数" min-width="100">-->
+<!--          </el-table-column>-->
           <el-table-column prop="manufacturer" label="厂家" min-width="100">
           </el-table-column>
-          <el-table-column prop="location" label="位置信息" min-width="120">
+          <el-table-column label="位置信息" min-width="120">
+            <template v-slot:default="scope">
+              <span size="medium" v-if="scope.row.longitude && scope.row.latitude">{{scope.row.longitude}}<br/>{{scope.row.latitude}}</span>
+              <span size="medium" v-if="!scope.row.longitude || !scope.row.latitude">无</span>
+            </template>
           </el-table-column>
           <el-table-column prop="ptzType" label="云台类型" min-width="100">
             <template v-slot:default="scope">
@@ -80,13 +84,13 @@
             </template>
           </el-table-column>
           <el-table-column label="开启音频" min-width="100">
-            <template slot-scope="scope">
+            <template v-slot:default="scope">
               <el-switch @change="updateChannel(scope.row)" v-model="scope.row.hasAudio" active-color="#409EFF">
               </el-switch>
             </template>
           </el-table-column>
           <el-table-column label="码流类型" min-width="180">
-            <template slot-scope="scope">
+            <template v-slot:default="scope">
               <el-select size="mini" style="margin-right: 1rem;" @change="channelSubStreamChange(scope.row)" v-model="scope.row.streamIdentification"
                          placeholder="请选择码流类型" default-first-option >
                 <el-option label="stream:0(主码流)" value="stream:0"></el-option>
@@ -101,7 +105,7 @@
             </template>
           </el-table-column>
           <el-table-column label="状态" min-width="100">
-            <template slot-scope="scope">
+            <template v-slot:default="scope">
               <div slot="reference" class="name-wrapper">
                 <el-tag size="medium" v-if="scope.row.status === 'ON'">在线</el-tag>
                 <el-tag size="medium" type="info" v-if="scope.row.status !== 'ON'">离线</el-tag>
@@ -109,7 +113,7 @@
             </template>
           </el-table-column>
           <el-table-column label="操作" min-width="340" fixed="right">
-            <template slot-scope="scope">
+            <template v-slot:default="scope">
               <el-button size="medium" v-bind:disabled="device == null || device.online === 0" icon="el-icon-video-play"
                          type="text" @click="sendDevicePush(scope.row)">播放
               </el-button>
@@ -129,20 +133,25 @@
               </el-button>
               <el-divider direction="vertical"></el-divider>
               <el-button size="medium" icon="el-icon-s-open" type="text"
-                         v-if="scope.row.subCount > 0 || scope.row.parental === 1"
+                         v-if="scope.row.subCount > 0 || scope.row.parental === 1 || scope.row.deviceId.length <= 8"
                          @click="changeSubchannel(scope.row)">查看
               </el-button>
-              <el-divider v-if="scope.row.subCount > 0 || scope.row.parental === 1" direction="vertical"></el-divider>
+              <el-divider v-if="scope.row.subCount > 0 || scope.row.parental === 1 || scope.row.deviceId.length <= 8" direction="vertical"></el-divider>
               <el-dropdown @command="(command)=>{moreClick(command, scope.row)}">
                 <el-button size="medium" type="text" >
-                  更多功能<i class="el-icon-arrow-down el-icon--right"></i>
+                  更多<i class="el-icon-arrow-down el-icon--right"></i>
                 </el-button>
                 <el-dropdown-menu slot="dropdown">
                   <el-dropdown-item command="records" v-bind:disabled="device == null || device.online === 0">
                     设备录像</el-dropdown-item>
                   <el-dropdown-item command="cloudRecords" v-bind:disabled="device == null || device.online === 0" >
                     云端录像</el-dropdown-item>
+                  <el-dropdown-item command="record" v-bind:disabled="device == null || device.online === 0" >
+                    设备录像控制-开始</el-dropdown-item>
+                  <el-dropdown-item command="stopRecord" v-bind:disabled="device == null || device.online === 0" >
+                    设备录像控制-停止</el-dropdown-item>
                 </el-dropdown-menu>
+
               </el-dropdown>
             </template>
           </el-table-column>
@@ -275,10 +284,6 @@ export default {
           that.deviceChannelList = res.data.data.list;
           that.deviceChannelList.forEach(e => {
             e.ptzType = e.ptzType + "";
-            that.$set(e, "location", "");
-            if (e.longitude && e.latitude) {
-              that.$set(e, "location", e.longitude + "," + e.latitude);
-            }
           });
           // 防止出现表格错位
           that.$nextTick(() => {
@@ -338,6 +343,10 @@ export default {
         this.queryRecords(itemData)
       }else if (command === "cloudRecords") {
         this.queryCloudRecords(itemData)
+      }else if (command === "record") {
+        this.startRecord(itemData)
+      }else if (command === "stopRecord") {
+        this.stopRecord(itemData)
       }
     },
     queryRecords: function (itemData) {
@@ -351,6 +360,58 @@ export default {
       let channelId = itemData.deviceId;
 
       this.$router.push(`/cloudRecordDetail/rtp/${deviceId}_${channelId}`)
+    },
+    startRecord: function (itemData) {
+      this.$axios({
+        method: 'get',
+        url: `/api/device/control/record/${this.deviceId}/Record`,
+        params: {
+          channelId: itemData.deviceId
+        }
+      }).then( (res)=> {
+        if (res.data.code === 0) {
+          this.$message.success({
+            showClose: true,
+            message: "开始录像成功"
+          })
+        }else {
+          this.$message.error({
+            showClose: true,
+            message: res.data.msg
+          })
+        }
+      }).catch( (error)=> {
+        this.$message.error({
+          showClose: true,
+          message: error.message
+        })
+      });
+    },
+    stopRecord: function (itemData) {
+      this.$axios({
+        method: 'get',
+        url: `/api/device/control/record/${this.deviceId}/StopRecord`,
+        params: {
+          channelId: itemData.deviceId
+        }
+      }).then( (res)=> {
+        if (res.data.code === 0) {
+          this.$message.success({
+            showClose: true,
+            message: "停止录像成功"
+          })
+        }else {
+          this.$message.error({
+            showClose: true,
+            message: res.data.msg
+          })
+        }
+      }).catch( (error)=> {
+        this.$message.error({
+          showClose: true,
+          message: error.message
+        })
+      });
     },
     stopDevicePush: function (itemData) {
       var that = this;
@@ -429,10 +490,6 @@ export default {
             this.deviceChannelList = res.data.data.list;
             this.deviceChannelList.forEach(e => {
               e.ptzType = e.ptzType + "";
-              this.$set(e, "location", "");
-              if (e.longitude && e.latitude) {
-                this.$set(e, "location", e.longitude + "," + e.latitude);
-              }
             });
             // 防止出现表格错位
             this.$nextTick(() => {
@@ -494,8 +551,9 @@ export default {
           method: 'post',
           url: `/api/device/query/channel/stream/identification/update/`,
           params: {
-            deviceId: this.deviceId,
+            deviceDbId: this.device.id,
             streamIdentification: this.subStream
+
           }
         }).then((res)=> {
           console.log(JSON.stringify(res));
@@ -513,8 +571,8 @@ export default {
         method: 'post',
         url: `/api/device/query/channel/stream/identification/update/`,
         params: {
-          deviceId: this.deviceId,
-          channelId: row.channelId,
+          deviceDbId: row.deviceDbId,
+          id: row.id,
           streamIdentification: row.streamIdentification
         }
       }).then(function (res) {

@@ -246,32 +246,6 @@ public class PlatformServiceImpl implements IPlatformService {
         return false;
     }
 
-    private void unregister(Platform platform) {
-        // 停止心跳定时
-        final String keepaliveTaskKey = KEEPALIVE_KEY_PREFIX + platform.getServerGBId();
-        dynamicTask.stop(keepaliveTaskKey);
-        // 停止注册定时
-        final String registerTaskKey = REGISTER_KEY_PREFIX + platform.getServerGBId();
-        dynamicTask.stop(registerTaskKey);
-
-        PlatformCatch platformCatchOld = redisCatchStorage.queryPlatformCatchInfo(platform.getServerGBId());
-        // 注销旧的
-        try {
-            if (platform.isStatus()) {
-                commanderForPlatform.unregister(platform, platformCatchOld.getSipTransactionInfo(), null, eventResult -> {
-                    log.info("[国标级联] 注销命令发送成功，平台：{}", platform.getServerGBId());
-                });
-            }
-        } catch (InvalidArgumentException | ParseException | SipException e) {
-            log.error("[命令发送失败] 国标级联 注销: {}", e.getMessage());
-        }
-    }
-
-    private void register(Platform platform) {
-
-    }
-
-
     @Override
     public void online(Platform platform, SipTransactionInfo sipTransactionInfo) {
         log.info("[国标级联]：{}, 平台上线", platform.getServerGBId());
@@ -335,7 +309,7 @@ public class PlatformServiceImpl implements IPlatformService {
                                     platformCatchForNow.setKeepAliveReply(0);
                                     redisCatchStorage.updatePlatformCatchInfo(platformCatchForNow);
                                 }
-                                log.info("[发送心跳] 国标级联 发送心跳, code： {}, msg: {}", eventResult.statusCode, eventResult.msg);
+                                log.info("[国标级联] 发送心跳,平台{}({}), code： {}, msg: {}", platform.getName(), platform.getServerGBId(), eventResult.statusCode, eventResult.msg);
                             });
                         } catch (SipException | InvalidArgumentException | ParseException e) {
                             log.error("[命令发送失败] 国标级联 发送心跳: {}", e.getMessage());
@@ -512,7 +486,7 @@ public class PlatformServiceImpl implements IPlatformService {
             log.info("[国标级联] 语音喊话未找到可用的zlm. platform: {}", platform.getServerGBId());
             return;
         }
-        InviteInfo inviteInfoForOld = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getGbId());
+        InviteInfo inviteInfoForOld = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.BROADCAST, channel.getGbId());
 
         if (inviteInfoForOld != null && inviteInfoForOld.getStreamInfo() != null) {
             // 如果zlm不存在这个流，则删除数据即可
@@ -562,7 +536,7 @@ public class PlatformServiceImpl implements IPlatformService {
                 platform.getServerGBId(), channel.getGbDeviceId(), ssrcInfo.getPort(), userSetting.getBroadcastForPlatform(), ssrcInfo.getSsrc(), ssrcCheck);
 
         // 初始化redis中的invite消息状态
-        InviteInfo inviteInfo = InviteInfo.getInviteInfo(platform.getServerGBId(), channel.getGbId(), ssrcInfo.getStream(), ssrcInfo,
+        InviteInfo inviteInfo = InviteInfo.getInviteInfo(platform.getServerGBId(), channel.getGbId(), ssrcInfo.getStream(), ssrcInfo, mediaServerItem.getId(),
                 mediaServerItem.getSdpIp(), ssrcInfo.getPort(), userSetting.getBroadcastForPlatform(), InviteSessionType.BROADCAST,
                 InviteSessionStatus.ready);
         inviteStreamService.updateInviteInfo(inviteInfo);

@@ -107,6 +107,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
@@ -374,6 +380,18 @@
             <version>1.18.30</version>
             <scope>provided</scope>
         </dependency>
+        <!--LogViewer-->
+<!--        <dependency>-->
+<!--            <groupId>io.github.sevdokimov.logviewer</groupId>-->
+<!--            <artifactId>log-generator</artifactId>-->
+<!--            <version>1.0.10</version>-->
+<!--        </dependency>-->
+
+        <dependency>
+            <groupId>io.github.sevdokimov.logviewer</groupId>
+            <artifactId>log-viewer-spring-boot</artifactId>
+            <version>1.0.10</version>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -401,6 +419,13 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>1.18.30</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
 

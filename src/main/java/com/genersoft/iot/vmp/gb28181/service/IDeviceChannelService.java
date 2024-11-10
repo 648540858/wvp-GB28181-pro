@@ -119,4 +119,7 @@ public interface IDeviceChannelService {
     void updateChannelForNotify(DeviceChannel channel);
 
     DeviceChannel getOneForSource(int deviceDbId, String channelId);
+
+    DeviceChannel getOneBySourceId(int deviceDbId, String channelId);
+
 }

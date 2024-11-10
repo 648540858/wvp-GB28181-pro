@@ -188,7 +188,7 @@ logging:
 
 # [根据业务需求配置]
 user-settings:
-    # [可选] 服务ID，不写则为000000
+    # 服务ID，不写则为000000
     server-id:
     # [可选] 自动点播， 使用固定流地址进行播放时，如果未点播则自动进行点播, 需要rtp.enable=true
     auto-apply-play: false
@@ -209,8 +209,6 @@ user-settings:
     record-push-live: true
     # 国标是否录制
     record-sip: true
-    # 是否将日志存储进数据库
-    logInDatabase: true
     # 使用推流状态作为推流通道状态
     use-pushing-as-status: true
     # 使用来源请求ip作为streamIp,当且仅当你只有zlm节点它与wvp在一起的情况下开启
@@ -229,8 +227,6 @@ user-settings:
     sip-log: true
     # 是否开启sql日志
     sql-log: true
-    # 收到ack消息后开始发流，默认false， 回复200ok后直接开始发流
-    push-stream-after-ack: false
     # 消息通道功能-缺少国标ID是否给所有上级发送消息
     send-to-platforms-when-id-lost: true
     # 保持通道状态，不接受notify通道状态变化， 兼容海康平台发送错误消息

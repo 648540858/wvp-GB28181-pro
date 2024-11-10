@@ -12,57 +12,30 @@ public class VideoManagerConstants {
 
 	public static final String WVP_SERVER_STREAM_PREFIX = "VMP_SIGNALLING_STREAM_";
 
-	public static final String MEDIA_SERVER_PREFIX = "VMP_MEDIA_SERVER:";
+	public static final String MEDIA_SERVER_PREFIX = "VMP_MEDIA_SERVER_INFO:";
 
 	public static final String ONLINE_MEDIA_SERVERS_PREFIX = "VMP_ONLINE_MEDIA_SERVERS:";
 
-	public static final String DEVICE_PREFIX = "VMP_DEVICE_";
+	public static final String DEVICE_PREFIX = "VMP_DEVICE_INFO";
 
-	// 设备同步完成
-	public static final String DEVICE_SYNC_PREFIX = "VMP_DEVICE_SYNC_";
-
-	public static final String CACHEKEY_PREFIX = "VMP_CHANNEL_";
-
-	public static final String KEEPLIVEKEY_PREFIX = "VMP_KEEPALIVE_";
-
-	// TODO 此处多了一个_，暂不修改
-	public static final String INVITE_PREFIX = "VMP_INVITE_INFO";
-	public static final String PLAYER_PREFIX = "VMP_INVITE_PLAY_";
-	public static final String PLAY_BLACK_PREFIX = "VMP_INVITE_PLAYBACK_";
-	public static final String DOWNLOAD_PREFIX = "VMP_INVITE_DOWNLOAD_";
-
-	public static final String PLATFORM_KEEPALIVE_PREFIX = "VMP_PLATFORM_KEEPALIVE_";
+	public static final String INVITE_PREFIX = "VMP_GB_INVITE_INFO";
 
 	public static final String PLATFORM_CATCH_PREFIX = "VMP_PLATFORM_CATCH_";
 
-	public static final String PLATFORM_REGISTER_PREFIX = "VMP_PLATFORM_REGISTER_";
-
 	public static final String PLATFORM_REGISTER_INFO_PREFIX = "VMP_PLATFORM_REGISTER_INFO_";
 
-	public static final String SEND_RTP_INFO = "VMP_SEND_RTP_INFO:";
-	public static final String SEND_RTP_INFO_CALLID = "VMP_SEND_RTP_INFO:CALL_ID";
-	public static final String SEND_RTP_INFO_STREAM = "VMP_SEND_RTP_INFO:STREAM";
-	public static final String SEND_RTP_INFO_CHANNEL = "VMP_SEND_RTP_INFO:CHANNEL";
+	public static final String SEND_RTP_PORT = "VM_SEND_RTP_PORT:";
+	public static final String SEND_RTP_INFO_CALLID = "VMP_SEND_RTP_INFO:CALL_ID:";
+	public static final String SEND_RTP_INFO_STREAM = "VMP_SEND_RTP_INFO:STREAM:";
+	public static final String SEND_RTP_INFO_CHANNEL = "VMP_SEND_RTP_INFO:CHANNEL:";
 
-	public static final String EVENT_ONLINE_REGISTER = "1";
+	public static final String SIP_INVITE_SESSION = "VMP_SIP_INVITE_SESSION_INFO:";
+	public static final String SIP_INVITE_SESSION_CALL_ID = SIP_INVITE_SESSION + "CALL_ID:";
+	public static final String SIP_INVITE_SESSION_STREAM = SIP_INVITE_SESSION + "STREAM:";
 
-	public static final String EVENT_ONLINE_MESSAGE = "3";
-
-	public static final String EVENT_OUTLINE_UNREGISTER = "1";
-	
-	public static final String EVENT_OUTLINE_TIMEOUT = "2";
-
-	public static final String MEDIA_SSRC_USED_PREFIX = "VMP_MEDIA_USED_SSRC_";
-
-	public static final String SIP_INVITE_SESSION = "VMP_SIP_INVITE_SESSION:";
-	public static final String SIP_INVITE_SESSION_CALL_ID = SIP_INVITE_SESSION + "CALL_ID" + ":";
-	public static final String SIP_INVITE_SESSION_STREAM = SIP_INVITE_SESSION + "STREAM" + ":";
-
-	public static final String MEDIA_STREAM_AUTHORITY = "VMP_MEDIA_STREAM_AUTHORITY_";
+	public static final String MEDIA_STREAM_AUTHORITY = "VMP_MEDIA_STREAM_AUTHORITY:";
 
 	public static final String SIP_CSEQ_PREFIX = "VMP_SIP_CSEQ_";
-
-	public static final String SIP_SN_PREFIX = "VMP_SIP_SN_";
 
 	public static final String SIP_SUBSCRIBE_PREFIX = "VMP_SIP_SUBSCRIBE_";
 
@@ -79,7 +52,7 @@ public class VideoManagerConstants {
 	public static final String PUSH_STREAM_LIST = "VMP_PUSH_STREAM_LIST_";
 	public static final String WAITE_SEND_PUSH_STREAM = "VMP_WAITE_SEND_PUSH_STREAM:";
 	public static final String START_SEND_PUSH_STREAM = "VMP_START_SEND_PUSH_STREAM:";
-	public static final String PUSH_STREAM_ONLINE = "VMP_PUSH_STREAM_ONLINE:";
+	public static final String SSE_TASK_KEY = "SSE_TASK_";
 
 
 

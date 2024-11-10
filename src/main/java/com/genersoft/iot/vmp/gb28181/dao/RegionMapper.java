@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.gb28181.bean.Region;
 import com.genersoft.iot.vmp.gb28181.bean.RegionTree;
 import org.apache.ibatis.annotations.*;
@@ -74,6 +73,7 @@ public interface RegionMapper {
             " *, " +
             " concat('region', id) as tree_id," +
             " 0 as type," +
+            " 'ON' as status," +
             " false as is_leaf" +
             " from wvp_common_region " +
             " where " +

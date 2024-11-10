@@ -27,11 +27,13 @@ public interface IRegionService {
 
     Region queryRegionByDeviceId(String regionDeviceId);
 
-    List<RegionTree> queryForTree(String query, Integer parent);
+    List<RegionTree> queryForTree(String query, Integer parent, Boolean hasChannel);
 
     void syncFromChannel();
 
     boolean delete(int id);
 
     boolean batchAdd(List<Region> regionList);
+
+    List<Region> getPath(String deviceId);
 }

@@ -1,14 +1,12 @@
 package com.genersoft.iot.vmp.gb28181.event.alarm;
 
+import com.genersoft.iot.vmp.gb28181.session.SseSessionManager;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
-import java.io.PrintWriter;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.Resource;
 
 /**
  * 报警事件监听器.
@@ -21,48 +19,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class AlarmEventListener implements ApplicationListener<AlarmEvent> {
 
-    private static final Map<String, PrintWriter> SSE_CACHE = new ConcurrentHashMap<>();
-
-    public void addSseEmitter(String browserId, PrintWriter writer) {
-        SSE_CACHE.put(browserId, writer);
-        log.info("SSE 在线数量: {}", SSE_CACHE.size());
-    }
-
-    public void removeSseEmitter(String browserId, PrintWriter writer) {
-        SSE_CACHE.remove(browserId, writer);
-        log.info("SSE 在线数量: {}", SSE_CACHE.size());
-    }
+    @Resource
+    private SseSessionManager sseSessionManager;
 
     @Override
     public void onApplicationEvent(@NotNull AlarmEvent event) {
         if (log.isDebugEnabled()) {
             log.debug("设备报警事件触发, deviceId: {}, {}", event.getAlarmInfo().getDeviceId(), event.getAlarmInfo().getAlarmDescription());
         }
-
-        String msg = "<strong>设备编号：</strong> <i>" + event.getAlarmInfo().getDeviceId() + "</i>"
-                + "<br><strong>通道编号：</strong> <i>" + event.getAlarmInfo().getChannelId() + "</i>"
-                + "<br><strong>报警描述：</strong> <i>" + event.getAlarmInfo().getAlarmDescription() + "</i>"
-                + "<br><strong>报警时间：</strong> <i>" + event.getAlarmInfo().getAlarmTime() + "</i>";
-
-        for (Iterator<Map.Entry<String, PrintWriter>> it = SSE_CACHE.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<String, PrintWriter> response = it.next();
-            log.info("推送到 SSE 连接, 浏览器 ID: {}", response.getKey());
-            try {
-                PrintWriter writer = response.getValue();
-
-                if (writer.checkError()) {
-                    it.remove();
-                    continue;
-                }
-
-                String sseMsg = "event:message\n" +
-                        "data:" + msg + "\n" +
-                        "\n";
-                writer.write(sseMsg);
-                writer.flush();
-            } catch (Exception e) {
-                it.remove();
-            }
-        }
+        sseSessionManager.sendForAll("message", event.getAlarmInfo());
     }
 }

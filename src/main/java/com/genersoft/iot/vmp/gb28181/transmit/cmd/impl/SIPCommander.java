@@ -281,7 +281,7 @@ public class SIPCommander implements ISIPCommander {
         content.append("c=IN IP4 " + sdpIp + "\r\n");
         content.append("t=0 0\r\n");
 
-        if (userSetting.isSeniorSdp()) {
+        if (userSetting.getSeniorSdp()) {
             if ("TCP-PASSIVE".equalsIgnoreCase(device.getStreamMode())) {
                 content.append("m=video " + ssrcInfo.getPort() + " TCP/RTP/AVP 96 126 125 99 34 98 97\r\n");
             } else if ("TCP-ACTIVE".equalsIgnoreCase(device.getStreamMode())) {
@@ -383,7 +383,7 @@ public class SIPCommander implements ISIPCommander {
 
         String streamMode = device.getStreamMode();
 
-        if (userSetting.isSeniorSdp()) {
+        if (userSetting.getSeniorSdp()) {
             if ("TCP-PASSIVE".equalsIgnoreCase(streamMode)) {
                 content.append("m=video " + ssrcInfo.getPort() + " TCP/RTP/AVP 96 126 125 99 34 98 97\r\n");
             } else if ("TCP-ACTIVE".equalsIgnoreCase(streamMode)) {
@@ -472,7 +472,7 @@ public class SIPCommander implements ISIPCommander {
 
         String streamMode = device.getStreamMode().toUpperCase();
 
-        if (userSetting.isSeniorSdp()) {
+        if (userSetting.getSeniorSdp()) {
             if ("TCP-PASSIVE".equals(streamMode)) {
                 content.append("m=video " + ssrcInfo.getPort() + " TCP/RTP/AVP 96 126 125 99 34 98 97\r\n");
             } else if ("TCP-ACTIVE".equals(streamMode)) {

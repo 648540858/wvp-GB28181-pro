@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.streamPush.service;
 
+import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
@@ -35,12 +37,12 @@ public interface IStreamPushService {
     /**
      * 新的节点加入
      */
-    void zlmServerOnline(String mediaServerId);
+    void zlmServerOnline(MediaServer mediaServer);
 
     /**
      * 节点离线
      */
-    void zlmServerOffline(String mediaServerId);
+    void zlmServerOffline(MediaServer mediaServer);
 
     /**
      * 批量添加
@@ -97,4 +99,6 @@ public interface IStreamPushService {
     int delete(int id);
 
     void batchRemove(Set<Integer> ids);
+
+    void updateGPSFromGPSMsgInfo(List<GPSMsgInfo> gpsMsgInfoList);
 }

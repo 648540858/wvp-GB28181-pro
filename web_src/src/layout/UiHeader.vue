@@ -20,6 +20,7 @@
       <el-menu-item index="/mediaServerManger">节点管理</el-menu-item>
       <el-menu-item index="/platformList/15/1">国标级联</el-menu-item>
       <el-menu-item v-if="editUser" index="/userManager">用户管理</el-menu-item>
+      <el-menu-item index="/operations">运维中心</el-menu-item>
 
       <!--            <el-submenu index="/setting">-->
       <!--              <template slot="title">系统设置</template>-->
@@ -113,17 +114,25 @@ export default {
       let that = this;
       if (this.alarmNotify) {
         console.log("申请SSE推送API调用，浏览器ID: " + this.$browserId);
-        this.sseSource = new EventSource('/api/emit?browserId=' + this.$browserId);
+        let url = (process.env.NODE_ENV === 'development' ? "debug" : "") + 'api/emit?browserId=' + this.$browserId
+        this.sseSource = new EventSource(url);
         this.sseSource.addEventListener('message', function (evt) {
+          console.log("收到信息：" + evt.data);
+          let data = JSON.parse(evt.data)
           that.$notify({
             title: '报警信息',
             dangerouslyUseHTMLString: true,
-            message: evt.data,
+            message: `<strong>设备名称：</strong> <i> ${data.deviceName}</i>` +
+                     `<br><strong>设备编号：</strong> <i>${ data.deviceId}</i>` +
+                     `<br><strong>通道编号：</strong> <i>${ data.channelId}</i>` +
+                     `<br><strong>报警级别：</strong> <i>${ data.alarmPriorityDescription}</i>` +
+                     `<br><strong>报警方式：</strong> <i>${ data.alarmMethodDescription}</i>` +
+                     `<br><strong>报警类型：</strong> <i>${ data.alarmTypeDescription}</i>` +
+                     `<br><strong>报警时间：</strong> <i>${ data.alarmTime}</i>`,
             type: 'warning',
             position: 'bottom-right',
-            duration: 3000
+            duration: 5000
           });
-          console.log("收到信息：" + evt.data);
         });
         this.sseSource.addEventListener('open', function (e) {
           console.log("SSE连接打开.");

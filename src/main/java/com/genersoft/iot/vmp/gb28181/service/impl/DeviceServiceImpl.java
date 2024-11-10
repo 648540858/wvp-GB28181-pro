@@ -168,15 +168,13 @@ public class DeviceServiceImpl implements IDeviceService {
                 }
 
             }else {
-                if (deviceChannelMapper.queryChannelsByDeviceDbId(device.getId()).isEmpty()) {
-                    log.info("[设备上线]: {}，通道数为0,查询通道信息", device.getDeviceId());
-                    sync(device);
-                }
-
                 deviceMapper.update(device);
                 redisCatchStorage.updateDevice(device);
             }
-
+            if (deviceChannelMapper.queryChannelsByDeviceDbId(device.getId()).isEmpty()) {
+                log.info("[设备上线]: {}，通道数为0,查询通道信息", device.getDeviceId());
+                sync(device);
+            }
         }
 
         // 刷新过期任务
@@ -337,12 +335,12 @@ public class DeviceServiceImpl implements IDeviceService {
         try {
             sipCommander.catalogQuery(device, sn, event -> {
                 String errorMsg = String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg);
-                catalogResponseMessageHandler.setChannelSyncEnd(device.getDeviceId(), errorMsg);
+                catalogResponseMessageHandler.setChannelSyncEnd(device.getDeviceId(), sn, errorMsg);
             });
         } catch (SipException | InvalidArgumentException | ParseException e) {
             log.error("[同步通道], 信令发送失败：{}", e.getMessage() );
             String errorMsg = String.format("同步通道失败，信令发送失败： %s", e.getMessage());
-            catalogResponseMessageHandler.setChannelSyncEnd(device.getDeviceId(), errorMsg);
+            catalogResponseMessageHandler.setChannelSyncEnd(device.getDeviceId(), sn, errorMsg);
         }
     }
 
@@ -415,39 +413,19 @@ public class DeviceServiceImpl implements IDeviceService {
         device.setOnLine(false);
         device.setCreateTime(DateUtil.getNow());
         device.setUpdateTime(DateUtil.getNow());
+        if(device.getStreamMode() == null) {
+            device.setStreamMode("UDP");
+        }
         deviceMapper.addCustomDevice(device);
     }
 
     @Override
     public void updateCustomDevice(Device device) {
-        Device deviceInStore = deviceMapper.getDeviceByDeviceId(device.getDeviceId());
+        Device deviceInStore = deviceMapper.query(device.getId());
         if (deviceInStore == null) {
             log.warn("更新设备时未找到设备信息");
             return;
         }
-
-        if (!ObjectUtils.isEmpty(device.getName())) {
-            deviceInStore.setName(device.getName());
-        }
-        if (!ObjectUtils.isEmpty(device.getCharset())) {
-            deviceInStore.setCharset(device.getCharset());
-        }
-        if (!ObjectUtils.isEmpty(device.getMediaServerId())) {
-            deviceInStore.setMediaServerId(device.getMediaServerId());
-        }
-        if (!ObjectUtils.isEmpty(device.getCharset())) {
-            deviceInStore.setCharset(device.getCharset());
-        }
-        if (!ObjectUtils.isEmpty(device.getSdpIp())) {
-            deviceInStore.setSdpIp(device.getSdpIp());
-        }
-        if (!ObjectUtils.isEmpty(device.getPassword())) {
-            deviceInStore.setPassword(device.getPassword());
-        }
-        if (!ObjectUtils.isEmpty(device.getStreamMode())) {
-            deviceInStore.setStreamMode(device.getStreamMode());
-        }
-        deviceInStore.setBroadcastPushAfterAck(device.isBroadcastPushAfterAck());
         //  目录订阅相关的信息
         if (deviceInStore.getSubscribeCycleForCatalog() != device.getSubscribeCycleForCatalog()) {
             if (device.getSubscribeCycleForCatalog() > 0) {
@@ -512,13 +490,9 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device.getCharset() == null) {
             deviceInStore.setCharset("GB2312");
         }
-        //SSRC校验
-        deviceInStore.setSsrcCheck(device.isSsrcCheck());
-        //作为消息通道
-        deviceInStore.setAsMessageChannel(device.isAsMessageChannel());
 
-        deviceMapper.updateCustom(deviceInStore);
-        redisCatchStorage.updateDevice(deviceInStore);
+        deviceMapper.updateCustom(device);
+        redisCatchStorage.updateDevice(device);
     }
 
     @Override

@@ -4,7 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
-import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerChangeEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerDeleteEvent;
@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 @Component
-public class ZLMMediaServerStatusManger {
+public class ZLMMediaServerStatusManager {
 
     private final Map<Object, MediaServer> offlineZlmPrimaryMap = new ConcurrentHashMap<>();
     private final Map<Object, MediaServer> offlineZlmsecondaryMap = new ConcurrentHashMap<>();
@@ -57,7 +57,7 @@ public class ZLMMediaServerStatusManger {
     private String serverServletContextPath;
 
     @Autowired
-    private UserSetting userSetting;
+    private EventPublisher eventPublisher;
 
     private final String type = "zlm";
 
@@ -112,13 +112,13 @@ public class ZLMMediaServerStatusManger {
     @Async("taskExecutor")
     @EventListener
     public void onApplicationEvent(MediaServerDeleteEvent event) {
-        if (event.getMediaServerId() == null) {
+        if (event.getMediaServer() == null) {
             return;
         }
-        log.info("[ZLM-节点被移除] ID：" + event.getMediaServerId());
-        offlineZlmPrimaryMap.remove(event.getMediaServerId());
-        offlineZlmsecondaryMap.remove(event.getMediaServerId());
-        offlineZlmTimeMap.remove(event.getMediaServerId());
+        log.info("[ZLM-节点被移除] ID：" + event.getMediaServer().getId());
+        offlineZlmPrimaryMap.remove(event.getMediaServer().getId());
+        offlineZlmsecondaryMap.remove(event.getMediaServer().getId());
+        offlineZlmTimeMap.remove(event.getMediaServer().getId());
     }
 
     @Scheduled(fixedDelay = 10*1000)   //每隔10秒检查一次
@@ -129,7 +129,8 @@ public class ZLMMediaServerStatusManger {
         }
         if (!offlineZlmPrimaryMap.isEmpty()) {
             for (MediaServer mediaServerItem : offlineZlmPrimaryMap.values()) {
-                if (offlineZlmTimeMap.get(mediaServerItem.getId()) <  System.currentTimeMillis() - 30*60*1000) {
+                if (offlineZlmTimeMap.get(mediaServerItem.getId()) != null
+                        && offlineZlmTimeMap.get(mediaServerItem.getId()) <  System.currentTimeMillis() - 30*60*1000) {
                     offlineZlmsecondaryMap.put(mediaServerItem.getId(), mediaServerItem);
                     offlineZlmPrimaryMap.remove(mediaServerItem.getId());
                     continue;
@@ -186,6 +187,8 @@ public class ZLMMediaServerStatusManger {
             mediaServerItem.setStatus(true);
             mediaServerItem.setHookAliveInterval(10F);
             mediaServerService.update(mediaServerItem);
+            // 发送上线通知
+            eventPublisher.mediaServerOnlineEventPublish(mediaServerItem);
             if(mediaServerItem.isAutoConfig()) {
                 if (config == null) {
                     JSONObject responseJSON = zlmresTfulUtils.getMediaServerConfig(mediaServerItem);
@@ -209,7 +212,8 @@ public class ZLMMediaServerStatusManger {
             mediaServerItem.setStatus(false);
             offlineZlmPrimaryMap.put(mediaServerItem.getId(), mediaServerItem);
             offlineZlmTimeMap.put(mediaServerItem.getId(), System.currentTimeMillis());
-            // TODO 发送离线通知
+            // 发送离线通知
+            eventPublisher.mediaServerOfflineEventPublish(mediaServerItem);
             mediaServerService.update(mediaServerItem);
         }, (int)(mediaServerItem.getHookAliveInterval() * 2 * 1000));
     }
@@ -281,6 +285,8 @@ public class ZLMMediaServerStatusManger {
         // 等zlm支持给每个rtpServer设置关闭音频的时候可以不设置此选项
         if (mediaServerItem.isRtpEnable() && !ObjectUtils.isEmpty(mediaServerItem.getRtpPortRange())) {
             param.put("rtp_proxy.port_range", mediaServerItem.getRtpPortRange().replace(",", "-"));
+        }else {
+            param.put("rtp_proxy.port", mediaServerItem.getRtpProxyPort());
         }
 
         if (!ObjectUtils.isEmpty(mediaServerItem.getRecordPath())) {

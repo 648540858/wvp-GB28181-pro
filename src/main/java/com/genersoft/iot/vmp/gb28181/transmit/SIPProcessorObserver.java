@@ -97,10 +97,12 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
                 CallIdHeader callIdHeader = response.getCallIdHeader();
                 if (callIdHeader != null) {
                     SipEvent sipEvent = sipSubscribe.getSubscribe(callIdHeader.getCallId());
-                    if (sipEvent != null && sipEvent.getOkEvent() != null) {
-                        SipSubscribe.EventResult<ResponseEvent> eventResult = new SipSubscribe.EventResult<>(responseEvent);
+                    if (sipEvent != null) {
+                        if (sipEvent.getOkEvent() != null) {
+                            SipSubscribe.EventResult<ResponseEvent> eventResult = new SipSubscribe.EventResult<>(responseEvent);
+                            sipEvent.getOkEvent().response(eventResult);
+                        }
                         sipSubscribe.removeSubscribe(callIdHeader.getCallId());
-                        sipEvent.getOkEvent().response(eventResult);
                     }
                 }
             }
@@ -118,10 +120,12 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
                 CallIdHeader callIdHeader = (CallIdHeader)responseEvent.getResponse().getHeader(CallIdHeader.NAME);
                 if (callIdHeader != null) {
                     SipEvent sipEvent = sipSubscribe.getSubscribe(callIdHeader.getCallId());
-                    if (sipEvent != null && sipEvent.getErrorEvent() != null) {
-                        SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(responseEvent);
+                    if (sipEvent != null ) {
+                        if (sipEvent.getErrorEvent() != null) {
+                            SipSubscribe.EventResult<ResponseEvent> eventResult = new SipSubscribe.EventResult<>(responseEvent);
+                            sipEvent.getErrorEvent().response(eventResult);
+                        }
                         sipSubscribe.removeSubscribe(callIdHeader.getCallId());
-                        sipEvent.getErrorEvent().response(eventResult);
                     }
                 }
             }

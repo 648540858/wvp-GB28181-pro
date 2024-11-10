@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
+import com.genersoft.iot.vmp.jt1078.proc.request.Re;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -51,8 +52,6 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     private ISIPCommanderForPlatform sipCommanderFroPlatform;
 
 
-
-
     @Override
     public PageInfo<PlatformChannel> queryChannelList(int page, int count, String query, Integer channelType, Boolean online, Integer platformId, Boolean hasShare) {
         PageHelper.startPage(page, count);
@@ -92,8 +91,6 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         // 获取全部节点中未分享的
         return regionMapper.queryNotShareRegionForPlatformByRegionList(allRegion, platformId);
     }
-
-
 
     /**
      * 移除空的共享，并返回移除的分组
@@ -475,6 +472,44 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
 
     @Override
     @Transactional
+    public void checkRegionRemove(List<CommonGBChannel> channelList, List<Region> regionList) {
+        List<Integer> channelIds = new ArrayList<>();
+        channelList.stream().forEach(commonGBChannel -> {
+            channelIds.add(commonGBChannel.getGbId());
+        });
+        // 获取关联这些通道的平台
+        List<Platform> platformList = platformChannelMapper.queryPlatFormListByChannelList(channelIds);
+        if (platformList.isEmpty()) {
+            return;
+        }
+        for (Platform platform : platformList) {
+            Set<Region> regionSet;
+            if (regionList == null || regionList.isEmpty()) {
+                regionSet = platformChannelMapper.queryShareRegion(platform.getId());
+            }else {
+                regionSet = new HashSet<>(regionList);
+            }
+            // 清理空的分组并发送消息
+            Set<Region> deleteRegion = deleteEmptyRegion(regionSet, platform.getId());
+
+            List<CommonGBChannel> channelListForEvent = new ArrayList<>();
+            if (!deleteRegion.isEmpty()) {
+                for (Region region : deleteRegion) {
+                    channelListForEvent.add(0, CommonGBChannel.build(region));
+                }
+            }
+            // 发送消息
+            try {
+                // 发送catalog
+                eventPublisher.catalogEventPublish(platform.getId(), channelListForEvent, CatalogEvent.DEL);
+            } catch (Exception e) {
+                log.warn("[移除关联通道] 发送失败，数量：{}", channelList.size(), e);
+            }
+        }
+    }
+
+    @Override
+    @Transactional
     public void checkGroupAdd(List<CommonGBChannel> channelList) {
         List<Integer> channelIds = new ArrayList<>();
         channelList.stream().forEach(commonGBChannel -> {
@@ -494,6 +529,36 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
                     channelListForEvent.add(0, CommonGBChannel.build(group));
                 }
                 platformChannelMapper.addPlatformGroup(addGroup, platform.getId());
+                // 发送消息
+                try {
+                    // 发送catalog
+                    eventPublisher.catalogEventPublish(platform.getId(), channelListForEvent, CatalogEvent.ADD);
+                } catch (Exception e) {
+                    log.warn("[移除关联通道] 发送失败，数量：{}", channelList.size(), e);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void checkRegionAdd(List<CommonGBChannel> channelList) {
+        List<Integer> channelIds = new ArrayList<>();
+        channelList.stream().forEach(commonGBChannel -> {
+            channelIds.add(commonGBChannel.getGbId());
+        });
+        List<Platform> platformList = platformChannelMapper.queryPlatFormListByChannelList(channelIds);
+        if (platformList.isEmpty()) {
+            return;
+        }
+        for (Platform platform : platformList) {
+
+            Set<Region> addRegion =  getRegionNotShareByChannelList(channelList, platform.getId());
+            List<CommonGBChannel> channelListForEvent = new ArrayList<>();
+            if (!addRegion.isEmpty()) {
+                for (Region region : addRegion) {
+                    channelListForEvent.add(0, CommonGBChannel.build(region));
+                }
+                platformChannelMapper.addPlatformRegion(new ArrayList<>(addRegion), platform.getId());
                 // 发送消息
                 try {
                     // 发送catalog

@@ -255,10 +255,17 @@ public interface CommonGBChannelMapper {
     @SelectProvider(type = ChannelProvider.class, method = "queryByStreamProxyId")
     CommonGBChannel queryByStreamProxyId(@Param("streamProxyId") Integer streamProxyId);
 
-    @SelectProvider(type = ChannelProvider.class, method = "queryList")
-    List<CommonGBChannel> queryList(@Param("query") String query, @Param("online") Boolean online,
-                                    @Param("hasCivilCode") Boolean hasCivilCode,
-                                    @Param("hasGroup") Boolean hasGroup);
+    @SelectProvider(type = ChannelProvider.class, method = "queryListByCivilCode")
+    List<CommonGBChannel> queryListByCivilCode(@Param("query") String query, @Param("online") Boolean online,
+                                               @Param("channelType") Integer channelType, @Param("civilCode") String civilCode);
+
+
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryListByParentId")
+    List<CommonGBChannel> queryListByParentId(@Param("query") String query, @Param("online") Boolean online,
+                                              @Param("channelType") Integer channelType, @Param("groupDeviceId") String groupDeviceId);
+
+
 
     @Select("<script>" +
             " select " +
@@ -267,6 +274,7 @@ public interface CommonGBChannelMapper {
             "    coalesce(gb_device_id, device_id) as device_id," +
             "    coalesce(gb_name, name) as name, " +
             "    coalesce(gb_parent_id, parent_id) as parent_device_id, " +
+            "    coalesce(gb_status, status) as status, " +
             "    1 as type, " +
             "    true as is_leaf " +
             " from wvp_device_channel " +
@@ -358,6 +366,7 @@ public interface CommonGBChannelMapper {
             "    coalesce(gb_name, name) as name, " +
             "    coalesce(gb_parent_id, parent_id) as parent_device_id, " +
             "    coalesce(gb_business_group_id, business_group_id) as business_group, " +
+            "    coalesce(gb_status, status) as status, " +
             "    1 as type, " +
             "    true as is_leaf " +
             " from wvp_device_channel " +
@@ -437,5 +446,14 @@ public interface CommonGBChannelMapper {
 
     @SelectProvider(type = ChannelProvider.class, method = "queryListByStreamPushList")
     List<CommonGBChannel> queryListByStreamPushList(List<StreamPush> streamPushList);
+
+    @Update(value = {" <script>" +
+            " <foreach collection='channels' item='item' separator=';' >" +
+            " UPDATE wvp_device_channel " +
+            " SET gb_longitude=#{item.gbLongitude}, gb_latitude=#{item.gbLatitude} " +
+            " WHERE stream_push_id IS NOT NULL AND gb_device_id=#{item.gbDeviceId} "+
+             "</foreach>"+
+            " </script>"})
+    void updateGpsByDeviceIdForStreamPush(List<CommonGBChannel> channels);
 
 }

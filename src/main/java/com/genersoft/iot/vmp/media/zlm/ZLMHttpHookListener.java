@@ -209,7 +209,7 @@ public class ZLMHttpHookListener {
 
 
         MediaServer mediaServer = mediaServerService.getOne(param.getMediaServerId());
-        if (!userSetting.isAutoApplyPlay() || mediaServer == null) {
+        if (!userSetting.getAutoApplyPlay() || mediaServer == null) {
             return HookResult.SUCCESS();
         }
         MediaNotFoundEvent mediaNotFoundEvent = MediaNotFoundEvent.getInstance(this, param, mediaServer);

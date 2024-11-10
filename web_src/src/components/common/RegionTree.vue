@@ -17,7 +17,7 @@
         class="flow-tree"
         ref="veTree"
         node-key="treeId"
-        height="78vh"
+        :height="treeHeight?treeHeight:'78vh'"
         lazy
         style="padding: 0 0 2rem 0.5rem"
         :load="loadNode"
@@ -27,19 +27,21 @@
         @node-contextmenu="contextmenuEventHandler"
         @node-click="nodeClickHandler"
       >
-        <span class="custom-tree-node" slot-scope="{ node, data }">
-          <span @click.stop v-if="edit">
-            <el-radio v-if="node.data.type === 0 && node.level !== 1 " style="margin-right: 0" v-model="chooseId" @input="chooseIdChange(node.data.treeId, node.data.deviceId)" :label="node.data.deviceId">{{''}}</el-radio>
-          </span>
-          <span v-if="node.data.type === 0" style="color: #409EFF" class="iconfont icon-bianzubeifen3"></span>
-          <span v-if="node.data.type === 1" style="color: #409EFF" class="iconfont icon-shexiangtou2"></span>
+        <template class="custom-tree-node" v-slot:default="{ node, data }">
+        <span class="custom-tree-node" >
+          <span v-if="node.data.type === 0 && chooseId !== node.data.deviceId" style="color: #409EFF" class="iconfont icon-bianzubeifen3"></span>
+          <span v-if="node.data.type === 0 && chooseId === node.data.deviceId" style="color: #c60135;" class="iconfont icon-bianzubeifen3"></span>
+          <span v-if="node.data.type === 1 && node.data.status === 'ON'" style="color: #409EFF" class="iconfont icon-shexiangtou2"></span>
+          <span v-if="node.data.type === 1 && node.data.status !== 'ON'" style="color: #808181" class="iconfont icon-shexiangtou2"></span>
           <span style=" padding-left: 1px" v-if="node.data.deviceId !=='' && showCode" :title="node.data.deviceId">{{ node.label }}（编号：{{ node.data.deviceId }}）</span>
           <span style=" padding-left: 1px" v-if="node.data.deviceId ==='' || !showCode" :title="node.data.deviceId">{{ node.label }}</span>
         </span>
+        </template>
       </vue-easy-tree>
     </div>
     <regionEdit ref="regionEdit"></regionEdit>
     <gbDeviceSelect ref="gbDeviceSelect"></gbDeviceSelect>
+    <GbChannelSelect ref="gbChannelSelect" dataType="civilCode" ></GbChannelSelect>
   </div>
 </template>
 
@@ -47,10 +49,12 @@
 import VueEasyTree from "@wchbrad/vue-easy-tree";
 import regionEdit from './../dialog/regionEdit'
 import gbDeviceSelect from './../dialog/GbDeviceSelect'
+import GbChannelSelect from "../dialog/GbChannelSelect.vue";
 
 export default {
   name: 'DeviceTree',
   components: {
+    GbChannelSelect,
     VueEasyTree, regionEdit, gbDeviceSelect
   },
   data() {
@@ -64,7 +68,7 @@ export default {
       treeData: [],
     }
   },
-  props: ['edit', 'clickEvent', 'chooseIdChange', 'onChannelChange', 'showHeader'],
+  props: ['edit', 'enableAddChannel', 'clickEvent', 'onChannelChange', 'showHeader', 'hasChannel', 'addChannelToCivilCode', 'treeHeight'],
   created() {
   },
   methods: {
@@ -90,7 +94,8 @@ export default {
           url: `/api/region/tree/list`,
           params: {
             query: this.searchSrt,
-            parent: node.data.id
+            parent: node.data.id,
+            hasChannel: this.hasChannel
           }
         }).then((res) => {
           if (res.data.code === 0) {
@@ -112,83 +117,52 @@ export default {
         return
       }
       console.log(node.level)
-      if (node.data.type === 1) {
-        data.parentId = node.parent.data.id;
-        this.$contextmenu({
-          items: [
-            {
-              label: "移除通道",
-              icon: "el-icon-delete",
-              disabled: false,
-              onClick: () => {
-                console.log(data)
-                this.$axios({
-                  method: "post",
-                  url: `/api/common/channel/region/delete`,
-                  data: {
-                    channelIds: [data.id]
-                  }
-                }).then((res) => {
-                  console.log("移除成功")
-                  if (this.onChannelChange) {
-                    this.onChannelChange()
-                  }
-                  node.parent.loaded = false
-                  node.parent.expand();
-                }).catch(function (error) {
-                  console.log(error);
-                });
-              }
+      if (node.data.type === 0) {
+        let menuItem = [
+          {
+            label: "刷新节点",
+            icon: "el-icon-refresh",
+            disabled: false,
+            onClick: () => {
+              this.refreshNode(node);
             }
-          ],
-          event, // 鼠标事件信息
-          customClass: "custom-class", // 自定义菜单 class
-          zIndex: 3000, // 菜单样式 z-index
-        });
-      } else if (node.data.type === 0) {
-        this.$contextmenu({
-          items: [
-            {
-              label: "刷新节点",
-              icon: "el-icon-refresh",
-              disabled: false,
-              onClick: () => {
-                this.refreshNode(node);
-              }
-            },
-            {
-              label: "新建节点",
-              icon: "el-icon-plus",
-              disabled: false,
-              onClick: () => {
-                this.addRegion(data.id, node);
-              }
-            },
-            {
-              label: "编辑节点",
-              icon: "el-icon-edit",
-              disabled: node.level === 1,
-              onClick: () => {
-                this.editCatalog(data, node);
-              }
-            },
-            {
-              label: "删除节点",
-              icon: "el-icon-delete",
-              disabled: node.level === 1,
-              divided: true,
-              onClick: () => {
-                this.$confirm('确定删除?', '提示', {
-                  confirmButtonText: '确定',
-                  cancelButtonText: '取消',
-                  type: 'warning'
-                }).then(() => {
-                  this.removeRegion(data.id, node)
-                }).catch(() => {
+          },
+          {
+            label: "新建节点",
+            icon: "el-icon-plus",
+            disabled: false,
+            onClick: () => {
+              this.addRegion(data.id, node);
+            }
+          },
+          {
+            label: "编辑节点",
+            icon: "el-icon-edit",
+            disabled: node.level === 1,
+            onClick: () => {
+              this.editCatalog(data, node);
+            }
+          },
+          {
+            label: "删除节点",
+            icon: "el-icon-delete",
+            disabled: node.level === 1,
+            divided: true,
+            onClick: () => {
+              this.$confirm('确定删除?', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+              }).then(() => {
+                this.removeRegion(data.id, node)
+              }).catch(() => {
 
-                });
-              }
-            },
+              });
+            }
+          },
+        ]
+        if (this.enableAddChannel) {
+          menuItem.push(
             {
               label: "添加设备",
               icon: "el-icon-plus",
@@ -196,36 +170,34 @@ export default {
               onClick: () => {
                 this.addChannelFormDevice(data.id, node)
               }
-            },
+            }
+          )
+          menuItem.push(
             {
               label: "移除设备",
               icon: "el-icon-delete",
               disabled: node.level === 1,
+              divided: true,
               onClick: () => {
                 this.removeChannelFormDevice(data.id, node)
               }
-            },
-            // {
-            //   label: "导出",
-            //   icon: "el-icon-download",
-            //   disabled: false,
-            //   children: [
-            //     {
-            //       label: "导出到文件",
-            //       onClick: () => {
-            //
-            //       },
-            //     },
-            //     {
-            //       label: "导出到其他平台",
-            //       onClick: () => {
-            //
-            //       },
-            //     }
-            //   ]
-            // },
+            }
+          )
+          menuItem.push(
+            {
+              label: "添加通道",
+              icon: "el-icon-plus",
+              disabled: node.level === 1,
+              onClick: () => {
+                this.addChannel(data.id, node)
+              }
+            }
+          )
+        }
 
-          ],
+
+        this.$contextmenu({
+          items: menuItem,
           event, // 鼠标事件信息
           customClass: "custom-class", // 自定义菜单 class
           zIndex: 3000, // 菜单样式 z-index
@@ -310,7 +282,7 @@ export default {
               message: "保存成功"
             })
             if (this.onChannelChange) {
-              this.onChannelChange()
+              this.onChannelChange(node.data.deviceId)
             }
             node.loaded = false
             node.expand();
@@ -328,6 +300,13 @@ export default {
           })
           this.loading = false
         });
+      })
+    },
+    addChannel: function (id, node) {
+      this.$refs.gbChannelSelect.openDialog((data) => {
+        console.log("选择的数据")
+        console.log(data)
+        this.addChannelToCivilCode(node.data.deviceId, data)
       })
     },
     refreshNode: function (node) {
@@ -365,14 +344,11 @@ export default {
       }, node.data);
     },
     nodeClickHandler: function (data, node, tree) {
-      console.log(data)
-      console.log(node)
+
+      this.chooseId = data.deviceId;
       if (this.clickEvent) {
         this.clickEvent(data)
       }
-      // this.chooseId = data.id;
-      // this.chooseName = data.name;
-      // if (this.catalogIdChange)this.catalogIdChange(this.chooseId, this.chooseName);
     }
   },
   destroyed() {

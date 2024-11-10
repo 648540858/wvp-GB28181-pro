@@ -40,12 +40,13 @@ public class GroupController {
     @GetMapping("/tree/list")
     public List<GroupTree> queryForTree(
             @RequestParam(required = false) String query,
-            @RequestParam(required = false) Integer parent
+            @RequestParam(required = false) Integer parent,
+            @RequestParam(required = false) Boolean hasChannel
     ){
         if (ObjectUtils.isEmpty(query)) {
             query = null;
         }
-        return groupService.queryForTree(query, parent);
+        return groupService.queryForTree(query, parent, hasChannel);
     }
 
     @Operation(summary = "更新分组")
@@ -66,6 +67,14 @@ public class GroupController {
         if (!result) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "移除失败");
         }
+    }
+
+    @Operation(summary = "获取所属的行政区划下的行政区划")
+    @Parameter(name = "deviceId", description = "当前的行政区划", required = false)
+    @ResponseBody
+    @GetMapping("/path")
+    public List<Group> getPath(String deviceId, String businessGroup){
+        return groupService.getPath(deviceId, businessGroup);
     }
 
 //    @Operation(summary = "根据分组Id查询分组")

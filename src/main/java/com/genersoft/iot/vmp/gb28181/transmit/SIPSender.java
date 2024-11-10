@@ -72,12 +72,12 @@ public class SIPSender {
         if (okEvent != null || errorEvent != null) {
             CallIdHeader callIdHeader = (CallIdHeader) message.getHeader(CallIdHeader.NAME);
             SipEvent sipEvent = SipEvent.getInstance(callIdHeader.getCallId(), eventResult -> {
-                sipSubscribe.removeSubscribe(eventResult.callId);
+                sipSubscribe.removeSubscribe(callIdHeader.getCallId());
                 if(okEvent != null) {
                     okEvent.response(eventResult);
                 }
             }, (eventResult -> {
-                sipSubscribe.removeSubscribe(eventResult.callId);
+                sipSubscribe.removeSubscribe(callIdHeader.getCallId());
                 if (errorEvent != null) {
                     errorEvent.response(eventResult);
                 }

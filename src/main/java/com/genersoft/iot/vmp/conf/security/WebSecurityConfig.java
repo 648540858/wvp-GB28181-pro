@@ -25,6 +25,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * 配置Spring Security
@@ -62,7 +63,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
      **/
     @Override
     public void configure(WebSecurity web) {
-        if (userSetting.isInterfaceAuthentication()) {
+        if (userSetting.getInterfaceAuthentication()) {
             ArrayList<String> matchers = new ArrayList<>();
             matchers.add("/");
             matchers.add("/#/**");
@@ -104,6 +105,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+
+        List<String> defaultExcludes = userSetting.getInterfaceAuthenticationExcludes();
+        defaultExcludes.add("/api/user/login");
+        defaultExcludes.add("/index/hook/**");
+        defaultExcludes.add("/api/device/query/snap/**");
+        defaultExcludes.add("/index/hook/abl/**");
+        defaultExcludes.add("/swagger-ui/**");
+        defaultExcludes.add("/doc.html#/**");
+//        defaultExcludes.add("/channel/log");
+
         http.headers().contentTypeOptions().disable()
                 .and().cors().configurationSource(configurationSource())
                 .and().csrf().disable()
@@ -114,8 +125,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
-                .antMatchers(userSetting.getInterfaceAuthenticationExcludes().toArray(new String[0])).permitAll()
-                .antMatchers("/api/user/login", "/index/hook/**","/index/hook/abl/**", "/swagger-ui/**", "/doc.html#/**").permitAll()
+                .antMatchers(defaultExcludes.toArray(new String[0])).permitAll()
                 .anyRequest().authenticated()
                 // 异常处理器
                 .and()

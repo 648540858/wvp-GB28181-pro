@@ -69,7 +69,8 @@ public interface GroupMapper {
             " * , " +
             " concat('group', id) as tree_id," +
             " 0 as type," +
-            " false as is_leaf" +
+            " false as is_leaf," +
+            " 'ON' as status" +
             " from wvp_common_group " +
             " where 1=1 " +
             " <if test='parentId != null'> and parent_id = #{parentId} </if> " +
@@ -153,7 +154,7 @@ public interface GroupMapper {
             " SELECT " +
             " wcg.device_id as gb_device_id," +
             " wcg.name as gb_name," +
-            " wcg.business_group as gb_business_group," +
+            " wcg.business_group as gb_business_group_id," +
             " 1 as gb_parental," +
             " wcg.parent_device_id as gb_parent_id" +
             " from wvp_common_group wcg" +

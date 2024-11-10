@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.GbCode;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
@@ -36,7 +37,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author lin
@@ -273,6 +273,11 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
+    public DeviceChannel getOneBySourceId(int deviceDbId, String channelId) {
+        return channelMapper.getOneBySourceChannelId(deviceDbId, channelId);
+    }
+
+    @Override
     @Transactional
     public synchronized void batchUpdateChannelForNotify(List<DeviceChannel> channels) {
         String now = DateUtil.getNow();
@@ -326,7 +331,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public void updateChannelStreamIdentification(DeviceChannel channel) {
-        Assert.isTrue(channel.getId() > 0, "通道ID必须存在");
         Assert.hasLength(channel.getStreamIdentification(), "码流标识必须存在");
         if (ObjectUtils.isEmpty(channel.getStreamIdentification())) {
             log.info("[重置通道码流类型] 设备: {}, 码流： {}", channel.getDeviceId(), channel.getStreamIdentification());
@@ -466,7 +470,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             return false;
         }
         List<DeviceChannel> allChannels = channelMapper.queryAllChannelsForRefresh(deviceDbId);
-        Map<String,DeviceChannel> allChannelMap = new ConcurrentHashMap<>();
+        Map<String,DeviceChannel> allChannelMap = new HashMap<>();
         if (!allChannels.isEmpty()) {
             for (DeviceChannel deviceChannel : allChannels) {
                 allChannelMap.put(deviceChannel.getDeviceDbId() + deviceChannel.getDeviceId(), deviceChannel);
@@ -481,15 +485,8 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         StringBuilder stringBuilder = new StringBuilder();
         Map<String, Integer> subContMap = new HashMap<>();
 
-        // 数据去重
-        Set<String> gbIdSet = new HashSet<>();
         for (DeviceChannel deviceChannel : deviceChannelList) {
-            if (gbIdSet.contains(deviceDbId + deviceChannel.getDeviceId())) {
-                stringBuilder.append(deviceChannel.getDeviceId()).append(",");
-                continue;
-            }
-            gbIdSet.add(deviceDbId + deviceChannel.getDeviceId());
-            DeviceChannel channelInDb = allChannelMap.get(deviceDbId + deviceChannel.getDeviceId());
+            DeviceChannel channelInDb = allChannelMap.get(deviceChannel.getDeviceDbId() + deviceChannel.getDeviceId());
             if (channelInDb != null) {
                 deviceChannel.setStreamId(channelInDb.getStreamId());
                 deviceChannel.setHasAudio(channelInDb.isHasAudio());
@@ -540,7 +537,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             log.info("通道重设，数据为空={}" , deviceChannelList);
             return false;
         }
-        int limitCount = 50;
+        int limitCount = 500;
         if (!addChannels.isEmpty()) {
             if (addChannels.size() > limitCount) {
                 for (int i = 0; i < addChannels.size(); i += limitCount) {
@@ -599,7 +596,20 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     @Override
     public PageInfo<DeviceChannel> getSubChannels(int deviceDbId, String channelId, String query, Boolean channelType, Boolean online, int page, int count) {
         PageHelper.startPage(page, count);
-        List<DeviceChannel> all = channelMapper.queryChannels(deviceDbId, channelId, query, channelType, online,null);
+        String civilCode = null;
+        String parentId = null;
+        String businessGroupId = null;
+        if (channelId.length() <= 8) {
+            civilCode = channelId;
+        }else {
+            GbCode decode = GbCode.decode(channelId);
+            if (Integer.parseInt(decode.getTypeCode()) == 215) {
+                businessGroupId = channelId;
+            }else {
+                parentId = channelId;
+            }
+        }
+        List<DeviceChannel> all = channelMapper.queryChannels(deviceDbId, civilCode, businessGroupId, parentId, query, channelType, online,null);
         return new PageInfo<>(all);
     }
 
@@ -616,7 +626,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         }
         // 获取到所有正在播放的流
         PageHelper.startPage(page, count);
-        List<DeviceChannel> all = channelMapper.queryChannels(device.getId(), null, query, hasSubChannel, online,null);
+        List<DeviceChannel> all = channelMapper.queryChannels(device.getId(), null,null, null, query, hasSubChannel, online,null);
         return new PageInfo<>(all);
     }
 

@@ -25,16 +25,16 @@ public class MediaServerStatusEventListener {
 	@Async("taskExecutor")
 	@EventListener
 	public void onApplicationEvent(MediaServerOnlineEvent event) {
-		log.info("[媒体节点] 上线 ID：" + event.getMediaServerId());
-		playService.zlmServerOnline(event.getMediaServerId());
+		log.info("[媒体节点] 上线 ID：" + event.getMediaServer().getId());
+		playService.zlmServerOnline(event.getMediaServer());
 	}
 
 	@Async("taskExecutor")
 	@EventListener
 	public void onApplicationEvent(MediaServerOfflineEvent event) {
 
-		log.info("[媒体节点] 离线，ID：" + event.getMediaServerId());
+		log.info("[媒体节点] 离线，ID：" + event.getMediaServer().getId());
 		// 处理ZLM离线
-		playService.zlmServerOffline(event.getMediaServerId());
+		playService.zlmServerOffline(event.getMediaServer());
 	}
 }

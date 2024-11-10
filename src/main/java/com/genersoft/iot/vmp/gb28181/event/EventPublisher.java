@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.gb28181.event.device.RequestTimeoutEvent;
 import com.genersoft.iot.vmp.gb28181.event.record.RecordEndEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.mobilePosition.MobilePositionEvent;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOfflineEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOnlineEvent;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,15 +40,15 @@ public class EventPublisher {
 		applicationEventPublisher.publishEvent(alarmEvent);
 	}
 
-	public void mediaServerOfflineEventPublish(String mediaServerId){
+	public void mediaServerOfflineEventPublish(MediaServer mediaServer){
 		MediaServerOfflineEvent outEvent = new MediaServerOfflineEvent(this);
-		outEvent.setMediaServerId(mediaServerId);
+		outEvent.setMediaServer(mediaServer);
 		applicationEventPublisher.publishEvent(outEvent);
 	}
 
-	public void mediaServerOnlineEventPublish(String mediaServerId) {
+	public void mediaServerOnlineEventPublish(MediaServer mediaServer) {
 		MediaServerOnlineEvent outEvent = new MediaServerOnlineEvent(this);
-		outEvent.setMediaServerId(mediaServerId);
+		outEvent.setMediaServer(mediaServer);
 		applicationEventPublisher.publishEvent(outEvent);
 	}
 

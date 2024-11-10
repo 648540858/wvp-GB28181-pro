@@ -1,115 +1,106 @@
 <template>
-  <div id="shareChannelAdd" style="width: 100%;  background-color: #FFFFFF">
-    <div class="page-header">
-      <div class="page-header-btn">
-        <div  style="display: inline;">
-          搜索:
-          <el-input @input="search" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
-                    prefix-icon="el-icon-search" v-model="searchSrt" clearable></el-input>
+  <div id="shareChannelAdd" style="width: 100%;  background-color: #FFFFFF; display: grid; grid-template-columns: 200px auto;">
+    <el-tabs tab-position="left" style="" v-model="hasShare" @tab-click="search">
+      <el-tab-pane label="未共享" name="false"></el-tab-pane>
+      <el-tab-pane label="已共享" name="true"></el-tab-pane>
+    </el-tabs>
+    <div>
+      <div class="page-header">
+        <div class="page-header-btn" style="width: 100%;">
+          <div  style="display: inline;">
+            搜索:
+            <el-input @input="search" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
+                      prefix-icon="el-icon-search" v-model="searchSrt" clearable></el-input>
 
-          在线状态:
-          <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="search" v-model="online" placeholder="请选择"
-                     default-first-option>
-            <el-option label="全部" value=""></el-option>
-            <el-option label="在线" value="true"></el-option>
-            <el-option label="离线" value="false"></el-option>
-          </el-select>
-          类型:
-          <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="search" v-model="channelType" placeholder="请选择"
-                     default-first-option>
-            <el-option label="全部" value=""></el-option>
-            <el-option label="国标设备" :value="0"></el-option>
-            <el-option label="推流设备" :value="1"></el-option>
-            <el-option label="拉流代理" :value="2"></el-option>
-          </el-select>
-          添加状态:
-          <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="search" v-model="hasShare" placeholder="请选择"
-                     default-first-option>
-            <el-option label="全部" value=""></el-option>
-            <el-option label="已共享" value="true"></el-option>
-            <el-option label="未共享" value="false"></el-option>
-          </el-select>
-          <el-button v-if="hasShare !=='true'" size="mini" type="primary" @click="add()">
-            添加
-          </el-button>
-          <el-button v-if="hasShare ==='true'" size="mini" type="danger" @click="remove()">
-            移除
-          </el-button>
-          <el-button size="mini" @click="addByDevice()">按设备添加</el-button>
-          <el-button size="mini" @click="removeByDevice()">按设备移除</el-button>
-          <el-button size="mini" @click="addAll()">全部添加</el-button>
-          <el-button size="mini" @click="removeAll()">全部移除</el-button>
-          <el-button size="mini" @click="getChannelList()">刷新</el-button>
+            在线状态:
+            <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="search" v-model="online" placeholder="请选择"
+                       default-first-option>
+              <el-option label="全部" value=""></el-option>
+              <el-option label="在线" value="true"></el-option>
+              <el-option label="离线" value="false"></el-option>
+            </el-select>
+            类型:
+            <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="search" v-model="channelType" placeholder="请选择"
+                       default-first-option>
+              <el-option label="全部" value=""></el-option>
+              <el-option label="国标设备" :value="0"></el-option>
+              <el-option label="推流设备" :value="1"></el-option>
+              <el-option label="拉流代理" :value="2"></el-option>
+            </el-select>
+            <el-button v-if="hasShare !=='true'" size="mini" type="primary" @click="add()">
+              添加
+            </el-button>
+            <el-button v-if="hasShare ==='true'" size="mini" type="danger" @click="remove()">
+              移除
+            </el-button>
+            <el-button size="mini" v-if="hasShare !=='true'" @click="addByDevice()">按设备添加</el-button>
+            <el-button size="mini" v-if="hasShare ==='true'" @click="removeByDevice()">按设备移除</el-button>
+            <el-button size="mini" v-if="hasShare !=='true'" @click="addAll()">全部添加</el-button>
+            <el-button size="mini" v-if="hasShare ==='true'" @click="removeAll()">全部移除</el-button>
+            <el-button size="mini" @click="getChannelList()">刷新</el-button>
+          </div>
         </div>
       </div>
+      <el-table size="small"  ref="channelListTable" :data="channelList" :height="winHeight" style="width: 100%;"
+                header-row-class-name="table-header" @selection-change="handleSelectionChange" >
+        <el-table-column type="selection" width="55" :selectable="selectable">
+        </el-table-column>
+        <el-table-column prop="gbName" label="名称" min-width="180">
+        </el-table-column>
+        <el-table-column prop="gbDeviceId" label="编号" min-width="180">
+        </el-table-column>
+        <el-table-column v-if="hasShare ==='true'" label="自定义名称" min-width="180">
+          <template v-slot:default="scope">
+            <div slot="—" class="name-wrapper">
+              <el-input size="mini" placeholder="不填按原名称" v-model:value="scope.row.customName"></el-input>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column v-if="hasShare ==='true'" label="自定义编号" min-width="180">
+          <template v-slot:default="scope">
+            <div slot="—" class="name-wrapper">
+              <el-input size="mini" placeholder="不填按原编号" v-model:value="scope.row.customDeviceId"></el-input>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column v-if="hasShare ==='true'"  label="" min-width="80">
+          <template v-slot:default="scope">
+            <el-button size="mini" type="primary" @click="saveCustom(scope.row)">保存
+            </el-button>
+          </template>
+        </el-table-column>
+        <el-table-column prop="gbManufacturer" label="厂家" min-width="100">
+        </el-table-column>
+        <el-table-column label="类型" min-width="100">
+          <template v-slot:default="scope">
+            <div slot="reference" class="name-wrapper">
+              <el-tag size="medium" effect="plain" v-if="scope.row.gbDeviceDbId">国标设备</el-tag>
+              <el-tag size="medium" effect="plain" type="success" v-if="scope.row.streamPushId">推流设备</el-tag>
+              <el-tag size="medium" effect="plain" type="warning" v-if="scope.row.streamProxyId">拉流代理</el-tag>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" min-width="100">
+          <template v-slot:default="scope">
+            <div slot="reference" class="name-wrapper">
+              <el-tag size="medium" v-if="scope.row.gbStatus === 'ON'">在线</el-tag>
+              <el-tag size="medium" type="info" v-if="scope.row.gbStatus !== 'ON'">离线</el-tag>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-pagination
+        style="text-align: right"
+        @size-change="handleSizeChange"
+        @current-change="currentChange"
+        :current-page="currentPage"
+        :page-size="count"
+        :page-sizes="[15, 25, 35, 50]"
+        layout="total, sizes, prev, pager, next"
+        :total="total">
+      </el-pagination>
+      <gbDeviceSelect ref="gbDeviceSelect"></gbDeviceSelect>
     </div>
-    <el-table size="small"  ref="channelListTable" :data="channelList" :height="winHeight" style="width: 100%;"
-              header-row-class-name="table-header" @selection-change="handleSelectionChange" >
-      <el-table-column type="selection" width="55" :selectable="selectable">
-      </el-table-column>
-      <el-table-column prop="gbName" label="名称" min-width="180">
-      </el-table-column>
-      <el-table-column prop="gbDeviceId" label="编号" min-width="180">
-      </el-table-column>
-      <el-table-column v-if="hasShare ==='true'" label="自定义名称" min-width="180">
-        <template slot-scope="scope">
-          <div slot="—" class="name-wrapper">
-            <el-input size="mini" placeholder="不填按原名称" v-model:value="scope.row.customName"></el-input>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column v-if="hasShare ==='true'" label="自定义编号" min-width="180">
-        <template slot-scope="scope">
-          <div slot="—" class="name-wrapper">
-            <el-input size="mini" placeholder="不填按原编号" v-model:value="scope.row.customDeviceId"></el-input>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column v-if="hasShare ==='true'"  label="" min-width="80">
-        <template slot-scope="scope">
-          <el-button size="mini" type="primary" @click="saveCustom(scope.row)">保存
-          </el-button>
-        </template>
-      </el-table-column>
-      <el-table-column prop="gbManufacturer" label="厂家" min-width="100">
-      </el-table-column>
-      <el-table-column label="类型" min-width="100">
-        <template slot-scope="scope">
-          <div slot="reference" class="name-wrapper">
-            <el-tag size="medium" effect="plain" v-if="scope.row.gbDeviceDbId">国标设备</el-tag>
-            <el-tag size="medium" effect="plain" type="success" v-if="scope.row.streamPushId">推流设备</el-tag>
-            <el-tag size="medium" effect="plain" type="warning" v-if="scope.row.streamProxyId">拉流代理</el-tag>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="状态" min-width="100">
-        <template slot-scope="scope">
-          <div slot="reference" class="name-wrapper">
-            <el-tag size="medium" v-if="scope.row.gbStatus === 'ON'">在线</el-tag>
-            <el-tag size="medium" type="info" v-if="scope.row.gbStatus !== 'ON'">离线</el-tag>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="共享状态" min-width="100">
-        <template slot-scope="scope">
-          <div slot="reference" class="name-wrapper">
-            <el-tag size="medium" :title="scope.row.platformId" v-if="scope.row.platformId">已共享</el-tag>
-            <el-tag size="medium" type="info" v-if="!scope.row.platformId">未共享</el-tag>
-          </div>
-        </template>
-      </el-table-column>
-    </el-table>
-    <el-pagination
-      style="text-align: right"
-      @size-change="handleSizeChange"
-      @current-change="currentChange"
-      :current-page="currentPage"
-      :page-size="count"
-      :page-sizes="[15, 25, 35, 50]"
-      layout="total, sizes, prev, pager, next"
-      :total="total">
-    </el-pagination>
-    <gbDeviceSelect ref="gbDeviceSelect"></gbDeviceSelect>
   </div>
 </template>
 

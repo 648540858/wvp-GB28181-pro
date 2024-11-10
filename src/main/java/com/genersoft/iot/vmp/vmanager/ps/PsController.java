@@ -11,7 +11,7 @@ import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
+import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -28,9 +28,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -48,7 +46,7 @@ public class PsController {
     private IMediaServerService mediaServerService;
 
     @Autowired
-    private SendRtpPortManager sendRtpPortManager;
+    private ISendRtpServerService sendRtpServerService;
 
     @Autowired
     private UserSetting userSetting;
@@ -133,7 +131,7 @@ public class PsController {
         if (isSend != null && isSend) {
             String key = VideoManagerConstants.WVP_OTHER_SEND_PS_INFO + userSetting.getServerId() + "_"  + callId;
             // 预创建发流信息
-            int port = sendRtpPortManager.getNextPort(mediaServer);
+            int port = sendRtpServerService.getNextPort(mediaServer);
 
             otherPsSendInfo.setSendLocalIp(mediaServer.getSdpIp());
             otherPsSendInfo.setSendLocalPort(port);
@@ -249,11 +247,6 @@ public class PsController {
         if (sendInfo == null){
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未开启发流");
         }
-        Map<String, Object> param = new HashMap<>();
-        param.put("vhost","__defaultVhost__");
-        param.put("app",sendInfo.getPushApp());
-        param.put("stream",sendInfo.getPushStream());
-        param.put("ssrc",sendInfo.getPushSSRC());
         MediaServer mediaServerItem = mediaServerService.getDefaultMediaServer();
         boolean result = mediaServerService.stopSendRtp(mediaServerItem, sendInfo.getPushApp(), sendInfo.getStream(), sendInfo.getPushSSRC());
         if (!result) {
@@ -283,6 +276,6 @@ public class PsController {
 //            }).start();
 //        }
 
-        return sendRtpPortManager.getNextPort(defaultMediaServer);
+        return sendRtpServerService.getNextPort(defaultMediaServer);
     }
 }

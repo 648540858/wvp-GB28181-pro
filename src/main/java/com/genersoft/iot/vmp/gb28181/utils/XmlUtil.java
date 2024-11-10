@@ -706,21 +706,26 @@ public class XmlUtil {
      * @return
      */
     private static Object simpleTypeDeal(Class<?> tClass, Object val) {
-        if (val == null || val.toString().equalsIgnoreCase("null")) {
+        try {
+            if (val == null || val.toString().equalsIgnoreCase("null")) {
+                return null;
+            }
+            if (tClass.equals(String.class)) {
+                return val.toString();
+            }
+            if (tClass.equals(Integer.class)) {
+                return Integer.valueOf(val.toString());
+            }
+            if (tClass.equals(Double.class)) {
+                return Double.valueOf(val.toString());
+
+            }
+            if (tClass.equals(Long.class)) {
+                return Long.valueOf(val.toString());
+            }
+            return val;
+        }catch (Exception e) {
             return null;
         }
-        if (tClass.equals(String.class)) {
-            return val.toString();
-        }
-        if (tClass.equals(Integer.class)) {
-            return Integer.valueOf(val.toString());
-        }
-        if (tClass.equals(Double.class)) {
-            return Double.valueOf(val.toString());
-        }
-        if (tClass.equals(Long.class)) {
-            return Long.valueOf(val.toString());
-        }
-        return val;
     }
 }

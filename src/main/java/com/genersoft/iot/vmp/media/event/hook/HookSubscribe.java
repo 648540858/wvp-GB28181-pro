@@ -82,7 +82,6 @@ public class HookSubscribe {
     }
 
     public void addSubscribe(Hook hook, HookSubscribe.Event event) {
-        System.out.println("add==" + hook.toString());
         if (hook.getExpireTime() == null) {
             hook.setExpireTime(System.currentTimeMillis() + subscribeExpire);
         }

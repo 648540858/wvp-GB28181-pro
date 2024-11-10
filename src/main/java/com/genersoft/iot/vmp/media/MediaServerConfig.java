@@ -41,7 +41,7 @@ public class MediaServerConfig implements CommandLineRunner {
             mediaServerService.update(mediaSerItemInConfig);
         }else {
             if (defaultMediaServer != null) {
-                mediaServerService.delete(defaultMediaServer.getId());
+                mediaServerService.delete(defaultMediaServer);
             }
             MediaServer mediaServerItem = mediaServerService.getOneFromDatabase(mediaSerItemInConfig.getId());
             if (mediaServerItem == null) {

@@ -121,7 +121,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @EventListener
     @Transactional
     public void onApplicationEvent(MediaServerOnlineEvent event) {
-        zlmServerOnline(event.getMediaServerId());
+        zlmServerOnline(event.getMediaServer());
     }
 
     /**
@@ -131,7 +131,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @EventListener
     @Transactional
     public void onApplicationEvent(MediaServerOfflineEvent event) {
-        zlmServerOffline(event.getMediaServerId());
+        zlmServerOffline(event.getMediaServer());
     }
 
 
@@ -284,15 +284,14 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Override
     @Transactional
-    public void zlmServerOnline(String mediaServerId) {
-        MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+    public void zlmServerOnline(MediaServer mediaServer) {
         if (mediaServer == null) {
             return;
         }
         // 这里主要是控制数据库/redis缓存/以及zlm中存在的代理流 三者状态一致。以数据库中数据为根本
-        redisCatchStorage.removeStream(mediaServerId, "pull");
+        redisCatchStorage.removeStream(mediaServer.getId(), "PULL");
 
-        List<StreamProxy> streamProxies = streamProxyMapper.selectForEnableInMediaServer(mediaServerId, true);
+        List<StreamProxy> streamProxies = streamProxyMapper.selectForEnableInMediaServer(mediaServer.getId(), true);
         if (streamProxies.isEmpty()) {
             return;
         }
@@ -359,11 +358,11 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     @Override
-    public void zlmServerOffline(String mediaServerId) {
-        List<StreamProxy> streamProxies = streamProxyMapper.selectForEnableInMediaServer(mediaServerId, true);
+    public void zlmServerOffline(MediaServer mediaServer) {
+        List<StreamProxy> streamProxies = streamProxyMapper.selectForEnableInMediaServer(mediaServer.getId(), true);
 
         // 清理redis相关的缓存
-        redisCatchStorage.removeStream(mediaServerId, "pull");
+        redisCatchStorage.removeStream(mediaServer.getId(), "PULL");
 
         if (streamProxies.isEmpty()) {
             return;
@@ -395,7 +394,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 jsonObject.put("app", streamProxy.getApp());
                 jsonObject.put("stream", streamProxy.getStream());
                 jsonObject.put("register", false);
-                jsonObject.put("mediaServerId", mediaServerId);
+                jsonObject.put("mediaServerId", mediaServer);
                 redisCatchStorage.sendStreamChangeMsg("pull", jsonObject);
             }
         }

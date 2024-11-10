@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 @Component
 public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessorParent {
 
-	private ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
+	private final ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
 
 	@Autowired
 	private UserSetting userSetting;
@@ -61,7 +61,7 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 		taskQueue.offer(new HandlerCatchData(evt, null, null));
 	}
 
-	@Scheduled(fixedRate = 200) //每200毫秒执行一次
+	@Scheduled(fixedDelay = 200) //每200毫秒执行一次
 	public void executeTaskQueue() {
 		if (taskQueue.isEmpty()) {
 			return;

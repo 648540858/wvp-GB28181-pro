@@ -74,10 +74,6 @@ export default new VueRouter({
           component: jtChannelList,
         },
         {
-          path: '/pushVideoList',
-          component: pushVideoList,
-        },
-        {
           path: '/streamProxyList',
           component: streamProxyList,
         },
@@ -115,11 +111,6 @@ export default new VueRouter({
           path: '/jtChannelEdit/:terminalDbId/',
           name: 'jtChannelEditAdd',
           component: jtChannelEdit,
-        },
-        {
-          path: '/parentPlatformList/:count/:page',
-          name: 'parentPlatformList',
-          component: parentPlatformList,
         },
         {
           path: '/map/:deviceId/:parentChannelId/:count/:page',

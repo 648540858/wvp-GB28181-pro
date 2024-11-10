@@ -15,6 +15,7 @@ public class ChannelProvider {
             "    device_db_id as gb_device_db_id,\n" +
             "    stream_push_id,\n" +
             "    stream_proxy_id,\n" +
+            "    jt_channel_id,\n" +
             "    create_time,\n" +
             "    update_time,\n" +
             "    coalesce(gb_device_id, device_id) as gb_device_id,\n" +
@@ -60,6 +61,7 @@ public class ChannelProvider {
             "    wdc.device_db_id as gb_device_db_id,\n" +
             "    wdc.stream_push_id,\n" +
             "    wdc.stream_proxy_id,\n" +
+            "    wdc.jt_channel_id,\n" +
             "    wdc.create_time,\n" +
             "    wdc.update_time,\n" +
             "    coalesce(wpgc.custom_device_id, wdc.gb_device_id, wdc.device_id) as gb_device_id,\n" +
@@ -144,6 +146,8 @@ public class ChannelProvider {
                 sqlBuild.append(" AND stream_push_id is not null");
             }else if ((Integer)params.get("channelType") == 2) {
                 sqlBuild.append(" AND stream_proxy_id is not null");
+            }else if ((Integer)params.get("channelType") == 4) {
+                sqlBuild.append(" AND jt_channel_id is not null");
             }
         }
         return sqlBuild.toString();
@@ -177,6 +181,8 @@ public class ChannelProvider {
                 sqlBuild.append(" AND stream_push_id is not null");
             }else if ((Integer)params.get("channelType") == 2) {
                 sqlBuild.append(" AND stream_proxy_id is not null");
+            }else if ((Integer)params.get("channelType") == 4) {
+                sqlBuild.append(" AND jt_channel_id is not null");
             }
         }
         return sqlBuild.toString();

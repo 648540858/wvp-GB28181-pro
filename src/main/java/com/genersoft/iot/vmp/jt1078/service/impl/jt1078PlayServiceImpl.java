@@ -106,7 +106,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
     @Async("taskExecutor")
     @EventListener
     public void onApplicationEvent(MediaNotFoundEvent event) {
-        if (!userSetting.isAutoApplyPlay()) {
+        if (!userSetting.getAutoApplyPlay()) {
             return;
         }
         JTMediaStreamType jtMediaStreamType = checkStreamFromJt(event.getStream());
@@ -250,7 +250,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
 
         log.info("[1078-点播] phoneNumber： {}， channelId： {}， 端口： {}", phoneNumber, channelId, ssrcInfo.getPort());
         J9101 j9101 = new J9101();
-        j9101.setChannel(Integer.valueOf(channelId));
+        j9101.setChannel(channelId);
         j9101.setIp(mediaServer.getSdpIp());
         j9101.setRate(1);
         j9101.setTcpPort(ssrcInfo.getPort());

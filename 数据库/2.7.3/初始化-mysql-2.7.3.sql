@@ -149,10 +149,12 @@ create table wvp_device_channel
     gb_svc_time_support_mode     integer,
     stream_push_id               integer,
     stream_proxy_id              integer,
+    jt_channel_id                integer,
     constraint uk_wvp_device_channel_unique_device_channel unique (device_db_id, device_id),
     constraint uk_wvp_unique_channel unique (gb_device_id),
     constraint uk_wvp_unique_stream_push_id unique (stream_push_id),
-    constraint uk_wvp_unique_stream_proxy_id unique (stream_proxy_id)
+    constraint uk_wvp_unique_stream_proxy_id unique (stream_proxy_id),
+    constraint uk_wvp_unique_jt_channel_id unique (jt_channel_id)
 );
 
 create index uk_wvp_device_db_id on wvp_device_channel (device_db_id);
@@ -425,5 +427,38 @@ CREATE TABLE wvp_common_region
     create_time      varchar(50)  NOT NULL,
     update_time      varchar(50)  NOT NULL,
     constraint uk_common_region_device_id unique (device_id)
+);
+
+create table wvp_jt_terminal (
+                                 id serial primary key,
+                                 phone_number character varying(50),
+                                 terminal_id character varying(50),
+                                 province_id character varying(50),
+                                 province_text character varying(100),
+                                 city_id character varying(50),
+                                 city_text character varying(100),
+                                 maker_id character varying(50),
+                                 model character varying(50),
+                                 plate_color character varying(50),
+                                 plate_no character varying(50),
+                                 authentication_code character varying(255),
+                                 longitude double precision,
+                                 latitude double precision,
+                                 status bool default false,
+                                 register_time character varying(50) default null,
+                                 update_time character varying(50) not null,
+                                 create_time character varying(50) not null,
+                                 constraint uk_jt_device_id_device_id unique (id, phone_number)
+);
+
+create table wvp_jt_channel (
+                                id serial primary key,
+                                terminal_db_id integer,
+                                channel_id integer,
+                                has_audio bool default false,
+                                name character varying(255),
+                                update_time character varying(50) not null,
+                                create_time character varying(50) not null,
+                                constraint uk_jt_device_id_device_id unique (terminal_db_id, channel_id)
 );
 

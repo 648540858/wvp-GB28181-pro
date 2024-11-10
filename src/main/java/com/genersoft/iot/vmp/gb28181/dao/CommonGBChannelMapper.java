@@ -22,6 +22,7 @@ public interface CommonGBChannelMapper {
             "gb_device_id," +
             " <if test='streamProxyId != null' > stream_proxy_id,</if>" +
             " <if test='streamPushId != null' > stream_push_id,</if>" +
+            " <if test='jtChannelId != null' > jt_channel_id,</if>" +
             "create_time," +
             "update_time," +
             "gb_name," +
@@ -61,6 +62,7 @@ public interface CommonGBChannelMapper {
             "#{gbDeviceId}, " +
             " <if test='streamProxyId != null' > #{streamProxyId},</if>" +
             " <if test='streamPushId != null' > #{streamPushId},</if>" +
+            " <if test='jtChannelId != null' > #{jtChannelId},</if>" +
             "#{createTime}, " +
             "#{updateTime}, " +
             "#{gbName}, " +
@@ -169,6 +171,7 @@ public interface CommonGBChannelMapper {
             "gb_device_id," +
             "stream_proxy_id, " +
             "stream_push_id," +
+            "jt_channel_id," +
             "create_time," +
             "update_time," +
             "gb_name," +
@@ -206,7 +209,7 @@ public interface CommonGBChannelMapper {
             "gb_svc_time_support_mode ) " +
             "VALUES" +
             "<foreach collection='commonGBChannels' index='index' item='item' separator=','> " +
-            "(#{item.gbDeviceId}, #{item.streamProxyId}, #{item.streamPushId},#{item.createTime},#{item.updateTime}," +
+            "(#{item.gbDeviceId}, #{item.streamProxyId}, #{item.streamPushId}, #{item.jtChannelId},#{item.createTime},#{item.updateTime}," +
             "#{item.gbName},#{item.gbManufacturer}, #{item.gbModel}," +
             "#{item.gbOwner},#{item.gbCivilCode},#{item.gbBlock}, #{item.gbAddress}, #{item.gbParental}, #{item.gbParentId},#{item.gbSafetyWay}, " +
             "#{item.gbRegisterWay},#{item.gbCertNum},#{item.gbCertifiable},#{item.gbErrCode},#{item.gbEndTime}, #{item.gbSecrecy},#{item.gbIpAddress}," +

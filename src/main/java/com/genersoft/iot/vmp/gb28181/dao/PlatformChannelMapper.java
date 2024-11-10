@@ -68,6 +68,7 @@ public interface PlatformChannelMapper {
             "    wdc.device_db_id as gb_device_db_id,\n" +
             "    wdc.stream_push_id,\n" +
             "    wdc.stream_proxy_id,\n" +
+            "    wdc.jt_channel_id,\n" +
             "    wdc.create_time,\n" +
             "    wdc.update_time,\n" +
             "    wpgc.custom_device_id, \n" +
@@ -152,6 +153,7 @@ public interface PlatformChannelMapper {
             " <if test='channelType == 0'> AND wdc.device_db_id is not null</if> " +
             " <if test='channelType == 1'> AND wdc.stream_push_id is not null</if> " +
             " <if test='channelType == 2'> AND wdc.stream_proxy_id is not null</if> " +
+            " <if test='channelType == 4'> AND wdc.jt_channel_id is not null</if> " +
             "</script>")
     List<PlatformChannel> queryForPlatformForWebList(@Param("platformId") Integer platformId, @Param("query") String query,
                                                      @Param("channelType") Integer channelType, @Param("online") Boolean online,
@@ -162,6 +164,7 @@ public interface PlatformChannelMapper {
             "    wdc.device_db_id as gb_device_db_id,\n" +
             "    wdc.stream_push_id,\n" +
             "    wdc.stream_proxy_id,\n" +
+            "    wdc.jt_channel_id,\n" +
             "    wdc.create_time,\n" +
             "    wdc.update_time,\n" +
             "    coalesce(wpgc.custom_device_id, wdc.gb_device_id, wdc.device_id) as gb_device_id,\n" +
@@ -212,6 +215,7 @@ public interface PlatformChannelMapper {
             "    wdc.device_db_id as gb_device_db_id,\n" +
             "    wdc.stream_push_id,\n" +
             "    wdc.stream_proxy_id,\n" +
+            "    wdc.jt_channel_id,\n" +
             "    wdc.create_time,\n" +
             "    wdc.update_time,\n" +
             "    coalesce(wpgc.custom_device_id, wdc.gb_device_id, wdc.device_id) as gb_device_id,\n" +
@@ -263,6 +267,7 @@ public interface PlatformChannelMapper {
             "    wdc.device_db_id as gb_device_db_id,\n" +
             "    wdc.stream_push_id,\n" +
             "    wdc.stream_proxy_id,\n" +
+            "    wdc.jt_channel_id,\n" +
             "    wdc.create_time,\n" +
             "    wdc.update_time,\n" +
             "    coalesce(wpgc.custom_device_id, wdc.gb_device_id, wdc.device_id) as gb_device_id,\n" +
@@ -488,6 +493,7 @@ public interface PlatformChannelMapper {
             "    wdc.device_db_id as gb_device_db_id,\n" +
             "    wdc.stream_push_id,\n" +
             "    wdc.stream_proxy_id,\n" +
+            "    wdc.jt_channel_id,\n" +
             "    wdc.create_time,\n" +
             "    wdc.update_time,\n" +
             "    coalesce(wpgc.custom_device_id, wdc.gb_device_id, wdc.device_id) as gb_device_id,\n" +

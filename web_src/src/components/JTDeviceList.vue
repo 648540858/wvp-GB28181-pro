@@ -222,7 +222,7 @@ export default {
       if (command === "params") {
         this.$router.push(`/jtDeviceParams/${itemData.phoneNumber}`);
       }else if (command === "connection") {
-        this.queryCloudRecords(itemData)
+        // this.queryCloudRecords(itemData)
       }else {
         this.$message.info("尚不支持");
       }

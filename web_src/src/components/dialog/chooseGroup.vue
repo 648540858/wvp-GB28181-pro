@@ -4,6 +4,7 @@
       title="选择虚拟组织"
       width="30%"
       top="5rem"
+      :append-to-body="true"
       :close-on-click-modal="false"
       :visible.sync="showDialog"
       :destroy-on-close="true"

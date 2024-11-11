@@ -190,110 +190,19 @@
                 <el-select
                   v-model="ptzMethod"
                   style="width: 100%"
+                  size="mini"
                   placeholder="请选择云台功能"
                 >
                   <el-option label="预置点" value="preset"></el-option>
                   <el-option label="巡航组" value="cruising"></el-option>
-                  <el-option label="线性扫描" value="scan"></el-option>
-                  <el-option label="巡迹" value="cruise"></el-option>
+                  <el-option label="自动扫描" value="scan"></el-option>
+                  <el-option label="雨刷" value="wiper"></el-option>
                 </el-select>
 
                 <ptzPreset :channelDeviceId="channelId" :deviceId="deviceId" v-if="ptzMethod === 'preset'" style="margin-top: 1rem"></ptzPreset>
-                <ptzCruising :channelDeviceId="channelId" :deviceId="deviceId" v-if="ptzMethod === 'cruising'" style="margin-top: 1rem"></ptzCruising>
-                <div v-if="ptzMethod === 'scan'">
-                  111
-                </div>
-                <div v-if="ptzMethod === 'cruise'">
-                  111
-                </div>
-              </div>
-            </div>
-
-
-            <div style="display: flex; justify-content: left;">
-
-
-              <div class="control-panel">
-                <el-button-group>
-                  <el-tag style="position :absolute; left: 0rem; top: 0rem; width: 5rem; text-align: center"
-                          size="medium">预置位编号
-                  </el-tag>
-                  <el-input-number style="position: absolute; left: 5rem; top: 0rem; width: 6rem" size="mini"
-                                   v-model="presetPos" controls-position="right" :precision="0" :step="1" :min="1"
-                                   :max="255"></el-input-number>
-                  <el-button style="position: absolute; left: 11rem; top: 0rem; width: 5rem" size="mini"
-                             icon="el-icon-add-location" @click="presetPosition(129, presetPos)">设置
-                  </el-button>
-                  <el-button style="position: absolute; left: 27rem; top: 0rem; width: 5rem" size="mini" type="primary"
-                             icon="el-icon-place" @click="presetPosition(130, presetPos)">调用
-                  </el-button>
-                  <el-button style="position: absolute; left: 16rem; top: 0rem; width: 5rem" size="mini"
-                             icon="el-icon-delete-location" @click="presetPosition(131, presetPos)">删除
-                  </el-button>
-                  <el-tag style="position :absolute; left: 0rem; top: 2.5rem; width: 5rem; text-align: center"
-                          size="medium">巡航速度
-                  </el-tag>
-                  <el-input-number style="position: absolute; left: 5rem; top: 2.5rem; width: 6rem" size="mini"
-                                   v-model="cruisingSpeed" controls-position="right" :precision="0" :min="1"
-                                   :max="4095"></el-input-number>
-                  <el-button style="position: absolute; left: 11rem; top: 2.5rem; width: 5rem" size="mini"
-                             icon="el-icon-loading" @click="setSpeedOrTime(134, cruisingGroup, cruisingSpeed)">设置
-                  </el-button>
-                  <el-tag style="position :absolute; left: 16rem; top: 2.5rem; width: 5rem; text-align: center"
-                          size="medium">停留时间
-                  </el-tag>
-                  <el-input-number style="position: absolute; left: 21rem; top: 2.5rem; width: 6rem" size="mini"
-                                   v-model="cruisingTime" controls-position="right" :precision="0" :min="1"
-                                   :max="4095"></el-input-number>
-                  <el-button style="position: absolute; left: 27rem; top: 2.5rem; width: 5rem" size="mini"
-                             icon="el-icon-timer" @click="setSpeedOrTime(135, cruisingGroup, cruisingTime)">设置
-                  </el-button>
-                  <el-tag style="position :absolute; left: 0rem; top: 4.5rem; width: 5rem; text-align: center"
-                          size="medium">巡航组编号
-                  </el-tag>
-                  <el-input-number style="position: absolute; left: 5rem; top: 4.5rem; width: 6rem" size="mini"
-                                   v-model="cruisingGroup" controls-position="right" :precision="0" :min="0"
-                                   :max="255"></el-input-number>
-                  <el-button style="position: absolute; left: 11rem; top: 4.5rem; width: 5rem" size="mini"
-                             icon="el-icon-add-location" @click="setCommand(132, cruisingGroup, presetPos)">添加点
-                  </el-button>
-                  <el-button style="position: absolute; left: 16rem; top: 4.5rem; width: 5rem" size="mini"
-                             icon="el-icon-delete-location" @click="setCommand(133, cruisingGroup, presetPos)">删除点
-                  </el-button>
-                  <el-button style="position: absolute; left: 21rem; top: 4.5rem; width: 5rem" size="mini"
-                             icon="el-icon-delete" @click="setCommand(133, cruisingGroup, 0)">删除组
-                  </el-button>
-                  <el-button style="position: absolute; left: 27rem; top: 5rem; width: 5rem" size="mini" type="primary"
-                             icon="el-icon-video-camera-solid" @click="setCommand(136, cruisingGroup, 0)">巡航
-                  </el-button>
-                  <el-tag style="position :absolute; left: 0rem; top: 7rem; width: 5rem; text-align: center"
-                          size="medium">扫描速度
-                  </el-tag>
-                  <el-input-number style="position: absolute; left: 5rem; top: 7rem; width: 6rem" size="mini"
-                                   v-model="scanSpeed" controls-position="right" :precision="0" :min="1"
-                                   :max="4095"></el-input-number>
-                  <el-button style="position: absolute; left: 11rem; top: 7rem; width: 5rem" size="mini"
-                             icon="el-icon-loading" @click="setSpeedOrTime(138, scanGroup, scanSpeed)">设置
-                  </el-button>
-                  <el-tag style="position :absolute; left: 0rem; top: 9rem; width: 5rem; text-align: center"
-                          size="medium">扫描组编号
-                  </el-tag>
-                  <el-input-number style="position: absolute; left: 5rem; top: 9rem; width: 6rem" size="mini"
-                                   v-model="scanGroup" controls-position="right" :precision="0" :step="1" :min="0"
-                                   :max="255"></el-input-number>
-                  <el-button style="position: absolute; left: 11rem; top: 9rem; width: 5rem" size="mini"
-                             icon="el-icon-d-arrow-left" @click="setCommand(137, scanGroup, 1)">左边界
-                  </el-button>
-                  <el-button style="position: absolute; left: 16rem; top: 9rem; width: 5rem" size="mini"
-                             icon="el-icon-d-arrow-right" @click="setCommand(137, scanGroup, 2)">右边界
-                  </el-button>
-                  <el-button style="position: absolute; left: 27rem; top: 7rem; width: 5rem" size="mini" type="primary"
-                             icon="el-icon-video-camera-solid" @click="setCommand(137, scanGroup, 0)">扫描
-                  </el-button>
-                  <el-button style="position: absolute; left: 27rem; top: 9rem; width: 5rem" size="mini" type="danger"
-                             icon="el-icon-switch-button" @click="ptzCamera('stop')">停止
-                  </el-button>
-                </el-button-group>
+                <ptzCruising :channelDeviceId="channelId" :deviceId="deviceId" v-if="ptzMethod === 'cruise'" style="margin-top: 1rem"></ptzCruising>
+                <ptzScan :channelDeviceId="channelId" :deviceId="deviceId" v-if="ptzMethod === 'scan'" style="margin-top: 1rem"></ptzScan>
+<!--                <ptzWiper :channelDeviceId="channelId" :deviceId="deviceId" v-if="ptzMethod === 'wiper'" style="margin-top: 1rem"></ptzWiper>-->
               </div>
             </div>
           </el-tab-pane>
@@ -356,12 +265,13 @@ import crypto from 'crypto'
 import jessibucaPlayer from '../common/jessibuca.vue'
 import PtzPreset from "../common/ptzPreset.vue";
 import PtzCruising from "../common/ptzCruising.vue";
+import ptzScan from "../common/ptzScan.vue";
 
 export default {
   name: 'devicePlayer',
   props: {},
   components: {
-    PtzPreset,PtzCruising,
+    PtzPreset,PtzCruising,ptzScan,
     LivePlayer, jessibucaPlayer, rtcPlayer,
   },
   computed: {
@@ -628,7 +538,7 @@ export default {
       let that = this;
       this.$axios({
         method: 'post',
-        url: '/api/ptz/control/' + this.deviceId + '/' + this.channelId + '?command=' + command + '&horizonSpeed=' + this.controSpeed + '&verticalSpeed=' + this.controSpeed + '&zoomSpeed=' + this.controSpeed
+        url: '/api/front-end/ptz/' + this.deviceId + '/' + this.channelId + '?command=' + command + '&horizonSpeed=' + this.controSpeed + '&verticalSpeed=' + this.controSpeed + '&zoomSpeed=' + this.controSpeed
       }).then(function (res) {
       });
     },
@@ -1032,5 +942,8 @@ export default {
 .trankInfo {
   width: 80%;
   padding: 0 10%;
+}
+.el-dialog__body{
+  padding: 10px 20px;
 }
 </style>

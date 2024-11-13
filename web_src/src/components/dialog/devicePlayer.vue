@@ -155,35 +155,58 @@
           <!--{"code":0,"data":{"paths":["22-29-30.mp4"],"rootPath":"/home/kkkkk/Documents/ZLMediaKit/release/linux/Debug/www/record/hls/kkkkk/2020-05-11/"}}-->
           <!--遥控界面-->
           <el-tab-pane label="云台控制" name="control" v-if="showPtz">
-            <div style="display: grid; grid-template-columns: 200px auto; height: 180px; overflow: auto">
-              <div class="control-wrapper">
-                <div class="control-btn control-top" @mousedown="ptzCamera('up')" @mouseup="ptzCamera('stop')">
-                  <i class="el-icon-caret-top"></i>
-                  <div class="control-inner-btn control-inner"></div>
+            <div style="display: grid; grid-template-columns: 240px auto; height: 180px; overflow: auto">
+              <div style="display: grid; grid-template-columns: 6.25rem auto;">
+
+                <div class="control-wrapper">
+                  <div class="control-btn control-top" @mousedown="ptzCamera('up')" @mouseup="ptzCamera('stop')">
+                    <i class="el-icon-caret-top"></i>
+                    <div class="control-inner-btn control-inner"></div>
+                  </div>
+                  <div class="control-btn control-left" @mousedown="ptzCamera('left')" @mouseup="ptzCamera('stop')">
+                    <i class="el-icon-caret-left"></i>
+                    <div class="control-inner-btn control-inner"></div>
+                  </div>
+                  <div class="control-btn control-bottom" @mousedown="ptzCamera('down')" @mouseup="ptzCamera('stop')">
+                    <i class="el-icon-caret-bottom"></i>
+                    <div class="control-inner-btn control-inner"></div>
+                  </div>
+                  <div class="control-btn control-right" @mousedown="ptzCamera('right')" @mouseup="ptzCamera('stop')">
+                    <i class="el-icon-caret-right"></i>
+                    <div class="control-inner-btn control-inner"></div>
+                  </div>
+                  <div class="control-round">
+                    <div class="control-round-inner"><i class="fa fa-pause-circle"></i></div>
+                  </div>
+                  <div class="contro-speed" style="position: absolute; left: 4px; top: 7rem; width: 6.25rem;">
+                    <el-slider v-model="controSpeed" :max="100"></el-slider>
+                  </div>
                 </div>
-                <div class="control-btn control-left" @mousedown="ptzCamera('left')" @mouseup="ptzCamera('stop')">
-                  <i class="el-icon-caret-left"></i>
-                  <div class="control-inner-btn control-inner"></div>
-                </div>
-                <div class="control-btn control-bottom" @mousedown="ptzCamera('down')" @mouseup="ptzCamera('stop')">
-                  <i class="el-icon-caret-bottom"></i>
-                  <div class="control-inner-btn control-inner"></div>
-                </div>
-                <div class="control-btn control-right" @mousedown="ptzCamera('right')" @mouseup="ptzCamera('stop')">
-                  <i class="el-icon-caret-right"></i>
-                  <div class="control-inner-btn control-inner"></div>
-                </div>
-                <div class="control-round">
-                  <div class="control-round-inner"><i class="fa fa-pause-circle"></i></div>
-                </div>
-                <div style="position: absolute; left: 7.25rem; top: 1.25rem" @mousedown="ptzCamera('zoomin')"
-                     @mouseup="ptzCamera('stop')"><i class="el-icon-zoom-in control-zoom-btn"
-                                                     style="font-size: 1.875rem;"></i></div>
-                <div style="position: absolute; left: 7.25rem; top: 3.25rem; font-size: 1.875rem;"
-                     @mousedown="ptzCamera('zoomout')" @mouseup="ptzCamera('stop')"><i
-                  class="el-icon-zoom-out control-zoom-btn"></i></div>
-                <div class="contro-speed" style="position: absolute; left: 4px; top: 7rem; width: 9rem;">
-                  <el-slider v-model="controSpeed" :max="255"></el-slider>
+                <div>
+                  <div class="ptz-btn-box">
+                    <div style="" @mousedown="ptzCamera('zoomin')" @mouseup="ptzCamera('stop')" title="变倍+">
+                      <i class="el-icon-zoom-in control-zoom-btn" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div style="" @mousedown="ptzCamera('zoomout')" @mouseup="ptzCamera('stop')" title="变倍-">
+                      <i class="el-icon-zoom-out control-zoom-btn" style="font-size: 1.5rem;"></i>
+                    </div>
+                  </div>
+                  <div class="ptz-btn-box">
+                    <div @mousedown="focusCamera('near')"  @mouseup="focusCamera('stop')" title="聚焦+">
+                      <i class="iconfont icon-bianjiao-fangda control-zoom-btn" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div @mousedown="focusCamera('far')" @mouseup="focusCamera('stop')" title="聚焦-">
+                      <i class="iconfont icon-bianjiao-suoxiao control-zoom-btn" style="font-size: 1.5rem;"></i>
+                    </div>
+                  </div>
+                  <div class="ptz-btn-box">
+                    <div @mousedown="irisCamera('in')"  @mouseup="irisCamera('stop')" title="光圈+">
+                      <i class="iconfont icon-guangquan control-zoom-btn" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div @mousedown="pirisCamera('out')" @mouseup="irisCamera('stop')" title="光圈-">
+                      <i class="iconfont icon-guangquan- control-zoom-btn" style="font-size: 1.5rem;"></i>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div style="text-align: left" >
@@ -194,15 +217,17 @@
                   placeholder="请选择云台功能"
                 >
                   <el-option label="预置点" value="preset"></el-option>
-                  <el-option label="巡航组" value="cruising"></el-option>
+                  <el-option label="巡航组" value="cruise"></el-option>
                   <el-option label="自动扫描" value="scan"></el-option>
                   <el-option label="雨刷" value="wiper"></el-option>
+                  <el-option label="辅助开关" value="switch"></el-option>
                 </el-select>
 
                 <ptzPreset :channelDeviceId="channelId" :deviceId="deviceId" v-if="ptzMethod === 'preset'" style="margin-top: 1rem"></ptzPreset>
                 <ptzCruising :channelDeviceId="channelId" :deviceId="deviceId" v-if="ptzMethod === 'cruise'" style="margin-top: 1rem"></ptzCruising>
                 <ptzScan :channelDeviceId="channelId" :deviceId="deviceId" v-if="ptzMethod === 'scan'" style="margin-top: 1rem"></ptzScan>
-<!--                <ptzWiper :channelDeviceId="channelId" :deviceId="deviceId" v-if="ptzMethod === 'wiper'" style="margin-top: 1rem"></ptzWiper>-->
+                <ptzWiper :channelDeviceId="channelId" :deviceId="deviceId" v-if="ptzMethod === 'wiper'" style="margin-top: 1rem"></ptzWiper>
+                <ptzSwitch :channelDeviceId="channelId" :deviceId="deviceId" v-if="ptzMethod === 'switch'" style="margin-top: 1rem"></ptzSwitch>
               </div>
             </div>
           </el-tab-pane>
@@ -266,12 +291,14 @@ import jessibucaPlayer from '../common/jessibuca.vue'
 import PtzPreset from "../common/ptzPreset.vue";
 import PtzCruising from "../common/ptzCruising.vue";
 import ptzScan from "../common/ptzScan.vue";
+import ptzWiper from "../common/ptzWiper.vue";
+import ptzSwitch from "../common/ptzSwitch.vue";
 
 export default {
   name: 'devicePlayer',
   props: {},
   components: {
-    PtzPreset,PtzCruising,ptzScan,
+    PtzPreset,PtzCruising,ptzScan,ptzWiper,ptzSwitch,
     LivePlayer, jessibucaPlayer, rtcPlayer,
   },
   computed: {
@@ -537,8 +564,22 @@ export default {
       console.log('云台控制：' + command);
       let that = this;
       this.$axios({
-        method: 'post',
-        url: '/api/front-end/ptz/' + this.deviceId + '/' + this.channelId + '?command=' + command + '&horizonSpeed=' + this.controSpeed + '&verticalSpeed=' + this.controSpeed + '&zoomSpeed=' + this.controSpeed
+        method: 'get',
+        url: '/api/front-end/ptz/' + this.deviceId + '/' + this.channelId + '?command=' + command + '&horizonSpeed=' + parseInt(this.controSpeed * 255/100) + '&verticalSpeed=' + parseInt(this.controSpeed * 255/100) + '&zoomSpeed=' + parseInt(this.controSpeed * 16/100)
+      }).then(function (res) {
+      });
+    },
+    irisCamera: function (command) {
+      this.$axios({
+        method: 'get',
+        url: '/api/front-end/fi/iris/' + this.deviceId + '/' + this.channelId + '?command=' + command + '&speed=' + parseInt(this.controSpeed * 255/100)
+      }).then(function (res) {
+      });
+    },
+    focusCamera: function (command) {
+      this.$axios({
+        method: 'get',
+        url: '/api/front-end/fi/focus/' + this.deviceId + '/' + this.channelId + '?command=' + command + '&speed=' + parseInt(this.controSpeed * 255/100)
       }).then(function (res) {
       });
     },
@@ -945,5 +986,12 @@ export default {
 }
 .el-dialog__body{
   padding: 10px 20px;
+}
+.ptz-btn-box {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0 2rem;
+  height: 3rem;
+  line-height: 4rem;
 }
 </style>

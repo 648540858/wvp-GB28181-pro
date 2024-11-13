@@ -227,7 +227,7 @@ export default {
           }
         }).then((res)=> {
           if (res.data.code === 0) {
-            this.presetList.splice(index, 1)
+            this.presetList = []
           }else {
             this.$message({
               showClose: true,

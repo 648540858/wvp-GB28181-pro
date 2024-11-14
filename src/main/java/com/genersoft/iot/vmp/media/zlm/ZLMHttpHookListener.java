@@ -121,15 +121,6 @@ public class ZLMHttpHookListener {
     /**
      * rtsp/rtmp流注册或注销时触发此事件；此事件对回复不敏感。
      */
-//    @ResponseBody
-//    @PostMapping(value = "/on_stream_changed", produces = "application/json;charset=UTF-8")
-//    public HookResult onStreamChanged(@RequestBody JSONObject param) {
-//        System.out.println(11);
-//        return HookResult.SUCCESS();
-//    }
-    /**
-     * rtsp/rtmp流注册或注销时触发此事件；此事件对回复不敏感。
-     */
     @ResponseBody
     @PostMapping(value = "/on_stream_changed", produces = "application/json;charset=UTF-8")
     public HookResult onStreamChanged(@RequestBody OnStreamChangedHookParam param) {

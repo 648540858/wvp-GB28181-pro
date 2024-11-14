@@ -11,6 +11,7 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
+import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerChangeEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
@@ -160,6 +161,20 @@ public class ServerController {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "流媒体不存在");
         }
         mediaServerService.delete(mediaServer);
+    }
+
+    @Operation(summary = "获取流信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "app", description = "应用名", required = true)
+    @Parameter(name = "stream", description = "流ID", required = true)
+    @Parameter(name = "mediaServerId", description = "流媒体ID", required = true)
+    @GetMapping(value = "/media_server/media_info")
+    @ResponseBody
+    public MediaInfo getMediaInfo(String app, String stream, String mediaServerId) {
+        MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+        if (mediaServer == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "流媒体不存在");
+        }
+        return mediaServerService.getMediaInfo(mediaServer, app, stream);
     }
 
 

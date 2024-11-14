@@ -232,31 +232,7 @@
             </div>
           </el-tab-pane>
           <el-tab-pane label="编码信息" name="codec" v-loading="tracksLoading">
-            <p>
-              无法播放或者没有声音?&nbsp&nbsp&nbsp试一试&nbsp
-              <el-button size="mini" type="primary" v-if="!coverPlaying" @click="coverPlay">转码播放</el-button>
-              <el-button size="mini" type="danger" v-if="coverPlaying" @click="convertStopClick">停止转码</el-button>
-            </p>
-            <div class="trank">
-              <p v-if="tracksNotLoaded" style="text-align: center;padding-top: 3rem;">暂无数据</p>
-              <div v-for="(item, index) in tracks" style="width: 50%; float: left" loading>
-                <span>流 {{ index }}</span>
-                <div class="trankInfo" v-if="item.codec_type == 0">
-                  <p>格式: {{ item.codec_id_name }}</p>
-                  <p>类型: 视频</p>
-                  <p>分辨率: {{ item.width }} x {{ item.height }}</p>
-                  <p>帧率: {{ item.fps }}</p>
-                </div>
-                <div class="trankInfo" v-if="item.codec_type == 1">
-                  <p>格式: {{ item.codec_id_name }}</p>
-                  <p>类型: 音频</p>
-                  <p>采样位数: {{ item.sample_bit }}</p>
-                  <p>采样率: {{ item.sample_rate }}</p>
-                </div>
-              </div>
-
-            </div>
-
+            <mediaInfo :app="app" :stream="streamId" :mediaServerId="mediaServerId"></mediaInfo>
           </el-tab-pane>
           <el-tab-pane label="语音对讲" name="broadcast">
             <div style="padding: 0 10px">
@@ -293,12 +269,13 @@ import PtzCruising from "../common/ptzCruising.vue";
 import ptzScan from "../common/ptzScan.vue";
 import ptzWiper from "../common/ptzWiper.vue";
 import ptzSwitch from "../common/ptzSwitch.vue";
+import mediaInfo from "../common/mediaInfo.vue";
 
 export default {
   name: 'devicePlayer',
   props: {},
   components: {
-    PtzPreset,PtzCruising,ptzScan,ptzWiper,ptzSwitch,
+    PtzPreset,PtzCruising,ptzScan,ptzWiper,ptzSwitch,mediaInfo,
     LivePlayer, jessibucaPlayer, rtcPlayer,
   },
   computed: {
@@ -334,7 +311,6 @@ export default {
       ptzPresetId: '',
       app: '',
       mediaServerId: '',
-      convertKey: '',
       deviceId: '',
       channelId: '',
       tabActiveName: 'media',
@@ -353,7 +329,6 @@ export default {
       scanSpeed: 100,
       scanGroup: 0,
       tracks: [],
-      coverPlaying: false,
       tracksLoading: false,
       showPtz: true,
       showRrecord: true,
@@ -454,63 +429,6 @@ export default {
       return this.videoUrl;
 
     },
-    coverPlay: function () {
-      var that = this;
-      this.coverPlaying = true;
-      this.$refs[this.activePlayer].pause()
-      that.$axios({
-        method: 'post',
-        url: '/api/play/convert/' + that.streamId
-      }).then(function (res) {
-        if (res.data.code === 0) {
-          that.convertKey = res.data.key;
-          setTimeout(() => {
-            that.isLoging = false;
-            that.playFromStreamInfo(false, res.data.data);
-          }, 2000)
-        } else {
-          that.isLoging = false;
-          that.coverPlaying = false;
-          that.$message({
-            showClose: true,
-            message: '转码失败',
-            type: 'error'
-          });
-        }
-      }).catch(function (e) {
-        console.log(e)
-        that.coverPlaying = false;
-        that.$message({
-          showClose: true,
-          message: '播放错误',
-          type: 'error'
-        });
-      });
-    },
-    convertStopClick: function () {
-      this.convertStop(() => {
-        this.$refs[this.activePlayer].play(this.videoUrl)
-      });
-    },
-    convertStop: function (callback) {
-      var that = this;
-      that.$refs.videoPlayer.pause()
-      this.$axios({
-        method: 'post',
-        url: '/api/play/convertStop/' + this.convertKey
-      }).then(function (res) {
-        if (res.data.code == 0) {
-          console.log(res.data.msg)
-        } else {
-          console.error(res.data.msg)
-        }
-        if (callback) callback();
-      }).catch(function (e) {
-      });
-      that.coverPlaying = false;
-      that.convertKey = "";
-      // if (callback )callback();
-    },
 
         playFromStreamInfo: function (realHasAudio, streamInfo) {
           this.showVideoDialog = true;
@@ -531,10 +449,6 @@ export default {
             this.videoUrl = '';
             this.coverPlaying = false;
             this.showVideoDialog = false;
-            if (this.convertKey != '') {
-              this.convertStop();
-            }
-            this.convertKey = ''
             this.stopBroadcast()
         },
 

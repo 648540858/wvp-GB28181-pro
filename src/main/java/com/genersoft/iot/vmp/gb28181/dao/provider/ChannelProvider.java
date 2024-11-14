@@ -122,8 +122,8 @@ public class ChannelProvider {
         sqlBuild.append(BASE_SQL);
         sqlBuild.append(" where channel_type = 0 ");
         if (params.get("query") != null) {
-            sqlBuild.append(" AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%')" +
-                    " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%') )")
+            sqlBuild.append(" AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%') escape '/'" +
+                    " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%') escape '/' )")
             ;
         }
         if (params.get("online") != null && (Boolean)params.get("online")) {
@@ -154,8 +154,8 @@ public class ChannelProvider {
         sqlBuild.append(BASE_SQL);
         sqlBuild.append(" where channel_type = 0 ");
         if (params.get("query") != null) {
-            sqlBuild.append(" AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%')" +
-                    " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%') )")
+            sqlBuild.append(" AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%') escape '/'" +
+                    " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%') escape '/' )")
             ;
         }
         if (params.get("online") != null && (Boolean)params.get("online")) {

@@ -71,8 +71,8 @@ public class DeviceChannelProvider {
                     "OR (LENGTH(coalesce(dc.gb_device_id, dc.device_id))=LENGTH(#{civilCode}) + 2) AND coalesce(dc.gb_device_id, dc.device_id) LIKE concat(#{civilCode},'%'))");
         }
         if (params.get("query") != null && !ObjectUtils.isEmpty(params.get("query"))) {
-            sqlBuild.append(" AND (coalesce(dc.gb_device_id, dc.device_id) LIKE concat('%',#{query},'%')" +
-                    " OR coalesce(dc.gb_name, dc.name) LIKE concat('%',#{query},'%'))")
+            sqlBuild.append(" AND (coalesce(dc.gb_device_id, dc.device_id) LIKE concat('%',#{query},'%') escape '/'" +
+                    " OR coalesce(dc.gb_name, dc.name) LIKE concat('%',#{query},'%') escape '/')")
             ;
         }
         if (params.get("online") != null && (Boolean)params.get("online")) {

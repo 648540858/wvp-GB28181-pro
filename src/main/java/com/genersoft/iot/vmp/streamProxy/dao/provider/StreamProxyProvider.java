@@ -36,13 +36,13 @@ public class StreamProxyProvider {
         if (params.get("query") != null) {
             sqlBuild.append(" AND ")
                     .append(" (")
-                    .append(" st.app LIKE ").append("'%").append(params.get("query")).append("%'")
+                    .append(" st.app LIKE ").append("'%").append(params.get("query")).append("%' escape '/'")
                     .append(" OR")
-                    .append(" st.stream LIKE ").append("'%").append(params.get("query")).append("%'")
+                    .append(" st.stream LIKE ").append("'%").append(params.get("query")).append("%' escape '/'")
                     .append(" OR")
-                    .append(" wdc.gb_device_id LIKE ").append("'%").append(params.get("query")).append("%'")
+                    .append(" wdc.gb_device_id LIKE ").append("'%").append(params.get("query")).append("%' escape '/'")
                     .append(" OR")
-                    .append(" wdc.gb_name LIKE ").append("'%").append(params.get("query")).append("%'")
+                    .append(" wdc.gb_name LIKE ").append("'%").append(params.get("query")).append("%' escape '/'")
                     .append(" )")
             ;
         }

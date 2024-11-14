@@ -41,7 +41,7 @@ public interface CloudRecordServiceMapper {
             "select * " +
             " from wvp_cloud_record " +
             " where 0 = 0" +
-            " <if test='query != null'> AND (app LIKE concat('%',#{query},'%') OR stream LIKE concat('%',#{query},'%') )</if> " +
+            " <if test='query != null'> AND (app LIKE concat('%',#{query},'%') escape '/' OR stream LIKE concat('%',#{query},'%') escape '/' )</if> " +
             " <if test= 'app != null '> and app=#{app}</if>" +
             " <if test= 'stream != null '> and stream=#{stream}</if>" +
             " <if test= 'startTimeStamp != null '> and end_time &gt;= #{startTimeStamp}</if>" +

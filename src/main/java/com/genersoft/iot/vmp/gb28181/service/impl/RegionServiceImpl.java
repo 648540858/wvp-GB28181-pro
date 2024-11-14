@@ -97,6 +97,11 @@ public class RegionServiceImpl implements IRegionService {
     @Override
     public PageInfo<Region> query(String query, int page, int count) {
         PageHelper.startPage(page, count);
+        if (query != null) {
+            query = query.replaceAll("/", "//")
+                    .replaceAll("%", "/%")
+                    .replaceAll("_", "/_");
+        }
         List<Region> regionList =  regionMapper.query(query, null);
         return new PageInfo<>(regionList);
     }
@@ -140,6 +145,11 @@ public class RegionServiceImpl implements IRegionService {
 
     @Override
     public List<RegionTree> queryForTree(String query, Integer parent, Boolean hasChannel) {
+        if (query != null) {
+            query = query.replaceAll("/", "//")
+                    .replaceAll("%", "/%")
+                    .replaceAll("_", "/_");
+        }
         List<RegionTree> regionList = regionMapper.queryForTree(query, parent);
         if (parent != null && hasChannel != null && hasChannel) {
             Region parentRegion = regionMapper.queryOne(parent);

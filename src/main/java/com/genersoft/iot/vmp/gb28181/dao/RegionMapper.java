@@ -26,7 +26,7 @@ public interface RegionMapper {
 
     @Select(value = {" <script>" +
             "SELECT *  from wvp_common_region WHERE 1=1 " +
-            " <if test='query != null'> AND (device_id LIKE concat('%',#{query},'%') OR name LIKE concat('%',#{query},'%'))</if> " +
+            " <if test='query != null'> AND (device_id LIKE concat('%',#{query},'%') escape '/' OR name LIKE concat('%',#{query},'%') escape '/')</if> " +
             " <if test='parentId != null'> AND parent_device_id = #{parentId}</if> " +
             "ORDER BY id " +
             " </script>"})
@@ -79,7 +79,7 @@ public interface RegionMapper {
             " where " +
             " <if test='parentId != null'> parent_id = #{parentId} </if> " +
             " <if test='parentId == null'> parent_id is null </if> " +
-            " <if test='query != null'> AND (device_id LIKE concat('%',#{query},'%') OR name LIKE concat('%',#{query},'%'))</if> " +
+            " <if test='query != null'> AND (device_id LIKE concat('%',#{query},'%') escape '/' OR name LIKE concat('%',#{query},'%') escape '/')</if> " +
             " </script>")
     List<RegionTree> queryForTree(@Param("query") String query, @Param("parentId") Integer parentId);
 

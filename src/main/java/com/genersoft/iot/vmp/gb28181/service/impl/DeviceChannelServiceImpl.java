@@ -609,6 +609,11 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 parentId = channelId;
             }
         }
+        if (query != null) {
+            query = query.replaceAll("/", "//")
+                    .replaceAll("%", "/%")
+                    .replaceAll("_", "/_");
+        }
         List<DeviceChannel> all = channelMapper.queryChannels(deviceDbId, civilCode, businessGroupId, parentId, query, channelType, online,null);
         return new PageInfo<>(all);
     }
@@ -624,7 +629,11 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         if (device == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备：" + deviceId);
         }
-        // 获取到所有正在播放的流
+        if (query != null) {
+            query = query.replaceAll("/", "//")
+                    .replaceAll("%", "/%")
+                    .replaceAll("_", "/_");
+        }
         PageHelper.startPage(page, count);
         List<DeviceChannel> all = channelMapper.queryChannels(device.getId(), null,null, null, query, hasSubChannel, online,null);
         return new PageInfo<>(all);

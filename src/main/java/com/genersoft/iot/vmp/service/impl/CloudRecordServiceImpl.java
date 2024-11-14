@@ -71,6 +71,11 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
 
         }
         PageHelper.startPage(page, count);
+        if (query != null) {
+            query = query.replaceAll("/", "//")
+                    .replaceAll("%", "/%")
+                    .replaceAll("_", "/_");
+        }
         List<CloudRecordItem> all = cloudRecordServiceMapper.getList(query, app, stream, startTimeStamp, endTimeStamp,
                 callId, mediaServerItems, null);
         return new PageInfo<>(all);

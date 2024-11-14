@@ -48,8 +48,8 @@ public interface StreamPushMapper {
             " on st.id = wdc.stream_push_id " +
             " WHERE " +
             " 1=1 " +
-            " <if test='query != null'> AND (st.app LIKE concat('%',#{query},'%') OR st.stream LIKE concat('%',#{query},'%') " +
-            " OR wdc.gb_device_id LIKE concat('%',#{query},'%') OR wdc.gb_name LIKE concat('%',#{query},'%'))</if> " +
+            " <if test='query != null'> AND (st.app LIKE concat('%',#{query},'%') escape '/' OR st.stream LIKE concat('%',#{query},'%') escape '/' " +
+            " OR wdc.gb_device_id LIKE concat('%',#{query},'%') escape '/' OR wdc.gb_name LIKE concat('%',#{query},'%') escape '/')</if> " +
             " <if test='pushing == true' > AND st.pushing=1</if>" +
             " <if test='pushing == false' > AND st.pushing=0 </if>" +
             " <if test='mediaServerId != null' > AND st.media_server_id=#{mediaServerId} </if>" +

@@ -246,6 +246,11 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public PageInfo<StreamProxy> getAll(Integer page, Integer count, String query, Boolean pulling, String mediaServerId) {
         PageHelper.startPage(page, count);
+        if (query != null) {
+            query = query.replaceAll("/", "//")
+                    .replaceAll("%", "/%")
+                    .replaceAll("_", "/_");
+        }
         List<StreamProxy> all = streamProxyMapper.selectAll(query, pulling, mediaServerId);
         return new PageInfo<>(all);
     }

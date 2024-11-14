@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerChangeEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -28,6 +29,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import oshi.SystemInfo;
@@ -73,17 +75,17 @@ public class ServerController {
     @Autowired
     private IStreamPushService pushService;
 
-
     @Autowired
     private IStreamProxyService proxyService;
-
 
     @Value("${server.port}")
     private int serverPort;
 
-
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
 
 
     @GetMapping(value = "/media_server/list")
@@ -134,13 +136,17 @@ public class ServerController {
     @Parameter(name = "mediaServerItem", description = "流媒体信息", required = true)
     @PostMapping(value = "/media_server/save")
     @ResponseBody
-    public void saveMediaServer(@RequestBody MediaServer mediaServerItem) {
-        MediaServer mediaServerItemInDatabase = mediaServerService.getOneFromDatabase(mediaServerItem.getId());
+    public void saveMediaServer(@RequestBody MediaServer mediaServer) {
+        MediaServer mediaServerItemInDatabase = mediaServerService.getOneFromDatabase(mediaServer.getId());
 
         if (mediaServerItemInDatabase != null) {
-            mediaServerService.update(mediaServerItem);
+            mediaServerService.update(mediaServer);
         } else {
-            mediaServerService.add(mediaServerItem);
+            mediaServerService.add(mediaServer);
+            // 发送事件
+            MediaServerChangeEvent event = new MediaServerChangeEvent(this);
+            event.setMediaServerItemList(mediaServer);
+            applicationEventPublisher.publishEvent(event);
         }
     }
 

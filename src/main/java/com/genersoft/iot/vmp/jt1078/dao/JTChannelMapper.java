@@ -16,7 +16,7 @@ public interface JTChannelMapper {
             "UPDATE wvp_jt_channel " +
             "SET update_time=#{updateTime}, terminal_db_id=#{terminalDbId}, has_audio=#{hasAudio}, name=#{name}" +
             ", channel_id=#{channelId}" +
-            "WHERE id=#{id}"+
+            " WHERE id=#{id}"+
             " </script>"})
     void update(JTChannel channel);
 

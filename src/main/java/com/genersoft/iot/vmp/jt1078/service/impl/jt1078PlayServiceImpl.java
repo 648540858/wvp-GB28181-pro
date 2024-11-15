@@ -398,6 +398,9 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
             StreamInfo info = onPublishHandler(mediaServer, hookData, phoneNumber, channelId);
 
             for (GeneralCallback<StreamInfo> errorCallback : errorCallbacks) {
+                if (errorCallback == null) {
+                    continue;
+                }
                 errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), info);
             }
             subscribe.removeSubscribe(hookSubscribe);
@@ -456,6 +459,9 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
             List<GeneralCallback<StreamInfo>> generalCallbacks = inviteErrorCallbackMap.get(playKey);
             if (generalCallbacks != null && !generalCallbacks.isEmpty()) {
                 for (GeneralCallback<StreamInfo> callback : generalCallbacks) {
+                    if (callback == null) {
+                        continue;
+                    }
                     callback.run(InviteErrorCode.ERROR_FOR_FINISH.getCode(), InviteErrorCode.ERROR_FOR_FINISH.getMsg(), null);
                 }
             }

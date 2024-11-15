@@ -30,7 +30,7 @@ import java.util.Map;
  * 拉流代理接口
  */
 @Tag(name = "拉流代理", description = "")
-@Controller
+@RestController
 @Slf4j
 @RequestMapping(value = "/api/proxy")
 public class StreamProxyController {

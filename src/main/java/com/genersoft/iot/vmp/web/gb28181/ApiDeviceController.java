@@ -4,7 +4,7 @@ import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.PresetQuerySipReq;
+import com.genersoft.iot.vmp.gb28181.bean.Preset;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
@@ -215,13 +215,13 @@ public class ApiDeviceController {
         }
 
         deferredResultEx.setFilter(filterResult->{
-            List<PresetQuerySipReq> presetQuerySipReqList = (List<PresetQuerySipReq>)filterResult;
+            List<Preset> presetQuerySipReqList = (List<Preset>)filterResult;
             HashMap<String, Object> resultMap = new HashMap<>();
             resultMap.put("DeviceID", code);
             resultMap.put("Result", "OK");
             resultMap.put("SumNum", presetQuerySipReqList.size());
             ArrayList<Map<String, Object>> presetItemList = new ArrayList<>(presetQuerySipReqList.size());
-            for (PresetQuerySipReq presetQuerySipReq : presetQuerySipReqList) {
+            for (Preset presetQuerySipReq : presetQuerySipReqList) {
                 Map<String, Object> item = new HashMap<>();
                 item.put("PresetID", presetQuerySipReq.getPresetId());
                 item.put("PresetName", presetQuerySipReq.getPresetName());

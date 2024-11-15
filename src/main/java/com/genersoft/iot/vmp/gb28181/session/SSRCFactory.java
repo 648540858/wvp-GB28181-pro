@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -91,17 +90,14 @@ public class SSRCFactory {
      * 获取后四位数SN,随机数
      */
     private String getSN(String mediaServerId) {
-        String sn = null;
         String redisKey = SSRC_INFO_KEY + userSetting.getServerId() + "_" + mediaServerId;
         Long size = redisTemplate.opsForSet().size(redisKey);
         if (size == null || size == 0) {
             throw new RuntimeException("ssrc已经用完");
         } else {
             // 在集合中移除并返回一个随机成员。
-            sn = (String) redisTemplate.opsForSet().pop(redisKey);
-            redisTemplate.opsForSet().remove(redisKey, sn);
+            return redisTemplate.opsForSet().pop(redisKey);
         }
-        return sn;
     }
 
     /**

@@ -121,15 +121,6 @@ public class ZLMHttpHookListener {
     /**
      * rtsp/rtmp流注册或注销时触发此事件；此事件对回复不敏感。
      */
-//    @ResponseBody
-//    @PostMapping(value = "/on_stream_changed", produces = "application/json;charset=UTF-8")
-//    public HookResult onStreamChanged(@RequestBody JSONObject param) {
-//        System.out.println(11);
-//        return HookResult.SUCCESS();
-//    }
-    /**
-     * rtsp/rtmp流注册或注销时触发此事件；此事件对回复不敏感。
-     */
     @ResponseBody
     @PostMapping(value = "/on_stream_changed", produces = "application/json;charset=UTF-8")
     public HookResult onStreamChanged(@RequestBody OnStreamChangedHookParam param) {
@@ -299,7 +290,7 @@ public class ZLMHttpHookListener {
     @ResponseBody
     @PostMapping(value = "/on_record_mp4", produces = "application/json;charset=UTF-8")
     public HookResult onRecordMp4(HttpServletRequest request, @RequestBody OnRecordMp4HookParam param) {
-        log.info("[ZLM HOOK] 录像完成事件：{}->{}", param.getMediaServerId(), param.getFile_path());
+        log.info("[ZLM HOOK] 录像完成：时长: {}, {}->{}",param.getTime_len(), param.getMediaServerId(), param.getFile_path());
 
         try {
             MediaServer mediaServerItem = mediaServerService.getOne(param.getMediaServerId());

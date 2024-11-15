@@ -180,7 +180,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
             if (mediaList.getInteger("code") == 0) {
                 JSONArray data = mediaList.getJSONArray("data");
                 if (data == null) {
-                    return null;
+                    return streamInfoList;
                 }
                 JSONObject mediaJSON = data.getJSONObject(0);
                 MediaInfo mediaInfo = MediaInfo.getInstance(mediaJSON, mediaServer, userSetting.getServerId());

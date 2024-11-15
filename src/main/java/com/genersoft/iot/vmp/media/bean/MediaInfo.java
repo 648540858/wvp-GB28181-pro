@@ -33,6 +33,10 @@ public class MediaInfo {
     private Integer width;
     @Schema(description = "视频高度")
     private Integer height;
+    @Schema(description = "FPS")
+    private Integer fps;
+    @Schema(description = "丢包率")
+    private Integer loss;
     @Schema(description = "音频编码类型")
     private String audioCodec;
     @Schema(description = "音频通道数")
@@ -57,6 +61,7 @@ public class MediaInfo {
     private Map<String, String> paramMap;
     @Schema(description = "服务ID")
     private String serverId;
+
 
     public static MediaInfo getInstance(JSONObject jsonObject, MediaServer mediaServer, String serverId) {
         MediaInfo mediaInfo = new MediaInfo();
@@ -112,6 +117,13 @@ public class MediaInfo {
             Integer sampleRate = trackJson.getInteger("sample_rate");
             Integer height = trackJson.getInteger("height");
             Integer width = trackJson.getInteger("height");
+            Integer fps = trackJson.getInteger("fps");
+            Integer loss = trackJson.getInteger("loss");
+            Integer frames = trackJson.getInteger("frames");
+            Long keyFrames = trackJson.getLongValue("key_frames");
+            Integer gop_interval_ms = trackJson.getInteger("gop_interval_ms");
+            Long gop_size = trackJson.getLongValue("gop_size");
+
             Long duration = trackJson.getLongValue("duration");
             if (channels != null) {
                 mediaInfo.setAudioChannels(channels);
@@ -124,6 +136,12 @@ public class MediaInfo {
             }
             if (width != null) {
                 mediaInfo.setWidth(width);
+            }
+            if (fps != null) {
+                mediaInfo.setFps(fps);
+            }
+            if (loss != null) {
+                mediaInfo.setLoss(loss);
             }
             if (duration > 0L) {
                 mediaInfo.setDuration(duration);

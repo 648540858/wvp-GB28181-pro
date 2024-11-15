@@ -535,7 +535,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
                 String key = streamInfo.getApp() + "_" + streamInfo.getStream();
                 StreamPush streamPushItem = result.get(key);
                 if (streamPushItem == null) {
-                    streamPushItem = streamPushItem.getInstance(streamInfo);
+                    streamPushItem = StreamPush.getInstance(streamInfo);
                     result.put(key, streamPushItem);
                 }
             }

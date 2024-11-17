@@ -26,6 +26,7 @@
 package com.genersoft.iot.vmp.gb28181.auth;
 
 import gov.nist.core.InternalErrorHandler;
+import java.security.SecureRandom;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.sip.address.URI;
@@ -83,7 +84,7 @@ public class DigestServerAuthenticationHelper  {
      */
     private String generateNonce() {
         long time = Instant.now().toEpochMilli();
-        Random rand = new Random();
+        Random rand = new SecureRandom();
         long pad = rand.nextLong();
         String nonceString = Long.valueOf(time).toString()
                 + Long.valueOf(pad).toString();

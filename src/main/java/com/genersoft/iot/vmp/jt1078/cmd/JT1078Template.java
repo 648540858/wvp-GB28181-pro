@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.jt1078.cmd;
 import com.genersoft.iot.vmp.jt1078.proc.entity.Cmd;
 import com.genersoft.iot.vmp.jt1078.proc.response.*;
 import com.genersoft.iot.vmp.jt1078.session.SessionManager;
+import java.security.SecureRandom;
 
 import java.util.Random;
 
@@ -13,7 +14,7 @@ import java.util.Random;
  */
 public class JT1078Template {
 
-    private final Random random = new Random();
+    private final Random random = new SecureRandom();
 
     private static final String H9101 = "9101";
     private static final String H9102 = "9102";

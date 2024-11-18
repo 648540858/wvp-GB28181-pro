@@ -296,7 +296,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         // 这里主要是控制数据库/redis缓存/以及zlm中存在的代理流 三者状态一致。以数据库中数据为根本
         redisCatchStorage.removeStream(mediaServer.getId(), "PULL");
 
-        List<StreamProxy> streamProxies = streamProxyMapper.selectForEnableInMediaServer(mediaServer.getId(), true);
+        List<StreamProxy> streamProxies = streamProxyMapper.selectForPushingInMediaServer(mediaServer.getId(), true);
         if (streamProxies.isEmpty()) {
             return;
         }
@@ -353,18 +353,16 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             streamProxyMapper.deleteByList(streamProxiesForRemove);
         }
 
-
         if (!streamProxyMapForDb.isEmpty()) {
             for (StreamProxy streamProxy : streamProxyMapForDb.values()) {
-                log.info("恢复流代理，" + streamProxy.getApp() + "/" + streamProxy.getStream());
-                mediaServerService.startProxy(mediaServer, streamProxy);
+                streamProxyMapper.offline(streamProxy.getId());
             }
         }
     }
 
     @Override
     public void zlmServerOffline(MediaServer mediaServer) {
-        List<StreamProxy> streamProxies = streamProxyMapper.selectForEnableInMediaServer(mediaServer.getId(), true);
+        List<StreamProxy> streamProxies = streamProxyMapper.selectForPushingInMediaServer(mediaServer.getId(), true);
 
         // 清理redis相关的缓存
         redisCatchStorage.removeStream(mediaServer.getId(), "PULL");

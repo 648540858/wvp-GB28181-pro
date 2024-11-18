@@ -19,9 +19,8 @@ public class StreamProxyProvider {
         return getBaseSelectSql() + " WHERE st.id = " + params.get("id");
     }
 
-    public String selectForEnableInMediaServer(Map<String, Object> params ){
-        return getBaseSelectSql() + String.format(" WHERE st.enable=%s and st.media_server_id= '%s' order by st.create_time desc",
-                params.get("enable"), params.get("mediaServerId"));
+    public String selectForPushingInMediaServer(Map<String, Object> params ){
+        return getBaseSelectSql() + " WHERE st.pulling=1 and st.media_server_id=#{mediaServerId} order by st.create_time desc";
     }
 
     public String selectOneByAppAndStream(Map<String, Object> params ){

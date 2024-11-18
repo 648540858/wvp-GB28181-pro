@@ -387,11 +387,14 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 streamProxiesForSendMessage.add(streamProxy);
             }
         }
-        // 移除开启了无人观看自动移除的流
-        streamProxyMapper.deleteByList(streamProxiesForRemove);
-        // 修改国标关联的国标通道的状态
-        gbChannelService.offline(channelListForOffline);
-
+        if (!streamProxiesForRemove.isEmpty()) {
+            // 移除开启了无人观看自动移除的流
+            streamProxyMapper.deleteByList(streamProxiesForRemove);
+        }
+        if (!streamProxiesForRemove.isEmpty()) {
+            // 修改国标关联的国标通道的状态
+            gbChannelService.offline(channelListForOffline);
+        }
         if (!streamProxiesForSendMessage.isEmpty()) {
             for (StreamProxy streamProxy : streamProxiesForSendMessage) {
                 JSONObject jsonObject = new JSONObject();

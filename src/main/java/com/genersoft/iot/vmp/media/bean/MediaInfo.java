@@ -116,7 +116,7 @@ public class MediaInfo {
             Integer codecType = trackJson.getInteger("codec_type");
             Integer sampleRate = trackJson.getInteger("sample_rate");
             Integer height = trackJson.getInteger("height");
-            Integer width = trackJson.getInteger("height");
+            Integer width = trackJson.getInteger("width");
             Integer fps = trackJson.getInteger("fps");
             Integer loss = trackJson.getInteger("loss");
             Integer frames = trackJson.getInteger("frames");

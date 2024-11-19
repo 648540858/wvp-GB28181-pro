@@ -457,4 +457,6 @@ public interface CommonGBChannelMapper {
             " </script>"})
     void updateGpsByDeviceIdForStreamPush(List<CommonGBChannel> channels);
 
+    @SelectProvider(type = ChannelProvider.class, method = "queryList")
+    List<CommonGBChannel> queryList(@Param("query") String query, @Param("online") Boolean online, @Param("hasRecordPlan") Boolean hasRecordPlan, @Param("channelType") Integer channelType);
 }

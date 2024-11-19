@@ -81,6 +81,12 @@
             </div>
           </template>
         </el-table-column>
+        <el-table-column label="操作" width="200" fixed="right">
+          <template v-slot:default="scope">
+            <el-button size="medium" icon="el-icon-edit" type="text" v-if="scope.row.recordPlan" @click="edit(scope.row)">编辑</el-button>
+            <el-button size="medium" icon="el-icon-plus" type="text" v-else @click="edit(scope.row)">添加</el-button>
+          </template>
+        </el-table-column>
       </el-table>
       <el-pagination
         style="text-align: right"
@@ -92,15 +98,18 @@
         layout="total, sizes, prev, pager, next"
         :total="total">
       </el-pagination>
+    <editRecordPlan ref="editRecordPlan"></editRecordPlan>
   </div>
 </template>
 
 <script>
 import uiHeader from '../layout/UiHeader.vue'
+import EditRecordPlan from "./dialog/editRecordPlan.vue";
 
 export default {
   name: 'recordPLan',
   components: {
+    EditRecordPlan,
     uiHeader,
   },
   data() {
@@ -181,6 +190,11 @@ export default {
     },
     onChannelChange: function (deviceId) {
       //
+    },
+    edit: function (channel) {
+      this.$refs.editRecordPlan.openDialog(channel, ()=>{
+        this.initData()
+      })
     },
   }
 };

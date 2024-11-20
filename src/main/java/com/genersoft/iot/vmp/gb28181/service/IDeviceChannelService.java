@@ -122,4 +122,7 @@ public interface IDeviceChannelService {
 
     DeviceChannel getOneBySourceId(int deviceDbId, String channelId);
 
+    List<DeviceChannel> queryChaneListByDeviceDbId(Integer deviceDbId);
+
+    List<Integer> queryChaneIdListByDeviceDbId(Integer deviceDbId);
 }

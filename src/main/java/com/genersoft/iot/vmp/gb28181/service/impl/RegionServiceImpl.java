@@ -97,6 +97,11 @@ public class RegionServiceImpl implements IRegionService {
     @Override
     public PageInfo<Region> query(String query, int page, int count) {
         PageHelper.startPage(page, count);
+        if (query != null) {
+            query = query.replaceAll("/", "//")
+                    .replaceAll("%", "/%")
+                    .replaceAll("_", "/_");
+        }
         List<Region> regionList =  regionMapper.query(query, null);
         return new PageInfo<>(regionList);
     }
@@ -139,9 +144,14 @@ public class RegionServiceImpl implements IRegionService {
     }
 
     @Override
-    public List<RegionTree> queryForTree(String query, Integer parent) {
+    public List<RegionTree> queryForTree(String query, Integer parent, Boolean hasChannel) {
+        if (query != null) {
+            query = query.replaceAll("/", "//")
+                    .replaceAll("%", "/%")
+                    .replaceAll("_", "/_");
+        }
         List<RegionTree> regionList = regionMapper.queryForTree(query, parent);
-        if (parent != null) {
+        if (parent != null && hasChannel != null && hasChannel) {
             Region parentRegion = regionMapper.queryOne(parent);
             if (parentRegion != null) {
                 List<RegionTree> channelList = commonGBChannelMapper.queryForRegionTreeByCivilCode(query, parentRegion.getDeviceId());
@@ -223,5 +233,33 @@ public class RegionServiceImpl implements IRegionService {
         }
 
         return true;
+    }
+
+    @Override
+    public List<Region> getPath(String deviceId) {
+        Region region = regionMapper.queryByDeviceId(deviceId);
+        if (region == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "行政区划不存在");
+        }
+        List<Region> allParent = getAllParent(region);
+        allParent.add(region);
+        return allParent;
+    }
+
+
+    private List<Region> getAllParent(Region region) {
+        if (region.getParentId() == null) {
+            return new ArrayList<>();
+        }
+
+        List<Region> regionList = new LinkedList<>();
+        Region parent = regionMapper.queryByDeviceId(region.getParentDeviceId());
+        if (parent == null) {
+            return regionList;
+        }
+        regionList.add(parent);
+        List<Region> allParent = getAllParent(parent);
+        regionList.addAll(allParent);
+        return regionList;
     }
 }

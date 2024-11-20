@@ -28,7 +28,10 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.sip.message.Response;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 
 
@@ -98,22 +101,40 @@ public class CommonChannelController {
         return channel;
     }
 
-    @Operation(summary = "获取通道列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "获取关联行政区划通道列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页查询数量", required = true)
     @Parameter(name = "query", description = "查询内容")
     @Parameter(name = "online", description = "是否在线")
-    @Parameter(name = "hasCivilCode", description = "是否分配行政区划")
-    @GetMapping("/list")
-    public PageInfo<CommonGBChannel> queryList(int page, int count,
+    @Parameter(name = "civilCode", description = "行政区划")
+    @GetMapping("/civilcode/list")
+    public PageInfo<CommonGBChannel> queryListByCivilCode(int page, int count,
                                                @RequestParam(required = false) String query,
                                                @RequestParam(required = false) Boolean online,
-                                               @RequestParam(required = false) Boolean hasCivilCode,
-                                               @RequestParam(required = false) Boolean hasGroup){
+                                               @RequestParam(required = false) Integer channelType,
+                                               @RequestParam(required = false) String civilCode){
         if (ObjectUtils.isEmpty(query)){
             query = null;
         }
-        return channelService.queryList(page, count, query, online, hasCivilCode, hasGroup);
+        return channelService.queryListByCivilCode(page, count, query, online, channelType, civilCode);
+    }
+
+    @Operation(summary = "获取关联业务分组通道列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "page", description = "当前页", required = true)
+    @Parameter(name = "count", description = "每页查询数量", required = true)
+    @Parameter(name = "query", description = "查询内容")
+    @Parameter(name = "online", description = "是否在线")
+    @Parameter(name = "groupDeviceId", description = "业务分组下的父节点ID")
+    @GetMapping("/parent/list")
+    public PageInfo<CommonGBChannel> queryListByParentId(int page, int count,
+                                               @RequestParam(required = false) String query,
+                                               @RequestParam(required = false) Boolean online,
+                                               @RequestParam(required = false) Integer channelType,
+                                               @RequestParam(required = false) String groupDeviceId){
+        if (ObjectUtils.isEmpty(query)){
+            query = null;
+        }
+        return channelService.queryListByParentId(page, count, query, online, channelType, groupDeviceId);
     }
 
     @Operation(summary = "通道设置行政区划", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -182,16 +203,39 @@ public class CommonChannelController {
 
     @Operation(summary = "播放通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @GetMapping("/play")
-    public DeferredResult<WVPResult<StreamContent>> deleteChannelToGroupByGbDevice(Integer channelId){
+    public DeferredResult<WVPResult<StreamContent>> deleteChannelToGroupByGbDevice(HttpServletRequest request,  Integer channelId){
         Assert.notNull(channelId,"参数异常");
         CommonGBChannel channel = channelService.getOne(channelId);
         Assert.notNull(channel, "通道不存在");
 
         DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
 
-        ErrorCallback<StreamInfo> callback = (code, msg, data) -> {
+        ErrorCallback<StreamInfo> callback = (code, msg, streamInfo) -> {
             if (code == InviteErrorCode.SUCCESS.getCode()) {
-                result.setResult(WVPResult.success(new StreamContent(data)));
+                WVPResult<StreamContent> wvpResult = WVPResult.success();
+                if (streamInfo != null) {
+                    if (userSetting.getUseSourceIpAsStreamIp()) {
+                        streamInfo=streamInfo.clone();//深拷贝
+                        String host;
+                        try {
+                            URL url=new URL(request.getRequestURL().toString());
+                            host=url.getHost();
+                        } catch (MalformedURLException e) {
+                            host=request.getLocalAddr();
+                        }
+                        streamInfo.channgeStreamIp(host);
+                    }
+                    if (!ObjectUtils.isEmpty(streamInfo.getMediaServer().getTranscodeSuffix())
+                            && !"null".equalsIgnoreCase(streamInfo.getMediaServer().getTranscodeSuffix())) {
+                        streamInfo.setStream(streamInfo.getStream() + "_" + streamInfo.getMediaServer().getTranscodeSuffix());
+                    }
+                    wvpResult.setData(new StreamContent(streamInfo));
+                }else {
+                    wvpResult.setCode(code);
+                    wvpResult.setMsg(msg);
+                }
+
+                result.setResult(wvpResult);
             }else {
                 result.setResult(WVPResult.fail(code, msg));
             }

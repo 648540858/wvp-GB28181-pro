@@ -48,8 +48,8 @@ public interface StreamProxyMapper {
     @SelectProvider(type = StreamProxyProvider.class, method = "selectOneByAppAndStream")
     StreamProxy selectOneByAppAndStream(@Param("app") String app, @Param("stream") String stream);
 
-    @SelectProvider(type = StreamProxyProvider.class, method = "selectForEnableInMediaServer")
-    List<StreamProxy> selectForEnableInMediaServer(@Param("mediaServerId")  String mediaServerId, @Param("enable") boolean enable);
+    @SelectProvider(type = StreamProxyProvider.class, method = "selectForPushingInMediaServer")
+    List<StreamProxy> selectForPushingInMediaServer(@Param("mediaServerId")  String mediaServerId, @Param("enable") boolean enable);
 
 
     @Select("select count(1) from wvp_stream_proxy")

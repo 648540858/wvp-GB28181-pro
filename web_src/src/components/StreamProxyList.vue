@@ -36,7 +36,7 @@
         <el-table-column prop="app" label="流应用名" min-width="120" show-overflow-tooltip/>
         <el-table-column prop="stream" label="流ID" min-width="120" show-overflow-tooltip/>
         <el-table-column label="流地址" min-width="250"  show-overflow-tooltip >
-          <template slot-scope="scope">
+          <template v-slot:default="scope">
             <div slot="reference" class="name-wrapper">
               <el-tag size="medium">
                 <i class="cpoy-btn el-icon-document-copy"  title="点击拷贝" v-clipboard="scope.row.srcUrl" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></i>
@@ -47,7 +47,7 @@
         </el-table-column>
         <el-table-column prop="mediaServerId" label="流媒体" min-width="180" ></el-table-column>
         <el-table-column label="代理方式" width="100" >
-          <template slot-scope="scope">
+          <template v-slot:default="scope">
             <div slot="reference" class="name-wrapper">
               {{scope.row.type === "default"? "默认":"FFMPEG代理"}}
             </div>
@@ -56,7 +56,7 @@
 
         <el-table-column prop="gbDeviceId" label="国标编码" min-width="180"  show-overflow-tooltip/>
         <el-table-column label="拉流状态" min-width="120" >
-          <template slot-scope="scope">
+          <template v-slot:default="scope">
             <div slot="reference" class="name-wrapper">
               <el-tag size="medium" v-if="scope.row.pulling">正在拉流</el-tag>
               <el-tag size="medium" type="info" v-if="!scope.row.pulling">尚未拉流</el-tag>
@@ -64,7 +64,7 @@
           </template>
         </el-table-column>
         <el-table-column label="启用" min-width="120" >
-          <template slot-scope="scope">
+          <template v-slot:default="scope">
             <div slot="reference" class="name-wrapper">
               <el-tag size="medium" v-if="scope.row.enable">已启用</el-tag>
               <el-tag size="medium" type="info" v-if="!scope.row.enable">未启用</el-tag>
@@ -73,7 +73,7 @@
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间"  min-width="150" show-overflow-tooltip/>
         <el-table-column label="操作" width="400"  fixed="right">
-          <template slot-scope="scope">
+          <template v-slot:default="scope">
             <el-button size="medium" icon="el-icon-video-play" type="text" @click="play(scope.row)">播放</el-button>
             <el-divider direction="vertical"></el-divider>
             <el-button size="medium" icon="el-icon-switch-button" style="color: #f56c6c"  type="text" v-if="scope.row.pulling" @click="stopPlay(scope.row)">停止</el-button>

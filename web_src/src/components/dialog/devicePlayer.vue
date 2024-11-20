@@ -26,6 +26,7 @@
 
       </div>
       <div id="shared" style="text-align: right; margin-top: 1rem;">
+
         <el-tabs v-model="tabActiveName" @tab-click="tabHandleClick">
           <el-tab-pane label="实时视频" name="media">
             <div style="display: flex; margin-bottom: 0.5rem; height: 2.5rem;">
@@ -154,148 +155,84 @@
           <!--{"code":0,"data":{"paths":["22-29-30.mp4"],"rootPath":"/home/kkkkk/Documents/ZLMediaKit/release/linux/Debug/www/record/hls/kkkkk/2020-05-11/"}}-->
           <!--遥控界面-->
           <el-tab-pane label="云台控制" name="control" v-if="showPtz">
-            <div style="display: flex; justify-content: left;">
-              <div class="control-wrapper">
-                <div class="control-btn control-top" @mousedown="ptzCamera('up')" @mouseup="ptzCamera('stop')">
-                  <i class="el-icon-caret-top"></i>
-                  <div class="control-inner-btn control-inner"></div>
+            <div style="display: grid; grid-template-columns: 240px auto; height: 180px; overflow: auto">
+              <div style="display: grid; grid-template-columns: 6.25rem auto;">
+
+                <div class="control-wrapper">
+                  <div class="control-btn control-top" @mousedown="ptzCamera('up')" @mouseup="ptzCamera('stop')">
+                    <i class="el-icon-caret-top"></i>
+                    <div class="control-inner-btn control-inner"></div>
+                  </div>
+                  <div class="control-btn control-left" @mousedown="ptzCamera('left')" @mouseup="ptzCamera('stop')">
+                    <i class="el-icon-caret-left"></i>
+                    <div class="control-inner-btn control-inner"></div>
+                  </div>
+                  <div class="control-btn control-bottom" @mousedown="ptzCamera('down')" @mouseup="ptzCamera('stop')">
+                    <i class="el-icon-caret-bottom"></i>
+                    <div class="control-inner-btn control-inner"></div>
+                  </div>
+                  <div class="control-btn control-right" @mousedown="ptzCamera('right')" @mouseup="ptzCamera('stop')">
+                    <i class="el-icon-caret-right"></i>
+                    <div class="control-inner-btn control-inner"></div>
+                  </div>
+                  <div class="control-round">
+                    <div class="control-round-inner"><i class="fa fa-pause-circle"></i></div>
+                  </div>
+                  <div class="contro-speed" style="position: absolute; left: 4px; top: 7rem; width: 6.25rem;">
+                    <el-slider v-model="controSpeed" :max="100"></el-slider>
+                  </div>
                 </div>
-                <div class="control-btn control-left" @mousedown="ptzCamera('left')" @mouseup="ptzCamera('stop')">
-                  <i class="el-icon-caret-left"></i>
-                  <div class="control-inner-btn control-inner"></div>
-                </div>
-                <div class="control-btn control-bottom" @mousedown="ptzCamera('down')" @mouseup="ptzCamera('stop')">
-                  <i class="el-icon-caret-bottom"></i>
-                  <div class="control-inner-btn control-inner"></div>
-                </div>
-                <div class="control-btn control-right" @mousedown="ptzCamera('right')" @mouseup="ptzCamera('stop')">
-                  <i class="el-icon-caret-right"></i>
-                  <div class="control-inner-btn control-inner"></div>
-                </div>
-                <div class="control-round">
-                  <div class="control-round-inner"><i class="fa fa-pause-circle"></i></div>
-                </div>
-                <div style="position: absolute; left: 7.25rem; top: 1.25rem" @mousedown="ptzCamera('zoomin')"
-                     @mouseup="ptzCamera('stop')"><i class="el-icon-zoom-in control-zoom-btn"
-                                                     style="font-size: 1.875rem;"></i></div>
-                <div style="position: absolute; left: 7.25rem; top: 3.25rem; font-size: 1.875rem;"
-                     @mousedown="ptzCamera('zoomout')" @mouseup="ptzCamera('stop')"><i
-                    class="el-icon-zoom-out control-zoom-btn"></i></div>
-                <div class="contro-speed" style="position: absolute; left: 4px; top: 7rem; width: 9rem;">
-                  <el-slider v-model="controSpeed" :max="255"></el-slider>
+                <div>
+                  <div class="ptz-btn-box">
+                    <div style="" @mousedown="ptzCamera('zoomin')" @mouseup="ptzCamera('stop')" title="变倍+">
+                      <i class="el-icon-zoom-in control-zoom-btn" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div style="" @mousedown="ptzCamera('zoomout')" @mouseup="ptzCamera('stop')" title="变倍-">
+                      <i class="el-icon-zoom-out control-zoom-btn" style="font-size: 1.5rem;"></i>
+                    </div>
+                  </div>
+                  <div class="ptz-btn-box">
+                    <div @mousedown="focusCamera('near')"  @mouseup="focusCamera('stop')" title="聚焦+">
+                      <i class="iconfont icon-bianjiao-fangda control-zoom-btn" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div @mousedown="focusCamera('far')" @mouseup="focusCamera('stop')" title="聚焦-">
+                      <i class="iconfont icon-bianjiao-suoxiao control-zoom-btn" style="font-size: 1.5rem;"></i>
+                    </div>
+                  </div>
+                  <div class="ptz-btn-box">
+                    <div @mousedown="irisCamera('in')"  @mouseup="irisCamera('stop')" title="光圈+">
+                      <i class="iconfont icon-guangquan control-zoom-btn" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div @mousedown="pirisCamera('out')" @mouseup="irisCamera('stop')" title="光圈-">
+                      <i class="iconfont icon-guangquan- control-zoom-btn" style="font-size: 1.5rem;"></i>
+                    </div>
+                  </div>
                 </div>
               </div>
+              <div style="text-align: left" >
+                <el-select
+                  v-model="ptzMethod"
+                  style="width: 100%"
+                  size="mini"
+                  placeholder="请选择云台功能"
+                >
+                  <el-option label="预置点" value="preset"></el-option>
+                  <el-option label="巡航组" value="cruise"></el-option>
+                  <el-option label="自动扫描" value="scan"></el-option>
+                  <el-option label="雨刷" value="wiper"></el-option>
+                  <el-option label="辅助开关" value="switch"></el-option>
+                </el-select>
 
-              <div class="control-panel">
-                <el-button-group>
-                  <el-tag style="position :absolute; left: 0rem; top: 0rem; width: 5rem; text-align: center"
-                          size="medium">预置位编号
-                  </el-tag>
-                  <el-input-number style="position: absolute; left: 5rem; top: 0rem; width: 6rem" size="mini"
-                                   v-model="presetPos" controls-position="right" :precision="0" :step="1" :min="1"
-                                   :max="255"></el-input-number>
-                  <el-button style="position: absolute; left: 11rem; top: 0rem; width: 5rem" size="mini"
-                             icon="el-icon-add-location" @click="presetPosition(129, presetPos)">设置
-                  </el-button>
-                  <el-button style="position: absolute; left: 27rem; top: 0rem; width: 5rem" size="mini" type="primary"
-                             icon="el-icon-place" @click="presetPosition(130, presetPos)">调用
-                  </el-button>
-                  <el-button style="position: absolute; left: 16rem; top: 0rem; width: 5rem" size="mini"
-                             icon="el-icon-delete-location" @click="presetPosition(131, presetPos)">删除
-                  </el-button>
-                  <el-tag style="position :absolute; left: 0rem; top: 2.5rem; width: 5rem; text-align: center"
-                          size="medium">巡航速度
-                  </el-tag>
-                  <el-input-number style="position: absolute; left: 5rem; top: 2.5rem; width: 6rem" size="mini"
-                                   v-model="cruisingSpeed" controls-position="right" :precision="0" :min="1"
-                                   :max="4095"></el-input-number>
-                  <el-button style="position: absolute; left: 11rem; top: 2.5rem; width: 5rem" size="mini"
-                             icon="el-icon-loading" @click="setSpeedOrTime(134, cruisingGroup, cruisingSpeed)">设置
-                  </el-button>
-                  <el-tag style="position :absolute; left: 16rem; top: 2.5rem; width: 5rem; text-align: center"
-                          size="medium">停留时间
-                  </el-tag>
-                  <el-input-number style="position: absolute; left: 21rem; top: 2.5rem; width: 6rem" size="mini"
-                                   v-model="cruisingTime" controls-position="right" :precision="0" :min="1"
-                                   :max="4095"></el-input-number>
-                  <el-button style="position: absolute; left: 27rem; top: 2.5rem; width: 5rem" size="mini"
-                             icon="el-icon-timer" @click="setSpeedOrTime(135, cruisingGroup, cruisingTime)">设置
-                  </el-button>
-                  <el-tag style="position :absolute; left: 0rem; top: 4.5rem; width: 5rem; text-align: center"
-                          size="medium">巡航组编号
-                  </el-tag>
-                  <el-input-number style="position: absolute; left: 5rem; top: 4.5rem; width: 6rem" size="mini"
-                                   v-model="cruisingGroup" controls-position="right" :precision="0" :min="0"
-                                   :max="255"></el-input-number>
-                  <el-button style="position: absolute; left: 11rem; top: 4.5rem; width: 5rem" size="mini"
-                             icon="el-icon-add-location" @click="setCommand(132, cruisingGroup, presetPos)">添加点
-                  </el-button>
-                  <el-button style="position: absolute; left: 16rem; top: 4.5rem; width: 5rem" size="mini"
-                             icon="el-icon-delete-location" @click="setCommand(133, cruisingGroup, presetPos)">删除点
-                  </el-button>
-                  <el-button style="position: absolute; left: 21rem; top: 4.5rem; width: 5rem" size="mini"
-                             icon="el-icon-delete" @click="setCommand(133, cruisingGroup, 0)">删除组
-                  </el-button>
-                  <el-button style="position: absolute; left: 27rem; top: 5rem; width: 5rem" size="mini" type="primary"
-                             icon="el-icon-video-camera-solid" @click="setCommand(136, cruisingGroup, 0)">巡航
-                  </el-button>
-                  <el-tag style="position :absolute; left: 0rem; top: 7rem; width: 5rem; text-align: center"
-                          size="medium">扫描速度
-                  </el-tag>
-                  <el-input-number style="position: absolute; left: 5rem; top: 7rem; width: 6rem" size="mini"
-                                   v-model="scanSpeed" controls-position="right" :precision="0" :min="1"
-                                   :max="4095"></el-input-number>
-                  <el-button style="position: absolute; left: 11rem; top: 7rem; width: 5rem" size="mini"
-                             icon="el-icon-loading" @click="setSpeedOrTime(138, scanGroup, scanSpeed)">设置
-                  </el-button>
-                  <el-tag style="position :absolute; left: 0rem; top: 9rem; width: 5rem; text-align: center"
-                          size="medium">扫描组编号
-                  </el-tag>
-                  <el-input-number style="position: absolute; left: 5rem; top: 9rem; width: 6rem" size="mini"
-                                   v-model="scanGroup" controls-position="right" :precision="0" :step="1" :min="0"
-                                   :max="255"></el-input-number>
-                  <el-button style="position: absolute; left: 11rem; top: 9rem; width: 5rem" size="mini"
-                             icon="el-icon-d-arrow-left" @click="setCommand(137, scanGroup, 1)">左边界
-                  </el-button>
-                  <el-button style="position: absolute; left: 16rem; top: 9rem; width: 5rem" size="mini"
-                             icon="el-icon-d-arrow-right" @click="setCommand(137, scanGroup, 2)">右边界
-                  </el-button>
-                  <el-button style="position: absolute; left: 27rem; top: 7rem; width: 5rem" size="mini" type="primary"
-                             icon="el-icon-video-camera-solid" @click="setCommand(137, scanGroup, 0)">扫描
-                  </el-button>
-                  <el-button style="position: absolute; left: 27rem; top: 9rem; width: 5rem" size="mini" type="danger"
-                             icon="el-icon-switch-button" @click="ptzCamera('stop')">停止
-                  </el-button>
-                </el-button-group>
+                <ptzPreset :channelDeviceId="channelId" :deviceId="deviceId" v-if="ptzMethod === 'preset'" style="margin-top: 1rem"></ptzPreset>
+                <ptzCruising :channelDeviceId="channelId" :deviceId="deviceId" v-if="ptzMethod === 'cruise'" style="margin-top: 1rem"></ptzCruising>
+                <ptzScan :channelDeviceId="channelId" :deviceId="deviceId" v-if="ptzMethod === 'scan'" style="margin-top: 1rem"></ptzScan>
+                <ptzWiper :channelDeviceId="channelId" :deviceId="deviceId" v-if="ptzMethod === 'wiper'" style="margin-top: 1rem"></ptzWiper>
+                <ptzSwitch :channelDeviceId="channelId" :deviceId="deviceId" v-if="ptzMethod === 'switch'" style="margin-top: 1rem"></ptzSwitch>
               </div>
             </div>
           </el-tab-pane>
           <el-tab-pane label="编码信息" name="codec" v-loading="tracksLoading">
-            <p>
-              无法播放或者没有声音?&nbsp&nbsp&nbsp试一试&nbsp
-              <el-button size="mini" type="primary" v-if="!coverPlaying" @click="coverPlay">转码播放</el-button>
-              <el-button size="mini" type="danger" v-if="coverPlaying" @click="convertStopClick">停止转码</el-button>
-            </p>
-            <div class="trank">
-              <p v-if="tracksNotLoaded" style="text-align: center;padding-top: 3rem;">暂无数据</p>
-              <div v-for="(item, index) in tracks" style="width: 50%; float: left" loading>
-                <span>流 {{ index }}</span>
-                <div class="trankInfo" v-if="item.codec_type == 0">
-                  <p>格式: {{ item.codec_id_name }}</p>
-                  <p>类型: 视频</p>
-                  <p>分辨率: {{ item.width }} x {{ item.height }}</p>
-                  <p>帧率: {{ item.fps }}</p>
-                </div>
-                <div class="trankInfo" v-if="item.codec_type == 1">
-                  <p>格式: {{ item.codec_id_name }}</p>
-                  <p>类型: 音频</p>
-                  <p>采样位数: {{ item.sample_bit }}</p>
-                  <p>采样率: {{ item.sample_rate }}</p>
-                </div>
-              </div>
-
-            </div>
-
+            <mediaInfo :app="app" :stream="streamId" :mediaServerId="mediaServerId"></mediaInfo>
           </el-tab-pane>
           <el-tab-pane label="语音对讲" name="broadcast">
             <div style="padding: 0 10px">
@@ -327,11 +264,18 @@ import rtcPlayer from '../dialog/rtcPlayer.vue'
 import LivePlayer from '@liveqing/liveplayer'
 import crypto from 'crypto'
 import jessibucaPlayer from '../common/jessibuca.vue'
+import PtzPreset from "../common/ptzPreset.vue";
+import PtzCruising from "../common/ptzCruising.vue";
+import ptzScan from "../common/ptzScan.vue";
+import ptzWiper from "../common/ptzWiper.vue";
+import ptzSwitch from "../common/ptzSwitch.vue";
+import mediaInfo from "../common/mediaInfo.vue";
 
 export default {
   name: 'devicePlayer',
   props: {},
   components: {
+    PtzPreset,PtzCruising,ptzScan,ptzWiper,ptzSwitch,mediaInfo,
     LivePlayer, jessibucaPlayer, rtcPlayer,
   },
   computed: {
@@ -363,9 +307,10 @@ export default {
       },
       showVideoDialog: false,
       streamId: '',
+      ptzMethod: 'preset',
+      ptzPresetId: '',
       app: '',
       mediaServerId: '',
-      convertKey: '',
       deviceId: '',
       channelId: '',
       tabActiveName: 'media',
@@ -384,7 +329,6 @@ export default {
       scanSpeed: 100,
       scanGroup: 0,
       tracks: [],
-      coverPlaying: false,
       tracksLoading: false,
       showPtz: true,
       showRrecord: true,
@@ -485,63 +429,6 @@ export default {
       return this.videoUrl;
 
     },
-    coverPlay: function () {
-      var that = this;
-      this.coverPlaying = true;
-      this.$refs[this.activePlayer].pause()
-      that.$axios({
-        method: 'post',
-        url: '/api/play/convert/' + that.streamId
-      }).then(function (res) {
-        if (res.data.code === 0) {
-          that.convertKey = res.data.key;
-          setTimeout(() => {
-            that.isLoging = false;
-            that.playFromStreamInfo(false, res.data.data);
-          }, 2000)
-        } else {
-          that.isLoging = false;
-          that.coverPlaying = false;
-          that.$message({
-            showClose: true,
-            message: '转码失败',
-            type: 'error'
-          });
-        }
-      }).catch(function (e) {
-        console.log(e)
-        that.coverPlaying = false;
-        that.$message({
-          showClose: true,
-          message: '播放错误',
-          type: 'error'
-        });
-      });
-    },
-    convertStopClick: function () {
-      this.convertStop(() => {
-        this.$refs[this.activePlayer].play(this.videoUrl)
-      });
-    },
-    convertStop: function (callback) {
-      var that = this;
-      that.$refs.videoPlayer.pause()
-      this.$axios({
-        method: 'post',
-        url: '/api/play/convertStop/' + this.convertKey
-      }).then(function (res) {
-        if (res.data.code == 0) {
-          console.log(res.data.msg)
-        } else {
-          console.error(res.data.msg)
-        }
-        if (callback) callback();
-      }).catch(function (e) {
-      });
-      that.coverPlaying = false;
-      that.convertKey = "";
-      // if (callback )callback();
-    },
 
         playFromStreamInfo: function (realHasAudio, streamInfo) {
           this.showVideoDialog = true;
@@ -562,10 +449,6 @@ export default {
             this.videoUrl = '';
             this.coverPlaying = false;
             this.showVideoDialog = false;
-            if (this.convertKey != '') {
-              this.convertStop();
-            }
-            this.convertKey = ''
             this.stopBroadcast()
         },
 
@@ -595,8 +478,22 @@ export default {
       console.log('云台控制：' + command);
       let that = this;
       this.$axios({
-        method: 'post',
-        url: '/api/ptz/control/' + this.deviceId + '/' + this.channelId + '?command=' + command + '&horizonSpeed=' + this.controSpeed + '&verticalSpeed=' + this.controSpeed + '&zoomSpeed=' + this.controSpeed
+        method: 'get',
+        url: '/api/front-end/ptz/' + this.deviceId + '/' + this.channelId + '?command=' + command + '&horizonSpeed=' + parseInt(this.controSpeed * 255/100) + '&verticalSpeed=' + parseInt(this.controSpeed * 255/100) + '&zoomSpeed=' + parseInt(this.controSpeed * 16/100)
+      }).then(function (res) {
+      });
+    },
+    irisCamera: function (command) {
+      this.$axios({
+        method: 'get',
+        url: '/api/front-end/fi/iris/' + this.deviceId + '/' + this.channelId + '?command=' + command + '&speed=' + parseInt(this.controSpeed * 255/100)
+      }).then(function (res) {
+      });
+    },
+    focusCamera: function (command) {
+      this.$axios({
+        method: 'get',
+        url: '/api/front-end/fi/focus/' + this.deviceId + '/' + this.channelId + '?command=' + command + '&speed=' + parseInt(this.controSpeed * 255/100)
       }).then(function (res) {
       });
     },
@@ -1000,5 +897,15 @@ export default {
 .trankInfo {
   width: 80%;
   padding: 0 10%;
+}
+.el-dialog__body{
+  padding: 10px 20px;
+}
+.ptz-btn-box {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0 2rem;
+  height: 3rem;
+  line-height: 4rem;
 }
 </style>

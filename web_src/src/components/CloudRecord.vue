@@ -52,17 +52,17 @@
       <el-table-column prop="stream" label="流ID" width="380">
       </el-table-column>
       <el-table-column label="开始时间">
-        <template slot-scope="scope">
+        <template v-slot:default="scope">
           {{formatTimeStamp(scope.row.startTime)}}
         </template>
       </el-table-column>
       <el-table-column label="结束时间">
-        <template slot-scope="scope">
+        <template v-slot:default="scope">
           {{formatTimeStamp(scope.row.endTime)}}
         </template>
       </el-table-column>
       <el-table-column  label="时长">
-        <template slot-scope="scope">
+        <template v-slot:default="scope">
           <el-tag>{{formatTime(scope.row.timeLen)}}</el-tag>
         </template>
       </el-table-column>
@@ -71,7 +71,7 @@
       <el-table-column prop="mediaServerId" label="流媒体">
       </el-table-column>
       <el-table-column label="操作" width="200" fixed="right">
-        <template slot-scope="scope">
+        <template v-slot:default="scope">
           <el-button size="medium" icon="el-icon-video-play" type="text" @click="play(scope.row)">播放
           </el-button>
           <el-button size="medium" icon="el-icon-download" type="text" @click="downloadFile(scope.row)">下载

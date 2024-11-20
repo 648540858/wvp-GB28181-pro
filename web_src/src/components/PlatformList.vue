@@ -19,7 +19,7 @@
         <el-table-column prop="name" label="名称"></el-table-column>
         <el-table-column prop="serverGBId" label="平台编号" min-width="200"></el-table-column>
         <el-table-column label="是否启用" min-width="80">
-          <template slot-scope="scope">
+          <template v-slot:default="scope">
             <div slot="reference" class="name-wrapper">
               <el-tag size="medium" v-if="scope.row.enable">已启用</el-tag>
               <el-tag size="medium" type="info" v-if="!scope.row.enable">未启用</el-tag>
@@ -27,7 +27,7 @@
           </template>
         </el-table-column>
         <el-table-column label="状态" min-width="80">
-          <template slot-scope="scope">
+          <template v-slot:default="scope">
             <div slot="reference" class="name-wrapper">
               <el-tag size="medium" v-if="scope.row.status">在线</el-tag>
               <el-tag size="medium" type="info" v-if="!scope.row.status">离线</el-tag>
@@ -35,7 +35,7 @@
           </template>
         </el-table-column>
         <el-table-column label="地址" min-width="160">
-          <template slot-scope="scope">
+          <template v-slot:default="scope">
             <div slot="reference" class="name-wrapper">
               <el-tag size="medium">{{ scope.row.serverIp }}:{{ scope.row.serverPort }}</el-tag>
             </div>
@@ -45,7 +45,7 @@
         <el-table-column prop="transport" label="信令传输模式" min-width="120"></el-table-column>
         <el-table-column prop="channelCount" label="通道数" min-width="120"></el-table-column>
         <el-table-column label="订阅信息" min-width="120" fixed="right">
-          <template slot-scope="scope">
+          <template v-slot:default="scope">
             <i v-if="scope.row.alarmSubscribe" style="font-size: 20px" title="报警订阅"
                class="iconfont icon-gbaojings subscribe-on "></i>
             <i v-if="!scope.row.alarmSubscribe" style="font-size: 20px" title="报警订阅"
@@ -60,7 +60,7 @@
         </el-table-column>
 
         <el-table-column label="操作" min-width="240" fixed="right">
-          <template slot-scope="scope">
+          <template v-slot:default="scope">
             <el-button size="medium" icon="el-icon-edit" type="text" @click="editPlatform(scope.row)">编辑</el-button>
             <el-button size="medium" icon="el-icon-share" type="text" @click="chooseChannel(scope.row)">通道共享
             </el-button>

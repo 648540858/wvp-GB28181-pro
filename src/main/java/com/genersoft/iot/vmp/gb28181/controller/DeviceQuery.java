@@ -296,13 +296,10 @@ public class DeviceQuery {
 	@Parameter(name = "device", description = "设备", required = true)
 	@PostMapping("/device/update/")
 	public void updateDevice(Device device){
-
-		if (device != null && device.getDeviceId() != null) {
-			if (device.getSubscribeCycleForMobilePosition() > 0 && device.getMobilePositionSubmissionInterval() <= 0) {
-				device.setMobilePositionSubmissionInterval(5);
-			}
-			deviceService.updateCustomDevice(device);
+		if (device == null || device.getDeviceId() == null || device.getId() <= 0) {
+			throw new ControllerException(ErrorCode.ERROR400);
 		}
+		deviceService.updateCustomDevice(device);
 	}
 
 	/**

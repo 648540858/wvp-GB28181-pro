@@ -119,6 +119,7 @@ public interface CommonGBChannelMapper {
             ", gb_block = #{gbBlock}" +
             ", gb_address = #{gbAddress}" +
             ", gb_parental = #{gbParental}" +
+            ", gb_parent_id = #{gbParentId}" +
             ", gb_safety_way = #{gbSafetyWay}" +
             ", gb_register_way = #{gbRegisterWay}" +
             ", gb_cert_num = #{gbCertNum}" +
@@ -255,10 +256,17 @@ public interface CommonGBChannelMapper {
     @SelectProvider(type = ChannelProvider.class, method = "queryByStreamProxyId")
     CommonGBChannel queryByStreamProxyId(@Param("streamProxyId") Integer streamProxyId);
 
-    @SelectProvider(type = ChannelProvider.class, method = "queryList")
-    List<CommonGBChannel> queryList(@Param("query") String query, @Param("online") Boolean online,
-                                    @Param("hasCivilCode") Boolean hasCivilCode,
-                                    @Param("hasGroup") Boolean hasGroup);
+    @SelectProvider(type = ChannelProvider.class, method = "queryListByCivilCode")
+    List<CommonGBChannel> queryListByCivilCode(@Param("query") String query, @Param("online") Boolean online,
+                                               @Param("channelType") Integer channelType, @Param("civilCode") String civilCode);
+
+
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryListByParentId")
+    List<CommonGBChannel> queryListByParentId(@Param("query") String query, @Param("online") Boolean online,
+                                              @Param("channelType") Integer channelType, @Param("groupDeviceId") String groupDeviceId);
+
+
 
     @Select("<script>" +
             " select " +

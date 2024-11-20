@@ -19,7 +19,6 @@ import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.CatalogSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.CatalogResponseMessageHandler;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
@@ -34,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ObjectUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
@@ -50,9 +48,6 @@ import java.util.concurrent.TimeUnit;
 @Service
 @DS("master")
 public class DeviceServiceImpl implements IDeviceService {
-
-    @Autowired
-    private SIPCommander cmder;
 
     @Autowired
     private DynamicTask dynamicTask;
@@ -421,34 +416,11 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public void updateCustomDevice(Device device) {
-        Device deviceInStore = deviceMapper.getDeviceByDeviceId(device.getDeviceId());
+        Device deviceInStore = deviceMapper.query(device.getId());
         if (deviceInStore == null) {
             log.warn("更新设备时未找到设备信息");
             return;
         }
-
-        if (!ObjectUtils.isEmpty(device.getName())) {
-            deviceInStore.setName(device.getName());
-        }
-        if (!ObjectUtils.isEmpty(device.getCharset())) {
-            deviceInStore.setCharset(device.getCharset());
-        }
-        if (!ObjectUtils.isEmpty(device.getMediaServerId())) {
-            deviceInStore.setMediaServerId(device.getMediaServerId());
-        }
-        if (!ObjectUtils.isEmpty(device.getCharset())) {
-            deviceInStore.setCharset(device.getCharset());
-        }
-        if (!ObjectUtils.isEmpty(device.getSdpIp())) {
-            deviceInStore.setSdpIp(device.getSdpIp());
-        }
-        if (!ObjectUtils.isEmpty(device.getPassword())) {
-            deviceInStore.setPassword(device.getPassword());
-        }
-        if (!ObjectUtils.isEmpty(device.getStreamMode())) {
-            deviceInStore.setStreamMode(device.getStreamMode());
-        }
-        deviceInStore.setBroadcastPushAfterAck(device.isBroadcastPushAfterAck());
         //  目录订阅相关的信息
         if (deviceInStore.getSubscribeCycleForCatalog() != device.getSubscribeCycleForCatalog()) {
             if (device.getSubscribeCycleForCatalog() > 0) {
@@ -513,13 +485,9 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device.getCharset() == null) {
             deviceInStore.setCharset("GB2312");
         }
-        //SSRC校验
-        deviceInStore.setSsrcCheck(device.isSsrcCheck());
-        //作为消息通道
-        deviceInStore.setAsMessageChannel(device.isAsMessageChannel());
 
-        deviceMapper.updateCustom(deviceInStore);
-        redisCatchStorage.updateDevice(deviceInStore);
+        deviceMapper.updateCustom(device);
+        redisCatchStorage.updateDevice(device);
     }
 
     @Override
@@ -551,6 +519,11 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     public PageInfo<Device> getAll(int page, int count, String query, Boolean status) {
         PageHelper.startPage(page, count);
+        if (query != null) {
+            query = query.replaceAll("/", "//")
+                    .replaceAll("%", "/%")
+                    .replaceAll("_", "/_");
+        }
         List<Device> all = deviceMapper.getDeviceList(query, status);
         return new PageInfo<>(all);
     }

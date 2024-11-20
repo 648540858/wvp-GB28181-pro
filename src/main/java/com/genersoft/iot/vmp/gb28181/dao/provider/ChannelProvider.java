@@ -117,13 +117,13 @@ public class ChannelProvider {
     }
 
 
-    public String queryList(Map<String, Object> params ){
+    public String queryListByCivilCode(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL);
         sqlBuild.append(" where channel_type = 0 ");
         if (params.get("query") != null) {
-            sqlBuild.append(" AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%')" +
-                    " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%') )")
+            sqlBuild.append(" AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%') escape '/'" +
+                    " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%') escape '/' )")
             ;
         }
         if (params.get("online") != null && (Boolean)params.get("online")) {
@@ -132,17 +132,52 @@ public class ChannelProvider {
         if (params.get("online") != null && !(Boolean)params.get("online")) {
             sqlBuild.append(" AND coalesce(gb_status, status) = 'OFF'");
         }
-        if (params.get("hasCivilCode") != null && (Boolean)params.get("hasCivilCode")) {
-            sqlBuild.append(" AND coalesce(gb_civil_code, civil_code) is not null");
-        }
-        if (params.get("hasCivilCode") != null && !(Boolean)params.get("hasCivilCode")) {
+        if (params.get("civilCode") != null) {
+            sqlBuild.append(" AND coalesce(gb_civil_code, civil_code) = #{civilCode}");
+        }else {
             sqlBuild.append(" AND coalesce(gb_civil_code, civil_code) is null");
         }
-        if (params.get("hasGroup") != null && (Boolean)params.get("hasGroup")) {
-            sqlBuild.append(" AND coalesce(gb_parent_id, parent_id) is not null");
+        if (params.get("channelType") != null) {
+            if ((Integer)params.get("channelType") == 0) {
+                sqlBuild.append(" AND device_db_id is not null");
+            }else if ((Integer)params.get("channelType") == 1) {
+                sqlBuild.append(" AND stream_push_id is not null");
+            }else if ((Integer)params.get("channelType") == 2) {
+                sqlBuild.append(" AND stream_proxy_id is not null");
+            }
         }
-        if (params.get("hasGroup") != null && !(Boolean)params.get("hasGroup")) {
+        return sqlBuild.toString();
+    }
+
+    public String queryListByParentId(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(BASE_SQL);
+        sqlBuild.append(" where channel_type = 0 ");
+        if (params.get("query") != null) {
+            sqlBuild.append(" AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%') escape '/'" +
+                    " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%') escape '/' )")
+            ;
+        }
+        if (params.get("online") != null && (Boolean)params.get("online")) {
+            sqlBuild.append(" AND coalesce(gb_status, status) = 'ON'");
+        }
+        if (params.get("online") != null && !(Boolean)params.get("online")) {
+            sqlBuild.append(" AND coalesce(gb_status, status) = 'OFF'");
+        }
+        if (params.get("groupDeviceId") != null) {
+            sqlBuild.append(" AND coalesce(gb_parent_id, parent_id) = #{groupDeviceId}");
+        }else {
             sqlBuild.append(" AND coalesce(gb_parent_id, parent_id) is null");
+        }
+
+        if (params.get("channelType") != null) {
+            if ((Integer)params.get("channelType") == 0) {
+                sqlBuild.append(" AND device_db_id is not null");
+            }else if ((Integer)params.get("channelType") == 1) {
+                sqlBuild.append(" AND stream_push_id is not null");
+            }else if ((Integer)params.get("channelType") == 2) {
+                sqlBuild.append(" AND stream_proxy_id is not null");
+            }
         }
         return sqlBuild.toString();
     }

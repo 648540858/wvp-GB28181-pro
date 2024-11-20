@@ -18,7 +18,7 @@
       <el-table-column prop="pushKey" label="pushkey" min-width="160"/>
       <el-table-column prop="role.name" label="类型" min-width="160"/>
       <el-table-column label="操作" min-width="450" fixed="right">
-        <template slot-scope="scope">
+        <template v-slot:default="scope">
           <el-button size="medium" icon="el-icon-edit" type="text" @click="edit(scope.row)">修改密码</el-button>
           <el-divider direction="vertical"></el-divider>
           <el-button size="medium" icon="el-icon-edit" type="text" @click="changePushKey(scope.row)">修改pushkey</el-button>

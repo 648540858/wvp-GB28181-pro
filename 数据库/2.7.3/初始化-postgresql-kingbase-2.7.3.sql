@@ -163,7 +163,7 @@ create table wvp_device_channel
     gb_download_speed            character varying(255),
     gb_svc_space_support_mod     integer,
     gb_svc_time_support_mode     integer,
-    record_plan                  integer,
+    record_plan_id               integer,
     stream_push_id               integer,
     stream_proxy_id              integer,
     constraint uk_wvp_device_channel_unique_device_channel unique (device_db_id, device_id),

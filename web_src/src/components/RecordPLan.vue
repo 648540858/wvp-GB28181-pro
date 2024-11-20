@@ -76,7 +76,7 @@
         <el-table-column label="录制计划" min-width="100">
           <template v-slot:default="scope">
             <div slot="reference" class="name-wrapper">
-              <el-tag size="medium" effect="dark" v-if="scope.row.recordPlan">已设置</el-tag>
+              <el-tag size="medium" effect="dark" v-if="scope.row.recordPlanId">已设置</el-tag>
               <el-tag size="medium" effect="dark" v-else>未设置</el-tag>
             </div>
           </template>

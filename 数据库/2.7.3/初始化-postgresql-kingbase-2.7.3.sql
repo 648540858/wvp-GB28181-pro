@@ -445,3 +445,23 @@ CREATE TABLE wvp_common_region
     constraint uk_common_region_device_id unique (device_id)
 );
 
+create table wvp_record_plan
+(
+    id              serial primary key,
+    snap            bool default false,
+    name            varchar(255) NOT NULL,
+    create_time     character varying(50),
+    update_time     character varying(50)
+);
+
+create table wvp_record_plan_item
+(
+    id              serial primary key,
+    start_time      int8,
+    stop_time       int8,
+    week_day        int,
+    plan_id        int,
+    create_time     character varying(50),
+    update_time     character varying(50)
+);
+

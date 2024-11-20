@@ -11,9 +11,9 @@
     >
       <div id="shared" style="margin-right: 20px;">
         <ByteWeektimePicker v-model="byteTime" name="name"/>
-        <el-form status-icon label-width="80px">
+        <el-form >
           <el-form-item>
-            <div style="float: right;">
+            <div style="float: right; margin-top: 20px">
               <el-button type="primary" @click="onSubmit">保存</el-button>
               <el-button @click="close">取消</el-button>
             </div>
@@ -36,7 +36,6 @@ export default {
   },
   data() {
     return {
-      value:"",
       options: [],
       loading: false,
       showDialog: false,
@@ -44,6 +43,7 @@ export default {
       deviceDbId: "",
       endCallback: "",
       byteTime: "",
+      planList: [],
     };
   },
   methods: {
@@ -52,15 +52,22 @@ export default {
       this.deviceDbId = deviceDbId;
       this.endCallback = endCallback;
       this.showDialog = true;
+      this.byteTime= "";
+      if (channel.recordPlanId) {
+        // 请求plan信息
+
+      }
     },
     onSubmit: function () {
+      let planList = this.byteTime2PlanList();
+      console.log(planList)
       this.$axios({
         method: 'post',
-        url: "/api/user/add",
+        url: "/api/record/plan/add",
         params: {
-          username: this.username,
-          password: this.password,
-          roleId: this.roleId
+          channelId: this.channel?this.channel.id:null,
+          deviceDbId: this.deviceDbId,
+          planList: planList
         }
       }).then((res) => {
         if (res.data.code === 0) {
@@ -68,11 +75,9 @@ export default {
             showClose: true,
             message: '添加成功',
             type: 'success',
-
           });
           this.showDialog = false;
-          this.listChangeCallback()
-
+          this.endCallback()
         } else {
           this.$message({
             showClose: true,
@@ -85,7 +90,6 @@ export default {
       });
     },
     close: function () {
-      console.log(this.byteTime)
       this.channel = "";
       this.deviceDbId = "";
       this.showDialog = false;
@@ -93,6 +97,59 @@ export default {
         this.endCallback();
       }
     },
+    byteTime2PlanList() {
+      this.planList = []
+      if (this.byteTime.length === 0) {
+        return;
+      }
+      const DayTimes = 24 * 2;
+      let planList = []
+      let week = 1;
+      // 把 336长度的 list 分成 7 组，每组 48 个
+      for (let i = 0; i < this.byteTime.length; i += DayTimes) {
+        let planArray = this.byteTime2Plan(this.byteTime.slice(i, i + DayTimes));
+        console.log(planArray)
+        if(!planArray || planArray.length === 0) {
+          week ++;
+          continue
+        }
+        for (let j = 0; j < planArray.length; j++) {
+          console.log(planArray[j])
+          planList.push({
+            startTime: planArray[j].startTime,
+            stopTime: planArray[j].stopTime,
+            weekDay: week
+          })
+        }
+        week ++;
+      }
+      return planList
+    },
+    byteTime2Plan(weekItem){
+      let startTime = 0;
+      let endTime = 0;
+      let result = []
+
+      for (let i = 0; i < weekItem.length; i++) {
+        let item = weekItem[i]
+        if (item === '1') {
+          endTime = 30*i
+          if (startTime === 0 ) {
+            startTime = 30*i
+          }
+        } else {
+          if (endTime !== 0){
+            result.push({
+              startTime: startTime * 60 * 1000,
+              stopTime: endTime * 60 * 1000,
+            })
+            startTime = 0
+            endTime = 0
+          }
+        }
+      }
+      return result;
+    }
   },
 };
 </script>

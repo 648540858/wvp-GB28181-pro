@@ -17,7 +17,7 @@ public class ChannelProvider {
             "    stream_proxy_id,\n" +
             "    create_time,\n" +
             "    update_time,\n" +
-            "    record_plan,\n" +
+            "    record_plan_id,\n" +
             "    coalesce(gb_device_id, device_id) as gb_device_id,\n" +
             "    coalesce(gb_name, name) as gb_name,\n" +
             "    coalesce(gb_manufacturer, manufacturer) as gb_manufacturer,\n" +
@@ -198,8 +198,8 @@ public class ChannelProvider {
         if (params.get("online") != null && !(Boolean)params.get("online")) {
             sqlBuild.append(" AND coalesce(gb_status, status) = 'OFF'");
         }
-        if (params.get("hasRecordPlan") != null && !(Boolean)params.get("hasRecordPlan")) {
-            sqlBuild.append(" AND record_plan == 0");
+        if (params.get("hasRecordPlan") != null && (Boolean)params.get("hasRecordPlan")) {
+            sqlBuild.append(" AND record_plan_id > 0");
         }
 
         if (params.get("channelType") != null) {

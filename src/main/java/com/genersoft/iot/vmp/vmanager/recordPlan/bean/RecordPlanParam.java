@@ -12,10 +12,13 @@ import java.util.List;
 public class RecordPlanParam {
 
     @Schema(description = "关联的通道ID")
-    private Integer channelId;
+    private List<Integer> channelIds;
 
     @Schema(description = "关联的设备ID，会为设备下的所有通道关联此录制计划，channelId存在是此项不生效，")
-    private Integer deviceDbId;
+    private List<Integer> deviceDbIds;
+
+    @Schema(description = "全部关联/全部取消关联")
+    private Boolean all;
 
     @Schema(description = "录制计划ID, ID为空是删除关联的计划")
     private Integer planId;

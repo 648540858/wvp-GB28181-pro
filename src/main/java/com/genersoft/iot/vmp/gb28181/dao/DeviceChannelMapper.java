@@ -93,8 +93,9 @@ public interface DeviceChannelMapper {
     @SelectProvider(type = DeviceChannelProvider.class, method = "queryChannelsByDeviceDbId")
     List<DeviceChannel> queryChannelsByDeviceDbId(@Param("deviceDbId") int deviceDbId);
 
-    @Select("select id from wvp_device_channel where device_db_id = #{deviceDbId}")
-    List<Integer> queryChaneIdListByDeviceDbId(@Param("deviceDbId") int deviceDbId);
+    @Select("select id from wvp_device_channel where device_db_id in  " +
+            " <foreach item='item' index='index' collection='deviceDbIds' open='(' separator=',' close=')'> #{item} </foreach> </if>")
+    List<Integer> queryChaneIdListByDeviceDbIds(List<Integer> deviceDbIds);
 
     @Delete("DELETE FROM wvp_device_channel WHERE device_db_id=#{deviceId}")
     int cleanChannelsByDeviceId(@Param("deviceId") int deviceId);

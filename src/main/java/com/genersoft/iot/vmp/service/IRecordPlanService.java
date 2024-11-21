@@ -1,7 +1,8 @@
 package com.genersoft.iot.vmp.service;
 
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.PlatformChannel;
 import com.genersoft.iot.vmp.service.bean.RecordPlan;
-import com.genersoft.iot.vmp.service.bean.RecordPlanItem;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
@@ -19,5 +20,11 @@ public interface IRecordPlanService {
 
     void add(RecordPlan plan);
 
-    void linke(List<Integer> channelIds, Integer planId);
+    void link(List<Integer> channelIds, Integer planId);
+
+    PageInfo<CommonGBChannel> queryChannelList(int page, int count, String query, Integer channelType, Boolean online, Integer planId, Boolean hasLink);
+
+    void linkAll(Integer planId);
+
+    void cleanAll(Integer planId);
 }

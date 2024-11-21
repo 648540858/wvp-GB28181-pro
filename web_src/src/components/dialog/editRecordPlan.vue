@@ -10,8 +10,13 @@
       @close="close()"
     >
       <div id="shared" style="margin-right: 20px;">
-        <ByteWeektimePicker v-model="byteTime" name="name"/>
         <el-form >
+          <el-form-item label="名称">
+            <el-input type="text" v-model="planName"></el-input>
+          </el-form-item>
+          <el-form-item>
+            <ByteWeektimePicker v-model="byteTime" name="name"/>
+          </el-form-item>
           <el-form-item>
             <div style="float: right; margin-top: 20px">
               <el-button type="primary" @click="onSubmit">保存</el-button>
@@ -38,67 +43,111 @@ export default {
     return {
       options: [],
       loading: false,
+      edit: false,
+      planName: null,
+      id: null,
       showDialog: false,
-      channel: "",
-      deviceDbId: "",
       endCallback: "",
       byteTime: "",
-      planList: [],
     };
   },
   methods: {
-    openDialog: function (channel, deviceDbId, endCallback) {
-      this.channel = channel;
-      this.deviceDbId = deviceDbId;
+    openDialog: function (recordPlan, endCallback) {
+      console.log(recordPlan);
       this.endCallback = endCallback;
       this.showDialog = true;
       this.byteTime= "";
-      if (channel.recordPlanId) {
-        // 请求plan信息
+      if (recordPlan) {
+        this.edit = true
+        this.planName = recordPlan.name
+        this.id = recordPlan.id
+        this.$axios({
+          method: 'get',
+          url: "/api/record/plan/get",
+          params: {
+            planId: recordPlan.id,
+          }
+        }).then((res) => {
+          if (res.data.code === 0) {
+            this.byteTime = this.plan2Byte(res.data.data.planItemList)
+          }
+        }).catch((error) => {
+          console.error(error)
+        });
 
       }
     },
     onSubmit: function () {
       let planList = this.byteTime2PlanList();
-      console.log(planList)
-      this.$axios({
-        method: 'post',
-        url: "/api/record/plan/add",
-        params: {
-          channelId: this.channel?this.channel.id:null,
-          deviceDbId: this.deviceDbId,
-          planList: planList
-        }
-      }).then((res) => {
-        if (res.data.code === 0) {
-          this.$message({
-            showClose: true,
-            message: '添加成功',
-            type: 'success',
-          });
-          this.showDialog = false;
-          this.endCallback()
-        } else {
-          this.$message({
-            showClose: true,
-            message: res.data.msg,
-            type: 'error'
-          });
-        }
-      }).catch((error) => {
-        console.error(error)
-      });
+      if (!this.edit) {
+        this.$axios({
+          method: 'post',
+          url: "/api/record/plan/add",
+          data: {
+            name: this.planName,
+            planItemList: planList
+          }
+        }).then((res) => {
+          if (res.data.code === 0) {
+            this.$message({
+              showClose: true,
+              message: '添加成功',
+              type: 'success',
+            });
+            this.showDialog = false;
+            this.endCallback()
+          } else {
+            this.$message({
+              showClose: true,
+              message: res.data.msg,
+              type: 'error'
+            });
+          }
+        }).catch((error) => {
+          console.error(error)
+        });
+      }else {
+        this.$axios({
+          method: 'post',
+          url: "/api/record/plan/update",
+          data: {
+            id: this.id,
+            name: this.planName,
+            planItemList: planList
+          }
+        }).then((res) => {
+          if (res.data.code === 0) {
+            this.$message({
+              showClose: true,
+              message: '更新成功',
+              type: 'success',
+            });
+            this.showDialog = false;
+            this.endCallback()
+          } else {
+            this.$message({
+              showClose: true,
+              message: res.data.msg,
+              type: 'error'
+            });
+          }
+        }).catch((error) => {
+          console.error(error)
+        });
+      }
+
     },
     close: function () {
-      this.channel = "";
-      this.deviceDbId = "";
       this.showDialog = false;
+      this.id = null
+      this.planName = null
+      this.byteTime = ""
+      this.endCallback = ""
       if(this.endCallback) {
         this.endCallback();
       }
     },
     byteTime2PlanList() {
-      this.planList = []
       if (this.byteTime.length === 0) {
         return;
       }
@@ -114,8 +163,8 @@ export default {
           continue
         }
         for (let j = 0; j < planArray.length; j++) {
-          console.log(planArray[j])
           planList.push({
+            id: this.id,
             startTime: planArray[j].startTime,
             stopTime: planArray[j].stopTime,
             weekDay: week
@@ -149,6 +198,27 @@ export default {
         }
       }
       return result;
+    },
+    plan2Byte(planList) {
+      console.log(planList);
+      let byte = ""
+      let indexArray = {}
+      for (let i = 0; i < planList.length; i++) {
+        let index = planList[i].startTime/1000/60/30
+        let endIndex = planList[i].stopTime/1000/60/30
+        for (let j = index; j <= endIndex; j++) {
+          indexArray[j + (planList[i].weekDay - 1 )*48] = j + i*48
+        }
+      }
+      console.log(indexArray)
+      for (let i = 0; i < 336; i++) {
+        if (indexArray[i]){
+          byte += "1"
+        }else {
+          byte += "0"
+        }
+      }
+      return byte
     }
   },
 };

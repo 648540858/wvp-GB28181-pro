@@ -40,7 +40,15 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
 
     @Override
     public RecordPlan get(Integer planId) {
-        return recordPlanMapper.get(planId);
+        RecordPlan recordPlan = recordPlanMapper.get(planId);
+        if (recordPlan == null) {
+            return null;
+        }
+        List<RecordPlanItem> recordPlanItemList = recordPlanMapper.getItemList(planId);
+        if (!recordPlanItemList.isEmpty()) {
+            recordPlan.setPlanItemList(recordPlanItemList);
+        }
+        return recordPlan;
     }
 
     @Override

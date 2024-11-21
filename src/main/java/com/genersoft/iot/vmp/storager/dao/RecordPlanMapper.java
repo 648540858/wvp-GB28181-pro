@@ -10,7 +10,7 @@ import java.util.List;
 public interface RecordPlanMapper {
 
     @Insert(" <script>" +
-            "INSERT INTO wvp_cloud_record (" +
+            "INSERT INTO wvp_record_plan (" +
             " name," +
             " snap," +
             " create_time," +
@@ -25,15 +25,14 @@ public interface RecordPlanMapper {
     void add(RecordPlan plan);
 
     @Insert(" <script>" +
-            "INSERT INTO wvp_device_channel (" +
+            "INSERT INTO wvp_record_plan_item (" +
             "start_time," +
             "stop_time, " +
             "week_day," +
-            "create_time," +
-            "update_time) " +
+            "plan_id) " +
             "VALUES" +
-            "<foreach collection='commonGBChannels' index='index' item='item' separator=','> " +
-            "(#{item.startTime}, #{item.stopTime}, #{item.weekDay},#{item.planId},#{item.createTime},#{item.updateTime})" +
+            "<foreach collection='planItemList' index='index' item='item' separator=','> " +
+            "(#{item.startTime}, #{item.stopTime}, #{item.weekDay},#{planId})" +
             "</foreach> " +
             " </script>")
     void batchAddItem(@Param("planId") int planId, List<RecordPlanItem> planItemList);
@@ -42,7 +41,8 @@ public interface RecordPlanMapper {
     RecordPlan get(@Param("planId") Integer planId);
 
     @Select(" <script>" +
-            "select * from wvp_record_plan where  1=1" +
+            " SELECT wrp.*, (select count(1) from wvp_device_channel where record_plan_id = wrp.id) AS channelCount\n" +
+            " FROM wvp_record_plan wrp where  1=1" +
             " <if test='query != null'> AND (name LIKE concat('%',#{query},'%') escape '/' )</if> " +
             " </script>")
     List<RecordPlan> query(@Param("query") String query);
@@ -50,9 +50,12 @@ public interface RecordPlanMapper {
     @Update("UPDATE wvp_record_plan SET update_time=#{updateTime}, name=#{name}, snap=#{snap} WHERE id=#{id}")
     void update(RecordPlan plan);
 
-    @Delete("DELETE FROM wvp_record_plan WHERE id=#{id}")
+    @Delete("DELETE FROM wvp_record_plan WHERE id=#{planId}")
     void delete(@Param("planId") Integer planId);
 
+    @Select("select * from wvp_record_plan_item where  plan_id = #{planId}")
+    List<RecordPlanItem> getItemList(@Param("planId") Integer planId);
 
-    List<RecordPlanItem> getItemList(Integer planId);
+    @Delete("DELETE FROM wvp_record_plan_item WHERE plan_id = #{planId}")
+    void cleanItems(@Param("planId") Integer planId);
 }

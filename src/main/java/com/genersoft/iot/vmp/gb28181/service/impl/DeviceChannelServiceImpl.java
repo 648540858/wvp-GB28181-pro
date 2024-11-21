@@ -354,8 +354,8 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
-    public List<Integer> queryChaneIdListByDeviceDbId(Integer deviceDbId) {
-        return channelMapper.queryChaneIdListByDeviceDbId(deviceDbId);
+    public List<Integer> queryChaneIdListByDeviceDbIds(List<Integer> deviceDbIds) {
+        return channelMapper.queryChaneIdListByDeviceDbIds(deviceDbIds);
     }
 
     @Override

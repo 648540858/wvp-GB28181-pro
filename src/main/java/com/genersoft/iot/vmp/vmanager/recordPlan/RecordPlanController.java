@@ -2,6 +2,8 @@ package com.genersoft.iot.vmp.vmanager.recordPlan;
 
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.PlatformChannel;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IRecordPlanService;
 import com.genersoft.iot.vmp.service.bean.RecordPlan;
@@ -15,6 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -45,23 +48,31 @@ public class RecordPlanController {
     }
 
     @ResponseBody
-    @PostMapping("/linke")
+    @PostMapping("/link")
     @Operation(summary = "通道关联录制计划", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "param", description = "通道关联录制计划", required = false)
-    public void linke(@RequestBody RecordPlanParam param) {
-        if (param.getChannelId() == null && param.getDeviceDbId() == null) {
+    public void link(@RequestBody RecordPlanParam param) {
+        if (param.getChannelIds() == null && param.getDeviceDbIds() == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "通道ID和国标设备ID不可都为NULL");
         }
+        if (param.getAll() != null) {
+            if (param.getAll()) {
+                recordPlanService.linkAll(param.getPlanId());
+            }else {
+                recordPlanService.cleanAll(param.getPlanId());
+            }
+            return;
+        }
         List<Integer> channelIds = new ArrayList<>();
-        if (param.getChannelId() != null) {
-            channelIds.add(param.getChannelId());
+        if (param.getChannelIds() != null) {
+            channelIds.addAll(param.getChannelIds());
         }else {
-            List<Integer> chanelIdList = deviceChannelService.queryChaneIdListByDeviceDbId(param.getDeviceDbId());
+            List<Integer> chanelIdList = deviceChannelService.queryChaneIdListByDeviceDbIds(param.getDeviceDbIds());
             if (chanelIdList == null || chanelIdList.isEmpty()) {
                 channelIds = chanelIdList;
             }
         }
-        recordPlanService.linke(channelIds, param.getPlanId());
+        recordPlanService.link(channelIds, param.getPlanId());
     }
 
     @ResponseBody
@@ -88,11 +99,36 @@ public class RecordPlanController {
         return recordPlanService.query(page, count, query);
     }
 
+    @Operation(summary = "分页查询级联平台的所有所有通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "page", description = "当前页", required = true)
+    @Parameter(name = "count", description = "每页条数", required = true)
+    @Parameter(name = "planId", description = "录制计划ID")
+    @Parameter(name = "channelType", description = "通道类型， 0：国标设备，1：推流设备，2：拉流代理")
+    @Parameter(name = "query", description = "查询内容")
+    @Parameter(name = "online", description = "是否在线")
+    @Parameter(name = "hasLink", description = "是否已经关联")
+    @GetMapping("/channel/list")
     @ResponseBody
-    @PostMapping("/edit")
-    @Operation(summary = "编辑录制计划", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    public PageInfo<CommonGBChannel> queryChannelList(int page, int count,
+                                                      @RequestParam(required = false) Integer planId,
+                                                      @RequestParam(required = false) String query,
+                                                      @RequestParam(required = false) Integer channelType,
+                                                      @RequestParam(required = false) Boolean online,
+                                                      @RequestParam(required = false) Boolean hasLink) {
+
+        Assert.notNull(planId, "录制计划ID不可为NULL");
+        if (org.springframework.util.ObjectUtils.isEmpty(query)) {
+            query = null;
+        }
+
+        return recordPlanService.queryChannelList(page, count, query, channelType,  online, planId, hasLink);
+    }
+
+    @ResponseBody
+    @PostMapping("/update")
+    @Operation(summary = "更新录制计划", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "plan", description = "计划", required = true)
-    public void edit(@RequestBody RecordPlan plan) {
+    public void update(@RequestBody RecordPlan plan) {
         if (plan == null || plan.getId() == 0) {
             throw new ControllerException(ErrorCode.ERROR400);
         }

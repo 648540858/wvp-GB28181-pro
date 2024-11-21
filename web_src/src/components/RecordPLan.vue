@@ -9,82 +9,30 @@
             搜索:
             <el-input @input="search" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
                       prefix-icon="el-icon-search" v-model="searchSrt" clearable></el-input>
-
-            在线状态:
-            <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="search" v-model="online"
-                       placeholder="请选择"
-                       default-first-option>
-              <el-option label="全部" value=""></el-option>
-              <el-option label="在线" value="true"></el-option>
-              <el-option label="离线" value="false"></el-option>
-            </el-select>
-            录制计划:
-            <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="search" v-model="hasRecordPlan"
-                       placeholder="请选择"
-                       default-first-option>
-              <el-option label="全部" value=""></el-option>
-              <el-option label="已设置" value="true"></el-option>
-              <el-option label="未设置" value="false"></el-option>
-            </el-select>
-            类型:
-            <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="getChannelList"
-                       v-model="channelType" placeholder="请选择"
-                       default-first-option>
-              <el-option label="全部" value=""></el-option>
-              <el-option label="国标设备" :value="0"></el-option>
-              <el-option label="推流设备" :value="1"></el-option>
-              <el-option label="拉流代理" :value="2"></el-option>
-            </el-select>
             <el-button size="mini" type="primary" @click="add()">
-              按国标设备添加
+              添加
             </el-button>
-            <el-button size="mini" type="danger" @click="remove()">
-              按国标设备移除
-            </el-button>
-            <el-button icon="el-icon-refresh-right" circle size="mini" @click="getChannelList()"></el-button>
+            <el-button icon="el-icon-refresh-right" circle size="mini" @click="getRecordPlanList()"></el-button>
           </div>
         </div>
       </div>
-      <el-table size="medium" ref="channelListTable" :data="channelList" :height="winHeight" style="width: 100%"
+      <el-table size="medium" ref="recordPlanListTable" :data="recordPlanList" :height="winHeight" style="width: 100%"
                 header-row-class-name="table-header" >
         <el-table-column type="selection" width="55" >
         </el-table-column>
-        <el-table-column prop="gbName" label="名称" min-width="180">
+        <el-table-column prop="name" label="名称" >
         </el-table-column>
-        <el-table-column prop="gbDeviceId" label="编号" min-width="180">
+        <el-table-column prop="channelCount" label="关联通道" >
         </el-table-column>
-        <el-table-column prop="gbManufacturer" label="厂家" min-width="100">
+        <el-table-column prop="updateTime" label="更新时间">
         </el-table-column>
-
-        <el-table-column label="类型" min-width="100">
+        <el-table-column prop="createTime" label="创建时间">
+        </el-table-column>
+        <el-table-column label="操作" width="300" fixed="right">
           <template v-slot:default="scope">
-            <div slot="reference" class="name-wrapper">
-              <el-tag size="medium" effect="plain" v-if="scope.row.gbDeviceDbId">国标设备</el-tag>
-              <el-tag size="medium" effect="plain" type="success" v-if="scope.row.streamPushId">推流设备</el-tag>
-              <el-tag size="medium" effect="plain" type="warning" v-if="scope.row.streamProxyId">拉流代理</el-tag>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" min-width="100">
-          <template v-slot:default="scope">
-            <div slot="reference" class="name-wrapper">
-              <el-tag size="medium" v-if="scope.row.gbStatus === 'ON'">在线</el-tag>
-              <el-tag size="medium" type="info" v-if="scope.row.gbStatus !== 'ON'">离线</el-tag>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column label="录制计划" min-width="100">
-          <template v-slot:default="scope">
-            <div slot="reference" class="name-wrapper">
-              <el-tag size="medium" effect="dark" v-if="scope.row.recordPlanId">已设置</el-tag>
-              <el-tag size="medium" effect="dark" v-else>未设置</el-tag>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
-          <template v-slot:default="scope">
-            <el-button size="medium" icon="el-icon-edit" type="text" v-if="scope.row.recordPlan" @click="edit(scope.row)">编辑</el-button>
-            <el-button size="medium" icon="el-icon-plus" type="text" v-else @click="edit(scope.row)">添加</el-button>
+            <el-button size="medium" icon="el-icon-link" type="text" @click="link(scope.row)">关联通道</el-button>
+            <el-button size="medium" icon="el-icon-edit" type="text" @click="edit(scope.row)">编辑</el-button>
+            <el-button size="medium" icon="el-icon-delete" style="color: #f56c6c" type="text" @click="deletePlan(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -99,37 +47,31 @@
         :total="total">
       </el-pagination>
     <editRecordPlan ref="editRecordPlan"></editRecordPlan>
+    <LinkChannelRecord ref="linkChannelRecord"></LinkChannelRecord>
   </div>
 </template>
 
 <script>
 import uiHeader from '../layout/UiHeader.vue'
 import EditRecordPlan from "./dialog/editRecordPlan.vue";
+import LinkChannelRecord from "./dialog/linkChannelRecord.vue";
 
 export default {
   name: 'recordPLan',
   components: {
     EditRecordPlan,
+    LinkChannelRecord,
     uiHeader,
   },
   data() {
     return {
-      channelList: [],
+      recordPlanList: [],
       searchSrt: "",
-      channelType: "",
-      online: "",
-      hasRecordPlan: "",
-      hasGroup: "false",
       winHeight: window.innerHeight - 180,
       currentPage: 1,
       count: 15,
       total: 0,
       loading: false,
-      loadSnap: {},
-      groupId: "",
-      businessGroup: "",
-      regionParents: ["请选择虚拟组织"],
-      multipleSelection: []
     };
   },
 
@@ -140,7 +82,7 @@ export default {
   },
   methods: {
     initData: function () {
-      this.getChannelList();
+      this.getRecordPlanList();
     },
     currentChange: function (val) {
       this.currentPage = val;
@@ -148,27 +90,24 @@ export default {
     },
     handleSizeChange: function (val) {
       this.count = val;
-      this.getChannelList();
+      this.getRecordPlanList();
     },
-    getChannelList: function () {
+    getRecordPlanList: function () {
       this.$axios({
         method: 'get',
-        url: `/api/common/channel/list`,
+        url: `/api/record/plan/query`,
         params: {
           page: this.currentPage,
           count: this.count,
           query: this.searchSrt,
-          online: this.online,
-          hasRecordPlan: this.hasRecordPlan,
-          channelType: this.channelType,
         }
       }).then((res) => {
         if (res.data.code === 0) {
           this.total = res.data.data.total;
-          this.channelList = res.data.data.list;
+          this.recordPlanList = res.data.data.list;
           // 防止出现表格错位
           this.$nextTick(() => {
-            this.$refs.channelListTable.doLayout();
+            this.$refs.recordPlanListTable.doLayout();
           })
         }
 
@@ -188,13 +127,55 @@ export default {
     refresh: function () {
       this.initData();
     },
-    onChannelChange: function (deviceId) {
-      //
-    },
-    edit: function (channel) {
-      this.$refs.editRecordPlan.openDialog(channel, ()=>{
+    add: function () {
+      this.$refs.editRecordPlan.openDialog(null, ()=>{
         this.initData()
       })
+    },
+    edit: function (plan) {
+      this.$refs.editRecordPlan.openDialog(plan, ()=>{
+        this.initData()
+      })
+    },
+    link: function (plan) {
+      this.$refs.linkChannelRecord.openDialog(plan.id, ()=>{
+        this.initData()
+      })
+    },
+    deletePlan: function (plan) {
+      this.$confirm('确定删除?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$axios({
+          method: 'delete',
+          url: "/api/record/plan/delete",
+          params: {
+            planId: plan.id,
+          }
+        }).then((res) => {
+          if (res.data.code === 0) {
+            this.$message({
+              showClose: true,
+              message: '删除成功',
+              type: 'success',
+            });
+            this.initData();
+          } else {
+            this.$message({
+              showClose: true,
+              message: res.data.msg,
+              type: 'error'
+            });
+          }
+        }).catch((error) => {
+          console.error(error)
+        });
+      }).catch(() => {
+
+      });
+
     },
   }
 };

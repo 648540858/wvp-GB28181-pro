@@ -1,6 +1,6 @@
 <template>
   <div id="linkChannelRecord" style="width: 100%;  background-color: #FFFFFF; display: grid; grid-template-columns: 200px auto;">
-    <el-dialog title="通道共享" v-loading="dialogLoading" v-if="showDialog" top="2rem" width="80%" :close-on-click-modal="false" :visible.sync="showDialog" :destroy-on-close="true" @close="close()">
+    <el-dialog title="通道关联" v-loading="dialogLoading" v-if="showDialog" top="2rem" width="80%" :close-on-click-modal="false" :visible.sync="showDialog" :destroy-on-close="true" @close="close()">
       <div style="display: grid; grid-template-columns: 100px auto;">
         <el-tabs tab-position="left" style="" v-model="hasLink" @tab-click="search">
           <el-tab-pane label="未关联" name="false"></el-tab-pane>
@@ -181,13 +181,17 @@ export default {
         return;
       }
       this.loading = true
+      this.linkPlan({
+        planId: this.planId,
+        channelIds: channels
+      }).cache
+
 
       this.$axios({
         method: 'post',
         url: `/api/record/plan/link`,
         data: {
           planId: this.planId,
-          all: true,
           channelIds: channels
         }
       }).then((res)=> {
@@ -220,20 +224,19 @@ export default {
         type: 'warning'
       }).then(() => {
         this.loading = true
-
         this.$axios({
           method: 'post',
-          url: `/api/platform/channel/add`,
+          url: `/api/record/plan/link`,
           data: {
-            platformId: this.platformId,
+            planId: this.planId,
             all: true
           }
         }).then((res)=> {
           if (res.data.code === 0) {
             this.$message.success({
-            showClose: true,
-            message: "保存成功"
-          })
+              showClose: true,
+              message: "保存成功"
+            })
             this.getChannelList()
           }else {
             this.$message.error({
@@ -261,10 +264,10 @@ export default {
         }
         this.$axios({
           method: 'post',
-          url: `/api/platform/channel/device/add`,
+          url: `/api/record/plan/link`,
           data: {
-            platformId: this.platformId,
-            deviceIds: deviceIds,
+            planId: this.planId,
+            deviceDbIds: deviceIds
           }
         }).then((res)=> {
           if (res.data.code === 0) {
@@ -272,13 +275,14 @@ export default {
               showClose: true,
               message: "保存成功"
             })
-            this.initData()
+            this.getChannelList()
           }else {
             this.$message.error({
               showClose: true,
               message: res.data.msg
             })
           }
+          this.loading = false
         }).catch((error)=> {
           this.$message.error({
             showClose: true,
@@ -297,10 +301,9 @@ export default {
         }
         this.$axios({
           method: 'post',
-          url: `/api/platform/channel/device/remove`,
+          url: `/api/record/plan/link`,
           data: {
-            platformId: this.platformId,
-            deviceIds: deviceIds,
+            deviceDbIds: deviceIds
           }
         }).then((res)=> {
           if (res.data.code === 0) {
@@ -308,13 +311,14 @@ export default {
               showClose: true,
               message: "保存成功"
             })
-            this.initData()
+            this.getChannelList()
           }else {
             this.$message.error({
               showClose: true,
               message: res.data.msg
             })
           }
+          this.loading = false
         }).catch((error)=> {
           this.$message.error({
             showClose: true,

@@ -246,6 +246,15 @@ export default {
             type: 'error'
           });
         } else {
+          if (res.data.data && res.data.data.errorMsg) {
+            that.$message({
+              showClose: true,
+              message: res.data.data.errorMsg,
+              type: 'error'
+            });
+            return;
+          }
+
           this.$refs.syncChannelProgress.openDialog(itemData.deviceId, ()=>{
             console.log(32322)
             this.initData()

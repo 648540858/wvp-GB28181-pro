@@ -66,7 +66,7 @@ export default {
 
           if (res.data.data != null) {
             if (res.data.data.syncIng) {
-              if (res.data.data.total == 0) {
+              if (res.data.data.total === 0) {
                 this.msg = `等待同步中`;
                 this.timmer = setTimeout(this.getProgress, 300)
               }else {
@@ -89,6 +89,9 @@ export default {
                 }, 3000)
               }
             }
+          }else {
+            this.msg = `同步尚未开始`;
+            this.timmer = setTimeout(this.getProgress, 300)
           }
         }else {
           if (this.syncFlag) {

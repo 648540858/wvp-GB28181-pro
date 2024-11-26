@@ -230,16 +230,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 gbChannelService.add(streamProxy.buildCommonGBChannel());
             }
         }
-        // 判断是否需要重启代理
-        if (!streamProxyInDb.getApp().equals(streamProxy.getApp())
-                || !streamProxyInDb.getStream().equals(streamProxy.getStream())
-                || (streamProxyInDb.getMediaServerId() != null && streamProxyInDb.getMediaServerId().equals(streamProxy.getMediaServerId()))
-                || (streamProxyInDb.getMediaServerId() == null && streamProxy.getMediaServerId() != null)
-        ) {
-            // 变化则重启代理
-            playService.stopProxy(streamProxyInDb);
-            playService.startProxy(streamProxy);
-        }
         return true;
     }
 

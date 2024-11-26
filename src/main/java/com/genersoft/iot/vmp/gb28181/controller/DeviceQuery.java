@@ -413,14 +413,16 @@ public class DeviceQuery {
 	public WVPResult<SyncStatus> getSyncStatus(@PathVariable String deviceId) {
 		SyncStatus channelSyncStatus = deviceService.getChannelSyncStatus(deviceId);
 		WVPResult<SyncStatus> wvpResult = new WVPResult<>();
-		if (channelSyncStatus == null) {
-			wvpResult.setCode(-1);
+		if (channelSyncStatus == null || channelSyncStatus.getTotal() == null) {
+			wvpResult.setCode(0);
 			wvpResult.setMsg("同步尚未开始");
 		}else {
-			wvpResult.setCode(ErrorCode.SUCCESS.getCode());
-			wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
-			wvpResult.setData(channelSyncStatus);
-			if (channelSyncStatus.getErrorMsg() != null) {
+			if (channelSyncStatus.getErrorMsg() == null) {
+				wvpResult.setCode(ErrorCode.SUCCESS.getCode());
+				wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
+				wvpResult.setData(channelSyncStatus);
+			}else {
+				wvpResult.setCode(ErrorCode.ERROR100.getCode());
 				wvpResult.setMsg(channelSyncStatus.getErrorMsg());
 			}
 		}

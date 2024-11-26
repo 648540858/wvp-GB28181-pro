@@ -330,6 +330,7 @@ public class DeviceServiceImpl implements IDeviceService {
         try {
             sipCommander.catalogQuery(device, sn, event -> {
                 String errorMsg = String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg);
+                log.info("[同步通道]失败,编号: {}, 错误码： {}, {}", device.getDeviceId(), event.statusCode, event.msg);
                 catalogResponseMessageHandler.setChannelSyncEnd(device.getDeviceId(), sn, errorMsg);
             });
         } catch (SipException | InvalidArgumentException | ParseException e) {

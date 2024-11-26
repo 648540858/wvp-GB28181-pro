@@ -170,7 +170,7 @@ public class CatalogDataManager implements CommandLineRunner {
                 syncStatus.setCurrent(catalogData.getRedisKeysForChannel().size());
                 syncStatus.setTotal(catalogData.getTotal());
                 syncStatus.setErrorMsg(catalogData.getErrorMsg());
-                if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end)) {
+                if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.ready) || catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end)) {
                     syncStatus.setSyncIng(false);
                 }else {
                     syncStatus.setSyncIng(true);

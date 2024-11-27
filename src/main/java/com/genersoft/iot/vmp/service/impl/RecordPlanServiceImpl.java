@@ -1,8 +1,14 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.genersoft.iot.vmp.common.InviteInfo;
+import com.genersoft.iot.vmp.common.InviteSessionStatus;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
+import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
+import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.service.IRecordPlanService;
 import com.genersoft.iot.vmp.service.bean.RecordPlan;
 import com.genersoft.iot.vmp.service.bean.RecordPlanItem;
@@ -13,9 +19,15 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
+import java.text.ParseException;
 import java.util.List;
 
 @Service
@@ -27,6 +39,43 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
 
     @Autowired
     private CommonGBChannelMapper channelMapper;
+
+    @Autowired
+    private IGbChannelService channelService;
+
+
+    /**
+     * 流到来的处理
+     */
+    @Async("taskExecutor")
+    @org.springframework.context.event.EventListener
+    public void onApplicationEvent(MediaArrivalEvent event) {
+
+    }
+
+    /**
+     * 流离开的处理
+     */
+    @Async("taskExecutor")
+    @EventListener
+    public void onApplicationEvent(MediaDepartureEvent event) {
+        // 流断开，检查是否还处于录像状态， 如果是则继续录像
+
+    }
+
+    @Scheduled(cron = "0 */30 * * * *")
+    public void execution() {
+        // 执行计划
+        // 查询startTime等于现在的， 开始录像
+
+        // 查询stopTime等于现在的，结束录像
+        // 查询处于中间的，验证录像是否正在进行
+
+
+        // TODO 无人观看要确保处于录像状态的通道不被移除
+    }
+
+    // 系统启动时
 
     @Override
     @Transactional
@@ -61,8 +110,8 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
     public void update(RecordPlan plan) {
         plan.setUpdateTime(DateUtil.getNow());
         recordPlanMapper.update(plan);
-        recordPlanMapper.cleanItems(plan.getId());
-        if (plan.getPlanItemList() != null){
+        if (plan.getPlanItemList() != null && !plan.getPlanItemList().isEmpty()){
+            recordPlanMapper.cleanItems(plan.getId());
             recordPlanMapper.batchAddItem(plan.getId(), plan.getPlanItemList());
         }
         // TODO  更新录像队列

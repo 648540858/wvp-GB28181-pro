@@ -3,6 +3,8 @@ package com.genersoft.iot.vmp.gb28181.bean;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.time.Instant;
+
 /**
  * 摄像机同步状态
  * @author lin
@@ -22,5 +24,8 @@ public class SyncStatus {
 
     @Schema(description = "是否同步中")
     private Boolean syncIng;
+
+    @Schema(description = "时间")
+    private Instant time;
 
 }

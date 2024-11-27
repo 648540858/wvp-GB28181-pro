@@ -13,6 +13,7 @@
         <el-date-picker
             v-model="startTime"
             type="datetime"
+            size="mini"
             value-format="yyyy-MM-dd HH:mm:ss"
             @change="getMediaServerList"
             placeholder="选择日期时间">
@@ -21,6 +22,7 @@
         <el-date-picker
             v-model="endTime"
             type="datetime"
+            size="mini"
             value-format="yyyy-MM-dd HH:mm:ss"
             @change="getMediaServerList"
             placeholder="选择日期时间">

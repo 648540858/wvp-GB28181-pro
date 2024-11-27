@@ -440,10 +440,10 @@ create table wvp_record_plan
 create table wvp_record_plan_item
 (
     id              serial primary key,
-    start_time      bigint,
-    stop_time       bigint,
+    start           int,
+    stop            int,
     week_day        int,
-    plan_id        int,
+    plan_id         int,
     create_time     character varying(50),
     update_time     character varying(50)
 );

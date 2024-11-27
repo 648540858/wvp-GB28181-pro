@@ -157,7 +157,6 @@ export default {
       // 把 336长度的 list 分成 7 组，每组 48 个
       for (let i = 0; i < this.byteTime.length; i += DayTimes) {
         let planArray = this.byteTime2Plan(this.byteTime.slice(i, i + DayTimes));
-        console.log(planArray)
         if(!planArray || planArray.length === 0) {
           week ++;
           continue
@@ -165,8 +164,8 @@ export default {
         for (let j = 0; j < planArray.length; j++) {
           planList.push({
             id: this.id,
-            startTime: planArray[j].startTime,
-            stopTime: planArray[j].stopTime,
+            start: planArray[j].start,
+            stop: planArray[j].stop,
             weekDay: week
           })
         }
@@ -175,44 +174,52 @@ export default {
       return planList
     },
     byteTime2Plan(weekItem){
-      let startTime = 0;
-      let endTime = 0;
+      let start = null;
+      let stop = null;
       let result = []
 
       for (let i = 0; i < weekItem.length; i++) {
         let item = weekItem[i]
-        if (item === '1') {
-          endTime = 30*i
-          if (startTime === 0 ) {
-            startTime = 30*i
+        if (item === '1') { // 表示选中
+          stop = i
+          if (start === null ) {
+            start = i
+          }
+          if (i === weekItem.length - 1) {
+            result.push({
+              start: start,
+              stop: stop,
+            })
           }
         } else {
-          if (endTime !== 0){
+          if (stop !== 0){
             result.push({
-              startTime: startTime * 60 * 1000,
-              stopTime: endTime * 60 * 1000,
+              start: start,
+              stop: stop,
             })
-            startTime = 0
-            endTime = 0
+            start = 0
+            stop = 0
           }
         }
       }
       return result;
     },
     plan2Byte(planList) {
-      console.log(planList);
       let byte = ""
       let indexArray = {}
       for (let i = 0; i < planList.length; i++) {
-        let index = planList[i].startTime/1000/60/30
-        let endIndex = planList[i].stopTime/1000/60/30
+
+        let weekDay = planList[i].weekDay
+        let index = planList[i].start
+        let endIndex = planList[i].stop
+        console.log(index + "===" + endIndex)
         for (let j = index; j <= endIndex; j++) {
-          indexArray[j + (planList[i].weekDay - 1 )*48] = j + i*48
+          indexArray["key_" + (j + (weekDay - 1 )*48)] = 1
+          console.log("key_" + (j + (weekDay - 1 )*48))
         }
       }
-      console.log(indexArray)
       for (let i = 0; i < 336; i++) {
-        if (indexArray[i]){
+        if (indexArray["key_" + i]){
           byte += "1"
         }else {
           byte += "0"

@@ -26,13 +26,13 @@ public interface RecordPlanMapper {
 
     @Insert(" <script>" +
             "INSERT INTO wvp_record_plan_item (" +
-            "start_time," +
-            "stop_time, " +
+            "start," +
+            "stop, " +
             "week_day," +
             "plan_id) " +
             "VALUES" +
             "<foreach collection='planItemList' index='index' item='item' separator=','> " +
-            "(#{item.startTime}, #{item.stopTime}, #{item.weekDay},#{planId})" +
+            "(#{item.start}, #{item.stop}, #{item.weekDay},#{planId})" +
             "</foreach> " +
             " </script>")
     void batchAddItem(@Param("planId") int planId, List<RecordPlanItem> planItemList);

@@ -6,7 +6,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
@@ -23,17 +22,18 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class DynamicTask {
 
-    private ThreadPoolTaskScheduler threadPoolTaskScheduler;
+    private final ThreadPoolTaskScheduler threadPoolTaskScheduler;
 
     private final Map<String, ScheduledFuture<?>> futureMap = new ConcurrentHashMap<>();
     private final Map<String, Runnable> runnableMap = new ConcurrentHashMap<>();
 
-    @PostConstruct
-    public void DynamicTask() {
+
+    public DynamicTask() {
         threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
         threadPoolTaskScheduler.setPoolSize(300);
         threadPoolTaskScheduler.setWaitForTasksToCompleteOnShutdown(true);
         threadPoolTaskScheduler.setAwaitTerminationSeconds(10);
+        threadPoolTaskScheduler.setThreadNamePrefix("dynamicTask-");
         threadPoolTaskScheduler.initialize();
     }
 
@@ -42,7 +42,6 @@ public class DynamicTask {
      * @param key 任务ID
      * @param task 任务
      * @param cycleForCatalog 间隔 毫秒
-     * @return
      */
     public void startCron(String key, Runnable task, int cycleForCatalog) {
         if(ObjectUtils.isEmpty(key)) {
@@ -74,7 +73,6 @@ public class DynamicTask {
      * @param key 任务ID
      * @param task 任务
      * @param delay 延时 /毫秒
-     * @return
      */
     public void startDelay(String key, Runnable task, int delay) {
         if(ObjectUtils.isEmpty(key)) {

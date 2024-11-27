@@ -167,7 +167,7 @@ public class DeviceServiceImpl implements IDeviceService {
                 deviceMapper.update(device);
                 redisCatchStorage.updateDevice(device);
             }
-            if (deviceChannelMapper.queryChannelsByDeviceDbId(device.getId()).isEmpty()) {
+            if (deviceChannelMapper.queryChannelsByDeviceDbId(device.getId()).isEmpty() && !catalogResponseMessageHandler.isSyncRunning(device.getDeviceId())) {
                 log.info("[设备上线]: {}，通道数为0,查询通道信息", device.getDeviceId());
                 sync(device);
             }
@@ -221,9 +221,14 @@ public class DeviceServiceImpl implements IDeviceService {
                 sessionManager.removeByCallId(ssrcTransaction.getCallId());
             }
         }
-        // 移除订阅
-        removeCatalogSubscribe(device, null);
-        removeMobilePositionSubscribe(device, null);
+        if(device.getSubscribeCycleForCatalog() > 0) {
+            // 移除订阅
+            removeCatalogSubscribe(device, null);
+        }
+        if(device.getSubscribeCycleForMobilePosition() > 0) {
+            // 移除订阅
+            removeMobilePositionSubscribe(device, null);
+        }
 
         List<AudioBroadcastCatch> audioBroadcastCatches = audioBroadcastManager.getByDeviceId(deviceId);
         if (!audioBroadcastCatches.isEmpty()) {

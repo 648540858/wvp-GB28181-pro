@@ -58,7 +58,7 @@ public interface IMediaNodeServerService {
 
     Map<String, String> getFFmpegCMDs(MediaServer mediaServer);
 
-    void startSendRtpPassive(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout);
+    Integer startSendRtpPassive(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout);
 
     void startSendRtpStream(MediaServer mediaServer, SendRtpInfo sendRtpItem);
 

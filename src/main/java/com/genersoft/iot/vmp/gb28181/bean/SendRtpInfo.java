@@ -175,15 +175,18 @@ public class SendRtpInfo {
         return sendRtpItem;
     }
 
-    public static SendRtpInfo getInstance(Integer localPort, MediaServer mediaServer, String ip, int port, String ssrc,
-                                          String deviceId, String platformId, Integer channelId, boolean isTcp, boolean rtcp,
+    public static SendRtpInfo getInstance(Integer localPort, MediaServer mediaServer, String ip, Integer port, String ssrc,
+                                          String deviceId, String platformId, Integer channelId, Boolean isTcp, Boolean rtcp,
                                           String serverId) {
         if (localPort == 0) {
             return null;
         }
         SendRtpInfo sendRtpItem = new SendRtpInfo();
         sendRtpItem.setIp(ip);
-        sendRtpItem.setPort(port);
+        if(port != null) {
+            sendRtpItem.setPort(port);
+        }
+
         sendRtpItem.setSsrc(ssrc);
         if (deviceId != null) {
             sendRtpItem.setTargetId(deviceId);

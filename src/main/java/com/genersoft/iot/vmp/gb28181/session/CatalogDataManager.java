@@ -283,7 +283,7 @@ public class CatalogDataManager implements CommandLineRunner {
         if (catalogData == null) {
             return 0;
         }
-        return catalogData.getRedisKeysForChannel().size();
+        return catalogData.getRedisKeysForChannel().size() + catalogData.getErrorChannel().size();
     }
 
     public int sumNum(String deviceId, int sn) {

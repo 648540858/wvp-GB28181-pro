@@ -20,6 +20,7 @@ public class CatalogData {
     private Device device;
     private String errorMsg;
     private Set<String> redisKeysForChannel = new HashSet<>();
+    private Set<String> errorChannel = new HashSet<>();
     private Set<String> redisKeysForRegion = new HashSet<>();
     private Set<String> redisKeysForGroup = new HashSet<>();
 

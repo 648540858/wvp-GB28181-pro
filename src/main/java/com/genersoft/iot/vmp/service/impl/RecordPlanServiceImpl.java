@@ -2,10 +2,8 @@ package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.PlatformChannel;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.service.IRecordPlanService;
-import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.service.bean.RecordPlan;
 import com.genersoft.iot.vmp.service.bean.RecordPlanItem;
 import com.genersoft.iot.vmp.storager.dao.RecordPlanMapper;
@@ -99,8 +97,11 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
 
     @Override
     public void link(List<Integer> channelIds, Integer planId) {
+        if (channelIds == null || channelIds.isEmpty()) {
+            log.info("[录制计划] 关联/移除关联时, 通道编号必须存在");
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "通道编号必须存在");
+        }
         if (planId == null) {
-            log.info("[录制计划] 移除通道关联的计划");
             channelMapper.removeRecordPlan(channelIds);
         }else {
             channelMapper.addRecordPlan(channelIds, planId);

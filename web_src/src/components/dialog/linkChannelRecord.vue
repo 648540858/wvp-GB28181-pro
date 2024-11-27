@@ -116,17 +116,19 @@ export default {
     };
   },
 
-  created() {
-    this.initData();
-  },
+  created() {},
   destroyed() {},
   methods: {
     openDialog(planId, closeCallback) {
       this.planId = planId
       this.showDialog = true
       this.closeCallback = closeCallback
+      this.initData()
     },
     initData: function () {
+      this.currentPage= 1;
+      this.count= 15;
+      this.total= 0;
       this.getChannelList();
     },
     currentChange: function (val) {
@@ -168,6 +170,36 @@ export default {
     handleSelectionChange: function (val){
       this.multipleSelection = val;
     },
+
+    linkPlan: function (data){
+      this.loading = true
+      return this.$axios({
+        method: 'post',
+        url: `/api/record/plan/link`,
+        data: data
+      }).then((res)=> {
+        if (res.data.code === 0) {
+          this.$message.success({
+            showClose: true,
+            message: "保存成功"
+          })
+          this.getChannelList()
+        }else {
+          this.$message.error({
+            showClose: true,
+            message: res.data.msg
+          })
+        }
+        this.loading = false
+      }).catch((error)=> {
+        this.$message.error({
+          showClose: true,
+          message: error
+        })
+        this.loading = false
+      })
+    },
+
     add: function (row) {
       let channels = []
       for (let i = 0; i < this.multipleSelection.length; i++) {
@@ -180,41 +212,10 @@ export default {
         })
         return;
       }
-      this.loading = true
       this.linkPlan({
         planId: this.planId,
         channelIds: channels
-      }).cache
-
-
-      this.$axios({
-        method: 'post',
-        url: `/api/record/plan/link`,
-        data: {
-          planId: this.planId,
-          channelIds: channels
-        }
-      }).then((res)=> {
-        if (res.data.code === 0) {
-          this.$message.success({
-            showClose: true,
-            message: "保存成功"
-          })
-          this.getChannelList()
-        }else {
-          this.$message.error({
-              showClose: true,
-              message: res.data.msg
-            })
-        }
-        this.loading = false
-      }).catch((error)=> {
-        this.$message.error({
-            showClose: true,
-            message: error
-          })
-        this.loading = false
-      });
+      })
     },
     addAll: function (row) {
       this.$confirm("确定全部添加？", '提示', {
@@ -223,36 +224,11 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.loading = true
-        this.$axios({
-          method: 'post',
-          url: `/api/record/plan/link`,
-          data: {
-            planId: this.planId,
-            all: true
-          }
-        }).then((res)=> {
-          if (res.data.code === 0) {
-            this.$message.success({
-              showClose: true,
-              message: "保存成功"
-            })
-            this.getChannelList()
-          }else {
-            this.$message.error({
-              showClose: true,
-              message: res.data.msg
-            })
-          }
-          this.loading = false
-        }).catch((error)=> {
-          this.$message.error({
-            showClose: true,
-            message: error
-          })
-          this.loading = false
-        });
-      }).catch(() => {
+        this.linkPlan({
+          planId: this.planId,
+          allLink: true
+        })
+        }).catch(() => {
       });
     },
 
@@ -262,34 +238,10 @@ export default {
         for (let i = 0; i < rows.length; i++) {
           deviceIds.push(rows[i].id)
         }
-        this.$axios({
-          method: 'post',
-          url: `/api/record/plan/link`,
-          data: {
-            planId: this.planId,
-            deviceDbIds: deviceIds
-          }
-        }).then((res)=> {
-          if (res.data.code === 0) {
-            this.$message.success({
-              showClose: true,
-              message: "保存成功"
-            })
-            this.getChannelList()
-          }else {
-            this.$message.error({
-              showClose: true,
-              message: res.data.msg
-            })
-          }
-          this.loading = false
-        }).catch((error)=> {
-          this.$message.error({
-            showClose: true,
-            message: error
-          })
-          this.loading = false
-        });
+        this.linkPlan({
+          planId: this.planId,
+          deviceDbIds: deviceIds
+        })
       })
     },
 
@@ -299,33 +251,9 @@ export default {
         for (let i = 0; i < rows.length; i++) {
           deviceIds.push(rows[i].id)
         }
-        this.$axios({
-          method: 'post',
-          url: `/api/record/plan/link`,
-          data: {
-            deviceDbIds: deviceIds
-          }
-        }).then((res)=> {
-          if (res.data.code === 0) {
-            this.$message.success({
-              showClose: true,
-              message: "保存成功"
-            })
-            this.getChannelList()
-          }else {
-            this.$message.error({
-              showClose: true,
-              message: res.data.msg
-            })
-          }
-          this.loading = false
-        }).catch((error)=> {
-          this.$message.error({
-            showClose: true,
-            message: error
-          })
-          this.loading = false
-        });
+        this.linkPlan({
+          deviceDbIds: deviceIds
+        })
       })
     },
     remove: function (row) {
@@ -340,36 +268,10 @@ export default {
         })
         return;
       }
-      this.loading = true
 
-      this.$axios({
-        method: 'delete',
-        url: `/api/platform/channel/remove`,
-        data: {
-          platformId: this.platformId,
-          channelIds: channels
-        }
-      }).then((res)=> {
-        if (res.data.code === 0) {
-          this.$message.success({
-            showClose: true,
-            message: "保存成功"
-          })
-          this.getChannelList()
-        }else {
-          this.$message.error({
-              showClose: true,
-              message: res.data.msg
-            })
-        }
-        this.loading = false
-      }).catch((error)=> {
-        this.$message.error({
-            showClose: true,
-            message: error
-          })
-        this.loading = false
-      });
+      this.linkPlan({
+        channelIds: channels
+      })
     },
     removeAll: function (row) {
 
@@ -379,62 +281,11 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.loading = true
-        this.$axios({
-          method: 'delete',
-          url: `/api/platform/channel/remove`,
-          data: {
-            platformId: this.platformId,
-            all: true
-          }
-        }).then((res)=> {
-          if (res.data.code === 0) {
-            this.$message.success({
-            showClose: true,
-            message: "保存成功"
-          })
-            this.getChannelList()
-          }else {
-            this.$message.error({
-              showClose: true,
-              message: res.data.msg
-            })
-          }
-          this.loading = false
-        }).catch((error)=> {
-          this.$message.error({
-            showClose: true,
-            message: error
-          })
-          this.loading = false
-        });
-      }).catch(() => {
-      });
-
-    },
-    saveCustom: function (row) {
-      this.$axios({
-        method: 'post',
-        url: `/api/platform/channel/custom/update`,
-        data: row
-      }).then((res)=> {
-        if (res.data.code === 0) {
-          this.$message.success({
-            showClose: true,
-            message: "保存成功"
-          })
-          this.initData()
-        }else {
-          this.$message.error({
-            showClose: true,
-            message: res.data.msg
-          })
-        }
-      }).catch((error)=> {
-        this.$message.error({
-          showClose: true,
-          message: error
+        this.linkPlan({
+          planId: this.planId,
+          allLink: false
         })
+      }).catch(() => {
       });
     },
     search: function () {

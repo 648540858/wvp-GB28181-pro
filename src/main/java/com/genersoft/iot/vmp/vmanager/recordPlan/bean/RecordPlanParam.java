@@ -1,7 +1,5 @@
 package com.genersoft.iot.vmp.vmanager.recordPlan.bean;
 
-import com.genersoft.iot.vmp.service.bean.RecordPlan;
-import com.genersoft.iot.vmp.service.bean.RecordPlanItem;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -18,7 +16,7 @@ public class RecordPlanParam {
     private List<Integer> deviceDbIds;
 
     @Schema(description = "全部关联/全部取消关联")
-    private Boolean all;
+    private Boolean allLink;
 
     @Schema(description = "录制计划ID, ID为空是删除关联的计划")
     private Integer planId;

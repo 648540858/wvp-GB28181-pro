@@ -3,7 +3,6 @@ package com.genersoft.iot.vmp.vmanager.recordPlan;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.PlatformChannel;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IRecordPlanService;
 import com.genersoft.iot.vmp.service.bean.RecordPlan;
@@ -50,25 +49,27 @@ public class RecordPlanController {
     @ResponseBody
     @PostMapping("/link")
     @Operation(summary = "通道关联录制计划", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "param", description = "通道关联录制计划", required = false)
+    @Parameter(name = "param", description = "通道关联录制计划", required = true)
     public void link(@RequestBody RecordPlanParam param) {
-        if (param.getChannelIds() == null && param.getDeviceDbIds() == null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "通道ID和国标设备ID不可都为NULL");
-        }
-        if (param.getAll() != null) {
-            if (param.getAll()) {
+        if (param.getAllLink() != null) {
+            if (param.getAllLink()) {
                 recordPlanService.linkAll(param.getPlanId());
             }else {
                 recordPlanService.cleanAll(param.getPlanId());
             }
             return;
         }
+
+        if (param.getChannelIds() == null && param.getDeviceDbIds() == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "通道ID和国标设备ID不可都为NULL");
+        }
+
         List<Integer> channelIds = new ArrayList<>();
         if (param.getChannelIds() != null) {
             channelIds.addAll(param.getChannelIds());
         }else {
             List<Integer> chanelIdList = deviceChannelService.queryChaneIdListByDeviceDbIds(param.getDeviceDbIds());
-            if (chanelIdList == null || chanelIdList.isEmpty()) {
+            if (chanelIdList != null && !chanelIdList.isEmpty()) {
                 channelIds = chanelIdList;
             }
         }

@@ -60,9 +60,6 @@ export default {
         url:`/api/device/query/${this.deviceId}/sync_status/`,
       }).then((res) => {
         if (res.data.code === 0) {
-          if (!this.syncFlag) {
-            this.syncFlag = true;
-          }
 
           if (res.data.data != null) {
             if (res.data.data.syncIng) {
@@ -70,6 +67,7 @@ export default {
                 this.msg = `等待同步中`;
                 this.timmer = setTimeout(this.getProgress, 300)
               }else {
+                this.syncFlag = true;
                 this.total = res.data.data.total;
                 this.current = res.data.data.current;
                 this.percentage = Math.floor(Number(res.data.data.current)/Number(res.data.data.total)* 10000)/100;
@@ -90,7 +88,7 @@ export default {
               }
             }
           }else {
-            this.msg = `同步尚未开始`;
+            this.msg = res.data.msg;
             this.timmer = setTimeout(this.getProgress, 300)
           }
         }else {

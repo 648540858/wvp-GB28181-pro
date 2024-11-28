@@ -7,26 +7,28 @@
 
       <div class="page-header-btn">
         搜索:
-        <el-input @input="getRecordList" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
+        <el-input @input="initData" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
                   prefix-icon="el-icon-search" v-model="search"  clearable></el-input>
         开始时间:
         <el-date-picker
             v-model="startTime"
             type="datetime"
+            size="mini"
             value-format="yyyy-MM-dd HH:mm:ss"
-            @change="getMediaServerList"
+            @change="initData"
             placeholder="选择日期时间">
         </el-date-picker>
         结束时间:
         <el-date-picker
             v-model="endTime"
             type="datetime"
+            size="mini"
             value-format="yyyy-MM-dd HH:mm:ss"
-            @change="getMediaServerList"
+            @change="initData"
             placeholder="选择日期时间">
         </el-date-picker>
         节点选择:
-        <el-select size="mini" @change="getMediaServerList" style="width: 16rem; margin-right: 1rem;"
+        <el-select size="mini" @change="initData" style="width: 16rem; margin-right: 1rem;"
                    v-model="mediaServerId" placeholder="请选择" >
           <el-option label="全部" value=""></el-option>
           <el-option
@@ -38,7 +40,7 @@
         </el-select>
 <!--        <el-button size="mini" icon="el-icon-delete" type="danger" @click="deleteRecord()">批量删除</el-button>-->
         <el-button icon="el-icon-refresh-right" circle size="mini" :loading="loading"
-                   @click="getRecordList()"></el-button>
+                   @click="initData()"></el-button>
       </div>
     </div>
     <!--设备列表-->
@@ -146,14 +148,13 @@ export default {
   computed: {},
   mounted() {
     this.initData();
+    this.getMediaServerList();
   },
   destroyed() {
       this.$destroy('recordVideoPlayer');
   },
   methods: {
     initData: function () {
-      // 获取媒体节点列表
-      this.getMediaServerList();
       this.getRecordList();
     },
     currentChange: function (val) {

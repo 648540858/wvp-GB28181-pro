@@ -53,7 +53,6 @@ export default {
   },
   methods: {
     openDialog: function (recordPlan, endCallback) {
-      console.log(recordPlan);
       this.endCallback = endCallback;
       this.showDialog = true;
       this.byteTime= "";
@@ -68,7 +67,7 @@ export default {
             planId: recordPlan.id,
           }
         }).then((res) => {
-          if (res.data.code === 0) {
+          if (res.data.code === 0 && res.data.data.planItemList) {
             this.byteTime = this.plan2Byte(res.data.data.planItemList)
           }
         }).catch((error) => {
@@ -163,7 +162,7 @@ export default {
         }
         for (let j = 0; j < planArray.length; j++) {
           planList.push({
-            id: this.id,
+            planId: this.id,
             start: planArray[j].start,
             stop: planArray[j].stop,
             weekDay: week
@@ -177,28 +176,29 @@ export default {
       let start = null;
       let stop = null;
       let result = []
-
+      console.log("===================")
       for (let i = 0; i < weekItem.length; i++) {
         let item = weekItem[i]
+        console.log(item)
         if (item === '1') { // 表示选中
           stop = i
           if (start === null ) {
             start = i
           }
-          if (i === weekItem.length - 1) {
+          if (i === weekItem.length - 1 && start != null && stop != null) {
             result.push({
               start: start,
               stop: stop,
             })
           }
         } else {
-          if (stop !== 0){
+          if (stop !== null){
             result.push({
               start: start,
               stop: stop,
             })
-            start = 0
-            stop = 0
+            start = null
+            stop = null
           }
         }
       }
@@ -212,10 +212,8 @@ export default {
         let weekDay = planList[i].weekDay
         let index = planList[i].start
         let endIndex = planList[i].stop
-        console.log(index + "===" + endIndex)
         for (let j = index; j <= endIndex; j++) {
           indexArray["key_" + (j + (weekDay - 1 )*48)] = 1
-          console.log("key_" + (j + (weekDay - 1 )*48))
         }
       }
       for (let i = 0; i < 336; i++) {

@@ -1,10 +1,7 @@
 package com.genersoft.iot.vmp.service.impl;
 
-import com.genersoft.iot.vmp.common.InviteInfo;
-import com.genersoft.iot.vmp.common.InviteSessionStatus;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
-import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
@@ -25,9 +22,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.sip.InvalidArgumentException;
-import javax.sip.SipException;
-import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -110,9 +105,21 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
     public void update(RecordPlan plan) {
         plan.setUpdateTime(DateUtil.getNow());
         recordPlanMapper.update(plan);
+        recordPlanMapper.cleanItems(plan.getId());
         if (plan.getPlanItemList() != null && !plan.getPlanItemList().isEmpty()){
-            recordPlanMapper.cleanItems(plan.getId());
-            recordPlanMapper.batchAddItem(plan.getId(), plan.getPlanItemList());
+            List<RecordPlanItem> planItemList = new ArrayList<>();
+            for (RecordPlanItem recordPlanItem : plan.getPlanItemList()) {
+                if (recordPlanItem.getStart() == null || recordPlanItem.getStop() == null || recordPlanItem.getWeekDay() == null){
+                    continue;
+                }
+                if (recordPlanItem.getPlanId() == null) {
+                    recordPlanItem.setPlanId(plan.getId());
+                }
+                planItemList.add(recordPlanItem);
+            }
+            if(!planItemList.isEmpty()) {
+                recordPlanMapper.batchAddItem(plan.getId(), planItemList);
+            }
         }
         // TODO  更新录像队列
        

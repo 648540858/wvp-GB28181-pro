@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.PlatformChannel;
 import com.genersoft.iot.vmp.service.bean.RecordPlan;
 import com.github.pagehelper.PageInfo;
 
@@ -27,4 +26,6 @@ public interface IRecordPlanService {
     void linkAll(Integer planId);
 
     void cleanAll(Integer planId);
+
+    boolean recording(String app, String stream);
 }

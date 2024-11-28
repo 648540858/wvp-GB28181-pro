@@ -176,10 +176,8 @@ export default {
       let start = null;
       let stop = null;
       let result = []
-      console.log("===================")
       for (let i = 0; i < weekItem.length; i++) {
         let item = weekItem[i]
-        console.log(item)
         if (item === '1') { // 表示选中
           stop = i
           if (start === null ) {

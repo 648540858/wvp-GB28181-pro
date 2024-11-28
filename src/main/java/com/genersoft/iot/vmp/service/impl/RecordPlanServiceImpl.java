@@ -1,12 +1,15 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
-import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
-import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
+import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
+import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IRecordPlanService;
+import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.bean.RecordPlan;
 import com.genersoft.iot.vmp.service.bean.RecordPlanItem;
 import com.genersoft.iot.vmp.storager.dao.RecordPlanMapper;
@@ -22,8 +25,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -36,17 +39,12 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
     private CommonGBChannelMapper channelMapper;
 
     @Autowired
-    private IGbChannelService channelService;
+    private IGbChannelPlayService channelPlayService;
+
+    @Autowired
+    private IMediaServerService mediaServerService;
 
 
-    /**
-     * 流到来的处理
-     */
-    @Async("taskExecutor")
-    @org.springframework.context.event.EventListener
-    public void onApplicationEvent(MediaArrivalEvent event) {
-
-    }
 
     /**
      * 流离开的处理
@@ -55,22 +53,88 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
     @EventListener
     public void onApplicationEvent(MediaDepartureEvent event) {
         // 流断开，检查是否还处于录像状态， 如果是则继续录像
+        if (recording(event.getApp(), event.getStream())) {
+            // 重新拉起
 
+        }
     }
+
+    Map<Integer, StreamInfo> recordStreamMap = new HashMap<>();
 
     @Scheduled(cron = "0 */30 * * * *")
     public void execution() {
         // 执行计划
+
+        // 获取当前时间在一周内的序号
+        LocalDateTime now = LocalDateTime.now();
+        int week = now.getDayOfWeek().getValue();
+        int index = now.getHour() * 2 + (now.getMinute() > 30?1:0);
         // 查询startTime等于现在的， 开始录像
+        List<Integer> startPlanList = recordPlanMapper.queryStart(week, index);
 
-        // 查询stopTime等于现在的，结束录像
-        // 查询处于中间的，验证录像是否正在进行
-
-
-        // TODO 无人观看要确保处于录像状态的通道不被移除
+        Map<Integer, StreamInfo> channelMapWithoutRecord = new HashMap<>();
+        if (startPlanList.isEmpty()) {
+            // 停止所有正在录像的
+            if(recordStreamMap.isEmpty()) {
+                // 暂无录像任务
+                return;
+            }else {
+                channelMapWithoutRecord.putAll(recordStreamMap);
+                recordStreamMap.clear();
+            }
+        }else {
+            channelMapWithoutRecord.putAll(recordStreamMap);
+            // 获取所有的关联的通道
+            List<CommonGBChannel> channelList = channelMapper.queryForRecordPlan(startPlanList);
+            if (channelList.isEmpty()) {
+                recordStreamMap.clear();
+            }else {
+                // 查找是否已经开启录像, 如果没有则开启录像
+                for (CommonGBChannel channel : channelList) {
+                    if (recordStreamMap.get(channel.getGbId()) != null) {
+                        channelMapWithoutRecord.remove(channel.getGbId());
+                    }else {
+                        // 开启点播,
+                        channelPlayService.play(channel, null, ((code, msg, streamInfo) -> {
+                            if (code == InviteErrorCode.SUCCESS.getCode() && streamInfo != null) {
+                                log.info("[录像] 开启成功, 通道ID: {}", channel.getGbId());
+                                recordStreamMap.put(channel.getGbId(), streamInfo);
+                                channelMapWithoutRecord.remove(channel.getGbId(), streamInfo);
+                            }
+                        }));
+                    }
+                }
+            }
+        }
+        // 结束录像
+        if(!channelMapWithoutRecord.isEmpty()) {
+            for (Integer channelId : channelMapWithoutRecord.keySet()) {
+                StreamInfo streamInfo = channelMapWithoutRecord.get(channelId);
+                if (streamInfo == null) {
+                    continue;
+                }
+                // 查看是否有人观看,存在则不做处理,等待后续自然处理,如果无人观看,则关闭该流
+                MediaInfo mediaInfo = mediaServerService.getMediaInfo(streamInfo.getMediaServer(), streamInfo.getApp(), streamInfo.getStream());
+                if (mediaInfo.getReaderCount() == null ||  mediaInfo.getReaderCount() == 0) {
+                    mediaServerService.closeStreams(streamInfo.getMediaServer(), streamInfo.getApp(), streamInfo.getStream());
+                    log.info("[录像] 停止, 通道ID: {}", channelId);
+                }
+            }
+        }
     }
 
     // 系统启动时
+
+
+    @Override
+    public boolean recording(String app, String stream) {
+        for (StreamInfo streamInfo : recordStreamMap.values()) {
+            if (streamInfo.getApp().equals(app) && streamInfo.getStream().equals(stream)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     @Override
     @Transactional

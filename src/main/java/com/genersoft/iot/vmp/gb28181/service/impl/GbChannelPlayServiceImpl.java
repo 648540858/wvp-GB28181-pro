@@ -39,20 +39,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
         }
         log.info("[点播通用通道] 类型：{}， 通道： {}({})", inviteInfo.getSessionName(), channel.getGbName(), channel.getGbDeviceId());
         if ("Play".equalsIgnoreCase(inviteInfo.getSessionName())) {
-            if (channel.getGbDeviceDbId() != null) {
-                // 国标通道
-                playGbDeviceChannel(channel, callback);
-            } else if (channel.getStreamProxyId() != null) {
-                // 拉流代理
-                playProxy(channel, callback);
-            } else if (channel.getStreamPushId() != null) {
-                // 推流
-                playPush(channel, platform.getServerGBId(), platform.getName(), callback);
-            } else {
-                // 通道数据异常
-                log.error("[点播通用通道] 通道数据异常，无法识别通道来源： {}({})", channel.getGbName(), channel.getGbDeviceId());
-                throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
-            }
+            play(channel, platform, callback);
         }else if ("Playback".equals(inviteInfo.getSessionName())) {
             if (channel.getGbDeviceDbId() != null) {
                 // 国标通道
@@ -98,6 +85,29 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
             // 不支持的点播方式
             log.error("[点播通用通道] 不支持的点播方式：{}， {}({})", inviteInfo.getSessionName(), channel.getGbName(), channel.getGbDeviceId());
             throw new PlayException(Response.BAD_REQUEST, "bad request");
+        }
+    }
+
+    @Override
+    public void play(CommonGBChannel channel, Platform platform, ErrorCallback<StreamInfo> callback) {
+        if (channel.getGbDeviceDbId() != null) {
+            // 国标通道
+            playGbDeviceChannel(channel, callback);
+        } else if (channel.getStreamProxyId() != null) {
+            // 拉流代理
+            playProxy(channel, callback);
+        } else if (channel.getStreamPushId() != null) {
+            if (platform != null) {
+                // 推流
+                playPush(channel, platform.getServerGBId(), platform.getName(), callback);
+            }else {
+                // 推流
+                playPush(channel, null, null, callback);
+            }
+        } else {
+            // 通道数据异常
+            log.error("[点播通用通道] 通道数据异常，无法识别通道来源： {}({})", channel.getGbName(), channel.getGbDeviceId());
+            throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
         }
     }
 

@@ -240,21 +240,7 @@ public class CommonChannelController {
                 result.setResult(WVPResult.fail(code, msg));
             }
         };
-
-        if (channel.getGbDeviceDbId() != null) {
-            // 国标通道
-            channelPlayService.playGbDeviceChannel(channel, callback);
-        } else if (channel.getStreamProxyId() != null) {
-            // 拉流代理
-            channelPlayService.playProxy(channel, callback);
-        } else if (channel.getStreamPushId() != null) {
-            // 推流
-            channelPlayService.playPush(channel, null, null, callback);
-        } else {
-            // 通道数据异常
-            log.error("[点播通用通道] 通道数据异常，无法识别通道来源： {}({})", channel.getGbName(), channel.getGbDeviceId());
-            throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
-        }
+        channelPlayService.play(channel, null, callback);
         return result;
     }
 }

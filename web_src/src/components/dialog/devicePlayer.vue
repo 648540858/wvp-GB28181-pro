@@ -501,35 +501,6 @@ export default {
     videoError: function (e) {
       console.log("播放器错误：" + JSON.stringify(e));
     },
-    presetPosition: function (cmdCode, presetPos) {
-      console.log('预置位控制：' + this.presetPos + ' : 0x' + cmdCode.toString(16));
-      let that = this;
-      this.$axios({
-        method: 'post',
-        url: '/api/ptz/front_end_command/' + this.deviceId + '/' + this.channelId + '?cmdCode=' + cmdCode + '&parameter1=0&parameter2=' + presetPos + '&combindCode2=0'
-      }).then(function (res) {
-      });
-    },
-    setSpeedOrTime: function (cmdCode, groupNum, parameter) {
-      let that = this;
-      let parameter2 = parameter % 256;
-      let combindCode2 = Math.floor(parameter / 256) * 16;
-      console.log('前端控制：0x' + cmdCode.toString(16) + ' 0x' + groupNum.toString(16) + ' 0x' + parameter2.toString(16) + ' 0x' + combindCode2.toString(16));
-      this.$axios({
-        method: 'post',
-        url: '/api/ptz/front_end_command/' + this.deviceId + '/' + this.channelId + '?cmdCode=' + cmdCode + '&parameter1=' + groupNum + '&parameter2=' + parameter2 + '&combindCode2=' + combindCode2
-      }).then(function (res) {
-      });
-    },
-    setCommand: function (cmdCode, groupNum, parameter) {
-      let that = this;
-      console.log('前端控制：0x' + cmdCode.toString(16) + ' 0x' + groupNum.toString(16) + ' 0x' + parameter.toString(16) + ' 0x0');
-      this.$axios({
-        method: 'post',
-        url: '/api/ptz/front_end_command/' + this.deviceId + '/' + this.channelId + '?cmdCode=' + cmdCode + '&parameter1=' + groupNum + '&parameter2=' + parameter + '&combindCode2=0'
-      }).then(function (res) {
-      });
-    },
     copyUrl: function (dropdownItem) {
       console.log(dropdownItem)
       this.$copyText(dropdownItem).then((e) => {
@@ -612,17 +583,6 @@ export default {
             videoEnable: false,
             recvOnly: false,
           })
-
-          // webrtcPlayer.on(ZLMRTCClient.Events.WEBRTC_ON_REMOTE_STREAMS,(e)=>{//获取到了远端流，可以播放
-          //   console.error('播放成功',e.streams)
-          //   this.broadcastStatus = 1;
-          // });
-          //
-          // webrtcPlayer.on(ZLMRTCClient.Events.WEBRTC_ON_LOCAL_STREAM,(s)=>{// 获取到了本地流
-          //   this.broadcastStatus = 1;
-          //   // document.getElementById('selfVideo').srcObject=s;
-          //   // this.eventcallbacK("LOCAL STREAM", "获取到了本地流")
-          // });
 
           this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_NOT_SUPPORT, (e) => {// 获取到了本地流
             console.error('不支持webrtc', e)

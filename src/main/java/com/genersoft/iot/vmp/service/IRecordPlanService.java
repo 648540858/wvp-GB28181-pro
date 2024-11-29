@@ -27,5 +27,5 @@ public interface IRecordPlanService {
 
     void cleanAll(Integer planId);
 
-    boolean recording(String app, String stream);
+    Integer recording(String app, String stream);
 }

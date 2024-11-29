@@ -209,7 +209,7 @@ public class MediaServiceImpl implements IMediaService {
     @Override
     public boolean closeStreamOnNoneReader(String mediaServerId, String app, String stream, String schema) {
         boolean result = false;
-        if (recordPlanService.recording(app, stream)) {
+        if (recordPlanService.recording(app, stream) != null) {
             return false;
         }
         // 国标类型的流

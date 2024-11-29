@@ -59,6 +59,9 @@ public interface RecordPlanMapper {
     @Delete("DELETE FROM wvp_record_plan_item WHERE plan_id = #{planId}")
     void cleanItems(@Param("planId") Integer planId);
 
-    @Select("select plan_id from wvp_record_plan_item where  week_day = #{week} and start &gt;= #{index} and stop &lt;= #{index} group by plan_id")
-    List<Integer> queryStart(@Param("week") int week, @Param("index") int index);
+    @Select(" <script>" +
+            " select wdc.id from wvp_device_channel wdc left join wvp_record_plan_item wrpi on wrpi.plan_id = wdc.record_plan_id " +
+            " where  wrpi.week_day = #{week} and wrpi.start &lt;= #{index} and stop &gt;= #{index} group by wdc.id" +
+            " </script>")
+    List<Integer> queryRecordIng(@Param("week") int week, @Param("index") int index);
 }

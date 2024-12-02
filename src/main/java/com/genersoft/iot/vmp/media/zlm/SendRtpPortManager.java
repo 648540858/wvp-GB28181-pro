@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.media.zlm;
 
+import com.alibaba.fastjson2.JSON;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
@@ -31,16 +32,19 @@ public class SendRtpPortManager {
     private final String KEY = "VM_MEDIA_SEND_RTP_PORT_";
 
     public synchronized int getNextPort(MediaServerItem mediaServer) {
+        logger.info("[获取下一个端口] ");
+        logger.info(JSON.toJSONString(mediaServer));
         if (mediaServer == null) {
             logger.warn("[发送端口管理] 参数错误，mediaServer为NULL");
-            return -1;
+            return 0;
         }
         String sendIndexKey = KEY + userSetting.getServerId() + "_" +  mediaServer.getId();
         String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
                 + userSetting.getServerId() + "_*";
         List<Object> queryResult = RedisUtil.scan(redisTemplate, key);
         Map<Integer, SendRtpItem> sendRtpItemMap = new HashMap<>();
-
+        logger.info("[获取下一个端口] queryResult");
+        logger.info(JSON.toJSONString(queryResult));
         for (Object o : queryResult) {
             SendRtpItem sendRtpItem = (SendRtpItem) redisTemplate.opsForValue().get(o);
             if (sendRtpItem != null) {
@@ -73,13 +77,17 @@ public class SendRtpPortManager {
         }
         if (redisTemplate == null || redisTemplate.getConnectionFactory() == null) {
             logger.warn("{}获取redis连接信息失败", mediaServer.getId());
-            return -1;
+            return 0;
         }
+        logger.info("[获取下一个端口] startPort{ {}, endPort:{}", startPort, endPort);
+        logger.info(JSON.toJSONString(queryResult));
 //        RedisAtomicInteger redisAtomicInteger = new RedisAtomicInteger(sendIndexKey , redisTemplate.getConnectionFactory());
 //        return redisAtomicInteger.getAndUpdate((current)->{
 //            return getPort(current, startPort, endPort, checkPort-> !sendRtpItemMap.containsKey(checkPort));
 //        });
-        return getSendPort(startPort, endPort, sendIndexKey, sendRtpItemMap);
+        int sendPort = getSendPort(startPort, endPort, sendIndexKey, sendRtpItemMap);
+        logger.info("[获取下一个端口] 发流端口{}", sendPort);
+        return sendPort;
     }
 
     private synchronized int getSendPort(int startPort, int endPort, String sendIndexKey, Map<Integer, SendRtpItem> sendRtpItemMap){

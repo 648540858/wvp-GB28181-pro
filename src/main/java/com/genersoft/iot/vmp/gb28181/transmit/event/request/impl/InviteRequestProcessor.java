@@ -665,19 +665,21 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
      * 安排推流
      */
     private void sendProxyStream(SendRtpItem sendRtpItem, MediaServerItem mediaServerItem, ParentPlatform platform, SIPRequest request) {
-            Boolean streamReady = zlmServerFactory.isStreamReady(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStream());
-            if (streamReady != null && streamReady) {
-                // 自平台内容
-                int localPort = sendRtpPortManager.getNextPort(mediaServerItem);
-                if (localPort == 0) {
-                    logger.warn("服务器端口资源不足");
-                    try {
-                        responseAck(request, Response.BUSY_HERE);
-                    } catch (SipException | InvalidArgumentException | ParseException e) {
-                        logger.error("[命令发送失败] invite 服务器端口资源不足: {}", e.getMessage());
-                    }
-                    return;
+        Boolean streamReady = zlmServerFactory.isStreamReady(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStream());
+        if (streamReady != null && streamReady) {
+            // 自平台内容
+            int localPort = sendRtpPortManager.getNextPort(mediaServerItem);
+            if (localPort == 0) {
+                logger.warn("服务器端口资源不足");
+                try {
+                    responseAck(request, Response.BUSY_HERE);
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    logger.error("[命令发送失败] invite 服务器端口资源不足: {}", e.getMessage());
                 }
+                return;
+
+            }
+            sendRtpItem.setLocalPort(localPort);
             sendRtpItem.setPlayType(InviteStreamType.PROXY);
             // 写入redis， 超时时回复
             sendRtpItem.setStatus(1);
@@ -707,6 +709,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     }
                     return;
                 }
+                sendRtpItem.setLocalPort(localPort);
                 // 写入redis， 超时时回复
                 sendRtpItem.setStatus(1);
                 SIPResponse response = sendStreamAck(request, sendRtpItem, platform);

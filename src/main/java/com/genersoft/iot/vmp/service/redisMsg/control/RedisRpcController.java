@@ -92,6 +92,7 @@ public class RedisRpcController {
         if (mediaServerItem == null) {
             RedisRpcResponse response = request.getResponse();
             response.setStatusCode(200);
+            return response;
         }
         // 自平台内容
         int localPort = sendRtpPortManager.getNextPort(mediaServerItem);
@@ -99,9 +100,11 @@ public class RedisRpcController {
             logger.info("[redis-rpc] getSendRtpItem->服务器端口资源不足" );
             RedisRpcResponse response = request.getResponse();
             response.setStatusCode(200);
+            return response;
         }
         // 写入redis， 超时时回复
         sendRtpItem.setStatus(1);
+        sendRtpItem.setLocalPort(localPort);
         sendRtpItem.setServerId(userSetting.getServerId());
         sendRtpItem.setLocalIp(mediaServerItem.getSdpIp());
         if (sendRtpItem.getSsrc() == null) {

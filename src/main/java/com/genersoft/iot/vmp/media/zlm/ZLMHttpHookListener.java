@@ -404,6 +404,7 @@ public class ZLMHttpHookListener {
                         param.setStreamInfo(new StreamContent(streamInfoByAppAndStream));
 
                         param.setSeverId(userSetting.getServerId());
+                        param.setCallId(param.getParamMap().get("callId"));
                         streamPushService.updatePush(param);
                         // 冗余数据，自己系统中自用
                         redisCatchStorage.addPushListItem(param.getApp(), param.getStream(), param);

@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
@@ -19,7 +20,6 @@ import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.CatalogSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.CatalogResponseMessageHandler;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
@@ -34,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ObjectUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
@@ -50,9 +49,6 @@ import java.util.concurrent.TimeUnit;
 @Service
 @DS("master")
 public class DeviceServiceImpl implements IDeviceService {
-
-    @Autowired
-    private SIPCommander cmder;
 
     @Autowired
     private DynamicTask dynamicTask;
@@ -327,7 +323,8 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     public void sync(Device device) {
         if (catalogResponseMessageHandler.isSyncRunning(device.getDeviceId())) {
-            log.info("开启同步时发现同步已经存在");
+            SyncStatus syncStatus = catalogResponseMessageHandler.getChannelSyncProgress(device.getDeviceId());
+            log.info("[同步通道] 同步已存在, 设备: {}, 同步信息: {}", device.getDeviceId(), JSON.toJSON(syncStatus));
             return;
         }
         int sn = (int)((Math.random()*9+1)*100000);
@@ -335,6 +332,7 @@ public class DeviceServiceImpl implements IDeviceService {
         try {
             sipCommander.catalogQuery(device, sn, event -> {
                 String errorMsg = String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg);
+                log.info("[同步通道]失败,编号: {}, 错误码： {}, {}", device.getDeviceId(), event.statusCode, event.msg);
                 catalogResponseMessageHandler.setChannelSyncEnd(device.getDeviceId(), sn, errorMsg);
             });
         } catch (SipException | InvalidArgumentException | ParseException e) {
@@ -524,6 +522,11 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     public PageInfo<Device> getAll(int page, int count, String query, Boolean status) {
         PageHelper.startPage(page, count);
+        if (query != null) {
+            query = query.replaceAll("/", "//")
+                    .replaceAll("%", "/%")
+                    .replaceAll("_", "/_");
+        }
         List<Device> all = deviceMapper.getDeviceList(query, status);
         return new PageInfo<>(all);
     }

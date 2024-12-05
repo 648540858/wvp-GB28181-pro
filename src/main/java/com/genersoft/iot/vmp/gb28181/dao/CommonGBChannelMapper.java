@@ -121,6 +121,7 @@ public interface CommonGBChannelMapper {
             ", gb_block = #{gbBlock}" +
             ", gb_address = #{gbAddress}" +
             ", gb_parental = #{gbParental}" +
+            ", gb_parent_id = #{gbParentId}" +
             ", gb_safety_way = #{gbSafetyWay}" +
             ", gb_register_way = #{gbRegisterWay}" +
             ", gb_cert_num = #{gbCertNum}" +

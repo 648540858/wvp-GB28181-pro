@@ -5,13 +5,11 @@ import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
 import com.genersoft.iot.vmp.gb28181.dao.provider.DeviceChannelProvider;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
-import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 用于存储设备通道信息
@@ -551,7 +549,7 @@ public interface DeviceChannelMapper {
             "</script>")
     void updateStreamGPS(List<GPSMsgInfo> gpsMsgInfoList);
 
-    @Update("UPDATE wvp_device_channel SET status=#{status} WHERE device_id=#{deviceId} AND channel_id=#{channelId}")
+    @Update("UPDATE wvp_device_channel SET status=#{status} WHERE device_db_id=#{deviceDbId} AND device_id=#{deviceId}")
     void updateStatus(DeviceChannel channel);
 
 

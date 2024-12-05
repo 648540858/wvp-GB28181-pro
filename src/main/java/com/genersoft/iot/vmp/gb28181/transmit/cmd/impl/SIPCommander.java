@@ -142,15 +142,10 @@ public class SIPCommander implements ISIPCommander {
         builder.append(strTmp, 0, 2);
         strTmp = String.format("%02X", parameter2);
         builder.append(strTmp, 0, 2);
-        //优化zoom变倍速率
-        if ((combineCode2 > 0) && (combineCode2 <16))
-        {
-            combineCode2 = 16;
-        }
-        strTmp = String.format("%X", combineCode2);
-        builder.append(strTmp, 0, 1).append("0");
+        strTmp = String.format("%02X", combineCode2 << 4);
+        builder.append(strTmp, 0, 2);
         //计算校验码
-        int checkCode = (0XA5 + 0X0F + 0X01 + cmdCode + parameter1 + parameter2 + (combineCode2 & 0XF0)) % 0X100;
+        int checkCode = (0XA5 + 0X0F + 0X01 + cmdCode + parameter1 + parameter2 + (combineCode2 << 4)) % 0X100;
         strTmp = String.format("%02X", checkCode);
         builder.append(strTmp, 0, 2);
         return builder.toString();
@@ -985,8 +980,6 @@ public class SIPCommander implements ISIPCommander {
         catalogXml.append("  <SN>" + sn + "</SN>\r\n");
         catalogXml.append("  <DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
         catalogXml.append("</Query>\r\n");
-
-
 
         Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
 

@@ -10,6 +10,8 @@ public interface IGbChannelPlayService {
 
     void start(CommonGBChannel channel, InviteInfo inviteInfo, Platform platform, ErrorCallback<StreamInfo> callback);
 
+    void play(CommonGBChannel channel, Platform platform,  ErrorCallback<StreamInfo> callback);
+
     void playGbDeviceChannel(CommonGBChannel channel, ErrorCallback<StreamInfo> callback);
 
     void playProxy(CommonGBChannel channel, ErrorCallback<StreamInfo> callback);

@@ -175,6 +175,11 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Override
     public PageInfo<StreamPush> getPushList(Integer page, Integer count, String query, Boolean pushing, String mediaServerId) {
         PageHelper.startPage(page, count);
+        if (query != null) {
+            query = query.replaceAll("/", "//")
+                    .replaceAll("%", "/%")
+                    .replaceAll("_", "/_");
+        }
         List<StreamPush> all = streamPushMapper.selectAll(query, pushing, mediaServerId);
         return new PageInfo<>(all);
     }
@@ -530,7 +535,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
                 String key = streamInfo.getApp() + "_" + streamInfo.getStream();
                 StreamPush streamPushItem = result.get(key);
                 if (streamPushItem == null) {
-                    streamPushItem = streamPushItem.getInstance(streamInfo);
+                    streamPushItem = StreamPush.getInstance(streamInfo);
                     result.put(key, streamPushItem);
                 }
             }

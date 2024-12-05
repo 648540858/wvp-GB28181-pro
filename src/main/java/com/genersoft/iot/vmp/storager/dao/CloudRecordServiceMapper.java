@@ -41,7 +41,7 @@ public interface CloudRecordServiceMapper {
             "select * " +
             " from wvp_cloud_record " +
             " where 0 = 0" +
-            " <if test='query != null'> AND (app LIKE concat('%',#{query},'%') OR stream LIKE concat('%',#{query},'%') )</if> " +
+            " <if test='query != null'> AND (app LIKE concat('%',#{query},'%') escape '/' OR stream LIKE concat('%',#{query},'%') escape '/' )</if> " +
             " <if test= 'app != null '> and app=#{app}</if>" +
             " <if test= 'stream != null '> and stream=#{stream}</if>" +
             " <if test= 'startTimeStamp != null '> and end_time &gt;= #{startTimeStamp}</if>" +
@@ -53,7 +53,7 @@ public interface CloudRecordServiceMapper {
             " <if test= 'ids != null  ' > and id in " +
             " <foreach collection='ids'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
             " </if>" +
-            " order by start_time ASC" +
+            " order by start_time desc" +
             " </script>")
     List<CloudRecordItem> getList(@Param("query") String query, @Param("app") String app, @Param("stream") String stream,
                                   @Param("startTimeStamp")Long startTimeStamp, @Param("endTimeStamp")Long endTimeStamp,

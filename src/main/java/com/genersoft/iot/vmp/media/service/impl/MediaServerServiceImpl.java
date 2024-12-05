@@ -14,7 +14,6 @@ import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
-import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerChangeEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerDeleteEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOfflineEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOnlineEvent;
@@ -318,11 +317,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
         redisTemplate.opsForHash().put(key, mediaServerInDataBase.getId(), mediaServerInDataBase);
         if (mediaServerInDataBase.isStatus()) {
             resetOnlineServerItem(mediaServerInDataBase);
-        }else {
-            // 发送事件
-            MediaServerChangeEvent event = new MediaServerChangeEvent(this);
-            event.setMediaServerItemList(mediaServerInDataBase);
-            applicationEventPublisher.publishEvent(event);
         }
     }
 
@@ -444,11 +438,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
         mediaServerMapper.add(mediaServer);
         if (mediaServer.isStatus()) {
             mediaNodeServerService.online(mediaServer);
-        }else {
-            // 发送事件
-            MediaServerChangeEvent event = new MediaServerChangeEvent(this);
-            event.setMediaServerItemList(mediaServer);
-            applicationEventPublisher.publishEvent(event);
         }
     }
 
@@ -878,13 +867,13 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public void startSendRtpPassive(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout) {
+    public Integer startSendRtpPassive(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout) {
         IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
             log.info("[startSendRtpPassive] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到mediaServer对应的实现类");
         }
-        mediaNodeServerService.startSendRtpPassive(mediaServer, sendRtpItem, timeout);
+        return mediaNodeServerService.startSendRtpPassive(mediaServer, sendRtpItem, timeout);
     }
 
     @Override

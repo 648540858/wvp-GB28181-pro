@@ -144,9 +144,21 @@ public class DeviceQuery {
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		boolean status = deviceService.isSyncRunning(deviceId);
 		// 已存在则返回进度
-		if (status) {
+		if (deviceService.isSyncRunning(deviceId)) {
 			SyncStatus channelSyncStatus = deviceService.getChannelSyncStatus(deviceId);
-			return WVPResult.success(channelSyncStatus);
+			WVPResult wvpResult = new WVPResult();
+			if (channelSyncStatus.getErrorMsg() != null) {
+				wvpResult.setCode(ErrorCode.ERROR100.getCode());
+				wvpResult.setMsg(channelSyncStatus.getErrorMsg());
+			}else if (channelSyncStatus.getTotal() == null || channelSyncStatus.getTotal() == 0){
+				wvpResult.setCode(ErrorCode.SUCCESS.getCode());
+				wvpResult.setMsg("等待通道信息...");
+			}else {
+				wvpResult.setCode(ErrorCode.SUCCESS.getCode());
+				wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
+				wvpResult.setData(channelSyncStatus);
+			}
+			return wvpResult;
 		}
 		deviceService.sync(device);
 
@@ -414,15 +426,18 @@ public class DeviceQuery {
 		SyncStatus channelSyncStatus = deviceService.getChannelSyncStatus(deviceId);
 		WVPResult<SyncStatus> wvpResult = new WVPResult<>();
 		if (channelSyncStatus == null) {
-			wvpResult.setCode(-1);
-			wvpResult.setMsg("同步尚未开始");
+			wvpResult.setCode(ErrorCode.ERROR100.getCode());
+			wvpResult.setMsg("同步不存在");
+		}else if (channelSyncStatus.getErrorMsg() != null) {
+			wvpResult.setCode(ErrorCode.ERROR100.getCode());
+			wvpResult.setMsg(channelSyncStatus.getErrorMsg());
+		}else if (channelSyncStatus.getTotal() == null || channelSyncStatus.getTotal() == 0){
+			wvpResult.setCode(ErrorCode.SUCCESS.getCode());
+			wvpResult.setMsg("等待通道信息...");
 		}else {
 			wvpResult.setCode(ErrorCode.SUCCESS.getCode());
 			wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
 			wvpResult.setData(channelSyncStatus);
-			if (channelSyncStatus.getErrorMsg() != null) {
-				wvpResult.setMsg(channelSyncStatus.getErrorMsg());
-			}
 		}
 		return wvpResult;
 	}

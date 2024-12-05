@@ -170,10 +170,15 @@ public class CatalogDataManager implements CommandLineRunner {
                 syncStatus.setCurrent(catalogData.getRedisKeysForChannel().size());
                 syncStatus.setTotal(catalogData.getTotal());
                 syncStatus.setErrorMsg(catalogData.getErrorMsg());
-                if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end)) {
+                syncStatus.setTime(catalogData.getTime());
+                if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.ready) || catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end)) {
                     syncStatus.setSyncIng(false);
                 }else {
                     syncStatus.setSyncIng(true);
+                }
+                if (catalogData.getErrorMsg() != null) {
+                    // 失败的同步信息,返回一次后直接移除
+                    dataMap.remove(key);
                 }
                 return syncStatus;
             }
@@ -237,7 +242,8 @@ public class CatalogDataManager implements CommandLineRunner {
                     catalogData.setErrorMsg(errorMsg);
                 }
             }
-            if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end) && catalogData.getTime().isBefore(instantBefore30S)) { // 超过三十秒，如果标记为end则删除
+            if ((catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end) || catalogData.getStatus().equals(CatalogData.CatalogDataStatus.ready))
+                    && catalogData.getTime().isBefore(instantBefore30S)) { // 超过三十秒，如果标记为end则删除
                 dataMap.remove(dataKey);
                 Set<String> redisKeysForChannel = catalogData.getRedisKeysForChannel();
                 if (redisKeysForChannel != null && !redisKeysForChannel.isEmpty()) {

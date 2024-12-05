@@ -28,7 +28,10 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.sip.message.Response;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 
 
@@ -200,35 +203,44 @@ public class CommonChannelController {
 
     @Operation(summary = "播放通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @GetMapping("/play")
-    public DeferredResult<WVPResult<StreamContent>> deleteChannelToGroupByGbDevice(Integer channelId){
+    public DeferredResult<WVPResult<StreamContent>> deleteChannelToGroupByGbDevice(HttpServletRequest request,  Integer channelId){
         Assert.notNull(channelId,"参数异常");
         CommonGBChannel channel = channelService.getOne(channelId);
         Assert.notNull(channel, "通道不存在");
 
         DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
 
-        ErrorCallback<StreamInfo> callback = (code, msg, data) -> {
+        ErrorCallback<StreamInfo> callback = (code, msg, streamInfo) -> {
             if (code == InviteErrorCode.SUCCESS.getCode()) {
-                result.setResult(WVPResult.success(new StreamContent(data)));
+                WVPResult<StreamContent> wvpResult = WVPResult.success();
+                if (streamInfo != null) {
+                    if (userSetting.getUseSourceIpAsStreamIp()) {
+                        streamInfo=streamInfo.clone();//深拷贝
+                        String host;
+                        try {
+                            URL url=new URL(request.getRequestURL().toString());
+                            host=url.getHost();
+                        } catch (MalformedURLException e) {
+                            host=request.getLocalAddr();
+                        }
+                        streamInfo.channgeStreamIp(host);
+                    }
+                    if (!ObjectUtils.isEmpty(streamInfo.getMediaServer().getTranscodeSuffix())
+                            && !"null".equalsIgnoreCase(streamInfo.getMediaServer().getTranscodeSuffix())) {
+                        streamInfo.setStream(streamInfo.getStream() + "_" + streamInfo.getMediaServer().getTranscodeSuffix());
+                    }
+                    wvpResult.setData(new StreamContent(streamInfo));
+                }else {
+                    wvpResult.setCode(code);
+                    wvpResult.setMsg(msg);
+                }
+
+                result.setResult(wvpResult);
             }else {
                 result.setResult(WVPResult.fail(code, msg));
             }
         };
-
-        if (channel.getGbDeviceDbId() != null) {
-            // 国标通道
-            channelPlayService.playGbDeviceChannel(channel, callback);
-        } else if (channel.getStreamProxyId() != null) {
-            // 拉流代理
-            channelPlayService.playProxy(channel, callback);
-        } else if (channel.getStreamPushId() != null) {
-            // 推流
-            channelPlayService.playPush(channel, null, null, callback);
-        } else {
-            // 通道数据异常
-            log.error("[点播通用通道] 通道数据异常，无法识别通道来源： {}({})", channel.getGbName(), channel.getGbDeviceId());
-            throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
-        }
+        channelPlayService.play(channel, null, callback);
         return result;
     }
 }

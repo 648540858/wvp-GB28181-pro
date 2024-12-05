@@ -142,7 +142,7 @@ public interface IMediaServerService {
 
     Boolean isStreamReady(MediaServer mediaServer, String rtp, String streamId);
 
-    void startSendRtpPassive(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout);
+    Integer startSendRtpPassive(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout);
 
     void startSendRtp(MediaServer mediaServer, SendRtpInfo sendRtpItem);
 

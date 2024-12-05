@@ -43,7 +43,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Tag(name  = "推流信息管理")
-@Controller
+@RestController
 @Slf4j
 @RequestMapping(value = "/api/push")
 public class StreamPushController {

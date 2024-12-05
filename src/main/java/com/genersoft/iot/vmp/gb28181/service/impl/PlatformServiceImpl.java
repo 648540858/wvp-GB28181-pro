@@ -159,6 +159,11 @@ public class PlatformServiceImpl implements IPlatformService {
     @Override
     public PageInfo<Platform> queryPlatformList(int page, int count, String query) {
         PageHelper.startPage(page, count);
+        if (query != null) {
+            query = query.replaceAll("/", "//")
+                    .replaceAll("%", "/%")
+                    .replaceAll("_", "/_");
+        }
         List<Platform> all = platformMapper.queryList(query);
         return new PageInfo<>(all);
     }

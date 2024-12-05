@@ -154,39 +154,61 @@
           <!--{"code":0,"data":{"paths":["22-29-30.mp4"],"rootPath":"/home/kkkkk/Documents/ZLMediaKit/release/linux/Debug/www/record/hls/kkkkk/2020-05-11/"}}-->
           <!--遥控界面-->
           <el-tab-pane label="云台控制" name="control" v-if="showPtz">
-            <div style="display: flex; justify-content: left;">
-              <div class="control-wrapper">
-                <div class="control-btn control-top" @mousedown="ptzCamera('up')" @mouseup="ptzCamera('stop')">
-                  <i class="el-icon-caret-top"></i>
-                  <div class="control-inner-btn control-inner"></div>
+            <div style="display: grid; grid-template-columns: 240px auto; height: 180px; overflow: auto">
+              <div style="display: grid; grid-template-columns: 6.25rem auto;">
+
+                <div class="control-wrapper">
+                  <div class="control-btn control-top" @mousedown="ptzCamera('up')" @mouseup="ptzCamera('stop')">
+                    <i class="el-icon-caret-top"></i>
+                    <div class="control-inner-btn control-inner"></div>
+                  </div>
+                  <div class="control-btn control-left" @mousedown="ptzCamera('left')" @mouseup="ptzCamera('stop')">
+                    <i class="el-icon-caret-left"></i>
+                    <div class="control-inner-btn control-inner"></div>
+                  </div>
+                  <div class="control-btn control-bottom" @mousedown="ptzCamera('down')" @mouseup="ptzCamera('stop')">
+                    <i class="el-icon-caret-bottom"></i>
+                    <div class="control-inner-btn control-inner"></div>
+                  </div>
+                  <div class="control-btn control-right" @mousedown="ptzCamera('right')" @mouseup="ptzCamera('stop')">
+                    <i class="el-icon-caret-right"></i>
+                    <div class="control-inner-btn control-inner"></div>
+                  </div>
+                  <div class="control-round">
+                    <div class="control-round-inner"><i class="fa fa-pause-circle"></i></div>
+                  </div>
+                  <div class="contro-speed" style="position: absolute; left: 4px; top: 7rem; width: 6.25rem;">
+                    <el-slider v-model="controSpeed" :max="100"></el-slider>
+                  </div>
                 </div>
-                <div class="control-btn control-left" @mousedown="ptzCamera('left')" @mouseup="ptzCamera('stop')">
-                  <i class="el-icon-caret-left"></i>
-                  <div class="control-inner-btn control-inner"></div>
-                </div>
-                <div class="control-btn control-bottom" @mousedown="ptzCamera('down')" @mouseup="ptzCamera('stop')">
-                  <i class="el-icon-caret-bottom"></i>
-                  <div class="control-inner-btn control-inner"></div>
-                </div>
-                <div class="control-btn control-right" @mousedown="ptzCamera('right')" @mouseup="ptzCamera('stop')">
-                  <i class="el-icon-caret-right"></i>
-                  <div class="control-inner-btn control-inner"></div>
-                </div>
-                <div class="control-round">
-                  <div class="control-round-inner"><i class="fa fa-pause-circle"></i></div>
-                </div>
-                <div style="position: absolute; left: 7.25rem; top: 1.25rem" @mousedown="ptzCamera('zoomin')"
-                     @mouseup="ptzCamera('stop')"><i class="el-icon-zoom-in control-zoom-btn"
-                                                     style="font-size: 1.875rem;"></i></div>
-                <div style="position: absolute; left: 7.25rem; top: 3.25rem; font-size: 1.875rem;"
-                     @mousedown="ptzCamera('zoomout')" @mouseup="ptzCamera('stop')"><i
-                    class="el-icon-zoom-out control-zoom-btn"></i></div>
-                <div class="contro-speed" style="position: absolute; left: 4px; top: 7rem; width: 9rem;">
-                  <el-slider v-model="controSpeed" :max="255"></el-slider>
+                <div>
+                  <div class="ptz-btn-box">
+                    <div style="" @mousedown="ptzCamera('zoomin')" @mouseup="ptzCamera('stop')" title="变倍+">
+                      <i class="el-icon-zoom-in control-zoom-btn" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div style="" @mousedown="ptzCamera('zoomout')" @mouseup="ptzCamera('stop')" title="变倍-">
+                      <i class="el-icon-zoom-out control-zoom-btn" style="font-size: 1.5rem;"></i>
+                    </div>
+                  </div>
+                  <div class="ptz-btn-box">
+                    <div @mousedown="ptzCamera('focusnear')"  @mouseup="ptzCamera('stop')" title="聚焦+">
+                      <i class="iconfont icon-bianjiao-fangda control-zoom-btn" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div @mousedown="ptzCamera('focusfar')" @mouseup="ptzCamera('stop')" title="聚焦-">
+                      <i class="iconfont icon-bianjiao-suoxiao control-zoom-btn" style="font-size: 1.5rem;"></i>
+                    </div>
+                  </div>
+                  <div class="ptz-btn-box">
+                    <div @mousedown="ptzCamera('irisin')"  @mouseup="ptzCamera('stop')" title="光圈+">
+                      <i class="iconfont icon-guangquan control-zoom-btn" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div @mousedown="ptzCamera('irisout')" @mouseup="ptzCamera('stop')" title="光圈-">
+                      <i class="iconfont icon-guangquan- control-zoom-btn" style="font-size: 1.5rem;"></i>
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              <div class="control-panel">
+              <div style="text-align: left" >
                 <div style="width: 100%; display: grid; grid-template-rows: 1fr 1fr; grid-row-gap: 10px">
                   <el-button-group>
                     <el-button size="mini" @click="wiper('on')">开启雨刷
@@ -200,49 +222,13 @@
                     <el-button size="mini"  @click="fillLight('off')">关补光灯
                     </el-button>
                   </el-button-group>
-                  <el-button-group>
-                    <el-button size="mini"  @click="ptzCamera('irisin')">光圈调大
-                    </el-button>
-                    <el-button size="mini"  @click="ptzCamera('irisout')">光圈调小
-                    </el-button>
-                  </el-button-group>
-                  <el-button-group>
-                    <el-button size="mini"  @click="ptzCamera('focusfar')">焦距调大
-                    </el-button>
-                    <el-button size="mini"  @click="ptzCamera('focusnear')">焦距调小
-                    </el-button>
-                  </el-button-group>
                 </div>
 
               </div>
             </div>
           </el-tab-pane>
           <el-tab-pane label="编码信息" name="codec" v-loading="tracksLoading">
-            <p>
-              无法播放或者没有声音?&nbsp&nbsp&nbsp试一试&nbsp
-              <el-button size="mini" type="primary" v-if="!coverPlaying" @click="coverPlay">转码播放</el-button>
-              <el-button size="mini" type="danger" v-if="coverPlaying" @click="convertStopClick">停止转码</el-button>
-            </p>
-            <div class="trank">
-              <p v-if="tracksNotLoaded" style="text-align: center;padding-top: 3rem;">暂无数据</p>
-              <div v-for="(item, index) in tracks" style="width: 50%; float: left" loading>
-                <span>流 {{ index }}</span>
-                <div class="trankInfo" v-if="item.codec_type == 0">
-                  <p>格式: {{ item.codec_id_name }}</p>
-                  <p>类型: 视频</p>
-                  <p>分辨率: {{ item.width }} x {{ item.height }}</p>
-                  <p>帧率: {{ item.fps }}</p>
-                </div>
-                <div class="trankInfo" v-if="item.codec_type == 1">
-                  <p>格式: {{ item.codec_id_name }}</p>
-                  <p>类型: 音频</p>
-                  <p>采样位数: {{ item.sample_bit }}</p>
-                  <p>采样率: {{ item.sample_rate }}</p>
-                </div>
-              </div>
-
-            </div>
-
+            <mediaInfo :app="app" :stream="streamId" :mediaServerId="mediaServerId"></mediaInfo>
           </el-tab-pane>
           <el-tab-pane label="语音对讲" name="broadcast">
             <div class="trank" style="text-align: center;">
@@ -269,11 +255,13 @@ import rtcPlayer from '../dialog/rtcPlayer.vue'
 import LivePlayer from '@liveqing/liveplayer'
 import crypto from 'crypto'
 import jessibucaPlayer from '../common/jessibuca.vue'
+import mediaInfo from '../common/mediaInfo.vue'
 
 export default {
   name: 'devicePlayer',
   props: {},
   components: {
+    mediaInfo,
     LivePlayer, jessibucaPlayer, rtcPlayer,
   },
   computed: {
@@ -307,7 +295,6 @@ export default {
       streamId: '',
       app: '',
       mediaServerId: '',
-      convertKey: '',
       deviceId: '',
       channelId: '',
       tabActiveName: 'media',
@@ -326,7 +313,6 @@ export default {
       scanSpeed: 100,
       scanGroup: 0,
       tracks: [],
-      coverPlaying: false,
       tracksLoading: false,
       showPtz: true,
       showRrecord: true,
@@ -415,70 +401,17 @@ export default {
     },
     getUrlByStreamInfo() {
       console.log(this.streamInfo)
+      let streamInfo = this.streamInfo
+      if (this.streamInfo.transcodeStream) {
+        streamInfo = this.streamInfo.transcodeStream;
+      }
       if (location.protocol === "https:") {
-        this.videoUrl = this.streamInfo[this.player[this.activePlayer][1]]
+        this.videoUrl = streamInfo[this.player[this.activePlayer][1]]
       } else {
-        this.videoUrl = this.streamInfo[this.player[this.activePlayer][0]]
+        this.videoUrl = streamInfo[this.player[this.activePlayer][0]]
       }
       return this.videoUrl;
 
-    },
-    coverPlay: function () {
-      var that = this;
-      this.coverPlaying = true;
-      this.$refs[this.activePlayer].pause()
-      that.$axios({
-        method: 'post',
-        url: '/api/play/convert/' + that.streamId
-      }).then(function (res) {
-        if (res.data.code === 0) {
-          that.convertKey = res.data.key;
-          setTimeout(() => {
-            that.isLoging = false;
-            that.playFromStreamInfo(false, res.data.data);
-          }, 2000)
-        } else {
-          that.isLoging = false;
-          that.coverPlaying = false;
-          that.$message({
-            showClose: true,
-            message: '转码失败',
-            type: 'error'
-          });
-        }
-      }).catch(function (e) {
-        console.log(e)
-        that.coverPlaying = false;
-        that.$message({
-          showClose: true,
-          message: '播放错误',
-          type: 'error'
-        });
-      });
-    },
-    convertStopClick: function () {
-      this.convertStop(() => {
-        this.$refs[this.activePlayer].play(this.videoUrl)
-      });
-    },
-    convertStop: function (callback) {
-      var that = this;
-      that.$refs.videoPlayer.pause()
-      this.$axios({
-        method: 'post',
-        url: '/api/play/convertStop/' + this.convertKey
-      }).then(function (res) {
-        if (res.data.code == 0) {
-          console.log(res.data.msg)
-        } else {
-          console.error(res.data.msg)
-        }
-        if (callback) callback();
-      }).catch(function (e) {
-      });
-      that.coverPlaying = false;
-      that.convertKey = "";
-      // if (callback )callback();
     },
 
         playFromStreamInfo: function (realHasAudio, streamInfo) {
@@ -500,10 +433,6 @@ export default {
             this.videoUrl = '';
             this.coverPlaying = false;
             this.showVideoDialog = false;
-            if (this.convertKey != '') {
-              this.convertStop();
-            }
-            this.convertKey = ''
             this.stopBroadcast()
         },
 
@@ -606,7 +535,10 @@ export default {
     copyUrl: function (dropdownItem) {
       console.log(dropdownItem)
       this.$copyText(dropdownItem).then((e) => {
-        this.$message.success("成功拷贝到粘贴板");
+        this.$message.success({
+          showClose: true,
+          message: "成功拷贝到粘贴板"
+        })
       }, (e) => {
 
       })
@@ -967,5 +899,15 @@ export default {
 .trankInfo {
   width: 80%;
   padding: 0 10%;
+}
+.el-dialog__body{
+  padding: 10px 20px;
+}
+.ptz-btn-box {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0 2rem;
+  height: 3rem;
+  line-height: 4rem;
 }
 </style>

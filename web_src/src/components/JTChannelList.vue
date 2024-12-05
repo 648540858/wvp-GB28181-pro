@@ -1,99 +1,101 @@
 <template>
   <div id="channelList" style="width: 100%">
-    <div class="page-header">
-      <div class="page-title">
-        <el-button icon="el-icon-back" size="mini" style="font-size: 20px; color: #000;" type="text" @click="showDevice" ></el-button>
-        <el-divider direction="vertical"></el-divider>
-        通道列表
-      </div>
-      <div class="page-header-btn">
-        <div style="display: inline;">
-          搜索:
-          <el-input @input="search" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
-                    prefix-icon="el-icon-search" v-model="searchSrt" clearable></el-input>
-          <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="add">添加通道</el-button>
-        <el-button icon="el-icon-refresh-right" circle size="mini" @click="refresh()"></el-button>
+    <div v-if="!jtChannel">
+      <div class="page-header" >
+        <div class="page-title">
+          <el-button icon="el-icon-back" size="mini" style="font-size: 20px; color: #000;" type="text" @click="showDevice" ></el-button>
+          <el-divider direction="vertical"></el-divider>
+          通道列表
+        </div>
+        <div class="page-header-btn">
+          <div style="display: inline;">
+            搜索:
+            <el-input @input="search" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
+                      prefix-icon="el-icon-search" v-model="searchSrt" clearable></el-input>
+            <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="add">添加通道</el-button>
+            <el-button icon="el-icon-refresh-right" circle size="mini" @click="refresh()"></el-button>
+          </div>
         </div>
       </div>
+      <el-container v-loading="isLoging" style="height: 82vh;">
+        <el-main style="padding: 5px;">
+          <el-table ref="channelListTable" :data="deviceChannelList" :height="winHeight" style="width: 100%"
+                    header-row-class-name="table-header">
+            <el-table-column prop="channelId" label="通道编号" min-width="180">
+            </el-table-column>
+            <el-table-column prop="name" label="名称" min-width="180">
+            </el-table-column>
+            <el-table-column label="快照" min-width="100">
+              <template v-slot:default="scope">
+                <el-image
+                  :src="getSnap(scope.row)"
+                  :preview-src-list="getBigSnap(scope.row)"
+                  @error="getSnapErrorEvent(scope.row.deviceId, scope.row.channelId)"
+                  :fit="'contain'"
+                  style="width: 60px">
+                  <div slot="error" class="image-slot">
+                    <i class="el-icon-picture-outline"></i>
+                  </div>
+                </el-image>
+              </template>
+            </el-table-column>
+            <el-table-column label="开启音频" min-width="100">
+              <template slot-scope="scope">
+                <el-switch @change="updateChannel(scope.row)" v-model="scope.row.hasAudio" active-color="#409EFF">
+                </el-switch>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" min-width="340" fixed="right">
+              <template slot-scope="scope">
+                <el-button size="medium" v-bind:disabled="device == null || device.online === 0" icon="el-icon-video-play"
+                           type="text" @click="sendDevicePush(scope.row)">播放
+                </el-button>
+                <el-button size="medium" v-bind:disabled="device == null || device.online === 0"
+                           icon="el-icon-switch-button"
+                           type="text" style="color: #f56c6c" v-if="!!scope.row.stream"
+                           @click="stopDevicePush(scope.row)">停止
+                </el-button>
+                <el-divider direction="vertical"></el-divider>
+                <el-button
+                  size="medium"
+                  type="text"
+                  icon="el-icon-edit"
+                  @click="handleEdit(scope.row)"
+                >
+                  编辑
+                </el-button>
+                <el-divider direction="vertical"></el-divider>
+                <el-dropdown @command="(command)=>{moreClick(command, scope.row)}">
+                  <el-button size="medium" type="text" >
+                    更多功能<i class="el-icon-arrow-down el-icon--right"></i>
+                  </el-button>
+                  <el-dropdown-menu slot="dropdown">
+                    <el-dropdown-item command="records" v-bind:disabled="device == null || device.online === 0">
+                      设备录像</el-dropdown-item>
+                    <el-dropdown-item command="cloudRecords" v-bind:disabled="device == null || device.online === 0" >
+                      云端录像</el-dropdown-item>
+                    <!--                  <el-dropdown-item command="shooting" v-bind:disabled="device == null || device.online === 0" >-->
+                    <!--                    立即拍摄</el-dropdown-item>-->
+                  </el-dropdown-menu>
+                </el-dropdown>
+              </template>
+            </el-table-column>
+          </el-table>
+          <el-pagination
+            style="float: right"
+            @size-change="handleSizeChange"
+            @current-change="currentChange"
+            :current-page="currentPage"
+            :page-size="count"
+            :page-sizes="[15, 25, 35, 50]"
+            layout="total, sizes, prev, pager, next"
+            :total="total">
+          </el-pagination>
+        </el-main>
+      </el-container>
     </div>
     <devicePlayer ref="devicePlayer"></devicePlayer>
-    <el-container v-loading="isLoging" style="height: 82vh;">
-      <el-main style="padding: 5px;">
-        <el-table ref="channelListTable" :data="deviceChannelList" :height="winHeight" style="width: 100%"
-                  header-row-class-name="table-header">
-          <el-table-column prop="channelId" label="通道编号" min-width="180">
-          </el-table-column>
-          <el-table-column prop="name" label="名称" min-width="180">
-          </el-table-column>
-          <el-table-column label="快照" min-width="100">
-            <template v-slot:default="scope">
-              <el-image
-                :src="getSnap(scope.row)"
-                :preview-src-list="getBigSnap(scope.row)"
-                @error="getSnapErrorEvent(scope.row.deviceId, scope.row.channelId)"
-                :fit="'contain'"
-                style="width: 60px">
-                <div slot="error" class="image-slot">
-                  <i class="el-icon-picture-outline"></i>
-                </div>
-              </el-image>
-            </template>
-          </el-table-column>
-          <el-table-column label="开启音频" min-width="100">
-            <template slot-scope="scope">
-              <el-switch @change="updateChannel(scope.row)" v-model="scope.row.hasAudio" active-color="#409EFF">
-              </el-switch>
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" min-width="340" fixed="right">
-            <template slot-scope="scope">
-              <el-button size="medium" v-bind:disabled="device == null || device.online === 0" icon="el-icon-video-play"
-                         type="text" @click="sendDevicePush(scope.row)">播放
-              </el-button>
-              <el-button size="medium" v-bind:disabled="device == null || device.online === 0"
-                         icon="el-icon-switch-button"
-                         type="text" style="color: #f56c6c" v-if="!!scope.row.stream"
-                         @click="stopDevicePush(scope.row)">停止
-              </el-button>
-              <el-divider direction="vertical"></el-divider>
-              <el-button
-                size="medium"
-                type="text"
-                icon="el-icon-edit"
-                @click="handleEdit(scope.row)"
-              >
-                编辑
-              </el-button>
-              <el-divider direction="vertical"></el-divider>
-              <el-dropdown @command="(command)=>{moreClick(command, scope.row)}">
-                <el-button size="medium" type="text" >
-                  更多功能<i class="el-icon-arrow-down el-icon--right"></i>
-                </el-button>
-                <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item command="records" v-bind:disabled="device == null || device.online === 0">
-                    设备录像</el-dropdown-item>
-                  <el-dropdown-item command="cloudRecords" v-bind:disabled="device == null || device.online === 0" >
-                    云端录像</el-dropdown-item>
-<!--                  <el-dropdown-item command="shooting" v-bind:disabled="device == null || device.online === 0" >-->
-<!--                    立即拍摄</el-dropdown-item>-->
-                </el-dropdown-menu>
-              </el-dropdown>
-            </template>
-          </el-table-column>
-        </el-table>
-        <el-pagination
-          style="float: right"
-          @size-change="handleSizeChange"
-          @current-change="currentChange"
-          :current-page="currentPage"
-          :page-size="count"
-          :page-sizes="[15, 25, 35, 50]"
-          layout="total, sizes, prev, pager, next"
-          :total="total">
-        </el-pagination>
-      </el-main>
-    </el-container>
-    <channelEdit ref="channelEdit"></channelEdit>
+    <channelEdit v-if="jtChannel" ref="channelEdit" :jtChannel="jtChannel" :closeEdit="closeEdit"></channelEdit>
     <!--设备列表-->
 
   </div>
@@ -103,7 +105,7 @@
 import devicePlayer from './dialog/jtDevicePlayer.vue'
 import uiHeader from '../layout/UiHeader.vue'
 import DeviceTree from "./common/DeviceTree";
-import channelEdit from "./dialog/jtChannelEdit.vue";
+import channelEdit from "./JTChannelEdit.vue";
 import JTDeviceService from "./service/JTDeviceService";
 
 export default {
@@ -131,6 +133,7 @@ export default {
       beforeUrl: "/jtDeviceList",
       isLoging: false,
       loadSnap: {},
+      jtChannel: null,
     };
   },
 
@@ -306,29 +309,15 @@ export default {
       this.initData();
     },
     add: function () {
-      // this.$refs.channelEdit.openDialog(null, this.deviceId, () => {
-      //   this.$refs.channelEdit.close();
-      //   this.$message({
-      //     showClose: true,
-      //     message: "添加成功",
-      //     type: "success",
-      //   });
-      //   setTimeout(this.getList, 200)
-      // })
-      this.$router.push(`/jtChannelEdit/${this.device.id}`);
+      this.jtChannel = {};
     },
     // 编辑
     handleEdit(row) {
-      // this.$refs.channelEdit.openDialog(row, this.deviceId, () => {
-      //   this.$refs.channelEdit.close();
-      //   this.$message({
-      //     showClose: true,
-      //     message: "修改成功",
-      //     type: "success",
-      //   });
-      //   setTimeout(this.getList, 200)
-      // })
-      this.$router.push(`/jtChannelEdit/${this.device.id}/${row.id}`);
+      this.jtChannel = row;
+    },
+    // 编辑
+    closeEdit(row) {
+      this.jtChannel = null;
     }
   }
 };

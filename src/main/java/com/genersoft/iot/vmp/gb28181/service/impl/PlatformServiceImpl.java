@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
-import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.*;
 import com.genersoft.iot.vmp.conf.DynamicTask;
@@ -53,7 +52,6 @@ import java.util.Vector;
  */
 @Slf4j
 @Service
-@DS("master")
 public class PlatformServiceImpl implements IPlatformService {
 
     private final static String REGISTER_KEY_PREFIX = "platform_register_";

@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.media.service.impl;
 
-import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
@@ -50,7 +49,6 @@ import java.util.*;
  */
 @Slf4j
 @Service
-@DS("master")
 public class MediaServerServiceImpl implements IMediaServerService {
 
     @Autowired

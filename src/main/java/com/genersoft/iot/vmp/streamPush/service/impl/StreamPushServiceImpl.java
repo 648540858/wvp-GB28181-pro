@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.streamPush.service.impl;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
@@ -41,7 +40,6 @@ import java.util.*;
 
 @Service
 @Slf4j
-@DS("master")
 public class StreamPushServiceImpl implements IStreamPushService {
 
     @Autowired

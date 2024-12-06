@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.alibaba.fastjson2.JSON;
-import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
@@ -47,7 +46,6 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Service
-@DS("master")
 public class DeviceServiceImpl implements IDeviceService {
 
     @Autowired

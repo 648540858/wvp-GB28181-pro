@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.streamProxy.service.impl;
 
-import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -20,7 +19,6 @@ import org.springframework.util.ObjectUtils;
  */
 @Slf4j
 @Service
-@DS("master")
 public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
 
     @Autowired

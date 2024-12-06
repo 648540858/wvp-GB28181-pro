@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.streamPush.service.impl;
 
-import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -25,7 +24,6 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-@DS("master")
 public class StreamPushPlayServiceImpl implements IStreamPushPlayService {
 
     @Autowired

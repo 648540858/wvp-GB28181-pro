@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
-import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.*;
 import com.genersoft.iot.vmp.conf.DynamicTask;
@@ -65,7 +64,6 @@ import java.util.Vector;
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Slf4j
 @Service
-@DS("master")
 public class PlayServiceImpl implements IPlayService {
 
     @Autowired

@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.service.impl;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.service.ICloudRecordService;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -36,7 +35,6 @@ import java.util.Set;
 
 @Slf4j
 @Service
-@DS("share")
 public class CloudRecordServiceImpl implements ICloudRecordService {
 
     @Autowired

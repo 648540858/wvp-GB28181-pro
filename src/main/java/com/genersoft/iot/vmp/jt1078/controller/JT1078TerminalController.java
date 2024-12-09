@@ -109,9 +109,11 @@ public class JT1078TerminalController {
     @Operation(summary = "1078-新增通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "channel", description = "通道", required = true)
     @PostMapping("/channel/add")
-    public void addChannel(JTChannel channel){
+    public JTChannel addChannel(JTChannel channel){
         assert channel.getChannelId() != null;
+        assert channel.getTerminalDbId() != 0;
         service.addChannel(channel);
+        return channel;
     }
     @Operation(summary = "1078-删除通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "id", description = "通道的数据库ID", required = true)

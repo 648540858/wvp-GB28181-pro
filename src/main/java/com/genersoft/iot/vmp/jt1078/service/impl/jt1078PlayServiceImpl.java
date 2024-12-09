@@ -248,7 +248,7 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
             subscribe.removeSubscribe(hook);
         }, userSetting.getPlayTimeout());
 
-        log.info("[1078-点播] phoneNumber： {}， channelId： {}， 端口： {}", phoneNumber, channelId, ssrcInfo.getPort());
+        log.info("[1078-点播] phoneNumber： {}， channelId： {}，IP: {}, 端口： {}", phoneNumber, channelId, mediaServer.getSdpIp(), ssrcInfo.getPort());
         J9101 j9101 = new J9101();
         j9101.setChannel(channelId);
         j9101.setIp(mediaServer.getSdpIp());

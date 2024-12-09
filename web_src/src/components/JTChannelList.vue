@@ -309,7 +309,9 @@ export default {
       this.initData();
     },
     add: function () {
-      this.jtChannel = {};
+      this.jtChannel = {
+        terminalDbId: this.deviceId
+      };
     },
     // 编辑
     handleEdit(row) {

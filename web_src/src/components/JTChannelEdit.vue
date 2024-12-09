@@ -74,6 +74,7 @@ export default {
             message: "保存成功",
             type: "success",
           });
+          this.jtChannel = res.data.data
         }else {
           this.$message({
             showClose: true,

@@ -15,6 +15,7 @@
         <el-menu-item index="/channel/region">行政区划</el-menu-item>
         <el-menu-item index="/channel/group">业务分组</el-menu-item>
       </el-submenu>
+      <el-menu-item index="/recordPlan">录制计划</el-menu-item>
       <el-menu-item index="/cloudRecord">云端录像</el-menu-item>
       <el-menu-item index="/mediaServerManger">节点管理</el-menu-item>
       <el-menu-item index="/platformList/15/1">国标级联</el-menu-item>

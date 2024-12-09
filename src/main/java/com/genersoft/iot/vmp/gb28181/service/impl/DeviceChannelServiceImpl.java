@@ -351,6 +351,16 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
+    public List<DeviceChannel> queryChaneListByDeviceDbId(Integer deviceDbId) {
+        return channelMapper.queryChannelsByDeviceDbId(deviceDbId);
+    }
+
+    @Override
+    public List<Integer> queryChaneIdListByDeviceDbIds(List<Integer> deviceDbIds) {
+        return channelMapper.queryChaneIdListByDeviceDbIds(deviceDbIds);
+    }
+
+    @Override
     public void updateChannelGPS(Device device, DeviceChannel deviceChannel, MobilePosition mobilePosition) {
         if (userSetting.getSavePositionHistory()) {
             deviceMobilePositionMapper.insertNewPosition(mobilePosition);

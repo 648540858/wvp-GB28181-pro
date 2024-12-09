@@ -53,8 +53,8 @@ public class CivilCodeFileConf implements CommandLineRunner {
             }
             inputStream = Files.newInputStream(civilCodeFile.toPath());
         }
-
-        BufferedReader inputStreamReader = new BufferedReader(new InputStreamReader(inputStream));
+      
+        BufferedReader inputStreamReader = new BufferedReader(new InputStreamReader(inputStream,"UTF-8"));
         int index = -1;
         String line;
         while ((line = inputStreamReader.readLine()) != null) {

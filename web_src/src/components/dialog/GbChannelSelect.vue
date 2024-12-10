@@ -64,16 +64,22 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-pagination
-        style="text-align: right"
-        @size-change="handleSizeChange"
-        @current-change="currentChange"
-        :current-page="currentPage"
-        :page-size="count"
-        :page-sizes="[10, 25, 35, 50, 200, 1000, 50000]"
-        layout="total, sizes, prev, pager, next"
-        :total="total">
-      </el-pagination>
+      <div style="display: grid; grid-template-columns: 1fr 1fr">
+        <div style="text-align: left; line-height: 32px">
+          <i class="el-icon-info"></i>未找到通道，可在国标设备/通道中选择编辑按钮， 选择{{dataType === 'civilCode'?'行政区划':'父节点编码'}}
+        </div>
+        <el-pagination
+          style="text-align: right"
+          @size-change="handleSizeChange"
+          @current-change="currentChange"
+          :current-page="currentPage"
+          :page-size="count"
+          :page-sizes="[10, 25, 35, 50, 200, 1000, 50000]"
+          layout="total, sizes, prev, pager, next"
+          :total="total">
+        </el-pagination>
+      </div>
+
     </el-dialog>
   </div>
 </template>

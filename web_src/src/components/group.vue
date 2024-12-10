@@ -8,9 +8,10 @@
       <el-main style="padding: 5px;">
         <div class="page-header">
           <div class="page-title">
-            <el-breadcrumb separator="/">
+            <el-breadcrumb separator="/" v-if="regionParents.length > 0">
               <el-breadcrumb-item v-for="key in regionParents" key="key">{{ key }}</el-breadcrumb-item>
             </el-breadcrumb>
+            <div v-else style="color: #00c6ff">未选择虚拟组织</div>
           </div>
           <div class="page-header-btn">
             <div style="display: inline;">
@@ -121,7 +122,7 @@ export default {
       groupDeviceId: "",
       groupId: "",
       businessGroup: "",
-      regionParents: ["请选择虚拟组织"],
+      regionParents: [],
       multipleSelection: []
     };
   },
@@ -289,7 +290,11 @@ export default {
     treeNodeClickEvent: function (group) {
       if (group.deviceId === "" || group.deviceId === group.businessGroup) {
         this.channelList = []
-        this.regionParents = ["请选择虚拟组织"];
+        this.regionParents = [];
+        this.$message.info({
+          showClose: true,
+          message: "当前为业务分组，挂载通道请选择其下的虚拟组织，如不存在可右键新建"
+        })
         return
       }
       this.groupDeviceId = group.deviceId;

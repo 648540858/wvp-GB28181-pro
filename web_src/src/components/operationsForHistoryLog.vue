@@ -82,6 +82,7 @@ import uiHeader from '../layout/UiHeader.vue'
 import MediaServer from './service/MediaServer'
 import operationsFoShowLog from './dialog/operationsFoShowLog.vue'
 import moment from 'moment'
+import userService from "./service/UserService";
 
 export default {
   name: 'app',
@@ -154,16 +155,47 @@ export default {
 
     },
     downloadFile(file) {
-      const link = document.createElement('a');
-      link.target = "_blank";
-      link.download = file.fileName;
-      if (process.env.NODE_ENV === 'development') {
-        link.href = `/debug/api/log/file/${file.fileName}`
-      }else {
-        link.href = `/api/log/file/${file.fileName}`
-      }
+      // const link = document.createElement('a');
+      // link.target = "_blank";
+      // link.download = file.fileName;
+      // if (process.env.NODE_ENV === 'development') {
+      //   link.href = `/debug/api/log/file/${file.fileName}`
+      // }else {
+      //   link.href = `/api/log/file/${file.fileName}`
+      // }
+      //
+      // link.click();
 
-      link.click();
+
+      // 文件下载地址
+      const fileUrl = ((process.env.NODE_ENV === 'development') ? process.env.BASE_API : baseUrl) + `/api/log/file/${file.fileName}`;
+
+      // 设置请求头
+      const headers = new Headers();
+      headers.append('access-token', userService.getToken()); // 设置授权头，替换YourAccessToken为实际的访问令牌
+      // 发起  请求
+      fetch(fileUrl, {
+        method: 'GET',
+        headers: headers,
+      })
+        .then(response => response.blob())
+        .then(blob => {
+          console.log(blob)
+          // 创建一个虚拟的链接元素，模拟点击下载
+          const link = document.createElement('a');
+          link.target = "_blank";
+          link.href = window.URL.createObjectURL(blob);
+          link.download = file.fileName; // 设置下载文件名，替换filename.ext为实际的文件名和扩展名
+          document.body.appendChild(link);
+
+          // 模拟点击
+          link.click();
+
+          // 移除虚拟链接元素
+          document.body.removeChild(link);
+          this.$message.success("已申请截图",{closed: true})
+        })
+        .catch(error => console.error('下载失败：', error));
     },
     loadEnd() {
       this.playerTitle = this.file.fileName

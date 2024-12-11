@@ -413,6 +413,10 @@ public interface DeviceChannelMapper {
             "</script>")
     void updateChannelStreamIdentification(DeviceChannel channel);
 
+    @Update("<script>" +
+            "UPDATE wvp_device_channel SET stream_identification=#{streamIdentification}" +
+            "</script>")
+    void updateAllChannelStreamIdentification(@Param("streamIdentification") String streamIdentification);
 
     @Update({"<script>" +
             "<foreach collection='channelList' item='item' separator=';'>" +

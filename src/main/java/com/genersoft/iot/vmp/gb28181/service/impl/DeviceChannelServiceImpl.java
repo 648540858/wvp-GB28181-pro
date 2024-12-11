@@ -338,7 +338,11 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             log.info("[更新通道码流类型] 设备: {}, 通道：{}， 码流： {}", channel.getDeviceId(), channel.getDeviceId(),
                     channel.getStreamIdentification());
         }
-        channelMapper.updateChannelStreamIdentification(channel);
+        if (channel.getId() > 0) {
+            channelMapper.updateChannelStreamIdentification(channel);
+        }else {
+            channelMapper.updateAllChannelStreamIdentification(channel.getStreamIdentification());
+        }
     }
 
     @Override

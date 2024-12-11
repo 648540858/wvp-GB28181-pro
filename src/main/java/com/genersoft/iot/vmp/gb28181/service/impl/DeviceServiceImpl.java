@@ -353,8 +353,8 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public List<Device> getAllOnlineDevice() {
-        return deviceMapper.getOnlineDevices();
+    public List<Device> getAllOnlineDevice(String serverId) {
+        return deviceMapper.getOnlineDevicesByServerId(serverId);
     }
 
     @Override

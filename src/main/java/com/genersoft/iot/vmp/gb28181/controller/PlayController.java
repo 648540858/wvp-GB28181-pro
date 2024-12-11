@@ -88,9 +88,12 @@ public class PlayController {
 		Assert.notNull(channelId, "通道国标编号不可为NULL");
 		// 获取可用的zlm
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
+
 		Assert.notNull(deviceId, "设备不存在");
 		DeviceChannel channel = deviceChannelService.getOne(deviceId, channelId);
 		Assert.notNull(channel, "通道不存在");
+
+
 		MediaServer newMediaServerItem = playService.getNewMediaServerItem(device);
 
 		RequestMessage requestMessage = new RequestMessage();

@@ -78,6 +78,7 @@ public interface DeviceMapper {
                 "as_message_channel,"+
                 "broadcast_push_after_ack,"+
                 "geo_coord_sys,"+
+                "server_id,"+
                 "on_line"+
             ") VALUES (" +
                 "#{deviceId}," +
@@ -108,6 +109,7 @@ public interface DeviceMapper {
                 "#{asMessageChannel}," +
                 "#{broadcastPushAfterAck}," +
                 "#{geoCoordSys}," +
+                "#{serverId}," +
                 "#{onLine}" +
             ")")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
@@ -130,6 +132,7 @@ public interface DeviceMapper {
                 "<if test=\"keepaliveTime != null\">, keepalive_time=#{keepaliveTime}</if>" +
                 "<if test=\"keepaliveIntervalTime != null\">, keepalive_interval_time=#{keepaliveIntervalTime}</if>" +
                 "<if test=\"expires != null\">, expires=#{expires}</if>" +
+                "<if test=\"serverId != null\">, server_id=#{serverId}</if>" +
                 "WHERE device_id=#{deviceId}"+
             " </script>"})
     int update(Device device);
@@ -207,9 +210,43 @@ public interface DeviceMapper {
             "as_message_channel,"+
             "broadcast_push_after_ack,"+
             "geo_coord_sys,"+
+            "server_id,"+
             "on_line"+
             " FROM wvp_device WHERE on_line = true")
     List<Device> getOnlineDevices();
+    @Select("SELECT " +
+            "id, " +
+            "device_id, " +
+            "coalesce(custom_name, name) as name, " +
+            "password, " +
+            "manufacturer, " +
+            "model, " +
+            "firmware, " +
+            "transport," +
+            "stream_mode," +
+            "ip," +
+            "sdp_ip,"+
+            "local_ip,"+
+            "port,"+
+            "host_address,"+
+            "expires,"+
+            "register_time,"+
+            "keepalive_time,"+
+            "create_time,"+
+            "update_time,"+
+            "charset,"+
+            "subscribe_cycle_for_catalog,"+
+            "subscribe_cycle_for_mobile_position,"+
+            "mobile_position_submission_interval,"+
+            "subscribe_cycle_for_alarm,"+
+            "ssrc_check,"+
+            "as_message_channel,"+
+            "broadcast_push_after_ack,"+
+            "geo_coord_sys,"+
+            "server_id,"+
+            "on_line"+
+            " FROM wvp_device WHERE on_line = true and server_id = #{serverId}")
+    List<Device> getOnlineDevicesByServerId(@Param("serverId") String serverId);
 
     @Select("SELECT " +
             "id,"+
@@ -269,6 +306,7 @@ public interface DeviceMapper {
             "geo_coord_sys,"+
             "on_line,"+
             "stream_mode," +
+            "server_id," +
             "media_server_id"+
             ") VALUES (" +
             "#{deviceId}," +
@@ -284,6 +322,7 @@ public interface DeviceMapper {
             "#{geoCoordSys}," +
             "#{onLine}," +
             "#{streamMode}," +
+            "#{serverId}," +
             "#{mediaServerId}" +
             ")")
     void addCustomDevice(Device device);

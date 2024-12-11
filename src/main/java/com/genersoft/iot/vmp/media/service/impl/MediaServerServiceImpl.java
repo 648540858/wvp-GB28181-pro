@@ -303,7 +303,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         mediaServerMapper.update(mediaSerItem);
         MediaServer mediaServerInRedis = getOne(mediaSerItem.getId());
         // 获取完整数据
-        MediaServer mediaServerInDataBase = mediaServerMapper.queryOne(mediaSerItem.getId());
+        MediaServer mediaServerInDataBase = mediaServerMapper.queryOne(mediaSerItem.getId(), userSetting.getServerId());
         if (mediaServerInDataBase == null) {
             return;
         }
@@ -350,7 +350,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Override
     public List<MediaServer> getAll() {
-        List<MediaServer> mediaServerList = mediaServerMapper.queryAll();
+        List<MediaServer> mediaServerList = mediaServerMapper.queryAll(userSetting.getServerId());
         if (mediaServerList.isEmpty()) {
             return new ArrayList<>();
         }
@@ -366,7 +366,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Override
     public List<MediaServer> getAllFromDatabase() {
-        return mediaServerMapper.queryAll();
+        return mediaServerMapper.queryAll(userSetting.getServerId());
     }
 
     @Override
@@ -403,7 +403,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Override
     public MediaServer getDefaultMediaServer() {
-        return mediaServerMapper.queryDefault();
+        return mediaServerMapper.queryDefault(userSetting.getServerId());
     }
 
     @Override
@@ -423,7 +423,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             log.info("[添加媒体节点] 失败, mediaServer的类型：为空");
             return;
         }
-        if (mediaServerMapper.queryOne(mediaServer.getId()) != null) {
+        if (mediaServerMapper.queryOne(mediaServer.getId(), userSetting.getServerId()) != null) {
             log.info("[添加媒体节点] 失败, 媒体服务ID已存在，请修改媒体服务器配置, {}", mediaServer.getId());
             throw new ControllerException(ErrorCode.ERROR100.getCode(),"保存失败，媒体服务ID [ " + mediaServer.getId() + " ] 已存在，请修改媒体服务器配置");
         }
@@ -521,7 +521,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Override
     public MediaServer checkMediaServer(String ip, int port, String secret, String type) {
-        if (mediaServerMapper.queryOneByHostAndPort(ip, port) != null) {
+        if (mediaServerMapper.queryOneByHostAndPort(ip, port, userSetting.getServerId()) != null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "此连接已存在");
         }
 
@@ -532,7 +532,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         MediaServer mediaServer = mediaNodeServerService.checkMediaServer(ip, port, secret);
         if (mediaServer != null) {
-            if (mediaServerMapper.queryOne(mediaServer.getId()) != null) {
+            if (mediaServerMapper.queryOne(mediaServer.getId(), userSetting.getServerId()) != null) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体服务ID [" + mediaServer.getId() + " ] 已存在，请修改媒体服务器配置");
             }
         }
@@ -560,7 +560,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Override
     public void delete(MediaServer mediaServer) {
-        mediaServerMapper.delOne(mediaServer.getId());
+        mediaServerMapper.delOne(mediaServer.getId(), userSetting.getServerId());
         redisTemplate.opsForZSet().remove(VideoManagerConstants.ONLINE_MEDIA_SERVERS_PREFIX + userSetting.getServerId(), mediaServer.getId());
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + ":" + mediaServer.getId();
         redisTemplate.delete(key);
@@ -572,13 +572,13 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Override
     public MediaServer getOneFromDatabase(String mediaServerId) {
-        return mediaServerMapper.queryOne(mediaServerId);
+        return mediaServerMapper.queryOne(mediaServerId, userSetting.getServerId());
     }
 
     @Override
     public void syncCatchFromDatabase() {
         List<MediaServer> allInCatch = getAllOnlineList();
-        List<MediaServer> allInDatabase = mediaServerMapper.queryAll();
+        List<MediaServer> allInDatabase = mediaServerMapper.queryAll(userSetting.getServerId());
         Map<String, MediaServer> mediaServerMap = new HashMap<>();
 
         for (MediaServer mediaServer : allInDatabase) {
@@ -606,7 +606,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Override
     public List<MediaServer> getAllWithAssistPort() {
-        return mediaServerMapper.queryAllWithAssistPort();
+        return mediaServerMapper.queryAllWithAssistPort(userSetting.getServerId());
     }
 
 

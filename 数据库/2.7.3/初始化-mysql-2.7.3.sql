@@ -29,6 +29,7 @@ create table wvp_device
     custom_name                         character varying(255),
     sdp_ip                              character varying(50),
     local_ip                            character varying(50),
+    server_id                           character varying(50),
     password                            character varying(255),
     as_message_channel                  bool    default false,
     keepalive_interval_time             integer,
@@ -190,6 +191,7 @@ create table wvp_media_server
     record_path         character varying(255),
     record_day          integer               default 7,
     transcode_suffix    character varying(255),
+    server_id           character varying(50),
     constraint uk_media_server_unique_ip_http_port unique (ip, http_port)
 );
 

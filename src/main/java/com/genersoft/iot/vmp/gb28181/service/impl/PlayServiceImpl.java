@@ -63,7 +63,7 @@ import java.util.Vector;
 
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Slf4j
-@Service
+@Service("playService")
 public class PlayServiceImpl implements IPlayService {
 
     @Autowired
@@ -285,6 +285,15 @@ public class PlayServiceImpl implements IPlayService {
         }
     }
 
+    @Override
+    public void play(Device device, DeviceChannel channel, ErrorCallback<StreamInfo> callback) {
+        MediaServer mediaServerItem = getNewMediaServerItem(device);
+        if (mediaServerItem == null) {
+            log.warn("[点播] 未找到可用的zlm deviceId: {},channelId:{}", device.getDeviceId(), channel.getDeviceId());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的zlm");
+        }
+        play(mediaServerItem, device, channel, null, callback);
+    }
 
     @Override
     public SSRCInfo play(MediaServer mediaServerItem, String deviceId, String channelId, String ssrc, ErrorCallback<StreamInfo> callback) {

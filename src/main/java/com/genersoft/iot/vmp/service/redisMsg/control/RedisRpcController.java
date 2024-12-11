@@ -8,7 +8,10 @@ import com.genersoft.iot.vmp.conf.redis.RedisRpcConfig;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcMessage;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -17,12 +20,15 @@ import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
+import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+
+import javax.sip.message.Response;
 
 /**
  * 其他wvp发起的rpc调用，这里的方法被 RedisRpcConfig 通过反射寻找对应的方法名称调用
@@ -48,6 +54,12 @@ public class RedisRpcController {
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
+
+    @Autowired
+    private IGbChannelService channelService;
+
+    @Autowired
+    private IGbChannelPlayService channelPlayService;
 
 
     /**
@@ -255,7 +267,7 @@ public class RedisRpcController {
         String callId = request.getParam().toString();
         SendRtpInfo sendRtpItem = sendRtpServerService.queryByCallId(callId);
         RedisRpcResponse response = request.getResponse();
-        response.setStatusCode(200);
+        response.setStatusCode(Response.OK);
         if (sendRtpItem == null) {
             log.info("[redis-rpc] 停止推流, 未找到redis中的发流信息， key：{}", callId);
             WVPResult wvpResult = WVPResult.fail(ErrorCode.ERROR100.getCode(), "未找到redis中的发流信息");
@@ -289,5 +301,38 @@ public class RedisRpcController {
         RedisRpcMessage message = new RedisRpcMessage();
         message.setResponse(response);
         redisTemplate.convertAndSend(RedisRpcConfig.REDIS_REQUEST_CHANNEL_KEY, message);
+    }
+
+    /**
+     * 点播国标设备
+     */
+    public RedisRpcResponse playChannel(RedisRpcRequest request) {
+        int channelId = Integer.parseInt(request.getParam().toString());
+        RedisRpcResponse response = request.getResponse();
+
+        if (channelId <= 0) {
+            response.setStatusCode(Response.BAD_REQUEST);
+            response.setBody("param error");
+            return response;
+        }
+        // 获取对应的设备和通道信息
+        CommonGBChannel channel = channelService.getOne(channelId);
+        if (channel == null) {
+            response.setStatusCode(Response.BAD_REQUEST);
+            response.setBody("param error");
+            return response;
+        }
+
+        channelPlayService.play(channel, null, (code, msg, data) ->{
+            if (code == InviteErrorCode.SUCCESS.getCode()) {
+                response.setStatusCode(Response.OK);
+                response.setBody(data);
+            }else {
+                response.setStatusCode(code);
+            }
+            // 手动发送结果
+            sendResponse(response);
+        });
+        return null;
     }
 }

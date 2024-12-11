@@ -10,15 +10,13 @@ import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
-import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
-import com.genersoft.iot.vmp.gb28181.service.IPlayService;
+import com.genersoft.iot.vmp.gb28181.service.*;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
@@ -65,6 +63,9 @@ public class PlayController {
 	private IPlayService playService;
 
 	@Autowired
+	private IGbChannelRpcPlayService playRpcService;
+
+	@Autowired
 	private IMediaServerService mediaServerService;
 
 	@Autowired
@@ -88,13 +89,9 @@ public class PlayController {
 		Assert.notNull(channelId, "通道国标编号不可为NULL");
 		// 获取可用的zlm
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
-
 		Assert.notNull(deviceId, "设备不存在");
 		DeviceChannel channel = deviceChannelService.getOne(deviceId, channelId);
 		Assert.notNull(channel, "通道不存在");
-
-
-		MediaServer newMediaServerItem = playService.getNewMediaServerItem(device);
 
 		RequestMessage requestMessage = new RequestMessage();
 		String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId;
@@ -118,7 +115,7 @@ public class PlayController {
 		// 录像查询以channelId作为deviceId查询
 		resultHolder.put(key, uuid, result);
 
-		playService.play(newMediaServerItem, deviceId, channelId, null, (code, msg, streamInfo) -> {
+		ErrorCallback<StreamInfo> callback  = (code, msg, streamInfo) -> {
 			WVPResult<StreamContent> wvpResult = new WVPResult<>();
 			if (code == InviteErrorCode.SUCCESS.getCode()) {
 				wvpResult.setCode(ErrorCode.SUCCESS.getCode());
@@ -136,8 +133,8 @@ public class PlayController {
 						}
 						streamInfo.channgeStreamIp(host);
 					}
-					if (!ObjectUtils.isEmpty(newMediaServerItem.getTranscodeSuffix()) && !"null".equalsIgnoreCase(newMediaServerItem.getTranscodeSuffix())) {
-						streamInfo.setStream(streamInfo.getStream() + "_" + newMediaServerItem.getTranscodeSuffix());
+					if (!ObjectUtils.isEmpty(streamInfo.getMediaServer().getTranscodeSuffix()) && !"null".equalsIgnoreCase(streamInfo.getMediaServer().getTranscodeSuffix())) {
+						streamInfo.setStream(streamInfo.getStream() + "_" + streamInfo.getMediaServer().getTranscodeSuffix());
 					}
 					wvpResult.setData(new StreamContent(streamInfo));
 				}else {
@@ -151,7 +148,13 @@ public class PlayController {
 			requestMessage.setData(wvpResult);
 			// 此处必须释放所有请求
 			resultHolder.invokeAllResult(requestMessage);
-		});
+		};
+		// 判断设备是否属于当前平台, 如果不属于则发起自动调用
+		if (userSetting.getServerId().equals(device.getServerId())) {
+			playRpcService.play(device.getServerId(), channel.getId(), callback);
+		}else {
+			playService.play(device, channel, callback);
+		}
 		return result;
 	}
 

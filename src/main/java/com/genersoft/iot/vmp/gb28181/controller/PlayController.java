@@ -10,7 +10,10 @@ import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
-import com.genersoft.iot.vmp.gb28181.service.*;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
+import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
@@ -18,6 +21,7 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
+import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -63,7 +67,7 @@ public class PlayController {
 	private IPlayService playService;
 
 	@Autowired
-	private IGbChannelRpcPlayService playRpcService;
+	private IRedisRpcPlayService redisRpcPlayService;
 
 	@Autowired
 	private IMediaServerService mediaServerService;
@@ -151,7 +155,7 @@ public class PlayController {
 		};
 		// 判断设备是否属于当前平台, 如果不属于则发起自动调用
 		if (userSetting.getServerId().equals(device.getServerId())) {
-			playRpcService.play(device.getServerId(), channel.getId(), callback);
+			redisRpcPlayService.play(device.getServerId(), channel.getId(), callback);
 		}else {
 			playService.play(device, channel, callback);
 		}

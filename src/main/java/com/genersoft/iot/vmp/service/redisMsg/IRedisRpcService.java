@@ -23,4 +23,5 @@ public interface IRedisRpcService {
 
     long onStreamOnlineEvent(String app, String stream, CommonCallback<StreamInfo> callback);
     void unPushStreamOnlineEvent(String app, String stream);
+
 }

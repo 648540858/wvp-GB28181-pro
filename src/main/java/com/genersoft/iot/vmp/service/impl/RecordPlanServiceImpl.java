@@ -262,11 +262,7 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
             channelMapper.addRecordPlan(channelIds, planId);
         }
         // 查看当前的待录制列表是否变化,如果变化,则调用录制计划马上开始录制
-        List<Integer> currentChannelRecord = queryCurrentChannelRecord();
-        recordStreamMap.keySet().forEach(currentChannelRecord::remove);
-        if (!currentChannelRecord.isEmpty()) {
-            execution();
-        }
+        execution();
     }
 
     @Override

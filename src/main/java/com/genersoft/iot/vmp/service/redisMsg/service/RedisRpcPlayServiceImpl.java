@@ -119,5 +119,23 @@ public class RedisRpcPlayServiceImpl implements IRedisRpcPlayService {
             }
         }
     }
+
+    @Override
+    public void stop(String serverId, InviteSessionType type, int channelId, String stream) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("channelId", channelId);
+        jsonObject.put("stream", stream);
+        jsonObject.put("inviteSessionType", type);
+        RedisRpcRequest request = buildRequest("channel/stop", jsonObject.toJSONString());
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, 50);
+        if (response == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg());
+        }else {
+            if (response.getStatusCode() != Response.OK) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg());
+            }
+        }
+    }
 }
 

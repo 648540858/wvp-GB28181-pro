@@ -98,4 +98,9 @@ public class StreamPushPlayServiceImpl implements IStreamPushPlayService {
             }
         });
     }
+
+    @Override
+    public void stop(Integer streamPushId) {
+        // 推流无需主动停止
+    }
 }

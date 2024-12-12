@@ -68,9 +68,12 @@ public interface IPlayService {
 
     void play(CommonGBChannel channel, ErrorCallback<StreamInfo> callback);
 
+    void stop(InviteSessionType inviteSessionType, CommonGBChannel channel, String stream);
+
     void playBack(CommonGBChannel channel, Long startTime, Long stopTime, ErrorCallback<StreamInfo> callback);
 
     void download(CommonGBChannel channel, Long startTime, Long stopTime, Integer downloadSpeed, ErrorCallback<StreamInfo> callback);
+
 
 
 }

@@ -44,7 +44,7 @@ public class RedisRpcPlayServiceImpl implements IRedisRpcPlayService {
     public void play(String serverId, Integer channelId, ErrorCallback<StreamInfo> callback) {
         RedisRpcRequest request = buildRequest("channel/play", channelId);
         request.setToId(serverId);
-        RedisRpcResponse response = redisRpcConfig.request(request, userSetting.getPlayTimeout(), TimeUnit.MICROSECONDS);
+        RedisRpcResponse response = redisRpcConfig.request(request, userSetting.getPlayTimeout(), TimeUnit.MILLISECONDS);
         if (response == null) {
             callback.run(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg(), null);
         }else {

@@ -96,10 +96,10 @@ public class RedisRpcConfig implements MessageListener {
                         } else if (redisRpcMessage.getResponse() != null){
                             handlerResponse(redisRpcMessage.getResponse());
                         } else {
-                            log.error("[redis rpc 解析失败] {}", JSON.toJSONString(redisRpcMessage));
+                            log.error("[redis-rpc]解析失败 {}", JSON.toJSONString(redisRpcMessage));
                         }
                     } catch (Exception e) {
-                        log.error("[redis rpc 解析异常] {}",new String(msg.getBody()), e);
+                        log.error("[redis-rpc]解析异常 {}",new String(msg.getBody()), e);
                     }
                 }
             });
@@ -146,7 +146,7 @@ public class RedisRpcConfig implements MessageListener {
                 }
             }
         }catch (InvocationTargetException | IllegalAccessException e) {
-            log.error("[redis rpc ] 处理请求失败 ", e);
+            log.error("[redis-rpc ] 处理请求失败 ", e);
         }
 
     }

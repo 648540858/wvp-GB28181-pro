@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.jt1078.util;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -11,6 +12,12 @@ import java.util.List;
 
 @Slf4j
 public class ClassUtil {
+
+    public static ConfigurableApplicationContext context;
+
+    public static <T>  T  getBean(String beanName, Class<T> clazz) {
+        return context.getBean(beanName, clazz);
+    }
 
     public static Object getBean(Class<?> clazz) {
         if (clazz != null) {

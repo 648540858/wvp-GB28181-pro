@@ -74,5 +74,50 @@ public class RedisRpcPlayServiceImpl implements IRedisRpcPlayService {
             }
         }
     }
+
+    @Override
+    public void playback(String serverId, Integer channelId, String startTime, String endTime, ErrorCallback<StreamInfo> callback) {
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("channelId", channelId);
+        jsonObject.put("startTime", startTime);
+        jsonObject.put("endTime", endTime);
+        RedisRpcRequest request = buildRequest("channel/playback", jsonObject.toString());
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, userSetting.getPlayTimeout(), TimeUnit.MILLISECONDS);
+        if (response == null) {
+            callback.run(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg(), null);
+        }else {
+            if (response.getStatusCode() == Response.OK) {
+                StreamInfo streamInfo = JSON.parseObject(response.getBody().toString(), StreamInfo.class);
+                callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
+            }else {
+                callback.run(response.getStatusCode(), response.getBody().toString(), null);
+            }
+        }
+    }
+
+    @Override
+    public void download(String serverId, Integer channelId, String startTime, String endTime, int downloadSpeed, ErrorCallback<StreamInfo> callback) {
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("channelId", channelId);
+        jsonObject.put("startTime", startTime);
+        jsonObject.put("endTime", endTime);
+        jsonObject.put("downloadSpeed", downloadSpeed);
+        RedisRpcRequest request = buildRequest("channel/download", jsonObject.toString());
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, userSetting.getPlayTimeout(), TimeUnit.MILLISECONDS);
+        if (response == null) {
+            callback.run(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg(), null);
+        }else {
+            if (response.getStatusCode() == Response.OK) {
+                StreamInfo streamInfo = JSON.parseObject(response.getBody().toString(), StreamInfo.class);
+                callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
+            }else {
+                callback.run(response.getStatusCode(), response.getBody().toString(), null);
+            }
+        }
+    }
 }
 

@@ -295,14 +295,14 @@ public class PlayServiceImpl implements IPlayService {
         // 判断设备是否属于当前平台, 如果不属于则发起自动调用
         if (!userSetting.getServerId().equals(device.getServerId())) {
             redisRpcPlayService.play(device.getServerId(), channel.getId(), callback);
-        }else {
-            MediaServer mediaServerItem = getNewMediaServerItem(device);
-            if (mediaServerItem == null) {
-                log.warn("[点播] 未找到可用的zlm deviceId: {},channelId:{}", device.getDeviceId(), channel.getDeviceId());
-                throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的zlm");
-            }
-            play(mediaServerItem, device, channel, null, callback);
+            return;
         }
+        MediaServer mediaServerItem = getNewMediaServerItem(device);
+        if (mediaServerItem == null) {
+            log.warn("[点播] 未找到可用的zlm deviceId: {},channelId:{}", device.getDeviceId(), channel.getDeviceId());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的zlm");
+        }
+        play(mediaServerItem, device, channel, null, callback);
     }
 
     @Override
@@ -746,6 +746,11 @@ public class PlayServiceImpl implements IPlayService {
         if (channel == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "通道不存在");
         }
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            redisRpcPlayService.playback(device.getServerId(), channel.getId(), startTime, endTime, callback);
+            return;
+        }
+
         MediaServer newMediaServerItem = getNewMediaServerItem(device);
         if (newMediaServerItem == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的节点");
@@ -953,6 +958,11 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void download(Device device, DeviceChannel channel, String startTime, String endTime, int downloadSpeed, ErrorCallback<StreamInfo> callback) {
+
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            redisRpcPlayService.download(device.getServerId(), channel.getId(), startTime, endTime, downloadSpeed, callback);
+            return;
+        }
 
         MediaServer newMediaServerItem = this.getNewMediaServerItem(device);
         if (newMediaServerItem == null) {

@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.gb28181.service.impl;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.InviteInfo;
+import com.genersoft.iot.vmp.gb28181.bean.InviteMessageInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.PlayException;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
@@ -33,7 +33,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
 
 
     @Override
-    public void start(CommonGBChannel channel, InviteInfo inviteInfo, Platform platform, ErrorCallback<StreamInfo> callback) {
+    public void start(CommonGBChannel channel, InviteMessageInfo inviteInfo, Platform platform, ErrorCallback<StreamInfo> callback) {
         if (channel == null || inviteInfo == null || callback == null) {
             log.warn("[通用通道点播] 参数异常, channel: {}, inviteInfo: {}, callback: {}", channel != null, inviteInfo != null, callback != null);
             throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");

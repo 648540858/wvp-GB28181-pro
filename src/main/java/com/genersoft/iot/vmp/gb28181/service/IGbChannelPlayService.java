@@ -3,13 +3,13 @@ package com.genersoft.iot.vmp.gb28181.service;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.InviteInfo;
+import com.genersoft.iot.vmp.gb28181.bean.InviteMessageInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 
 public interface IGbChannelPlayService {
 
-    void start(CommonGBChannel channel, InviteInfo inviteInfo, Platform platform, ErrorCallback<StreamInfo> callback);
+    void start(CommonGBChannel channel, InviteMessageInfo inviteInfo, Platform platform, ErrorCallback<StreamInfo> callback);
 
     void stopPlay(InviteSessionType type, CommonGBChannel channel, String stream);
 

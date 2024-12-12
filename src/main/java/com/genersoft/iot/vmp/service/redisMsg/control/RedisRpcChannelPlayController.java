@@ -28,23 +28,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 import javax.sip.message.Response;
 
 @Slf4j
-@RedisRpcController("chanel")
+@RedisRpcController("channel")
 public class RedisRpcChannelPlayController {
 
     @Autowired
-    private SSRCFactory ssrcFactory;
-
-    @Autowired
-    private IMediaServerService mediaServerService;
-
-    @Autowired
-    private ISendRtpServerService sendRtpServerService;
-
-    @Autowired
     private UserSetting userSetting;
-
-    @Autowired
-    private HookSubscribe hookSubscribe;
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;

@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.service.redisMsg.control;
 
+import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.redis.RedisRpcConfig;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcMessage;
@@ -77,6 +79,44 @@ public class RedisRpcChannelPlayController extends RpcController {
             sendResponse(response);
         });
         return null;
+    }
+
+
+    /**
+     * 停止点播国标设备
+     */
+    @RedisRpcMapping("stop")
+    public RedisRpcResponse stop(RedisRpcRequest request) {
+        System.out.println(request.getParam().toString());
+        JSONObject jsonObject = JSONObject.parseObject(request.getParam().toString());
+
+        RedisRpcResponse response = request.getResponse();
+
+        Integer channelId = jsonObject.getIntValue("channelId");
+        if (channelId == null || channelId <= 0) {
+            response.setStatusCode(Response.BAD_REQUEST);
+            response.setBody("param error");
+            return response;
+        }
+
+        String stream = jsonObject.getString("stream");
+        InviteSessionType type = jsonObject.getObject("inviteSessionType", InviteSessionType.class);
+
+        // 获取对应的设备和通道信息
+        CommonGBChannel channel = channelService.getOne(channelId);
+        if (channel == null) {
+            response.setStatusCode(Response.BAD_REQUEST);
+            response.setBody("param error");
+            return response;
+        }
+        try {
+            channelPlayService.stopPlay(type, channel, stream);
+            response.setStatusCode(Response.OK);
+        }catch (Exception e){
+            response.setStatusCode(Response.SERVER_INTERNAL_ERROR);
+            response.setBody(e.getMessage());
+        }
+        return response;
     }
 
 }

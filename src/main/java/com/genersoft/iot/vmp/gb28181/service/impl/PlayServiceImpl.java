@@ -1606,29 +1606,33 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void stop(InviteSessionType type, Device device, DeviceChannel channel, String stream) {
-        InviteInfo inviteInfo = inviteStreamService.getInviteInfo(type, channel.getId(), stream);
-        if (inviteInfo == null) {
-            if (type == InviteSessionType.PLAY) {
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            redisRpcPlayService.stop(device.getServerId(), type,  channel.getId(), stream);
+        }else {
+            InviteInfo inviteInfo = inviteStreamService.getInviteInfo(type, channel.getId(), stream);
+            if (inviteInfo == null) {
+                if (type == InviteSessionType.PLAY) {
+                    deviceChannelService.stopPlay(channel.getId());
+                }
+                return;
+            }
+            inviteStreamService.removeInviteInfo(inviteInfo);
+            if (InviteSessionStatus.ok == inviteInfo.getStatus()) {
+                try {
+                    log.info("[停止点播/回放/下载] {}/{}", device.getDeviceId(), channel.getDeviceId());
+                    cmder.streamByeCmd(device, channel.getDeviceId(), inviteInfo.getStream(), null, null);
+                } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
+                    log.error("[命令发送失败] 停止点播/回放/下载， 发送BYE: {}", e.getMessage());
+                    throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+                }
+            }
+
+            if (inviteInfo.getType() == InviteSessionType.PLAY) {
                 deviceChannelService.stopPlay(channel.getId());
             }
-            return;
-        }
-        inviteStreamService.removeInviteInfo(inviteInfo);
-        if (InviteSessionStatus.ok == inviteInfo.getStatus()) {
-            try {
-                log.info("[停止点播/回放/下载] {}/{}", device.getDeviceId(), channel.getDeviceId());
-                cmder.streamByeCmd(device, channel.getDeviceId(), inviteInfo.getStream(), null, null);
-            } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
-                log.error("[命令发送失败] 停止点播/回放/下载， 发送BYE: {}", e.getMessage());
-                throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+            if (inviteInfo.getStreamInfo() != null) {
+                receiveRtpServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServer(), inviteInfo.getSsrcInfo());
             }
-        }
-
-        if (inviteInfo.getType() == InviteSessionType.PLAY) {
-            deviceChannelService.stopPlay(channel.getId());
-        }
-        if (inviteInfo.getStreamInfo() != null) {
-            receiveRtpServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServer(), inviteInfo.getSsrcInfo());
         }
     }
 
@@ -1672,6 +1676,17 @@ public class PlayServiceImpl implements IPlayService {
         }
         DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
         play(device, deviceChannel, callback);
+    }
+
+    @Override
+    public void stop(InviteSessionType inviteSessionType, CommonGBChannel channel, String stream) {
+        Device device = deviceService.getDevice(channel.getGbDeviceDbId());
+        if (device == null) {
+            log.warn("[停止播放] 未找到通道{}的设备信息", channel);
+            throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
+        }
+        DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
+        stop(InviteSessionType.PLAY, device, deviceChannel, stream);
     }
 
     @Override

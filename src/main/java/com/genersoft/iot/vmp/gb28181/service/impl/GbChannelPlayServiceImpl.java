@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
+import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.InviteInfo;
@@ -89,6 +90,24 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
     }
 
     @Override
+    public void stopPlay(InviteSessionType type, CommonGBChannel channel, String stream) {
+        if (channel.getGbDeviceDbId() != null) {
+            // 国标通道
+            stopPlayDeviceChannel(channel, stream);
+        } else if (channel.getStreamProxyId() != null) {
+            // 拉流代理
+            stopPlayProxy(channel);
+        } else if (channel.getStreamPushId() != null) {
+            // 推流
+            stopPlayPush(channel);
+        } else {
+            // 通道数据异常
+            log.error("[点播通用通道] 通道数据异常，无法识别通道来源： {}({})", channel.getGbName(), channel.getGbDeviceId());
+            throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
+        }
+    }
+
+    @Override
     public void play(CommonGBChannel channel, Platform platform, ErrorCallback<StreamInfo> callback) {
         if (channel.getGbDeviceDbId() != null) {
             // 国标通道
@@ -125,6 +144,18 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
     }
 
     @Override
+    public void stopPlayDeviceChannel(CommonGBChannel channel, String stream) {
+        // 国标通道
+        try {
+            deviceChannelPlayService.stop(InviteSessionType.PLAY, channel, stream);
+        }  catch (Exception e) {
+            log.error("[停止点播失败] {}({})", channel.getGbName(), channel.getGbDeviceId(), e);
+        }
+    }
+
+
+
+    @Override
     public void playProxy(CommonGBChannel channel, ErrorCallback<StreamInfo> callback){
         // 拉流代理通道
         try {
@@ -140,6 +171,16 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
     }
 
     @Override
+    public void stopPlayProxy(CommonGBChannel channel) {
+        // 拉流代理通道
+        try {
+            streamProxyPlayService.stop(channel.getStreamProxyId());
+        }catch (Exception e) {
+            log.error("[停止点播失败] {}({})", channel.getGbName(), channel.getGbDeviceId(), e);
+        }
+    }
+
+    @Override
     public void playPush(CommonGBChannel channel, String platformDeviceId, String platformName, ErrorCallback<StreamInfo> callback){
         // 推流
         try {
@@ -149,6 +190,16 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
         }catch (Exception e) {
             log.error("[点播推流通道失败] 通道： {}({})", channel.getGbName(), channel.getGbDeviceId(), e);
             callback.run(Response.BUSY_HERE, "busy here", null);
+        }
+    }
+
+    @Override
+    public void stopPlayPush(CommonGBChannel channel) {
+        // 推流
+        try {
+            streamPushPlayService.stop(channel.getStreamPushId());
+        }catch (Exception e) {
+            log.error("[停止点播失败] {}({})", channel.getGbName(), channel.getGbDeviceId(), e);
         }
     }
 

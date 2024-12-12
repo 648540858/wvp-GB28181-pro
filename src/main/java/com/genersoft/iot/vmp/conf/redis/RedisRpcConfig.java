@@ -17,6 +17,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
+import javax.sip.message.Response;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -128,7 +129,7 @@ public class RedisRpcConfig implements MessageListener {
                 if (method == null) {
                     // 回复404结果
                     RedisRpcResponse response = request.getResponse();
-                    response.setStatusCode(404);
+                    response.setStatusCode(Response.NOT_FOUND);
                     sendResponse(response);
                     return;
                 }

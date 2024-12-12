@@ -209,7 +209,7 @@ create table wvp_media_server
     record_day          integer               default 7,
     transcode_suffix    character varying(255),
     server_id           character varying(50),
-    constraint uk_media_server_unique_ip_http_port unique (ip, http_port)
+    constraint uk_media_server_unique_ip_http_port unique (ip, http_port, server_id)
 );
 
 create table wvp_platform

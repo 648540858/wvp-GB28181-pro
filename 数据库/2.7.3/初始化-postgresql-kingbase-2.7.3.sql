@@ -34,6 +34,7 @@ create table wvp_device
     as_message_channel                  bool    default false,
     keepalive_interval_time             integer,
     broadcast_push_after_ack            bool    default false,
+    server_id                           character varying(50),
     constraint uk_device_device unique (device_id)
 );
 

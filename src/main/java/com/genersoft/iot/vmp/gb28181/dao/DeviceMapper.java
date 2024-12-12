@@ -365,6 +365,7 @@ public interface DeviceMapper {
             "geo_coord_sys,"+
             "on_line,"+
             "media_server_id,"+
+            "server_id,"+
             "(SELECT count(0) FROM wvp_device_channel dc WHERE dc.device_db_id= de.id) as channel_count " +
             " FROM wvp_device de" +
             " where 1 = 1 "+

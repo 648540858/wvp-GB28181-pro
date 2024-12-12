@@ -31,6 +31,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.service.IReceiveRtpServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.*;
+import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.CloudRecordUtils;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -122,6 +123,9 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private ICloudRecordService cloudRecordService;
+
+    @Autowired
+    private IRedisRpcPlayService redisRpcPlayService;
 
     /**
      * 流到来的处理
@@ -287,12 +291,18 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void play(Device device, DeviceChannel channel, ErrorCallback<StreamInfo> callback) {
-        MediaServer mediaServerItem = getNewMediaServerItem(device);
-        if (mediaServerItem == null) {
-            log.warn("[点播] 未找到可用的zlm deviceId: {},channelId:{}", device.getDeviceId(), channel.getDeviceId());
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的zlm");
+
+        // 判断设备是否属于当前平台, 如果不属于则发起自动调用
+        if (userSetting.getServerId().equals(device.getServerId())) {
+            redisRpcPlayService.play(device.getServerId(), channel.getId(), callback);
+        }else {
+            MediaServer mediaServerItem = getNewMediaServerItem(device);
+            if (mediaServerItem == null) {
+                log.warn("[点播] 未找到可用的zlm deviceId: {},channelId:{}", device.getDeviceId(), channel.getDeviceId());
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的zlm");
+            }
+            play(mediaServerItem, device, channel, null, callback);
         }
-        play(mediaServerItem, device, channel, null, callback);
     }
 
     @Override
@@ -1660,13 +1670,8 @@ public class PlayServiceImpl implements IPlayService {
             log.warn("[点播] 未找到通道{}的设备信息", channel);
             throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
         }
-        MediaServer mediaServer = getNewMediaServerItem(device);
-        if (mediaServer == null) {
-            log.warn("[点播] 未找到可用媒体节点");
-            throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
-        }
         DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
-        play(mediaServer, device, deviceChannel, null, callback);
+        play(device, deviceChannel, callback);
     }
 
     @Override

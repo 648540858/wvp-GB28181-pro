@@ -21,7 +21,6 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
-import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -65,9 +64,6 @@ public class PlayController {
 
 	@Autowired
 	private IPlayService playService;
-
-	@Autowired
-	private IRedisRpcPlayService redisRpcPlayService;
 
 	@Autowired
 	private IMediaServerService mediaServerService;
@@ -153,12 +149,7 @@ public class PlayController {
 			// 此处必须释放所有请求
 			resultHolder.invokeAllResult(requestMessage);
 		};
-		// 判断设备是否属于当前平台, 如果不属于则发起自动调用
-		if (userSetting.getServerId().equals(device.getServerId())) {
-			redisRpcPlayService.play(device.getServerId(), channel.getId(), callback);
-		}else {
-			playService.play(device, channel, callback);
-		}
+		playService.play(device, channel, callback);
 		return result;
 	}
 

@@ -15,7 +15,7 @@
         </el-select>
         <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="add">添加设备
         </el-button>
-        <el-button icon="el-icon-info" size="mini" style="margin-right: 1rem;" type="primary" @click="showInfo">平台信息
+        <el-button icon="el-icon-info" size="mini" style="margin-right: 1rem;" type="primary" @click="showInfo(true)">平台信息
         </el-button>
         <el-button icon="el-icon-refresh-right" circle size="mini" :loading="getDeviceListLoading"
                    @click="getDeviceList()"></el-button>
@@ -53,7 +53,8 @@
       <el-table-column label="状态" min-width="120">
         <template v-slot:default="scope">
           <div slot="reference" class="name-wrapper">
-            <el-tag size="medium" v-if="scope.row.onLine">在线</el-tag>
+            <el-tag size="medium" v-if="scope.row.onLine && serverId !== scope.row.serverId" style="border-color: #ecf1af">在线</el-tag>
+            <el-tag size="medium" v-if="scope.row.onLine && serverId === scope.row.serverId">在线</el-tag>
             <el-tag size="medium" type="info" v-if="!scope.row.onLine">离线</el-tag>
           </div>
         </template>
@@ -62,11 +63,6 @@
       </el-table-column>
       <el-table-column prop="registerTime" label="最近注册"  min-width="160">
       </el-table-column>
-<!--      <el-table-column prop="updateTime" label="更新时间"  width="140">-->
-<!--      </el-table-column>-->
-<!--      <el-table-column prop="createTime" label="创建时间"  width="140">-->
-<!--      </el-table-column>-->
-
       <el-table-column label="操作" min-width="380" fixed="right">
         <template v-slot:default="scope">
           <el-button type="text" size="medium" v-bind:disabled="scope.row.online==0" icon="el-icon-refresh" @click="refDevice(scope.row)"
@@ -133,11 +129,12 @@ export default {
       online: null,
       videoComponentList: [],
       updateLooper: 0, //数据刷新轮训标志
-      currentDeviceChannelsLenth: 0,
+      currentDeviceChannelsLength: 0,
       winHeight: window.innerHeight - 200,
       currentPage: 1,
       count: 15,
       total: 0,
+      serverId: null,
       getDeviceListLoading: false,
     };
   },
@@ -149,7 +146,7 @@ export default {
         channels = Object.keys(data).map(key => {
           return data[key];
         });
-        this.currentDeviceChannelsLenth = channels.length;
+        this.currentDeviceChannelsLength = channels.length;
       }
       return channels;
     }
@@ -164,6 +161,8 @@ export default {
   },
   methods: {
     initData: function () {
+      // 获取平台信息
+      this.showInfo(false)
       this.getDeviceList();
     },
     currentChange: function (val) {
@@ -326,17 +325,18 @@ export default {
 
       })
     },
-    showInfo: function (){
+    showInfo: function (showConfigInfo){
 
       this.$axios({
         method: 'get',
         url: `/api/server/system/configInfo`,
       }).then( (res)=> {
-        console.log(res)
         if (res.data.code === 0) {
-          console.log(2222)
-          console.log(this.$refs.configInfo)
-          this.$refs.configInfo.openDialog(res.data.data)
+          this.serverId = res.data.data.addOn.serverId;
+          console.log(this.serverId);
+          if(showConfigInfo) {
+            this.$refs.configInfo.openDialog(res.data.data)
+          }
         }
       }).catch( (error)=> {
       });

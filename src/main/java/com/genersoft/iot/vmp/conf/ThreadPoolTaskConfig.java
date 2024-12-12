@@ -28,11 +28,11 @@ public class ThreadPoolTaskConfig {
     /**
      * 核心线程数（默认线程数）
      */
-    private static final int corePoolSize = cpuNum;
+    private static final int corePoolSize = Math.max(cpuNum * 2, 16);
     /**
      * 最大线程数
      */
-    private static final int maxPoolSize = cpuNum*2;
+    private static final int maxPoolSize = corePoolSize * 10;
     /**
      * 允许线程空闲时间（单位：默认为秒）
      */
@@ -45,12 +45,9 @@ public class ThreadPoolTaskConfig {
     /**
      * 线程池名前缀
      */
-    private static final String threadNamePrefix = "wvp-";
+    private static final String threadNamePrefix = "async-";
 
-    /**
-     *
-     * @return
-     */
+
     @Bean("taskExecutor") // bean的名称，默认为首字母小写的方法名
     public ThreadPoolTaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

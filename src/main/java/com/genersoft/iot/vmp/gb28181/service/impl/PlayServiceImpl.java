@@ -293,7 +293,7 @@ public class PlayServiceImpl implements IPlayService {
     public void play(Device device, DeviceChannel channel, ErrorCallback<StreamInfo> callback) {
 
         // 判断设备是否属于当前平台, 如果不属于则发起自动调用
-        if (userSetting.getServerId().equals(device.getServerId())) {
+        if (!userSetting.getServerId().equals(device.getServerId())) {
             redisRpcPlayService.play(device.getServerId(), channel.getId(), callback);
         }else {
             MediaServer mediaServerItem = getNewMediaServerItem(device);

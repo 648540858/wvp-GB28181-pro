@@ -10,4 +10,8 @@ public interface IRedisRpcPlayService {
     void play(String serverId, Integer channelId, ErrorCallback<StreamInfo> callback);
 
     void stop(String serverId, InviteSessionType type, int channelId, String stream);
+
+    void playback(String serverId, Integer channelId, String startTime, String endTime, ErrorCallback<StreamInfo> callback);
+
+    void download(String serverId, Integer id, String startTime, String endTime, int downloadSpeed, ErrorCallback<StreamInfo> callback);
 }

@@ -121,7 +121,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
         SIPRequest request = (SIPRequest)evt.getRequest();
         try {
-            InviteInfo inviteInfo = decode(evt);
+            InviteMessageInfo inviteInfo = decode(evt);
 
             // 查询请求是否来自上级平台\设备
             Platform platform = platformService.queryPlatformByServerGBId(inviteInfo.getRequesterId());
@@ -247,9 +247,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         }
     }
 
-    private InviteInfo decode(RequestEvent evt) throws SdpException {
+    private InviteMessageInfo decode(RequestEvent evt) throws SdpException {
 
-        InviteInfo inviteInfo = new InviteInfo();
+        InviteMessageInfo inviteInfo = new InviteMessageInfo();
         SIPRequest request = (SIPRequest)evt.getRequest();
         String[] channelIdArrayFromSub = SipUtils.getChannelIdFromRequest(request);
 
@@ -349,7 +349,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
     }
 
-    private String createSendSdp(SendRtpInfo sendRtpItem, InviteInfo inviteInfo, String sdpIp) {
+    private String createSendSdp(SendRtpInfo sendRtpItem, InviteMessageInfo inviteInfo, String sdpIp) {
         StringBuilder content = new StringBuilder(200);
         content.append("v=0\r\n");
         content.append("o=" + inviteInfo.getTargetChannelId() + " 0 0 IN IP4 " + sdpIp + "\r\n");
@@ -393,7 +393,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         }
     }
 
-    public void inviteFromDeviceHandle(SIPRequest request, InviteInfo inviteInfo) {
+    public void inviteFromDeviceHandle(SIPRequest request, InviteMessageInfo inviteInfo) {
 
         if (inviteInfo.getSourceChannelId() == null) {
             log.warn("来自设备的Invite请求，无法从请求信息中确定请求来自的通道，已忽略，requesterId： {}", inviteInfo.getRequesterId());

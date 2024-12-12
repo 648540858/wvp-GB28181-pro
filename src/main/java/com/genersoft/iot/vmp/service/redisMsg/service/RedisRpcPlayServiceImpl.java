@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.conf.redis.RedisRpcConfig;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
+import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.sip.message.Response;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -42,13 +44,13 @@ public class RedisRpcPlayServiceImpl implements IRedisRpcPlayService {
     public void play(String serverId, Integer channelId, ErrorCallback<StreamInfo> callback) {
         RedisRpcRequest request = buildRequest("channel/play", channelId);
         request.setToId(serverId);
-        RedisRpcResponse response = redisRpcConfig.request(request, userSetting.getPlayTimeout());
+        RedisRpcResponse response = redisRpcConfig.request(request, userSetting.getPlayTimeout(), TimeUnit.MICROSECONDS);
         if (response == null) {
             callback.run(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg(), null);
         }else {
             if (response.getStatusCode() == Response.OK) {
                 StreamInfo streamInfo = JSON.parseObject(response.getBody().toString(), StreamInfo.class);
-                callback.run(response.getStatusCode(), "success", streamInfo);
+                callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
             }else {
                 callback.run(response.getStatusCode(), response.getBody().toString(), null);
             }
@@ -63,7 +65,7 @@ public class RedisRpcPlayServiceImpl implements IRedisRpcPlayService {
         jsonObject.put("inviteSessionType", type);
         RedisRpcRequest request = buildRequest("channel/stop", jsonObject.toJSONString());
         request.setToId(serverId);
-        RedisRpcResponse response = redisRpcConfig.request(request, 50);
+        RedisRpcResponse response = redisRpcConfig.request(request, 50, TimeUnit.MICROSECONDS);
         if (response == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg());
         }else {

@@ -171,19 +171,25 @@ public class RedisRpcConfig implements MessageListener {
     private final Map<Long, SynchronousQueue<RedisRpcResponse>> topicSubscribers = new ConcurrentHashMap<>();
     private final Map<Long, CommonCallback<RedisRpcResponse>> callbacks = new ConcurrentHashMap<>();
 
-    public RedisRpcResponse request(RedisRpcRequest request, int timeOut) {
+    public RedisRpcResponse request(RedisRpcRequest request, long timeOut) {
+        return request(request, timeOut, TimeUnit.SECONDS);
+    }
+
+    public RedisRpcResponse request(RedisRpcRequest request, long timeOut, TimeUnit timeUnit) {
         request.setSn((long) random.nextInt(1000) + 1);
         SynchronousQueue<RedisRpcResponse> subscribe = subscribe(request.getSn());
 
         try {
             sendRequest(request);
-            return subscribe.poll(timeOut, TimeUnit.SECONDS);
+            return subscribe.poll(timeOut, timeUnit);
         } catch (InterruptedException e) {
             log.warn("[redis rpc timeout] uri: {}, sn: {}", request.getUri(), request.getSn(), e);
+            RedisRpcResponse redisRpcResponse = new RedisRpcResponse();
+            redisRpcResponse.setStatusCode(Response.BUSY_HERE);
+            return redisRpcResponse;
         } finally {
             this.unsubscribe(request.getSn());
         }
-        return null;
     }
 
     public void request(RedisRpcRequest request, CommonCallback<RedisRpcResponse> callback) {
@@ -233,6 +239,7 @@ public class RedisRpcConfig implements MessageListener {
     public int getCallbackCount(){
         return callbacks.size();
     }
+
 
 
 

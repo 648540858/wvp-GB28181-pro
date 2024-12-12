@@ -7,9 +7,7 @@ import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcClassHandler;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcMessage;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
-import com.genersoft.iot.vmp.jt1078.util.ClassUtil;
-import com.genersoft.iot.vmp.service.redisMsg.dto.RedisRpcController;
-import com.genersoft.iot.vmp.service.redisMsg.dto.RedisRpcMapping;
+import com.genersoft.iot.vmp.service.redisMsg.dto.RpcController;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,11 +17,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
@@ -53,34 +49,37 @@ public class RedisRpcConfig implements MessageListener {
 
     private final static Map<String, RedisRpcClassHandler> protocolHash = new HashMap<>();
 
-    // 启动时执行
-    @PostConstruct
-    public void init(){
-        List<Class<?>> classList = ClassUtil.getClassList("com.genersoft.iot.vmp.service.redisMsg.control", RedisRpcController.class);
-        for (Class<?> handlerClass : classList) {
-            String controllerPath = handlerClass.getAnnotation(RedisRpcController.class).value();
-            // 扫描其下的方法
-            Method[] methods = handlerClass.getDeclaredMethods();
-            for (Method method : methods) {
-                RedisRpcMapping annotation = method.getAnnotation(RedisRpcMapping.class);
-                if (annotation != null) {
-                    String methodPath =  annotation.value();
-                    if (methodPath != null) {
-                        protocolHash.put(controllerPath + "/" + methodPath, new RedisRpcClassHandler(handlerClass, method));
-                    }
-                }
-
-            }
-
-        }
-        for (String s : protocolHash.keySet()) {
-            System.out.println(s);
-        }
-        if (log.isDebugEnabled()) {
-            log.debug("消息ID缓存表 protocolHash:{}", protocolHash);
-        }
+    public void addHandler(String path, RedisRpcClassHandler handler) {
+        protocolHash.put(path, handler);
     }
 
+//    @Override
+//    public void run(String... args) throws Exception {
+//        List<Class<?>> classList = ClassUtil.getClassList("com.genersoft.iot.vmp.service.redisMsg.control", RedisRpcController.class);
+//        for (Class<?> handlerClass : classList) {
+//            String controllerPath = handlerClass.getAnnotation(RedisRpcController.class).value();
+//            Object bean = ClassUtil.getBean(controllerPath, handlerClass);
+//            // 扫描其下的方法
+//            Method[] methods = handlerClass.getDeclaredMethods();
+//            for (Method method : methods) {
+//                RedisRpcMapping annotation = method.getAnnotation(RedisRpcMapping.class);
+//                if (annotation != null) {
+//                    String methodPath =  annotation.value();
+//                    if (methodPath != null) {
+//                        protocolHash.put(controllerPath + "/" + methodPath, new RedisRpcClassHandler(bean, method));
+//                    }
+//                }
+//
+//            }
+//
+//        }
+//        for (String s : protocolHash.keySet()) {
+//            System.out.println(s);
+//        }
+//        if (log.isDebugEnabled()) {
+//            log.debug("消息ID缓存表 protocolHash:{}", protocolHash);
+//        }
+//    }
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
@@ -100,7 +99,7 @@ public class RedisRpcConfig implements MessageListener {
                             log.error("[redis rpc 解析失败] {}", JSON.toJSONString(redisRpcMessage));
                         }
                     } catch (Exception e) {
-                        log.error("[redis rpc 解析异常] ", e);
+                        log.error("[redis rpc 解析异常] {}",new String(msg.getBody()), e);
                     }
                 }
             });
@@ -122,7 +121,7 @@ public class RedisRpcConfig implements MessageListener {
             }
             log.info("[redis-rpc] << {}", request);
             RedisRpcClassHandler redisRpcClassHandler = protocolHash.get(request.getUri());
-            Class<?> objectClass = redisRpcClassHandler.getObjectClass();
+            RpcController controller = redisRpcClassHandler.getController();
             Method method = redisRpcClassHandler.getMethod();
             // 没有携带目标ID的可以理解为哪个wvp有结果就哪个回复，携带目标ID，但是如果是不存在的uri则直接回复404
             if (userSetting.getServerId().equals(request.getToId())) {
@@ -133,7 +132,7 @@ public class RedisRpcConfig implements MessageListener {
                     sendResponse(response);
                     return;
                 }
-                RedisRpcResponse response = (RedisRpcResponse)method.invoke(objectClass, request);
+                RedisRpcResponse response = (RedisRpcResponse)method.invoke(controller, request);
                 if(response != null) {
                     sendResponse(response);
                 }
@@ -141,7 +140,7 @@ public class RedisRpcConfig implements MessageListener {
                 if (method == null) {
                     return;
                 }
-                RedisRpcResponse response = (RedisRpcResponse)method.invoke(objectClass, request);
+                RedisRpcResponse response = (RedisRpcResponse)method.invoke(controller, request);
                 if (response != null) {
                     sendResponse(response);
                 }
@@ -233,6 +232,8 @@ public class RedisRpcConfig implements MessageListener {
     public int getCallbackCount(){
         return callbacks.size();
     }
+
+
 
 //    @Scheduled(fixedRate = 1000)   //每1秒执行一次
 //    public void execute(){

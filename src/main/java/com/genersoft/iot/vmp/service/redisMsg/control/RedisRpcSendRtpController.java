@@ -5,27 +5,26 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
-import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
-import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.redisMsg.dto.RedisRpcController;
 import com.genersoft.iot.vmp.service.redisMsg.dto.RedisRpcMapping;
+import com.genersoft.iot.vmp.service.redisMsg.dto.RpcController;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Component;
 
 import javax.sip.message.Response;
 
+@Component
 @Slf4j
 @RedisRpcController("sendRtp")
-public class RedisRpcSendRtpController {
+public class RedisRpcSendRtpController extends RpcController {
 
     @Autowired
     private SSRCFactory ssrcFactory;
@@ -39,17 +38,6 @@ public class RedisRpcSendRtpController {
     @Autowired
     private UserSetting userSetting;
 
-    @Autowired
-    private HookSubscribe hookSubscribe;
-
-    @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
-
-    @Autowired
-    private IGbChannelService channelService;
-
-    @Autowired
-    private IGbChannelPlayService channelPlayService;
 
     /**
      * 获取发流的信息

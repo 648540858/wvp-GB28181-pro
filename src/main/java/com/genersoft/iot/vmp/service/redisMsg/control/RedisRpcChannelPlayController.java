@@ -1,35 +1,28 @@
 package com.genersoft.iot.vmp.service.redisMsg.control;
 
-import com.alibaba.fastjson2.JSONObject;
-import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.redis.RedisRpcConfig;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcMessage;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
-import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
-import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.media.event.hook.Hook;
-import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
-import com.genersoft.iot.vmp.media.event.hook.HookType;
-import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.redisMsg.dto.RedisRpcController;
 import com.genersoft.iot.vmp.service.redisMsg.dto.RedisRpcMapping;
+import com.genersoft.iot.vmp.service.redisMsg.dto.RpcController;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Component;
 
 import javax.sip.message.Response;
 
+@Component
 @Slf4j
 @RedisRpcController("channel")
-public class RedisRpcChannelPlayController {
+public class RedisRpcChannelPlayController extends RpcController {
 
     @Autowired
     private UserSetting userSetting;

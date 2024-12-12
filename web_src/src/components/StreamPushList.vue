@@ -33,9 +33,9 @@
                download='推流通道导入.zip'>下载模板</a>
           </el-button>
           <el-button icon="el-icon-delete" size="mini" style="margin-right: 1rem;"
-                     :disabled="multipleSelection.length === 0" type="danger" @click="batchDel">批量移除
+                     :disabled="multipleSelection.length === 0" type="danger" @click="batchDel">移除
           </el-button>
-          <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addStream">添加通道
+          <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addStream">添加
           </el-button>
           <el-button icon="el-icon-refresh-right" circle size="mini" @click="refresh()"></el-button>
         </div>

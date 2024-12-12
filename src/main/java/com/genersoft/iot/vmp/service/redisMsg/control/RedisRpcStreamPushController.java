@@ -8,8 +8,6 @@ import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcMessage;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
-import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
-import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
@@ -19,13 +17,16 @@ import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.redisMsg.dto.RedisRpcController;
 import com.genersoft.iot.vmp.service.redisMsg.dto.RedisRpcMapping;
+import com.genersoft.iot.vmp.service.redisMsg.dto.RpcController;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Component;
 
+@Component
 @Slf4j
 @RedisRpcController("streamPush")
-public class RedisRpcStreamPushController {
+public class RedisRpcStreamPushController extends RpcController {
 
     @Autowired
     private SSRCFactory ssrcFactory;
@@ -45,11 +46,6 @@ public class RedisRpcStreamPushController {
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
 
-    @Autowired
-    private IGbChannelService channelService;
-
-    @Autowired
-    private IGbChannelPlayService channelPlayService;
 
     private void sendResponse(RedisRpcResponse response){
         log.info("[redis-rpc] >> {}", response);

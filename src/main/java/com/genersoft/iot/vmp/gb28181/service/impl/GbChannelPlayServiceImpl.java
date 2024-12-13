@@ -150,8 +150,6 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
         }
     }
 
-
-
     @Override
     public void playProxy(CommonGBChannel channel, ErrorCallback<StreamInfo> callback){
         // 拉流代理通道

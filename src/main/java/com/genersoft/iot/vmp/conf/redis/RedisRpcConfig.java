@@ -123,6 +123,10 @@ public class RedisRpcConfig implements MessageListener {
             }
             log.info("[redis-rpc] << {}", request);
             RedisRpcClassHandler redisRpcClassHandler = protocolHash.get(request.getUri());
+            if (redisRpcClassHandler == null) {
+                log.error("[redis-rpc] 路径: {}不存在", request.getUri());
+                return;
+            }
             RpcController controller = redisRpcClassHandler.getController();
             Method method = redisRpcClassHandler.getMethod();
             // 没有携带目标ID的可以理解为哪个wvp有结果就哪个回复，携带目标ID，但是如果是不存在的uri则直接回复404

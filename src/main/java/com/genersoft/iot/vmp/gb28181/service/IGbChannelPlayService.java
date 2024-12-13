@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.InviteMessageInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
+import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 
 public interface IGbChannelPlayService {
@@ -24,7 +25,6 @@ public interface IGbChannelPlayService {
     void stopPlayProxy(CommonGBChannel channel);
 
     void playPush(CommonGBChannel channel, String platformDeviceId, String platformName, ErrorCallback<StreamInfo> callback);
-
 
     void  stopPlayPush(CommonGBChannel channel);
 }

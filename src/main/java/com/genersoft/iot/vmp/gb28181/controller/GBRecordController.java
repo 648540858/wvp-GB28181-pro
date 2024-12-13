@@ -36,6 +36,7 @@ import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Tag(name  = "国标录像")
 @Slf4j
@@ -72,7 +73,7 @@ public class GBRecordController {
 		if (log.isDebugEnabled()) {
 			log.debug(String.format("录像信息查询 API调用，deviceId：%s ，startTime：%s， endTime：%s",deviceId, startTime, endTime));
 		}
-		DeferredResult<WVPResult<RecordInfo>> result = new DeferredResult<>();
+		DeferredResult<WVPResult<RecordInfo>> result = new DeferredResult<>(Long.valueOf(userSetting.getRecordInfoTimeout()), TimeUnit.MILLISECONDS);
 		if (!DateUtil.verification(startTime, DateUtil.formatter)){
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "startTime格式为" + DateUtil.PATTERN);
 		}
@@ -81,35 +82,24 @@ public class GBRecordController {
 		}
 
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		// 指定超时时间 1分钟30秒
-		String uuid = UUID.randomUUID().toString();
-		int sn  =  (int)((Math.random()*9+1)*100000);
-		String key = DeferredResultHolder.CALLBACK_CMD_RECORDINFO + deviceId + sn;
-		RequestMessage msg = new RequestMessage();
-		msg.setId(uuid);
-		msg.setKey(key);
-		try {
-			cmder.recordInfoQuery(device, channelId, startTime, endTime, sn, null, null, null, (eventResult -> {
-				WVPResult<RecordInfo> wvpResult = new WVPResult<>();
-				wvpResult.setCode(ErrorCode.ERROR100.getCode());
-				wvpResult.setMsg("查询录像失败, status: " +  eventResult.statusCode + ", message: " + eventResult.msg);
-				msg.setData(wvpResult);
-				resultHolder.invokeResult(msg);
-			}));
-		} catch (InvalidArgumentException | SipException | ParseException e) {
-			log.error("[命令发送失败] 查询录像: {}", e.getMessage());
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " +  e.getMessage());
+		if (device == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), deviceId + " 不存在");
 		}
-
-		// 录像查询以channelId作为deviceId查询
-		resultHolder.put(key, uuid, result);
+		DeviceChannel channel = channelService.getOneForSource(device.getId(), channelId);
+		if (channel == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), channelId + " 不存在");
+		}
+		channelService.queryRecordInfo(device, channel, startTime, endTime, (code, msg, data)->{
+			WVPResult<RecordInfo> wvpResult = new WVPResult<>();
+			wvpResult.setCode(code);
+			wvpResult.setMsg(msg);
+			result.setResult(wvpResult);
+		});
 		result.onTimeout(()->{
-			msg.setData("timeout");
 			WVPResult<RecordInfo> wvpResult = new WVPResult<>();
 			wvpResult.setCode(ErrorCode.ERROR100.getCode());
 			wvpResult.setMsg("timeout");
-			msg.setData(wvpResult);
-			resultHolder.invokeResult(msg);
+			result.setResult(wvpResult);
 		});
         return result;
 	}

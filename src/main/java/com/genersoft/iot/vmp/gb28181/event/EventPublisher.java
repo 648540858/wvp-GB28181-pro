@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.gb28181.event;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.alarm.AlarmEvent;
 import com.genersoft.iot.vmp.gb28181.event.device.RequestTimeoutEvent;
-import com.genersoft.iot.vmp.gb28181.event.record.RecordEndEvent;
+import com.genersoft.iot.vmp.gb28181.event.record.RecordInfoEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.mobilePosition.MobilePositionEvent;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -101,9 +101,5 @@ public class EventPublisher {
 		applicationEventPublisher.publishEvent(event);
 	}
 
-	public void recordEndEventPush(RecordInfo recordInfo) {
-		RecordEndEvent outEvent = new RecordEndEvent(this);
-		outEvent.setRecordInfo(recordInfo);
-		applicationEventPublisher.publishEvent(outEvent);
-	}
+
 }

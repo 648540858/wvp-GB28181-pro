@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.redis.RedisRpcConfig;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
+import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
@@ -48,7 +49,7 @@ public class RedisRpcPlayServiceImpl implements IRedisRpcPlayService {
         if (response == null) {
             callback.run(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg(), null);
         }else {
-            if (response.getStatusCode() == Response.OK) {
+            if (response.getStatusCode() == ErrorCode.SUCCESS.getCode()) {
                 StreamInfo streamInfo = JSON.parseObject(response.getBody().toString(), StreamInfo.class);
                 callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
             }else {
@@ -69,8 +70,29 @@ public class RedisRpcPlayServiceImpl implements IRedisRpcPlayService {
         if (response == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg());
         }else {
-            if (response.getStatusCode() != Response.OK) {
+            if (response.getStatusCode() != ErrorCode.SUCCESS.getCode()) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg());
+            }
+        }
+    }
+
+    @Override
+    public void queryRecordInfo(String serverId, Integer channelId, String startTime, String endTime, ErrorCallback<RecordInfo> callback) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("channelId", channelId);
+        jsonObject.put("startTime", startTime);
+        jsonObject.put("endTime", endTime);
+        RedisRpcRequest request = buildRequest("channel/queryRecordInfo", jsonObject);
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, userSetting.getRecordInfoTimeout(), TimeUnit.MILLISECONDS);
+        if (response == null) {
+            callback.run(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg(), null);
+        }else {
+            if (response.getStatusCode() == ErrorCode.SUCCESS.getCode()) {
+                RecordInfo recordInfo = JSON.parseObject(response.getBody().toString(), RecordInfo.class);
+                callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), recordInfo);
+            }else {
+                callback.run(response.getStatusCode(), response.getBody().toString(), null);
             }
         }
     }
@@ -88,7 +110,7 @@ public class RedisRpcPlayServiceImpl implements IRedisRpcPlayService {
         if (response == null) {
             callback.run(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg(), null);
         }else {
-            if (response.getStatusCode() == Response.OK) {
+            if (response.getStatusCode() == ErrorCode.SUCCESS.getCode()) {
                 StreamInfo streamInfo = JSON.parseObject(response.getBody().toString(), StreamInfo.class);
                 callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
             }else {
@@ -111,7 +133,7 @@ public class RedisRpcPlayServiceImpl implements IRedisRpcPlayService {
         if (response == null) {
             callback.run(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg(), null);
         }else {
-            if (response.getStatusCode() == Response.OK) {
+            if (response.getStatusCode() == ErrorCode.SUCCESS.getCode()) {
                 StreamInfo streamInfo = JSON.parseObject(response.getBody().toString(), StreamInfo.class);
                 callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
             }else {

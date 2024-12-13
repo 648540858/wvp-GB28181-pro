@@ -1,10 +1,9 @@
 package com.genersoft.iot.vmp.gb28181.session;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.gb28181.event.record.RecordEndEventListener;
+import com.genersoft.iot.vmp.gb28181.event.record.RecordInfoEventListener;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
-import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -24,8 +23,9 @@ public class RecordDataCatch {
 
     @Autowired
     private DeferredResultHolder deferredResultHolder;
+
     @Autowired
-    private RecordEndEventListener recordEndEventListener;
+    private RecordInfoEventListener recordEndEventListener;
 
 
     public int put(String deviceId,String channelId, String sn, int sumNum, List<RecordItem> recordItems) {

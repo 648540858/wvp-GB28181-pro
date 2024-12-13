@@ -18,6 +18,7 @@ import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.redisMsg.dto.RedisRpcController;
 import com.genersoft.iot.vmp.service.redisMsg.dto.RedisRpcMapping;
 import com.genersoft.iot.vmp.service.redisMsg.dto.RpcController;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -79,7 +80,7 @@ public class RedisRpcStreamPushController extends RpcController {
             sendRtpServerService.update(sendRtpItem);
             RedisRpcResponse response = request.getResponse();
             response.setBody(sendRtpItem.getChannelId());
-            response.setStatusCode(200);
+            response.setStatusCode(ErrorCode.SUCCESS.getCode());
         }
         // 监听流上线。 流上线直接发送sendRtpItem消息给实际的信令处理者
         Hook hook = Hook.getInstance(HookType.on_media_arrival, sendRtpItem.getApp(), sendRtpItem.getStream(), null);
@@ -98,7 +99,7 @@ public class RedisRpcStreamPushController extends RpcController {
             redisTemplate.opsForValue().set(sendRtpItem.getChannelId(), sendRtpItem);
             RedisRpcResponse response = request.getResponse();
             response.setBody(sendRtpItem.getChannelId());
-            response.setStatusCode(200);
+            response.setStatusCode(ErrorCode.SUCCESS.getCode());
             // 手动发送结果
             sendResponse(response);
             hookSubscribe.removeSubscribe(hook);
@@ -120,7 +121,7 @@ public class RedisRpcStreamPushController extends RpcController {
             log.info("[redis-rpc] 监听流上线时发现流已存在直接返回： {}/{}", streamInfo.getApp(), streamInfo.getStream());
             RedisRpcResponse response = request.getResponse();
             response.setBody(JSONObject.toJSONString(streamInfoInServer));
-            response.setStatusCode(200);
+            response.setStatusCode(ErrorCode.SUCCESS.getCode());
             return response;
         }
         // 监听流上线。 流上线直接发送sendRtpItem消息给实际的信令处理者
@@ -133,7 +134,7 @@ public class RedisRpcStreamPushController extends RpcController {
                     streamInfo.getApp(), streamInfo.getStream(), hookData.getMediaInfo(),
                     hookData.getMediaInfo() != null ? hookData.getMediaInfo().getCallId() : null);
             response.setBody(JSONObject.toJSONString(streamInfoByAppAndStream));
-            response.setStatusCode(200);
+            response.setStatusCode(ErrorCode.SUCCESS.getCode());
             // 手动发送结果
             sendResponse(response);
             hookSubscribe.removeSubscribe(hook);
@@ -152,7 +153,7 @@ public class RedisRpcStreamPushController extends RpcController {
         Hook hook = Hook.getInstance(HookType.on_media_arrival, sendRtpItem.getApp(), sendRtpItem.getStream(), null);
         hookSubscribe.removeSubscribe(hook);
         RedisRpcResponse response = request.getResponse();
-        response.setStatusCode(200);
+        response.setStatusCode(ErrorCode.SUCCESS.getCode());
         return response;
     }
 
@@ -167,7 +168,7 @@ public class RedisRpcStreamPushController extends RpcController {
         Hook hook = Hook.getInstance(HookType.on_media_arrival, streamInfo.getApp(), streamInfo.getStream(), null);
         hookSubscribe.removeSubscribe(hook);
         RedisRpcResponse response = request.getResponse();
-        response.setStatusCode(200);
+        response.setStatusCode(ErrorCode.SUCCESS.getCode());
         return response;
     }
 

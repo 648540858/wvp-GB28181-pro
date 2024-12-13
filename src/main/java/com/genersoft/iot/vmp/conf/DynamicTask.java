@@ -34,6 +34,7 @@ public class DynamicTask {
         threadPoolTaskScheduler.setPoolSize(300);
         threadPoolTaskScheduler.setWaitForTasksToCompleteOnShutdown(true);
         threadPoolTaskScheduler.setAwaitTerminationSeconds(10);
+        threadPoolTaskScheduler.setThreadNamePrefix("dynamicTask-");
         threadPoolTaskScheduler.initialize();
     }
 

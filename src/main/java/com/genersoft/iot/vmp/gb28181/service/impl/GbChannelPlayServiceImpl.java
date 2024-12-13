@@ -94,7 +94,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
     public void stopPlay(InviteSessionType type, CommonGBChannel channel, String stream) {
         if (channel.getGbDeviceDbId() != null) {
             // 国标通道
-            stopPlayDeviceChannel(channel, stream);
+            stopPlayDeviceChannel(type, channel, stream);
         } else if (channel.getStreamProxyId() != null) {
             // 拉流代理
             stopPlayProxy(channel);
@@ -145,10 +145,10 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
     }
 
     @Override
-    public void stopPlayDeviceChannel(CommonGBChannel channel, String stream) {
+    public void stopPlayDeviceChannel(InviteSessionType type, CommonGBChannel channel, String stream) {
         // 国标通道
         try {
-            deviceChannelPlayService.stop(InviteSessionType.PLAY, channel, stream);
+            deviceChannelPlayService.stop(type, channel, stream);
         }  catch (Exception e) {
             log.error("[停止点播失败] {}({})", channel.getGbName(), channel.getGbDeviceId(), e);
         }

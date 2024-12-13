@@ -17,7 +17,7 @@ public interface IGbChannelPlayService {
 
     void playGbDeviceChannel(CommonGBChannel channel, ErrorCallback<StreamInfo> callback);
 
-    void stopPlayDeviceChannel(CommonGBChannel channel, String stream);
+    void stopPlayDeviceChannel(InviteSessionType type, CommonGBChannel channel, String stream);
 
     void playProxy(CommonGBChannel channel, ErrorCallback<StreamInfo> callback);
 

@@ -115,7 +115,7 @@ public class RedisRpcChannelPlayController extends RpcController {
         try {
             channelService.queryRecordInfo(channel, startTime, endTime, (code, msg, data) ->{
                 if (code == InviteErrorCode.SUCCESS.getCode()) {
-                    response.setStatusCode(ErrorCode.SUCCESS.getCode());
+                    response.setStatusCode(code);
                     response.setBody(data);
                 }else {
                     response.setStatusCode(code);

@@ -93,6 +93,7 @@ public class GBRecordController {
 			WVPResult<RecordInfo> wvpResult = new WVPResult<>();
 			wvpResult.setCode(code);
 			wvpResult.setMsg(msg);
+			wvpResult.setData(data);
 			result.setResult(wvpResult);
 		});
 		result.onTimeout(()->{

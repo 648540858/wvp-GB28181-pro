@@ -15,15 +15,15 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 @Component
-public class RecordEndEventListener implements ApplicationListener<RecordEndEvent> {
+public class RecordInfoEventListener implements ApplicationListener<RecordInfoEvent> {
 
-    private Map<String, RecordEndEventHandler> handlerMap = new ConcurrentHashMap<>();
+    private final Map<String, RecordEndEventHandler> handlerMap = new ConcurrentHashMap<>();
     public interface RecordEndEventHandler{
         void  handler(RecordInfo recordInfo);
     }
 
     @Override
-    public void onApplicationEvent(RecordEndEvent event) {
+    public void onApplicationEvent(RecordInfoEvent event) {
         String deviceId = event.getRecordInfo().getDeviceId();
         String channelId = event.getRecordInfo().getChannelId();
         int count = event.getRecordInfo().getCount();
@@ -45,9 +45,6 @@ public class RecordEndEventListener implements ApplicationListener<RecordEndEven
 
     /**
      * 添加
-     * @param device
-     * @param channelId
-     * @param recordEndEventHandler
      */
     public void addEndEventHandler(String device, String channelId, RecordEndEventHandler recordEndEventHandler) {
         log.info("录像查询事件添加监听，deviceId：{}, channelId: {}", device, channelId);
@@ -55,8 +52,6 @@ public class RecordEndEventListener implements ApplicationListener<RecordEndEven
     }
     /**
      * 添加
-     * @param device
-     * @param channelId
      */
     public void delEndEventHandler(String device, String channelId) {
         log.info("录像查询事件移除监听，deviceId：{}, channelId: {}", device, channelId);

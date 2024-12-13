@@ -38,6 +38,11 @@ public class UserSetting {
     private Integer playTimeout = 10000;
 
     /**
+     * 获取设备录像数据超时时间,单位：毫秒
+     */
+    private Integer recordInfoTimeout = 15000;
+
+    /**
      * 上级点播等待超时时间,单位：毫秒
      */
     private int platformPlayTimeout = 20000;

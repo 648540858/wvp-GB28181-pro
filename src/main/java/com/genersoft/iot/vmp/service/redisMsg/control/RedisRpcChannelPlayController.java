@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.redis.RedisRpcConfig;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcMessage;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
@@ -17,6 +18,7 @@ import com.genersoft.iot.vmp.service.redisMsg.dto.RedisRpcController;
 import com.genersoft.iot.vmp.service.redisMsg.dto.RedisRpcMapping;
 import com.genersoft.iot.vmp.service.redisMsg.dto.RpcController;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,14 +62,14 @@ public class RedisRpcChannelPlayController extends RpcController {
         RedisRpcResponse response = request.getResponse();
 
         if (channelId <= 0) {
-            response.setStatusCode(Response.BAD_REQUEST);
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
             response.setBody("param error");
             return response;
         }
         // 获取对应的设备和通道信息
         CommonGBChannel channel = channelService.getOne(channelId);
         if (channel == null) {
-            response.setStatusCode(Response.BAD_REQUEST);
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
             response.setBody("param error");
             return response;
         }
@@ -76,7 +78,7 @@ public class RedisRpcChannelPlayController extends RpcController {
         inviteInfo.setSessionName("Play");
         channelPlayService.start(channel, inviteInfo, null, (code, msg, data) ->{
             if (code == InviteErrorCode.SUCCESS.getCode()) {
-                response.setStatusCode(Response.OK);
+                response.setStatusCode(ErrorCode.SUCCESS.getCode());
                 response.setBody(data);
             }else {
                 response.setStatusCode(code);
@@ -84,6 +86,50 @@ public class RedisRpcChannelPlayController extends RpcController {
             // 手动发送结果
             sendResponse(response);
         });
+        return null;
+    }
+
+
+    /**
+     * 点播国标设备
+     */
+    @RedisRpcMapping("queryRecordInfo")
+    public RedisRpcResponse queryRecordInfo(RedisRpcRequest request) {
+        JSONObject paramJson = JSONObject.parseObject(request.getParam().toString());
+        int channelId = paramJson.getIntValue("channelId");
+        String startTime = paramJson.getString("startTime");
+        String endTime = paramJson.getString("endTime");
+        RedisRpcResponse response = request.getResponse();
+
+        if (channelId <= 0) {
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
+            response.setBody("param error");
+            return response;
+        }
+        // 获取对应的设备和通道信息
+        CommonGBChannel channel = channelService.getOne(channelId);
+        if (channel == null) {
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
+            response.setBody("param error");
+            return response;
+        }
+        
+        try {
+            channelService.queryRecordInfo(channel, startTime, endTime, (code, msg, data) ->{
+                if (code == InviteErrorCode.SUCCESS.getCode()) {
+                    response.setStatusCode(ErrorCode.SUCCESS.getCode());
+                    response.setBody(data);
+                }else {
+                    response.setStatusCode(code);
+                }
+                // 手动发送结果
+                sendResponse(response);
+            });
+        }catch (ControllerException e) {
+            response.setStatusCode(ErrorCode.ERROR100.getCode());
+            response.setBody(e.getMessage());
+        }
+        
         return null;
     }
 
@@ -99,7 +145,7 @@ public class RedisRpcChannelPlayController extends RpcController {
 
         Integer channelId = jsonObject.getIntValue("channelId");
         if (channelId == null || channelId <= 0) {
-            response.setStatusCode(Response.BAD_REQUEST);
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
             response.setBody("param error");
             return response;
         }
@@ -110,13 +156,13 @@ public class RedisRpcChannelPlayController extends RpcController {
         // 获取对应的设备和通道信息
         CommonGBChannel channel = channelService.getOne(channelId);
         if (channel == null) {
-            response.setStatusCode(Response.BAD_REQUEST);
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
             response.setBody("param error");
             return response;
         }
         try {
             channelPlayService.stopPlay(type, channel, stream);
-            response.setStatusCode(Response.OK);
+            response.setStatusCode(ErrorCode.SUCCESS.getCode());
         }catch (Exception e){
             response.setStatusCode(Response.SERVER_INTERNAL_ERROR);
             response.setBody(e.getMessage());
@@ -136,14 +182,14 @@ public class RedisRpcChannelPlayController extends RpcController {
         RedisRpcResponse response = request.getResponse();
 
         if (channelId <= 0) {
-            response.setStatusCode(Response.BAD_REQUEST);
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
             response.setBody("param error");
             return response;
         }
         // 获取对应的设备和通道信息
         CommonGBChannel channel = channelService.getOne(channelId);
         if (channel == null) {
-            response.setStatusCode(Response.BAD_REQUEST);
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
             response.setBody("param error");
             return response;
         }
@@ -154,7 +200,7 @@ public class RedisRpcChannelPlayController extends RpcController {
         inviteInfo.setStopTime(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime));
         channelPlayService.start(channel, inviteInfo, null, (code, msg, data) ->{
             if (code == InviteErrorCode.SUCCESS.getCode()) {
-                response.setStatusCode(Response.OK);
+                response.setStatusCode(ErrorCode.SUCCESS.getCode());
                 response.setBody(data);
             }else {
                 response.setStatusCode(code);
@@ -178,14 +224,14 @@ public class RedisRpcChannelPlayController extends RpcController {
         RedisRpcResponse response = request.getResponse();
 
         if (channelId <= 0) {
-            response.setStatusCode(Response.BAD_REQUEST);
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
             response.setBody("param error");
             return response;
         }
         // 获取对应的设备和通道信息
         CommonGBChannel channel = channelService.getOne(channelId);
         if (channel == null) {
-            response.setStatusCode(Response.BAD_REQUEST);
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
             response.setBody("param error");
             return response;
         }
@@ -197,7 +243,7 @@ public class RedisRpcChannelPlayController extends RpcController {
         inviteInfo.setDownloadSpeed(downloadSpeed + "");
         channelPlayService.start(channel, inviteInfo, null, (code, msg, data) ->{
             if (code == InviteErrorCode.SUCCESS.getCode()) {
-                response.setStatusCode(Response.OK);
+                response.setStatusCode(ErrorCode.SUCCESS.getCode());
                 response.setBody(data);
             }else {
                 response.setStatusCode(code);

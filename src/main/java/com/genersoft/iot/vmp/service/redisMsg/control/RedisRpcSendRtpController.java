@@ -49,7 +49,7 @@ public class RedisRpcSendRtpController extends RpcController {
         if (sendRtpItem == null) {
             log.info("[redis-rpc] 获取发流的信息, 未找到redis中的发流信息， callId：{}", callId);
             RedisRpcResponse response = request.getResponse();
-            response.setStatusCode(200);
+            response.setStatusCode(ErrorCode.SUCCESS.getCode());
             return response;
         }
         log.info("[redis-rpc] 获取发流的信息： {}/{}, 目标地址： {}：{}", sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort());
@@ -57,14 +57,14 @@ public class RedisRpcSendRtpController extends RpcController {
         MediaServer mediaServerItem = mediaServerService.getMediaServerByAppAndStream(sendRtpItem.getApp(), sendRtpItem.getStream());
         if (mediaServerItem == null) {
             RedisRpcResponse response = request.getResponse();
-            response.setStatusCode(200);
+            response.setStatusCode(ErrorCode.SUCCESS.getCode());
         }
         // 自平台内容
         int localPort = sendRtpServerService.getNextPort(mediaServerItem);
         if (localPort == 0) {
             log.info("[redis-rpc] getSendRtpItem->服务器端口资源不足" );
             RedisRpcResponse response = request.getResponse();
-            response.setStatusCode(200);
+            response.setStatusCode(ErrorCode.SUCCESS.getCode());
         }
         // 写入redis， 超时时回复
         sendRtpItem.setStatus(1);
@@ -77,7 +77,7 @@ public class RedisRpcSendRtpController extends RpcController {
         }
         sendRtpServerService.update(sendRtpItem);
         RedisRpcResponse response = request.getResponse();
-        response.setStatusCode(200);
+        response.setStatusCode(ErrorCode.SUCCESS.getCode());
         response.setBody(callId);
         return response;
     }
@@ -90,7 +90,7 @@ public class RedisRpcSendRtpController extends RpcController {
         String callId = request.getParam().toString();
         SendRtpInfo sendRtpItem = sendRtpServerService.queryByCallId(callId);
         RedisRpcResponse response = request.getResponse();
-        response.setStatusCode(200);
+        response.setStatusCode(ErrorCode.SUCCESS.getCode());
         if (sendRtpItem == null) {
             log.info("[redis-rpc] 开始发流, 未找到redis中的发流信息， callId：{}", callId);
             WVPResult wvpResult = WVPResult.fail(ErrorCode.ERROR100.getCode(), "未找到redis中的发流信息");
@@ -134,7 +134,7 @@ public class RedisRpcSendRtpController extends RpcController {
         String callId = request.getParam().toString();
         SendRtpInfo sendRtpItem = sendRtpServerService.queryByCallId(callId);
         RedisRpcResponse response = request.getResponse();
-        response.setStatusCode(Response.OK);
+        response.setStatusCode(ErrorCode.SUCCESS.getCode());
         if (sendRtpItem == null) {
             log.info("[redis-rpc] 停止推流, 未找到redis中的发流信息， key：{}", callId);
             WVPResult wvpResult = WVPResult.fail(ErrorCode.ERROR100.getCode(), "未找到redis中的发流信息");

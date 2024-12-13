@@ -1713,7 +1713,7 @@ public class PlayServiceImpl implements IPlayService {
             throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
         }
         DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
-        stop(InviteSessionType.PLAY, device, deviceChannel, stream);
+        stop(inviteSessionType, device, deviceChannel, stream);
     }
 
     @Override

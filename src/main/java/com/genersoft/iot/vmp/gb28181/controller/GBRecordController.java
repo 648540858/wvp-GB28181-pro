@@ -1,9 +1,9 @@
 package com.genersoft.iot.vmp.gb28181.controller;
 
+import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
@@ -32,9 +32,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.sip.InvalidArgumentException;
-import javax.sip.SipException;
-import java.text.ParseException;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -170,7 +167,7 @@ public class GBRecordController {
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@Parameter(name = "stream", description = "流ID", required = true)
 	@GetMapping("/download/stop/{deviceId}/{channelId}/{stream}")
-	public void playStop(@PathVariable String deviceId, @PathVariable String channelId, @PathVariable String stream) {
+	public void downloadStop(@PathVariable String deviceId, @PathVariable String channelId, @PathVariable String stream) {
 
 		if (log.isDebugEnabled()) {
 			log.debug(String.format("设备历史媒体下载停止 API调用，deviceId/channelId：%s_%s", deviceId, channelId));
@@ -182,14 +179,13 @@ public class GBRecordController {
 
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		if (device == null) {
-			throw new ControllerException(ErrorCode.ERROR400.getCode(), "设备：" + deviceId + "未找到");
+			throw new ControllerException(ErrorCode.ERROR400.getCode(), "设备：" + deviceId + " 未找到");
 		}
-
-		try {
-			cmder.streamByeCmd(device, channelId, stream, null);
-		} catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
-			log.warn("[停止历史媒体下载]停止历史媒体下载，发送BYE失败 {}", e.getMessage());
+		DeviceChannel deviceChannel = channelService.getOneForSource(deviceId, channelId);
+		if (deviceChannel == null) {
+			throw new ControllerException(ErrorCode.ERROR400.getCode(), "通道：" + channelId + " 未找到");
 		}
+		playService.stop(InviteSessionType.DOWNLOAD, device, deviceChannel, stream);
 	}
 
 	@Operation(summary = "获取历史媒体下载进度", security = @SecurityRequirement(name = JwtUtils.HEADER))

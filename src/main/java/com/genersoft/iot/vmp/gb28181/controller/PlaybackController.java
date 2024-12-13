@@ -41,8 +41,6 @@ import java.net.URL;
 import java.text.ParseException;
 import java.util.UUID;
 
-import static sun.audio.AudioDevice.device;
-
 /**
  * @author lin
  */
@@ -158,7 +156,7 @@ public class PlaybackController {
 		}
 		DeviceChannel deviceChannel = channelService.getOneForSource(deviceId, channelId);
 		if (deviceChannel == null) {
-			throw new ControllerException(ErrorCode.ERROR400.getCode(), "通道：" + deviceChannel + " 未找到");
+			throw new ControllerException(ErrorCode.ERROR400.getCode(), "通道：" + channelId + " 未找到");
 		}
 		playService.stop(InviteSessionType.PLAYBACK, device, deviceChannel, stream);
 	}

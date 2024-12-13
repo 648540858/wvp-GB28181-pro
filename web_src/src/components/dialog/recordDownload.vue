@@ -120,12 +120,14 @@ export default {
         },
 
         stopDownloadRecord: function (callback) {
-          this.$axios({
-            method: 'get',
-            url: '/api/gb_record/download/stop/' + this.deviceId + "/" + this.channelId+ "/" + this.stream
-          }).then((res)=> {
-            if (callback) callback(res)
-          });
+          if (this.deviceId && this.channelId && this.stream) {
+            this.$axios({
+              method: 'get',
+              url: '/api/gb_record/download/stop/' + this.deviceId + "/" + this.channelId+ "/" + this.stream
+            }).then((res)=> {
+              if (callback) callback(res)
+            });
+          }
         },
       downloadFileClientEvent: function (){
         // window.open(this.downloadFile )

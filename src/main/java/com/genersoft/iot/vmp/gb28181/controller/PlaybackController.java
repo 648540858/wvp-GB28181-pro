@@ -41,6 +41,8 @@ import java.net.URL;
 import java.text.ParseException;
 import java.util.UUID;
 
+import static sun.audio.AudioDevice.device;
+
 /**
  * @author lin
  */
@@ -166,8 +168,7 @@ public class PlaybackController {
 	@Parameter(name = "streamId", description = "回放流ID", required = true)
 	@GetMapping("/pause/{streamId}")
 	public void playPause(@PathVariable String streamId) {
-		log.info("playPause: "+streamId);
-
+		log.info("[回放暂停] streamId: {}", streamId);
 		try {
 			playService.pauseRtp(streamId);
 		} catch (ServiceException e) {

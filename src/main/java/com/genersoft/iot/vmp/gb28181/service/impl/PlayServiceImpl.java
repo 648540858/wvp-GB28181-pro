@@ -1093,6 +1093,8 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public StreamInfo getDownLoadInfo(Device device, DeviceChannel channel, String stream) {
+
+
         InviteInfo inviteInfo = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, channel.getId(), stream);
         if (inviteInfo == null) {
             String app = "rtp";
@@ -1369,11 +1371,20 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void pauseRtp(String streamId) throws ServiceException, InvalidArgumentException, ParseException, SipException {
+
         InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, streamId);
         if (null == inviteInfo || inviteInfo.getStreamInfo() == null) {
-            log.warn("streamId不存在!");
-            throw new ServiceException("streamId不存在");
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "streamId不存在");
         }
+        Device device = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
+        if (device == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备不存在");
+        }
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            redisRpcPlayService.pauseRtp(device.getServerId(), streamId);
+            return;
+        }
+
         inviteInfo.getStreamInfo().setPause(true);
         inviteStreamService.updateInviteInfo(inviteInfo);
         MediaServer mediaServerItem = inviteInfo.getStreamInfo().getMediaServer();
@@ -1391,7 +1402,7 @@ public class PlayServiceImpl implements IPlayService {
         if (!result) {
             throw new ServiceException("暂停RTP接收失败");
         }
-        Device device = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
+
         DeviceChannel channel = deviceChannelService.getOneById(inviteInfo.getChannelId());
         cmder.playPauseCmd(device, channel, inviteInfo.getStreamInfo());
     }
@@ -1400,9 +1411,17 @@ public class PlayServiceImpl implements IPlayService {
     public void resumeRtp(String streamId) throws ServiceException, InvalidArgumentException, ParseException, SipException {
         InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, streamId);
         if (null == inviteInfo || inviteInfo.getStreamInfo() == null) {
-            log.warn("streamId不存在!");
-            throw new ServiceException("streamId不存在");
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "streamId不存在");
         }
+        Device device = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
+        if (device == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备不存在");
+        }
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            redisRpcPlayService.resumeRtp(device.getServerId(), streamId);
+            return;
+        }
+
         inviteInfo.getStreamInfo().setPause(false);
         inviteStreamService.updateInviteInfo(inviteInfo);
         MediaServer mediaServerItem = inviteInfo.getStreamInfo().getMediaServer();
@@ -1410,7 +1429,6 @@ public class PlayServiceImpl implements IPlayService {
             log.warn("mediaServer 不存在!");
             throw new ServiceException("mediaServer不存在");
         }
-        // zlm 暂停RTP超时检查
         // 使用zlm中的流ID
         String streamKey = inviteInfo.getStream();
         if (!mediaServerItem.isRtpEnable()) {
@@ -1420,7 +1438,6 @@ public class PlayServiceImpl implements IPlayService {
         if (!result) {
             throw new ServiceException("继续RTP接收失败");
         }
-        Device device = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
         DeviceChannel channel = deviceChannelService.getOneById(inviteInfo.getChannelId());
         cmder.playResumeCmd(device, channel, inviteInfo.getStreamInfo());
     }

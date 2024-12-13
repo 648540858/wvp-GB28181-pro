@@ -131,6 +131,56 @@ public class RedisRpcChannelPlayController extends RpcController {
         return null;
     }
 
+    /**
+     * 暂停录像回放
+     */
+    @RedisRpcMapping("pauseRtp")
+    public RedisRpcResponse pauseRtp(RedisRpcRequest request) {
+        String streamId = request.getParam().toString();
+        RedisRpcResponse response = request.getResponse();
+
+        if (streamId == null) {
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
+            response.setBody("param error");
+            return response;
+        }
+
+        try {
+            channelPlayService.pauseRtp(streamId);
+            response.setStatusCode(ErrorCode.SUCCESS.getCode());
+        }catch (ControllerException e) {
+            response.setStatusCode(ErrorCode.ERROR100.getCode());
+            response.setBody(e.getMessage());
+        }
+
+        return response;
+    }
+
+    /**
+     * 恢复录像回放
+     */
+    @RedisRpcMapping("resumeRtp")
+    public RedisRpcResponse resumeRtp(RedisRpcRequest request) {
+        String streamId = request.getParam().toString();
+        RedisRpcResponse response = request.getResponse();
+
+        if (streamId == null) {
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
+            response.setBody("param error");
+            return response;
+        }
+
+        try {
+            channelPlayService.resumeRtp(streamId);
+            response.setStatusCode(ErrorCode.SUCCESS.getCode());
+        }catch (ControllerException e) {
+            response.setStatusCode(ErrorCode.ERROR100.getCode());
+            response.setBody(e.getMessage());
+        }
+
+        return response;
+    }
+
 
     /**
      * 停止点播国标设备

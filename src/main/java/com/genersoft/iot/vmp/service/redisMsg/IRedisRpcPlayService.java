@@ -18,4 +18,7 @@ public interface IRedisRpcPlayService {
 
     void queryRecordInfo(String serverId, Integer channelId, String startTime, String endTime, ErrorCallback<RecordInfo> callback);
 
+    void pauseRtp(String serverId, String streamId);
+
+    void resumeRtp(String serverId, String streamId);
 }

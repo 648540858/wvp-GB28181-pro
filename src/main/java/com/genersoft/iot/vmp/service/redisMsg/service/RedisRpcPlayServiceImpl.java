@@ -119,6 +119,34 @@ public class RedisRpcPlayServiceImpl implements IRedisRpcPlayService {
     }
 
     @Override
+    public void pauseRtp(String serverId, String streamId) {
+        RedisRpcRequest request = buildRequest("channel/pauseRtp", streamId);
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, 5, TimeUnit.SECONDS);
+        if (response == null) {
+            log.info("[RPC 暂停回放] 失败, streamId: {}", streamId);
+        }else {
+            if (response.getStatusCode() != ErrorCode.SUCCESS.getCode()) {
+                log.info("[RPC 暂停回放] 失败, {},  streamId: {}", response.getBody(), streamId);
+            }
+        }
+    }
+
+    @Override
+    public void resumeRtp(String serverId, String streamId) {
+        RedisRpcRequest request = buildRequest("channel/resumeRtp", streamId);
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, 5, TimeUnit.SECONDS);
+        if (response == null) {
+            log.info("[RPC 恢复回放] 失败, streamId: {}", streamId);
+        }else {
+            if (response.getStatusCode() != ErrorCode.SUCCESS.getCode()) {
+                log.info("[RPC 恢复回放] 失败, {},  streamId: {}", response.getBody(), streamId);
+            }
+        }
+    }
+
+    @Override
     public void download(String serverId, Integer channelId, String startTime, String endTime, int downloadSpeed, ErrorCallback<StreamInfo> callback) {
 
         JSONObject jsonObject = new JSONObject();

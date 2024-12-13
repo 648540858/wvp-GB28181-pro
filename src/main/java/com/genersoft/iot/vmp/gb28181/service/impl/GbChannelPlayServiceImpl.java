@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.exception.ServiceException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
 import com.genersoft.iot.vmp.gb28181.service.IPlayService;
@@ -13,7 +14,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
 import javax.sip.message.Response;
+import java.text.ParseException;
 
 @Slf4j
 @Service
@@ -206,6 +210,20 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
         } catch (Exception e) {
             callback.run(Response.BUSY_HERE, "busy here", null);
         }
+    }
+
+    @Override
+    public void pauseRtp(String streamId) {
+        try {
+            deviceChannelPlayService.pauseRtp(streamId);
+        } catch (ServiceException | InvalidArgumentException | ParseException | SipException ignore) {}
+    }
+
+    @Override
+    public void resumeRtp(String streamId) {
+        try {
+            deviceChannelPlayService.resumeRtp(streamId);
+        } catch (ServiceException | InvalidArgumentException | ParseException | SipException ignore) {}
     }
 
     private void downloadGbDeviceChannel(CommonGBChannel channel, Long startTime, Long stopTime, Integer downloadSpeed,

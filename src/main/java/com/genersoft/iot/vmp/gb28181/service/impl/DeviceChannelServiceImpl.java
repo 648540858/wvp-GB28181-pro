@@ -5,37 +5,48 @@ import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.GbCode;
-import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceMobilePositionMapper;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.event.record.RecordInfoEndEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
+import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
+import javax.sip.message.Response;
+import java.text.ParseException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author lin
@@ -71,6 +82,26 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     @Autowired
     private IPlatformChannelService platformChannelService;
 
+    @Autowired
+    private IRedisRpcPlayService redisRpcPlayService;
+
+    @Autowired
+    private ISIPCommander commander;
+
+    // 记录录像查询的结果等待
+    private final Map<String, SynchronousQueue<RecordInfo>> topicSubscribers = new ConcurrentHashMap<>();
+
+    /**
+     * 监听录像查询结束事件
+     */
+    @Async("taskExecutor")
+    @org.springframework.context.event.EventListener
+    public void onApplicationEvent(RecordInfoEndEvent event) {
+        SynchronousQueue<RecordInfo> queue = topicSubscribers.get("record" + event.getRecordInfo().getSn());
+        if (queue != null) {
+            queue.offer(event.getRecordInfo());
+        }
+    }
 
     @Override
     public int updateChannels(Device device, List<DeviceChannel> channels) {
@@ -164,10 +195,8 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public ResourceBaseInfo getOverview() {
-
         int online = channelMapper.getOnlineCount();
         int total = channelMapper.getAllChannelCount();
-
         return new ResourceBaseInfo(total, online);
     }
 
@@ -704,5 +733,50 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     @Override
     public void updateChannelForNotify(DeviceChannel channel) {
         channelMapper.updateChannelForNotify(channel);
+    }
+
+    @Override
+    public void queryRecordInfo(Device device, DeviceChannel channel, String startTime, String endTime, ErrorCallback<RecordInfo> callback) {
+        if (!userSetting.getServerId().equals(device.getServerId())){
+            redisRpcPlayService.queryRecordInfo(device.getServerId(), channel.getId(), startTime, endTime, callback);
+            return;
+        }
+        try {
+            int sn  =  (int)((Math.random()*9+1)*100000);
+            commander.recordInfoQuery(device, channel.getDeviceId(), startTime, endTime, sn, null, null, eventResult -> {
+                try {
+                    // 消息发送成功, 监听等待数据到来
+                    SynchronousQueue<RecordInfo> queue = new SynchronousQueue<>();
+                    topicSubscribers.put("record" + sn, queue);
+                    RecordInfo recordInfo = queue.poll(userSetting.getRecordInfoTimeout(), TimeUnit.MILLISECONDS);
+                    if (recordInfo == null) {
+                        callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), recordInfo);
+                    }
+                } catch (InterruptedException e) {
+                    callback.run(ErrorCode.ERROR100.getCode(), e.getMessage(), null);
+                } finally {
+                    this.topicSubscribers.remove("record" + sn);
+                }
+
+            }, (eventResult -> {
+                callback.run(ErrorCode.ERROR100.getCode(), "查询录像失败, status: " +  eventResult.statusCode + ", message: " + eventResult.msg, null);
+            }));
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            log.error("[命令发送失败] 查询录像: {}", e.getMessage());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " +  e.getMessage());
+        }
+    }
+
+    @Override
+    public void queryRecordInfo(CommonGBChannel channel, String startTime, String endTime, ErrorCallback<RecordInfo> callback) {
+        Device device = deviceMapper.query(channel.getGbDeviceDbId());
+        if (device == null) {
+            log.warn("[点播] 未找到通道{}的设备信息", channel);
+            callback.run(ErrorCode.ERROR100.getCode(), "设备不存在", null);
+            return;
+        }
+        DeviceChannel deviceChannel = getOneForSourceById(channel.getGbId());
+        queryRecordInfo(device, deviceChannel, startTime, endTime, callback);
+
     }
 }

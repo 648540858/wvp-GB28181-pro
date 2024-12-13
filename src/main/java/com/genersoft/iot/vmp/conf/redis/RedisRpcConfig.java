@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcMessage;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
 import com.genersoft.iot.vmp.service.redisMsg.dto.RpcController;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -129,7 +130,7 @@ public class RedisRpcConfig implements MessageListener {
                 if (method == null) {
                     // 回复404结果
                     RedisRpcResponse response = request.getResponse();
-                    response.setStatusCode(Response.NOT_FOUND);
+                    response.setStatusCode(ErrorCode.ERROR404.getCode());
                     sendResponse(response);
                     return;
                 }
@@ -185,7 +186,7 @@ public class RedisRpcConfig implements MessageListener {
         } catch (InterruptedException e) {
             log.warn("[redis rpc timeout] uri: {}, sn: {}", request.getUri(), request.getSn(), e);
             RedisRpcResponse redisRpcResponse = new RedisRpcResponse();
-            redisRpcResponse.setStatusCode(Response.BUSY_HERE);
+            redisRpcResponse.setStatusCode(ErrorCode.ERROR486.getCode());
             return redisRpcResponse;
         } finally {
             this.unsubscribe(request.getSn());

@@ -46,7 +46,7 @@ public class JwtUtils implements InitializingBean {
     /**
      * token过期时间(分钟)
      */
-    public static final long EXPIRATION_TIME = 30 * 24 * 60;
+    public static final long EXPIRATION_TIME = 30;
 
     private static RsaJsonWebKey rsaJsonWebKey;
 

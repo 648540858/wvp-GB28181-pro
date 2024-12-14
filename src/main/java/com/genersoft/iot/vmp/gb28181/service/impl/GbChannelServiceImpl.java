@@ -714,4 +714,16 @@ public class GbChannelServiceImpl implements IGbChannelService {
     public void updateGpsByDeviceIdForStreamPush(List<CommonGBChannel> channels) {
         commonGBChannelMapper.updateGpsByDeviceIdForStreamPush(channels);
     }
+
+    @Override
+    public PageInfo<CommonGBChannel> queryList(int page, int count, String query, Boolean online, Boolean hasRecordPlan, Integer channelType) {
+        PageHelper.startPage(page, count);
+        if (query != null) {
+            query = query.replaceAll("/", "//")
+                    .replaceAll("%", "/%")
+                    .replaceAll("_", "/_");
+        }
+        List<CommonGBChannel> all = commonGBChannelMapper.queryList(query, online,  hasRecordPlan, channelType);
+        return new PageInfo<>(all);
+    }
 }

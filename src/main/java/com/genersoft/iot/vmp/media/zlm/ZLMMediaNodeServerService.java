@@ -107,9 +107,9 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "读取配置失败");
         }
         mediaServer.setId(zlmServerConfig.getGeneralMediaServerId());
-        mediaServer.setHttpSSlPort(zlmServerConfig.getHttpPort());
-        mediaServer.setFlvSSLPort(zlmServerConfig.getHttpPort());
-        mediaServer.setWsFlvSSLPort(zlmServerConfig.getHttpPort());
+        mediaServer.setHttpSSlPort(zlmServerConfig.getHttpSSLport());
+        mediaServer.setFlvSSLPort(zlmServerConfig.getHttpSSLport());
+        mediaServer.setWsFlvSSLPort(zlmServerConfig.getHttpSSLport());
         mediaServer.setRtmpPort(zlmServerConfig.getRtmpPort());
         mediaServer.setRtmpSSlPort(zlmServerConfig.getRtmpSslPort());
         mediaServer.setRtspPort(zlmServerConfig.getRtspPort());
@@ -329,7 +329,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public void startSendRtpPassive(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout) {
+    public Integer startSendRtpPassive(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout) {
         Map<String, Object> param = new HashMap<>(12);
         param.put("vhost","__defaultVhost__");
         param.put("app", sendRtpItem.getApp());
@@ -361,6 +361,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         log.info("调用ZLM-TCP被动推流接口, 结果： {}",  jsonObject);
         log.info("启动监听TCP被动推流成功[ {}/{} ]，{}->{}:{}, " , sendRtpItem.getApp(), sendRtpItem.getStream(),
                 jsonObject.getString("local_port"), param.get("dst_url"), param.get("dst_port"));
+        return jsonObject.getInteger("local_port");
     }
 
     @Override

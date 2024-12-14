@@ -14,6 +14,7 @@
     </div>
     <div v-if="showHeader" style="height: 2rem; background-color: #FFFFFF"></div>
     <div>
+      <el-alert v-if="showAlert && edit" title="操作提示" description="你可以使用右键菜单管理节点" type="info" style="text-align: left"></el-alert>
       <vue-easy-tree
         class="flow-tree"
         ref="veTree"
@@ -65,6 +66,7 @@ export default {
         id: "treeId"
       },
       showCode: false,
+      showAlert: true,
       searchSrt: "",
       chooseId: "",
       treeData: [],
@@ -101,6 +103,9 @@ export default {
           }
         }).then((res) => {
           if (res.data.code === 0) {
+            if (res.data.data.length > 0) {
+              this.showAlert = false
+            }
             resolve(res.data.data);
           }
 

@@ -101,11 +101,31 @@ public class CommonChannelController {
         return channel;
     }
 
+    @Operation(summary = "获取通道列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "page", description = "当前页", required = true)
+    @Parameter(name = "count", description = "每页查询数量", required = true)
+    @Parameter(name = "query", description = "查询内容")
+    @Parameter(name = "online", description = "是否在线")
+    @Parameter(name = "hasRecordPlan", description = "是否已设置录制计划")
+    @Parameter(name = "channelType", description = "通道类型， 0：国标设备，1：推流设备，2：拉流代理")
+    @GetMapping("/list")
+    public PageInfo<CommonGBChannel> queryList(int page, int count,
+                                                          @RequestParam(required = false) String query,
+                                                          @RequestParam(required = false) Boolean online,
+                                                          @RequestParam(required = false) Boolean hasRecordPlan,
+                                                          @RequestParam(required = false) Integer channelType){
+        if (ObjectUtils.isEmpty(query)){
+            query = null;
+        }
+        return channelService.queryList(page, count, query, online, hasRecordPlan, channelType);
+    }
+
     @Operation(summary = "获取关联行政区划通道列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页查询数量", required = true)
     @Parameter(name = "query", description = "查询内容")
     @Parameter(name = "online", description = "是否在线")
+    @Parameter(name = "channelType", description = "通道类型， 0：国标设备，1：推流设备，2：拉流代理")
     @Parameter(name = "civilCode", description = "行政区划")
     @GetMapping("/civilcode/list")
     public PageInfo<CommonGBChannel> queryListByCivilCode(int page, int count,
@@ -124,6 +144,7 @@ public class CommonChannelController {
     @Parameter(name = "count", description = "每页查询数量", required = true)
     @Parameter(name = "query", description = "查询内容")
     @Parameter(name = "online", description = "是否在线")
+    @Parameter(name = "channelType", description = "通道类型， 0：国标设备，1：推流设备，2：拉流代理")
     @Parameter(name = "groupDeviceId", description = "业务分组下的父节点ID")
     @GetMapping("/parent/list")
     public PageInfo<CommonGBChannel> queryListByParentId(int page, int count,
@@ -240,21 +261,7 @@ public class CommonChannelController {
                 result.setResult(WVPResult.fail(code, msg));
             }
         };
-
-        if (channel.getGbDeviceDbId() != null) {
-            // 国标通道
-            channelPlayService.playGbDeviceChannel(channel, callback);
-        } else if (channel.getStreamProxyId() != null) {
-            // 拉流代理
-            channelPlayService.playProxy(channel, callback);
-        } else if (channel.getStreamPushId() != null) {
-            // 推流
-            channelPlayService.playPush(channel, null, null, callback);
-        } else {
-            // 通道数据异常
-            log.error("[点播通用通道] 通道数据异常，无法识别通道来源： {}({})", channel.getGbName(), channel.getGbDeviceId());
-            throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
-        }
+        channelPlayService.play(channel, null, callback);
         return result;
     }
 }

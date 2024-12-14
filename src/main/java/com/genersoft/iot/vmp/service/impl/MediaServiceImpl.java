@@ -15,6 +15,7 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.service.IMediaService;
+import com.genersoft.iot.vmp.service.IRecordPlanService;
 import com.genersoft.iot.vmp.service.IUserService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
@@ -59,6 +60,9 @@ public class MediaServiceImpl implements IMediaService {
     @Autowired
     private SipInviteSessionManager sessionManager;
 
+    @Autowired
+    private IRecordPlanService recordPlanService;
+
     @Override
     public boolean authenticatePlay(String app, String stream, String callId) {
         if (app == null || stream == null) {
@@ -78,6 +82,12 @@ public class MediaServiceImpl implements IMediaService {
     public ResultForOnPublish authenticatePublish(MediaServer mediaServer, String app, String stream, String params) {
         // 推流鉴权的处理
         if (!"rtp".equals(app)) {
+            if ("talk".equals(app) && stream.endsWith("_talk")) {
+                ResultForOnPublish result = new ResultForOnPublish();
+                result.setEnable_mp4(false);
+                result.setEnable_audio(true);
+                return result;
+            }
             StreamProxy streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(app, stream);
             if (streamProxyItem != null) {
                 ResultForOnPublish result = new ResultForOnPublish();
@@ -199,6 +209,9 @@ public class MediaServiceImpl implements IMediaService {
     @Override
     public boolean closeStreamOnNoneReader(String mediaServerId, String app, String stream, String schema) {
         boolean result = false;
+        if (recordPlanService.recording(app, stream) != null) {
+            return false;
+        }
         // 国标类型的流
         if ("rtp".equals(app)) {
             result = userSetting.getStreamOnDemand();

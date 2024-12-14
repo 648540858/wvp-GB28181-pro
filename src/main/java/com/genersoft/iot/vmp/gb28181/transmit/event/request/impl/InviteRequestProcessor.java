@@ -303,7 +303,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             Media media = mediaDescription.getMedia();
 
             Vector mediaFormats = media.getMediaFormats(false);
-            if (mediaFormats.contains("96")) {
+            if (mediaFormats.contains("96") || mediaFormats.contains("8")) {
                 port = media.getMediaPort();
                 //String mediaType = media.getMediaType();
                 String protocol = media.getProtocol();

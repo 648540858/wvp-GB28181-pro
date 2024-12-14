@@ -8,16 +8,16 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-yellow.svg)](https://github.com/xia-chu/ZLMediaKit/pulls)
 
 
-WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的开箱即用的网络视频平台，负责实现核心信令与设备管理后台部分，支持NAT穿透，支持海康、大华、宇视等品牌的IPC、NVR接入。支持国标级联，支持将不带国标功能的摄像机/直播流/直播推流转发到其他国标平台。   
+WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的开箱即用的网络视频平台，负责实现核心信令与设备管理后台部分，支持NAT穿透，支持海康、大华、宇视等品牌的IPC、NVR接入。支持国标级联，支持将不带国标功能的摄像机/直播流/直播推流转发到其他国标平台。
 
 流媒体服务基于@夏楚 ZLMediaKit [https://github.com/ZLMediaKit/ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)   
 播放器使用@dexter jessibuca [https://github.com/langhuihui/jessibuca/tree/v3](https://github.com/langhuihui/jessibuca/tree/v3)  
-前端页面基于@Kyle MediaServerUI [https://gitee.com/kkkkk5G/MediaServerUI](https://gitee.com/kkkkk5G/MediaServerUI) 进行修改.  
+前端页面基于@Kyle MediaServerUI [https://gitee.com/kkkkk5G/MediaServerUI](https://gitee.com/kkkkk5G/MediaServerUI) 进行修改.
 
 # 应用场景：
 支持浏览器无插件播放摄像头视频。
 支持国标设备(摄像机、平台、NVR等)设备接入
-支持非国标(onvif, rtsp, rtmp，直播设备等等)设备接入，充分利旧。 
+支持非国标(onvif, rtsp, rtmp，直播设备等等)设备接入，充分利旧。
 支持国标级联。多平台级联。跨网视频预览。
 支持跨网网闸平台互联。
 
@@ -43,10 +43,9 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
 ![build_1](https://images.gitee.com/uploads/images/2022/0304/101919_ee5b8c79_1018729.png "2022-03-04_10-13.png")
 ![运维中心](doc/_media/log.jpg "log.jpg")
 
-# 功能特性 
+# 功能特性
 - [X] 集成web界面
 - [X] 兼容性良好
-- [X] 支持电子地图，支持接入WGS84和GCJ02两种坐标系，并且自动转化为合适的坐标系进行展示和分发
 - [X] 接入设备
   - [X] 视频预览
   - [X] 支持主码流子码流切换
@@ -68,6 +67,7 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
   - [X] 支持播放H264和H265
   - [X] 报警信息处理，支持向前端推送报警信息
   - [X] 语音对讲
+  - [X] 支持业务分组和行政区划树自定义展示以及级联推送
   - [X] 支持订阅与通知方法
     - [X] 移动位置订阅
     - [X] 移动位置通知处理
@@ -84,6 +84,7 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
     - [X] 注册
     - [X] 心跳保活
     - [X] 通道选择
+    - [X] 支持通道编号自定义, 支持每个平台使用不同的通道编号
     - [X] 通道推送
     - [X] 点播
     - [X] 云台控制
@@ -95,10 +96,11 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
     - [X] 录像查看与播放
     - [X] GPS订阅与通知（直播推流）
     - [X] 语音对讲
-- [X] 支持自动配置ZLM媒体服务, 减少因配置问题所出现的问题;  
+  - [X] 支持同时级联到多个上级平台
+- [X] 支持自动配置ZLM媒体服务, 减少因配置问题所出现的问题;
 - [X] 多流媒体节点，自动选择负载最低的节点使用。
 - [X] 支持启用udp多端口模式, 提高udp模式下媒体传输性能;
-- [X] 支持公网部署； 
+- [X] 支持公网部署；
 - [X] 支持wvp与zlm分开部署，提升平台并发能力
 - [X] 支持拉流RTSP/RTMP，分发为各种流格式，或者推送到其他国标平台
 - [X] 支持推流RTSP/RTMP，分发为各种流格式，或者推送到其他国标平台
@@ -108,8 +110,9 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
 - [X] 支持打包可执行jar和war
 - [X] 支持跨域请求，支持前后端分离部署
 - [X] 支持Mysql，Postgresql，金仓等数据库
-- [X] 支持Onvif(目前在onvif分支，需要安装onvif服务，服务请在知识星球获取)
-
+- [X] 支持录制计划, 根据设定的时间对通道进行录制. 暂不支持将录制的内容转发到国标上级
+- [X] 支持Onvif, 目前付费提供, 永久免费试用包在知识星球获取
+- [X] 支持国标28181-2022协议, 目前付费提供, 永久免费试用包在知识星球获取
 
 
 # 非开源的内容
@@ -120,7 +123,7 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
 # 授权协议
 本项目自有代码使用宽松的MIT协议，在保留版权信息的情况下可以自由应用于各自商用、非商业的项目。 但是本项目也零碎的使用了一些其他的开源代码，在商用的情况下请自行替代或剔除； 由于使用本项目而产生的商业纠纷或侵权行为一概与本项目及开发者无关，请自行承担法律风险。 在使用本项目代码时，也应该在授权协议中同时表明本项目依赖的第三方库的协议
 
-# 技术支持  
+# 技术支持
 
 [知识星球](https://t.zsxq.com/0d8VAD3Dm)专栏列表：，
 - [使用入门系列一：WVP-PRO能做什么](https://t.zsxq.com/0dLguVoSp)
@@ -132,7 +135,7 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
 感谢作者[dexter langhuihui](https://github.com/langhuihui) 开源这么好用的WEB播放器。     
 感谢作者[Kyle](https://gitee.com/kkkkk5G) 开源了好用的前端页面     
 感谢各位大佬的赞助以及对项目的指正与帮助。包括但不限于代码贡献、问题反馈、资金捐赠等各种方式的支持！以下排名不分先后：  
-[lawrencehj](https://github.com/lawrencehj) [Smallwhitepig](https://github.com/Smallwhitepig) [swwhaha](https://github.com/swwheihei) 
+[lawrencehj](https://github.com/lawrencehj) [Smallwhitepig](https://github.com/Smallwhitepig) [swwhaha](https://github.com/swwheihei)
 [hotcoffie](https://github.com/hotcoffie) [xiaomu](https://github.com/nikmu) [TristingChen](https://github.com/TristingChen)
 [chenparty](https://github.com/chenparty) [Hotleave](https://github.com/hotleave) [ydwxb](https://github.com/ydwxb)
 [ydpd](https://github.com/ydpd) [szy833](https://github.com/szy833) [ydwxb](https://github.com/ydwxb) [Albertzhu666](https://github.com/Albertzhu666)

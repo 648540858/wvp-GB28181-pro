@@ -517,7 +517,14 @@ public class PlayServiceImpl implements IPlayService {
         }, userSetting.getPlayTimeout());
 
         try {
-            mediaServerService.startSendRtpPassive(mediaServerItem, sendRtpInfo, userSetting.getPlayTimeout() * 1000);
+            Integer localPort = mediaServerService.startSendRtpPassive(mediaServerItem, sendRtpInfo, userSetting.getPlayTimeout() * 1000);
+            if (localPort == null || localPort <= 0) {
+                timeoutCallback.run();
+                mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpInfo.getSsrc());
+                sessionManager.removeByStream(sendRtpInfo.getStream());
+                return;
+            }
+            sendRtpInfo.setPort(localPort);
         }catch (ControllerException e) {
             mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpInfo.getSsrc());
             log.info("[语音对讲]失败 deviceId: {}, channelId: {}", device.getDeviceId(), channel.getDeviceId());

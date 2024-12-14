@@ -338,7 +338,11 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             log.info("[更新通道码流类型] 设备: {}, 通道：{}， 码流： {}", channel.getDeviceId(), channel.getDeviceId(),
                     channel.getStreamIdentification());
         }
-        channelMapper.updateChannelStreamIdentification(channel);
+        if (channel.getId() > 0) {
+            channelMapper.updateChannelStreamIdentification(channel);
+        }else {
+            channelMapper.updateAllChannelStreamIdentification(channel.getStreamIdentification());
+        }
     }
 
     @Override
@@ -348,6 +352,16 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到通道：" + deviceId);
         }
         return channelMapper.queryChannelsByDeviceDbId(device.getId());
+    }
+
+    @Override
+    public List<DeviceChannel> queryChaneListByDeviceDbId(Integer deviceDbId) {
+        return channelMapper.queryChannelsByDeviceDbId(deviceDbId);
+    }
+
+    @Override
+    public List<Integer> queryChaneIdListByDeviceDbIds(List<Integer> deviceDbIds) {
+        return channelMapper.queryChaneIdListByDeviceDbIds(deviceDbIds);
     }
 
     @Override

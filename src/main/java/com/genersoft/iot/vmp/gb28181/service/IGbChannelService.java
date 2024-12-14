@@ -84,4 +84,7 @@ public interface IGbChannelService {
     List<CommonGBChannel> queryListByStreamPushList(List<StreamPush> streamPushList);
 
     void updateGpsByDeviceIdForStreamPush(List<CommonGBChannel> channels);
+
+    PageInfo<CommonGBChannel> queryList(int page, int count, String query, Boolean online, Boolean hasRecordPlan, Integer channelType);
+
 }

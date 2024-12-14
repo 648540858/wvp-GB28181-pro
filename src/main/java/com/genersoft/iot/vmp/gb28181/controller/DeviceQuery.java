@@ -144,9 +144,21 @@ public class DeviceQuery {
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		boolean status = deviceService.isSyncRunning(deviceId);
 		// 已存在则返回进度
-		if (status) {
+		if (deviceService.isSyncRunning(deviceId)) {
 			SyncStatus channelSyncStatus = deviceService.getChannelSyncStatus(deviceId);
-			return WVPResult.success(channelSyncStatus);
+			WVPResult wvpResult = new WVPResult();
+			if (channelSyncStatus.getErrorMsg() != null) {
+				wvpResult.setCode(ErrorCode.ERROR100.getCode());
+				wvpResult.setMsg(channelSyncStatus.getErrorMsg());
+			}else if (channelSyncStatus.getTotal() == null || channelSyncStatus.getTotal() == 0){
+				wvpResult.setCode(ErrorCode.SUCCESS.getCode());
+				wvpResult.setMsg("等待通道信息...");
+			}else {
+				wvpResult.setCode(ErrorCode.SUCCESS.getCode());
+				wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
+				wvpResult.setData(channelSyncStatus);
+			}
+			return wvpResult;
 		}
 		deviceService.sync(device);
 
@@ -257,7 +269,7 @@ public class DeviceQuery {
 	@Operation(summary = "修改数据流传输模式", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "streamMode", description = "数据流传输模式, 取值：" +
-			"UDP（udp传输），TCP-ACTIVE（tcp主动模式,暂不支持），TCP-PASSIVE（tcp被动模式）", required = true)
+			"UDP（udp传输），TCP-ACTIVE（tcp主动模式），TCP-PASSIVE（tcp被动模式）", required = true)
 	@PostMapping("/transport/{deviceId}/{streamMode}")
 	public void updateTransport(@PathVariable String deviceId, @PathVariable String streamMode){
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
@@ -414,15 +426,18 @@ public class DeviceQuery {
 		SyncStatus channelSyncStatus = deviceService.getChannelSyncStatus(deviceId);
 		WVPResult<SyncStatus> wvpResult = new WVPResult<>();
 		if (channelSyncStatus == null) {
-			wvpResult.setCode(-1);
-			wvpResult.setMsg("同步尚未开始");
+			wvpResult.setCode(ErrorCode.ERROR100.getCode());
+			wvpResult.setMsg("同步不存在");
+		}else if (channelSyncStatus.getErrorMsg() != null) {
+			wvpResult.setCode(ErrorCode.ERROR100.getCode());
+			wvpResult.setMsg(channelSyncStatus.getErrorMsg());
+		}else if (channelSyncStatus.getTotal() == null || channelSyncStatus.getTotal() == 0){
+			wvpResult.setCode(ErrorCode.SUCCESS.getCode());
+			wvpResult.setMsg("等待通道信息...");
 		}else {
 			wvpResult.setCode(ErrorCode.SUCCESS.getCode());
 			wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
 			wvpResult.setData(channelSyncStatus);
-			if (channelSyncStatus.getErrorMsg() != null) {
-				wvpResult.setMsg(channelSyncStatus.getErrorMsg());
-			}
 		}
 		return wvpResult;
 	}

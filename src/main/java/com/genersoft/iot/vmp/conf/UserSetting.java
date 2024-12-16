@@ -175,4 +175,9 @@ public class UserSetting {
      */
     private int gbDeviceOnline = 1;
 
+    /**
+     *    登录超时时间(分钟)，
+     */
+    private long loginTimeout = 30;
+
 }

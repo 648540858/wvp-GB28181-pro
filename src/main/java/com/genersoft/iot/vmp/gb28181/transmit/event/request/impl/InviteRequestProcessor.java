@@ -164,7 +164,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 channelPlayService.start(channel, inviteInfo, platform, ((code, msg, streamInfo) -> {
                     if (code != InviteErrorCode.SUCCESS.getCode()) {
                         try {
-                            responseAck(request, code, msg);
+                            responseAck(request, Response.BUSY_HERE , msg);
                         } catch (SipException | InvalidArgumentException | ParseException e) {
                             log.error("[命令发送失败] 上级Invite 点播失败: {}", e.getMessage());
                         }

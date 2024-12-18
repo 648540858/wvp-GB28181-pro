@@ -199,7 +199,9 @@ public class NotifyRequestForMobilePositionProcessor extends SIPRequestProcessor
 					}
 				}
 			} catch (DocumentException e) {
-				log.error("未处理的异常 ", e);
+				log.error("[收到移动位置订阅通知] 文档解析异常： \r\n{}", evt.getRequest(), e);
+			} catch ( Exception e) {
+				log.error("[收到移动位置订阅通知] 异常： ", e);
 			}
 		}
 	}

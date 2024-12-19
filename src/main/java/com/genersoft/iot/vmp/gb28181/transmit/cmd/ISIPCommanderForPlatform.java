@@ -140,7 +140,7 @@ public interface ISIPCommanderForPlatform {
      * @param sendRtpItem
      * @return
      */
-    void sendMediaStatusNotify(Platform platform, SendRtpInfo sendRtpItem) throws SipException, InvalidArgumentException, ParseException;
+    void sendMediaStatusNotify(Platform platform, SendRtpInfo sendRtpItem, CommonGBChannel channel) throws SipException, InvalidArgumentException, ParseException;
 
     void streamByeCmd(Platform platform, SendRtpInfo sendRtpItem, CommonGBChannel channel) throws SipException, InvalidArgumentException, ParseException;
 

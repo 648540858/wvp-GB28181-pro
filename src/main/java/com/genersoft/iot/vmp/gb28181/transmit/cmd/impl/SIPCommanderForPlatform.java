@@ -61,9 +61,6 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
     private IMediaServerService mediaServerService;
 
     @Autowired
-    private SipSubscribe sipSubscribe;
-
-    @Autowired
     private SipLayer sipLayer;
 
     @Autowired
@@ -84,9 +81,6 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
 
     @Autowired
     private GitUtil gitUtil;
-
-    @Autowired
-    private CommonGBChannelMapper commonGBChannelMapper;
 
     @Override
     public void register(Platform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException {
@@ -603,14 +597,8 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public void sendMediaStatusNotify(Platform parentPlatform, SendRtpInfo sendRtpItem) throws SipException, InvalidArgumentException, ParseException {
-        if (sendRtpItem == null || parentPlatform == null) {
-            return;
-        }
-
-        CommonGBChannel channel = commonGBChannelMapper.queryById(sendRtpItem.getChannelId());
-
-        if (channel == null) {
+    public void sendMediaStatusNotify(Platform parentPlatform, SendRtpInfo sendRtpInfo, CommonGBChannel channel) throws SipException, InvalidArgumentException, ParseException {
+        if (channel == null || parentPlatform == null) {
             return;
         }
 
@@ -625,7 +613,7 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
                 .append("</Notify>\r\n");
 
         SIPRequest messageRequest = (SIPRequest)headerProviderPlatformProvider.createMessageRequest(parentPlatform, mediaStatusXml.toString(),
-                sendRtpItem);
+                sendRtpInfo);
 
         sipSender.transmitRequest(parentPlatform.getDeviceIp(),messageRequest);
 

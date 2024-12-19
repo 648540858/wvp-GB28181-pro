@@ -2,14 +2,8 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify
 
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.Platform;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
-import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
-import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
-import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
-import com.genersoft.iot.vmp.gb28181.service.IPlayService;
+import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.service.*;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderForPlatform;
@@ -56,7 +50,7 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
     private SIPCommanderForPlatform sipCommanderFroPlatform;
 
     @Autowired
-    private IRedisCatchStorage redisCatchStorage;
+    private IPlatformChannelService platformChannelService;
 
     @Autowired
     private IPlatformService platformService;
@@ -108,15 +102,20 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
                 Hook hook = Hook.getInstance(HookType.on_media_arrival, "rtp", ssrcTransaction.getStream(), ssrcTransaction.getMediaServerId());
                 subscribe.removeSubscribe(hook);
                 // 如果级联播放，需要给上级发送此通知 TODO 多个上级同时观看一个下级 可能存在停错的问题，需要将点播CallId进行上下级绑定
-                SendRtpInfo sendRtpItem =  sendRtpServerService.queryByChannelId(ssrcTransaction.getChannelId(), ssrcTransaction.getPlatformId());
-                if (sendRtpItem != null) {
-                    Platform parentPlatform = platformService.queryPlatformByServerGBId(sendRtpItem.getTargetId());
+                SendRtpInfo sendRtpInfo =  sendRtpServerService.queryByChannelId(ssrcTransaction.getChannelId(), ssrcTransaction.getPlatformId());
+                if (sendRtpInfo != null) {
+                    Platform parentPlatform = platformService.queryPlatformByServerGBId(sendRtpInfo.getTargetId());
                     if (parentPlatform == null) {
-                        log.warn("[级联消息发送]：发送MediaStatus发现上级平台{}不存在", sendRtpItem.getTargetId());
+                        log.warn("[级联消息发送]：发送MediaStatus发现上级平台{}不存在", sendRtpInfo.getTargetId());
+                        return;
+                    }
+                    CommonGBChannel channel = platformChannelService.queryChannelByPlatformIdAndChannelId(parentPlatform.getId(), sendRtpInfo.getChannelId());
+                    if (channel == null) {
+                        log.warn("[级联消息发送]：发送MediaStatus发现通道{}不存在", sendRtpInfo.getChannelId());
                         return;
                     }
                     try {
-                        sipCommanderFroPlatform.sendMediaStatusNotify(parentPlatform, sendRtpItem);
+                        sipCommanderFroPlatform.sendMediaStatusNotify(parentPlatform, sendRtpInfo, channel);
                     } catch (SipException | InvalidArgumentException | ParseException e) {
                         log.error("[命令发送失败] 国标级联 录像播放完毕: {}", e.getMessage());
                     }

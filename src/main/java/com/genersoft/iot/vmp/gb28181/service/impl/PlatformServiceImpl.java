@@ -484,7 +484,7 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public void broadcastInvite(Platform platform, CommonGBChannel channel, MediaServer mediaServerItem, HookSubscribe.Event hookEvent,
+    public void broadcastInvite(Platform platform, CommonGBChannel channel, String sourceId, MediaServer mediaServerItem, HookSubscribe.Event hookEvent,
                                 SipSubscribe.Event errorEvent, InviteTimeOutCallback timeoutCallback) throws InvalidArgumentException, ParseException, SipException {
 
         if (mediaServerItem == null) {
@@ -565,7 +565,7 @@ public class PlatformServiceImpl implements IPlatformService {
                 }
             }
         }, userSetting.getPlayTimeout());
-        commanderForPlatform.broadcastInviteCmd(platform, channel, mediaServerItem, ssrcInfo, (hookData)->{
+        commanderForPlatform.broadcastInviteCmd(platform, channel,sourceId, mediaServerItem, ssrcInfo, (hookData)->{
             log.info("[国标级联] 发起语音喊话 收到上级推流 deviceId: {}, channelId: {}", platform.getServerGBId(), channel.getGbDeviceId());
             dynamicTask.stop(timeOutTaskKey);
             // hook响应
@@ -578,45 +578,6 @@ public class PlatformServiceImpl implements IPlatformService {
 
             inviteOKHandler(event, ssrcInfo, tcpMode, ssrcCheck, mediaServerItem, platform, channel, timeOutTaskKey,
                     null, inviteInfo, InviteSessionType.BROADCAST);
-//            // 收到200OK 检测ssrc是否有变化，防止上级自定义了ssrc
-//            ResponseEvent responseEvent = (ResponseEvent) event.event;
-//            String contentString = new String(responseEvent.getResponse().getRawContent());
-//            // 获取ssrc
-//            int ssrcIndex = contentString.indexOf("y=");
-//            // 检查是否有y字段
-//            if (ssrcIndex >= 0) {
-//                //ssrc规定长度为10字节，不取余下长度以避免后续还有“f=”字段 TODO 后续对不规范的非10位ssrc兼容
-//                String ssrcInResponse = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
-//                // 查询到ssrc不一致且开启了ssrc校验则需要针对处理
-//                if (ssrcInfo.getSsrc().equals(ssrcInResponse) || ssrcCheck) {
-//                    tcpActiveHandler(platform, )
-//                    return;
-//                }
-//                logger.info("[点播消息] 收到invite 200, 发现下级自定义了ssrc: {}", ssrcInResponse);
-//                if (!mediaServerItem.isRtpEnable()) {
-//                    logger.info("[点播消息] SSRC修正 {}->{}", ssrcInfo.getSsrc(), ssrcInResponse);
-//                    // 释放ssrc
-//                    mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
-//                    // 单端口模式streamId也有变化，需要重新设置监听
-//                    if (!mediaServerItem.isRtpEnable()) {
-//                        // 添加订阅
-//                        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcInfo.getStream(), true, "rtsp", mediaServerItem.getId());
-//                        subscribe.removeSubscribe(hookSubscribe);
-//                        hookSubscribe.getContent().put("stream", String.format("%08x", Integer.parseInt(ssrcInResponse)).toUpperCase());
-//                        subscribe.addSubscribe(hookSubscribe, (mediaServerItemInUse, hookParam) -> {
-//                            logger.info("[ZLM HOOK] ssrc修正后收到订阅消息： " + hookParam);
-//                            dynamicTask.stop(timeOutTaskKey);
-//                            // hook响应
-//                            playService.onPublishHandlerForPlay(mediaServerItemInUse, hookParam, platform.getServerGBId(), channelId);
-//                            hookEvent.response(mediaServerItemInUse, hookParam);
-//                        });
-//                    }
-//                    // 关闭rtp server
-//                    mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
-//                    // 重新开启ssrc server
-//                    mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, false, false, ssrcInfo.getPort(), true, false, tcpMode);
-//                }
-//            }
         }, eventResult -> {
             // 收到错误回复
             if (errorEvent != null) {

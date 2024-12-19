@@ -269,7 +269,7 @@ public class DeviceQuery {
 	@Operation(summary = "修改数据流传输模式", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "streamMode", description = "数据流传输模式, 取值：" +
-			"UDP（udp传输），TCP-ACTIVE（tcp主动模式,暂不支持），TCP-PASSIVE（tcp被动模式）", required = true)
+			"UDP（udp传输），TCP-ACTIVE（tcp主动模式），TCP-PASSIVE（tcp被动模式）", required = true)
 	@PostMapping("/transport/{deviceId}/{streamMode}")
 	public void updateTransport(@PathVariable String deviceId, @PathVariable String streamMode){
 		Device device = deviceService.getDeviceByDeviceId(deviceId);

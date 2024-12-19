@@ -69,13 +69,8 @@ public interface IPlatformService {
 
     /**
      * 向上级发送语音喊话的消息
-     * @param platform 平台
-     * @param channelId 通道
-     * @param hookEvent hook事件
-     * @param errorEvent 信令错误事件
-     * @param timeoutCallback 超时事件
      */
-    void broadcastInvite(Platform platform, CommonGBChannel channelId, MediaServer mediaServerItem, HookSubscribe.Event hookEvent,
+    void broadcastInvite(Platform platform, CommonGBChannel channel, String sourceId, MediaServer mediaServerItem, HookSubscribe.Event hookEvent,
                          SipSubscribe.Event errorEvent, InviteTimeOutCallback timeoutCallback) throws InvalidArgumentException, ParseException, SipException;
 
     /**

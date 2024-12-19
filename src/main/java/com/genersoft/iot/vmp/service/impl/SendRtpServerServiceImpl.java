@@ -34,7 +34,7 @@ public class SendRtpServerServiceImpl implements ISendRtpServerService {
     public SendRtpInfo createSendRtpInfo(MediaServer mediaServer, String ip, Integer port, String ssrc, String requesterId,
                                          String deviceId, Integer channelId, Boolean isTcp, Boolean rtcp) {
         int localPort = getNextPort(mediaServer);
-        if (localPort == 0) {
+        if (localPort <= 0) {
             return null;
         }
         return SendRtpInfo.getInstance(localPort, mediaServer, ip, port, ssrc, deviceId, null, channelId,

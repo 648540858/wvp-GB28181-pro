@@ -18,6 +18,7 @@ public class ChannelProvider {
             "    jt_channel_id,\n" +
             "    create_time,\n" +
             "    update_time,\n" +
+            "    record_plan_id,\n" +
             "    coalesce(gb_device_id, device_id) as gb_device_id,\n" +
             "    coalesce(gb_name, name) as gb_name,\n" +
             "    coalesce(gb_manufacturer, manufacturer) as gb_manufacturer,\n" +
@@ -183,6 +184,37 @@ public class ChannelProvider {
                 sqlBuild.append(" AND stream_proxy_id is not null");
             }else if ((Integer)params.get("channelType") == 4) {
                 sqlBuild.append(" AND jt_channel_id is not null");
+            }
+        }
+        return sqlBuild.toString();
+    }
+
+    public String queryList(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(BASE_SQL);
+        sqlBuild.append(" where channel_type = 0 ");
+        if (params.get("query") != null) {
+            sqlBuild.append(" AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%') escape '/'" +
+                    " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%') escape '/' )")
+            ;
+        }
+        if (params.get("online") != null && (Boolean)params.get("online")) {
+            sqlBuild.append(" AND coalesce(gb_status, status) = 'ON'");
+        }
+        if (params.get("online") != null && !(Boolean)params.get("online")) {
+            sqlBuild.append(" AND coalesce(gb_status, status) = 'OFF'");
+        }
+        if (params.get("hasRecordPlan") != null && (Boolean)params.get("hasRecordPlan")) {
+            sqlBuild.append(" AND record_plan_id > 0");
+        }
+
+        if (params.get("channelType") != null) {
+            if ((Integer)params.get("channelType") == 0) {
+                sqlBuild.append(" AND device_db_id is not null");
+            }else if ((Integer)params.get("channelType") == 1) {
+                sqlBuild.append(" AND stream_push_id is not null");
+            }else if ((Integer)params.get("channelType") == 2) {
+                sqlBuild.append(" AND stream_proxy_id is not null");
             }
         }
         return sqlBuild.toString();

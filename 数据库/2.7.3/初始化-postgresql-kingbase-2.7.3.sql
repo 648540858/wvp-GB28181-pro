@@ -163,6 +163,7 @@ create table wvp_device_channel
     gb_download_speed            character varying(255),
     gb_svc_space_support_mod     integer,
     gb_svc_time_support_mode     integer,
+    record_plan_id               integer,
     stream_push_id               integer,
     stream_proxy_id              integer,
     jt_channel_id                integer,
@@ -444,6 +445,26 @@ CREATE TABLE wvp_common_region
     create_time      varchar(50)  NOT NULL,
     update_time      varchar(50)  NOT NULL,
     constraint uk_common_region_device_id unique (device_id)
+);
+
+create table wvp_record_plan
+(
+    id              serial primary key,
+    snap            bool default false,
+    name            varchar(255) NOT NULL,
+    create_time     character varying(50),
+    update_time     character varying(50)
+);
+
+create table wvp_record_plan_item
+(
+    id              serial primary key,
+    start           int,
+    stop            int,
+    week_day        int,
+    plan_id        int,
+    create_time     character varying(50),
+    update_time     character varying(50)
 );
 
 create table wvp_jt_terminal (

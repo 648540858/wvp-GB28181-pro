@@ -107,9 +107,9 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "读取配置失败");
         }
         mediaServer.setId(zlmServerConfig.getGeneralMediaServerId());
-        mediaServer.setHttpSSlPort(zlmServerConfig.getHttpPort());
-        mediaServer.setFlvSSLPort(zlmServerConfig.getHttpPort());
-        mediaServer.setWsFlvSSLPort(zlmServerConfig.getHttpPort());
+        mediaServer.setHttpSSlPort(zlmServerConfig.getHttpSSLport());
+        mediaServer.setFlvSSLPort(zlmServerConfig.getHttpSSLport());
+        mediaServer.setWsFlvSSLPort(zlmServerConfig.getHttpSSLport());
         mediaServer.setRtmpPort(zlmServerConfig.getRtmpPort());
         mediaServer.setRtmpSSlPort(zlmServerConfig.getRtmpSslPort());
         mediaServer.setRtspPort(zlmServerConfig.getRtspPort());

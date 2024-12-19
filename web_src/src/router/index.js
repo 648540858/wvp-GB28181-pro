@@ -31,6 +31,7 @@ import rtcPlayer from '../components/dialog/rtcPlayer.vue'
 import region from '../components/region.vue'
 import group from '../components/group.vue'
 import operations from '../components/operations.vue'
+import recordPLan from '../components/RecordPLan.vue'
 
 const originalPush = VueRouter.prototype.push
 VueRouter.prototype.push = function push(location) {
@@ -180,6 +181,10 @@ export default new VueRouter({
         {
           path: '/operations',
           component: operations,
+        },
+        {
+          path: '/recordPLan',
+          component: recordPLan,
         },
         ]
     },

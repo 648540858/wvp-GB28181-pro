@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.conf.security;
 
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.security.dto.JwtUser;
 import com.genersoft.iot.vmp.service.IUserApiKeyService;
 import com.genersoft.iot.vmp.service.IUserService;
@@ -46,13 +47,15 @@ public class JwtUtils implements InitializingBean {
     /**
      * token过期时间(分钟)
      */
-    public static final long EXPIRATION_TIME = 30 * 24 * 60;
+    public static final long EXPIRATION_TIME = 30;
 
     private static RsaJsonWebKey rsaJsonWebKey;
 
     private static IUserService userService;
 
     private static IUserApiKeyService userApiKeyService;
+    
+    private static UserSetting userSetting;
 
     public static String getApiKeyHeader() {
         return API_KEY_HEADER;
@@ -66,6 +69,11 @@ public class JwtUtils implements InitializingBean {
     @Resource
     public void setUserApiKeyService(IUserApiKeyService userApiKeyService) {
         JwtUtils.userApiKeyService = userApiKeyService;
+    }
+
+    @Resource
+    public void setUserSetting(UserSetting userSetting) {
+        JwtUtils.userSetting = userSetting;
     }
 
     @Override
@@ -153,7 +161,7 @@ public class JwtUtils implements InitializingBean {
     }
 
     public static String createToken(String username) {
-        return createToken(username, EXPIRATION_TIME);
+        return createToken(username, userSetting.getLoginTimeout());
     }
 
     public static String getHeader() {

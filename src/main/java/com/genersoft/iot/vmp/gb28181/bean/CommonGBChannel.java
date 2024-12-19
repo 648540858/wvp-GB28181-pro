@@ -126,6 +126,9 @@ public class CommonGBChannel {
     @Schema(description = "关联的国标设备数据库ID")
     private Integer gbDeviceDbId;
 
+    @Schema(description = "二进制保存的录制计划, 每一位表示每个小时的前半个小时")
+    private Long recordPLan;
+
     @Schema(description = "关联的推流Id（流来源是推流时有效）")
     private Integer streamPushId;
 

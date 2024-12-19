@@ -22,7 +22,7 @@
           </el-form-item>
           <el-form-item label="行政区划" prop="name">
             <el-input v-model="group.civilCode" >
-              <el-button slot="append" @click="buildCivilCode(group.civilCode)">生成</el-button>
+              <el-button slot="append" @click="buildCivilCode(group.civilCode)">选择</el-button>
             </el-input>
           </el-form-item>
 
@@ -37,17 +37,17 @@
       </div>
     </el-dialog>
     <channelCode ref="channelCode"></channelCode>
-    <regionCode ref="regionCode"></regionCode>
+    <chooseCivilCode ref="chooseCivilCode"></chooseCivilCode>
   </div>
 </template>
 
 <script>
 import channelCode from "./channelCode.vue";
-import regionCode from "./regionCode.vue";
+import ChooseCivilCode from "./chooseCivilCode.vue";
 
 export default {
   name: "groupEdit",
-  components: {channelCode, regionCode},
+  components: {ChooseCivilCode, channelCode},
   computed: {},
   props: [],
   created() {},
@@ -116,11 +116,9 @@ export default {
       }, deviceId, 5 , lockContent);
     },
     buildCivilCode: function (deviceId){
-      this.$refs.regionCode.openDialog(code=>{
-        console.log("2222")
-        console.log(code)
+      this.$refs.chooseCivilCode.openDialog(code=>{
         this.group.civilCode = code;
-      }, deviceId)
+      });
     },
     close: function () {
       this.showDialog = false;

@@ -140,13 +140,13 @@ public interface ISIPCommanderForPlatform {
      * @param sendRtpItem
      * @return
      */
-    void sendMediaStatusNotify(Platform platform, SendRtpInfo sendRtpItem) throws SipException, InvalidArgumentException, ParseException;
+    void sendMediaStatusNotify(Platform platform, SendRtpInfo sendRtpItem, CommonGBChannel channel) throws SipException, InvalidArgumentException, ParseException;
 
     void streamByeCmd(Platform platform, SendRtpInfo sendRtpItem, CommonGBChannel channel) throws SipException, InvalidArgumentException, ParseException;
 
     void streamByeCmd(Platform platform, CommonGBChannel channel, String stream, String callId, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException;
 
-    void broadcastInviteCmd(Platform platform, CommonGBChannel channel, MediaServer mediaServerItem,
+    void broadcastInviteCmd(Platform platform, CommonGBChannel channel, String sourceId,  MediaServer mediaServerItem,
                             SSRCInfo ssrcInfo, HookSubscribe.Event event, SipSubscribe.Event okEvent,
                             SipSubscribe.Event errorEvent) throws ParseException, SipException, InvalidArgumentException;
 

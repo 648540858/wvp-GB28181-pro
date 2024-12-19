@@ -8,9 +8,10 @@
       <el-main style="padding: 5px;">
         <div class="page-header">
           <div class="page-title">
-            <el-breadcrumb separator="/">
+            <el-breadcrumb separator="/" v-if="regionParents.length > 0">
               <el-breadcrumb-item v-for="key in regionParents" key="key">{{ key }}</el-breadcrumb-item>
             </el-breadcrumb>
+            <div v-else style="color: #00c6ff">未选择行政区划</div>
           </div>
           <div class="page-header-btn">
             <div style="display: inline;">
@@ -116,7 +117,7 @@ export default {
       loadSnap: {},
       regionId: "",
       regionDeviceId: "",
-      regionParents: ["请选择行政区划"],
+      regionParents: [],
       multipleSelection: []
     };
   },
@@ -285,7 +286,7 @@ export default {
       this.regionDeviceId = region.deviceId;
       if (region.deviceId === "") {
         this.channelList = []
-        this.regionParents = ["请选择行政区划"];
+        this.regionParents = [];
       }
       this.initData();
       // 获取regionDeviceId对应的节点信息

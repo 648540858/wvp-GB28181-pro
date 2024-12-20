@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.SipLayer;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
@@ -58,9 +59,6 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
 
     @Autowired
     private IMediaServerService mediaServerService;
-
-    @Autowired
-    private SipSubscribe sipSubscribe;
 
     @Autowired
     private SipLayer sipLayer;
@@ -599,11 +597,10 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public void sendMediaStatusNotify(Platform parentPlatform, SendRtpInfo sendRtpItem) throws SipException, InvalidArgumentException, ParseException {
-        if (sendRtpItem == null || parentPlatform == null) {
+    public void sendMediaStatusNotify(Platform parentPlatform, SendRtpInfo sendRtpInfo, CommonGBChannel channel) throws SipException, InvalidArgumentException, ParseException {
+        if (channel == null || parentPlatform == null) {
             return;
         }
-
 
         String characterSet = parentPlatform.getCharacterSet();
         StringBuffer mediaStatusXml = new StringBuffer(200);
@@ -611,12 +608,12 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
                 .append("<Notify>\r\n")
                 .append("<CmdType>MediaStatus</CmdType>\r\n")
                 .append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n")
-                .append("<DeviceID>" + sendRtpItem.getChannelId() + "</DeviceID>\r\n")
+                .append("<DeviceID>" + channel.getGbDeviceId() + "</DeviceID>\r\n")
                 .append("<NotifyType>121</NotifyType>\r\n")
                 .append("</Notify>\r\n");
 
         SIPRequest messageRequest = (SIPRequest)headerProviderPlatformProvider.createMessageRequest(parentPlatform, mediaStatusXml.toString(),
-                sendRtpItem);
+                sendRtpInfo);
 
         sipSender.transmitRequest(parentPlatform.getDeviceIp(),messageRequest);
 

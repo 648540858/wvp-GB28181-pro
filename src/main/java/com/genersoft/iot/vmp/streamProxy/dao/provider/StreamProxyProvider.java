@@ -20,7 +20,7 @@ public class StreamProxyProvider {
     }
 
     public String selectForPushingInMediaServer(Map<String, Object> params ){
-        return getBaseSelectSql() + " WHERE st.pulling=1 and st.media_server_id=#{mediaServerId} order by st.create_time desc";
+        return getBaseSelectSql() + " WHERE st.pulling=true and st.media_server_id=#{mediaServerId} order by st.create_time desc";
     }
 
     public String selectOneByAppAndStream(Map<String, Object> params ){

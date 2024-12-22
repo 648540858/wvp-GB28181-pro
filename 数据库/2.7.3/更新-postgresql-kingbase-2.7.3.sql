@@ -3,10 +3,10 @@
 */
 
 alter table wvp_device_channel
-    add data_type integer;
+    add data_type integer not null;
 
 alter table wvp_device_channel
-    add data_device_id integer;
+    add data_device_id integer not null;
 
 update wvp_device_channel wdc
 set data_type = 1, data_device_id = (SELECT device_db_id from wvp_device_channel where device_db_id is not null and id = wdc.id )  where device_db_id is not null;

@@ -3,10 +3,10 @@
 */
 
 alter table wvp_device_channel
-    add data_type integer;
+    add data_type integer not null;
 
 alter table wvp_device_channel
-    add data_device_id integer;
+    add data_device_id integer not null;
 
 update wvp_device_channel wdc INNER JOIN
     (SELECT device_db_id from wvp_device_channel where wdc.id = id and device_db_id is not null ) ct

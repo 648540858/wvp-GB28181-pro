@@ -53,7 +53,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Override
     public int add(CommonGBChannel commonGBChannel) {
-        if (commonGBChannel.getStreamPushId() != null && commonGBChannel.getStreamPushId() > 0) {
+        if (commonGBChannel.getDataType() != null && commonGBChannel.getDataDeviceId() > 0) {
             CommonGBChannel commonGBChannelInDb = commonGBChannelMapper.queryByStreamPushId(commonGBChannel.getStreamPushId());
             if (commonGBChannelInDb != null) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(), "此推流已经关联通道");

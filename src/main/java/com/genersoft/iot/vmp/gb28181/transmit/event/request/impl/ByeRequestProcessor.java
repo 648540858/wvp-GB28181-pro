@@ -199,7 +199,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 				platformService.stopBroadcast(platform, channel, ssrcTransaction.getStream(), false,
 						mediaServerService.getOne(mediaServerId));
 				DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
-				Device device = deviceService.getDevice(channel.getGbDeviceDbId());
+				Device device = deviceService.getDevice(channel.getDataDeviceId());
 				playService.stopAudioBroadcast(device, deviceChannel);
 			}
 

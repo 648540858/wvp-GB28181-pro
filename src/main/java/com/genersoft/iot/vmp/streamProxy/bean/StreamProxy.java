@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.streamProxy.bean;
 
+import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -72,7 +73,8 @@ public class StreamProxy extends CommonGBChannel {
         if (ObjectUtils.isEmpty(this.getGbName())) {
             this.setGbName( app+ "-" +stream);
         }
-        this.setStreamProxyId(this.getId());
+        this.setDataType(ChannelDataType.STREAM_PROXY.value);
+        this.setDataDeviceId(this.getId());
         return this;
     }
 }

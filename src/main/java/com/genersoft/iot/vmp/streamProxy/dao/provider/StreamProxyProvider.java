@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.streamProxy.dao.provider;
 
+import com.genersoft.iot.vmp.common.enums.ChannelDataType;
+
 import java.util.Map;
 
 public class StreamProxyProvider {
@@ -7,12 +9,13 @@ public class StreamProxyProvider {
     public String getBaseSelectSql(){
         return "SELECT " +
                 " st.*, " +
-                " st.id as stream_proxy_id, " +
+                ChannelDataType.STREAM_PROXY.value +  " as data_type, " +
+                " st.id as data_device_id, " +
                 " wdc.*, " +
                 " wdc.id as gb_id" +
                 " FROM wvp_stream_proxy st " +
                 " LEFT join wvp_device_channel wdc " +
-                " on st.id = wdc.stream_proxy_id ";
+                " on wdc.data_type = 3 and st.id = wdc.data_device_id ";
     }
 
     public String select(Map<String, Object> params ){

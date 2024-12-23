@@ -115,7 +115,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								log.info("[解析CatalogChannelEvent]成功：但是解析通道信息失败， 原文如下： \n{}", new String(evt.getRequest().getRawContent()));
 								continue;
 							}
-							catalogChannelEvent.getChannel().setDeviceDbId(device.getId());
+							catalogChannelEvent.getChannel().setDataDeviceId(device.getId());
                         } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
                                  IllegalAccessException e) {
                             log.error("[解析CatalogChannelEvent]失败，", e);

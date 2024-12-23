@@ -21,13 +21,13 @@ public interface DeviceChannelMapper {
 
     @Insert("<script> " +
             "insert into wvp_device_channel " +
-            "(device_id, device_db_id, name, manufacturer, model, owner, civil_code, block, " +
+            "(device_id, data_type, data_device_id, name, manufacturer, model, owner, civil_code, block, " +
             "address, parental, parent_id, safety_way, register_way, cert_num, certifiable, err_code, end_time, secrecy, " +
             "ip_address, port, password, status, longitude, latitude, ptz_type, position_type, room_type, use_type, " +
             "supply_light_type, direction_type, resolution, business_group_id, download_speed, svc_space_support_mod, " +
             "svc_time_support_mode, create_time, update_time, sub_count, stream_id, has_audio, gps_time, stream_identification, channel_type) " +
             "values " +
-            "(#{deviceId}, #{deviceDbId}, #{name}, #{manufacturer}, #{model}, #{owner}, #{civilCode}, #{block}, " +
+            "(#{deviceId}, #{dataType}, #{dataDeviceId}, #{name}, #{manufacturer}, #{model}, #{owner}, #{civilCode}, #{block}, " +
             "#{address}, #{parental}, #{parentId}, #{safetyWay}, #{registerWay}, #{certNum}, #{certifiable}, #{errCode}, #{endTime}, #{secrecy}, " +
             "#{ipAddress}, #{port}, #{password}, #{status}, #{longitude}, #{latitude}, #{ptzType}, #{positionType}, #{roomType}, #{useType}, " +
             "#{supplyLightType}, #{directionType}, #{resolution}, #{businessGroupId}, #{downloadSpeed}, #{svcSpaceSupportMod}," +
@@ -40,7 +40,8 @@ public interface DeviceChannelMapper {
             "UPDATE wvp_device_channel " +
             "SET update_time=#{updateTime}" +
             ", device_id=#{deviceId}" +
-            ", device_db_id=#{deviceDbId}" +
+            ", data_type=#{dataType}" +
+            ", data_device_id=#{dataDeviceId}" +
             ", name=#{name}" +
             ", manufacturer=#{manufacturer}" +
             ", model=#{model}" +
@@ -85,22 +86,22 @@ public interface DeviceChannelMapper {
     int update(DeviceChannel channel);
 
     @SelectProvider(type = DeviceChannelProvider.class, method = "queryChannels")
-    List<DeviceChannel> queryChannels(@Param("deviceDbId") int deviceDbId, @Param("civilCode") String civilCode,
+    List<DeviceChannel> queryChannels(@Param("dataDeviceId") int dataDeviceId, @Param("civilCode") String civilCode,
                                       @Param("businessGroupId") String businessGroupId, @Param("parentChannelId") String parentChannelId,
                                       @Param("query") String query, @Param("hasSubChannel") Boolean hasSubChannel,
                                       @Param("online") Boolean online, @Param("channelIds") List<String> channelIds);
 
     @SelectProvider(type = DeviceChannelProvider.class, method = "queryChannelsByDeviceDbId")
-    List<DeviceChannel> queryChannelsByDeviceDbId(@Param("deviceDbId") int deviceDbId);
+    List<DeviceChannel> queryChannelsByDeviceDbId(@Param("dataDeviceId") int dataDeviceId);
 
-    @Select(value = {" <script> " +
-            "select id from wvp_device_channel where device_db_id in  " +
+    @Select("<script> " +
+            "select id from wvp_device_channel where data_type =1 and data_device_id in  " +
             " <foreach item='item' index='index' collection='deviceDbIds' open='(' separator=',' close=')'> #{item} </foreach>" +
-            " </script>"})
+            " </script>")
     List<Integer> queryChaneIdListByDeviceDbIds(List<Integer> deviceDbIds);
 
-    @Delete("DELETE FROM wvp_device_channel WHERE device_db_id=#{deviceId}")
-    int cleanChannelsByDeviceId(@Param("deviceId") int deviceId);
+    @Delete("DELETE FROM wvp_device_channel WHERE data_type =1 and data_device_id=#{deviceId}")
+    int cleanChannelsByDeviceId(@Param("dataDeviceId") int dataDeviceId);
 
     @Delete("DELETE FROM wvp_device_channel WHERE id=#{id}")
     int del(@Param("id") int id);
@@ -141,8 +142,8 @@ public interface DeviceChannelMapper {
             " coalesce(dc.gb_business_group_id, dc.business_group_id) as business_group_id " +
             " from " +
             " wvp_device_channel dc " +
-            " LEFT JOIN wvp_device de ON dc.device_db_id = de.id " +
-            " WHERE 1=1" +
+            " LEFT JOIN wvp_device de ON  dc.data_device_id = de.id " +
+            " WHERE dc.data_type = 1 " +
             " <if test='deviceId != null'> AND de.device_id = #{deviceId} </if> " +
             " <if test='query != null'> AND (dc.device_id LIKE '%${query}%' OR dc.name LIKE '%${query}%' OR dc.name LIKE '%${query}%')</if> " +
             " <if test='parentChannelId != null'> AND dc.parent_id=#{parentChannelId} </if> " +
@@ -155,7 +156,7 @@ public interface DeviceChannelMapper {
             "</foreach> </if>" +
             "ORDER BY dc.device_id ASC" +
             " </script>"})
-    List<DeviceChannelExtend> queryChannelsWithDeviceInfo(@Param("deviceId") String deviceId, @Param("parentChannelId") String parentChannelId, @Param("query") String query, @Param("hasSubChannel") Boolean hasSubChannel, @Param("online") Boolean online, @Param("channelIds") List<String> channelIds);
+    List<DeviceChannelExtend> queryChannelsWithDeviceInfo( @Param("deviceId") String deviceId, @Param("parentChannelId") String parentChannelId, @Param("query") String query, @Param("hasSubChannel") Boolean hasSubChannel, @Param("online") Boolean online, @Param("channelIds") List<String> channelIds);
 
     @Update(value = {"UPDATE wvp_device_channel SET stream_id=#{streamId} WHERE id=#{channelId}"})
     void startPlay(@Param("channelId") Integer channelId, @Param("streamId") String streamId);
@@ -172,9 +173,9 @@ public interface DeviceChannelMapper {
             " pgc.platform_id as platform_id,\n" +
             " pgc.catalog_id as catalog_id " +
             " FROM wvp_device_channel dc " +
-            " LEFT JOIN wvp_device de ON dc.device_db_id = de.id " +
+            " LEFT JOIN wvp_device de ON dc.data_device_id = de.id " +
             " LEFT JOIN wvp_platform_channel pgc on pgc.device_channel_id = dc.id " +
-            " WHERE 1=1 " +
+            " WHERE dc.data_type = 1 " +
             " <if test='query != null'> " +
             "AND " +
             "(COALESCE(dc.gb_device_id, dc.device_id) LIKE concat('%',#{query},'%') " +
@@ -195,14 +196,14 @@ public interface DeviceChannelMapper {
 
     @Insert("<script> " +
             "insert into wvp_device_channel " +
-            "(device_id, device_db_id, name, manufacturer, model, owner, civil_code, block, " +
+            "(device_id, data_type, data_device_id, name, manufacturer, model, owner, civil_code, block, " +
             "address, parental, parent_id, safety_way, register_way, cert_num, certifiable, err_code, end_time, secrecy, " +
             "ip_address, port, password, status, longitude, latitude, ptz_type, position_type, room_type, use_type, " +
             "supply_light_type, direction_type, resolution, business_group_id, download_speed, svc_space_support_mod, " +
             "svc_time_support_mode, create_time, update_time, sub_count, stream_id, has_audio, gps_time, stream_identification, channel_type) " +
             "values " +
             "<foreach collection='addChannels' index='index' item='item' separator=','> " +
-            "(#{item.deviceId}, #{item.deviceDbId}, #{item.name}, #{item.manufacturer}, #{item.model}, #{item.owner}, #{item.civilCode}, #{item.block}, " +
+            "(#{item.deviceId}, #{item.dataType}, #{item.dataDeviceId}, #{item.name}, #{item.manufacturer}, #{item.model}, #{item.owner}, #{item.civilCode}, #{item.block}, " +
             "#{item.address}, #{item.parental}, #{item.parentId}, #{item.safetyWay}, #{item.registerWay}, #{item.certNum}, #{item.certifiable}, #{item.errCode}, #{item.endTime}, #{item.secrecy}, " +
             "#{item.ipAddress}, #{item.port}, #{item.password}, #{item.status}, #{item.longitude}, #{item.latitude}, #{item.ptzType}, #{item.positionType}, #{item.roomType}, #{item.useType}, " +
             "#{item.supplyLightType}, #{item.directionType}, #{item.resolution}, #{item.businessGroupId}, #{item.downloadSpeed}, #{item.svcSpaceSupportMod}," +
@@ -221,7 +222,8 @@ public interface DeviceChannelMapper {
             " wvp_device_channel" +
             " SET update_time=#{item.updateTime}" +
             ", device_id=#{item.deviceId}" +
-            ", device_db_id=#{item.deviceDbId}" +
+            ", data_type=#{item.dataType}" +
+            ", data_device_id=#{item.dataDeviceId}" +
             ", name=#{item.name}" +
             ", manufacturer=#{item.manufacturer}" +
             ", model=#{item.model}" +
@@ -273,7 +275,8 @@ public interface DeviceChannelMapper {
             " wvp_device_channel" +
             " SET update_time=#{item.updateTime}" +
             ", device_id=#{item.deviceId}" +
-            ", device_db_id=#{item.deviceDbId}" +
+            ", data_type=#{item.dataType}" +
+            ", data_device_id=#{item.dataDeviceId}" +
             ", name=#{item.name}" +
             ", manufacturer=#{item.manufacturer}" +
             ", model=#{item.model}" +
@@ -313,7 +316,7 @@ public interface DeviceChannelMapper {
             ", gps_time=#{item.gpsTime}" +
             ", stream_identification=#{item.streamIdentification}" +
             ", channel_type=#{item.channelType}" +
-            " WHERE device_db_id = #{item.deviceDbId} and device_id=#{item.deviceId}" +
+            " WHERE data_type = #{item.dataType} and data_device_id = #{item.dataDeviceId} and device_id=#{item.deviceId}" +
             "</foreach>" +
             "</script>"})
     int batchUpdateForNotify(List<DeviceChannel> updateChannels);
@@ -322,9 +325,9 @@ public interface DeviceChannelMapper {
             " set sub_count = (select *" +
             "             from (select count(0)" +
             "                   from wvp_device_channel" +
-            "                   where device_db_id = #{deviceDbId} and parent_id = #{channelId}) as temp)" +
-            " where device_db_id = #{deviceDbId} and device_id = #{channelId}")
-    int updateChannelSubCount(@Param("deviceDbId") int deviceDbId, @Param("channelId") String channelId);
+            "                   where data_type = 1 and data_device_id = #{dataDeviceId} and parent_id = #{channelId}) as temp)" +
+            " where data_type = 1 and data_device_id = #{dataDeviceId} and device_id = #{channelId}")
+    int updateChannelSubCount(@Param("dataDeviceId") int dataDeviceId, @Param("channelId") String channelId);
 
     @Update(value = {" <script>" +
             " UPDATE wvp_device_channel " +
@@ -338,7 +341,7 @@ public interface DeviceChannelMapper {
 
     @Select("select " +
             " id,\n" +
-            " device_db_id,\n" +
+            " data_device_id,\n" +
             " create_time,\n" +
             " update_time,\n" +
             " sub_count,\n" +
@@ -381,11 +384,11 @@ public interface DeviceChannelMapper {
             " download_speed,\n" +
             " svc_space_support_mod,\n" +
             " svc_time_support_mode\n" +
-            " from wvp_device_channel where device_db_id = #{deviceDbId}")
-    List<DeviceChannel> queryAllChannelsForRefresh(@Param("deviceDbId") int deviceDbId);
+            " from wvp_device_channel where data_type = 1 and data_device_id = #{dataDeviceId}")
+    List<DeviceChannel> queryAllChannelsForRefresh(@Param("dataDeviceId") int dataDeviceId);
 
-    @Select("select de.* from wvp_device de left join wvp_device_channel dc on de.device_id = dc.device_id where dc.device_id=#{channelId}")
-    List<Device> getDeviceByChannelDeviceId(String channelId);
+    @Select("select de.* from wvp_device de left join wvp_device_channel dc on de.device_id = dc.device_id where dc.data_type = 1 and dc.device_id=#{channelId}")
+    List<Device> getDeviceByChannelDeviceId(@Param("channelId") String channelId);
 
 
     @Delete({"<script>" +
@@ -397,7 +400,7 @@ public interface DeviceChannelMapper {
 
     @Update({"<script>" +
             "<foreach collection='channels' item='item' separator=';'>" +
-            "UPDATE wvp_device_channel SET status=#{item.status} WHERE device_id=#{item.deviceId}" +
+            "UPDATE wvp_device_channel SET status=#{item.status} WHERE data_type = #{item.dataType} and device_id=#{item.deviceId}" +
             "</foreach>" +
             "</script>"})
     int batchUpdateStatus(List<DeviceChannel> channels);
@@ -427,7 +430,7 @@ public interface DeviceChannelMapper {
             "<if test='item.latitude != null'>, latitude=#{item.latitude}</if>" +
             "<if test='item.gpsTime != null'>, gps_time=#{item.gpsTime}</if>" +
             "<if test='item.id > 0'>WHERE id=#{item.id}</if>" +
-            "<if test='item.id == 0'>WHERE device_db_id=#{item.deviceDbId} AND device_id=#{item.deviceId}</if>" +
+            "<if test='item.id == 0'>WHERE data_type = #{item.dataType} and data_device_id=#{item.dataDeviceId} AND device_id=#{item.deviceId}</if>" +
             "</foreach>" +
             "</script>"})
     void batchUpdatePosition(List<DeviceChannel> channelList);
@@ -438,7 +441,7 @@ public interface DeviceChannelMapper {
     @Select(value = {" <script>" +
             " SELECT " +
             " id,\n" +
-            " device_db_id,\n" +
+            " data_device_id,\n" +
             " create_time,\n" +
             " update_time,\n" +
             " sub_count,\n" +
@@ -487,13 +490,13 @@ public interface DeviceChannelMapper {
     DeviceChannel getOneForSource(@Param("id") int id);
 
     @SelectProvider(type = DeviceChannelProvider.class, method = "getOneByDeviceId")
-    DeviceChannel getOneByDeviceId(@Param("deviceDbId") int deviceDbId, @Param("channelId") String channelId);
+    DeviceChannel getOneByDeviceId(@Param("dataDeviceId") int dataDeviceId, @Param("channelId") String channelId);
 
 
     @Select(value = {" <script>" +
             " SELECT " +
             " id,\n" +
-            " device_db_id,\n" +
+            " data_device_id,\n" +
             " create_time,\n" +
             " update_time,\n" +
             " sub_count,\n" +
@@ -537,9 +540,9 @@ public interface DeviceChannelMapper {
             " svc_space_support_mod,\n" +
             " svc_time_support_mode\n" +
             " from wvp_device_channel " +
-            " where device_db_id=#{deviceDbId} and coalesce(gb_device_id, device_id) = #{channelId}" +
+            " where data_type = 1 and data_device_id=#{dataDeviceId} and coalesce(gb_device_id, device_id) = #{channelId}" +
             " </script>"})
-    DeviceChannel getOneByDeviceIdForSource(@Param("deviceDbId") int deviceDbId, @Param("channelId") String channelId);
+    DeviceChannel getOneByDeviceIdForSource(@Param("dataDeviceId") int dataDeviceId, @Param("channelId") String channelId);
 
 
     @Update(value = {"UPDATE wvp_device_channel SET stream_id=null WHERE id=#{channelId}"})
@@ -559,7 +562,7 @@ public interface DeviceChannelMapper {
             "</script>")
     void updateStreamGPS(List<GPSMsgInfo> gpsMsgInfoList);
 
-    @Update("UPDATE wvp_device_channel SET status=#{status} WHERE device_db_id=#{deviceDbId} AND device_id=#{deviceId}")
+    @Update("UPDATE wvp_device_channel SET status=#{status} WHERE data_type=#{dataType} and data_device_id=#{dataDeviceId} AND device_id=#{deviceId}")
     void updateStatus(DeviceChannel channel);
 
 
@@ -568,7 +571,7 @@ public interface DeviceChannelMapper {
             " wvp_device_channel" +
             " SET update_time=#{updateTime}" +
             ", device_id=#{deviceId}" +
-            ", device_db_id=#{deviceDbId}" +
+            ", data_device_id=#{dataDeviceId}" +
             ", name=#{name}" +
             ", manufacturer=#{manufacturer}" +
             ", model=#{model}" +
@@ -616,7 +619,7 @@ public interface DeviceChannelMapper {
     @Select(value = {" <script>" +
             " SELECT " +
             " id,\n" +
-            " device_db_id,\n" +
+            " data_device_id,\n" +
             " create_time,\n" +
             " update_time,\n" +
             " sub_count,\n" +
@@ -660,7 +663,7 @@ public interface DeviceChannelMapper {
             " svc_space_support_mod,\n" +
             " svc_time_support_mode\n" +
             " from wvp_device_channel " +
-            " where device_db_id=#{deviceDbId} and device_id = #{channelId}" +
+            " where data_type = 1 and data_device_id=#{dataDeviceId} and device_id = #{channelId}" +
             " </script>"})
-    DeviceChannel getOneBySourceChannelId(int deviceDbId, String channelId);
+    DeviceChannel getOneBySourceChannelId(@Param("dataDeviceId") int dataDeviceId, @Param("channelId") String channelId);
 }

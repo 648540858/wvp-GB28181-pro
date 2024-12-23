@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.streamPush.dao;
 
+import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import org.apache.ibatis.annotations.*;
@@ -12,6 +13,8 @@ import java.util.Set;
 @Mapper
 @Repository
 public interface StreamPushMapper {
+
+    Integer dataType = ChannelDataType.GB28181.value;
 
     @Insert("INSERT INTO wvp_stream_push (app, stream, media_server_id, server_id, push_time,  update_time, create_time, pushing, start_offline_push) VALUES" +
             "(#{app}, #{stream}, #{mediaServerId} , #{serverId} , #{pushTime} ,#{updateTime}, #{createTime}, #{pushing}, #{startOfflinePush})")
@@ -39,13 +42,13 @@ public interface StreamPushMapper {
     @Select(value = {" <script>" +
             " SELECT " +
             " st.*, " +
-            " st.id as stream_push_id, " +
+            " st.id as data_device_id, " +
             " wdc.*, " +
             " wdc.id as gb_id" +
             " from " +
             " wvp_stream_push st " +
             " LEFT join wvp_device_channel wdc " +
-            " on st.id = wdc.stream_push_id " +
+            " on st.id = wdc.data_device_id " +
             " WHERE " +
             " 1=1 " +
             " <if test='query != null'> AND (st.app LIKE concat('%',#{query},'%') escape '/' OR st.stream LIKE concat('%',#{query},'%') escape '/' " +
@@ -57,7 +60,7 @@ public interface StreamPushMapper {
             " </script>"})
     List<StreamPush> selectAll(@Param("query") String query, @Param("pushing") Boolean pushing, @Param("mediaServerId") String mediaServerId);
 
-    @Select("SELECT st.*, st.id as stream_push_id, wdc.*, wdc.id as gb_id FROM wvp_stream_push st LEFT join wvp_device_channel wdc on st.id = wdc.stream_push_id WHERE st.app=#{app} AND st.stream=#{stream}")
+    @Select("SELECT st.*, st.id as data_device_id, wdc.*, wdc.id as gb_id FROM wvp_stream_push st LEFT join wvp_device_channel wdc on  wdc.data_type = 2 and st.id = wdc.data_device_id WHERE st.app=#{app} AND st.stream=#{stream}")
     StreamPush selectByAppAndStream(@Param("app") String app, @Param("stream") String stream);
 
     @Insert("<script>"  +
@@ -70,10 +73,10 @@ public interface StreamPushMapper {
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int addAll(List<StreamPush> streamPushItems);
 
-    @Select("SELECT st.*, st.id as stream_push_id, wdc.*, wdc.id as gb_id FROM wvp_stream_push st LEFT join wvp_device_channel wdc on st.id = wdc.stream_push_id WHERE st.media_server_id=#{mediaServerId}")
+    @Select("SELECT st.*, st.id as data_device_id, wdc.*, wdc.id as gb_id FROM wvp_stream_push st LEFT join wvp_device_channel wdc on wdc.data_type = 2 and st.id = wdc.data_device_id WHERE st.media_server_id=#{mediaServerId}")
     List<StreamPush> selectAllByMediaServerId(String mediaServerId);
 
-    @Select("SELECT st.*, st.id as stream_push_id, wdc.*, wdc.id as gb_id FROM wvp_stream_push st LEFT join wvp_device_channel wdc on st.id = wdc.stream_push_id WHERE st.media_server_id=#{mediaServerId} and wdc.gb_device_id is null")
+    @Select("SELECT st.*, st.id as data_device_id, wdc.*, wdc.id as gb_id FROM wvp_stream_push st LEFT join wvp_device_channel wdc on wdc.data_type = 2 and st.id = wdc.data_device_id WHERE st.media_server_id=#{mediaServerId} and wdc.gb_device_id is null")
     List<StreamPush> selectAllByMediaServerIdWithOutGbID(String mediaServerId);
 
     @Update("UPDATE wvp_stream_push " +
@@ -83,7 +86,7 @@ public interface StreamPushMapper {
 
 
     @Select("<script> "+
-            "SELECT st.*, st.id as stream_push_id, wdc.*, wdc.id as gb_id FROM wvp_stream_push st LEFT join wvp_device_channel wdc on st.id = wdc.stream_push_id " +
+            "SELECT st.*, st.id as data_device_id, wdc.*, wdc.id as gb_id FROM wvp_stream_push st LEFT join wvp_device_channel wdc on wdc.data_type = 2 and st.id = wdc.data_device_id " +
             "where (st.app, st.stream) in (" +
             "<foreach collection='offlineStreams' item='item' separator=','>" +
             "(#{item.app}, #{item.stream}) " +
@@ -106,21 +109,21 @@ public interface StreamPushMapper {
     @MapKey("uniqueKey")
     @Select("SELECT CONCAT(wsp.app, wsp.stream) as unique_key, wsp.*, wsp.* , wdc.id as gb_id " +
             " from wvp_stream_push wsp " +
-            " LEFT join wvp_device_channel wdc on wsp.id = wdc.stream_push_id")
+            " LEFT join wvp_device_channel wdc on wdc.data_type = 2 and wsp.id = wdc.data_device_id")
     Map<String, StreamPush> getAllAppAndStreamMap();
 
 
     @MapKey("gbDeviceId")
-    @Select("SELECT wdc.gb_device_id, wsp.id as stream_push_id, wsp.*, wsp.* , wdc.id as gb_id " +
+    @Select("SELECT wdc.gb_device_id, wsp.id as data_device_id, wsp.*, wsp.* , wdc.id as gb_id " +
             " from wvp_stream_push wsp " +
-            " LEFT join wvp_device_channel wdc on wsp.id = wdc.stream_push_id")
+            " LEFT join wvp_device_channel wdc on wdc.data_type = 2 and wsp.id = wdc.data_device_id")
     Map<String, StreamPush> getAllGBId();
 
-    @Select("SELECT st.*, st.id as stream_push_id, wdc.*, wdc.id as gb_id FROM wvp_stream_push st LEFT join wvp_device_channel wdc on st.id = wdc.stream_push_id WHERE st.id=#{id}")
+    @Select("SELECT st.*, st.id as data_device_id, wdc.*, wdc.id as gb_id FROM wvp_stream_push st LEFT join wvp_device_channel wdc on wdc.data_type = 2 and st.id = wdc.data_device_id WHERE st.id=#{id}")
     StreamPush queryOne(@Param("id") int id);
 
     @Select("<script> "+
-            "SELECT st.*, st.id as stream_push_id, wdc.*, wdc.id as gb_id FROM wvp_stream_push st LEFT join wvp_device_channel wdc on st.id = wdc.stream_push_id " +
+            "SELECT st.*, st.id as data_device_id, wdc.*, wdc.id as gb_id FROM wvp_stream_push st LEFT join wvp_device_channel wdc on wdc.data_type = 2 and st.id = wdc.data_device_id " +
             " where st.id in (" +
             " <foreach collection='ids' item='item' separator=','>" +
             " #{item} " +

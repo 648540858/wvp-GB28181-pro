@@ -22,13 +22,7 @@
                   <el-option label="离线" value="false"></el-option>
                 </el-select>
                 类型:
-                <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="search" v-model="channelType" placeholder="请选择"
-                           default-first-option>
-                  <el-option label="全部" value=""></el-option>
-                  <el-option label="国标设备" :value="0"></el-option>
-                  <el-option label="推流设备" :value="1"></el-option>
-                  <el-option label="拉流代理" :value="2"></el-option>
-                </el-select>
+                <channelDataTypeSelect style="width: 8rem; margin-right: 1rem;" @change="search" v-model="channelType"></channelDataTypeSelect>
                 <el-button v-if="hasLink !=='true'" size="mini" type="primary" @click="add()">
                   添加
                 </el-button>
@@ -56,9 +50,9 @@
             <el-table-column label="类型" min-width="100">
               <template v-slot:default="scope">
                 <div slot="reference" class="name-wrapper">
-                  <el-tag size="medium" effect="plain" v-if="scope.row.gbDeviceDbId">国标设备</el-tag>
-                  <el-tag size="medium" effect="plain" type="success" v-if="scope.row.streamPushId">推流设备</el-tag>
-                  <el-tag size="medium" effect="plain" type="warning" v-if="scope.row.streamProxyId">拉流代理</el-tag>
+                  <el-tag size="medium" effect="plain" v-if="scope.row.dataType === 1">国标设备</el-tag>
+                  <el-tag size="medium" effect="plain" type="success" v-else-if="scope.row.dataType === 2" >推流设备</el-tag>
+                  <el-tag size="medium" effect="plain" type="warning" v-else-if="scope.row.dataType === 3">拉流代理</el-tag>
                 </div>
               </template>
             </el-table-column>
@@ -91,10 +85,11 @@
 <script>
 
 import gbDeviceSelect from "./GbDeviceSelect.vue";
+import ChannelDataTypeSelect from "../common/channelDataTypeSelect.vue";
 
 export default {
   name: 'linkChannelRecord',
-  components: {gbDeviceSelect},
+  components: {ChannelDataTypeSelect, gbDeviceSelect},
   data() {
     return {
       dialogLoading: false,

@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.dao.provider;
 
+import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import org.springframework.util.ObjectUtils;
 
 import java.util.List;
@@ -10,7 +11,7 @@ public class DeviceChannelProvider {
     public String getBaseSelectSql(){
         return "SELECT " +
                 " dc.id,\n" +
-                " dc.device_db_id,\n" +
+                " dc.data_device_id,\n" +
                 " dc.create_time,\n" +
                 " dc.update_time,\n" +
                 " dc.sub_count,\n" +
@@ -60,7 +61,7 @@ public class DeviceChannelProvider {
     public String queryChannels(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append(" where dc.device_db_id = #{deviceDbId} ");
+        sqlBuild.append(" where data_type = " + ChannelDataType.GB28181.value + " and dc.data_device_id = #{dataDeviceId} ");
         if (params.get("businessGroupId") != null ) {
             sqlBuild.append(" AND coalesce(dc.gb_business_group_id, dc.business_group_id)=#{businessGroupId} AND coalesce(dc.gb_parent_id, dc.parent_id) is null");
         }else if (params.get("parentChannelId") != null ) {
@@ -107,14 +108,14 @@ public class DeviceChannelProvider {
     public String queryChannelsByDeviceDbId(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append(" where dc.device_db_id = #{deviceDbId}");
+        sqlBuild.append(" where data_type = " + ChannelDataType.GB28181.value + " and dc.data_device_id = #{dataDeviceId}");
         return sqlBuild.toString();
     }
 
     public String queryAllChannels(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append(" where dc.device_db_id = #{deviceDbId}");
+        sqlBuild.append(" where data_type = " + ChannelDataType.GB28181.value + " and dc.data_device_id = #{dataDeviceId}");
         return sqlBuild.toString();
     }
 
@@ -128,33 +129,25 @@ public class DeviceChannelProvider {
     public String getOneByDeviceId(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append(" where dc.device_db_id=#{deviceDbId} and coalesce(dc.gb_device_id, dc.device_id) = #{channelId}");
+        sqlBuild.append(" where data_type = " + ChannelDataType.GB28181.value + " and dc.data_device_id=#{dataDeviceId} and coalesce(dc.gb_device_id, dc.device_id) = #{channelId}");
         return sqlBuild.toString();
     }
 
 
 
     public String queryByDeviceId(Map<String, Object> params ){
-        return getBaseSelectSql() + " where channel_type = 0 and coalesce(gb_device_id, device_id) = #{gbDeviceId}";
+        return getBaseSelectSql() + " where data_type = " + ChannelDataType.GB28181.value + " and channel_type = 0 and coalesce(gb_device_id, device_id) = #{gbDeviceId}";
     }
 
     public String queryById(Map<String, Object> params ){
-        return getBaseSelectSql() + " where channel_type = 0 and id = #{gbId}";
-    }
-
-    public String queryByStreamPushId(Map<String, Object> params ){
-        return getBaseSelectSql() + " where channel_type = 0 and stream_push_id = #{streamPushId}";
-    }
-
-    public String queryByStreamProxyId(Map<String, Object> params ){
-        return getBaseSelectSql() + " where channel_type = 0 and stream_proxy_id = #{streamProxyId}";
+        return getBaseSelectSql() + " where data_type = " + ChannelDataType.GB28181.value + " and channel_type = 0 and id = #{gbId}";
     }
 
 
     public String queryList(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append(" where channel_type = 0 ");
+        sqlBuild.append(" where channel_type = 0 and data_type = " + ChannelDataType.GB28181.value);
         if (params.get("query") != null) {
             sqlBuild.append(" AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%')" +
                     " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%') )")

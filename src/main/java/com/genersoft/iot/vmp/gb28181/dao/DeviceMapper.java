@@ -45,9 +45,9 @@ public interface DeviceMapper {
             "on_line," +
             "media_server_id," +
             "broadcast_push_after_ack," +
-            "(SELECT count(0) FROM wvp_device_channel dc WHERE dc.device_db_id= de.id) as channel_count "+
+            "(SELECT count(0) FROM wvp_device_channel dc WHERE dc.data_type = 1 and dc.data_device_id= de.id) as channel_count "+
             " FROM wvp_device de WHERE de.device_id = #{deviceId}")
-    Device getDeviceByDeviceId(String deviceId);
+    Device getDeviceByDeviceId( @Param("deviceId") String deviceId);
 
     @Insert("INSERT INTO wvp_device (" +
                 "device_id, " +
@@ -167,13 +167,13 @@ public interface DeviceMapper {
             "geo_coord_sys,"+
             "on_line,"+
             "media_server_id,"+
-            "(SELECT count(0) FROM wvp_device_channel dc WHERE dc.device_db_id= de.id) as channel_count " +
+            "(SELECT count(0) FROM wvp_device_channel dc WHERE dc.data_type = #{dataType} and dc.data_device_id= de.id) as channel_count " +
             "FROM wvp_device de" +
-            "<if test=\"onLine != null\"> where de.on_line=${onLine}</if>"+
+            "<if test='online != null'> where de.on_line=${online}</if>"+
             " order by de.create_time desc "+
             " </script>"
     )
-    List<Device> getDevices(Boolean onLine);
+    List<Device> getDevices(@Param("dataType") Integer dataType, @Param("online") Boolean online);
 
     @Delete("DELETE FROM wvp_device WHERE device_id=#{deviceId}")
     int del(String deviceId);
@@ -326,7 +326,7 @@ public interface DeviceMapper {
             "geo_coord_sys,"+
             "on_line,"+
             "media_server_id,"+
-            "(SELECT count(0) FROM wvp_device_channel dc WHERE dc.device_db_id= de.id) as channel_count " +
+            "(SELECT count(0) FROM wvp_device_channel dc WHERE dc.data_type = #{dataType} and dc.data_device_id= de.id) as channel_count " +
             " FROM wvp_device de" +
             " where 1 = 1 "+
             " <if test='status != null'> AND de.on_line=${status}</if>"+
@@ -337,7 +337,7 @@ public interface DeviceMapper {
             "</if> " +
             " order by create_time desc "+
             " </script>")
-    List<Device> getDeviceList(@Param("query") String query, @Param("status") Boolean status);
+    List<Device> getDeviceList(@Param("dataType") Integer dataType, @Param("query") String query, @Param("status") Boolean status);
 
     @Select("select * from wvp_device_channel where id = #{id}")
     DeviceChannel getRawChannel(@Param("id") int id);
@@ -345,10 +345,10 @@ public interface DeviceMapper {
     @Select("select * from wvp_device where id = #{id}")
     Device query(@Param("id") Integer id);
 
-    @Select("select wd.* from wvp_device wd left join wvp_device_channel wdc on wd.id = wdc.device_db_id  where wdc.id = #{channelId}")
-    Device queryByChannelId(@Param("channelId") Integer channelId);
+    @Select("select wd.* from wvp_device wd left join wvp_device_channel wdc on wdc.data_type = #{dataType} and wd.id = wdc.data_device_id  where wdc.id = #{channelId}")
+    Device queryByChannelId(@Param("dataType") Integer dataType, @Param("channelId") Integer channelId);
 
-    @Select("select wd.* from wvp_device wd left join wvp_device_channel wdc on wd.id = wdc.device_db_id  where wdc.device_id = #{channelDeviceId}")
-    Device getDeviceBySourceChannelDeviceId(@Param("channelDeviceId") String channelDeviceId);
+    @Select("select wd.* from wvp_device wd left join wvp_device_channel wdc on wdc.data_type = #{dataType} and wd.id = wdc.data_device_id  where wdc.device_id = #{channelDeviceId}")
+    Device getDeviceBySourceChannelDeviceId(@Param("dataType") Integer dataType, @Param("channelDeviceId") String channelDeviceId);
 
 }

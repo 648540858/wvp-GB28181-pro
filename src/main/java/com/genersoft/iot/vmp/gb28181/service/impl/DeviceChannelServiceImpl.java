@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
+import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -84,7 +85,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             List<DeviceChannel> channelList = channelMapper.queryChannelsByDeviceDbId(device.getId());
             if (channelList.isEmpty()) {
                 for (DeviceChannel channel : channels) {
-                    channel.setDeviceDbId(device.getId());
+                    channel.setDataDeviceId(device.getId());
                     InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
                     if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
                         channel.setStreamId(inviteInfo.getStreamInfo().getStream());
@@ -96,7 +97,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 }
             }else {
                 for (DeviceChannel deviceChannel : channelList) {
-                    channelsInStore.put(deviceChannel.getDeviceDbId() + deviceChannel.getDeviceId(), deviceChannel);
+                    channelsInStore.put(deviceChannel.getDataDeviceId() + deviceChannel.getDeviceId(), deviceChannel);
                 }
                 for (DeviceChannel channel : channels) {
                     InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
@@ -105,7 +106,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     }
                     String now = DateUtil.getNow();
                     channel.setUpdateTime(now);
-                    DeviceChannel deviceChannelInDb = channelsInStore.get(channel.getDeviceDbId() + channel.getDeviceId());
+                    DeviceChannel deviceChannelInDb = channelsInStore.get(channel.getDataDeviceId() + channel.getDeviceId());
                     if ( deviceChannelInDb != null) {
                         channel.setId(deviceChannelInDb.getId());
                         channel.setUpdateTime(now);
@@ -324,7 +325,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         }
         for (DeviceChannel channel : channels) {
             if (channel.getParentId() != null) {
-                channelMapper.updateChannelSubCount(channel.getDeviceDbId(), channel.getParentId());
+                channelMapper.updateChannelSubCount(channel.getDataDeviceId(), channel.getParentId());
             }
         }
     }
@@ -487,7 +488,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         Map<String,DeviceChannel> allChannelMap = new HashMap<>();
         if (!allChannels.isEmpty()) {
             for (DeviceChannel deviceChannel : allChannels) {
-                allChannelMap.put(deviceChannel.getDeviceDbId() + deviceChannel.getDeviceId(), deviceChannel);
+                allChannelMap.put(deviceChannel.getDataDeviceId() + deviceChannel.getDeviceId(), deviceChannel);
             }
         }
         // 数据去重
@@ -500,7 +501,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         Map<String, Integer> subContMap = new HashMap<>();
 
         for (DeviceChannel deviceChannel : deviceChannelList) {
-            DeviceChannel channelInDb = allChannelMap.get(deviceChannel.getDeviceDbId() + deviceChannel.getDeviceId());
+            DeviceChannel channelInDb = allChannelMap.get(deviceChannel.getDataDeviceId() + deviceChannel.getDeviceId());
             if (channelInDb != null) {
                 deviceChannel.setStreamId(channelInDb.getStreamId());
                 deviceChannel.setHasAudio(channelInDb.isHasAudio());
@@ -520,7 +521,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 deviceChannel.setUpdateTime(DateUtil.getNow());
                 addChannels.add(deviceChannel);
             }
-            allChannelMap.remove(deviceChannel.getDeviceDbId() + deviceChannel.getDeviceId());
+            allChannelMap.remove(deviceChannel.getDataDeviceId() + deviceChannel.getDeviceId());
             channels.add(deviceChannel);
             if (!ObjectUtils.isEmpty(deviceChannel.getParentId())) {
                 if (subContMap.get(deviceChannel.getParentId()) == null) {
@@ -700,6 +701,8 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public void addChannel(DeviceChannel channel) {
+        channel.setDataType(ChannelDataType.GB28181.value);
+        channel.setDataDeviceId(channel.getDataDeviceId());
         channelMapper.add(channel);
     }
 

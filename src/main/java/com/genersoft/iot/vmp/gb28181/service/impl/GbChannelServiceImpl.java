@@ -372,7 +372,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "非国标下级通道无法重置");
         }
         // 这个多加一个参数,为了防止将非国标的通道通过此方法清空内容,导致意外发生
-        commonGBChannelMapper.reset(id, channel.getDataDeviceId(), DateUtil.getNow());
+        commonGBChannelMapper.reset(id, ChannelDataType.GB28181.value, channel.getDataDeviceId(), DateUtil.getNow());
         CommonGBChannel channelNew = getOne(id);
         // 发送通过更新通知
         try {
@@ -495,7 +495,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Override
     public void addChannelToRegionByGbDevice(String civilCode, List<Integer> deviceIds) {
-        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(deviceIds);
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(ChannelDataType.GB28181.value, deviceIds);
         if (channelList.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }
@@ -516,7 +516,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Override
     public void deleteChannelToRegionByGbDevice(List<Integer> deviceIds) {
-        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(deviceIds);
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(ChannelDataType.GB28181.value, deviceIds);
         if (channelList.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }
@@ -633,7 +633,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
     @Override
     @Transactional
     public void addChannelToGroupByGbDevice(String parentId, String businessGroup, List<Integer> deviceIds) {
-        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(deviceIds);
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(ChannelDataType.GB28181.value, deviceIds);
         if (channelList.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }
@@ -661,7 +661,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Override
     public void deleteChannelToGroupByGbDevice(List<Integer> deviceIds) {
-        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(deviceIds);
+        List<CommonGBChannel> channelList = commonGBChannelMapper.queryByGbDeviceIds(ChannelDataType.GB28181.value, deviceIds);
         if (channelList.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "所有通道Id不存在");
         }
@@ -703,12 +703,12 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Override
     public List<CommonGBChannel> queryListByStreamPushList(List<StreamPush> streamPushList) {
-        return commonGBChannelMapper.queryListByStreamPushList(streamPushList);
+        return commonGBChannelMapper.queryListByStreamPushList(ChannelDataType.STREAM_PUSH.value, streamPushList);
     }
 
     @Override
     public void updateGpsByDeviceIdForStreamPush(List<CommonGBChannel> channels) {
-        commonGBChannelMapper.updateGpsByDeviceIdForStreamPush(channels);
+        commonGBChannelMapper.updateGpsByDeviceIdForStreamPush(ChannelDataType.STREAM_PUSH.value, channels);
     }
 
     @Override

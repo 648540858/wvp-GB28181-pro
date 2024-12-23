@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
+import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper;
@@ -53,17 +54,12 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Override
     public int add(CommonGBChannel commonGBChannel) {
-        if (commonGBChannel.getDataType() != null && commonGBChannel.getDataDeviceId() > 0) {
-            CommonGBChannel commonGBChannelInDb = commonGBChannelMapper.queryByStreamPushId(commonGBChannel.getStreamPushId());
-            if (commonGBChannelInDb != null) {
-                throw new ControllerException(ErrorCode.ERROR100.getCode(), "此推流已经关联通道");
-            }
+        if (commonGBChannel.getDataType() == null || commonGBChannel.getDataDeviceId() == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "缺少通道数据类型或通道数据关联设备ID");
         }
-        if (commonGBChannel.getStreamProxyId() != null && commonGBChannel.getStreamProxyId() > 0) {
-            CommonGBChannel commonGBChannelInDb = commonGBChannelMapper.queryByStreamProxyId(commonGBChannel.getStreamProxyId());
-            if (commonGBChannelInDb != null) {
-                throw new ControllerException(ErrorCode.ERROR100.getCode(), "此代理已经关联通道");
-            }
+        CommonGBChannel commonGBChannelInDb =  commonGBChannelMapper.queryByDataId(commonGBChannel.getDataType(), commonGBChannel.getDataDeviceId());
+        if (commonGBChannelInDb != null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "此推流已经关联通道");
         }
         commonGBChannel.setCreateTime(DateUtil.getNow());
         commonGBChannel.setUpdateTime(DateUtil.getNow());
@@ -113,7 +109,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
     public int update(CommonGBChannel commonGBChannel) {
         log.info("[更新通道] 通道ID: {}, ", commonGBChannel.getGbId());
         if (commonGBChannel.getGbId() <= 0) {
-            log.warn("[更新通道] 未找到数据库ID，更新失败， {}", commonGBChannel.getGbDeviceDbId());
+            log.warn("[更新通道] 未找到数据库ID，更新失败， {}({})", commonGBChannel.getGbName(), commonGBChannel.getGbDeviceId());
             return 0;
         }
         commonGBChannel.setUpdateTime(DateUtil.getNow());
@@ -132,7 +128,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
     @Override
     public int offline(CommonGBChannel commonGBChannel) {
         if (commonGBChannel.getGbId() <= 0) {
-            log.warn("[通道离线] 未找到数据库ID，更新失败， {}", commonGBChannel.getGbDeviceDbId());
+            log.warn("[通道离线] 未找到数据库ID，更新失败， {}({})", commonGBChannel.getGbName(), commonGBChannel.getGbDeviceId());
             return 0;
         }
         int result = commonGBChannelMapper.updateStatusById(commonGBChannel.getGbId(), 0);
@@ -186,7 +182,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
     @Override
     public int online(CommonGBChannel commonGBChannel) {
         if (commonGBChannel.getGbId() <= 0) {
-            log.warn("[通道上线] 未找到数据库ID，更新失败， {}", commonGBChannel.getGbDeviceDbId());
+            log.warn("[通道上线] 未找到数据库ID，更新失败， {}({})", commonGBChannel.getGbName(), commonGBChannel.getGbDeviceId());
             return 0;
         }
         int result = commonGBChannelMapper.updateStatusById(commonGBChannel.getGbId(), 1);
@@ -371,12 +367,12 @@ public class GbChannelServiceImpl implements IGbChannelService {
             log.warn("[重置国标通道] 未找到对应Id的通道: id: {}", id);
             throw new ControllerException(ErrorCode.ERROR400);
         }
-        if (channel.getGbDeviceDbId() <= 0) {
+        if (channel.getDataType() == ChannelDataType.GB28181.value) {
             log.warn("[重置国标通道] 非国标下级通道无法重置: id: {}", id);
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "非国标下级通道无法重置");
         }
         // 这个多加一个参数,为了防止将非国标的通道通过此方法清空内容,导致意外发生
-        commonGBChannelMapper.reset(id, channel.getGbDeviceDbId(), DateUtil.getNow());
+        commonGBChannelMapper.reset(id, channel.getDataDeviceId(), DateUtil.getNow());
         CommonGBChannel channelNew = getOne(id);
         // 发送通过更新通知
         try {

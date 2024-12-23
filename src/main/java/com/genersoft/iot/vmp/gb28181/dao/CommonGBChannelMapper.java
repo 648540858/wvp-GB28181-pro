@@ -550,4 +550,6 @@ public interface CommonGBChannelMapper {
                                                        @Param("channelType") Integer channelType, @Param("online") Boolean online,
                                                        @Param("hasLink") Boolean hasLink);
 
+    @SelectProvider(type = ChannelProvider.class, method = "queryByDataId")
+    CommonGBChannel queryByDataId(@Param("dataType") Integer dataType, @Param("dataDeviceId") Integer dataDeviceId);
 }

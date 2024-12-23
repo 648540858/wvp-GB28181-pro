@@ -113,6 +113,10 @@ public class ChannelProvider {
         return BASE_SQL + " where channel_type = 0 and stream_push_id = #{streamPushId}";
     }
 
+    public String queryByDataId(Map<String, Object> params ){
+        return BASE_SQL + " where data_type = #{dataType} and data_device_id = #{dataDeviceId}";
+    }
+
     public String queryByStreamProxyId(Map<String, Object> params ){
         return BASE_SQL + " where channel_type = 0 and stream_proxy_id = #{streamProxyId}";
     }

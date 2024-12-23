@@ -250,12 +250,6 @@ public interface CommonGBChannelMapper {
             "</script>"})
     void batchDelete(List<CommonGBChannel> channelListInDb);
 
-    @SelectProvider(type = ChannelProvider.class, method = "queryByStreamPushId")
-    CommonGBChannel queryByStreamPushId(@Param("streamPushId") Integer streamPushId);
-
-    @SelectProvider(type = ChannelProvider.class, method = "queryByStreamProxyId")
-    CommonGBChannel queryByStreamProxyId(@Param("streamProxyId") Integer streamProxyId);
-
     @SelectProvider(type = ChannelProvider.class, method = "queryListByCivilCode")
     List<CommonGBChannel> queryListByCivilCode(@Param("query") String query, @Param("online") Boolean online,
                                                @Param("channelType") Integer channelType, @Param("civilCode") String civilCode);

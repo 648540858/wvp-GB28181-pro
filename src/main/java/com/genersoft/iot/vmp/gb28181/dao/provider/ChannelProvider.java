@@ -13,8 +13,8 @@ public class ChannelProvider {
     public final static String BASE_SQL = "select\n" +
             "    id as gb_id,\n" +
             "    device_db_id as gb_device_db_id,\n" +
-            "    stream_push_id,\n" +
-            "    stream_proxy_id,\n" +
+            "    data_type,\n" +
+            "    data_device_id,\n" +
             "    create_time,\n" +
             "    update_time,\n" +
             "    record_plan_id,\n" +
@@ -60,7 +60,7 @@ public class ChannelProvider {
             "    wdc.id as gb_id,\n" +
             "    wdc.device_db_id as gb_device_db_id,\n" +
             "    wdc.stream_push_id,\n" +
-            "    wdc.stream_proxy_id,\n" +
+            "    wdc.data_device_id,\n" +
             "    wdc.create_time,\n" +
             "    wdc.update_time,\n" +
             "    coalesce(wpgc.custom_device_id, wdc.gb_device_id, wdc.device_id) as gb_device_id,\n" +
@@ -109,18 +109,9 @@ public class ChannelProvider {
         return BASE_SQL + " where channel_type = 0 and id = #{gbId}";
     }
 
-    public String queryByStreamPushId(Map<String, Object> params ){
-        return BASE_SQL + " where channel_type = 0 and stream_push_id = #{streamPushId}";
-    }
-
     public String queryByDataId(Map<String, Object> params ){
-        return BASE_SQL + " where data_type = #{dataType} and data_device_id = #{dataDeviceId}";
+        return BASE_SQL + " where channel_type = 0 and data_type = #{dataType} and data_device_id = #{dataDeviceId}";
     }
-
-    public String queryByStreamProxyId(Map<String, Object> params ){
-        return BASE_SQL + " where channel_type = 0 and stream_proxy_id = #{streamProxyId}";
-    }
-
 
     public String queryListByCivilCode(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();

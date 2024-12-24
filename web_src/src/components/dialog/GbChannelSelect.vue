@@ -23,7 +23,7 @@
             <el-option label="离线" value="false"></el-option>
           </el-select>
           类型:
-          <channelDataTypeSelect style="width: 8rem; margin-right: 1rem;" @change="getChannelList" v-model="channelType"></channelDataTypeSelect>
+          <channelDataTypeSelect style="width: 8rem; margin-right: 1rem;" :change="getChannelList" :dataType="channelType"></channelDataTypeSelect>
           <el-button size="mini" :loading="getChannelListLoading"
                      @click="getChannelList()">刷新</el-button>
           <el-button type="primary" size="mini" style="float: right" @click="onSubmit">确 定</el-button>

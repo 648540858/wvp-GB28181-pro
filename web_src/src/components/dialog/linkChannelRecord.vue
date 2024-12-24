@@ -22,7 +22,7 @@
                   <el-option label="离线" value="false"></el-option>
                 </el-select>
                 类型:
-                <channelDataTypeSelect style="width: 8rem; margin-right: 1rem;" @change="search" v-model="channelType"></channelDataTypeSelect>
+                <channelDataTypeSelect style="width: 8rem; margin-right: 1rem;" :change="search" :dataType="channelType"></channelDataTypeSelect>
                 <el-button v-if="hasLink !=='true'" size="mini" type="primary" @click="add()">
                   添加
                 </el-button>

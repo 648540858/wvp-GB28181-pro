@@ -367,7 +367,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
             log.warn("[重置国标通道] 未找到对应Id的通道: id: {}", id);
             throw new ControllerException(ErrorCode.ERROR400);
         }
-        if (channel.getDataType() == ChannelDataType.GB28181.value) {
+        if (channel.getDataType() != ChannelDataType.GB28181.value) {
             log.warn("[重置国标通道] 非国标下级通道无法重置: id: {}", id);
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "非国标下级通道无法重置");
         }

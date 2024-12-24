@@ -23,7 +23,13 @@
             <el-option label="离线" value="false"></el-option>
           </el-select>
           类型:
-          <channelDataTypeSelect style="width: 8rem; margin-right: 1rem;" :change="getChannelList" :dataType="channelType"></channelDataTypeSelect>
+          <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="getChannelList" v-model="channelType" placeholder="请选择"
+                     default-first-option>
+            <el-option label="全部" value=""></el-option>
+            <el-option label="国标设备" :value="1"></el-option>
+            <el-option label="推流设备" :value="2"></el-option>
+            <el-option label="拉流代理" :value="3"></el-option>
+          </el-select>
           <el-button size="mini" :loading="getChannelListLoading"
                      @click="getChannelList()">刷新</el-button>
           <el-button type="primary" size="mini" style="float: right" @click="onSubmit">确 定</el-button>
@@ -80,11 +86,9 @@
 
 <script>
 
-import ChannelDataTypeSelect from "../common/channelDataTypeSelect.vue";
 
 export default {
   name: "gbChannelSelect",
-  components: {ChannelDataTypeSelect},
   props: ['dataType', "selected"],
   computed: {},
   data() {

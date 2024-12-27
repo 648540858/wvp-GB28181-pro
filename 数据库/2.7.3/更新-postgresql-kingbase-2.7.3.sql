@@ -3,6 +3,13 @@
 */
 
 alter table wvp_device_channel
+    drop index uk_wvp_device_channel_unique_device_channel;
+alter table wvp_device_channel
+    drop index uk_wvp_unique_stream_push_id;
+alter table wvp_device_channel
+    drop index uk_wvp_unique_stream_proxy_id;
+
+alter table wvp_device_channel
     add data_type integer not null;
 
 alter table wvp_device_channel

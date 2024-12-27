@@ -165,7 +165,6 @@ create table wvp_device_channel
     record_plan_id               integer,
     data_type                    integer not null,
     data_device_id               integer not null,
-    constraint uk_wvp_device_channel_unique_data unique (data_type, data_device_id),
     constraint uk_wvp_unique_channel unique (gb_device_id)
 );
 

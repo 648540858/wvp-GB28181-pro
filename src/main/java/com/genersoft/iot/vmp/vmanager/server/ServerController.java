@@ -4,6 +4,8 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.SystemAllInfo;
 import com.genersoft.iot.vmp.common.VersionPo;
+import com.genersoft.iot.vmp.common.enums.ChannelDataType;
+import com.genersoft.iot.vmp.common.enums.DeviceControlType;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.VersionInfo;
@@ -42,10 +44,7 @@ import oshi.software.os.OperatingSystem;
 
 import java.io.File;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @SuppressWarnings("rawtypes")
 @Tag(name = "服务控制")
@@ -343,6 +342,20 @@ public class ServerController {
         platformMap.put("GIT版本", version.getGIT_Revision_SHORT());
         platformMap.put("DOCKER环境", new File("/.dockerenv").exists()?"是":"否");
 
+        return result;
+    }
+
+    @GetMapping(value = "/channel/datatype")
+    @ResponseBody
+    @Operation(summary = "获取系统接入的数据类型")
+    public List<Map<String, Object>> getDataType() {
+        List<Map<String, Object>> result = new LinkedList<>();
+        for (ChannelDataType item : ChannelDataType.values()) {
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("key", item.desc);
+            map.put("value", item.value);
+            result.add(map);
+        }
         return result;
     }
 

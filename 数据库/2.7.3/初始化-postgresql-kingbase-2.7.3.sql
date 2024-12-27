@@ -88,7 +88,6 @@ create table wvp_gb_stream
 create table wvp_device_channel
 (
     id                           serial primary key,
-    device_db_id                 integer,
     device_id                    character varying(50),
     name                         character varying(255),
     manufacturer                 character varying(50),
@@ -166,16 +165,10 @@ create table wvp_device_channel
     gb_svc_space_support_mod     integer,
     gb_svc_time_support_mode     integer,
     record_plan_id               integer,
-    stream_push_id               integer,
-    stream_proxy_id              integer,
-    constraint uk_wvp_device_channel_unique_device_channel unique (device_db_id, device_id),
-    constraint uk_wvp_unique_channel unique (gb_device_id),
-    constraint uk_wvp_unique_stream_push_id unique (stream_push_id),
-    constraint uk_wvp_unique_stream_proxy_id unique (stream_proxy_id)
+    data_type                    integer not null,
+    data_device_id               integer not null,
+    constraint uk_wvp_unique_channel unique (gb_device_id)
 );
-
-create index uk_wvp_device_db_id on wvp_device_channel (device_db_id);
-
 
 create table wvp_media_server
 (

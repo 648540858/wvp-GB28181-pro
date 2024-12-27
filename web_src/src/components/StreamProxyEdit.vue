@@ -153,7 +153,6 @@ export default {
     onSubmit: function () {
       console.log(typeof this.streamProxy.noneReader)
       this.saveLoading = true;
-
       this.noneReaderHandler();
       if (this.streamProxy.id) {
         this.$axios({

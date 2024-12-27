@@ -12,9 +12,8 @@ public class ChannelProvider {
 
     public final static String BASE_SQL = "select\n" +
             "    id as gb_id,\n" +
-            "    device_db_id as gb_device_db_id,\n" +
-            "    stream_push_id,\n" +
-            "    stream_proxy_id,\n" +
+            "    data_type,\n" +
+            "    data_device_id,\n" +
             "    create_time,\n" +
             "    update_time,\n" +
             "    record_plan_id,\n" +
@@ -58,9 +57,8 @@ public class ChannelProvider {
     private final static String BASE_SQL_FOR_PLATFORM =
             "select\n" +
             "    wdc.id as gb_id,\n" +
-            "    wdc.device_db_id as gb_device_db_id,\n" +
-            "    wdc.stream_push_id,\n" +
-            "    wdc.stream_proxy_id,\n" +
+            "    wdc.data_type,\n" +
+            "    wdc.data_device_id,\n" +
             "    wdc.create_time,\n" +
             "    wdc.update_time,\n" +
             "    coalesce(wpgc.custom_device_id, wdc.gb_device_id, wdc.device_id) as gb_device_id,\n" +
@@ -109,14 +107,9 @@ public class ChannelProvider {
         return BASE_SQL + " where channel_type = 0 and id = #{gbId}";
     }
 
-    public String queryByStreamPushId(Map<String, Object> params ){
-        return BASE_SQL + " where channel_type = 0 and stream_push_id = #{streamPushId}";
+    public String queryByDataId(Map<String, Object> params ){
+        return BASE_SQL + " where channel_type = 0 and data_type = #{dataType} and data_device_id = #{dataDeviceId}";
     }
-
-    public String queryByStreamProxyId(Map<String, Object> params ){
-        return BASE_SQL + " where channel_type = 0 and stream_proxy_id = #{streamProxyId}";
-    }
-
 
     public String queryListByCivilCode(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
@@ -138,14 +131,8 @@ public class ChannelProvider {
         }else {
             sqlBuild.append(" AND coalesce(gb_civil_code, civil_code) is null");
         }
-        if (params.get("channelType") != null) {
-            if ((Integer)params.get("channelType") == 0) {
-                sqlBuild.append(" AND device_db_id is not null");
-            }else if ((Integer)params.get("channelType") == 1) {
-                sqlBuild.append(" AND stream_push_id is not null");
-            }else if ((Integer)params.get("channelType") == 2) {
-                sqlBuild.append(" AND stream_proxy_id is not null");
-            }
+        if (params.get("dataType") != null) {
+            sqlBuild.append(" AND data_type = #{dataType}");
         }
         return sqlBuild.toString();
     }
@@ -170,15 +157,8 @@ public class ChannelProvider {
         }else {
             sqlBuild.append(" AND coalesce(gb_parent_id, parent_id) is null");
         }
-
-        if (params.get("channelType") != null) {
-            if ((Integer)params.get("channelType") == 0) {
-                sqlBuild.append(" AND device_db_id is not null");
-            }else if ((Integer)params.get("channelType") == 1) {
-                sqlBuild.append(" AND stream_push_id is not null");
-            }else if ((Integer)params.get("channelType") == 2) {
-                sqlBuild.append(" AND stream_proxy_id is not null");
-            }
+        if (params.get("dataType") != null) {
+            sqlBuild.append(" AND data_type = #{dataType}");
         }
         return sqlBuild.toString();
     }
@@ -201,15 +181,8 @@ public class ChannelProvider {
         if (params.get("hasRecordPlan") != null && (Boolean)params.get("hasRecordPlan")) {
             sqlBuild.append(" AND record_plan_id > 0");
         }
-
-        if (params.get("channelType") != null) {
-            if ((Integer)params.get("channelType") == 0) {
-                sqlBuild.append(" AND device_db_id is not null");
-            }else if ((Integer)params.get("channelType") == 1) {
-                sqlBuild.append(" AND stream_push_id is not null");
-            }else if ((Integer)params.get("channelType") == 2) {
-                sqlBuild.append(" AND stream_proxy_id is not null");
-            }
+        if (params.get("dataType") != null) {
+            sqlBuild.append(" AND data_type = #{dataType}");
         }
         return sqlBuild.toString();
     }
@@ -253,7 +226,7 @@ public class ChannelProvider {
     public String queryByGbDeviceIds(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL);
-        sqlBuild.append("where channel_type = 0 and device_db_id in ( ");
+        sqlBuild.append("where channel_type = 0 and data_type = #{dataType} and data_device_id in ( ");
 
         Collection<Integer> ids = (Collection<Integer>)params.get("deviceIds");
         boolean first = true;
@@ -356,7 +329,7 @@ public class ChannelProvider {
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL);
 
-        sqlBuild.append(" where channel_type = 0 and stream_push_id in ( ");
+        sqlBuild.append(" where channel_type = 0 and  data_type = #{dataType} and data_device_id in ( ");
         Collection<StreamPush> ids = (Collection<StreamPush>)params.get("streamPushList");
         boolean first = true;
         for (StreamPush streamPush : ids) {

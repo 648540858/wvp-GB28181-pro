@@ -106,63 +106,62 @@ public class MediaInfo {
             }
         }
         JSONArray jsonArray = jsonObject.getJSONArray("tracks");
-        if (jsonArray.isEmpty()) {
-            return null;
-        }
-        for (int i = 0; i < jsonArray.size(); i++) {
-            JSONObject trackJson = jsonArray.getJSONObject(i);
-            Integer channels = trackJson.getInteger("channels");
-            Integer codecId = trackJson.getInteger("codec_id");
-            Integer codecType = trackJson.getInteger("codec_type");
-            Integer sampleRate = trackJson.getInteger("sample_rate");
-            Integer height = trackJson.getInteger("height");
-            Integer width = trackJson.getInteger("width");
-            Integer fps = trackJson.getInteger("fps");
-            Integer loss = trackJson.getInteger("loss");
-            Integer frames = trackJson.getInteger("frames");
-            Long keyFrames = trackJson.getLongValue("key_frames");
-            Integer gop_interval_ms = trackJson.getInteger("gop_interval_ms");
-            Long gop_size = trackJson.getLongValue("gop_size");
+        if (!jsonArray.isEmpty()) {
+            for (int i = 0; i < jsonArray.size(); i++) {
+                JSONObject trackJson = jsonArray.getJSONObject(i);
+                Integer channels = trackJson.getInteger("channels");
+                Integer codecId = trackJson.getInteger("codec_id");
+                Integer codecType = trackJson.getInteger("codec_type");
+                Integer sampleRate = trackJson.getInteger("sample_rate");
+                Integer height = trackJson.getInteger("height");
+                Integer width = trackJson.getInteger("width");
+                Integer fps = trackJson.getInteger("fps");
+                Integer loss = trackJson.getInteger("loss");
+                Integer frames = trackJson.getInteger("frames");
+                Long keyFrames = trackJson.getLongValue("key_frames");
+                Integer gop_interval_ms = trackJson.getInteger("gop_interval_ms");
+                Long gop_size = trackJson.getLongValue("gop_size");
 
-            Long duration = trackJson.getLongValue("duration");
-            if (channels != null) {
-                mediaInfo.setAudioChannels(channels);
-            }
-            if (sampleRate != null) {
-                mediaInfo.setAudioSampleRate(sampleRate);
-            }
-            if (height != null) {
-                mediaInfo.setHeight(height);
-            }
-            if (width != null) {
-                mediaInfo.setWidth(width);
-            }
-            if (fps != null) {
-                mediaInfo.setFps(fps);
-            }
-            if (loss != null) {
-                mediaInfo.setLoss(loss);
-            }
-            if (duration > 0L) {
-                mediaInfo.setDuration(duration);
-            }
-            if (codecId != null) {
-                switch (codecId) {
-                    case 0:
-                        mediaInfo.setVideoCodec("H264");
-                        break;
-                    case 1:
-                        mediaInfo.setVideoCodec("H265");
-                        break;
-                    case 2:
-                        mediaInfo.setAudioCodec("AAC");
-                        break;
-                    case 3:
-                        mediaInfo.setAudioCodec("G711A");
-                        break;
-                    case 4:
-                        mediaInfo.setAudioCodec("G711U");
-                        break;
+                Long duration = trackJson.getLongValue("duration");
+                if (channels != null) {
+                    mediaInfo.setAudioChannels(channels);
+                }
+                if (sampleRate != null) {
+                    mediaInfo.setAudioSampleRate(sampleRate);
+                }
+                if (height != null) {
+                    mediaInfo.setHeight(height);
+                }
+                if (width != null) {
+                    mediaInfo.setWidth(width);
+                }
+                if (fps != null) {
+                    mediaInfo.setFps(fps);
+                }
+                if (loss != null) {
+                    mediaInfo.setLoss(loss);
+                }
+                if (duration > 0L) {
+                    mediaInfo.setDuration(duration);
+                }
+                if (codecId != null) {
+                    switch (codecId) {
+                        case 0:
+                            mediaInfo.setVideoCodec("H264");
+                            break;
+                        case 1:
+                            mediaInfo.setVideoCodec("H265");
+                            break;
+                        case 2:
+                            mediaInfo.setAudioCodec("AAC");
+                            break;
+                        case 3:
+                            mediaInfo.setAudioCodec("G711A");
+                            break;
+                        case 4:
+                            mediaInfo.setAudioCodec("G711U");
+                            break;
+                    }
                 }
             }
         }

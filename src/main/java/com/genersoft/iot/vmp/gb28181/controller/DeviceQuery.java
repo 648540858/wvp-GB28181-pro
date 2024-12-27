@@ -241,7 +241,7 @@ public class DeviceQuery {
 			return deviceChannelPageResult;
 		}
 
-		return deviceChannelService.getSubChannels(deviceChannel.getDeviceDbId(), channelId, query, channelType, online, page, count);
+		return deviceChannelService.getSubChannels(deviceChannel.getDataDeviceId(), channelId, query, channelType, online, page, count);
 	}
 
 	@Operation(summary = "开启/关闭通道的音频", security = @SecurityRequirement(name = JwtUtils.HEADER))

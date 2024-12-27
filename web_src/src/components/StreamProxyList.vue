@@ -204,6 +204,7 @@
 				// this.$refs.streamProxyEdit.openDialog(null, this.initData)
         this.streamProxy = {
           type: "default",
+          dataType: 3,
           noneReader: 1,
           enable: true,
           enableAudio: true,

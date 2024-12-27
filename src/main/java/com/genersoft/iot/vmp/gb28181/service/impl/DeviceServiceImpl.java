@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.gb28181.service.impl;
 import com.alibaba.fastjson2.JSON;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
@@ -98,11 +99,15 @@ public class DeviceServiceImpl implements IDeviceService {
     @Autowired
     private AudioBroadcastManager audioBroadcastManager;
 
+    private Device getDeviceByDeviceIdFromDb(String deviceId) {
+        return deviceMapper.getDeviceByDeviceId(deviceId);
+    }
+
     @Override
     public void online(Device device, SipTransactionInfo sipTransactionInfo) {
         log.info("[设备上线] deviceId：{}->{}:{}", device.getDeviceId(), device.getIp(), device.getPort());
         Device deviceInRedis = redisCatchStorage.getDevice(device.getDeviceId());
-        Device deviceInDb = deviceMapper.getDeviceByDeviceId(device.getDeviceId());
+        Device deviceInDb = getDeviceByDeviceIdFromDb(device.getDeviceId());
 
         String now = DateUtil.getNow();
         if (deviceInRedis != null && deviceInDb == null) {
@@ -197,7 +202,7 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     public void offline(String deviceId, String reason) {
         log.warn("[设备离线]，{}, device：{}", reason, deviceId);
-        Device device = deviceMapper.getDeviceByDeviceId(deviceId);
+        Device device = getDeviceByDeviceIdFromDb(deviceId);
         if (device == null) {
             return;
         }
@@ -349,7 +354,7 @@ public class DeviceServiceImpl implements IDeviceService {
     public Device getDeviceByDeviceId(String deviceId) {
         Device device = redisCatchStorage.getDevice(deviceId);
         if (device == null) {
-            device = deviceMapper.getDeviceByDeviceId(deviceId);
+            device = getDeviceByDeviceIdFromDb(deviceId);
             if (device != null) {
                 redisCatchStorage.updateDevice(device);
             }
@@ -364,7 +369,7 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public List<Device> getAllByStatus(Boolean status) {
-        return deviceMapper.getDevices(status);
+        return deviceMapper.getDevices(ChannelDataType.GB28181.value, status);
     }
 
     @Override
@@ -406,7 +411,7 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public boolean isExist(String deviceId) {
-        return deviceMapper.getDeviceByDeviceId(deviceId) != null;
+        return getDeviceByDeviceIdFromDb(deviceId) != null;
     }
 
     @Override
@@ -499,7 +504,7 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     @Transactional
     public boolean delete(String deviceId) {
-        Device device = deviceMapper.getDeviceByDeviceId(deviceId);
+        Device device = getDeviceByDeviceIdFromDb(deviceId);
         if (device == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备:" + deviceId);
         }
@@ -530,7 +535,7 @@ public class DeviceServiceImpl implements IDeviceService {
                     .replaceAll("%", "/%")
                     .replaceAll("_", "/_");
         }
-        List<Device> all = deviceMapper.getDeviceList(query, status);
+        List<Device> all = deviceMapper.getDeviceList(ChannelDataType.GB28181.value, query, status);
         return new PageInfo<>(all);
     }
 
@@ -541,11 +546,11 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public Device getDeviceByChannelId(Integer channelId) {
-        return deviceMapper.queryByChannelId(channelId);
+        return deviceMapper.queryByChannelId(ChannelDataType.GB28181.value,channelId);
     }
 
     @Override
     public Device getDeviceBySourceChannelDeviceId(String channelId) {
-        return deviceMapper.getDeviceBySourceChannelDeviceId(channelId);
+        return deviceMapper.getDeviceBySourceChannelDeviceId(ChannelDataType.GB28181.value,channelId);
     }
 }

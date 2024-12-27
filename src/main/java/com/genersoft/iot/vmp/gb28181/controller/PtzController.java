@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IPTZService;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
@@ -15,8 +16,12 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.sip.InvalidArgumentException;
@@ -37,6 +42,9 @@ public class PtzController {
 	private IDeviceService deviceService;
 
 	@Autowired
+	private IPTZService iptzService;
+
+	@Autowired
 	private DeferredResultHolder resultHolder;
 
 	@Operation(summary = "通用前端控制命令(参考国标文档A.3.1指令格式)", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -52,7 +60,6 @@ public class PtzController {
 		if (log.isDebugEnabled()) {
 			log.debug(String.format("设备云台控制 API调用，deviceId：%s ，channelId：%s ，cmdCode：%d parameter1：%d parameter2：%d",deviceId, channelId, cmdCode, parameter1, parameter2));
 		}
-		Device device = deviceService.getDeviceByDeviceId(deviceId);
 
 		if (parameter1 == null || parameter1 < 0 || parameter1 > 255) {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "parameter1 为 1-255的数字");
@@ -63,12 +70,12 @@ public class PtzController {
 		if (combindCode2 == null || combindCode2 < 0 || combindCode2 > 16) {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "parameter1 为 1-255的数字");
 		}
-		try {
-			cmder.frontEndCmd(device, channelId, cmdCode, parameter1, parameter2, combindCode2);
-		} catch (SipException | InvalidArgumentException | ParseException e) {
-			log.error("[命令发送失败] 前端控制: {}", e.getMessage());
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
-		}
+
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
+
+		Assert.notNull(device, "设备[" + deviceId + "]不存在");
+
+		iptzService.frontEndCommand(device, channelId, cmdCode, parameter1, parameter2, combindCode2);
 	}
 
 	@Operation(summary = "云台控制", security = @SecurityRequirement(name = JwtUtils.HEADER))

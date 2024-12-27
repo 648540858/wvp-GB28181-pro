@@ -771,7 +771,13 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public void queryRecordInfo(CommonGBChannel channel, String startTime, String endTime, ErrorCallback<RecordInfo> callback) {
-        Device device = deviceMapper.query(channel.getGbDeviceDbId());
+        if (channel.getDataType() != ChannelDataType.GB28181.value){
+            // 只支持国标的语音喊话
+            log.warn("[INFO 消息] 非国标设备， 通道ID： {}", channel.getGbId());
+            callback.run(ErrorCode.ERROR100.getCode(), "非国标设备", null);
+            return;
+        }
+        Device device = deviceMapper.query(channel.getDataDeviceId());
         if (device == null) {
             log.warn("[点播] 未找到通道{}的设备信息", channel);
             callback.run(ErrorCode.ERROR100.getCode(), "设备不存在", null);

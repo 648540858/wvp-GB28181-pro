@@ -734,14 +734,13 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Override
     public void queryRecordInfo(CommonGBChannel channel, String startTime, String endTime, ErrorCallback<RecordInfo> callback) {
-        if (channel.getGbDeviceDbId() != null) {
-
+        if (channel.getDataType() == ChannelDataType.GB28181.value) {
             deviceChannelService.queryRecordInfo(channel, startTime, endTime, callback);
-        } else if (channel.getStreamProxyId() != null) {
+        } else if (channel.getDataType() == ChannelDataType.STREAM_PROXY.value) {
             // 拉流代理
             log.warn("[下载通用通道录像] 不支持下载拉流代理的录像： {}({})", channel.getGbName(), channel.getGbDeviceId());
             throw new PlayException(Response.FORBIDDEN, "forbidden");
-        } else if (channel.getStreamPushId() != null) {
+        } else if (channel.getDataType() == ChannelDataType.STREAM_PUSH.value) {
             // 推流
             log.warn("[下载通用通道录像] 不支持下载推流的录像： {}({})", channel.getGbName(), channel.getGbDeviceId());
             throw new PlayException(Response.FORBIDDEN, "forbidden");

@@ -1707,7 +1707,7 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void stop(InviteSessionType inviteSessionType, CommonGBChannel channel, String stream) {
-        Device device = deviceService.getDevice(channel.getGbDeviceDbId());
+        Device device = deviceService.getDevice(channel.getDataDeviceId());
         if (device == null) {
             log.warn("[停止播放] 未找到通道{}的设备信息", channel);
             throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");

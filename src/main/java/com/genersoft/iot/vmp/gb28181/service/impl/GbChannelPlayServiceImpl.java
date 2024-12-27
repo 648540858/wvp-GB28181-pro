@@ -6,7 +6,6 @@ import com.genersoft.iot.vmp.conf.exception.ServiceException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
-import com.genersoft.iot.vmp.gb28181.bean.InviteInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.PlayException;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
@@ -97,13 +96,13 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
 
     @Override
     public void stopPlay(InviteSessionType type, CommonGBChannel channel, String stream) {
-        if (channel.getGbDeviceDbId() != null) {
+        if (channel.getDataType() == ChannelDataType.GB28181.value) {
             // 国标通道
             stopPlayDeviceChannel(type, channel, stream);
-        } else if (channel.getStreamProxyId() != null) {
+        } else if (channel.getDataType() ==  ChannelDataType.STREAM_PROXY.value) {
             // 拉流代理
             stopPlayProxy(channel);
-        } else if (channel.getStreamPushId() != null) {
+        } else if (channel.getDataType() == ChannelDataType.STREAM_PUSH.value) {
             // 推流
             stopPlayPush(channel);
         } else {
@@ -178,7 +177,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
     public void stopPlayProxy(CommonGBChannel channel) {
         // 拉流代理通道
         try {
-            streamProxyPlayService.stop(channel.getStreamProxyId());
+            streamProxyPlayService.stop(channel.getDataDeviceId());
         }catch (Exception e) {
             log.error("[停止点播失败] {}({})", channel.getGbName(), channel.getGbDeviceId(), e);
         }
@@ -201,7 +200,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
     public void stopPlayPush(CommonGBChannel channel) {
         // 推流
         try {
-            streamPushPlayService.stop(channel.getStreamPushId());
+            streamPushPlayService.stop(channel.getDataDeviceId());
         }catch (Exception e) {
             log.error("[停止点播失败] {}({})", channel.getGbName(), channel.getGbDeviceId(), e);
         }

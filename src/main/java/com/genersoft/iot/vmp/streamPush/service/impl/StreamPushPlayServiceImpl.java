@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
@@ -53,14 +54,17 @@ public class StreamPushPlayServiceImpl implements IStreamPushPlayService {
     public void start(Integer id, ErrorCallback<StreamInfo> callback, String platformDeviceId, String platformName ) {
         StreamPush streamPush = streamPushMapper.queryOne(id);
         Assert.notNull(streamPush, "推流信息未找到");
-        MediaInfo mediaInfo = redisCatchStorage.getPushListItem(streamPush.getApp(), streamPush.getStream());
+
+        MediaServer mediaServer = mediaServerService.getOne(streamPush.getMediaServerId());
+        Assert.notNull(mediaServer, "节点" + streamPush.getMediaServerId() + "未找到");
+        MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, streamPush.getApp(), streamPush.getStream());
         if (mediaInfo != null) {
             String callId = null;
             StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(streamPush.getApp(), streamPush.getStream());
             if (streamAuthorityInfo != null) {
                 callId = streamAuthorityInfo.getCallId();
             }
-            callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), mediaServerService.getStreamInfoByAppAndStream(mediaInfo.getMediaServer(),
+            callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), mediaServerService.getStreamInfoByAppAndStream(mediaServer,
                     streamPush.getApp(), streamPush.getStream(), mediaInfo, callId));
             return;
         }

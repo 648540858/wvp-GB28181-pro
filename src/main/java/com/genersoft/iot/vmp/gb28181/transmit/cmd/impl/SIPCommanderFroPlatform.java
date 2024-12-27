@@ -365,12 +365,8 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                             }
                             catalogXml.append("<Status>" + (channel.isStatus() ?"ON":"OFF") + "</Status>\r\n");
 
-                            catalogXml.append("<Longitude>" +
-                                    (channel.getLongitudeWgs84() != 0? channel.getLongitudeWgs84():channel.getLongitude())
-                                    + "</Longitude>\r\n");
-                            catalogXml.append("<Latitude>" +
-                                    (channel.getLatitudeWgs84() != 0? channel.getLatitudeWgs84():channel.getLatitude())
-                                    + "</Latitude>\r\n");
+                            catalogXml.append("<Longitude>" + channel.getLongitude()+ "</Longitude>\r\n");
+                            catalogXml.append("<Latitude>" + channel.getLatitude() + "</Latitude>\r\n");
                             break;
 
                     }

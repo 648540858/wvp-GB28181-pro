@@ -152,7 +152,7 @@ public interface CommonGBChannelMapper {
             " SET gb_status = #{status}" +
             " WHERE id = #{gbId}"+
             " </script>"})
-    int updateStatusById(@Param("gbId") int gbId, @Param("status") int status);
+    int updateStatusById(@Param("gbId") int gbId, @Param("status") String status);
 
     @Update("<script> " +
             "<foreach collection='commonGBChannels' index='index' item='item' separator=';'> " +

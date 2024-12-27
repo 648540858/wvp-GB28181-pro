@@ -48,9 +48,9 @@ public interface StreamPushMapper {
             " from " +
             " wvp_stream_push st " +
             " LEFT join wvp_device_channel wdc " +
-            " on st.id = wdc.data_device_id " +
+            " on wdc.data_type = 2 and st.id = wdc.data_device_id " +
             " WHERE " +
-            " wdc.data_type = 2 " +
+            " 1=1 " +
             " <if test='query != null'> AND (st.app LIKE concat('%',#{query},'%') escape '/' OR st.stream LIKE concat('%',#{query},'%') escape '/' " +
             " OR wdc.gb_device_id LIKE concat('%',#{query},'%') escape '/' OR wdc.gb_name LIKE concat('%',#{query},'%') escape '/')</if> " +
             " <if test='pushing == true' > AND st.pushing=1</if>" +

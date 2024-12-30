@@ -53,6 +53,11 @@ public class StreamPushPlayServiceImpl implements IStreamPushPlayService {
         StreamPush streamPush = streamPushMapper.queryOne(id);
         Assert.notNull(streamPush, "推流信息未找到");
 
+        if (!userSetting.getServerId().equals(streamPush.getServerId())) {
+            redisRpcService.play(id, callback);
+            return;
+        }
+
         MediaServer mediaServer = mediaServerService.getOne(streamPush.getMediaServerId());
         Assert.notNull(mediaServer, "节点" + streamPush.getMediaServerId() + "未找到");
         MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, streamPush.getApp(), streamPush.getStream());

@@ -15,6 +15,7 @@ import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
@@ -219,6 +220,12 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         jsonObject.put("cycle", cycle);
         jsonObject.put("interval", cycle);
         RedisRpcRequest request = buildRequest("device/subscribeMobilePosition", jsonObject);
+        redisRpcConfig.request(request, 10);
+    }
+
+    @Override
+    public void play(Integer id, ErrorCallback<StreamInfo> callback) {
+        RedisRpcRequest request = buildRequest("streamPush/play", id);
         redisRpcConfig.request(request, 10);
     }
 }

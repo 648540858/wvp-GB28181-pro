@@ -28,4 +28,7 @@ public interface IRedisRpcService {
     void subscribeCatalog(int id, int cycle);
 
     void subscribeMobilePosition(int id, int cycle, int interval);
+
+    void play(Integer id, ErrorCallback<StreamInfo> callback);
+
 }

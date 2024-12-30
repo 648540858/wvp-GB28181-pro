@@ -18,6 +18,7 @@ import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.redisMsg.dto.RedisRpcController;
 import com.genersoft.iot.vmp.service.redisMsg.dto.RedisRpcMapping;
 import com.genersoft.iot.vmp.service.redisMsg.dto.RpcController;
+import com.genersoft.iot.vmp.streamPush.service.IStreamPushPlayService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +47,9 @@ public class RedisRpcStreamPushController extends RpcController {
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
+
+    @Autowired
+    private IStreamPushPlayService streamPushPlayService;
 
 
     private void sendResponse(RedisRpcResponse response){
@@ -170,6 +174,28 @@ public class RedisRpcStreamPushController extends RpcController {
         RedisRpcResponse response = request.getResponse();
         response.setStatusCode(ErrorCode.SUCCESS.getCode());
         return response;
+    }
+
+    /**
+     * 停止监听流上线
+     */
+    @RedisRpcMapping("play")
+    public RedisRpcResponse play(RedisRpcRequest request) {
+        int id = Integer.parseInt(request.getParam().toString());
+        RedisRpcResponse response = request.getResponse();
+        if (id <= 0) {
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
+            response.setBody("param error");
+            return response;
+        }
+        streamPushPlayService.start(id, (code, msg, data) -> {
+            if (code == ErrorCode.SUCCESS.getCode()) {
+                response.setStatusCode(ErrorCode.SUCCESS.getCode());
+                response.setBody(data);
+                sendResponse(response);
+            }
+        }, null, null);
+        return null;
     }
 
 }

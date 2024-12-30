@@ -505,8 +505,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
             streamPush.setGbStatus(pushIng?"ON":"OFF");
         }
         streamPush.setPushTime(DateUtil.getNow());
-        streamPush.setServerId(userSetting.getServerId());
-        streamPushMapper.updatePushStatus(streamPush.getId(), pushIng);
+        streamPushMapper.updatePushStatus(streamPush.getId(), pushIng, userSetting.getServerId());
         if (ObjectUtils.isEmpty(streamPush.getGbDeviceId())) {
             return;
         }

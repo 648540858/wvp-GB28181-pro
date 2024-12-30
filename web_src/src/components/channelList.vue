@@ -141,7 +141,7 @@
                 <el-button size="medium" type="text" >
                   更多<i class="el-icon-arrow-down el-icon--right"></i>
                 </el-button>
-                <el-dropdown-menu slot="dropdown">
+                <el-dropdown-menu>
                   <el-dropdown-item command="records" v-bind:disabled="device == null || device.online === 0">
                     设备录像</el-dropdown-item>
                   <el-dropdown-item command="cloudRecords" v-bind:disabled="device == null || device.online === 0" >

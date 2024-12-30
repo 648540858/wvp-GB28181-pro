@@ -284,9 +284,8 @@ public interface DeviceMapper {
     @Update(value = {" <script>" +
             "UPDATE wvp_device " +
             "SET update_time=#{updateTime}, custom_name=#{name} , password=#{password}, stream_mode=#{streamMode}" +
-            ", ip=#{ip}, sdp_ip=#{sdpIp}, port=#{port}, charset=#{charset}, subscribe_cycle_for_catalog=#{subscribeCycleForCatalog}" +
-            ", subscribe_cycle_for_mobile_position=#{subscribeCycleForMobilePosition}, mobile_position_submission_interval=#{mobilePositionSubmissionInterval}" +
-            ", subscribe_cycle_for_alarm=#{subscribeCycleForAlarm}, ssrc_check=#{ssrcCheck}, as_message_channel=#{asMessageChannel}" +
+            ", ip=#{ip}, sdp_ip=#{sdpIp}, port=#{port}, charset=#{charset}" +
+            ", ssrc_check=#{ssrcCheck}, as_message_channel=#{asMessageChannel}" +
             ", broadcast_push_after_ack=#{broadcastPushAfterAck}, geo_coord_sys=#{geoCoordSys}, media_server_id=#{mediaServerId}" +
             " WHERE id=#{id}"+
             " </script>"})
@@ -391,4 +390,17 @@ public interface DeviceMapper {
     @Select("select wd.* from wvp_device wd left join wvp_device_channel wdc on wdc.data_type = #{dataType} and wd.id = wdc.data_device_id  where wdc.device_id = #{channelDeviceId}")
     Device getDeviceBySourceChannelDeviceId(@Param("dataType") Integer dataType, @Param("channelDeviceId") String channelDeviceId);
 
+    @Update(value = {" <script>" +
+            " UPDATE wvp_device " +
+            "  SET subscribe_cycle_for_catalog=#{subscribeCycleForCatalog}" +
+            " WHERE id=#{id}"+
+            " </script>"})
+    void updateSubscribeCatalog(Device device);
+
+    @Update(value = {" <script>" +
+            "UPDATE wvp_device " +
+            "SET subscribe_cycle_for_mobile_position=#{subscribeCycleForMobilePosition}, mobile_position_submission_interval=#{mobilePositionSubmissionInterval}" +
+            " WHERE id=#{id}"+
+            " </script>"})
+    void updateSubscribeMobilePosition(Device device);
 }

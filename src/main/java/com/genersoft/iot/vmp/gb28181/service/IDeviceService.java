@@ -160,4 +160,9 @@ public interface IDeviceService {
     Device getDeviceByChannelId(Integer channelId);
 
     Device getDeviceBySourceChannelDeviceId(String requesterId);
+
+    void subscribeCatalog(int id, int cycle);
+
+    void subscribeMobilePosition(int id, int cycle, int interval);
+
 }

@@ -57,7 +57,7 @@
                   <el-button>
                     更多地址<i class="el-icon-arrow-down el-icon--right"></i>
                   </el-button>
-                  <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-menu>
                     <el-dropdown-item v-if="streamInfo.flv" :command="streamInfo.flv">
                       <el-tag>FLV:</el-tag>
                       <span>{{ streamInfo.flv }}</span>

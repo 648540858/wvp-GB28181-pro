@@ -489,4 +489,21 @@ public class DeviceQuery {
 	public DeviceChannel getRawChannel(int id) {
 		return deviceChannelService.getRawChannel(id);
 	}
+
+	@GetMapping("/subscribe/catalog")
+	@Operation(summary = "开启/关闭目录订阅")
+	@Parameter(name = "id", description = "通道的Id", required = true)
+	@Parameter(name = "cycle", description = "订阅周期", required = true)
+	public void subscribeCatalog(int id, int cycle) {
+		deviceService.subscribeCatalog(id, cycle);
+	}
+
+	@GetMapping("/subscribe/mobile-position")
+	@Operation(summary = "开启/关闭移动位置订阅")
+	@Parameter(name = "id", description = "通道的Id", required = true)
+	@Parameter(name = "cycle", description = "订阅周期", required = true)
+	@Parameter(name = "interval", description = "报送间隔", required = true)
+	public void subscribeMobilePosition(int id, int cycle, int interval) {
+		deviceService.subscribeMobilePosition(id, cycle, interval);
+	}
 }

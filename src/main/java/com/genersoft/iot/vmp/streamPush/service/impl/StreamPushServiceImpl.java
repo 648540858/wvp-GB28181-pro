@@ -93,7 +93,11 @@ public class StreamPushServiceImpl implements IStreamPushService {
             streamPush.setPushTime(DateUtil.getNow());
             add(streamPush);
         }else {
-            updatePushStatus(streamPushInDb, true);
+            streamPushInDb.setPushTime(DateUtil.getNow());
+            streamPushInDb.setPushing(true);
+            streamPushInDb.setServerId(userSetting.getServerId());
+            streamPushInDb.setMediaServerId(mediaInfo.getMediaServer().getId());
+            updatePushStatus(streamPushInDb);
         }
         // 冗余数据，自己系统中自用
         if (!"broadcast".equals(event.getApp()) && !"talk".equals(event.getApp())) {
@@ -144,7 +148,8 @@ public class StreamPushServiceImpl implements IStreamPushService {
             return;
         }
         if (streamPush.getGbDeviceId() != null) {
-            updatePushStatus(streamPush, false);
+            streamPush.setPushing(false);
+            updatePushStatus(streamPush);
         }else {
             deleteByAppAndStream(event.getApp(), event.getStream());
         }
@@ -493,19 +498,12 @@ public class StreamPushServiceImpl implements IStreamPushService {
     }
 
     @Override
-    public void updateStatus(StreamPush push) {
-
-    }
-
-    @Override
     @Transactional
-    public void updatePushStatus(StreamPush streamPush, boolean pushIng) {
-        streamPush.setPushing(pushIng);
+    public void updatePushStatus(StreamPush streamPush) {
         if (userSetting.getUsePushingAsStatus()) {
-            streamPush.setGbStatus(pushIng?"ON":"OFF");
+            streamPush.setGbStatus(streamPush.isPushing()?"ON":"OFF");
         }
-        streamPush.setPushTime(DateUtil.getNow());
-        streamPushMapper.updatePushStatus(streamPush.getId(), pushIng, userSetting.getServerId());
+        streamPushMapper.updatePushStatus(streamPush);
         if (ObjectUtils.isEmpty(streamPush.getGbDeviceId())) {
             return;
         }

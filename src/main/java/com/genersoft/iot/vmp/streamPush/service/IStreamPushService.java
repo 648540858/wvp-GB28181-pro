@@ -88,11 +88,9 @@ public interface IStreamPushService {
 
     Map<String, StreamPush> getAllGBId();
 
-    void updateStatus(StreamPush push);
-
     void deleteByAppAndStream(String app, String stream);
 
-    void updatePushStatus(StreamPush streamPush, boolean pushIng);
+    void updatePushStatus(StreamPush streamPush);
 
     void batchUpdate(List<StreamPush> streamPushItemForUpdate);
 

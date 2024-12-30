@@ -80,10 +80,9 @@ public interface StreamPushMapper {
     List<StreamPush> selectAllByMediaServerIdWithOutGbID(String mediaServerId);
 
     @Update("UPDATE wvp_stream_push " +
-            "SET pushing=#{pushing} " +
+            "SET pushing=#{pushing}, server_id=#{serverId} " +
             "WHERE id=#{id}")
     int updatePushStatus(@Param("id") int id, @Param("pushing") boolean pushing);
-
 
     @Select("<script> "+
             "SELECT st.*, st.id as data_device_id, wdc.*, wdc.id as gb_id FROM wvp_stream_push st LEFT join wvp_device_channel wdc on wdc.data_type = 2 and st.id = wdc.data_device_id " +

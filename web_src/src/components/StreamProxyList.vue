@@ -58,7 +58,8 @@
         <el-table-column label="拉流状态" min-width="120" >
           <template v-slot:default="scope">
             <div slot="reference" class="name-wrapper">
-              <el-tag size="medium" v-if="scope.row.pulling">正在拉流</el-tag>
+              <el-tag size="medium" v-if="scope.row.pulling && serverId !== scope.row.serverId" style="border-color: #ecf1af">正在拉流</el-tag>
+              <el-tag size="medium" v-if="scope.row.pulling && serverId === scope.row.serverId">正在拉流</el-tag>
               <el-tag size="medium" type="info" v-if="!scope.row.pulling">尚未拉流</el-tag>
             </div>
           </template>
@@ -136,6 +137,7 @@
         searchSrt: "",
         mediaServerId: "",
         pulling: "",
+        serverId: this.$myServerId,
         mediaServerObj: new MediaServer(),
         mediaServerList: [],
 			};

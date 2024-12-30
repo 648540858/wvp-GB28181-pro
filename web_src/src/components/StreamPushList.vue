@@ -52,7 +52,8 @@
         </el-table-column>
         <el-table-column label="推流状态"  min-width="100">
           <template v-slot:default="scope">
-            <el-tag size="medium" v-if="scope.row.pushing">推流中</el-tag>
+            <el-tag size="medium" v-if="scope.row.pushing && serverId !== scope.row.serverId" style="border-color: #ecf1af">推流中</el-tag>
+            <el-tag size="medium" v-if="scope.row.pushing && serverId === scope.row.serverId">推流中</el-tag>
             <el-tag size="medium" type="info" v-if="!scope.row.pushing">已停止</el-tag>
           </template>
         </el-table-column>
@@ -144,6 +145,7 @@ export default {
       mediaServerList: [],
       multipleSelection: [],
       loading: false,
+      serverId: this.$myServerId,
       streamPush: null,
     };
   },

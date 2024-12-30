@@ -76,6 +76,17 @@ axios.interceptors.request.use(
 Vue.prototype.$axios = axios;
 Vue.prototype.$cookies.config(60 * 30);
 
+// 获取本平台的服务ID
+axios({
+  method: 'get',
+  url: `/api/server/system/configInfo`,
+}).then( (res)=> {
+  if (res.data.code === 0) {
+    Vue.prototype.$myServerId = res.data.data.addOn.serverId;
+  }
+}).catch( (error)=> {
+});
+
 new Vue({
   router: router,
   render: h => h(App),

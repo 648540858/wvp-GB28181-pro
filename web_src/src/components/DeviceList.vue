@@ -15,7 +15,7 @@
         </el-select>
         <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="add">添加设备
         </el-button>
-        <el-button icon="el-icon-info" size="mini" style="margin-right: 1rem;" type="primary" @click="showInfo(true)">平台信息
+        <el-button icon="el-icon-info" size="mini" style="margin-right: 1rem;" type="primary" @click="showInfo()">平台信息
         </el-button>
         <el-button icon="el-icon-refresh-right" circle size="mini" :loading="getDeviceListLoading"
                    @click="getDeviceList()"></el-button>
@@ -144,7 +144,7 @@ export default {
       currentPage: 1,
       count: 15,
       total: 0,
-      serverId: null,
+      serverId: this.$myServerId,
       getDeviceListLoading: false,
     };
   },
@@ -173,8 +173,6 @@ export default {
     initData: function () {
       this.currentPage = 1;
       this.total= 0;
-      // 获取平台信息
-      this.showInfo(false)
       this.getDeviceList();
     },
     currentChange: function (val) {
@@ -337,18 +335,14 @@ export default {
 
       })
     },
-    showInfo: function (showConfigInfo){
-
+    showInfo: function (){
       this.$axios({
         method: 'get',
         url: `/api/server/system/configInfo`,
       }).then( (res)=> {
         if (res.data.code === 0) {
           this.serverId = res.data.data.addOn.serverId;
-          console.log(this.serverId);
-          if(showConfigInfo) {
-            this.$refs.configInfo.openDialog(res.data.data)
-          }
+          this.$refs.configInfo.openDialog(res.data.data)
         }
       }).catch( (error)=> {
       });

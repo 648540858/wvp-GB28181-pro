@@ -21,4 +21,7 @@ public interface IRedisRpcPlayService {
     void pauseRtp(String serverId, String streamId);
 
     void resumeRtp(String serverId, String streamId);
+
+    String frontEndCommand(String serverId, Integer channelId, int cmdCode, int parameter1, int parameter2, int combindCode2);
+
 }

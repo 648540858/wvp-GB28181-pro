@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.InviteMessageInfo;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IPTZService;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.redisMsg.dto.RedisRpcController;
 import com.genersoft.iot.vmp.service.redisMsg.dto.RedisRpcMapping;
@@ -41,6 +42,9 @@ public class RedisRpcChannelPlayController extends RpcController {
 
     @Autowired
     private IGbChannelPlayService channelPlayService;
+
+    @Autowired
+    private IPTZService iptzService;
 
     private void sendResponse(RedisRpcResponse response){
         log.info("[redis-rpc] >> {}", response);
@@ -300,6 +304,43 @@ public class RedisRpcChannelPlayController extends RpcController {
             sendResponse(response);
         });
         return null;
+    }
+
+    /**
+     * 云台控制
+     */
+    @RedisRpcMapping("ptz/frontEndCommand")
+    public RedisRpcResponse frontEndCommand(RedisRpcRequest request) {
+        JSONObject paramJson = JSONObject.parseObject(request.getParam().toString());
+        int channelId = paramJson.getIntValue("channelId");
+        int cmdCode = paramJson.getIntValue("cmdCode");
+        int parameter1 = paramJson.getIntValue("parameter1");
+        int parameter2 = paramJson.getIntValue("parameter2");
+        int combindCode2 = paramJson.getIntValue("combindCode2");
+
+        RedisRpcResponse response = request.getResponse();
+
+        if (channelId <= 0 || cmdCode < 0 || parameter1 < 0 || parameter2 < 0 || combindCode2 < 0) {
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
+            response.setBody("param error");
+            return response;
+        }
+        // 获取对应的设备和通道信息
+        CommonGBChannel channel = channelService.getOne(channelId);
+        if (channel == null) {
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
+            response.setBody("param error");
+            return response;
+        }
+        try {
+            iptzService.frontEndCommand(channel, cmdCode, parameter1, parameter2, combindCode2);
+        }catch (ControllerException e) {
+            response.setStatusCode(ErrorCode.ERROR100.getCode());
+            response.setBody(e.getMessage());
+            return response;
+        }
+        response.setStatusCode(ErrorCode.SUCCESS.getCode());
+        return response;
     }
 
 }

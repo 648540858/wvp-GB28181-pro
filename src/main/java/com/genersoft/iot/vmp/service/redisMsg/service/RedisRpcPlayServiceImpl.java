@@ -168,5 +168,26 @@ public class RedisRpcPlayServiceImpl implements IRedisRpcPlayService {
             }
         }
     }
+
+    @Override
+    public String frontEndCommand(String serverId, Integer channelId, int cmdCode, int parameter1, int parameter2, int combindCode2) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("channelId", channelId);
+        jsonObject.put("cmdCode", cmdCode);
+        jsonObject.put("parameter1", parameter1);
+        jsonObject.put("parameter2", parameter2);
+        jsonObject.put("combindCode2", combindCode2);
+        RedisRpcRequest request = buildRequest("channel/ptz/frontEndCommand", jsonObject.toString());
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, userSetting.getPlayTimeout(), TimeUnit.MILLISECONDS);
+        if (response == null) {
+            return ErrorCode.ERROR100.getMsg();
+        }else {
+            if (response.getStatusCode() != ErrorCode.SUCCESS.getCode()) {
+                return response.getBody().toString();
+            }
+        }
+        return null;
+    }
 }
 

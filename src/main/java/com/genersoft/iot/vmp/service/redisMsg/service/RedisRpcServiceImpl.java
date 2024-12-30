@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.service.redisMsg.service;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -199,6 +200,25 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         streamInfoParam.setApp(app);
         streamInfoParam.setStream(stream);
         RedisRpcRequest request = buildRequest("streamPush/unPushStreamOnlineEvent", streamInfoParam);
+        redisRpcConfig.request(request, 10);
+    }
+
+    @Override
+    public void subscribeCatalog(int id, int cycle) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("id", id);
+        jsonObject.put("cycle", cycle);
+        RedisRpcRequest request = buildRequest("device/subscribeCatalog", jsonObject);
+        redisRpcConfig.request(request, 10);
+    }
+
+    @Override
+    public void subscribeMobilePosition(int id, int cycle, int interval) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("id", id);
+        jsonObject.put("cycle", cycle);
+        jsonObject.put("interval", cycle);
+        RedisRpcRequest request = buildRequest("device/subscribeMobilePosition", jsonObject);
         redisRpcConfig.request(request, 10);
     }
 }

@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.service.redisMsg;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 
 public interface IRedisRpcService {
@@ -24,4 +25,7 @@ public interface IRedisRpcService {
     long onStreamOnlineEvent(String app, String stream, CommonCallback<StreamInfo> callback);
     void unPushStreamOnlineEvent(String app, String stream);
 
+    void subscribeCatalog(int id, int cycle);
+
+    void subscribeMobilePosition(int id, int cycle, int interval);
 }

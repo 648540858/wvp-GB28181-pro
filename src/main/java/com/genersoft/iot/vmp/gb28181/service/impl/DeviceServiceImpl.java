@@ -26,6 +26,7 @@ import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
+import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -98,6 +99,9 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Autowired
     private AudioBroadcastManager audioBroadcastManager;
+
+    @Autowired
+    private IRedisRpcService redisRpcService;
 
     private Device getDeviceByDeviceIdFromDb(String deviceId) {
         return deviceMapper.getDeviceByDeviceId(deviceId);
@@ -532,10 +536,14 @@ public class DeviceServiceImpl implements IDeviceService {
     public void subscribeCatalog(int id, int cycle) {
         Device device = deviceMapper.query(id);
         Assert.notNull(device, "未找到设备");
+
         if (device.getSubscribeCycleForCatalog() == cycle) {
             return;
         }
-
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            redisRpcService.subscribeCatalog(id, cycle);
+            return;
+        }
         //  目录订阅相关的信息
         if (device.getSubscribeCycleForCatalog() > 0) {
             // 订阅周期不同，则先取消
@@ -565,7 +573,10 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device.getSubscribeCycleForMobilePosition() == cycle) {
             return;
         }
-
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            redisRpcService.subscribeMobilePosition(id, cycle, interval);
+            return;
+        }
         //  目录订阅相关的信息
         if (device.getSubscribeCycleForMobilePosition() > 0) {
             // 订阅周期已经开启，则先取消

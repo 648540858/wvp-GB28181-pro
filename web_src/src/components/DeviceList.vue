@@ -4,10 +4,10 @@
       <div class="page-title">设备列表</div>
       <div class="page-header-btn">
         搜索:
-        <el-input @input="getDeviceList" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
+        <el-input @input="initData" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
                   prefix-icon="el-icon-search" v-model="searchSrt" clearable></el-input>
         在线状态:
-        <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="getDeviceList" v-model="online" placeholder="请选择"
+        <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="initData" v-model="online" placeholder="请选择"
                    default-first-option>
           <el-option label="全部" value=""></el-option>
           <el-option label="在线" value="true"></el-option>
@@ -22,10 +22,10 @@
       </div>
     </div>
     <!--设备列表-->
-    <el-table size="medium"  :data="deviceList" style="width: 100%;font-size: 12px;" :height="winHeight" header-row-class-name="table-header">
+    <el-table size="medium" :data="deviceList" style="width: 100%;font-size: 12px;" :height="winHeight" header-row-class-name="table-header">
       <el-table-column prop="name" label="名称" min-width="160">
       </el-table-column>
-      <el-table-column prop="deviceId" label="设备编号" min-width="200" >
+      <el-table-column prop="deviceId" label="设备编号" min-width="160" >
       </el-table-column>
       <el-table-column label="地址" min-width="160" >
         <template v-slot:default="scope">
@@ -35,9 +35,9 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="manufacturer" label="厂家" min-width="120" >
+      <el-table-column prop="manufacturer" label="厂家" min-width="100" >
       </el-table-column>
-      <el-table-column prop="transport" label="信令传输模式" min-width="120" >
+      <el-table-column prop="transport" label="信令传输模式" min-width="100" >
       </el-table-column>
       <el-table-column label="流传输模式"  min-width="160" >
         <template v-slot:default="scope">
@@ -48,9 +48,12 @@
           </el-select>
         </template>
       </el-table-column>
-      <el-table-column prop="channelCount" label="通道数" min-width="120" >
+      <el-table-column label="通道数" min-width="100" >
+        <template v-slot:default="scope">
+          <span style="font-size: 1rem">{{scope.row.channelCount}}</span>
+        </template>
       </el-table-column>
-      <el-table-column label="状态" min-width="120">
+      <el-table-column label="状态" min-width="100">
         <template v-slot:default="scope">
           <div slot="reference" class="name-wrapper">
             <el-tag size="medium" v-if="scope.row.onLine">在线</el-tag>
@@ -58,18 +61,20 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="keepaliveTime" label="最近心跳" min-width="160" >
-      </el-table-column>
-      <el-table-column prop="registerTime" label="最近注册"  min-width="160">
-      </el-table-column>
-<!--      <el-table-column prop="updateTime" label="更新时间"  width="140">-->
-<!--      </el-table-column>-->
-<!--      <el-table-column prop="createTime" label="创建时间"  width="140">-->
-<!--      </el-table-column>-->
-
-      <el-table-column label="操作" min-width="380" fixed="right">
+      <el-table-column label="订阅"  min-width="260" >
         <template v-slot:default="scope">
-          <el-button type="text" size="medium" v-bind:disabled="scope.row.online==0" icon="el-icon-refresh" @click="refDevice(scope.row)"
+          <el-checkbox label="目录" :checked="scope.row.subscribeCycleForCatalog > 0" @change="(e)=>subscribeForCatalog(scope.row.id, e)"></el-checkbox>
+          <el-checkbox label="位置" :checked="scope.row.subscribeCycleForMobilePosition > 0" @change="(e)=>subscribeForMobilePosition(scope.row.id, e)"></el-checkbox>
+          <el-checkbox label="报警" disabled :checked="scope.row.subscribeCycleForAlarm > 0"></el-checkbox>
+        </template>
+      </el-table-column>
+      <el-table-column prop="keepaliveTime" label="最近心跳" min-width="140" >
+      </el-table-column>
+      <el-table-column prop="registerTime" label="最近注册"  min-width="140">
+      </el-table-column>
+      <el-table-column label="操作" min-width="300" fixed="right">
+        <template v-slot:default="scope">
+          <el-button type="text" size="medium" v-bind:disabled="scope.row.online===0" icon="el-icon-refresh" @click="refDevice(scope.row)"
                      @mouseover="getTooltipContent(scope.row.deviceId)">刷新
           </el-button>
           <el-divider direction="vertical"></el-divider>
@@ -79,13 +84,13 @@
           <el-divider direction="vertical"></el-divider>
           <el-button size="medium" icon="el-icon-edit" type="text" @click="edit(scope.row)">编辑</el-button>
           <el-divider direction="vertical"></el-divider>
-          <el-button size="medium" icon="el-icon-delete" type="text" @click="deleteDevice(scope.row)" style="color: #f56c6c">删除</el-button>
-          <el-divider direction="vertical"></el-divider>
           <el-dropdown @command="(command)=>{moreClick(command, scope.row)}">
             <el-button size="medium" type="text" >
               操作<i class="el-icon-arrow-down el-icon--right"></i>
             </el-button>
-            <el-dropdown-menu slot="dropdown">
+            <el-dropdown-menu>
+              <el-dropdown-item command="delete" style="color: #f56c6c">
+                删除</el-dropdown-item>
               <el-dropdown-item command="setGuard" v-bind:disabled="!scope.row.onLine">
                 布防</el-dropdown-item>
               <el-dropdown-item command="resetGuard" v-bind:disabled="!scope.row.onLine">
@@ -164,6 +169,8 @@ export default {
   },
   methods: {
     initData: function () {
+      this.currentPage = 1;
+      this.total= 0;
       this.getDeviceList();
     },
     currentChange: function (val) {
@@ -346,6 +353,8 @@ export default {
         this.setGuard(itemData)
       }else if (command === "resetGuard") {
         this.resetGuard(itemData)
+      }else if (command === "delete") {
+        this.deleteDevice(itemData)
       }
     },
     setGuard: function (itemData) {
@@ -393,6 +402,67 @@ export default {
           message: error.message
         })
       });
+    },
+    subscribeForCatalog: function (data, value) {
+      console.log(data)
+      console.log(value)
+      this.$axios({
+        method: 'get',
+        url: `/api/device/query/subscribe/catalog`,
+        params: {
+          id: data,
+          cycle: value?60:0
+        }
+      }).then( (res)=> {
+        if (res.data.code === 0) {
+          this.$message.success({
+            showClose: true,
+            message: value?"订阅成功":"取消订阅成功"
+          })
+        }else {
+          this.$message.error({
+            showClose: true,
+            message: res.data.msg
+          })
+        }
+      }).catch( (error)=> {
+        this.$message.error({
+          showClose: true,
+          message: error.message
+        })
+      });
+
+    },
+    subscribeForMobilePosition: function (data, value) {
+      console.log(data)
+      console.log(value)
+      this.$axios({
+        method: 'get',
+        url: `/api/device/query/subscribe/mobile-position`,
+        params: {
+          id: data,
+          cycle: value?60:0,
+          interval: value?5:0
+        }
+      }).then( (res)=> {
+        if (res.data.code === 0) {
+          this.$message.success({
+            showClose: true,
+            message: value?"订阅成功":"取消订阅成功"
+          })
+        }else {
+          this.$message.error({
+            showClose: true,
+            message: res.data.msg
+          })
+        }
+      }).catch( (error)=> {
+        this.$message.error({
+          showClose: true,
+          message: error.message
+        })
+      });
+
     },
 
   }

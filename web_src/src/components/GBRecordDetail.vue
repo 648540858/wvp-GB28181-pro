@@ -64,7 +64,7 @@
                 <el-button size="mini">
                   倍速 <i class="el-icon-arrow-down el-icon--right"></i>
                 </el-button>
-                <el-dropdown-menu  slot="dropdown">
+                <el-dropdown-menu>
                   <el-dropdown-item command="0.25">0.25倍速</el-dropdown-item>
                   <el-dropdown-item command="0.5">0.5倍速</el-dropdown-item>
                   <el-dropdown-item command="1.0">1倍速</el-dropdown-item>

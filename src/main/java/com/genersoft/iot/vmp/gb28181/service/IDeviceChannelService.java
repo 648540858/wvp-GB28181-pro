@@ -125,4 +125,5 @@ public interface IDeviceChannelService {
     List<DeviceChannel> queryChaneListByDeviceDbId(Integer deviceDbId);
 
     List<Integer> queryChaneIdListByDeviceDbIds(List<Integer> deviceDbId);
+
 }

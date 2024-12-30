@@ -16,6 +16,7 @@ import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
+import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
@@ -226,6 +227,16 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     @Override
     public void play(Integer id, ErrorCallback<StreamInfo> callback) {
         RedisRpcRequest request = buildRequest("streamPush/play", id);
-        redisRpcConfig.request(request, 10);
+        RedisRpcResponse response = redisRpcConfig.request(request, 10);
+        if (response == null) {
+            callback.run(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg(), null);
+        }else {
+            if (response.getStatusCode() == ErrorCode.SUCCESS.getCode()) {
+                StreamInfo streamInfo = JSON.parseObject(response.getBody().toString(), StreamInfo.class);
+                callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
+            }else {
+                callback.run(response.getStatusCode(), response.getBody().toString(), null);
+            }
+        }
     }
 }

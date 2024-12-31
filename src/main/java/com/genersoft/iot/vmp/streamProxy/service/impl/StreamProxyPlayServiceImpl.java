@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.streamProxy.service.impl;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
@@ -27,12 +28,16 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
     @Autowired
     private IMediaServerService mediaServerService;
 
+    @Autowired
+    private UserSetting userSetting;
+
     @Override
     public StreamInfo start(int id) {
         StreamProxy streamProxy = streamProxyMapper.select(id);
         if (streamProxy == null) {
             throw new ControllerException(ErrorCode.ERROR404.getCode(), "代理信息未找到");
         }
+
         return startProxy(streamProxy);
     }
 
@@ -41,6 +46,10 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
         if (!streamProxy.isEnable()) {
             return null;
         }
+        if (!userSetting.getServerId().equals(streamProxy.getServerId())) {
+            return redisRpcService.play(id, callback);
+        }
+
         MediaServer mediaServer;
         String mediaServerId = streamProxy.getMediaServerId();
         if (mediaServerId == null) {
@@ -86,9 +95,6 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
         }else {
             mediaServerService.stopProxy(mediaServer, streamProxy.getStreamKey());
         }
-        streamProxy.setMediaServerId(mediaServer.getId());
-        streamProxy.setStreamKey(null);
-        streamProxy.setPulling(false);
         streamProxyMapper.removeStream(streamProxy.getId());
     }
 

@@ -33,6 +33,9 @@ public class StreamProxy extends CommonGBChannel {
     @Schema(description = "流媒体服务ID")
     private String mediaServerId;
 
+    @Schema(description = "服务ID")
+    private String serverId;
+
     @Schema(description = "拉流地址")
     private String srcUrl;
 

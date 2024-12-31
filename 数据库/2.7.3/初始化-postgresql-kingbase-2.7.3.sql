@@ -325,6 +325,7 @@ create table wvp_stream_proxy
     name                       character varying(255),
     update_time                character varying(50),
     stream_key                 character varying(255),
+    server_id                  character varying(50),
     enable_disable_none_reader bool default false,
     constraint uk_stream_proxy_app_stream unique (app, stream)
 );

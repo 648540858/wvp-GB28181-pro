@@ -145,7 +145,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         if (param.getMediaServerId().equals("auto")) {
             param.setMediaServerId(null);
         }
-        StreamProxy streamProxy = param.buildStreamProxy();
+        StreamProxy streamProxy = param.buildStreamProxy(userSetting.getServerId());
 
         if (streamProxyInDb == null) {
             add(streamProxy);

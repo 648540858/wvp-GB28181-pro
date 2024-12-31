@@ -11,11 +11,11 @@ import java.util.List;
 @Repository
 public interface StreamProxyMapper {
 
-    @Insert("INSERT INTO wvp_stream_proxy (type, app, stream,media_server_id, src_url, " +
-            "timeout, ffmpeg_cmd_key, rtsp_type, enable_audio, enable_mp4, enable, pulling, stream_key, " +
+    @Insert("INSERT INTO wvp_stream_proxy (type, app, stream,relates_media_server_id, src_url, " +
+            "timeout, ffmpeg_cmd_key, rtsp_type, enable_audio, enable_mp4, enable, pulling, " +
             "enable_remove_none_reader, enable_disable_none_reader, create_time) VALUES" +
-            "(#{type}, #{app}, #{stream}, #{mediaServerId}, #{srcUrl}, " +
-            "#{timeout}, #{ffmpegCmdKey}, #{rtspType}, #{enableAudio}, #{enableMp4}, #{enable}, #{pulling}, #{streamKey}, " +
+            "(#{type}, #{app}, #{stream}, #{relatesMediaServerId}, #{srcUrl}, " +
+            "#{timeout}, #{ffmpegCmdKey}, #{rtspType}, #{enableAudio}, #{enableMp4}, #{enable}, #{pulling}, " +
             "#{enableRemoveNoneReader}, #{enableDisableNoneReader}, #{createTime} )")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int add(StreamProxy streamProxyDto);
@@ -24,7 +24,7 @@ public interface StreamProxyMapper {
             "SET type=#{type}, " +
             "app=#{app}," +
             "stream=#{stream}," +
-            "media_server_id=#{mediaServerId}, " +
+            "relates_media_server_id=#{relatesMediaServerId}, " +
             "src_url=#{srcUrl}," +
             "timeout=#{timeout}, " +
             "ffmpeg_cmd_key=#{ffmpegCmdKey}, " +
@@ -32,7 +32,6 @@ public interface StreamProxyMapper {
             "enable_audio=#{enableAudio}, " +
             "enable=#{enable}, " +
             "pulling=#{pulling}, " +
-            "stream_key=#{streamKey}, " +
             "enable_remove_none_reader=#{enableRemoveNoneReader}, " +
             "enable_disable_none_reader=#{enableDisableNoneReader}, " +
             "enable_mp4=#{enableMp4} " +
@@ -84,8 +83,14 @@ public interface StreamProxyMapper {
     StreamProxy select(@Param("id") int id);
 
     @Update("UPDATE wvp_stream_proxy " +
-            "SET pulling=false, " +
-            "stream_key = null " +
-            "WHERE id=#{id}")
+            " SET pulling=false, media_server_id = null," +
+            " stream_key = null " +
+            " WHERE id=#{id}")
     void removeStream(@Param("id")int id);
+
+    @Update("UPDATE wvp_stream_proxy " +
+            " SET pulling=#{pulling}, media_server_id = #{mediaServerId}, " +
+            " stream_key = #{streamKey} " +
+            " WHERE id=#{id}")
+    void addStream(StreamProxy streamProxy);
 }

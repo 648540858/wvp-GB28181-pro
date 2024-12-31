@@ -29,3 +29,8 @@ set wdc.data_type = 3, wdc.data_device_id = ct.stream_proxy_id where wdc.stream_
 alter table wvp_device_channel drop device_db_id;
 alter table wvp_device_channel drop stream_push_id;
 alter table wvp_device_channel drop stream_proxy_id;
+
+/*
+* 20241231
+*/
+alter table wvp_stream_proxy add relates_media_server_id character varying(50);

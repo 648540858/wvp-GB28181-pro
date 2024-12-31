@@ -57,7 +57,7 @@ public class StreamProxyParam {
         StreamProxy streamProxy = new StreamProxy();
         streamProxy.setApp(app);
         streamProxy.setStream(stream);
-        streamProxy.setMediaServerId(mediaServerId);
+        streamProxy.setRelatesMediaServerId(mediaServerId);
         streamProxy.setServerId(serverId);
         streamProxy.setSrcUrl(url);
         streamProxy.setTimeout(timeoutMs/1000);

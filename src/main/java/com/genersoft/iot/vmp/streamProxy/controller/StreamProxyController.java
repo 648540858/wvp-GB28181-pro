@@ -115,8 +115,8 @@ public class StreamProxyController {
     @ResponseBody
     public StreamProxy add(@RequestBody StreamProxy param){
         log.info("添加代理： " + JSONObject.toJSONString(param));
-        if (ObjectUtils.isEmpty(param.getMediaServerId())) {
-            param.setMediaServerId(null);
+        if (ObjectUtils.isEmpty(param.getRelatesMediaServerId())) {
+            param.setRelatesMediaServerId(null);
         }
         if (ObjectUtils.isEmpty(param.getType())) {
             param.setType("default");
@@ -138,6 +138,9 @@ public class StreamProxyController {
         log.info("更新代理： " + JSONObject.toJSONString(param));
         if (param.getId() == 0) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "缺少代理信息的ID");
+        }
+        if (ObjectUtils.isEmpty(param.getRelatesMediaServerId())) {
+            param.setRelatesMediaServerId(null);
         }
         if (ObjectUtils.isEmpty(param.getGbId())) {
             param.setGbDeviceId(null);

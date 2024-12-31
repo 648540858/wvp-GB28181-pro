@@ -51,22 +51,19 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
         }
 
         MediaServer mediaServer;
-        String mediaServerId = streamProxy.getMediaServerId();
+        String mediaServerId = streamProxy.getRelatesMediaServerId();
         if (mediaServerId == null) {
             mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
         }else {
             mediaServer = mediaServerService.getOne(mediaServerId);
-            if (mediaServer == null) {
-                mediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
-            }
         }
         if (mediaServer == null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的媒体节点");
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), mediaServerId == null?"未找到可用的媒体节点":"未找到节点" + mediaServerId);
         }
         StreamInfo streamInfo = mediaServerService.startProxy(mediaServer, streamProxy);
         if (mediaServerId == null || !mediaServerId.equals(mediaServer.getId())) {
             streamProxy.setMediaServerId(mediaServer.getId());
-            streamProxyMapper.update(streamProxy);
+            streamProxyMapper.addStream(streamProxy);
         }
         return streamInfo;
     }

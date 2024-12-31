@@ -39,7 +39,7 @@
           </el-form-item>
           <el-form-item label="节点选择" prop="rtpType">
             <el-select
-              v-model="streamProxy.mediaServerId"
+              v-model="streamProxy.relatesMediaServerId"
               @change="mediaServerIdChange"
               style="width: 100%"
               placeholder="请选择拉流节点"
@@ -219,12 +219,12 @@ export default {
       this.closeEdit()
     },
     mediaServerIdChange:function (){
-      if (this.streamProxy.mediaServerId !== "auto"){
+      if (this.streamProxy.relatesMediaServerId !== "auto"){
         this.$axios({
           method: 'get',
           url:`/api/proxy/ffmpeg_cmd/list`,
           params: {
-            mediaServerId: this.streamProxy.mediaServerId
+            mediaServerId: this.streamProxy.relatesMediaServerId
           }
         }).then((res)=> {
           this.ffmpegCmdList = res.data.data;

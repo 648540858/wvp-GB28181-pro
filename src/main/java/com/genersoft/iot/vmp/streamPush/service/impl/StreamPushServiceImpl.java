@@ -89,6 +89,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         if (streamPushInDb == null) {
             StreamPush streamPush = StreamPush.getInstance(event, userSetting.getServerId());
             streamPush.setPushing(true);
+            streamPush.setServerId(userSetting.getServerId());
             streamPush.setUpdateTime(DateUtil.getNow());
             streamPush.setPushTime(DateUtil.getNow());
             add(streamPush);

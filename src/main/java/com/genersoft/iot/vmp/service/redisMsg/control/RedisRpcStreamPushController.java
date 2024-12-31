@@ -191,7 +191,7 @@ public class RedisRpcStreamPushController extends RpcController {
         streamPushPlayService.start(id, (code, msg, data) -> {
             if (code == ErrorCode.SUCCESS.getCode()) {
                 response.setStatusCode(ErrorCode.SUCCESS.getCode());
-                response.setBody(data);
+                response.setBody(JSONObject.toJSONString(data));
                 sendResponse(response);
             }
         }, null, null);

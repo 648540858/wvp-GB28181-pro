@@ -180,4 +180,10 @@ public class UserSetting {
      */
     private long loginTimeout = 30;
 
+    /**
+     * wvp集群模式下如果注册向上级的wvp奔溃，则自动选择一个其他wvp继续注册到上级
+     */
+    private boolean autoRegisterPlatform = false;
+
+
 }

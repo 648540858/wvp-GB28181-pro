@@ -21,6 +21,7 @@ public interface CloudRecordServiceMapper {
             " folder," +
             " file_path," +
             " file_size," +
+            " server_id," +
             " time_len ) " +
             "VALUES (" +
             " #{app}," +
@@ -33,6 +34,7 @@ public interface CloudRecordServiceMapper {
             " #{folder}," +
             " #{filePath}," +
             " #{fileSize}," +
+            " #{serverId}," +
             " #{timeLen})" +
             " </script>")
     int add(CloudRecordItem cloudRecordItem);

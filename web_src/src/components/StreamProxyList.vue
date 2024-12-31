@@ -58,8 +58,8 @@
         <el-table-column label="拉流状态" min-width="120" >
           <template v-slot:default="scope">
             <div slot="reference" class="name-wrapper">
-              <el-tag size="medium" v-if="scope.row.pulling && serverId !== scope.row.serverId" style="border-color: #ecf1af">正在拉流</el-tag>
-              <el-tag size="medium" v-if="scope.row.pulling && serverId === scope.row.serverId">正在拉流</el-tag>
+              <el-tag size="medium" v-if="scope.row.pulling && Vue.prototype.$myServerId !== scope.row.serverId" style="border-color: #ecf1af">正在拉流</el-tag>
+              <el-tag size="medium" v-if="scope.row.pulling && Vue.prototype.$myServerId === scope.row.serverId">正在拉流</el-tag>
               <el-tag size="medium" type="info" v-if="!scope.row.pulling">尚未拉流</el-tag>
             </div>
           </template>
@@ -67,8 +67,8 @@
         <el-table-column label="启用" min-width="120" >
           <template v-slot:default="scope">
             <div slot="reference" class="name-wrapper">
-              <el-tag size="medium" v-if="scope.row.enable && serverId !== scope.row.serverId" style="border-color: #ecf1af">已启用</el-tag>
-              <el-tag size="medium" v-if="scope.row.enable && serverId === scope.row.serverId">已启用</el-tag>
+              <el-tag size="medium" v-if="scope.row.enable && Vue.prototype.$myServerId !== scope.row.serverId" style="border-color: #ecf1af">已启用</el-tag>
+              <el-tag size="medium" v-if="scope.row.enable && Vue.prototype.$myServerId === scope.row.serverId">已启用</el-tag>
               <el-tag size="medium" type="info" v-if="!scope.row.enable">未启用</el-tag>
             </div>
           </template>
@@ -114,6 +114,8 @@
 	import uiHeader from '../layout/UiHeader.vue'
   import StreamProxyEdit from "./StreamProxyEdit";
   import MediaServer from "./service/MediaServer";
+  import Vue from "vue";
+
 	export default {
 		name: 'streamProxyList',
 		components: {
@@ -138,12 +140,14 @@
         searchSrt: "",
         mediaServerId: "",
         pulling: "",
-        serverId: this.$myServerId,
         mediaServerObj: new MediaServer(),
         mediaServerList: [],
 			};
 		},
 		computed: {
+      Vue() {
+        return Vue
+      },
 		},
 		mounted() {
 			this.initData();

@@ -52,8 +52,8 @@
         </el-table-column>
         <el-table-column label="推流状态"  min-width="100">
           <template v-slot:default="scope">
-            <el-tag size="medium" v-if="scope.row.pushing && serverId !== scope.row.serverId" style="border-color: #ecf1af">推流中</el-tag>
-            <el-tag size="medium" v-if="scope.row.pushing && serverId === scope.row.serverId">推流中</el-tag>
+            <el-tag size="medium" v-if="scope.row.pushing && Vue.prototype.$myServerId !== scope.row.serverId" style="border-color: #ecf1af">推流中</el-tag>
+            <el-tag size="medium" v-if="scope.row.pushing && Vue.prototype.$myServerId === scope.row.serverId">推流中</el-tag>
             <el-tag size="medium" type="info" v-if="!scope.row.pushing">已停止</el-tag>
           </template>
         </el-table-column>
@@ -117,6 +117,7 @@ import importChannel from './dialog/importChannel.vue'
 import MediaServer from './service/MediaServer'
 import StreamPushEdit from "./StreamPushEdit";
 import ChannelEdit from "./ChannelEdit.vue";
+import Vue from "vue";
 
 export default {
   name: 'streamPushList',
@@ -145,11 +146,14 @@ export default {
       mediaServerList: [],
       multipleSelection: [],
       loading: false,
-      serverId: this.$myServerId,
       streamPush: null,
     };
   },
-  computed: {},
+  computed: {
+    Vue() {
+      return Vue
+    },
+  },
   mounted() {
     this.initData();
     this.updateLooper = setInterval(this.getPushList, 2000);

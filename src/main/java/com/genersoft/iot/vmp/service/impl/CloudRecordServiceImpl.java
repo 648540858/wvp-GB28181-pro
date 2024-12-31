@@ -116,6 +116,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     @EventListener
     public void onApplicationEvent(MediaRecordMp4Event event) {
         CloudRecordItem cloudRecordItem = CloudRecordItem.getInstance(event);
+        cloudRecordItem.setServerId(userSetting.getServerId());
         if (ObjectUtils.isEmpty(cloudRecordItem.getCallId())) {
             StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(event.getApp(), event.getStream());
             if (streamAuthorityInfo != null) {

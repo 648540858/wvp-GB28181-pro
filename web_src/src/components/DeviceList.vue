@@ -56,8 +56,8 @@
       <el-table-column label="状态" min-width="100">
         <template v-slot:default="scope">
           <div slot="reference" class="name-wrapper">
-            <el-tag size="medium" v-if="scope.row.onLine && serverId !== scope.row.serverId" style="border-color: #ecf1af">在线</el-tag>
-            <el-tag size="medium" v-if="scope.row.onLine && serverId === scope.row.serverId">在线</el-tag>
+            <el-tag size="medium" v-if="scope.row.onLine && Vue.prototype.$myServerId !== scope.row.serverId" style="border-color: #ecf1af">在线</el-tag>
+            <el-tag size="medium" v-if="scope.row.onLine && Vue.prototype.$myServerId === scope.row.serverId">在线</el-tag>
             <el-tag size="medium" type="info" v-if="!scope.row.onLine">离线</el-tag>
           </div>
         </template>
@@ -122,6 +122,7 @@ import uiHeader from '../layout/UiHeader.vue'
 import deviceEdit from './dialog/deviceEdit.vue'
 import syncChannelProgress from './dialog/SyncChannelProgress.vue'
 import configInfo from "./dialog/configInfo.vue";
+import Vue from "vue";
 
 export default {
   name: 'app',
@@ -144,11 +145,13 @@ export default {
       currentPage: 1,
       count: 15,
       total: 0,
-      serverId: this.$myServerId,
       getDeviceListLoading: false,
     };
   },
   computed: {
+    Vue() {
+      return Vue
+    },
     getcurrentDeviceChannels: function () {
       let data = this.currentDevice['channelMap'];
       let channels = null;

@@ -219,12 +219,12 @@ export default {
       this.closeEdit()
     },
     mediaServerIdChange:function (){
-      if (this.streamProxy.mediaServerId !== "auto"){
+      if (this.streamProxy.relatesMediaServerId !== "auto"){
         this.$axios({
           method: 'get',
           url:`/api/proxy/ffmpeg_cmd/list`,
           params: {
-            mediaServerId: this.streamProxy.mediaServerId
+            mediaServerId: this.streamProxy.relatesMediaServerId
           }
         }).then((res)=> {
           this.ffmpegCmdList = res.data.data;

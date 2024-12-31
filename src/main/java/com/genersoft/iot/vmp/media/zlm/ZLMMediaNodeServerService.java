@@ -423,8 +423,11 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
                 port = mediaServer.getRtspPort();
                 schemaForUri = schema;
             }else if (schema.equalsIgnoreCase("flv")) {
+                if (mediaServer.getRtmpPort() == 0) {
+                    throw new ControllerException(ErrorCode.ERROR100.getCode(), "ffmpeg拉流代理播放时发现未设置rtmp端口");
+                }
                 port = mediaServer.getRtmpPort();
-                schemaForUri = schema;
+                schemaForUri = "rtmp";
             }else {
                 port = mediaServer.getRtmpPort();
                 schemaForUri = schema;

@@ -39,7 +39,7 @@
           </el-form-item>
           <el-form-item label="节点选择" prop="rtpType">
             <el-select
-              v-model="streamProxy.mediaServerId"
+              v-model="streamProxy.relatesMediaServerId"
               @change="mediaServerIdChange"
               style="width: 100%"
               placeholder="请选择拉流节点"

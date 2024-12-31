@@ -406,11 +406,10 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             return;
         }
         streamProxy.setPulling(status);
-        if (!mediaServerId.equals(streamProxy.getMediaServerId())) {
-            streamProxy.setMediaServerId(mediaServerId);
-        }
+        streamProxy.setMediaServerId(mediaServerId);
         streamProxy.setUpdateTime(DateUtil.getNow());
-        streamProxyMapper.update(streamProxy);
+        streamProxyMapper.addStream(streamProxy);
+
         streamProxy.setGbStatus(status ? "ON" : "OFF");
         if (streamProxy.getGbId() > 0) {
             if (status) {

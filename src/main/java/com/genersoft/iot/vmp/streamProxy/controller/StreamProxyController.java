@@ -19,7 +19,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -112,8 +111,8 @@ public class StreamProxyController {
     @ResponseBody
     public StreamProxy add(@RequestBody StreamProxy param){
         log.info("添加代理： " + JSONObject.toJSONString(param));
-        if (ObjectUtils.isEmpty(param.getMediaServerId())) {
-            param.setMediaServerId(null);
+        if (ObjectUtils.isEmpty(param.getRelatesMediaServerId())) {
+            param.setRelatesMediaServerId(null);
         }
         if (ObjectUtils.isEmpty(param.getType())) {
             param.setType("default");
@@ -134,6 +133,9 @@ public class StreamProxyController {
         log.info("更新代理： " + JSONObject.toJSONString(param));
         if (param.getId() == 0) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "缺少代理信息的ID");
+        }
+        if (ObjectUtils.isEmpty(param.getRelatesMediaServerId())) {
+            param.setRelatesMediaServerId(null);
         }
         if (ObjectUtils.isEmpty(param.getGbId())) {
             param.setGbDeviceId(null);

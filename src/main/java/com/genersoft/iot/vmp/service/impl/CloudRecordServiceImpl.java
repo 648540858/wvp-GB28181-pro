@@ -58,7 +58,8 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     private IRedisRpcPlayService redisRpcPlayService;
 
     @Override
-    public PageInfo<CloudRecordItem> getList(int page, int count, String query, String app, String stream, String startTime, String endTime, List<MediaServer> mediaServerItems, String callId) {
+    public PageInfo<CloudRecordItem> getList(int page, int count, String query, String app, String stream, String startTime,
+                                             String endTime, List<MediaServer> mediaServerItems, String callId) {
         // 开始时间和结束时间在数据库中都是以秒为单位的
         Long startTimeStamp = null;
         Long endTimeStamp = null;

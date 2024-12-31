@@ -65,8 +65,8 @@
       </el-table-column>
       <el-table-column  label="时长">
         <template v-slot:default="scope">
-          <el-tag v-if="scope.row.pushing && serverId !== scope.row.serverId" style="border-color: #ecf1af">{{formatTime(scope.row.timeLen)}}</el-tag>
-          <el-tag v-if="scope.row.pushing && serverId === scope.row.serverId">{{formatTime(scope.row.timeLen)}}</el-tag>
+          <el-tag v-if="serverId !== scope.row.serverId" style="border-color: #ecf1af">{{formatTime(scope.row.timeLen)}}</el-tag>
+          <el-tag v-if="serverId === scope.row.serverId">{{formatTime(scope.row.timeLen)}}</el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="fileName" label="文件名称">

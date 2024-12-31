@@ -112,9 +112,6 @@ public class CloudRecordController {
         } else {
             mediaServers = mediaServerService.getAllOnlineList();
         }
-        if (mediaServers.isEmpty()) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "当前无流媒体");
-        }
         if (query != null && ObjectUtils.isEmpty(query.trim())) {
             query = null;
         }

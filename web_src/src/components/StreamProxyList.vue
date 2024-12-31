@@ -67,7 +67,8 @@
         <el-table-column label="启用" min-width="120" >
           <template v-slot:default="scope">
             <div slot="reference" class="name-wrapper">
-              <el-tag size="medium" v-if="scope.row.enable">已启用</el-tag>
+              <el-tag size="medium" v-if="scope.row.enable && serverId !== scope.row.serverId" style="border-color: #ecf1af">已启用</el-tag>
+              <el-tag size="medium" v-if="scope.row.enable && serverId === scope.row.serverId">已启用</el-tag>
               <el-tag size="medium" type="info" v-if="!scope.row.enable">未启用</el-tag>
             </div>
           </template>

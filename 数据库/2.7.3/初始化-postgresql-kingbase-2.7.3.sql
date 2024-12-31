@@ -355,6 +355,7 @@ create table wvp_cloud_record
     start_time      int8,
     end_time        int8,
     media_server_id character varying(50),
+    server_id       character varying(50),
     file_name       character varying(255),
     folder          character varying(255),
     file_path       character varying(255),

@@ -109,7 +109,7 @@ import uiHeader from '../layout/UiHeader.vue'
 import MediaServer from './service/MediaServer'
 import easyPlayer from './common/easyPlayer.vue'
 import moment  from 'moment'
-import axios from "axios";
+import Vue from "vue";
 
 export default {
   name: 'app',
@@ -145,7 +145,11 @@ export default {
 
     };
   },
-  computed: {},
+  computed: {
+    Vue() {
+      return Vue
+    },
+  },
   mounted() {
     this.initData();
     this.getMediaServerList();

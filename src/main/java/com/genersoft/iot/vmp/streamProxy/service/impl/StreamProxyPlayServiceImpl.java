@@ -50,6 +50,9 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
         if (!streamProxy.isEnable()) {
             return null;
         }
+        if (streamProxy.getServerId() == null) {
+            streamProxy.setServerId(userSetting.getServerId());
+        }
         if (!userSetting.getServerId().equals(streamProxy.getServerId())) {
             return redisRpcPlayService.playProxy(streamProxy.getServerId(), streamProxy.getId());
         }

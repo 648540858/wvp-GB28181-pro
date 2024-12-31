@@ -24,4 +24,9 @@ public interface IRedisRpcPlayService {
 
     String frontEndCommand(String serverId, Integer channelId, int cmdCode, int parameter1, int parameter2, int combindCode2);
 
+    void playPush(Integer id, ErrorCallback<StreamInfo> callback);
+
+    StreamInfo playProxy(String serverId, int id);
+
+    void stopProxy(String serverId, int id);
 }

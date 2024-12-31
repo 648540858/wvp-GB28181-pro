@@ -189,5 +189,42 @@ public class RedisRpcPlayServiceImpl implements IRedisRpcPlayService {
         }
         return null;
     }
+
+    @Override
+    public void playPush(Integer id, ErrorCallback<StreamInfo> callback) {
+        RedisRpcRequest request = buildRequest("streamPush/play", id);
+        RedisRpcResponse response = redisRpcConfig.request(request, userSetting.getPlayTimeout());
+        if (response == null) {
+            callback.run(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg(), null);
+        }else {
+            if (response.getStatusCode() == ErrorCode.SUCCESS.getCode()) {
+                StreamInfo streamInfo = JSON.parseObject(response.getBody().toString(), StreamInfo.class);
+                callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
+            }else {
+                callback.run(response.getStatusCode(), response.getBody().toString(), null);
+            }
+        }
+    }
+
+    @Override
+    public StreamInfo playProxy(String serverId, int id) {
+        RedisRpcRequest request = buildRequest("streamProxy/play", id);
+        RedisRpcResponse response = redisRpcConfig.request(request, userSetting.getPlayTimeout());
+        if (response != null && response.getStatusCode() == ErrorCode.SUCCESS.getCode()) {
+            return JSON.parseObject(response.getBody().toString(), StreamInfo.class);
+        }
+        return null;
+    }
+
+    @Override
+    public void stopProxy(String serverId, int id) {
+        RedisRpcRequest request = buildRequest("streamProxy/stop", id);
+        RedisRpcResponse response = redisRpcConfig.request(request, userSetting.getPlayTimeout());
+        if (response != null && response.getStatusCode() == ErrorCode.SUCCESS.getCode()) {
+            log.info("[rpc 拉流代理] 停止成功： id: {}", id);
+        }else {
+            log.info("[rpc 拉流代理] 停止失败 id: {}", id);
+        }
+    }
 }
 

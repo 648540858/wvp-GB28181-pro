@@ -223,20 +223,4 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         RedisRpcRequest request = buildRequest("device/subscribeMobilePosition", jsonObject);
         redisRpcConfig.request(request, 10);
     }
-
-    @Override
-    public void play(Integer id, ErrorCallback<StreamInfo> callback) {
-        RedisRpcRequest request = buildRequest("streamPush/play", id);
-        RedisRpcResponse response = redisRpcConfig.request(request, 10);
-        if (response == null) {
-            callback.run(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg(), null);
-        }else {
-            if (response.getStatusCode() == ErrorCode.SUCCESS.getCode()) {
-                StreamInfo streamInfo = JSON.parseObject(response.getBody().toString(), StreamInfo.class);
-                callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
-            }else {
-                callback.run(response.getStatusCode(), response.getBody().toString(), null);
-            }
-        }
-    }
 }

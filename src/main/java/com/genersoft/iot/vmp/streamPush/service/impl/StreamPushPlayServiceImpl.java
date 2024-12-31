@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
+import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.service.redisMsg.RedisPushStreamResponseListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -46,6 +47,9 @@ public class StreamPushPlayServiceImpl implements IStreamPushPlayService {
     private IRedisRpcService redisRpcService;
 
     @Autowired
+    private IRedisRpcPlayService redisRpcPlayService;
+
+    @Autowired
     private RedisPushStreamResponseListener redisPushStreamResponseListener;
 
     @Override
@@ -54,7 +58,7 @@ public class StreamPushPlayServiceImpl implements IStreamPushPlayService {
         Assert.notNull(streamPush, "推流信息未找到");
 
         if (!userSetting.getServerId().equals(streamPush.getServerId())) {
-            redisRpcService.play(id, callback);
+            redisRpcPlayService.playPush(id, callback);
             return;
         }
 

@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.service.impl;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.service.ICloudRecordService;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -11,6 +12,7 @@ import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
+import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.CloudRecordServiceMapper;
 import com.genersoft.iot.vmp.utils.CloudRecordUtils;
@@ -48,6 +50,12 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
 
     @Autowired
     private AssistRESTfulUtils assistRESTfulUtils;
+
+    @Autowired
+    private UserSetting userSetting;
+
+    @Autowired
+    private IRedisRpcPlayService redisRpcPlayService;
 
     @Override
     public PageInfo<CloudRecordItem> getList(int page, int count, String query, String app, String stream, String startTime, String endTime, List<MediaServer> mediaServerItems, String callId) {
@@ -234,6 +242,9 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         CloudRecordItem recordItem = cloudRecordServiceMapper.queryOne(recordId);
         if (recordItem == null) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "资源不存在");
+        }
+        if (!userSetting.getServerId().equals(recordItem.getServerId())) {
+            return redisRpcPlayService.getRecordPlayUrl(recordItem.getServerId(), recordId);
         }
         String filePath = recordItem.getFilePath();
         MediaServer mediaServerItem = mediaServerService.getOne(recordItem.getMediaServerId());

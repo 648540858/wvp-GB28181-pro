@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.conf.redis.RedisRpcConfig;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
 import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
+import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
@@ -225,6 +226,16 @@ public class RedisRpcPlayServiceImpl implements IRedisRpcPlayService {
         }else {
             log.info("[rpc 拉流代理] 停止失败 id: {}", id);
         }
+    }
+
+    @Override
+    public DownloadFileInfo getRecordPlayUrl(String serverId, Integer recordId) {
+        RedisRpcRequest request = buildRequest("cloudRecord/play", recordId);
+        RedisRpcResponse response = redisRpcConfig.request(request, userSetting.getPlayTimeout());
+        if (response != null && response.getStatusCode() == ErrorCode.SUCCESS.getCode()) {
+            return JSON.parseObject(response.getBody().toString(), DownloadFileInfo.class);
+        }
+        return null;
     }
 }
 

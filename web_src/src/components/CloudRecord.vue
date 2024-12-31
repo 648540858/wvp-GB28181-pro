@@ -65,7 +65,8 @@
       </el-table-column>
       <el-table-column  label="时长">
         <template v-slot:default="scope">
-          <el-tag>{{formatTime(scope.row.timeLen)}}</el-tag>
+          <el-tag v-if="scope.row.pushing && serverId !== scope.row.serverId" style="border-color: #ecf1af">{{formatTime(scope.row.timeLen)}}</el-tag>
+          <el-tag v-if="scope.row.pushing && serverId === scope.row.serverId">{{formatTime(scope.row.timeLen)}}</el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="fileName" label="文件名称">
@@ -134,7 +135,7 @@ export default {
       mediaServerPath: null, // 媒体服务地址
       recordList: [], // 设备列表
       chooseRecord: null, // 媒体服务
-
+      serverId: this.$myServerId,
       updateLooper: 0, //数据刷新轮训标志
       winHeight: window.innerHeight - 250,
       currentPage: 1,

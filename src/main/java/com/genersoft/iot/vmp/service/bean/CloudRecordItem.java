@@ -2,12 +2,14 @@ package com.genersoft.iot.vmp.service.bean;
 
 import com.genersoft.iot.vmp.media.event.media.MediaRecordMp4Event;
 import com.genersoft.iot.vmp.utils.MediaServerUtils;
+import lombok.Data;
 
 import java.util.Map;
 
 /**
  * 云端录像数据
  */
+@Data
 public class CloudRecordItem {
     /**
      * 主键
@@ -79,6 +81,11 @@ public class CloudRecordItem {
      */
     private long timeLen;
 
+    /**
+     * 所属服务ID
+     */
+    private String serverId;
+
     public static CloudRecordItem getInstance(MediaRecordMp4Event param) {
         CloudRecordItem cloudRecordItem = new CloudRecordItem();
         cloudRecordItem.setApp(param.getApp());
@@ -98,115 +105,4 @@ public class CloudRecordItem {
         return cloudRecordItem;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getApp() {
-        return app;
-    }
-
-    public void setApp(String app) {
-        this.app = app;
-    }
-
-    public String getStream() {
-        return stream;
-    }
-
-    public void setStream(String stream) {
-        this.stream = stream;
-    }
-
-    public String getCallId() {
-        return callId;
-    }
-
-    public void setCallId(String callId) {
-        this.callId = callId;
-    }
-
-    public long getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(long startTime) {
-        this.startTime = startTime;
-    }
-
-    public long getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(long endTime) {
-        this.endTime = endTime;
-    }
-
-    public String getMediaServerId() {
-        return mediaServerId;
-    }
-
-    public void setMediaServerId(String mediaServerId) {
-        this.mediaServerId = mediaServerId;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public String getFilePath() {
-        return filePath;
-    }
-
-    public void setFilePath(String filePath) {
-        this.filePath = filePath;
-    }
-
-    public String getFolder() {
-        return folder;
-    }
-
-    public void setFolder(String folder) {
-        this.folder = folder;
-    }
-
-    public long getFileSize() {
-        return fileSize;
-    }
-
-    public void setFileSize(long fileSize) {
-        this.fileSize = fileSize;
-    }
-
-    public long getTimeLen() {
-        return timeLen;
-    }
-
-    public void setTimeLen(long timeLen) {
-        this.timeLen = timeLen;
-    }
-
-    public Boolean getCollect() {
-        return collect;
-    }
-
-    public void setCollect(Boolean collect) {
-        this.collect = collect;
-    }
-
-    public Boolean getReserve() {
-        return reserve;
-    }
-
-    public void setReserve(Boolean reserve) {
-        this.reserve = reserve;
-    }
 }

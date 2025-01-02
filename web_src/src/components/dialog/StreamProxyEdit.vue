@@ -149,7 +149,7 @@ export default {
       showDialog: false,
       isLoging: false,
       dialogLoading: false,
-      onSubmit_text: "立即创建",
+      onSubmit_text: "保存",
       platformList: [],
       mediaServer: new MediaServer(),
       proxyParam: {

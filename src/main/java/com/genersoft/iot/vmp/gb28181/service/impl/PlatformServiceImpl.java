@@ -26,6 +26,7 @@ import com.genersoft.iot.vmp.media.event.mediaServer.MediaSendRtpStoppedEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.*;
+import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.github.pagehelper.PageHelper;
@@ -86,6 +87,9 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private IRedisRpcService redisRpcService;
 
     @Autowired
     private SipConfig sipConfig;
@@ -286,6 +290,11 @@ public class PlatformServiceImpl implements IPlatformService {
         log.info("[国标级联] 更新平台 {}({})", platform.getName(), platform.getDeviceGBId());
         platform.setCharacterSet(platform.getCharacterSet().toUpperCase());
         Platform platformInDb = platformMapper.query(platform.getId());
+        Assert.notNull(platformInDb, "平台不存在");
+        if (!userSetting.getServerId().equals(platformInDb.getServerId())) {
+            return redisRpcService.updatePlatform(platformInDb.getServerId(), platform);
+        }
+
         PlatformCatch platformCatchOld = redisCatchStorage.queryPlatformCatchInfo(platformInDb.getServerGBId());
         platform.setUpdateTime(DateUtil.getNow());
 

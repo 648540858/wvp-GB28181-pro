@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.service.redisMsg;
 
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 
@@ -28,4 +29,5 @@ public interface IRedisRpcService {
 
     void subscribeMobilePosition(int id, int cycle, int interval);
 
+    boolean updatePlatform(String serverId, Platform platform);
 }

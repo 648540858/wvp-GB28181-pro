@@ -178,7 +178,7 @@ export default {
       listChangeCallback: null,
       showDialog: false,
       isLoging: false,
-      onSubmit_text: "立即创建",
+      onSubmit_text: "保存",
 
       rules: {
         name: [{required: true, message: "请输入平台名称", trigger: "blur"}],

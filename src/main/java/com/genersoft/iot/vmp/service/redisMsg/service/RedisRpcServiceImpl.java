@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.redis.RedisRpcConfig;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
@@ -15,8 +16,6 @@ import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
-import com.genersoft.iot.vmp.service.bean.ErrorCallback;
-import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
@@ -222,5 +221,12 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         jsonObject.put("interval", cycle);
         RedisRpcRequest request = buildRequest("device/subscribeMobilePosition", jsonObject);
         redisRpcConfig.request(request, 10);
+    }
+
+    @Override
+    public boolean updatePlatform(String serverId, Platform platform) {
+        RedisRpcRequest request = buildRequest("platform/update", platform);
+        RedisRpcResponse response = redisRpcConfig.request(request, 40);
+        return Boolean.parseBoolean(response.getBody().toString());
     }
 }

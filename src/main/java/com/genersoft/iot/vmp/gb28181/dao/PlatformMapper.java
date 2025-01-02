@@ -94,4 +94,7 @@ public interface PlatformMapper {
 
     @Select("SELECT server_id FROM wvp_platform WHERE enable=true and server_id != #{serverId} group by server_id")
     List<String> queryServerIdsWithEnable(@Param("serverId") String serverId);
+
+    @Select("SELECT * FROM wvp_platform WHERE server_id == #{serverId}")
+    List<Platform> queryByServerId(@Param("serverId") String serverId);
 }

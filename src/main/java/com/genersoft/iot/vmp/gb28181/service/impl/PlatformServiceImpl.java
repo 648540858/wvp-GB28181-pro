@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.gb28181.service.impl;
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.*;
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -67,6 +68,7 @@ public class PlatformServiceImpl implements IPlatformService {
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
+
     @Autowired
     private SSRCFactory ssrcFactory;
 
@@ -84,6 +86,9 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private SipConfig sipConfig;
 
     @Autowired
     private SipInviteSessionManager sessionManager;
@@ -114,12 +119,61 @@ public class PlatformServiceImpl implements IPlatformService {
         serverIds.forEach(serverId -> {
            // 检查每个是否存活
             ServerInfo serverInfo = redisCatchStorage.queryServerInfo(serverId);
-            if (serverInfo == null) {
-                // 此平台需要选择新平台处理
-
+            if (serverInfo == null && userSetting.getServerId().equals(redisCatchStorage.chooseOneServer())) {
+                // 此平台需要选择新平台处理， 确定由当前平台即开始处理
+                List<Platform> platformList = platformMapper.queryByServerId(serverId);
+                platformList.forEach(platform -> {
+                    // 设置平台使用当前平台的IP
+                    platform.setAddress(getIpWithSameNetwork(platform.getAddress()));
+                    platformMapper.update(platform);
+                    // 更新redis
+                    redisCatchStorage.delPlatformCatchInfo(platform.getServerGBId());
+                    PlatformCatch platformCatch = new PlatformCatch();
+                    platformCatch.setPlatform(platform);
+                    platformCatch.setId(platform.getServerGBId());
+                    redisCatchStorage.updatePlatformCatchInfo(platformCatch);
+                    // 开始注册
+                    // 注册成功时由程序直接调用了online方法
+                    try {
+                        commanderForPlatform.register(platform, eventResult -> {
+                            log.info("[国标级联] {}（{}）,添加向上级注册失败，请确定上级平台可用时重新保存", platform.getName(), platform.getServerGBId());
+                        }, null);
+                    } catch (InvalidArgumentException | ParseException | SipException e) {
+                        log.error("[命令发送失败] 国标级联: {}", e.getMessage());
+                    }
+                });
             }
         });
+    }
 
+    /**
+     * 获取同网段的IP
+     */
+    private String getIpWithSameNetwork(String ip){
+        if (ip == null || sipConfig.getMonitorIps().size() == 1) {
+            return sipConfig.getMonitorIps().get(0);
+        }
+        String[] ipSplit = ip.split("\\.");
+        String ip1 = null, ip2 = null, ip3 = null;
+        for (String monitorIp : sipConfig.getMonitorIps()) {
+            String[] monitorIpSplit = monitorIp.split("\\.");
+            if (monitorIpSplit[0].equals(ipSplit[0]) && monitorIpSplit[1].equals(ipSplit[1]) && monitorIpSplit[2].equals(ipSplit[2])) {
+                ip3 = monitorIp;
+            }else if (monitorIpSplit[0].equals(ipSplit[0]) && monitorIpSplit[1].equals(ipSplit[1])) {
+                ip2 = monitorIp;
+            }else if (monitorIpSplit[0].equals(ipSplit[0])) {
+                ip1 = monitorIp;
+            }
+        }
+        if (ip3 != null) {
+            return ip3;
+        }else if (ip2 != null) {
+            return ip2;
+        }else if (ip1 != null) {
+            return ip1;
+        }else {
+            return sipConfig.getMonitorIps().get(0);
+        }
     }
 
     /**

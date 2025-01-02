@@ -190,4 +190,8 @@ public interface IRedisCatchStorage {
     void sendPushStreamOnline(SendRtpInfo sendRtpItem);
 
     ServerInfo queryServerInfo(String serverId);
+
+    String chooseOneServer();
+
+
 }

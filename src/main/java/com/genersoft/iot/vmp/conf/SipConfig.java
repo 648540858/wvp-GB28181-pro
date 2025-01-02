@@ -6,6 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 @ConfigurationProperties(prefix = "sip", ignoreInvalidFields = true)
 @Order(0)
@@ -15,6 +17,8 @@ public class SipConfig {
 	private String ip;
 
 	private String showIp;
+
+	private List<String> monitorIps;
 
 	private Integer port;
 

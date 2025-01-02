@@ -114,7 +114,10 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         String key = VideoManagerConstants.WVP_SERVER_PREFIX + userSetting.getServerId();
         Duration duration = Duration.ofSeconds(time);
         redisTemplate.opsForValue().set(key, serverInfo, duration);
-        //
+        // 设置平台的分数值
+        String setKey = VideoManagerConstants.WVP_SERVER_LIST;
+        // 首次设置就设置为0, 后续值越小说明越是最近启动的
+        redisTemplate.opsForZSet().add(setKey, userSetting.getServerId(), System.currentTimeMillis());
     }
 
     @Override
@@ -539,5 +542,15 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     public ServerInfo queryServerInfo(String serverId) {
         String key = VideoManagerConstants.WVP_SERVER_PREFIX + serverId;
         return (ServerInfo)redisTemplate.opsForValue().get(key);
+    }
+
+    @Override
+    public String chooseOneServer() {
+        String key = VideoManagerConstants.WVP_SERVER_LIST;
+        Set<Object> range = redisTemplate.opsForZSet().range(key, 0, 0);
+        if (range == null || range.isEmpty()) {
+            return null;
+        }
+        return (String) range.iterator().next();
     }
 }

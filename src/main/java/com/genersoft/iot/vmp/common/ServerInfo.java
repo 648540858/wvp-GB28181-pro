@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.common;
 
+import com.genersoft.iot.vmp.utils.DateUtil;
 import lombok.Data;
 
 @Data
@@ -10,13 +11,13 @@ public class ServerInfo {
     /**
      * 现在使用的线程数
      */
-    private int threadNumber;
+    private String createTime;
 
-    public static ServerInfo create(String ip, int port, int threadNumber) {
+    public static ServerInfo create(String ip, int port) {
         ServerInfo serverInfo = new ServerInfo();
         serverInfo.setIp(ip);
         serverInfo.setPort(port);
-        serverInfo.setThreadNumber(threadNumber);
+        serverInfo.setCreateTime(DateUtil.getNow());
         return serverInfo;
     }
 }

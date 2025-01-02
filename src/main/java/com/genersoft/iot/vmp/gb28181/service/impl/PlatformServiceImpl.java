@@ -251,6 +251,7 @@ public class PlatformServiceImpl implements IPlatformService {
             // 每次发送目录的数量默认为1
             platform.setCatalogGroup(1);
         }
+        platform.setServerId(userSetting.getServerId());
         int result = platformMapper.add(platform);
         // 添加缓存
         PlatformCatch platformCatch = new PlatformCatch();

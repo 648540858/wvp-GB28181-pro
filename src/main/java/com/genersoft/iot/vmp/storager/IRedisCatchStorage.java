@@ -191,7 +191,7 @@ public interface IRedisCatchStorage {
 
     ServerInfo queryServerInfo(String serverId);
 
-    String chooseOneServer();
+    String chooseOneServer(String serverId);
 
 
 }

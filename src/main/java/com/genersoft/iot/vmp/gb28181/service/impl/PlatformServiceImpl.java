@@ -117,10 +117,16 @@ public class PlatformServiceImpl implements IPlatformService {
             return;
         }
         serverIds.forEach(serverId -> {
-            log.info("[集群] 检测到 {} 已离线", serverId);
            // 检查每个是否存活
             ServerInfo serverInfo = redisCatchStorage.queryServerInfo(serverId);
-            if (serverInfo == null && userSetting.getServerId().equals(redisCatchStorage.chooseOneServer(serverId))) {
+            if (serverInfo != null) {
+                return;
+            }else {
+                log.info("[集群] 检测到 {} 已离线", serverId);
+                String chooseServerId = redisCatchStorage.chooseOneServer(serverId);
+                if (!userSetting.getServerId().equals(chooseServerId)){
+                    return;
+                }
                 // 此平台需要选择新平台处理， 确定由当前平台即开始处理
                 List<Platform> platformList = platformMapper.queryByServerId(serverId);
                 platformList.forEach(platform -> {

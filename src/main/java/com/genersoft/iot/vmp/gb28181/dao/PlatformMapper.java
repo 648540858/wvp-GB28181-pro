@@ -16,11 +16,11 @@ public interface PlatformMapper {
     @Insert("INSERT INTO wvp_platform (enable, name, server_gb_id, server_gb_domain, server_ip, server_port,device_gb_id,device_ip,"+
             " device_port,username,password,expires,keep_timeout,transport,character_set,ptz,rtcp,status,catalog_group, update_time," +
             " create_time, as_message_channel, send_stream_ip, auto_push_channel, catalog_with_platform,catalog_with_group,catalog_with_region, "+
-            " civil_code,manufacturer,model,address,register_way,secrecy) " +
+            " civil_code,manufacturer,model,address,register_way,secrecy,server_id) " +
             " VALUES (#{enable}, #{name}, #{serverGBId}, #{serverGBDomain}, #{serverIp}, #{serverPort}, #{deviceGBId}, #{deviceIp}, " +
             " #{devicePort}, #{username}, #{password}, #{expires}, #{keepTimeout}, #{transport}, #{characterSet}, #{ptz}, #{rtcp}, #{status}, #{catalogGroup},#{updateTime}," +
             " #{createTime}, #{asMessageChannel}, #{sendStreamIp}, #{autoPushChannel}, #{catalogWithPlatform}, #{catalogWithGroup},#{catalogWithRegion}, " +
-            " #{civilCode}, #{manufacturer}, #{model}, #{address}, #{registerWay}, #{secrecy})")
+            " #{civilCode}, #{manufacturer}, #{model}, #{address}, #{registerWay}, #{secrecy}, #{serverId})")
     int add(Platform parentPlatform);
 
     @Update("UPDATE wvp_platform " +
@@ -55,6 +55,7 @@ public interface PlatformMapper {
             " model=#{model}, " +
             " address=#{address}, " +
             " register_way=#{registerWay}, " +
+            " server_id=#{serverId}, " +
             " secrecy=#{secrecy} " +
             "WHERE id=#{id}")
     int update(Platform parentPlatform);
@@ -77,7 +78,7 @@ public interface PlatformMapper {
     List<Platform> queryList(@Param("query") String query);
 
     @Select("SELECT * FROM wvp_platform WHERE enable=#{enable} ")
-    List<Platform> getEnableParentPlatformList(boolean enable);
+    List<Platform> queryEnableParentPlatformList(boolean enable);
 
     @Select("SELECT * FROM wvp_platform WHERE enable=true and as_message_channel=true")
     List<Platform> queryEnablePlatformListWithAsMessageChannel();
@@ -91,7 +92,6 @@ public interface PlatformMapper {
     @Update("UPDATE wvp_platform SET status=#{online} WHERE server_gb_id=#{platformGbID}" )
     int updateStatus(@Param("platformGbID") String platformGbID, @Param("online") boolean online);
 
-    @Select("SELECT * FROM wvp_platform WHERE enable=true")
-    List<Platform> queryEnablePlatformList();
-
+    @Select("SELECT server_id FROM wvp_platform WHERE enable=true and server_id != #{serverId} group by server_id")
+    List<String> queryServerIdsWithEnable(@Param("serverId") String serverId);
 }

@@ -2,9 +2,9 @@ package com.genersoft.iot.vmp.storager.impl;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.ServerInfo;
 import com.genersoft.iot.vmp.common.SystemAllInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
-import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
@@ -110,10 +110,11 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
 
     @Override
-    public void updateWVPInfo(JSONObject jsonObject, int time) {
+    public void updateWVPInfo(ServerInfo serverInfo, int time) {
         String key = VideoManagerConstants.WVP_SERVER_PREFIX + userSetting.getServerId();
         Duration duration = Duration.ofSeconds(time);
-        redisTemplate.opsForValue().set(key, jsonObject, duration);
+        redisTemplate.opsForValue().set(key, serverInfo, duration);
+        //
     }
 
     @Override
@@ -532,5 +533,11 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         String key = VideoManagerConstants.VM_MSG_STREAM_PUSH_CLOSE_REQUESTED;
         log.info("[redis发送通知] 流上线 {}: {}/{}->{}", key, sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getTargetId());
         redisTemplate.convertAndSend(key, JSON.toJSON(sendRtpItem));
+    }
+
+    @Override
+    public ServerInfo queryServerInfo(String serverId) {
+        String key = VideoManagerConstants.WVP_SERVER_PREFIX + serverId;
+        return (ServerInfo)redisTemplate.opsForValue().get(key);
     }
 }

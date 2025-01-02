@@ -225,6 +225,7 @@ create table wvp_platform
     catalog_with_region   integer default 1,
     auto_push_channel     bool default true,
     send_stream_ip        character varying(50),
+    server_id             character varying(50),
     constraint uk_platform_unique_server_gb_id unique (server_gb_id)
 );
 

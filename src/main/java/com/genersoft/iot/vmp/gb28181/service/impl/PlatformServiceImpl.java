@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -46,6 +47,7 @@ import java.text.ParseException;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author lin
@@ -97,6 +99,28 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Autowired
     private ISendRtpServerService sendRtpServerService;
+
+    // 定时监听国标级联所进行的WVP服务是否正常， 如果异常则选择新的wvp执行
+    @Scheduled(fixedDelay = 2, timeUnit = TimeUnit.SECONDS)   //每3秒执行一次
+    public void execute(){
+        if (!userSetting.isAutoRegisterPlatform()) {
+            return;
+        }
+        // 查找非平台的国标级联执行服务Id
+        List<String> serverIds = platformMapper.queryServerIdsWithEnable(userSetting.getServerId());
+        if (serverIds == null || serverIds.isEmpty()) {
+            return;
+        }
+        serverIds.forEach(serverId -> {
+           // 检查每个是否存活
+            ServerInfo serverInfo = redisCatchStorage.queryServerInfo(serverId);
+            if (serverInfo == null) {
+                // 此平台需要选择新平台处理
+
+            }
+        });
+
+    }
 
     /**
      * 流离开的处理
@@ -780,7 +804,7 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Override
     public List<Platform> queryEnablePlatformList() {
-        return platformMapper.queryEnablePlatformList();
+        return platformMapper.queryEnableParentPlatformList(true);
     }
 
     @Override

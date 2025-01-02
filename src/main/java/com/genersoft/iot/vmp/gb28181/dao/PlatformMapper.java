@@ -77,7 +77,7 @@ public interface PlatformMapper {
             " </script>")
     List<Platform> queryList(@Param("query") String query);
 
-    @Select("SELECT * FROM wvp_platform WHERE serverId=#{serverId} and enable=#{enable} ")
+    @Select("SELECT * FROM wvp_platform WHERE server_id=#{serverId} and enable=#{enable} ")
     List<Platform> queryEnableParentPlatformList(@Param("serverId") String serverId, @Param("enable") boolean enable);
 
     @Select("SELECT * FROM wvp_platform WHERE enable=true and as_message_channel=true")

@@ -97,6 +97,7 @@ import uiHeader from '../layout/UiHeader.vue'
 import shareChannel from './dialog/shareChannel.vue'
 import platformEdit from './PlatformEdit.vue'
 import streamProxyEdit from "./dialog/StreamProxyEdit.vue";
+import Vue from "vue";
 
 export default {
   name: 'app',
@@ -121,7 +122,11 @@ export default {
       total: 0
     };
   },
-  computed: {},
+  computed: {
+    Vue() {
+      return Vue
+    },
+  },
   mounted() {
     this.initData();
     this.updateLooper = setInterval(this.initData, 10000);

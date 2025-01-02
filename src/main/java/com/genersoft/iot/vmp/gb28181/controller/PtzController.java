@@ -163,6 +163,12 @@ public class PtzController {
 			log.debug("设备光圈控制 API调用，deviceId：{} ，channelId：{} ，command：{} ，speed：{} ",deviceId, channelId, command, speed);
 		}
 
+		if (speed == null) {
+			speed = 100;
+		}else if (speed < 0 || speed > 255) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "speed 为 0-255的数字");
+		}
+
 		int cmdCode = 0x40;
 		switch (command){
 			case "in":

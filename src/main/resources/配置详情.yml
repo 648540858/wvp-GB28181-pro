@@ -255,6 +255,8 @@ user-settings:
     gb-device-online: 0
     # 登录超时时间(分钟)，
     login-timeout: 30
+    # wvp集群模式下如果注册向上级的wvp奔溃，则自动选择一个其他wvp继续注册到上级
+    auto-register-platform: true
 
 # 关闭在线文档（生产环境建议关闭）
 springdoc:

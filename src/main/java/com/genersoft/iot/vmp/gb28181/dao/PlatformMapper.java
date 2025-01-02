@@ -93,7 +93,7 @@ public interface PlatformMapper {
     int updateStatus(@Param("platformGbID") String platformGbID, @Param("online") boolean online);
 
     @Select("SELECT server_id FROM wvp_platform WHERE enable=true and server_id != #{serverId} group by server_id")
-    List<String> queryServerIdsWithEnable(@Param("serverId") String serverId);
+    List<String> queryServerIdsWithEnableAndNotInServer(@Param("serverId") String serverId);
 
     @Select("SELECT * FROM wvp_platform WHERE server_id == #{serverId}")
     List<Platform> queryByServerId(@Param("serverId") String serverId);

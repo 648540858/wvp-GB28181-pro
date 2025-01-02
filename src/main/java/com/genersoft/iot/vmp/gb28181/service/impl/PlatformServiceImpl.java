@@ -112,11 +112,12 @@ public class PlatformServiceImpl implements IPlatformService {
             return;
         }
         // 查找非平台的国标级联执行服务Id
-        List<String> serverIds = platformMapper.queryServerIdsWithEnable(userSetting.getServerId());
+        List<String> serverIds = platformMapper.queryServerIdsWithEnableAndNotInServer(userSetting.getServerId());
         if (serverIds == null || serverIds.isEmpty()) {
             return;
         }
         serverIds.forEach(serverId -> {
+            log.info("[集群] 检测到 {} 已离线", serverId);
            // 检查每个是否存活
             ServerInfo serverInfo = redisCatchStorage.queryServerInfo(serverId);
             if (serverInfo == null && userSetting.getServerId().equals(redisCatchStorage.chooseOneServer())) {

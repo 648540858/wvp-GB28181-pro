@@ -121,37 +121,36 @@ public class PlatformServiceImpl implements IPlatformService {
             ServerInfo serverInfo = redisCatchStorage.queryServerInfo(serverId);
             if (serverInfo != null) {
                 return;
-            }else {
-                log.info("[集群] 检测到 {} 已离线", serverId);
-                String chooseServerId = redisCatchStorage.chooseOneServer(serverId);
-                if (!userSetting.getServerId().equals(chooseServerId)){
-                    return;
-                }
-                // 此平台需要选择新平台处理， 确定由当前平台即开始处理
-                List<Platform> platformList = platformMapper.queryByServerId(serverId);
-                platformList.forEach(platform -> {
-                    log.info("[集群] 由本平台开启上级平台{}({})的注册", platform.getName(), platform.getServerGBId());
-                    // 设置平台使用当前平台的IP
-                    platform.setAddress(getIpWithSameNetwork(platform.getAddress()));
-                    platform.setServerId(userSetting.getServerId());
-                    platformMapper.update(platform);
-                    // 更新redis
-                    redisCatchStorage.delPlatformCatchInfo(platform.getServerGBId());
-                    PlatformCatch platformCatch = new PlatformCatch();
-                    platformCatch.setPlatform(platform);
-                    platformCatch.setId(platform.getServerGBId());
-                    redisCatchStorage.updatePlatformCatchInfo(platformCatch);
-                    // 开始注册
-                    // 注册成功时由程序直接调用了online方法
-                    try {
-                        commanderForPlatform.register(platform, eventResult -> {
-                            log.info("[国标级联] {}（{}）,添加向上级注册失败，请确定上级平台可用时重新保存", platform.getName(), platform.getServerGBId());
-                        }, null);
-                    } catch (InvalidArgumentException | ParseException | SipException e) {
-                        log.error("[命令发送失败] 国标级联: {}", e.getMessage());
-                    }
-                });
             }
+            log.info("[集群] 检测到 {} 已离线", serverId);
+            String chooseServerId = redisCatchStorage.chooseOneServer(serverId);
+            if (!userSetting.getServerId().equals(chooseServerId)){
+                return;
+            }
+            // 此平台需要选择新平台处理， 确定由当前平台即开始处理
+            List<Platform> platformList = platformMapper.queryByServerId(serverId);
+            platformList.forEach(platform -> {
+                log.info("[集群] 由本平台开启上级平台{}({})的注册", platform.getName(), platform.getServerGBId());
+                // 设置平台使用当前平台的IP
+                platform.setAddress(getIpWithSameNetwork(platform.getAddress()));
+                platform.setServerId(userSetting.getServerId());
+                platformMapper.update(platform);
+                // 更新redis
+                redisCatchStorage.delPlatformCatchInfo(platform.getServerGBId());
+                PlatformCatch platformCatch = new PlatformCatch();
+                platformCatch.setPlatform(platform);
+                platformCatch.setId(platform.getServerGBId());
+                redisCatchStorage.updatePlatformCatchInfo(platformCatch);
+                // 开始注册
+                // 注册成功时由程序直接调用了online方法
+                try {
+                    commanderForPlatform.register(platform, eventResult -> {
+                        log.info("[国标级联] {}（{}）,添加向上级注册失败，请确定上级平台可用时重新保存", platform.getName(), platform.getServerGBId());
+                    }, null);
+                } catch (InvalidArgumentException | ParseException | SipException e) {
+                    log.error("[命令发送失败] 国标级联: {}", e.getMessage());
+                }
+            });
         });
     }
 

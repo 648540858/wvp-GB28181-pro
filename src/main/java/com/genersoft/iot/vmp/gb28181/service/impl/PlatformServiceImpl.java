@@ -612,7 +612,7 @@ public class PlatformServiceImpl implements IPlatformService {
         StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServerItem, mediaInfo.getApp(), mediaInfo.getStream(), mediaInfo, null);
         streamInfo.setChannelId(channel.getGbId());
 
-        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getGbId());
+        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.BROADCAST, channel.getGbId());
         if (inviteInfo != null) {
             inviteInfo.setStatus(InviteSessionStatus.ok);
             inviteInfo.setStreamInfo(streamInfo);

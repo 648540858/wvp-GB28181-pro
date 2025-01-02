@@ -105,7 +105,7 @@ public class RedisAlarmMsgListener implements MessageListener {
                 if (ObjectUtils.isEmpty(gbId)) {
                     if (userSetting.getSendToPlatformsWhenIdLost()) {
                         // 发送给所有的上级
-                        List<Platform> parentPlatforms = platformService.queryEnablePlatformList();
+                        List<Platform> parentPlatforms = platformService.queryEnablePlatformList(userSetting.getServerId());
                         if (!parentPlatforms.isEmpty()) {
                             for (Platform parentPlatform : parentPlatforms) {
                                 try {

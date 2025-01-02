@@ -857,8 +857,8 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public List<Platform> queryEnablePlatformList() {
-        return platformMapper.queryEnableParentPlatformList(true);
+    public List<Platform> queryEnablePlatformList(String serverId) {
+        return platformMapper.queryEnableParentPlatformList(serverId,true);
     }
 
     @Override

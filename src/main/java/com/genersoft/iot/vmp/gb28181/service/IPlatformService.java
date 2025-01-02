@@ -82,7 +82,7 @@ public interface IPlatformService {
 
     Platform queryOne(Integer platformId);
 
-    List<Platform> queryEnablePlatformList();
+    List<Platform> queryEnablePlatformList(String serverId);
 
     void delete(Integer platformId, CommonCallback<Object> callback);
 }

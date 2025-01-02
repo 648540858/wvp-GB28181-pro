@@ -124,6 +124,7 @@ public class PlatformServiceImpl implements IPlatformService {
                 // 此平台需要选择新平台处理， 确定由当前平台即开始处理
                 List<Platform> platformList = platformMapper.queryByServerId(serverId);
                 platformList.forEach(platform -> {
+                    log.info("[集群] 由本平台开启上级平台{}({})的注册", platform.getName(), platform.getServerGBId());
                     // 设置平台使用当前平台的IP
                     platform.setAddress(getIpWithSameNetwork(platform.getAddress()));
                     platformMapper.update(platform);

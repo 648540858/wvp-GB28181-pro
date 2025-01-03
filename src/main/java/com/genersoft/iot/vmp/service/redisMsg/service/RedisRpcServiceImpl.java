@@ -25,8 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Slf4j
 @Service
 public class RedisRpcServiceImpl implements IRedisRpcService {
@@ -236,7 +234,11 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
 
     @Override
     public void catalogEventPublish(String serverId, CatalogEvent event) {
-        RedisRpcRequest request = buildRequest("platform/catalogEventPublish", event);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("platform", event.getPlatform());
+        jsonObject.put("channels", event.getChannels());
+        jsonObject.put("type", event.getType());
+        RedisRpcRequest request = buildRequest("platform/catalogEventPublish", jsonObject);
         if (serverId != null) {
             request.setToId(serverId);
         }

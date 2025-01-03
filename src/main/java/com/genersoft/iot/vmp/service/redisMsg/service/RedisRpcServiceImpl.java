@@ -228,7 +228,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     public boolean updatePlatform(String serverId, Platform platform) {
         RedisRpcRequest request = buildRequest("platform/update", platform);
         request.setToId(serverId);
-        RedisRpcResponse response = redisRpcConfig.request(request, 40);
+        RedisRpcResponse response = redisRpcConfig.request(request, 4);
         return Boolean.parseBoolean(response.getBody().toString());
     }
 
@@ -242,6 +242,6 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         if (serverId != null) {
             request.setToId(serverId);
         }
-        redisRpcConfig.request(request, 100);
+        redisRpcConfig.request(request, 1);
     }
 }

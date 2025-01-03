@@ -21,6 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 @Slf4j
 @RedisRpcController("platform")
@@ -69,11 +71,10 @@ public class RedisRpcPlatformController extends RpcController {
     @RedisRpcMapping("catalogEventPublish")
     public RedisRpcResponse catalogEventPublish(RedisRpcRequest request) {
         JSONObject jsonObject = JSONObject.parseObject(request.getParam().toString());
-        CatalogEvent catalogEvent = new CatalogEvent(this);
-        catalogEvent.setPlatform(jsonObject.getObject("platform", Platform.class));
-        catalogEvent.setChannels(jsonObject.getJSONArray("channels").toJavaList(CommonGBChannel.class));
-        catalogEvent.setType(jsonObject.getString("type"));
-        eventPublisher.catalogEventPublish(catalogEvent);
+        Platform platform = jsonObject.getObject("platform", Platform.class);
+        List<CommonGBChannel> channels = jsonObject.getJSONArray("channels").toJavaList(CommonGBChannel.class);
+        String type = jsonObject.getString("type");
+        eventPublisher.catalogEventPublish(platform, channels, type);
         RedisRpcResponse response = request.getResponse();
         response.setStatusCode(ErrorCode.SUCCESS.getCode());
         return response;

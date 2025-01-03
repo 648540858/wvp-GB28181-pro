@@ -109,10 +109,6 @@ public class EventPublisher {
 		}
 	}
 
-	public void catalogEventPublish(CatalogEvent event) {
-		applicationEventPublisher.publishEvent(event);
-	}
-
 	public void mobilePositionEventPublish(MobilePosition mobilePosition) {
 		MobilePositionEvent event = new MobilePositionEvent(this);
 		event.setMobilePosition(mobilePosition);

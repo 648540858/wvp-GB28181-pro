@@ -25,6 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.TimeUnit;
+
 @Slf4j
 @Service
 public class RedisRpcServiceImpl implements IRedisRpcService {
@@ -62,7 +64,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     @Override
     public SendRtpInfo getSendRtpItem(String callId) {
         RedisRpcRequest request = buildRequest("sendRtp/getSendRtpItem", callId);
-        RedisRpcResponse response = redisRpcConfig.request(request, 10);
+        RedisRpcResponse response = redisRpcConfig.request(request, 10, TimeUnit.MILLISECONDS);
         if (response.getBody() == null) {
             return null;
         }
@@ -74,7 +76,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         log.info("[请求其他WVP] 开始推流，wvp：{}， {}/{}", sendRtpItem.getServerId(), sendRtpItem.getApp(), sendRtpItem.getStream());
         RedisRpcRequest request = buildRequest("sendRtp/startSendRtp", callId);
         request.setToId(sendRtpItem.getServerId());
-        RedisRpcResponse response = redisRpcConfig.request(request, 10);
+        RedisRpcResponse response = redisRpcConfig.request(request, 10, TimeUnit.MILLISECONDS);
         return JSON.parseObject(response.getBody().toString(), WVPResult.class);
     }
 
@@ -88,7 +90,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         log.info("[请求其他WVP] 停止推流，wvp：{}， {}/{}", sendRtpItem.getServerId(), sendRtpItem.getApp(), sendRtpItem.getStream());
         RedisRpcRequest request = buildRequest("sendRtp/stopSendRtp", callId);
         request.setToId(sendRtpItem.getServerId());
-        RedisRpcResponse response = redisRpcConfig.request(request, 10);
+        RedisRpcResponse response = redisRpcConfig.request(request, 10, TimeUnit.MILLISECONDS);
         return JSON.parseObject(response.getBody().toString(), WVPResult.class);
     }
 
@@ -140,7 +142,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         hookSubscribe.removeSubscribe(hook);
         RedisRpcRequest request = buildRequest("streamPush/stopWaitePushStreamOnline", sendRtpItem);
         request.setToId(sendRtpItem.getServerId());
-        redisRpcConfig.request(request, 10);
+        redisRpcConfig.request(request, 10, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -152,7 +154,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         }
         RedisRpcRequest request = buildRequest("streamPush/rtpSendStopped", callId);
         request.setToId(sendRtpItem.getServerId());
-        redisRpcConfig.request(request, 10);
+        redisRpcConfig.request(request, 10, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -202,7 +204,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         streamInfoParam.setApp(app);
         streamInfoParam.setStream(stream);
         RedisRpcRequest request = buildRequest("streamPush/unPushStreamOnlineEvent", streamInfoParam);
-        redisRpcConfig.request(request, 10);
+        redisRpcConfig.request(request, 10, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -211,7 +213,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         jsonObject.put("id", id);
         jsonObject.put("cycle", cycle);
         RedisRpcRequest request = buildRequest("device/subscribeCatalog", jsonObject);
-        redisRpcConfig.request(request, 10);
+        redisRpcConfig.request(request, 10, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -221,14 +223,14 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         jsonObject.put("cycle", cycle);
         jsonObject.put("interval", cycle);
         RedisRpcRequest request = buildRequest("device/subscribeMobilePosition", jsonObject);
-        redisRpcConfig.request(request, 10);
+        redisRpcConfig.request(request, 10, TimeUnit.MILLISECONDS);
     }
 
     @Override
     public boolean updatePlatform(String serverId, Platform platform) {
         RedisRpcRequest request = buildRequest("platform/update", platform);
         request.setToId(serverId);
-        RedisRpcResponse response = redisRpcConfig.request(request, 4);
+        RedisRpcResponse response = redisRpcConfig.request(request, 40, TimeUnit.MILLISECONDS);
         return Boolean.parseBoolean(response.getBody().toString());
     }
 
@@ -242,6 +244,6 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         if (serverId != null) {
             request.setToId(serverId);
         }
-        redisRpcConfig.request(request, 1);
+        redisRpcConfig.request(request, 10, TimeUnit.MILLISECONDS);
     }
 }

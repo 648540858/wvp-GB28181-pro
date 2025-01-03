@@ -1,14 +1,18 @@
 package com.genersoft.iot.vmp.gb28181.event;
 
-import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
+import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.event.alarm.AlarmEvent;
 import com.genersoft.iot.vmp.gb28181.event.device.RequestTimeoutEvent;
-import com.genersoft.iot.vmp.gb28181.event.record.RecordInfoEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.mobilePosition.MobilePositionEvent;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOfflineEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOnlineEvent;
+import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -29,6 +33,12 @@ public class EventPublisher {
 
 	@Autowired
     private ApplicationEventPublisher applicationEventPublisher;
+
+	@Autowired
+    private UserSetting userSetting;
+
+	@Autowired
+    private IRedisRpcService redisRpcService;
 	
 	/**
 	 * 设备报警事件
@@ -66,6 +76,15 @@ public class EventPublisher {
 	}
 
 	public void catalogEventPublish(Platform platform, List<CommonGBChannel> deviceChannels, String type) {
+		if (!userSetting.getServerId().equals(platform.getServerId())) {
+			List<Integer> ids = new ArrayList<>();
+			for (int i = 0; i < deviceChannels.size(); i++) {
+				ids.add(deviceChannels.get(i).getGbId());
+			}
+			redisRpcService.catalogEventPublish(platform.getServerId(), platform.getId(), ids, type);
+			return;
+		}
+
 		CatalogEvent outEvent = new CatalogEvent(this);
 		List<CommonGBChannel> channels = new ArrayList<>();
 		if (deviceChannels.size() > 1) {

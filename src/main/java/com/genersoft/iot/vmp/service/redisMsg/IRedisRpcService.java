@@ -6,6 +6,8 @@ import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 
+import java.util.List;
+
 public interface IRedisRpcService {
 
     SendRtpInfo getSendRtpItem(String callId);
@@ -30,4 +32,6 @@ public interface IRedisRpcService {
     void subscribeMobilePosition(int id, int cycle, int interval);
 
     boolean updatePlatform(String serverId, Platform platform);
+
+    void catalogEventPublish(String serverId, Integer platformId, List<Integer> channelIds, String type);
 }

@@ -596,4 +596,9 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     public CommonGBChannel queryChannelByPlatformIdAndChannelId(Integer platformId, Integer channelId) {
         return platformChannelMapper.queryShareChannel(platformId, channelId);
     }
+
+    @Override
+    public List<CommonGBChannel> queryChannelByPlatformIdAndChannelIds(Integer platformId, List<Integer> channelIds) {
+        return platformChannelMapper.queryShare(platformId, channelIds);
+    }
 }

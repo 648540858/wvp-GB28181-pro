@@ -209,7 +209,7 @@ public class GroupServiceImpl implements IGroupService {
                 for (Platform platform : platformList) {
                     try {
                         // 发送catalog
-                        eventPublisher.catalogEventPublish(platform.getId(), channel, CatalogEvent.DEL);
+                        eventPublisher.catalogEventPublish(platform, channel, CatalogEvent.DEL);
                     }catch (Exception e) {
                         log.warn("[业务分组/虚拟组织删除] 发送失败，{}", groupForDelete.getDeviceId(), e);
                     }

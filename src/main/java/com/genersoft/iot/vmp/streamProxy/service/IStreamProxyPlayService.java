@@ -6,6 +6,8 @@ import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 
 public interface IStreamProxyPlayService {
 
+    StreamInfo start(int id);
+
     void start(int id, ErrorCallback<StreamInfo> callback);
 
     StreamInfo startProxy(StreamProxy streamProxy);

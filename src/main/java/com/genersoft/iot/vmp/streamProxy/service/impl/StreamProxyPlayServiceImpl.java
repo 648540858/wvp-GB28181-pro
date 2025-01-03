@@ -90,6 +90,15 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
     }
 
     @Override
+    public StreamInfo start(int id) {
+        StreamProxy streamProxy = streamProxyMapper.select(id);
+        if (streamProxy == null) {
+            throw new ControllerException(ErrorCode.ERROR404.getCode(), "代理信息未找到");
+        }
+        return startProxy(streamProxy);
+    }
+
+    @Override
     public StreamInfo startProxy(StreamProxy streamProxy){
         if (!streamProxy.isEnable()) {
             return null;

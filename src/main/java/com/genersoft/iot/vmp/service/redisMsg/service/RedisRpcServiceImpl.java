@@ -228,6 +228,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     @Override
     public boolean updatePlatform(String serverId, Platform platform) {
         RedisRpcRequest request = buildRequest("platform/update", platform);
+        request.setToId(serverId);
         RedisRpcResponse response = redisRpcConfig.request(request, 40);
         return Boolean.parseBoolean(response.getBody().toString());
     }
@@ -239,6 +240,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         jsonObject.put("channelIds", channelIds);
         jsonObject.put("type", type);
         RedisRpcRequest request = buildRequest("platform/catalogEventPublish", jsonObject);
+        request.setToId(serverId);
         redisRpcConfig.request(request, 100);
     }
 }

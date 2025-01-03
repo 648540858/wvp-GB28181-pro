@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.service.redisMsg.dto.RedisRpcController;
@@ -70,21 +71,9 @@ public class RedisRpcPlatformController extends RpcController {
      */
     @RedisRpcMapping("catalogEventPublish")
     public RedisRpcResponse catalogEventPublish(RedisRpcRequest request) {
-        JSONObject jsonObject = JSONObject.parseObject(request.getParam().toString());
-        int platformId = jsonObject.getIntValue("platformId");
-        Integer[] channelIds = jsonObject.getJSONArray("channelIds").toArray(Integer.class);
-        String type = jsonObject.getString("type");
+        CatalogEvent event = JSONObject.parseObject(request.getParam().toString(), CatalogEvent.class);
+        eventPublisher.catalogEventPublish(event);
         RedisRpcResponse response = request.getResponse();
-
-        Platform platform = platformService.queryOne(platformId);
-        if (platform == null ) {
-            log.warn("[]");
-            response.setStatusCode(ErrorCode.ERROR400.getCode());
-            response.setBody(ErrorCode.ERROR400.getMsg());
-            return response;
-        }
-        List<CommonGBChannel> commonGBChannels = platformChannelService.queryChannelByPlatformIdAndChannelIds(platformId, Arrays.asList(channelIds));
-        eventPublisher.catalogEventPublish(platform, commonGBChannels, type);
         response.setStatusCode(ErrorCode.SUCCESS.getCode());
         return response;
     }

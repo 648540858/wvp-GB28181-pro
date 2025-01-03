@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
+import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 
 import java.util.List;
@@ -33,5 +34,5 @@ public interface IRedisRpcService {
 
     boolean updatePlatform(String serverId, Platform platform);
 
-    void catalogEventPublish(String serverId, Integer platformId, List<Integer> channelIds, String type);
+    void catalogEventPublish(String serverId, CatalogEvent catalogEvent);
 }

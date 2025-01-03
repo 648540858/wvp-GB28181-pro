@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
+import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
@@ -234,13 +235,11 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     }
 
     @Override
-    public void catalogEventPublish(String serverId, Integer platformId, List<Integer> channelIds, String type) {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("platformId", platformId);
-        jsonObject.put("channelIds", channelIds);
-        jsonObject.put("type", type);
-        RedisRpcRequest request = buildRequest("platform/catalogEventPublish", jsonObject);
-        request.setToId(serverId);
+    public void catalogEventPublish(String serverId, CatalogEvent event) {
+        RedisRpcRequest request = buildRequest("platform/catalogEventPublish", event);
+        if (serverId != null) {
+            request.setToId(serverId);
+        }
         redisRpcConfig.request(request, 100);
     }
 }

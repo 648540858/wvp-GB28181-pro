@@ -35,10 +35,10 @@ public class EventPublisher {
     private ApplicationEventPublisher applicationEventPublisher;
 
 	@Autowired
-    private UserSetting userSetting;
+	private UserSetting userSetting;
 
 	@Autowired
-    private IRedisRpcService redisRpcService;
+	private IRedisRpcService redisRpcService;
 	
 	/**
 	 * 设备报警事件
@@ -76,15 +76,15 @@ public class EventPublisher {
 	}
 
 	public void catalogEventPublish(Platform platform, List<CommonGBChannel> deviceChannels, String type) {
-		if (!userSetting.getServerId().equals(platform.getServerId())) {
-			List<Integer> ids = new ArrayList<>();
-			for (int i = 0; i < deviceChannels.size(); i++) {
-				ids.add(deviceChannels.get(i).getGbId());
-			}
-			redisRpcService.catalogEventPublish(platform.getServerId(), platform.getId(), ids, type);
+		if (platform != null && !userSetting.getServerId().equals(platform.getServerId())) {
+			// 指定了上级平台的推送，则发送到指定的设备，未指定的则全部发送， 接收后各自处理自己的
+			CatalogEvent outEvent = new CatalogEvent(this);
+			outEvent.setChannels(deviceChannels);
+			outEvent.setType(type);
+			outEvent.setPlatform(platform);
+			redisRpcService.catalogEventPublish(platform.getServerId(), outEvent);
 			return;
 		}
-
 		CatalogEvent outEvent = new CatalogEvent(this);
 		List<CommonGBChannel> channels = new ArrayList<>();
 		if (deviceChannels.size() > 1) {
@@ -103,6 +103,14 @@ public class EventPublisher {
 		outEvent.setType(type);
 		outEvent.setPlatform(platform);
 		applicationEventPublisher.publishEvent(outEvent);
+		if (platform == null) {
+			// 如果没指定上级平台，则推送消息到所有在线的wvp处理自己含有的平台的目录更新
+			redisRpcService.catalogEventPublish(null, outEvent);
+		}
+	}
+
+	public void catalogEventPublish(CatalogEvent event) {
+		applicationEventPublisher.publishEvent(event);
 	}
 
 	public void mobilePositionEventPublish(MobilePosition mobilePosition) {

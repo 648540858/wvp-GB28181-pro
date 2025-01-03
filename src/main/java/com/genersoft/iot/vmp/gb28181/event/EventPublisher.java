@@ -76,6 +76,9 @@ public class EventPublisher {
 	}
 
 	public void catalogEventPublish(Platform platform, List<CommonGBChannel> deviceChannels, String type) {
+		catalogEventPublish(platform, deviceChannels, type, true);
+	}
+	public void catalogEventPublish(Platform platform, List<CommonGBChannel> deviceChannels, String type, boolean share) {
 		if (platform != null && !userSetting.getServerId().equals(platform.getServerId())) {
 			// 指定了上级平台的推送，则发送到指定的设备，未指定的则全部发送， 接收后各自处理自己的
 			CatalogEvent outEvent = new CatalogEvent(this);
@@ -103,7 +106,7 @@ public class EventPublisher {
 		outEvent.setType(type);
 		outEvent.setPlatform(platform);
 		applicationEventPublisher.publishEvent(outEvent);
-		if (platform == null) {
+		if (platform == null && share) {
 			// 如果没指定上级平台，则推送消息到所有在线的wvp处理自己含有的平台的目录更新
 			redisRpcService.catalogEventPublish(null, outEvent);
 		}

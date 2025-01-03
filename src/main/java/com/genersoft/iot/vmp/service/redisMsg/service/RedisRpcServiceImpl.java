@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
+import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
@@ -245,5 +246,13 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
             request.setToId(serverId);
         }
         redisRpcConfig.request(request, 10, TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public WVPResult<SyncStatus> devicesSync(String serverId, String deviceId) {
+        RedisRpcRequest request = buildRequest("device/devicesSync", deviceId);
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, 100, TimeUnit.MILLISECONDS);
+        return JSON.parseObject(response.getBody().toString(), WVPResult.class);
     }
 }

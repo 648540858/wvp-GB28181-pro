@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.controller;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -16,6 +17,7 @@ import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
@@ -72,7 +74,13 @@ public class DeviceQuery {
 	private IDeviceService deviceService;
 
 	@Autowired
+	private UserSetting userSetting;
+
+	@Autowired
 	private DynamicTask dynamicTask;
+
+	@Autowired
+	private IRedisRpcService redisRpcService;
 
 	/**
 	 * 使用ID查询国标设备
@@ -142,30 +150,12 @@ public class DeviceQuery {
 			log.debug("设备通道信息同步API调用，deviceId：" + deviceId);
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		boolean status = deviceService.isSyncRunning(deviceId);
-		// 已存在则返回进度
-		if (deviceService.isSyncRunning(deviceId)) {
-			SyncStatus channelSyncStatus = deviceService.getChannelSyncStatus(deviceId);
-			WVPResult wvpResult = new WVPResult();
-			if (channelSyncStatus.getErrorMsg() != null) {
-				wvpResult.setCode(ErrorCode.ERROR100.getCode());
-				wvpResult.setMsg(channelSyncStatus.getErrorMsg());
-			}else if (channelSyncStatus.getTotal() == null || channelSyncStatus.getTotal() == 0){
-				wvpResult.setCode(ErrorCode.SUCCESS.getCode());
-				wvpResult.setMsg("等待通道信息...");
-			}else {
-				wvpResult.setCode(ErrorCode.SUCCESS.getCode());
-				wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
-				wvpResult.setData(channelSyncStatus);
-			}
-			return wvpResult;
+		if (!userSetting.getServerId().equals(device.getServerId())) {
+			return redisRpcService.devicesSync(device.getServerId(), deviceId);
 		}
-		deviceService.sync(device);
 
-		WVPResult<SyncStatus> wvpResult = new WVPResult<>();
-		wvpResult.setCode(0);
-		wvpResult.setMsg("开始同步");
-		return wvpResult;
+		return deviceService.devicesSync(device);
+
 	}
 
 	/**

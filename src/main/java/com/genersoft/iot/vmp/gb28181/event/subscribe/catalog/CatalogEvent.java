@@ -1,12 +1,15 @@
 package com.genersoft.iot.vmp.gb28181.event.subscribe.catalog;
 
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
 
 import java.util.List;
 
+@Setter
+@Getter
 public class CatalogEvent  extends ApplicationEvent {
 
     public CatalogEvent(Object source) {
@@ -48,16 +51,10 @@ public class CatalogEvent  extends ApplicationEvent {
      */
     public static final String UPDATE = "UPDATE";
 
-    @Setter
-    @Getter
     private List<CommonGBChannel> channels;
 
-    @Setter
-    @Getter
     private String type;
 
-    @Setter
-    @Getter
-    private Integer platformId;
+    private Platform platform;
 
 }

@@ -53,27 +53,19 @@ public class EventPublisher {
 	}
 
 
-	public void catalogEventPublish(Integer platformId, CommonGBChannel deviceChannel, String type) {
-		List<CommonGBChannel> deviceChannelList = new ArrayList<>();
-		deviceChannelList.add(deviceChannel);
-		catalogEventPublish(platformId, deviceChannelList, type);
-	}
-
-
 	public void requestTimeOut(TimeoutEvent timeoutEvent) {
 		RequestTimeoutEvent requestTimeoutEvent = new RequestTimeoutEvent(this);
 		requestTimeoutEvent.setTimeoutEvent(timeoutEvent);
 		applicationEventPublisher.publishEvent(requestTimeoutEvent);
 	}
 
+	public void catalogEventPublish(Platform platform, CommonGBChannel deviceChannel, String type) {
+		List<CommonGBChannel> deviceChannelList = new ArrayList<>();
+		deviceChannelList.add(deviceChannel);
+		catalogEventPublish(platform, deviceChannelList, type);
+	}
 
-	/**
-	 *
-	 * @param platformId
-	 * @param deviceChannels
-	 * @param type
-	 */
-	public void catalogEventPublish(Integer platformId, List<CommonGBChannel> deviceChannels, String type) {
+	public void catalogEventPublish(Platform platform, List<CommonGBChannel> deviceChannels, String type) {
 		CatalogEvent outEvent = new CatalogEvent(this);
 		List<CommonGBChannel> channels = new ArrayList<>();
 		if (deviceChannels.size() > 1) {
@@ -90,10 +82,9 @@ public class EventPublisher {
 		}
 		outEvent.setChannels(channels);
 		outEvent.setType(type);
-		outEvent.setPlatformId(platformId);
+		outEvent.setPlatform(platform);
 		applicationEventPublisher.publishEvent(outEvent);
 	}
-
 
 	public void mobilePositionEventPublish(MobilePosition mobilePosition) {
 		MobilePositionEvent event = new MobilePositionEvent(this);

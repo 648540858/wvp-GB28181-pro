@@ -201,8 +201,11 @@ public class DeviceServiceImpl implements IDeviceService {
         log.warn("[设备离线]，{}, device：{}", reason, deviceId);
         Device device = getDeviceByDeviceIdFromDb(deviceId);
         if (device == null) {
+            log.warn("[设备不存在] device：{}", deviceId);
             return;
         }
+        log.info("[设备离线] device：{}， 当前心跳间隔： {}， 上次心跳时间：{}， 上次注册时间： {}", deviceId,
+                device.getKeepaliveIntervalTime(), device.getKeepaliveTime(), device.getRegisterTime());
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + deviceId;
         dynamicTask.stop(registerExpireTaskKey);
         if (device.isOnLine()) {

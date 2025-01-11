@@ -129,12 +129,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
     public void playProxy(CommonGBChannel channel, ErrorCallback<StreamInfo> callback){
         // 拉流代理通道
         try {
-            StreamInfo streamInfo = streamProxyPlayService.start(channel.getDataDeviceId());
-            if (streamInfo == null) {
-                callback.run(Response.BUSY_HERE, "busy here", null);
-            }else {
-                callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
-            }
+            streamProxyPlayService.start(channel.getDataDeviceId(), callback);
         }catch (Exception e) {
             callback.run(Response.BUSY_HERE, "busy here", null);
         }

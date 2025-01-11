@@ -336,12 +336,11 @@ create table wvp_cloud_record
     end_time        bigint,
     media_server_id character varying(50),
     file_name       character varying(255),
-    folder          character varying(255),
-    file_path       character varying(255),
+    folder          character varying(500),
+    file_path       character varying(500),
     collect         bool default false,
     file_size       bigint,
-    time_len        bigint,
-    constraint uk_stream_push_app_stream_path unique (app, stream, file_path)
+    time_len        bigint
 );
 
 create table wvp_user

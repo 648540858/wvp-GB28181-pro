@@ -443,7 +443,7 @@ public class DeviceServiceImpl implements IDeviceService {
         device.setCreateTime(DateUtil.getNow());
         device.setUpdateTime(DateUtil.getNow());
         if(device.getStreamMode() == null) {
-            device.setStreamMode("UDP");
+            device.setStreamMode("TCP-PASSIVE");
         }
         deviceMapper.addCustomDevice(device);
     }

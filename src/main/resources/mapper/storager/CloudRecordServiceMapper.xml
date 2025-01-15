@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.genersoft.iot.vmp.storager.dao.CloudRecordServiceMapper">
+    <insert id="add">
+        INSERT INTO wvp_cloud_record (
+        app,
+        stream,
+        <if test="callId != null">call_id,</if>
+        start_time,
+        end_time,
+        media_server_id,
+        file_name,
+        folder,
+        file_path,
+        file_size,
+        time_len)
+        VALUES (
+        #{app},
+        #{stream},
+        <if test="callId != null">#{callId},</if>
+        #{startTime},
+        #{endTime},
+        #{mediaServerId},
+        #{fileName},
+        #{folder},
+        #{filePath},
+        #{fileSize},
+        #{timeLen})
+    </insert>
+
+    <select id="getList" resultType="com.genersoft.iot.vmp.service.bean.CloudRecordItem">
+        select *
+        from wvp_cloud_record
+        <where>
+            <if test='query != null'>AND (app LIKE concat('%',#{query},'%') escape '/' OR stream LIKE
+                concat('%',#{query},'%') escape '/')
+            </if>
+            <if test='app != null '>and app=#{app}</if>
+            <if test='stream != null '>and stream=#{stream}</if>
+            <if test='startTimeStamp != null '>and end_time &gt;= #{startTimeStamp}</if>
+            <if test='endTimeStamp != null '>and start_time &lt;= #{endTimeStamp}</if>
+            <if test='callId != null '>and call_id = #{callId}</if>
+            <if test='mediaServerItemList != null  '>and media_server_id in
+                <foreach collection='mediaServerItemList' item='item' open='(' separator=',' close=')'>
+                    #{item.id}
+                </foreach>
+            </if>
+            <if test='ids != null  '>and id in
+                <foreach collection='ids' item='item' open='(' separator=',' close=')'>#{item}</foreach>
+            </if>
+        </where>
+        order by start_time desc
+    </select>
+    <select id="queryRecordFilePathList" resultType="java.lang.String">
+        select file_path
+        from wvp_cloud_record
+        <where>
+            <if test='app != null '>and app=#{app}</if>
+            <if test='stream != null '>and stream=#{stream}</if>
+            <if test='startTimeStamp != null '>and end_time &gt;= #{startTimeStamp}</if>
+            <if test='endTimeStamp != null '>and start_time &lt;= #{endTimeStamp}</if>
+            <if test='callId != null '>and call_id = #{callId}</if>
+            <if test='mediaServerItemList != null  '>and media_server_id in
+                <foreach collection='mediaServerItemList' item='item' open='(' separator=',' close=')'>#{item.id}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <update id="updateCollectList">
+        update wvp_cloud_record set collect = #{collect} where file_path in
+        <foreach collection='cloudRecordItemList' item='item' open='(' separator=',' close=')'>
+            #{item.filePath}
+        </foreach>
+    </update>
+
+    <delete id="deleteByFileList">
+        delete from wvp_cloud_record where media_server_id=#{mediaServerId} and file_path in
+        <foreach collection='filePathList' item='item' open='(' separator=',' close=')'>#{item}</foreach>
+    </delete>
+
+    <select id="queryRecordListForDelete" resultType="com.genersoft.iot.vmp.service.bean.CloudRecordItem">
+        select *
+        from wvp_cloud_record
+        where collect = false
+          and end_time &lt;= #{endTimeStamp}
+          and media_server_id = #{mediaServerId}
+    </select>
+
+    <update id="changeCollectById">
+        update wvp_cloud_record
+        set collect = #{collect}
+        where id = #{recordId}
+    </update>
+
+    <delete id="deleteList">
+        delete from wvp_cloud_record where id in
+        <foreach collection='cloudRecordItemIdList' item='item' open='(' separator=',' close=')'>#{item.id}</foreach>
+    </delete>
+
+    <select id="getListByCallId" resultType="com.genersoft.iot.vmp.service.bean.CloudRecordItem">
+        select *
+        from wvp_cloud_record
+        where call_id = #{callId}
+    </select>
+
+    <select id="queryOne" resultType="com.genersoft.iot.vmp.service.bean.CloudRecordItem">
+        select *
+        from wvp_cloud_record
+        where id = #{id}
+    </select>
+</mapper>

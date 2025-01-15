@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.genersoft.iot.vmp.storager.dao.RoleMapper">
+
+    <insert id="add">
+        INSERT INTO wvp_user_role (name, authority, create_time, update_time)
+        VALUES (#{name}, #{authority}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="update">
+        UPDATE wvp_user_role
+        SET update_time=#{updateTime}
+        <if test="name != null">, name=#{name}</if>
+        <if test="authority != null">, authority=#{authority}</if>
+        WHERE id != 1 and id=#{id}
+    </update>
+
+    <delete id="delete">
+        DELETE
+        from wvp_user_role
+        WHERE id != 1
+          and id = #{id}
+    </delete>
+
+    <select id="selectById" resultType="com.genersoft.iot.vmp.storager.dao.dto.Role">
+        select *
+        from wvp_user_role
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectAll" resultType="com.genersoft.iot.vmp.storager.dao.dto.Role">
+        select *
+        from wvp_user_role
+    </select>
+</mapper>

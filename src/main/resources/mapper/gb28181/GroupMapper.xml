@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.genersoft.iot.vmp.gb28181.dao.GroupMapper">
+    <insert id="add">
+        INSERT INTO wvp_common_group
+        (device_id, name, parent_id, parent_device_id, business_group, create_time, update_time, civil_code)
+        VALUES (#{deviceId}, #{name}, #{parentId}, #{parentDeviceId}, #{businessGroup}, #{createTime}, #{updateTime},
+                #{civilCode})
+    </insert>
+
+    <insert id="addBusinessGroup">
+        INSERT INTO wvp_common_group (device_id, name, business_group, create_time, update_time, civil_code)
+        VALUES (#{deviceId}, #{name}, #{businessGroup}, #{createTime}, #{updateTime}, #{civilCode})
+    </insert>
+
+    <delete id="delete">
+        DELETE
+        FROM wvp_common_group
+        WHERE id = #{id}
+    </delete>
+
+    <update id="update">
+        UPDATE wvp_common_group
+        SET update_time=#{updateTime},
+            device_id=#{deviceId},
+            name=#{name},
+            parent_id=#{parentId},
+            parent_device_id=#{parentDeviceId},
+            business_group=#{businessGroup},
+            civil_code=#{civilCode}
+        WHERE id = #{id}
+    </update>
+
+    <select id="query" resultType="com.genersoft.iot.vmp.gb28181.bean.Group">
+        SELECT * from wvp_common_group
+        <where>
+            <if test='query != null'>
+                AND (device_id LIKE concat('%',#{query},'%') OR name LIKE concat('%',#{query},'%'))
+            </if>
+            <if test='parentId != null and businessGroupId != null '>
+                AND parent_device_id = #{parentId} AND business_group=#{businessGroup}
+            </if>
+        </where>
+        ORDER BY id
+    </select>
+
+    <select id="getChildren" resultType="com.genersoft.iot.vmp.gb28181.bean.Group">
+        SELECT *
+        from wvp_common_group
+        WHERE parent_id = #{parentId}
+    </select>
+
+    <select id="queryOne" resultType="com.genersoft.iot.vmp.gb28181.bean.Group">
+        SELECT *
+        from wvp_common_group
+        WHERE id = #{id}
+    </select>
+
+    <insert id="batchAdd">
+        INSERT INTO wvp_common_group (
+        device_id,
+        name,
+        parent_device_id,
+        parent_id,
+        business_group,
+        create_time,
+        civil_code,
+        update_time)
+        VALUES
+        <foreach collection='groupList' index='index' item='item' separator=','>
+            (#{item.deviceId}, #{item.name}, #{item.parentDeviceId}, #{item.parentId},
+            #{item.businessGroup},#{item.createTime},#{item.civilCode},#{item.updateTime})
+        </foreach>
+    </insert>
+
+    <select id="queryForTree" resultType="com.genersoft.iot.vmp.gb28181.bean.GroupTree">
+        SELECT *,
+        concat('group', id) as tree_id,
+        0 as type,
+        false as is_leaf,
+        'ON' as status
+        from wvp_common_group
+        <where>
+            <if test='parentId != null'>and parent_id = #{parentId}</if>
+            <if test='parentId == null'>and parent_id is null</if>
+            <if test='query != null'>
+                AND (device_id LIKE concat('%',#{query},'%') OR name LIKE concat('%',#{query},'%'))
+            </if>
+        </where>
+    </select>
+
+    <select id="queryForTreeByBusinessGroup" resultType="com.genersoft.iot.vmp.gb28181.bean.GroupTree">
+        SELECT *, 0 as type, false as is_leaf
+        from wvp_common_group
+        where parent_id is not null and business_group = #{businessGroup} and device_id != #{businessGroup}
+        <if test='query != null'>
+            AND (device_id LIKE concat('%',#{query},'%') OR name LIKE concat('%',#{query},'%'))
+        </if>
+    </select>
+
+    <select id="queryBusinessGroupForTree" resultType="com.genersoft.iot.vmp.gb28181.bean.GroupTree">
+        SELECT *, 0 as type, false as is_leaf
+        from wvp_common_group
+        where device_id=business_group
+        <if test='query != null'>
+            AND (device_id LIKE concat('%',#{query},'%') OR name LIKE concat('%',#{query},'%'))
+        </if>
+    </select>
+
+    <select id="queryOneByDeviceId" resultType="com.genersoft.iot.vmp.gb28181.bean.Group">
+        SELECT *
+        from wvp_common_group
+        WHERE device_id = #{deviceId}
+          and business_group = #{businessGroup}
+    </select>
+
+    <delete id="batchDelete">
+        DELETE FROM wvp_common_group WHERE id in
+        <foreach collection='allChildren' item='item' open='(' separator=',' close=')'>#{item.id}</foreach>
+    </delete>
+
+    <select id="queryBusinessGroup" resultType="com.genersoft.iot.vmp.gb28181.bean.Group">
+        SELECT *
+        from wvp_common_group
+        WHERE device_id = #{businessGroup}
+          and business_group = #{businessGroup}
+    </select>
+
+    <select id="queryByBusinessGroup" resultType="com.genersoft.iot.vmp.gb28181.bean.Group">
+        SELECT *
+        from wvp_common_group
+        WHERE business_group = #{businessGroup}
+    </select>
+
+    <delete id="deleteByBusinessGroup">
+        DELETE
+        FROM wvp_common_group
+        WHERE business_group = #{businessGroup}
+    </delete>
+
+    <update id="updateChild">
+        UPDATE wvp_common_group
+        SET parent_device_id=#{group.deviceId},
+            business_group  = #{group.businessGroup}
+        WHERE parent_id = #{parentId}
+    </update>
+
+    <select id="queryInGroupListByDeviceId" resultType="com.genersoft.iot.vmp.gb28181.bean.Group">
+        SELECT * from wvp_common_group where device_id in
+        <foreach collection='groupList' item='item' open='(' separator=',' close=')'>#{item.deviceId}</foreach>
+    </select>
+
+    <select id="queryInChannelList" resultType="com.genersoft.iot.vmp.gb28181.bean.Group">
+        SELECT * from wvp_common_group
+        where (device_id, business_group) in
+        <foreach collection='channelList' item='item' open='(' separator=',' close=')'>
+            (#{item.gbParentId}, #{item.gbBusinessGroupId})
+        </foreach>
+    </select>
+
+    <select id="queryParentInChannelList" resultType="com.genersoft.iot.vmp.gb28181.bean.Group">
+        SELECT * from wvp_common_group where id in
+        <foreach collection='groupSet' item='item' open='(' separator=',' close=')'>#{item.parentId}</foreach>
+    </select>
+
+    <select id="queryForPlatform" resultType="com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel">
+        SELECT wcg.device_id        as gb_device_id,
+               wcg.name             as gb_name,
+               wcg.business_group   as gb_business_group_id,
+               1                    as gb_parental,
+               wcg.parent_device_id as gb_parent_id
+        from wvp_common_group wcg
+                 left join wvp_platform_group wpg on wpg.group_id = wcg.id
+        where wpg.platform_id = #{platformId}
+    </select>
+
+    <select id="queryNotShareGroupForPlatformByChannelList" resultType="com.genersoft.iot.vmp.gb28181.bean.Group">
+        SELECT * from wvp_common_group wcg
+        left join wvp_platform_group wpg on wpg.group_id = wcg.id and wpg.platform_id = #{platformId}
+        where wpg.platform_id is null and wcg.device_id in
+        <foreach collection='channelList' item='item' open='(' separator=',' close=')'>#{item.gbParentId}</foreach>
+    </select>
+
+    <select id="queryNotShareGroupForPlatformByGroupList" resultType="com.genersoft.iot.vmp.gb28181.bean.Group">
+        SELECT * from wvp_common_group wcg
+        left join wvp_platform_group wpg on wpg.group_id = wcg.id and wpg.platform_id = #{platformId}
+        where wpg.platform_id IS NULL and wcg.id in
+        <foreach collection='allGroup' item='item' open='(' separator=',' close=')'>#{item.id}</foreach>
+    </select>
+
+    <select id="queryByChannelList" resultType="com.genersoft.iot.vmp.gb28181.bean.Group">
+        SELECT * from wvp_common_group where device_id in
+        <foreach collection='channelList' item='item' open='(' separator=',' close=')'>#{item.gbParentId}</foreach>
+        order by id
+    </select>
+
+    <update id="updateParentId" databaseId="mysql">
+        update wvp_common_group w1
+        inner join (select * from wvp_common_group) w2 on w1.parent_device_id = w2.device_id
+        set w1.parent_id = w2.id
+        where w1.id in
+        <foreach collection='groupListForAdd'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>
+    </update>
+
+    <update id="updateParentId" databaseId="postgresql">
+        update wvp_common_group w1
+        set parent_id = w2.id
+        from wvp_common_group w2
+        where w1.parent_device_id = w2.device_id
+        and w1.id in
+        <foreach collection='groupListForAdd' item='item' open='(' separator=',' close=')'>#{item.id}</foreach>
+    </update>
+
+    <update id="updateParentId" databaseId="kingbase">
+        update wvp_common_group w1
+        set parent_id = w2.id
+        from wvp_common_group w2
+        where w1.parent_device_id = w2.device_id
+        and w1.id in
+        <foreach collection='groupListForAdd' item='item' open='(' separator=',' close=')'>#{item.id}</foreach>
+    </update>
+
+    <update id="updateParentIdWithBusinessGroup" databaseId="mysql">
+        update wvp_common_group w1
+        inner join (select * from wvp_common_group) w2
+        on w1.parent_device_id is null
+        and w2.parent_device_id is null
+        and w2.device_id = w2.business_group
+        and w1.business_group = w2.device_id
+        and w1.device_id != w1.business_group
+        set w1.parent_id = w2.id
+        where w1.id in
+        <foreach collection='groupListForAdd' item='item' open='(' separator=',' close=')'>#{item.id}</foreach>
+    </update>
+
+    <update id="updateParentIdWithBusinessGroup" databaseId="kingbase">
+        update wvp_common_group w1
+        set parent_id = w2.id
+        from wvp_common_group w2
+        where w1.parent_device_id is null
+        and w2.parent_device_id is null
+        and w2.device_id = w2.business_group
+        and w1.business_group = w2.device_id
+        and w1.device_id != w1.business_group
+        and w1.id in
+        <foreach collection='groupListForAdd' item='item' open='(' separator=',' close=')'>#{item.id}</foreach>
+    </update>
+
+    <update id="updateParentIdWithBusinessGroup" databaseId="postgresql">
+        update wvp_common_group w1
+        set parent_id = w2.id
+        from wvp_common_group w2
+        where w1.parent_device_id is null
+        and w2.parent_device_id is null
+        and w2.device_id = w2.business_group
+        and w1.business_group = w2.device_id
+        and w1.device_id != w1.business_group
+        and w1.id in
+        <foreach collection='groupListForAdd' item='item' open='(' separator=',' close=')'>#{item.id}</foreach>
+    </update>
+
+    <select id="queryForPlatformByGroupId" resultType="com.genersoft.iot.vmp.gb28181.bean.Platform">
+        SELECT wp.*
+        from wvp_platform_group wpg
+                 left join wvp_platform wp on wp.id = wpg.platform_id
+        where wpg.group_id = #{groupId}
+    </select>
+
+    <delete id="deletePlatformGroup">
+        DELETE
+        FROM wvp_platform_group
+        WHERE group_id = #{groupId}
+    </delete>
+
+</mapper>

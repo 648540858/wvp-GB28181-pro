@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.genersoft.iot.vmp.storager.dao.RecordPlanMapper">
+
+    <resultMap type="com.genersoft.iot.vmp.service.bean.RecordPlan" id="WvpRecordPlanResult">
+        <result property="id"    column="id"    />
+        <result property="snap"    column="snap"    />
+        <result property="name"    column="name"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <insert id="add">
+        INSERT INTO wvp_record_plan(name, snap, create_time, update_time)
+        VALUES (#{name}, #{snap}, #{createTime}, #{updateTime})
+    </insert>
+
+    <insert id="batchAddItem">
+        INSERT INTO wvp_record_plan_item (
+        start,
+        stop,
+        week_day,
+        plan_id)
+        VALUES
+        <foreach collection='planItemList' index='index' item='item' separator=','>
+            (#{item.start}, #{item.stop}, #{item.weekDay},#{planId})
+        </foreach>
+    </insert>
+
+    <select id="get" resultMap="WvpRecordPlanResult">
+        select *
+        from wvp_record_plan
+        where id = #{planId}
+    </select>
+
+    <select id="query" resultMap="WvpRecordPlanResult">
+        SELECT wrp.*, (select count(1) from wvp_device_channel where record_plan_id = wrp.id) AS channelCount
+        FROM wvp_record_plan wrp
+        <where>
+            <if test='query != null'>(name LIKE concat('%',#{query},'%') escape '/')</if>
+        </where>
+    </select>
+
+    <update id="update">
+        UPDATE wvp_record_plan
+        SET update_time=#{updateTime},
+            name=#{name},
+            snap=#{snap}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE
+        FROM wvp_record_plan
+        WHERE id = #{planId}
+    </delete>
+
+    <delete id="cleanItems">
+        DELETE
+        FROM wvp_record_plan_item
+        WHERE plan_id = #{planId}
+    </delete>
+
+    <select id="getItemList" resultType="com.genersoft.iot.vmp.service.bean.RecordPlanItem">
+        select *
+        from wvp_record_plan_item
+        where plan_id = #{planId}
+    </select>
+
+    <select id="queryRecordIng" resultType="java.lang.Integer">
+        select wdc.id
+        from wvp_device_channel wdc
+                 left join wvp_record_plan_item wrpi on wrpi.plan_id = wdc.record_plan_id
+        where wrpi.week_day = #{week}
+          and wrpi.start &lt;= #{index}
+          and stop &gt;= #{index}
+        group by wdc.id
+    </select>
+
+</mapper>

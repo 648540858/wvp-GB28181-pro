@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.genersoft.iot.vmp.gb28181.dao.RegionMapper">
+    <insert id="add">
+        INSERT INTO wvp_common_region (device_id, name, parent_id, parent_device_id, create_time, update_time)
+        VALUES (#{deviceId}, #{name}, #{parentId}, #{parentDeviceId}, #{createTime}, #{updateTime})
+    </insert>
+
+    <delete id="delete">
+        DELETE
+        FROM wvp_common_region
+        WHERE id = #{id}
+    </delete>
+
+    <update id="update">
+        UPDATE wvp_common_region
+        SET update_time=#{updateTime},
+            device_id=#{deviceId},
+            name=#{name},
+            parent_id=#{parentId},
+            parent_device_id=#{parentDeviceId}
+        WHERE id = #{id}
+    </update>
+
+    <select id="query" resultType="com.genersoft.iot.vmp.gb28181.bean.Region">
+        SELECT * from wvp_common_region
+        <where>
+            <if test='query != null'>
+                AND (device_id LIKE concat('%',#{query},'%') escape '/'
+                OR name LIKE concat('%',#{query},'%') escape '/')
+            </if>
+            <if test='parentId != null'>AND parent_device_id = #{parentId}</if>
+        </where>
+        ORDER BY id
+    </select>
+
+    <select id="getChildren" resultType="com.genersoft.iot.vmp.gb28181.bean.Region">
+        SELECT *
+        from wvp_common_region
+        WHERE parent_id = #{parentId}
+        ORDER BY id
+    </select>
+
+    <select id="queryOne" resultType="com.genersoft.iot.vmp.gb28181.bean.Region">
+        SELECT *
+        from wvp_common_region
+        WHERE id = #{id}
+    </select>
+
+    <select id="getUninitializedCivilCode" resultType="java.lang.String">
+        select dc.civil_code as civil_code
+        from wvp_device_channel dc
+        where dc.civil_code not in
+              (select device_id from wvp_common_region)
+    </select>
+
+    <select id="queryInList" resultType="java.lang.String">
+        SELECT device_id from wvp_common_region where device_id in
+        <foreach collection='codes' item='item' open='(' separator=',' close=')'>#{item}</foreach>
+    </select>
+
+    <insert id="batchAdd">
+        INSERT INTO wvp_common_region (
+        device_id,
+        name,
+        parent_device_id,
+        parent_id,
+        create_time,
+        update_time)
+        VALUES
+        <foreach collection='regionList' index='index' item='item' separator=','>
+            (#{item.deviceId}, #{item.name},
+            #{item.parentDeviceId},#{item.parentId},#{item.createTime},#{item.updateTime})
+        </foreach>
+    </insert>
+
+    <select id="queryForTree" resultType="com.genersoft.iot.vmp.gb28181.bean.RegionTree">
+        SELECT *, concat('region', id) as tree_id, 0 as type, 'ON' as status, false as is_leaf
+        from wvp_common_region where
+        <if test='parentId != null'>parent_id = #{parentId}</if>
+        <if test='parentId == null'>parent_id is null</if>
+        <if test='query != null'>
+            AND (device_id LIKE concat('%',#{query},'%') escape '/'
+            OR name LIKE concat('%',#{query},'%') escape '/')
+        </if>
+    </select>
+
+    <delete id="batchDelete">
+        DELETE FROM wvp_common_region WHERE id in
+        <foreach collection='allChildren' item='item' open='(' separator=',' close=')'>#{item.id}</foreach>
+    </delete>
+
+    <select id="queryInRegionListByDeviceId" resultType="com.genersoft.iot.vmp.gb28181.bean.Region">
+        SELECT * from wvp_common_region where device_id in
+        <foreach collection='regionList' item='item' open='(' separator=',' close=')'>#{item.deviceId}</foreach>
+    </select>
+
+    <select id="queryByPlatform" resultType="com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel">
+        SELECT wcr.device_id as gb_device_id,
+               wcr.name      as gb_name
+        from wvp_common_region wcr
+                 left join wvp_platform_region wpr on wcr.id = wpr.region_id
+        where wpr.platform_id = #{platformId}
+    </select>
+
+    <update id="updateParentId" databaseId="mysql">
+        update wvp_common_region w1
+        inner join (select * from wvp_common_region) w2 on w1.parent_device_id = w2.device_id
+        set w1.parent_id = w2.id where w1.id in
+        <foreach collection='regionListForAdd' item='item' open='(' separator=',' close=')'>#{item.id}</foreach>
+    </update>
+
+    <update id="updateParentId" databaseId="kingbase">
+        update wvp_common_region w1
+        set parent_id = w2.id
+        from wvp_common_region w2
+        where w1.parent_device_id = w2.device_id
+        and w1.id in
+        <foreach collection='regionListForAdd' item='item' open='(' separator=',' close=')'>#{item.id}</foreach>
+    </update>
+
+    <update id="updateParentId" databaseId="postgresql">
+        update wvp_common_region w1
+        set parent_id = w2.id
+        from wvp_common_region w2
+        where w1.parent_device_id = w2.device_id
+        and w1.id in
+        <foreach collection='regionListForAdd' item='item' open='(' separator=',' close=')'>#{item.id}</foreach>
+    </update>
+
+    <update id="updateChild">
+        update wvp_common_region
+        set parent_device_id = #{parentDeviceId}
+        where parent_id = #{parentId}
+    </update>
+
+    <select id="queryByDeviceId" resultType="com.genersoft.iot.vmp.gb28181.bean.Region">
+        SELECT *
+        from wvp_common_region
+        WHERE device_id = #{deviceId}
+    </select>
+
+    <select id="queryParentInChannelList" resultType="com.genersoft.iot.vmp.gb28181.bean.Region">
+        SELECT * from wvp_common_region where id in
+        <foreach collection='regionSet' item='item' open='(' separator=',' close=')'>#{item.parentId}</foreach>
+    </select>
+
+    <select id="queryByChannelList" resultType="com.genersoft.iot.vmp.gb28181.bean.Region">
+        SELECT * from wvp_common_region where device_id in
+        <foreach collection='channelList' item='item' open='(' separator=',' close=')'>#{item.gbCivilCode}</foreach>
+        order by id
+    </select>
+
+    <select id="queryNotShareRegionForPlatformByChannelList" resultType="com.genersoft.iot.vmp.gb28181.bean.Region">
+        SELECT * from wvp_common_region wcr
+        left join wvp_platform_region wpr on wpr.region_id = wcr.id and wpr.platform_id = #{platformId}
+        where wpr.platform_id is null and wcr.device_id in
+        <foreach collection='channelList' item='item' open='(' separator=',' close=')'>#{item.gbCivilCode}</foreach>
+    </select>
+
+    <select id="queryNotShareRegionForPlatformByRegionList" resultType="com.genersoft.iot.vmp.gb28181.bean.Region">
+        SELECT * from wvp_common_region wcr
+        left join wvp_platform_region wpr on wpr.region_id = wcr.id and wpr.platform_id = #{platformId}
+        where wpr.platform_id IS NULL and wcr.id in
+        <foreach collection='allRegion' item='item' open='(' separator=',' close=')'>#{item.id}</foreach>
+    </select>
+
+</mapper>

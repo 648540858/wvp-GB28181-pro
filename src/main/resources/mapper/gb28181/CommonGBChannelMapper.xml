@@ -1,0 +1,739 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.genersoft.iot.vmp.gb28181.dao.CommonGBChannelMapper">
+    <sql id="BASE_SQL">
+        SELECT id                                                        AS gb_id,
+               data_type,
+               data_device_id,
+               create_time,
+               update_time,
+               record_plan_id,
+               COALESCE(gb_device_id, device_id)                         AS gb_device_id,
+               COALESCE(gb_name, NAME)                                   AS gb_name,
+               COALESCE(gb_manufacturer, manufacturer)                   AS gb_manufacturer,
+               COALESCE(gb_model, model)                                 AS gb_model,
+               COALESCE(gb_owner, OWNER)                                 AS gb_owner,
+               COALESCE(gb_civil_code, civil_code)                       AS gb_civil_code,
+               COALESCE(gb_block, block)                                 AS gb_block,
+               COALESCE(gb_address, address)                             AS gb_address,
+               COALESCE(gb_parental, parental)                           AS gb_parental,
+               COALESCE(gb_parent_id, parent_id)                         AS gb_parent_id,
+               COALESCE(gb_safety_way, safety_way)                       AS gb_safety_way,
+               COALESCE(gb_register_way, register_way)                   AS gb_register_way,
+               COALESCE(gb_cert_num, cert_num)                           AS gb_cert_num,
+               COALESCE(gb_certifiable, certifiable)                     AS gb_certifiable,
+               COALESCE(gb_err_code, err_code)                           AS gb_err_code,
+               COALESCE(gb_end_time, end_time)                           AS gb_end_time,
+               COALESCE(gb_secrecy, secrecy)                             AS gb_secrecy,
+               COALESCE(gb_ip_address, ip_address)                       AS gb_ip_address,
+               COALESCE(gb_port, PORT)                                   AS gb_port,
+               COALESCE(gb_password, PASSWORD)                           AS gb_password,
+               COALESCE(gb_status, STATUS)                               AS gb_status,
+               COALESCE(gb_longitude, longitude)                         AS gb_longitude,
+               COALESCE(gb_latitude, latitude)                           AS gb_latitude,
+               COALESCE(gb_ptz_type, ptz_type)                           AS gb_ptz_type,
+               COALESCE(gb_position_type, position_type)                 AS gb_position_type,
+               COALESCE(gb_room_type, room_type)                         AS gb_room_type,
+               COALESCE(gb_use_type, use_type)                           AS gb_use_type,
+               COALESCE(gb_supply_light_type, supply_light_type)         AS gb_supply_light_type,
+               COALESCE(gb_direction_type, direction_type)               AS gb_direction_type,
+               COALESCE(gb_resolution, resolution)                       AS gb_resolution,
+               COALESCE(gb_business_group_id, business_group_id)         AS gb_business_group_id,
+               COALESCE(gb_download_speed, download_speed)               AS gb_download_speed,
+               COALESCE(gb_svc_space_support_mod, svc_space_support_mod) AS gb_svc_space_support_mod,
+               COALESCE(gb_svc_time_support_mode, svc_time_support_mode) AS gb_svc_time_support_mode
+        FROM wvp_device_channel
+    </sql>
+
+    <sql id="BASE_SQL_FOR_PLATFORM">
+        select
+            wdc.id as gb_id,
+            wdc.data_type,
+            wdc.data_device_id,
+            wdc.create_time,
+            wdc.update_time,
+            coalesce(wpgc.custom_device_id, wdc.gb_device_id, wdc.device_id) as gb_device_id,
+            coalesce(wpgc.custom_name, wdc.gb_name, wdc.name) as gb_name,
+            coalesce(wpgc.custom_manufacturer, wdc.gb_manufacturer, wdc.manufacturer) as gb_manufacturer,
+            coalesce(wpgc.custom_model, wdc.gb_model, wdc.model) as gb_model,
+            coalesce(wpgc.custom_owner, wdc.gb_owner, wdc.owner) as gb_owner,
+            coalesce(wpgc.custom_civil_code, wdc.gb_civil_code, wdc.civil_code) as gb_civil_code,
+            coalesce(wpgc.custom_block, wdc.gb_block, wdc.block) as gb_block,
+            coalesce(wpgc.custom_address, wdc.gb_address, wdc.address) as gb_address,
+            coalesce(wpgc.custom_parental, wdc.gb_parental, wdc.parental) as gb_parental,
+            coalesce(wpgc.custom_parent_id, wdc.gb_parent_id, wdc.parent_id) as gb_parent_id,
+            coalesce(wpgc.custom_safety_way, wdc.gb_safety_way, wdc.safety_way) as gb_safety_way,
+            coalesce(wpgc.custom_register_way, wdc.gb_register_way, wdc.register_way) as gb_register_way,
+            coalesce(wpgc.custom_cert_num, wdc.gb_cert_num, wdc.cert_num) as gb_cert_num,
+            coalesce(wpgc.custom_certifiable, wdc.gb_certifiable, wdc.certifiable) as gb_certifiable,
+            coalesce(wpgc.custom_err_code, wdc.gb_err_code, wdc.err_code) as gb_err_code,
+            coalesce(wpgc.custom_end_time, wdc.gb_end_time, wdc.end_time) as gb_end_time,
+            coalesce(wpgc.custom_secrecy, wdc.gb_secrecy, wdc.secrecy) as gb_secrecy,
+            coalesce(wpgc.custom_ip_address, wdc.gb_ip_address, wdc.ip_address) as gb_ip_address,
+            coalesce(wpgc.custom_port, wdc.gb_port, wdc.port) as gb_port,
+            coalesce(wpgc.custom_password, wdc.gb_password, wdc.password) as gb_password,
+            coalesce(wpgc.custom_status, wdc.gb_status, wdc.status) as gb_status,
+            coalesce(wpgc.custom_longitude, wdc.gb_longitude, wdc.longitude) as gb_longitude,
+            coalesce(wpgc.custom_latitude, wdc.gb_latitude, wdc.latitude) as gb_latitude,
+            coalesce(wpgc.custom_ptz_type, wdc.gb_ptz_type, wdc.ptz_type) as gb_ptz_type,
+            coalesce(wpgc.custom_position_type, wdc.gb_position_type, wdc.position_type) as gb_position_type,
+            coalesce(wpgc.custom_room_type, wdc.gb_room_type, wdc.room_type) as gb_room_type,
+            coalesce(wpgc.custom_use_type, wdc.gb_use_type, wdc.use_type) as gb_use_type,
+            coalesce(wpgc.custom_supply_light_type, wdc.gb_supply_light_type, wdc.supply_light_type) as gb_supply_light_type,
+            coalesce(wpgc.custom_direction_type, wdc.gb_direction_type, wdc.direction_type) as gb_direction_type,
+            coalesce(wpgc.custom_resolution, wdc.gb_resolution, wdc.resolution) as gb_resolution,
+            coalesce(wpgc.custom_business_group_id, wdc.gb_business_group_id, wdc.business_group_id) as gb_business_group_id,
+            coalesce(wpgc.custom_download_speed, wdc.gb_download_speed, wdc.download_speed) as gb_download_speed,
+            coalesce(wpgc.custom_svc_space_support_mod, wdc.gb_svc_space_support_mod, wdc.svc_space_support_mod) as gb_svc_space_support_mod,
+            coalesce(wpgc.custom_svc_time_support_mode, wdc.gb_svc_time_support_mode, wdc.svc_time_support_mode) as gb_svc_time_support_mode
+        from wvp_device_channel wdc
+        left join wvp_platform_channel wpgc on wdc.id = wpgc.device_channel_id
+    </sql>
+
+    <select id="queryByDeviceId" resultType="com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel">
+        <include refid="BASE_SQL"/>
+        where channel_type = 0 and coalesce(gb_device_id, device_id) = #{gbDeviceId}
+    </select>
+
+    <insert id="insert">
+        INSERT INTO wvp_device_channel
+        (gb_device_id,
+         data_type,
+         data_device_id,
+         create_time,
+         update_time,
+         gb_name,
+         gb_manufacturer,
+         gb_model,
+         gb_owner,
+         gb_civil_code,
+         gb_block,
+         gb_address,
+         gb_parental,
+         gb_parent_id,
+         gb_safety_way,
+         gb_register_way,
+         gb_cert_num,
+         gb_certifiable,
+         gb_err_code,
+         gb_end_time,
+         gb_secrecy,
+         gb_ip_address,
+         gb_port,
+         gb_password,
+         gb_status,
+         gb_longitude,
+         gb_latitude,
+         gb_ptz_type,
+         gb_position_type,
+         gb_room_type,
+         gb_use_type,
+         gb_supply_light_type,
+         gb_direction_type,
+         gb_resolution,
+         gb_business_group_id,
+         gb_download_speed,
+         gb_svc_space_support_mod,
+         gb_svc_time_support_mode)
+         VALUES (#{gbDeviceId},
+                #{dataType},
+                #{dataDeviceId},
+                #{createTime},
+                #{updateTime},
+                #{gbName},
+                #{gbManufacturer},
+                #{gbModel},
+                #{gbOwner},
+                #{gbCivilCode},
+                #{gbBlock},
+                #{gbAddress},
+                #{gbParental},
+                #{gbParentId},
+                #{gbSafetyWay},
+                #{gbRegisterWay},
+                #{gbCertNum},
+                #{gbCertifiable},
+                #{gbErrCode},
+                #{gbEndTime},
+                #{gbSecrecy},
+                #{gbIpAddress},
+                #{gbPort},
+                #{gbPassword},
+                #{gbStatus},
+                #{gbLongitude},
+                #{gbLatitude},
+                #{gbPtzType},
+                #{gbPositionType},
+                #{gbRoomType},
+                #{gbUseType},
+                #{gbSupplyLightType},
+                #{gbDirectionType},
+                #{gbResolution},
+                #{gbBusinessGroupId},
+                #{gbDownloadSpeed},
+                #{gbSvcSpaceSupportMod},
+                #{gbSvcTimeSupportMode})
+    </insert>
+
+    <select id="queryById" parameterType="int" resultType="com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel">
+        <include refid="BASE_SQL"/>
+        where channel_type = 0 and id = #{gbId}
+    </select>
+
+    <delete id="delete">
+        delete
+        from wvp_device_channel
+        where id = #{gbId}
+    </delete>
+
+    <update id="update">
+        UPDATE wvp_device_channel
+        SET update_time=#{updateTime},
+            gb_device_id = #{gbDeviceId},
+            gb_name = #{gbName},
+            gb_manufacturer = #{gbManufacturer},
+            gb_model = #{gbModel},
+            gb_owner = #{gbOwner},
+            gb_civil_code = #{gbCivilCode},
+            gb_block = #{gbBlock},
+            gb_address = #{gbAddress},
+            gb_parental = #{gbParental},
+            gb_parent_id = #{gbParentId},
+            gb_safety_way = #{gbSafetyWay},
+            gb_register_way = #{gbRegisterWay},
+            gb_cert_num = #{gbCertNum},
+            gb_certifiable = #{gbCertifiable},
+            gb_err_code = #{gbErrCode},
+            gb_end_time = #{gbEndTime},
+            gb_ip_address = #{gbIpAddress},
+            gb_port = #{gbPort},
+            gb_password = #{gbPassword},
+            gb_status = #{gbStatus},
+            gb_longitude = #{gbLongitude},
+            gb_latitude = #{gbLatitude},
+            gb_ptz_type = #{gbPtzType},
+            gb_position_type = #{gbPositionType},
+            gb_room_type = #{gbRoomType},
+            gb_use_type = #{gbUseType},
+            gb_supply_light_type = #{gbSupplyLightType},
+            gb_direction_type = #{gbDirectionType},
+            gb_resolution = #{gbResolution},
+            gb_business_group_id = #{gbBusinessGroupId},
+            gb_download_speed = #{gbDownloadSpeed},
+            gb_svc_space_support_mod = #{gbSvcSpaceSupportMod},
+            gb_svc_time_support_mode = #{gbSvcTimeSupportMode}
+        WHERE id = #{gbId}
+    </update>
+
+    <update id="updateStatusById">
+        UPDATE wvp_device_channel
+        SET gb_status = #{status}
+        WHERE id = #{gbId}
+    </update>
+
+    <update id="updateStatusForListById">
+        <foreach collection='commonGBChannels' index='index' item='item' separator=';'>
+            UPDATE wvp_device_channel SET gb_status = #{status} WHERE id = #{item.gbId}
+        </foreach>
+    </update>
+
+    <select id="queryInListByStatus" resultType="com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel">
+        <include refid="BASE_SQL"/>
+        where channel_type = 0 and gb_status=#{status} and id in
+        <foreach collection="commonGBChannelList" item="item" open="(" close=")" separator=",">
+            #{item.gbId}
+        </foreach>
+    </select>
+
+    <insert id="batchAdd">
+        INSERT INTO wvp_device_channel (
+        gb_device_id,
+        data_type,
+        data_device_id,
+        create_time,
+        update_time,
+        gb_name,
+        gb_manufacturer,
+        gb_model,
+        gb_owner,
+        gb_civil_code,
+        gb_block,
+        gb_address,
+        gb_parental,
+        gb_parent_id ,
+        gb_safety_way,
+        gb_register_way,
+        gb_cert_num,
+        gb_certifiable,
+        gb_err_code,
+        gb_end_time,
+        gb_secrecy,
+        gb_ip_address,
+        gb_port,
+        gb_password,
+        gb_status,
+        gb_longitude,
+        gb_latitude,
+        gb_ptz_type,
+        gb_position_type,
+        gb_room_type,
+        gb_use_type,
+        gb_supply_light_type,
+        gb_direction_type,
+        gb_resolution,
+        gb_business_group_id,
+        gb_download_speed,
+        gb_svc_space_support_mod,
+        gb_svc_time_support_mode)
+        VALUES
+        <foreach collection='commonGBChannels' index='index' item='item' separator=','>
+            (#{item.gbDeviceId}, #{item.dataType}, #{item.dataDeviceId},#{item.createTime},#{item.updateTime},
+            #{item.gbName},#{item.gbManufacturer}, #{item.gbModel},
+            #{item.gbOwner},#{item.gbCivilCode},#{item.gbBlock}, #{item.gbAddress}, #{item.gbParental},
+            #{item.gbParentId},#{item.gbSafetyWay},
+            #{item.gbRegisterWay},#{item.gbCertNum},#{item.gbCertifiable},#{item.gbErrCode},#{item.gbEndTime},
+            #{item.gbSecrecy},#{item.gbIpAddress},
+            #{item.gbPort},#{item.gbPassword},#{item.gbStatus},#{item.gbLongitude},
+            #{item.gbLatitude},#{item.gbPtzType},#{item.gbPositionType},#{item.gbRoomType},
+            #{item.gbUseType},#{item.gbSupplyLightType},#{item.gbDirectionType},#{item.gbResolution},#{item.gbBusinessGroupId},#{item.gbDownloadSpeed},
+            #{item.gbSvcSpaceSupportMod},#{item.gbSvcTimeSupportMode})
+        </foreach>
+    </insert>
+
+    <update id="updateStatus">
+        <foreach collection='commonGBChannels' index='index' item='item' separator=';'>
+            UPDATE wvp_device_channel SET gb_status = #{item.gbStatus} WHERE id = #{item.gbId}
+        </foreach>
+    </update>
+
+    <update id="reset">
+        UPDATE wvp_device_channel
+        SET update_time=#{updateTime},
+            gb_device_id = null,
+            gb_name = null,
+            gb_manufacturer = null,
+            gb_model = null,
+            gb_owner = null,
+            gb_block = null,
+            gb_address = null,
+            gb_parental = null,
+            gb_parent_id = null,
+            gb_safety_way = null,
+            gb_register_way = null,
+            gb_cert_num = null,
+            gb_certifiable = null,
+            gb_err_code = null,
+            gb_end_time = null,
+            gb_secrecy = null,
+            gb_ip_address = null,
+            gb_port = null,
+            gb_password = null,
+            gb_status = null,
+            gb_longitude = null,
+            gb_latitude = null,
+            gb_ptz_type = null,
+            gb_position_type = null,
+            gb_room_type = null,
+            gb_use_type = null,
+            gb_supply_light_type = null,
+            gb_direction_type = null,
+            gb_resolution = null,
+            gb_business_group_id = null,
+            gb_download_speed = null,
+            gb_svc_space_support_mod = null,
+            gb_svc_time_support_mode = null
+        WHERE id = #{id}
+          and data_type = #{dataType}
+          and data_device_id = #{dataDeviceId}
+    </update>
+
+    <select id="queryByIds" resultType="com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel">
+        <include refid="BASE_SQL"/>
+        where channel_type = 0 and id in
+        <foreach collection="ids" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+
+    <delete id="batchDelete">
+        delete from wvp_device_channel
+        where id in
+        <foreach collection='channelListInDb' item='item' open='(' separator=',' close=')'>
+            #{item.gbId}
+        </foreach>
+    </delete>
+
+    <select id="queryListByCivilCode" resultType="com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel">
+        <include refid="BASE_SQL"/>
+        <where>
+            channel_type = 0
+            <if test="query != null">
+                AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%') escape '/'
+                OR coalesce(gb_name, name) LIKE concat('%',#{query},'%') escape '/' )
+            </if>
+            <if test="online != null and online == 1">
+                AND coalesce(gb_status, status) = 'ON'
+            </if>
+            <if test="online != null and online != 1">
+                AND coalesce(gb_status, status) = 'OFF'
+            </if>
+            <choose>
+                <when test="civilCode != null">
+                    AND coalesce(gb_civil_code, civil_code) = #{civilCode}
+                </when>
+                <otherwise>
+                    AND coalesce(gb_civil_code, civil_code) is null
+                </otherwise>
+            </choose>
+            <if test="dataType != null">
+                AND data_type = #{dataType}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryListByParentId" resultType="com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel">
+        <include refid="BASE_SQL"/>
+        <where>
+            channel_type = 0
+            <if test="query != null">
+                AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%') escape '/'
+                OR coalesce(gb_name, name) LIKE concat('%',#{query},'%') escape '/' )
+            </if>
+            <if test="online != null and online == 1">
+                AND coalesce(gb_status, status) = 'ON'
+            </if>
+            <if test="online != null and online != 1">
+                AND coalesce(gb_status, status) = 'OFF'
+            </if>
+            <choose>
+                <when test="groupDeviceId != null">
+                    AND coalesce(gb_parent_id, parent_id) = #{groupDeviceId}
+                </when>
+                <otherwise>
+                    AND coalesce(gb_parent_id, parent_id) is null
+                </otherwise>
+            </choose>
+            <if test="dataType != null">
+                AND data_type = #{dataType}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryForRegionTreeByCivilCode" resultType="com.genersoft.iot.vmp.gb28181.bean.RegionTree">
+        select id,
+        concat('channel', id) as tree_id,
+        coalesce(gb_device_id, device_id) as device_id,
+        coalesce(gb_name, name) as name,
+        coalesce(gb_parent_id, parent_id) as parent_device_id,
+        coalesce(gb_status, status) as status,
+        1 as type,
+        true as is_leaf
+        from wvp_device_channel
+        where coalesce(gb_civil_code, civil_code) = #{parentDeviceId}
+        <if test='query != null'>
+            AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%')
+            OR coalesce(gb_name, name) LIKE concat('%',#{query},'%'))
+        </if>
+    </select>
+
+    <delete id="removeCivilCode">
+        UPDATE wvp_device_channel
+        SET gb_civil_code = null, civil_code = null
+        WHERE gb_civil_code in
+        <foreach collection='allChildren' item='item' open='(' separator=',' close=')'>#{item.deviceId}</foreach>
+    </delete>
+
+    <update id="updateRegion">
+        UPDATE wvp_device_channel
+        SET gb_civil_code = #{civilCode}
+        WHERE id in
+        <foreach collection='channelList' item='item' open='(' separator=',' close=')'>#{item.gbId}</foreach>
+    </update>
+
+    <select id="queryByIdsOrCivilCode" resultType="com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel">
+        <include refid="BASE_SQL"/>
+        <where>
+            channel_type = 0
+            <if test="civilCode != null">
+                AND coalesce(gb_civil_code, civil_code) = #{civilCode}
+            </if>
+            <if test="ids != null">
+                OR id in
+                <foreach collection="ids" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <update id="removeCivilCodeByChannels">
+        UPDATE wvp_device_channel SET gb_civil_code = null, civil_code = null WHERE id in
+        <foreach collection='channelList' item='item' open='(' separator=',' close=')'>#{item.gbId}</foreach>
+    </update>
+
+    <select id="queryByCivilCode" resultType="com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel">
+        <include refid="BASE_SQL"/>
+        where channel_type = 0 and coalesce(gb_civil_code, civil_code) = #{civilCode}
+    </select>
+
+    <select id="queryByGbDeviceIds" resultType="com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel">
+        <include refid="BASE_SQL"/>
+        where channel_type = 0 and data_type = #{dataType} and data_device_id in
+        <foreach collection="deviceIds" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="queryByGbDeviceIdsForIds" resultType="java.lang.Integer">
+        select id from wvp_device_channel
+        where channel_type = 0 and data_type = #{dataType} and data_device_id in
+        <foreach collection='deviceIds' item='item' open='(' separator=',' close=')'>#{item}</foreach>
+    </select>
+
+    <select id="queryByGroupList" resultType="com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel">
+        <include refid="BASE_SQL"/>
+        where channel_type = 0 and gb_parent_id in
+        <foreach collection="groupList" item="item" open="(" close=")" separator=",">
+            #{item.deviceId}
+        </foreach>
+    </select>
+
+    <update id="removeParentIdByChannels">
+        UPDATE wvp_device_channel
+        SET gb_parent_id = null, gb_business_group_id = null, parent_id = null, business_group_id = null
+        WHERE id in
+        <foreach collection='channelList' item='item' open='(' separator=',' close=')'>#{item.gbId}</foreach>
+    </update>
+
+    <select id="queryByBusinessGroup" resultType="com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel">
+        <include refid="BASE_SQL"/>
+        where channel_type = 0 and coalesce(gb_business_group_id, business_group_id) = #{businessGroup}
+    </select>
+
+    <select id="queryByParentId" resultType="com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel">
+        <include refid="BASE_SQL"/>
+        where channel_type = 0 and gb_parent_id = #{parentId}
+    </select>
+
+    <update id="updateBusinessGroupByChannelList">
+        UPDATE wvp_device_channel SET gb_business_group_id = #{businessGroup} WHERE id in
+        <foreach collection='channelList' item='item' open='(' separator=',' close=')'>#{item.gbId}</foreach>
+    </update>
+
+    <update id="updateParentIdByChannelList">
+        UPDATE wvp_device_channel SET gb_parent_id = #{parentId} WHERE id in
+        <foreach collection='channelList' item='item' open='(' separator=',' close=')'>#{item.gbId}</foreach>
+    </update>
+
+    <select id="queryForGroupTreeByParentId" resultType="com.genersoft.iot.vmp.gb28181.bean.GroupTree">
+        select
+        id,
+        concat('channel', id) as tree_id,
+        coalesce(gb_device_id, device_id) as device_id,
+        coalesce(gb_name, name) as name,
+        coalesce(gb_parent_id, parent_id) as parent_device_id,
+        coalesce(gb_business_group_id, business_group_id) as business_group,
+        coalesce(gb_status, status) as status,
+        1 as type,
+        true as is_leaf
+        from wvp_device_channel
+        where channel_type = 0 and coalesce(gb_parent_id, parent_id) = #{parent}
+        <if test='query != null'>
+            AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%')
+            OR coalesce(gb_name, name) LIKE concat('%',#{query},'%'))
+        </if>
+    </select>
+
+    <update id="updateGroup">
+        UPDATE wvp_device_channel
+        SET gb_parent_id = #{parentId}, gb_business_group_id = #{businessGroup}
+        WHERE id in
+        <foreach collection='channelList' item='item' open='(' separator=',' close=')'>#{item.gbId}</foreach>
+    </update>
+
+    <update id="batchUpdate">
+        <foreach collection='commonGBChannels' item='item' separator=';'>
+            UPDATE wvp_device_channel
+            SET update_time=#{item.updateTime},
+            gb_device_id=#{item.gbDeviceId},
+            gb_name=#{item.gbName},
+            gb_manufacturer=#{item.gbManufacturer},
+            gb_model=#{item.gbModel},
+            gb_owner=#{item.gbOwner},
+            gb_civil_code=#{item.gbCivilCode},
+            gb_block=#{item.gbBlock},
+            gb_address=#{item.gbAddress},
+            gb_parental=#{item.gbParental},
+            gb_safety_way=#{item.gbSafetyWay},
+            gb_register_way=#{item.gbRegisterWay},
+            gb_cert_num=#{item.gbCertNum},
+            gb_certifiable=#{item.gbCertifiable},
+            gb_err_code=#{item.gbErrCode},
+            gb_end_time=#{item.gbEndTime},
+            gb_ip_address=#{item.gbIpAddress},
+            gb_port=#{item.gbPort},
+            gb_password=#{item.gbPassword},
+            gb_status=#{item.gbStatus},
+            gb_longitude=#{item.gbLongitude},
+            gb_latitude=#{item.gbLatitude},
+            gb_ptz_type=#{item.gbPtzType},
+            gb_position_type=#{item.gbPositionType},
+            gb_room_type=#{item.gbRoomType},
+            gb_use_type=#{item.gbUseType},
+            gb_supply_light_type=#{item.gbSupplyLightType},
+            gb_direction_type=#{item.gbDirectionType},
+            gb_resolution=#{item.gbResolution},
+            gb_business_group_id=#{item.gbBusinessGroupId},
+            gb_download_speed=#{item.gbDownloadSpeed},
+            gb_svc_space_support_mod=#{item.gbSvcSpaceSupportMod},
+            gb_svc_time_support_mode=#{item.gbSvcTimeSupportMode}
+            WHERE id=#{item.gbId}
+        </foreach>
+    </update>
+
+    <select id="queryWithPlatform" resultType="com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel">
+        <include refid="BASE_SQL_FOR_PLATFORM"/>
+        where wpgc.platform_id = #{platformId}
+    </select>
+
+    <select id="queryShareChannelByParentId" resultType="com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel">
+        <include refid="BASE_SQL_FOR_PLATFORM"/>
+        where wpgc.platform_id = #{platformId}
+        and coalesce(wpgc.custom_parent_id, wdc.gb_parent_id, wdc.parent_id) = #{parentId}
+    </select>
+
+    <select id="queryShareChannelByCivilCode" resultType="com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel">
+        <include refid="BASE_SQL_FOR_PLATFORM"/>
+        where wpgc.platform_id = #{platformId}
+        and coalesce(wpgc.custom_civil_code, wdc.gb_civil_code, wdc.civil_code) = #{civilCode}
+    </select>
+
+    <update id="updateCivilCodeByChannelList">
+        UPDATE wvp_device_channel
+        SET gb_civil_code = #{civilCode}
+        WHERE id in
+        <foreach collection='channelList' item='item' open='(' separator=',' close=')'>#{item.gbId}</foreach>
+    </update>
+
+    <select id="queryListByStreamPushList" resultType="com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel">
+        <include refid="BASE_SQL"/>
+        where channel_type = 0 and data_type = #{dataType} and data_device_id in
+        <foreach collection="streamPushList" item="item" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
+    </select>
+
+    <update id="updateGpsByDeviceIdForStreamPush">
+        <foreach collection='channels' item='item' separator=';'>
+            UPDATE wvp_device_channel
+            SET gb_longitude=#{item.gbLongitude}, gb_latitude=#{item.gbLatitude}
+            WHERE data_type = #{dataType} AND gb_device_id=#{item.gbDeviceId}
+        </foreach>
+    </update>
+
+    <select id="queryList" resultType="com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel">
+        <include refid="BASE_SQL"/>
+        where channel_type = 0
+        <if test="query != null">
+            AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%') escape '/'
+            OR coalesce(gb_name, name) LIKE concat('%',#{query},'%') escape '/' )
+        </if>
+        <if test="online != null and online == 1">
+            AND coalesce(gb_status, status) = 'ON'
+        </if>
+        <if test="online != null and online != 1">
+            AND coalesce(gb_status, status) = 'OFF'
+        </if>
+        <if test="hasRecordPlan != null and hasRecordPlan == 1">
+            AND record_plan_id > 0
+        </if>
+        <if test="dataType != null">
+            AND data_type = #{dataType}
+        </if>
+    </select>
+
+    <update id="removeRecordPlan">
+        UPDATE wvp_device_channel
+        SET record_plan_id = null
+        WHERE id in
+        <foreach collection='channelIds' item='item' open='(' separator=',' close=')'>#{item}</foreach>
+    </update>
+
+    <insert id="addRecordPlan">
+        UPDATE wvp_device_channel
+        SET record_plan_id = #{planId}
+        WHERE id in
+        <foreach collection='channelIds' item='item' open='(' separator=',' close=')'>#{item}</foreach>
+    </insert>
+
+    <insert id="addRecordPlanForAll">
+        UPDATE wvp_device_channel
+        SET record_plan_id = #{planId}
+    </insert>
+
+    <delete id="removeRecordPlanByPlanId">
+        UPDATE wvp_device_channel
+        SET record_plan_id = null
+        WHERE record_plan_id = #{planId}
+    </delete>
+
+    <select id="queryForRecordPlanForWebList" resultType="com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel">
+        select
+        wdc.id as gb_id,
+        wdc.data_type,
+        wdc.data_device_id,
+        wdc.create_time,
+        wdc.update_time,
+        wdc.record_plan_id,
+        coalesce( wdc.gb_device_id, wdc.device_id) as gb_device_id,
+        coalesce( wdc.gb_name, wdc.name) as gb_name,
+        coalesce( wdc.gb_manufacturer, wdc.manufacturer) as gb_manufacturer,
+        coalesce( wdc.gb_model, wdc.model) as gb_model,
+        coalesce( wdc.gb_owner, wdc.owner) as gb_owner,
+        coalesce( wdc.gb_civil_code, wdc.civil_code) as gb_civil_code,
+        coalesce( wdc.gb_block, wdc.block) as gb_block,
+        coalesce( wdc.gb_address, wdc.address) as gb_address,
+        coalesce( wdc.gb_parental, wdc.parental) as gb_parental,
+        coalesce( wdc.gb_parent_id, wdc.parent_id) as gb_parent_id,
+        coalesce( wdc.gb_safety_way, wdc.safety_way) as gb_safety_way,
+        coalesce( wdc.gb_register_way, wdc.register_way) as gb_register_way,
+        coalesce( wdc.gb_cert_num, wdc.cert_num) as gb_cert_num,
+        coalesce( wdc.gb_certifiable, wdc.certifiable) as gb_certifiable,
+        coalesce( wdc.gb_err_code, wdc.err_code) as gb_err_code,
+        coalesce( wdc.gb_end_time, wdc.end_time) as gb_end_time,
+        coalesce( wdc.gb_secrecy, wdc.secrecy) as gb_secrecy,
+        coalesce( wdc.gb_ip_address, wdc.ip_address) as gb_ip_address,
+        coalesce( wdc.gb_port, wdc.port) as gb_port,
+        coalesce( wdc.gb_password, wdc.password) as gb_password,
+        coalesce( wdc.gb_status, wdc.status) as gb_status,
+        coalesce( wdc.gb_longitude, wdc.longitude) as gb_longitude,
+        coalesce( wdc.gb_latitude, wdc.latitude) as gb_latitude,
+        coalesce( wdc.gb_ptz_type, wdc.ptz_type) as gb_ptz_type,
+        coalesce( wdc.gb_position_type, wdc.position_type) as gb_position_type,
+        coalesce( wdc.gb_room_type, wdc.room_type) as gb_room_type,
+        coalesce( wdc.gb_use_type, wdc.use_type) as gb_use_type,
+        coalesce( wdc.gb_supply_light_type, wdc.supply_light_type) as gb_supply_light_type,
+        coalesce( wdc.gb_direction_type, wdc.direction_type) as gb_direction_type,
+        coalesce( wdc.gb_resolution, wdc.resolution) as gb_resolution,
+        coalesce( wdc.gb_business_group_id, wdc.business_group_id) as gb_business_group_id,
+        coalesce( wdc.gb_download_speed, wdc.download_speed) as gb_download_speed,
+        coalesce( wdc.gb_svc_space_support_mod, wdc.svc_space_support_mod) as gb_svc_space_support_mod,
+        coalesce( wdc.gb_svc_time_support_mode, wdc.svc_time_support_mode) as gb_svc_time_support_mode
+        from wvp_device_channel wdc
+        where wdc.channel_type = 0
+        <if test='query != null'>
+            AND (coalesce(wdc.gb_device_id, wdc.device_id) LIKE concat('%',#{query},'%') escape '/'
+            OR coalesce(wdc.gb_name, wdc.name) LIKE concat('%',#{query},'%') escape '/')
+        </if>
+        <if test='online == true'>AND coalesce(wdc.gb_status, wdc.status) = 'ON'</if>
+        <if test='online == false'>AND coalesce(wdc.gb_status, wdc.status) = 'OFF'</if>
+        <if test='hasLink == true'>AND wdc.record_plan_id = #{planId}</if>
+        <if test='hasLink == false'>AND wdc.record_plan_id is null</if>
+        <if test='dataType != null'>AND wdc.data_type = #{dataType}</if>
+    </select>
+
+    <select id="queryByDataId" resultType="com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel">
+        <include refid="BASE_SQL"/>
+        where channel_type = 0 and data_type = #{dataType} and data_device_id = #{dataDeviceId}
+    </select>
+</mapper>

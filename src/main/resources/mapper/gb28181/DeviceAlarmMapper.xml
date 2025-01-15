@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.genersoft.iot.vmp.gb28181.dao.DeviceAlarmMapper">
+    <insert id="add">
+        INSERT INTO wvp_device_alarm (device_id, channel_id, alarm_priority, alarm_method, alarm_time,
+                                      alarm_description, longitude, latitude, alarm_type, create_time)
+        VALUES (#{deviceId}, #{channelId}, #{alarmPriority}, #{alarmMethod}, #{alarmTime}, #{alarmDescription},
+                #{longitude}, #{latitude}, #{alarmType}, #{createTime})
+    </insert>
+
+    <select id="query" resultType="com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm">
+        SELECT * FROM wvp_device_alarm
+        <where>
+            <if test="deviceId != null">AND device_id = #{deviceId}</if>
+            <if test="alarmPriority != null">AND alarm_priority = #{alarmPriority}</if>
+            <if test="alarmMethod != null">AND alarm_method = #{alarmMethod}</if>
+            <if test="alarmType != null">AND alarm_type = #{alarmType}</if>
+            <if test="startTime != null">AND alarm_time &gt;= #{startTime}</if>
+            <if test="endTime != null">AND alarm_time &lt;= #{endTime}</if>
+        </where>
+        ORDER BY alarm_time ASC
+    </select>
+
+    <delete id="clearAlarmBeforeTime">
+        DELETE FROM wvp_device_alarm
+        <where>
+            <if test="deviceIdList != null and id == null ">
+                AND device_id in
+                <foreach collection='deviceIdList' item='item' open='(' separator=',' close=')'>#{item}</foreach>
+            </if>
+            <if test="time != null and id == null ">AND alarm_time &lt;= #{time}</if>
+            <if test="id != null">AND id = #{id}</if>
+        </where>
+    </delete>
+
+</mapper>

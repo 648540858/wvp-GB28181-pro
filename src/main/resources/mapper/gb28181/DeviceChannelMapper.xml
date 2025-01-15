@@ -1,0 +1,786 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper">
+    <sql id="BASE_SELECT_SQL">
+        SELECT dc.id,
+               dc.data_device_id,
+               dc.create_time,
+               dc.update_time,
+               dc.sub_count,
+               dc.stream_id,
+               dc.has_audio,
+               dc.gps_time,
+               dc.stream_identification,
+               dc.channel_type,
+               coalesce(dc.gb_device_id, dc.device_id)                         as device_id,
+               coalesce(dc.gb_name, dc.name)                                   as name,
+               coalesce(dc.gb_manufacturer, dc.manufacturer)                   as manufacturer,
+               coalesce(dc.gb_model, dc.model)                                 as model,
+               coalesce(dc.gb_owner, dc.owner)                                 as owner,
+               coalesce(dc.gb_civil_code, dc.civil_code)                       as civil_code,
+               coalesce(dc.gb_block, dc.block)                                 as block,
+               coalesce(dc.gb_address, dc.address)                             as address,
+               coalesce(dc.gb_parental, dc.parental)                           as parental,
+               coalesce(dc.gb_parent_id, dc.parent_id)                         as parent_id,
+               coalesce(dc.gb_safety_way, dc.safety_way)                       as safety_way,
+               coalesce(dc.gb_register_way, dc.register_way)                   as register_way,
+               coalesce(dc.gb_cert_num, dc.cert_num)                           as cert_num,
+               coalesce(dc.gb_certifiable, dc.certifiable)                     as certifiable,
+               coalesce(dc.gb_err_code, dc.err_code)                           as err_code,
+               coalesce(dc.gb_end_time, dc.end_time)                           as end_time,
+               coalesce(dc.gb_secrecy, dc.secrecy)                             as secrecy,
+               coalesce(dc.gb_ip_address, dc.ip_address)                       as ip_address,
+               coalesce(dc.gb_port, dc.port)                                   as port,
+               coalesce(dc.gb_password, dc.password)                           as password,
+               coalesce(dc.gb_status, dc.status)                               as status,
+               coalesce(dc.gb_longitude, dc.longitude)                         as longitude,
+               coalesce(dc.gb_latitude, dc.latitude)                           as latitude,
+               coalesce(dc.gb_ptz_type, dc.ptz_type)                           as ptz_type,
+               coalesce(dc.gb_position_type, dc.position_type)                 as position_type,
+               coalesce(dc.gb_room_type, dc.room_type)                         as room_type,
+               coalesce(dc.gb_use_type, dc.use_type)                           as use_type,
+               coalesce(dc.gb_supply_light_type, dc.supply_light_type)         as supply_light_type,
+               coalesce(dc.gb_direction_type, dc.direction_type)               as direction_type,
+               coalesce(dc.gb_resolution, dc.resolution)                       as resolution,
+               coalesce(dc.gb_business_group_id, dc.business_group_id)         as business_group_id,
+               coalesce(dc.gb_download_speed, dc.download_speed)               as download_speed,
+               coalesce(dc.gb_svc_space_support_mod, dc.svc_space_support_mod) as svc_space_support_mod,
+               coalesce(dc.gb_svc_time_support_mode, dc.svc_time_support_mode) as svc_time_support_mode
+        from wvp_device_channel dc
+    </sql>
+    <insert id="add">
+        insert into wvp_device_channel
+        (device_id, data_type, data_device_id, name, manufacturer, model, owner, civil_code, block,
+         address, parental, parent_id, safety_way, register_way, cert_num, certifiable, err_code, end_time, secrecy,
+         ip_address, port, password, status, longitude, latitude, ptz_type, position_type, room_type, use_type,
+         supply_light_type, direction_type, resolution, business_group_id, download_speed, svc_space_support_mod,
+         svc_time_support_mode, create_time, update_time, sub_count, stream_id, has_audio, gps_time,
+         stream_identification, channel_type)
+        values (#{deviceId}, #{dataType}, #{dataDeviceId}, #{name}, #{manufacturer}, #{model}, #{owner}, #{civilCode},
+                #{block},
+                #{address}, #{parental}, #{parentId}, #{safetyWay}, #{registerWay}, #{certNum}, #{certifiable},
+                #{errCode}, #{endTime}, #{secrecy},
+                #{ipAddress}, #{port}, #{password}, #{status}, #{longitude}, #{latitude}, #{ptzType}, #{positionType},
+                #{roomType}, #{useType},
+                #{supplyLightType}, #{directionType}, #{resolution}, #{businessGroupId}, #{downloadSpeed},
+                #{svcSpaceSupportMod},
+                #{svcTimeSupportMode}, #{createTime}, #{updateTime}, #{subCount}, #{streamId}, #{hasAudio}, #{gpsTime},
+                #{streamIdentification}, #{channelType})
+    </insert>
+
+    <update id="update">
+        UPDATE wvp_device_channel
+        SET update_time=#{updateTime},
+            device_id=#{deviceId},
+            data_type=#{dataType},
+            data_device_id=#{dataDeviceId},
+            name=#{name},
+            manufacturer=#{manufacturer},
+            model=#{model},
+            owner=#{owner},
+            civil_code=#{civilCode},
+            block=#{block},
+            address=#{address},
+            parental=#{parental},
+            parent_id=#{parentId},
+            safety_way=#{safetyWay},
+            register_way=#{registerWay},
+            cert_num=#{certNum},
+            certifiable=#{certifiable},
+            err_code=#{errCode},
+            end_time=#{endTime},
+            secrecy=#{secrecy},
+            ip_address=#{ipAddress},
+            port=#{port},
+            password=#{password},
+            status=#{status},
+            longitude=#{longitude},
+            latitude=#{latitude},
+            ptz_type=#{ptzType},
+            position_type=#{positionType},
+            room_type=#{roomType},
+            use_type=#{useType},
+            supply_light_type=#{supplyLightType},
+            direction_type=#{directionType},
+            resolution=#{resolution},
+            business_group_id=#{businessGroupId},
+            download_speed=#{downloadSpeed},
+            svc_space_support_mod=#{svcSpaceSupportMod},
+            svc_time_support_mode=#{svcTimeSupportMode},
+            sub_count=#{subCount},
+            stream_id=#{streamId},
+            has_audio=#{hasAudio},
+            gps_time=#{gpsTime},
+            stream_identification=#{streamIdentification},
+            channel_type=#{channelType}
+        WHERE id = #{id}
+    </update>
+
+    <select id="queryChannels" resultType="com.genersoft.iot.vmp.gb28181.bean.DeviceChannel">
+        <include refid="BASE_SELECT_SQL"/>
+        <where>
+            data_type = 1 and dc.data_device_id = #{dataDeviceId}
+            <choose>
+                <when test="businessGroupId != null">
+                    AND coalesce(dc.gb_business_group_id, dc.business_group_id)=#{businessGroupId} AND
+                    coalesce(dc.gb_parent_id, dc.parent_id) is null
+                </when>
+                <when test="parentChannelId != null">
+                    AND coalesce(dc.gb_parent_id, dc.parent_id)=#{parentChannelId}
+                </when>
+                <otherwise>
+                    equipmentcode,equipmenttypeid,x,y,equipmentsyscode
+                </otherwise>
+            </choose>
+            <if test="civilCode != null">
+                AND (coalesce(dc.gb_civil_code, dc.civil_code) = #{civilCode}
+                OR (LENGTH(coalesce(dc.gb_device_id, dc.device_id))=LENGTH(#{civilCode}) + 2)
+                AND coalesce(dc.gb_device_id, dc.device_id) LIKE concat(#{civilCode},'%'))
+            </if>
+            <if test="query != null and query !='' ">
+                AND (coalesce(dc.gb_device_id, dc.device_id) LIKE concat('%',#{query},'%') escape '/'
+                OR coalesce(dc.gb_name, dc.name) LIKE concat('%',#{query},'%') escape '/')
+            </if>
+            <!--todo-->
+            <if test="online != null and online == '1'">
+                AND coalesce(gb_status, status) = 'ON'
+            </if>
+            <if test="online != null and online !='1' ">
+                AND coalesce(gb_status, status) = 'OFF'
+            </if>
+            <if test="hasSubChannel != null and hasSubChannel == '1'">
+                AND dc.sub_count > 0
+            </if>
+            <if test="hasSubChannel != null and hasSubChannel !='1'">
+                AND dc.sub_count = 0
+            </if>
+            <if test="channelIds != null and channelIds.size() > 0">
+                AND dc.device_id in
+                <foreach collection="channelIds" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="queryChannelsByDeviceDbId" resultType="com.genersoft.iot.vmp.gb28181.bean.DeviceChannel">
+        <include refid="BASE_SELECT_SQL"/>
+        where data_type = 1 and dc.data_device_id = #{dataDeviceId}
+    </select>
+
+    <select id="queryChaneIdListByDeviceDbIds" resultType="java.lang.Integer">
+        select id from wvp_device_channel where data_type =1 and data_device_id in
+        <foreach item='item' index='index' collection='deviceDbIds' open='(' separator=',' close=')'>#{item}</foreach>
+    </select>
+
+    <delete id="cleanChannelsByDeviceId">
+        DELETE
+        FROM wvp_device_channel
+        WHERE data_type = 1
+          and data_device_id = #{dataDeviceId}
+    </delete>
+
+    <delete id="del">
+        DELETE
+        FROM wvp_device_channel
+        WHERE id = #{id}
+    </delete>
+
+    <select id="queryChannelsWithDeviceInfo" resultType="com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend">
+        SELECT
+        dc.id,
+        dc.create_time,
+        dc.update_time,
+        dc.sub_count,
+        coalesce(dc.gb_device_id, dc.device_id) as channel_id,
+        de.device_id as device_id,
+        coalesce(dc.gb_name, dc.name) as name,
+        de.name as device_name,
+        de.on_line as device_online,
+        coalesce(dc.gb_manufacturer, dc.manufacturer) as manufacture,
+        coalesce(dc.gb_model, dc.model) as model,
+        coalesce(dc.gb_owner, dc.owner) as owner,
+        coalesce(dc.gb_civil_code, dc.civil_code) as civil_code,
+        coalesce(dc.gb_block, dc.block) as block,
+        coalesce(dc.gb_address, dc.address) as address,
+        coalesce(dc.gb_parental, dc.parental) as parental,
+        coalesce(dc.gb_parent_id, dc.parent_id) as parent_id,
+        coalesce(dc.gb_safety_way, dc.safety_way) as safety_way,
+        coalesce(dc.gb_register_way, dc.register_way) as register_way,
+        coalesce(dc.gb_cert_num, dc.cert_num) as cert_num,
+        coalesce(dc.gb_certifiable, dc.certifiable) as certifiable,
+        coalesce(dc.gb_err_code, dc.err_code) as err_code,
+        coalesce(dc.gb_end_time, dc.end_time) as end_time,
+        coalesce(dc.gb_secrecy, dc.secrecy) as secrecy,
+        coalesce(dc.gb_ip_address, dc.ip_address) as ip_address,
+        coalesce(dc.gb_port, dc.port) as port,
+        coalesce(dc.gb_password, dc.password) as password,
+        coalesce(dc.gb_ptz_type, dc.ptz_type) as ptz_type,
+        coalesce(dc.gb_status, dc.status) as status,
+        coalesce(dc.gb_longitude, dc.longitude) as longitude,
+        coalesce(dc.gb_latitude, dc.latitude) as latitude,
+        coalesce(dc.gb_business_group_id, dc.business_group_id) as business_group_id
+        from wvp_device_channel dc
+        LEFT JOIN wvp_device de ON dc.data_device_id = de.id
+        <where>
+            dc.data_type = 1
+            <if test='deviceId != null'>AND de.device_id = #{deviceId}</if>
+            <if test='query != null'>
+                AND (dc.device_id LIKE '%${query}%' OR dc.name LIKE '%${query}%' OR dc.name LIKE '%${query}%')
+            </if>
+            <if test='parentChannelId != null'>AND dc.parent_id=#{parentChannelId}</if>
+            <if test='online == true'>AND dc.status='ON'</if>
+            <if test='online == false'>AND dc.status='OFF'</if>
+            <if test='hasSubChannel == true'>AND dc.sub_count > 0</if>
+            <if test='hasSubChannel == false'>AND dc.sub_count = 0</if>
+            <if test='channelIds != null'>
+                AND dc.device_id in
+                <foreach item='item' index='index' collection='channelIds'
+                         open='(' separator=',' close=')'>
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        ORDER BY dc.device_id ASC
+    </select>
+
+    <update id="startPlay">
+        UPDATE wvp_device_channel
+        SET stream_id=#{streamId}
+        WHERE id = #{channelId}
+    </update>
+
+    <select id="queryChannelListInAll" resultType="com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce">
+        SELECT
+        dc.id,
+        COALESCE(dc.gb_device_id, dc.device_id) AS name,
+        COALESCE(dc.gb_name, dc.name) AS name,
+        COALESCE(dc.gb_manufacturer, dc.manufacturer) AS manufacturer,
+        COALESCE(dc.gb_ip_address, dc.ip_address) AS ip_address,
+        dc.sub_count,
+        pgc.platform_id as platform_id,
+        pgc.catalog_id as catalog_id
+        FROM wvp_device_channel dc
+        LEFT JOIN wvp_device de ON dc.data_device_id = de.id
+        LEFT JOIN wvp_platform_channel pgc on pgc.device_channel_id = dc.id
+        WHERE dc.data_type = 1
+        <if test='query != null'>
+            AND (COALESCE(dc.gb_device_id, dc.device_id) LIKE concat('%',#{query},'%')
+            OR COALESCE(dc.gb_name, dc.name) LIKE concat('%',#{query},'%'))
+        </if>
+        <if test='online == true'>AND dc.status='ON'</if>
+        <if test='online == false'>AND dc.status='OFF'</if>
+        <if test='hasSubChannel!= null and hasSubChannel == true'>AND dc.sub_count > 0</if>
+        <if test='hasSubChannel!= null and hasSubChannel == false'>AND dc.sub_count = 0</if>
+        <if test='catalogId == null '>AND dc.id not in (select device_channel_id from wvp_platform_channel where
+            platform_id=#{platformId})
+        </if>
+        <if test='catalogId != null '>AND pgc.platform_id = #{platformId} and pgc.catalog_id=#{catalogId}</if>
+        ORDER BY COALESCE(dc.gb_device_id, dc.device_id)
+    </select>
+
+    <update id="offline">
+        UPDATE wvp_device_channel
+        SET status='OFF'
+        WHERE id = #{id}
+    </update>
+
+    <insert id="batchAdd">
+        insert into wvp_device_channel
+        (device_id, data_type, data_device_id, name, manufacturer, model, owner, civil_code, block,
+        address, parental, parent_id, safety_way, register_way, cert_num, certifiable, err_code, end_time, secrecy,
+        ip_address, port, password, status, longitude, latitude, ptz_type, position_type, room_type, use_type,
+        supply_light_type, direction_type, resolution, business_group_id, download_speed, svc_space_support_mod,
+        svc_time_support_mode, create_time, update_time, sub_count, stream_id, has_audio, gps_time,
+        stream_identification, channel_type)
+        values
+        <foreach collection='addChannels' index='index' item='item' separator=','>
+            (#{item.deviceId}, #{item.dataType}, #{item.dataDeviceId}, #{item.name}, #{item.manufacturer},
+            #{item.model}, #{item.owner}, #{item.civilCode}, #{item.block},
+            #{item.address}, #{item.parental}, #{item.parentId}, #{item.safetyWay}, #{item.registerWay},
+            #{item.certNum}, #{item.certifiable}, #{item.errCode}, #{item.endTime}, #{item.secrecy},
+            #{item.ipAddress}, #{item.port}, #{item.password}, #{item.status}, #{item.longitude}, #{item.latitude},
+            #{item.ptzType}, #{item.positionType}, #{item.roomType}, #{item.useType},
+            #{item.supplyLightType}, #{item.directionType}, #{item.resolution}, #{item.businessGroupId},
+            #{item.downloadSpeed}, #{item.svcSpaceSupportMod},
+            #{item.svcTimeSupportMode}, #{item.createTime}, #{item.updateTime}, #{item.subCount}, #{item.streamId},
+            #{item.hasAudio}, #{item.gpsTime}, #{item.streamIdentification}, #{item.channelType})
+        </foreach>
+    </insert>
+
+    <update id="online">
+        UPDATE wvp_device_channel
+        SET status='ON'
+        WHERE id = #{id}
+    </update>
+
+    <update id="batchUpdate">
+        <foreach collection='updateChannels' item='item' separator=';'>
+            UPDATE
+            wvp_device_channel
+            SET update_time=#{item.updateTime},
+            device_id=#{item.deviceId},
+            data_type=#{item.dataType},
+            data_device_id=#{item.dataDeviceId},
+            name=#{item.name},
+            manufacturer=#{item.manufacturer},
+            model=#{item.model},
+            owner=#{item.owner},
+            civil_code=#{item.civilCode},
+            block=#{item.block},
+            address=#{item.address},
+            parental=#{item.parental},
+            parent_id=#{item.parentId},
+            safety_way=#{item.safetyWay},
+            register_way=#{item.registerWay},
+            cert_num=#{item.certNum},
+            certifiable=#{item.certifiable},
+            err_code=#{item.errCode},
+            end_time=#{item.endTime},
+            secrecy=#{item.secrecy},
+            ip_address=#{item.ipAddress},
+            port=#{item.port},
+            password=#{item.password},
+            status=#{item.status},
+            longitude=#{item.longitude},
+            latitude=#{item.latitude},
+            ptz_type=#{item.ptzType},
+            position_type=#{item.positionType},
+            room_type=#{item.roomType},
+            use_type=#{item.useType},
+            supply_light_type=#{item.supplyLightType},
+            direction_type=#{item.directionType},
+            resolution=#{item.resolution},
+            business_group_id=#{item.businessGroupId},
+            download_speed=#{item.downloadSpeed},
+            svc_space_support_mod=#{item.svcSpaceSupportMod},
+            svc_time_support_mode=#{item.svcTimeSupportMode},
+            sub_count=#{item.subCount},
+            stream_id=#{item.streamId},
+            has_audio=#{item.hasAudio},
+            gps_time=#{item.gpsTime},
+            stream_identification=#{item.streamIdentification},
+            channel_type=#{item.channelType}
+            WHERE id=#{item.id}
+        </foreach>
+    </update>
+
+    <update id="batchUpdateForNotify">
+        <foreach collection='updateChannels' item='item' separator=';'>
+            UPDATE wvp_device_channel
+            SET update_time=#{item.updateTime},
+            device_id=#{item.deviceId},
+            data_type=#{item.dataType},
+            data_device_id=#{item.dataDeviceId},
+            name=#{item.name},
+            manufacturer=#{item.manufacturer},
+            model=#{item.model},
+            owner=#{item.owner},
+            civil_code=#{item.civilCode},
+            block=#{item.block},
+            address=#{item.address},
+            parental=#{item.parental},
+            parent_id=#{item.parentId},
+            safety_way=#{item.safetyWay},
+            register_way=#{item.registerWay},
+            cert_num=#{item.certNum},
+            certifiable=#{item.certifiable},
+            err_code=#{item.errCode},
+            end_time=#{item.endTime},
+            secrecy=#{item.secrecy},
+            ip_address=#{item.ipAddress},
+            port=#{item.port},
+            password=#{item.password},
+            status=#{item.status},
+            longitude=#{item.longitude},
+            latitude=#{item.latitude},
+            ptz_type=#{item.ptzType},
+            position_type=#{item.positionType},
+            room_type=#{item.roomType},
+            use_type=#{item.useType},
+            supply_light_type=#{item.supplyLightType},
+            direction_type=#{item.directionType},
+            resolution=#{item.resolution},
+            business_group_id=#{item.businessGroupId},
+            download_speed=#{item.downloadSpeed},
+            svc_space_support_mod=#{item.svcSpaceSupportMod},
+            svc_time_support_mode=#{item.svcTimeSupportMode},
+            sub_count=#{item.subCount},
+            stream_id=#{item.streamId},
+            has_audio=#{item.hasAudio},
+            gps_time=#{item.gpsTime},
+            stream_identification=#{item.streamIdentification},
+            channel_type=#{item.channelType}
+            WHERE data_type = #{item.dataType} and data_device_id = #{item.dataDeviceId} and device_id=#{item.deviceId}
+        </foreach>
+    </update>
+
+    <update id="updateChannelSubCount">
+        update wvp_device_channel
+        set sub_count =
+                (select *
+                 from (select count(0)
+                       from wvp_device_channel
+                       where data_type = 1
+                         and data_device_id = #{dataDeviceId}
+                         and parent_id = #{channelId}) as temp)
+        where data_type = 1
+          and data_device_id = #{dataDeviceId}
+          and device_id = #{channelId}
+    </update>
+
+    <update id="updatePosition">
+        UPDATE wvp_device_channel
+        SET latitude=#{latitude},
+            longitude=#{longitude},
+            gps_time=#{gpsTime}
+        WHERE id = #{id}
+    </update>
+
+    <select id="queryAllChannelsForRefresh" resultType="com.genersoft.iot.vmp.gb28181.bean.DeviceChannel">
+        select id,
+               data_device_id,
+               create_time,
+               update_time,
+               sub_count,
+               stream_id,
+               has_audio,
+               gps_time,
+               stream_identification,
+               channel_type,
+               device_id,
+               name,
+               manufacturer,
+               model,
+               owner,
+               civil_code,
+               block,
+               address,
+               parental,
+               parent_id,
+               safety_way,
+               register_way,
+               cert_num,
+               certifiable,
+               err_code,
+               end_time,
+               secrecy,
+               ip_address,
+               port,
+               password,
+               status,
+               longitude,
+               latitude,
+               ptz_type,
+               position_type,
+               room_type,
+               use_type,
+               supply_light_type,
+               direction_type,
+               resolution,
+               business_group_id,
+               download_speed,
+               svc_space_support_mod,
+               svc_time_support_mode
+        from wvp_device_channel
+        where data_type = 1
+          and data_device_id = #{dataDeviceId}
+    </select>
+
+    <select id="getDeviceByChannelDeviceId" resultType="com.genersoft.iot.vmp.gb28181.bean.Device">
+        select de.*
+        from wvp_device de
+                 left join wvp_device_channel dc on de.device_id = dc.device_id
+        where dc.data_type = 1
+          and dc.device_id = #{channelId}
+    </select>
+
+    <delete id="batchDel">
+        <foreach collection='deleteChannelList' item='item' separator=';'>
+            DELETE FROM wvp_device_channel WHERE id=#{item.id}
+        </foreach>
+    </delete>
+
+    <update id="batchUpdateStatus">
+        <foreach collection='channels' item='item' separator=';'>
+            UPDATE wvp_device_channel SET status=#{item.status} WHERE data_type = #{item.dataType}
+            and device_id=#{item.deviceId}
+        </foreach>
+    </update>
+
+    <select id="getOnlineCount" resultType="java.lang.Integer">
+        select count(1)
+        from wvp_device_channel
+        where status = 'ON'
+    </select>
+
+    <select id="getAllChannelCount" resultType="java.lang.Integer">
+        select count(1)
+        from wvp_device_channel
+    </select>
+
+    <update id="updateChannelStreamIdentification">
+        UPDATE wvp_device_channel
+        SET stream_identification=#{streamIdentification}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateAllChannelStreamIdentification">
+        UPDATE wvp_device_channel
+        SET stream_identification=#{streamIdentification}
+    </update>
+
+    <update id="batchUpdatePosition">
+        <foreach collection='channelList' item='item' separator=';'>
+            UPDATE
+            wvp_device_channel
+            SET update_time=#{item.updateTime}
+            <if test='item.longitude != null'>, longitude=#{item.longitude}</if>
+            <if test='item.latitude != null'>, latitude=#{item.latitude}</if>
+            <if test='item.gpsTime != null'>, gps_time=#{item.gpsTime}</if>
+            <where>
+                <if test='item.id > 0'>
+                    and id=#{item.id}
+                </if>
+                <if test='item.id == 0'>
+                    and data_type = #{item.dataType}
+                    and data_device_id=#{item.dataDeviceId}
+                    AND device_id=#{item.deviceId}
+                </if>
+            </where>
+        </foreach>
+    </update>
+
+    <select id="getOne" resultType="com.genersoft.iot.vmp.gb28181.bean.DeviceChannel">
+        <include refid="BASE_SELECT_SQL"/>
+        where dc.id=#{id}
+    </select>
+    <select id="getOneForSource" resultType="com.genersoft.iot.vmp.gb28181.bean.DeviceChannel">
+        SELECT id,
+               data_device_id,
+               create_time,
+               update_time,
+               sub_count,
+               stream_id,
+               has_audio,
+               gps_time,
+               stream_identification,
+               channel_type,
+               device_id,
+               name,
+               manufacturer,
+               model,
+               owner,
+               civil_code,
+               block,
+               address,
+               parental,
+               parent_id,
+               safety_way,
+               register_way,
+               cert_num,
+               certifiable,
+               err_code,
+               end_time,
+               secrecy,
+               ip_address,
+               port,
+               password,
+               status,
+               longitude,
+               latitude,
+               ptz_type,
+               position_type,
+               room_type,
+               use_type,
+               supply_light_type,
+               direction_type,
+               resolution,
+               business_group_id,
+               download_speed,
+               svc_space_support_mod,
+               svc_time_support_mode
+        from wvp_device_channel
+        where id = #{id}
+    </select>
+    <select id="getOneByDeviceId" resultType="com.genersoft.iot.vmp.gb28181.bean.DeviceChannel">
+        <include refid="BASE_SELECT_SQL"/>
+        where data_type =1 and dc.data_device_id=#{dataDeviceId}
+        and coalesce(dc.gb_device_id, dc.device_id) = #{channelId}
+    </select>
+    <select id="getOneByDeviceIdForSource" resultType="com.genersoft.iot.vmp.gb28181.bean.DeviceChannel">
+        SELECT id,
+               data_device_id,
+               create_time,
+               update_time,
+               sub_count,
+               stream_id,
+               has_audio,
+               gps_time,
+               stream_identification,
+               channel_type,
+               device_id,
+               name,
+               manufacturer,
+               model,
+               owner,
+               civil_code,
+               block,
+               address,
+               parental,
+               parent_id,
+               safety_way,
+               register_way,
+               cert_num,
+               certifiable,
+               err_code,
+               end_time,
+               secrecy,
+               ip_address,
+               port,
+               password,
+               status,
+               longitude,
+               latitude,
+               ptz_type,
+               position_type,
+               room_type,
+               use_type,
+               supply_light_type,
+               direction_type,
+               resolution,
+               business_group_id,
+               download_speed,
+               svc_space_support_mod,
+               svc_time_support_mode
+        from wvp_device_channel
+        where data_type = 1
+          and data_device_id = #{dataDeviceId}
+          and coalesce(gb_device_id, device_id) = #{channelId}
+    </select>
+
+    <update id="stopPlayById">
+        UPDATE wvp_device_channel
+        SET stream_id=null
+        WHERE id = #{channelId}
+    </update>
+
+    <update id="changeAudio">
+        UPDATE wvp_device_channel
+        SET has_audio=#{audio}
+        WHERE id = #{channelId}
+    </update>
+
+    <update id="updateStreamGPS">
+        <foreach collection='gpsMsgInfoList' index='index' item='item' separator=';'>
+            UPDATE wvp_device_channel SET gb_longitude = #{item.lng}, gb_latitude=#{item.lat}
+            WHERE id = #{item.channelId}
+        </foreach>
+    </update>
+
+    <update id="updateStatus">
+        UPDATE wvp_device_channel
+        SET status=#{status}
+        WHERE data_type = #{dataType}
+          and data_device_id = #{dataDeviceId}
+          AND device_id = #{deviceId}
+    </update>
+    <update id="updateChannelForNotify">
+        UPDATE wvp_device_channel
+        SET update_time=#{updateTime},
+            device_id=#{deviceId},
+            data_device_id=#{dataDeviceId},
+            name=#{name},
+            manufacturer=#{manufacturer},
+            model=#{model},
+            owner=#{owner},
+            civil_code=#{civilCode},
+            block=#{block},
+            address=#{address},
+            parental=#{parental},
+            parent_id=#{parentId},
+            safety_way=#{safetyWay},
+            register_way=#{registerWay},
+            cert_num=#{certNum},
+            certifiable=#{certifiable},
+            err_code=#{errCode},
+            end_time=#{endTime},
+            secrecy=#{secrecy},
+            ip_address=#{ipAddress},
+            port=#{port},
+            password=#{password},
+            status=#{status},
+            longitude=#{longitude},
+            latitude=#{latitude},
+            ptz_type=#{ptzType},
+            position_type=#{positionType},
+            room_type=#{roomType},
+            use_type=#{useType},
+            supply_light_type=#{supplyLightType},
+            direction_type=#{directionType},
+            resolution=#{resolution},
+            business_group_id=#{businessGroupId},
+            download_speed=#{downloadSpeed},
+            svc_space_support_mod=#{svcSpaceSupportMod},
+            svc_time_support_mode=#{svcTimeSupportMode},
+            sub_count=#{subCount},
+            stream_id=#{streamId},
+            has_audio=#{hasAudio},
+            gps_time=#{gpsTime},
+            stream_identification=#{streamIdentification},
+            channel_type=#{channelType}
+        WHERE id = #{id}
+    </update>
+
+    <select id="getOneBySourceChannelId" resultType="com.genersoft.iot.vmp.gb28181.bean.DeviceChannel">
+        SELECT id,
+               data_device_id,
+               create_time,
+               update_time,
+               sub_count,
+               stream_id,
+               has_audio,
+               gps_time,
+               stream_identification,
+               channel_type,
+               device_id,
+               name,
+               manufacturer,
+               model,
+               owner,
+               civil_code,
+               block,
+               address,
+               parental,
+               parent_id,
+               safety_way,
+               register_way,
+               cert_num,
+               certifiable,
+               err_code,
+               end_time,
+               secrecy,
+               ip_address,
+               port,
+               password,
+               status,
+               longitude,
+               latitude,
+               ptz_type,
+               position_type,
+               room_type,
+               use_type,
+               supply_light_type,
+               direction_type,
+               resolution,
+               business_group_id,
+               download_speed,
+               svc_space_support_mod,
+               svc_time_support_mode
+        from wvp_device_channel
+        where data_type = 1
+          and data_device_id = #{dataDeviceId}
+          and device_id = #{channelId}
+    </select>
+
+</mapper>

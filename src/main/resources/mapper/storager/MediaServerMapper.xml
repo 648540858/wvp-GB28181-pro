@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.genersoft.iot.vmp.storager.dao.MediaServerMapper">
+
+    <resultMap type="com.genersoft.iot.vmp.media.bean.MediaServer" id="WvpMediaServerResult">
+        <result property="id" column="id"/>
+        <result property="ip" column="ip"/>
+        <result property="hookIp" column="hook_ip"/>
+        <result property="sdpIp" column="sdp_ip"/>
+        <result property="streamIp" column="stream_ip"/>
+        <result property="httpPort" column="http_port"/>
+        <result property="httpSSlPort" column="http_ssl_port"/>
+        <result property="rtmpPort" column="rtmp_port"/>
+        <result property="rtmpSSlPort" column="rtmp_ssl_port"/>
+        <result property="rtpProxyPort" column="rtp_proxy_port"/>
+        <result property="rtspPort" column="rtsp_port"/>
+        <result property="rtspSSLPort" column="rtsp_ssl_port"/>
+        <result property="flvPort" column="flv_port"/>
+        <result property="flvSSLPort" column="flv_ssl_port"/>
+        <result property="wsFlvPort" column="ws_flv_port"/>
+        <result property="wsFlvSSLPort" column="ws_flv_ssl_port"/>
+        <result property="autoConfig" column="auto_config"/>
+        <result property="secret" column="secret"/>
+        <result property="type" column="type"/>
+        <result property="rtpEnable" column="rtp_enable"/>
+        <result property="rtpPortRange" column="rtp_port_range"/>
+        <result property="sendRtpPortRange" column="send_rtp_port_range"/>
+        <result property="recordAssistPort" column="record_assist_port"/>
+        <result property="defaultServer" column="default_server"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="hookAliveInterval" column="hook_alive_interval"/>
+        <result property="recordPath" column="record_path"/>
+        <result property="recordDay" column="record_day"/>
+        <result property="transcodeSuffix" column="transcode_suffix"/>
+    </resultMap>
+
+    <insert id="add" parameterType="com.genersoft.iot.vmp.media.bean.MediaServer">
+        INSERT INTO wvp_media_server
+        (id,
+         ip,
+         hook_ip,
+         sdp_ip,
+         stream_ip,
+         http_port,
+         http_ssl_port,
+         rtmp_port,
+         rtmp_ssl_port,
+         rtp_proxy_port,
+         rtsp_port,
+         flv_port,
+         flv_ssl_port,
+         ws_flv_port,
+         ws_flv_ssl_port,
+         rtsp_ssl_port,
+         auto_config,
+         secret,
+         rtp_enable,
+         rtp_port_range,
+         send_rtp_port_range,
+         record_assist_port,
+         record_day,
+         record_path,
+         default_server,
+         type,
+         create_time,
+         update_time,
+         transcode_suffix,
+         hook_alive_interval)
+        VALUES (#{id},
+                #{ip},
+                #{hookIp},
+                #{sdpIp},
+                #{streamIp},
+                #{httpPort},
+                #{httpSSlPort},
+                #{rtmpPort},
+                #{rtmpSSlPort},
+                #{rtpProxyPort},
+                #{rtspPort},
+                #{flvPort},
+                #{flvSSLPort},
+                #{wsFlvPort},
+                #{wsFlvSSLPort},
+                #{rtspSSLPort},
+                #{autoConfig},
+                #{secret},
+                #{rtpEnable},
+                #{rtpPortRange},
+                #{sendRtpPortRange},
+                #{recordAssistPort},
+                #{recordDay},
+                #{recordPath},
+                #{defaultServer},
+                #{type},
+                #{createTime},
+                #{updateTime},
+                #{transcodeSuffix},
+                #{hookAliveInterval})
+    </insert>
+    <update id="update">
+        UPDATE wvp_media_server
+        SET update_time=#{updateTime}
+        <if test="ip != null">, ip=#{ip}</if>
+        <if test="hookIp != null">, hook_ip=#{hookIp}</if>
+        <if test="sdpIp != null">, sdp_ip=#{sdpIp}</if>
+        <if test="streamIp != null">, stream_ip=#{streamIp}</if>
+        <if test="httpPort != null">, http_port=#{httpPort}</if>
+        <if test="httpSSlPort != null">, http_ssl_port=#{httpSSlPort}</if>
+        <if test="rtmpPort != null">, rtmp_port=#{rtmpPort}</if>
+        <if test="rtmpSSlPort != null">, rtmp_ssl_port=#{rtmpSSlPort}</if>
+        <if test="rtpProxyPort != null">, rtp_proxy_port=#{rtpProxyPort}</if>
+        <if test="rtspPort != null">, rtsp_port=#{rtspPort}</if>
+        <if test="rtspSSLPort != null">, rtsp_ssl_port=#{rtspSSLPort}</if>
+        <if test="flvPort != null">, flv_port=#{flvPort}</if>
+        <if test="flvSSLPort != null">, flv_ssl_port=#{flvSSLPort}</if>
+        <if test="wsFlvPort != null">, ws_flv_port=#{wsFlvPort}</if>
+        <if test="wsFlvSSLPort != null">, ws_flv_ssl_port=#{wsFlvSSLPort}</if>
+        <if test="autoConfig != null">, auto_config=#{autoConfig}</if>
+        <if test="rtpEnable != null">, rtp_enable=#{rtpEnable}</if>
+        <if test="rtpPortRange != null">, rtp_port_range=#{rtpPortRange}</if>
+        <if test="sendRtpPortRange != null">, send_rtp_port_range=#{sendRtpPortRange}</if>
+        <if test="secret != null">, secret=#{secret}</if>
+        <if test="recordAssistPort != null">, record_assist_port=#{recordAssistPort}</if>
+        <if test="hookAliveInterval != null">, hook_alive_interval=#{hookAliveInterval}</if>
+        <if test="recordDay != null">, record_day=#{recordDay}</if>
+        <if test="recordPath != null">, record_path=#{recordPath}</if>
+        <if test="transcodeSuffix != null">, transcode_suffix=#{transcodeSuffix}</if>
+        <if test="type != null">, type=#{type}</if>
+        WHERE id=#{id}
+    </update>
+
+    <update id="updateByHostAndPort">
+        UPDATE wvp_media_server
+        SET update_time=#{updateTime}
+        <if test="id != null">, id=#{id}</if>
+        <if test="hookIp != null">, hook_ip=#{hookIp}</if>
+        <if test="sdpIp != null">, sdp_ip=#{sdpIp}</if>
+        <if test="streamIp != null">, stream_ip=#{streamIp}</if>
+        <if test="httpSSlPort != null">, http_ssl_port=#{httpSSlPort}</if>
+        <if test="rtmpPort != null">, rtmp_port=#{rtmpPort}</if>
+        <if test="rtmpSSlPort != null">, rtmp_ssl_port=#{rtmpSSlPort}</if>
+        <if test="rtpProxyPort != null">, rtp_proxy_port=#{rtpProxyPort}</if>
+        <if test="rtspPort != null">, rtsp_port=#{rtspPort}</if>
+        <if test="rtspSSLPort != null">, rtsp_ssl_port=#{rtspSSLPort}</if>
+        <if test="flvPort != null">, flv_port=#{flvPort}</if>
+        <if test="flvSSLPort != null">, flv_ssl_port=#{flvSSLPort}</if>
+        <if test="wsFlvPort != null">, ws_flv_port=#{wsFlvPort}</if>
+        <if test="wsFlvSSLPort != null">, ws_flv_ssl_port=#{wsFlvSSLPort}</if>
+        <if test="autoConfig != null">, auto_config=#{autoConfig}</if>
+        <if test="rtpEnable != null">, rtp_enable=#{rtpEnable}</if>
+        <if test="rtpPortRange != null">, rtp_port_range=#{rtpPortRange}</if>
+        <if test="sendRtpPortRange != null">, send_rtp_port_range=#{sendRtpPortRange}</if>
+        <if test="secret != null">, secret=#{secret}</if>
+        <if test="recordAssistPort != null">, record_assist_port=#{recordAssistPort}</if>
+        <if test="recordDay != null">, record_day=#{recordDay}</if>
+        <if test="recordPath != null">, record_path=#{recordPath}</if>
+        <if test="type != null">, type=#{type}</if>
+        <if test="transcodeSuffix != null">, transcode_suffix=#{transcodeSuffix}</if>
+        <if test="hookAliveInterval != null">, hook_alive_interval=#{hookAliveInterval}</if>
+        WHERE ip=#{ip} and http_port=#{httpPort}
+    </update>
+
+    <select id="queryOne" resultMap="WvpMediaServerResult">
+        SELECT *
+        FROM wvp_media_server
+        WHERE id = #{id}
+    </select>
+
+    <select id="queryAll" resultMap="WvpMediaServerResult">
+        SELECT *
+        FROM wvp_media_server
+    </select>
+
+    <delete id="delOne">
+        DELETE
+        FROM wvp_media_server
+        WHERE id = #{id}
+    </delete>
+
+    <delete id="delOneByIPAndPort">
+        DELETE
+        FROM wvp_media_server
+        WHERE ip = #{host}
+          and http_port = #{port}
+    </delete>
+
+    <delete id="delDefault">
+        DELETE
+        FROM wvp_media_server
+        WHERE default_server = true
+    </delete>
+
+    <select id="queryOneByHostAndPort" resultMap="WvpMediaServerResult">
+        SELECT *
+        FROM wvp_media_server
+        WHERE ip = #{host}
+          and http_port = #{port}
+    </select>
+
+    <select id="queryDefault" resultMap="WvpMediaServerResult">
+        SELECT *
+        FROM wvp_media_server
+        WHERE default_server = true
+    </select>
+
+    <select id="queryAllWithAssistPort" resultMap="WvpMediaServerResult">
+        SELECT *
+        FROM wvp_media_server
+        WHERE record_assist_port > 0
+    </select>
+
+</mapper>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.genersoft.iot.vmp.storager.dao.UserApiKeyMapper">
+
+    <insert id="add">
+        INSERT INTO wvp_user_api_key (user_id, app, api_key, expired_at, remark, enable, create_time, update_time)
+        VALUES (#{userId}, #{app}, #{apiKey}, #{expiredAt}, #{remark}, #{enable}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="update">
+        UPDATE wvp_user_api_key
+        SET update_time = #{updateTime}
+        <if test="app != null">, app = #{app}</if>
+        <if test="apiKey != null">, api_key = #{apiKey}</if>
+        <if test="expiredAt != null">, expired_at = #{expiredAt}</if>
+        <if test="remark != null">, username = #{remark}</if>
+        <if test="enable != null">, enable = #{enable}</if>
+        WHERE id = #{id}
+    </update>
+
+    <update id="enable">
+        UPDATE wvp_user_api_key
+        SET enable = true
+        WHERE id = #{id}
+    </update>
+
+    <update id="disable">
+        UPDATE wvp_user_api_key
+        SET enable = false
+        WHERE id = #{id}
+    </update>
+
+    <update id="apiKey">
+        UPDATE wvp_user_api_key
+        SET api_key = #{apiKey}
+        WHERE id = #{id}
+    </update>
+
+    <update id="remark">
+        UPDATE wvp_user_api_key
+        SET remark = #{remark}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE
+        FROM wvp_user_api_key
+        WHERE id = #{id}
+    </delete>
+
+    <select id="selectById" resultType="com.genersoft.iot.vmp.storager.dao.dto.UserApiKey">
+        SELECT uak.id,
+               uak.user_id,
+               uak.app,
+               uak.api_key,
+               uak.expired_at,
+               uak.remark,
+               uak.enable,
+               uak.create_time,
+               uak.update_time,
+               u.username AS username
+        FROM wvp_user_api_key uak
+                 LEFT JOIN wvp_user u on u.id = uak.user_id
+        WHERE uak.id = #{id}
+    </select>
+
+    <select id="selectByApiKey" resultType="com.genersoft.iot.vmp.storager.dao.dto.UserApiKey">
+        SELECT uak.id,
+               uak.user_id,
+               uak.app,
+               uak.api_key,
+               uak.expired_at,
+               uak.remark,
+               uak.enable,
+               uak.create_time,
+               uak.update_time,
+               u.username AS username
+        FROM wvp_user_api_key uak
+                 LEFT JOIN wvp_user u on u.id = uak.user_id
+        WHERE uak.api_key = #{apiKey}
+    </select>
+
+    <select id="selectAll" resultType="com.genersoft.iot.vmp.storager.dao.dto.UserApiKey">
+        SELECT uak.id,
+               uak.user_id,
+               uak.app,
+               uak.api_key,
+               uak.expired_at,
+               uak.remark,
+               uak.enable,
+               uak.create_time,
+               uak.update_time,
+               u.username AS username
+        FROM wvp_user_api_key uak
+                 LEFT JOIN wvp_user u on u.id = uak.user_id
+    </select>
+
+    <select id="getUserApiKeys" resultType="com.genersoft.iot.vmp.storager.dao.dto.UserApiKey">
+        SELECT uak.id,
+               uak.user_id,
+               uak.app,
+               uak.api_key,
+               uak.expired_at,
+               uak.remark,
+               uak.enable,
+               uak.create_time,
+               uak.update_time,
+               u.username AS username
+        FROM wvp_user_api_key uak
+                 LEFT JOIN wvp_user u on u.id = uak.user_id
+    </select>
+
+    <select id="isApiKeyExists" resultType="java.lang.Boolean">
+        SELECT COUNT(0)
+        FROM wvp_user_api_key
+        WHERE api_key = #{apiKey}
+    </select>
+</mapper>

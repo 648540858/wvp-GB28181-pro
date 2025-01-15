@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.genersoft.iot.vmp.storager.dao.UserMapper">
+
+    <resultMap id="useMap" type="com.genersoft.iot.vmp.storager.dao.dto.User">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="pushKey" column="push_key"/>
+        <association property="role" javaType="com.genersoft.iot.vmp.storager.dao.dto.Role">
+            <result column="role_id" property="id"/>
+            <result column="role_name" property="name"/>
+            <result column="role_authority" property="authority"/>
+            <result column="role_create_time" property="createTime"/>
+            <result column="role_update_time" property="updateTime"/>
+        </association>
+
+    </resultMap>
+
+    <insert id="add">
+        INSERT INTO wvp_user (username, password, role_id, push_key, create_time, update_time)
+        VALUES (#{username}, #{password}, #{role.id}, #{pushKey}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="update">
+        UPDATE wvp_user
+        SET update_time=#{updateTime}
+        <if test="pushKey != null">, push_key=#{pushKey}</if>
+        <if test="role != null">, role_id=#{role.id}</if>
+        <if test="password != null">, password=#{password}</if>
+        <if test="username != null">, username=#{username}</if>
+        WHERE id=#{id}
+    </update>
+
+    <delete id="delete">
+        DELETE
+        from wvp_user
+        WHERE id != 1
+          and id = #{id}
+    </delete>
+
+    <select id="select" resultMap="useMap">
+        select u.*,
+               r.name        as role_name,
+               r.authority   as role_authority,
+               r.create_time as role_create_time,
+               r.update_time as role_update_time
+        from wvp_user u,
+             wvp_user_role r
+        WHERE u.role_id = r.id
+          and u.username = #{username}
+          AND u.password = #{password}
+    </select>
+
+    <select id="selectById" resultMap="useMap">
+        select u.*,
+               r.name        as role_name,
+               r.authority   as role_authority,
+               r.create_time as role_create_time,
+               r.update_time as role_update_time
+        from wvp_user u,
+             wvp_user_role r
+        WHERE u.role_id = r.id
+          and u.id = #{id}
+    </select>
+
+    <select id="getUserByUsername" resultMap="useMap">
+        select u.*,
+               r.name        as role_name,
+               r.authority   as role_authority,
+               r.create_time as role_create_time,
+               r.update_time as role_update_time
+        from wvp_user u,
+             wvp_user_role r
+        WHERE u.role_id = r.id
+          and u.username = #{username}
+    </select>
+
+    <select id="selectAll" resultMap="useMap">
+        select u.*,
+               r.name        as role_name,
+               r.authority   as role_authority,
+               r.create_time as role_create_time,
+               r.update_time as role_update_time
+        from wvp_user u,
+             wvp_user_role r
+        WHERE u.role_id = r.id
+    </select>
+
+    <select id="getUsers" resultMap="useMap">
+        select u.id,
+               u.username,
+               u.push_key,
+               u.role_id,
+               r.name        as role_name,
+               r.authority   as role_authority,
+               r.create_time as role_create_time,
+               r.update_time as role_update_time
+        from wvp_user u
+                 join wvp_user_role r on u.role_id = r.id
+    </select>
+
+    <update id="changePushKey">
+        UPDATE wvp_user
+        set push_key=#{pushKey}
+        where id = #{id}
+    </update>
+
+</mapper>

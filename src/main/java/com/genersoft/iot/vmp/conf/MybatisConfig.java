@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import javax.sql.DataSource;
 import java.util.Properties;
@@ -53,6 +55,8 @@ public class MybatisConfig {
         if (userSetting.getSqlLog()){
             config.setLogImpl(StdOutImpl.class);
         }
+        Resource[] resources = new PathMatchingResourcePatternResolver().getResources("classpath:mapper/**/*Mapper.xml");
+        sqlSessionFactory.setMapperLocations(resources);
         config.setMapUnderscoreToCamelCase(true);
         sqlSessionFactory.setConfiguration(config);
         sqlSessionFactory.setDatabaseIdProvider(databaseIdProvider);

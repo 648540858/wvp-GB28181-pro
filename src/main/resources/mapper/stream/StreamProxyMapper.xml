@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.genersoft.iot.vmp.streamProxy.dao.StreamProxyMapper">
+    <sql id="BASE_SELECT_SQL">
+        SELECT st.*,
+               3      as data_type,
+               st.id  as data_device_id,
+               wdc.*,
+               wdc.id as gb_id
+        FROM wvp_stream_proxy st
+                 LEFT join wvp_device_channel wdc on wdc.data_type = 3 and st.id = wdc.data_device_id
+    </sql>
+
+    <insert id="add">
+        INSERT INTO wvp_stream_proxy
+        (type, app, stream, relates_media_server_id, src_url,
+         timeout, ffmpeg_cmd_key, rtsp_type, enable_audio, enable_mp4, enable, pulling,
+         enable_remove_none_reader, enable_disable_none_reader, create_time)
+        VALUES (#{type}, #{app}, #{stream}, #{relatesMediaServerId}, #{srcUrl},
+                #{timeout}, #{ffmpegCmdKey}, #{rtspType}, #{enableAudio}, #{enableMp4}, #{enable}, #{pulling},
+                #{enableRemoveNoneReader}, #{enableDisableNoneReader}, #{createTime})
+    </insert>
+
+    <update id="update">
+        UPDATE wvp_stream_proxy
+        SET type=#{type},
+            app=#{app},
+            stream=#{stream},
+            relates_media_server_id=#{relatesMediaServerId},
+            src_url=#{srcUrl},
+            timeout=#{timeout},
+            ffmpeg_cmd_key=#{ffmpegCmdKey},
+            rtsp_type=#{rtspType},
+            enable_audio=#{enableAudio},
+            enable=#{enable},
+            pulling=#{pulling},
+            enable_remove_none_reader=#{enableRemoveNoneReader},
+            enable_disable_none_reader=#{enableDisableNoneReader},
+            enable_mp4=#{enableMp4}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delByAppAndStream">
+        DELETE
+        FROM wvp_stream_proxy
+        WHERE app = #{app}
+          AND stream = #{stream}
+    </delete>
+
+    <select id="selectAll" resultType="com.genersoft.iot.vmp.streamProxy.bean.StreamProxy">
+        <include refid="BASE_SELECT_SQL"/>
+        <where>
+            <if test="query != null">
+                AND (st.app LIKE concat('%',#{query},'%') escape '/'
+                OR st.stream LIKE concat('%',#{query},'%') escape '/'
+                OR wdc.gb_device_id LIKE concat('%',#{query},'%') escape '/'
+                OR wdc.gb_name LIKE concat('%',#{query},'%') escape '/')
+            </if>
+            <if test="pulling != null">
+                <choose>
+                    <when test="pulling = 1">
+                        AND st.pulling=1
+                    </when>
+                    <otherwise>
+                        AND st.pulling=0
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="mediaServerId != null">
+                AND st.media_server_id=#{mediaServerId}
+            </if>
+        </where>
+        order by st.create_time desc
+    </select>
+
+    <select id="selectOneByAppAndStream" resultType="com.genersoft.iot.vmp.streamProxy.bean.StreamProxy">
+        <include refid="BASE_SELECT_SQL"/>
+        WHERE st.app=#{app} AND st.stream=#{stream} order by st.create_time desc
+    </select>
+
+    <select id="selectForPushingInMediaServer" resultType="com.genersoft.iot.vmp.streamProxy.bean.StreamProxy">
+        <include refid="BASE_SELECT_SQL"/>
+        WHERE st.pulling=true and st.media_server_id=#{mediaServerId} order by st.create_time desc
+    </select>
+
+    <select id="getAllCount" resultType="java.lang.Integer">
+        select count(1)
+        from wvp_stream_proxy
+    </select>
+
+    <select id="getOnline" resultType="java.lang.Integer">
+        select count(1)
+        from wvp_stream_proxy
+        where pulling = true
+    </select>
+
+    <delete id="delete">
+        DELETE
+        FROM wvp_stream_proxy
+        WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteByList">
+        DELETE FROM wvp_stream_proxy WHERE id in
+        <foreach collection='streamProxiesForRemove' index='index' item='item' separator=',' open="(" close=")">
+            #{item.id}
+        </foreach>
+    </delete>
+
+    <update id="online">
+        UPDATE wvp_stream_proxy
+        SET pulling = true
+        WHERE id = #{id}
+    </update>
+
+    <update id="offline">
+        UPDATE wvp_stream_proxy
+        SET pulling = false
+        WHERE id = #{id}
+    </update>
+
+    <select id="select" resultType="com.genersoft.iot.vmp.streamProxy.bean.StreamProxy">
+        <include refid="BASE_SELECT_SQL"/>
+        WHERE st.id = #{id}
+    </select>
+
+    <update id="removeStream">
+        UPDATE wvp_stream_proxy
+        SET pulling= false,
+            media_server_id = null,
+            stream_key = null
+        WHERE id = #{id}
+    </update>
+
+    <update id="addStream">
+        UPDATE wvp_stream_proxy
+        SET pulling=#{pulling},
+            media_server_id = #{mediaServerId},
+            stream_key = #{streamKey}
+        WHERE id = #{id}
+    </update>
+</mapper>

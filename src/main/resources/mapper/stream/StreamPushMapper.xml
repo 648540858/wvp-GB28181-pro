@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.genersoft.iot.vmp.streamPush.dao.StreamPushMapper">
+    <insert id="add">
+        INSERT INTO wvp_stream_push
+        (app, stream, media_server_id, server_id, push_time, update_time, create_time, pushing, start_offline_push)
+        VALUES (#{app}, #{stream}, #{mediaServerId}, #{serverId}, #{pushTime}, #{updateTime}, #{createTime}, #{pushing},
+                #{startOfflinePush})
+    </insert>
+
+    <update id="update">
+        UPDATE wvp_stream_push
+        <set>
+            update_time=#{updateTime},
+            <if test="app != null">app=#{app},</if>
+            <if test="stream != null">stream=#{stream},</if>
+            <if test="mediaServerId != null">media_server_id=#{mediaServerId},</if>
+            <if test="serverId != null">server_id=#{serverId},</if>
+            <if test="pushTime != null">push_time=#{pushTime},</if>
+            <if test="pushing != null">pushing=#{pushing},</if>
+            <if test="startOfflinePush != null">start_offline_push=#{startOfflinePush},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="del">
+        DELETE
+        FROM wvp_stream_push
+        WHERE id = #{id}
+    </delete>
+
+    <select id="selectAll" resultType="com.genersoft.iot.vmp.streamPush.bean.StreamPush">
+        SELECT
+        st.*,
+        st.id as data_device_id,
+        wdc.*,
+        wdc.id as gb_id
+        from wvp_stream_push st
+        LEFT join wvp_device_channel wdc
+        on wdc.data_type = 2 and st.id = wdc.data_device_id
+        <where>
+            <if test='query != null'>
+                AND (st.app LIKE concat('%',#{query},'%') escape '/'
+                OR st.stream LIKE concat('%',#{query},'%') escape '/'
+                OR wdc.gb_device_id LIKE concat('%',#{query},'%') escape '/'
+                OR wdc.gb_name LIKE concat('%',#{query},'%') escape '/')
+            </if>
+            <if test='pushing == true'>AND st.pushing=1</if>
+            <if test='pushing == false'>AND st.pushing=0</if>
+            <if test='mediaServerId != null'>AND st.media_server_id=#{mediaServerId}</if>
+        </where>
+        order by st.create_time desc
+    </select>
+
+    <select id="selectByAppAndStream" resultType="com.genersoft.iot.vmp.streamPush.bean.StreamPush">
+        SELECT st.*, st.id as data_device_id, wdc.*, wdc.id as gb_id
+        FROM wvp_stream_push st
+                 LEFT join wvp_device_channel wdc on wdc.data_type = 2 and st.id = wdc.data_device_id
+        WHERE st.app = #{app}
+          AND st.stream = #{stream}
+    </select>
+
+    <insert id="addAll">
+        Insert INTO wvp_stream_push
+        (app, stream, media_server_id, server_id, push_time, update_time, create_time, pushing, start_offline_push)
+        VALUES
+        <foreach collection='streamPushItems' item='item' index='index' separator=','>
+            ( #{item.app}, #{item.stream}, #{item.mediaServerId},#{item.serverId} ,#{item.pushTime}, #{item.updateTime},
+            #{item.createTime}, #{item.pushing}, #{item.startOfflinePush})
+        </foreach>
+    </insert>
+
+    <select id="selectAllByMediaServerId" resultType="com.genersoft.iot.vmp.streamPush.bean.StreamPush">
+        SELECT st.*, st.id as data_device_id, wdc.*, wdc.id as gb_id
+        FROM wvp_stream_push st
+                 LEFT join wvp_device_channel wdc on wdc.data_type = 2 and st.id = wdc.data_device_id
+        WHERE st.media_server_id = #{mediaServerId}
+    </select>
+
+    <select id="selectAllByMediaServerIdWithOutGbID" resultType="com.genersoft.iot.vmp.streamPush.bean.StreamPush">
+        SELECT st.*, st.id as data_device_id, wdc.*, wdc.id as gb_id
+        FROM wvp_stream_push st
+                 LEFT join wvp_device_channel wdc on wdc.data_type = 2 and st.id = wdc.data_device_id
+        WHERE st.media_server_id = #{mediaServerId}
+          and wdc.gb_device_id is null
+    </select>
+
+    <update id="updatePushStatus">
+        UPDATE wvp_stream_push
+        SET pushing=#{pushing}
+        WHERE id = #{id}
+    </update>
+
+    <select id="getListFromRedis" resultType="com.genersoft.iot.vmp.streamPush.bean.StreamPush">
+        SELECT st.*, st.id as data_device_id, wdc.*, wdc.id as gb_id FROM wvp_stream_push st LEFT join
+        wvp_device_channel wdc on wdc.data_type = 2 and st.id = wdc.data_device_id
+        where (st.app, st.stream) in
+        <foreach collection='offlineStreams' item='item' separator=',' open="(" close=")">
+            (#{item.app}, #{item.stream})
+        </foreach>
+    </select>
+
+    <select id="getAllAppAndStream" resultType="java.lang.String">
+        SELECT CONCAT(app, stream)
+        from wvp_stream_push
+    </select>
+
+    <select id="getAllCount" resultType="java.lang.Integer">
+        select count(1)
+        from wvp_stream_push
+    </select>
+
+    <select id="getAllPushing" resultType="java.lang.Integer">
+        select count(1)
+        from wvp_stream_push
+        where pushing = true
+    </select>
+
+    <select id="getAllAppAndStreamMap" resultType="java.util.Map">
+        SELECT CONCAT(wsp.app, wsp.stream) as unique_key, wsp.*, wsp.*, wdc.id as gb_id
+        from wvp_stream_push wsp
+                 LEFT join wvp_device_channel wdc on wdc.data_type = 2 and wsp.id = wdc.data_device_id
+    </select>
+
+    <select id="getAllGBId" resultType="java.util.Map">
+        SELECT wdc.gb_device_id, wsp.id as data_device_id, wsp.*, wsp.*, wdc.id as gb_id
+        from wvp_stream_push wsp
+                 LEFT join wvp_device_channel wdc on wdc.data_type = 2 and wsp.id = wdc.data_device_id
+    </select>
+
+    <select id="queryOne" resultType="com.genersoft.iot.vmp.streamPush.bean.StreamPush">
+        SELECT st.*, st.id as data_device_id, wdc.*, wdc.id as gb_id
+        FROM wvp_stream_push st
+                 LEFT join wvp_device_channel wdc on wdc.data_type = 2 and st.id = wdc.data_device_id
+        WHERE st.id = #{id}
+    </select>
+
+    <select id="selectInSet" resultType="com.genersoft.iot.vmp.streamPush.bean.StreamPush">
+        SELECT st.*, st.id as data_device_id, wdc.*, wdc.id as gb_id FROM wvp_stream_push st
+        LEFT join wvp_device_channel wdc on wdc.data_type = 2 and st.id = wdc.data_device_id
+        where st.id in
+        <foreach collection='ids' item='item' separator=',' open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <delete id="batchDel">
+        DELETE FROM wvp_stream_push WHERE id in
+        <foreach collection='streamPushList' item='item' separator=',' open="(" close=")">
+            #{item.id}
+        </foreach>
+    </delete>
+
+    <update id="batchUpdate">
+        <foreach collection='streamPushItemForUpdate' item='item' separator=';'>
+            UPDATE
+            wvp_stream_push
+            SET update_time=#{item.updateTime},
+            app=#{item.app},
+            stream=#{item.stream},
+            media_server_id=#{item.mediaServerId},
+            server_id=#{item.serverId},
+            push_time=#{item.pushTime},
+            pushing=#{item.pushing},
+            start_offline_push=#{item.startOfflinePush}
+            WHERE id=#{item.id}
+        </foreach>
+    </update>
+</mapper>

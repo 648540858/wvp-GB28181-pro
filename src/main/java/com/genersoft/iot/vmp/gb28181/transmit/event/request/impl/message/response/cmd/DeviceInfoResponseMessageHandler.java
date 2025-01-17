@@ -79,7 +79,7 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
             device.setModel(getText(rootElement, "Model"));
             device.setFirmware(getText(rootElement, "Firmware"));
             if (ObjectUtils.isEmpty(device.getStreamMode())) {
-                device.setStreamMode("UDP");
+                device.setStreamMode("TCP-PASSIVE");
             }
             deviceService.updateDevice(device);
 

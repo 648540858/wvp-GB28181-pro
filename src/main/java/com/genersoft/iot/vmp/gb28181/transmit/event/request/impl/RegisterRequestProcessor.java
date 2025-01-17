@@ -166,7 +166,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 
             if (device == null) {
                 device = new Device();
-                device.setStreamMode("UDP");
+                device.setStreamMode("TCP-PASSIVE");
                 device.setCharset("GB2312");
                 device.setGeoCoordSys("WGS84");
                 device.setMediaServerId("auto");
@@ -174,7 +174,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 device.setOnLine(false);
             } else {
                 if (ObjectUtils.isEmpty(device.getStreamMode())) {
-                    device.setStreamMode("UDP");
+                    device.setStreamMode("TCP-PASSIVE");
                 }
                 if (ObjectUtils.isEmpty(device.getCharset())) {
                     device.setCharset("GB2312");

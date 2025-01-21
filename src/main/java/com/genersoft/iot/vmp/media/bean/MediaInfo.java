@@ -84,6 +84,8 @@ public class MediaInfo {
         Long bytesSpeed = jsonObject.getLong("bytesSpeed");
         if (totalReaderCount != null) {
             mediaInfo.setReaderCount(totalReaderCount);
+        } else {
+            mediaInfo.setReaderCount(0);
         }
         if (online != null) {
             mediaInfo.setOnline(online);

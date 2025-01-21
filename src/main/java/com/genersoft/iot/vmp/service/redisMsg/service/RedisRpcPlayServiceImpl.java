@@ -246,6 +246,7 @@ public class RedisRpcPlayServiceImpl implements IRedisRpcPlayService {
         jsonObject.put("channelDeviceId", channelDeviceId);
         jsonObject.put("broadcastMode", broadcastMode);
         RedisRpcRequest request = buildRequest("devicePlay/audioBroadcast", jsonObject.toString());
+        request.setToId(serverId);
         RedisRpcResponse response = redisRpcConfig.request(request, userSetting.getPlayTimeout(), TimeUnit.SECONDS);
         if (response != null && response.getStatusCode() == ErrorCode.SUCCESS.getCode()) {
             return JSON.parseObject(response.getBody().toString(), AudioBroadcastResult.class);

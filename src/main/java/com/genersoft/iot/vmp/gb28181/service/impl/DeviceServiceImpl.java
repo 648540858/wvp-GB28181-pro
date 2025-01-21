@@ -346,6 +346,13 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public SyncStatus getChannelSyncStatus(String deviceId) {
+        Device device = deviceMapper.getDeviceByDeviceId(deviceId);
+        if (device == null) {
+            throw new ControllerException(ErrorCode.ERROR404.getCode(), "设备不存在");
+        }
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            return redisRpcService.getChannelSyncStatus(device.getServerId(), deviceId);
+        }
         return catalogResponseMessageHandler.getChannelSyncProgress(deviceId);
     }
 

@@ -255,4 +255,12 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         RedisRpcResponse response = redisRpcConfig.request(request, 100, TimeUnit.MILLISECONDS);
         return JSON.parseObject(response.getBody().toString(), WVPResult.class);
     }
+
+    @Override
+    public SyncStatus getChannelSyncStatus(String serverId, String deviceId) {
+        RedisRpcRequest request = buildRequest("device/getChannelSyncStatus", deviceId);
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, 100, TimeUnit.MILLISECONDS);
+        return JSON.parseObject(response.getBody().toString(), SyncStatus.class);
+    }
 }

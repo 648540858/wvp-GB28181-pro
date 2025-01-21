@@ -66,4 +66,25 @@ public class RedisRpcDeviceController extends RpcController {
         return response;
     }
 
+    /**
+     * 获取通道同步状态
+     */
+    @RedisRpcMapping("getChannelSyncStatus")
+    public RedisRpcResponse getChannelSyncStatus(RedisRpcRequest request) {
+        String deviceId = request.getParam().toString();
+
+        Device device = deviceService.getDeviceByDeviceId(deviceId);
+
+        RedisRpcResponse response = request.getResponse();
+        if (device == null || !userSetting.getServerId().equals(device.getServerId())) {
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
+            response.setBody("param error");
+            return response;
+        }
+        SyncStatus channelSyncStatus = deviceService.getChannelSyncStatus(deviceId);
+        response.setStatusCode(ErrorCode.SUCCESS.getCode());
+        response.setBody(JSONObject.toJSONString(channelSyncStatus));
+        return response;
+    }
+
 }

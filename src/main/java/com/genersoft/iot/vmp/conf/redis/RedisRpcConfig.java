@@ -154,7 +154,6 @@ public class RedisRpcConfig implements MessageListener {
         }catch (InvocationTargetException | IllegalAccessException e) {
             log.error("[redis-rpc ] 处理请求失败 ", e);
         }
-
     }
 
     private void sendResponse(RedisRpcResponse response){
@@ -171,7 +170,6 @@ public class RedisRpcConfig implements MessageListener {
         message.setRequest(request);
         redisTemplate.convertAndSend(REDIS_REQUEST_CHANNEL_KEY, message);
     }
-
 
     private final Map<Long, SynchronousQueue<RedisRpcResponse>> topicSubscribers = new ConcurrentHashMap<>();
     private final Map<Long, CommonCallback<RedisRpcResponse>> callbacks = new ConcurrentHashMap<>();

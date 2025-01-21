@@ -36,4 +36,6 @@ public interface IRedisRpcService {
     void catalogEventPublish(String serverId, CatalogEvent catalogEvent);
 
     WVPResult<SyncStatus> devicesSync(String serverId, String deviceId);
+
+    SyncStatus getChannelSyncStatus(String serverId, String deviceId);
 }

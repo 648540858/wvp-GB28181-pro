@@ -10,10 +10,12 @@ import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.service.redisMsg.dto.RedisRpcController;
 import com.genersoft.iot.vmp.service.redisMsg.dto.RedisRpcMapping;
 import com.genersoft.iot.vmp.service.redisMsg.dto.RpcController;
 import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
+import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +25,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-@RedisRpcController("device")
-public class RedisRpcDeviceController extends RpcController {
+@RedisRpcController("devicePlay")
+public class RedisRpcDevicePlayController extends RpcController {
 
     @Autowired
     private UserSetting userSetting;
@@ -36,7 +38,8 @@ public class RedisRpcDeviceController extends RpcController {
     private IDeviceService deviceService;
 
     @Autowired
-    private IStreamProxyService streamProxyService;
+    private IPlayService playService;
+
 
 
     private void sendResponse(RedisRpcResponse response){
@@ -48,31 +51,14 @@ public class RedisRpcDeviceController extends RpcController {
     }
 
     /**
-     * 通道同步
-     */
-    @RedisRpcMapping("devicesSync")
-    public RedisRpcResponse devicesSync(RedisRpcRequest request) {
-        String deviceId = request.getParam().toString();
-        Device device = deviceService.getDeviceByDeviceId(deviceId);
-
-        RedisRpcResponse response = request.getResponse();
-        if (device == null || !userSetting.getServerId().equals(device.getServerId())) {
-            response.setStatusCode(ErrorCode.ERROR400.getCode());
-            response.setBody("param error");
-            return response;
-        }
-        WVPResult<SyncStatus> result = deviceService.devicesSync(device);
-        response.setStatusCode(ErrorCode.SUCCESS.getCode());
-        response.setBody(JSONObject.toJSONString(result));
-        return response;
-    }
-
-    /**
      * 获取通道同步状态
      */
-    @RedisRpcMapping("getChannelSyncStatus")
-    public RedisRpcResponse getChannelSyncStatus(RedisRpcRequest request) {
-        String deviceId = request.getParam().toString();
+    @RedisRpcMapping("audioBroadcast")
+    public RedisRpcResponse audioBroadcast(RedisRpcRequest request) {
+        JSONObject paramJson = JSON.parseObject(request.getParam().toString());
+        String deviceId = paramJson.getString("channelId");
+        String channelDeviceId = paramJson.getString("channelDeviceId");
+        Boolean broadcastMode = paramJson.getBoolean("broadcastMode");
 
         Device device = deviceService.getDeviceByDeviceId(deviceId);
 
@@ -82,12 +68,10 @@ public class RedisRpcDeviceController extends RpcController {
             response.setBody("param error");
             return response;
         }
-        SyncStatus channelSyncStatus = deviceService.getChannelSyncStatus(deviceId);
+        AudioBroadcastResult audioBroadcastResult = playService.audioBroadcast(deviceId, channelDeviceId, broadcastMode);
         response.setStatusCode(ErrorCode.SUCCESS.getCode());
-        response.setBody(JSONObject.toJSONString(channelSyncStatus));
+        response.setBody(JSONObject.toJSONString(audioBroadcastResult));
         return response;
     }
-
-
 
 }

@@ -208,16 +208,8 @@ public class PlayController {
 		if (log.isDebugEnabled()) {
 			log.debug("语音广播API调用");
 		}
-		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		if (device == null) {
-			throw new ControllerException(ErrorCode.ERROR400.getCode(), "未找到设备： " + deviceId);
-		}
-		DeviceChannel channel = deviceChannelService.getOne(deviceId, channelId);
-		if (channel == null) {
-			throw new ControllerException(ErrorCode.ERROR400.getCode(), "未找到通道： " + channelId);
-		}
 
-		return playService.audioBroadcast(device, channel, broadcastMode);
+		return playService.audioBroadcast(deviceId, channelId, broadcastMode);
 
 	}
 

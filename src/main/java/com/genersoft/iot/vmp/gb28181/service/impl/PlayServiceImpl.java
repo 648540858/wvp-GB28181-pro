@@ -1236,10 +1236,19 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public AudioBroadcastResult audioBroadcast(Device device, DeviceChannel deviceChannel, Boolean broadcastMode) {
-        // TODO 必须多端口模式才支持语音喊话鹤语音对讲
-        if (device == null || deviceChannel == null) {
-            return null;
+    public AudioBroadcastResult audioBroadcast(String deviceId, String channelDeviceId, Boolean broadcastMode) {
+
+        Device device = deviceService.getDeviceByDeviceId(deviceId);
+        if (device == null) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "未找到设备： " + deviceId);
+        }
+        DeviceChannel deviceChannel = deviceChannelService.getOne(deviceId, channelDeviceId);
+        if (deviceChannel == null) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "未找到通道： " + channelDeviceId);
+        }
+
+        if (!userSetting.getServerId().equals(device.getDeviceId())) {
+            return redisRpcPlayService.audioBroadcast(device.getServerId(), deviceId, channelDeviceId, broadcastMode);
         }
         log.info("[语音喊话] device： {}, channel: {}", device.getDeviceId(), deviceChannel.getDeviceId());
         MediaServer mediaServerItem = mediaServerService.getMediaServerForMinimumLoad(null);

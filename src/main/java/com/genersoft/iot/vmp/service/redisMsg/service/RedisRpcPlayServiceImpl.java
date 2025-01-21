@@ -14,6 +14,7 @@ import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
+import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -234,6 +235,20 @@ public class RedisRpcPlayServiceImpl implements IRedisRpcPlayService {
         RedisRpcResponse response = redisRpcConfig.request(request, userSetting.getPlayTimeout(), TimeUnit.SECONDS);
         if (response != null && response.getStatusCode() == ErrorCode.SUCCESS.getCode()) {
             return JSON.parseObject(response.getBody().toString(), DownloadFileInfo.class);
+        }
+        return null;
+    }
+
+    @Override
+    public AudioBroadcastResult audioBroadcast(String serverId, String deviceId, String channelDeviceId, Boolean broadcastMode) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("deviceId", deviceId);
+        jsonObject.put("channelDeviceId", channelDeviceId);
+        jsonObject.put("broadcastMode", broadcastMode);
+        RedisRpcRequest request = buildRequest("devicePlay/audioBroadcast", jsonObject.toString());
+        RedisRpcResponse response = redisRpcConfig.request(request, userSetting.getPlayTimeout(), TimeUnit.SECONDS);
+        if (response != null && response.getStatusCode() == ErrorCode.SUCCESS.getCode()) {
+            return JSON.parseObject(response.getBody().toString(), AudioBroadcastResult.class);
         }
         return null;
     }

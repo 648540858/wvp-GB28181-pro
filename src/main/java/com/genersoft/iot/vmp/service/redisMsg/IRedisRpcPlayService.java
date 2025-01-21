@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
+import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
 
 public interface IRedisRpcPlayService {
 
@@ -32,4 +33,7 @@ public interface IRedisRpcPlayService {
     void stopProxy(String serverId, int id);
 
     DownloadFileInfo getRecordPlayUrl(String serverId, Integer recordId);
+
+
+    AudioBroadcastResult audioBroadcast(String serverId, String deviceId, String channelDeviceId, Boolean broadcastMode);
 }

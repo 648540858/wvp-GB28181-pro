@@ -43,6 +43,7 @@ public interface DeviceMapper {
             "as_message_channel," +
             "geo_coord_sys," +
             "on_line," +
+            "server_id,"+
             "media_server_id," +
             "broadcast_push_after_ack," +
             "(SELECT count(0) FROM wvp_device_channel dc WHERE dc.data_type = 1 and dc.data_device_id= de.id) as channel_count "+

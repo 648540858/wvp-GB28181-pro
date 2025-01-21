@@ -534,7 +534,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     List<Platform> platformList = platformChannelMapper.queryParentPlatformByChannelId(deviceChannel.getDeviceId());
                     if (!CollectionUtils.isEmpty(platformList)){
                         platformList.forEach(platform->{
-                            eventPublisher.catalogEventPublish(platform, deviceChannel, deviceChannel.getStatus().equals("ON")? CatalogEvent.ON:CatalogEvent.OFF);
+                            eventPublisher.catalogEventPublish(platform, deviceChannel.buildCommonGBChannelForStatus(), deviceChannel.getStatus().equals("ON")? CatalogEvent.ON:CatalogEvent.OFF);
                         });
                     }
                 }

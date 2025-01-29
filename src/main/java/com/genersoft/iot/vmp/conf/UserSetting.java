@@ -175,4 +175,9 @@ public class UserSetting {
      */
     private long loginTimeout = 30;
 
+    /**
+     * jwk文件路径，若不指定则使用resources目录下的jwk.json
+     */
+    private String jwkFile = "classpath:jwk.json";
+
 }

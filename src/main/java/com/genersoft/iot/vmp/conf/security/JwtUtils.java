@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.service.IUserService;
 import com.genersoft.iot.vmp.storager.dao.dto.User;
 import com.genersoft.iot.vmp.storager.dao.dto.UserApiKey;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.jwk.RsaJsonWebKey;
@@ -22,10 +23,10 @@ import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.lang.JoseException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ResourceUtils;
 
 import javax.annotation.Resource;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -92,8 +93,10 @@ public class JwtUtils implements InitializingBean {
      */
     private RsaJsonWebKey generateRsaJsonWebKey() throws JoseException {
         RsaJsonWebKey rsaJsonWebKey = null;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getClassLoader().getResourceAsStream("/jwk.json"), StandardCharsets.UTF_8))) {
-            String jwkJson = reader.readLine();
+        try {
+            String jwkFile = userSetting.getJwkFile();
+            File file = ResourceUtils.getFile(jwkFile);
+            String jwkJson = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
             JsonWebKeySet jsonWebKeySet = new JsonWebKeySet(jwkJson);
             List<JsonWebKey> jsonWebKeys = jsonWebKeySet.getJsonWebKeys();
             if (!jsonWebKeys.isEmpty()) {
@@ -106,6 +109,7 @@ public class JwtUtils implements InitializingBean {
             // ignored
         }
         if (rsaJsonWebKey == null) {
+            log.warn("[API AUTH] 读取jwk.json失败，将使用新生成的随机RSA密钥对");
             // 生成一个RSA密钥对，该密钥对将用于JWT的签名和验证，包装在JWK中
             rsaJsonWebKey = RsaJwkGenerator.generateJwk(2048);
             // 给JWK一个密钥ID

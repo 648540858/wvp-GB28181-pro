@@ -253,6 +253,8 @@ user-settings:
     gb-device-online: 0
     # 登录超时时间(分钟)，
     login-timeout: 30
+    # jwk文件路径，若不指定则使用resources目录下的jwk.json
+    jwk-file: classpath:jwk.json
 
 # 关闭在线文档（生产环境建议关闭）
 springdoc:

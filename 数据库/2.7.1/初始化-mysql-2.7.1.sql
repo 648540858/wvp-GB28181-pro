@@ -129,6 +129,10 @@ create table wvp_gb_stream (
                                stream_type character varying(50),
                                media_server_id character varying(50),
                                create_time character varying(50),
+                               gps_time character varying(50),
+                               gps_speed double precision,
+                               gps_direction character varying(255),
+                               gps_altitude character varying(255),
                                constraint uk_gb_stream_unique_gb_id unique (gb_id),
                                constraint uk_gb_stream_unique_app_stream unique (app, stream)
 );

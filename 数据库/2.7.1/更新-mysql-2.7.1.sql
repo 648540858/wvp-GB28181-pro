@@ -11,3 +11,11 @@ alter table wvp_device_channel add gps_speed double precision;
 alter table wvp_device_channel add gps_direction character varying(255);
 
 alter table wvp_device_channel add gps_altitude character varying(255);
+
+alter table wvp_gb_stream add gps_time character varying(50);
+
+alter table wvp_gb_stream add gps_speed double precision;
+
+alter table wvp_gb_stream add gps_direction character varying(255);
+
+alter table wvp_gb_stream add gps_altitude character varying(255);

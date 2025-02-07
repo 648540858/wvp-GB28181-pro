@@ -77,7 +77,8 @@ public interface GbStreamMapper {
     GbStream queryStreamInPlatform(@Param("platformId") String platformId, @Param("gbId") String gbId);
 
     @Select("<script> "+
-            "select gt.gb_id as channel_id, gt.name, 'wvp-pro' as manufacture,  st.status, gt.longitude, gt.latitude, pc.id as parent_id," +
+            "select gt.gb_id as channel_id, gt.name, 'wvp-pro' as manufacture,  st.status, gt.longitude, gt.latitude, " +
+            "       gt.gps_speed, gt.gps_direction, gt.gps_altitude, gt.gps_time, pc.id as parent_id," +
             "       '1' as register_way, pc.civil_code_for_channel as civil_code, 'live' as model, 'wvp-pro' as owner, '0' as parental,'0' as secrecy" +
             " from wvp_gb_stream gt " +
             " left join (" +
@@ -136,7 +137,12 @@ public interface GbStreamMapper {
             "<foreach collection='gpsMsgInfos' item='item' separator=';'>" +
             " UPDATE" +
             " wvp_gb_stream" +
-            " SET longitude=#{item.lng}, latitude=#{item.lat} " +
+            " SET longitude=#{item.lng}" +
+            ", latitude=#{item.lat} " +
+            ", gps_time=#{item.time} " +
+            ", gps_speed=#{item.speed} " +
+            ", gps_direction=#{item.direction} " +
+            ", gps_altitude=#{item.speed} " +
             "WHERE gb_id=#{item.id}"+
             "</foreach>" +
             "</script>"})

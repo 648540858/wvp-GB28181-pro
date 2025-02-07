@@ -528,9 +528,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 .append("<Time>" + gpsMsgInfo.getTime() + "</Time>\r\n")
                 .append("<Longitude>" + gpsMsgInfo.getLng() + "</Longitude>\r\n")
                 .append("<Latitude>" + gpsMsgInfo.getLat() + "</Latitude>\r\n")
-                .append("<Speed>" + gpsMsgInfo.getSpeed() + "</Speed>\r\n")
-                .append("<Direction>" + gpsMsgInfo.getDirection() + "</Direction>\r\n")
-                .append("<Altitude>" + gpsMsgInfo.getAltitude() + "</Altitude>\r\n")
+                .append("<Speed>" + (gpsMsgInfo.getSpeed() == null?"":gpsMsgInfo.getSpeed()) + "</Speed>\r\n")
+                .append("<Direction>" + (gpsMsgInfo.getDirection() == null ? "" : gpsMsgInfo.getDirection()) + "</Direction>\r\n")
+                .append("<Altitude>" + (gpsMsgInfo.getAltitude() == null ? "" : gpsMsgInfo.getAltitude()) + "</Altitude>\r\n")
                 .append("</Notify>\r\n");
 
        sendNotify(parentPlatform, deviceStatusXml.toString(), subscribeInfo, eventResult -> {

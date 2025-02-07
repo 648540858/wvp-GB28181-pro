@@ -68,7 +68,7 @@ public class RedisGpsMsgListener implements MessageListener {
     @Scheduled(fixedRate = 2 * 1000)   //每2秒执行一次
     public void execute(){
         List<GPSMsgInfo> gpsMsgInfo = redisCatchStorage.getAllGpsMsgInfo();
-        if (gpsMsgInfo.size() > 0) {
+        if (!gpsMsgInfo.isEmpty()) {
             storager.updateStreamGPS(gpsMsgInfo);
             for (GPSMsgInfo msgInfo : gpsMsgInfo) {
                 msgInfo.setStored(true);

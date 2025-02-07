@@ -22,7 +22,8 @@ public interface DeviceChannelMapper {
             "(channel_id, device_id, name, manufacture, model, owner, civil_code, block, sub_count, " +
             "  address, parental, parent_id, safety_way, register_way, cert_num, certifiable, err_code, secrecy, " +
             "  ip_address,port,password,ptz_type,status,stream_id,longitude,latitude,longitude_gcj02,latitude_gcj02,"+
-            "  longitude_wgs84,latitude_wgs84,has_audio,create_time,update_time,business_group_id,gps_time,stream_identification)"+
+            "  longitude_wgs84,latitude_wgs84,has_audio,create_time,update_time,business_group_id," +
+            "  gps_time,gps_speed,gps_direction,gps_altitude,stream_identification)"+
             "values " +
             "(#{channelId}, #{deviceId}, #{name}, #{manufacture}, #{model}, " +
             "#{owner}, #{civilCode}, #{block},#{subCount}," +
@@ -31,7 +32,7 @@ public interface DeviceChannelMapper {
             "#{ipAddress}, #{port}, #{password}, #{ptzType}, #{status}, " +
             "#{streamId}, #{longitude}, #{latitude},#{longitudeGcj02}, " +
             "#{latitudeGcj02},#{longitudeWgs84}, #{latitudeWgs84}, #{hasAudio}, now(), now(), " +
-            "#{businessGroupId}, #{gpsTime}, #{streamIdentification}) " +
+            "#{businessGroupId}, #{gpsTime}, #{gpsSpeed}, #{gpsDirection}, #{gpsAltitude}, #{streamIdentification}) " +
             "</script>")
     int add(DeviceChannel channel);
 
@@ -68,6 +69,9 @@ public interface DeviceChannelMapper {
             "<if test='latitudeWgs84 != null'>, latitude_wgs84=#{latitudeWgs84}</if>" +
             "<if test='businessGroupId != null'>, business_group_id=#{businessGroupId}</if>" +
             "<if test='gpsTime != null'>, gps_time=#{gpsTime}</if>" +
+            "<if test='gpsSpeed != null'>, gps_speed=#{gpsSpeed}</if>" +
+            "<if test='gpsDirection != null'>, gps_direction=#{gpsDirection}</if>" +
+            "<if test='gpsAltitude != null'>, gps_altitude=#{gpsAltitude}</if>" +
             "<if test='streamIdentification != null'>, stream_identification=#{streamIdentification}</if>" +
             "WHERE device_id=#{deviceId} AND channel_id=#{channelId}"+
             " </script>"})
@@ -107,6 +111,9 @@ public interface DeviceChannelMapper {
             "<if test='latitudeWgs84 != null'>, latitude_wgs84=#{latitudeWgs84}</if>" +
             "<if test='businessGroupId != null'>, business_group_id=#{businessGroupId}</if>" +
             "<if test='gpsTime != null'>, gps_time=#{gpsTime}</if>" +
+            "<if test='gpsSpeed != null'>, gps_speed=#{gpsSpeed}</if>" +
+            "<if test='gpsDirection != null'>, gps_direction=#{gpsDirection}</if>" +
+            "<if test='gpsAltitude != null'>, gps_altitude=#{gpsAltitude}</if>" +
             "<if test='streamIdentification != null'>, stream_identification=#{streamIdentification}</if>" +
             "<if test='id > 0'>WHERE id=#{id}</if>" +
             "<if test='id == 0'>WHERE device_id=#{deviceId} AND channel_id=#{channelId}</if>" +
@@ -154,7 +161,10 @@ public interface DeviceChannelMapper {
             "dc.latitude_wgs84, " +
             "dc.business_group_id, " +
             "dc.stream_identification, " +
-            "dc.gps_time " +
+            "dc.gps_time, " +
+            "dc.gps_speed, " +
+            "dc.gps_direction, " +
+            "dc.gps_altitude " +
             "from " +
             "wvp_device_channel dc " +
             "WHERE " +
@@ -293,7 +303,8 @@ public interface DeviceChannelMapper {
             "(channel_id, device_id, name, manufacture, model, owner, civil_code, block, sub_count, " +
             "  address, parental, parent_id, safety_way, register_way, cert_num, certifiable, err_code, secrecy, " +
             "  ip_address,port,password,ptz_type,status,stream_id,longitude,latitude,longitude_gcj02,latitude_gcj02,"+
-            "  longitude_wgs84,latitude_wgs84,has_audio,create_time,update_time,business_group_id,gps_time,stream_identification)"+
+            "  longitude_wgs84,latitude_wgs84,has_audio,create_time,update_time,business_group_id," +
+            "  gps_time,gps_speed,gps_direction,gps_altitude,stream_identification)"+
             "values " +
             "<foreach collection='addChannels' index='index' item='item' separator=','> " +
             "(#{item.channelId}, #{item.deviceId}, #{item.name}, #{item.manufacture}, #{item.model}, " +
@@ -303,64 +314,11 @@ public interface DeviceChannelMapper {
             "#{item.ipAddress}, #{item.port}, #{item.password}, #{item.ptzType}, #{item.status}, " +
             "#{item.streamId}, #{item.longitude}, #{item.latitude},#{item.longitudeGcj02}, " +
             "#{item.latitudeGcj02},#{item.longitudeWgs84}, #{item.latitudeWgs84}, #{item.hasAudio}, now(), now(), " +
-            "#{item.businessGroupId}, #{item.gpsTime}, #{item.streamIdentification}) " +
+            "#{item.businessGroupId}, #{item.gpsTime}, #{item.gpsSpeed}, #{item.gpsDirection}, #{item.gpsAltitude}, #{item.streamIdentification}) " +
             "</foreach> " +
             "</script>")
     int batchAdd(@Param("addChannels") List<DeviceChannel> addChannels);
 
-
-    @Insert("<script> " +
-            "insert into wvp_device_channel " +
-            "(channel_id,device_id,name,manufacture,model,owner,civil_code,block,sub_count,"+
-            "  address,parental,parent_id,safety_way,register_way,cert_num,certifiable,err_code,secrecy,"+
-            "  ip_address,port,password,ptz_type,status,stream_id,longitude,latitude,longitude_gcj02,latitude_gcj02,"+
-            "  longitude_wgs84,latitude_wgs84,has_audio,create_time,update_time,business_group_id,gps_time)"+
-            "values " +
-            "<foreach collection='addChannels' index='index' item='item' separator=','> " +
-            "(#{item.channelId}, #{item.deviceId}, #{item.name}, #{item.manufacture}, #{item.model}, " +
-            "#{item.owner}, #{item.civilCode}, #{item.block},#{item.subCount}," +
-            "#{item.address}, #{item.parental}, #{item.parentId}, #{item.safetyWay}, #{item.registerWay}, " +
-            "#{item.certNum}, #{item.certifiable}, #{item.errCode}, #{item.secrecy}, " +
-            "#{item.ipAddress}, #{item.port}, #{item.password}, #{item.ptzType}, #{item.status}, " +
-            "#{item.streamId}, #{item.longitude}, #{item.latitude},#{item.longitudeGcj02}, " +
-            "#{item.latitudeGcj02},#{item.longitudeWgs84}, #{item.latitudeWgs84}, #{item.hasAudio}, now(), now(), " +
-            "#{item.businessGroupId}, #{item.gpsTime}) " +
-            "</foreach> " +
-            "ON DUPLICATE KEY UPDATE " +
-            "update_time=VALUES(update_time), " +
-            "name=VALUES(name), " +
-            "manufacture=VALUES(manufacture), " +
-            "model=VALUES(model), " +
-            "owner=VALUES(owner), " +
-            "civil_code=VALUES(civil_code), " +
-            "block=VALUES(block), " +
-            "sub_count=VALUES(sub_count), " +
-            "address=VALUES(address), " +
-            "parental=VALUES(parental), " +
-            "parent_id=VALUES(parent_id), " +
-            "safety_way=VALUES(safety_way), " +
-            "register_way=VALUES(register_way), " +
-            "cert_num=VALUES(cert_num), " +
-            "certifiable=VALUES(certifiable), " +
-            "err_code=VALUES(err_code), " +
-            "secrecy=VALUES(secrecy), " +
-            "ip_address=VALUES(ip_address), " +
-            "port=VALUES(port), " +
-            "password=VALUES(password), " +
-            "ptz_type=VALUES(ptz_type), " +
-            "status=VALUES(status), " +
-            "stream_id=VALUES(stream_id), " +
-            "longitude=VALUES(longitude), " +
-            "latitude=VALUES(latitude), " +
-            "longitude_gcj02=VALUES(longitude_gcj02), " +
-            "latitude_gcj02=VALUES(latitude_gcj02), " +
-            "longitude_wgs84=VALUES(longitude_wgs84), " +
-            "latitude_wgs84=VALUES(latitude_wgs84), " +
-            "has_audio=VALUES(has_audio), " +
-            "business_group_id=VALUES(business_group_id), " +
-            "gps_time=VALUES(gps_time)" +
-            "</script>")
-    int batchAddOrUpdate(List<DeviceChannel> addChannels);
 
     @Update(value = {"UPDATE wvp_device_channel SET status=true WHERE device_id=#{deviceId} AND channel_id=#{channelId}"})
     void online(@Param("deviceId") String deviceId, @Param("channelId") String channelId);
@@ -403,6 +361,9 @@ public interface DeviceChannelMapper {
             "<if test='item.latitudeWgs84 != null'>, latitude_wgs84=#{item.latitudeWgs84}</if>" +
             "<if test='item.businessGroupId != null'>, business_group_id=#{item.businessGroupId}</if>" +
             "<if test='item.gpsTime != null'>, gps_time=#{item.gpsTime}</if>" +
+            "<if test='item.gpsSpeed != null'>, gps_speed=#{item.gpsSpeed}</if>" +
+            "<if test='item.gpsDirection != null'>, gps_direction=#{item.gpsDirection}</if>" +
+            "<if test='item.gpsAltitude != null'>, gps_altitude=#{item.gpsAltitude}</if>" +
             "<if test='item.streamIdentification != null'>, stream_identification=#{item.streamIdentification}</if>" +
             "<if test='item.id > 0'>WHERE id=#{item.id}</if>" +
             "<if test='item.id == 0'>WHERE device_id=#{item.deviceId} AND channel_id=#{item.channelId}</if>" +
@@ -443,6 +404,9 @@ public interface DeviceChannelMapper {
             "latitude_gcj02=#{latitudeGcj02}, " +
             "longitude_wgs84=#{longitudeWgs84}, " +
             "latitude_wgs84=#{latitudeWgs84}, " +
+            "gps_speed=#{gpsSpeed}," +
+            "gps_direction=#{gpsDirection}," +
+            "gps_altitude=#{gpsAltitude}," +
             "gps_time=#{gpsTime} " +
             "WHERE device_id=#{deviceId} " +
             " <if test='channelId != null' >  AND channel_id=#{channelId}</if>" +
@@ -508,6 +472,10 @@ public interface DeviceChannelMapper {
             ",longitude_wgs84"+
             ",latitude_gcj02"+
             ",longitude_gcj02"+
+            ",gps_time"+
+            ",gps_speed"+
+            ",gps_direction"+
+            ",gps_altitude"+
             "from wvp_device_channel where device_id = #{deviceId} " +
             "and latitude != 0 " +
             "and  longitude != 0 " +
@@ -588,7 +556,10 @@ public interface DeviceChannelMapper {
             "       longitude_wgs84,\n" +
             "       latitude_wgs84,\n" +
             "       business_group_id,\n" +
-            "       gps_time\n" +
+            "       gps_time," +
+            "       gps_speed,"+
+            "       gps_direction,"+
+            "       gps_altitude"+
             "from wvp_device_channel " +
             "where device_id=#{deviceId}" +
             " <if test='parentId != null and parentId != deviceId'> and parent_id = #{parentId} </if>" +
@@ -616,6 +587,9 @@ public interface DeviceChannelMapper {
             "<if test='item.longitudeWgs84 != null'>, longitude_wgs84=#{item.longitudeWgs84}</if>" +
             "<if test='item.latitudeWgs84 != null'>, latitude_wgs84=#{item.latitudeWgs84}</if>" +
             "<if test='item.gpsTime != null'>, gps_time=#{item.gpsTime}</if>" +
+            "<if test='item.gpsSpeed != null'>, gps_speed=#{item.gpsSpeed}</if>" +
+            "<if test='item.gpsDirection != null'>, gps_direction=#{item.gpsDirection}</if>" +
+            "<if test='item.gpsAltitude != null'>, gps_altitude=#{item.gpsAltitude}</if>" +
             "<if test='item.id > 0'>WHERE id=#{item.id}</if>" +
             "<if test='item.id == 0'>WHERE device_id=#{item.deviceId} AND channel_id=#{item.channelId}</if>" +
             "</foreach>" +

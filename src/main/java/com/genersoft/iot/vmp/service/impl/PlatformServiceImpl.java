@@ -1,10 +1,10 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionStatus;
 import com.genersoft.iot.vmp.common.InviteSessionType;
-import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
@@ -13,12 +13,10 @@ import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
-import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
+import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
@@ -27,11 +25,11 @@ import com.genersoft.iot.vmp.service.IPlatformService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.dao.*;
+import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
+import com.genersoft.iot.vmp.storager.dao.ParentPlatformMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,17 +39,8 @@ import org.springframework.stereotype.Service;
 import javax.sdp.*;
 import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
-import javax.sip.PeerUnavailableException;
 import javax.sip.SipException;
 import java.text.ParseException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 import java.util.*;
 
 /**
@@ -437,19 +426,33 @@ public class PlatformServiceImpl implements IPlatformService {
         if (subscribe != null) {
 
             // TODO 暂时只处理视频流的回复,后续增加对国标设备的支持
-            List<DeviceChannel> gbStreams = gbStreamMapper.queryGbStreamListInPlatform(platform.getServerGBId(), userSetting.isUsePushingAsStatus());
-            if (gbStreams.size() == 0) {
+            List<DeviceChannel> deviceChannelList = gbStreamMapper.queryGbStreamListInPlatform(platform.getServerGBId(), userSetting.isUsePushingAsStatus());
+            if (deviceChannelList.isEmpty()) {
                 return;
             }
-            for (DeviceChannel deviceChannel : gbStreams) {
+            for (DeviceChannel deviceChannel : deviceChannelList) {
                 String gbId = deviceChannel.getChannelId();
                 GPSMsgInfo gpsMsgInfo = redisCatchStorage.getGpsMsgInfo(gbId);
-                // 无最新位置不发送
+                // 无最新位置则发送当前位置
                 if (gpsMsgInfo != null) {
                     // 经纬度都为0不发送
-                    if (gpsMsgInfo.getLng() == 0 && gpsMsgInfo.getLat() == 0) {
-                        continue;
+                    if (gpsMsgInfo.getLng() == 0 || gpsMsgInfo.getLat() == 0) {
+                        gpsMsgInfo.setLng(deviceChannel.getLongitude());
+                        gpsMsgInfo.setLat(deviceChannel.getLatitude());
                     }
+                }else {
+                    if (!userSetting.isSendPositionOnDemand()) {
+                        gpsMsgInfo = new GPSMsgInfo();
+                        gpsMsgInfo.setId(deviceChannel.getChannelId());
+                        gpsMsgInfo.setLng(deviceChannel.getLongitude());
+                        gpsMsgInfo.setLat(deviceChannel.getLatitude());
+                        gpsMsgInfo.setAltitude(deviceChannel.getGpsAltitude());
+                        gpsMsgInfo.setSpeed(deviceChannel.getGpsSpeed());
+                        gpsMsgInfo.setDirection(deviceChannel.getGpsDirection());
+                        gpsMsgInfo.setTime(deviceChannel.getGpsTime());
+                    }
+                }
+                if (gpsMsgInfo != null) {
                     // 发送GPS消息
                     try {
                         commanderForPlatform.sendNotifyMobilePosition(platform, gpsMsgInfo, subscribe);

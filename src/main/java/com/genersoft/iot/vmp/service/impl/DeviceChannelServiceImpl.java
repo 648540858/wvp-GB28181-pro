@@ -109,7 +109,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         channel = updateGps(channel, null);
         if (deviceChannel == null) {
             channel.setCreateTime(now);
-            channelMapper.add(channel);
+            addChannel(channel);
         }else {
             channelMapper.update(channel);
         }

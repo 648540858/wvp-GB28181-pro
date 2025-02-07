@@ -74,6 +74,8 @@ public class UserSetting {
 
     private boolean registerKeepIntDialog = false;
 
+    private boolean sendPositionOnDemand = true;
+
     public Boolean getSavePositionHistory() {
         return savePositionHistory;
     }
@@ -324,5 +326,14 @@ public class UserSetting {
 
     public void setDocEnable(Boolean docEnable) {
         this.docEnable = docEnable;
+    }
+
+
+    public boolean isSendPositionOnDemand() {
+        return sendPositionOnDemand;
+    }
+
+    public void setSendPositionOnDemand(boolean sendPositionOnDemand) {
+        this.sendPositionOnDemand = sendPositionOnDemand;
     }
 }

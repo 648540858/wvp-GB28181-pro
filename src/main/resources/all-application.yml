@@ -243,6 +243,8 @@ user-settings:
     register-keep-int-dialog: false
     # 开启接口文档页面。 默认开启，生产环境建议关闭，遇到swagger相关的漏洞时也可以关闭
     doc-enable: true
+    # 按需发送位置， 默认发送移动位置订阅时如果位置不变则不发送， 设置为false按照国标间隔持续发送
+    send-position-on-demand: true
     # 跨域配置，不配置此项则允许所有跨域请求，配置后则只允许配置的页面的地址请求， 可以配置多个
     allowed-origins:
         - http://localhost:8008

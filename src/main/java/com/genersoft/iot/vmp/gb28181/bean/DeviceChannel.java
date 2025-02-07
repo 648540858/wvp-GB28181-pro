@@ -258,6 +258,24 @@ public class DeviceChannel {
 	@Schema(description = "GPS的更新时间")
 	private String gpsTime;
 
+	/**
+	 * 速度,单位:km/h (可选)
+	 */
+	@Schema(description = "GPS的速度")
+	private Double gpsSpeed;
+
+	/**
+	 * 方向,取值为当前摄像头方向与正北方的顺时针夹角,取值范围0°~360°,单位:(°)(可选)
+	 */
+	@Schema(description = "GPS的方向")
+	private String gpsDirection;
+
+	/**
+	 * 海拔高度,单位:m(可选)
+	 */
+	@Schema(description = "GPS的海拔高度")
+	private String gpsAltitude;
+
 	@Schema(description = "码流标识，优先级高于设备中码流标识，" +
 			"用于选择码流时组成码流标识。默认为null，不设置。可选值: stream/streamnumber/streamprofile/streamMode")
 	private String streamIdentification;
@@ -613,5 +631,30 @@ public class DeviceChannel {
 
 	public void setCustomLatitude(double customLatitude) {
 		this.customLatitude = customLatitude;
+	}
+
+
+	public Double getGpsSpeed() {
+		return gpsSpeed;
+	}
+
+	public void setGpsSpeed(Double gpsSpeed) {
+		this.gpsSpeed = gpsSpeed;
+	}
+
+	public String getGpsDirection() {
+		return gpsDirection;
+	}
+
+	public void setGpsDirection(String gpsDirection) {
+		this.gpsDirection = gpsDirection;
+	}
+
+	public String getGpsAltitude() {
+		return gpsAltitude;
+	}
+
+	public void setGpsAltitude(String gpsAltitude) {
+		this.gpsAltitude = gpsAltitude;
 	}
 }

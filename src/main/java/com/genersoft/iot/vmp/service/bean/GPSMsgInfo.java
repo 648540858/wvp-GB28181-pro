@@ -13,17 +13,17 @@ public class GPSMsgInfo {
     /**
      * 经度 (必选)
      */
-    private double lng;
+    private Double lng;
 
     /**
      * 纬度 (必选)
      */
-    private double lat;
+    private Double lat;
 
     /**
      * 速度,单位:km/h (可选)
      */
-    private double speed;
+    private Double speed;
 
     /**
      * 产生通知时间, 时间格式： 2020-01-14T14:32:12
@@ -63,27 +63,27 @@ public class GPSMsgInfo {
         this.id = id;
     }
 
-    public double getLng() {
+    public Double getLng() {
         return lng;
     }
 
-    public void setLng(double lng) {
+    public void setLng(Double lng) {
         this.lng = lng;
     }
 
-    public double getLat() {
+    public Double getLat() {
         return lat;
     }
 
-    public void setLat(double lat) {
+    public void setLat(Double lat) {
         this.lat = lat;
     }
 
-    public double getSpeed() {
+    public Double getSpeed() {
         return speed;
     }
 
-    public void setSpeed(double speed) {
+    public void setSpeed(Double speed) {
         this.speed = speed;
     }
 

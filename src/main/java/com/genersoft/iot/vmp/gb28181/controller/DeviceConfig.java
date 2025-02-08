@@ -16,6 +16,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -102,24 +103,20 @@ public class DeviceConfig {
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@Parameter(name = "configType", description = "配置类型")
 	@GetMapping("/query/{deviceId}/{configType}")
-    public DeferredResult<String> configDownloadApi(@PathVariable String deviceId,
-                                                                @PathVariable String configType,
-                                                                @RequestParam(required = false) String channelId) {
+    public DeferredResult<WVPResult<String>> configDownloadApi(@PathVariable String deviceId,
+													   @PathVariable String configType,
+													   @RequestParam(required = false) String channelId) {
 		if (log.isDebugEnabled()) {
 			log.debug("设备状态查询API调用");
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		Assert.notNull(device, "设备不存在");
 
-		DeferredResult<String> result = deviceService.deviceConfigQuery(device, channelId, configType);
+		DeferredResult<WVPResult<String>> result = deviceService.deviceConfigQuery(device, channelId, configType);
 
 		result.onTimeout(() -> {
-			log.warn("获取设备配置超时");
-			JSONObject json = new JSONObject();
-			json.put("DeviceID", device.getDeviceId());
-			json.put("Status", "Timeout");
-			json.put("Description", "操作超时");
-			result.setResult(json.toString());
+			log.warn("[获取设备配置] 超时, {}", device.getDeviceId());
+			result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "超时"));
 		});
 		return result;
 	}

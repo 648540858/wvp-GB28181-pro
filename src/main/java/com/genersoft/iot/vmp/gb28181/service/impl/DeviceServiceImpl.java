@@ -36,6 +36,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -493,9 +494,7 @@ public class DeviceServiceImpl implements IDeviceService {
     @Transactional
     public boolean delete(String deviceId) {
         Device device = getDeviceByDeviceIdFromDb(deviceId);
-        if (device == null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备:" + deviceId);
-        }
+        Assert.notNull(device, "未找到设备");
         platformChannelMapper.delChannelForDeviceId(deviceId);
         deviceChannelMapper.cleanChannelsByDeviceId(device.getId());
         deviceMapper.del(deviceId);
@@ -619,7 +618,7 @@ public class DeviceServiceImpl implements IDeviceService {
         // 已存在则返回进度
         if (isSyncRunning(device.getDeviceId())) {
             SyncStatus channelSyncStatus = getChannelSyncStatus(device.getDeviceId());
-            WVPResult wvpResult = new WVPResult();
+            WVPResult<SyncStatus> wvpResult = new WVPResult();
             if (channelSyncStatus.getErrorMsg() != null) {
                 wvpResult.setCode(ErrorCode.ERROR100.getCode());
                 wvpResult.setMsg(channelSyncStatus.getErrorMsg());
@@ -641,46 +640,46 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public DeferredResult<String> deviceBasicConfig(Device device, String channelId, String name, String expiration,
+    public DeferredResult<WVPResult<String>> deviceBasicConfig(Device device, String channelId, String name, String expiration,
                                                     String heartBeatInterval, String heartBeatCount) {
         if (!userSetting.getServerId().equals(device.getServerId())) {
-            String result = redisRpcService.deviceBasicConfig(device.getServerId(), device, channelId, name, expiration,
+            WVPResult<String> result = redisRpcService.deviceBasicConfig(device.getServerId(), device, channelId, name, expiration,
                     heartBeatInterval, heartBeatCount);
-            DeferredResult<String> deferredResult = new DeferredResult<String>(3 * 1000L);
+            DeferredResult<WVPResult<String>> deferredResult = new DeferredResult<>(3 * 1000L);
             deferredResult.setResult(result);
             return deferredResult;
         }
 
-        DeferredResult<String> result = new DeferredResult<String>(3 * 1000L);
+        DeferredResult<WVPResult<String>> result = new DeferredResult<>(3 * 1000L);
         try {
             sipCommander.deviceBasicConfigCmd(device, channelId, name, expiration, heartBeatInterval, heartBeatCount, event -> {
-                result.setResult(String.format("设备配置操作失败，错误码： %s, %s", event.statusCode, event.msg));
+                result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时"));
             });
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error("[命令发送失败] 设备配置: {}", e.getMessage());
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage());
         }
         return result;
     }
 
     @Override
-    public DeferredResult<String> deviceConfigQuery(Device device, String channelId, String configType) {
+    public DeferredResult<WVPResult<String>> deviceConfigQuery(Device device, String channelId, String configType) {
 
         if (!userSetting.getServerId().equals(device.getServerId())) {
-            String result = redisRpcService.deviceConfigQuery(device.getServerId(), device, channelId, configType);
-            DeferredResult<String> deferredResult = new DeferredResult<String>(3 * 1000L);
+            WVPResult<String> result = redisRpcService.deviceConfigQuery(device.getServerId(), device, channelId, configType);
+            DeferredResult<WVPResult<String>> deferredResult = new DeferredResult<>(3 * 1000L);
             deferredResult.setResult(result);
             return deferredResult;
         }
 
-        DeferredResult<String> result = new DeferredResult<String>(3 * 1000L);
+        DeferredResult<WVPResult<String>> result = new DeferredResult<>(3 * 1000L);
         try {
             sipCommander.deviceConfigQuery(device, channelId, configType, event -> {
-                result.setResult(String.format("获取设备配置失败，错误码： %s, %s", event.statusCode, event.msg));
+                result.setResult(WVPResult.fail(ErrorCode.ERROR100));
             });
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error("[命令发送失败] 获取设备配置: {}", e.getMessage());
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage());
         }
         return result;
     }
@@ -700,23 +699,23 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public DeferredResult<String> record(Device device, String channelId, String recordCmdStr) {
+    public DeferredResult<WVPResult<String>> record(Device device, String channelId, String recordCmdStr) {
 
         if (!userSetting.getServerId().equals(device.getServerId())) {
-            String result = redisRpcService.recordControl(device.getServerId(), device, channelId, recordCmdStr);
-            DeferredResult<String> deferredResult = new DeferredResult<String>(3 * 1000L);
+            WVPResult<String> result = redisRpcService.recordControl(device.getServerId(), device, channelId, recordCmdStr);
+            DeferredResult<WVPResult<String>> deferredResult = new DeferredResult<>(3 * 1000L);
             deferredResult.setResult(result);
             return deferredResult;
         }
 
-        DeferredResult<String> result = new DeferredResult<>(3 * 1000L);
+        DeferredResult<WVPResult<String>> result = new DeferredResult<>(3 * 1000L);
         try {
             sipCommander.recordCmd(device, channelId, recordCmdStr, event -> {
-                result.setResult(String.format("开始/停止录像操作失败，错误码： %s, %s", event.statusCode, event.msg));
+                result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), String.format("开始/停止录像操作失败，错误码： %s, %s", event.statusCode, event.msg)));
             },null);
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error("[命令发送失败] 开始/停止录像: {}", e.getMessage());
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage());
         }
 
         return result;
@@ -763,6 +762,113 @@ public class DeviceServiceImpl implements IDeviceService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage());
         }
 
+        return result;
+    }
+
+    @Override
+    public void iFrame(Device device, String channelId) {
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            redisRpcService.iFrame(device.getServerId(), device, channelId);
+            return;
+        }
+
+        try {
+            sipCommander.iFrameCmd(device, channelId);
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            log.error("[命令发送失败] 强制关键帧操作: {}", e.getMessage());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public DeferredResult<WVPResult<String>> homePosition(Device device, String channelId, Boolean enabled, Integer resetTime, Integer presetIndex) {
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            WVPResult<String> result = redisRpcService.homePosition(device.getServerId(), device, channelId, enabled, resetTime, presetIndex);
+            DeferredResult<WVPResult<String>> deferredResult = new DeferredResult<>(3 * 1000L);
+            deferredResult.setResult(result);
+            return deferredResult;
+        }
+
+        DeferredResult<WVPResult<String>> result = new DeferredResult<>(3 * 1000L);
+
+        try {
+            sipCommander.homePositionCmd(device, channelId, enabled, resetTime, presetIndex, event -> {
+                result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), String.format("操作失败，错误码： %s, %s", event.statusCode, event.msg)));
+            },null);
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            log.error("[命令发送失败] 看守位控制: {}", e.getMessage());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+        }
+        return result;
+    }
+
+    @Override
+    public void dragZoomIn(Device device, String channelId, int length, int width, int midpointx, int midpointy, int lengthx, int lengthy) {
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            redisRpcService.dragZoomIn(device.getServerId(), device, channelId, length, width, midpointx, midpointy, lengthx, lengthy);
+            return;
+        }
+
+        StringBuffer cmdXml = new StringBuffer(200);
+        cmdXml.append("<DragZoomIn>\r\n");
+        cmdXml.append("<Length>" + length+ "</Length>\r\n");
+        cmdXml.append("<Width>" + width+ "</Width>\r\n");
+        cmdXml.append("<MidPointX>" + midpointx+ "</MidPointX>\r\n");
+        cmdXml.append("<MidPointY>" + midpointy+ "</MidPointY>\r\n");
+        cmdXml.append("<LengthX>" + lengthx+ "</LengthX>\r\n");
+        cmdXml.append("<LengthY>" + lengthy+ "</LengthY>\r\n");
+        cmdXml.append("</DragZoomIn>\r\n");
+        try {
+            sipCommander.dragZoomCmd(device, channelId, cmdXml.toString());
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            log.error("[命令发送失败] 拉框放大: {}", e.getMessage());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " +  e.getMessage());
+        }
+    }
+
+    @Override
+    public void dragZoomOut(Device device, String channelId, int length, int width, int midpointx, int midpointy, int lengthx, int lengthy) {
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            redisRpcService.dragZoomOut(device.getServerId(), device, channelId, length, width, midpointx, midpointy, lengthx, lengthy);
+            return;
+        }
+
+        StringBuffer cmdXml = new StringBuffer(200);
+        cmdXml.append("<DragZoomOut>\r\n");
+        cmdXml.append("<Length>" + length+ "</Length>\r\n");
+        cmdXml.append("<Width>" + width+ "</Width>\r\n");
+        cmdXml.append("<MidPointX>" + midpointx+ "</MidPointX>\r\n");
+        cmdXml.append("<MidPointY>" + midpointy+ "</MidPointY>\r\n");
+        cmdXml.append("<LengthX>" + lengthx+ "</LengthX>\r\n");
+        cmdXml.append("<LengthY>" + lengthy+ "</LengthY>\r\n");
+        cmdXml.append("</DragZoomOut>\r\n");
+        try {
+            sipCommander.dragZoomCmd(device, channelId, cmdXml.toString());
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            log.error("[命令发送失败] 拉框放大: {}", e.getMessage());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " +  e.getMessage());
+        }
+    }
+
+    @Override
+    public DeferredResult<WVPResult<String>> deviceStatus(Device device) {
+
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            WVPResult<String> result = redisRpcService.deviceStatus(device.getServerId(), device);
+            DeferredResult<WVPResult<String>> deferredResult = new DeferredResult<>(3 * 1000L);
+            deferredResult.setResult(result);
+            return deferredResult;
+        }
+
+        DeferredResult<WVPResult<String>> result = new DeferredResult<>(2*1000L);
+        try {
+            sipCommander.deviceStatusQuery(device, event -> {
+                result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), String.format("操作失败，错误码： %s, %s", event.statusCode, event.msg)));
+            });
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            log.error("[命令发送失败] 获取设备状态: {}", e.getMessage());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+        }
         return result;
     }
 }

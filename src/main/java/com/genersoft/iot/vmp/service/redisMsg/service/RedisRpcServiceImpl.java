@@ -267,7 +267,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     }
 
     @Override
-    public String deviceBasicConfig(String serverId, Device device, String channelId, String name, String expiration,
+    public WVPResult<String> deviceBasicConfig(String serverId, Device device, String channelId, String name, String expiration,
                                     String heartBeatInterval, String heartBeatCount) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("device", device.getDeviceId());
@@ -279,11 +279,11 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         RedisRpcRequest request = buildRequest("device/deviceBasicConfig", jsonObject);
         request.setToId(serverId);
         RedisRpcResponse response = redisRpcConfig.request(request, 50, TimeUnit.MILLISECONDS);
-        return response.getBody().toString();
+        return JSON.parseObject(response.getBody().toString(), WVPResult.class);
     }
 
     @Override
-    public String deviceConfigQuery(String serverId, Device device, String channelId, String configType) {
+    public WVPResult<String> deviceConfigQuery(String serverId, Device device, String channelId, String configType) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("device", device.getDeviceId());
         jsonObject.put("channelId", channelId);
@@ -291,7 +291,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         RedisRpcRequest request = buildRequest("device/deviceConfigQuery", jsonObject);
         request.setToId(serverId);
         RedisRpcResponse response = redisRpcConfig.request(request, 50, TimeUnit.MILLISECONDS);
-        return response.getBody().toString();
+        return JSON.parseObject(response.getBody().toString(), WVPResult.class);
     }
 
     @Override
@@ -305,7 +305,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     }
 
     @Override
-    public String recordControl(String serverId, Device device, String channelId, String recordCmdStr) {
+    public WVPResult<String> recordControl(String serverId, Device device, String channelId, String recordCmdStr) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("device", device.getDeviceId());
         jsonObject.put("channelId", channelId);
@@ -313,7 +313,7 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         RedisRpcRequest request = buildRequest("device/record", jsonObject);
         request.setToId(serverId);
         RedisRpcResponse response = redisRpcConfig.request(request, 50, TimeUnit.MILLISECONDS);
-        return response.getBody().toString();
+        return JSON.parseObject(response.getBody().toString(), WVPResult.class);
     }
 
     @Override
@@ -322,6 +322,84 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         jsonObject.put("device", device.getDeviceId());
         jsonObject.put("guardCmdStr", guardCmdStr);
         RedisRpcRequest request = buildRequest("device/guard", jsonObject);
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, 50, TimeUnit.MILLISECONDS);
+        return JSON.parseObject(response.getBody().toString(), WVPResult.class);
+    }
+
+    @Override
+    public WVPResult<String> resetAlarm(String serverId, Device device, String channelId, String alarmMethod, String alarmType) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("device", device.getDeviceId());
+        jsonObject.put("channelId", channelId);
+        jsonObject.put("alarmMethod", alarmMethod);
+        jsonObject.put("alarmType", alarmType);
+        RedisRpcRequest request = buildRequest("device/resetAlarm", jsonObject);
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, 50, TimeUnit.MILLISECONDS);
+        return JSON.parseObject(response.getBody().toString(), WVPResult.class);
+    }
+
+    @Override
+    public void iFrame(String serverId, Device device, String channelId) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("device", device.getDeviceId());
+        jsonObject.put("channelId", channelId);
+        RedisRpcRequest request = buildRequest("device/iFrame", jsonObject);
+        request.setToId(serverId);
+        redisRpcConfig.request(request, 50, TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public WVPResult<String> homePosition(String serverId, Device device, String channelId, Boolean enabled, Integer resetTime, Integer presetIndex) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("device", device.getDeviceId());
+        jsonObject.put("channelId", channelId);
+        jsonObject.put("enabled", enabled);
+        jsonObject.put("resetTime", resetTime);
+        jsonObject.put("presetIndex", presetIndex);
+        RedisRpcRequest request = buildRequest("device/homePosition", jsonObject);
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, 50, TimeUnit.MILLISECONDS);
+        return JSON.parseObject(response.getBody().toString(), WVPResult.class);
+    }
+
+    @Override
+    public void dragZoomIn(String serverId, Device device, String channelId, int length, int width, int midpointx,
+                           int midpointy, int lengthx, int lengthy) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("device", device.getDeviceId());
+        jsonObject.put("channelId", channelId);
+        jsonObject.put("length", length);
+        jsonObject.put("width", width);
+        jsonObject.put("midpointx", midpointx);
+        jsonObject.put("midpointy", midpointy);
+        jsonObject.put("lengthx", lengthx);
+        jsonObject.put("lengthy", lengthy);
+        RedisRpcRequest request = buildRequest("device/dragZoomIn", jsonObject);
+        request.setToId(serverId);
+        redisRpcConfig.request(request, 50, TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public void dragZoomOut(String serverId, Device device, String channelId, int length, int width, int midpointx, int midpointy, int lengthx, int lengthy) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("device", device.getDeviceId());
+        jsonObject.put("channelId", channelId);
+        jsonObject.put("length", length);
+        jsonObject.put("width", width);
+        jsonObject.put("midpointx", midpointx);
+        jsonObject.put("midpointy", midpointy);
+        jsonObject.put("lengthx", lengthx);
+        jsonObject.put("lengthy", lengthy);
+        RedisRpcRequest request = buildRequest("device/dragZoomOut", jsonObject);
+        request.setToId(serverId);
+        redisRpcConfig.request(request, 50, TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public WVPResult<String> deviceStatus(String serverId, Device device) {
+        RedisRpcRequest request = buildRequest("device/deviceStatus", device.getDeviceId());
         request.setToId(serverId);
         RedisRpcResponse response = redisRpcConfig.request(request, 50, TimeUnit.MILLISECONDS);
         return JSON.parseObject(response.getBody().toString(), WVPResult.class);

@@ -40,13 +40,25 @@ public interface IRedisRpcService {
 
     SyncStatus getChannelSyncStatus(String serverId, String deviceId);
 
-    String deviceBasicConfig(String serverId, Device device, String channelId, String name, String expiration, String heartBeatInterval, String heartBeatCount);
+    WVPResult<String> deviceBasicConfig(String serverId, Device device, String channelId, String name, String expiration, String heartBeatInterval, String heartBeatCount);
 
-    String deviceConfigQuery(String serverId, Device device, String channelId, String configType);
+    WVPResult<String> deviceConfigQuery(String serverId, Device device, String channelId, String configType);
 
     void teleboot(String serverId, Device device);
 
-    String recordControl(String serverId, Device device, String channelId, String recordCmdStr);
+    WVPResult<String> recordControl(String serverId, Device device, String channelId, String recordCmdStr);
 
     WVPResult<String> guard(String serverId, Device device, String guardCmdStr);
+
+    WVPResult<String> resetAlarm(String serverId, Device device, String channelId, String alarmMethod, String alarmType);
+
+    void iFrame(String serverId, Device device, String channelId);
+
+    WVPResult<String> homePosition(String serverId, Device device, String channelId, Boolean enabled, Integer resetTime, Integer presetIndex);
+
+    void dragZoomIn(String serverId, Device device, String channelId, int length, int width, int midpointx, int midpointy, int lengthx, int lengthy);
+
+    void dragZoomOut(String serverId, Device device, String channelId, int length, int width, int midpointx, int midpointy, int lengthx, int lengthy);
+
+    WVPResult<String> deviceStatus(String serverId, Device device);
 }

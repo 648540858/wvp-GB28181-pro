@@ -78,17 +78,17 @@ public class DeviceControl {
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@Parameter(name = "recordCmdStr", description = "命令， 可选值：Record（手动录像），StopRecord（停止手动录像）", required = true)
     @GetMapping("/record/{deviceId}/{recordCmdStr}")
-    public DeferredResult<String> recordApi(@PathVariable String deviceId,
+    public DeferredResult<WVPResult<String>> recordApi(@PathVariable String deviceId,
 															   @PathVariable String recordCmdStr, String channelId) {
         if (log.isDebugEnabled()) {
             log.debug("开始/停止录像API调用");
         }
         Device device = deviceService.getDeviceByDeviceId(deviceId);
 		Assert.notNull(device, "设备不存在");
-		DeferredResult<String> result = deviceService.record(device, channelId, recordCmdStr);
+		DeferredResult<WVPResult<String>> result = deviceService.record(device, channelId, recordCmdStr);
 		result.onTimeout(() -> {
 			log.warn("[开始/停止录像] 操作超时, 设备未返回应答指令, {}", deviceId);
-			result.setResult("操作超时, 设备未应答");
+			result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));
 		});
 		return result;
 	}
@@ -156,23 +156,14 @@ public class DeviceControl {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号")
 	@GetMapping("/i_frame/{deviceId}")
-	public JSONObject iFrame(@PathVariable String deviceId,
+	public void iFrame(@PathVariable String deviceId,
 										@RequestParam(required = false) String channelId) {
 		if (log.isDebugEnabled()) {
 			log.debug("强制关键帧API调用");
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		try {
-			cmder.iFrameCmd(device, channelId);
-		} catch (InvalidArgumentException | SipException | ParseException e) {
-			log.error("[命令发送失败] 强制关键帧: {}", e.getMessage());
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
-		}
-		JSONObject json = new JSONObject();
-		json.put("DeviceID", deviceId);
-		json.put("ChannelID", channelId);
-		json.put("Result", "OK");
-		return json;
+		Assert.notNull(device, "设备不存在");
+		deviceService.iFrame(device, channelId);
 	}
 
 	/**
@@ -195,34 +186,15 @@ public class DeviceControl {
 												  @RequestParam(required = false) Integer resetTime,
 												  @RequestParam(required = false) Integer presetIndex) {
         if (log.isDebugEnabled()) {
-			log.debug("报警复位API调用");
+			log.debug("看守位控制API调用");
 		}
-		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (ObjectUtils.isEmpty(channelId) ? deviceId : channelId);
-		String uuid = UUID.randomUUID().toString();
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		try {
-			cmder.homePositionCmd(device, channelId, enabled, resetTime, presetIndex, event -> {
-				RequestMessage msg = new RequestMessage();
-				msg.setId(uuid);
-				msg.setKey(key);
-				msg.setData(WVPResult.fail(ErrorCode.ERROR100.getCode(), String.format("操作失败，错误码： %s, %s", event.statusCode, event.msg)));
-				resultHolder.invokeResult(msg);
-			},null);
-		} catch (InvalidArgumentException | SipException | ParseException e) {
-			log.error("[命令发送失败] 看守位控制: {}", e.getMessage());
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
-		}
-		DeferredResult<WVPResult<String>> result = new DeferredResult<>(3 * 1000L);
+		Assert.notNull(device, "设备不存在");
+		DeferredResult<WVPResult<String>> result = deviceService.homePosition(device, channelId, enabled, resetTime, presetIndex);
 		result.onTimeout(() -> {
-			log.warn(String.format("看守位控制操作超时, 设备未返回应答指令"));
-			// 释放rtpserver
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答")); //("看守位控制操作超时, 设备未返回应答指令");
-			resultHolder.invokeResult(msg);
+			log.warn("[看守位控制] 操作超时, 设备未返回应答指令, {}", deviceId);
+			result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));
 		});
-		resultHolder.put(key, uuid, result);
 		return result;
 	}
 
@@ -259,21 +231,8 @@ public class DeviceControl {
 			log.debug(String.format("设备拉框放大 API调用，deviceId：%s ，channelId：%s ，length：%d ，width：%d ，midpointx：%d ，midpointy：%d ，lengthx：%d ，lengthy：%d",deviceId, channelId, length, width, midpointx, midpointy,lengthx, lengthy));
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		StringBuffer cmdXml = new StringBuffer(200);
-		cmdXml.append("<DragZoomIn>\r\n");
-		cmdXml.append("<Length>" + length+ "</Length>\r\n");
-		cmdXml.append("<Width>" + width+ "</Width>\r\n");
-		cmdXml.append("<MidPointX>" + midpointx+ "</MidPointX>\r\n");
-		cmdXml.append("<MidPointY>" + midpointy+ "</MidPointY>\r\n");
-		cmdXml.append("<LengthX>" + lengthx+ "</LengthX>\r\n");
-		cmdXml.append("<LengthY>" + lengthy+ "</LengthY>\r\n");
-		cmdXml.append("</DragZoomIn>\r\n");
-		try {
-			cmder.dragZoomCmd(device, channelId, cmdXml.toString());
-		} catch (InvalidArgumentException | SipException | ParseException e) {
-			log.error("[命令发送失败] 拉框放大: {}", e.getMessage());
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " +  e.getMessage());
-		}
+		Assert.notNull(device, "设备不存在");
+		deviceService.dragZoomIn(device, channelId, length, width, midpointx, midpointy, lengthx,lengthy);
 	}
 
 	/**
@@ -311,20 +270,7 @@ public class DeviceControl {
 			log.debug(String.format("设备拉框缩小 API调用，deviceId：%s ，channelId：%s ，length：%d ，width：%d ，midpointx：%d ，midpointy：%d ，lengthx：%d ，lengthy：%d",deviceId, channelId, length, width, midpointx, midpointy,lengthx, lengthy));
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		StringBuffer cmdXml = new StringBuffer(200);
-		cmdXml.append("<DragZoomOut>\r\n");
-		cmdXml.append("<Length>" + length+ "</Length>\r\n");
-		cmdXml.append("<Width>" + width+ "</Width>\r\n");
-		cmdXml.append("<MidPointX>" + midpointx+ "</MidPointX>\r\n");
-		cmdXml.append("<MidPointY>" + midpointy+ "</MidPointY>\r\n");
-		cmdXml.append("<LengthX>" + lengthx+ "</LengthX>\r\n");
-		cmdXml.append("<LengthY>" + lengthy+ "</LengthY>\r\n");
-		cmdXml.append("</DragZoomOut>\r\n");
-		try {
-			cmder.dragZoomCmd(device, channelId, cmdXml.toString());
-		} catch (InvalidArgumentException | SipException | ParseException e) {
-			log.error("[命令发送失败] 拉框缩小: {}", e.getMessage());
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " +  e.getMessage());
-		}
+		Assert.notNull(device, "设备不存在");
+		deviceService.dragZoomOut(device, channelId, length, width, midpointx, midpointy, lengthx,lengthy);
 	}
 }

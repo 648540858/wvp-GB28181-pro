@@ -170,15 +170,26 @@ public interface IDeviceService {
 
     WVPResult<SyncStatus> devicesSync(Device device);
 
-    DeferredResult<String> deviceBasicConfig(Device device, String channelId, String name, String expiration, String heartBeatInterval, String heartBeatCount);
+    DeferredResult<WVPResult<String>> deviceBasicConfig(Device device, String channelId, String name, String expiration, String heartBeatInterval, String heartBeatCount);
 
-    DeferredResult<String> deviceConfigQuery(Device device, String channelId, String configType);
+    DeferredResult<WVPResult<String>> deviceConfigQuery(Device device, String channelId, String configType);
 
     void teleboot(Device device);
 
-    DeferredResult<String> record(Device device, String channelId, String recordCmdStr);
+    DeferredResult<WVPResult<String>> record(Device device, String channelId, String recordCmdStr);
 
     DeferredResult<WVPResult<String>> guard(Device device, String guardCmdStr);
 
     DeferredResult<WVPResult<String>> resetAlarm(Device device, String channelId, String alarmMethod, String alarmType);
+
+    void iFrame(Device device, String channelId);
+
+    DeferredResult<WVPResult<String>> homePosition(Device device, String channelId, Boolean enabled, Integer resetTime, Integer presetIndex);
+
+    void dragZoomIn(Device device, String channelId, int length, int width, int midpointx, int midpointy, int lengthx, int lengthy);
+
+    void dragZoomOut(Device device, String channelId, int length, int width, int midpointx, int midpointy, int lengthx, int lengthy);
+
+    DeferredResult<WVPResult<String>> deviceStatus(Device device);
+
 }

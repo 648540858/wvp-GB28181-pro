@@ -312,40 +312,18 @@ public class DeviceQuery {
 	@Operation(summary = "设备状态查询", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@GetMapping("/devices/{deviceId}/status")
-	public DeferredResult<ResponseEntity<String>> deviceStatusApi(@PathVariable String deviceId) {
+	public DeferredResult<WVPResult<String>> deviceStatusApi(@PathVariable String deviceId) {
 		if (log.isDebugEnabled()) {
 			log.debug("设备状态查询API调用");
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		String uuid = UUID.randomUUID().toString();
-		String key = DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS + deviceId;
-		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(2*1000L);
-		if(device == null) {
-			result.setResult(new ResponseEntity(String.format("设备%s不存在", deviceId),HttpStatus.OK));
-			return result;
-		}
-		try {
-			cmder.deviceStatusQuery(device, event -> {
-				RequestMessage msg = new RequestMessage();
-				msg.setId(uuid);
-				msg.setKey(key);
-				msg.setData(String.format("获取设备状态失败，错误码： %s, %s", event.statusCode, event.msg));
-				resultHolder.invokeResult(msg);
-			});
-		} catch (InvalidArgumentException | SipException | ParseException e) {
-			log.error("[命令发送失败] 获取设备状态: {}", e.getMessage());
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
-		}
-		result.onTimeout(()->{
-			log.warn(String.format("获取设备状态超时"));
-			// 释放rtpserver
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData("Timeout. Device did not response to this command.");
-			resultHolder.invokeResult(msg);
+		Assert.notNull(device, "设备不存在");
+
+		DeferredResult<WVPResult<String>> result = deviceService.deviceStatus(device);
+		result.onTimeout(() -> {
+			log.warn("[设备状态查询] 操作超时, 设备未返回应答指令, {}", deviceId);
+			result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));
 		});
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS + deviceId, uuid, result);
 		return result;
 	}
 
@@ -369,7 +347,7 @@ public class DeviceQuery {
 	@Parameter(name = "startTime", description = "报警发生起始时间")
 	@Parameter(name = "endTime", description = "报警发生终止时间")
 	@GetMapping("/alarm/{deviceId}")
-	public DeferredResult<ResponseEntity<String>> alarmApi(@PathVariable String deviceId,
+	public DeferredResult<WVPResult<String>> alarmApi(@PathVariable String deviceId,
 														@RequestParam(required = false) String startPriority,
 														@RequestParam(required = false) String endPriority,
 														@RequestParam(required = false) String alarmMethod,
@@ -380,6 +358,16 @@ public class DeviceQuery {
 			log.debug("设备报警查询API调用");
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
+		Assert.notNull(device, "设备不存在");
+
+		DeferredResult<WVPResult<String>> result = deviceService.deviceStatus(device);
+		result.onTimeout(() -> {
+			log.warn("[设备报警查询] 操作超时, 设备未返回应答指令, {}", deviceId);
+			result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));
+		});
+		return result;
+
+
 		String key = DeferredResultHolder.CALLBACK_CMD_ALARM + deviceId;
 		String uuid = UUID.randomUUID().toString();
 		try {

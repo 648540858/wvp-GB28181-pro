@@ -260,4 +260,12 @@ public class StreamPushController {
         }, null, null);
         return result;
     }
+
+    @GetMapping(value = "/forceClose")
+    @ResponseBody
+    @Operation(summary = "强制停止推流", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    public void stop(String app, String stream){
+
+        streamPushPlayService.stop(app, stream);
+    }
 }

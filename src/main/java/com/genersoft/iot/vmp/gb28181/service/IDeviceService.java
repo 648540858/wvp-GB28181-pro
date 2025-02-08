@@ -173,4 +173,12 @@ public interface IDeviceService {
     DeferredResult<String> deviceBasicConfig(Device device, String channelId, String name, String expiration, String heartBeatInterval, String heartBeatCount);
 
     DeferredResult<String> deviceConfigQuery(Device device, String channelId, String configType);
+
+    void teleboot(Device device);
+
+    DeferredResult<String> record(Device device, String channelId, String recordCmdStr);
+
+    DeferredResult<WVPResult<String>> guard(Device device, String guardCmdStr);
+
+    DeferredResult<WVPResult<String>> resetAlarm(Device device, String channelId, String alarmMethod, String alarmType);
 }

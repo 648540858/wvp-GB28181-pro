@@ -117,7 +117,14 @@ public class StreamPushPlayServiceImpl implements IStreamPushPlayService {
     }
 
     @Override
-    public void stop(Integer streamPushId) {
-        // 推流无需主动停止
+    public void stop(String app, String stream) {
+        StreamPush streamPush = streamPushMapper.selectByAppAndStream(app, stream);
+        if (streamPush == null || !streamPush.isPushing()) {
+            return;
+        }
+        String mediaServerId = streamPush.getMediaServerId();
+        MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+        Assert.notNull(mediaServer, "未找到使用的节点");
+        mediaServerService.closeStreams(mediaServer, app, stream);
     }
 }

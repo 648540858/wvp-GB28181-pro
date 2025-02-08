@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -61,12 +62,8 @@ public class DeviceControl {
             log.debug("设备远程启动API调用");
         }
         Device device = deviceService.getDeviceByDeviceId(deviceId);
-		try {
-			cmder.teleBootCmd(device);
-		} catch (InvalidArgumentException | SipException | ParseException e) {
-			log.error("[命令发送失败] 远程启动: {}", e.getMessage());
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
-		}
+		Assert.notNull(device, "设备不存在");
+		deviceService.teleboot(device);
     }
 
     /**
@@ -81,41 +78,18 @@ public class DeviceControl {
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@Parameter(name = "recordCmdStr", description = "命令， 可选值：Record（手动录像），StopRecord（停止手动录像）", required = true)
     @GetMapping("/record/{deviceId}/{recordCmdStr}")
-    public DeferredResult<ResponseEntity<WVPResult<String>>> recordApi(@PathVariable String deviceId,
+    public DeferredResult<String> recordApi(@PathVariable String deviceId,
 															   @PathVariable String recordCmdStr, String channelId) {
         if (log.isDebugEnabled()) {
             log.debug("开始/停止录像API调用");
         }
         Device device = deviceService.getDeviceByDeviceId(deviceId);
-		String uuid = UUID.randomUUID().toString();
-		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL +  deviceId + channelId;
-		DeferredResult<ResponseEntity<WVPResult<String>>> result = new DeferredResult<>(3 * 1000L);
+		Assert.notNull(device, "设备不存在");
+		DeferredResult<String> result = deviceService.record(device, channelId, recordCmdStr);
 		result.onTimeout(() -> {
-			log.warn(String.format("开始/停止录像操作超时, 设备未返回应答指令"));
-			// 释放rtpserver
-			RequestMessage msg = new RequestMessage();
-			msg.setKey(key);
-			msg.setId(uuid);
-			msg.setData(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));
-			resultHolder.invokeAllResult(msg);
+			log.warn("[开始/停止录像] 操作超时, 设备未返回应答指令, {}", deviceId);
+			result.setResult("操作超时, 设备未应答");
 		});
-		if (resultHolder.exist(key, null)){
-			return result;
-		}
-		resultHolder.put(key, uuid, result);
-		try {
-			cmder.recordCmd(device, channelId, recordCmdStr, event -> {
-				RequestMessage msg = new RequestMessage();
-				msg.setId(uuid);
-				msg.setKey(key);
-				msg.setData(WVPResult.fail(ErrorCode.ERROR100.getCode(), String.format("开始/停止录像操作失败，错误码： %s, %s", event.statusCode, event.msg)));
-				resultHolder.invokeAllResult(msg);
-			},null);
-		} catch (InvalidArgumentException | SipException | ParseException e) {
-			log.error("[命令发送失败] 开始/停止录像: {}", e.getMessage());
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
-		}
-
 		return result;
 	}
 
@@ -134,32 +108,12 @@ public class DeviceControl {
 			log.debug("布防/撤防API调用");
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + deviceId + deviceId;
-		String uuid =UUID.randomUUID().toString();
-		try {
-			cmder.guardCmd(device, guardCmdStr, event -> {
-				RequestMessage msg = new RequestMessage();
-				msg.setId(uuid);
-				msg.setKey(key);
-				msg.setData(WVPResult.fail(ErrorCode.ERROR100.getCode(), String.format("布防/撤防操作失败，错误码： %s, %s", event.statusCode, event.msg)));
-				resultHolder.invokeResult(msg);
-			},null);
-		} catch (InvalidArgumentException | SipException | ParseException e) {
-			log.error("[命令发送失败] 布防/撤防操作: {}", e.getMessage());
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage());
-		}
-		DeferredResult<WVPResult<String>> result = new DeferredResult<>(3 * 1000L);
-		resultHolder.put(key, uuid, result);
+		Assert.notNull(device, "设备不存在");
+		DeferredResult<WVPResult<String>> result = deviceService.guard(device, guardCmdStr);
 		result.onTimeout(() -> {
-			log.warn(String.format("布防/撤防操作超时, 设备未返回应答指令"));
-			// 释放rtpserver
-			RequestMessage msg = new RequestMessage();
-			msg.setKey(key);
-			msg.setId(uuid);
-			msg.setData(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));
-			resultHolder.invokeResult(msg);
+			log.warn("[布防/撤防] 操作超时, 设备未返回应答指令, {}", deviceId);
+			result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));
 		});
-
 		return result;
 	}
 
@@ -176,38 +130,19 @@ public class DeviceControl {
 	@Parameter(name = "alarmMethod", description = "报警方式")
 	@Parameter(name = "alarmType", description = "报警类型")
 	@GetMapping("/reset_alarm/{deviceId}")
-	public DeferredResult<ResponseEntity<WVPResult<String>>> resetAlarmApi(@PathVariable String deviceId, String channelId,
+	public DeferredResult<WVPResult<String>> resetAlarmApi(@PathVariable String deviceId, String channelId,
 																@RequestParam(required = false) String alarmMethod,
 																@RequestParam(required = false) String alarmType) {
 		if (log.isDebugEnabled()) {
 			log.debug("报警复位API调用");
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		String uuid = UUID.randomUUID().toString();
-		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + deviceId + channelId;
-		try {
-			cmder.alarmCmd(device, alarmMethod, alarmType, event -> {
-				RequestMessage msg = new RequestMessage();
-				msg.setId(uuid);
-				msg.setKey(key);
-				msg.setData(WVPResult.fail(ErrorCode.ERROR100.getCode(), String.format("操作失败，错误码： %s, %s", event.statusCode, event.msg)));
-				resultHolder.invokeResult(msg);
-			},null);
-		} catch (InvalidArgumentException | SipException | ParseException e) {
-			log.error("[命令发送失败] 报警复位: {}", e.getMessage());
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
-		}
-		DeferredResult<ResponseEntity<WVPResult<String>>> result = new DeferredResult<>(3 * 1000L);
+		Assert.notNull(device, "设备不存在");
+		DeferredResult<WVPResult<String>> result = deviceService.resetAlarm(device, channelId, alarmMethod, alarmType);
 		result.onTimeout(() -> {
-			log.warn(String.format("报警复位操作超时, 设备未返回应答指令"));
-			// 释放rtpserver
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));
-			resultHolder.invokeResult(msg);
+			log.warn("[布防/撤防] 操作超时, 设备未返回应答指令, {}", deviceId);
+			result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));
 		});
-		resultHolder.put(key, uuid, result);
 		return result;
 	}
 

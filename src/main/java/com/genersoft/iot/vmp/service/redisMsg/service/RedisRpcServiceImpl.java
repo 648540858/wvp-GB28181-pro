@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.redis.RedisRpcConfig;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
@@ -291,5 +292,38 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         request.setToId(serverId);
         RedisRpcResponse response = redisRpcConfig.request(request, 50, TimeUnit.MILLISECONDS);
         return response.getBody().toString();
+    }
+
+    @Override
+    public void teleboot(String serverId, Device device) {
+        RedisRpcRequest request = buildRequest("device/teleboot", device.getDeviceId());
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, 50, TimeUnit.MILLISECONDS);
+        if (response.getStatusCode() != ErrorCode.SUCCESS.getCode()) {
+            throw new ControllerException(response.getStatusCode(), response.getBody().toString());
+        }
+    }
+
+    @Override
+    public String recordControl(String serverId, Device device, String channelId, String recordCmdStr) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("device", device.getDeviceId());
+        jsonObject.put("channelId", channelId);
+        jsonObject.put("recordCmdStr", recordCmdStr);
+        RedisRpcRequest request = buildRequest("device/record", jsonObject);
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, 50, TimeUnit.MILLISECONDS);
+        return response.getBody().toString();
+    }
+
+    @Override
+    public WVPResult<String> guard(String serverId, Device device, String guardCmdStr) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("device", device.getDeviceId());
+        jsonObject.put("guardCmdStr", guardCmdStr);
+        RedisRpcRequest request = buildRequest("device/guard", jsonObject);
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, 50, TimeUnit.MILLISECONDS);
+        return JSON.parseObject(response.getBody().toString(), WVPResult.class);
     }
 }

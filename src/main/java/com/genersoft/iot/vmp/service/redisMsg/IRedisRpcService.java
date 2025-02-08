@@ -43,4 +43,10 @@ public interface IRedisRpcService {
     String deviceBasicConfig(String serverId, Device device, String channelId, String name, String expiration, String heartBeatInterval, String heartBeatCount);
 
     String deviceConfigQuery(String serverId, Device device, String channelId, String configType);
+
+    void teleboot(String serverId, Device device);
+
+    String recordControl(String serverId, Device device, String channelId, String recordCmdStr);
+
+    WVPResult<String> guard(String serverId, Device device, String guardCmdStr);
 }

@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.service.redisMsg.control;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.redis.RedisRpcConfig;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcMessage;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
@@ -163,6 +164,110 @@ public class RedisRpcDeviceController extends RpcController {
             sendResponse(response);
         });
         return response;
+    }
+
+    @RedisRpcMapping("teleboot")
+    public RedisRpcResponse teleboot(RedisRpcRequest request) {
+        String deviceId = request.getParam().toString();
+
+        Device device = deviceService.getDeviceByDeviceId(deviceId);
+
+        RedisRpcResponse response = request.getResponse();
+        if (device == null || !userSetting.getServerId().equals(device.getServerId())) {
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
+            response.setBody("param error");
+            return response;
+        }
+        try {
+            deviceService.teleboot(device);
+        }catch (ControllerException e) {
+            response.setStatusCode(e.getCode());
+            response.setBody(e.getMsg());
+            return response;
+        }
+        response.setStatusCode(ErrorCode.SUCCESS.getCode());
+        response.setBody(ErrorCode.SUCCESS.getMsg());
+        return response;
+    }
+
+    @RedisRpcMapping("record")
+    public RedisRpcResponse record(RedisRpcRequest request) {
+        JSONObject paramJson = JSONObject.parseObject(request.getParam().toString());
+        String deviceId = paramJson.getString("deviceId");
+        String channelId = paramJson.getString("channelId");
+        String recordCmdStr = paramJson.getString("recordCmdStr");
+
+        Device device = deviceService.getDeviceByDeviceId(deviceId);
+
+        RedisRpcResponse response = request.getResponse();
+        if (device == null || !userSetting.getServerId().equals(device.getServerId())) {
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
+            response.setBody("param error");
+            return response;
+        }
+        try {
+            DeferredResult<String> deferredResult = deviceService.record(device, channelId, recordCmdStr);
+            deferredResult.onCompletion(() ->{
+                String resultStr = (String)deferredResult.getResult();
+                response.setStatusCode(ErrorCode.SUCCESS.getCode());
+                response.setBody(resultStr);
+                // 手动发送结果
+                sendResponse(response);
+            });
+            deferredResult.onTimeout(() -> {
+                log.warn("设备录像控制操作超时, 设备未返回应答指令");
+                JSONObject json = new JSONObject();
+                json.put("DeviceID", device.getDeviceId());
+                json.put("Status", "Timeout");
+                json.put("Description", "设备录像控制操作超时, 设备未返回应答指令");
+                response.setStatusCode(ErrorCode.SUCCESS.getCode());
+                response.setBody(json);
+                // 手动发送结果
+                sendResponse(response);
+            });
+        }catch (ControllerException e) {
+            response.setStatusCode(e.getCode());
+            response.setBody(e.getMsg());
+            sendResponse(response);
+        }
+        return null;
+    }
+
+    @RedisRpcMapping("guard")
+    public RedisRpcResponse guard(RedisRpcRequest request) {
+        JSONObject paramJson = JSONObject.parseObject(request.getParam().toString());
+        String deviceId = paramJson.getString("deviceId");
+        String guardCmdStr = paramJson.getString("guardCmdStr");
+
+        Device device = deviceService.getDeviceByDeviceId(deviceId);
+
+        RedisRpcResponse response = request.getResponse();
+        if (device == null || !userSetting.getServerId().equals(device.getServerId())) {
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
+            response.setBody("param error");
+            return response;
+        }
+        try {
+            DeferredResult<WVPResult<String>> deferredResult = deviceService.guard(device, guardCmdStr);
+            deferredResult.onCompletion(() ->{
+                response.setStatusCode(ErrorCode.SUCCESS.getCode());
+                response.setBody(deferredResult.getResult());
+                // 手动发送结果
+                sendResponse(response);
+            });
+            deferredResult.onTimeout(() -> {
+                log.warn("设备录像控制操作超时, 设备未返回应答指令");
+                response.setStatusCode(ErrorCode.SUCCESS.getCode());
+                response.setBody(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));
+                // 手动发送结果
+                sendResponse(response);
+            });
+        }catch (ControllerException e) {
+            response.setStatusCode(e.getCode());
+            response.setBody(e.getMsg());
+            sendResponse(response);
+        }
+        return null;
     }
 
 

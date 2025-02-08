@@ -36,6 +36,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -681,6 +682,87 @@ public class DeviceServiceImpl implements IDeviceService {
             log.error("[命令发送失败] 获取设备配置: {}", e.getMessage());
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
         }
+        return result;
+    }
+
+    @Override
+    public void teleboot(Device device) {
+
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            redisRpcService.teleboot(device.getServerId(), device);
+        }
+        try {
+            sipCommander.teleBootCmd(device);
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            log.error("[命令发送失败] 远程启动: {}", e.getMessage());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public DeferredResult<String> record(Device device, String channelId, String recordCmdStr) {
+
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            String result = redisRpcService.recordControl(device.getServerId(), device, channelId, recordCmdStr);
+            DeferredResult<String> deferredResult = new DeferredResult<String>(3 * 1000L);
+            deferredResult.setResult(result);
+            return deferredResult;
+        }
+
+        DeferredResult<String> result = new DeferredResult<>(3 * 1000L);
+        try {
+            sipCommander.recordCmd(device, channelId, recordCmdStr, event -> {
+                result.setResult(String.format("开始/停止录像操作失败，错误码： %s, %s", event.statusCode, event.msg));
+            },null);
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            log.error("[命令发送失败] 开始/停止录像: {}", e.getMessage());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+        }
+
+        return result;
+    }
+
+    @Override
+    public DeferredResult<WVPResult<String>> guard(Device device, String guardCmdStr) {
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            WVPResult<String> result = redisRpcService.guard(device.getServerId(), device, guardCmdStr);
+            DeferredResult<WVPResult<String>> deferredResult = new DeferredResult<>(3 * 1000L);
+            deferredResult.setResult(result);
+            return deferredResult;
+        }
+
+        DeferredResult<WVPResult<String>> result = new DeferredResult<>(3 * 1000L);
+        try {
+            sipCommander.guardCmd(device, guardCmdStr, event -> {
+                result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), String.format("布防/撤防操作失败，错误码： %s, %s", event.statusCode, event.msg)));
+            },null);
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            log.error("[命令发送失败] 布防/撤防操作: {}", e.getMessage());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage());
+        }
+
+        return result;
+    }
+
+    @Override
+    public DeferredResult<WVPResult<String>> resetAlarm(Device device, String channelId, String alarmMethod, String alarmType) {
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            WVPResult<String> result = redisRpcService.resetAlarm(device.getServerId(), device, channelId, alarmMethod, alarmType);
+            DeferredResult<WVPResult<String>> deferredResult = new DeferredResult<>(3 * 1000L);
+            deferredResult.setResult(result);
+            return deferredResult;
+        }
+
+        DeferredResult<WVPResult<String>> result = new DeferredResult<>(3 * 1000L);
+        try {
+            sipCommander.alarmCmd(device, alarmMethod, alarmType, event -> {
+                result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), String.format("操作失败，错误码： %s, %s", event.statusCode, event.msg)));
+            },null);
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            log.error("[命令发送失败] 布防/撤防操作: {}", e.getMessage());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage());
+        }
+
         return result;
     }
 }

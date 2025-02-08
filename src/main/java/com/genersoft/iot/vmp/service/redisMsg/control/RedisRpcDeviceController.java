@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.async.DeferredResult;
 
 @Component
 @Slf4j
@@ -85,6 +86,82 @@ public class RedisRpcDeviceController extends RpcController {
         SyncStatus channelSyncStatus = deviceService.getChannelSyncStatus(deviceId);
         response.setStatusCode(ErrorCode.SUCCESS.getCode());
         response.setBody(JSONObject.toJSONString(channelSyncStatus));
+        return response;
+    }
+
+    @RedisRpcMapping("deviceBasicConfig")
+    public RedisRpcResponse deviceBasicConfig(RedisRpcRequest request) {
+        JSONObject paramJson = JSONObject.parseObject(request.getParam().toString());
+        String deviceId = paramJson.getString("deviceId");
+        String channelId = paramJson.getString("channelId");
+        String name = paramJson.getString("configType");
+        String expiration = paramJson.getString("expiration");
+        String heartBeatInterval = paramJson.getString("heartBeatInterval");
+
+        Device device = deviceService.getDeviceByDeviceId(deviceId);
+
+        RedisRpcResponse response = request.getResponse();
+        if (device == null || !userSetting.getServerId().equals(device.getServerId())) {
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
+            response.setBody("param error");
+            return response;
+        }
+        DeferredResult<String> deferredResult = deviceService.deviceBasicConfig(device, channelId, name, expiration, heartBeatInterval, heartBeatInterval);
+        deferredResult.onCompletion(() ->{
+            String resultStr = (String)deferredResult.getResult();
+            response.setStatusCode(ErrorCode.SUCCESS.getCode());
+            response.setBody(resultStr);
+            // 手动发送结果
+            sendResponse(response);
+        });
+        deferredResult.onTimeout(() -> {
+            log.warn(String.format("设备配置操作超时, 设备未返回应答指令"));
+            JSONObject json = new JSONObject();
+            json.put("DeviceID", device.getDeviceId());
+            json.put("Status", "Timeout");
+            json.put("Description", "设备配置操作超时, 设备未返回应答指令");
+            response.setStatusCode(ErrorCode.SUCCESS.getCode());
+            response.setBody(json);
+            // 手动发送结果
+            sendResponse(response);
+        });
+        return response;
+    }
+
+    @RedisRpcMapping("deviceConfigQuery")
+    public RedisRpcResponse deviceConfigQuery(RedisRpcRequest request) {
+        JSONObject paramJson = JSONObject.parseObject(request.getParam().toString());
+        String deviceId = paramJson.getString("deviceId");
+        String channelId = paramJson.getString("channelId");
+        String configType = paramJson.getString("configType");
+
+        Device device = deviceService.getDeviceByDeviceId(deviceId);
+
+        RedisRpcResponse response = request.getResponse();
+        if (device == null || !userSetting.getServerId().equals(device.getServerId())) {
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
+            response.setBody("param error");
+            return response;
+        }
+        DeferredResult<String> deferredResult = deviceService.deviceConfigQuery(device, channelId, configType);
+        deferredResult.onCompletion(() ->{
+            String resultStr = (String)deferredResult.getResult();
+            response.setStatusCode(ErrorCode.SUCCESS.getCode());
+            response.setBody(resultStr);
+            // 手动发送结果
+            sendResponse(response);
+        });
+        deferredResult.onTimeout(() -> {
+            log.warn(String.format("设备配置操作超时, 设备未返回应答指令"));
+            JSONObject json = new JSONObject();
+            json.put("DeviceID", device.getDeviceId());
+            json.put("Status", "Timeout");
+            json.put("Description", "设备配置操作超时, 设备未返回应答指令");
+            response.setStatusCode(ErrorCode.SUCCESS.getCode());
+            response.setBody(json);
+            // 手动发送结果
+            sendResponse(response);
+        });
         return response;
     }
 

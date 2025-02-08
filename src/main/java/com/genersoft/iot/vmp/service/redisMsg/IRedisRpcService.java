@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.service.redisMsg;
 
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
@@ -38,4 +39,8 @@ public interface IRedisRpcService {
     WVPResult<SyncStatus> devicesSync(String serverId, String deviceId);
 
     SyncStatus getChannelSyncStatus(String serverId, String deviceId);
+
+    String deviceBasicConfig(String serverId, Device device, String channelId, String name, String expiration, String heartBeatInterval, String heartBeatCount);
+
+    String deviceConfigQuery(String serverId, Device device, String channelId, String configType);
 }

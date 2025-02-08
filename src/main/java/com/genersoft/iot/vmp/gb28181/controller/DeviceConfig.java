@@ -22,6 +22,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -74,36 +75,19 @@ public class DeviceConfig {
 			log.debug("报警复位API调用");
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		String uuid = UUID.randomUUID().toString();
-		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONFIG + deviceId + channelId;
-		try {
-			cmder.deviceBasicConfigCmd(device, channelId, name, expiration, heartBeatInterval, heartBeatCount, event -> {
-				RequestMessage msg = new RequestMessage();
-				msg.setId(uuid);
-				msg.setKey(key);
-				msg.setData(String.format("设备配置操作失败，错误码： %s, %s", event.statusCode, event.msg));
-				resultHolder.invokeResult(msg);
-			});
-		} catch (InvalidArgumentException | SipException | ParseException e) {
-			log.error("[命令发送失败] 设备配置: {}", e.getMessage());
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
-		}
-		DeferredResult<String> result = new DeferredResult<String>(3 * 1000L);
+		Assert.notNull(device, "设备不存在");
+		DeferredResult<String> result = deviceService.deviceBasicConfig(device, channelId, name, expiration, heartBeatInterval, heartBeatCount);
+
 		result.onTimeout(() -> {
 			log.warn(String.format("设备配置操作超时, 设备未返回应答指令"));
-			// 释放rtpserver
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
 			JSONObject json = new JSONObject();
-			json.put("DeviceID", deviceId);
+			json.put("DeviceID", device.getDeviceId());
 			json.put("Status", "Timeout");
 			json.put("Description", "设备配置操作超时, 设备未返回应答指令");
-			msg.setData(json); //("看守位控制操作超时, 设备未返回应答指令");
-			resultHolder.invokeResult(msg);
+			result.setResult(json.toString());
 		});
-		resultHolder.put(key, uuid, result);
 		return result;
+
 	}
 
 	/**
@@ -124,32 +108,19 @@ public class DeviceConfig {
 		if (log.isDebugEnabled()) {
 			log.debug("设备状态查询API调用");
 		}
-		String key = DeferredResultHolder.CALLBACK_CMD_CONFIGDOWNLOAD + (ObjectUtils.isEmpty(channelId) ? deviceId : channelId);
-		String uuid = UUID.randomUUID().toString();
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		try {
-			cmder.deviceConfigQuery(device, channelId, configType, event -> {
-				RequestMessage msg = new RequestMessage();
-				msg.setId(uuid);
-				msg.setKey(key);
-				msg.setData(String.format("获取设备配置失败，错误码： %s, %s", event.statusCode, event.msg));
-				resultHolder.invokeResult(msg);
-			});
-		} catch (InvalidArgumentException | SipException | ParseException e) {
-			log.error("[命令发送失败] 获取设备配置: {}", e.getMessage());
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
-		}
-		DeferredResult<String> result = new DeferredResult<String > (3 * 1000L);
-		result.onTimeout(()->{
-			log.warn(String.format("获取设备配置超时"));
-			// 释放rtpserver
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData("Timeout. Device did not response to this command.");
-			resultHolder.invokeResult(msg);
+		Assert.notNull(device, "设备不存在");
+
+		DeferredResult<String> result = deviceService.deviceConfigQuery(device, channelId, configType);
+
+		result.onTimeout(() -> {
+			log.warn("获取设备配置超时");
+			JSONObject json = new JSONObject();
+			json.put("DeviceID", device.getDeviceId());
+			json.put("Status", "Timeout");
+			json.put("Description", "操作超时");
+			result.setResult(json.toString());
 		});
-		resultHolder.put(key, uuid, result);
 		return result;
 	}
 

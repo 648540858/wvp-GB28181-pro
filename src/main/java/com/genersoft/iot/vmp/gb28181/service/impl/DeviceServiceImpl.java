@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
@@ -18,6 +19,8 @@ import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.CatalogSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.CatalogResponseMessageHandler;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -36,12 +39,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
+import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -631,5 +637,50 @@ public class DeviceServiceImpl implements IDeviceService {
         wvpResult.setCode(0);
         wvpResult.setMsg("开始同步");
         return wvpResult;
+    }
+
+    @Override
+    public DeferredResult<String> deviceBasicConfig(Device device, String channelId, String name, String expiration,
+                                                    String heartBeatInterval, String heartBeatCount) {
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            String result = redisRpcService.deviceBasicConfig(device.getServerId(), device, channelId, name, expiration,
+                    heartBeatInterval, heartBeatCount);
+            DeferredResult<String> deferredResult = new DeferredResult<String>(3 * 1000L);
+            deferredResult.setResult(result);
+            return deferredResult;
+        }
+
+        DeferredResult<String> result = new DeferredResult<String>(3 * 1000L);
+        try {
+            sipCommander.deviceBasicConfigCmd(device, channelId, name, expiration, heartBeatInterval, heartBeatCount, event -> {
+                result.setResult(String.format("设备配置操作失败，错误码： %s, %s", event.statusCode, event.msg));
+            });
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            log.error("[命令发送失败] 设备配置: {}", e.getMessage());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+        }
+        return result;
+    }
+
+    @Override
+    public DeferredResult<String> deviceConfigQuery(Device device, String channelId, String configType) {
+
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            String result = redisRpcService.deviceConfigQuery(device.getServerId(), device, channelId, configType);
+            DeferredResult<String> deferredResult = new DeferredResult<String>(3 * 1000L);
+            deferredResult.setResult(result);
+            return deferredResult;
+        }
+
+        DeferredResult<String> result = new DeferredResult<String>(3 * 1000L);
+        try {
+            sipCommander.deviceConfigQuery(device, channelId, configType, event -> {
+                result.setResult(String.format("获取设备配置失败，错误码： %s, %s", event.statusCode, event.msg));
+            });
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            log.error("[命令发送失败] 获取设备配置: {}", e.getMessage());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+        }
+        return result;
     }
 }

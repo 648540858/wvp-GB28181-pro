@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.redis.RedisRpcConfig;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
@@ -262,5 +263,33 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         request.setToId(serverId);
         RedisRpcResponse response = redisRpcConfig.request(request, 100, TimeUnit.MILLISECONDS);
         return JSON.parseObject(response.getBody().toString(), SyncStatus.class);
+    }
+
+    @Override
+    public String deviceBasicConfig(String serverId, Device device, String channelId, String name, String expiration,
+                                    String heartBeatInterval, String heartBeatCount) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("device", device.getDeviceId());
+        jsonObject.put("channelId", channelId);
+        jsonObject.put("name", name);
+        jsonObject.put("expiration", expiration);
+        jsonObject.put("heartBeatInterval", heartBeatInterval);
+        jsonObject.put("heartBeatCount", heartBeatCount);
+        RedisRpcRequest request = buildRequest("device/deviceBasicConfig", jsonObject);
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, 50, TimeUnit.MILLISECONDS);
+        return response.getBody().toString();
+    }
+
+    @Override
+    public String deviceConfigQuery(String serverId, Device device, String channelId, String configType) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("device", device.getDeviceId());
+        jsonObject.put("channelId", channelId);
+        jsonObject.put("configType", configType);
+        RedisRpcRequest request = buildRequest("device/deviceConfigQuery", jsonObject);
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, 50, TimeUnit.MILLISECONDS);
+        return response.getBody().toString();
     }
 }

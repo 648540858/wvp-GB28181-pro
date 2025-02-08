@@ -433,24 +433,21 @@ public class PlatformServiceImpl implements IPlatformService {
             for (DeviceChannel deviceChannel : deviceChannelList) {
                 String gbId = deviceChannel.getChannelId();
                 GPSMsgInfo gpsMsgInfo = redisCatchStorage.getGpsMsgInfo(gbId);
+
                 // 无最新位置则发送当前位置
-                if (gpsMsgInfo != null) {
-                    // 经纬度都为0不发送
-                    if (gpsMsgInfo.getLng() == 0 || gpsMsgInfo.getLat() == 0) {
-                        gpsMsgInfo.setLng(deviceChannel.getLongitude());
-                        gpsMsgInfo.setLat(deviceChannel.getLatitude());
-                    }
-                }else {
-                    if (!userSetting.isSendPositionOnDemand()) {
-                        gpsMsgInfo = new GPSMsgInfo();
-                        gpsMsgInfo.setId(deviceChannel.getChannelId());
-                        gpsMsgInfo.setLng(deviceChannel.getLongitude());
-                        gpsMsgInfo.setLat(deviceChannel.getLatitude());
-                        gpsMsgInfo.setAltitude(deviceChannel.getGpsAltitude());
-                        gpsMsgInfo.setSpeed(deviceChannel.getGpsSpeed());
-                        gpsMsgInfo.setDirection(deviceChannel.getGpsDirection());
-                        gpsMsgInfo.setTime(deviceChannel.getGpsTime());
-                    }
+                if (gpsMsgInfo != null && (gpsMsgInfo.getLng() == 0 && gpsMsgInfo.getLat() == 0)) {
+                    gpsMsgInfo = null;
+                }
+
+                if (gpsMsgInfo == null && !userSetting.isSendPositionOnDemand()){
+                    gpsMsgInfo = new GPSMsgInfo();
+                    gpsMsgInfo.setId(deviceChannel.getChannelId());
+                    gpsMsgInfo.setLng(deviceChannel.getLongitude());
+                    gpsMsgInfo.setLat(deviceChannel.getLatitude());
+                    gpsMsgInfo.setAltitude(deviceChannel.getGpsAltitude());
+                    gpsMsgInfo.setSpeed(deviceChannel.getGpsSpeed());
+                    gpsMsgInfo.setDirection(deviceChannel.getGpsDirection());
+                    gpsMsgInfo.setTime(deviceChannel.getGpsTime());
                 }
                 if (gpsMsgInfo != null) {
                     // 发送GPS消息

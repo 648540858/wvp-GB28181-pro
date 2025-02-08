@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.service.IMobilePositionService;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMobilePositionMapper;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,9 +84,14 @@ public class MobilePositionServiceImpl implements IMobilePositionService {
         for (MobilePosition mobilePosition : mobilePositions) {
             DeviceChannel deviceChannel = new DeviceChannel();
             deviceChannel.setDeviceId(mobilePosition.getDeviceId());
+            deviceChannel.setChannelId(mobilePosition.getChannelId());
             deviceChannel.setLongitude(mobilePosition.getLongitude());
             deviceChannel.setLatitude(mobilePosition.getLatitude());
+            deviceChannel.setUpdateTime(DateUtil.getNow());
             deviceChannel.setGpsTime(mobilePosition.getTime());
+            deviceChannel.setGpsSpeed(mobilePosition.getSpeed());
+            deviceChannel.setGpsDirection(mobilePosition.getDirection() + "");
+            deviceChannel.setGpsAltitude(mobilePosition.getAltitude() + "");
             updateChannelMap.put(mobilePosition.getDeviceId() + mobilePosition.getChannelId(), deviceChannel);
         }
         List<DeviceChannel> channels = new ArrayList<>(updateChannelMap.values());

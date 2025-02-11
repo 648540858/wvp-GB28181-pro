@@ -195,7 +195,7 @@ public class GBRecordController {
 		}
 
 		try {
-			cmder.streamByeCmd(device, channelId, stream, null);
+			cmder.streamByeCmd(device, channelId, "rtp", stream, null, null);
 		} catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
 			log.warn("[停止历史媒体下载]停止历史媒体下载，发送BYE失败 {}", e.getMessage());
 		}

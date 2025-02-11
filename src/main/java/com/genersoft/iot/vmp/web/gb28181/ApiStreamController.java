@@ -244,7 +244,7 @@ public class ApiStreamController {
         }
 
         try {
-            cmder.streamByeCmd(device, code, inviteInfo.getStream(), null);
+            cmder.streamByeCmd(device, code, "rtp", inviteInfo.getStream(), null, null);
         } catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
             JSONObject result = new JSONObject();
             result.put("error","发送BYE失败：" + e.getMessage());

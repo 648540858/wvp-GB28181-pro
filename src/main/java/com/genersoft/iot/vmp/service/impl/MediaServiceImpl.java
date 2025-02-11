@@ -154,7 +154,7 @@ public class MediaServiceImpl implements IMediaService {
             }
 
             // 设置音频信息及录制信息
-            SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(stream);
+            SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(app, stream);
             if (ssrcTransaction != null ) {
 
                 // 为录制国标模拟一个鉴权信息, 方便后续写入录像文件时使用

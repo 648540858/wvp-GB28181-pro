@@ -28,6 +28,11 @@ public class SsrcTransaction {
     private String callId;
 
     /**
+     * 关联的流应用名
+     */
+    private String app;
+
+    /**
      * 关联的流ID
      */
     private String stream;
@@ -52,12 +57,13 @@ public class SsrcTransaction {
      */
     private InviteSessionType type;
 
-    public static SsrcTransaction buildForDevice(String deviceId, Integer channelId, String callId, String stream,
+    public static SsrcTransaction buildForDevice(String deviceId, Integer channelId, String callId, String app, String stream,
                                                  String ssrc, String mediaServerId, SIPResponse response, InviteSessionType type) {
         SsrcTransaction ssrcTransaction = new SsrcTransaction();
         ssrcTransaction.setDeviceId(deviceId);
         ssrcTransaction.setChannelId(channelId);
         ssrcTransaction.setCallId(callId);
+        ssrcTransaction.setApp(app);
         ssrcTransaction.setStream(stream);
         ssrcTransaction.setMediaServerId(mediaServerId);
         ssrcTransaction.setSsrc(ssrc);
@@ -65,13 +71,14 @@ public class SsrcTransaction {
         ssrcTransaction.setType(type);
         return ssrcTransaction;
     }
-    public static SsrcTransaction buildForPlatform(String platformId, Integer channelId, String callId, String stream,
+    public static SsrcTransaction buildForPlatform(String platformId, Integer channelId, String callId, String app,String stream,
                                                  String ssrc, String mediaServerId, SIPResponse response, InviteSessionType type) {
         SsrcTransaction ssrcTransaction = new SsrcTransaction();
         ssrcTransaction.setPlatformId(platformId);
         ssrcTransaction.setChannelId(channelId);
         ssrcTransaction.setCallId(callId);
         ssrcTransaction.setStream(stream);
+        ssrcTransaction.setApp(app);
         ssrcTransaction.setMediaServerId(mediaServerId);
         ssrcTransaction.setSsrc(ssrc);
         ssrcTransaction.setSipTransactionInfo(new SipTransactionInfo(response));

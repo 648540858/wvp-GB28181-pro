@@ -10,11 +10,11 @@ public interface IGbChannelPlayService {
 
     void start(CommonGBChannel channel, InviteInfo inviteInfo, Platform platform, ErrorCallback<StreamInfo> callback);
 
-    void play(CommonGBChannel channel, Platform platform,  ErrorCallback<StreamInfo> callback);
+    void play(CommonGBChannel channel, Platform platform, Boolean record, ErrorCallback<StreamInfo> callback);
 
-    void playGbDeviceChannel(CommonGBChannel channel, ErrorCallback<StreamInfo> callback);
+    void playGbDeviceChannel(CommonGBChannel channel, Boolean record, ErrorCallback<StreamInfo> callback);
 
-    void playProxy(CommonGBChannel channel, ErrorCallback<StreamInfo> callback);
+    void playProxy(CommonGBChannel channel, Boolean record, ErrorCallback<StreamInfo> callback);
 
     void playPush(CommonGBChannel channel, String platformDeviceId, String platformName, ErrorCallback<StreamInfo> callback);
 }

@@ -129,16 +129,18 @@ public class MediaServiceImpl implements IMediaService {
         ResultForOnPublish result = new ResultForOnPublish();
         result.setEnable_audio(true);
 
-        // 是否录像
-        if ("rtp".equals(app)) {
-            result.setEnable_mp4(userSetting.getRecordSip());
-        } else {
-            result.setEnable_mp4(userSetting.getRecordPushLive());
-        }
         // 国标流
         if ("rtp".equals(app)) {
 
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, stream);
+
+            if (inviteInfo != null) {
+                result.setEnable_mp4(inviteInfo.getRecord());
+            }else {
+                result.setEnable_mp4(userSetting.getRecordSip());
+            }
+
+            result.setEnable_mp4(inviteInfo.getRecord());
 
             // 单端口模式下修改流 ID
             if (!mediaServer.isRtpEnable() && inviteInfo == null) {
@@ -190,8 +192,12 @@ public class MediaServiceImpl implements IMediaService {
             }
         } else if (app.equals("broadcast")) {
             result.setEnable_audio(true);
+            result.setEnable_mp4(userSetting.getRecordSip());
         } else if (app.equals("talk")) {
             result.setEnable_audio(true);
+            result.setEnable_mp4(userSetting.getRecordSip());
+        }else {
+            result.setEnable_mp4(userSetting.getRecordPushLive());
         }
         if (app.equalsIgnoreCase("rtp")) {
             String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "_" + stream;

@@ -305,11 +305,11 @@ public class PlayServiceImpl implements IPlayService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到通道");
         }
 
-        return play(mediaServerItem, device, channel, ssrc, callback);
+        return play(mediaServerItem, device, channel, ssrc, userSetting.getRecordSip(), callback);
     }
 
-    private SSRCInfo play(MediaServer mediaServerItem, Device device, DeviceChannel channel, String ssrc,
-                      ErrorCallback<StreamInfo> callback) {
+    private SSRCInfo play(MediaServer mediaServerItem, Device device, DeviceChannel channel, String ssrc, Boolean record,
+                          ErrorCallback<StreamInfo> callback) {
         if (mediaServerItem == null ) {
             if (callback != null) {
                 callback.run(InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getCode(),
@@ -322,7 +322,8 @@ public class PlayServiceImpl implements IPlayService {
         InviteInfo inviteInfoInCatch = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
         if (inviteInfoInCatch != null ) {
             if (inviteInfoInCatch.getStreamInfo() == null) {
-                // 释放生成的ssrc，使用上一次申请的
+                // 释放生成的ssrc，使用上一次申请的322
+
                 ssrcFactory.releaseSsrc(mediaServerItem.getId(), ssrc);
                 // 点播发起了但是尚未成功, 仅注册回调等待结果即可
                 inviteStreamService.once(InviteSessionType.PLAY, channel.getId(), null, callback);
@@ -432,7 +433,13 @@ public class PlayServiceImpl implements IPlayService {
         // 初始化redis中的invite消息状态
         InviteInfo inviteInfo = InviteInfo.getInviteInfo(device.getDeviceId(), channel.getId(), ssrcInfo.getStream(), ssrcInfo, mediaServerItem.getId(),
                 mediaServerItem.getSdpIp(), ssrcInfo.getPort(), device.getStreamMode(), InviteSessionType.PLAY,
-                InviteSessionStatus.ready);
+                InviteSessionStatus.ready, userSetting.getRecordSip());
+        if (record != null) {
+            inviteInfo.setRecord(record);
+        }else {
+            inviteInfo.setRecord(userSetting.getRecordSip());
+        }
+
         inviteStreamService.updateInviteInfo(inviteInfo);
 
         try {
@@ -812,7 +819,7 @@ public class PlayServiceImpl implements IPlayService {
         // 初始化redis中的invite消息状态
         InviteInfo inviteInfo = InviteInfo.getInviteInfo(device.getDeviceId(), channel.getId(), ssrcInfo.getStream(), ssrcInfo, mediaServerItem.getId(),
                 mediaServerItem.getSdpIp(), ssrcInfo.getPort(), device.getStreamMode(), InviteSessionType.PLAYBACK,
-                InviteSessionStatus.ready);
+                InviteSessionStatus.ready, userSetting.getRecordSip());
         inviteStreamService.updateInviteInfo(inviteInfo);
 
         try {
@@ -1018,7 +1025,7 @@ public class PlayServiceImpl implements IPlayService {
         // 初始化redis中的invite消息状态
         InviteInfo inviteInfo = InviteInfo.getInviteInfo(device.getDeviceId(), channel.getId(), ssrcInfo.getStream(), ssrcInfo, mediaServerItem.getId(),
                 mediaServerItem.getSdpIp(), ssrcInfo.getPort(), device.getStreamMode(), InviteSessionType.DOWNLOAD,
-                InviteSessionStatus.ready);
+                InviteSessionStatus.ready, true);
 
         inviteStreamService.updateInviteInfo(inviteInfo);
         try {
@@ -1647,7 +1654,7 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public void play(CommonGBChannel channel, ErrorCallback<StreamInfo> callback) {
+    public void play(CommonGBChannel channel, Boolean record, ErrorCallback<StreamInfo> callback) {
         Device device = deviceService.getDevice(channel.getDataDeviceId());
         if (device == null) {
             log.warn("[点播] 未找到通道{}的设备信息", channel);
@@ -1659,7 +1666,7 @@ public class PlayServiceImpl implements IPlayService {
             throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
         }
         DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
-        play(mediaServer, device, deviceChannel, null, callback);
+        play(mediaServer, device, deviceChannel, null, record, callback);
     }
 
     @Override

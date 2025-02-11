@@ -67,7 +67,7 @@ public class DeviceConfig {
 	@Parameter(name = "heartBeatInterval", description = "心跳间隔")
 	@Parameter(name = "heartBeatCount", description = "心跳计数")
 	public DeferredResult<String> homePositionApi(@PathVariable String deviceId,
-                                                               	String channelId,
+												  @RequestParam(required = false) String channelId,
                                                                 @RequestParam(required = false) String name,
 																@RequestParam(required = false) String expiration,
 																@RequestParam(required = false) String heartBeatInterval,
@@ -109,6 +109,8 @@ public class DeviceConfig {
 		if (log.isDebugEnabled()) {
 			log.debug("设备状态查询API调用");
 		}
+		String key = DeferredResultHolder.CALLBACK_CMD_CONFIGDOWNLOAD + (ObjectUtils.isEmpty(channelId) ? deviceId : deviceId + channelId);
+		String uuid = UUID.randomUUID().toString();
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		Assert.notNull(device, "设备不存在");
 

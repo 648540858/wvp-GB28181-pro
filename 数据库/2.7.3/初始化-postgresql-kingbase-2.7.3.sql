@@ -32,7 +32,9 @@ create table wvp_device
     server_id                           character varying(50),
     password                            character varying(255),
     as_message_channel                  bool    default false,
-    keepalive_interval_time             integer,
+    heart_beat_interval                 integer,
+    heart_beat_count                    integer,
+    position_capability                 integer,
     broadcast_push_after_ack            bool    default false,
     server_id                           character varying(50),
     constraint uk_device_device unique (device_id)

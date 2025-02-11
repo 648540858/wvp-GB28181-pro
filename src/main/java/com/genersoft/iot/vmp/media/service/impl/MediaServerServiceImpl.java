@@ -195,7 +195,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         } else {
             rtpServerPort = mediaServer.getRtpProxyPort();
         }
-        return new SSRCInfo(rtpServerPort, ssrc, streamId, null);
+        return new SSRCInfo(rtpServerPort, ssrc, "rtp", streamId, null);
     }
 
     @Override

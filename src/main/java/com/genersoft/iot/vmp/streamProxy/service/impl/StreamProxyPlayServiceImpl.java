@@ -15,11 +15,6 @@ import com.genersoft.iot.vmp.streamProxy.dao.StreamProxyMapper;
 import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyPlayService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.sip.message.Response;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -27,6 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+
+import javax.sip.message.Response;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 视频代理业务
@@ -96,10 +94,13 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
     }
 
     @Override
-    public StreamInfo start(int id) {
+    public StreamInfo start(int id, Boolean record, ErrorCallback<StreamInfo> callback) {
         StreamProxy streamProxy = streamProxyMapper.select(id);
         if (streamProxy == null) {
             throw new ControllerException(ErrorCode.ERROR404.getCode(), "代理信息未找到");
+        }
+        if (record != null) {
+            streamProxy.setEnableMp4(record);
         }
 
         return startProxy(streamProxy);

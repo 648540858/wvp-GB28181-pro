@@ -129,16 +129,18 @@ public class MediaServiceImpl implements IMediaService {
         ResultForOnPublish result = new ResultForOnPublish();
         result.setEnable_audio(true);
 
-        // 是否录像
-        if ("rtp".equals(app)) {
-            result.setEnable_mp4(userSetting.getRecordSip());
-        } else {
-            result.setEnable_mp4(userSetting.getRecordPushLive());
-        }
         // 国标流
         if ("rtp".equals(app)) {
 
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, stream);
+
+            if (inviteInfo != null) {
+                result.setEnable_mp4(inviteInfo.getRecord());
+            }else {
+                result.setEnable_mp4(userSetting.getRecordSip());
+            }
+
+            result.setEnable_mp4(inviteInfo.getRecord());
 
             // 单端口模式下修改流 ID
             if (!mediaServer.isRtpEnable() && inviteInfo == null) {
@@ -152,7 +154,7 @@ public class MediaServiceImpl implements IMediaService {
             }
 
             // 设置音频信息及录制信息
-            SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(stream);
+            SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(app, stream);
             if (ssrcTransaction != null ) {
 
                 // 为录制国标模拟一个鉴权信息, 方便后续写入录像文件时使用
@@ -190,8 +192,12 @@ public class MediaServiceImpl implements IMediaService {
             }
         } else if (app.equals("broadcast")) {
             result.setEnable_audio(true);
+            result.setEnable_mp4(userSetting.getRecordSip());
         } else if (app.equals("talk")) {
             result.setEnable_audio(true);
+            result.setEnable_mp4(userSetting.getRecordSip());
+        }else {
+            result.setEnable_mp4(userSetting.getRecordPushLive());
         }
         if (app.equalsIgnoreCase("rtp")) {
             String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "_" + stream;

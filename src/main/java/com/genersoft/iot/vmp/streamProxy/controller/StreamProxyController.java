@@ -192,7 +192,7 @@ public class StreamProxyController {
     @Parameter(name = "id", description = "代理Id", required = true)
     public StreamContent start(int id){
         log.info("播放代理： {}", id);
-        StreamInfo streamInfo = streamProxyPlayService.start(id);
+        StreamInfo streamInfo = streamProxyPlayService.start(id, null, null);
         if (streamInfo == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg());
         }else {

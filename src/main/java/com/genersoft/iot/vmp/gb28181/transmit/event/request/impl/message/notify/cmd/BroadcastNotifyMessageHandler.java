@@ -151,7 +151,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
                                 log.info("[国标级联] 语音喊话 设备正在使用中 platform： {}， channel: {}",
                                         platform.getServerGBId(), channel.getGbDeviceId());
                                 //  查看语音通道已经建立且已经占用 回复BYE
-                                platformService.stopBroadcast(platform, channel, hookData.getStream(),  true, hookData.getMediaServer());
+                                platformService.stopBroadcast(platform, channel, hookData.getApp(), hookData.getStream(), true, hookData.getMediaServer());
                             }else {
                                 // 查看语音通道已经建立但是未占用
                                 broadcastCatch.setApp(hookData.getApp());

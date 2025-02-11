@@ -5,13 +5,13 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ServiceException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.PlayException;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
 import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
-import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyPlayService;
 import com.genersoft.iot.vmp.streamPush.service.IStreamPushPlayService;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +36,9 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
     @Autowired
     private IStreamPushPlayService streamPushPlayService;
 
+    @Autowired
+    private UserSetting userSetting;
+
 
     @Override
     public void start(CommonGBChannel channel, InviteMessageInfo inviteInfo, Platform platform, ErrorCallback<StreamInfo> callback) {
@@ -45,7 +48,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
         }
         log.info("[点播通用通道] 类型：{}， 通道： {}({})", inviteInfo.getSessionName(), channel.getGbName(), channel.getGbDeviceId());
         if ("Play".equalsIgnoreCase(inviteInfo.getSessionName())) {
-            play(channel, platform, callback);
+            play(channel, platform, userSetting.getRecordSip(), callback);
         }else if ("Playback".equals(inviteInfo.getSessionName())) {
             if (channel.getDataType() == ChannelDataType.GB28181.value) {
                 // 国标通道
@@ -113,13 +116,13 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
     }
 
     @Override
-    public void play(CommonGBChannel channel, Platform platform, ErrorCallback<StreamInfo> callback) {
+    public void play(CommonGBChannel channel, Platform platform, Boolean record, ErrorCallback<StreamInfo> callback) {
         if (channel.getDataType() == ChannelDataType.GB28181.value) {
             // 国标通道
-            playGbDeviceChannel(channel, callback);
+            playGbDeviceChannel(channel, record, callback);
         } else if (channel.getDataType() == ChannelDataType.STREAM_PROXY.value) {
             // 拉流代理
-            playProxy(channel, callback);
+            playProxy(channel, record, callback);
         } else if (channel.getDataType() == ChannelDataType.STREAM_PUSH.value) {
             if (platform != null) {
                 // 推流
@@ -136,10 +139,10 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
     }
 
     @Override
-    public void playGbDeviceChannel(CommonGBChannel channel, ErrorCallback<StreamInfo> callback){
+    public void playGbDeviceChannel(CommonGBChannel channel, Boolean record, ErrorCallback<StreamInfo> callback){
         // 国标通道
         try {
-            deviceChannelPlayService.play(channel, callback);
+            deviceChannelPlayService.play(channel, record, callback);
         } catch (PlayException e) {
             callback.run(e.getCode(), e.getMsg(), null);
         } catch (Exception e) {
@@ -159,10 +162,10 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
     }
 
     @Override
-    public void playProxy(CommonGBChannel channel, ErrorCallback<StreamInfo> callback){
+    public void playProxy(CommonGBChannel channel, Boolean record, ErrorCallback<StreamInfo> callback){
         // 拉流代理通道
         try {
-            streamProxyPlayService.start(channel.getDataDeviceId(), callback);
+            streamProxyPlayService.start(channel.getDataDeviceId(), record, callback);
         }catch (Exception e) {
             callback.run(Response.BUSY_HERE, "busy here", null);
         }

@@ -192,4 +192,5 @@ public interface IDeviceService {
 
     DeferredResult<WVPResult<String>> deviceStatus(Device device);
 
+    void updateDeviceHeartInfo(Device device);
 }

@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.respon
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -36,6 +37,9 @@ public class ConfigDownloadResponseMessageHandler extends SIPRequestProcessorPar
     @Autowired
     private DeferredResultHolder deferredResultHolder;
 
+    @Autowired
+    private IDeviceService deviceService;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         responseMessageHandler.addHandler(cmdType, this);
@@ -45,7 +49,12 @@ public class ConfigDownloadResponseMessageHandler extends SIPRequestProcessorPar
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element element) {
         String channelId = getText(element, "DeviceID");
-        String key = DeferredResultHolder.CALLBACK_CMD_CONFIGDOWNLOAD + device.getDeviceId() + channelId;
+        String key;
+        if (device.getDeviceId().equals(channelId)) {
+            key = DeferredResultHolder.CALLBACK_CMD_CONFIGDOWNLOAD + device.getDeviceId();
+        }else {
+            key = DeferredResultHolder.CALLBACK_CMD_CONFIGDOWNLOAD + device.getDeviceId() + channelId;
+        }
         try {
             // 回复200 OK
             responseAck((SIPRequest) evt.getRequest(), Response.OK);
@@ -58,6 +67,18 @@ public class ConfigDownloadResponseMessageHandler extends SIPRequestProcessorPar
         if (log.isDebugEnabled()) {
             log.debug(json.toJSONString());
         }
+        JSONObject basicParam = json.getJSONObject("BasicParam");
+        Integer heartBeatInterval = basicParam.getInteger("HeartBeatInterval");
+        Integer heartBeatCount = basicParam.getInteger("HeartBeatCount");
+        Integer positionCapability = basicParam.getInteger("PositionCapability");
+        device.setHeartBeatInterval(heartBeatInterval);
+        device.setHeartBeatCount(heartBeatCount);
+        device.setPositionCapability(positionCapability);
+
+        deviceService.updateDeviceHeartInfo(device);
+
+
+
         RequestMessage msg = new RequestMessage();
         msg.setKey(key);
         msg.setData(json);

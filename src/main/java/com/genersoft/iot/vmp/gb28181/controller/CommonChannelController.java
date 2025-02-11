@@ -3,7 +3,10 @@ package com.genersoft.iot.vmp.gb28181.controller;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
-import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceType;
+import com.genersoft.iot.vmp.gb28181.bean.IndustryCodeType;
+import com.genersoft.iot.vmp.gb28181.bean.NetworkIdentificationType;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelToGroupByGbDeviceParam;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelToGroupParam;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelToRegionByGbDeviceParam;
@@ -29,7 +32,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.sip.message.Response;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -261,7 +263,7 @@ public class CommonChannelController {
                 result.setResult(WVPResult.fail(code, msg));
             }
         };
-        channelPlayService.play(channel, null, callback);
+        channelPlayService.play(channel, null, userSetting.getRecordSip(), callback);
         return result;
     }
 }

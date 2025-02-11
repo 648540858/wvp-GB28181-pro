@@ -14,12 +14,14 @@ public interface IGbChannelPlayService {
     void stopPlay(InviteSessionType type, CommonGBChannel channel, String stream);
 
     void play(CommonGBChannel channel, Platform platform, ErrorCallback<StreamInfo> callback);
+    void play(CommonGBChannel channel, Platform platform, Boolean record, ErrorCallback<StreamInfo> callback);
 
-    void playGbDeviceChannel(CommonGBChannel channel, ErrorCallback<StreamInfo> callback);
+    void playGbDeviceChannel(CommonGBChannel channel, Boolean record, ErrorCallback<StreamInfo> callback);
 
     void stopPlayDeviceChannel(InviteSessionType type, CommonGBChannel channel, String stream);
 
     void playProxy(CommonGBChannel channel, ErrorCallback<StreamInfo> callback);
+    void playProxy(CommonGBChannel channel, Boolean record, ErrorCallback<StreamInfo> callback);
 
     void stopPlayProxy(CommonGBChannel channel);
 

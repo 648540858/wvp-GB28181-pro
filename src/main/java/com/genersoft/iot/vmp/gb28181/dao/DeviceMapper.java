@@ -67,7 +67,9 @@ public interface DeviceMapper {
                 "expires," +
                 "register_time," +
                 "keepalive_time," +
-                "keepalive_interval_time," +
+                "heart_beat_interval," +
+                "heart_beat_count," +
+                "position_capability," +
                 "create_time," +
                 "update_time," +
                 "charset," +
@@ -98,7 +100,9 @@ public interface DeviceMapper {
                 "#{expires}," +
                 "#{registerTime}," +
                 "#{keepaliveTime}," +
-                "#{keepaliveIntervalTime}," +
+                "#{heartBeatInterval}," +
+                "#{heartBeatCount}," +
+                "#{positionCapability}," +
                 "#{createTime}," +
                 "#{updateTime}," +
                 "#{charset}," +
@@ -131,7 +135,9 @@ public interface DeviceMapper {
                 "<if test=\"onLine != null\">, on_line=#{onLine}</if>" +
                 "<if test=\"registerTime != null\">, register_time=#{registerTime}</if>" +
                 "<if test=\"keepaliveTime != null\">, keepalive_time=#{keepaliveTime}</if>" +
-                "<if test=\"keepaliveIntervalTime != null\">, keepalive_interval_time=#{keepaliveIntervalTime}</if>" +
+                "<if test=\"heartBeatInterval != null\">, heart_beat_interval=#{heartBeatInterval}</if>" +
+                "<if test=\"positionCapability != null\">, position_capability=#{positionCapability}</if>" +
+                "<if test=\"heartBeatCount != null\">, heart_beat_count=#{heartBeatCount}</if>" +
                 "<if test=\"expires != null\">, expires=#{expires}</if>" +
                 "<if test=\"serverId != null\">, server_id=#{serverId}</if>" +
                 "WHERE device_id=#{deviceId}"+

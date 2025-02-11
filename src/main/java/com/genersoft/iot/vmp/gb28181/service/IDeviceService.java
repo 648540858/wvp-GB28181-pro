@@ -166,4 +166,5 @@ public interface IDeviceService {
 
     void subscribeMobilePosition(int id, int cycle, int interval);
 
+    void updateDeviceHeartInfo(Device device);
 }

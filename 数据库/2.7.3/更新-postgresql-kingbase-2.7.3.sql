@@ -40,3 +40,10 @@ alter table wvp_stream_proxy add relates_media_server_id character varying(50);
 drop index uk_stream_push_app_stream_path on wvp_cloud_record;
 alter table wvp_cloud_record change folder folder varchar(500) null;
 alter table wvp_cloud_record change file_path file_path varchar(500) null;
+
+/*
+* 20250211
+*/
+alter table wvp_device change keepalive_interval_time heart_beat_interval integer;
+alter table wvp_device add heart_beat_count integer;
+alter table wvp_device add position_capability integer;

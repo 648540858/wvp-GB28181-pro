@@ -95,6 +95,8 @@
                 布防</el-dropdown-item>
               <el-dropdown-item command="resetGuard" v-bind:disabled="!scope.row.onLine">
                 撤防</el-dropdown-item>
+              <el-dropdown-item command="syncBasicParam" v-bind:disabled="!scope.row.onLine">
+                基础配置同步</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </template>
@@ -355,6 +357,8 @@ export default {
         this.resetGuard(itemData)
       }else if (command === "delete") {
         this.deleteDevice(itemData)
+      }else if (command === "syncBasicParam") {
+        this.syncBasicParam(itemData)
       }
     },
     setGuard: function (itemData) {
@@ -449,6 +453,33 @@ export default {
           this.$message.success({
             showClose: true,
             message: value?"订阅成功":"取消订阅成功"
+          })
+        }else {
+          this.$message.error({
+            showClose: true,
+            message: res.data.msg
+          })
+        }
+      }).catch( (error)=> {
+        this.$message.error({
+          showClose: true,
+          message: error.message
+        })
+      });
+    },
+    syncBasicParam: function (data) {
+      console.log(data)
+      this.$axios({
+        method: 'get',
+        url: `/api/device/config/query/${data.deviceId}/BasicParam`,
+        params: {
+          // channelId: data.deviceId
+        }
+      }).then( (res)=> {
+        if (res.data.code === 0) {
+          this.$message.success({
+            showClose: true,
+            message: `配置已同步，当前心跳间隔： ${res.data.data.BasicParam.HeartBeatInterval} 心跳间隔:${res.data.data.BasicParam.HeartBeatCount}`
           })
         }else {
           this.$message.error({

@@ -7,13 +7,8 @@
 
 package com.genersoft.iot.vmp.gb28181.controller;
 
-import com.alibaba.fastjson2.JSONObject;
-import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
@@ -23,16 +18,9 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
-
-import javax.sip.InvalidArgumentException;
-import javax.sip.SipException;
-import java.text.ParseException;
-import java.util.UUID;
 
 @Tag(name  = "国标设备控制")
 @Slf4j
@@ -43,18 +31,8 @@ public class DeviceControl {
     @Autowired
     private IDeviceService deviceService;
 
-    @Autowired
-    private ISIPCommander cmder;
 
-    @Autowired
-    private DeferredResultHolder resultHolder;
-
-    /**
-     * 远程启动控制命令API接口
-     * 
-     * @param deviceId 设备ID
-     */
-	@Operation(summary = "远程启动控制命令", security = @SecurityRequirement(name = JwtUtils.HEADER))
+	@Operation(summary = "远程启动", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @GetMapping("/teleboot/{deviceId}")
     public void teleBootApi(@PathVariable String deviceId) {

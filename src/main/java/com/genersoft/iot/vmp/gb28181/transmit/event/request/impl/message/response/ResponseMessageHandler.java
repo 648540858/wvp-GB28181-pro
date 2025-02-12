@@ -3,7 +3,6 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.respon
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.event.MessageSubscribe;
 import com.genersoft.iot.vmp.gb28181.event.sip.MessageEvent;
-import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.MessageHandlerAbstract;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.MessageRequestProcessor;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -44,18 +43,16 @@ public class ResponseMessageHandler extends MessageHandlerAbstract implements In
 
     public void handMessageEvent(Element element, Object data) {
         String cmd = getText(element, "CmdType");
-        IMessageHandler messageHandler = messageHandlerMap.get(cmd);
-        if (messageHandler == null) {
-            String sn = getText(element, "SN");
-            MessageEvent<Object> subscribe = (MessageEvent<Object>)messageSubscribe.getSubscribe(cmd + sn);
-            if (subscribe != null) {
-                String result = getText(element, "Result");
-                if ("OK".equalsIgnoreCase(result)) {
-                    subscribe.getCallback().run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), data);
-                }else {
-                    subscribe.getCallback().run(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg(), result);
-                }
+        String sn = getText(element, "SN");
+        MessageEvent<Object> subscribe = (MessageEvent<Object>)messageSubscribe.getSubscribe(cmd + sn);
+        if (subscribe != null) {
+            String result = getText(element, "Result");
+            if (result == null || "OK".equalsIgnoreCase(result) || data != null) {
+                subscribe.getCallback().run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), data);
+            }else {
+                subscribe.getCallback().run(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg(), result);
             }
+            messageSubscribe.removeSubscribe(cmd + sn);
         }
     }
 }

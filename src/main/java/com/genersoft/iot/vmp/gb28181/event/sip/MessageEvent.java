@@ -28,7 +28,7 @@ public class MessageEvent<T> implements Delayed {
 
     @Override
     public long getDelay(@NotNull TimeUnit unit) {
-        return unit.convert(delay, TimeUnit.MILLISECONDS);
+        return unit.convert(delay - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -47,9 +47,9 @@ public class MessageEvent<T> implements Delayed {
         messageEvent.deviceId = deviceId;
         messageEvent.callback = callback;
         if (delay == null) {
-            messageEvent.delay = 1000;
+            messageEvent.delay = System.currentTimeMillis() + 1000;
         }else {
-            messageEvent.delay = delay;
+            messageEvent.delay = System.currentTimeMillis() + delay;
         }
         return messageEvent;
     }

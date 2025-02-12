@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
@@ -12,7 +11,6 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
-import com.genersoft.iot.vmp.gb28181.event.MessageSubscribe;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
@@ -20,8 +18,6 @@ import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.CatalogSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.CatalogResponseMessageHandler;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -38,12 +34,9 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.sip.InvalidArgumentException;
@@ -51,7 +44,6 @@ import javax.sip.SipException;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -667,9 +659,7 @@ public class DeviceServiceImpl implements IDeviceService {
         }
 
         try {
-            sipCommander.deviceBasicConfigCmd(device, basicParam, event -> {
-                callback.run(ErrorCode.ERROR100.getCode(), "操作超时", null);
-            });
+            sipCommander.deviceBasicConfigCmd(device, basicParam, callback);
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error("[命令发送失败] 设备配置: {}", e.getMessage());
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage());
@@ -677,25 +667,20 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public DeferredResult<WVPResult<String>> deviceConfigQuery(Device device, String channelId, String configType) {
+    public void deviceConfigQuery(Device device, String channelId, String configType, ErrorCallback<Object> callback) {
 
         if (!userSetting.getServerId().equals(device.getServerId())) {
             WVPResult<String> result = redisRpcService.deviceConfigQuery(device.getServerId(), device, channelId, configType);
-            DeferredResult<WVPResult<String>> deferredResult = new DeferredResult<>(3 * 1000L);
-            deferredResult.setResult(result);
-            return deferredResult;
+            callback.run(result.getCode(), result.getMsg(), result.getData());
+            return;
         }
 
-        DeferredResult<WVPResult<String>> result = new DeferredResult<>(3 * 1000L);
         try {
-            sipCommander.deviceConfigQuery(device, channelId, configType, event -> {
-                result.setResult(WVPResult.fail(ErrorCode.ERROR100));
-            });
+            sipCommander.deviceConfigQuery(device, channelId, configType, callback);
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error("[命令发送失败] 获取设备配置: {}", e.getMessage());
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage());
         }
-        return result;
     }
 
     @Override

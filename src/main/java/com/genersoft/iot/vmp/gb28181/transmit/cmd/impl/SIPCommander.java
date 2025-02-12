@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.SipConfig;
@@ -871,7 +870,7 @@ public class SIPCommander implements ISIPCommander {
      * 设备配置命令：basicParam
      */
     @Override
-    public void deviceBasicConfigCmd(Device device, BasicParam basicParam, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void deviceBasicConfigCmd(Device device, BasicParam basicParam, ErrorCallback<String> callback) throws InvalidArgumentException, SipException, ParseException {
 
         int sn = (int) ((Math.random() * 9 + 1) * 100000);
         String cmdType = "DeviceConfig";
@@ -904,21 +903,14 @@ public class SIPCommander implements ISIPCommander {
         cmdXml.append("</BasicParam>\r\n");
         cmdXml.append("</Control>\r\n");
 
-        ErrorCallback<String> errorCallback = (code, msg, data) -> {
-            if (code != ErrorCode.SUCCESS.getCode()) {
-                SipSubscribe.EventResult<Object> eventResult = new SipSubscribe.EventResult<>();
-                eventResult.type = SipSubscribe.EventResultType.failedResult;
-                eventResult.msg = msg;
-                eventResult.statusCode = code;
-                errorEvent.response(eventResult);
-            }
-        };
 
-        MessageEvent<String> messageEvent = MessageEvent.getInstance(cmdType, sn + "", channelId, 1000L, errorCallback);
+        MessageEvent<String> messageEvent = MessageEvent.getInstance(cmdType, sn + "", channelId, 1000L, callback);
         messageSubscribe.addSubscribe(messageEvent);
 
         Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
-        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent);
+        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, eventResult -> {
+            callback.run(ErrorCode.ERROR100.getCode(), "消息发送失败", null);
+        });
     }
 
     /**
@@ -1095,14 +1087,16 @@ public class SIPCommander implements ISIPCommander {
      * @param configType 配置类型：
      */
     @Override
-    public void deviceConfigQuery(Device device, String channelId, String configType, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void deviceConfigQuery(Device device, String channelId, String configType, ErrorCallback<Object> callback) throws InvalidArgumentException, SipException, ParseException {
 
+        String cmdType = "ConfigDownload";
+        int sn = (int) ((Math.random() * 9 + 1) * 100000);
         StringBuffer cmdXml = new StringBuffer(200);
         String charset = device.getCharset();
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Query>\r\n");
-        cmdXml.append("<CmdType>ConfigDownload</CmdType>\r\n");
-        cmdXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        cmdXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");
+        cmdXml.append("<SN>" + sn + "</SN>\r\n");
         if (ObjectUtils.isEmpty(channelId)) {
             cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
         } else {
@@ -1111,10 +1105,13 @@ public class SIPCommander implements ISIPCommander {
         cmdXml.append("<ConfigType>" + configType + "</ConfigType>\r\n");
         cmdXml.append("</Query>\r\n");
 
-
+        MessageEvent<Object> messageEvent = MessageEvent.getInstance(cmdType, sn + "", channelId, 1000L, callback);
+        messageSubscribe.addSubscribe(messageEvent);
 
         Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
-        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent);
+        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, eventResult -> {
+            callback.run(ErrorCode.ERROR100.getCode(), "消息发送失败", null);
+        });
     }
 
     /**

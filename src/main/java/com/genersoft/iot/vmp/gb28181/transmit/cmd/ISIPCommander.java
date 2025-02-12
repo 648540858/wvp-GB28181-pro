@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import gov.nist.javax.sip.message.SIPRequest;
 
@@ -230,7 +231,7 @@ public interface ISIPCommander {
 	/**
 	 * 设备配置命令：basicParam
 	 */
-	void deviceBasicConfigCmd(Device device, BasicParam basicParam, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
+	void deviceBasicConfigCmd(Device device, BasicParam basicParam, ErrorCallback<String> callback) throws InvalidArgumentException, SipException, ParseException;
 
 	/**
 	 * 查询设备状态
@@ -286,7 +287,7 @@ public interface ISIPCommander {
 	 * @param channelId		通道编码（可选）
 	 * @param configType	配置类型：
 	 */
-	void deviceConfigQuery(Device device, String channelId, String configType,  SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
+	void deviceConfigQuery(Device device, String channelId, String configType,  ErrorCallback<Object> callback) throws InvalidArgumentException, SipException, ParseException;
 	
 	/**
 	 * 查询设备预置位置

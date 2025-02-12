@@ -9,13 +9,19 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
+import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
+import javax.sip.SipException;
+import javax.sip.message.Response;
+
+import java.text.ParseException;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
@@ -39,6 +45,12 @@ public class DeviceConfigResponseMessageHandler extends SIPRequestProcessorParen
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element element) {
         JSONObject json = new JSONObject();
+        try {
+            // 回复200 OK
+            responseAck((SIPRequest) evt.getRequest(), Response.OK);
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            log.error("[命令发送失败] 设备配置查询: {}", e.getMessage());
+        }
         XmlUtil.node2Json(element, json);
         String channelId = getText(element, "DeviceID");
         if (log.isDebugEnabled()) {

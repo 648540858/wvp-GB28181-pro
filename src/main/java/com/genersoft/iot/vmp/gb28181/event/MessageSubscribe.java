@@ -1,21 +1,11 @@
 package com.genersoft.iot.vmp.gb28181.event;
 
-import com.genersoft.iot.vmp.gb28181.bean.DeviceNotFoundEvent;
 import com.genersoft.iot.vmp.gb28181.event.sip.MessageEvent;
-import com.genersoft.iot.vmp.gb28181.event.sip.SipEvent;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import gov.nist.javax.sip.message.SIPRequest;
-import gov.nist.javax.sip.message.SIPResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import javax.sip.DialogTerminatedEvent;
-import javax.sip.ResponseEvent;
-import javax.sip.TimeoutEvent;
-import javax.sip.TransactionTerminatedEvent;
-import javax.sip.header.WarningHeader;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.DelayQueue;
@@ -33,18 +23,17 @@ public class MessageSubscribe {
 
     @Scheduled(fixedDelay = 200)   //每200毫秒执行
     public void execute(){
-        if (delayQueue.isEmpty()) {
-            return;
-        }
-        try {
-            MessageEvent<?> take = delayQueue.take();
-            // 出现超时异常
-            if(take.getCallback() != null) {
-                take.getCallback().run(ErrorCode.ERROR486.getCode(), "消息超时未回复", null);
+        while (!delayQueue.isEmpty()) {
+            try {
+                MessageEvent<?> take = delayQueue.take();
+                // 出现超时异常
+                if(take.getCallback() != null) {
+                    take.getCallback().run(ErrorCode.ERROR486.getCode(), "消息超时未回复", null);
+                }
+                subscribes.remove(take.getKey());
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
-            subscribes.remove(take.getKey());
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
     }
 

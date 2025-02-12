@@ -174,7 +174,7 @@ public interface IDeviceService {
 
     void deviceBasicConfig(Device device, BasicParam basicParam, ErrorCallback<String> callback);
 
-    DeferredResult<WVPResult<String>> deviceConfigQuery(Device device, String channelId, String configType);
+    void deviceConfigQuery(Device device, String channelId, String configType, ErrorCallback<Object> callback);
 
     void teleboot(Device device);
 

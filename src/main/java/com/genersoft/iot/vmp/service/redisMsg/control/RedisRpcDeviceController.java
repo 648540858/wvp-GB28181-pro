@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.service.redisMsg.control;
 
-import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
@@ -114,6 +113,7 @@ public class RedisRpcDeviceController extends RpcController {
 
     @RedisRpcMapping("deviceConfigQuery")
     public RedisRpcResponse deviceConfigQuery(RedisRpcRequest request) {
+
         JSONObject paramJson = JSONObject.parseObject(request.getParam().toString());
         String deviceId = paramJson.getString("deviceId");
         String channelId = paramJson.getString("channelId");
@@ -127,21 +127,13 @@ public class RedisRpcDeviceController extends RpcController {
             response.setBody("param error");
             return response;
         }
-        DeferredResult<WVPResult<String>> deferredResult = deviceService.deviceConfigQuery(device, channelId, configType);
-        deferredResult.onCompletion(() ->{
-            response.setStatusCode(ErrorCode.SUCCESS.getCode());
-            response.setBody(deferredResult.getResult());
+        deviceService.deviceConfigQuery(device, channelId, configType, (code, msg, data) -> {
+            response.setStatusCode(code);
+            response.setBody(new WVPResult<>(code, msg, data));
             // 手动发送结果
             sendResponse(response);
         });
-        deferredResult.onTimeout(() -> {
-            log.warn("[设备配置]操作超时, 设备未返回应答指令, {}", deviceId);
-            response.setStatusCode(ErrorCode.SUCCESS.getCode());
-            response.setBody(WVPResult.fail(ErrorCode.ERROR100.getCode(), "超时"));
-            // 手动发送结果
-            sendResponse(response);
-        });
-        return response;
+        return null;
     }
 
     @RedisRpcMapping("teleboot")

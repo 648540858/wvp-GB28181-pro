@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.SipConfig;
@@ -7,7 +8,9 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.SipLayer;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.event.MessageSubscribe;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.gb28181.event.sip.MessageEvent;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
@@ -19,8 +22,10 @@ import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -70,6 +75,9 @@ public class SIPCommander implements ISIPCommander {
 
     @Autowired
     private IMediaServerService mediaServerService;
+
+    @Autowired
+    private MessageSubscribe messageSubscribe;
 
 
 
@@ -861,52 +869,53 @@ public class SIPCommander implements ISIPCommander {
 
     /**
      * 设备配置命令：basicParam
-     *
-     * @param device            视频设备
-     * @param channelId         通道编码（可选）
-     * @param name              设备/通道名称（可选）
-     * @param expiration        注册过期时间（可选）
-     * @param heartBeatInterval 心跳间隔时间（可选）
-     * @param heartBeatCount    心跳超时次数（可选）
      */
     @Override
-    public void deviceBasicConfigCmd(Device device, String channelId, String name, String expiration,
-                                     String heartBeatInterval, String heartBeatCount, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void deviceBasicConfigCmd(Device device, BasicParam basicParam, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
 
+        int sn = (int) ((Math.random() * 9 + 1) * 100000);
+        String cmdType = "DeviceConfig";
         StringBuffer cmdXml = new StringBuffer(200);
         String charset = device.getCharset();
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Control>\r\n");
-        cmdXml.append("<CmdType>DeviceConfig</CmdType>\r\n");
-        cmdXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        cmdXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");
+        cmdXml.append("<SN>" + sn + "</SN>\r\n");
+        String channelId = basicParam.getChannelId();
         if (ObjectUtils.isEmpty(channelId)) {
-            cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
-        } else {
-            cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
+            channelId = device.getDeviceId();
         }
+        cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
         cmdXml.append("<BasicParam>\r\n");
-        if (!ObjectUtils.isEmpty(name)) {
-            cmdXml.append("<Name>" + name + "</Name>\r\n");
+        if (!ObjectUtils.isEmpty(basicParam.getName())) {
+            cmdXml.append("<Name>" + basicParam.getName() + "</Name>\r\n");
         }
-        if (NumericUtil.isInteger(expiration)) {
-            if (Integer.valueOf(expiration) > 0) {
-                cmdXml.append("<Expiration>" + expiration + "</Expiration>\r\n");
+        if (NumericUtil.isInteger(basicParam.getExpiration())) {
+            if (Integer.parseInt(basicParam.getExpiration()) > 0) {
+                cmdXml.append("<Expiration>" + basicParam.getExpiration() + "</Expiration>\r\n");
             }
         }
-        if (NumericUtil.isInteger(heartBeatInterval)) {
-            if (Integer.valueOf(heartBeatInterval) > 0) {
-                cmdXml.append("<HeartBeatInterval>" + heartBeatInterval + "</HeartBeatInterval>\r\n");
-            }
+        if (basicParam.getHeartBeatInterval() != null && basicParam.getHeartBeatInterval() > 0) {
+            cmdXml.append("<HeartBeatInterval>" + basicParam.getHeartBeatInterval() + "</HeartBeatInterval>\r\n");
         }
-        if (NumericUtil.isInteger(heartBeatCount)) {
-            if (Integer.valueOf(heartBeatCount) > 0) {
-                cmdXml.append("<HeartBeatCount>" + heartBeatCount + "</HeartBeatCount>\r\n");
-            }
+        if (basicParam.getHeartBeatCount() != null && basicParam.getHeartBeatCount() > 0) {
+            cmdXml.append("<HeartBeatCount>" + basicParam.getHeartBeatCount() + "</HeartBeatCount>\r\n");
         }
         cmdXml.append("</BasicParam>\r\n");
         cmdXml.append("</Control>\r\n");
 
+        ErrorCallback<String> errorCallback = (code, msg, data) -> {
+            if (code != ErrorCode.SUCCESS.getCode()) {
+                SipSubscribe.EventResult<Object> eventResult = new SipSubscribe.EventResult<>();
+                eventResult.type = SipSubscribe.EventResultType.failedResult;
+                eventResult.msg = msg;
+                eventResult.statusCode = code;
+                errorEvent.response(eventResult);
+            }
+        };
 
+        MessageEvent<String> messageEvent = MessageEvent.getInstance(cmdType, sn + "", channelId, 1000L, errorCallback);
+        messageSubscribe.addSubscribe(messageEvent);
 
         Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent);

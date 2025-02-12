@@ -368,32 +368,32 @@ public class DeviceQuery {
 		return result;
 
 
-		String key = DeferredResultHolder.CALLBACK_CMD_ALARM + deviceId;
-		String uuid = UUID.randomUUID().toString();
-		try {
-			cmder.alarmInfoQuery(device, startPriority, endPriority, alarmMethod, alarmType, startTime, endTime, event -> {
-				RequestMessage msg = new RequestMessage();
-				msg.setId(uuid);
-				msg.setKey(key);
-				msg.setData(String.format("设备报警查询失败，错误码： %s, %s",event.statusCode, event.msg));
-				resultHolder.invokeResult(msg);
-			});
-		} catch (InvalidArgumentException | SipException | ParseException e) {
-			log.error("[命令发送失败] 设备报警查询: {}", e.getMessage());
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
-		}
-		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String >> (3 * 1000L);
-		result.onTimeout(()->{
-			log.warn(String.format("设备报警查询超时"));
-			// 释放rtpserver
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData("设备报警查询超时");
-			resultHolder.invokeResult(msg);
-		});
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_ALARM + deviceId, uuid, result);
-		return result;
+//		String key = DeferredResultHolder.CALLBACK_CMD_ALARM + deviceId;
+//		String uuid = UUID.randomUUID().toString();
+//		try {
+//			cmder.alarmInfoQuery(device, startPriority, endPriority, alarmMethod, alarmType, startTime, endTime, event -> {
+//				RequestMessage msg = new RequestMessage();
+//				msg.setId(uuid);
+//				msg.setKey(key);
+//				msg.setData(String.format("设备报警查询失败，错误码： %s, %s",event.statusCode, event.msg));
+//				resultHolder.invokeResult(msg);
+//			});
+//		} catch (InvalidArgumentException | SipException | ParseException e) {
+//			log.error("[命令发送失败] 设备报警查询: {}", e.getMessage());
+//			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+//		}
+//		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String >> (3 * 1000L);
+//		result.onTimeout(()->{
+//			log.warn(String.format("设备报警查询超时"));
+//			// 释放rtpserver
+//			RequestMessage msg = new RequestMessage();
+//			msg.setId(uuid);
+//			msg.setKey(key);
+//			msg.setData("设备报警查询超时");
+//			resultHolder.invokeResult(msg);
+//		});
+//		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_ALARM + deviceId, uuid, result);
+//		return result;
 	}
 
 

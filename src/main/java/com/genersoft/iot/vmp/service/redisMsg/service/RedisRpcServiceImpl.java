@@ -9,10 +9,7 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.redis.RedisRpcConfig;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.Platform;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
-import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
@@ -267,16 +264,8 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
     }
 
     @Override
-    public WVPResult<String> deviceBasicConfig(String serverId, Device device, String channelId, String name, String expiration,
-                                    String heartBeatInterval, String heartBeatCount) {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("device", device.getDeviceId());
-        jsonObject.put("channelId", channelId);
-        jsonObject.put("name", name);
-        jsonObject.put("expiration", expiration);
-        jsonObject.put("heartBeatInterval", heartBeatInterval);
-        jsonObject.put("heartBeatCount", heartBeatCount);
-        RedisRpcRequest request = buildRequest("device/deviceBasicConfig", jsonObject);
+    public WVPResult<String> deviceBasicConfig(String serverId, Device device, BasicParam basicParam) {
+        RedisRpcRequest request = buildRequest("device/deviceBasicConfig", JSONObject.toJSONString(basicParam));
         request.setToId(serverId);
         RedisRpcResponse response = redisRpcConfig.request(request, 50, TimeUnit.MILLISECONDS);
         return JSON.parseObject(response.getBody().toString(), WVPResult.class);

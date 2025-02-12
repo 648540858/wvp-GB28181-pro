@@ -10,12 +10,14 @@ package com.genersoft.iot.vmp.gb28181.controller;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
+import com.genersoft.iot.vmp.gb28181.bean.BasicParam;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -49,45 +51,30 @@ public class DeviceConfig {
     private DeferredResultHolder resultHolder;
 
 	/**
-	 * 看守位控制命令API接口
-	 * @param deviceId 设备ID
-	 * @param channelId 通道ID
-	 * @param name 名称
-	 * @param expiration 到期时间
-	 * @param heartBeatInterval 心跳间隔
-	 * @param heartBeatCount 心跳计数
-	 * @return
+	 * 基本配置设置命令
 	 */
-	@GetMapping("/basicParam/{deviceId}")
+	@GetMapping("/basicParam")
 	@Operation(summary = "基本配置设置命令", security = @SecurityRequirement(name = JwtUtils.HEADER))
-	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
-	@Parameter(name = "channelId", description = "通道国标编号", required = true)
-	@Parameter(name = "name", description = "名称")
-	@Parameter(name = "expiration", description = "到期时间")
-	@Parameter(name = "heartBeatInterval", description = "心跳间隔")
-	@Parameter(name = "heartBeatCount", description = "心跳计数")
-	public DeferredResult<String> homePositionApi(@PathVariable String deviceId,
-												  @RequestParam(required = false) String channelId,
-                                                                @RequestParam(required = false) String name,
-																@RequestParam(required = false) String expiration,
-																@RequestParam(required = false) String heartBeatInterval,
-                                                                @RequestParam(required = false) String heartBeatCount) {
+	@Parameter(name = "basicParam", description = "基础配置参数", required = true)
+	public DeferredResult<WVPResult<String>> homePositionApi(BasicParam basicParam) {
         if (log.isDebugEnabled()) {
 			log.debug("报警复位API调用");
 		}
-		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		Assert.notNull(device, "设备不存在");
-		DeferredResult<String> result = deviceService.deviceBasicConfig(device, channelId, name, expiration, heartBeatInterval, heartBeatCount);
+		Assert.notNull(basicParam.getDeviceId(), "设备ID必须存在");
 
-		result.onTimeout(() -> {
-			log.warn(String.format("设备配置操作超时, 设备未返回应答指令"));
-			JSONObject json = new JSONObject();
-			json.put("DeviceID", device.getDeviceId());
-			json.put("Status", "Timeout");
-			json.put("Description", "设备配置操作超时, 设备未返回应答指令");
-			result.setResult(json.toString());
+		Device device = deviceService.getDeviceByDeviceId(basicParam.getDeviceId());
+		Assert.notNull(device, "设备不存在");
+
+		DeferredResult<WVPResult<String>> deferredResult = new DeferredResult<>();
+		deviceService.deviceBasicConfig(device, basicParam, (code, msg, data) -> {
+			deferredResult.setResult(new WVPResult<>(code, msg, data));
 		});
-		return result;
+
+		deferredResult.onTimeout(() -> {
+			log.warn("[设备配置] 超时, {}", device.getDeviceId());
+			deferredResult.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "超时"));
+		});
+		return deferredResult;
 
 	}
 

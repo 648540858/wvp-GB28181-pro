@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
 import com.genersoft.iot.vmp.gb28181.dao.PlatformChannelMapper;
+import com.genersoft.iot.vmp.gb28181.event.MessageSubscribe;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
@@ -26,6 +27,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.respons
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -655,26 +657,23 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public DeferredResult<WVPResult<String>> deviceBasicConfig(Device device, String channelId, String name, String expiration,
-                                                    String heartBeatInterval, String heartBeatCount) {
+    public void deviceBasicConfig(Device device, BasicParam basicParam, ErrorCallback<String> callback) {
         if (!userSetting.getServerId().equals(device.getServerId())) {
-            WVPResult<String> result = redisRpcService.deviceBasicConfig(device.getServerId(), device, channelId, name, expiration,
-                    heartBeatInterval, heartBeatCount);
-            DeferredResult<WVPResult<String>> deferredResult = new DeferredResult<>(3 * 1000L);
-            deferredResult.setResult(result);
-            return deferredResult;
+            WVPResult<String> result = redisRpcService.deviceBasicConfig(device.getServerId(), device, basicParam);
+            if (result.getCode() == ErrorCode.SUCCESS.getCode()) {
+                callback.run(result.getCode(), result.getMsg(), result.getData());
+            }
+            return;
         }
 
-        DeferredResult<WVPResult<String>> result = new DeferredResult<>(3 * 1000L);
         try {
-            sipCommander.deviceBasicConfigCmd(device, channelId, name, expiration, heartBeatInterval, heartBeatCount, event -> {
-                result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时"));
+            sipCommander.deviceBasicConfigCmd(device, basicParam, event -> {
+                callback.run(ErrorCode.ERROR100.getCode(), "操作超时", null);
             });
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error("[命令发送失败] 设备配置: {}", e.getMessage());
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage());
         }
-        return result;
     }
 
     @Override

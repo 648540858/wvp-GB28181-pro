@@ -78,7 +78,9 @@ public class SipSubscribe {
         // 消息发送失败
         cmdSendFailEvent,
         // 消息发送失败
-        failedToGetPort
+        failedToGetPort,
+        // 收到失败的回复
+        failedResult
     }
 
     public static class EventResult<EventObject>{

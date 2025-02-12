@@ -127,4 +127,16 @@ public class StreamPushPlayServiceImpl implements IStreamPushPlayService {
         Assert.notNull(mediaServer, "未找到使用的节点");
         mediaServerService.closeStreams(mediaServer, app, stream);
     }
+
+    @Override
+    public void stop(Integer id) {
+        StreamPush streamPush = streamPushMapper.queryOne(id);
+        if (streamPush == null || !streamPush.isPushing()) {
+            return;
+        }
+        String mediaServerId = streamPush.getMediaServerId();
+        MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+        Assert.notNull(mediaServer, "未找到使用的节点");
+        mediaServerService.closeStreams(mediaServer, streamPush.getApp(), streamPush.getStream());
+    }
 }

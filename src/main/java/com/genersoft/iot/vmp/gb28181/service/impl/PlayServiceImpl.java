@@ -302,7 +302,7 @@ public class PlayServiceImpl implements IPlayService {
             log.warn("[点播] 未找到可用的zlm deviceId: {},channelId:{}", device.getDeviceId(), channel.getDeviceId());
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的zlm");
         }
-        play(mediaServerItem, device, channel, null, callback);
+        play(mediaServerItem, device, channel, null, userSetting.getRecordSip(), callback);
     }
 
     @Override
@@ -1661,11 +1661,11 @@ public class PlayServiceImpl implements IPlayService {
                 }
                 return;
             }
-            inviteStreamService.removeInviteInfo( "rtp", inviteInfo);
+            inviteStreamService.removeInviteInfo(inviteInfo);
             if (InviteSessionStatus.ok == inviteInfo.getStatus()) {
                 try {
                     log.info("[停止点播/回放/下载] {}/{}", device.getDeviceId(), channel.getDeviceId());
-                    cmder.streamByeCmd(device, channel.getDeviceId(), inviteInfo.getStream(), null, null);
+                    cmder.streamByeCmd(device, channel.getDeviceId(), "rtp", inviteInfo.getStream(), null, null);
                 } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
                     log.error("[命令发送失败] 停止点播/回放/下载， 发送BYE: {}", e.getMessage());
                     throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());

@@ -8,4 +8,5 @@ public interface IStreamPushPlayService {
 
     void stop(String app, String stream);
 
+    void stop(Integer id);
 }

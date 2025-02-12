@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.conf.redis.RedisRpcConfig;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcMessage;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcRequest;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
+import com.genersoft.iot.vmp.gb28181.bean.BasicParam;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
@@ -92,14 +93,9 @@ public class RedisRpcDeviceController extends RpcController {
 
     @RedisRpcMapping("deviceBasicConfig")
     public RedisRpcResponse deviceBasicConfig(RedisRpcRequest request) {
-        JSONObject paramJson = JSONObject.parseObject(request.getParam().toString());
-        String deviceId = paramJson.getString("deviceId");
-        String channelId = paramJson.getString("channelId");
-        String name = paramJson.getString("configType");
-        String expiration = paramJson.getString("expiration");
-        String heartBeatInterval = paramJson.getString("heartBeatInterval");
+        BasicParam basicParam = JSONObject.parseObject(request.getParam().toString(), BasicParam.class);
 
-        Device device = deviceService.getDeviceByDeviceId(deviceId);
+        Device device = deviceService.getDeviceByDeviceId(basicParam.getDeviceId());
 
         RedisRpcResponse response = request.getResponse();
         if (device == null || !userSetting.getServerId().equals(device.getServerId())) {
@@ -107,22 +103,13 @@ public class RedisRpcDeviceController extends RpcController {
             response.setBody("param error");
             return response;
         }
-        DeferredResult<WVPResult<String>> deferredResult = deviceService.deviceBasicConfig(device, channelId, name,
-                expiration, heartBeatInterval, heartBeatInterval);
-        deferredResult.onCompletion(() ->{
-            response.setStatusCode(ErrorCode.SUCCESS.getCode());
-            response.setBody(deferredResult.getResult());
-            // 手动发送结果
-            sendResponse(response);
-        });
-        deferredResult.onTimeout(() -> {
-            log.warn(String.format("设备配置操作超时, 设备未返回应答指令"));
-            response.setStatusCode(ErrorCode.SUCCESS.getCode());
-            response.setBody(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));
-            // 手动发送结果
-            sendResponse(response);
-        });
-        return response;
+        deviceService.deviceBasicConfig(device, basicParam, (code, msg, data) -> {
+                    response.setStatusCode(code);
+                    response.setBody(new WVPResult<>(code, msg, data));
+                    // 手动发送结果
+                    sendResponse(response);
+                });
+        return null;
     }
 
     @RedisRpcMapping("deviceConfigQuery")

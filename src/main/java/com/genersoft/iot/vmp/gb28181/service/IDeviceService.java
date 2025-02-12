@@ -1,9 +1,11 @@
 package com.genersoft.iot.vmp.gb28181.service;
 
 import com.genersoft.iot.vmp.common.CommonCallback;
+import com.genersoft.iot.vmp.gb28181.bean.BasicParam;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
@@ -170,7 +172,7 @@ public interface IDeviceService {
 
     WVPResult<SyncStatus> devicesSync(Device device);
 
-    DeferredResult<WVPResult<String>> deviceBasicConfig(Device device, String channelId, String name, String expiration, String heartBeatInterval, String heartBeatCount);
+    void deviceBasicConfig(Device device, BasicParam basicParam, ErrorCallback<String> callback);
 
     DeferredResult<WVPResult<String>> deviceConfigQuery(Device device, String channelId, String configType);
 

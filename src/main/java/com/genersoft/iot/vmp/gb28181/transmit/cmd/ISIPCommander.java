@@ -229,15 +229,8 @@ public interface ISIPCommander {
 	
 	/**
 	 * 设备配置命令：basicParam
-	 * 
-	 * @param device  			视频设备
-	 * @param channelId			通道编码（可选）
-	 * @param name				设备/通道名称（可选）
-	 * @param expiration		注册过期时间（可选）
-	 * @param heartBeatInterval	心跳间隔时间（可选）
-	 * @param heartBeatCount	心跳超时次数（可选）
-	 */  
-	void deviceBasicConfigCmd(Device device, String channelId, String name, String expiration, String heartBeatInterval, String heartBeatCount, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
+	 */
+	void deviceBasicConfigCmd(Device device, BasicParam basicParam, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
 
 	/**
 	 * 查询设备状态

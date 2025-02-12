@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
@@ -49,12 +50,7 @@ public class ConfigDownloadResponseMessageHandler extends SIPRequestProcessorPar
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element element) {
         String channelId = getText(element, "DeviceID");
-        String key;
-        if (device.getDeviceId().equals(channelId)) {
-            key = DeferredResultHolder.CALLBACK_CMD_CONFIGDOWNLOAD + device.getDeviceId();
-        }else {
-            key = DeferredResultHolder.CALLBACK_CMD_CONFIGDOWNLOAD + device.getDeviceId() + channelId;
-        }
+
         try {
             // 回复200 OK
             responseAck((SIPRequest) evt.getRequest(), Response.OK);
@@ -76,13 +72,7 @@ public class ConfigDownloadResponseMessageHandler extends SIPRequestProcessorPar
         device.setPositionCapability(positionCapability);
 
         deviceService.updateDeviceHeartInfo(device);
-
-
-
-        RequestMessage msg = new RequestMessage();
-        msg.setKey(key);
-        msg.setData(json);
-        deferredResultHolder.invokeAllResult(msg);
+        responseMessageHandler.handMessageEvent(element, basicParam);
 
 
     }

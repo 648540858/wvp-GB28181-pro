@@ -21,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.async.DeferredResult;
 
 @Component
 @Slf4j
@@ -176,16 +175,9 @@ public class RedisRpcDeviceController extends RpcController {
             return response;
         }
         try {
-            DeferredResult<WVPResult<String>> deferredResult = deviceService.record(device, channelId, recordCmdStr);
-            deferredResult.onCompletion(() ->{
+            deviceService.record(device, channelId, recordCmdStr, (code, msg, data) -> {
                 response.setStatusCode(ErrorCode.SUCCESS.getCode());
-                response.setBody(deferredResult.getResult());
-                // 手动发送结果
-                sendResponse(response);
-            });
-            deferredResult.onTimeout(() -> {
-                response.setStatusCode(ErrorCode.SUCCESS.getCode());
-                response.setBody(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));
+                response.setBody(new WVPResult<>(code, msg, data));
                 // 手动发送结果
                 sendResponse(response);
             });
@@ -212,17 +204,9 @@ public class RedisRpcDeviceController extends RpcController {
             return response;
         }
         try {
-            DeferredResult<WVPResult<String>> deferredResult = deviceService.guard(device, guardCmdStr);
-            deferredResult.onCompletion(() ->{
+            deviceService.guard(device, guardCmdStr, (code, msg, data) -> {
                 response.setStatusCode(ErrorCode.SUCCESS.getCode());
-                response.setBody(deferredResult.getResult());
-                // 手动发送结果
-                sendResponse(response);
-            });
-            deferredResult.onTimeout(() -> {
-                log.warn("[布防/撤防]操作超时, 设备未返回应答指令");
-                response.setStatusCode(ErrorCode.SUCCESS.getCode());
-                response.setBody(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));
+                response.setBody(new WVPResult<>(code, msg, data));
                 // 手动发送结果
                 sendResponse(response);
             });
@@ -251,17 +235,9 @@ public class RedisRpcDeviceController extends RpcController {
             return response;
         }
         try {
-            DeferredResult<WVPResult<String>> deferredResult = deviceService.resetAlarm(device, channelId, alarmMethod, alarmType);
-            deferredResult.onCompletion(() ->{
+            deviceService.resetAlarm(device, channelId, alarmMethod, alarmType, (code, msg, data) -> {
                 response.setStatusCode(ErrorCode.SUCCESS.getCode());
-                response.setBody(deferredResult.getResult());
-                // 手动发送结果
-                sendResponse(response);
-            });
-            deferredResult.onTimeout(() -> {
-                log.warn("[报警重置] 操作超时, 设备未返回应答指令");
-                response.setStatusCode(ErrorCode.SUCCESS.getCode());
-                response.setBody(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));
+                response.setBody(new WVPResult<>(code, msg, data));
                 // 手动发送结果
                 sendResponse(response);
             });
@@ -316,17 +292,9 @@ public class RedisRpcDeviceController extends RpcController {
             return response;
         }
         try {
-            DeferredResult<WVPResult<String>> deferredResult = deviceService.homePosition(device, channelId, enabled, resetTime, presetIndex);
-            deferredResult.onCompletion(() ->{
+            deviceService.homePosition(device, channelId, enabled, resetTime, presetIndex, (code, msg, data) -> {
                 response.setStatusCode(ErrorCode.SUCCESS.getCode());
-                response.setBody(deferredResult.getResult());
-                // 手动发送结果
-                sendResponse(response);
-            });
-            deferredResult.onTimeout(() -> {
-                log.warn("[看守位控制] 操作超时, 设备未返回应答指令");
-                response.setStatusCode(ErrorCode.SUCCESS.getCode());
-                response.setBody(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));
+                response.setBody(new WVPResult<>(code, msg, data));
                 // 手动发送结果
                 sendResponse(response);
             });
@@ -359,7 +327,12 @@ public class RedisRpcDeviceController extends RpcController {
             return response;
         }
         try {
-            deviceService.dragZoomIn(device, channelId, length, width, midpointx, midpointy, lengthx, lengthy);
+            deviceService.dragZoomIn(device, channelId, length, width, midpointx, midpointy, lengthx, lengthy, (code, msg, data) -> {
+                response.setStatusCode(ErrorCode.SUCCESS.getCode());
+                response.setBody(new WVPResult<>(code, msg, data));
+                // 手动发送结果
+                sendResponse(response);
+            });
         }catch (ControllerException e) {
             response.setStatusCode(e.getCode());
             response.setBody(WVPResult.fail(ErrorCode.ERROR100.getCode(), e.getMsg()));
@@ -389,7 +362,12 @@ public class RedisRpcDeviceController extends RpcController {
             return response;
         }
         try {
-            deviceService.dragZoomOut(device, channelId, length, width, midpointx, midpointy, lengthx, lengthy);
+            deviceService.dragZoomOut(device, channelId, length, width, midpointx, midpointy, lengthx, lengthy, (code, msg, data) -> {
+                response.setStatusCode(ErrorCode.SUCCESS.getCode());
+                response.setBody(new WVPResult<>(code, msg, data));
+                // 手动发送结果
+                sendResponse(response);
+            });
         }catch (ControllerException e) {
             response.setStatusCode(e.getCode());
             response.setBody(WVPResult.fail(ErrorCode.ERROR100.getCode(), e.getMsg()));
@@ -411,17 +389,9 @@ public class RedisRpcDeviceController extends RpcController {
             return response;
         }
         try {
-            DeferredResult<WVPResult<String>> deferredResult = deviceService.deviceStatus(device);
-            deferredResult.onCompletion(() ->{
+            deviceService.deviceStatus(device, (code, msg, data) -> {
                 response.setStatusCode(ErrorCode.SUCCESS.getCode());
-                response.setBody(deferredResult.getResult());
-                // 手动发送结果
-                sendResponse(response);
-            });
-            deferredResult.onTimeout(() -> {
-                log.warn("[获取设备状态] 操作超时, 设备未返回应答指令");
-                response.setStatusCode(ErrorCode.SUCCESS.getCode());
-                response.setBody(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));
+                response.setBody(new WVPResult<>(code, msg, data));
                 // 手动发送结果
                 sendResponse(response);
             });

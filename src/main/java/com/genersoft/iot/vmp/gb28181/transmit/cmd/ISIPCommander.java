@@ -182,7 +182,7 @@ public interface ISIPCommander {
 	 * @param channelId  	预览通道
 	 * @param recordCmdStr	录像命令：Record / StopRecord
 	 */
-	void recordCmd(Device device, String channelId, String recordCmdStr, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
+	void recordCmd(Device device, String channelId, String recordCmdStr, ErrorCallback<String> callback) throws InvalidArgumentException, SipException, ParseException;
 	
 	/**
 	 * 远程启动控制命令
@@ -196,7 +196,7 @@ public interface ISIPCommander {
 	 * 
 	 * @param device  	视频设备
 	 */
-	void guardCmd(Device device, String guardCmdStr, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
+	void guardCmd(Device device, String guardCmdStr, ErrorCallback<String> callback) throws InvalidArgumentException, SipException, ParseException;
 	
 	/**
 	 * 报警复位命令
@@ -205,7 +205,7 @@ public interface ISIPCommander {
 	 * @param alarmMethod	报警方式（可选）
 	 * @param alarmType		报警类型（可选）
 	 */
-	void alarmCmd(Device device, String alarmMethod, String alarmType, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
+	void alarmCmd(Device device, String alarmMethod, String alarmType, ErrorCallback<String> callback) throws InvalidArgumentException, SipException, ParseException;
 	
 	/**
 	 * 强制关键帧命令,设备收到此命令应立刻发送一个IDR帧
@@ -219,7 +219,7 @@ public interface ISIPCommander {
 	 * 看守位控制命令
 	 *
 	 */
-	void homePositionCmd(Device device, String channelId, Boolean enabled, Integer resetTime, Integer presetIndex, SipSubscribe.Event errorEvent,SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
+	void homePositionCmd(Device device, String channelId, Boolean enabled, Integer resetTime, Integer presetIndex, ErrorCallback<String> callback) throws InvalidArgumentException, SipException, ParseException;
 
 	/**
 	 * 设备配置命令
@@ -238,7 +238,7 @@ public interface ISIPCommander {
 	 * 
 	 * @param device 视频设备
 	 */
-	void deviceStatusQuery(Device device, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
+	void deviceStatusQuery(Device device, ErrorCallback<String> callback) throws InvalidArgumentException, SipException, ParseException;
 	
 	/**
 	 * 查询设备信息
@@ -338,7 +338,7 @@ public interface ISIPCommander {
 	 * @param channelId 通道id
 	 * @param cmdString 前端控制指令串
 	 */
-	void dragZoomCmd(Device device, String channelId, String cmdString) throws InvalidArgumentException, SipException, ParseException;
+	void dragZoomCmd(Device device, String channelId, String cmdString, ErrorCallback<String> callback) throws InvalidArgumentException, SipException, ParseException;
 
 
     void playbackControlCmd(Device device, DeviceChannel channel, String stream, String content, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws SipException, InvalidArgumentException, ParseException;

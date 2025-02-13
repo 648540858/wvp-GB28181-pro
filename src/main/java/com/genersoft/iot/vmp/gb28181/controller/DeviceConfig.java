@@ -66,9 +66,8 @@ public class DeviceConfig {
 			"SVAC编码配置:SVACEncodeConfig, " +
 			"SVAC解码配置:SVACDecodeConfig。" +
 			"可同时查询多个配置类型,各类型以“/”分隔，")
-	@GetMapping("/query/{deviceId}/{configType}")
-    public DeferredResult<WVPResult<Object>> configDownloadApi(@PathVariable String deviceId,
-													   @PathVariable String configType,
+	@GetMapping("/query")
+    public DeferredResult<WVPResult<Object>> configDownloadApi(String deviceId,String configType,
 													   @RequestParam(required = false) String channelId) {
 		if (log.isDebugEnabled()) {
 			log.debug("设备配置查询请求API调用");

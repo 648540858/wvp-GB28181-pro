@@ -9,7 +9,6 @@ import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
-import org.springframework.web.context.request.async.DeferredResult;
 
 import java.util.List;
 
@@ -178,21 +177,21 @@ public interface IDeviceService {
 
     void teleboot(Device device);
 
-    DeferredResult<WVPResult<String>> record(Device device, String channelId, String recordCmdStr);
+    void record(Device device, String channelId, String recordCmdStr, ErrorCallback<String> callback);
 
-    DeferredResult<WVPResult<String>> guard(Device device, String guardCmdStr);
+    void guard(Device device, String guardCmdStr, ErrorCallback<String> callback);
 
-    DeferredResult<WVPResult<String>> resetAlarm(Device device, String channelId, String alarmMethod, String alarmType);
+    void resetAlarm(Device device, String channelId, String alarmMethod, String alarmType, ErrorCallback<String> callback);
 
     void iFrame(Device device, String channelId);
 
-    DeferredResult<WVPResult<String>> homePosition(Device device, String channelId, Boolean enabled, Integer resetTime, Integer presetIndex);
+    void homePosition(Device device, String channelId, Boolean enabled, Integer resetTime, Integer presetIndex, ErrorCallback<String> callback);
 
-    void dragZoomIn(Device device, String channelId, int length, int width, int midpointx, int midpointy, int lengthx, int lengthy);
+    void dragZoomIn(Device device, String channelId, int length, int width, int midpointx, int midpointy, int lengthx, int lengthy, ErrorCallback<String> callback);
 
-    void dragZoomOut(Device device, String channelId, int length, int width, int midpointx, int midpointy, int lengthx, int lengthy);
+    void dragZoomOut(Device device, String channelId, int length, int width, int midpointx, int midpointy, int lengthx, int lengthy, ErrorCallback<String> callback);
 
-    DeferredResult<WVPResult<String>> deviceStatus(Device device);
+    void deviceStatus(Device device, ErrorCallback<String> callback);
 
     void updateDeviceHeartInfo(Device device);
 }

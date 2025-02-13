@@ -14,9 +14,6 @@ import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.CatalogSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
@@ -29,9 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.ibatis.annotations.Options;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -39,17 +34,13 @@ import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
-import javax.sip.InvalidArgumentException;
-import javax.sip.SipException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 @Tag(name  = "国标设备查询", description = "国标设备查询")
 @SuppressWarnings("rawtypes")
@@ -63,12 +54,6 @@ public class DeviceQuery {
 
 	@Autowired
 	private IInviteStreamService inviteStreamService;
-	
-	@Autowired
-	private SIPCommander cmder;
-	
-	@Autowired
-	private DeferredResultHolder resultHolder;
 
 	@Autowired
 	private IDeviceService deviceService;
@@ -318,8 +303,10 @@ public class DeviceQuery {
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		Assert.notNull(device, "设备不存在");
-
-		DeferredResult<WVPResult<String>> result = deviceService.deviceStatus(device);
+		DeferredResult<WVPResult<String>> result = new DeferredResult<>();
+		deviceService.deviceStatus(device, (code, msg, data) -> {
+			result.setResult(new WVPResult<>(code, msg, data));
+		});
 		result.onTimeout(() -> {
 			log.warn("[设备状态查询] 操作超时, 设备未返回应答指令, {}", deviceId);
 			result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));
@@ -359,8 +346,10 @@ public class DeviceQuery {
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
 		Assert.notNull(device, "设备不存在");
-
-		DeferredResult<WVPResult<String>> result = deviceService.deviceStatus(device);
+		DeferredResult<WVPResult<String>> result = new DeferredResult<>();
+		deviceService.deviceStatus(device, (code, msg, data) -> {
+			result.setResult(new WVPResult<>(code, msg, data));
+		});
 		result.onTimeout(() -> {
 			log.warn("[设备报警查询] 操作超时, 设备未返回应答指令, {}", deviceId);
 			result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));

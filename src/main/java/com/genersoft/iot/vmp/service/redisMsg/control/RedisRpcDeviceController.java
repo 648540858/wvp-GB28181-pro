@@ -376,6 +376,41 @@ public class RedisRpcDeviceController extends RpcController {
         return null;
     }
 
+    @RedisRpcMapping("alarm")
+    public RedisRpcResponse alarm(RedisRpcRequest request) {
+
+        JSONObject paramJson = JSONObject.parseObject(request.getParam().toString());
+        String deviceId = paramJson.getString("deviceId");
+        String startPriority = paramJson.getString("startPriority");
+        String endPriority = paramJson.getString("endPriority");
+        String alarmMethod = paramJson.getString("alarmMethod");
+        String alarmType = paramJson.getString("alarmType");
+        String startTime = paramJson.getString("startTime");
+        String endTime = paramJson.getString("endTime");
+
+        Device device = deviceService.getDeviceByDeviceId(deviceId);
+
+        RedisRpcResponse response = request.getResponse();
+        if (device == null || !userSetting.getServerId().equals(device.getServerId())) {
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
+            response.setBody("param error");
+            return response;
+        }
+        try {
+            deviceService.alarm(device, startPriority, endPriority, alarmMethod, alarmType, startTime, endTime, (code, msg, data) -> {
+                response.setStatusCode(ErrorCode.SUCCESS.getCode());
+                response.setBody(new WVPResult<>(code, msg, data));
+                // 手动发送结果
+                sendResponse(response);
+            });
+        }catch (ControllerException e) {
+            response.setStatusCode(e.getCode());
+            response.setBody(WVPResult.fail(ErrorCode.ERROR100.getCode(), e.getMsg()));
+            sendResponse(response);
+        }
+        return null;
+    }
+
     @RedisRpcMapping("deviceStatus")
     public RedisRpcResponse deviceStatus(RedisRpcRequest request) {
         String deviceId = request.getParam().toString();
@@ -390,6 +425,62 @@ public class RedisRpcDeviceController extends RpcController {
         }
         try {
             deviceService.deviceStatus(device, (code, msg, data) -> {
+                response.setStatusCode(ErrorCode.SUCCESS.getCode());
+                response.setBody(new WVPResult<>(code, msg, data));
+                // 手动发送结果
+                sendResponse(response);
+            });
+        }catch (ControllerException e) {
+            response.setStatusCode(e.getCode());
+            response.setBody(WVPResult.fail(ErrorCode.ERROR100.getCode(), e.getMsg()));
+            sendResponse(response);
+        }
+        return null;
+    }
+
+    @RedisRpcMapping("info")
+    public RedisRpcResponse info(RedisRpcRequest request) {
+        String deviceId = request.getParam().toString();
+
+        Device device = deviceService.getDeviceByDeviceId(deviceId);
+
+        RedisRpcResponse response = request.getResponse();
+        if (device == null || !userSetting.getServerId().equals(device.getServerId())) {
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
+            response.setBody("param error");
+            return response;
+        }
+        try {
+            deviceService.deviceInfo(device, (code, msg, data) -> {
+                response.setStatusCode(ErrorCode.SUCCESS.getCode());
+                response.setBody(new WVPResult<>(code, msg, data));
+                // 手动发送结果
+                sendResponse(response);
+            });
+        }catch (ControllerException e) {
+            response.setStatusCode(e.getCode());
+            response.setBody(WVPResult.fail(ErrorCode.ERROR100.getCode(), e.getMsg()));
+            sendResponse(response);
+        }
+        return null;
+    }
+
+    @RedisRpcMapping("info")
+    public RedisRpcResponse queryPreset(RedisRpcRequest request) {
+        JSONObject paramJson = JSONObject.parseObject(request.getParam().toString());
+        String deviceId = paramJson.getString("deviceId");
+        String channelId = paramJson.getString("channelId");
+
+        Device device = deviceService.getDeviceByDeviceId(deviceId);
+
+        RedisRpcResponse response = request.getResponse();
+        if (device == null || !userSetting.getServerId().equals(device.getServerId())) {
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
+            response.setBody("param error");
+            return response;
+        }
+        try {
+            deviceService.queryPreset(device, channelId, (code, msg, data) -> {
                 response.setStatusCode(ErrorCode.SUCCESS.getCode());
                 response.setBody(new WVPResult<>(code, msg, data));
                 // 手动发送结果

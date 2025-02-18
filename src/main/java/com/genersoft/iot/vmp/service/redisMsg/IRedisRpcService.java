@@ -4,7 +4,6 @@ import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
-import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 
 public interface IRedisRpcService {
@@ -59,4 +58,10 @@ public interface IRedisRpcService {
     void dragZoomOut(String serverId, Device device, String channelId, int length, int width, int midpointx, int midpointy, int lengthx, int lengthy);
 
     WVPResult<String> deviceStatus(String serverId, Device device);
+
+    WVPResult<String> alarm(String serverId, Device device, String startPriority, String endPriority, String alarmMethod, String alarmType, String startTime, String endTime);
+
+    WVPResult<Object> deviceInfo(String serverId, Device device);
+
+    WVPResult<Object> queryPreset(String serverId, Device device, String channelId);
 }

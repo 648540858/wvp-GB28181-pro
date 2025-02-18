@@ -424,7 +424,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             }
         }
         try {
-            cmder.alarmCmd(device, alarmMethod, alarmType, (code, msg, data) -> {
+            cmder.alarmResetCmd(device, alarmMethod, alarmType, (code, msg, data) -> {
                 if (code == ErrorCode.SUCCESS.getCode()) {
                     onOk(request);
                 }else {

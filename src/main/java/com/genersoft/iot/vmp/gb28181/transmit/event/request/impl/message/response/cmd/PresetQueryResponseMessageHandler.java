@@ -4,7 +4,6 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.Preset;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
@@ -24,8 +23,6 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
 /**
  * 设备预置位查询应答
@@ -68,8 +65,6 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
             Element presetListNumElement = rootElement.element("PresetList");
             Element snElement = rootElement.element("SN");
             //该字段可能为通道或则设备的id
-            String deviceId = getText(rootElement, "DeviceID");
-            String key = DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + deviceId;
             if (snElement == null || presetListNumElement == null) {
                 try {
                     responseAck(request, Response.BAD_REQUEST, "xml error");
@@ -98,10 +93,7 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
                     presetQuerySipReqList.add(presetQuerySipReq);
                 }
             }
-            RequestMessage requestMessage = new RequestMessage();
-            requestMessage.setKey(key);
-            requestMessage.setData(presetQuerySipReqList);
-            deferredResultHolder.invokeAllResult(requestMessage);
+            responseMessageHandler.handMessageEvent(rootElement, presetQuerySipReqList);
             try {
                 responseAck(request, Response.OK);
             } catch (InvalidArgumentException | ParseException | SipException e) {

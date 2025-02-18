@@ -18,20 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Component
 public class DeferredResultHolder {
-	
-	public static final String CALLBACK_CMD_DEVICESTATUS = "CALLBACK_DEVICESTATUS";
-	
-	public static final String CALLBACK_CMD_DEVICEINFO = "CALLBACK_DEVICEINFO";
-	
-	public static final String CALLBACK_CMD_DEVICECONTROL = "CALLBACK_DEVICECONTROL";
-	
-	public static final String CALLBACK_CMD_DEVICECONFIG = "CALLBACK_DEVICECONFIG";
-
-	public static final String CALLBACK_CMD_CONFIGDOWNLOAD = "CALLBACK_CONFIGDOWNLOAD";
-	
-	public static final String CALLBACK_CMD_CATALOG = "CALLBACK_CATALOG";
-	
-	public static final String CALLBACK_CMD_RECORDINFO = "CALLBACK_RECORDINFO";
 
 	public static final String CALLBACK_CMD_PLAY = "CALLBACK_PLAY";
 
@@ -39,19 +25,10 @@ public class DeferredResultHolder {
 
 	public static final String CALLBACK_CMD_DOWNLOAD = "CALLBACK_DOWNLOAD";
 
-	public static final String CALLBACK_CMD_PROXY = "CALLBACK_PROXY";
-
-	public static final String CALLBACK_CMD_STOP = "CALLBACK_STOP";
 
 	public static final String UPLOAD_FILE_CHANNEL = "UPLOAD_FILE_CHANNEL";
 
 	public static final String CALLBACK_CMD_MOBILE_POSITION = "CALLBACK_CMD_MOBILE_POSITION";
-
-	public static final String CALLBACK_CMD_PRESETQUERY = "CALLBACK_PRESETQUERY";
-
-	public static final String CALLBACK_CMD_ALARM = "CALLBACK_ALARM";
-
-	public static final String CALLBACK_CMD_BROADCAST = "CALLBACK_BROADCAST";
 
 	public static final String CALLBACK_CMD_SNAP= "CALLBACK_SNAP";
 

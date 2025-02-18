@@ -205,7 +205,7 @@ public interface ISIPCommander {
 	 * @param alarmMethod	报警方式（可选）
 	 * @param alarmType		报警类型（可选）
 	 */
-	void alarmCmd(Device device, String alarmMethod, String alarmType, ErrorCallback<String> callback) throws InvalidArgumentException, SipException, ParseException;
+	void alarmResetCmd(Device device, String alarmMethod, String alarmType, ErrorCallback<String> callback) throws InvalidArgumentException, SipException, ParseException;
 	
 	/**
 	 * 强制关键帧命令,设备收到此命令应立刻发送一个IDR帧
@@ -242,11 +242,12 @@ public interface ISIPCommander {
 	
 	/**
 	 * 查询设备信息
-	 * 
-	 * @param device 视频设备
-	 * @return 
+	 *
+	 * @param device   视频设备
+	 * @param callback
+	 * @return
 	 */
-	void deviceInfoQuery(Device device) throws InvalidArgumentException, SipException, ParseException;
+	void deviceInfoQuery(Device device, ErrorCallback<Object> callback) throws InvalidArgumentException, SipException, ParseException;
 	
 	/**
 	 * 查询目录列表
@@ -278,7 +279,7 @@ public interface ISIPCommander {
 	 * @return				true = 命令发送成功
 	 */
 	void alarmInfoQuery(Device device, String startPriority, String endPriority, String alarmMethod,
-							String alarmType, String startTime, String endTime, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
+							String alarmType, String startTime, String endTime,  ErrorCallback<Object> callback) throws InvalidArgumentException, SipException, ParseException;
 	
 	/**
 	 * 查询设备配置
@@ -294,7 +295,7 @@ public interface ISIPCommander {
 	 * 
 	 * @param device 视频设备
 	 */
-	void presetQuery(Device device, String channelId, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
+	void presetQuery(Device device, String channelId, ErrorCallback<Object> callback) throws InvalidArgumentException, SipException, ParseException;
 	
 	/**
 	 * 查询移动设备位置数据

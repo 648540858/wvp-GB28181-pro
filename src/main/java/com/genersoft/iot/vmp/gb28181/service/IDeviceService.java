@@ -1,10 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.service;
 
 import com.genersoft.iot.vmp.common.CommonCallback;
-import com.genersoft.iot.vmp.gb28181.bean.BasicParam;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
-import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
@@ -194,4 +191,10 @@ public interface IDeviceService {
     void deviceStatus(Device device, ErrorCallback<String> callback);
 
     void updateDeviceHeartInfo(Device device);
+
+    void alarm(Device device, String startPriority, String endPriority, String alarmMethod, String alarmType, String startTime, String endTime, ErrorCallback<Object> callback);
+
+    void deviceInfo(Device device, ErrorCallback<Object> callback);
+
+    void queryPreset(Device device, String channelId, ErrorCallback<Object> callback);
 }

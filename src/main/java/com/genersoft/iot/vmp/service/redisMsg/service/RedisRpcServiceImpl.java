@@ -393,4 +393,41 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         RedisRpcResponse response = redisRpcConfig.request(request, 50, TimeUnit.MILLISECONDS);
         return JSON.parseObject(response.getBody().toString(), WVPResult.class);
     }
+
+    @Override
+    public WVPResult<Object> deviceInfo(String serverId, Device device) {
+        RedisRpcRequest request = buildRequest("device/info", device.getDeviceId());
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, 50, TimeUnit.MILLISECONDS);
+        return JSON.parseObject(response.getBody().toString(), WVPResult.class);
+    }
+
+    @Override
+    public WVPResult<Object> queryPreset(String serverId, Device device, String channelId) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("device", device.getDeviceId());
+        jsonObject.put("channelId", channelId);
+        RedisRpcRequest request = buildRequest("device/queryPreset", jsonObject);
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, 60000, TimeUnit.MILLISECONDS);
+        return JSON.parseObject(response.getBody().toString(), WVPResult.class);
+    }
+
+    @Override
+    public WVPResult<String> alarm(String serverId, Device device, String startPriority, String endPriority,
+                                   String alarmMethod, String alarmType, String startTime, String endTime) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("device", device.getDeviceId());
+//        jsonObject.put("channelId", channelId);
+        jsonObject.put("startPriority", startPriority);
+        jsonObject.put("endPriority", endPriority);
+        jsonObject.put("alarmMethod", alarmMethod);
+        jsonObject.put("alarmType", alarmType);
+        jsonObject.put("startTime", startTime);
+        jsonObject.put("endTime", endTime);
+        RedisRpcRequest request = buildRequest("device/alarm", jsonObject);
+        request.setToId(serverId);
+        RedisRpcResponse response = redisRpcConfig.request(request, 50, TimeUnit.MILLISECONDS);
+        return JSON.parseObject(response.getBody().toString(), WVPResult.class);
+    }
 }

@@ -93,27 +93,19 @@ public class PlayController {
 		DeviceChannel channel = deviceChannelService.getOne(deviceId, channelId);
 		Assert.notNull(channel, "通道不存在");
 
-		RequestMessage requestMessage = new RequestMessage();
-		String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId;
-		requestMessage.setKey(key);
-		String uuid = UUID.randomUUID().toString();
-		requestMessage.setId(uuid);
 		DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
 
 		result.onTimeout(()->{
 			log.info("[点播等待超时] deviceId：{}, channelId：{}, ", deviceId, channelId);
 			// 释放rtpserver
-			WVPResult<StreamInfo> wvpResult = new WVPResult<>();
+			WVPResult<StreamContent> wvpResult = new WVPResult<>();
 			wvpResult.setCode(ErrorCode.ERROR100.getCode());
 			wvpResult.setMsg("点播超时");
-			requestMessage.setData(wvpResult);
-			resultHolder.invokeAllResult(requestMessage);
+			result.setResult(wvpResult);
+
 			inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
 			deviceChannelService.stopPlay(channel.getId());
 		});
-
-		// 录像查询以channelId作为deviceId查询
-		resultHolder.put(key, uuid, result);
 
 		ErrorCallback<StreamInfo> callback  = (code, msg, streamInfo) -> {
 			WVPResult<StreamContent> wvpResult = new WVPResult<>();
@@ -145,9 +137,7 @@ public class PlayController {
 				wvpResult.setCode(code);
 				wvpResult.setMsg(msg);
 			}
-			requestMessage.setData(wvpResult);
-			// 此处必须释放所有请求
-			resultHolder.invokeAllResult(requestMessage);
+			result.setResult(wvpResult);
 		};
 		playService.play(device, channel, callback);
 		return result;

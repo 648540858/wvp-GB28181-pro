@@ -7,9 +7,9 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IPTZService;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -17,17 +17,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
-
-import javax.sip.InvalidArgumentException;
-import javax.sip.SipException;
-import java.text.ParseException;
-import java.util.UUID;
 
 @Tag(name  = "前端设备控制")
 @Slf4j
@@ -225,40 +219,22 @@ public class PtzController {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@GetMapping("/preset/query/{deviceId}/{channelId}")
-	public DeferredResult<String> queryPreset(@PathVariable String deviceId, @PathVariable String channelId) {
+	public DeferredResult<WVPResult<Object>> queryPreset(@PathVariable String deviceId, @PathVariable String channelId) {
 		if (log.isDebugEnabled()) {
 			log.debug("设备预置位查询API调用");
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		String uuid =  UUID.randomUUID().toString();
-		String key =  DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (ObjectUtils.isEmpty(channelId) ? deviceId : channelId);
-		DeferredResult<String> result = new DeferredResult<String> (3 * 1000L);
-		result.onTimeout(()->{
-			log.warn(String.format("获取设备预置位超时"));
-			// 释放rtpserver
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData("获取设备预置位超时");
-			resultHolder.invokeResult(msg);
+		Assert.notNull(device, "设备不存在");
+		DeferredResult<WVPResult<Object>> deferredResult = new DeferredResult<> (3 * 1000L);
+		deviceService.queryPreset(device, channelId, (code, msg, data) -> {
+			deferredResult.setResult(new WVPResult<>(code, msg, data));
 		});
-		if (resultHolder.exist(key, null)) {
-			return result;
-		}
-		resultHolder.put(key, uuid, result);
-		try {
-			cmder.presetQuery(device, channelId, event -> {
-				RequestMessage msg = new RequestMessage();
-				msg.setId(uuid);
-				msg.setKey(key);
-				msg.setData(String.format("获取设备预置位失败，错误码： %s, %s", event.statusCode, event.msg));
-				resultHolder.invokeResult(msg);
-			});
-		} catch (InvalidArgumentException | SipException | ParseException e) {
-			log.error("[命令发送失败] 获取设备预置位: {}", e.getMessage());
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
-		}
-		return result;
+
+		deferredResult.onTimeout(()->{
+			log.warn("[获取设备预置位] 超时, {}", device.getDeviceId());
+			deferredResult.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "超时"));
+		});
+		return deferredResult;
 	}
 
 	@Operation(summary = "预置位指令-设置预置位", security = @SecurityRequirement(name = JwtUtils.HEADER))

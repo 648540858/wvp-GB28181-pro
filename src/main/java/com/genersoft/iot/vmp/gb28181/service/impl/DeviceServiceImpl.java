@@ -37,7 +37,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
@@ -140,7 +139,7 @@ public class DeviceServiceImpl implements IDeviceService {
             deviceMapper.add(device);
             redisCatchStorage.updateDevice(device);
             try {
-                commander.deviceInfoQuery(device);
+                commander.deviceInfoQuery(device, null);
                 commander.deviceConfigQuery(device, null, "BasicParam", null);
             } catch (InvalidArgumentException | SipException | ParseException e) {
                 log.error("[命令发送失败] 查询设备信息: {}", e.getMessage());
@@ -155,7 +154,7 @@ public class DeviceServiceImpl implements IDeviceService {
                 if (userSetting.getSyncChannelOnDeviceOnline()) {
                     log.info("[设备上线,离线状态下重新注册]: {}，查询设备信息以及通道信息", device.getDeviceId());
                     try {
-                        commander.deviceInfoQuery(device);
+                        commander.deviceInfoQuery(device, null);
                     } catch (InvalidArgumentException | SipException | ParseException e) {
                         log.error("[命令发送失败] 查询设备信息: {}", e.getMessage());
                     }
@@ -623,7 +622,9 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public WVPResult<SyncStatus> devicesSync(Device device) {
-
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            return redisRpcService.devicesSync(device.getServerId(), device.getDeviceId());
+        }
         // 已存在则返回进度
         if (isSyncRunning(device.getDeviceId())) {
             SyncStatus channelSyncStatus = getChannelSyncStatus(device.getDeviceId());
@@ -742,7 +743,7 @@ public class DeviceServiceImpl implements IDeviceService {
             return;
         }
         try {
-            sipCommander.alarmCmd(device, alarmMethod, alarmType, callback);
+            sipCommander.alarmResetCmd(device, alarmMethod, alarmType, callback);
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error("[命令发送失败] 布防/撤防操作: {}", e.getMessage());
             callback.run(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage(), null);
@@ -842,11 +843,71 @@ public class DeviceServiceImpl implements IDeviceService {
             return;
         }
 
-        DeferredResult<WVPResult<String>> result = new DeferredResult<>(2*1000L);
         try {
             sipCommander.deviceStatusQuery(device, callback);
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error("[命令发送失败] 获取设备状态: {}", e.getMessage());
+            callback.run(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage(), null);
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+        }
+    }
+
+
+    @Override
+    public void alarm(Device device, String startPriority, String endPriority, String alarmMethod, String alarmType, String startTime, String endTime, ErrorCallback<Object> callback) {
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            WVPResult<String> result = redisRpcService.alarm(device.getServerId(), device, startPriority, endPriority, alarmMethod, alarmType, startTime, endTime);
+            callback.run(result.getCode(), result.getMsg(), result.getData());
+            return;
+        }
+
+        String startAlarmTime = "";
+        if (startTime != null) {
+            startAlarmTime = DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(startTime);
+        }
+        String endAlarmTime = "";
+        if (startTime != null) {
+            endAlarmTime = DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(endTime);
+        }
+
+        try {
+            sipCommander.alarmInfoQuery(device, startPriority, endPriority, alarmMethod, alarmType, startAlarmTime, endAlarmTime, callback);
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            log.error("[命令发送失败] 获取设备状态: {}", e.getMessage());
+            callback.run(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage(), null);
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void deviceInfo(Device device, ErrorCallback<Object> callback) {
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            WVPResult<Object> result = redisRpcService.deviceInfo(device.getServerId(), device);
+            callback.run(result.getCode(), result.getMsg(), result.getData());
+            return;
+        }
+
+        try {
+            sipCommander.deviceInfoQuery(device, callback);
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            log.error("[命令发送失败] 获取设备信息: {}", e.getMessage());
+            callback.run(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage(), null);
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void queryPreset(Device device, String channelId, ErrorCallback<Object> callback) {
+        if (!userSetting.getServerId().equals(device.getServerId())) {
+            WVPResult<Object> result = redisRpcService.queryPreset(device.getServerId(), device, channelId);
+            callback.run(result.getCode(), result.getMsg(), result.getData());
+            return;
+        }
+
+        try {
+            sipCommander.presetQuery(device, channelId, callback);
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            log.error("[命令发送失败] 预制位查询: {}", e.getMessage());
             callback.run(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage(), null);
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
         }

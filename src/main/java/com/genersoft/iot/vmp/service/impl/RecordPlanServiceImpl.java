@@ -89,7 +89,8 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
         if (startChannelIdList.isEmpty()) {
             // 当前没有录像任务, 如果存在旧的正在录像的就移除
             if(!recordStreamMap.isEmpty()) {
-                stopStreams(recordStreamMap.keySet(), recordStreamMap);
+                Set<Integer> recordStreamSet = new HashSet<>(recordStreamMap.keySet());
+                stopStreams(recordStreamSet, recordStreamMap);
                 recordStreamMap.clear();
             }
         }else {

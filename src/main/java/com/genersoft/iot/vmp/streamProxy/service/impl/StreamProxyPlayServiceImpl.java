@@ -97,7 +97,7 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
             streamProxy.setEnableMp4(record);
         }
         StreamInfo streamInfo = startProxy(streamProxy);
-        if (streamInfo != null) {
+        if (streamInfo != null && callback != null) {
             callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
         }
         return streamInfo;

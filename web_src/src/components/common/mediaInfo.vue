@@ -33,7 +33,8 @@ export default {
   props: [ 'app', 'stream', 'mediaServerId'],
   components: {},
   created() {
-    this.getMediaInfo()
+    this.getMediaInfo();
+    setInterval(this.getMediaInfo, 1000)
   },
   data() {
     return {

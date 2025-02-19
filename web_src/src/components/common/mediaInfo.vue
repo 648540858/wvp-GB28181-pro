@@ -34,11 +34,11 @@ export default {
   components: {},
   created() {
     this.getMediaInfo();
-    setInterval(this.getMediaInfo, 1000)
   },
   data() {
     return {
-      info: {}
+      info: {},
+      task: null,
     };
   },
   methods: {
@@ -61,6 +61,16 @@ export default {
 
         console.log(error);
       });
+    },
+    startTask: function () {
+     this.task = setInterval(this.getMediaInfo, 1000)
+    },
+    stopTask: function () {
+      if (this.task) {
+        window.clearInterval(this.task);
+        this.task = null;
+      }
+
     },
     formatByteSpeed: function (){
       let bytesSpeed = this.info.bytesSpeed

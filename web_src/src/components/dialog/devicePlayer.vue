@@ -231,14 +231,19 @@
               </div>
             </div>
           </el-tab-pane>
-          <el-tab-pane label="编码信息" name="codec" v-loading="tracksLoading">
-            <mediaInfo :app="app" :stream="streamId" :mediaServerId="mediaServerId"></mediaInfo>
+          <el-tab-pane label="编码信息" name="codec" >
+            <mediaInfo ref="mediaInfo" :app="app" :stream="streamId" :mediaServerId="mediaServerId"></mediaInfo>
           </el-tab-pane>
           <el-tab-pane label="语音对讲" name="broadcast">
             <div style="padding: 0 10px">
-              <el-switch v-model="broadcastMode" :disabled="broadcastStatus !== -1" active-color="#409EFF"
-                         active-text="喊话(Broadcast)"
-                         inactive-text="对讲(Talk)"></el-switch>
+<!--              <el-switch v-model="broadcastMode" :disabled="broadcastStatus !== -1" active-color="#409EFF"-->
+<!--                         active-text="喊话(Broadcast)"-->
+<!--                         inactive-text="对讲(Talk)"></el-switch>-->
+
+              <el-radio-group v-model="broadcastMode" :disabled="broadcastStatus !== -1">
+                <el-radio :label="true" >喊话(Broadcast)</el-radio>
+                <el-radio :label="false" >对讲(Talk)</el-radio>
+              </el-radio-group>
             </div>
             <div class="trank" style="text-align: center;">
               <el-button @click="broadcastStatusClick()" :type="getBroadcastStatus()" :disabled="broadcastStatus === -2"
@@ -329,10 +334,8 @@ export default {
       scanSpeed: 100,
       scanGroup: 0,
       tracks: [],
-      tracksLoading: false,
       showPtz: true,
       showRrecord: true,
-      tracksNotLoaded: false,
       sliderTime: 0,
       seekTime: 0,
       recordStartTime: 0,
@@ -346,28 +349,11 @@ export default {
   methods: {
     tabHandleClick: function (tab, event) {
       console.log(tab)
-      var that = this;
-      that.tracks = [];
-      that.tracksLoading = true;
-      that.tracksNotLoaded = false;
+      this.tracks = [];
       if (tab.name === "codec") {
-        this.$axios({
-          method: 'get',
-          url: '/zlm/' + this.mediaServerId + '/index/api/getMediaInfo?vhost=__defaultVhost__&schema=rtsp&app=' + this.app + '&stream=' + this.streamId
-        }).then(function (res) {
-          that.tracksLoading = false;
-          if (res.data.code == 0 && res.data.tracks) {
-            that.tracks = res.data.tracks;
-          } else {
-            that.tracksNotLoaded = true;
-            that.$message({
-              showClose: true,
-              message: '获取编码信息失败,',
-              type: 'warning'
-            });
-          }
-        }).catch(function (e) {
-        });
+        this.$refs.mediaInfo.startTask()
+      }else {
+        this.$refs.mediaInfo.stopTask()
       }
     },
     changePlayer: function (tab) {
@@ -430,27 +416,27 @@ export default {
 
     },
 
-        playFromStreamInfo: function (realHasAudio, streamInfo) {
-          this.showVideoDialog = true;
-          this.hasaudio = realHasAudio && this.hasaudio;
-          if (this.$refs[this.activePlayer]) {
-            this.$refs[this.activePlayer].play(this.getUrlByStreamInfo(streamInfo))
-          }else {
-            this.$nextTick(() => {
-              this.$refs[this.activePlayer].play(this.getUrlByStreamInfo(streamInfo))
-            });
-          }
-        },
-        close: function () {
-            console.log('关闭视频');
-            if (!!this.$refs[this.activePlayer]){
-              this.$refs[this.activePlayer].pause();
-            }
-            this.videoUrl = '';
-            this.coverPlaying = false;
-            this.showVideoDialog = false;
-            this.stopBroadcast()
-        },
+    playFromStreamInfo: function (realHasAudio, streamInfo) {
+      this.showVideoDialog = true;
+      this.hasaudio = realHasAudio && this.hasaudio;
+      if (this.$refs[this.activePlayer]) {
+        this.$refs[this.activePlayer].play(this.getUrlByStreamInfo(streamInfo))
+      }else {
+        this.$nextTick(() => {
+          this.$refs[this.activePlayer].play(this.getUrlByStreamInfo(streamInfo))
+        });
+      }
+    },
+    close: function () {
+        console.log('关闭视频');
+        if (!!this.$refs[this.activePlayer]){
+          this.$refs[this.activePlayer].pause();
+        }
+        this.videoUrl = '';
+        this.coverPlaying = false;
+        this.showVideoDialog = false;
+        this.stopBroadcast()
+    },
 
     copySharedInfo: function (data) {
       console.log('复制内容：' + data);

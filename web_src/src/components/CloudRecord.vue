@@ -44,7 +44,7 @@
       </div>
     </div>
     <!--设备列表-->
-    <el-table size="medium"  :data="recordList" style="width: 100%" :height="winHeight">
+    <el-table size="medium"  :data="recordList" style="width: 100%" :height="$tableHeght">
       <el-table-column
         type="selection"
         width="55">

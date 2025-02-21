@@ -40,7 +40,7 @@
           <el-button icon="el-icon-refresh-right" circle size="mini" @click="refresh()"></el-button>
         </div>
       </div>
-      <el-table size="medium"  ref="pushListTable" :data="pushList" style="width: 100%" :height="winHeight" :loading="loading"
+      <el-table size="medium"  ref="pushListTable" :data="pushList" style="width: 100%" :height="$tableHeght" :loading="loading"
                 @selection-change="handleSelectionChange" :row-key="(row)=> row.app + row.stream">
         <el-table-column  type="selection" :reserve-selection="true" min-width="55">
         </el-table-column>
@@ -133,7 +133,6 @@ export default {
       currentPusher: {}, //当前操作设备对象
       updateLooper: 0, //数据刷新轮训标志
       currentDeviceChannelsLenth: 0,
-      winHeight: window.innerHeight - 250,
       mediaServerObj: new MediaServer(),
       currentPage: 1,
       count: 15,

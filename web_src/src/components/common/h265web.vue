@@ -1,31 +1,36 @@
 <template>
   <div ref="container" @dblclick="fullscreenSwich" style="width:100%;height:100%;background-color: #000000;margin:0 auto;">
+    <div id="glplayer" style="width: 100%; height: 100%; display: flex"></div>
     <div class="buttons-box" id="buttonsBox">
       <div class="buttons-box-left">
-        <i v-if="!playing" class="iconfont icon-play jessibuca-btn" @click="playBtnClick"></i>
-        <i v-if="playing" class="iconfont icon-pause jessibuca-btn" @click="pause"></i>
-        <i class="iconfont icon-stop jessibuca-btn" @click="destroy"></i>
-        <i v-if="isNotMute" class="iconfont icon-audio-high jessibuca-btn" @click="mute()"></i>
-        <i v-if="!isNotMute" class="iconfont icon-audio-mute jessibuca-btn" @click="cancelMute()"></i>
+        <i v-if="!playing" class="iconfont icon-play h265web-btn" @click="unPause"></i>
+        <i v-if="playing" class="iconfont icon-pause h265web-btn" @click="pause"></i>
+        <i class="iconfont icon-stop h265web-btn" @click="destroy"></i>
+        <i v-if="isNotMute" class="iconfont icon-audio-high h265web-btn" @click="mute()"></i>
+        <i v-if="!isNotMute" class="iconfont icon-audio-mute h265web-btn" @click="cancelMute()"></i>
       </div>
       <div class="buttons-box-right">
-        <span class="jessibuca-btn">{{ kBps }} kb/s</span>
-        <!--          <i class="iconfont icon-file-record1 jessibuca-btn"></i>-->
-        <!--          <i class="iconfont icon-xiangqing2 jessibuca-btn" ></i>-->
-        <i class="iconfont icon-camera1196054easyiconnet jessibuca-btn" @click="jessibuca.screenshot('截图','png',0.5)"
+        <!--          <i class="iconfont icon-file-record1 h265web-btn"></i>-->
+        <!--          <i class="iconfont icon-xiangqing2 h265web-btn" ></i>-->
+        <i class="iconfont icon-camera1196054easyiconnet h265web-btn" @click="screenshot"
            style="font-size: 1rem !important"></i>
-        <i class="iconfont icon-shuaxin11 jessibuca-btn" @click="playBtnClick"></i>
-        <i v-if="!fullscreen" class="iconfont icon-weibiaoti10 jessibuca-btn" @click="fullscreenSwich"></i>
-        <i v-if="fullscreen" class="iconfont icon-weibiaoti11 jessibuca-btn" @click="fullscreenSwich"></i>
+        <i class="iconfont icon-shuaxin11 h265web-btn" @click="playBtnClick"></i>
+        <i v-if="!fullscreen" class="iconfont icon-weibiaoti10 h265web-btn" @click="fullscreenSwich"></i>
+        <i v-if="fullscreen" class="iconfont icon-weibiaoti11 h265web-btn" @click="fullscreenSwich"></i>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-let jessibucaPlayer = {};
+let h265webPlayer = {};
+/**
+ * 从github上复制的
+ * @see https://github.com/numberwolf/h265web.js/blob/master/example_normal/index.js
+ */
+const token = "base64:QXV0aG9yOmNoYW5neWFubG9uZ3xudW1iZXJ3b2xmLEdpdGh1YjpodHRwczovL2dpdGh1Yi5jb20vbnVtYmVyd29sZixFbWFpbDpwb3JzY2hlZ3QyM0Bmb3htYWlsLmNvbSxRUTo1MzEzNjU4NzIsSG9tZVBhZ2U6aHR0cDovL3h2aWRlby52aWRlbyxEaXNjb3JkOm51bWJlcndvbGYjODY5NCx3ZWNoYXI6bnVtYmVyd29sZjExLEJlaWppbmcsV29ya0luOkJhaWR1";
 export default {
-  name: 'jessibuca',
+  name: 'h265web',
   data() {
     return {
       playing: false,
@@ -34,7 +39,6 @@ export default {
       fullscreen: false,
       loaded: false, // mute
       speed: 0,
-      performance: "", // 工作情况
       kBps: 0,
       btnDom: null,
       videoInfo: null,
@@ -88,182 +92,94 @@ export default {
     create() {
       let options = {};
       console.log("hasAudio  " + this.hasAudio)
-
-      jessibucaPlayer[this._uid] = new window.Jessibuca(Object.assign(
+      h265webPlayer[this._uid] = new window.new265webjs(this.videoUrl, Object.assign(
         {
-          container: this.$refs.container,
-          videoBuffer: 0.2, // 最大缓冲时长，单位秒
-          isResize: true,
-          decoder: "static/js/jessibuca/decoder.js",
-          useMSE: false,
-          showBandwidth: false,
-          isFlv: true,
-          // text: "WVP-PRO",
-          // background: "static/images/zlm-logo.png",
-          loadingText: "加载中",
-          hasAudio: typeof (this.hasAudio) == "undefined" ? true : this.hasAudio,
-          debug: false,
-          supportDblclickFullscreen: false, // 是否支持屏幕的双击事件，触发全屏，取消全屏事件。
-          operateBtns: {
-            fullscreen: false,
-            screenshot: false,
-            play: false,
-            audio: false,
-            recorder: false,
-          },
-          record: "record",
-          vod: this.vod,
-          forceNoOffscreen: this.forceNoOffscreen,
-          isNotMute: this.isNotMute,
+          player: "glplayer", // 播放器容器id
+          width: 960,
+          height: 540,
+          token : token,
+          extInfo : {
+            coreProbePart : 0.4,
+            probeSize : 8192,
+            ignoreAudio : 0
+          }
         },
         options
       ));
-      let jessibuca = jessibucaPlayer[this._uid];
-      let _this = this;
-      jessibuca.on("load", function () {
-        console.log("on load init");
-      });
-
-      jessibuca.on("log", function (msg) {
-        console.log("on log", msg);
-      });
-      jessibuca.on("record", function (msg) {
-        console.log("on record:", msg);
-      });
-      jessibuca.on("pause", function () {
-        _this.playing = false;
-      });
-      jessibuca.on("play", function () {
-        _this.playing = true;
-      });
-      jessibuca.on("fullscreen", function (msg) {
-        console.log("on fullscreen", msg);
-        _this.fullscreen = msg
-      });
-
-      jessibuca.on("mute", function (msg) {
-        console.log("on mute", msg);
-        _this.isNotMute = !msg;
-      });
-      jessibuca.on("audioInfo", function (msg) {
-        // console.log("audioInfo", msg);
-      });
-
-      jessibuca.on("videoInfo", function (msg) {
-        // this.videoInfo = msg;
-        console.log("videoInfo", msg);
-
-      });
-
-      jessibuca.on("bps", function (bps) {
-        // console.log('bps', bps);
-
-      });
-      let _ts = 0;
-      jessibuca.on("timeUpdate", function (ts) {
-        // console.log('timeUpdate,old,new,timestamp', _ts, ts, ts - _ts);
-        _ts = ts;
-      });
-
-      jessibuca.on("videoInfo", function (info) {
-        console.log("videoInfo", info);
-      });
-
-      jessibuca.on("error", function (error) {
-        console.log("error", error);
-      });
-
-      jessibuca.on("timeout", function () {
-        console.log("timeout");
-      });
-
-      jessibuca.on('start', function () {
-        console.log('start');
-      })
-
-      jessibuca.on("performance", function (performance) {
-        let show = "卡顿";
-        if (performance === 2) {
-          show = "非常流畅";
-        } else if (performance === 1) {
-          show = "流畅";
-        }
-        _this.performance = show;
-      });
-      jessibuca.on('buffer', function (buffer) {
-        // console.log('buffer', buffer);
-      })
-
-      jessibuca.on('stats', function (stats) {
-        // console.log('stats', stats);
-      })
-
-      jessibuca.on('kBps', function (kBps) {
-        _this.kBps = Math.round(kBps);
-      });
-
-      // 显示时间戳 PTS
-      jessibuca.on('videoFrame', function () {
-
-      })
-
-      //
-      jessibuca.on('metadata', function () {
-
-      });
+      let h265web = h265webPlayer[this._uid];
+      h265web.onOpenFullScreen = () => {
+        this.fullscreen = true
+      }
+      h265web.onCloseFullScreen = () => {
+        this.fullscreen = false
+      }
+      h265web.onReadyShowDone = () => {
+        // 准备好显示了，尝试自动播放
+        const result = h265web.play()
+        this.playing = result;
+      }
+      h265web.onLoadFinish = () => {
+        this.loaded = true;
+        // 可以获取mediaInfo
+        // @see https://github.com/numberwolf/h265web.js/blob/8b26a31ffa419bd0a0f99fbd5111590e144e36a8/example_normal/index.js#L252C9-L263C11
+        // mediaInfo = playerObj.mediaInfo();
+      }
+      h265web.onPlayTime = (...args) => {
+        console.log(args)
+      }
+      h265web.do()
+    },
+    screenshot: function () {
+      if (h265webPlayer[this._uid]) {
+        h265webPlayer[this._uid].screenshot();
+      }
     },
     playBtnClick: function (event) {
       this.play(this.videoUrl)
     },
     play: function (url) {
       console.log(url)
-      if (jessibucaPlayer[this._uid]) {
+      if (h265webPlayer[this._uid]) {
         this.destroy();
       }
       this.create();
-      jessibucaPlayer[this._uid].on("play", () => {
-        this.playing = true;
-        this.loaded = true;
-        this.quieting = jessibuca.quieting;
-      });
-      if (jessibucaPlayer[this._uid].hasLoaded()) {
-        jessibucaPlayer[this._uid].play(url);
-      } else {
-        jessibucaPlayer[this._uid].on("load", () => {
-          console.log("load 播放")
-          jessibucaPlayer[this._uid].play(url);
-        });
+    },
+    unPause: function () {
+      if (h265webPlayer[this._uid]) {
+        h265webPlayer[this._uid].play();
       }
+      this.playing = h265webPlayer[this._uid].isPlaying();
+      this.err = "";
     },
     pause: function () {
-      if (jessibucaPlayer[this._uid]) {
-        jessibucaPlayer[this._uid].pause();
+      if (h265webPlayer[this._uid]) {
+        h265webPlayer[this._uid].pause();
       }
-      this.playing = false;
+      this.playing = h265webPlayer[this._uid].isPlaying();
       this.err = "";
-      this.performance = "";
     },
     mute: function () {
-      if (jessibucaPlayer[this._uid]) {
-        jessibucaPlayer[this._uid].mute();
+      if (h265webPlayer[this._uid]) {
+        h265webPlayer[this._uid].setVoice(0.0);
+        this.isNotMute = false;
       }
     },
     cancelMute: function () {
-      if (jessibucaPlayer[this._uid]) {
-        jessibucaPlayer[this._uid].cancelMute();
+      if (h265webPlayer[this._uid]) {
+        h265webPlayer[this._uid].setVoice(1.0);
+        this.isNotMute = true;
       }
     },
     destroy: function () {
-      if (jessibucaPlayer[this._uid]) {
-        jessibucaPlayer[this._uid].destroy();
+      if (h265webPlayer[this._uid]) {
+        h265webPlayer[this._uid].release();
       }
       if (document.getElementById("buttonsBox") == null) {
         this.$refs.container.appendChild(this.btnDom)
       }
-      jessibucaPlayer[this._uid] = null;
+      h265webPlayer[this._uid] = null;
       this.playing = false;
       this.err = "";
-      this.performance = "";
 
     },
     eventcallbacK: function (type, message) {
@@ -273,7 +189,11 @@ export default {
     },
     fullscreenSwich: function () {
       let isFull = this.isFullscreen()
-      jessibucaPlayer[this._uid].setFullscreen(!isFull)
+      if (isFull) {
+        h265webPlayer[this._uid].closeFullScreen()
+      } else {
+        h265webPlayer[this._uid].fullScreen()
+      }
       this.fullscreen = !isFull;
     },
     isFullscreen: function () {
@@ -284,12 +204,11 @@ export default {
     }
   },
   destroyed() {
-    if (jessibucaPlayer[this._uid]) {
-      jessibucaPlayer[this._uid].destroy();
+    if (h265webPlayer[this._uid]) {
+      h265webPlayer[this._uid].destroy();
     }
     this.playing = false;
     this.loaded = false;
-    this.performance = "";
   },
 }
 </script>
@@ -309,7 +228,7 @@ export default {
   z-index: 10;
 }
 
-.jessibuca-btn {
+.h265web-btn {
   width: 20px;
   color: rgb(255, 255, 255);
   line-height: 27px;

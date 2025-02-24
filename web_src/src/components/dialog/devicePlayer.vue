@@ -15,7 +15,11 @@
                         :videoUrl="videoUrl" :error="videoError" :message="videoError" height="100px"
                         :hasAudio="hasAudio" fluent autoplay live></rtc-player>
           </el-tab-pane>
-          <el-tab-pane label="h265web">h265web敬请期待</el-tab-pane>
+          <el-tab-pane label="h265web" name="h265web">
+            <h265web v-if="activePlayer === 'h265web'" ref="h265web"
+                    :videoUrl="videoUrl" :error="videoError" :message="videoError" height="100px"
+                    :hasAudio="hasAudio" fluent autoplay live></h265web>
+          </el-tab-pane>
         </el-tabs>
         <jessibucaPlayer v-if="Object.keys(this.player).length == 1 && this.player.jessibuca" ref="jessibuca"
                          :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError"
@@ -23,7 +27,9 @@
         <rtc-player v-if="Object.keys(this.player).length == 1 && this.player.webRTC" ref="jessibuca"
                     :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError"
                     height="100px" :hasAudio="hasAudio" fluent autoplay live></rtc-player>
-
+        <h265web v-if="Object.keys(this.player).length == 1 && this.player.h265web" ref="jessibuca"
+                    :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError"
+                    height="100px" :hasAudio="hasAudio" fluent autoplay live></h265web>
       </div>
       <div id="shared" style="text-align: right; margin-top: 1rem;">
 
@@ -275,11 +281,13 @@ import ptzScan from "../common/ptzScan.vue";
 import ptzWiper from "../common/ptzWiper.vue";
 import ptzSwitch from "../common/ptzSwitch.vue";
 import mediaInfo from "../common/mediaInfo.vue";
+import H265web from "../common/h265web.vue";
 
 export default {
   name: 'devicePlayer',
   props: {},
   components: {
+    H265web,
     PtzPreset,PtzCruising,ptzScan,ptzWiper,ptzSwitch,mediaInfo,
     LivePlayer, jessibucaPlayer, rtcPlayer,
   },
@@ -309,6 +317,7 @@ export default {
       player: {
         jessibuca: ["ws_flv", "wss_flv"],
         webRTC: ["rtc", "rtcs"],
+        h265web: ["ws_flv", "wss_flv"],
       },
       showVideoDialog: false,
       streamId: '',

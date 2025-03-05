@@ -135,7 +135,16 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
      * 处理云台指令
      */
     private void handlePtzCmd(CommonGBChannel channel, Element rootElement, SIPRequest request, DeviceControlType type) {
-        if (channel.getDataType() != ChannelDataType.GB28181.value) {
+        if (channel.getDataType() == ChannelDataType.GB28181.value) {
+
+            deviceChannelService.handlePtzCmd(channel.getDataDeviceId(), channel.getGbId(), rootElement, type, ((code, msg, data) -> {
+                try {
+                    responseAck(request, code, msg);
+                }  catch (InvalidArgumentException | SipException | ParseException exception) {
+                    log.error("[命令发送失败] 云台指令: {}", exception.getMessage());
+                }
+            }));
+        }else {
             // 只支持国标的云台控制
             log.warn("[INFO 消息] 只支持国标的云台控制， 通道ID： {}", channel.getGbId());
             try {
@@ -143,41 +152,6 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             } catch (SipException | InvalidArgumentException | ParseException e) {
                 log.error("[命令发送失败] 错误信息: {}", e.getMessage());
             }
-            return;
-        }
-        // 根据通道ID，获取所属设备
-        Device device = deviceService.getDevice(channel.getDataDeviceId());
-        if (device == null) {
-            // 不存在则回复404
-            log.warn("[INFO 消息] 通道所属设备不存在， 通道ID： {}", channel.getGbId());
-            try {
-                responseAck(request, Response.NOT_FOUND, "device  not found");
-            } catch (SipException | InvalidArgumentException | ParseException e) {
-                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
-            }
-            return;
-        }
-
-        DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
-        if (deviceChannel == null) {
-            log.warn("[deviceControl] 未找到设备原始通道， 设备： {}（{}），通道编号：{}", device.getName(),
-                    device.getDeviceId(), channel.getGbId());
-            try {
-                responseAck(request, Response.NOT_FOUND, "channel not found");
-            } catch (SipException | InvalidArgumentException | ParseException e) {
-                log.error("[命令发送失败] 错误信息: {}", e.getMessage());
-            }
-            return;
-        }
-        log.info("[deviceControl] 命令: {}, 设备： {}（{}）， 通道{}（{}", type,  device.getName(), device.getDeviceId(),
-                deviceChannel.getName(), deviceChannel.getDeviceId());
-        String cmdString = getText(rootElement, type.getVal());
-        try {
-            cmder.fronEndCmd(device, deviceChannel.getDeviceId(), cmdString,
-                    errorResult -> onError(request, errorResult),
-                    okResult -> onOk(request, okResult));
-        } catch (InvalidArgumentException | SipException | ParseException e) {
-            log.error("[命令发送失败] 云台/前端: {}", e.getMessage());
         }
     }
 

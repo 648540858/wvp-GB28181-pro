@@ -20,4 +20,24 @@ public class GbChannelControlServiceImpl implements IGbChannelControlService {
     public void preset(CommonGBChannel channel, FrontEndControlCodeForPTZ frontEndControlCode, ErrorCallback<String> callback) {
         log.info("[通用通道] 预置位， 通道： {}", channel.getGbId());
     }
+
+    @Override
+    public void fi(CommonGBChannel channel, FrontEndControlCodeForPTZ frontEndControlCode, ErrorCallback<String> callback) {
+        log.info("[通用通道] FI指令， 通道： {}", channel.getGbId());
+    }
+
+    @Override
+    public void tour(CommonGBChannel channel, FrontEndControlCodeForPTZ frontEndControlCode, ErrorCallback<String> callback) {
+
+    }
+
+    @Override
+    public void scan(CommonGBChannel channel, FrontEndControlCodeForPTZ frontEndControlCode, ErrorCallback<String> callback) {
+
+    }
+
+    @Override
+    public void auxiliary(CommonGBChannel channel, FrontEndControlCodeForPTZ frontEndControlCode, ErrorCallback<String> callback) {
+
+    }
 }

@@ -144,6 +144,11 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                     log.error("[命令发送失败] 云台指令: {}", exception.getMessage());
                 }
             }));
+//        }else if (false){
+//            // 国标
+//            // 解析云台控制参数
+//            String cmdString = getText(rootElement, type.getVal());
+//            FrontEndCode.decode(cmdString);
         }else {
             // 只支持国标的云台控制
             log.warn("[INFO 消息] 只支持国标的云台控制， 通道ID： {}", channel.getGbId());

@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelControlService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -41,6 +42,9 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
 
     @Autowired
     private IGbChannelService channelService;
+
+    @Autowired
+    private IGbChannelControlService channelControlService;
 
     @Autowired
     private IDeviceService deviceService;
@@ -144,12 +148,51 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                     log.error("[命令发送失败] 云台指令: {}", exception.getMessage());
                 }
             }));
-//        }else if (false){
-//            // 国标
-//            // 解析云台控制参数
-//            String cmdString = getText(rootElement, type.getVal());
-//            FrontEndCode.decode(cmdString);
         }else {
+            if (channel.getDataType() == ChannelDataType.ONVIF.value) { // 这里可以处理其他协议接入的设备
+                // 解析云台控制参数
+                String cmdString = getText(rootElement, type.getVal());
+                IFrontEndControlCode frontEndControlCode = FrontEndCode.decode(cmdString);
+                if (frontEndControlCode == null) {
+                    log.info("[INFO 消息] 不支持的控制方式");
+                    try {
+                        responseAck(request, Response.FORBIDDEN, "");
+                    }  catch (InvalidArgumentException | SipException | ParseException exception) {
+                        log.error("[命令发送失败] 云台指令: {}", exception.getMessage());
+                    }
+                    return;
+                }
+                switch (frontEndControlCode.getType()){
+                    case PTZ:
+                        channelControlService.ptz(channel, (FrontEndControlCodeForPTZ)frontEndControlCode, ((code, msg, data) -> {
+                            try {
+                                responseAck(request, code, msg);
+                            }  catch (InvalidArgumentException | SipException | ParseException exception) {
+                                log.error("[命令发送失败] 云台指令: {}", exception.getMessage());
+                            }
+                        }));
+                        break;
+                    case PRESET:
+                        channelControlService.preset(channel, (FrontEndControlCodeForPTZ)frontEndControlCode, ((code, msg, data) -> {
+                            try {
+                                responseAck(request, code, msg);
+                            }  catch (InvalidArgumentException | SipException | ParseException exception) {
+                                log.error("[命令发送失败] 云台指令: {}", exception.getMessage());
+                            }
+                        }));
+                        break;
+                    default:
+                        log.info("[INFO 消息] 设备不支持的控制方式");
+                        try {
+                            responseAck(request, Response.FORBIDDEN, "");
+                        }  catch (InvalidArgumentException | SipException | ParseException exception) {
+                            log.error("[命令发送失败] 云台指令: {}", exception.getMessage());
+                        }
+                }
+
+
+                return;
+            }
             // 只支持国标的云台控制
             log.warn("[INFO 消息] 只支持国标的云台控制， 通道ID： {}", channel.getGbId());
             try {

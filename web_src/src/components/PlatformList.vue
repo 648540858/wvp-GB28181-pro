@@ -15,7 +15,7 @@
       </div>
 
       <!--设备列表-->
-      <el-table size="medium" :data="platformList" style="width: 100%" :height="winHeight" :loading="loading">
+      <el-table size="medium" :data="platformList" style="width: 100%" :height="$tableHeght" :loading="loading">
         <el-table-column prop="name" label="名称"></el-table-column>
         <el-table-column prop="serverGBId" label="平台编号" min-width="200"></el-table-column>
         <el-table-column label="是否启用" min-width="80">
@@ -115,7 +115,6 @@ export default {
       defaultPlatform: null,
       platform: null,
       pushChannelLoading: false,
-      winHeight: window.innerHeight - 260,
       searchSrt: "",
       currentPage: 1,
       count: 15,

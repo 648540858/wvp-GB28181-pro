@@ -5,7 +5,7 @@
         <RegionTree ref="regionTree" :showHeader=true :edit="true" :clickEvent="treeNodeClickEvent"
                     :onChannelChange="onChannelChange" :enableAddChannel="true" :addChannelToCivilCode="addChannelToCivilCode"></RegionTree>
       </el-aside>
-      <el-main style="padding: 5px;">
+      <el-main style="padding: 0 0 0 5px;">
         <div class="page-header">
           <div class="page-title">
             <el-breadcrumb separator="/" v-if="regionParents.length > 0">
@@ -45,7 +45,7 @@
             </div>
           </div>
         </div>
-        <el-table size="medium" ref="channelListTable" :data="channelList" :height="winHeight" style="width: 100%"
+        <el-table size="medium" ref="channelListTable" :data="channelList" :height="$tableHeght" style="width: 100%"
                   header-row-class-name="table-header" @selection-change="handleSelectionChange"
                   @row-dblclick="rowDblclick">
           <el-table-column type="selection" width="55">
@@ -109,7 +109,6 @@ export default {
       searchSrt: "",
       channelType: "",
       online: "",
-      winHeight: window.innerHeight - 180,
       currentPage: 1,
       count: 15,
       total: 0,

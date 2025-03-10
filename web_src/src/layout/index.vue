@@ -4,11 +4,7 @@
       <ui-header/>
     </el-header>
     <el-main>
-      <el-container>
-        <transition name="fade">
-          <router-view></router-view>
-        </transition>
-      </el-container>
+      <router-view></router-view>
     </el-main>
   </el-container>
 </template>

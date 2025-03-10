@@ -8,11 +8,10 @@
         <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addUser">
           添加用户
         </el-button>
-
       </div>
     </div>
     <!--用户列表-->
-    <el-table size="medium"  :data="userList" style="width: 100%;font-size: 12px;" :height="winHeight"
+    <el-table size="medium"  :data="userList" style="width: 100%;font-size: 12px;" :height="$tableHeght"
               header-row-class-name="table-header">
       <el-table-column prop="username" label="用户名" min-width="160"/>
       <el-table-column prop="pushKey" label="pushkey" min-width="160"/>
@@ -69,7 +68,6 @@ export default {
       videoComponentList: [],
       updateLooper: 0, //数据刷新轮训标志
       currentUserLenth: 0,
-      winHeight: window.innerHeight - 200,
       currentPage: 1,
       count: 15,
       total: 0,

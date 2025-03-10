@@ -36,7 +36,7 @@ public class PtzController {
 	private IDeviceService deviceService;
 
 	@Autowired
-	private IPTZService iptzService;
+	private IPTZService ptzService;
 
 	@Autowired
 	private DeferredResultHolder resultHolder;
@@ -69,7 +69,7 @@ public class PtzController {
 
 		Assert.notNull(device, "设备[" + deviceId + "]不存在");
 
-		iptzService.frontEndCommand(device, channelId, cmdCode, parameter1, parameter2, combindCode2);
+		ptzService.frontEndCommand(device, channelId, cmdCode, parameter1, parameter2, combindCode2);
 	}
 
 	@Operation(summary = "云台控制", security = @SecurityRequirement(name = JwtUtils.HEADER))

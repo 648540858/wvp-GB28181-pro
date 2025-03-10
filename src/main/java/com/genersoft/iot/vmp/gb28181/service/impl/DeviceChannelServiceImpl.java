@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
+import com.genersoft.iot.vmp.common.enums.DeviceControlType;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -22,6 +23,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -30,6 +32,7 @@ import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
+import org.dom4j.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -41,10 +44,17 @@ import org.springframework.util.ObjectUtils;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
+import javax.sip.message.Response;
+import javax.validation.constraints.NotNull;
+import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
+
+import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
 /**
  * @author lin
@@ -100,6 +110,10 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             queue.offer(event.getRecordInfo());
         }
     }
+
+    @Autowired
+    private ISIPCommander cmder;
+
 
     @Override
     public int updateChannels(Device device, List<DeviceChannel> channels) {
@@ -387,6 +401,39 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     @Override
     public List<Integer> queryChaneIdListByDeviceDbIds(List<Integer> deviceDbIds) {
         return channelMapper.queryChaneIdListByDeviceDbIds(deviceDbIds);
+    }
+
+    @Override
+    public void handlePtzCmd(@NotNull Integer dataDeviceId, @NotNull Integer gbId, Element rootElement, DeviceControlType type, ErrorCallback<String> callback) {
+
+        // 根据通道ID，获取所属设备
+        Device device = deviceMapper.query(dataDeviceId);
+        if (device == null) {
+            // 不存在则回复404
+            log.warn("[INFO 消息] 通道所属设备不存在， 设备ID： {}", dataDeviceId);
+            callback.run(Response.NOT_FOUND, "device  not found", null);
+            return;
+        }
+
+        DeviceChannel deviceChannel = channelMapper.getOneForSource(gbId);
+        if (deviceChannel == null) {
+            log.warn("[deviceControl] 未找到设备原始通道， 设备： {}（{}），通道编号：{}", device.getName(),
+                    device.getDeviceId(), gbId);
+            callback.run(Response.NOT_FOUND, "channel  not found", null);
+            return;
+        }
+        log.info("[deviceControl] 命令: {}, 设备： {}（{}）， 通道{}（{}", type,  device.getName(), device.getDeviceId(),
+                deviceChannel.getName(), deviceChannel.getDeviceId());
+        String cmdString = getText(rootElement, type.getVal());
+        try {
+            cmder.fronEndCmd(device, deviceChannel.getDeviceId(), cmdString, errorResult->{
+                        callback.run(errorResult.statusCode, errorResult.msg, null);
+                    }, errorResult->{
+                        callback.run(errorResult.statusCode, errorResult.msg, null);
+                    });
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            log.error("[命令发送失败] 云台/前端: {}", e.getMessage());
+        }
     }
 
     @Override

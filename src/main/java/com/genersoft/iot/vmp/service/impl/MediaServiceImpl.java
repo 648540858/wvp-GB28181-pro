@@ -140,8 +140,6 @@ public class MediaServiceImpl implements IMediaService {
                 result.setEnable_mp4(userSetting.getRecordSip());
             }
 
-            result.setEnable_mp4(inviteInfo.getRecord());
-
             // 单端口模式下修改流 ID
             if (!mediaServer.isRtpEnable() && inviteInfo == null) {
                 String ssrc = String.format("%010d", Long.parseLong(stream, 16));

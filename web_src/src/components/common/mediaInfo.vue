@@ -33,11 +33,12 @@ export default {
   props: [ 'app', 'stream', 'mediaServerId'],
   components: {},
   created() {
-    this.getMediaInfo()
+    this.getMediaInfo();
   },
   data() {
     return {
-      info: {}
+      info: {},
+      task: null,
     };
   },
   methods: {
@@ -60,6 +61,16 @@ export default {
 
         console.log(error);
       });
+    },
+    startTask: function () {
+     this.task = setInterval(this.getMediaInfo, 1000)
+    },
+    stopTask: function () {
+      if (this.task) {
+        window.clearInterval(this.task);
+        this.task = null;
+      }
+
     },
     formatByteSpeed: function (){
       let bytesSpeed = this.info.bytesSpeed

@@ -61,7 +61,7 @@ public class SipInviteSessionManager {
 		if (ssrcTransaction == null ) {
 			return;
 		}
-		redisTemplate.opsForHash().delete(VideoManagerConstants.SIP_INVITE_SESSION_STREAM + userSetting.getServerId(), stream);
+		redisTemplate.opsForHash().delete(VideoManagerConstants.SIP_INVITE_SESSION_STREAM + userSetting.getServerId(), app + stream);
 		if (ssrcTransaction.getCallId() != null) {
 			redisTemplate.opsForHash().delete(VideoManagerConstants.SIP_INVITE_SESSION_CALL_ID + userSetting.getServerId(), ssrcTransaction.getCallId());
 		}
@@ -74,7 +74,7 @@ public class SipInviteSessionManager {
 		}
 		redisTemplate.opsForHash().delete(VideoManagerConstants.SIP_INVITE_SESSION_CALL_ID + userSetting.getServerId(), callId);
 		if (ssrcTransaction.getStream() != null) {
-			redisTemplate.opsForHash().delete(VideoManagerConstants.SIP_INVITE_SESSION_STREAM + userSetting.getServerId(), ssrcTransaction.getStream());
+			redisTemplate.opsForHash().delete(VideoManagerConstants.SIP_INVITE_SESSION_STREAM + userSetting.getServerId(), ssrcTransaction.getApp() + ssrcTransaction.getStream());
 		}
 	}
 

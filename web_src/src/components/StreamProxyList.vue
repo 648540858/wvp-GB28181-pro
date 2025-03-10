@@ -32,7 +32,7 @@
         </div>
       </div>
       <devicePlayer ref="devicePlayer"></devicePlayer>
-      <el-table size="medium"  :data="streamProxyList" style="width: 100%" :height="winHeight">
+      <el-table size="medium"  :data="streamProxyList" style="width: 100%" :height="$tableHeght" >
         <el-table-column prop="app" label="流应用名" min-width="120" show-overflow-tooltip/>
         <el-table-column prop="stream" label="流ID" min-width="120" show-overflow-tooltip/>
         <el-table-column label="流地址" min-width="250"  show-overflow-tooltip >
@@ -131,7 +131,6 @@
 				currentPusher: {}, //当前操作设备对象
 				updateLooper: 0, //数据刷新轮训标志
 				currentDeviceChannelsLenth:0,
-				winHeight: window.innerHeight - 250,
 				currentPage:1,
 				count:15,
 				total:0,

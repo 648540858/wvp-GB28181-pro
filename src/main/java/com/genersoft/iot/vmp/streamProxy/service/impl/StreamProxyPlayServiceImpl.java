@@ -2,9 +2,14 @@ package com.genersoft.iot.vmp.streamProxy.service.impl;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.event.hook.Hook;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
+import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
@@ -24,6 +29,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 import javax.sip.message.Response;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -38,6 +44,12 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
 
     @Autowired
     private IMediaServerService mediaServerService;
+
+    @Autowired
+    private HookSubscribe subscribe;
+
+    @Autowired
+    private DynamicTask dynamicTask;
 
     @Autowired
     private UserSetting userSetting;
@@ -103,7 +115,26 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
             streamProxy.setEnableMp4(record);
         }
 
-        return startProxy(streamProxy);
+        StreamInfo streamInfo = startProxy(streamProxy);
+        if (callback != null) {
+            // 设置流超时的定时任务
+            String timeOutTaskKey = UUID.randomUUID().toString();
+            Hook rtpHook = Hook.getInstance(HookType.on_media_arrival, streamProxy.getApp(), streamProxy.getStream(), streamInfo.getMediaServer().getId());
+            dynamicTask.startDelay(timeOutTaskKey, () -> {
+                // 收流超时
+                subscribe.removeSubscribe(rtpHook);
+                callback.run(InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode(), InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getMsg(), streamInfo);
+            }, userSetting.getPlayTimeout());
+
+            // 开启流到来的监听
+            subscribe.addSubscribe(rtpHook, (hookData) -> {
+                dynamicTask.stop(timeOutTaskKey);
+                // hook响应
+                callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
+                subscribe.removeSubscribe(rtpHook);
+            });
+        }
+        return streamInfo;
     }
 
     @Override

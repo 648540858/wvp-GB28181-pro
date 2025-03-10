@@ -1,8 +1,5 @@
 package com.genersoft.iot.vmp.common.enums;
 
-import lombok.Getter;
-
-
 /**
  * 支持的通道数据类型
  */

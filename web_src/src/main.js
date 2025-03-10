@@ -75,6 +75,7 @@ axios.interceptors.request.use(
 
 Vue.prototype.$axios = axios;
 Vue.prototype.$cookies.config(60 * 30);
+Vue.prototype.$tableHeght = window.innerHeight - 170;
 
 
 

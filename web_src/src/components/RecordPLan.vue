@@ -16,7 +16,7 @@
           </div>
         </div>
       </div>
-      <el-table size="medium" ref="recordPlanListTable" :data="recordPlanList" :height="winHeight" style="width: 100%"
+      <el-table size="medium" ref="recordPlanListTable" :data="recordPlanList" :height="$tableHeght" style="width: 100%"
                 header-row-class-name="table-header" >
         <el-table-column type="selection" width="55" >
         </el-table-column>
@@ -67,7 +67,6 @@ export default {
     return {
       recordPlanList: [],
       searchSrt: "",
-      winHeight: window.innerHeight - 180,
       currentPage: 1,
       count: 15,
       total: 0,

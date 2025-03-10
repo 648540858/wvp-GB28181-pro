@@ -22,7 +22,7 @@
       </div>
     </div>
     <!--设备列表-->
-    <el-table size="medium" :data="deviceList" style="width: 100%;font-size: 12px;" :height="winHeight" header-row-class-name="table-header">
+    <el-table size="medium" :data="deviceList" style="width: 100%;font-size: 12px;" :height="$tableHeght" header-row-class-name="table-header">
       <el-table-column prop="name" label="名称" min-width="160">
       </el-table-column>
       <el-table-column prop="deviceId" label="设备编号" min-width="160" >
@@ -143,7 +143,6 @@ export default {
       videoComponentList: [],
       updateLooper: 0, //数据刷新轮训标志
       currentDeviceChannelsLength: 0,
-      winHeight: window.innerHeight - 200,
       currentPage: 1,
       count: 15,
       total: 0,

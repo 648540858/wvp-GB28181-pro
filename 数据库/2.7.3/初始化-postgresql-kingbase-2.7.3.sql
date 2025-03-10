@@ -330,6 +330,7 @@ create table wvp_stream_proxy
     stream_key                 character varying(255),
     server_id                  character varying(50),
     enable_disable_none_reader bool default false,
+    relates_media_server_id    character varying(50),
     constraint uk_stream_proxy_app_stream unique (app, stream)
 );
 
@@ -458,7 +459,7 @@ create table wvp_record_plan
 create table wvp_record_plan_item
 (
     id              serial primary key,
-    start           int,
+    "start"           int,
     stop            int,
     week_day        int,
     plan_id        int,

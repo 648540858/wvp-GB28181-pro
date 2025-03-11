@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.gb28181.event;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.alarm.AlarmEvent;
-import com.genersoft.iot.vmp.gb28181.event.device.RequestTimeoutEvent;
 import com.genersoft.iot.vmp.gb28181.event.record.RecordEndEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.mobilePosition.MobilePositionEvent;
@@ -13,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import javax.sip.TimeoutEvent;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -52,12 +50,6 @@ public class EventPublisher {
 		applicationEventPublisher.publishEvent(outEvent);
 	}
 
-
-	public void requestTimeOut(TimeoutEvent timeoutEvent) {
-		RequestTimeoutEvent requestTimeoutEvent = new RequestTimeoutEvent(this);
-		requestTimeoutEvent.setTimeoutEvent(timeoutEvent);
-		applicationEventPublisher.publishEvent(requestTimeoutEvent);
-	}
 
 	public void catalogEventPublish(Platform platform, CommonGBChannel deviceChannel, String type) {
 		List<CommonGBChannel> deviceChannelList = new ArrayList<>();

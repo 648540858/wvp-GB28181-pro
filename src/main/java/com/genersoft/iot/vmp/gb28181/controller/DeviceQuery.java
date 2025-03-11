@@ -15,7 +15,7 @@ import com.genersoft.iot.vmp.gb28181.task.impl.CatalogSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
@@ -63,7 +63,7 @@ public class DeviceQuery {
 	private IInviteStreamService inviteStreamService;
 	
 	@Autowired
-	private SIPCommander cmder;
+	private ISIPCommander cmder;
 	
 	@Autowired
 	private DeferredResultHolder resultHolder;

@@ -190,13 +190,13 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public void offline(String deviceId, String reason) {
-        log.warn("[设备离线]，{}, device：{}", reason, deviceId);
         Device device = getDeviceByDeviceIdFromDb(deviceId);
         if (device == null) {
             log.warn("[设备不存在] device：{}", deviceId);
             return;
         }
-        log.info("[设备离线] device：{}， 心跳间隔： {}，心跳超时次数： {}， 上次心跳时间：{}， 上次注册时间： {}", deviceId,
+        // TODO 主动查询设备状态
+        log.info("[设备离线] {}, device：{}， 心跳间隔： {}，心跳超时次数： {}， 上次心跳时间：{}， 上次注册时间： {}", reason, deviceId,
                 device.getHeartBeatInterval(), device.getHeartBeatCount(), device.getKeepaliveTime(), device.getRegisterTime());
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + deviceId;
         dynamicTask.stop(registerExpireTaskKey);
@@ -407,7 +407,6 @@ public class DeviceServiceImpl implements IDeviceService {
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error("[命令发送失败] 设备状态查询: {}", e.getMessage());
         }
-
     }
 
     @Override

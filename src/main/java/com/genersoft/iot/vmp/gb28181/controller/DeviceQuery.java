@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.controller;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -16,6 +17,7 @@ import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
+import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
@@ -27,9 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.ibatis.annotations.Options;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -37,17 +37,13 @@ import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
-import javax.sip.InvalidArgumentException;
-import javax.sip.SipException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 @Tag(name  = "国标设备查询", description = "国标设备查询")
 @SuppressWarnings("rawtypes")
@@ -61,24 +57,25 @@ public class DeviceQuery {
 
 	@Autowired
 	private IInviteStreamService inviteStreamService;
-	
-	@Autowired
-	private ISIPCommander cmder;
-	
-	@Autowired
-	private DeferredResultHolder resultHolder;
 
 	@Autowired
 	private IDeviceService deviceService;
 
+    @Autowired
+	private ISIPCommander cmder;
+
+	@Autowired
+	private DeferredResultHolder resultHolder;
+
+	@Autowired
+	private UserSetting userSetting;
+
 	@Autowired
 	private DynamicTask dynamicTask;
 
-	/**
-	 * 使用ID查询国标设备
-	 * @param deviceId 国标ID
-	 * @return 国标设备
-	 */
+	@Autowired
+	private IRedisRpcService redisRpcService;
+
 	@Operation(summary = "查询国标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@GetMapping("/devices/{deviceId}")
@@ -87,12 +84,7 @@ public class DeviceQuery {
 		return deviceService.getDeviceByDeviceId(deviceId);
 	}
 
-	/**
-	 * 分页查询国标设备
-	 * @param page 当前页
-	 * @param count 每页查询数量
-	 * @return 分页国标列表
-	 */
+
 	@Operation(summary = "分页查询国标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "page", description = "当前页", required = true)
 	@Parameter(name = "count", description = "每页查询数量", required = true)
@@ -107,9 +99,7 @@ public class DeviceQuery {
 		return deviceService.getAll(page, count, query, status);
 	}
 
-	/**
-	 * 分页查询通道数
-	 */
+
 	@GetMapping("/devices/{deviceId}/channels")
 	@Operation(summary = "分页查询通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
@@ -130,9 +120,7 @@ public class DeviceQuery {
 		return deviceChannelService.queryChannelsByDeviceId(deviceId, query, channelType, online, page, count);
 	}
 
-	/**
-	 * 同步设备通道
-	 */
+
 	@Operation(summary = "同步设备通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@GetMapping("/devices/{deviceId}/sync")
@@ -142,37 +130,11 @@ public class DeviceQuery {
 			log.debug("设备通道信息同步API调用，deviceId：" + deviceId);
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		boolean status = deviceService.isSyncRunning(deviceId);
-		// 已存在则返回进度
-		if (deviceService.isSyncRunning(deviceId)) {
-			SyncStatus channelSyncStatus = deviceService.getChannelSyncStatus(deviceId);
-			WVPResult wvpResult = new WVPResult();
-			if (channelSyncStatus.getErrorMsg() != null) {
-				wvpResult.setCode(ErrorCode.ERROR100.getCode());
-				wvpResult.setMsg(channelSyncStatus.getErrorMsg());
-			}else if (channelSyncStatus.getTotal() == null || channelSyncStatus.getTotal() == 0){
-				wvpResult.setCode(ErrorCode.SUCCESS.getCode());
-				wvpResult.setMsg("等待通道信息...");
-			}else {
-				wvpResult.setCode(ErrorCode.SUCCESS.getCode());
-				wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
-				wvpResult.setData(channelSyncStatus);
-			}
-			return wvpResult;
-		}
-		deviceService.sync(device);
 
-		WVPResult<SyncStatus> wvpResult = new WVPResult<>();
-		wvpResult.setCode(0);
-		wvpResult.setMsg("开始同步");
-		return wvpResult;
+		return deviceService.devicesSync(device);
+
 	}
 
-	/**
-	 * 移除设备
-	 * @param deviceId 设备id
-	 * @return
-	 */
 	@Operation(summary = "移除设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@DeleteMapping("/devices/{deviceId}/delete")
@@ -207,17 +169,6 @@ public class DeviceQuery {
 		}
 	}
 
-	/**
-	 * 分页查询子目录通道
-	 * @param deviceId 通道id
-	 * @param channelId 通道id
-	 * @param page 当前页
-	 * @param count 每页条数
-	 * @param query 查询内容
-	 * @param online 是否在线
-	 * @param channelType 通道类型
-	 * @return 子通道列表
-	 */
 	@Operation(summary = "分页查询子目录通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
@@ -260,12 +211,7 @@ public class DeviceQuery {
 		deviceChannelService.updateChannelStreamIdentification(channel);
 	}
 
-	/**
-	 * 修改数据流传输模式
-	 * @param deviceId 设备id
-	 * @param streamMode 数据流传输模式
-	 * @return
-	 */
+
 	@Operation(summary = "修改数据流传输模式", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "streamMode", description = "数据流传输模式, 取值：" +
@@ -277,11 +223,7 @@ public class DeviceQuery {
 		deviceService.updateCustomDevice(device);
 	}
 
-	/**
-	 * 添加设备信息
-	 * @param device 设备信息
-	 * @return
-	 */
+
 	@Operation(summary = "添加设备信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "device", description = "设备", required = true)
 	@PostMapping("/device/add/")
@@ -299,11 +241,7 @@ public class DeviceQuery {
 		deviceService.addDevice(device);
 	}
 
-	/**
-	 * 更新设备信息
-	 * @param device 设备信息
-	 * @return
-	 */
+
 	@Operation(summary = "更新设备信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "device", description = "设备", required = true)
 	@PostMapping("/device/update/")
@@ -314,72 +252,37 @@ public class DeviceQuery {
 		deviceService.updateCustomDevice(device);
 	}
 
-	/**
-	 * 设备状态查询请求API接口
-	 *
-	 * @param deviceId 设备id
-	 */
 	@Operation(summary = "设备状态查询", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@GetMapping("/devices/{deviceId}/status")
-	public DeferredResult<ResponseEntity<String>> deviceStatusApi(@PathVariable String deviceId) {
+	public DeferredResult<WVPResult<String>> deviceStatusApi(@PathVariable String deviceId) {
 		if (log.isDebugEnabled()) {
 			log.debug("设备状态查询API调用");
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		String uuid = UUID.randomUUID().toString();
-		String key = DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS + deviceId;
-		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(2*1000L);
-		if(device == null) {
-			result.setResult(new ResponseEntity(String.format("设备%s不存在", deviceId),HttpStatus.OK));
-			return result;
-		}
-		try {
-			cmder.deviceStatusQuery(device, event -> {
-				RequestMessage msg = new RequestMessage();
-				msg.setId(uuid);
-				msg.setKey(key);
-				msg.setData(String.format("获取设备状态失败，错误码： %s, %s", event.statusCode, event.msg));
-				resultHolder.invokeResult(msg);
-			});
-		} catch (InvalidArgumentException | SipException | ParseException e) {
-			log.error("[命令发送失败] 获取设备状态: {}", e.getMessage());
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
-		}
-		result.onTimeout(()->{
-			log.warn(String.format("获取设备状态超时"));
-			// 释放rtpserver
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData("Timeout. Device did not response to this command.");
-			resultHolder.invokeResult(msg);
+		Assert.notNull(device, "设备不存在");
+		DeferredResult<WVPResult<String>> result = new DeferredResult<>();
+		deviceService.deviceStatus(device, (code, msg, data) -> {
+			result.setResult(new WVPResult<>(code, msg, data));
 		});
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS + deviceId, uuid, result);
+		result.onTimeout(() -> {
+			log.warn("[设备状态查询] 操作超时, 设备未返回应答指令, {}", deviceId);
+			result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));
+		});
 		return result;
 	}
 
-	/**
-	 * 设备报警查询请求API接口
-	 * @param deviceId 设备id
-	 * @param startPriority	报警起始级别（可选）
-	 * @param endPriority	报警终止级别（可选）
-	 * @param alarmMethod	报警方式条件（可选）
-	 * @param alarmType		报警类型
-	 * @param startTime		报警发生起始时间（可选）
-	 * @param endTime		报警发生终止时间（可选）
-	 * @return				true = 命令发送成功
-	 */
 	@Operation(summary = "设备报警查询", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
-	@Parameter(name = "startPriority", description = "报警起始级别")
-	@Parameter(name = "endPriority", description = "报警终止级别")
-	@Parameter(name = "alarmMethod", description = "报警方式条件")
+	@Parameter(name = "startPriority", description = "报警起始级别, 0为全部,1为一级警情,2为二级警情,3为三级警情,4为四级警情")
+	@Parameter(name = "endPriority", description = "报警终止级别, ,0为全部,1为一级警情,2为二级警情,3为三级警情,4为四级警情")
+	@Parameter(name = "alarmMethod", description = "报警方式条件,取值0为全部,1为电话报警,2为设备报警,3为短信报警,4为GPS报警," +
+			"5为视频报警,6为设备故障报警,7其他报警;可以为直接组合如12为电话报警或设备报警")
 	@Parameter(name = "alarmType", description = "报警类型")
 	@Parameter(name = "startTime", description = "报警发生起始时间")
 	@Parameter(name = "endTime", description = "报警发生终止时间")
-	@GetMapping("/alarm/{deviceId}")
-	public DeferredResult<ResponseEntity<String>> alarmApi(@PathVariable String deviceId,
+	@GetMapping("/alarm")
+	public DeferredResult<WVPResult<Object>> alarmApi(String deviceId,
 														@RequestParam(required = false) String startPriority,
 														@RequestParam(required = false) String endPriority,
 														@RequestParam(required = false) String alarmMethod,
@@ -390,31 +293,35 @@ public class DeviceQuery {
 			log.debug("设备报警查询API调用");
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		String key = DeferredResultHolder.CALLBACK_CMD_ALARM + deviceId;
-		String uuid = UUID.randomUUID().toString();
-		try {
-			cmder.alarmInfoQuery(device, startPriority, endPriority, alarmMethod, alarmType, startTime, endTime, event -> {
-				RequestMessage msg = new RequestMessage();
-				msg.setId(uuid);
-				msg.setKey(key);
-				msg.setData(String.format("设备报警查询失败，错误码： %s, %s",event.statusCode, event.msg));
-				resultHolder.invokeResult(msg);
-			});
-		} catch (InvalidArgumentException | SipException | ParseException e) {
-			log.error("[命令发送失败] 设备报警查询: {}", e.getMessage());
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
-		}
-		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String >> (3 * 1000L);
-		result.onTimeout(()->{
-			log.warn(String.format("设备报警查询超时"));
-			// 释放rtpserver
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData("设备报警查询超时");
-			resultHolder.invokeResult(msg);
+		Assert.notNull(device, "设备不存在");
+		DeferredResult<WVPResult<Object>> result = new DeferredResult<>();
+		deviceService.alarm(device, startPriority,endPriority ,alarmMethod ,alarmType ,startTime ,endTime, (code, msg, data) -> {
+			result.setResult(new WVPResult<>(code, msg, data));
 		});
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_ALARM + deviceId, uuid, result);
+		result.onTimeout(() -> {
+			log.warn("[设备报警查询] 操作超时, 设备未返回应答指令, {}", deviceId);
+			result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));
+		});
+		return result;
+	}
+
+	@Operation(summary = "设备信息查询", security = @SecurityRequirement(name = JwtUtils.HEADER))
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@GetMapping("/info")
+	public DeferredResult<WVPResult<Object>> deviceInfo(String deviceId) {
+		if (log.isDebugEnabled()) {
+			log.debug("设备信息查询API调用");
+		}
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
+		Assert.notNull(device, "设备不存在");
+		DeferredResult<WVPResult<Object>> result = new DeferredResult<>();
+		deviceService.deviceInfo(device, (code, msg, data) -> {
+			result.setResult(new WVPResult<>(code, msg, data));
+		});
+		result.onTimeout(() -> {
+			log.warn("[设备信息查询] 操作超时, 设备未返回应答指令, {}", deviceId);
+			result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "操作超时, 设备未应答"));
+		});
 		return result;
 	}
 

@@ -43,6 +43,7 @@ public interface DeviceMapper {
             "as_message_channel," +
             "geo_coord_sys," +
             "on_line," +
+            "server_id,"+
             "media_server_id," +
             "broadcast_push_after_ack," +
             "(SELECT count(0) FROM wvp_device_channel dc WHERE dc.data_type = 1 and dc.data_device_id= de.id) as channel_count "+
@@ -80,6 +81,7 @@ public interface DeviceMapper {
                 "as_message_channel,"+
                 "broadcast_push_after_ack,"+
                 "geo_coord_sys,"+
+                "server_id,"+
                 "on_line"+
             ") VALUES (" +
                 "#{deviceId}," +
@@ -112,6 +114,7 @@ public interface DeviceMapper {
                 "#{asMessageChannel}," +
                 "#{broadcastPushAfterAck}," +
                 "#{geoCoordSys}," +
+                "#{serverId}," +
                 "#{onLine}" +
             ")")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
@@ -136,6 +139,7 @@ public interface DeviceMapper {
                 "<if test=\"positionCapability != null\">, position_capability=#{positionCapability}</if>" +
                 "<if test=\"heartBeatCount != null\">, heart_beat_count=#{heartBeatCount}</if>" +
                 "<if test=\"expires != null\">, expires=#{expires}</if>" +
+                "<if test=\"serverId != null\">, server_id=#{serverId}</if>" +
                 "WHERE device_id=#{deviceId}"+
             " </script>"})
     int update(Device device);
@@ -213,9 +217,43 @@ public interface DeviceMapper {
             "as_message_channel,"+
             "broadcast_push_after_ack,"+
             "geo_coord_sys,"+
+            "server_id,"+
             "on_line"+
             " FROM wvp_device WHERE on_line = true")
     List<Device> getOnlineDevices();
+    @Select("SELECT " +
+            "id, " +
+            "device_id, " +
+            "coalesce(custom_name, name) as name, " +
+            "password, " +
+            "manufacturer, " +
+            "model, " +
+            "firmware, " +
+            "transport," +
+            "stream_mode," +
+            "ip," +
+            "sdp_ip,"+
+            "local_ip,"+
+            "port,"+
+            "host_address,"+
+            "expires,"+
+            "register_time,"+
+            "keepalive_time,"+
+            "create_time,"+
+            "update_time,"+
+            "charset,"+
+            "subscribe_cycle_for_catalog,"+
+            "subscribe_cycle_for_mobile_position,"+
+            "mobile_position_submission_interval,"+
+            "subscribe_cycle_for_alarm,"+
+            "ssrc_check,"+
+            "as_message_channel,"+
+            "broadcast_push_after_ack,"+
+            "geo_coord_sys,"+
+            "server_id,"+
+            "on_line"+
+            " FROM wvp_device WHERE on_line = true and server_id = #{serverId}")
+    List<Device> getOnlineDevicesByServerId(@Param("serverId") String serverId);
 
     @Select("SELECT " +
             "id,"+
@@ -274,6 +312,7 @@ public interface DeviceMapper {
             "geo_coord_sys,"+
             "on_line,"+
             "stream_mode," +
+            "server_id," +
             "media_server_id"+
             ") VALUES (" +
             "#{deviceId}," +
@@ -289,6 +328,7 @@ public interface DeviceMapper {
             "#{geoCoordSys}," +
             "#{onLine}," +
             "#{streamMode}," +
+            "#{serverId}," +
             "#{mediaServerId}" +
             ")")
     void addCustomDevice(Device device);
@@ -331,6 +371,7 @@ public interface DeviceMapper {
             "geo_coord_sys,"+
             "on_line,"+
             "media_server_id,"+
+            "server_id,"+
             "(SELECT count(0) FROM wvp_device_channel dc WHERE dc.data_type = #{dataType} and dc.data_device_id= de.id) as channel_count " +
             " FROM wvp_device de" +
             " where 1 = 1 "+

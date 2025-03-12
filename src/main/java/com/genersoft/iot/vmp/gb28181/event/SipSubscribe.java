@@ -29,24 +29,24 @@ public class SipSubscribe {
 
     private final DelayQueue<SipEvent> delayQueue = new DelayQueue<>();
 
+
     @Scheduled(fixedDelay = 200)   //每200毫秒执行
     public void execute(){
-        if (delayQueue.isEmpty()) {
-            return;
-        }
-        try {
-            SipEvent take = delayQueue.take();
-            // 出现超时异常
-            if(take.getErrorEvent() != null) {
-                EventResult<Object> eventResult = new EventResult<>();
-                eventResult.type = EventResultType.timeout;
-                eventResult.msg = "消息超时未回复";
-                eventResult.statusCode = -1024;
-                take.getErrorEvent().response(eventResult);
+        while (!delayQueue.isEmpty()) {
+            try {
+                SipEvent take = delayQueue.take();
+                // 出现超时异常
+                if(take.getErrorEvent() != null) {
+                    EventResult<Object> eventResult = new EventResult<>();
+                    eventResult.type = EventResultType.timeout;
+                    eventResult.msg = "消息超时未回复";
+                    eventResult.statusCode = -1024;
+                    take.getErrorEvent().response(eventResult);
+                }
+                subscribes.remove(take.getKey());
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
-            subscribes.remove(take.getKey());
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -78,7 +78,9 @@ public class SipSubscribe {
         // 消息发送失败
         cmdSendFailEvent,
         // 消息发送失败
-        failedToGetPort
+        failedToGetPort,
+        // 收到失败的回复
+        failedResult
     }
 
     public static class EventResult<EventObject>{

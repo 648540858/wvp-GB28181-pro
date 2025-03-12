@@ -7,7 +7,9 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.SipLayer;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.event.MessageSubscribe;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.gb28181.event.sip.MessageEvent;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
@@ -19,8 +21,10 @@ import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -70,6 +74,9 @@ public class SIPCommander implements ISIPCommander {
 
     @Autowired
     private IMediaServerService mediaServerService;
+
+    @Autowired
+    private MessageSubscribe messageSubscribe;
 
 
 
@@ -671,13 +678,16 @@ public class SIPCommander implements ISIPCommander {
      * @param recordCmdStr 录像命令：Record / StopRecord
      */
     @Override
-    public void recordCmd(Device device, String channelId, String recordCmdStr, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void recordCmd(Device device, String channelId, String recordCmdStr, ErrorCallback<String> callback) throws InvalidArgumentException, SipException, ParseException {
+        final String cmdType = "DeviceControl";
+        final int sn = (int) ((Math.random() * 9 + 1) * 100000);
+
         StringBuffer cmdXml = new StringBuffer(200);
         String charset = device.getCharset();
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Control>\r\n");
-        cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
-        cmdXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        cmdXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");
+        cmdXml.append("<SN>" + sn + "</SN>\r\n");
         if (ObjectUtils.isEmpty(channelId)) {
             cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
         } else {
@@ -686,10 +696,14 @@ public class SIPCommander implements ISIPCommander {
         cmdXml.append("<RecordCmd>" + recordCmdStr + "</RecordCmd>\r\n");
         cmdXml.append("</Control>\r\n");
 
-
+        MessageEvent<String> messageEvent = MessageEvent.getInstance(cmdType, sn + "", channelId, 1000L, callback);
+        messageSubscribe.addSubscribe(messageEvent);
 
         Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
-        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent,okEvent);
+        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, eventResult -> {
+            messageSubscribe.removeSubscribe(messageEvent.getKey());
+            callback.run(ErrorCode.ERROR100.getCode(), "失败，" + eventResult.msg, null);
+        },null);
     }
 
     /**
@@ -723,22 +737,29 @@ public class SIPCommander implements ISIPCommander {
      * @param guardCmdStr "SetGuard"/"ResetGuard"
      */
     @Override
-    public void guardCmd(Device device, String guardCmdStr, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void guardCmd(Device device, String guardCmdStr, ErrorCallback<String> callback) throws InvalidArgumentException, SipException, ParseException {
+
+        String cmdType = "DeviceControl";
+        int sn = (int) ((Math.random() * 9 + 1) * 100000);
 
         StringBuffer cmdXml = new StringBuffer(200);
         String charset = device.getCharset();
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Control>\r\n");
-        cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
-        cmdXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        cmdXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");
+        cmdXml.append("<SN>" + sn + "</SN>\r\n");
         cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
         cmdXml.append("<GuardCmd>" + guardCmdStr + "</GuardCmd>\r\n");
         cmdXml.append("</Control>\r\n");
 
-
+        MessageEvent<String> messageEvent = MessageEvent.getInstance(cmdType, sn + "", device.getDeviceId(), 1000L, callback);
+        messageSubscribe.addSubscribe(messageEvent);
 
         Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
-        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent,okEvent);
+        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, eventResult -> {
+            messageSubscribe.removeSubscribe(messageEvent.getKey());
+            callback.run(ErrorCode.ERROR100.getCode(), "失败，" + eventResult.msg, null);
+        });
     }
 
     /**
@@ -747,14 +768,17 @@ public class SIPCommander implements ISIPCommander {
      * @param device 视频设备
      */
     @Override
-    public void alarmCmd(Device device, String alarmMethod, String alarmType, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void alarmResetCmd(Device device, String alarmMethod, String alarmType, ErrorCallback<String> callback) throws InvalidArgumentException, SipException, ParseException {
+
+        String cmdType = "DeviceControl";
+        int sn = (int) ((Math.random() * 9 + 1) * 100000);
 
         StringBuffer cmdXml = new StringBuffer(200);
         String charset = device.getCharset();
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Control>\r\n");
-        cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
-        cmdXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        cmdXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");
+        cmdXml.append("<SN>" + sn + "</SN>\r\n");
         cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
         cmdXml.append("<AlarmCmd>ResetAlarm</AlarmCmd>\r\n");
         if (!ObjectUtils.isEmpty(alarmMethod) || !ObjectUtils.isEmpty(alarmType)) {
@@ -771,10 +795,14 @@ public class SIPCommander implements ISIPCommander {
         }
         cmdXml.append("</Control>\r\n");
 
-
+        MessageEvent<String> messageEvent = MessageEvent.getInstance(cmdType, sn + "", device.getDeviceId(), 1000L, callback);
+        messageSubscribe.addSubscribe(messageEvent);
 
         Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
-        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent,okEvent);
+        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, eventResult -> {
+            messageSubscribe.removeSubscribe(messageEvent.getKey());
+            callback.run(ErrorCode.ERROR100.getCode(), "失败，" + eventResult.msg, null);
+        });
     }
 
     /**
@@ -816,19 +844,21 @@ public class SIPCommander implements ISIPCommander {
      * @param presetIndex 调用预置位编号，开启看守位时使用，取值范围0~255
      */
     @Override
-    public void homePositionCmd(Device device, String channelId, Boolean enabled, Integer resetTime, Integer presetIndex, SipSubscribe.Event errorEvent,SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void homePositionCmd(Device device, String channelId, Boolean enabled, Integer resetTime, Integer presetIndex, ErrorCallback<String> callback) throws InvalidArgumentException, SipException, ParseException {
+
+        String cmdType = "DeviceControl";
+        int sn = (int) ((Math.random() * 9 + 1) * 100000);
 
         StringBuffer cmdXml = new StringBuffer(200);
         String charset = device.getCharset();
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Control>\r\n");
-        cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
-        cmdXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        cmdXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");
+        cmdXml.append("<SN>" + sn + "</SN>\r\n");
         if (ObjectUtils.isEmpty(channelId)) {
-            cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
-        } else {
-            cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
+            channelId = device.getDeviceId();
         }
+        cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
         cmdXml.append("<HomePosition>\r\n");
         if (enabled) {
             cmdXml.append("<Enabled>1</Enabled>\r\n");
@@ -840,10 +870,14 @@ public class SIPCommander implements ISIPCommander {
         cmdXml.append("</HomePosition>\r\n");
         cmdXml.append("</Control>\r\n");
 
-
+        MessageEvent<String> messageEvent = MessageEvent.getInstance(cmdType, sn + "", channelId, 1000L, callback);
+        messageSubscribe.addSubscribe(messageEvent);
 
         Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
-        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent,okEvent);
+        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, eventResult -> {
+            messageSubscribe.removeSubscribe(messageEvent.getKey());
+            callback.run(ErrorCode.ERROR100.getCode(), "失败，" + eventResult.msg, null);
+        });
     }
 
     /**
@@ -858,55 +892,50 @@ public class SIPCommander implements ISIPCommander {
 
     /**
      * 设备配置命令：basicParam
-     *
-     * @param device            视频设备
-     * @param channelId         通道编码（可选）
-     * @param name              设备/通道名称（可选）
-     * @param expiration        注册过期时间（可选）
-     * @param heartBeatInterval 心跳间隔时间（可选）
-     * @param heartBeatCount    心跳超时次数（可选）
      */
     @Override
-    public void deviceBasicConfigCmd(Device device, String channelId, String name, String expiration,
-                                     String heartBeatInterval, String heartBeatCount, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void deviceBasicConfigCmd(Device device, BasicParam basicParam, ErrorCallback<String> callback) throws InvalidArgumentException, SipException, ParseException {
 
+        int sn = (int) ((Math.random() * 9 + 1) * 100000);
+        String cmdType = "DeviceConfig";
         StringBuffer cmdXml = new StringBuffer(200);
         String charset = device.getCharset();
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Control>\r\n");
-        cmdXml.append("<CmdType>DeviceConfig</CmdType>\r\n");
-        cmdXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        cmdXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");
+        cmdXml.append("<SN>" + sn + "</SN>\r\n");
+        String channelId = basicParam.getChannelId();
         if (ObjectUtils.isEmpty(channelId)) {
-            cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
-        } else {
-            cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
+            channelId = device.getDeviceId();
         }
+        cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
         cmdXml.append("<BasicParam>\r\n");
-        if (!ObjectUtils.isEmpty(name)) {
-            cmdXml.append("<Name>" + name + "</Name>\r\n");
+        if (!ObjectUtils.isEmpty(basicParam.getName())) {
+            cmdXml.append("<Name>" + basicParam.getName() + "</Name>\r\n");
         }
-        if (NumericUtil.isInteger(expiration)) {
-            if (Integer.valueOf(expiration) > 0) {
-                cmdXml.append("<Expiration>" + expiration + "</Expiration>\r\n");
+        if (NumericUtil.isInteger(basicParam.getExpiration())) {
+            if (Integer.parseInt(basicParam.getExpiration()) > 0) {
+                cmdXml.append("<Expiration>" + basicParam.getExpiration() + "</Expiration>\r\n");
             }
         }
-        if (NumericUtil.isInteger(heartBeatInterval)) {
-            if (Integer.valueOf(heartBeatInterval) > 0) {
-                cmdXml.append("<HeartBeatInterval>" + heartBeatInterval + "</HeartBeatInterval>\r\n");
-            }
+        if (basicParam.getHeartBeatInterval() != null && basicParam.getHeartBeatInterval() > 0) {
+            cmdXml.append("<HeartBeatInterval>" + basicParam.getHeartBeatInterval() + "</HeartBeatInterval>\r\n");
         }
-        if (NumericUtil.isInteger(heartBeatCount)) {
-            if (Integer.valueOf(heartBeatCount) > 0) {
-                cmdXml.append("<HeartBeatCount>" + heartBeatCount + "</HeartBeatCount>\r\n");
-            }
+        if (basicParam.getHeartBeatCount() != null && basicParam.getHeartBeatCount() > 0) {
+            cmdXml.append("<HeartBeatCount>" + basicParam.getHeartBeatCount() + "</HeartBeatCount>\r\n");
         }
         cmdXml.append("</BasicParam>\r\n");
         cmdXml.append("</Control>\r\n");
 
 
+        MessageEvent<String> messageEvent = MessageEvent.getInstance(cmdType, sn + "", channelId, 1000L, callback);
+        messageSubscribe.addSubscribe(messageEvent);
 
         Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
-        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent);
+        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, eventResult -> {
+            messageSubscribe.removeSubscribe(messageEvent.getKey());
+            callback.run(ErrorCode.ERROR100.getCode(), "失败，" + eventResult.msg, null);
+        });
     }
 
     /**
@@ -915,46 +944,63 @@ public class SIPCommander implements ISIPCommander {
      * @param device 视频设备
      */
     @Override
-    public void deviceStatusQuery(Device device, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void deviceStatusQuery(Device device, ErrorCallback<String> callback) throws InvalidArgumentException, SipException, ParseException {
+
+        String cmdType = "DeviceStatus";
+        int sn = (int) ((Math.random() * 9 + 1) * 100000);
 
         String charset = device.getCharset();
         StringBuffer catalogXml = new StringBuffer(200);
         catalogXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         catalogXml.append("<Query>\r\n");
-        catalogXml.append("<CmdType>DeviceStatus</CmdType>\r\n");
-        catalogXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        catalogXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");
+        catalogXml.append("<SN>" + sn + "</SN>\r\n");
         catalogXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
         catalogXml.append("</Query>\r\n");
 
-
+        MessageEvent<String> messageEvent = MessageEvent.getInstance(cmdType, sn + "", device.getDeviceId(), 1000L, callback);
+        messageSubscribe.addSubscribe(messageEvent);
 
         Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), null, SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
 
-        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent);
+        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, eventResult -> {
+            messageSubscribe.removeSubscribe(messageEvent.getKey());
+            callback.run(ErrorCode.ERROR100.getCode(), "失败，" + eventResult.msg, null);
+        });
     }
 
     /**
      * 查询设备信息
      *
-     * @param device 视频设备
+     * @param device   视频设备
+     * @param callback
      */
     @Override
-    public void deviceInfoQuery(Device device) throws InvalidArgumentException, SipException, ParseException {
+    public void deviceInfoQuery(Device device, ErrorCallback<Object> callback) throws InvalidArgumentException, SipException, ParseException {
+
+        String cmdType = "DeviceInfo";
+        String sn = (int) ((Math.random() * 9 + 1) * 100000) + "";
 
         StringBuffer catalogXml = new StringBuffer(200);
         String charset = device.getCharset();
         catalogXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         catalogXml.append("<Query>\r\n");
-        catalogXml.append("<CmdType>DeviceInfo</CmdType>\r\n");
-        catalogXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        catalogXml.append("<CmdType>" + cmdType +"</CmdType>\r\n");
+        catalogXml.append("<SN>" + sn + "</SN>\r\n");
         catalogXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
         catalogXml.append("</Query>\r\n");
 
-
+        MessageEvent<Object> messageEvent = MessageEvent.getInstance(cmdType, sn, device.getDeviceId(), 1000L, callback);
+        messageSubscribe.addSubscribe(messageEvent);
 
         Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
 
-        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request);
+        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, eventResult -> {
+            messageSubscribe.removeSubscribe(messageEvent.getKey());
+            if (callback != null) {
+                callback.run(ErrorCode.ERROR100.getCode(), "失败，" + eventResult.msg, null);
+            }
+        });
 
     }
 
@@ -1040,14 +1086,17 @@ public class SIPCommander implements ISIPCommander {
      */
     @Override
     public void alarmInfoQuery(Device device, String startPriority, String endPriority, String alarmMethod, String alarmType,
-                               String startTime, String endTime, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+                               String startTime, String endTime, ErrorCallback<Object> callback) throws InvalidArgumentException, SipException, ParseException {
+
+        String cmdType = "Alarm";
+        String sn = (int) ((Math.random() * 9 + 1) * 100000) + "";
 
         StringBuffer cmdXml = new StringBuffer(200);
         String charset = device.getCharset();
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Query>\r\n");
-        cmdXml.append("<CmdType>Alarm</CmdType>\r\n");
-        cmdXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        cmdXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");
+        cmdXml.append("<SN>" + sn + "</SN>\r\n");
         cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
         if (!ObjectUtils.isEmpty(startPriority)) {
             cmdXml.append("<StartAlarmPriority>" + startPriority + "</StartAlarmPriority>\r\n");
@@ -1069,10 +1118,14 @@ public class SIPCommander implements ISIPCommander {
         }
         cmdXml.append("</Query>\r\n");
 
-
+        MessageEvent<Object> messageEvent = MessageEvent.getInstance(cmdType, sn, device.getDeviceId(), 1000L, callback);
+        messageSubscribe.addSubscribe(messageEvent);
 
         Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
-        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent);
+        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, eventResult -> {
+            messageSubscribe.removeSubscribe(messageEvent.getKey());
+            callback.run(ErrorCode.ERROR100.getCode(), "失败，" + eventResult.msg, null);
+        });
     }
 
     /**
@@ -1083,14 +1136,16 @@ public class SIPCommander implements ISIPCommander {
      * @param configType 配置类型：
      */
     @Override
-    public void deviceConfigQuery(Device device, String channelId, String configType, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void deviceConfigQuery(Device device, String channelId, String configType, ErrorCallback<Object> callback) throws InvalidArgumentException, SipException, ParseException {
 
+        String cmdType = "ConfigDownload";
+        int sn = (int) ((Math.random() * 9 + 1) * 100000);
         StringBuffer cmdXml = new StringBuffer(200);
         String charset = device.getCharset();
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Query>\r\n");
-        cmdXml.append("<CmdType>ConfigDownload</CmdType>\r\n");
-        cmdXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        cmdXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");
+        cmdXml.append("<SN>" + sn + "</SN>\r\n");
         if (ObjectUtils.isEmpty(channelId)) {
             cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
         } else {
@@ -1099,10 +1154,14 @@ public class SIPCommander implements ISIPCommander {
         cmdXml.append("<ConfigType>" + configType + "</ConfigType>\r\n");
         cmdXml.append("</Query>\r\n");
 
-
+        MessageEvent<Object> messageEvent = MessageEvent.getInstance(cmdType, sn + "", channelId, 1000L, callback);
+        messageSubscribe.addSubscribe(messageEvent);
 
         Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
-        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent);
+        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, eventResult -> {
+            messageSubscribe.removeSubscribe(messageEvent.getKey());
+            callback.run(ErrorCode.ERROR100.getCode(), "失败，" + eventResult.msg, null);
+        });
     }
 
     /**
@@ -1111,14 +1170,17 @@ public class SIPCommander implements ISIPCommander {
      * @param device 视频设备
      */
     @Override
-    public void presetQuery(Device device, String channelId, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void presetQuery(Device device, String channelId, ErrorCallback<Object> callback) throws InvalidArgumentException, SipException, ParseException {
+
+        String cmdType = "PresetQuery";
+        int sn = (int) ((Math.random() * 9 + 1) * 100000);
 
         StringBuffer cmdXml = new StringBuffer(200);
         String charset = device.getCharset();
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Query>\r\n");
-        cmdXml.append("<CmdType>PresetQuery</CmdType>\r\n");
-        cmdXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        cmdXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");
+        cmdXml.append("<SN>" + sn + "</SN>\r\n");
         if (ObjectUtils.isEmpty(channelId)) {
             cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
         } else {
@@ -1126,9 +1188,14 @@ public class SIPCommander implements ISIPCommander {
         }
         cmdXml.append("</Query>\r\n");
 
+        MessageEvent<Object> messageEvent = MessageEvent.getInstance(cmdType, sn + "", channelId, 1000L, callback);
+        messageSubscribe.addSubscribe(messageEvent);
 
         Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
-        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent);
+        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, eventResult -> {
+            messageSubscribe.removeSubscribe(messageEvent.getKey());
+            callback.run(ErrorCode.ERROR100.getCode(), "失败，" + eventResult.msg, null);
+        });
     }
 
     /**
@@ -1267,14 +1334,17 @@ public class SIPCommander implements ISIPCommander {
     }
 
     @Override
-    public void dragZoomCmd(Device device, String channelId, String cmdString) throws InvalidArgumentException, SipException, ParseException {
+    public void dragZoomCmd(Device device, String channelId, String cmdString, ErrorCallback<String> callback) throws InvalidArgumentException, SipException, ParseException {
+
+        String cmdType = "DeviceControl";
+        int sn = (int) ((Math.random() * 9 + 1) * 100000);
 
         StringBuffer dragXml = new StringBuffer(200);
         String charset = device.getCharset();
         dragXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         dragXml.append("<Control>\r\n");
-        dragXml.append("<CmdType>DeviceControl</CmdType>\r\n");
-        dragXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        dragXml.append("<CmdType>" + cmdType + "</CmdType>\r\n");
+        dragXml.append("<SN>" + sn + "</SN>\r\n");
         if (ObjectUtils.isEmpty(channelId)) {
             dragXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
         } else {
@@ -1283,8 +1353,10 @@ public class SIPCommander implements ISIPCommander {
         dragXml.append(cmdString);
         dragXml.append("</Control>\r\n");
 
+        MessageEvent<String> messageEvent = MessageEvent.getInstance(cmdType, sn + "", channelId, 1000L, callback);
+        messageSubscribe.addSubscribe(messageEvent);
+
         Request request = headerProvider.createMessageRequest(device, dragXml.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
-        log.debug("拉框信令： " + request.toString());
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()),request);
     }
 

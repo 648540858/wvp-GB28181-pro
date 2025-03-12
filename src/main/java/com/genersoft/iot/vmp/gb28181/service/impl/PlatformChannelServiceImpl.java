@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
-import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.dao.*;
@@ -26,7 +25,6 @@ import java.util.*;
  */
 @Slf4j
 @Service
-@DS("master")
 public class PlatformChannelServiceImpl implements IPlatformChannelService {
 
     @Autowired
@@ -597,5 +595,10 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
     @Override
     public CommonGBChannel queryChannelByPlatformIdAndChannelId(Integer platformId, Integer channelId) {
         return platformChannelMapper.queryShareChannel(platformId, channelId);
+    }
+
+    @Override
+    public List<CommonGBChannel> queryChannelByPlatformIdAndChannelIds(Integer platformId, List<Integer> channelIds) {
+        return platformChannelMapper.queryShare(platformId, channelIds);
     }
 }

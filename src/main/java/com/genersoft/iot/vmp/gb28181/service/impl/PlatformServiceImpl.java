@@ -1,9 +1,9 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
-import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.*;
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -26,6 +26,7 @@ import com.genersoft.iot.vmp.media.event.mediaServer.MediaSendRtpStoppedEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.*;
+import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.github.pagehelper.PageHelper;
@@ -35,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -47,13 +49,13 @@ import java.text.ParseException;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author lin
  */
 @Slf4j
 @Service
-@DS("master")
 public class PlatformServiceImpl implements IPlatformService {
 
     private final static String REGISTER_KEY_PREFIX = "platform_register_";
@@ -66,6 +68,7 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
 
     @Autowired
     private SSRCFactory ssrcFactory;
@@ -86,6 +89,12 @@ public class PlatformServiceImpl implements IPlatformService {
     private UserSetting userSetting;
 
     @Autowired
+    private IRedisRpcService redisRpcService;
+
+    @Autowired
+    private SipConfig sipConfig;
+
+    @Autowired
     private SipInviteSessionManager sessionManager;
 
     @Autowired
@@ -99,6 +108,85 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Autowired
     private ISendRtpServerService sendRtpServerService;
+
+    // 定时监听国标级联所进行的WVP服务是否正常， 如果异常则选择新的wvp执行
+    @Scheduled(fixedDelay = 2, timeUnit = TimeUnit.SECONDS)   //每3秒执行一次
+    public void execute(){
+        if (!userSetting.isAutoRegisterPlatform()) {
+            return;
+        }
+        // 查找非平台的国标级联执行服务Id
+        List<String> serverIds = platformMapper.queryServerIdsWithEnableAndNotInServer(userSetting.getServerId());
+        if (serverIds == null || serverIds.isEmpty()) {
+            return;
+        }
+        serverIds.forEach(serverId -> {
+           // 检查每个是否存活
+            ServerInfo serverInfo = redisCatchStorage.queryServerInfo(serverId);
+            if (serverInfo != null) {
+                return;
+            }
+            log.info("[集群] 检测到 {} 已离线", serverId);
+            String chooseServerId = redisCatchStorage.chooseOneServer(serverId);
+            if (!userSetting.getServerId().equals(chooseServerId)){
+                return;
+            }
+            // 此平台需要选择新平台处理， 确定由当前平台即开始处理
+            List<Platform> platformList = platformMapper.queryByServerId(serverId);
+            platformList.forEach(platform -> {
+                log.info("[集群] 由本平台开启上级平台{}({})的注册", platform.getName(), platform.getServerGBId());
+                // 设置平台使用当前平台的IP
+                platform.setAddress(getIpWithSameNetwork(platform.getAddress()));
+                platform.setServerId(userSetting.getServerId());
+                platformMapper.update(platform);
+                // 更新redis
+                redisCatchStorage.delPlatformCatchInfo(platform.getServerGBId());
+                PlatformCatch platformCatch = new PlatformCatch();
+                platformCatch.setPlatform(platform);
+                platformCatch.setId(platform.getServerGBId());
+                redisCatchStorage.updatePlatformCatchInfo(platformCatch);
+                // 开始注册
+                // 注册成功时由程序直接调用了online方法
+                try {
+                    commanderForPlatform.register(platform, eventResult -> {
+                        log.info("[国标级联] {}（{}）,添加向上级注册失败，请确定上级平台可用时重新保存", platform.getName(), platform.getServerGBId());
+                    }, null);
+                } catch (InvalidArgumentException | ParseException | SipException e) {
+                    log.error("[命令发送失败] 国标级联: {}", e.getMessage());
+                }
+            });
+        });
+    }
+
+    /**
+     * 获取同网段的IP
+     */
+    private String getIpWithSameNetwork(String ip){
+        if (ip == null || sipConfig.getMonitorIps().size() == 1) {
+            return sipConfig.getMonitorIps().get(0);
+        }
+        String[] ipSplit = ip.split("\\.");
+        String ip1 = null, ip2 = null, ip3 = null;
+        for (String monitorIp : sipConfig.getMonitorIps()) {
+            String[] monitorIpSplit = monitorIp.split("\\.");
+            if (monitorIpSplit[0].equals(ipSplit[0]) && monitorIpSplit[1].equals(ipSplit[1]) && monitorIpSplit[2].equals(ipSplit[2])) {
+                ip3 = monitorIp;
+            }else if (monitorIpSplit[0].equals(ipSplit[0]) && monitorIpSplit[1].equals(ipSplit[1])) {
+                ip2 = monitorIp;
+            }else if (monitorIpSplit[0].equals(ipSplit[0])) {
+                ip1 = monitorIp;
+            }
+        }
+        if (ip3 != null) {
+            return ip3;
+        }else if (ip2 != null) {
+            return ip2;
+        }else if (ip1 != null) {
+            return ip1;
+        }else {
+            return sipConfig.getMonitorIps().get(0);
+        }
+    }
 
     /**
      * 流离开的处理
@@ -175,6 +263,7 @@ public class PlatformServiceImpl implements IPlatformService {
             // 每次发送目录的数量默认为1
             platform.setCatalogGroup(1);
         }
+        platform.setServerId(userSetting.getServerId());
         int result = platformMapper.add(platform);
         // 添加缓存
         PlatformCatch platformCatch = new PlatformCatch();
@@ -201,6 +290,11 @@ public class PlatformServiceImpl implements IPlatformService {
         log.info("[国标级联] 更新平台 {}({})", platform.getName(), platform.getDeviceGBId());
         platform.setCharacterSet(platform.getCharacterSet().toUpperCase());
         Platform platformInDb = platformMapper.query(platform.getId());
+        Assert.notNull(platformInDb, "平台不存在");
+        if (!userSetting.getServerId().equals(platformInDb.getServerId())) {
+            return redisRpcService.updatePlatform(platformInDb.getServerId(), platform);
+        }
+
         PlatformCatch platformCatchOld = redisCatchStorage.queryPlatformCatchInfo(platformInDb.getServerGBId());
         platform.setUpdateTime(DateUtil.getNow());
 
@@ -782,8 +876,8 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public List<Platform> queryEnablePlatformList() {
-        return platformMapper.queryEnablePlatformList();
+    public List<Platform> queryEnablePlatformList(String serverId) {
+        return platformMapper.queryEnableParentPlatformList(serverId,true);
     }
 
     @Override

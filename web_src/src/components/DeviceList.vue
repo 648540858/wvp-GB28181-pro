@@ -15,7 +15,7 @@
         </el-select>
         <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="add">添加设备
         </el-button>
-        <el-button icon="el-icon-info" size="mini" style="margin-right: 1rem;" type="primary" @click="showInfo">平台信息
+        <el-button icon="el-icon-info" size="mini" style="margin-right: 1rem;" type="primary" @click="showInfo()">平台信息
         </el-button>
         <el-button icon="el-icon-refresh-right" circle size="mini" :loading="getDeviceListLoading"
                    @click="getDeviceList()"></el-button>
@@ -56,7 +56,8 @@
       <el-table-column label="状态" min-width="100">
         <template v-slot:default="scope">
           <div slot="reference" class="name-wrapper">
-            <el-tag size="medium" v-if="scope.row.onLine">在线</el-tag>
+            <el-tag size="medium" v-if="scope.row.onLine && Vue.prototype.$myServerId !== scope.row.serverId" style="border-color: #ecf1af">在线</el-tag>
+            <el-tag size="medium" v-if="scope.row.onLine && Vue.prototype.$myServerId === scope.row.serverId">在线</el-tag>
             <el-tag size="medium" type="info" v-if="!scope.row.onLine">离线</el-tag>
           </div>
         </template>
@@ -123,6 +124,7 @@ import uiHeader from '../layout/UiHeader.vue'
 import deviceEdit from './dialog/deviceEdit.vue'
 import syncChannelProgress from './dialog/SyncChannelProgress.vue'
 import configInfo from "./dialog/configInfo.vue";
+import Vue from "vue";
 
 export default {
   name: 'app',
@@ -140,7 +142,7 @@ export default {
       online: null,
       videoComponentList: [],
       updateLooper: 0, //数据刷新轮训标志
-      currentDeviceChannelsLenth: 0,
+      currentDeviceChannelsLength: 0,
       currentPage: 1,
       count: 15,
       total: 0,
@@ -148,6 +150,9 @@ export default {
     };
   },
   computed: {
+    Vue() {
+      return Vue
+    },
     getcurrentDeviceChannels: function () {
       let data = this.currentDevice['channelMap'];
       let channels = null;
@@ -155,7 +160,7 @@ export default {
         channels = Object.keys(data).map(key => {
           return data[key];
         });
-        this.currentDeviceChannelsLenth = channels.length;
+        this.currentDeviceChannelsLength = channels.length;
       }
       return channels;
     }
@@ -335,15 +340,12 @@ export default {
       })
     },
     showInfo: function (){
-
       this.$axios({
         method: 'get',
         url: `/api/server/system/configInfo`,
       }).then( (res)=> {
-        console.log(res)
         if (res.data.code === 0) {
-          console.log(2222)
-          console.log(this.$refs.configInfo)
+          this.serverId = res.data.data.addOn.serverId;
           this.$refs.configInfo.openDialog(res.data.data)
         }
       }).catch( (error)=> {

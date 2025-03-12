@@ -244,5 +244,15 @@ public class DeviceChannel extends CommonGBChannel {
 		return deviceChannel;
 	}
 
+	public CommonGBChannel buildCommonGBChannelForStatus() {
+		CommonGBChannel commonGBChannel = new CommonGBChannel();
+		commonGBChannel.setGbId(id);
+		commonGBChannel.setGbDeviceId(deviceId);
+		commonGBChannel.setGbName(name);
+		commonGBChannel.setDataType(ChannelDataType.GB28181.value);
+		commonGBChannel.setDataDeviceId(getDataDeviceId());
+		return commonGBChannel;
+	}
+
 
 }

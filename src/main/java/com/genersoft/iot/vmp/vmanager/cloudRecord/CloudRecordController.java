@@ -110,10 +110,7 @@ public class CloudRecordController {
             }
             mediaServers.add(mediaServer);
         } else {
-            mediaServers = mediaServerService.getAllOnlineList();
-        }
-        if (mediaServers.isEmpty()) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "当前无流媒体");
+            mediaServers = null;
         }
         if (query != null && ObjectUtils.isEmpty(query.trim())) {
             query = null;
@@ -342,10 +339,7 @@ public class CloudRecordController {
             }
             mediaServers.add(mediaServer);
         } else {
-            mediaServers = mediaServerService.getAll();
-        }
-        if (mediaServers.isEmpty()) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "当前无流媒体");
+            mediaServers = null;
         }
         if (query != null && ObjectUtils.isEmpty(query.trim())) {
             query = null;

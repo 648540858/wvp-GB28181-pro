@@ -89,6 +89,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     @Override
     public MediaServer checkMediaServer(String ip, int port, String secret) {
         MediaServer mediaServer = new MediaServer();
+        mediaServer.setServerId(userSetting.getServerId());
         mediaServer.setIp(ip);
         mediaServer.setHttpPort(port);
         mediaServer.setFlvPort(port);

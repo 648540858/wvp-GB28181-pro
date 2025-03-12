@@ -75,12 +75,12 @@ public class SIPSender {
             CSeqHeader cSeqHeader = (CSeqHeader) message.getHeader(CSeqHeader.NAME);
             String key = callIdHeader.getCallId() + cSeqHeader.getSeqNumber();
             SipEvent sipEvent = SipEvent.getInstance(key, eventResult -> {
-                sipSubscribe.removeSubscribe(callIdHeader.getCallId());
+                sipSubscribe.removeSubscribe(key);
                 if(okEvent != null) {
                     okEvent.response(eventResult);
                 }
             }, (eventResult -> {
-                sipSubscribe.removeSubscribe(callIdHeader.getCallId());
+                sipSubscribe.removeSubscribe(key);
                 if (errorEvent != null) {
                     errorEvent.response(eventResult);
                 }

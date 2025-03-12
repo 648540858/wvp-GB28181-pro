@@ -5,7 +5,6 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
@@ -22,8 +21,6 @@ import javax.sip.RequestEvent;
 import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
-
-import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
 @Slf4j
 @Component
@@ -48,13 +45,6 @@ public class ConfigDownloadResponseMessageHandler extends SIPRequestProcessorPar
 
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element element) {
-        String channelId = getText(element, "DeviceID");
-        String key;
-        if (device.getDeviceId().equals(channelId)) {
-            key = DeferredResultHolder.CALLBACK_CMD_CONFIGDOWNLOAD + device.getDeviceId();
-        }else {
-            key = DeferredResultHolder.CALLBACK_CMD_CONFIGDOWNLOAD + device.getDeviceId() + channelId;
-        }
         try {
             // 回复200 OK
             responseAck((SIPRequest) evt.getRequest(), Response.OK);
@@ -67,23 +57,33 @@ public class ConfigDownloadResponseMessageHandler extends SIPRequestProcessorPar
         if (log.isDebugEnabled()) {
             log.debug(json.toJSONString());
         }
+        JSONObject jsonObject = new JSONObject();
+        if (json.get("BasicParam") != null) {
+            jsonObject.put("BasicParam", json.getJSONObject("BasicParam"));
+        }
+        if (json.get("VideoParamOpt") != null) {
+            jsonObject.put("VideoParamOpt", json.getJSONObject("VideoParamOpt"));
+        }
+        if (json.get("SVACEncodeConfig") != null) {
+            jsonObject.put("SVACEncodeConfig", json.getJSONObject("SVACEncodeConfig"));
+        }
+        if (json.get("SVACDecodeConfig") != null) {
+            jsonObject.put("SVACDecodeConfig", json.getJSONObject("SVACDecodeConfig"));
+        }
+
+        responseMessageHandler.handMessageEvent(element, jsonObject);
+
         JSONObject basicParam = json.getJSONObject("BasicParam");
-        Integer heartBeatInterval = basicParam.getInteger("HeartBeatInterval");
-        Integer heartBeatCount = basicParam.getInteger("HeartBeatCount");
-        Integer positionCapability = basicParam.getInteger("PositionCapability");
-        device.setHeartBeatInterval(heartBeatInterval);
-        device.setHeartBeatCount(heartBeatCount);
-        device.setPositionCapability(positionCapability);
+        if (basicParam != null) {
+            Integer heartBeatInterval = basicParam.getInteger("HeartBeatInterval");
+            Integer heartBeatCount = basicParam.getInteger("HeartBeatCount");
+            Integer positionCapability = basicParam.getInteger("PositionCapability");
+            device.setHeartBeatInterval(heartBeatInterval);
+            device.setHeartBeatCount(heartBeatCount);
+            device.setPositionCapability(positionCapability);
 
-        deviceService.updateDeviceHeartInfo(device);
-
-
-
-        RequestMessage msg = new RequestMessage();
-        msg.setKey(key);
-        msg.setData(json);
-        deferredResultHolder.invokeAllResult(msg);
-
+            deviceService.updateDeviceHeartInfo(device);
+        }
 
     }
 

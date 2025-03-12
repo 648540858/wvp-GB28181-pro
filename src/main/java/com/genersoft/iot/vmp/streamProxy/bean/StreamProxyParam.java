@@ -53,11 +53,12 @@ public class StreamProxyParam {
     private boolean enableDisableNoneReader;
 
 
-    public StreamProxy buildStreamProxy() {
+    public StreamProxy buildStreamProxy(String serverId) {
         StreamProxy streamProxy = new StreamProxy();
         streamProxy.setApp(app);
         streamProxy.setStream(stream);
         streamProxy.setRelatesMediaServerId(mediaServerId);
+        streamProxy.setServerId(serverId);
         streamProxy.setSrcUrl(url);
         streamProxy.setTimeout(timeoutMs/1000);
         streamProxy.setRtspType(rtpType);

@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.service;
 
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.common.enums.DeviceControlType;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
@@ -131,4 +132,9 @@ public interface IDeviceChannelService {
     List<Integer> queryChaneIdListByDeviceDbIds(List<Integer> deviceDbId);
 
     void handlePtzCmd(@NotNull Integer dataDeviceId, @NotNull Integer gbId, Element rootElement, DeviceControlType type, ErrorCallback<String> callback);
+
+    void queryRecordInfo(Device device, DeviceChannel channel, String startTime, String endTime, ErrorCallback<RecordInfo> object);
+
+    void queryRecordInfo(CommonGBChannel channel, String startTime, String endTime, ErrorCallback<RecordInfo> object);
+
 }

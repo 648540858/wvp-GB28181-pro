@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.streamProxy.controller;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -42,6 +43,9 @@ public class StreamProxyController {
 
     @Autowired
     private IStreamProxyPlayService streamProxyPlayService;
+
+    @Autowired
+    private UserSetting userSetting;
 
 
     @Operation(summary = "分页查询流代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -120,6 +124,7 @@ public class StreamProxyController {
         if (ObjectUtils.isEmpty(param.getGbId())) {
             param.setGbDeviceId(null);
         }
+        param.setServerId(userSetting.getServerId());
         streamProxyService.add(param);
         return param;
     }

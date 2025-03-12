@@ -209,4 +209,7 @@ public class Device {
 
 	@Schema(description = "控制语音对讲流程，释放收到ACK后发流")
 	private boolean broadcastPushAfterAck;
+
+	@Schema(description = "所属服务Id")
+	private String serverId;
 }

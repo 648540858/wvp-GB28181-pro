@@ -33,9 +33,9 @@
                download='推流通道导入.zip'>下载模板</a>
           </el-button>
           <el-button icon="el-icon-delete" size="mini" style="margin-right: 1rem;"
-                     :disabled="multipleSelection.length === 0" type="danger" @click="batchDel">批量移除
+                     :disabled="multipleSelection.length === 0" type="danger" @click="batchDel">移除
           </el-button>
-          <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addStream">添加通道
+          <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addStream">添加
           </el-button>
           <el-button icon="el-icon-refresh-right" circle size="mini" @click="refresh()"></el-button>
         </div>
@@ -52,7 +52,8 @@
         </el-table-column>
         <el-table-column label="推流状态"  min-width="100">
           <template v-slot:default="scope">
-            <el-tag size="medium" v-if="scope.row.pushing">推流中</el-tag>
+            <el-tag size="medium" v-if="scope.row.pushing && Vue.prototype.$myServerId !== scope.row.serverId" style="border-color: #ecf1af">推流中</el-tag>
+            <el-tag size="medium" v-if="scope.row.pushing && Vue.prototype.$myServerId === scope.row.serverId">推流中</el-tag>
             <el-tag size="medium" type="info" v-if="!scope.row.pushing">已停止</el-tag>
           </template>
         </el-table-column>
@@ -116,6 +117,7 @@ import importChannel from './dialog/importChannel.vue'
 import MediaServer from './service/MediaServer'
 import StreamPushEdit from "./StreamPushEdit";
 import ChannelEdit from "./ChannelEdit.vue";
+import Vue from "vue";
 
 export default {
   name: 'streamPushList',
@@ -146,7 +148,11 @@ export default {
       streamPush: null,
     };
   },
-  computed: {},
+  computed: {
+    Vue() {
+      return Vue
+    },
+  },
   mounted() {
     this.initData();
     this.updateLooper = setInterval(this.getPushList, 2000);

@@ -5,7 +5,7 @@ import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
-import com.genersoft.iot.vmp.gb28181.event.record.RecordEndEventListener;
+import com.genersoft.iot.vmp.gb28181.event.record.RecordInfoEventListener;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
@@ -53,7 +53,7 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
     private SIPCommander commander;
 
     @Autowired
-    private RecordEndEventListener recordEndEventListener;
+    private RecordInfoEventListener recordInfoEventListener;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -127,7 +127,7 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
         // 获取通道的原始信息
         DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
         // 接收录像数据
-        recordEndEventListener.addEndEventHandler(device.getDeviceId(), deviceChannel.getDeviceId(), (recordInfo)->{
+        recordInfoEventListener.addEndEventHandler(device.getDeviceId(), deviceChannel.getDeviceId(), (recordInfo)->{
             try {
                 log.info("[国标级联] 录像查询收到数据， 通道： {}，准备转发===", channelId);
                 cmderFroPlatform.recordInfo(channel, platform, request.getFromTag(), recordInfo);

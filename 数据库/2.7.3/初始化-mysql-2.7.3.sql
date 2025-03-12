@@ -35,6 +35,7 @@ create table wvp_device
     heart_beat_count                    integer,
     position_capability                 integer,
     broadcast_push_after_ack            bool    default false,
+    server_id                           character varying(50),
     constraint uk_device_device unique (device_id)
 );
 
@@ -186,7 +187,8 @@ create table wvp_media_server
     record_path         character varying(255),
     record_day          integer               default 7,
     transcode_suffix    character varying(255),
-    constraint uk_media_server_unique_ip_http_port unique (ip, http_port)
+    server_id           character varying(50),
+    constraint uk_media_server_unique_ip_http_port unique (ip, http_port, server_id)
 );
 
 create table wvp_platform
@@ -225,6 +227,7 @@ create table wvp_platform
     catalog_with_region   integer default 1,
     auto_push_channel     bool default true,
     send_stream_ip        character varying(50),
+    server_id             character varying(50),
     constraint uk_platform_unique_server_gb_id unique (server_gb_id)
 );
 
@@ -308,6 +311,7 @@ create table wvp_stream_proxy
     name                       character varying(255),
     update_time                character varying(50),
     stream_key                 character varying(255),
+    server_id                  character varying(50),
     enable_disable_none_reader bool default false,
     relates_media_server_id    character varying(50),
     constraint uk_stream_proxy_app_stream unique (app, stream)
@@ -338,6 +342,7 @@ create table wvp_cloud_record
     start_time      bigint,
     end_time        bigint,
     media_server_id character varying(50),
+    server_id       character varying(50),
     file_name       character varying(255),
     folder          character varying(500),
     file_path       character varying(500),

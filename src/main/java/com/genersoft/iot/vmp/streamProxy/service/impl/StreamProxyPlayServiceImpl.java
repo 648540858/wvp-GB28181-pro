@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.streamProxy.service.impl;
 
-import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
@@ -36,7 +37,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 @Service
-@DS("master")
 public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
 
     @Autowired
@@ -53,6 +53,9 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
 
     @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private IRedisRpcPlayService redisRpcPlayService;
 
     private ConcurrentHashMap<Integer, ErrorCallback<StreamInfo>> callbackMap = new ConcurrentHashMap<>();
 
@@ -139,6 +142,13 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
         if (!streamProxy.isEnable()) {
             return null;
         }
+        if (streamProxy.getServerId() == null) {
+            streamProxy.setServerId(userSetting.getServerId());
+        }
+        if (!userSetting.getServerId().equals(streamProxy.getServerId())) {
+            return redisRpcPlayService.playProxy(streamProxy.getServerId(), streamProxy.getId());
+        }
+
         MediaServer mediaServer;
         String mediaServerId = streamProxy.getRelatesMediaServerId();
         if (mediaServerId == null) {
@@ -162,6 +172,10 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
         StreamProxy streamProxy = streamProxyMapper.select(id);
         if (streamProxy == null) {
             throw new ControllerException(ErrorCode.ERROR404.getCode(), "代理信息未找到");
+        }
+        if (!userSetting.getServerId().equals(streamProxy.getServerId())) {
+            redisRpcPlayService.stopProxy(streamProxy.getServerId(), streamProxy.getId());
+            return;
         }
         stopProxy(streamProxy);
     }

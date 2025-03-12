@@ -25,6 +25,8 @@ public interface IPlayService {
 
     SSRCInfo play(MediaServer mediaServerItem, String deviceId, String channelId, String ssrc, ErrorCallback<StreamInfo> callback);
 
+    void play(Device device, DeviceChannel channel, ErrorCallback<StreamInfo> callback);
+
     StreamInfo onPublishHandlerForPlay(MediaServer mediaServerItem, MediaInfo mediaInfo, Device device, DeviceChannel channel);
 
     MediaServer getNewMediaServerItem(Device device);
@@ -38,7 +40,7 @@ public interface IPlayService {
 
     void zlmServerOnline(MediaServer mediaServer);
 
-    AudioBroadcastResult audioBroadcast(Device device, DeviceChannel deviceChannel, Boolean broadcastMode);
+    AudioBroadcastResult audioBroadcast(String deviceId, String channelDeviceId, Boolean broadcastMode);
 
     boolean audioBroadcastCmd(Device device, DeviceChannel channel, MediaServer mediaServerItem, String app, String stream, int timeout, boolean isFromPlatform, AudioBroadcastEvent event) throws InvalidArgumentException, ParseException, SipException;
 
@@ -66,8 +68,12 @@ public interface IPlayService {
 
     void play(CommonGBChannel channel, Boolean record, ErrorCallback<StreamInfo> callback);
 
+    void stop(InviteSessionType inviteSessionType, CommonGBChannel channel, String stream);
+
     void playBack(CommonGBChannel channel, Long startTime, Long stopTime, ErrorCallback<StreamInfo> callback);
 
     void download(CommonGBChannel channel, Long startTime, Long stopTime, Integer downloadSpeed, ErrorCallback<StreamInfo> callback);
+
+
 
 }

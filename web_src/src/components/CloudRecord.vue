@@ -65,7 +65,8 @@
       </el-table-column>
       <el-table-column  label="时长">
         <template v-slot:default="scope">
-          <el-tag>{{formatTime(scope.row.timeLen)}}</el-tag>
+          <el-tag v-if="Vue.prototype.$myServerId !== scope.row.serverId" style="border-color: #ecf1af">{{formatTime(scope.row.timeLen)}}</el-tag>
+          <el-tag v-if="Vue.prototype.$myServerId === scope.row.serverId">{{formatTime(scope.row.timeLen)}}</el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="fileName" label="文件名称">
@@ -108,7 +109,7 @@ import uiHeader from '../layout/UiHeader.vue'
 import MediaServer from './service/MediaServer'
 import easyPlayer from './common/easyPlayer.vue'
 import moment  from 'moment'
-import axios from "axios";
+import Vue from "vue";
 
 export default {
   name: 'app',
@@ -134,7 +135,6 @@ export default {
       mediaServerPath: null, // 媒体服务地址
       recordList: [], // 设备列表
       chooseRecord: null, // 媒体服务
-
       updateLooper: 0, //数据刷新轮训标志
       winHeight: window.innerHeight - 250,
       currentPage: 1,
@@ -145,7 +145,11 @@ export default {
 
     };
   },
-  computed: {},
+  computed: {
+    Vue() {
+      return Vue
+    },
+  },
   mounted() {
     this.initData();
     this.getMediaServerList();

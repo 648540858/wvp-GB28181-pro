@@ -2,12 +2,10 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.respon
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.DocumentException;
@@ -36,9 +34,6 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
 
     @Autowired
     private ResponseMessageHandler responseMessageHandler;
-
-    @Autowired
-    private DeferredResultHolder deferredResultHolder;
 
 
     @Autowired
@@ -70,9 +65,6 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
                 }
                 return;
             }
-            Element deviceIdElement = rootElement.element("DeviceID");
-            String channelId = deviceIdElement.getTextTrim();
-            String key = DeferredResultHolder.CALLBACK_CMD_DEVICEINFO + device.getDeviceId() + channelId;
             device.setName(getText(rootElement, "DeviceName"));
 
             device.setManufacturer(getText(rootElement, "Manufacturer"));
@@ -82,11 +74,8 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
                 device.setStreamMode("TCP-PASSIVE");
             }
             deviceService.updateDevice(device);
+            responseMessageHandler.handMessageEvent(rootElement, device);
 
-            RequestMessage msg = new RequestMessage();
-            msg.setKey(key);
-            msg.setData(device);
-            deferredResultHolder.invokeAllResult(msg);
         } catch (DocumentException e) {
             throw new RuntimeException(e);
         }

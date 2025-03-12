@@ -2,20 +2,19 @@ package com.genersoft.iot.vmp.web.gb28181;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Preset;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.vmanager.bean.DeferredResultEx;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
 import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,9 +22,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 
-import javax.sip.InvalidArgumentException;
-import javax.sip.SipException;
-import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -185,7 +181,7 @@ public class ApiDeviceController {
      * @return
      */
     @GetMapping(value = "/fetchpreset")
-    private DeferredResult<Object>  list(String serial,
+    private DeferredResult<WVPResult<Object>>  list(String serial,
                       @RequestParam(required = false)Integer channel,
                       @RequestParam(required = false)String code,
                       @RequestParam(required = false)Boolean fill,
@@ -197,55 +193,34 @@ public class ApiDeviceController {
         }
 
         Device device = deviceService.getDeviceByDeviceId(serial);
-        String uuid =  UUID.randomUUID().toString();
-        String key =  DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (ObjectUtils.isEmpty(code) ? serial : code);
-        DeferredResult<Object> result = new DeferredResult<> (timeout * 1000L);
-        DeferredResultEx<Object> deferredResultEx = new DeferredResultEx<>(result);
-        result.onTimeout(()->{
-            log.warn("<模拟接口> 获取设备预置位超时");
-            // 释放rtpserver
-            RequestMessage msg = new RequestMessage();
-            msg.setId(uuid);
-            msg.setKey(key);
-            msg.setData("wait for presetquery timeout["+timeout+"s]");
-            resultHolder.invokeResult(msg);
-        });
-        if (resultHolder.exist(key, null)) {
-            return result;
-        }
-
-        deferredResultEx.setFilter(filterResult->{
-            List<Preset> presetQuerySipReqList = (List<Preset>)filterResult;
-            HashMap<String, Object> resultMap = new HashMap<>();
-            resultMap.put("DeviceID", code);
-            resultMap.put("Result", "OK");
-            resultMap.put("SumNum", presetQuerySipReqList.size());
-            ArrayList<Map<String, Object>> presetItemList = new ArrayList<>(presetQuerySipReqList.size());
-            for (Preset presetQuerySipReq : presetQuerySipReqList) {
-                Map<String, Object> item = new HashMap<>();
-                item.put("PresetID", presetQuerySipReq.getPresetId());
-                item.put("PresetName", presetQuerySipReq.getPresetName());
-                item.put("PresetEnable", true);
-                presetItemList.add(item);
+        Assert.notNull(device, "设备不存在");
+        DeferredResult<WVPResult<Object>> deferredResult = new DeferredResult<> (timeout * 1000L);
+        deviceService.queryPreset(device, code, (resultCode, msg, data) -> {
+            if (resultCode == ErrorCode.SUCCESS.getCode()) {
+                List<Preset> presetQuerySipReqList = (List<Preset>)data;
+                HashMap<String, Object> resultMap = new HashMap<>();
+                resultMap.put("DeviceID", code);
+                resultMap.put("Result", "OK");
+                resultMap.put("SumNum", presetQuerySipReqList.size());
+                ArrayList<Map<String, Object>> presetItemList = new ArrayList<>(presetQuerySipReqList.size());
+                for (Preset presetQuerySipReq : presetQuerySipReqList) {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("PresetID", presetQuerySipReq.getPresetId());
+                    item.put("PresetName", presetQuerySipReq.getPresetName());
+                    item.put("PresetEnable", true);
+                    presetItemList.add(item);
+                }
+                resultMap.put("PresetItemList",presetItemList );
+                deferredResult.setResult(new WVPResult<>(resultCode, msg, resultMap));
+            }else {
+                deferredResult.setResult(new WVPResult<>(resultCode, msg, null));
             }
-            resultMap.put("PresetItemList",presetItemList );
-            return resultMap;
         });
 
-        resultHolder.put(key, uuid, deferredResultEx);
-
-        try {
-            cmder.presetQuery(device, code, event -> {
-                RequestMessage msg = new RequestMessage();
-                msg.setId(uuid);
-                msg.setKey(key);
-                msg.setData(String.format("获取设备预置位失败，错误码： %s, %s", event.statusCode, event.msg));
-                resultHolder.invokeResult(msg);
-            });
-        } catch (InvalidArgumentException | SipException | ParseException e) {
-            log.error("[命令发送失败] 获取设备预置位: {}", e.getMessage());
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
-        }
-        return result;
+        deferredResult.onTimeout(()->{
+            log.warn("[获取设备预置位] 超时, {}", device.getDeviceId());
+            deferredResult.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "wait for presetquery timeout["+timeout+"s]"));
+        });
+        return deferredResult;
     }
 }

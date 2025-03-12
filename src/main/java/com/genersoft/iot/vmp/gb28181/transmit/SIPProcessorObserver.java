@@ -94,7 +94,7 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
                             SipSubscribe.EventResult<ResponseEvent> eventResult = new SipSubscribe.EventResult<>(responseEvent);
                             sipEvent.getOkEvent().response(eventResult);
                         }
-                        sipSubscribe.removeSubscribe(callIdHeader.getCallId());
+                        sipSubscribe.removeSubscribe(callIdHeader.getCallId() + cSeqHeader.getSeqNumber());
                     }
                 }
             }
@@ -118,7 +118,7 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
                             SipSubscribe.EventResult<ResponseEvent> eventResult = new SipSubscribe.EventResult<>(responseEvent);
                             sipEvent.getErrorEvent().response(eventResult);
                         }
-                        sipSubscribe.removeSubscribe(callIdHeader.getCallId());
+                        sipSubscribe.removeSubscribe(callIdHeader.getCallId() + cSeqHeader.getSeqNumber());
                     }
                 }
             }

@@ -186,6 +186,7 @@ public class MediaInfo {
         mediaInfo.setOriginType(param.getOriginType());
         mediaInfo.setOriginTypeStr(param.getOriginTypeStr());
         mediaInfo.setOriginUrl(param.getOriginUrl());
+        mediaInfo.setOriginUrl(param.getOriginUrl());
         mediaInfo.setAliveSecond(param.getAliveSecond());
         mediaInfo.setBytesSpeed(param.getBytesSpeed());
         mediaInfo.setParamMap(param.getParamMap());

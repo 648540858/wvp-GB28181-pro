@@ -108,7 +108,7 @@
         <el-table-column label="操作" min-width="340" fixed="right">
           <template v-slot:default="scope">
             <el-button size="medium" v-bind:disabled="device == null || device.online === 0" icon="el-icon-video-play"
-                       type="text" @click="sendDevicePush(scope.row)">播放
+                       type="text" :loading="scope.row.playLoading" @click="sendDevicePush(scope.row)">播放
             </el-button>
             <el-button size="medium" v-bind:disabled="device == null || device.online === 0"
                        icon="el-icon-switch-button"
@@ -201,7 +201,6 @@ export default {
       count: 15,
       total: 0,
       beforeUrl: "/deviceList",
-      isLoging: false,
       showTree: false,
       editId: null,
       loadSnap: {},
@@ -277,6 +276,7 @@ export default {
           that.deviceChannelList = res.data.data.list;
           that.deviceChannelList.forEach(e => {
             e.ptzType = e.ptzType + "";
+            that.$set(e, "playLoading", false);
           });
           // 防止出现表格错位
           that.$nextTick(() => {
@@ -292,44 +292,42 @@ export default {
     //通知设备上传媒体流
     sendDevicePush: function (itemData) {
       let deviceId = this.deviceId;
-      this.isLoging = true;
       let channelId = itemData.deviceId;
+      itemData.playLoading = true;
       console.log("通知设备推流1：" + deviceId + " : " + channelId);
-      let that = this;
       this.$axios({
         method: 'get',
         url: '/api/play/start/' + deviceId + '/' + channelId,
         params: {
           isSubStream: this.isSubStream
         }
-      }).then(function (res) {
+      }).then((res) =>{
         console.log(res)
-        that.isLoging = false;
         if (res.data.code === 0) {
 
           setTimeout(() => {
-
             let snapId = deviceId + "_" + channelId;
-            that.loadSnap[deviceId + channelId] = 0;
-            that.getSnapErrorEvent(snapId)
+            this.loadSnap[deviceId + channelId] = 0;
+            this.getSnapErrorEvent(snapId)
           }, 5000)
           itemData.streamId = res.data.data.stream;
-          that.$refs.devicePlayer.openDialog("media", deviceId, channelId, {
+          this.$refs.devicePlayer.openDialog("media", deviceId, channelId, {
             streamInfo: res.data.data,
             hasAudio: itemData.hasAudio
           });
           setTimeout(() => {
-            that.initData();
+            this.initData();
           }, 1000)
 
         } else {
-          that.$message.error(res.data.msg);
+          this.$message.error(res.data.msg);
         }
       }).catch(function (e) {
         console.error(e)
-        that.isLoging = false;
         // that.$message.error("请求超时");
-      });
+      }).finally(()=>{
+        itemData.playLoading = false;
+      })
     },
     moreClick: function (command, itemData) {
       if (command === "records") {

@@ -78,7 +78,7 @@
 
         <el-table-column label="操作" min-width="360"  fixed="right">
           <template v-slot:default="scope">
-            <el-button size="medium" icon="el-icon-video-play"@click="playPush(scope.row)" type="text">播放
+            <el-button size="medium" :loading="scope.row.playLoading" icon="el-icon-video-play" @click="playPush(scope.row)" type="text">播放
             </el-button>
             <el-divider direction="vertical"></el-divider>
             <el-button size="medium" icon="el-icon-delete" type="text" @click="deletePush(scope.row.id)" style="color: #f56c6c" >删除</el-button>
@@ -194,6 +194,7 @@ export default {
             that.pushList = res.data.data.list;
             that.pushList.forEach(e => {
               that.$set(e, "location", "");
+              that.$set(e, "playLoading", false);
               if (e.gbLongitude && e.gbLatitude) {
                 that.$set(e, "location", e.gbLongitude + "," + e.gbLatitude);
               }
@@ -208,29 +209,28 @@ export default {
     },
 
     playPush: function (row) {
-      let that = this;
-      this.getListLoading = true;
+      row.playLoading = true;
       this.$axios({
         method: 'get',
         url: '/api/push/start',
         params: {
           id: row.id
         }
-      }).then(function (res) {
-        that.getListLoading = false;
+      }).then((res) =>{
         if (res.data.code === 0 ) {
-          that.$refs.devicePlayer.openDialog("streamPlay", null, null, {
+          this.$refs.devicePlayer.openDialog("streamPlay", null, null, {
             streamInfo: res.data.data,
             hasAudio: true
           });
         }else {
-          that.$message.error(res.data.msg);
+          this.$message.error(res.data.msg);
         }
 
       }).catch(function (error) {
         console.error(error);
-        that.getListLoading = false;
-      });
+      }).finally(()=>{
+        row.playLoading = false;
+      })
     },
     deletePush: function (id) {
       this.$confirm(`确定删除通道?`, '提示', {

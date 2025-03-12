@@ -463,7 +463,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         }
         MediaInfo mediaInfo = getMediaInfo(mediaServer, streamProxy.getApp(), streamProxy.getStream());
         if (mediaInfo != null) {
-            if (mediaInfo.getOriginUrl().equals(streamProxy.getSrcUrl())) {
+            if (mediaInfo.getOriginUrl() != null && mediaInfo.getOriginUrl().equals(streamProxy.getSrcUrl())) {
                 log.info("[启动拉流代理] 已存在， 直接返回， app： {}, stream: {}", mediaInfo.getApp(), streamProxy.getStream());
                 return getStreamInfoByAppAndStream(mediaServer, streamProxy.getApp(), streamProxy.getStream(), null, null, true);
             }

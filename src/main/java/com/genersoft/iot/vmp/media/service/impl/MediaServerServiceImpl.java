@@ -807,6 +807,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Override
     public StreamInfo getStreamInfoByAppAndStream(MediaServer mediaServer, String app, String stream, MediaInfo mediaInfo, String addr, String callId, boolean isPlay) {
+        System.out.println(callId);
         StreamInfo streamInfoResult = new StreamInfo();
         streamInfoResult.setStream(stream);
         streamInfoResult.setApp(app);
@@ -822,7 +823,22 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
 
         streamInfoResult.setMediaServer(mediaServer);
-        String callIdParam = ObjectUtils.isEmpty(callId)?"":"?callId=" + callId;
+        StringBuilder callIdParamBuilder = new StringBuilder();;
+        if (!ObjectUtils.isEmpty(callId) || (mediaInfo != null && !ObjectUtils.isEmpty(mediaInfo.getOriginTypeStr()))) {
+            StringBuilder stringBuilder =  new StringBuilder();
+            if (!ObjectUtils.isEmpty(callId)) {
+                stringBuilder.append("callId=").append(callId);
+            }
+            if (mediaInfo != null && !ObjectUtils.isEmpty(mediaInfo.getOriginTypeStr())) {
+                if (!ObjectUtils.isEmpty(callId)) {
+                    stringBuilder.append("&");
+                }
+                stringBuilder.append("originTypeStr=").append(mediaInfo.getOriginTypeStr());
+            }
+            callIdParamBuilder.append("?").append(stringBuilder);
+        }
+        String callIdParam = callIdParamBuilder.toString();
+
         streamInfoResult.setRtmp(addr, mediaServer.getRtmpPort(),mediaServer.getRtmpSSlPort(), app,  stream, callIdParam);
         streamInfoResult.setRtsp(addr, mediaServer.getRtspPort(),mediaServer.getRtspSSLPort(), app,  stream, callIdParam);
 

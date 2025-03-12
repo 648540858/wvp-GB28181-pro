@@ -78,60 +78,6 @@ public class SIPCommander implements ISIPCommander {
     @Autowired
     private MessageSubscribe messageSubscribe;
 
-
-
-    /**
-     * 云台方向放控制，使用配置文件中的默认镜头移动速度
-     *
-     * @param device    控制设备
-     * @param channelId 预览通道
-     * @param leftRight 镜头左移右移 0:停止 1:左移 2:右移
-     * @param upDown    镜头上移下移 0:停止 1:上移 2:下移
-     */
-    @Override
-    public void ptzdirectCmd(Device device, String channelId, int leftRight, int upDown) throws InvalidArgumentException, ParseException, SipException {
-        ptzCmd(device, channelId, leftRight, upDown, 0, sipConfig.getPtzSpeed(), 0);
-    }
-
-    /**
-     * 云台方向放控制
-     *
-     * @param device    控制设备
-     * @param channelId 预览通道
-     * @param leftRight 镜头左移右移 0:停止 1:左移 2:右移
-     * @param upDown    镜头上移下移 0:停止 1:上移 2:下移
-     * @param moveSpeed 镜头移动速度
-     */
-    @Override
-    public void ptzdirectCmd(Device device, String channelId, int leftRight, int upDown, int moveSpeed) throws InvalidArgumentException, ParseException, SipException {
-        ptzCmd(device, channelId, leftRight, upDown, 0, moveSpeed, 0);
-    }
-
-    /**
-     * 云台缩放控制，使用配置文件中的默认镜头缩放速度
-     *
-     * @param device    控制设备
-     * @param channelId 预览通道
-     * @param inOut     镜头放大缩小 0:停止 1:缩小 2:放大
-     */
-    @Override
-    public void ptzZoomCmd(Device device, String channelId, int inOut) throws InvalidArgumentException, ParseException, SipException {
-        ptzCmd(device, channelId, 0, 0, inOut, 0, sipConfig.getPtzSpeed());
-    }
-
-    /**
-     * 云台缩放控制
-     *
-     * @param device    控制设备
-     * @param channelId 预览通道
-     * @param inOut     镜头放大缩小 0:停止 1:缩小 2:放大
-     * @param zoomSpeed 镜头缩放速度
-     */
-    @Override
-    public void ptzZoomCmd(Device device, String channelId, int inOut, int zoomSpeed) throws InvalidArgumentException, ParseException, SipException {
-        ptzCmd(device, channelId, 0, 0, inOut, 0, zoomSpeed);
-    }
-
     /**
      * 云台指令码计算
      *

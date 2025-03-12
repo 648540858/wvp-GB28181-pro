@@ -80,7 +80,7 @@ public class MediaInfo {
         Boolean online = jsonObject.getBoolean("online");
         Integer originType = jsonObject.getInteger("originType");
         String originUrl = jsonObject.getString("originUrl");
-        String originTypeStr = jsonObject.getString("originUrl");
+        String originTypeStr = jsonObject.getString("originTypeStr");
         Long aliveSecond = jsonObject.getLong("aliveSecond");
         String params = jsonObject.getString("params");
         Long bytesSpeed = jsonObject.getLong("bytesSpeed");

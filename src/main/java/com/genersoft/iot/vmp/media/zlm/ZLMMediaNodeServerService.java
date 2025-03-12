@@ -197,7 +197,6 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     }
 
     public StreamInfo getStreamInfoByAppAndStream(MediaServer mediaServer, String app, String stream, MediaInfo mediaInfo, String callId, boolean isPlay) {
-        System.out.println(callId);
         StreamInfo streamInfoResult = new StreamInfo();
         streamInfoResult.setServerId(userSetting.getServerId());
         streamInfoResult.setStream(stream);
@@ -462,10 +461,11 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
                     streamProxy.getStream());
         }
         MediaInfo mediaInfo = getMediaInfo(mediaServer, streamProxy.getApp(), streamProxy.getStream());
+
         if (mediaInfo != null) {
             if (mediaInfo.getOriginUrl() != null && mediaInfo.getOriginUrl().equals(streamProxy.getSrcUrl())) {
                 log.info("[启动拉流代理] 已存在， 直接返回， app： {}, stream: {}", mediaInfo.getApp(), streamProxy.getStream());
-                return getStreamInfoByAppAndStream(mediaServer, streamProxy.getApp(), streamProxy.getStream(), null, null, true);
+                return getStreamInfoByAppAndStream(mediaServer, streamProxy.getApp(), streamProxy.getStream(), mediaInfo, null, true);
             }
             closeStreams(mediaServer, streamProxy.getApp(), streamProxy.getStream());
         }
@@ -492,7 +492,13 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
                 throw new ControllerException(jsonObject.getInteger("code"), "代理结果异常： " + jsonObject);
             }else {
                 streamProxy.setStreamKey(jsonObject.getString("key"));
-                return getStreamInfoByAppAndStream(mediaServer, streamProxy.getApp(), streamProxy.getStream(), null, null, true);
+                // 由于此时流未注册，手动拼装流信息
+                mediaInfo = new MediaInfo();
+                mediaInfo.setApp(streamProxy.getApp());
+                mediaInfo.setStream(streamProxy.getStream());
+                mediaInfo.setOriginType(4);
+                mediaInfo.setOriginTypeStr("pull");
+                return getStreamInfoByAppAndStream(mediaServer, streamProxy.getApp(), streamProxy.getStream(), mediaInfo, null, true);
             }
         }
     }

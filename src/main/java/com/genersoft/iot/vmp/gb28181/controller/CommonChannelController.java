@@ -246,7 +246,7 @@ public class CommonChannelController {
                         } catch (MalformedURLException e) {
                             host=request.getLocalAddr();
                         }
-                        streamInfo.channgeStreamIp(host);
+                        streamInfo.changeStreamIp(host);
                     }
                     if (!ObjectUtils.isEmpty(streamInfo.getMediaServer().getTranscodeSuffix())
                             && !"null".equalsIgnoreCase(streamInfo.getMediaServer().getTranscodeSuffix())) {

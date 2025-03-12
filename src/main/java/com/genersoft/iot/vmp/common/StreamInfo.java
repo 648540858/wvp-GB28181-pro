@@ -275,7 +275,7 @@ public class StreamInfo implements Serializable, Cloneable{
         }
     }
 
-    public void channgeStreamIp(String localAddr) {
+    public void changeStreamIp(String localAddr) {
         if (this.flv != null) {
             this.flv.setHost(localAddr);
         }

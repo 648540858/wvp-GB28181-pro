@@ -147,7 +147,7 @@ public class GBRecordController {
 				if (data != null) {
 					StreamInfo streamInfo = (StreamInfo)data;
 					if (userSetting.getUseSourceIpAsStreamIp()) {
-						streamInfo.channgeStreamIp(request.getLocalAddr());
+						streamInfo.changeStreamIp(request.getLocalAddr());
 					}
 					wvpResult.setData(new StreamContent(streamInfo));
 				}

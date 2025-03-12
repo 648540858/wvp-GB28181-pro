@@ -6,11 +6,10 @@ import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.utils.MediaServerUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 import java.util.Map;
-
-import org.springframework.util.ObjectUtils;
 
 /**
  * 视频信息
@@ -49,8 +48,10 @@ public class MediaInfo {
     private Long duration;
     @Schema(description = "在线")
     private Boolean online;
-    @Schema(description = "unknown = 0,rtmp_push=1,rtsp_push=2,rtp_push=3,pull=4,ffmpeg_pull=5,mp4_vod=6,device_chn=7")
+    @Schema(description = "unknown = 0,rtmp_push=1,rtsp_push=2,rtp_push=3,pull=4,ffmpeg_pull=5,mp4_vod=6,device_chn=7,rtc_push=8")
     private Integer originType;
+    @Schema(description = "originType的文本描述")
+    private String originTypeStr;
     @Schema(description = "产生流的源流地址")
     private String originUrl;
     @Schema(description = "存活时间，单位秒")
@@ -79,6 +80,7 @@ public class MediaInfo {
         Boolean online = jsonObject.getBoolean("online");
         Integer originType = jsonObject.getInteger("originType");
         String originUrl = jsonObject.getString("originUrl");
+        String originTypeStr = jsonObject.getString("originUrl");
         Long aliveSecond = jsonObject.getLong("aliveSecond");
         String params = jsonObject.getString("params");
         Long bytesSpeed = jsonObject.getLong("bytesSpeed");
@@ -93,8 +95,8 @@ public class MediaInfo {
         if (originType != null) {
             mediaInfo.setOriginType(originType);
         }
-        if (originUrl != null) {
-            mediaInfo.setOriginUrl(originUrl);
+        if (originTypeStr != null) {
+            mediaInfo.setOriginTypeStr(originTypeStr);
         }
 
         if (aliveSecond != null) {
@@ -182,6 +184,7 @@ public class MediaInfo {
         mediaInfo.setReaderCount(param.getTotalReaderCount());
         mediaInfo.setOnline(param.isRegist());
         mediaInfo.setOriginType(param.getOriginType());
+        mediaInfo.setOriginTypeStr(param.getOriginTypeStr());
         mediaInfo.setOriginUrl(param.getOriginUrl());
         mediaInfo.setAliveSecond(param.getAliveSecond());
         mediaInfo.setBytesSpeed(param.getBytesSpeed());

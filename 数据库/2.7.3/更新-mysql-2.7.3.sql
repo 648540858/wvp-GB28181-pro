@@ -48,3 +48,18 @@ alter table wvp_cloud_record change file_path file_path varchar(500) null;
 alter table wvp_device change keepalive_interval_time heart_beat_interval integer;
 alter table wvp_device add heart_beat_count integer;
 alter table wvp_device add position_capability integer;
+
+/**
+  * 20250312
+ */
+alter table wvp_device add server_id character varying(50);
+alter table wvp_media_server add server_id character varying(50);
+alter table wvp_stream_proxy add server_id character varying(50);
+alter table wvp_cloud_record add server_id character varying(50);
+alter table wvp_platform add server_id character varying(50);
+
+/*  update wvp_device set server_id = "你服务的ID";
+ *  update wvp_media_server set server_id = "你服务的ID";
+ *  update wvp_stream_proxy set server_id = "你服务的ID";
+ *  update wvp_cloud_record set server_id = "你服务的ID";
+ */

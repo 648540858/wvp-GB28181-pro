@@ -79,7 +79,6 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
 
     Map<Integer, StreamInfo> recordStreamMap = new HashMap<>();
 
-//    @Scheduled(cron = "0 */30 * * * *")
     @Scheduled(fixedRate = 10, timeUnit = TimeUnit.MINUTES)
     public void execution() {
         log.info("[录制计划] 执行");

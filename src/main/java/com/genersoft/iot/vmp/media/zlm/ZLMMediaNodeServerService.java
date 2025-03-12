@@ -206,20 +206,23 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         streamInfoResult.setIp(addr);
         streamInfoResult.setMediaServer(mediaServer);
 
-        StringBuilder callIdParamBuilder = new StringBuilder();;
-        if (!ObjectUtils.isEmpty(callId) || (mediaInfo != null && !ObjectUtils.isEmpty(mediaInfo.getOriginTypeStr()))) {
-            StringBuilder stringBuilder =  new StringBuilder();
-            if (!ObjectUtils.isEmpty(callId)) {
-                stringBuilder.append("callId=").append(callId);
-            }
-            if (mediaInfo != null && !ObjectUtils.isEmpty(mediaInfo.getOriginTypeStr())) {
-                if (!ObjectUtils.isEmpty(callId)) {
-                    stringBuilder.append("&");
-                }
-                stringBuilder.append("originTypeStr=").append(mediaInfo.getOriginTypeStr());
-            }
-            callIdParamBuilder.append("?").append(stringBuilder);
+        Map<String, String> param = new HashMap<>();
+        if (!ObjectUtils.isEmpty(callId)) {
+            param.put("callId", callId);
         }
+        if (mediaInfo != null && !ObjectUtils.isEmpty(mediaInfo.getOriginTypeStr()))  {
+            param.put("originTypeStr", mediaInfo.getOriginTypeStr());
+        }
+        StringBuilder callIdParamBuilder = new StringBuilder();
+        if (!param.isEmpty()) {
+            callIdParamBuilder.append("?");
+            for (Map.Entry<String, String> entry : param.entrySet()) {
+                callIdParamBuilder.append(entry.getKey()).append("=").append(entry.getValue());
+                callIdParamBuilder.append("&");
+            }
+            callIdParamBuilder.deleteCharAt(callIdParamBuilder.length() - 1);
+        }
+
         String callIdParam = callIdParamBuilder.toString();
 
         streamInfoResult.setRtmp(addr, mediaServer.getRtmpPort(),mediaServer.getRtmpSSlPort(), app,  stream, callIdParam);

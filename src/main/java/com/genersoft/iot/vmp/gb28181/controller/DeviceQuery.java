@@ -15,7 +15,6 @@ import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.CatalogSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -209,6 +208,13 @@ public class DeviceQuery {
 	@PostMapping("/channel/stream/identification/update/")
 	public void updateChannelStreamIdentification(DeviceChannel channel){
 		deviceChannelService.updateChannelStreamIdentification(channel);
+	}
+	@Operation(summary = "获取单个通道详情", security = @SecurityRequirement(name = JwtUtils.HEADER))
+	@Parameter(name = "deviceId", description = "设备的国标编码", required = true)
+	@Parameter(name = "channelDeviceId", description = "通道的国标编码", required = true)
+	@GetMapping("/channel/one")
+	public DeviceChannel getChannel(String deviceId, String channelDeviceId){
+		return deviceChannelService.getOne(deviceId, channelDeviceId);
 	}
 
 

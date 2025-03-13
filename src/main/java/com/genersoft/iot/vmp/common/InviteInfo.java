@@ -37,6 +37,10 @@ public class InviteInfo {
 
     private Boolean record;
 
+    private String startTime;
+
+    private String endTime;
+
 
     public static InviteInfo getInviteInfo(String deviceId, Integer channelId, String stream, SSRCInfo ssrcInfo, String mediaServerId,
                                            String receiveIp, Integer receivePort, String streamMode,

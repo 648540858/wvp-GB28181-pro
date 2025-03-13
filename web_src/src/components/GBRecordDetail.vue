@@ -65,11 +65,7 @@
                   倍速 <i class="el-icon-arrow-down el-icon--right"></i>
                 </el-button>
                 <el-dropdown-menu>
-                  <el-dropdown-item command="0.25">0.25倍速</el-dropdown-item>
-                  <el-dropdown-item command="0.5">0.5倍速</el-dropdown-item>
-                  <el-dropdown-item command="1.0">1倍速</el-dropdown-item>
-                  <el-dropdown-item command="2.0">2倍速</el-dropdown-item>
-                  <el-dropdown-item command="4.0">4倍速</el-dropdown-item>
+                  <el-dropdown-item v-for="(item,index) in downloadSpeedArray" :key="index" :command="item">{{item}}倍速</el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
               <el-button size="mini" class="iconfont icon-xiazai1" title="下载选定录像" @click="downloadRecord()"></el-button>
@@ -115,6 +111,7 @@
 			return {
         deviceId: this.$route.params.deviceId,
         channelId: this.$route.params.channelId,
+        downloadSpeedArray: [0.25, 0.5, 1, 2, 4],
         recordsLoading: false,
         streamId: "",
         hasAudio: false,
@@ -184,6 +181,7 @@
       this.playerBoxStyle["height"] = this.winHeight + "px";
       this.chooseDate = moment().format('YYYY-MM-DD')
       this.dateChange();
+      this.getDownloadSpeedArray()
       window.addEventListener('beforeunload', this.stopPlayRecord)
 		},
 		destroyed() {
@@ -274,6 +272,27 @@
           });
         }
       },
+      getDownloadSpeedArray(){
+        this.$axios({
+          method: 'get',
+          url: '/api/device/query/channel/one',
+          params: {
+            deviceId: this.deviceId,
+            channelDeviceId: this.channelId,
+          }
+        }).then((res)=> {
+            if (res.data.code === 0 && res.data.data.downloadSpeed) {
+              let speedArray = res.data.data.downloadSpeed.split('/');
+
+              speedArray.forEach(item => {
+                if (parseInt(item) > 4) {
+                  this.downloadSpeedArray.push(parseInt(item));
+                  console.log(this.downloadSpeedArray);
+                }
+              })
+            }
+        })
+      },
       gbPlay(){
         console.log('前端控制：播放');
         this.$axios({
@@ -317,7 +336,7 @@
           this.$axios({
             method: 'get',
             url: '/api/gb_record/download/start/' + this.deviceId + '/' + this.channelId + '?startTime=' + row.startTime + '&endTime=' +
-              row.endTime + '&downloadSpeed=4'
+              row.endTime + '&downloadSpeed='+ this.downloadSpeedArray[this.downloadSpeedArray.length - 1]
           }).then( (res)=> {
             if (res.data.code === 0) {
               let streamInfo = res.data.data;

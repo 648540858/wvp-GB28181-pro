@@ -53,6 +53,7 @@ export default {
             this.showDialog = true;
             this.getProgressRun = true;
             this.percentage = 0.0;
+            this.downloadFile = null;
             this.getProgressTimer()
         },
         getProgressTimer: function (){

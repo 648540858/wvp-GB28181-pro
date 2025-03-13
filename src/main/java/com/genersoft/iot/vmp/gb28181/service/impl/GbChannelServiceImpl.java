@@ -750,4 +750,16 @@ public class GbChannelServiceImpl implements IGbChannelService {
             throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
         }
     }
+
+    @Override
+    public PageInfo<CommonGBChannel> queryListByCivilCodeForUnusual(int page, int count, String query, Boolean online, Integer channelType) {
+        PageHelper.startPage(page, count);
+        if (query != null) {
+            query = query.replaceAll("/", "//")
+                    .replaceAll("%", "/%")
+                    .replaceAll("_", "/_");
+        }
+        List<CommonGBChannel> all = commonGBChannelMapper.queryListByCivilCodeForUnusual(query, online, channelType);
+        return new PageInfo<>(all);
+    }
 }

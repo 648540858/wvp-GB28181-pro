@@ -141,6 +141,25 @@ public class CommonChannelController {
         return channelService.queryListByCivilCode(page, count, query, online, channelType, civilCode);
     }
 
+
+    @Operation(summary = "存在行政区划但无法挂载的通道列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "page", description = "当前页", required = true)
+    @Parameter(name = "count", description = "每页查询数量", required = true)
+    @Parameter(name = "query", description = "查询内容")
+    @Parameter(name = "online", description = "是否在线")
+    @Parameter(name = "channelType", description = "通道类型， 0：国标设备，1：推流设备，2：拉流代理")
+    @Parameter(name = "civilCode", description = "行政区划")
+    @GetMapping("/civilCode/unusual/list")
+    public PageInfo<CommonGBChannel> queryListByCivilCodeForUnusual(int page, int count,
+                                                          @RequestParam(required = false) String query,
+                                                          @RequestParam(required = false) Boolean online,
+                                                          @RequestParam(required = false) Integer channelType){
+        if (ObjectUtils.isEmpty(query)){
+            query = null;
+        }
+        return channelService.queryListByCivilCodeForUnusual(page, count, query, online, channelType);
+    }
+
     @Operation(summary = "获取关联业务分组通道列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页查询数量", required = true)

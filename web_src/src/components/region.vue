@@ -41,6 +41,9 @@
               <el-button v-bind:disabled="multipleSelection.length === 0" size="mini" type="danger" @click="remove()">
                 移除通道
               </el-button>
+              <el-button plain size="mini" type="warning" @click="showUnusualChanel()">
+                异常挂载通道
+              </el-button>
               <el-button icon="el-icon-refresh-right" circle size="mini" @click="getChannelList()"></el-button>
             </div>
           </div>
@@ -87,6 +90,7 @@
       </el-main>
     </el-container>
     <GbChannelSelect ref="gbChannelSelect" dataType="civilCode"></GbChannelSelect>
+    <UnusualRegionChannelSelect ref="unusualRegionChannelSelect" ></UnusualRegionChannelSelect>
   </div>
 </template>
 
@@ -95,6 +99,7 @@ import uiHeader from '../layout/UiHeader.vue'
 import DeviceService from "./service/DeviceService";
 import RegionTree from "./common/RegionTree.vue";
 import GbChannelSelect from "./dialog/GbChannelSelect.vue";
+import UnusualRegionChannelSelect from "./dialog/UnusualRegionChannelSelect.vue";
 
 export default {
   name: 'channelList',
@@ -102,6 +107,7 @@ export default {
     GbChannelSelect,
     uiHeader,
     RegionTree,
+    UnusualRegionChannelSelect,
   },
   data() {
     return {
@@ -268,6 +274,9 @@ export default {
         })
         this.loading = false
       });
+    },
+    showUnusualChanel: function () {
+      this.$refs.unusualRegionChannelSelect.openDialog()
     },
     getSnap: function (row) {
       let baseUrl = window.baseUrl ? window.baseUrl : "";

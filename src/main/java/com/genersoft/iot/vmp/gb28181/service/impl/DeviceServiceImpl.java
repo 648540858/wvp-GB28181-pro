@@ -40,10 +40,12 @@ import org.springframework.util.Assert;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
+import javax.validation.constraints.NotNull;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -199,12 +201,17 @@ public class DeviceServiceImpl implements IDeviceService {
             log.warn("[设备不存在] device：{}", deviceId);
             return;
         }
-        // TODO 主动查询设备状态
+
+        // 主动查询设备状态
+        Boolean deviceStatus = getDeviceStatus(device);
+        if (deviceStatus != null && deviceStatus) {
+            log.info("[设备离线] 主动探测发现设备在线，暂不处理  device：{}", deviceId);
+            online(device, null);
+            return;
+        }
         log.info("[设备离线] {}, device：{}， 心跳间隔： {}，心跳超时次数： {}， 上次心跳时间：{}， 上次注册时间： {}", reason, deviceId,
                 device.getHeartBeatInterval(), device.getHeartBeatCount(), device.getKeepaliveTime(), device.getRegisterTime());
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + deviceId;
-
-
         dynamicTask.stop(registerExpireTaskKey);
         if (device.isOnLine()) {
             if (userSetting.getDeviceStatusNotify()) {
@@ -411,15 +418,23 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public void checkDeviceStatus(Device device) {
-        if (device == null || !device.isOnLine()) {
-            return;
-        }
+    public Boolean getDeviceStatus(@NotNull Device device) {
+        SynchronousQueue<String> queue = new SynchronousQueue<>();
         try {
-            sipCommander.deviceStatusQuery(device, null);
-        } catch (InvalidArgumentException | SipException | ParseException e) {
+            sipCommander.deviceStatusQuery(device, ((code, msg, data) -> {
+                queue.offer(msg);
+            }));
+            String data = queue.poll(10, TimeUnit.SECONDS);
+            if (data != null && "ONLINE".equalsIgnoreCase(data.trim())) {
+                return Boolean.TRUE;
+            }else {
+                return Boolean.FALSE;
+            }
+
+        } catch (InvalidArgumentException | SipException | ParseException | InterruptedException e) {
             log.error("[命令发送失败] 设备状态查询: {}", e.getMessage());
         }
+        return null;
     }
 
     @Override
@@ -843,9 +858,17 @@ public class DeviceServiceImpl implements IDeviceService {
             callback.run(result.getCode(), result.getMsg(), result.getData());
             return;
         }
-
         try {
-            sipCommander.deviceStatusQuery(device, callback);
+            sipCommander.deviceStatusQuery(device, (code, msg, data) -> {
+                if ("ONLINE".equalsIgnoreCase(data.trim())) {
+                    online(device, null);
+                }else {
+                    offline(device.getDeviceId(), "设备状态查询结果：" + data.trim());
+                }
+                if (callback != null) {
+                    callback.run(code, msg, data);
+                }
+            });
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error("[命令发送失败] 获取设备状态: {}", e.getMessage());
             callback.run(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage(), null);

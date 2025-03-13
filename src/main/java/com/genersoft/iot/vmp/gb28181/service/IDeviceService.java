@@ -101,7 +101,7 @@ public interface IDeviceService {
      * 检查设备状态
      * @param device 设备信息
      */
-    void checkDeviceStatus(Device device);
+    Boolean getDeviceStatus(Device device);
 
     /**
      * 根据IP和端口获取设备信息

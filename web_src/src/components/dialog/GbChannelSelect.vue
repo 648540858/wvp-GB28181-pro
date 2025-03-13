@@ -66,7 +66,7 @@
       </el-table>
       <div style="display: grid; grid-template-columns: 1fr 1fr">
         <div style="text-align: left; line-height: 32px">
-          <i class="el-icon-info"></i>未找到通道，可在国标设备/通道中选择编辑按钮， 选择{{dataType === 'civilCode'?'行政区划':'父节点编码'}}
+          <i class="el-icon-info"></i> 未找到通道，可在国标设备/通道中选择编辑按钮， 选择{{dataType === 'civilCode'?'行政区划':'父节点编码'}}
         </div>
         <el-pagination
           style="text-align: right"

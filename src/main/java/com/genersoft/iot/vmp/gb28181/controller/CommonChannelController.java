@@ -160,6 +160,16 @@ public class CommonChannelController {
         return channelService.queryListByCivilCodeForUnusual(page, count, query, online, channelType);
     }
 
+    @Operation(summary = "清除存在行政区划但无法挂载的通道列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Parameter(name = "param", description = "当前页", required = true)
+    @GetMapping("/civilCode/unusual/clear")
+    public void queryListByCivilCodeForUnusual(ChannelToRegionParam param){
+        if (ObjectUtils.isEmpty(query)){
+            query = null;
+        }
+        return channelService.queryListByCivilCodeForUnusual(page, count, query, online, channelType);
+    }
+
     @Operation(summary = "获取关联业务分组通道列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页查询数量", required = true)

@@ -77,14 +77,14 @@
               icon="el-icon-plus"
               @click="addRegion(scope.row)"
             >
-              添加行政区划
+              添加
             </el-button>
           </template>
         </el-table-column>
       </el-table>
       <div style="display: grid; grid-template-columns: 1fr 1fr">
         <div style="text-align: left; line-height: 32px">
-          <i class="el-icon-info"></i>清除后通道可正常添加到行政区划，添加行政区划可以自动添加对应的行政区划节点。
+          <i class="el-icon-info"></i> 清除后通道可正常添加到行政区划，添加可以自动添加对应的行政区划节点。
         </div>
         <el-pagination
           style="text-align: right"
@@ -164,7 +164,6 @@ export default {
 
     },
     openDialog: function () {
-      console.log(2222)
       this.showDialog = true;
       this.initData();
     },
@@ -172,6 +171,42 @@ export default {
       this.showDialog = false;
     },
     clearUnusualRegion: function () {
+      if (this.multipleSelection.length === 0) {
+        return;
+      }
+      let channels = []
+      for (let i = 0; i < this.multipleSelection.length; i++) {
+        channels.push(this.multipleSelection[i].gbId)
+      }
+
+      this.$axios({
+        method: 'post',
+        url: `/api/common/channel/region/add`,
+        data: {
+          civilCode: regionDeviceId,
+          channelIds: channels
+        }
+      }).then((res) => {
+        if (res.data.code === 0) {
+          this.$message.success({
+            showClose: true,
+            message: "保存成功"
+          })
+          this.getChannelList()
+        } else {
+          this.$message.error({
+            showClose: true,
+            message: res.data.msg
+          })
+        }
+        this.loading = false
+      }).catch((error) => {
+        this.$message.error({
+          showClose: true,
+          message: error
+        })
+        this.loading = false
+      });
 
     },
     addRegion: function (row) {

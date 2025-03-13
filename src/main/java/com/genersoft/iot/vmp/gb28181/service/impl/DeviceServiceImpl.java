@@ -203,6 +203,8 @@ public class DeviceServiceImpl implements IDeviceService {
         log.info("[设备离线] {}, device：{}， 心跳间隔： {}，心跳超时次数： {}， 上次心跳时间：{}， 上次注册时间： {}", reason, deviceId,
                 device.getHeartBeatInterval(), device.getHeartBeatCount(), device.getKeepaliveTime(), device.getRegisterTime());
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + deviceId;
+
+
         dynamicTask.stop(registerExpireTaskKey);
         if (device.isOnLine()) {
             if (userSetting.getDeviceStatusNotify()) {

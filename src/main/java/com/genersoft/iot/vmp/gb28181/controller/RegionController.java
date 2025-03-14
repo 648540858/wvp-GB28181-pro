@@ -124,4 +124,20 @@ public class RegionController {
     public void sync(){
         regionService.syncFromChannel();
     }
+
+    @Operation(summary = "根据行政区划编号从文件中查询层级和描述")
+    @ResponseBody
+    @GetMapping("/description")
+    public String getDescription(String civilCode){
+        return regionService.getDescription(civilCode);
+    }
+
+    @Operation(summary = "根据行政区划编号从文件中查询层级并添加")
+    @ResponseBody
+    @GetMapping("/addByCivilCode")
+    public void addByCivilCode(String civilCode){
+        regionService.addByCivilCode(civilCode);
+    }
+
+
 }

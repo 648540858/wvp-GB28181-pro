@@ -91,4 +91,6 @@ public interface IGbChannelService {
     void queryRecordInfo(CommonGBChannel channel, String startTime, String endTime, ErrorCallback<RecordInfo> callback);
 
     PageInfo<CommonGBChannel> queryListByCivilCodeForUnusual(int page, int count, String query, Boolean online, Integer channelType);
+
+    void clearChannelCivilCode(Boolean all, List<Integer> channelIds);
 }

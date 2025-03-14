@@ -762,4 +762,16 @@ public class GbChannelServiceImpl implements IGbChannelService {
         List<CommonGBChannel> all = commonGBChannelMapper.queryListByCivilCodeForUnusual(query, online, channelType);
         return new PageInfo<>(all);
     }
+
+    @Override
+    public void clearChannelCivilCode(Boolean all, List<Integer> channelIds) {
+
+        List<Integer> channelIdsForClear;
+        if (all != null && all) {
+            channelIdsForClear = commonGBChannelMapper.queryAllForUnusual();
+        }else {
+            channelIdsForClear = channelIds;
+        }
+        commonGBChannelMapper.removeCivilCodeByChannelIds(channelIdsForClear);
+    }
 }

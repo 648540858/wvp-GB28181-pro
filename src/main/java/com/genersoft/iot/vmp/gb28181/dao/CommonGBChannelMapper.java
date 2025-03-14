@@ -307,6 +307,14 @@ public interface CommonGBChannelMapper {
             " </script>"})
     int removeCivilCodeByChannels(List<CommonGBChannel> channelList);
 
+    @Update(value = {" <script>" +
+            " UPDATE wvp_device_channel " +
+            " SET gb_civil_code = null, civil_code = null" +
+            " WHERE id in "+
+            " <foreach collection='channelIdList'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
+            " </script>"})
+    int removeCivilCodeByChannelIds(List<Integer> channelIdList);
+
     @SelectProvider(type = ChannelProvider.class, method = "queryByCivilCode")
     List<CommonGBChannel> queryByCivilCode(@Param("civilCode") String civilCode);
 
@@ -547,5 +555,8 @@ public interface CommonGBChannelMapper {
 
     @SelectProvider(type = ChannelProvider.class, method = "queryListByCivilCodeForUnusual")
     List<CommonGBChannel> queryListByCivilCodeForUnusual(@Param("query") String query, @Param("online") Boolean online, @Param("dataType")Integer dataType);
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryAllForUnusual")
+    List<Integer> queryAllForUnusual();
 
 }

@@ -431,4 +431,13 @@ public class ChannelProvider {
         }
         return sqlBuild.toString();
     }
+
+    public String queryAllForUnusual(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append("select wdc.id from wvp_device_channel wdc ");
+        sqlBuild.append(" left join (select wcr.device_id from wvp_common_region wcr) temp on temp.device_id = coalesce(wdc.gb_civil_code, wdc.civil_code)" +
+                " where coalesce(wdc.gb_civil_code, wdc.civil_code) is not null and temp.device_id is null ");
+        sqlBuild.append(" AND wdc.channel_type = 0 ");
+        return sqlBuild.toString();
+    }
 }

@@ -161,13 +161,10 @@ public class CommonChannelController {
     }
 
     @Operation(summary = "清除存在行政区划但无法挂载的通道列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @Parameter(name = "param", description = "当前页", required = true)
-    @GetMapping("/civilCode/unusual/clear")
-    public void queryListByCivilCodeForUnusual(ChannelToRegionParam param){
-        if (ObjectUtils.isEmpty(query)){
-            query = null;
-        }
-        return channelService.queryListByCivilCodeForUnusual(page, count, query, online, channelType);
+    @Parameter(name = "param", description = "清理参数， all为true清理所有异常数据。 否则按照传入的设备Id清理", required = true)
+    @PostMapping("/civilCode/unusual/clear")
+    public void clearChannelCivilCode(@RequestBody ChannelToRegionParam param){
+        channelService.clearChannelCivilCode(param.getAll(), param.getChannelIds());
     }
 
     @Operation(summary = "获取关联业务分组通道列表", security = @SecurityRequirement(name = JwtUtils.HEADER))

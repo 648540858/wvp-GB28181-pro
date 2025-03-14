@@ -33,7 +33,7 @@
           <el-button size="mini" type="primary" :loading="getChannelListLoading" :disabled="multipleSelection.length ===0"
                      @click="clearUnusualRegion()">清除</el-button>
           <el-button size="mini" :loading="getChannelListLoading"
-                     @click="clearUnusualRegion()">全部清除</el-button>
+                     @click="clearUnusualRegion(true)">全部清除</el-button>
           <el-button size="mini" :loading="getChannelListLoading"
                      @click="getChannelList()">刷新</el-button>
 
@@ -75,6 +75,7 @@
               size="medium"
               type="text"
               icon="el-icon-plus"
+              :loading="scope.row.addRegionLoading"
               @click="addRegion(scope.row)"
             >
               添加
@@ -154,6 +155,9 @@ export default {
       }).then( (res)=> {
         if (res.data.code === 0) {
           this.total = res.data.data.total;
+          for (let i = 0; i < res.data.data.list.length; i++) {
+            res.data.data.list[i]["addRegionLoading"] = false
+          }
           this.channelList = res.data.data.list;
         }
       }).catch( (error)=> {
@@ -170,27 +174,26 @@ export default {
     close: function () {
       this.showDialog = false;
     },
-    clearUnusualRegion: function () {
-      if (this.multipleSelection.length === 0) {
-        return;
+    clearUnusualRegion: function (all) {
+      let channels = null
+      if (all || this.multipleSelection.length > 0 ) {
+        channels = []
+        for (let i = 0; i < this.multipleSelection.length; i++) {
+          channels.push(this.multipleSelection[i].gbId)
+        }
       }
-      let channels = []
-      for (let i = 0; i < this.multipleSelection.length; i++) {
-        channels.push(this.multipleSelection[i].gbId)
-      }
-
       this.$axios({
         method: 'post',
-        url: `/api/common/channel/region/add`,
+        url: `/api/common/channel/civilCode/unusual/clear`,
         data: {
-          civilCode: regionDeviceId,
+          all: all,
           channelIds: channels
         }
       }).then((res) => {
         if (res.data.code === 0) {
           this.$message.success({
             showClose: true,
-            message: "保存成功"
+            message: "清除成功"
           })
           this.getChannelList()
         } else {
@@ -199,18 +202,71 @@ export default {
             message: res.data.msg
           })
         }
-        this.loading = false
       }).catch((error) => {
         this.$message.error({
           showClose: true,
           message: error
         })
+      }).finally(()=>{
         this.loading = false
-      });
+      })
 
     },
     addRegion: function (row) {
+      row.addRegionLoading = true;
+      this.$axios({
+        method: 'get',
+        url: `/api/region/description`,
+        params: {
+          civilCode: row.gbCivilCode,
+        }
+      }).then((res) => {
+        if (res.data.code === 0) {
+          this.$confirm(`确定添加： ${res.data.data}`, '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'info'
+          }).then(() => {
+            this.$axios({
+              method: 'get',
+              url: `/api/region/addByCivilCode`,
+              params: {
+                civilCode: row.gbCivilCode,
+              }
+            }).then((res) => {
+              if (res.data.code === 0) {
+                this.$message.success({
+                  showClose: true,
+                  message: "添加成功"
+                })
+                this.initData()
+              }else {
+                this.$message.error({
+                  showClose: true,
+                  message: res.data.msg
+                })
+              }
 
+            }).catch((error) => {
+              console.error(error);
+            });
+          }).catch(() => {
+
+          });
+        } else {
+          this.$message.error({
+            showClose: true,
+            message: res.data.msg
+          })
+        }
+      }).catch((error) => {
+        this.$message.error({
+          showClose: true,
+          message: error
+        })
+      }).finally(()=>{
+        row.addRegionLoading = false;
+      })
     },
 
   }

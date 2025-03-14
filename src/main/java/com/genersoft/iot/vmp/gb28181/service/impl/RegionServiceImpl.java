@@ -262,4 +262,66 @@ public class RegionServiceImpl implements IRegionService {
         regionList.addAll(allParent);
         return regionList;
     }
+
+    @Override
+    public String getDescription(String civilCode) {
+
+        CivilCodePo civilCodePo = CivilCodeUtil.INSTANCE.getCivilCodePo(civilCode);
+        Assert.notNull(civilCodePo, String.format("节点%s未查询到", civilCode));
+        StringBuilder sb = new StringBuilder();
+        sb.append(civilCodePo.getName());
+        List<CivilCodePo> civilCodePoList = CivilCodeUtil.INSTANCE.getAllParentCode(civilCode);
+        if (civilCodePoList.isEmpty()) {
+            return sb.toString();
+        }
+        for (int i = 0; i < civilCodePoList.size(); i++) {
+            CivilCodePo item = civilCodePoList.get(i);
+            sb.insert(0, item.getName());
+            if (i != civilCodePoList.size() - 1) {
+                sb.insert(0, "/");
+            }
+        }
+        return sb.toString();
+    }
+
+    @Override
+    @Transactional
+    public void addByCivilCode(String civilCode) {
+        CivilCodePo civilCodePo = CivilCodeUtil.INSTANCE.getCivilCodePo(civilCode);
+        // 查询是否已经存在此节点
+        Assert.notNull(civilCodePo, String.format("节点%s未查询到", civilCode));
+        List<CivilCodePo> civilCodePoList = CivilCodeUtil.INSTANCE.getAllParentCode(civilCode);
+        civilCodePoList.add(civilCodePo);
+
+        Set<String> civilCodeSet = regionMapper.queryInCivilCodePoList(civilCodePoList);
+        if (!civilCodeSet.isEmpty()) {
+            civilCodePoList.removeIf(item ->  civilCodeSet.contains(item.getCode()));
+        }
+        if (civilCodePoList.isEmpty()) {
+            return;
+        }
+        int parentId = -1;
+        for (int i = civilCodePoList.size() - 1; i > -1; i--) {
+            CivilCodePo codePo =  civilCodePoList.get(i);
+
+            Region region = new Region();
+            region.setDeviceId(codePo.getCode());
+            region.setParentDeviceId(codePo.getParentCode());
+            region.setName(civilCodePo.getName());
+            region.setCreateTime(DateUtil.getNow());
+            region.setUpdateTime(DateUtil.getNow());
+            if (parentId == -1 && codePo.getParentCode() != null) {
+                Region parentRegion = regionMapper.queryByDeviceId(codePo.getParentCode());
+                if (parentRegion == null){
+                    log.error(String.format("行政区划%sy已存在，但查询错误", codePo.getParentCode()));
+                    throw new ControllerException(ErrorCode.ERROR100.getCode(), String.format("行政区划%sy已存在，但查询错误", codePo.getParentCode()));
+                }
+                region.setParentId(parentRegion.getId());
+            }else {
+                region.setParentId(parentId);
+            }
+            regionMapper.add(region);
+            parentId = region.getId();
+        }
+    }
 }

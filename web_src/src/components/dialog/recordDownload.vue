@@ -40,7 +40,6 @@ export default {
           getProgressRun: false,
           timer: null,
           downloadFile: null,
-
         };
     },
     methods: {

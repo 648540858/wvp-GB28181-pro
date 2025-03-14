@@ -768,10 +768,33 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
         List<Integer> channelIdsForClear;
         if (all != null && all) {
-            channelIdsForClear = commonGBChannelMapper.queryAllForUnusual();
+            channelIdsForClear = commonGBChannelMapper.queryAllForUnusualCivilCode();
         }else {
             channelIdsForClear = channelIds;
         }
         commonGBChannelMapper.removeCivilCodeByChannelIds(channelIdsForClear);
+    }
+
+    @Override
+    public PageInfo<CommonGBChannel> queryListByParentForUnusual(int page, int count, String query, Boolean online, Integer channelType) {
+        PageHelper.startPage(page, count);
+        if (query != null) {
+            query = query.replaceAll("/", "//")
+                    .replaceAll("%", "/%")
+                    .replaceAll("_", "/_");
+        }
+        List<CommonGBChannel> all = commonGBChannelMapper.queryListByParentForUnusual(query, online, channelType);
+        return new PageInfo<>(all);
+    }
+
+    @Override
+    public void clearChannelParent(Boolean all, List<Integer> channelIds) {
+        List<Integer> channelIdsForClear;
+        if (all != null && all) {
+            channelIdsForClear = commonGBChannelMapper.queryAllForUnusualParent();
+        }else {
+            channelIdsForClear = channelIds;
+        }
+        commonGBChannelMapper.removeParentIdByChannelIds(channelIdsForClear);
     }
 }

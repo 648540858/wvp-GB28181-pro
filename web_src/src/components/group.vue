@@ -42,6 +42,9 @@
               <el-button v-bind:disabled="multipleSelection.length === 0" size="mini" type="danger" @click="remove()">
                 移除通道
               </el-button>
+              <el-button plain size="mini" type="warning" @click="showUnusualChanel()">
+                异常挂载通道
+              </el-button>
               <el-button icon="el-icon-refresh-right" circle size="mini" @click="getChannelList()"></el-button>
             </div>
           </div>
@@ -88,6 +91,7 @@
       </el-main>
     </el-container>
     <GbChannelSelect ref="gbChannelSelect" dataType="group"></GbChannelSelect>
+    <UnusualGroupChannelSelect ref="unusualGroupChannelSelect" ></UnusualGroupChannelSelect>
   </div>
 </template>
 
@@ -96,6 +100,7 @@ import uiHeader from '../layout/UiHeader.vue'
 import DeviceService from "./service/DeviceService";
 import GroupTree from "./common/GroupTree.vue";
 import GbChannelSelect from "./dialog/GbChannelSelect.vue";
+import UnusualGroupChannelSelect from "./dialog/UnusualGroupChannelSelect.vue";
 import RegionTree from "./common/RegionTree.vue";
 
 export default {
@@ -103,6 +108,7 @@ export default {
   components: {
     RegionTree,
     GbChannelSelect,
+    UnusualGroupChannelSelect,
     uiHeader,
     GroupTree,
   },
@@ -322,6 +328,9 @@ export default {
     },
     onChannelChange: function (deviceId) {
       //
+    },
+    showUnusualChanel: function () {
+      this.$refs.unusualGroupChannelSelect.openDialog()
     },
   }
 };

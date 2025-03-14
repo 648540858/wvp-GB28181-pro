@@ -556,7 +556,20 @@ public interface CommonGBChannelMapper {
     @SelectProvider(type = ChannelProvider.class, method = "queryListByCivilCodeForUnusual")
     List<CommonGBChannel> queryListByCivilCodeForUnusual(@Param("query") String query, @Param("online") Boolean online, @Param("dataType")Integer dataType);
 
-    @SelectProvider(type = ChannelProvider.class, method = "queryAllForUnusual")
-    List<Integer> queryAllForUnusual();
+    @SelectProvider(type = ChannelProvider.class, method = "queryAllForUnusualCivilCode")
+    List<Integer> queryAllForUnusualCivilCode();
 
+    @SelectProvider(type = ChannelProvider.class, method = "queryListByParentForUnusual")
+    List<CommonGBChannel> queryListByParentForUnusual(@Param("query") String query, @Param("online") Boolean online, @Param("dataType")Integer dataType);
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryAllForUnusualParent")
+    List<Integer> queryAllForUnusualParent();
+
+    @Update(value = {" <script>" +
+            " UPDATE wvp_device_channel " +
+            " SET gb_parent_id = null, gb_business_group_id = null, parent_id = null, business_group_id = null" +
+            " WHERE id in "+
+            " <foreach collection='channelIdsForClear'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
+            " </script>"})
+    void removeParentIdByChannelIds(List<Integer> channelIdsForClear);
 }

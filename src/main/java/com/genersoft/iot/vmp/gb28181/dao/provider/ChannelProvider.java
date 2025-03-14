@@ -432,11 +432,43 @@ public class ChannelProvider {
         return sqlBuild.toString();
     }
 
-    public String queryAllForUnusual(Map<String, Object> params ){
+    public String queryListByParentForUnusual(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(BASE_SQL_TABLE_NAME);
+        sqlBuild.append(" left join (select wcg.device_id from wvp_common_group wcg) temp on temp.device_id = coalesce(wdc.gb_parent_id, wdc.parent_id)" +
+                " where coalesce(wdc.gb_parent_id, wdc.parent_id) is not null and temp.device_id is null ");
+        sqlBuild.append(" AND wdc.channel_type = 0 ");
+        if (params.get("query") != null) {
+            sqlBuild.append(" AND (coalesce(wdc.gb_device_id, wdc.device_id) LIKE concat('%',#{query},'%') escape '/'" +
+                    " OR coalesce(wdc.gb_name, wdc.name) LIKE concat('%',#{query},'%') escape '/' )")
+            ;
+        }
+        if (params.get("online") != null && (Boolean)params.get("online")) {
+            sqlBuild.append(" AND coalesce(wdc.gb_status, wdc.status) = 'ON'");
+        }
+        if (params.get("online") != null && !(Boolean)params.get("online")) {
+            sqlBuild.append(" AND coalesce(wdc.gb_status, wdc.status) = 'OFF'");
+        }
+        if (params.get("dataType") != null) {
+            sqlBuild.append(" AND wdc.data_type = #{dataType}");
+        }
+        return sqlBuild.toString();
+    }
+
+    public String queryAllForUnusualCivilCode(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append("select wdc.id from wvp_device_channel wdc ");
         sqlBuild.append(" left join (select wcr.device_id from wvp_common_region wcr) temp on temp.device_id = coalesce(wdc.gb_civil_code, wdc.civil_code)" +
                 " where coalesce(wdc.gb_civil_code, wdc.civil_code) is not null and temp.device_id is null ");
+        sqlBuild.append(" AND wdc.channel_type = 0 ");
+        return sqlBuild.toString();
+    }
+
+    public String queryAllForUnusualParent(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append("select wdc.id from wvp_device_channel wdc ");
+        sqlBuild.append(" left join (select wcg.device_id from wvp_common_group wcg) temp on temp.device_id = coalesce(wdc.gb_parent_id, wdc.parent_id)" +
+                " where coalesce(wdc.gb_parent_id, wdc.parent_id) is not null and temp.device_id is null ");
         sqlBuild.append(" AND wdc.channel_type = 0 ");
         return sqlBuild.toString();
     }

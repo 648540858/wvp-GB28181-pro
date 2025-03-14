@@ -93,4 +93,8 @@ public interface IGbChannelService {
     PageInfo<CommonGBChannel> queryListByCivilCodeForUnusual(int page, int count, String query, Boolean online, Integer channelType);
 
     void clearChannelCivilCode(Boolean all, List<Integer> channelIds);
+
+    PageInfo<CommonGBChannel> queryListByParentForUnusual(int page, int count, String query, Boolean online, Integer channelType);
+
+    void clearChannelParent(Boolean all, List<Integer> channelIds);
 }

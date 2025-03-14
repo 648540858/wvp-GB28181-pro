@@ -66,7 +66,7 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
             return;
         }
         // 开启点播,
-        channelPlayService.play(channel, null, ((code, msg, streamInfo) -> {
+        channelPlayService.play(channel, null, true, ((code, msg, streamInfo) -> {
             if (code == InviteErrorCode.SUCCESS.getCode() && streamInfo != null) {
                 log.info("[录像] 流离开时拉起需要录像的流, 开启成功, 通道ID: {}", channel.getGbId());
                 recordStreamMap.put(channel.getGbId(), streamInfo);
@@ -79,7 +79,6 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
 
     Map<Integer, StreamInfo> recordStreamMap = new HashMap<>();
 
-//    @Scheduled(cron = "0 */30 * * * *")
     @Scheduled(fixedRate = 10, timeUnit = TimeUnit.MINUTES)
     public void execution() {
         log.info("[录制计划] 执行");
@@ -89,7 +88,8 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
         if (startChannelIdList.isEmpty()) {
             // 当前没有录像任务, 如果存在旧的正在录像的就移除
             if(!recordStreamMap.isEmpty()) {
-                stopStreams(recordStreamMap.keySet(), recordStreamMap);
+                Set<Integer> recordStreamSet = new HashSet<>(recordStreamMap.keySet());
+                stopStreams(recordStreamSet, recordStreamMap);
                 recordStreamMap.clear();
             }
         }else {
@@ -110,7 +110,7 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
                     // 查找是否已经开启录像, 如果没有则开启录像
                     for (CommonGBChannel channel : channelList) {
                         // 开启点播,
-                        channelPlayService.play(channel, null, ((code, msg, streamInfo) -> {
+                        channelPlayService.play(channel, null, true, ((code, msg, streamInfo) -> {
                             if (code == InviteErrorCode.SUCCESS.getCode() && streamInfo != null) {
                                 log.info("[录像] 开启成功, 通道ID: {}", channel.getGbId());
                                 recordStreamMap.put(channel.getGbId(), streamInfo);
@@ -266,14 +266,14 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
     }
 
     @Override
-    public PageInfo<CommonGBChannel> queryChannelList(int page, int count, String query, Integer channelType, Boolean online, Integer planId, Boolean hasLink) {
+    public PageInfo<CommonGBChannel> queryChannelList(int page, int count, String query, Integer dataType, Boolean online, Integer planId, Boolean hasLink) {
         PageHelper.startPage(page, count);
         if (query != null) {
             query = query.replaceAll("/", "//")
                     .replaceAll("%", "/%")
                     .replaceAll("_", "/_");
         }
-        List<CommonGBChannel> all = channelMapper.queryForRecordPlanForWebList(planId, query, channelType, online, hasLink);
+        List<CommonGBChannel> all = channelMapper.queryForRecordPlanForWebList(planId, query, dataType, online, hasLink);
         return new PageInfo<>(all);
     }
 

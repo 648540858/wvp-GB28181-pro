@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IGroupService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,6 +48,13 @@ public class GroupServiceImpl implements IGroupService {
 
         GbCode gbCode = GbCode.decode(group.getDeviceId());
         Assert.notNull(gbCode, "设备编号不满足国标定义");
+
+        // 查询数据库中已经存在的.
+        List<Group> groupListInDb = groupManager.queryInGroupListByDeviceId(Lists.newArrayList(group));
+        if (!ObjectUtils.isEmpty(groupListInDb)){
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), String.format("该节点编号 %s 已存在", group.getDeviceId()));
+        }
+
         if ("215".equals(gbCode.getTypeCode())){
             // 添加业务分组
             addBusinessGroup(group);
@@ -99,6 +107,12 @@ public class GroupServiceImpl implements IGroupService {
         Assert.notNull(group.getBusinessGroup(), "业务分组不可为NULL");
         Group groupInDb = groupManager.queryOne(group.getId());
         Assert.notNull(groupInDb, "分组不存在");
+
+        // 查询数据库中已经存在的.
+        List<Group> groupListInDb = groupManager.queryInGroupListByDeviceId(Lists.newArrayList(group));
+        if (!ObjectUtils.isEmpty(groupListInDb) && groupListInDb.get(0).getId() != group.getId()){
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), String.format("该该节点编号 %s 已存在", group.getDeviceId()));
+        }
 
         group.setName(group.getName());
         group.setUpdateTime(DateUtil.getNow());
@@ -209,7 +223,7 @@ public class GroupServiceImpl implements IGroupService {
                 for (Platform platform : platformList) {
                     try {
                         // 发送catalog
-                        eventPublisher.catalogEventPublish(platform.getId(), channel, CatalogEvent.DEL);
+                        eventPublisher.catalogEventPublish(platform, channel, CatalogEvent.DEL);
                     }catch (Exception e) {
                         log.warn("[业务分组/虚拟组织删除] 发送失败，{}", groupForDelete.getDeviceId(), e);
                     }

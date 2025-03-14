@@ -32,7 +32,7 @@
         </div>
       </div>
       <devicePlayer ref="devicePlayer"></devicePlayer>
-      <el-table size="medium"  :data="streamProxyList" style="width: 100%" :height="winHeight">
+      <el-table size="medium"  :data="streamProxyList" style="width: 100%" :height="$tableHeght" >
         <el-table-column prop="app" label="流应用名" min-width="120" show-overflow-tooltip/>
         <el-table-column prop="stream" label="流ID" min-width="120" show-overflow-tooltip/>
         <el-table-column label="流地址" min-width="250"  show-overflow-tooltip >
@@ -58,7 +58,8 @@
         <el-table-column label="拉流状态" min-width="120" >
           <template v-slot:default="scope">
             <div slot="reference" class="name-wrapper">
-              <el-tag size="medium" v-if="scope.row.pulling">正在拉流</el-tag>
+              <el-tag size="medium" v-if="scope.row.pulling && Vue.prototype.$myServerId !== scope.row.serverId" style="border-color: #ecf1af">正在拉流</el-tag>
+              <el-tag size="medium" v-if="scope.row.pulling && Vue.prototype.$myServerId === scope.row.serverId">正在拉流</el-tag>
               <el-tag size="medium" type="info" v-if="!scope.row.pulling">尚未拉流</el-tag>
             </div>
           </template>
@@ -66,7 +67,8 @@
         <el-table-column label="启用" min-width="120" >
           <template v-slot:default="scope">
             <div slot="reference" class="name-wrapper">
-              <el-tag size="medium" v-if="scope.row.enable">已启用</el-tag>
+              <el-tag size="medium" v-if="scope.row.enable && Vue.prototype.$myServerId !== scope.row.serverId" style="border-color: #ecf1af">已启用</el-tag>
+              <el-tag size="medium" v-if="scope.row.enable && Vue.prototype.$myServerId === scope.row.serverId">已启用</el-tag>
               <el-tag size="medium" type="info" v-if="!scope.row.enable">未启用</el-tag>
             </div>
           </template>
@@ -74,7 +76,7 @@
         <el-table-column prop="createTime" label="创建时间"  min-width="150" show-overflow-tooltip/>
         <el-table-column label="操作" width="400"  fixed="right">
           <template v-slot:default="scope">
-            <el-button size="medium" icon="el-icon-video-play" type="text" @click="play(scope.row)">播放</el-button>
+            <el-button size="medium" :loading="scope.row.playLoading" icon="el-icon-video-play" type="text" @click="play(scope.row)">播放</el-button>
             <el-divider direction="vertical"></el-divider>
             <el-button size="medium" icon="el-icon-switch-button" style="color: #f56c6c"  type="text" v-if="scope.row.pulling" @click="stopPlay(scope.row)">停止</el-button>
             <el-divider direction="vertical" v-if="scope.row.pulling" ></el-divider>
@@ -112,6 +114,8 @@
 	import uiHeader from '../layout/UiHeader.vue'
   import StreamProxyEdit from "./StreamProxyEdit";
   import MediaServer from "./service/MediaServer";
+  import Vue from "vue";
+
 	export default {
 		name: 'streamProxyList',
 		components: {
@@ -127,11 +131,9 @@
 				currentPusher: {}, //当前操作设备对象
 				updateLooper: 0, //数据刷新轮训标志
 				currentDeviceChannelsLenth:0,
-				winHeight: window.innerHeight - 250,
 				currentPage:1,
 				count:15,
 				total:0,
-        startBtnLoading: false,
         streamProxy: null,
         searchSrt: "",
         mediaServerId: "",
@@ -141,6 +143,9 @@
 			};
 		},
 		computed: {
+      Vue() {
+        return Vue
+      },
 		},
 		mounted() {
 			this.initData();
@@ -157,9 +162,6 @@
           this.mediaServerList = data.data;
         })
 			},
-      stopUpdateList: function (){
-        window.clearInterval(this.updateLooper)
-      },
       startUpdateList: function (){
         this.updateLooper = setInterval(()=>{
           if (!this.streamProxy) {
@@ -192,7 +194,7 @@
           if (res.data.code === 0) {
             that.total = res.data.data.total;
             for (let i = 0; i < res.data.data.list.length; i++) {
-              res.data.data.list[i]["startBtnLoading"] = false;
+              res.data.data.list[i]["playLoading"] = false;
             }
             that.streamProxyList = res.data.data.list;
           }
@@ -204,6 +206,7 @@
 				// this.$refs.streamProxyEdit.openDialog(null, this.initData)
         this.streamProxy = {
           type: "default",
+          dataType: 3,
           noneReader: 1,
           enable: true,
           enableAudio: true,
@@ -260,21 +263,21 @@
         this.streamProxy = null
 			},
 			play: function(row){
-				let that = this;
+        row.playLoading = true;
 				this.$axios({
 					method: 'get',
 					url:`/api/proxy/start`,
 					params: {
 						id: row.id,
 					}
-				}).then(function (res) {
+				}).then((res)=> {
 					if (res.data.code === 0) {
-            that.$refs.devicePlayer.openDialog("streamPlay", null, null, {
+            this.$refs.devicePlayer.openDialog("streamPlay", null, null, {
               streamInfo: res.data.data,
               hasAudio: true
             });
           }else {
-            that.$message({
+            this.$message({
               showClose: true,
               message: "获取地址失败：" + res.data.msg,
               type: "error",
@@ -283,7 +286,9 @@
 
 				}).catch(function (error) {
 					console.log(error);
-				});
+				}).finally(()=>{
+          row.playLoading = false;
+        })
 
 			},
       stopPlay: function(row){
@@ -333,54 +338,6 @@
           });
         }).catch(() => {
         });
-			},
-			start: function(row){
-        this.stopUpdateList()
-        this.$set(row, 'startBtnLoading', true)
-				this.$axios({
-					method: 'get',
-					url:`/api/proxy/start`,
-					params: {
-						app: row.app,
-						stream: row.stream
-					}
-				}).then((res)=> {
-				  if (res.data.code === 0){
-            this.initData()
-          }else {
-            this.$message({
-              showClose: true,
-              message: "启动失败，请检查地址是否可用！",
-              type: "error",
-            });
-          }
-          this.$set(row, 'startBtnLoading', false)
-          this.startUpdateList()
-				}).catch((error)=> {
-					console.log(error);
-          this.$message({
-            showClose: true,
-            message: "启动失败，请检查地址是否可用！",
-            type: "error",
-          });
-          this.$set(row, 'startBtnLoading', false)
-          this.startUpdateList()
-				});
-			},
-			stop: function(row){
-				let that = this;
-				this.$axios({
-					method: 'get',
-					url:`/api/proxy/stop`,
-					params: {
-						app: row.app,
-						stream: row.stream
-					}
-				}).then(function (res) {
-					that.initData()
-				}).catch(function (error) {
-					console.log(error);
-				});
 			},
       refresh: function (){
         this.initData();

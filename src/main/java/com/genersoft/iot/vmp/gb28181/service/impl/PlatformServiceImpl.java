@@ -1,9 +1,9 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
-import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.*;
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -26,6 +26,7 @@ import com.genersoft.iot.vmp.media.event.mediaServer.MediaSendRtpStoppedEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.*;
+import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.github.pagehelper.PageHelper;
@@ -35,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -47,13 +49,13 @@ import java.text.ParseException;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author lin
  */
 @Slf4j
 @Service
-@DS("master")
 public class PlatformServiceImpl implements IPlatformService {
 
     private final static String REGISTER_KEY_PREFIX = "platform_register_";
@@ -66,6 +68,7 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
 
     @Autowired
     private SSRCFactory ssrcFactory;
@@ -86,6 +89,12 @@ public class PlatformServiceImpl implements IPlatformService {
     private UserSetting userSetting;
 
     @Autowired
+    private IRedisRpcService redisRpcService;
+
+    @Autowired
+    private SipConfig sipConfig;
+
+    @Autowired
     private SipInviteSessionManager sessionManager;
 
     @Autowired
@@ -99,6 +108,85 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Autowired
     private ISendRtpServerService sendRtpServerService;
+
+    // 定时监听国标级联所进行的WVP服务是否正常， 如果异常则选择新的wvp执行
+    @Scheduled(fixedDelay = 2, timeUnit = TimeUnit.SECONDS)   //每3秒执行一次
+    public void execute(){
+        if (!userSetting.isAutoRegisterPlatform()) {
+            return;
+        }
+        // 查找非平台的国标级联执行服务Id
+        List<String> serverIds = platformMapper.queryServerIdsWithEnableAndNotInServer(userSetting.getServerId());
+        if (serverIds == null || serverIds.isEmpty()) {
+            return;
+        }
+        serverIds.forEach(serverId -> {
+           // 检查每个是否存活
+            ServerInfo serverInfo = redisCatchStorage.queryServerInfo(serverId);
+            if (serverInfo != null) {
+                return;
+            }
+            log.info("[集群] 检测到 {} 已离线", serverId);
+            String chooseServerId = redisCatchStorage.chooseOneServer(serverId);
+            if (!userSetting.getServerId().equals(chooseServerId)){
+                return;
+            }
+            // 此平台需要选择新平台处理， 确定由当前平台即开始处理
+            List<Platform> platformList = platformMapper.queryByServerId(serverId);
+            platformList.forEach(platform -> {
+                log.info("[集群] 由本平台开启上级平台{}({})的注册", platform.getName(), platform.getServerGBId());
+                // 设置平台使用当前平台的IP
+                platform.setAddress(getIpWithSameNetwork(platform.getAddress()));
+                platform.setServerId(userSetting.getServerId());
+                platformMapper.update(platform);
+                // 更新redis
+                redisCatchStorage.delPlatformCatchInfo(platform.getServerGBId());
+                PlatformCatch platformCatch = new PlatformCatch();
+                platformCatch.setPlatform(platform);
+                platformCatch.setId(platform.getServerGBId());
+                redisCatchStorage.updatePlatformCatchInfo(platformCatch);
+                // 开始注册
+                // 注册成功时由程序直接调用了online方法
+                try {
+                    commanderForPlatform.register(platform, eventResult -> {
+                        log.info("[国标级联] {}（{}）,添加向上级注册失败，请确定上级平台可用时重新保存", platform.getName(), platform.getServerGBId());
+                    }, null);
+                } catch (InvalidArgumentException | ParseException | SipException e) {
+                    log.error("[命令发送失败] 国标级联: {}", e.getMessage());
+                }
+            });
+        });
+    }
+
+    /**
+     * 获取同网段的IP
+     */
+    private String getIpWithSameNetwork(String ip){
+        if (ip == null || sipConfig.getMonitorIps().size() == 1) {
+            return sipConfig.getMonitorIps().get(0);
+        }
+        String[] ipSplit = ip.split("\\.");
+        String ip1 = null, ip2 = null, ip3 = null;
+        for (String monitorIp : sipConfig.getMonitorIps()) {
+            String[] monitorIpSplit = monitorIp.split("\\.");
+            if (monitorIpSplit[0].equals(ipSplit[0]) && monitorIpSplit[1].equals(ipSplit[1]) && monitorIpSplit[2].equals(ipSplit[2])) {
+                ip3 = monitorIp;
+            }else if (monitorIpSplit[0].equals(ipSplit[0]) && monitorIpSplit[1].equals(ipSplit[1])) {
+                ip2 = monitorIp;
+            }else if (monitorIpSplit[0].equals(ipSplit[0])) {
+                ip1 = monitorIp;
+            }
+        }
+        if (ip3 != null) {
+            return ip3;
+        }else if (ip2 != null) {
+            return ip2;
+        }else if (ip1 != null) {
+            return ip1;
+        }else {
+            return sipConfig.getMonitorIps().get(0);
+        }
+    }
 
     /**
      * 流离开的处理
@@ -175,6 +263,7 @@ public class PlatformServiceImpl implements IPlatformService {
             // 每次发送目录的数量默认为1
             platform.setCatalogGroup(1);
         }
+        platform.setServerId(userSetting.getServerId());
         int result = platformMapper.add(platform);
         // 添加缓存
         PlatformCatch platformCatch = new PlatformCatch();
@@ -201,6 +290,11 @@ public class PlatformServiceImpl implements IPlatformService {
         log.info("[国标级联] 更新平台 {}({})", platform.getName(), platform.getDeviceGBId());
         platform.setCharacterSet(platform.getCharacterSet().toUpperCase());
         Platform platformInDb = platformMapper.query(platform.getId());
+        Assert.notNull(platformInDb, "平台不存在");
+        if (!userSetting.getServerId().equals(platformInDb.getServerId())) {
+            return redisRpcService.updatePlatform(platformInDb.getServerId(), platform);
+        }
+
         PlatformCatch platformCatchOld = redisCatchStorage.queryPlatformCatchInfo(platformInDb.getServerGBId());
         platform.setUpdateTime(DateUtil.getNow());
 
@@ -484,7 +578,7 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public void broadcastInvite(Platform platform, CommonGBChannel channel, MediaServer mediaServerItem, HookSubscribe.Event hookEvent,
+    public void broadcastInvite(Platform platform, CommonGBChannel channel, String sourceId, MediaServer mediaServerItem, HookSubscribe.Event hookEvent,
                                 SipSubscribe.Event errorEvent, InviteTimeOutCallback timeoutCallback) throws InvalidArgumentException, ParseException, SipException {
 
         if (mediaServerItem == null) {
@@ -543,7 +637,7 @@ public class PlatformServiceImpl implements IPlatformService {
         // 初始化redis中的invite消息状态
         InviteInfo inviteInfo = InviteInfo.getInviteInfo(platform.getServerGBId(), channel.getGbId(), ssrcInfo.getStream(), ssrcInfo, mediaServerItem.getId(),
                 mediaServerItem.getSdpIp(), ssrcInfo.getPort(), userSetting.getBroadcastForPlatform(), InviteSessionType.BROADCAST,
-                InviteSessionStatus.ready);
+                InviteSessionStatus.ready, userSetting.getRecordSip());
         inviteStreamService.updateInviteInfo(inviteInfo);
         String timeOutTaskKey = UUID.randomUUID().toString();
         dynamicTask.startDelay(timeOutTaskKey, () -> {
@@ -553,19 +647,19 @@ public class PlatformServiceImpl implements IPlatformService {
                 log.info("[国标级联] 发起语音喊话 收流超时 deviceId: {}, channelId: {}，端口：{}, SSRC: {}", platform.getServerGBId(), channel.getGbDeviceId(), ssrcInfo.getPort(), ssrcInfo.getSsrc());
                 // 点播超时回复BYE 同时释放ssrc以及此次点播的资源
                 try {
-                    commanderForPlatform.streamByeCmd(platform, channel, ssrcInfo.getStream(), null, null);
+                    commanderForPlatform.streamByeCmd(platform, channel, ssrcInfo.getApp(), ssrcInfo.getStream(), null, null);
                 } catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
                     log.error("[点播超时]， 发送BYE失败 {}", e.getMessage());
                 } finally {
                     timeoutCallback.run(1, "收流超时");
                     mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
                     mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
-                    sessionManager.removeByStream(ssrcInfo.getStream());
+                    sessionManager.removeByStream(ssrcInfo.getApp(), ssrcInfo.getStream());
                     mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                 }
             }
         }, userSetting.getPlayTimeout());
-        commanderForPlatform.broadcastInviteCmd(platform, channel, mediaServerItem, ssrcInfo, (hookData)->{
+        commanderForPlatform.broadcastInviteCmd(platform, channel,sourceId, mediaServerItem, ssrcInfo, (hookData)->{
             log.info("[国标级联] 发起语音喊话 收到上级推流 deviceId: {}, channelId: {}", platform.getServerGBId(), channel.getGbDeviceId());
             dynamicTask.stop(timeOutTaskKey);
             // hook响应
@@ -590,7 +684,7 @@ public class PlatformServiceImpl implements IPlatformService {
         StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServerItem, mediaInfo.getApp(), mediaInfo.getStream(), mediaInfo, null);
         streamInfo.setChannelId(channel.getGbId());
 
-        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getGbId());
+        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.BROADCAST, channel.getGbId());
         if (inviteInfo != null) {
             inviteInfo.setStatus(InviteSessionStatus.ok);
             inviteInfo.setStreamInfo(streamInfo);
@@ -638,7 +732,7 @@ public class PlatformServiceImpl implements IPlatformService {
                     if (!result) {
                         try {
                             log.warn("[Invite 200OK] 更新ssrc失败，停止喊话 {}/{}", platform.getServerGBId(), channel.getGbDeviceId());
-                            commanderForPlatform.streamByeCmd(platform, channel, ssrcInfo.getStream(), null, null);
+                            commanderForPlatform.streamByeCmd(platform, channel, ssrcInfo.getApp(), ssrcInfo.getStream(), null, null);
                         } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
                             log.error("[命令发送失败] 停止播放， 发送BYE: {}", e.getMessage());
                         }
@@ -647,7 +741,7 @@ public class PlatformServiceImpl implements IPlatformService {
                         // 释放ssrc
                         mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
 
-                        sessionManager.removeByStream(ssrcInfo.getStream());
+                        sessionManager.removeByStream(ssrcInfo.getApp(), ssrcInfo.getStream());
 
                         callback.run(InviteErrorCode.ERROR_FOR_RESET_SSRC.getCode(),
                                 "下级自定义了ssrc,重新设置收流信息失败", null);
@@ -687,12 +781,13 @@ public class PlatformServiceImpl implements IPlatformService {
                 if (ssrcInResponse != null) {
                     // 单端口
                     // 重新订阅流上线
-                    SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(inviteInfo.getStream());
-                    sessionManager.removeByStream(inviteInfo.getStream());
+                    SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByStream(ssrcInfo.getApp(), inviteInfo.getStream());
+                    sessionManager.removeByStream(ssrcInfo.getApp(), inviteInfo.getStream());
                     inviteStreamService.updateInviteInfoForSSRC(inviteInfo, ssrcInResponse);
 
                     ssrcTransaction.setPlatformId(platform.getServerGBId());
                     ssrcTransaction.setChannelId(channel.getGbId());
+                    ssrcTransaction.setApp(ssrcInfo.getApp());
                     ssrcTransaction.setStream(inviteInfo.getStream());
                     ssrcTransaction.setSsrc(ssrcInResponse);
                     ssrcTransaction.setMediaServerId(mediaServerItem.getId());
@@ -744,7 +839,7 @@ public class PlatformServiceImpl implements IPlatformService {
             // 释放ssrc
             mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
 
-            sessionManager.removeByStream(ssrcInfo.getStream());
+            sessionManager.removeByStream(ssrcInfo.getApp(), ssrcInfo.getStream());
 
             callback.run(InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getCode(),
                     InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getMsg(), null);
@@ -755,11 +850,11 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public void stopBroadcast(Platform platform, CommonGBChannel channel, String stream, boolean sendBye, MediaServer mediaServerItem) {
+    public void stopBroadcast(Platform platform, CommonGBChannel channel, String app, String stream, boolean sendBye, MediaServer mediaServerItem) {
 
         try {
             if (sendBye) {
-                commanderForPlatform.streamByeCmd(platform, channel, stream, null, null);
+                commanderForPlatform.streamByeCmd(platform, channel, app, stream, null, null);
             }
         } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
             log.warn("[消息发送失败] 停止语音对讲， 平台：{}，通道：{}", platform.getId(), channel.getGbDeviceId() );
@@ -771,7 +866,7 @@ public class PlatformServiceImpl implements IPlatformService {
                 mediaServerService.releaseSsrc(mediaServerItem.getId(), inviteInfo.getSsrcInfo().getSsrc());
                 inviteStreamService.removeInviteInfo(inviteInfo);
             }
-            sessionManager.removeByStream(stream);
+            sessionManager.removeByStream(app, stream);
         }
     }
 
@@ -781,8 +876,8 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public List<Platform> queryEnablePlatformList() {
-        return platformMapper.queryEnablePlatformList();
+    public List<Platform> queryEnablePlatformList(String serverId) {
+        return platformMapper.queryEnableParentPlatformList(serverId,true);
     }
 
     @Override

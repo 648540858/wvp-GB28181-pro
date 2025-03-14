@@ -1,7 +1,8 @@
 package com.genersoft.iot.vmp.gb28181.event.record;
 
-import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
 import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
 
 /**
@@ -9,24 +10,18 @@ import org.springframework.context.ApplicationEvent;
  * @author: pan
  * @data: 2022-02-23
  */
-
-public class RecordEndEvent extends ApplicationEvent {
+@Setter
+@Getter
+public class RecordInfoEndEvent extends ApplicationEvent {
     /**
      *
      */
     private static final long serialVersionUID = 1L;
 
-    public RecordEndEvent(Object source) {
+    public RecordInfoEndEvent(Object source) {
         super(source);
     }
 
     private RecordInfo recordInfo;
 
-    public RecordInfo getRecordInfo() {
-        return recordInfo;
-    }
-
-    public void setRecordInfo(RecordInfo recordInfo) {
-        this.recordInfo = recordInfo;
-    }
 }

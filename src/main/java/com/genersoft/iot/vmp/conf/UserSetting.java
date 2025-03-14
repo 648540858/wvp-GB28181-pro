@@ -38,6 +38,11 @@ public class UserSetting {
     private Integer playTimeout = 10000;
 
     /**
+     * 获取设备录像数据超时时间,单位：毫秒
+     */
+    private Integer recordInfoTimeout = 15000;
+
+    /**
      * 上级点播等待超时时间,单位：毫秒
      */
     private int platformPlayTimeout = 20000;
@@ -169,5 +174,21 @@ public class UserSetting {
      *     # 1（默认）： 对于离线设备，收到心跳就把设备设置为上线，并更新注册时间为上次这次心跳的时间。防止过期时间判断异常
      */
     private int gbDeviceOnline = 1;
+
+    /**
+     *    登录超时时间(分钟)，
+     */
+    private long loginTimeout = 30;
+
+    /**
+     * jwk文件路径，若不指定则使用resources目录下的jwk.json
+     */
+    private String jwkFile = "classpath:jwk.json";
+
+    /**
+     * wvp集群模式下如果注册向上级的wvp奔溃，则自动选择一个其他wvp继续注册到上级
+     */
+    private boolean autoRegisterPlatform = false;
+
 
 }

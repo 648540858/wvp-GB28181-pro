@@ -1,10 +1,11 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.cmd;
 
+import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
-import com.genersoft.iot.vmp.gb28181.event.record.RecordEndEventListener;
+import com.genersoft.iot.vmp.gb28181.event.record.RecordInfoEventListener;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
@@ -52,7 +53,7 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
     private SIPCommander commander;
 
     @Autowired
-    private RecordEndEventListener recordEndEventListener;
+    private RecordInfoEventListener recordInfoEventListener;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -104,8 +105,8 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
             }
             return;
         }
-        if (channel.getGbId() == 0 ) {
-            log.info("[平台查询录像记录] 不支持查询推流和拉流代理的录像数据 {}/{}", platform.getName(), channelId );
+        if (channel.getDataType() != ChannelDataType.GB28181.value) {
+            log.info("[平台查询录像记录] 只支持查询国标28181的录像数据 {}/{}", platform.getName(), channelId );
             try {
                 responseAck(request, Response.NOT_IMPLEMENTED); // 回复未实现
             } catch (SipException | InvalidArgumentException | ParseException e) {
@@ -113,7 +114,7 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
             }
             return;
         }
-        Device device = deviceService.getDevice(channel.getGbDeviceDbId());
+        Device device = deviceService.getDevice(channel.getDataDeviceId());
         if (device == null) {
             log.warn("[平台查询录像记录] 未找到通道对应的设备 {}/{}", platform.getName(), channelId );
             try {
@@ -126,7 +127,7 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
         // 获取通道的原始信息
         DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
         // 接收录像数据
-        recordEndEventListener.addEndEventHandler(device.getDeviceId(), deviceChannel.getDeviceId(), (recordInfo)->{
+        recordInfoEventListener.addEndEventHandler(device.getDeviceId(), deviceChannel.getDeviceId(), (recordInfo)->{
             try {
                 log.info("[国标级联] 录像查询收到数据， 通道： {}，准备转发===", channelId);
                 cmderFroPlatform.recordInfo(channel, platform, request.getFromTag(), recordInfo);

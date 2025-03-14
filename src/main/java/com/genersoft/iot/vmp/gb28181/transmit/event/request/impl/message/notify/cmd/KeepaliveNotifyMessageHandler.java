@@ -3,16 +3,18 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
+import com.genersoft.iot.vmp.gb28181.bean.RemoteAddressInfo;
+import com.genersoft.iot.vmp.gb28181.bean.SipMsgInfo;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.dom4j.Element;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,10 +97,10 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             }
             Device device = sipMsgInfo.getDevice();
             SIPRequest request = (SIPRequest) evt.getRequest();
-            if (!ObjectUtils.isEmpty(device.getKeepaliveTime()) && DateUtil.getDifferenceForNow(device.getKeepaliveTime()) <= 3000L) {
-                log.info("[收到心跳] 心跳发送过于频繁，已忽略 device: {}, callId: {}", device.getDeviceId(), request.getCallIdHeader().getCallId());
-                return;
-            }
+//            if (!ObjectUtils.isEmpty(device.getKeepaliveTime()) && DateUtil.getDifferenceForNow(device.getKeepaliveTime()) <= 3000L) {
+//                log.info("[收到心跳] 心跳发送过于频繁，已忽略 device: {}, callId: {}", device.getDeviceId(), request.getCallIdHeader().getCallId());
+//                return;
+//            }
 
             RemoteAddressInfo remoteAddressInfo = SipUtils.getRemoteAddressFromRequest(request, userSetting.getSipUseSourceIpAsRemoteAddress());
             if (!device.getIp().equalsIgnoreCase(remoteAddressInfo.getIp()) || device.getPort() != remoteAddressInfo.getPort()) {
@@ -112,14 +114,6 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
                     deviceService.removeCatalogSubscribe(device, result -> {
                         deviceService.addCatalogSubscribe(device);
                     });
-                }
-            }
-            if (device.getKeepaliveTime() == null) {
-                device.setKeepaliveIntervalTime(60);
-            } else {
-                long lastTime = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(device.getKeepaliveTime());
-                if (System.currentTimeMillis() / 1000 - lastTime > 10) {
-                    device.setKeepaliveIntervalTime(Long.valueOf(System.currentTimeMillis() / 1000 - lastTime).intValue());
                 }
             }
 
@@ -138,7 +132,8 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             // 刷新过期任务
             String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
             // 如果三次心跳失败，则设置设备离线
-            dynamicTask.startDelay(registerExpireTaskKey, () -> deviceService.offline(device.getDeviceId(), "三次心跳失败"), device.getKeepaliveIntervalTime() * 1000 * 3);
+            dynamicTask.startDelay(registerExpireTaskKey, () -> deviceService.offline(device.getDeviceId(), "三次心跳超时"),
+                    device.getHeartBeatInterval() * 1000 * device.getHeartBeatCount());
 
         }
     }

@@ -206,7 +206,7 @@
         <div style="float: right;">
           <el-button type="primary" @click="onSubmit">保存</el-button>
           <el-button v-if="cancel" @click="cancelSubmit">取消</el-button>
-          <el-button v-if="form.gbDeviceDbId" @click="reset">重置</el-button>
+          <el-button v-if="form.dataType === 1" @click="reset">重置</el-button>
         </div>
       </div>
 

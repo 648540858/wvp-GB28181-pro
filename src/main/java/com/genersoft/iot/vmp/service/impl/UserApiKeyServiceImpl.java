@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.service.impl;
 
-import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.service.IUserApiKeyService;
 import com.genersoft.iot.vmp.storager.dao.UserApiKeyMapper;
 import com.genersoft.iot.vmp.storager.dao.dto.UserApiKey;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-@DS("master")
 public class UserApiKeyServiceImpl implements IUserApiKeyService {
 
     @Autowired

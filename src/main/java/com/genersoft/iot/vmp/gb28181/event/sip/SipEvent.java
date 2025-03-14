@@ -32,13 +32,13 @@ public class SipEvent implements Delayed {
         sipEvent.setKey(key);
         sipEvent.setOkEvent(okEvent);
         sipEvent.setErrorEvent(errorEvent);
-        sipEvent.setDelay(delay);
+        sipEvent.setDelay(System.currentTimeMillis() + delay);
         return sipEvent;
     }
 
     @Override
     public long getDelay(@NotNull TimeUnit unit) {
-        return unit.convert(delay, TimeUnit.MILLISECONDS);
+        return unit.convert(delay - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
     }
 
     @Override

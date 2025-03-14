@@ -5,7 +5,6 @@ import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.event.sip.SipEvent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.response.ISIPResponseProcessor;
-import com.genersoft.iot.vmp.gb28181.transmit.event.timeout.ITimeoutProcessor;
 import gov.nist.javax.sip.message.SIPResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +12,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import javax.sip.*;
+import javax.sip.header.CSeqHeader;
 import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
 import java.util.Map;
@@ -27,9 +27,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class SIPProcessorObserver implements ISIPProcessorObserver {
 
-    private static Map<String,  ISIPRequestProcessor> requestProcessorMap = new ConcurrentHashMap<>();
-    private static Map<String, ISIPResponseProcessor> responseProcessorMap = new ConcurrentHashMap<>();
-    private static ITimeoutProcessor timeoutProcessor;
+    private static final Map<String,  ISIPRequestProcessor> requestProcessorMap = new ConcurrentHashMap<>();
+    private static final Map<String, ISIPResponseProcessor> responseProcessorMap = new ConcurrentHashMap<>();
 
     @Autowired
     private SipSubscribe sipSubscribe;
@@ -53,14 +52,6 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
      */
     public void addResponseProcessor(String method, ISIPResponseProcessor processor) {
         responseProcessorMap.put(method, processor);
-    }
-
-    /**
-     * 添加 超时事件订阅
-     * @param processor 处理程序
-     */
-    public void addTimeoutProcessor(ITimeoutProcessor processor) {
-        timeoutProcessor = processor;
     }
 
     /**
@@ -95,14 +86,15 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
         if (((status >= Response.OK) && (status < Response.MULTIPLE_CHOICES)) || status == Response.UNAUTHORIZED) {
             if (status != Response.UNAUTHORIZED && responseEvent.getResponse() != null && !sipSubscribe.isEmpty() ) {
                 CallIdHeader callIdHeader = response.getCallIdHeader();
+                CSeqHeader cSeqHeader = response.getCSeqHeader();
                 if (callIdHeader != null) {
-                    SipEvent sipEvent = sipSubscribe.getSubscribe(callIdHeader.getCallId());
+                    SipEvent sipEvent = sipSubscribe.getSubscribe(callIdHeader.getCallId() + cSeqHeader.getSeqNumber());
                     if (sipEvent != null) {
                         if (sipEvent.getOkEvent() != null) {
                             SipSubscribe.EventResult<ResponseEvent> eventResult = new SipSubscribe.EventResult<>(responseEvent);
                             sipEvent.getOkEvent().response(eventResult);
                         }
-                        sipSubscribe.removeSubscribe(callIdHeader.getCallId());
+                        sipSubscribe.removeSubscribe(callIdHeader.getCallId() + cSeqHeader.getSeqNumber());
                     }
                 }
             }
@@ -117,15 +109,16 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
         } else {
             log.warn("接收到失败的response响应！status：" + status + ",message:" + response.getReasonPhrase());
             if (responseEvent.getResponse() != null && !sipSubscribe.isEmpty() ) {
-                CallIdHeader callIdHeader = (CallIdHeader)responseEvent.getResponse().getHeader(CallIdHeader.NAME);
+                CallIdHeader callIdHeader = response.getCallIdHeader();
+                CSeqHeader cSeqHeader = response.getCSeqHeader();
                 if (callIdHeader != null) {
-                    SipEvent sipEvent = sipSubscribe.getSubscribe(callIdHeader.getCallId());
+                    SipEvent sipEvent = sipSubscribe.getSubscribe(callIdHeader.getCallId() + cSeqHeader.getSeqNumber());
                     if (sipEvent != null ) {
                         if (sipEvent.getErrorEvent() != null) {
                             SipSubscribe.EventResult<ResponseEvent> eventResult = new SipSubscribe.EventResult<>(responseEvent);
                             sipEvent.getErrorEvent().response(eventResult);
                         }
-                        sipSubscribe.removeSubscribe(callIdHeader.getCallId());
+                        sipSubscribe.removeSubscribe(callIdHeader.getCallId() + cSeqHeader.getSeqNumber());
                     }
                 }
             }

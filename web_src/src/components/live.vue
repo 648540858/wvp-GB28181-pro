@@ -13,7 +13,7 @@
             <i class="iconfont icon-a-mti-6fenpingshi btn" :class="{active: spiltIndex === 2}" @click="spiltIndex=2"/>
             <i class="iconfont icon-a-mti-9fenpingshi btn" :class="{active: spiltIndex === 3}" @click="spiltIndex=3"/>
           </div>
-          <div style="text-align: right">
+          <div style="text-align: right; margin-right: 10px;">
             <i class="el-icon-full-screen btn" @click="fullScreen()"/>
           </div>
         </el-header>

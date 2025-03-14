@@ -148,8 +148,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             corsConfiguration.setAllowCredentials(true);
             corsConfiguration.setAllowedOrigins(userSetting.getAllowedOrigins());
         }else {
-            corsConfiguration.setAllowCredentials(false);
-            corsConfiguration.setAllowedOrigins(Collections.singletonList(CorsConfiguration.ALL));
+            // 在SpringBoot 2.4及以上版本处理跨域时，遇到错误提示：当allowCredentials为true时，allowedOrigins不能包含特殊值"*"。
+            // 解决方法是明确指定allowedOrigins或使用allowedOriginPatterns。
+            corsConfiguration.setAllowCredentials(true);
+            corsConfiguration.addAllowedOriginPattern(CorsConfiguration.ALL); // 默认全部允许所有跨域
         }
 
         corsConfiguration.setExposedHeaders(Arrays.asList(JwtUtils.getHeader()));

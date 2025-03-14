@@ -27,15 +27,15 @@ public class SipInviteSessionManager {
 	 */
 	public void put(SsrcTransaction ssrcTransaction){
 		redisTemplate.opsForHash().put(VideoManagerConstants.SIP_INVITE_SESSION_STREAM + userSetting.getServerId()
-				, ssrcTransaction.getStream(), ssrcTransaction);
+				, ssrcTransaction.getApp() + ssrcTransaction.getStream(), ssrcTransaction);
 
 		redisTemplate.opsForHash().put(VideoManagerConstants.SIP_INVITE_SESSION_CALL_ID + userSetting.getServerId()
 				, ssrcTransaction.getCallId(), ssrcTransaction);
 	}
 
-	public SsrcTransaction getSsrcTransactionByStream(String stream){
+	public SsrcTransaction getSsrcTransactionByStream(String app, String stream){
 		String key = VideoManagerConstants.SIP_INVITE_SESSION_STREAM + userSetting.getServerId();
-		return (SsrcTransaction)redisTemplate.opsForHash().get(key, stream);
+		return (SsrcTransaction)redisTemplate.opsForHash().get(key, app + stream);
 	}
 
 	public SsrcTransaction getSsrcTransactionByCallId(String callId){
@@ -56,12 +56,12 @@ public class SipInviteSessionManager {
 		return result;
 	}
 	
-	public void removeByStream(String stream) {
-		SsrcTransaction ssrcTransaction = getSsrcTransactionByStream(stream);
+	public void removeByStream(String app, String stream) {
+		SsrcTransaction ssrcTransaction = getSsrcTransactionByStream(app, stream);
 		if (ssrcTransaction == null ) {
 			return;
 		}
-		redisTemplate.opsForHash().delete(VideoManagerConstants.SIP_INVITE_SESSION_STREAM + userSetting.getServerId(), stream);
+		redisTemplate.opsForHash().delete(VideoManagerConstants.SIP_INVITE_SESSION_STREAM + userSetting.getServerId(), app + stream);
 		if (ssrcTransaction.getCallId() != null) {
 			redisTemplate.opsForHash().delete(VideoManagerConstants.SIP_INVITE_SESSION_CALL_ID + userSetting.getServerId(), ssrcTransaction.getCallId());
 		}
@@ -74,7 +74,7 @@ public class SipInviteSessionManager {
 		}
 		redisTemplate.opsForHash().delete(VideoManagerConstants.SIP_INVITE_SESSION_CALL_ID + userSetting.getServerId(), callId);
 		if (ssrcTransaction.getStream() != null) {
-			redisTemplate.opsForHash().delete(VideoManagerConstants.SIP_INVITE_SESSION_STREAM + userSetting.getServerId(), ssrcTransaction.getStream());
+			redisTemplate.opsForHash().delete(VideoManagerConstants.SIP_INVITE_SESSION_STREAM + userSetting.getServerId(), ssrcTransaction.getApp() + ssrcTransaction.getStream());
 		}
 	}
 

@@ -35,10 +35,16 @@ public class InviteInfo {
 
     private Long createTime;
 
+    private Boolean record;
+
+    private String startTime;
+
+    private String endTime;
+
 
     public static InviteInfo getInviteInfo(String deviceId, Integer channelId, String stream, SSRCInfo ssrcInfo, String mediaServerId,
                                            String receiveIp, Integer receivePort, String streamMode,
-                                           InviteSessionType type, InviteSessionStatus status) {
+                                           InviteSessionType type, InviteSessionStatus status, Boolean record) {
         InviteInfo inviteInfo = new InviteInfo();
         inviteInfo.setDeviceId(deviceId);
         inviteInfo.setChannelId(channelId);
@@ -50,6 +56,7 @@ public class InviteInfo {
         inviteInfo.setType(type);
         inviteInfo.setStatus(status);
         inviteInfo.setMediaServerId(mediaServerId);
+        inviteInfo.setRecord(record);
         return inviteInfo;
     }
 

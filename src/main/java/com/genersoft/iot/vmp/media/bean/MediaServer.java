@@ -103,6 +103,9 @@ public class MediaServer {
     @Schema(description = "转码的前缀")
     private String transcodeSuffix;
 
+    @Schema(description = "服务Id")
+    private String serverId;
+
     public MediaServer() {
     }
 
@@ -387,5 +390,13 @@ public class MediaServer {
 
     public void setTranscodeSuffix(String transcodeSuffix) {
         this.transcodeSuffix = transcodeSuffix;
+    }
+
+    public String getServerId() {
+        return serverId;
+    }
+
+    public void setServerId(String serverId) {
+        this.serverId = serverId;
     }
 }

@@ -2,9 +2,7 @@
   <div id="PlatformEdit" style="width: 100%">
     <div class="page-header">
       <div class="page-title">
-        <el-button icon="el-icon-back" size="mini" style="font-size: 20px; color: #000;" type="text" @click="close" ></el-button>
-        <el-divider direction="vertical"></el-divider>
-        添加上级平台
+        <el-page-header @back="close" content="添加上级平台"></el-page-header>
       </div>
       <div class="page-header-btn">
         <div style="display: inline;">
@@ -178,7 +176,7 @@ export default {
       listChangeCallback: null,
       showDialog: false,
       isLoging: false,
-      onSubmit_text: "立即创建",
+      onSubmit_text: "保存",
 
       rules: {
         name: [{required: true, message: "请输入平台名称", trigger: "blur"}],

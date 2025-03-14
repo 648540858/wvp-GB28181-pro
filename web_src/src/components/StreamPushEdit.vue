@@ -2,9 +2,7 @@
   <div id="ChannelEdit" style="width: 100%">
     <div class="page-header">
       <div class="page-title">
-        <el-button icon="el-icon-back" size="mini" style="font-size: 20px; color: #000;" type="text" @click="close" ></el-button>
-        <el-divider direction="vertical"></el-divider>
-        编辑推流信息
+        <el-page-header @back="close" content="编辑推流信息"></el-page-header>
       </div>
       <div class="page-header-btn">
         <div style="display: inline;">

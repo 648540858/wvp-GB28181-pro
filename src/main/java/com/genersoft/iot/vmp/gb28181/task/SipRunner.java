@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.task;
 
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
@@ -60,9 +61,12 @@ public class SipRunner implements CommandLineRunner {
     @Autowired
     private ISendRtpServerService sendRtpServerService;
 
+    @Autowired
+    private UserSetting userSetting;
+
     @Override
     public void run(String... args) throws Exception {
-        List<Device> deviceList = deviceService.getAllOnlineDevice();
+        List<Device> deviceList = deviceService.getAllOnlineDevice(userSetting.getServerId());
 
         for (Device device : deviceList) {
             if (deviceService.expire(device)){
@@ -86,7 +90,8 @@ public class SipRunner implements CommandLineRunner {
                     deviceMapInDb.put(device.getDeviceId(), device);
                 });
                 devicesInRedis.parallelStream().forEach(device -> {
-                    if (deviceMapInDb.get(device.getDeviceId()) == null) {
+                    if (deviceMapInDb.get(device.getDeviceId()) == null
+                            && userSetting.getServerId().equals(device.getServerId())) {
                         redisCatchStorage.removeDevice(device.getDeviceId());
                     }
                 });

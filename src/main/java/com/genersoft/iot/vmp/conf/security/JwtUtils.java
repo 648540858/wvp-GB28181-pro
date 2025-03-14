@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.conf.security;
 
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.security.dto.JwtUser;
 import com.genersoft.iot.vmp.service.IUserApiKeyService;
 import com.genersoft.iot.vmp.service.IUserService;
@@ -20,12 +21,16 @@ import org.jose4j.jwt.consumer.JwtConsumer;
 import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.lang.JoseException;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -53,6 +58,8 @@ public class JwtUtils implements InitializingBean {
     private static IUserService userService;
 
     private static IUserApiKeyService userApiKeyService;
+    
+    private static UserSetting userSetting;
 
     public static String getApiKeyHeader() {
         return API_KEY_HEADER;
@@ -66,6 +73,11 @@ public class JwtUtils implements InitializingBean {
     @Resource
     public void setUserApiKeyService(IUserApiKeyService userApiKeyService) {
         JwtUtils.userApiKeyService = userApiKeyService;
+    }
+
+    @Resource
+    public void setUserSetting(UserSetting userSetting) {
+        JwtUtils.userSetting = userSetting;
     }
 
     @Override
@@ -84,8 +96,46 @@ public class JwtUtils implements InitializingBean {
      */
     private RsaJsonWebKey generateRsaJsonWebKey() throws JoseException {
         RsaJsonWebKey rsaJsonWebKey = null;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getClassLoader().getResourceAsStream("/jwk.json"), StandardCharsets.UTF_8))) {
-            String jwkJson = reader.readLine();
+        try {
+            String jwkFile = userSetting.getJwkFile();
+            InputStream inputStream = null;
+            if (jwkFile.startsWith("classpath:")){
+                String filePath = jwkFile.substring("classpath:".length());
+                ClassPathResource civilCodeFile = new ClassPathResource(filePath);
+                if (civilCodeFile.exists()) {
+                    inputStream = civilCodeFile.getInputStream();
+                }
+            }else {
+                File civilCodeFile = new File(userSetting.getCivilCodeFile());
+                if (civilCodeFile.exists()) {
+                    inputStream = Files.newInputStream(civilCodeFile.toPath());
+                }
+
+            }
+            if (inputStream == null ) {
+                log.warn("[API AUTH] 读取jwk.json失败，文件不存在，将使用新生成的随机RSA密钥对");
+                // 生成一个RSA密钥对，该密钥对将用于JWT的签名和验证，包装在JWK中
+                rsaJsonWebKey = RsaJwkGenerator.generateJwk(2048);
+                // 给JWK一个密钥ID
+                rsaJsonWebKey.setKeyId(keyId);
+                return rsaJsonWebKey;
+            }
+            BufferedReader inputStreamReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+            int index = -1;
+            String line;
+            StringBuilder content = new StringBuilder();
+            while ((line = inputStreamReader.readLine()) != null) {
+                content.append(line);
+                index ++;
+                if (index == 0) {
+                    continue;
+                }
+            }
+            inputStreamReader.close();
+            inputStream.close();
+
+
+            String jwkJson = content.toString();
             JsonWebKeySet jsonWebKeySet = new JsonWebKeySet(jwkJson);
             List<JsonWebKey> jsonWebKeys = jsonWebKeySet.getJsonWebKeys();
             if (!jsonWebKeys.isEmpty()) {
@@ -94,14 +144,15 @@ public class JwtUtils implements InitializingBean {
                     rsaJsonWebKey = (RsaJsonWebKey) jsonWebKey;
                 }
             }
-        } catch (Exception e) {
-            // ignored
-        }
+        } catch (Exception ignore) {}
         if (rsaJsonWebKey == null) {
+            log.warn("[API AUTH] 读取jwk.json失败，获取内容失败，将使用新生成的随机RSA密钥对");
             // 生成一个RSA密钥对，该密钥对将用于JWT的签名和验证，包装在JWK中
             rsaJsonWebKey = RsaJwkGenerator.generateJwk(2048);
             // 给JWK一个密钥ID
             rsaJsonWebKey.setKeyId(keyId);
+        }else {
+            log.info("[API AUTH] 读取jwk.json成功");
         }
         return rsaJsonWebKey;
     }
@@ -153,7 +204,7 @@ public class JwtUtils implements InitializingBean {
     }
 
     public static String createToken(String username) {
-        return createToken(username, EXPIRATION_TIME);
+        return createToken(username, userSetting.getLoginTimeout());
     }
 
     public static String getHeader() {

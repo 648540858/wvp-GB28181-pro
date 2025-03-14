@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
 import javax.sip.SipException;
+import javax.sip.header.CSeqHeader;
 import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
@@ -69,6 +70,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
 //        logger.info("接收到消息：" + evt.getRequest());
         String deviceId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
         CallIdHeader callIdHeader = sipRequest.getCallIdHeader();
+        CSeqHeader cSeqHeader = sipRequest.getCSeqHeader();
         // 先从会话内查找
         SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransactionByCallId(callIdHeader.getCallId());
         // 兼容海康 媒体通知 消息from字段不是设备ID的问题
@@ -94,7 +96,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
                 // 不存在则回复404
                 responseAck(request, Response.NOT_FOUND, "device "+ deviceId +" not found");
                 log.warn("[设备未找到 ]deviceId: {}, callId: {}", deviceId, callIdHeader.getCallId());
-                SipEvent sipEvent = sipSubscribe.getSubscribe(callIdHeader.getCallId());
+                SipEvent sipEvent = sipSubscribe.getSubscribe(callIdHeader.getCallId() + cSeqHeader.getSeqNumber());
                 if (sipEvent != null && sipEvent.getErrorEvent() != null){
                     DeviceNotFoundEvent deviceNotFoundEvent = new DeviceNotFoundEvent(evt.getDialog());
                     deviceNotFoundEvent.setCallId(callIdHeader.getCallId());

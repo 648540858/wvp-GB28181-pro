@@ -60,9 +60,6 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
     private IMediaServerService mediaServerService;
 
     @Autowired
-    private SipSubscribe sipSubscribe;
-
-    @Autowired
     private SipLayer sipLayer;
 
     @Autowired
@@ -599,11 +596,10 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public void sendMediaStatusNotify(Platform parentPlatform, SendRtpInfo sendRtpItem) throws SipException, InvalidArgumentException, ParseException {
-        if (sendRtpItem == null || parentPlatform == null) {
+    public void sendMediaStatusNotify(Platform parentPlatform, SendRtpInfo sendRtpInfo, CommonGBChannel channel) throws SipException, InvalidArgumentException, ParseException {
+        if (channel == null || parentPlatform == null) {
             return;
         }
-
 
         String characterSet = parentPlatform.getCharacterSet();
         StringBuffer mediaStatusXml = new StringBuffer(200);
@@ -611,12 +607,12 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
                 .append("<Notify>\r\n")
                 .append("<CmdType>MediaStatus</CmdType>\r\n")
                 .append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n")
-                .append("<DeviceID>" + sendRtpItem.getChannelId() + "</DeviceID>\r\n")
+                .append("<DeviceID>" + channel.getGbDeviceId() + "</DeviceID>\r\n")
                 .append("<NotifyType>121</NotifyType>\r\n")
                 .append("</Notify>\r\n");
 
         SIPRequest messageRequest = (SIPRequest)headerProviderPlatformProvider.createMessageRequest(parentPlatform, mediaStatusXml.toString(),
-                sendRtpItem);
+                sendRtpInfo);
 
         sipSender.transmitRequest(parentPlatform.getDeviceIp(),messageRequest);
 
@@ -647,13 +643,13 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public void streamByeCmd(Platform platform, CommonGBChannel channel, String stream, String callId, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException {
+    public void streamByeCmd(Platform platform, CommonGBChannel channel, String app, String stream, String callId, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException {
 
         SsrcTransaction ssrcTransaction = null;
         if (callId != null) {
             ssrcTransaction = sessionManager.getSsrcTransactionByCallId(callId);
         }else if (stream != null) {
-            ssrcTransaction = sessionManager.getSsrcTransactionByStream(stream);
+            ssrcTransaction = sessionManager.getSsrcTransactionByStream(app, stream);
         }
         if (ssrcTransaction == null) {
             throw new SsrcTransactionNotFoundException(platform.getServerGBId(), channel.getGbDeviceId(), callId, stream);
@@ -661,7 +657,7 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
 
         mediaServerService.releaseSsrc(ssrcTransaction.getMediaServerId(), ssrcTransaction.getSsrc());
         mediaServerService.closeRTPServer(ssrcTransaction.getMediaServerId(), ssrcTransaction.getStream());
-        sessionManager.removeByStream(ssrcTransaction.getStream());
+        sessionManager.removeByStream(ssrcTransaction.getApp(), ssrcTransaction.getStream());
 
         Request byteRequest = headerProviderPlatformProvider.createByteRequest(platform, channel.getGbDeviceId(), ssrcTransaction.getSipTransactionInfo());
         sipSender.transmitRequest(sipLayer.getLocalIp(platform.getDeviceIp()), byteRequest, null, okEvent);
@@ -691,7 +687,7 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public void broadcastInviteCmd(Platform platform, CommonGBChannel channel, MediaServer mediaServerItem,
+    public void broadcastInviteCmd(Platform platform, CommonGBChannel channel,String sourceId, MediaServer mediaServerItem,
                                    SSRCInfo ssrcInfo, HookSubscribe.Event event, SipSubscribe.Event okEvent,
                                    SipSubscribe.Event errorEvent) throws ParseException, SipException, InvalidArgumentException {
         String stream = ssrcInfo.getStream();
@@ -712,8 +708,9 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
 
         StringBuffer content = new StringBuffer(200);
         content.append("v=0\r\n");
-        content.append("o=" + channel.getGbDeviceId() + " 0 0 IN IP4 " + sdpIp + "\r\n");
+        content.append("o=" + platform.getDeviceGBId() + " 0 0 IN IP4 " + sdpIp + "\r\n");
         content.append("s=Play\r\n");
+        content.append("u=" + channel.getGbDeviceId() + ":0\r\n");
         content.append("c=IN IP4 " + sdpIp + "\r\n");
         content.append("t=0 0\r\n");
 
@@ -738,21 +735,22 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
 
         content.append("y=" + ssrcInfo.getSsrc() + "\r\n");//ssrc
         // f字段:f= v/编码格式/分辨率/帧率/码率类型/码率大小a/编码格式/码率大小/采样率
-        content.append("f=v/////a/1/8/1\r\n");
+        content.append("f=v/2/5/25/1/4096a/1/8/1\r\n");
         CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(sipLayer.getLocalIp(platform.getDeviceIp()), platform.getTransport());
 
-        Request request = headerProviderPlatformProvider.createInviteRequest(platform, channel.getGbDeviceId(),
+        Request request = headerProviderPlatformProvider.createInviteRequest(platform, sourceId, channel.getGbDeviceId(),
                 content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(),  ssrcInfo.getSsrc(),
                 callIdHeader);
         sipSender.transmitRequest(sipLayer.getLocalIp(platform.getDeviceIp()), request, (e -> {
-            sessionManager.removeByStream(ssrcInfo.getStream());
+            sessionManager.removeByStream(ssrcInfo.getApp(), ssrcInfo.getStream());
             mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
             subscribe.removeSubscribe(hook);
             errorEvent.response(e);
         }), e -> {
             ResponseEvent responseEvent = (ResponseEvent) e.event;
             SIPResponse response = (SIPResponse) responseEvent.getResponse();
-            SsrcTransaction ssrcTransaction = SsrcTransaction.buildForPlatform(platform.getServerGBId(), channel.getGbId(), callIdHeader.getCallId(),  stream, ssrcInfo.getSsrc(), mediaServerItem.getId(), response, InviteSessionType.BROADCAST);
+            SsrcTransaction ssrcTransaction = SsrcTransaction.buildForPlatform(platform.getServerGBId(), channel.getGbId(),
+                    callIdHeader.getCallId(), ssrcInfo.getApp(),  stream, ssrcInfo.getSsrc(), mediaServerItem.getId(), response, InviteSessionType.BROADCAST);
             sessionManager.put(ssrcTransaction);
             okEvent.response(e);
         });

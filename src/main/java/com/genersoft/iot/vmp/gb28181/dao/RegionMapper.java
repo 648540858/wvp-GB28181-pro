@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.dao;
 
+import com.genersoft.iot.vmp.common.CivilCodePo;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Region;
 import com.genersoft.iot.vmp.gb28181.bean.RegionTree;
@@ -179,4 +180,12 @@ public interface RegionMapper {
             " </script>")
     Set<Region> queryNotShareRegionForPlatformByRegionList(Set<Region> allRegion, @Param("platformId") Integer platformId);
 
+
+    @Select(" <script>" +
+            " SELECT device_id " +
+            " from wvp_common_region" +
+            " where device_id in " +
+            " <foreach collection='civilCodePoList'  item='item'  open='(' separator=',' close=')' > #{item.code}</foreach>" +
+            " </script>")
+    Set<String> queryInCivilCodePoList(List<CivilCodePo> civilCodePoList);
 }

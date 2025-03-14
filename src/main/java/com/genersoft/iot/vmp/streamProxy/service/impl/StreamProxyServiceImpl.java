@@ -1,8 +1,8 @@
 package com.genersoft.iot.vmp.streamProxy.service.impl;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
@@ -47,7 +47,6 @@ import java.util.Map;
  */
 @Slf4j
 @Service
-@DS("master")
 public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Autowired
@@ -146,7 +145,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         if (param.getMediaServerId().equals("auto")) {
             param.setMediaServerId(null);
         }
-        StreamProxy streamProxy = param.buildStreamProxy();
+        StreamProxy streamProxy = param.buildStreamProxy(userSetting.getServerId());
 
         if (streamProxyInDb == null) {
             add(streamProxy);
@@ -179,7 +178,8 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         streamProxy.setCreateTime(DateUtil.getNow());
         streamProxy.setUpdateTime(DateUtil.getNow());
         streamProxyMapper.add(streamProxy);
-        streamProxy.setStreamProxyId(streamProxy.getId());
+        streamProxy.setDataType(ChannelDataType.STREAM_PROXY.value);
+        streamProxy.setDataDeviceId(streamProxy.getId());
     }
 
     @Override
@@ -404,11 +404,10 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             return;
         }
         streamProxy.setPulling(status);
-        if (!mediaServerId.equals(streamProxy.getMediaServerId())) {
-            streamProxy.setMediaServerId(mediaServerId);
-        }
+        streamProxy.setMediaServerId(mediaServerId);
         streamProxy.setUpdateTime(DateUtil.getNow());
-        streamProxyMapper.update(streamProxy);
+        streamProxyMapper.addStream(streamProxy);
+
         streamProxy.setGbStatus(status ? "ON" : "OFF");
         if (streamProxy.getGbId() > 0) {
             if (status) {

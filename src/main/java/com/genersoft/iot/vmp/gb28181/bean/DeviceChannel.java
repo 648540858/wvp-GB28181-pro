@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
+import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.gb28181.utils.MessageElementForCatalog;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -19,9 +20,6 @@ public class DeviceChannel extends CommonGBChannel {
 
 	@Schema(description = "数据库自增ID")
 	private int id;
-
-	@Schema(description = "设备的数据库自增ID")
-	private Integer deviceDbId;
 
 	@MessageElementForCatalog("DeviceID")
 	@Schema(description = "编码")
@@ -191,6 +189,8 @@ public class DeviceChannel extends CommonGBChannel {
 	@Schema(description = "通道类型， 默认0, 0： 普通通道，1 行政区划 2 业务分组/虚拟组织")
 	private int channelType;
 
+	private Integer dataType = ChannelDataType.GB28181.value;
+
 	public void setPtzType(int ptzType) {
 		this.ptzType = ptzType;
 		switch (ptzType) {
@@ -242,6 +242,16 @@ public class DeviceChannel extends CommonGBChannel {
 		DeviceChannel deviceChannel = new DeviceChannel();
 		deviceChannel.setDeviceId(deviceElement.getText());
 		return deviceChannel;
+	}
+
+	public CommonGBChannel buildCommonGBChannelForStatus() {
+		CommonGBChannel commonGBChannel = new CommonGBChannel();
+		commonGBChannel.setGbId(id);
+		commonGBChannel.setGbDeviceId(deviceId);
+		commonGBChannel.setGbName(name);
+		commonGBChannel.setDataType(ChannelDataType.GB28181.value);
+		commonGBChannel.setDataDeviceId(getDataDeviceId());
+		return commonGBChannel;
 	}
 
 

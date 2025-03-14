@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
 import javax.sip.SipException;
+import javax.sip.header.CSeqHeader;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.UserAgentHeader;
 import javax.sip.header.ViaHeader;
@@ -71,18 +72,20 @@ public class SIPSender {
 
         if (okEvent != null || errorEvent != null) {
             CallIdHeader callIdHeader = (CallIdHeader) message.getHeader(CallIdHeader.NAME);
-            SipEvent sipEvent = SipEvent.getInstance(callIdHeader.getCallId(), eventResult -> {
-                sipSubscribe.removeSubscribe(callIdHeader.getCallId());
+            CSeqHeader cSeqHeader = (CSeqHeader) message.getHeader(CSeqHeader.NAME);
+            String key = callIdHeader.getCallId() + cSeqHeader.getSeqNumber();
+            SipEvent sipEvent = SipEvent.getInstance(key, eventResult -> {
+                sipSubscribe.removeSubscribe(key);
                 if(okEvent != null) {
                     okEvent.response(eventResult);
                 }
             }, (eventResult -> {
-                sipSubscribe.removeSubscribe(callIdHeader.getCallId());
+                sipSubscribe.removeSubscribe(key);
                 if (errorEvent != null) {
                     errorEvent.response(eventResult);
                 }
             }), timeout == null ? sipConfig.getTimeout() : timeout);
-            sipSubscribe.addSubscribe(callIdHeader.getCallId(), sipEvent);
+            sipSubscribe.addSubscribe(key, sipEvent);
         }
 
         if ("TCP".equals(transport)) {

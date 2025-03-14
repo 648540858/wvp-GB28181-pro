@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.cmd;
 
+import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.service.*;
@@ -91,7 +92,13 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
             }
             String targetId = targetIDElement.getText();
 
-
+            Element sourceIdElement = rootElement.element("SourceID");
+            String sourceId;
+            if (sourceIdElement != null) {
+                sourceId = sourceIdElement.getText();
+            }else {
+                sourceId = targetId;
+            }
             log.info("[国标级联 语音喊话] platform: {}, channel: {}", platform.getServerGBId(), targetId);
 
             CommonGBChannel channel = channelService.queryOneWithPlatform(platform.getId(), targetId);
@@ -100,8 +107,18 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
                 responseAck(request, Response.NOT_FOUND, "TargetID not found");
                 return;
             }
+            if (channel.getDataType() != ChannelDataType.GB28181.value) {
+                // 只支持国标的语音喊话
+                log.warn("[INFO 消息] 只支持国标的语音喊话命令， 通道ID： {}", channel.getGbId());
+                try {
+                    responseAck(request, Response.FORBIDDEN, "");
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    log.error("[命令发送失败] 错误信息: {}", e.getMessage());
+                }
+                return;
+            }
             // 向下级发送语音的喊话请求
-            Device device = deviceService.getDevice(channel.getGbDeviceDbId());
+            Device device = deviceService.getDevice(channel.getDataDeviceId());
             if (device == null) {
                 responseAck(request, Response.NOT_FOUND, "device not found");
                 return;
@@ -125,7 +142,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
             }, eventResult->{
                 // 消息发送成功， 向上级发送invite，获取推流
                 try {
-                    platformService.broadcastInvite(platform, channel, mediaServerForMinimumLoad,  (hookData)->{
+                    platformService.broadcastInvite(platform, channel, sourceId, mediaServerForMinimumLoad,  (hookData)->{
                         // 上级平台推流成功
                         AudioBroadcastCatch broadcastCatch = audioBroadcastManager.get(channel.getGbId());
                         if (broadcastCatch != null ) {
@@ -134,7 +151,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
                                 log.info("[国标级联] 语音喊话 设备正在使用中 platform： {}， channel: {}",
                                         platform.getServerGBId(), channel.getGbDeviceId());
                                 //  查看语音通道已经建立且已经占用 回复BYE
-                                platformService.stopBroadcast(platform, channel, hookData.getStream(),  true, hookData.getMediaServer());
+                                platformService.stopBroadcast(platform, channel, hookData.getApp(), hookData.getStream(), true, hookData.getMediaServer());
                             }else {
                                 // 查看语音通道已经建立但是未占用
                                 broadcastCatch.setApp(hookData.getApp());

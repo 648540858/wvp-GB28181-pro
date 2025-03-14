@@ -2,9 +2,7 @@
   <div id="StreamProxyEdit" style="width: 100%">
     <div class="page-header">
       <div class="page-title">
-        <el-button icon="el-icon-back" size="mini" style="font-size: 20px; color: #000;" type="text" @click="close" ></el-button>
-        <el-divider direction="vertical"></el-divider>
-        编辑拉流代理信息
+        <el-page-header @back="close" content="编辑拉流代理信息"></el-page-header>
       </div>
       <div class="page-header-btn">
         <div style="display: inline;">
@@ -39,7 +37,7 @@
           </el-form-item>
           <el-form-item label="节点选择" prop="rtpType">
             <el-select
-              v-model="streamProxy.mediaServerId"
+              v-model="streamProxy.relatesMediaServerId"
               @change="mediaServerIdChange"
               style="width: 100%"
               placeholder="请选择拉流节点"
@@ -153,7 +151,6 @@ export default {
     onSubmit: function () {
       console.log(typeof this.streamProxy.noneReader)
       this.saveLoading = true;
-
       this.noneReaderHandler();
       if (this.streamProxy.id) {
         this.$axios({
@@ -220,12 +217,12 @@ export default {
       this.closeEdit()
     },
     mediaServerIdChange:function (){
-      if (this.streamProxy.mediaServerId !== "auto"){
+      if (this.streamProxy.relatesMediaServerId !== "auto"){
         this.$axios({
           method: 'get',
           url:`/api/proxy/ffmpeg_cmd/list`,
           params: {
-            mediaServerId: this.streamProxy.mediaServerId
+            mediaServerId: this.streamProxy.relatesMediaServerId
           }
         }).then((res)=> {
           this.ffmpegCmdList = res.data.data;

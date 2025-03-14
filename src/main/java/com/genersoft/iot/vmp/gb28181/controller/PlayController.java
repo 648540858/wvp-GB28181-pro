@@ -19,6 +19,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
@@ -91,31 +92,22 @@ public class PlayController {
 		Assert.notNull(deviceId, "设备不存在");
 		DeviceChannel channel = deviceChannelService.getOne(deviceId, channelId);
 		Assert.notNull(channel, "通道不存在");
-		MediaServer newMediaServerItem = playService.getNewMediaServerItem(device);
 
-		RequestMessage requestMessage = new RequestMessage();
-		String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId;
-		requestMessage.setKey(key);
-		String uuid = UUID.randomUUID().toString();
-		requestMessage.setId(uuid);
 		DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
 
 		result.onTimeout(()->{
 			log.info("[点播等待超时] deviceId：{}, channelId：{}, ", deviceId, channelId);
 			// 释放rtpserver
-			WVPResult<StreamInfo> wvpResult = new WVPResult<>();
+			WVPResult<StreamContent> wvpResult = new WVPResult<>();
 			wvpResult.setCode(ErrorCode.ERROR100.getCode());
 			wvpResult.setMsg("点播超时");
-			requestMessage.setData(wvpResult);
-			resultHolder.invokeAllResult(requestMessage);
+			result.setResult(wvpResult);
+
 			inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
 			deviceChannelService.stopPlay(channel.getId());
 		});
 
-		// 录像查询以channelId作为deviceId查询
-		resultHolder.put(key, uuid, result);
-
-		playService.play(newMediaServerItem, deviceId, channelId, null, (code, msg, streamInfo) -> {
+		ErrorCallback<StreamInfo> callback  = (code, msg, streamInfo) -> {
 			WVPResult<StreamContent> wvpResult = new WVPResult<>();
 			if (code == InviteErrorCode.SUCCESS.getCode()) {
 				wvpResult.setCode(ErrorCode.SUCCESS.getCode());
@@ -131,10 +123,10 @@ public class PlayController {
 						} catch (MalformedURLException e) {
 							host=request.getLocalAddr();
 						}
-						streamInfo.channgeStreamIp(host);
+						streamInfo.changeStreamIp(host);
 					}
-					if (!ObjectUtils.isEmpty(newMediaServerItem.getTranscodeSuffix()) && !"null".equalsIgnoreCase(newMediaServerItem.getTranscodeSuffix())) {
-						streamInfo.setStream(streamInfo.getStream() + "_" + newMediaServerItem.getTranscodeSuffix());
+					if (!ObjectUtils.isEmpty(streamInfo.getMediaServer().getTranscodeSuffix()) && !"null".equalsIgnoreCase(streamInfo.getMediaServer().getTranscodeSuffix())) {
+						streamInfo.setStream(streamInfo.getStream() + "_" + streamInfo.getMediaServer().getTranscodeSuffix());
 					}
 					wvpResult.setData(new StreamContent(streamInfo));
 				}else {
@@ -145,10 +137,9 @@ public class PlayController {
 				wvpResult.setCode(code);
 				wvpResult.setMsg(msg);
 			}
-			requestMessage.setData(wvpResult);
-			// 此处必须释放所有请求
-			resultHolder.invokeAllResult(requestMessage);
-		});
+			result.setResult(wvpResult);
+		};
+		playService.play(device, channel, callback);
 		return result;
 	}
 
@@ -207,16 +198,8 @@ public class PlayController {
 		if (log.isDebugEnabled()) {
 			log.debug("语音广播API调用");
 		}
-		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		if (device == null) {
-			throw new ControllerException(ErrorCode.ERROR400.getCode(), "未找到设备： " + deviceId);
-		}
-		DeviceChannel channel = deviceChannelService.getOne(deviceId, channelId);
-		if (channel == null) {
-			throw new ControllerException(ErrorCode.ERROR400.getCode(), "未找到通道： " + channelId);
-		}
 
-		return playService.audioBroadcast(device, channel, broadcastMode);
+		return playService.audioBroadcast(deviceId, channelId, broadcastMode);
 
 	}
 

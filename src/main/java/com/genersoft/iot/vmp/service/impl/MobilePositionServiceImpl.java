@@ -61,13 +61,7 @@ public class MobilePositionServiceImpl implements IMobilePositionService {
         if (size == null || size == 0) {
             return new ArrayList<>();
         }
-        List<MobilePosition> mobilePositions;
-        if (size > length) {
-            mobilePositions = redisTemplate.opsForList().rightPop(REDIS_MOBILE_POSITION_LIST, length);
-        }else {
-            mobilePositions = redisTemplate.opsForList().rightPop(REDIS_MOBILE_POSITION_LIST, size);
-        }
-        return  mobilePositions;
+        return redisTemplate.opsForList().rightPop(REDIS_MOBILE_POSITION_LIST, Math.min(length, size));
     }
 
 

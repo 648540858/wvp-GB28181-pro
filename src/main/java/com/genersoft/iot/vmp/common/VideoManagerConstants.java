@@ -10,6 +10,8 @@ public class VideoManagerConstants {
 	
 	public static final String WVP_SERVER_PREFIX = "VMP_SIGNALLING_SERVER_INFO_";
 
+	public static final String WVP_SERVER_LIST = "VMP_SERVER_LIST";
+
 	public static final String WVP_SERVER_STREAM_PREFIX = "VMP_SIGNALLING_STREAM_";
 
 	public static final String MEDIA_SERVER_PREFIX = "VMP_MEDIA_SERVER_INFO:";

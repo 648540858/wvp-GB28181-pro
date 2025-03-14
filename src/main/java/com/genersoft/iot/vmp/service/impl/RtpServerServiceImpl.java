@@ -117,11 +117,11 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
         // 设置流超时的定时任务
         String timeOutTaskKey = UUID.randomUUID().toString();
 
-        SSRCInfo ssrcInfo = new SSRCInfo(rtpServerPort, ssrc, streamId, timeOutTaskKey);
+        SSRCInfo ssrcInfo = new SSRCInfo(rtpServerPort, ssrc, "rtp", streamId, timeOutTaskKey);
         OpenRTPServerResult openRTPServerResult = new OpenRTPServerResult();
         openRTPServerResult.setSsrcInfo(ssrcInfo);
 
-        Hook rtpHook = Hook.getInstance(HookType.on_media_arrival, "rtp", streamId, rtpServerParam.getMediaServerItem().getId());
+        Hook rtpHook = Hook.getInstance(HookType.on_media_arrival, ssrcInfo.getApp(), streamId, rtpServerParam.getMediaServerItem().getId());
         dynamicTask.startDelay(timeOutTaskKey, () -> {
             // 收流超时
             // 释放ssrc

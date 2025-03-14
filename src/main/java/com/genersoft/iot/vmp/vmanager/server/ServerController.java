@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.SystemAllInfo;
 import com.genersoft.iot.vmp.common.VersionPo;
+import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.VersionInfo;
@@ -42,10 +43,7 @@ import oshi.software.os.OperatingSystem;
 
 import java.io.File;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @SuppressWarnings("rawtypes")
 @Tag(name = "服务控制")
@@ -225,7 +223,7 @@ public class ServerController {
     }
 
     @GetMapping(value = "/config")
-    @Operation(summary = "获取配置信息")
+    @Operation(summary = "获取配置信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "type", description = "配置类型（sip, base）", required = true)
     @ResponseBody
     public JSONObject getVersion(String type) {
@@ -252,7 +250,7 @@ public class ServerController {
 
     @GetMapping(value = "/system/info")
     @ResponseBody
-    @Operation(summary = "获取系统信息")
+    @Operation(summary = "获取系统信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     public SystemAllInfo getSystemInfo() {
         SystemAllInfo systemAllInfo = redisCatchStorage.getSystemInfo();
 
@@ -261,7 +259,7 @@ public class ServerController {
 
     @GetMapping(value = "/media_server/load")
     @ResponseBody
-    @Operation(summary = "获取负载信息")
+    @Operation(summary = "获取负载信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     public List<MediaServerLoad> getMediaLoad() {
         List<MediaServerLoad> result = new ArrayList<>();
         List<MediaServer> allOnline = mediaServerService.getAllOnline();
@@ -277,7 +275,7 @@ public class ServerController {
 
     @GetMapping(value = "/resource/info")
     @ResponseBody
-    @Operation(summary = "获取负载信息")
+    @Operation(summary = "获取负载信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     public ResourceInfo getResourceInfo() {
         ResourceInfo result = new ResourceInfo();
         ResourceBaseInfo deviceInfo = deviceService.getOverview();
@@ -294,7 +292,7 @@ public class ServerController {
 
     @GetMapping(value = "/info")
     @ResponseBody
-    @Operation(summary = "获取系统信息")
+    @Operation(summary = "获取系统信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     public Map<String, Map<String, String>> getInfo() {
         Map<String, Map<String, String>> result = new LinkedHashMap<>();
         Map<String, String> hardwareMap = new LinkedHashMap<>();
@@ -343,6 +341,20 @@ public class ServerController {
         platformMap.put("GIT版本", version.getGIT_Revision_SHORT());
         platformMap.put("DOCKER环境", new File("/.dockerenv").exists()?"是":"否");
 
+        return result;
+    }
+
+    @GetMapping(value = "/channel/datatype")
+    @ResponseBody
+    @Operation(summary = "获取系统接入的数据类型", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    public List<Map<String, Object>> getDataType() {
+        List<Map<String, Object>> result = new LinkedList<>();
+        for (ChannelDataType item : ChannelDataType.values()) {
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("key", item.desc);
+            map.put("value", item.value);
+            result.add(map);
+        }
         return result;
     }
 

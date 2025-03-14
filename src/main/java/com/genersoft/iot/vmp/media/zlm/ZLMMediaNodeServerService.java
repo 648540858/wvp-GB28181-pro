@@ -491,7 +491,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
             if (data == null) {
                 throw new ControllerException(jsonObject.getInteger("code"), "代理结果异常： " + jsonObject);
             }else {
-                streamProxy.setStreamKey(jsonObject.getString("key"));
+                streamProxy.setStreamKey(data.getString("key"));
                 // 由于此时流未注册，手动拼装流信息
                 mediaInfo = new MediaInfo();
                 mediaInfo.setApp(streamProxy.getApp());

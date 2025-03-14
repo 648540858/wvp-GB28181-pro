@@ -45,7 +45,7 @@ public class ResponseMessageHandler extends MessageHandlerAbstract implements In
         String cmd = getText(element, "CmdType");
         String sn = getText(element, "SN");
         MessageEvent<Object> subscribe = (MessageEvent<Object>)messageSubscribe.getSubscribe(cmd + sn);
-        if (subscribe != null) {
+        if (subscribe != null && subscribe.getCallback() != null) {
             String result = getText(element, "Result");
             if (result == null || "OK".equalsIgnoreCase(result) || data != null) {
                 subscribe.getCallback().run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), data);

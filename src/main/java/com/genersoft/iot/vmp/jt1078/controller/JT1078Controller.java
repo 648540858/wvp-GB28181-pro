@@ -112,7 +112,7 @@ public class JT1078Controller {
                         } catch (MalformedURLException e) {
                             host=request.getLocalAddr();
                         }
-                        streamInfo.channgeStreamIp(host);
+                        streamInfo.changeStreamIp(host);
                     }
                     wvpResult.setData(new StreamContent(streamInfo));
                 }else {
@@ -181,7 +181,7 @@ public class JT1078Controller {
                         } catch (MalformedURLException e) {
                             host=request.getLocalAddr();
                         }
-                        streamInfo.channgeStreamIp(host);
+                        streamInfo.changeStreamIp(host);
                     }
                     wvpResult.setData(new StreamContent(streamInfo));
                 }else {
@@ -309,7 +309,7 @@ public class JT1078Controller {
                         } catch (MalformedURLException e) {
                             host=request.getLocalAddr();
                         }
-                        streamInfo.channgeStreamIp(host);
+                        streamInfo.changeStreamIp(host);
                     }
                     wvpResult.setData(new StreamContent(streamInfo));
                 }else {

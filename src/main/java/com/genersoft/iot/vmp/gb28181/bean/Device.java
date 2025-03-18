@@ -104,7 +104,21 @@ public class Device {
 	 * 心跳间隔
 	 */
 	@Schema(description = "心跳间隔")
-	private int keepaliveIntervalTime;
+	private Integer heartBeatInterval;
+
+
+	/**
+	 * 心跳超时次数
+	 */
+	@Schema(description = "心跳超时次数")
+	private Integer heartBeatCount;
+
+
+	/**
+	 * 定位功能支持情况
+	 */
+	@Schema(description = "定位功能支持情况。取值:0-不支持;1-支持 GPS定位;2-支持北斗定位(可选,默认取值为0")
+	private Integer positionCapability;
 
 	/**
 	 * 通道个数
@@ -195,4 +209,7 @@ public class Device {
 
 	@Schema(description = "控制语音对讲流程，释放收到ACK后发流")
 	private boolean broadcastPushAfterAck;
+
+	@Schema(description = "所属服务Id")
+	private String serverId;
 }

@@ -199,13 +199,6 @@
             <artifactId>springdoc-openapi-security</artifactId>
             <version>1.6.10</version>
         </dependency>
-		<!-- https://mvnrepository.com/artifact/com.baomidou/dynamic-datasource-spring-boot-starter -->
-		<dependency>
-			<groupId>com.baomidou</groupId>
-			<artifactId>dynamic-datasource-spring-boot-starter</artifactId>
-			<version>3.6.1</version>
-		</dependency>
-
 
 		<!--在线文档 -->
 		<dependency>

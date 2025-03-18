@@ -4,10 +4,10 @@
       <div class="page-title">设备列表</div>
       <div class="page-header-btn">
         搜索:
-        <el-input @input="getDeviceList" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
+        <el-input @input="initData" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
                   prefix-icon="el-icon-search" v-model="searchSrt" clearable></el-input>
         在线状态:
-        <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="getDeviceList" v-model="online" placeholder="请选择"
+        <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="initData" v-model="online" placeholder="请选择"
                    default-first-option>
           <el-option label="全部" value=""></el-option>
           <el-option label="在线" value="true"></el-option>
@@ -15,17 +15,17 @@
         </el-select>
         <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="add">添加设备
         </el-button>
-        <el-button icon="el-icon-info" size="mini" style="margin-right: 1rem;" type="primary" @click="showInfo">平台信息
+        <el-button icon="el-icon-info" size="mini" style="margin-right: 1rem;" type="primary" @click="showInfo()">平台信息
         </el-button>
         <el-button icon="el-icon-refresh-right" circle size="mini" :loading="getDeviceListLoading"
                    @click="getDeviceList()"></el-button>
       </div>
     </div>
     <!--设备列表-->
-    <el-table size="medium"  :data="deviceList" style="width: 100%;font-size: 12px;" :height="winHeight" header-row-class-name="table-header">
+    <el-table size="medium" :data="deviceList" style="width: 100%;font-size: 12px;" :height="$tableHeght" header-row-class-name="table-header">
       <el-table-column prop="name" label="名称" min-width="160">
       </el-table-column>
-      <el-table-column prop="deviceId" label="设备编号" min-width="200" >
+      <el-table-column prop="deviceId" label="设备编号" min-width="160" >
       </el-table-column>
       <el-table-column label="地址" min-width="160" >
         <template v-slot:default="scope">
@@ -35,9 +35,9 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="manufacturer" label="厂家" min-width="120" >
+      <el-table-column prop="manufacturer" label="厂家" min-width="100" >
       </el-table-column>
-      <el-table-column prop="transport" label="信令传输模式" min-width="120" >
+      <el-table-column prop="transport" label="信令传输模式" min-width="100" >
       </el-table-column>
       <el-table-column label="流传输模式"  min-width="160" >
         <template v-slot:default="scope">
@@ -48,28 +48,34 @@
           </el-select>
         </template>
       </el-table-column>
-      <el-table-column prop="channelCount" label="通道数" min-width="120" >
+      <el-table-column label="通道数" min-width="100" >
+        <template v-slot:default="scope">
+          <span style="font-size: 1rem">{{scope.row.channelCount}}</span>
+        </template>
       </el-table-column>
-      <el-table-column label="状态" min-width="120">
+      <el-table-column label="状态" min-width="100">
         <template v-slot:default="scope">
           <div slot="reference" class="name-wrapper">
-            <el-tag size="medium" v-if="scope.row.onLine">在线</el-tag>
+            <el-tag size="medium" v-if="scope.row.onLine && Vue.prototype.$myServerId !== scope.row.serverId" style="border-color: #ecf1af">在线</el-tag>
+            <el-tag size="medium" v-if="scope.row.onLine && Vue.prototype.$myServerId === scope.row.serverId">在线</el-tag>
             <el-tag size="medium" type="info" v-if="!scope.row.onLine">离线</el-tag>
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="keepaliveTime" label="最近心跳" min-width="160" >
-      </el-table-column>
-      <el-table-column prop="registerTime" label="最近注册"  min-width="160">
-      </el-table-column>
-<!--      <el-table-column prop="updateTime" label="更新时间"  width="140">-->
-<!--      </el-table-column>-->
-<!--      <el-table-column prop="createTime" label="创建时间"  width="140">-->
-<!--      </el-table-column>-->
-
-      <el-table-column label="操作" min-width="380" fixed="right">
+      <el-table-column label="订阅"  min-width="260" >
         <template v-slot:default="scope">
-          <el-button type="text" size="medium" v-bind:disabled="scope.row.online==0" icon="el-icon-refresh" @click="refDevice(scope.row)"
+          <el-checkbox label="目录" :checked="scope.row.subscribeCycleForCatalog > 0" @change="(e)=>subscribeForCatalog(scope.row.id, e)"></el-checkbox>
+          <el-checkbox label="位置" :checked="scope.row.subscribeCycleForMobilePosition > 0" @change="(e)=>subscribeForMobilePosition(scope.row.id, e)"></el-checkbox>
+          <el-checkbox label="报警" disabled :checked="scope.row.subscribeCycleForAlarm > 0"></el-checkbox>
+        </template>
+      </el-table-column>
+      <el-table-column prop="keepaliveTime" label="最近心跳" min-width="140" >
+      </el-table-column>
+      <el-table-column prop="registerTime" label="最近注册"  min-width="140">
+      </el-table-column>
+      <el-table-column label="操作" min-width="300" fixed="right">
+        <template v-slot:default="scope">
+          <el-button type="text" size="medium" v-bind:disabled="scope.row.online===0" icon="el-icon-refresh" @click="refDevice(scope.row)"
                      @mouseover="getTooltipContent(scope.row.deviceId)">刷新
           </el-button>
           <el-divider direction="vertical"></el-divider>
@@ -79,17 +85,19 @@
           <el-divider direction="vertical"></el-divider>
           <el-button size="medium" icon="el-icon-edit" type="text" @click="edit(scope.row)">编辑</el-button>
           <el-divider direction="vertical"></el-divider>
-          <el-button size="medium" icon="el-icon-delete" type="text" @click="deleteDevice(scope.row)" style="color: #f56c6c">删除</el-button>
-          <el-divider direction="vertical"></el-divider>
           <el-dropdown @command="(command)=>{moreClick(command, scope.row)}">
             <el-button size="medium" type="text" >
               操作<i class="el-icon-arrow-down el-icon--right"></i>
             </el-button>
-            <el-dropdown-menu slot="dropdown">
+            <el-dropdown-menu>
+              <el-dropdown-item command="delete" style="color: #f56c6c">
+                删除</el-dropdown-item>
               <el-dropdown-item command="setGuard" v-bind:disabled="!scope.row.onLine">
                 布防</el-dropdown-item>
               <el-dropdown-item command="resetGuard" v-bind:disabled="!scope.row.onLine">
                 撤防</el-dropdown-item>
+              <el-dropdown-item command="syncBasicParam" v-bind:disabled="!scope.row.onLine">
+                基础配置同步</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </template>
@@ -116,6 +124,7 @@ import uiHeader from '../layout/UiHeader.vue'
 import deviceEdit from './dialog/deviceEdit.vue'
 import syncChannelProgress from './dialog/SyncChannelProgress.vue'
 import configInfo from "./dialog/configInfo.vue";
+import Vue from "vue";
 
 export default {
   name: 'app',
@@ -133,8 +142,7 @@ export default {
       online: null,
       videoComponentList: [],
       updateLooper: 0, //数据刷新轮训标志
-      currentDeviceChannelsLenth: 0,
-      winHeight: window.innerHeight - 200,
+      currentDeviceChannelsLength: 0,
       currentPage: 1,
       count: 15,
       total: 0,
@@ -142,6 +150,9 @@ export default {
     };
   },
   computed: {
+    Vue() {
+      return Vue
+    },
     getcurrentDeviceChannels: function () {
       let data = this.currentDevice['channelMap'];
       let channels = null;
@@ -149,7 +160,7 @@ export default {
         channels = Object.keys(data).map(key => {
           return data[key];
         });
-        this.currentDeviceChannelsLenth = channels.length;
+        this.currentDeviceChannelsLength = channels.length;
       }
       return channels;
     }
@@ -164,6 +175,8 @@ export default {
   },
   methods: {
     initData: function () {
+      this.currentPage = 1;
+      this.total= 0;
       this.getDeviceList();
     },
     currentChange: function (val) {
@@ -327,15 +340,12 @@ export default {
       })
     },
     showInfo: function (){
-
       this.$axios({
         method: 'get',
         url: `/api/server/system/configInfo`,
       }).then( (res)=> {
-        console.log(res)
         if (res.data.code === 0) {
-          console.log(2222)
-          console.log(this.$refs.configInfo)
+          this.serverId = res.data.data.addOn.serverId;
           this.$refs.configInfo.openDialog(res.data.data)
         }
       }).catch( (error)=> {
@@ -346,6 +356,10 @@ export default {
         this.setGuard(itemData)
       }else if (command === "resetGuard") {
         this.resetGuard(itemData)
+      }else if (command === "delete") {
+        this.deleteDevice(itemData)
+      }else if (command === "syncBasicParam") {
+        this.syncBasicParam(itemData)
       }
     },
     setGuard: function (itemData) {
@@ -393,6 +407,94 @@ export default {
           message: error.message
         })
       });
+    },
+    subscribeForCatalog: function (data, value) {
+      console.log(data)
+      console.log(value)
+      this.$axios({
+        method: 'get',
+        url: `/api/device/query/subscribe/catalog`,
+        params: {
+          id: data,
+          cycle: value?60:0
+        }
+      }).then( (res)=> {
+        if (res.data.code === 0) {
+          this.$message.success({
+            showClose: true,
+            message: value?"订阅成功":"取消订阅成功"
+          })
+        }else {
+          this.$message.error({
+            showClose: true,
+            message: res.data.msg
+          })
+        }
+      }).catch( (error)=> {
+        this.$message.error({
+          showClose: true,
+          message: error.message
+        })
+      });
+
+    },
+    subscribeForMobilePosition: function (data, value) {
+      console.log(data)
+      console.log(value)
+      this.$axios({
+        method: 'get',
+        url: `/api/device/query/subscribe/mobile-position`,
+        params: {
+          id: data,
+          cycle: value?60:0,
+          interval: value?5:0
+        }
+      }).then( (res)=> {
+        if (res.data.code === 0) {
+          this.$message.success({
+            showClose: true,
+            message: value?"订阅成功":"取消订阅成功"
+          })
+        }else {
+          this.$message.error({
+            showClose: true,
+            message: res.data.msg
+          })
+        }
+      }).catch( (error)=> {
+        this.$message.error({
+          showClose: true,
+          message: error.message
+        })
+      });
+    },
+    syncBasicParam: function (data) {
+      console.log(data)
+      this.$axios({
+        method: 'get',
+        url: `/api/device/config/query/${data.deviceId}/BasicParam`,
+        params: {
+          // channelId: data.deviceId
+        }
+      }).then( (res)=> {
+        if (res.data.code === 0) {
+          this.$message.success({
+            showClose: true,
+            message: `配置已同步，当前心跳间隔： ${res.data.data.BasicParam.HeartBeatInterval} 心跳间隔:${res.data.data.BasicParam.HeartBeatCount}`
+          })
+        }else {
+          this.$message.error({
+            showClose: true,
+            message: res.data.msg
+          })
+        }
+      }).catch( (error)=> {
+        this.$message.error({
+          showClose: true,
+          message: error.message
+        })
+      });
+
     },
 
   }

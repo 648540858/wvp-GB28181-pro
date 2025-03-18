@@ -33,14 +33,14 @@
                download='推流通道导入.zip'>下载模板</a>
           </el-button>
           <el-button icon="el-icon-delete" size="mini" style="margin-right: 1rem;"
-                     :disabled="multipleSelection.length === 0" type="danger" @click="batchDel">批量移除
+                     :disabled="multipleSelection.length === 0" type="danger" @click="batchDel">移除
           </el-button>
-          <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addStream">添加通道
+          <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addStream">添加
           </el-button>
           <el-button icon="el-icon-refresh-right" circle size="mini" @click="refresh()"></el-button>
         </div>
       </div>
-      <el-table size="medium"  ref="pushListTable" :data="pushList" style="width: 100%" :height="winHeight" :loading="loading"
+      <el-table size="medium"  ref="pushListTable" :data="pushList" style="width: 100%" :height="$tableHeght" :loading="loading"
                 @selection-change="handleSelectionChange" :row-key="(row)=> row.app + row.stream">
         <el-table-column  type="selection" :reserve-selection="true" min-width="55">
         </el-table-column>
@@ -52,7 +52,8 @@
         </el-table-column>
         <el-table-column label="推流状态"  min-width="100">
           <template v-slot:default="scope">
-            <el-tag size="medium" v-if="scope.row.pushing">推流中</el-tag>
+            <el-tag size="medium" v-if="scope.row.pushing && Vue.prototype.$myServerId !== scope.row.serverId" style="border-color: #ecf1af">推流中</el-tag>
+            <el-tag size="medium" v-if="scope.row.pushing && Vue.prototype.$myServerId === scope.row.serverId">推流中</el-tag>
             <el-tag size="medium" type="info" v-if="!scope.row.pushing">已停止</el-tag>
           </template>
         </el-table-column>
@@ -77,7 +78,7 @@
 
         <el-table-column label="操作" min-width="360"  fixed="right">
           <template v-slot:default="scope">
-            <el-button size="medium" icon="el-icon-video-play"@click="playPush(scope.row)" type="text">播放
+            <el-button size="medium" :loading="scope.row.playLoading" icon="el-icon-video-play" @click="playPush(scope.row)" type="text">播放
             </el-button>
             <el-divider direction="vertical"></el-divider>
             <el-button size="medium" icon="el-icon-delete" type="text" @click="deletePush(scope.row.id)" style="color: #f56c6c" >删除</el-button>
@@ -116,6 +117,7 @@ import importChannel from './dialog/importChannel.vue'
 import MediaServer from './service/MediaServer'
 import StreamPushEdit from "./StreamPushEdit";
 import ChannelEdit from "./ChannelEdit.vue";
+import Vue from "vue";
 
 export default {
   name: 'streamPushList',
@@ -133,7 +135,6 @@ export default {
       currentPusher: {}, //当前操作设备对象
       updateLooper: 0, //数据刷新轮训标志
       currentDeviceChannelsLenth: 0,
-      winHeight: window.innerHeight - 250,
       mediaServerObj: new MediaServer(),
       currentPage: 1,
       count: 15,
@@ -147,7 +148,11 @@ export default {
       streamPush: null,
     };
   },
-  computed: {},
+  computed: {
+    Vue() {
+      return Vue
+    },
+  },
   mounted() {
     this.initData();
     this.updateLooper = setInterval(this.getPushList, 2000);
@@ -189,6 +194,7 @@ export default {
             that.pushList = res.data.data.list;
             that.pushList.forEach(e => {
               that.$set(e, "location", "");
+              that.$set(e, "playLoading", false);
               if (e.gbLongitude && e.gbLatitude) {
                 that.$set(e, "location", e.gbLongitude + "," + e.gbLatitude);
               }
@@ -203,29 +209,28 @@ export default {
     },
 
     playPush: function (row) {
-      let that = this;
-      this.getListLoading = true;
+      row.playLoading = true;
       this.$axios({
         method: 'get',
         url: '/api/push/start',
         params: {
           id: row.id
         }
-      }).then(function (res) {
-        that.getListLoading = false;
+      }).then((res) =>{
         if (res.data.code === 0 ) {
-          that.$refs.devicePlayer.openDialog("streamPlay", null, null, {
+          this.$refs.devicePlayer.openDialog("streamPlay", null, null, {
             streamInfo: res.data.data,
             hasAudio: true
           });
         }else {
-          that.$message.error(res.data.msg);
+          this.$message.error(res.data.msg);
         }
 
       }).catch(function (error) {
         console.error(error);
-        that.getListLoading = false;
-      });
+      }).finally(()=>{
+        row.playLoading = false;
+      })
     },
     deletePush: function (id) {
       this.$confirm(`确定删除通道?`, '提示', {

@@ -123,17 +123,14 @@ public class CommonGBChannel {
     @Schema(description = "国标-时域编码能力,取值0-不支持;1-1级增强;2-2级增强;3-3级增强(可选)")
     private Integer gbSvcTimeSupportMode;
 
-    @Schema(description = "关联的国标设备数据库ID")
-    private Integer gbDeviceDbId;
-
     @Schema(description = "二进制保存的录制计划, 每一位表示每个小时的前半个小时")
     private Long recordPLan;
 
-    @Schema(description = "关联的推流Id（流来源是推流时有效）")
-    private Integer streamPushId;
+    @Schema(description = "关联的数据类型")
+    private Integer dataType;
 
-    @Schema(description = "关联的拉流代理Id（流来源是拉流代理时有效）")
-    private Integer streamProxyId;
+    @Schema(description = "关联的设备ID")
+    private Integer dataDeviceId;
 
     @Schema(description = "关联的部标标通道ID")
     private Integer jtChannelId;

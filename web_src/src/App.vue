@@ -69,7 +69,7 @@ body,
   background-color: #f0f2f5;
   color: #333;
   text-align: center;
-  padding-top: 0px !important;
+  padding: 0 20px;
 }
 
 /*定义滚动条高宽及背景 高宽分别对应横竖滚动条的尺寸*/

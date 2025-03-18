@@ -127,4 +127,7 @@ public class Platform {
 
     @Schema(description = "保密属性（必选）缺省为0；0-不涉密，1-涉密")
     private int secrecy = 0;
+
+    @Schema(description = "执行注册的服务ID")
+    private String serverId;
 }

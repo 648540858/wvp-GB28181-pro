@@ -156,8 +156,17 @@ public class DigestServerAuthenticationHelper  {
     }
 
     /**
-     * Authenticate the inbound request given plain text password.
+     * 鉴权
      *
+     * A1 = username + ":" + realm + ":" + password
+     * A2 = REGISTER:URI
+     *
+     * HA1 = md5(A1)
+     * HA2 = md5(A2)
+     *
+     * KD = HA2:HA2:qop
+     *
+     * response = md5(KD)
      * @param request - the request to authenticate.
      * @param pass -- the plain text password.
      *

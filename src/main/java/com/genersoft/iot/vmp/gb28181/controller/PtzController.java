@@ -5,24 +5,23 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IPTZService;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.ObjectUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.util.Assert;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
-
-import javax.sip.InvalidArgumentException;
-import javax.sip.SipException;
-import java.text.ParseException;
-import java.util.UUID;
 
 @Tag(name  = "前端设备控制")
 @Slf4j
@@ -37,6 +36,9 @@ public class PtzController {
 	private IDeviceService deviceService;
 
 	@Autowired
+	private IPTZService ptzService;
+
+	@Autowired
 	private DeferredResultHolder resultHolder;
 
 	@Operation(summary = "通用前端控制命令(参考国标文档A.3.1指令格式)", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -45,30 +47,29 @@ public class PtzController {
 	@Parameter(name = "cmdCode", description = "指令码(对应国标文档指令格式中的字节4)", required = true)
 	@Parameter(name = "parameter1", description = "数据一(对应国标文档指令格式中的字节5, 范围0-255)", required = true)
 	@Parameter(name = "parameter2", description = "数据二(对应国标文档指令格式中的字节6, 范围0-255)", required = true)
-	@Parameter(name = "combindCode2", description = "组合码二(对应国标文档指令格式中的字节7, 范围0-16)", required = true)
+	@Parameter(name = "combindCode2", description = "组合码二(对应国标文档指令格式中的字节7, 范围0-15)", required = true)
 	@GetMapping("/common/{deviceId}/{channelId}")
 	public void frontEndCommand(@PathVariable String deviceId,@PathVariable String channelId,Integer cmdCode, Integer parameter1, Integer parameter2, Integer combindCode2){
 
 		if (log.isDebugEnabled()) {
 			log.debug(String.format("设备云台控制 API调用，deviceId：%s ，channelId：%s ，cmdCode：%d parameter1：%d parameter2：%d",deviceId, channelId, cmdCode, parameter1, parameter2));
 		}
-		Device device = deviceService.getDeviceByDeviceId(deviceId);
 
 		if (parameter1 == null || parameter1 < 0 || parameter1 > 255) {
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "parameter1 为 1-255的数字");
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "parameter1 为 0-255的数字");
 		}
 		if (parameter2 == null || parameter2 < 0 || parameter2 > 255) {
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "parameter1 为 1-255的数字");
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "parameter2 为 0-255的数字");
 		}
-		if (combindCode2 == null || combindCode2 < 0 || combindCode2 > 16) {
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "parameter1 为 1-255的数字");
+		if (combindCode2 == null || combindCode2 < 0 || combindCode2 > 15) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "combindCode2 为 0-15的数字");
 		}
-		try {
-			cmder.frontEndCmd(device, channelId, cmdCode, parameter1, parameter2, combindCode2);
-		} catch (SipException | InvalidArgumentException | ParseException e) {
-			log.error("[命令发送失败] 前端控制: {}", e.getMessage());
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
-		}
+
+		Device device = deviceService.getDeviceByDeviceId(deviceId);
+
+		Assert.notNull(device, "设备[" + deviceId + "]不存在");
+
+		ptzService.frontEndCommand(device, channelId, cmdCode, parameter1, parameter2, combindCode2);
 	}
 
 	@Operation(summary = "云台控制", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -77,7 +78,7 @@ public class PtzController {
 	@Parameter(name = "command", description = "控制指令,允许值: left, right, up, down, upleft, upright, downleft, downright, zoomin, zoomout, stop", required = true)
 	@Parameter(name = "horizonSpeed", description = "水平速度(0-255)", required = true)
 	@Parameter(name = "verticalSpeed", description = "垂直速度(0-255)", required = true)
-	@Parameter(name = "zoomSpeed", description = "缩放速度(0-16)", required = true)
+	@Parameter(name = "zoomSpeed", description = "缩放速度(0-15)", required = true)
 	@GetMapping("/ptz/{deviceId}/{channelId}")
 	public void ptz(@PathVariable String deviceId,@PathVariable String channelId, String command, Integer horizonSpeed, Integer verticalSpeed, Integer zoomSpeed){
 
@@ -87,17 +88,17 @@ public class PtzController {
 		if (horizonSpeed == null) {
 			horizonSpeed = 100;
 		}else if (horizonSpeed < 0 || horizonSpeed > 255) {
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "horizonSpeed 为 1-255的数字");
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "horizonSpeed 为 0-255的数字");
 		}
 		if (verticalSpeed == null) {
 			verticalSpeed = 100;
 		}else if (verticalSpeed < 0 || verticalSpeed > 255) {
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "verticalSpeed 为 1-255的数字");
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "verticalSpeed 为 0-255的数字");
 		}
 		if (zoomSpeed == null) {
 			zoomSpeed = 16;
-		}else if (zoomSpeed < 0 || zoomSpeed > 16) {
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "zoomSpeed 为 1-255的数字");
+		}else if (zoomSpeed < 0 || zoomSpeed > 15) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "zoomSpeed 为 0-15的数字");
 		}
 
 		int cmdCode = 0;
@@ -156,6 +157,12 @@ public class PtzController {
 			log.debug("设备光圈控制 API调用，deviceId：{} ，channelId：{} ，command：{} ，speed：{} ",deviceId, channelId, command, speed);
 		}
 
+		if (speed == null) {
+			speed = 100;
+		}else if (speed < 0 || speed > 255) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "speed 为 0-255的数字");
+		}
+
 		int cmdCode = 0x40;
 		switch (command){
 			case "in":
@@ -188,7 +195,7 @@ public class PtzController {
 		if (speed == null) {
 			speed = 100;
 		}else if (speed < 0 || speed > 255) {
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "verticalSpeed 为 1-255的数字");
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "speed 为 0-255的数字");
 		}
 
 		int cmdCode = 0x40;
@@ -212,40 +219,22 @@ public class PtzController {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@GetMapping("/preset/query/{deviceId}/{channelId}")
-	public DeferredResult<String> queryPreset(@PathVariable String deviceId, @PathVariable String channelId) {
+	public DeferredResult<WVPResult<Object>> queryPreset(@PathVariable String deviceId, @PathVariable String channelId) {
 		if (log.isDebugEnabled()) {
 			log.debug("设备预置位查询API调用");
 		}
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		String uuid =  UUID.randomUUID().toString();
-		String key =  DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (ObjectUtils.isEmpty(channelId) ? deviceId : channelId);
-		DeferredResult<String> result = new DeferredResult<String> (3 * 1000L);
-		result.onTimeout(()->{
-			log.warn(String.format("获取设备预置位超时"));
-			// 释放rtpserver
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData("获取设备预置位超时");
-			resultHolder.invokeResult(msg);
+		Assert.notNull(device, "设备不存在");
+		DeferredResult<WVPResult<Object>> deferredResult = new DeferredResult<> (3 * 1000L);
+		deviceService.queryPreset(device, channelId, (code, msg, data) -> {
+			deferredResult.setResult(new WVPResult<>(code, msg, data));
 		});
-		if (resultHolder.exist(key, null)) {
-			return result;
-		}
-		resultHolder.put(key, uuid, result);
-		try {
-			cmder.presetQuery(device, channelId, event -> {
-				RequestMessage msg = new RequestMessage();
-				msg.setId(uuid);
-				msg.setKey(key);
-				msg.setData(String.format("获取设备预置位失败，错误码： %s, %s", event.statusCode, event.msg));
-				resultHolder.invokeResult(msg);
-			});
-		} catch (InvalidArgumentException | SipException | ParseException e) {
-			log.error("[命令发送失败] 获取设备预置位: {}", e.getMessage());
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
-		}
-		return result;
+
+		deferredResult.onTimeout(()->{
+			log.warn("[获取设备预置位] 超时, {}", device.getDeviceId());
+			deferredResult.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "超时"));
+		});
+		return deferredResult;
 	}
 
 	@Operation(summary = "预置位指令-设置预置位", security = @SecurityRequirement(name = JwtUtils.HEADER))

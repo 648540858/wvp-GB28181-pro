@@ -4,7 +4,7 @@ import lombok.Data;
 
 // 从INVITE消息中解析需要的信息
 @Data
-public class InviteInfo {
+public class InviteMessageInfo {
     private String requesterId;
     private String targetChannelId;
     private String sourceChannelId;

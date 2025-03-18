@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.streamProxy.controller;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -19,7 +20,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,6 +43,9 @@ public class StreamProxyController {
 
     @Autowired
     private IStreamProxyPlayService streamProxyPlayService;
+
+    @Autowired
+    private UserSetting userSetting;
 
 
     @Operation(summary = "分页查询流代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -112,8 +115,8 @@ public class StreamProxyController {
     @ResponseBody
     public StreamProxy add(@RequestBody StreamProxy param){
         log.info("添加代理： " + JSONObject.toJSONString(param));
-        if (ObjectUtils.isEmpty(param.getMediaServerId())) {
-            param.setMediaServerId(null);
+        if (ObjectUtils.isEmpty(param.getRelatesMediaServerId())) {
+            param.setRelatesMediaServerId(null);
         }
         if (ObjectUtils.isEmpty(param.getType())) {
             param.setType("default");
@@ -121,6 +124,7 @@ public class StreamProxyController {
         if (ObjectUtils.isEmpty(param.getGbId())) {
             param.setGbDeviceId(null);
         }
+        param.setServerId(userSetting.getServerId());
         streamProxyService.add(param);
         return param;
     }
@@ -134,6 +138,9 @@ public class StreamProxyController {
         log.info("更新代理： " + JSONObject.toJSONString(param));
         if (param.getId() == 0) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "缺少代理信息的ID");
+        }
+        if (ObjectUtils.isEmpty(param.getRelatesMediaServerId())) {
+            param.setRelatesMediaServerId(null);
         }
         if (ObjectUtils.isEmpty(param.getGbId())) {
             param.setGbDeviceId(null);
@@ -185,7 +192,7 @@ public class StreamProxyController {
     @Parameter(name = "id", description = "代理Id", required = true)
     public StreamContent start(int id){
         log.info("播放代理： {}", id);
-        StreamInfo streamInfo = streamProxyPlayService.start(id);
+        StreamInfo streamInfo = streamProxyPlayService.start(id, null, null);
         if (streamInfo == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg());
         }else {

@@ -31,10 +31,13 @@ public class SipPlatformRunner implements CommandLineRunner {
     @Autowired
     private ISIPCommanderForPlatform sipCommanderForPlatform;
 
+    @Autowired
+    private UserSetting userSetting;
+
     @Override
     public void run(String... args) throws Exception {
         // 获取所有启用的平台
-        List<Platform> parentPlatforms = platformService.queryEnablePlatformList();
+        List<Platform> parentPlatforms = platformService.queryEnablePlatformList(userSetting.getServerId());
 
         for (Platform platform : parentPlatforms) {
 

@@ -36,4 +36,8 @@ public interface IRegionService {
     boolean batchAdd(List<Region> regionList);
 
     List<Region> getPath(String deviceId);
+
+    String getDescription(String civilCode);
+
+    void addByCivilCode(String civilCode);
 }

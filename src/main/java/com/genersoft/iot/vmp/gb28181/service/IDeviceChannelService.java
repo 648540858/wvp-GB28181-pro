@@ -1,13 +1,18 @@
 package com.genersoft.iot.vmp.gb28181.service;
 
+import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.common.enums.DeviceControlType;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
 import com.github.pagehelper.PageInfo;
+import org.dom4j.Element;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -125,4 +130,11 @@ public interface IDeviceChannelService {
     List<DeviceChannel> queryChaneListByDeviceDbId(Integer deviceDbId);
 
     List<Integer> queryChaneIdListByDeviceDbIds(List<Integer> deviceDbId);
+
+    void handlePtzCmd(@NotNull Integer dataDeviceId, @NotNull Integer gbId, Element rootElement, DeviceControlType type, ErrorCallback<String> callback);
+
+    void queryRecordInfo(Device device, DeviceChannel channel, String startTime, String endTime, ErrorCallback<RecordInfo> object);
+
+    void queryRecordInfo(CommonGBChannel channel, String startTime, String endTime, ErrorCallback<RecordInfo> object);
+
 }

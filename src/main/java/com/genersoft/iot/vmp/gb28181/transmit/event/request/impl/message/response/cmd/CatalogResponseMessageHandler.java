@@ -139,7 +139,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                 log.info("[收到目录订阅]：但是解析失败 {}", new String(evt.getRequest().getRawContent()));
                                 continue;
                             }
-                            channel.setDeviceDbId(take.getDevice().getId());
+                            channel.setDataDeviceId(take.getDevice().getId());
                             if (channel.getParentId() != null && channel.getParentId().equals(sipConfig.getId())) {
                                 channel.setParentId(null);
                             }

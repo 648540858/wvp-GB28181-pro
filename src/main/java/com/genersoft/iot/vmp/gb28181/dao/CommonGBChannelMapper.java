@@ -20,9 +20,8 @@ public interface CommonGBChannelMapper {
     @Insert(" <script>" +
             "INSERT INTO wvp_device_channel (" +
             "gb_device_id," +
-            " <if test='streamProxyId != null' > stream_proxy_id,</if>" +
-            " <if test='streamPushId != null' > stream_push_id,</if>" +
-            " <if test='jtChannelId != null' > jt_channel_id,</if>" +
+            "data_type," +
+            "data_device_id," +
             "create_time," +
             "update_time," +
             "gb_name," +
@@ -60,9 +59,8 @@ public interface CommonGBChannelMapper {
             "gb_svc_time_support_mode ) " +
             "VALUES (" +
             "#{gbDeviceId}, " +
-            " <if test='streamProxyId != null' > #{streamProxyId},</if>" +
-            " <if test='streamPushId != null' > #{streamPushId},</if>" +
-            " <if test='jtChannelId != null' > #{jtChannelId},</if>" +
+            "#{dataType}, " +
+            "#{dataDeviceId}, " +
             "#{createTime}, " +
             "#{updateTime}, " +
             "#{gbName}, " +
@@ -154,7 +152,7 @@ public interface CommonGBChannelMapper {
             " SET gb_status = #{status}" +
             " WHERE id = #{gbId}"+
             " </script>"})
-    int updateStatusById(@Param("gbId") int gbId, @Param("status") int status);
+    int updateStatusById(@Param("gbId") int gbId, @Param("status") String status);
 
     @Update("<script> " +
             "<foreach collection='commonGBChannels' index='index' item='item' separator=';'> " +
@@ -170,9 +168,8 @@ public interface CommonGBChannelMapper {
     @Insert(" <script>" +
             "INSERT INTO wvp_device_channel (" +
             "gb_device_id," +
-            "stream_proxy_id, " +
-            "stream_push_id," +
-            "jt_channel_id," +
+            "data_type, " +
+            "data_device_id," +
             "create_time," +
             "update_time," +
             "gb_name," +
@@ -210,7 +207,7 @@ public interface CommonGBChannelMapper {
             "gb_svc_time_support_mode ) " +
             "VALUES" +
             "<foreach collection='commonGBChannels' index='index' item='item' separator=','> " +
-            "(#{item.gbDeviceId}, #{item.streamProxyId}, #{item.streamPushId}, #{item.jtChannelId},#{item.createTime},#{item.updateTime}," +
+            "(#{item.gbDeviceId}, #{item.dataType}, #{item.dataDeviceId},#{item.createTime},#{item.updateTime}," +
             "#{item.gbName},#{item.gbManufacturer}, #{item.gbModel}," +
             "#{item.gbOwner},#{item.gbCivilCode},#{item.gbBlock}, #{item.gbAddress}, #{item.gbParental}, #{item.gbParentId},#{item.gbSafetyWay}, " +
             "#{item.gbRegisterWay},#{item.gbCertNum},#{item.gbCertifiable},#{item.gbErrCode},#{item.gbEndTime}, #{item.gbSecrecy},#{item.gbIpAddress}," +
@@ -238,9 +235,9 @@ public interface CommonGBChannelMapper {
             " gb_ptz_type = null, gb_position_type = null, gb_room_type = null, gb_use_type = null, gb_supply_light_type = null, " +
             " gb_direction_type = null, gb_resolution = null, gb_business_group_id = null, gb_download_speed = null, gb_svc_space_support_mod = null, " +
             " gb_svc_time_support_mode = null" +
-            " WHERE id = #{id} and device_db_id = #{gbDeviceDbId}"+
+            " WHERE id = #{id} and data_type = #{dataType} and data_device_id = #{dataDeviceId}"+
             " </script>"})
-    void reset(@Param("id") int id, @Param("gbDeviceDbId") int gbDeviceDbId, @Param("updateTime") String updateTime);
+    void reset(@Param("id") int id, @Param("dataType") Integer dataType, @Param("dataDeviceId") int dataDeviceId, @Param("updateTime") String updateTime);
 
 
     @SelectProvider(type = ChannelProvider.class, method = "queryByIds")
@@ -253,21 +250,15 @@ public interface CommonGBChannelMapper {
             "</script>"})
     void batchDelete(List<CommonGBChannel> channelListInDb);
 
-    @SelectProvider(type = ChannelProvider.class, method = "queryByStreamPushId")
-    CommonGBChannel queryByStreamPushId(@Param("streamPushId") Integer streamPushId);
-
-    @SelectProvider(type = ChannelProvider.class, method = "queryByStreamProxyId")
-    CommonGBChannel queryByStreamProxyId(@Param("streamProxyId") Integer streamProxyId);
-
     @SelectProvider(type = ChannelProvider.class, method = "queryListByCivilCode")
     List<CommonGBChannel> queryListByCivilCode(@Param("query") String query, @Param("online") Boolean online,
-                                               @Param("channelType") Integer channelType, @Param("civilCode") String civilCode);
+                                               @Param("dataType") Integer dataType, @Param("civilCode") String civilCode);
 
 
 
     @SelectProvider(type = ChannelProvider.class, method = "queryListByParentId")
     List<CommonGBChannel> queryListByParentId(@Param("query") String query, @Param("online") Boolean online,
-                                              @Param("channelType") Integer channelType, @Param("groupDeviceId") String groupDeviceId);
+                                              @Param("dataType") Integer dataType, @Param("groupDeviceId") String groupDeviceId);
 
 
 
@@ -316,18 +307,26 @@ public interface CommonGBChannelMapper {
             " </script>"})
     int removeCivilCodeByChannels(List<CommonGBChannel> channelList);
 
+    @Update(value = {" <script>" +
+            " UPDATE wvp_device_channel " +
+            " SET gb_civil_code = null, civil_code = null" +
+            " WHERE id in "+
+            " <foreach collection='channelIdList'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
+            " </script>"})
+    int removeCivilCodeByChannelIds(List<Integer> channelIdList);
+
     @SelectProvider(type = ChannelProvider.class, method = "queryByCivilCode")
     List<CommonGBChannel> queryByCivilCode(@Param("civilCode") String civilCode);
 
     @SelectProvider(type = ChannelProvider.class, method = "queryByGbDeviceIds")
-    List<CommonGBChannel> queryByGbDeviceIds(List<Integer> deviceIds);
+    List<CommonGBChannel> queryByGbDeviceIds(@Param("dataType") Integer dataType, List<Integer> deviceIds);
 
     @Select(value = {" <script>" +
             " select id from wvp_device_channel " +
-            " where channel_type = 0 and device_db_id in  "+
+            " where channel_type = 0 and data_type = #{dataType} and data_device_id in  "+
             " <foreach collection='deviceIds'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
             " </script>"})
-    List<Integer> queryByGbDeviceIdsForIds(List<Integer> deviceIds);
+    List<Integer> queryByGbDeviceIdsForIds(@Param("dataType") Integer dataType, List<Integer> deviceIds);
 
     @SelectProvider(type = ChannelProvider.class, method = "queryByGroupList")
     List<CommonGBChannel> queryByGroupList(List<Group> groupList);
@@ -449,19 +448,20 @@ public interface CommonGBChannelMapper {
     int updateCivilCodeByChannelList(@Param("civilCode") String civilCode, List<CommonGBChannel> channelList);
 
     @SelectProvider(type = ChannelProvider.class, method = "queryListByStreamPushList")
-    List<CommonGBChannel> queryListByStreamPushList(List<StreamPush> streamPushList);
+    List<CommonGBChannel> queryListByStreamPushList(@Param("dataType") Integer dataType, List<StreamPush> streamPushList);
 
     @Update(value = {" <script>" +
             " <foreach collection='channels' item='item' separator=';' >" +
             " UPDATE wvp_device_channel " +
             " SET gb_longitude=#{item.gbLongitude}, gb_latitude=#{item.gbLatitude} " +
-            " WHERE stream_push_id IS NOT NULL AND gb_device_id=#{item.gbDeviceId} "+
+            " WHERE data_type = #{dataType} AND gb_device_id=#{item.gbDeviceId} "+
              "</foreach>"+
             " </script>"})
-    void updateGpsByDeviceIdForStreamPush(List<CommonGBChannel> channels);
+    void updateGpsByDeviceIdForStreamPush(@Param("dataType") Integer dataType,  List<CommonGBChannel> channels);
 
     @SelectProvider(type = ChannelProvider.class, method = "queryList")
-    List<CommonGBChannel> queryList(@Param("query") String query, @Param("online") Boolean online, @Param("hasRecordPlan") Boolean hasRecordPlan, @Param("channelType") Integer channelType);
+    List<CommonGBChannel> queryList(@Param("query") String query, @Param("online") Boolean online,
+                                    @Param("hasRecordPlan") Boolean hasRecordPlan, @Param("dataType") Integer dataType);
 
     @Update(value = {" <script>" +
             " UPDATE wvp_device_channel " +
@@ -496,9 +496,8 @@ public interface CommonGBChannelMapper {
     @Select("<script>" +
             " select " +
             "    wdc.id as gb_id,\n" +
-            "    wdc.device_db_id as gb_device_db_id,\n" +
-            "    wdc.stream_push_id,\n" +
-            "    wdc.stream_proxy_id,\n" +
+            "    wdc.data_type,\n" +
+            "    wdc.data_device_id,\n" +
             "    wdc.create_time,\n" +
             "    wdc.update_time,\n" +
             "    wdc.record_plan_id,\n" +
@@ -545,12 +544,32 @@ public interface CommonGBChannelMapper {
             " <if test='online == false'> AND coalesce(wdc.gb_status, wdc.status) = 'OFF'</if> " +
             " <if test='hasLink == true'> AND wdc.record_plan_id = #{planId}</if> " +
             " <if test='hasLink == false'> AND wdc.record_plan_id is null</if> " +
-            " <if test='channelType == 0'> AND wdc.device_db_id is not null</if> " +
-            " <if test='channelType == 1'> AND wdc.stream_push_id is not null</if> " +
-            " <if test='channelType == 2'> AND wdc.stream_proxy_id is not null</if> " +
+            " <if test='dataType != null'> AND wdc.data_type = #{dataType}</if> " +
             "</script>")
     List<CommonGBChannel> queryForRecordPlanForWebList(@Param("planId") Integer planId, @Param("query") String query,
-                                                       @Param("channelType") Integer channelType, @Param("online") Boolean online,
+                                                       @Param("dataType") Integer dataType, @Param("online") Boolean online,
                                                        @Param("hasLink") Boolean hasLink);
 
+    @SelectProvider(type = ChannelProvider.class, method = "queryByDataId")
+    CommonGBChannel queryByDataId(@Param("dataType") Integer dataType, @Param("dataDeviceId") Integer dataDeviceId);
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryListByCivilCodeForUnusual")
+    List<CommonGBChannel> queryListByCivilCodeForUnusual(@Param("query") String query, @Param("online") Boolean online, @Param("dataType")Integer dataType);
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryAllForUnusualCivilCode")
+    List<Integer> queryAllForUnusualCivilCode();
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryListByParentForUnusual")
+    List<CommonGBChannel> queryListByParentForUnusual(@Param("query") String query, @Param("online") Boolean online, @Param("dataType")Integer dataType);
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryAllForUnusualParent")
+    List<Integer> queryAllForUnusualParent();
+
+    @Update(value = {" <script>" +
+            " UPDATE wvp_device_channel " +
+            " SET gb_parent_id = null, gb_business_group_id = null, parent_id = null, business_group_id = null" +
+            " WHERE id in "+
+            " <foreach collection='channelIdsForClear'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
+            " </script>"})
+    void removeParentIdByChannelIds(List<Integer> channelIdsForClear);
 }

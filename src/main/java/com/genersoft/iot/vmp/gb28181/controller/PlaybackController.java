@@ -122,7 +122,7 @@ public class PlaybackController {
 								} catch (MalformedURLException e) {
 									host=request.getLocalAddr();
 								}
-								streamInfo.channgeStreamIp(host);
+								streamInfo.changeStreamIp(host);
 							}
 							wvpResult.setData(new StreamContent(streamInfo));
 						}
@@ -156,7 +156,7 @@ public class PlaybackController {
 		}
 		DeviceChannel deviceChannel = channelService.getOneForSource(deviceId, channelId);
 		if (deviceChannel == null) {
-			throw new ControllerException(ErrorCode.ERROR400.getCode(), "通道：" + deviceChannel + " 未找到");
+			throw new ControllerException(ErrorCode.ERROR400.getCode(), "通道：" + channelId + " 未找到");
 		}
 		playService.stop(InviteSessionType.PLAYBACK, device, deviceChannel, stream);
 	}
@@ -166,8 +166,7 @@ public class PlaybackController {
 	@Parameter(name = "streamId", description = "回放流ID", required = true)
 	@GetMapping("/pause/{streamId}")
 	public void playPause(@PathVariable String streamId) {
-		log.info("playPause: "+streamId);
-
+		log.info("[回放暂停] streamId: {}", streamId);
 		try {
 			playService.pauseRtp(streamId);
 		} catch (ServiceException e) {

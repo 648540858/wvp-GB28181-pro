@@ -58,17 +58,18 @@ public interface PlatformChannelMapper {
             "where dc.channel_type = 0 and dc.channel_id = #{channelId} and pgc.platform_id=#{platformId}")
     List<Device> queryDeviceInfoByPlatformIdAndChannelId(@Param("platformId") String platformId, @Param("channelId") String channelId);
 
-    @Select("SELECT pgc.platform_id from wvp_platform_channel pgc left join wvp_device_channel dc on dc.id = pgc.device_channel_id WHERE  dc.channel_type = 0 and dc.device_id=#{channelId}")
-    List<Integer> queryParentPlatformByChannelId(@Param("channelId") String channelId);
+    @Select(" SELECT wp.* from wvp_platform_channel pgc " +
+            " left join wvp_device_channel dc on dc.id = pgc.device_channel_id " +
+            " left join  wvp_platform wp on wp.id = pgc.platform_id" +
+            " WHERE  dc.channel_type = 0 and dc.device_id=#{channelId}")
+    List<Platform> queryParentPlatformByChannelId(@Param("channelId") String channelId);
 
     @Select("<script>" +
             " select " +
             "    wpgc.id ,\n" +
             "    wdc.id as gb_id,\n" +
-            "    wdc.device_db_id as gb_device_db_id,\n" +
-            "    wdc.stream_push_id,\n" +
-            "    wdc.stream_proxy_id,\n" +
-            "    wdc.jt_channel_id,\n" +
+            "    wdc.data_type ,\n" +
+            "    wdc.data_device_id,\n" +
             "    wdc.create_time,\n" +
             "    wdc.update_time,\n" +
             "    wpgc.custom_device_id, \n" +
@@ -150,21 +151,16 @@ public interface PlatformChannelMapper {
             " <if test='online == false'> AND coalesce(wpgc.status, wdc.gb_status, wdc.status) = 'OFF'</if> " +
             " <if test='hasShare == true'> AND wpgc.platform_id = #{platformId}</if> " +
             " <if test='hasShare == false'> AND wpgc.platform_id is null</if> " +
-            " <if test='channelType == 0'> AND wdc.device_db_id is not null</if> " +
-            " <if test='channelType == 1'> AND wdc.stream_push_id is not null</if> " +
-            " <if test='channelType == 2'> AND wdc.stream_proxy_id is not null</if> " +
-            " <if test='channelType == 4'> AND wdc.jt_channel_id is not null</if> " +
+            " <if test='dataType != null'> AND wdc.data_type = #{dataType}</if> " +
             "</script>")
     List<PlatformChannel> queryForPlatformForWebList(@Param("platformId") Integer platformId, @Param("query") String query,
-                                                     @Param("channelType") Integer channelType, @Param("online") Boolean online,
+                                                     @Param("dataType") Integer dataType, @Param("online") Boolean online,
                                                      @Param("hasShare") Boolean hasShare);
 
     @Select("select\n" +
             "    wdc.id as gb_id,\n" +
-            "    wdc.device_db_id as gb_device_db_id,\n" +
-            "    wdc.stream_push_id,\n" +
-            "    wdc.stream_proxy_id,\n" +
-            "    wdc.jt_channel_id,\n" +
+            "    wdc.data_type,\n" +
+            "    wdc.data_device_id,\n" +
             "    wdc.create_time,\n" +
             "    wdc.update_time,\n" +
             "    coalesce(wpgc.custom_device_id, wdc.gb_device_id, wdc.device_id) as gb_device_id,\n" +
@@ -212,10 +208,8 @@ public interface PlatformChannelMapper {
     @Select("<script>" +
             " select " +
             "    wdc.id as gb_id,\n" +
-            "    wdc.device_db_id as gb_device_db_id,\n" +
-            "    wdc.stream_push_id,\n" +
-            "    wdc.stream_proxy_id,\n" +
-            "    wdc.jt_channel_id,\n" +
+            "    wdc.data_type,\n" +
+            "    wdc.data_device_id,\n" +
             "    wdc.create_time,\n" +
             "    wdc.update_time,\n" +
             "    coalesce(wpgc.custom_device_id, wdc.gb_device_id, wdc.device_id) as gb_device_id,\n" +
@@ -264,10 +258,8 @@ public interface PlatformChannelMapper {
     @Select("<script>" +
             " select " +
             "    wdc.id as gb_id,\n" +
-            "    wdc.device_db_id as gb_device_db_id,\n" +
-            "    wdc.stream_push_id,\n" +
-            "    wdc.stream_proxy_id,\n" +
-            "    wdc.jt_channel_id,\n" +
+            "    wdc.data_type,\n" +
+            "    wdc.data_device_id,\n" +
             "    wdc.create_time,\n" +
             "    wdc.update_time,\n" +
             "    coalesce(wpgc.custom_device_id, wdc.gb_device_id, wdc.device_id) as gb_device_id,\n" +
@@ -490,10 +482,8 @@ public interface PlatformChannelMapper {
     @Select("<script>" +
             " select " +
             "    wdc.id as gb_id,\n" +
-            "    wdc.device_db_id as gb_device_db_id,\n" +
-            "    wdc.stream_push_id,\n" +
-            "    wdc.stream_proxy_id,\n" +
-            "    wdc.jt_channel_id,\n" +
+            "    wdc.data_type,\n" +
+            "    wdc.data_device_id,\n" +
             "    wdc.create_time,\n" +
             "    wdc.update_time,\n" +
             "    coalesce(wpgc.custom_device_id, wdc.gb_device_id, wdc.device_id) as gb_device_id,\n" +

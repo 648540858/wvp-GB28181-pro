@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.alibaba.fastjson2.JSON;
-import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.*;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -28,7 +27,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 @Slf4j
 @Service
-@DS("master")
 public class InviteStreamServiceImpl implements IInviteStreamService {
 
     private final Map<String, List<ErrorCallback<StreamInfo>>> inviteErrorCallbackMap = new ConcurrentHashMap<>();

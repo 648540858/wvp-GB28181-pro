@@ -1,14 +1,15 @@
 package com.genersoft.iot.vmp.streamPush.service.impl;
 
-import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
+import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
+import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.service.redisMsg.RedisPushStreamResponseListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -25,7 +26,6 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-@DS("master")
 public class StreamPushPlayServiceImpl implements IStreamPushPlayService {
 
     @Autowired
@@ -47,21 +47,36 @@ public class StreamPushPlayServiceImpl implements IStreamPushPlayService {
     private IRedisRpcService redisRpcService;
 
     @Autowired
+    private IRedisRpcPlayService redisRpcPlayService;
+
+    @Autowired
     private RedisPushStreamResponseListener redisPushStreamResponseListener;
 
     @Override
     public void start(Integer id, ErrorCallback<StreamInfo> callback, String platformDeviceId, String platformName ) {
         StreamPush streamPush = streamPushMapper.queryOne(id);
         Assert.notNull(streamPush, "推流信息未找到");
-        MediaInfo mediaInfo = redisCatchStorage.getPushListItem(streamPush.getApp(), streamPush.getStream());
+
+        if (!userSetting.getServerId().equals(streamPush.getServerId())) {
+            redisRpcPlayService.playPush(id, callback);
+            return;
+        }
+
+        MediaServer mediaServer = mediaServerService.getOne(streamPush.getMediaServerId());
+        Assert.notNull(mediaServer, "节点" + streamPush.getMediaServerId() + "未找到");
+        MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, streamPush.getApp(), streamPush.getStream());
         if (mediaInfo != null) {
             String callId = null;
             StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(streamPush.getApp(), streamPush.getStream());
             if (streamAuthorityInfo != null) {
                 callId = streamAuthorityInfo.getCallId();
             }
-            callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), mediaServerService.getStreamInfoByAppAndStream(mediaInfo.getMediaServer(),
+            callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), mediaServerService.getStreamInfoByAppAndStream(mediaServer,
                     streamPush.getApp(), streamPush.getStream(), mediaInfo, callId));
+            if (!streamPush.isPushing()) {
+                streamPush.setPushing(true);
+                streamPushMapper.update(streamPush);
+            }
             return;
         }
         Assert.isTrue(streamPush.isStartOfflinePush(), "通道未推流");
@@ -99,5 +114,29 @@ public class StreamPushPlayServiceImpl implements IStreamPushPlayService {
                 callback.run(response.getCode(), response.getMsg(), null);
             }
         });
+    }
+
+    @Override
+    public void stop(String app, String stream) {
+        StreamPush streamPush = streamPushMapper.selectByAppAndStream(app, stream);
+        if (streamPush == null || !streamPush.isPushing()) {
+            return;
+        }
+        String mediaServerId = streamPush.getMediaServerId();
+        MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+        Assert.notNull(mediaServer, "未找到使用的节点");
+        mediaServerService.closeStreams(mediaServer, app, stream);
+    }
+
+    @Override
+    public void stop(Integer id) {
+        StreamPush streamPush = streamPushMapper.queryOne(id);
+        if (streamPush == null || !streamPush.isPushing()) {
+            return;
+        }
+        String mediaServerId = streamPush.getMediaServerId();
+        MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+        Assert.notNull(mediaServer, "未找到使用的节点");
+        mediaServerService.closeStreams(mediaServer, streamPush.getApp(), streamPush.getStream());
     }
 }

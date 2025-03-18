@@ -4,11 +4,12 @@ import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Objects;
 
-
+@Data
 @Schema(description = "流信息")
 public class StreamInfo implements Serializable, Cloneable{
 
@@ -91,99 +92,14 @@ public class StreamInfo implements Serializable, Cloneable{
     @Schema(description = "产生源类型，包括 unknown = 0,rtmp_push=1,rtsp_push=2,rtp_push=3,pull=4,ffmpeg_pull=5,mp4_vod=6,device_chn=7")
     private int originType;
 
+    @Schema(description = "originType的文本描述")
+    private String originTypeStr;
+
     @Schema(description = "转码后的视频流")
     private StreamInfo transcodeStream;
 
     @Schema(description = "使用的WVP ID")
     private String serverId;
-
-    public void setFlv(StreamURL flv) {
-        this.flv = flv;
-    }
-
-    public void setHttps_flv(StreamURL https_flv) {
-        this.https_flv = https_flv;
-    }
-
-    public void setWs_flv(StreamURL ws_flv) {
-        this.ws_flv = ws_flv;
-    }
-
-    public void setWss_flv(StreamURL wss_flv) {
-        this.wss_flv = wss_flv;
-    }
-
-    public void setFmp4(StreamURL fmp4) {
-        this.fmp4 = fmp4;
-    }
-
-    public void setHttps_fmp4(StreamURL https_fmp4) {
-        this.https_fmp4 = https_fmp4;
-    }
-
-    public void setWs_fmp4(StreamURL ws_fmp4) {
-        this.ws_fmp4 = ws_fmp4;
-    }
-
-    public void setWss_fmp4(StreamURL wss_fmp4) {
-        this.wss_fmp4 = wss_fmp4;
-    }
-
-    public void setHls(StreamURL hls) {
-        this.hls = hls;
-    }
-
-    public void setHttps_hls(StreamURL https_hls) {
-        this.https_hls = https_hls;
-    }
-
-    public void setWs_hls(StreamURL ws_hls) {
-        this.ws_hls = ws_hls;
-    }
-
-    public void setWss_hls(StreamURL wss_hls) {
-        this.wss_hls = wss_hls;
-    }
-
-    public void setTs(StreamURL ts) {
-        this.ts = ts;
-    }
-
-    public void setHttps_ts(StreamURL https_ts) {
-        this.https_ts = https_ts;
-    }
-
-    public void setWs_ts(StreamURL ws_ts) {
-        this.ws_ts = ws_ts;
-    }
-
-    public void setWss_ts(StreamURL wss_ts) {
-        this.wss_ts = wss_ts;
-    }
-
-    public void setRtmp(StreamURL rtmp) {
-        this.rtmp = rtmp;
-    }
-
-    public void setRtmps(StreamURL rtmps) {
-        this.rtmps = rtmps;
-    }
-
-    public void setRtsp(StreamURL rtsp) {
-        this.rtsp = rtsp;
-    }
-
-    public void setRtsps(StreamURL rtsps) {
-        this.rtsps = rtsps;
-    }
-
-    public void setRtc(StreamURL rtc) {
-        this.rtc = rtc;
-    }
-
-    public void setRtcs(StreamURL rtcs) {
-        this.rtcs = rtcs;
-    }
 
     public void setRtmp(String host, int port, int sslPort, String app, String stream, String callIdParam) {
         String file = String.format("%s/%s%s", app, stream, callIdParam);
@@ -275,7 +191,7 @@ public class StreamInfo implements Serializable, Cloneable{
         }
     }
 
-    public void channgeStreamIp(String localAddr) {
+    public void changeStreamIp(String localAddr) {
         if (this.flv != null) {
             this.flv.setHost(localAddr);
         }
@@ -351,205 +267,6 @@ public class StreamInfo implements Serializable, Cloneable{
 
     private TransactionInfo transactionInfo;
 
-    public String getApp() {
-        return app;
-    }
-
-    public void setApp(String app) {
-        this.app = app;
-    }
-
-    public String getDeviceId() {
-        return deviceId;
-    }
-
-    public void setDeviceId(String deviceId) {
-        this.deviceId = deviceId;
-    }
-
-    public Integer getChannelId() {
-        return channelId;
-    }
-
-    public void setChannelId(Integer channelId) {
-        this.channelId = channelId;
-    }
-
-    public String getStream() {
-        return stream;
-    }
-
-    public void setStream(String stream) {
-        this.stream = stream;
-    }
-
-    public String getIp() {
-        return ip;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
-
-    public StreamURL getFlv() {
-        return flv;
-    }
-
-    public StreamURL getHttps_flv() {
-        return https_flv;
-    }
-
-    public StreamURL getWs_flv() {
-        return ws_flv;
-    }
-
-
-    public StreamURL getWss_flv() {
-        return wss_flv;
-    }
-
-    public StreamURL getFmp4() {
-        return fmp4;
-    }
-
-
-
-    public StreamURL getHttps_fmp4() {
-        return https_fmp4;
-    }
-
-    public StreamURL getWs_fmp4() {
-        return ws_fmp4;
-    }
-
-    public StreamURL getWss_fmp4() {
-        return wss_fmp4;
-    }
-
-    public StreamURL getHls() {
-        return hls;
-    }
-
-
-    public StreamURL getHttps_hls() {
-        return https_hls;
-    }
-
-    public StreamURL getWs_hls() {
-        return ws_hls;
-    }
-
-    public StreamURL getWss_hls() {
-        return wss_hls;
-    }
-
-    public StreamURL getTs() {
-        return ts;
-    }
-
-
-    public StreamURL getHttps_ts() {
-        return https_ts;
-    }
-
-
-    public StreamURL getWs_ts() {
-        return ws_ts;
-    }
-
-
-    public StreamURL getWss_ts() {
-        return wss_ts;
-    }
-
-
-    public StreamURL getRtmp() {
-        return rtmp;
-    }
-
-    public StreamURL getRtmps() {
-        return rtmps;
-    }
-
-    public StreamURL getRtsp() {
-        return rtsp;
-    }
-
-    public StreamURL getRtsps() {
-        return rtsps;
-    }
-
-    public StreamURL getRtc() {
-        return rtc;
-    }
-
-    public StreamURL getRtcs() {
-        return rtcs;
-    }
-
-    public MediaServer getMediaServer() {
-        return mediaServer;
-    }
-
-    public void setMediaServer(MediaServer mediaServer) {
-        this.mediaServer = mediaServer;
-    }
-
-    public MediaInfo getMediaInfo() {
-        return mediaInfo;
-    }
-
-    public void setMediaInfo(MediaInfo mediaInfo) {
-        this.mediaInfo = mediaInfo;
-    }
-
-    public String getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(String startTime) {
-        this.startTime = startTime;
-    }
-
-    public String getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(String endTime) {
-        this.endTime = endTime;
-    }
-
-    public double getProgress() {
-        return progress;
-    }
-
-    public void setProgress(double progress) {
-        this.progress = progress;
-    }
-
-    public boolean isPause() {
-        return pause;
-    }
-
-    public void setPause(boolean pause) {
-        this.pause = pause;
-    }
-
-    public TransactionInfo getTransactionInfo() {
-        return transactionInfo;
-    }
-
-    public void setTransactionInfo(TransactionInfo transactionInfo) {
-        this.transactionInfo = transactionInfo;
-    }
-
-    public StreamInfo getTranscodeStream() {
-        return transcodeStream;
-    }
-
-    public void setTranscodeStream(StreamInfo transcodeStream) {
-        this.transcodeStream = transcodeStream;
-    }
 
     @Override
     public StreamInfo clone() {
@@ -625,48 +342,4 @@ public class StreamInfo implements Serializable, Cloneable{
         return instance;
     }
 
-
-    /*=========================设备主子码流逻辑START====================*/
-    @Schema(description = "是否为子码流(true-是，false-主码流)")
-    private boolean subStream;
-
-    public boolean isSubStream() {
-        return subStream;
-    }
-
-    public void setSubStream(boolean subStream) {
-        this.subStream = subStream;
-    }
-
-    public DownloadFileInfo getDownLoadFilePath() {
-        return downLoadFilePath;
-    }
-
-    public void setDownLoadFilePath(DownloadFileInfo downLoadFilePath) {
-        this.downLoadFilePath = downLoadFilePath;
-    }
-
-    public int getOriginType() {
-        return originType;
-    }
-
-    public void setOriginType(int originType) {
-        this.originType = originType;
-    }
-
-    public String getServerId() {
-        return serverId;
-    }
-
-    public void setServerId(String serverId) {
-        this.serverId = serverId;
-    }
-
-    public String getCallId() {
-        return callId;
-    }
-
-    public void setCallId(String callId) {
-        this.callId = callId;
-    }
 }

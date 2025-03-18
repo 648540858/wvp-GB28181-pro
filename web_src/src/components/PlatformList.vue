@@ -15,13 +15,14 @@
       </div>
 
       <!--设备列表-->
-      <el-table size="medium" :data="platformList" style="width: 100%" :height="winHeight" :loading="loading">
+      <el-table size="medium" :data="platformList" style="width: 100%" :height="$tableHeght" :loading="loading">
         <el-table-column prop="name" label="名称"></el-table-column>
         <el-table-column prop="serverGBId" label="平台编号" min-width="200"></el-table-column>
         <el-table-column label="是否启用" min-width="80">
           <template v-slot:default="scope">
             <div slot="reference" class="name-wrapper">
-              <el-tag size="medium" v-if="scope.row.enable">已启用</el-tag>
+              <el-tag size="medium" v-if="scope.row.enable && Vue.prototype.$myServerId !== scope.row.serverId" style="border-color: #ecf1af">已启用</el-tag>
+              <el-tag size="medium" v-if="scope.row.enable && Vue.prototype.$myServerId === scope.row.serverId">已启用</el-tag>
               <el-tag size="medium" type="info" v-if="!scope.row.enable">未启用</el-tag>
             </div>
           </template>
@@ -96,6 +97,7 @@ import uiHeader from '../layout/UiHeader.vue'
 import shareChannel from './dialog/shareChannel.vue'
 import platformEdit from './PlatformEdit.vue'
 import streamProxyEdit from "./dialog/StreamProxyEdit.vue";
+import Vue from "vue";
 
 export default {
   name: 'app',
@@ -113,14 +115,17 @@ export default {
       defaultPlatform: null,
       platform: null,
       pushChannelLoading: false,
-      winHeight: window.innerHeight - 260,
       searchSrt: "",
       currentPage: 1,
       count: 15,
       total: 0
     };
   },
-  computed: {},
+  computed: {
+    Vue() {
+      return Vue
+    },
+  },
   mounted() {
     this.initData();
     this.updateLooper = setInterval(this.initData, 10000);

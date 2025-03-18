@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.info;
 
+import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.service.*;
@@ -101,7 +102,7 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
                 return;
             }
             // 判断通道类型
-            if (channel.getGbDeviceDbId() == null) {
+            if (channel.getDataType() != ChannelDataType.GB28181.value) {
                 // 非国标通道不支持录像回放控制
                 log.warn("[INFO 消息] 非国标通道不支持录像回放控制： 通道ID： {}", sendRtpInfo.getChannelId());
                 responseAck(request, Response.FORBIDDEN, "");
@@ -109,7 +110,7 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
             }
 
             // 根据通道ID，获取所属设备
-            Device device = deviceService.getDevice(channel.getGbDeviceDbId());
+            Device device = deviceService.getDevice(channel.getDataDeviceId());
             if (device == null) {
                 // 不存在则回复404
                 log.warn("[INFO 消息] 通道所属设备不存在， 通道ID： {}", sendRtpInfo.getChannelId());

@@ -3,14 +3,11 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.respon
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Element;
@@ -34,13 +31,7 @@ public class DeviceStatusResponseMessageHandler extends SIPRequestProcessorParen
     private ResponseMessageHandler responseMessageHandler;
 
     @Autowired
-    private DeferredResultHolder deferredResultHolder;
-
-    @Autowired
     private IDeviceService deviceService;
-
-    @Autowired
-    private IRedisCatchStorage redisCatchStorage;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -60,24 +51,15 @@ public class DeviceStatusResponseMessageHandler extends SIPRequestProcessorParen
         } catch (SipException | InvalidArgumentException | ParseException e) {
             log.error("[命令发送失败] 国标级联 设备状态应答回复200OK: {}", e.getMessage());
         }
-        Element deviceIdElement = element.element("DeviceID");
         Element onlineElement = element.element("Online");
-        String channelId = deviceIdElement.getText();
         JSONObject json = new JSONObject();
         XmlUtil.node2Json(element, json);
         if (log.isDebugEnabled()) {
             log.debug(json.toJSONString());
         }
         String text = onlineElement.getText();
-        if ("ONLINE".equalsIgnoreCase(text.trim())) {
-            deviceService.online(device, null);
-        }else {
-            deviceService.offline(device.getDeviceId(), "设备状态查询结果：" + text.trim());
-        }
-        RequestMessage msg = new RequestMessage();
-        msg.setKey(DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS + device.getDeviceId());
-        msg.setData(json);
-        deferredResultHolder.invokeAllResult(msg);
+        responseMessageHandler.handMessageEvent(element, text);
+
     }
 
     @Override

@@ -76,13 +76,13 @@ public interface IPlatformService {
     /**
      * 语音喊话回复BYE
      */
-    void stopBroadcast(Platform platform, CommonGBChannel channel, String stream, boolean sendBye, MediaServer mediaServerItem);
+    void stopBroadcast(Platform platform, CommonGBChannel channel, String app, String stream, boolean sendBye, MediaServer mediaServerItem);
 
     void addSimulatedSubscribeInfo(Platform parentPlatform);
 
     Platform queryOne(Integer platformId);
 
-    List<Platform> queryEnablePlatformList();
+    List<Platform> queryEnablePlatformList(String serverId);
 
     void delete(Integer platformId, CommonCallback<Object> callback);
 }

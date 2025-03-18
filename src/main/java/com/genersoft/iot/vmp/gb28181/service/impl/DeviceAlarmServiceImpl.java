@@ -1,9 +1,8 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
-import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
-import com.genersoft.iot.vmp.gb28181.service.IDeviceAlarmService;
 import com.genersoft.iot.vmp.gb28181.dao.DeviceAlarmMapper;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceAlarmService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-@DS("master")
 public class DeviceAlarmServiceImpl implements IDeviceAlarmService {
 
     @Autowired

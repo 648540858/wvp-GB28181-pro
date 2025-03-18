@@ -169,7 +169,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 						}
 						try {
 							log.info("[停止点播] {}/{}", sendRtpItem.getTargetId(), sendRtpItem.getChannelId());
-							cmder.streamByeCmd(device, deviceChannel.getDeviceId(), streamId, null);
+							cmder.streamByeCmd(device, deviceChannel.getDeviceId(), sendRtpItem.getApp(), sendRtpItem.getStream(), null, null);
 						} catch (InvalidArgumentException | ParseException | SipException |
 								 SsrcTransactionNotFoundException e) {
 							log.error("[收到bye] {} 无其它观看者，通知设备停止推流， 发送BYE失败 {}",streamId, e.getMessage());
@@ -196,10 +196,10 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 					return;
 				}
 				String mediaServerId = ssrcTransaction.getMediaServerId();
-				platformService.stopBroadcast(platform, channel, ssrcTransaction.getStream(), false,
+				platformService.stopBroadcast(platform, channel, ssrcTransaction.getApp(), ssrcTransaction.getStream(), false,
 						mediaServerService.getOne(mediaServerId));
 				DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
-				Device device = deviceService.getDevice(channel.getGbDeviceDbId());
+				Device device = deviceService.getDevice(channel.getDataDeviceId());
 				playService.stopAudioBroadcast(device, deviceChannel);
 			}
 

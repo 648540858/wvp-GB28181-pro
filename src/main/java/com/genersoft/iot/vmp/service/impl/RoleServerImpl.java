@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.service.impl;
 
-import com.baomidou.dynamic.datasource.annotation.DS;
 import com.genersoft.iot.vmp.service.IRoleService;
 import com.genersoft.iot.vmp.storager.dao.RoleMapper;
 import com.genersoft.iot.vmp.storager.dao.dto.Role;
@@ -10,7 +9,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-@DS("master")
 public class RoleServerImpl implements IRoleService {
 
     @Autowired

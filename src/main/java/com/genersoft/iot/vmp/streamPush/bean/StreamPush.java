@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.streamPush.bean;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -78,6 +79,8 @@ public class StreamPush extends CommonGBChannel implements Comparable<StreamPush
 
     private String uniqueKey;
 
+    private Integer dataType = ChannelDataType.STREAM_PUSH.value;
+
     @Override
     public int compareTo(@NotNull StreamPush streamPushItem) {
         return Long.valueOf(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(this.createTime)
@@ -115,7 +118,8 @@ public class StreamPush extends CommonGBChannel implements Comparable<StreamPush
         if (ObjectUtils.isEmpty(this.getGbName())) {
             this.setGbName( app+ "-" +stream);
         }
-        this.setStreamPushId(this.getId());
+        this.setDataType(ChannelDataType.STREAM_PUSH.value);
+        this.setDataDeviceId(this.getId());
         return this;
     }
 

@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.streamPush.controller;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelReader;
 import com.alibaba.excel.read.metadata.ReadSheet;
+import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
@@ -28,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -215,7 +215,8 @@ public class StreamPushController {
         if (!streamPushService.add(stream)) {
             throw new ControllerException(ErrorCode.ERROR100);
         }
-        stream.setStreamPushId(stream.getId());
+        stream.setDataType(ChannelDataType.STREAM_PUSH.value);
+        stream.setDataDeviceId(stream.getId());
         return stream;
     }
 
@@ -244,7 +245,7 @@ public class StreamPushController {
     @GetMapping(value = "/start")
     @ResponseBody
     @Operation(summary = "开始播放", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    public DeferredResult<WVPResult<StreamContent>> batchStop(Integer id){
+    public DeferredResult<WVPResult<StreamContent>> start(Integer id){
         Assert.notNull(id, "推流ID不可为NULL");
         DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
         result.onTimeout(()->{
@@ -258,5 +259,13 @@ public class StreamPushController {
             }
         }, null, null);
         return result;
+    }
+
+    @GetMapping(value = "/forceClose")
+    @ResponseBody
+    @Operation(summary = "强制停止推流", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    public void stop(String app, String stream){
+
+        streamPushPlayService.stop(app, stream);
     }
 }

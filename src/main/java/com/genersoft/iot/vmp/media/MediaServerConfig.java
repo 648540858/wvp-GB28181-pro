@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.media;
 
 import com.genersoft.iot.vmp.conf.MediaConfig;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerChangeEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
@@ -30,6 +31,9 @@ public class MediaServerConfig implements CommandLineRunner {
     @Autowired
     private MediaConfig mediaConfig;
 
+    @Autowired
+    private UserSetting userSetting;
+
 
     @Override
     public void run(String... strings) throws Exception {
@@ -37,6 +41,7 @@ public class MediaServerConfig implements CommandLineRunner {
         mediaServerService.clearMediaServerForOnline();
         MediaServer defaultMediaServer = mediaServerService.getDefaultMediaServer();
         MediaServer mediaSerItemInConfig = mediaConfig.getMediaSerItem();
+        mediaSerItemInConfig.setServerId(userSetting.getServerId());
         if (defaultMediaServer != null && mediaSerItemInConfig.getId().equals(defaultMediaServer.getId())) {
             mediaServerService.update(mediaSerItemInConfig);
         }else {

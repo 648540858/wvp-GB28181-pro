@@ -1,10 +1,10 @@
 package com.genersoft.iot.vmp.gb28181.service;
 
 import com.genersoft.iot.vmp.common.CommonCallback;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
-import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
+import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
@@ -86,7 +86,7 @@ public interface IDeviceService {
      * 获取所有在线设备
      * @return 设备列表
      */
-    List<Device> getAllOnlineDevice();
+    List<Device> getAllOnlineDevice(String serverId);
 
     List<Device> getAllByStatus(Boolean status);
 
@@ -101,7 +101,7 @@ public interface IDeviceService {
      * 检查设备状态
      * @param device 设备信息
      */
-    void checkDeviceStatus(Device device);
+    Boolean getDeviceStatus(Device device);
 
     /**
      * 根据IP和端口获取设备信息
@@ -161,4 +161,40 @@ public interface IDeviceService {
     Device getDeviceByChannelId(Integer channelId);
 
     Device getDeviceBySourceChannelDeviceId(String requesterId);
+
+    void subscribeCatalog(int id, int cycle);
+
+    void subscribeMobilePosition(int id, int cycle, int interval);
+
+    WVPResult<SyncStatus> devicesSync(Device device);
+
+    void deviceBasicConfig(Device device, BasicParam basicParam, ErrorCallback<String> callback);
+
+    void deviceConfigQuery(Device device, String channelId, String configType, ErrorCallback<Object> callback);
+
+    void teleboot(Device device);
+
+    void record(Device device, String channelId, String recordCmdStr, ErrorCallback<String> callback);
+
+    void guard(Device device, String guardCmdStr, ErrorCallback<String> callback);
+
+    void resetAlarm(Device device, String channelId, String alarmMethod, String alarmType, ErrorCallback<String> callback);
+
+    void iFrame(Device device, String channelId);
+
+    void homePosition(Device device, String channelId, Boolean enabled, Integer resetTime, Integer presetIndex, ErrorCallback<String> callback);
+
+    void dragZoomIn(Device device, String channelId, int length, int width, int midpointx, int midpointy, int lengthx, int lengthy, ErrorCallback<String> callback);
+
+    void dragZoomOut(Device device, String channelId, int length, int width, int midpointx, int midpointy, int lengthx, int lengthy, ErrorCallback<String> callback);
+
+    void deviceStatus(Device device, ErrorCallback<String> callback);
+
+    void updateDeviceHeartInfo(Device device);
+
+    void alarm(Device device, String startPriority, String endPriority, String alarmMethod, String alarmType, String startTime, String endTime, ErrorCallback<Object> callback);
+
+    void deviceInfo(Device device, ErrorCallback<Object> callback);
+
+    void queryPreset(Device device, String channelId, ErrorCallback<Object> callback);
 }

@@ -47,28 +47,18 @@ spring:
         #    username: root
         #    password: SYceshizu1234
         # mysql配置
-        dynamic:
-            primary: master
-            datasource:
-                master:
-                    type: com.zaxxer.hikari.HikariDataSource
-                    driver-class-name: com.mysql.cj.jdbc.Driver
-                    url: jdbc:mysql://127.0.0.1:3306/wvp2?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true
-                    username: root
-                    password: root123
-                    hikari:
-                        connection-timeout: 20000             # 是客户端等待连接池连接的最大毫秒数
-                        initialSize: 50                       # 连接池初始化连接数
-                        maximum-pool-size: 200                # 连接池最大连接数
-                        minimum-idle: 10                       # 连接池最小空闲连接数
-                        idle-timeout: 300000                  # 允许连接在连接池中空闲的最长时间（以毫秒为单位）
-                        max-lifetime: 1200000                 # 是池中连接关闭后的最长生命周期（以毫秒为单位)
-                share:
-                    type: com.zaxxer.hikari.HikariDataSource
-                    driver-class-name: com.mysql.cj.jdbc.Driver
-                    url: jdbc:mysql://127.0.0.1:3306/wvp269_1?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true&allowPublicKeyRetrieval=true
-                    username: root
-                    password: 12345678
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://127.0.0.1:3306/wvp2?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true
+        username: root
+        password: root123
+        hikari:
+            connection-timeout: 20000             # 是客户端等待连接池连接的最大毫秒数
+            initialSize: 50                       # 连接池初始化连接数
+            maximum-pool-size: 200                # 连接池最大连接数
+            minimum-idle: 10                       # 连接池最小空闲连接数
+            idle-timeout: 300000                  # 允许连接在连接池中空闲的最长时间（以毫秒为单位）
+            max-lifetime: 1200000                 # 是池中连接关闭后的最长生命周期（以毫秒为单位)
 
 
 
@@ -198,6 +188,8 @@ user-settings:
     save-position-history: false
     # 点播/录像回放 等待超时时间,单位：毫秒
     play-timeout: 18000
+    # 获取设备录像数据超时时间,单位：毫秒
+    record-info-timeout: 10000
     # 上级点播等待超时时间,单位：毫秒
     platform-play-timeout: 60000
     # 是否开启接口鉴权
@@ -253,6 +245,10 @@ user-settings:
     gb-device-online: 0
     # 登录超时时间(分钟)，
     login-timeout: 30
+    # jwk文件路径，若不指定则使用resources目录下的jwk.json
+    jwk-file: classpath:jwk.json
+    # wvp集群模式下如果注册向上级的wvp奔溃，则自动选择一个其他wvp继续注册到上级
+    auto-register-platform: true
 
 # 关闭在线文档（生产环境建议关闭）
 springdoc:

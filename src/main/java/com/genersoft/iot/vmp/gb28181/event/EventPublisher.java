@@ -1,19 +1,21 @@
 package com.genersoft.iot.vmp.gb28181.event;
 
-import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
+import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
+import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.event.alarm.AlarmEvent;
-import com.genersoft.iot.vmp.gb28181.event.device.RequestTimeoutEvent;
-import com.genersoft.iot.vmp.gb28181.event.record.RecordEndEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.mobilePosition.MobilePositionEvent;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOfflineEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOnlineEvent;
+import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import javax.sip.TimeoutEvent;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -29,7 +31,13 @@ public class EventPublisher {
 
 	@Autowired
     private ApplicationEventPublisher applicationEventPublisher;
-	
+
+	@Autowired
+	private UserSetting userSetting;
+
+	@Autowired
+	private IRedisRpcService redisRpcService;
+
 	/**
 	 * 设备报警事件
 	 * @param deviceAlarm
@@ -53,27 +61,25 @@ public class EventPublisher {
 	}
 
 
-	public void catalogEventPublish(Integer platformId, CommonGBChannel deviceChannel, String type) {
+	public void catalogEventPublish(Platform platform, CommonGBChannel deviceChannel, String type) {
 		List<CommonGBChannel> deviceChannelList = new ArrayList<>();
 		deviceChannelList.add(deviceChannel);
-		catalogEventPublish(platformId, deviceChannelList, type);
+		catalogEventPublish(platform, deviceChannelList, type);
 	}
 
-
-	public void requestTimeOut(TimeoutEvent timeoutEvent) {
-		RequestTimeoutEvent requestTimeoutEvent = new RequestTimeoutEvent(this);
-		requestTimeoutEvent.setTimeoutEvent(timeoutEvent);
-		applicationEventPublisher.publishEvent(requestTimeoutEvent);
+	public void catalogEventPublish(Platform platform, List<CommonGBChannel> deviceChannels, String type) {
+		catalogEventPublish(platform, deviceChannels, type, true);
 	}
-
-
-	/**
-	 *
-	 * @param platformId
-	 * @param deviceChannels
-	 * @param type
-	 */
-	public void catalogEventPublish(Integer platformId, List<CommonGBChannel> deviceChannels, String type) {
+	public void catalogEventPublish(Platform platform, List<CommonGBChannel> deviceChannels, String type, boolean share) {
+		if (platform != null && !userSetting.getServerId().equals(platform.getServerId())) {
+			// 指定了上级平台的推送，则发送到指定的设备，未指定的则全部发送， 接收后各自处理自己的
+			CatalogEvent outEvent = new CatalogEvent(this);
+			outEvent.setChannels(deviceChannels);
+			outEvent.setType(type);
+			outEvent.setPlatform(platform);
+			redisRpcService.catalogEventPublish(platform.getServerId(), outEvent);
+			return;
+		}
 		CatalogEvent outEvent = new CatalogEvent(this);
 		List<CommonGBChannel> channels = new ArrayList<>();
 		if (deviceChannels.size() > 1) {
@@ -90,10 +96,13 @@ public class EventPublisher {
 		}
 		outEvent.setChannels(channels);
 		outEvent.setType(type);
-		outEvent.setPlatformId(platformId);
+		outEvent.setPlatform(platform);
 		applicationEventPublisher.publishEvent(outEvent);
+		if (platform == null && share) {
+			// 如果没指定上级平台，则推送消息到所有在线的wvp处理自己含有的平台的目录更新
+			redisRpcService.catalogEventPublish(null, outEvent);
+		}
 	}
-
 
 	public void mobilePositionEventPublish(MobilePosition mobilePosition) {
 		MobilePositionEvent event = new MobilePositionEvent(this);
@@ -101,9 +110,5 @@ public class EventPublisher {
 		applicationEventPublisher.publishEvent(event);
 	}
 
-	public void recordEndEventPush(RecordInfo recordInfo) {
-		RecordEndEvent outEvent = new RecordEndEvent(this);
-		outEvent.setRecordInfo(recordInfo);
-		applicationEventPublisher.publishEvent(outEvent);
-	}
+
 }

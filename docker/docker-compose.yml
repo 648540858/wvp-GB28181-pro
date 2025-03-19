@@ -1,15 +1,33 @@
-version: '3'
 services:
+  mysql:
+    container_name: wvp-mysql
+    image: m.daocloud.io/docker.io/mysql:8
+    restart: always
+    volumes:
+      - ./mysql/logs:/var/log/mysql
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/conf:/etc/mysql/
+    environment:
+      TZ: "Asia/Shanghai"
+      MYSQL_ROOT_PASSWORD: MAJ2WUCY123456
+    networks:
+      - wvp-network
+
   redis:
-    image: redis
+    container_name: wvp-redis
+    image: m.daocloud.io/docker.io/redis
     restart: always
     volumes:
       - ./redis/redis.conf:/etc/redis/redis_default.conf
       - ./redis/data/:/data
     environment:
       TZ: "Asia/Shanghai"
-    command: redis-server /etc/redis/redis_default.conf --appendonly yes
+    networks:
+      - wvp-network
+    command: redis-server /etc/redis/redis_default.conf --bind 0.0.0.0 --appendonly yes --requirepass HIDONG134678
+
   wvp:
+    container_name: wvp
     build:
       context: ./wvp
       args:
@@ -17,15 +35,19 @@ services:
         zlmGitUrl: "https://gitee.com/xia-chu/ZLMediaKit"
     restart: always
     ports:
-      - "5060:5060"
-      - "5060:5060/udp"
+      - "15060:15060"
+      - "15060:15060/udp"
       - "18080:18080"
+      - "18081:18081"
+      - "18089:18089"
       - "80:80"
+      - "6080:6080"
       - "10000:10000/tcp"
       - "10000:10000/udp"
       - "30000-30500:30000-30500/tcp"
       - "30000-30500:30000-30500/udp"
     volumes:
+      - ./wvp/config/application.yml:/opt/wvp/config/application.yml
       - ./video:/opt/media/www/record/
       - ./logs/wvp:/opt/wvp/logs/
       - ./logs/assist:/opt/assist/logs/
@@ -33,17 +55,25 @@ services:
     environment:
       TZ: "Asia/Shanghai"
       # [必须修改] 本机的IP
-      WVP_HOST: 172.18.0.61
-      WVP_PWD: aseqw_+hiy123
-      WVP_DOMAIN: 6101130049
-      WVP_ID: 61011300490000000001
-      REDIS_HOST: redis
+      WVP_HOST: 0.0.0.0
+      WVP_PORT: 15060
+      WVP_PWD: 12345678
+      WVP_DOMAIN: 4401020049
+      WVP_ID: 44010200492000000001
+      REDIS_HOST: wvp-redis
       REDIS_PORT: 6379
       REDIS_DB: 6
-      REDIS_PWD: root
+      REDIS_PWD: HIDONG134678
       ASSIST_JVM_CONFIG: -Xms128m -Xmx256m
       WVP_JVM_CONFIG: -Xms128m -Xmx256m
       ASSIST_CONFIG:
       WVP_CONFIG:
+      ZLM_HOST: 192.168.0.168
+      ZLM_PORT: 18089
+    networks:
+      - wvp-network
     depends_on:
+      - mysql
       - redis
+networks:
+  wvp-network:

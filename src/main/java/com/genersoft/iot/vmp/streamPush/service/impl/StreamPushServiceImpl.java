@@ -471,6 +471,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
     public void online(List<StreamPushItemFromRedis> onlineStreams) {
         // 更新部分设备上线streamPushService
         List<StreamPush> streamPushList = streamPushMapper.getListFromRedis(onlineStreams);
+        if (streamPushList.isEmpty()) {
+            return;
+        }
         List<CommonGBChannel> commonGBChannelList = gbChannelService.queryListByStreamPushList(streamPushList);
         gbChannelService.online(commonGBChannelList);
     }

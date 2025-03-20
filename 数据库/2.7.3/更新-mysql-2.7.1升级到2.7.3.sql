@@ -1,3 +1,4 @@
+
 drop table if exists wvp_resources_tree;
 drop table if exists wvp_platform_catalog;
 drop table if exists wvp_platform_gb_stream;
@@ -388,7 +389,7 @@ create table IF NOT EXISTS wvp_record_plan_item
 );
 
 
-
+DELIMITER //  -- 重定义分隔符避免分号冲突
 CREATE PROCEDURE `wvp_20250111`()
 BEGIN
 
@@ -418,7 +419,8 @@ BEGIN
         alter table wvp_cloud_record add server_id character varying(50);
         update wvp_cloud_record set server_id = serverId;
     END IF;
-END;
+END;//
 call wvp_20250111();
 DROP PROCEDURE wvp_20250111;
+DELIMITER ;
 

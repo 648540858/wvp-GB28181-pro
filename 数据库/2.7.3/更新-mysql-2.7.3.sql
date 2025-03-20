@@ -1,6 +1,7 @@
 /*
 * 20240528
 */
+DELIMITER //  -- 重定义分隔符避免分号冲突
 CREATE PROCEDURE `wvp_20240528`()
 BEGIN
     IF NOT EXISTS (SELECT column_name FROM information_schema.columns
@@ -39,9 +40,10 @@ BEGIN
     THEN
         alter table wvp_media_server add ws_flv_ssl_port integer;
     END IF;
-END;
+END; //
 call wvp_20240528();
 DROP PROCEDURE wvp_20240528;
+DELIMITER ;
 
 create table IF NOT EXISTS wvp_user_api_key (
                                   id serial primary key ,
@@ -58,6 +60,7 @@ create table IF NOT EXISTS wvp_user_api_key (
 /*
 * 20241222
 */
+DELIMITER //  -- 重定义分隔符避免分号冲突
 CREATE PROCEDURE `wvp_20241222`()
 BEGIN
     IF EXISTS (SELECT column_name FROM information_schema.STATISTICS
@@ -116,13 +119,14 @@ BEGIN
         set wdc.data_type = 3, wdc.data_device_id = ct.stream_proxy_id where wdc.stream_proxy_id is not null;
         alter table wvp_device_channel drop stream_proxy_id;
     END IF;
-END;
+END; //
 call wvp_20241222();
 DROP PROCEDURE wvp_20241222;
-
+DELIMITER ;
 /*
 * 20241231
 */
+DELIMITER //
 CREATE PROCEDURE `wvp_20241231`()
 BEGIN
     IF not EXISTS (SELECT column_name FROM information_schema.columns
@@ -130,14 +134,14 @@ BEGIN
     THEN
         alter table wvp_stream_proxy add relates_media_server_id character varying(50);
     END IF;
-END;
+END; //
 call wvp_20241231();
 DROP PROCEDURE wvp_20241231;
-
-
+DELIMITER ;
 /*
 * 20250111
 */
+DELIMITER //  -- 重定义分隔符避免分号冲突
 CREATE PROCEDURE `wvp_20250111`()
 BEGIN
     IF EXISTS (SELECT column_name FROM information_schema.STATISTICS
@@ -157,14 +161,15 @@ BEGIN
     THEN
         alter table wvp_cloud_record modify file_path varchar(500) null;
     END IF;
-END;
+END; //
 call wvp_20250111();
 DROP PROCEDURE wvp_20250111;
-
+DELIMITER ;
 
 /*
 * 20250211
 */
+DELIMITER //  -- 重定义分隔符避免分号冲突
 CREATE PROCEDURE `wvp_20250211`()
 BEGIN
     IF EXISTS (SELECT column_name FROM information_schema.STATISTICS
@@ -184,14 +189,15 @@ BEGIN
     THEN
         alter table wvp_device add position_capability integer;
     END IF;
-END;
+END; //
 call wvp_20250211();
 DROP PROCEDURE wvp_20250211;
-
+DELIMITER ;
 
 /**
   * 20250312
  */
+DELIMITER //  -- 重定义分隔符避免分号冲突
 CREATE PROCEDURE `wvp_20250312`()
 BEGIN
     DECLARE serverId VARCHAR(32) DEFAULT '你的服务ID';
@@ -228,37 +234,38 @@ BEGIN
     THEN
         alter table wvp_platform add server_id character varying(50);
     END IF;
-END;
+END; //
 call wvp_20250312();
 DROP PROCEDURE wvp_20250312;
-
+DELIMITER ;
 
 /*
 * 20250319
 */
+DELIMITER //  -- 重定义分隔符避免分号冲突
 CREATE PROCEDURE `wvp_20250319`()
 BEGIN
-    IF NOT EXISTS (SELECT column_name FROM information_schema.STATISTICS
+    IF NOT EXISTS (SELECT column_name FROM information_schema.columns
                WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_device_channel' and column_name = 'gps_speed')
     THEN
         alter table wvp_device_channel add gps_speed double precision;
     END IF;
 
-    IF NOT EXISTS (SELECT column_name FROM information_schema.STATISTICS
+    IF NOT EXISTS (SELECT column_name FROM information_schema.columns
                    WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_device_channel' and column_name = 'gps_altitude')
     THEN
         alter table wvp_device_channel add gps_altitude double precision;
     END IF;
 
-    IF NOT EXISTS (SELECT column_name FROM information_schema.STATISTICS
+    IF NOT EXISTS (SELECT column_name FROM information_schema.columns
                    WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_device_channel' and column_name = 'gps_direction')
     THEN
         alter table wvp_device_channel add gps_direction double precision;
     END IF;
-END;
+END; //
 call wvp_20250319();
 DROP PROCEDURE wvp_20250319;
-
+DELIMITER ;
 
 
 

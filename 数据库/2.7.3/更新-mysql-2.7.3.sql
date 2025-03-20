@@ -233,3 +233,32 @@ call wvp_20250312();
 DROP PROCEDURE wvp_20250312;
 
 
+/*
+* 20250319
+*/
+CREATE PROCEDURE `wvp_20250319`()
+BEGIN
+    IF NOT EXISTS (SELECT column_name FROM information_schema.STATISTICS
+               WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_device_channel' and column_name = 'gps_speed')
+    THEN
+        alter table wvp_device_channel add gps_speed double precision;
+    END IF;
+
+    IF NOT EXISTS (SELECT column_name FROM information_schema.STATISTICS
+                   WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_device_channel' and column_name = 'gps_altitude')
+    THEN
+        alter table wvp_device_channel add gps_altitude double precision;
+    END IF;
+
+    IF NOT EXISTS (SELECT column_name FROM information_schema.STATISTICS
+                   WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_device_channel' and column_name = 'gps_direction')
+    THEN
+        alter table wvp_device_channel add gps_direction double precision;
+    END IF;
+END;
+call wvp_20250319();
+DROP PROCEDURE wvp_20250319;
+
+
+
+

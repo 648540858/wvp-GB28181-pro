@@ -34,5 +34,5 @@ public class SipConfig {
 
 	private boolean alarm = false;
 
-	private long timeout = 150;
+	private long timeout = 500;
 }

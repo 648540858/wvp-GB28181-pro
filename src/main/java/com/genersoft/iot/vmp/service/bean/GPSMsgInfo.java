@@ -30,7 +30,7 @@ public class GPSMsgInfo {
     /**
      * 速度,单位:km/h (可选)
      */
-    private double speed;
+    private Double speed;
 
     /**
      * 产生通知时间, 时间格式： 2020-01-14T14:32:12
@@ -40,23 +40,23 @@ public class GPSMsgInfo {
     /**
      * 方向,取值为当前摄像头方向与正北方的顺时针夹角,取值范围0°~360°,单位:(°)(可选)
      */
-    private String direction;
+    private Double direction;
 
     /**
      * 海拔高度,单位:m(可选)
      */
-    private String altitude;
+    private Double altitude;
 
     private boolean stored;
 
     public static GPSMsgInfo getInstance(MobilePosition mobilePosition) {
         GPSMsgInfo gpsMsgInfo = new GPSMsgInfo();
         gpsMsgInfo.setChannelId(mobilePosition.getChannelId());
-        gpsMsgInfo.setAltitude(mobilePosition.getAltitude() + "");
+        gpsMsgInfo.setAltitude(mobilePosition.getAltitude());
         gpsMsgInfo.setLng(mobilePosition.getLongitude());
         gpsMsgInfo.setLat(mobilePosition.getLatitude());
         gpsMsgInfo.setSpeed(mobilePosition.getSpeed());
-        gpsMsgInfo.setDirection(mobilePosition.getDirection() + "");
+        gpsMsgInfo.setDirection(mobilePosition.getDirection());
         gpsMsgInfo.setTime(DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
         return gpsMsgInfo;
     }

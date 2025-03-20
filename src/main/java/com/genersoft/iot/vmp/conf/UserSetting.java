@@ -190,5 +190,11 @@ public class UserSetting {
      */
     private boolean autoRegisterPlatform = false;
 
+    /**
+     * 按需发送推流设备位置， 默认发送移动位置订阅时如果位置不变则不发送， 设置为false按照国标间隔持续发送
+     */
+    private boolean sendPositionOnDemand = true;
+
+
 
 }

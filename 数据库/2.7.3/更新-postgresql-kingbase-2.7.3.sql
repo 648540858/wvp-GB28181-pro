@@ -95,5 +95,11 @@ update wvp_media_server set server_id = '你的服务ID';
 update wvp_stream_proxy set server_id = '你的服务ID';
 update wvp_cloud_record set server_id = '你的服务ID';
 
+/*
+* 20250319
+*/
+alter table wvp_device_channel add column if not exists gps_speed double precision;
+alter table wvp_device_channel add column if not exists gps_altitude double precision;
+alter table wvp_device_channel add column if not exists gps_direction double precision;
 
 

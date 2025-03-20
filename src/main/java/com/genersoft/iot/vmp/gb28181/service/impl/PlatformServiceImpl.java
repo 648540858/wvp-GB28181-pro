@@ -565,6 +565,7 @@ public class PlatformServiceImpl implements IPlatformService {
                     gpsMsgInfo = null;
                 }
 
+
                 if (gpsMsgInfo == null && !userSetting.isSendPositionOnDemand()){
                     gpsMsgInfo = new GPSMsgInfo();
                     gpsMsgInfo.setId(channel.getGbDeviceId());
@@ -573,7 +574,7 @@ public class PlatformServiceImpl implements IPlatformService {
                     gpsMsgInfo.setAltitude(channel.getGpsAltitude());
                     gpsMsgInfo.setSpeed(channel.getGpsSpeed());
                     gpsMsgInfo.setDirection(channel.getGpsDirection());
-                    gpsMsgInfo.setTime(channel.getGbGpsTime());
+                    gpsMsgInfo.setTime(channel.getGpsTime());
                 }
 
                 // 无最新位置不发送

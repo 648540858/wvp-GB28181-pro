@@ -65,7 +65,7 @@
         <!--          </el-table-column>-->
         <el-table-column prop="manufacturer" label="厂家" min-width="100">
         </el-table-column>
-        <el-table-column label="位置信息" min-width="120">
+        <el-table-column label="位置信息" min-width="150">
           <template v-slot:default="scope">
             <span size="medium" v-if="scope.row.longitude && scope.row.latitude">{{scope.row.longitude}}<br/>{{scope.row.latitude}}</span>
             <span size="medium" v-if="!scope.row.longitude || !scope.row.latitude">无</span>

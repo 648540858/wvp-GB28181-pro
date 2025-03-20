@@ -96,7 +96,7 @@ public class CommonGBChannel {
     private Double gpsDirection;
 
     @Schema(description = "")
-    private String gbGpsTime;
+    private String gpsTime;
 
     @Schema(description = "国标-虚拟组织所属的业务分组ID")
     private String gbBusinessGroupId;

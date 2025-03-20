@@ -78,7 +78,7 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
                         String channelId = getText(rootElementAfterCharset, "DeviceID");
                         DeviceChannel deviceChannel = deviceChannelService.getOne(device.getDeviceId(), channelId);
                         if (deviceChannel == null) {
-                            log.warn("[解析报警消息] 未找到通道：{}/{}", device.getDeviceId(), channelId);
+                            log.warn("[解析移动位置通知] 未找到通道：{}/{}", device.getDeviceId(), channelId);
                             continue;
                         }
 

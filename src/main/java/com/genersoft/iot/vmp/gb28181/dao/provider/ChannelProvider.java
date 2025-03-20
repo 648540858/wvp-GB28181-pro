@@ -373,7 +373,7 @@ public class ChannelProvider {
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(BASE_SQL);
 
-        sqlBuild.append(" where channel_type = 0 and  data_type = #{dataType} and data_device_id in ( ");
+        sqlBuild.append(" where channel_type = 0 and data_type = #{dataType} and data_device_id in ( ");
         Collection<StreamPush> ids = (Collection<StreamPush>)params.get("streamPushList");
         boolean first = true;
         for (StreamPush streamPush : ids) {

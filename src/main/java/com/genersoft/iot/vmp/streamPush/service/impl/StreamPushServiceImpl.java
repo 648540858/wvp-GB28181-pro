@@ -16,7 +16,6 @@ import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OriginType;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
-import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
@@ -471,6 +470,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
     public void online(List<StreamPushItemFromRedis> onlineStreams) {
         // 更新部分设备上线streamPushService
         List<StreamPush> streamPushList = streamPushMapper.getListFromRedis(onlineStreams);
+        if (streamPushList.isEmpty()) {
+            return;
+        }
         List<CommonGBChannel> commonGBChannelList = gbChannelService.queryListByStreamPushList(streamPushList);
         gbChannelService.online(commonGBChannelList);
     }
@@ -582,18 +584,5 @@ public class StreamPushServiceImpl implements IStreamPushService {
         });
         streamPushMapper.batchDel(streamPushList);
         gbChannelService.delete(ids);
-    }
-
-    @Override
-    public void updateGPSFromGPSMsgInfo(List<GPSMsgInfo> gpsMsgInfoList) {
-        List<CommonGBChannel> channels = new ArrayList<>();
-        for (GPSMsgInfo gpsMsgInfo : gpsMsgInfoList) {
-            CommonGBChannel channel = new CommonGBChannel();
-            channel.setGbDeviceId(gpsMsgInfo.getId());
-            channel.setGbLongitude(gpsMsgInfo.getLng());
-            channel.setGbLatitude(gpsMsgInfo.getLat());
-            channels.add(channel);
-        }
-        gbChannelService.updateGpsByDeviceIdForStreamPush(channels);
     }
 }

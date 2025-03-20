@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.gb28181.bean;
+package com.genersoft.iot.vmp.common;
 
 public class RemoteAddressInfo {
     private String ip;

@@ -242,7 +242,9 @@ public class ZLMMediaServerStatusManager {
         if (mediaServerItem.getWsFlvSSLPort() == 0) {
             mediaServerItem.setWsFlvSSLPort(zlmServerConfig.getHttpSSLport());
         }
-        if (Objects.isNull(mediaServerItem.getTranscodeSuffix())) {
+        if (Objects.isNull(zlmServerConfig.getTranscodeSuffix())) {
+            mediaServerItem.setTranscodeSuffix(null);
+        }else {
             mediaServerItem.setTranscodeSuffix(zlmServerConfig.getTranscodeSuffix());
         }
         mediaServerItem.setHookAliveInterval(10F);

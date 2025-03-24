@@ -81,7 +81,7 @@ public interface MediaServerMapper {
 
     @Update(value = {" <script>" +
             "UPDATE wvp_media_server " +
-            "SET update_time=#{updateTime}" +
+            "SET update_time=#{updateTime}, transcode_suffix=#{transcodeSuffix} " +
             "<if test=\"ip != null\">, ip=#{ip}</if>" +
             "<if test=\"hookIp != null\">, hook_ip=#{hookIp}</if>" +
             "<if test=\"sdpIp != null\">, sdp_ip=#{sdpIp}</if>" +
@@ -106,7 +106,6 @@ public interface MediaServerMapper {
             "<if test=\"hookAliveInterval != null\">, hook_alive_interval=#{hookAliveInterval}</if>" +
             "<if test=\"recordDay != null\">, record_day=#{recordDay}</if>" +
             "<if test=\"recordPath != null\">, record_path=#{recordPath}</if>" +
-            "<if test=\"transcodeSuffix != null\">, transcode_suffix=#{transcodeSuffix}</if>" +
             "<if test=\"serverId != null\">, server_id=#{serverId}</if>" +
             "<if test=\"type != null\">, type=#{type}</if>" +
             "WHERE id=#{id}"+

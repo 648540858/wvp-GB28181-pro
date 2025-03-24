@@ -559,12 +559,26 @@ public class PlatformServiceImpl implements IPlatformService {
             }
             for (CommonGBChannel channel : channelList) {
                 GPSMsgInfo gpsMsgInfo = redisCatchStorage.getGpsMsgInfo(channel.getGbDeviceId());
+
+                // 无最新位置则发送当前位置
+                if (gpsMsgInfo != null && (gpsMsgInfo.getLng() == 0 && gpsMsgInfo.getLat() == 0)) {
+                    gpsMsgInfo = null;
+                }
+
+
+                if (gpsMsgInfo == null && !userSetting.isSendPositionOnDemand()){
+                    gpsMsgInfo = new GPSMsgInfo();
+                    gpsMsgInfo.setId(channel.getGbDeviceId());
+                    gpsMsgInfo.setLng(channel.getGbLongitude());
+                    gpsMsgInfo.setLat(channel.getGbLatitude());
+                    gpsMsgInfo.setAltitude(channel.getGpsAltitude());
+                    gpsMsgInfo.setSpeed(channel.getGpsSpeed());
+                    gpsMsgInfo.setDirection(channel.getGpsDirection());
+                    gpsMsgInfo.setTime(channel.getGpsTime());
+                }
+
                 // 无最新位置不发送
                 if (gpsMsgInfo != null) {
-                    // 经纬度都为0不发送
-                    if (gpsMsgInfo.getLng() == 0 && gpsMsgInfo.getLat() == 0) {
-                        continue;
-                    }
                     // 发送GPS消息
                     try {
                         commanderForPlatform.sendNotifyMobilePosition(platform, gpsMsgInfo, channel, subscribe);

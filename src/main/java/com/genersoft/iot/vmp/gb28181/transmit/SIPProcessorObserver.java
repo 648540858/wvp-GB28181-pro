@@ -84,18 +84,16 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
 
         // Success
         if (((status >= Response.OK) && (status < Response.MULTIPLE_CHOICES)) || status == Response.UNAUTHORIZED) {
-            if (status != Response.UNAUTHORIZED && responseEvent.getResponse() != null && !sipSubscribe.isEmpty() ) {
-                CallIdHeader callIdHeader = response.getCallIdHeader();
-                CSeqHeader cSeqHeader = response.getCSeqHeader();
-                if (callIdHeader != null) {
-                    SipEvent sipEvent = sipSubscribe.getSubscribe(callIdHeader.getCallId() + cSeqHeader.getSeqNumber());
-                    if (sipEvent != null) {
-                        if (sipEvent.getOkEvent() != null) {
-                            SipSubscribe.EventResult<ResponseEvent> eventResult = new SipSubscribe.EventResult<>(responseEvent);
-                            sipEvent.getOkEvent().response(eventResult);
-                        }
-                        sipSubscribe.removeSubscribe(callIdHeader.getCallId() + cSeqHeader.getSeqNumber());
+            CallIdHeader callIdHeader = response.getCallIdHeader();
+            CSeqHeader cSeqHeader = response.getCSeqHeader();
+            if (callIdHeader != null) {
+                SipEvent sipEvent = sipSubscribe.getSubscribe(callIdHeader.getCallId() + cSeqHeader.getSeqNumber());
+                if (sipEvent != null) {
+                    if (sipEvent.getOkEvent() != null) {
+                        SipSubscribe.EventResult<ResponseEvent> eventResult = new SipSubscribe.EventResult<>(responseEvent);
+                        sipEvent.getOkEvent().response(eventResult);
                     }
+                    sipSubscribe.removeSubscribe(callIdHeader.getCallId() + cSeqHeader.getSeqNumber());
                 }
             }
             ISIPResponseProcessor sipRequestProcessor = responseProcessorMap.get(response.getCSeqHeader().getMethod());

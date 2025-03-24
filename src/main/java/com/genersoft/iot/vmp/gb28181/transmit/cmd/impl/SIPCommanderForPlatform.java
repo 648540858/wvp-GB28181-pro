@@ -136,7 +136,7 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
                 if (errorEvent != null ) {
                     errorEvent.response(event);
                 }
-            }, okEvent, 5L);
+            }, okEvent, 2000L);
     }
 
     @Override
@@ -369,7 +369,7 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
                 .append("<CmdType>MobilePosition</CmdType>\r\n")
                 .append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n")
                 .append("<DeviceID>" + channel.getGbDeviceId() + "</DeviceID>\r\n")
-                .append("<Time>" + gpsMsgInfo.getTime() + "</Time>\r\n")
+                .append("<Time>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(gpsMsgInfo.getTime()) + "</Time>\r\n")
                 .append("<Longitude>" + gpsMsgInfo.getLng() + "</Longitude>\r\n")
                 .append("<Latitude>" + gpsMsgInfo.getLat() + "</Latitude>\r\n")
                 .append("<Speed>" + gpsMsgInfo.getSpeed() + "</Speed>\r\n")

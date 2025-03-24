@@ -177,6 +177,9 @@ public class ZLMHttpHookListener {
             ret.put("code", 0);
             return ret;
         }
+        if (mediaInfo.getTranscodeSuffix() != null && param.getStream().endsWith(mediaInfo.getTranscodeSuffix())) {
+            param.setStream(param.getStream().substring(0, param.getStream().lastIndexOf(mediaInfo.getTranscodeSuffix()) - 1));
+        }
         if (!ObjectUtils.isEmpty(mediaInfo.getTranscodeSuffix())
                 && !"null".equalsIgnoreCase(mediaInfo.getTranscodeSuffix())
                 && param.getStream().endsWith(mediaInfo.getTranscodeSuffix())  ) {

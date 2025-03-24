@@ -794,7 +794,11 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if (streamInfoList == null || streamInfoList.isEmpty()) {
             return null;
         }else {
-            return streamInfoList.get(0);
+            StreamInfo streamInfo = streamInfoList.get(0);
+            if (addr != null && !addr.isEmpty()) {
+                streamInfo.changeStreamIp(addr);
+            }
+            return streamInfo;
         }
     }
 

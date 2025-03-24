@@ -86,6 +86,18 @@ public class CommonGBChannel {
     @Schema(description = "国标-纬度 WGS-84坐标系")
     private Double gbLatitude;
 
+    @Schema(description = "")
+    private Double gpsAltitude;
+
+    @Schema(description = "")
+    private Double gpsSpeed;
+
+    @Schema(description = "")
+    private Double gpsDirection;
+
+    @Schema(description = "")
+    private String gpsTime;
+
     @Schema(description = "国标-虚拟组织所属的业务分组ID")
     private String gbBusinessGroupId;
 

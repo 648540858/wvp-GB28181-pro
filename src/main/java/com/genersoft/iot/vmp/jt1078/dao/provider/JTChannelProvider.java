@@ -5,10 +5,10 @@ import java.util.Map;
 public class JTChannelProvider {
 
     public final static String BASE_SQL =
-            "SELECT jc.*, jc.id as jt_channel_id, wdc.*, wdc.id as gb_id " +
+            "SELECT jc.*, jc.id as data_device_id, wdc.*,  wdc.id as gb_id " +
                     " from wvp_jt_channel jc " +
                     " LEFT join wvp_device_channel wdc " +
-                    " on jc.id = wdc.jt_channel_id ";
+                    " on jc.id = wdc.data_device_id and wdc.data_type = 200 ";
 
     public String selectChannelByChannelId(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();

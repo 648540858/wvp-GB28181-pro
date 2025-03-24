@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.jt1078.controller;
 
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.ftpServer.FtpSetting;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
@@ -96,11 +97,12 @@ public class JT1078Controller {
             jt1078PlayService.stopPlay(phoneNumber, channelId);
         });
 
-        jt1078PlayService.play(phoneNumber, channelId, type, (code, msg, streamInfo) -> {
-            WVPResult<StreamContent> wvpResult = new WVPResult<>();
-            if (code == InviteErrorCode.SUCCESS.getCode()) {
-                wvpResult.setCode(ErrorCode.SUCCESS.getCode());
-                wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
+        jt1078PlayService.play(phoneNumber, channelId, type, wvpResult -> {
+            WVPResult<StreamContent> wvpResultForFinish = new WVPResult<>();
+            wvpResultForFinish.setCode(wvpResult.getCode());
+            wvpResultForFinish.setMsg(wvpResult.getMsg());
+            if (wvpResult.getCode() == InviteErrorCode.SUCCESS.getCode()) {
+                StreamInfo streamInfo  = wvpResult.getData();
 
                 if (streamInfo != null) {
                     if (userSetting.getUseSourceIpAsStreamIp()) {
@@ -114,16 +116,10 @@ public class JT1078Controller {
                         }
                         streamInfo.changeStreamIp(host);
                     }
-                    wvpResult.setData(new StreamContent(streamInfo));
-                }else {
-                    wvpResult.setCode(code);
-                    wvpResult.setMsg(msg);
+                    wvpResultForFinish.setData(new StreamContent(streamInfo));
                 }
-            }else {
-                wvpResult.setCode(code);
-                wvpResult.setMsg(msg);
             }
-            result.setResult(wvpResult);
+            result.setResult(wvpResultForFinish);
         });
 
         return result;
@@ -165,15 +161,16 @@ public class JT1078Controller {
             jt1078PlayService.stopPlay(phoneNumber, channelId);
         });
 
-        jt1078PlayService.startTalk(phoneNumber, channelId, app, stream, mediaServerId, onlySend, (code, msg, streamInfo) -> {
-            WVPResult<StreamContent> wvpResult = new WVPResult<>();
-            if (code == InviteErrorCode.SUCCESS.getCode()) {
-                wvpResult.setCode(ErrorCode.SUCCESS.getCode());
-                wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
+        jt1078PlayService.startTalk(phoneNumber, channelId, app, stream, mediaServerId, onlySend, wvpResult -> {
+            WVPResult<StreamContent> wvpResultForFinish = new WVPResult<>();
+            wvpResultForFinish.setCode(wvpResult.getCode());
+            wvpResultForFinish.setMsg(wvpResult.getMsg());
+            if (wvpResult.getCode() == InviteErrorCode.SUCCESS.getCode()) {
 
-                if (streamInfo != null) {
+                if (wvpResult.getData() != null) {
+                    StreamInfo streamInfo = wvpResult.getData();
                     if (userSetting.getUseSourceIpAsStreamIp()) {
-                        streamInfo=streamInfo.clone();//深拷贝
+                        streamInfo = wvpResult.getData().clone();//深拷贝
                         String host;
                         try {
                             URL url=new URL(request.getRequestURL().toString());
@@ -183,16 +180,10 @@ public class JT1078Controller {
                         }
                         streamInfo.changeStreamIp(host);
                     }
-                    wvpResult.setData(new StreamContent(streamInfo));
-                }else {
-                    wvpResult.setCode(code);
-                    wvpResult.setMsg(msg);
+                    wvpResultForFinish.setData(new StreamContent(streamInfo));
                 }
-            }else {
-                wvpResult.setCode(code);
-                wvpResult.setMsg(msg);
             }
-            result.setResult(wvpResult);
+            result.setResult(wvpResultForFinish);
         });
 
         return result;
@@ -293,15 +284,14 @@ public class JT1078Controller {
             jt1078PlayService.stopPlay(phoneNumber, channelId);
         });
 
-        jt1078PlayService.playback(phoneNumber, channelId, startTime, endTime,type, rate, playbackType, playbackSpeed,  (code, msg, streamInfo) -> {
-            WVPResult<StreamContent> wvpResult = new WVPResult<>();
-            if (code == InviteErrorCode.SUCCESS.getCode()) {
-                wvpResult.setCode(ErrorCode.SUCCESS.getCode());
-                wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
-
+        jt1078PlayService.playback(phoneNumber, channelId, startTime, endTime,type, rate, playbackType, playbackSpeed,  wvpResult -> {
+            WVPResult<StreamContent> wvpResultForFinish = new WVPResult<>();
+            wvpResultForFinish.setCode(wvpResult.getCode());
+            wvpResultForFinish.setMsg(wvpResult.getMsg());
+            if (wvpResult.getCode() == InviteErrorCode.SUCCESS.getCode()) {
+                StreamInfo streamInfo  = wvpResult.getData();
                 if (streamInfo != null) {
                     if (userSetting.getUseSourceIpAsStreamIp()) {
-                        streamInfo=streamInfo.clone();//深拷贝
                         String host;
                         try {
                             URL url=new URL(request.getRequestURL().toString());
@@ -311,16 +301,10 @@ public class JT1078Controller {
                         }
                         streamInfo.changeStreamIp(host);
                     }
-                    wvpResult.setData(new StreamContent(streamInfo));
-                }else {
-                    wvpResult.setCode(code);
-                    wvpResult.setMsg(msg);
+                    wvpResultForFinish.setData(new StreamContent(streamInfo));
                 }
-            }else {
-                wvpResult.setCode(code);
-                wvpResult.setMsg(msg);
             }
-            result.setResult(wvpResult);
+            result.setResult(wvpResultForFinish);
         });
 
         return result;
@@ -385,8 +369,8 @@ public class JT1078Controller {
         response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
         response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(phoneNumber + "_" + channelId + ".mp4", "UTF-8"));
         response.setStatus(HttpServletResponse.SC_OK);
-        service.recordDownload(phoneNumber, channelId, startTime, endTime, alarmSign, mediaType, streamType, storageType, (code, msg, data) -> {
-            String filePath = "ftp" + data;
+        service.recordDownload(phoneNumber, channelId, startTime, endTime, alarmSign, mediaType, streamType, storageType, wvpResult -> {
+            String filePath = "ftp" + wvpResult.getData();
             File file = new File(filePath);
             if (!file.exists()) {
                 log.warn("[下载录像] 收到通知时未找到录像文件: {}", filePath);

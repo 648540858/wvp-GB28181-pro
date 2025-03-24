@@ -1,20 +1,20 @@
 package com.genersoft.iot.vmp.jt1078.service;
 
-import com.genersoft.iot.vmp.common.GeneralCallback;
+import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
-import com.github.pagehelper.PageInfo;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 
 import java.util.List;
 
 public interface Ijt1078PlayService {
     JTMediaStreamType checkStreamFromJt(String stream);
 
-    void play(String phoneNumber, Integer channelId, int type, GeneralCallback<StreamInfo> callback);
+    void play(String phoneNumber, Integer channelId, int type, CommonCallback<WVPResult<StreamInfo>> callback);
 
     void playback(String phoneNumber, Integer channelId, String startTime, String endTime, Integer type,
-                  Integer rate, Integer playbackType, Integer playbackSpeed, GeneralCallback<StreamInfo> callback);
+                  Integer rate, Integer playbackType, Integer playbackSpeed, CommonCallback<WVPResult<StreamInfo>> callback);
 
     void stopPlay(String phoneNumber, Integer channelId);
 
@@ -26,7 +26,7 @@ public interface Ijt1078PlayService {
 
     void stopPlayback(String phoneNumber, Integer channelId);
 
-    void startTalk(String phoneNumber, Integer channelId, String app, String stream, String mediaServerId, Boolean onlySend, GeneralCallback<StreamInfo> callback);
+    void startTalk(String phoneNumber, Integer channelId, String app, String stream, String mediaServerId, Boolean onlySend, CommonCallback<WVPResult<StreamInfo>> callback);
 
     void stopTalk(String phoneNumber, Integer channelId);
 

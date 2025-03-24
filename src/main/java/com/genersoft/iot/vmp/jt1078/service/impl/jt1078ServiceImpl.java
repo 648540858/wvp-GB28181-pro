@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.jt1078.service.impl;
 
-import com.genersoft.iot.vmp.common.GeneralCallback;
+import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
@@ -18,19 +18,13 @@ import com.genersoft.iot.vmp.jt1078.proc.response.*;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
-import com.genersoft.iot.vmp.media.event.media.MediaNotFoundEvent;
-import com.genersoft.iot.vmp.media.service.IMediaServerService;
-import com.genersoft.iot.vmp.service.ISendRtpServerService;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
-import com.genersoft.iot.vmp.utils.MediaServerUtils;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -154,7 +148,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
         jtDeviceMapper.updateDeviceStatus(connected, phoneNumber);
     }
 
-    private Map<String, GeneralCallback<String>> fileUploadMap = new ConcurrentHashMap<>();
+    private Map<String, CommonCallback<WVPResult<String>>> fileUploadMap = new ConcurrentHashMap<>();
 
     @EventListener
     public void onApplicationEvent(FtpUploadEvent event) {
@@ -165,16 +159,16 @@ public class jt1078ServiceImpl implements Ijt1078Service {
             if (!event.getFileName().contains(key)) {
                 return;
             }
-            GeneralCallback<String> callback = fileUploadMap.get(key);
+            CommonCallback<WVPResult<String>> callback = fileUploadMap.get(key);
             if (callback != null) {
-                callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), event.getFileName());
+                callback.run(new WVPResult<>(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), event.getFileName()));
                 fileUploadMap.remove(key);
             }
         });
     }
 
     @Override
-    public void recordDownload(String phoneNumber, Integer channelId, String startTime, String endTime, Integer alarmSign, Integer mediaType, Integer streamType, Integer storageType, GeneralCallback<String> fileCallback) {
+    public void recordDownload(String phoneNumber, Integer channelId, String startTime, String endTime, Integer alarmSign, Integer mediaType, Integer streamType, Integer storageType, CommonCallback<WVPResult<String>> fileCallback) {
         String filePath = UUID.randomUUID().toString();
         fileUploadMap.put(filePath, fileCallback);
         dynamicTask.startDelay(filePath, ()->{
@@ -307,7 +301,7 @@ public class jt1078ServiceImpl implements Ijt1078Service {
     }
 
     @Override
-    public JTDeviceConfig queryConfig(String phoneNumber, String[] params, GeneralCallback<StreamInfo> callback) {
+    public JTDeviceConfig queryConfig(String phoneNumber, String[] params, CommonCallback<WVPResult<StreamInfo>> callback) {
         if (phoneNumber == null) {
             return null;
         }

@@ -80,6 +80,7 @@ Vue.prototype.$channelTypeList = {
   1: {id: 1, name: "国标设备", style: {color: "#409eff", borderColor: "#b3d8ff"}},
   2: {id: 2, name: "推流设备", style: {color: "#67c23a", borderColor: "#c2e7b0"}},
   3: {id: 3, name: "拉流代理", style: {color: "#e6a23c", borderColor: "#f5dab1"}},
+  200: {id: 200, name: "部标设备", style: {color: "#179fa5", borderColor: "#a2dfe0"}},
 };
 
 

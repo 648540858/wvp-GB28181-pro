@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.jt1078.bean;
 
+import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -38,6 +39,8 @@ public class JTChannel extends CommonGBChannel {
     @Schema(description = "流信息")
     private String stream;
 
+    private Integer dataType = ChannelDataType.JT_1078.value;
+
     @Override
     public String toString() {
         return "JTChannel{" +
@@ -58,7 +61,6 @@ public class JTChannel extends CommonGBChannel {
         if (ObjectUtils.isEmpty(this.getGbName())) {
             this.setGbName(this.getName());
         }
-        this.setJtChannelId(this.getId());
         return this;
 
     }

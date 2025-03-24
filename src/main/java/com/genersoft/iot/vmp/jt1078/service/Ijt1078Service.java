@@ -1,9 +1,10 @@
 package com.genersoft.iot.vmp.jt1078.service;
 
-import com.genersoft.iot.vmp.common.GeneralCallback;
+import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.jt1078.bean.*;
 import com.genersoft.iot.vmp.jt1078.proc.request.J1205;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
@@ -32,7 +33,7 @@ public interface Ijt1078Service {
 
     void wiper(String phoneNumber, Integer channelId, String command);
 
-    JTDeviceConfig queryConfig(String phoneNumber, String[] params, GeneralCallback<StreamInfo> callback);
+    JTDeviceConfig queryConfig(String phoneNumber, String[] params, CommonCallback<WVPResult<StreamInfo>> callback);
 
     void setConfig(String phoneNumber, JTDeviceConfig config);
 
@@ -100,7 +101,7 @@ public interface Ijt1078Service {
 
     void changeStreamType(String phoneNumber, Integer channelId, Integer streamType);
 
-    void recordDownload(String phoneNumber, Integer channelId, String startTime, String endTime, Integer alarmSign, Integer mediaType, Integer streamType, Integer storageType, GeneralCallback<String> fileCallback);
+    void recordDownload(String phoneNumber, Integer channelId, String startTime, String endTime, Integer alarmSign, Integer mediaType, Integer streamType, Integer storageType, CommonCallback<WVPResult<String>> fileCallback);
 
     PageInfo<JTChannel> getChannelList(int page, int count, int deviceId, String query);
 

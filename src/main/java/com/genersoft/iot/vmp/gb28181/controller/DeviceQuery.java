@@ -79,7 +79,7 @@ public class DeviceQuery {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@GetMapping("/devices/{deviceId}")
 	public Device devices(@PathVariable String deviceId){
-		
+
 		return deviceService.getDeviceByDeviceId(deviceId);
 	}
 
@@ -232,7 +232,7 @@ public class DeviceQuery {
 
 	@Operation(summary = "添加设备信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "device", description = "设备", required = true)
-	@PostMapping("/device/add/")
+	@PostMapping("/device/add")
 	public void addDevice(Device device){
 
 		if (device == null || device.getDeviceId() == null) {
@@ -250,8 +250,8 @@ public class DeviceQuery {
 
 	@Operation(summary = "更新设备信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "device", description = "设备", required = true)
-	@PostMapping("/device/update/")
-	public void updateDevice(Device device){
+	@PostMapping("/device/update")
+	public void updateDevice(@RequestBody Device device){
 		if (device == null || device.getDeviceId() == null || device.getId() <= 0) {
 			throw new ControllerException(ErrorCode.ERROR400);
 		}

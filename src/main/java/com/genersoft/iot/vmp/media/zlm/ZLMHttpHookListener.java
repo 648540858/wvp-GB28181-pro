@@ -103,7 +103,9 @@ public class ZLMHttpHookListener {
         String mediaServerId = json.getString("mediaServerId");
         MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
         if (mediaServer == null) {
-            return new HookResultForOnPublish(0, "success");
+            HookResultForOnPublish fail = HookResultForOnPublish.Fail();
+            log.warn("[ZLM HOOK]推流鉴权 响应：{}->找不到对应的mediaServer", param.getMediaServerId());
+            return fail;
         }
 
         ResultForOnPublish resultForOnPublish = mediaService.authenticatePublish(mediaServer, param.getApp(), param.getStream(), param.getParams());

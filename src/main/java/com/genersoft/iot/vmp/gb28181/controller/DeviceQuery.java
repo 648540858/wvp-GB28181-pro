@@ -224,8 +224,11 @@ public class DeviceQuery {
 			"UDP（udp传输），TCP-ACTIVE（tcp主动模式），TCP-PASSIVE（tcp被动模式）", required = true)
 	@PostMapping("/transport/{deviceId}/{streamMode}")
 	public void updateTransport(@PathVariable String deviceId, @PathVariable String streamMode){
+		Assert.isTrue(streamMode.equalsIgnoreCase("UDP")
+				|| streamMode.equalsIgnoreCase("TCP-ACTIVE")
+				|| streamMode.equalsIgnoreCase("TCP-PASSIVE"), "数据流传输模式, 取值：UDP/TCP-ACTIVE/TCP-PASSIVE");
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		device.setStreamMode(streamMode);
+		device.setStreamMode(streamMode.toUpperCase());
 		deviceService.updateCustomDevice(device);
 	}
 
@@ -233,7 +236,7 @@ public class DeviceQuery {
 	@Operation(summary = "添加设备信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "device", description = "设备", required = true)
 	@PostMapping("/device/add")
-	public void addDevice(Device device){
+	public void addDevice(@RequestBody Device device){
 
 		if (device == null || device.getDeviceId() == null) {
 			throw new ControllerException(ErrorCode.ERROR400);

@@ -279,9 +279,9 @@ export default {
             showClose: true,
             message: error
           });
-        }).finally(()=>[
+        }).finally(()=>{
           this.locading = false
-        ])
+        })
       }else {
         this.$axios({
           method: 'post',
@@ -308,9 +308,9 @@ export default {
             showClose: true,
             message: error
           });
-        }).finally(()=>[
+        }).finally(()=>{
           this.locading = false
-        ])
+        })
       }
 
     },
@@ -338,9 +338,9 @@ export default {
           }
         }).catch((error) => {
           console.error(error)
-        }).finally(()=>[
+        }).finally(()=>{
           this.locading = false
-        ])
+        })
       }).catch(() => {
 
       });
@@ -363,9 +363,9 @@ export default {
         }
       }).catch((error) => {
         console.error(error)
-      }).finally(()=>[
+      }).finally(()=>{
         this.locading = false
-      ])
+      })
     },
     buildDeviceIdCode: function (deviceId){
 

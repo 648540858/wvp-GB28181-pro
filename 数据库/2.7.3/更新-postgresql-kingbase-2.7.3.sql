@@ -102,4 +102,10 @@ alter table wvp_device_channel add column if not exists gps_speed double precisi
 alter table wvp_device_channel add column if not exists gps_altitude double precision;
 alter table wvp_device_channel add column if not exists gps_direction double precision;
 
+/*
+* 20250402
+*/
+create index if not exists data_type on wvp_device_channel (data_type);
+create index if not exists data_device_id on wvp_device_channel (data_device_id);
+
 

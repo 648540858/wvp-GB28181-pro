@@ -267,5 +267,10 @@ call wvp_20250319();
 DROP PROCEDURE wvp_20250319;
 DELIMITER ;
 
+/*
+* 20250319
+*/
+update wvp_record_plan_item set start = start * 30, stop = (stop + 1) * 30
+
 
 

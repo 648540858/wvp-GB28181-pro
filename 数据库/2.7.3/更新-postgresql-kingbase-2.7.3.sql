@@ -102,4 +102,8 @@ alter table wvp_device_channel add column if not exists gps_speed double precisi
 alter table wvp_device_channel add column if not exists gps_altitude double precision;
 alter table wvp_device_channel add column if not exists gps_direction double precision;
 
+/*
+* 20250319
+*/
+update wvp_record_plan_item set start = start * 30, stop = (stop + 1) * 30
 

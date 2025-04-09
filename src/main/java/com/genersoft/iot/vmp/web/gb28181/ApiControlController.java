@@ -37,10 +37,9 @@ public class ApiControlController {
      * @param channel 通道序号
      * @param code 通道编号
      * @param speed 速度(0~255) 默认值: 129
-     * @return
      */
     @GetMapping(value = "/ptz")
-    private void list(String serial,String command,
+    private void ptz(String serial,String command,
                             @RequestParam(required = false)Integer channel,
                             @RequestParam(required = false)String code,
                             @RequestParam(required = false)Integer speed){
@@ -55,7 +54,7 @@ public class ApiControlController {
         if (device == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "device[ " + serial + " ]未找到");
         }
-        int cmdCode = 0;
+        int cmdCode = -1;
         switch (command){
             case "left":
                 cmdCode = 2;
@@ -93,6 +92,9 @@ public class ApiControlController {
             default:
                 break;
         }
+        if (cmdCode == -1) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未识别的指令：" + command);
+        }
         // 默认值 50
         try {
             cmder.frontEndCmd(device, code, cmdCode, speed, speed, speed);
@@ -110,7 +112,6 @@ public class ApiControlController {
      * @param command 控制指令 允许值: set, goto, remove
      * @param preset 预置位编号(1~255)
      * @param name 预置位名称, command=set 时有效
-     * @return
      */
     @GetMapping(value = "/preset")
     private void list(String serial,String command,

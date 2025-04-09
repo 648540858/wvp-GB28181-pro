@@ -51,6 +51,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     private UserSetting userSetting;
 
     @Autowired
+
     private IMediaServerService mediaServerService;
 
     @Autowired
@@ -576,13 +577,13 @@ public class StreamPushServiceImpl implements IStreamPushService {
         if (streamPushList.isEmpty()) {
             return;
         }
-        List<CommonGBChannel> commonGBChannelList = new ArrayList<>();
+        Set<Integer> channelIds = new HashSet<>();
         streamPushList.stream().forEach(streamPush -> {
             if (streamPush.getGbDeviceId() != null) {
-                commonGBChannelList.add(streamPush.buildCommonGBChannel());
+                channelIds.add(streamPush.getGbId());
             }
         });
         streamPushMapper.batchDel(streamPushList);
-        gbChannelService.delete(ids);
+        gbChannelService.delete(channelIds);
     }
 }

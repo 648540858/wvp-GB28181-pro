@@ -6560,7 +6560,7 @@ var ZLMRTCClient = (function (exports) {
 	    resolve(response);
 	  } else {
 	    reject(new AxiosError_1(
-	      'Request failed with status code ' + response.status,
+	      '请求失败， 状态码：' + response.status,
 	      [AxiosError_1.ERR_BAD_REQUEST, AxiosError_1.ERR_BAD_RESPONSE][Math.floor(response.status / 100) - 4],
 	      response.config,
 	      response.request,
@@ -7885,7 +7885,7 @@ var ZLMRTCClient = (function (exports) {
 	        }).then(response => {
 	          let ret = response.data; //JSON.parse(response.data);
 	          if (ret.code != 0) {
-	            // mean failed for offer/anwser exchange 
+	            // mean failed for offer/anwser exchange
 	            this.dispatch(Events$1.WEBRTC_OFFER_ANWSER_EXCHANGE_FAILED, ret);
 	            return;
 	          }
@@ -7989,7 +7989,7 @@ var ZLMRTCClient = (function (exports) {
 	          }).then(response => {
 	            let ret = response.data; //JSON.parse(response.data);
 	            if (ret.code != 0) {
-	              // mean failed for offer/anwser exchange 
+	              // mean failed for offer/anwser exchange
 	              this.dispatch(Events$1.WEBRTC_OFFER_ANWSER_EXCHANGE_FAILED, ret);
 	              return;
 	            }

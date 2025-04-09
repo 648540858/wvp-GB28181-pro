@@ -628,8 +628,13 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     request.getCallIdHeader().getCallId(), sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getSsrc(), sendRtpItem.getMediaServerId(), sipResponse, InviteSessionType.BROADCAST);
             sessionManager.put(ssrcTransaction);
             // 开启发流，大华在收到200OK后就会开始建立连接
-            if (!device.isBroadcastPushAfterAck()) {
-                log.info("[语音喊话] 回复200OK后发现 BroadcastPushAfterAck为False，现在开始推流");
+            if (sendRtpItem.isTcpActive() || !device.isBroadcastPushAfterAck()) {
+                if (sendRtpItem.isTcpActive()) {
+                    log.info("[语音喊话] 监听端口等待设备连接后推流");
+                }else {
+                    log.info("[语音喊话] 回复200OK后发现 BroadcastPushAfterAck为False，现在开始推流");
+                }
+
                 playService.startPushStream(sendRtpItem, channel, sipResponse, parentPlatform, request.getCallIdHeader());
             }
 

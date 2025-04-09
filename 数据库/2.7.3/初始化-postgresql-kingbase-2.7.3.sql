@@ -159,6 +159,8 @@ create table IF NOT EXISTS wvp_device_channel
     gps_speed                    double precision,
     gps_altitude                 double precision,
     gps_direction                double precision,
+    index (data_type),
+    index (data_device_id),
     constraint uk_wvp_unique_channel unique (gb_device_id)
 );
 

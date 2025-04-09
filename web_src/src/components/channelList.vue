@@ -355,9 +355,11 @@ export default {
     startRecord: function (itemData) {
       this.$axios({
         method: 'get',
-        url: `/api/device/control/record/${this.deviceId}/Record`,
+        url: `/api/device/control/record`,
         params: {
-          channelId: itemData.deviceId
+          deviceId: this.deviceId,
+          channelId: itemData.deviceId,
+          recordCmdStr: "Record"
         }
       }).then( (res)=> {
         if (res.data.code === 0) {
@@ -381,9 +383,11 @@ export default {
     stopRecord: function (itemData) {
       this.$axios({
         method: 'get',
-        url: `/api/device/control/record/${this.deviceId}/StopRecord`,
+        url: `/api/device/control/record`,
         params: {
-          channelId: itemData.deviceId
+          deviceId: this.deviceId,
+          channelId: itemData.deviceId,
+          recordCmdStr: "StopRecord"
         }
       }).then( (res)=> {
         if (res.data.code === 0) {

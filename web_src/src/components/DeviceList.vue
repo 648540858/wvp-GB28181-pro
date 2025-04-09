@@ -167,7 +167,7 @@ export default {
   },
   mounted() {
     this.initData();
-    this.updateLooper = setInterval(this.initData, 10000);
+    this.updateLooper = setInterval(this.getDeviceList, 10000);
   },
   destroyed() {
     this.$destroy('videojs');

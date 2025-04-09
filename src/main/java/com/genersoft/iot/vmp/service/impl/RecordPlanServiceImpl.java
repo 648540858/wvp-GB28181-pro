@@ -79,7 +79,7 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
 
     Map<Integer, StreamInfo> recordStreamMap = new HashMap<>();
 
-    @Scheduled(fixedRate = 10, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
     public void execution() {
         log.info("[录制计划] 执行");
         // 查询现在需要录像的通道Id
@@ -133,7 +133,7 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
         // 获取当前时间在一周内的序号, 数据库存储的从第几个30分钟开始, 0-47, 包括首尾
         LocalDateTime now = LocalDateTime.now();
         int week = now.getDayOfWeek().getValue();
-        int index = now.getHour() * 2 + (now.getMinute() > 30?1:0);
+        int index = now.getHour() * 60 + now.getMinute();
 
         // 查询现在需要录像的通道Id
         return recordPlanMapper.queryRecordIng(week, index);

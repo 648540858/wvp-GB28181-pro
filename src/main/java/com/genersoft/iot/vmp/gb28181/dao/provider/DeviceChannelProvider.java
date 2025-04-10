@@ -101,6 +101,7 @@ public class DeviceChannelProvider {
             }
             sqlBuild.append(" )");
         }
+        sqlBuild.append("ORDER BY device_id");
         return sqlBuild.toString();
     }
 

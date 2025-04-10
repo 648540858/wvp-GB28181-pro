@@ -381,7 +381,7 @@ public interface DeviceMapper {
             " OR device_id LIKE concat('%',#{query},'%') escape '/' " +
             " OR ip LIKE concat('%',#{query},'%') escape '/')" +
             "</if> " +
-            " order by create_time desc "+
+            " order by create_time desc, device_id " +
             " </script>")
     List<Device> getDeviceList(@Param("dataType") Integer dataType, @Param("query") String query, @Param("status") Boolean status);
 

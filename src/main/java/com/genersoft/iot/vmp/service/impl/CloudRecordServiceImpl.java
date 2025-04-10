@@ -18,6 +18,7 @@ import com.genersoft.iot.vmp.storager.dao.CloudRecordServiceMapper;
 import com.genersoft.iot.vmp.utils.CloudRecordUtils;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +60,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
 
     @Override
     public PageInfo<CloudRecordItem> getList(int page, int count, String query, String app, String stream, String startTime,
-                                             String endTime, List<MediaServer> mediaServerItems, String callId) {
+                                             String endTime, List<MediaServer> mediaServerItems, String callId, Boolean ascOrder) {
         // 开始时间和结束时间在数据库中都是以秒为单位的
         Long startTimeStamp = null;
         Long endTimeStamp = null;
@@ -84,7 +85,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
                     .replaceAll("_", "/_");
         }
         List<CloudRecordItem> all = cloudRecordServiceMapper.getList(query, app, stream, startTimeStamp, endTimeStamp,
-                callId, mediaServerItems, null);
+                callId, mediaServerItems, null, ascOrder);
         return new PageInfo<>(all);
     }
 
@@ -100,7 +101,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         long startTimeStamp = startDate.atStartOfDay().toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
         long endTimeStamp = endDate.atStartOfDay().toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
         List<CloudRecordItem> cloudRecordItemList = cloudRecordServiceMapper.getList(null, app, stream, startTimeStamp,
-                endTimeStamp, null, mediaServerItems, null);
+                endTimeStamp, null, mediaServerItems, null, null);
         if (cloudRecordItemList.isEmpty()) {
             return new ArrayList<>();
         }
@@ -213,7 +214,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         }
 
         List<CloudRecordItem> all = cloudRecordServiceMapper.getList(null, app, stream, startTimeStamp, endTimeStamp,
-                callId, mediaServerItems, null);
+                callId, mediaServerItems, null, null);
         if (all.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到待收藏的视频");
         }
@@ -273,6 +274,19 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
 
         }
         return cloudRecordServiceMapper.getList(query, app, stream, startTimeStamp, endTimeStamp,
-                callId, mediaServerItems, ids);
+                callId, mediaServerItems, ids, null);
+    }
+
+    @Override
+    public StreamContent loadRecord(String app, String stream, String date) {
+        long startTimestamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(date + " 00:00:00");
+        long endTimestamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(date + " 23:59:59");
+
+        int count = cloudRecordServiceMapper.queryCount(app, stream, startTimestamp, endTimestamp);
+        if (count == 0) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "此时间无录像");
+        }
+        mediaServerService.loadMP4File()
+        return null;
     }
 }

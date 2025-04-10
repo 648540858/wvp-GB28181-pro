@@ -280,11 +280,14 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     @Override
     public StreamContent loadRecord(String app, String stream, String date) {
         long startTimestamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(date + " 00:00:00");
-        long endTimestamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(date + " 23:59:59");
+        long endTimestamp = startTimestamp + 24 * 60 * 60 * 1000;
 
-        int count = cloudRecordServiceMapper.queryCount(app, stream, startTimestamp, endTimestamp);
-        if (count == 0) {
+        List<String> mediaServerIds = cloudRecordServiceMapper.queryMediaServerInRecord(app, stream, startTimestamp, endTimestamp);
+        if (mediaServerIds.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "此时间无录像");
+        }
+        if (mediaServerIds.size() > 1) {
+            log.info("[云端录像] loadMP4File时发现录像文件分布在不通的zlm上，默认使用第一个zlm开启录像，");
         }
         mediaServerService.loadMP4File()
         return null;

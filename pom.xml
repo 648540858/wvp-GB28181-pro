@@ -380,6 +380,7 @@
                 <version>2.7.2</version>
                 <configuration>
                     <includeSystemScope>true</includeSystemScope>
+                    <executable>true</executable>
                 </configuration>
             </plugin>
 

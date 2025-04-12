@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.cloudRecord.bean.CloudRecordUrl;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
@@ -101,6 +102,7 @@ public class CloudRecordController {
     @Parameter(name = "endTime", description = "结束时间(yyyy-MM-dd HH:mm:ss)", required = false)
     @Parameter(name = "mediaServerId", description = "流媒体ID，置空则查询全部流媒体", required = false)
     @Parameter(name = "callId", description = "每次录像的唯一标识，置空则查询全部流媒体", required = false)
+    @Parameter(name = "ascOrder", description = "是否升序排序， 升序： true， 降序： false", required = false)
     public PageInfo<CloudRecordItem> openRtpServer(@RequestParam(required = false) String query,
                                                    @RequestParam(required = false) String app,
                                                    @RequestParam(required = false) String stream,
@@ -109,7 +111,8 @@ public class CloudRecordController {
                                                    @RequestParam(required = false) String startTime,
                                                    @RequestParam(required = false) String endTime,
                                                    @RequestParam(required = false) String mediaServerId,
-                                                   @RequestParam(required = false) String callId
+                                                   @RequestParam(required = false) String callId,
+                                                   @RequestParam(required = false) Boolean ascOrder
 
     ) {
         log.info("[云端录像] 查询 app->{}, stream->{}, mediaServerId->{}, page->{}, count->{}, startTime->{}, endTime->{}, callId->{}", app, stream, mediaServerId, page, count, startTime, endTime, callId);
@@ -143,7 +146,7 @@ public class CloudRecordController {
         if (callId != null && ObjectUtils.isEmpty(callId.trim())) {
             callId = null;
         }
-        return cloudRecordService.getList(page, count, query, app, stream, startTime, endTime, mediaServers, callId);
+        return cloudRecordService.getList(page, count, query, app, stream, startTime, endTime, mediaServers, callId, ascOrder);
     }
 
     @ResponseBody
@@ -231,6 +234,20 @@ public class CloudRecordController {
     @Parameter(name = "recordId", description = "录像记录的ID", required = true)
     public DownloadFileInfo getPlayUrlPath(@RequestParam(required = true) Integer recordId) {
         return cloudRecordService.getPlayUrlPath(recordId);
+    }
+
+    @ResponseBody
+    @GetMapping("/loadRecord")
+    @Operation(summary = "加载录像文件形成播放地址")
+    @Parameter(name = "app", description = "应用名", required = true)
+    @Parameter(name = "stream", description = "流ID", required = true)
+    @Parameter(name = "date", description = "日期， 例如 2025-04-10", required = true)
+    public StreamContent loadRecord(
+            @RequestParam(required = true) String app,
+            @RequestParam(required = true) String stream,
+            @RequestParam(required = true) String date
+            ) {
+        return cloudRecordService.loadRecord(app, stream, date);
     }
 
     /************************* 以下这些接口只适合wvp和zlm部署在同一台服务器的情况，且wvp只有一个zlm节点的情况 ***************************************/
@@ -379,7 +396,7 @@ public class CloudRecordController {
         if (remoteHost == null) {
             remoteHost = request.getScheme() + "://" + request.getLocalAddr() + ":" + (request.getScheme().equals("https") ? mediaServer.getHttpSSlPort() : mediaServer.getHttpPort());
         }
-        PageInfo<CloudRecordItem> cloudRecordItemPageInfo = cloudRecordService.getList(page, count, query, app, stream, startTime, endTime, mediaServers, callId);
+        PageInfo<CloudRecordItem> cloudRecordItemPageInfo = cloudRecordService.getList(page, count, query, app, stream, startTime, endTime, mediaServers, callId, null);
         PageInfo<CloudRecordUrl> cloudRecordUrlPageInfo = new PageInfo<>();
         if (!ObjectUtils.isEmpty(cloudRecordItemPageInfo)) {
             cloudRecordUrlPageInfo.setPageNum(cloudRecordItemPageInfo.getPageNum());

@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSONArray;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
+import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
@@ -17,7 +18,7 @@ public interface ICloudRecordService {
     /**
      * 分页回去云端录像列表
      */
-    PageInfo<CloudRecordItem> getList(int page, int count, String query,  String app, String stream, String startTime, String endTime, List<MediaServer> mediaServerItems, String callId);
+    PageInfo<CloudRecordItem> getList(int page, int count, String query,  String app, String stream, String startTime, String endTime, List<MediaServer> mediaServerItems, String callId, Boolean ascOrder);
 
     /**
      * 获取所有的日期
@@ -52,4 +53,9 @@ public interface ICloudRecordService {
     DownloadFileInfo getPlayUrlPath(Integer recordId);
 
     List<CloudRecordItem> getAllList(String query, String app, String stream, String startTime, String endTime, List<MediaServer> mediaServerItems, String callId, List<Integer> ids);
+
+    /**
+     * 加载录像文件，形成录像流
+     */
+    StreamContent loadRecord(String app, String stream, String date);
 }

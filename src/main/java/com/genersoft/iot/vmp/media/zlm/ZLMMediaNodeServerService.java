@@ -549,4 +549,15 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
         }
         return result;
     }
+
+    @Override
+    public void loadMP4File(MediaServer mediaServer, String app, String stream, String datePath) {
+        JSONObject jsonObject =  zlmresTfulUtils.loadMP4File(mediaServer, app, stream, datePath);
+        if (jsonObject == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "请求失败");
+        }
+        if (jsonObject.getInteger("code") != 0) {
+            throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
+        }
+    }
 }

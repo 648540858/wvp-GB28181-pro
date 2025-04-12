@@ -2,23 +2,28 @@ package com.genersoft.iot.vmp.service.impl;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.gb28181.service.ICloudRecordService;
+import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.event.hook.Hook;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
+import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.event.media.MediaRecordMp4Event;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
+import com.genersoft.iot.vmp.service.ICloudRecordService;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.CloudRecordServiceMapper;
 import com.genersoft.iot.vmp.utils.CloudRecordUtils;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +62,9 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
 
     @Autowired
     private IRedisRpcPlayService redisRpcPlayService;
+
+    @Autowired
+    private HookSubscribe subscribe;
 
     @Override
     public PageInfo<CloudRecordItem> getList(int page, int count, String query, String app, String stream, String startTime,
@@ -278,18 +286,40 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     }
 
     @Override
-    public StreamContent loadRecord(String app, String stream, String date) {
+    public void loadRecord(String app, String stream, String date, ErrorCallback<StreamInfo> callback) {
         long startTimestamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(date + " 00:00:00");
         long endTimestamp = startTimestamp + 24 * 60 * 60 * 1000;
 
-        List<String> mediaServerIds = cloudRecordServiceMapper.queryMediaServerInRecord(app, stream, startTimestamp, endTimestamp);
+        List<String> mediaServerIds = cloudRecordServiceMapper.queryMediaServerId(app, stream, startTimestamp, endTimestamp);
         if (mediaServerIds.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "此时间无录像");
         }
+
         if (mediaServerIds.size() > 1) {
-            log.info("[云端录像] loadMP4File时发现录像文件分布在不通的zlm上，默认使用第一个zlm开启录像，");
+            log.info("[云端录像] loadMP4File时发现录像文件分布在不通的zlm上，默认使用第一个zlm开启录像");
         }
-        mediaServerService.loadMP4File()
-        return null;
+        String mediaServerId = mediaServerIds.get(0);
+        MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+        if (mediaServer == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体节点不存在： " + mediaServerId);
+        }
+        String buildStream = stream + "/" + date;
+        MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, app, buildStream);
+         if (mediaInfo != null) {
+             if (callback != null) {
+                 StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServer, app, buildStream, mediaInfo, null);
+                 callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+             }
+             return;
+         }
+
+        Hook hook = Hook.getInstance(HookType.on_media_arrival, app, buildStream, mediaServerId);
+        subscribe.addSubscribe(hook, (hookData) -> {
+            StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServer, app, buildStream, hookData.getMediaInfo(), null);
+            if (callback != null) {
+                callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+            }
+        });
+        mediaServerService.loadMP4File(mediaServer, app, buildStream, String.format("%s/%s/%s/%s", mediaServer.getRecordPath(), app, stream, date));
     }
 }

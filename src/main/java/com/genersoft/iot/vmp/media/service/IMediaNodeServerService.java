@@ -70,4 +70,5 @@ public interface IMediaNodeServerService {
 
     List<String> listRtpServer(MediaServer mediaServer);
 
+    void loadMP4File(MediaServer mediaServer, String app, String stream, String datePath);
 }

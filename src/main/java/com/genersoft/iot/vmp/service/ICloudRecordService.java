@@ -1,10 +1,11 @@
-package com.genersoft.iot.vmp.gb28181.service;
+package com.genersoft.iot.vmp.service;
 
 import com.alibaba.fastjson2.JSONArray;
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
-import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
@@ -57,5 +58,5 @@ public interface ICloudRecordService {
     /**
      * 加载录像文件，形成录像流
      */
-    StreamContent loadRecord(String app, String stream, String date);
+    void loadRecord(String app, String stream, String date, ErrorCallback<StreamInfo> callback);
 }

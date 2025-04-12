@@ -127,14 +127,17 @@ public interface CloudRecordServiceMapper {
     CloudRecordItem queryOne(@Param("id") Integer id);
 
     @Select(" <script>" +
-            "select count(1)" +
+            "select media_server_id " +
             " from wvp_cloud_record " +
             " where 0 = 0" +
             " <if test= 'app != null '> and app=#{app}</if>" +
             " <if test= 'stream != null '> and stream=#{stream}</if>" +
             " <if test= 'startTimeStamp != null '> and end_time &gt;= #{startTimeStamp}</if>" +
             " <if test= 'endTimeStamp != null '> and start_time &lt;= #{endTimeStamp}</if>" +
+            " group by media_server_id" +
             " </script>")
-    int queryCount(@Param("app") String app, @Param("stream") String stream,
-                             @Param("startTimeStamp")Long startTimeStamp, @Param("endTimeStamp")Long endTimeStamp,);
+    List<String> queryMediaServerId(@Param("app") String app,
+                   @Param("stream") String stream,
+                   @Param("startTimeStamp")Long startTimeStamp,
+                   @Param("endTimeStamp")Long endTimeStamp);
 }

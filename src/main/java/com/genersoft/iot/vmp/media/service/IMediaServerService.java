@@ -159,4 +159,6 @@ public interface IMediaServerService {
     int createRTPServer(MediaServer mediaServerItem, String streamId, long ssrc, Integer port, boolean onlyAuto, boolean disableAudio, boolean reUsePort, Integer tcpMode);
 
     List<String> listRtpServer(MediaServer mediaServer);
+
+    StreamInfo loadMP4File(MediaServer mediaServer, String app, String stream, String datePath);
 }

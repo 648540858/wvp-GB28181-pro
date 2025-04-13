@@ -431,6 +431,7 @@
                         <exclude>**/application.yml</exclude>
                         <exclude>**/application-*.yml</exclude>
                         <exclude>**/local.jks</exclude>
+                        <exclude>**/install.sh</exclude>
                     </excludes>
                 </configuration>
             </plugin>
@@ -450,6 +451,7 @@
                                     <includes>
                                         <include>application.yml</include>
                                         <include>application-*.yml</include>
+                                        <include>install.sh</include>
                                     </includes>
                                 </resource>
                             </resources>

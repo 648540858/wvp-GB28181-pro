@@ -28,6 +28,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,7 +48,7 @@ import java.util.*;
 
 @SuppressWarnings("rawtypes")
 @Tag(name = "服务控制")
-
+@Slf4j
 @RestController
 @RequestMapping("/api/server")
 public class ServerController {
@@ -176,32 +177,13 @@ public class ServerController {
     }
 
 
-    @Operation(summary = "重启服务", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @GetMapping(value = "/restart")
+    @Operation(summary = "关闭服务", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @GetMapping(value = "/shutdown")
     @ResponseBody
-    public void restart() {
-//        taskExecutor.execute(()-> {
-//            try {
-//                Thread.sleep(3000);
-//                SipProvider up = (SipProvider) SpringBeanFactory.getBean("udpSipProvider");
-//                SipStackImpl stack = (SipStackImpl) up.getSipStack();
-//                stack.stop();
-//                Iterator listener = stack.getListeningPoints();
-//                while (listener.hasNext()) {
-//                    stack.deleteListeningPoint((ListeningPoint) listener.next());
-//                }
-//                Iterator providers = stack.getSipProviders();
-//                while (providers.hasNext()) {
-//                    stack.deleteSipProvider((SipProvider) providers.next());
-//                }
-//                VManageBootstrap.restart();
-//            } catch (InterruptedException | ObjectInUseException e) {
-//                throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
-//            }
-//        });
+    public void shutdown() {
+        log.info("正在关闭服务。。。");
+        System.exit(1);
     }
-
-    ;
 
     @Operation(summary = "获取系统配置信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @GetMapping(value = "/system/configInfo")

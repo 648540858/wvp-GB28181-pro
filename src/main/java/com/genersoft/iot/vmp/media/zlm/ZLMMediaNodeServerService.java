@@ -560,4 +560,26 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
             throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
         }
     }
+
+    @Override
+    public void seekRecordStamp(MediaServer mediaServer, String app, String stream, int stamp) {
+        JSONObject jsonObject =  zlmresTfulUtils.seekRecordStamp(mediaServer, app, stream, stamp, "ts");
+        if (jsonObject == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "请求失败");
+        }
+        if (jsonObject.getInteger("code") != 0) {
+            throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
+        }
+    }
+
+    @Override
+    public void setRecordSpeed(MediaServer mediaServer, String app, String stream, Integer speed) {
+        JSONObject jsonObject =  zlmresTfulUtils.setRecordSpeed(mediaServer, app, stream, speed, "ts");
+        if (jsonObject == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "请求失败");
+        }
+        if (jsonObject.getInteger("code") != 0) {
+            throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
+        }
+    }
 }

@@ -59,4 +59,9 @@ public interface ICloudRecordService {
      * 加载录像文件，形成录像流
      */
     void loadRecord(String app, String stream, String date, ErrorCallback<StreamInfo> callback);
+
+    void seekRecord(String mediaServerId,String app, String stream, Integer seek);
+
+    void setRecordSpeed(String mediaServerId, String app, String stream, Integer speed);
+
 }

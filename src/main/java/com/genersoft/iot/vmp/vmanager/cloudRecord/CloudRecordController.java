@@ -307,6 +307,38 @@ public class CloudRecordController {
         return result;
     }
 
+    @ResponseBody
+    @GetMapping("/seek")
+    @Operation(summary = "定位录像播放到制定位置")
+    @Parameter(name = "mediaServerId", description = "使用的节点Id", required = true)
+    @Parameter(name = "stream", description = "流ID", required = true)
+    @Parameter(name = "seek", description = "要定位的时间位置，从录像开始的时间算起", required = true)
+    public void seekRecord(
+            @RequestParam(required = true) String mediaServerId,
+            @RequestParam(required = true) String app,
+            @RequestParam(required = true) String stream,
+            @RequestParam(required = true) Integer seek
+            ) {
+
+        cloudRecordService.seekRecord(mediaServerId, app, stream, seek);
+    }
+
+    @ResponseBody
+    @GetMapping("/speed")
+    @Operation(summary = "设置录像播放速度")
+    @Parameter(name = "mediaServerId", description = "使用的节点Id", required = true)
+    @Parameter(name = "stream", description = "流ID", required = true)
+    @Parameter(name = "speed", description = "要设置的录像倍速", required = true)
+    public void setRecordSpeed(
+            @RequestParam(required = true) String mediaServerId,
+            @RequestParam(required = true) String app,
+            @RequestParam(required = true) String stream,
+            @RequestParam(required = true) Integer speed
+            ) {
+
+        cloudRecordService.setRecordSpeed(mediaServerId, app, stream, speed);
+    }
+
     /************************* 以下这些接口只适合wvp和zlm部署在同一台服务器的情况，且wvp只有一个zlm节点的情况 ***************************************/
 
     /**

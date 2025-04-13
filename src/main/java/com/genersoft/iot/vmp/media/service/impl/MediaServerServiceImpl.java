@@ -311,6 +311,10 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if (mediaServerInRedis == null || !ssrcFactory.hasMediaServerSSRC(mediaServerInDataBase.getId())) {
             ssrcFactory.initMediaServerSSRC(mediaServerInDataBase.getId(),null);
         }
+        if (mediaSerItem.getSecret() != null && !mediaServerInDataBase.getSecret().equals(mediaSerItem.getSecret())) {
+            mediaServerInDataBase.setSecret(mediaSerItem.getSecret());
+        }
+        mediaServerInDataBase.setSecret(mediaSerItem.getSecret());
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId();
         redisTemplate.opsForHash().put(key, mediaServerInDataBase.getId(), mediaServerInDataBase);
         if (mediaServerInDataBase.isStatus()) {
@@ -976,5 +980,25 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         mediaNodeServerService.loadMP4File(mediaServer, app, stream, datePath);
         return getStreamInfoByAppAndStream(mediaServer, app, stream, null, null);
+    }
+
+    @Override
+    public void seekRecordStamp(MediaServer mediaServer, String app, String stream, int stamp) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
+        if (mediaNodeServerService == null) {
+            log.info("[seekRecordStamp] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到mediaServer对应的实现类");
+        }
+        mediaNodeServerService.seekRecordStamp(mediaServer, app, stream, stamp);
+    }
+
+    @Override
+    public void setRecordSpeed(MediaServer mediaServer, String app, String stream, Integer speed) {
+        IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
+        if (mediaNodeServerService == null) {
+            log.info("[setRecordSpeed] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到mediaServer对应的实现类");
+        }
+        mediaNodeServerService.setRecordSpeed(mediaServer, app, stream, speed);
     }
 }

@@ -438,12 +438,13 @@ public class ZLMRESTfulUtils {
         return sendPost(mediaServer, "setRecordSpeed",param, null);
     }
 
-    public JSONObject seekRecordStamp(MediaServer mediaServer, String app, String stream, long stamp) {
+    public JSONObject seekRecordStamp(MediaServer mediaServer, String app, String stream, long stamp, String schema) {
         Map<String, Object> param = new HashMap<>(1);
         param.put("vhost", "__defaultVhost__");
         param.put("app", app);
         param.put("stream", stream);
         param.put("stamp", stamp);
+        param.put("schema", schema);
         return sendPost(mediaServer, "seekRecordStamp",param, null);
     }
 }

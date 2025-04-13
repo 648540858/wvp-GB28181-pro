@@ -71,4 +71,8 @@ public interface IMediaNodeServerService {
     List<String> listRtpServer(MediaServer mediaServer);
 
     void loadMP4File(MediaServer mediaServer, String app, String stream, String datePath);
+
+    void seekRecordStamp(MediaServer mediaServer, String app, String stream, int stamp);
+
+    void setRecordSpeed(MediaServer mediaServer, String app, String stream, Integer speed);
 }

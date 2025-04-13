@@ -290,20 +290,16 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         long startTimestamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(date + " 00:00:00");
         long endTimestamp = startTimestamp + 24 * 60 * 60 * 1000;
 
-        List<String> mediaServerIds = cloudRecordServiceMapper.queryMediaServerId(app, stream, startTimestamp, endTimestamp);
-        if (mediaServerIds.isEmpty()) {
+        List<CloudRecordItem> recordItemList = cloudRecordServiceMapper.getList(null, app, stream, startTimestamp, endTimestamp, null, null, null, false);
+        if (recordItemList.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "此时间无录像");
         }
-
-        if (mediaServerIds.size() > 1) {
-            log.info("[云端录像] loadMP4File时发现录像文件分布在不通的zlm上，默认使用第一个zlm开启录像");
-        }
-        String mediaServerId = mediaServerIds.get(0);
+        String mediaServerId = recordItemList.get(0).getMediaServerId();
         MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
         if (mediaServer == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体节点不存在： " + mediaServerId);
         }
-        String buildStream = stream + "/" + date;
+        String buildStream = stream + "_" + date;
         MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, app, buildStream);
          if (mediaInfo != null) {
              if (callback != null) {
@@ -320,6 +316,25 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
                 callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
             }
         });
-        mediaServerService.loadMP4File(mediaServer, app, buildStream, String.format("%s/%s/%s/%s", mediaServer.getRecordPath(), app, stream, date));
+        String dateDir = recordItemList.get(0).getFilePath().substring(0, recordItemList.get(0).getFilePath().lastIndexOf("/"));
+        mediaServerService.loadMP4File(mediaServer, app, buildStream, dateDir);
+    }
+
+    @Override
+    public void seekRecord(String mediaServerId,String app, String stream, Integer seek) {
+        MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+        if (mediaServer == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体节点不存在： " + mediaServerId);
+        }
+        mediaServerService.seekRecordStamp(mediaServer, app, stream, seek);
+    }
+
+    @Override
+    public void setRecordSpeed(String mediaServerId, String app, String stream, Integer speed) {
+        MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+        if (mediaServer == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体节点不存在： " + mediaServerId);
+        }
+        mediaServerService.setRecordSpeed(mediaServer, app, stream, speed);
     }
 }

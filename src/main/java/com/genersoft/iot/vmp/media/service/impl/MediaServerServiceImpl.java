@@ -983,7 +983,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public void seekRecordStamp(MediaServer mediaServer, String app, String stream, int stamp) {
+    public void seekRecordStamp(MediaServer mediaServer, String app, String stream, Double stamp) {
         IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
             log.info("[seekRecordStamp] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());

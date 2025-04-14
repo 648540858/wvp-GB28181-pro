@@ -112,4 +112,8 @@ update wvp_record_plan_item set start = start * 30, stop = (stop + 1) * 30
 create index if not exists data_type on wvp_device_channel (data_type);
 create index if not exists data_device_id on wvp_device_channel (data_device_id);
 
+/**
+* 20250414
+*/
+alter table wvp_cloud_record modify time_len double precision;
 

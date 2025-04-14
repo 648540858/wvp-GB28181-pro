@@ -317,7 +317,7 @@ public class CloudRecordController {
             @RequestParam(required = true) String mediaServerId,
             @RequestParam(required = true) String app,
             @RequestParam(required = true) String stream,
-            @RequestParam(required = true) Integer seek
+            @RequestParam(required = true) Double seek
             ) {
 
         cloudRecordService.seekRecord(mediaServerId, app, stream, seek);

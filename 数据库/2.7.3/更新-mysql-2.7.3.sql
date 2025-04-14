@@ -294,5 +294,10 @@ call wvp_20250402();
 DROP PROCEDURE wvp_20250402;
 DELIMITER ;
 
+/**
+* 20250414
+*/
+alter table wvp_cloud_record modify time_len double precision;
+
 
 

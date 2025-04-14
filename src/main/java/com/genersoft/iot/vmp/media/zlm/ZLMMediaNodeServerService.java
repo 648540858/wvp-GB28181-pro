@@ -562,7 +562,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public void seekRecordStamp(MediaServer mediaServer, String app, String stream, int stamp) {
+    public void seekRecordStamp(MediaServer mediaServer, String app, String stream, Double stamp) {
         JSONObject jsonObject =  zlmresTfulUtils.seekRecordStamp(mediaServer, app, stream, stamp, "ts");
         if (jsonObject == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "请求失败");

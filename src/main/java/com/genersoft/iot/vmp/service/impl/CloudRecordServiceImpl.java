@@ -321,7 +321,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     }
 
     @Override
-    public void seekRecord(String mediaServerId,String app, String stream, Integer seek) {
+    public void seekRecord(String mediaServerId,String app, String stream, Double seek) {
         MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
         if (mediaServer == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体节点不存在： " + mediaServerId);

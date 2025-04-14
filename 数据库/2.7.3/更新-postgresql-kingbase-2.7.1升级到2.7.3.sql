@@ -388,3 +388,7 @@ alter table wvp_cloud_record alter folder  type varchar(500);
 alter table wvp_cloud_record alter file_path type varchar(500);
 update wvp_cloud_record set server_id = '你的服务ID';
 
+/**
+* 20250414
+*/
+alter table wvp_cloud_record modify time_len double precision;

@@ -72,7 +72,7 @@ public interface IMediaNodeServerService {
 
     void loadMP4File(MediaServer mediaServer, String app, String stream, String datePath);
 
-    void seekRecordStamp(MediaServer mediaServer, String app, String stream, int stamp);
+    void seekRecordStamp(MediaServer mediaServer, String app, String stream, Double stamp);
 
     void setRecordSpeed(MediaServer mediaServer, String app, String stream, Integer speed);
 }

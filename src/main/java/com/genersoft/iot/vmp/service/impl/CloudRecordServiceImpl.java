@@ -344,18 +344,31 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
             return;
         }
         List<CloudRecordItem> cloudRecordItemIdListForDelete = new ArrayList<>();
+        StringBuilder stringBuilder = new StringBuilder();
         for (CloudRecordItem cloudRecordItem : cloudRecordItemList) {
             String date = new File(cloudRecordItem.getFilePath()).getParentFile().getName();
             MediaServer mediaServer = mediaServerService.getOne(cloudRecordItem.getMediaServerId());
-            boolean deleteResult = mediaServerService.deleteRecordDirectory(mediaServer, cloudRecordItem.getApp(),
-                    cloudRecordItem.getStream(), date, cloudRecordItem.getFileName());
-            if (deleteResult) {
-                log.warn("[录像文件定时清理] 删除磁盘文件成功： {}", cloudRecordItem.getFilePath());
-                cloudRecordItemIdListForDelete.add(cloudRecordItem);
+            try {
+                boolean deleteResult = mediaServerService.deleteRecordDirectory(mediaServer, cloudRecordItem.getApp(),
+                        cloudRecordItem.getStream(), date, cloudRecordItem.getFileName());
+                if (deleteResult) {
+                    log.warn("[录像文件定时清理] 删除磁盘文件成功： {}", cloudRecordItem.getFilePath());
+                    cloudRecordItemIdListForDelete.add(cloudRecordItem);
+                }
+            }catch (ControllerException e) {
+                if (stringBuilder.length() > 0) {
+                    stringBuilder.append(", ");
+                }
+                stringBuilder.append(cloudRecordItem.getFileName());
             }
+
         }
         if (!cloudRecordItemIdListForDelete.isEmpty()) {
             cloudRecordServiceMapper.deleteList(cloudRecordItemIdListForDelete);
+        }
+        if (stringBuilder.length() > 0) {
+            stringBuilder.append(" 删除失败");
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), stringBuilder.toString());
         }
     }
 }

@@ -169,7 +169,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
             return true;
         }else {
             log.info("[zlm-deleteRecordDirectory] 删除磁盘文件错误, server: {} {}:{}->{}/{}, 结果： {}", mediaServer.getId(), app, stream, date, fileName, jsonObject);
-            return false;
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "删除磁盘文件失败");
         }
     }
 

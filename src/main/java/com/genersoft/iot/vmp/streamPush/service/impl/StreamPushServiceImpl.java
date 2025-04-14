@@ -124,25 +124,21 @@ public class StreamPushServiceImpl implements IStreamPushService {
     public void onApplicationEvent(MediaDepartureEvent event) {
 
         // 兼容流注销时类型从redis记录获取
-        MediaInfo mediaInfo = redisCatchStorage.getStreamInfo(
-                event.getApp(), event.getStream(), event.getMediaServer().getId());
+        MediaInfo mediaInfo = redisCatchStorage.getPushListItem(event.getApp(), event.getStream());
+
         if (mediaInfo != null) {
+            log.info("[推流信息] 查询到redis存在推流缓存， 开始清理，{}/{}", event.getApp(), event.getStream());
             String type = OriginType.values()[mediaInfo.getOriginType()].getType();
-            redisCatchStorage.removeStream(event.getMediaServer().getId(), type, event.getApp(), event.getStream());
-            if ("PUSH".equalsIgnoreCase(type)) {
-                // 冗余数据，自己系统中自用
-                redisCatchStorage.removePushListItem(event.getApp(), event.getStream(), event.getMediaServer().getId());
-            }
-            if (type != null) {
-                // 发送流变化redis消息
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("serverId", userSetting.getServerId());
-                jsonObject.put("app", event.getApp());
-                jsonObject.put("stream", event.getStream());
-                jsonObject.put("register", false);
-                jsonObject.put("mediaServerId", event.getMediaServer().getId());
-                redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
-            }
+            // 冗余数据，自己系统中自用
+            redisCatchStorage.removePushListItem(event.getApp(), event.getStream(), event.getMediaServer().getId());
+            // 发送流变化redis消息
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("serverId", userSetting.getServerId());
+            jsonObject.put("app", event.getApp());
+            jsonObject.put("stream", event.getStream());
+            jsonObject.put("register", false);
+            jsonObject.put("mediaServerId", event.getMediaServer().getId());
+            redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
         }
         StreamPush streamPush = getPush(event.getApp(), event.getStream());
         if (streamPush == null) {

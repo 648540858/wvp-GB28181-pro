@@ -34,12 +34,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+import java.io.File;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -336,5 +334,41 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体节点不存在： " + mediaServerId);
         }
         mediaServerService.setRecordSpeed(mediaServer, app, stream, speed);
+    }
+
+    @Override
+    public void deleteFileByIds(Set<Integer> ids) {
+        log.info("[删除录像文件] ids: {}", ids.toArray());
+        List<CloudRecordItem> cloudRecordItemList = cloudRecordServiceMapper.queryRecordByIds(ids);
+        if (cloudRecordItemList.isEmpty()) {
+            return;
+        }
+        List<CloudRecordItem> cloudRecordItemIdListForDelete = new ArrayList<>();
+        StringBuilder stringBuilder = new StringBuilder();
+        for (CloudRecordItem cloudRecordItem : cloudRecordItemList) {
+            String date = new File(cloudRecordItem.getFilePath()).getParentFile().getName();
+            MediaServer mediaServer = mediaServerService.getOne(cloudRecordItem.getMediaServerId());
+            try {
+                boolean deleteResult = mediaServerService.deleteRecordDirectory(mediaServer, cloudRecordItem.getApp(),
+                        cloudRecordItem.getStream(), date, cloudRecordItem.getFileName());
+                if (deleteResult) {
+                    log.warn("[录像文件定时清理] 删除磁盘文件成功： {}", cloudRecordItem.getFilePath());
+                    cloudRecordItemIdListForDelete.add(cloudRecordItem);
+                }
+            }catch (ControllerException e) {
+                if (stringBuilder.length() > 0) {
+                    stringBuilder.append(", ");
+                }
+                stringBuilder.append(cloudRecordItem.getFileName());
+            }
+
+        }
+        if (!cloudRecordItemIdListForDelete.isEmpty()) {
+            cloudRecordServiceMapper.deleteList(cloudRecordItemIdListForDelete);
+        }
+        if (stringBuilder.length() > 0) {
+            stringBuilder.append(" 删除失败");
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), stringBuilder.toString());
+        }
     }
 }

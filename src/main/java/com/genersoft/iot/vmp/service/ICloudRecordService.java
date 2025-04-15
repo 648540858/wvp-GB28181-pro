@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 云端录像管理
@@ -64,4 +65,5 @@ public interface ICloudRecordService {
 
     void setRecordSpeed(String mediaServerId, String app, String stream, Integer speed);
 
+    void deleteFileByIds(Set<Integer> ids);
 }

@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
+import java.util.Set;
 
 @Mapper
 public interface CloudRecordServiceMapper {
@@ -140,4 +141,11 @@ public interface CloudRecordServiceMapper {
                    @Param("stream") String stream,
                    @Param("startTimeStamp")Long startTimeStamp,
                    @Param("endTimeStamp")Long endTimeStamp);
+
+    @Select(" <script>" +
+            "select * " +
+            " from wvp_cloud_record where id in " +
+            " <foreach collection='ids'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
+            " </script>")
+    List<CloudRecordItem> queryRecordByIds(Set<Integer> ids);
 }

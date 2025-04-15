@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
+import com.genersoft.iot.vmp.streamPush.bean.BatchRemoveParam;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
@@ -337,6 +338,14 @@ public class CloudRecordController {
             ) {
 
         cloudRecordService.setRecordSpeed(mediaServerId, app, stream, speed);
+    }
+
+    @ResponseBody
+    @DeleteMapping("/delete")
+    @Operation(summary = "删除录像文件")
+    @Parameter(name = "ids", description = "文件ID集合", required = true)
+    public void deleteFileByIds(@RequestBody BatchRemoveParam ids) {
+        cloudRecordService.deleteFileByIds(ids.getIds());
     }
 
     /************************* 以下这些接口只适合wvp和zlm部署在同一台服务器的情况，且wvp只有一个zlm节点的情况 ***************************************/

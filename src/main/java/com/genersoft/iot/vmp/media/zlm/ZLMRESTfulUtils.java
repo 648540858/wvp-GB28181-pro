@@ -424,7 +424,6 @@ public class ZLMRESTfulUtils {
         param.put("stream", stream);
         param.put("file_path", datePath);
         param.put("file_repeat", "0");
-        param.put("auto_close", "1");
         return sendPost(mediaServer, "loadMP4File",param, null);
     }
 

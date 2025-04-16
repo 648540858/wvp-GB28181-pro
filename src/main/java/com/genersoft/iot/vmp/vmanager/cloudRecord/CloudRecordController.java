@@ -318,10 +318,13 @@ public class CloudRecordController {
             @RequestParam(required = true) String mediaServerId,
             @RequestParam(required = true) String app,
             @RequestParam(required = true) String stream,
-            @RequestParam(required = true) Double seek
+            @RequestParam(required = true) Double seek,
+            @RequestParam(required = false) String schema
             ) {
-
-        cloudRecordService.seekRecord(mediaServerId, app, stream, seek);
+        if (schema == null) {
+            schema = "ts";
+        }
+        cloudRecordService.seekRecord(mediaServerId, app, stream, seek, schema);
     }
 
     @ResponseBody
@@ -334,10 +337,14 @@ public class CloudRecordController {
             @RequestParam(required = true) String mediaServerId,
             @RequestParam(required = true) String app,
             @RequestParam(required = true) String stream,
-            @RequestParam(required = true) Integer speed
-            ) {
+            @RequestParam(required = true) Integer speed,
+            @RequestParam(required = false) String schema
+    ) {
+        if (schema == null) {
+            schema = "ts";
+        }
 
-        cloudRecordService.setRecordSpeed(mediaServerId, app, stream, speed);
+        cloudRecordService.setRecordSpeed(mediaServerId, app, stream, speed, schema);
     }
 
     @ResponseBody
@@ -410,7 +417,7 @@ public class CloudRecordController {
         try {
             ZipOutputStream zos = new ZipOutputStream(response.getOutputStream());
             for (CloudRecordItem cloudRecordItem : cloudRecordItemList) {
-                zos.putNextEntry(new ZipEntry(DateUtil.timestampMsToUrlToyyyy_MM_dd_HH_mm_ss(cloudRecordItem.getStartTime()) + ".mp4"));
+                zos.putNextEntry(new ZipEntry(DateUtil.timestampMsToUrlToyyyy_MM_dd_HH_mm_ss((long)cloudRecordItem.getStartTime()) + ".mp4"));
                 File file = new File(cloudRecordItem.getFilePath());
                 if (!file.exists() || file.isDirectory()) {
                     continue;
@@ -519,7 +526,7 @@ public class CloudRecordController {
             for (CloudRecordItem cloudRecordItem : cloudRecordItemList) {
                 CloudRecordUrl cloudRecordUrl = new CloudRecordUrl();
                 cloudRecordUrl.setId(cloudRecordItem.getId());
-                cloudRecordUrl.setDownloadUrl(remoteHost + "/index/api/downloadFile?file_path=" + cloudRecordItem.getFilePath() + "&save_name=" + cloudRecordItem.getStream() + "_" + cloudRecordItem.getCallId() + "_" + DateUtil.timestampMsToUrlToyyyy_MM_dd_HH_mm_ss(cloudRecordItem.getStartTime()));
+                cloudRecordUrl.setDownloadUrl(remoteHost + "/index/api/downloadFile?file_path=" + cloudRecordItem.getFilePath() + "&save_name=" + cloudRecordItem.getStream() + "_" + cloudRecordItem.getCallId() + "_" + DateUtil.timestampMsToUrlToyyyy_MM_dd_HH_mm_ss((long)cloudRecordItem.getStartTime()));
                 cloudRecordUrl.setPlayUrl(remoteHost + "/index/api/downloadFile?file_path=" + cloudRecordItem.getFilePath());
                 cloudRecordUrlList.add(cloudRecordUrl);
             }

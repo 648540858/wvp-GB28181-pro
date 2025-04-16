@@ -126,7 +126,6 @@ public class ZLMHttpHookListener {
     @ResponseBody
     @PostMapping(value = "/on_stream_changed", produces = "application/json;charset=UTF-8")
     public HookResult onStreamChanged(@RequestBody OnStreamChangedHookParam param) {
-
         MediaServer mediaServer = mediaServerService.getOne(param.getMediaServerId());
         if (mediaServer == null) {
             return HookResult.SUCCESS();

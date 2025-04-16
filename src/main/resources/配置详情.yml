@@ -5,6 +5,10 @@
 
 
 spring:
+    cache:
+        type: redis
+    thymeleaf:
+        cache: false
     # 设置接口超时时间
     mvc:
         async:

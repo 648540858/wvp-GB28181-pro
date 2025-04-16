@@ -297,43 +297,44 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         if (mediaServer == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体节点不存在： " + mediaServerId);
         }
-        String buildStream = stream + "_" + date;
-        MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, app, buildStream);
+        String buildApp = "mp4_record";
+        String buildStream = app + "_" + stream + "_" + date;
+        MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, buildApp, buildStream);
          if (mediaInfo != null) {
              if (callback != null) {
-                 StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServer, app, buildStream, mediaInfo, null);
+                 StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServer, buildApp, buildStream, mediaInfo, null);
                  callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
              }
              return;
          }
 
-        Hook hook = Hook.getInstance(HookType.on_media_arrival, app, buildStream, mediaServerId);
+        Hook hook = Hook.getInstance(HookType.on_media_arrival, buildApp, buildStream, mediaServerId);
         subscribe.addSubscribe(hook, (hookData) -> {
-            StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServer, app, buildStream, hookData.getMediaInfo(), null);
+            StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServer, buildApp, buildStream, hookData.getMediaInfo(), null);
             if (callback != null) {
                 callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
             }
         });
         String dateDir = recordItemList.get(0).getFilePath().substring(0, recordItemList.get(0).getFilePath().lastIndexOf("/"));
-        mediaServerService.loadMP4File(mediaServer, app, buildStream, dateDir);
+        mediaServerService.loadMP4File(mediaServer, buildApp, buildStream, dateDir);
     }
 
     @Override
-    public void seekRecord(String mediaServerId,String app, String stream, Double seek) {
+    public void seekRecord(String mediaServerId,String app, String stream, Double seek, String schema) {
         MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
         if (mediaServer == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体节点不存在： " + mediaServerId);
         }
-        mediaServerService.seekRecordStamp(mediaServer, app, stream, seek);
+        mediaServerService.seekRecordStamp(mediaServer, app, stream, seek, schema);
     }
 
     @Override
-    public void setRecordSpeed(String mediaServerId, String app, String stream, Integer speed) {
+    public void setRecordSpeed(String mediaServerId, String app, String stream, Integer speed, String schema) {
         MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
         if (mediaServer == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体节点不存在： " + mediaServerId);
         }
-        mediaServerService.setRecordSpeed(mediaServer, app, stream, speed);
+        mediaServerService.setRecordSpeed(mediaServer, app, stream, speed, schema);
     }
 
     @Override
@@ -352,7 +353,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
                 boolean deleteResult = mediaServerService.deleteRecordDirectory(mediaServer, cloudRecordItem.getApp(),
                         cloudRecordItem.getStream(), date, cloudRecordItem.getFileName());
                 if (deleteResult) {
-                    log.warn("[录像文件定时清理] 删除磁盘文件成功： {}", cloudRecordItem.getFilePath());
+                    log.warn("[录像文件] 删除磁盘文件成功： {}", cloudRecordItem.getFilePath());
                     cloudRecordItemIdListForDelete.add(cloudRecordItem);
                 }
             }catch (ControllerException e) {

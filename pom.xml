@@ -188,7 +188,6 @@
         </dependency>
 
         <!--在线文档 -->
-        <!--在线文档 -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-ui</artifactId>
@@ -199,13 +198,6 @@
             <artifactId>springdoc-openapi-security</artifactId>
             <version>1.6.10</version>
         </dependency>
-
-		<!--在线文档 -->
-		<dependency>
-			<groupId>org.springdoc</groupId>
-			<artifactId>springdoc-openapi-ui</artifactId>
-			<version>1.6.10</version>
-		</dependency>
 
         <dependency>
             <groupId>com.github.xiaoymin</groupId>

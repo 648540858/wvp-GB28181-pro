@@ -42,6 +42,7 @@ import oshi.hardware.HardwareAbstractionLayer;
 import oshi.hardware.NetworkIF;
 import oshi.software.os.OperatingSystem;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -80,6 +81,7 @@ public class ServerController {
 
     @Value("${server.port}")
     private int serverPort;
+
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -275,7 +277,7 @@ public class ServerController {
     @GetMapping(value = "/info")
     @ResponseBody
     @Operation(summary = "获取系统信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    public Map<String, Map<String, String>> getInfo() {
+    public Map<String, Map<String, String>> getInfo(HttpServletRequest request) {
         Map<String, Map<String, String>> result = new LinkedHashMap<>();
         Map<String, String> hardwareMap = new LinkedHashMap<>();
         result.put("硬件信息", hardwareMap);
@@ -322,6 +324,11 @@ public class ServerController {
         platformMap.put("GIT日期", version.getGIT_DATE());
         platformMap.put("GIT版本", version.getGIT_Revision_SHORT());
         platformMap.put("DOCKER环境", new File("/.dockerenv").exists()?"是":"否");
+
+        Map<String, String> docmap = new LinkedHashMap<>();
+        result.put("文档地址", docmap);
+        docmap.put("部署文档", String.format("%s://%s:%s/doc.html", request.getScheme(), request.getServerName(), request.getServerPort()));
+        docmap.put("接口文档", "https://doc.wvp-pro.cn");
 
         return result;
     }

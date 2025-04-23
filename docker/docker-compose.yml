@@ -1,49 +1,125 @@
 version: '3'
 services:
-  redis:
-    image: redis
-    restart: always
-    volumes:
-      - ./redis/redis.conf:/etc/redis/redis_default.conf
-      - ./redis/data/:/data
-    environment:
-      TZ: "Asia/Shanghai"
-    command: redis-server /etc/redis/redis_default.conf --appendonly yes
-  wvp:
-    build:
-      context: ./wvp
-      args:
-        gitUrl: "https://gitee.com/pan648540858"
-        zlmGitUrl: "https://gitee.com/xia-chu/ZLMediaKit"
-    restart: always
+  polaris-redis:
+    image: polaris-tian-docker.pkg.coding.net/qt/polaris/polaris-redis:latest
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - media-net
     ports:
-      - "5060:5060"
-      - "5060:5060/udp"
-      - "18080:18080"
-      - "80:80"
-      - "10000:10000/tcp"
-      - "10000:10000/udp"
-      - "30000-30500:30000-30500/tcp"
-      - "30000-30500:30000-30500/udp"
+      - 6379:6379
     volumes:
-      - ./video:/opt/media/www/record/
-      - ./logs/wvp:/opt/wvp/logs/
-      - ./logs/assist:/opt/assist/logs/
-      - ./logs/media:/opt/media/log/
+      - ./redis/conf/redis.conf:/opt/polaris/redis/redis.conf
+      - ./volumes/redis/data/:/data
     environment:
       TZ: "Asia/Shanghai"
-      # [必须修改] 本机的IP
-      WVP_HOST: 172.18.0.61
-      WVP_PWD: aseqw_+hiy123
-      WVP_DOMAIN: 6101130049
-      WVP_ID: 61011300490000000001
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_DB: 6
-      REDIS_PWD: root
-      ASSIST_JVM_CONFIG: -Xms128m -Xmx256m
-      WVP_JVM_CONFIG: -Xms128m -Xmx256m
-      ASSIST_CONFIG:
-      WVP_CONFIG:
+    command: redis-server /opt/polaris/redis/redis.conf --appendonly yes
+
+  polaris-mysql:
+    image: polaris-tian-docker.pkg.coding.net/qt/polaris/polaris-mysql:latest
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "bash", "-c", "cat < /dev/null > /dev/tcp/127.0.0.1/3306" ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - media-net
+    environment:
+      MYSQL_DATABASE: wvp
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      TZ: Asia/Shanghai
+    ports:
+      - 3306:3306
+    volumes:
+      - ./mysql/conf:/etc/mysql/conf.d
+      - ./logs/mysql:/logs
+      - ./volumes/mysql/data:/var/lib/mysql  
+    command: [
+          'mysqld',
+          '--default-authentication-plugin=mysql_native_password',
+          '--innodb-buffer-pool-size=80M',
+          '--character-set-server=utf8mb4',
+          '--collation-server=utf8mb4_general_ci',
+          '--default-time-zone=+8:00',
+          '--lower-case-table-names=1'
+        ]
+
+  polaris-media:
+    image: polaris-tian-docker.pkg.coding.net/qt/polaris/polaris-media:latest
+    restart: always
+    networks:
+      - media-net
+    ports:
+      - "10935:10935"
+      - "5540:5540"
+      - "6080:6080"
+    volumes:
+      - ./volumes/video:/opt/media/www/record/
+      - ./logs/media:/opt/media/log/
+
+  polaris-wvp:
+    image: polaris-tian-docker.pkg.coding.net/qt/polaris/polaris-wvp:latest
+    restart: always
+    networks:
+      - media-net
+    ports:
+      - "18978:18978"
+      - "8116:8116/udp"
+      - "8116:8116/tcp"
     depends_on:
-      - redis
+      - polaris-redis
+      - polaris-mysql
+      - polaris-media
+    links:
+      - polaris-redis
+      - polaris-mysql
+      - polaris-media
+    volumes:
+      - ./wvp/wvp/:/opt/wvp/wvp/
+      - ./logs/wvp:/opt/wvp/logs/
+    environment:
+      TZ: "Asia/Shanghai"
+      # 本机的IP
+      SIP_HOST: 127.0.0.1
+      STREAM_HOST: 127.0.0.1
+      ZLM_HOST: polaris-media
+      ZLM_PORT: 6080
+      ZLM_SERCERT: su6TiedN2rVAmBbIDX0aa0QTiBJLBdcf
+      REDIS_HOST: polaris-redis
+      REDIS_PORT: 6379
+      DATABASE_HOST: polaris-mysql
+      DATABASE_PORT: 3306
+      DATABASE_USER: wvp
+      DATABASE_PASSWORD: wvp
+      # 前端跨域配置，nginx容器所在物理机IP
+      NGINX_HOST: http://127.0.0.1:8080
+
+  polaris-nginx:
+    image: polaris-tian-docker.pkg.coding.net/qt/polaris/polaris-nginx:latest
+    ports:
+      - "8080:8080"
+    depends_on:
+      - polaris-wvp
+    links:
+      - polaris-wvp
+    environment:
+      WVP_HOST: polaris-wvp
+      WVP_PORT: 18978
+    volumes:
+      - ./nginx/conf/nginx.conf:/etc/nginx/nginx.conf
+      - ./logs/nginx:/var/log/nginx
+    networks:
+      - media-net
+      
+networks:
+  media-net:
+    driver: bridge

@@ -84,6 +84,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         defaultExcludes.add("/swagger-ui.html");
         defaultExcludes.add("/swagger-ui/**");
         defaultExcludes.add("/swagger-resources/**");
+        defaultExcludes.add("/doc.html");
         defaultExcludes.add("/doc.html#/**");
         defaultExcludes.add("/v3/api-docs/**");
 

@@ -16,7 +16,6 @@ import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OriginType;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
-import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
@@ -52,6 +51,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     private UserSetting userSetting;
 
     @Autowired
+
     private IMediaServerService mediaServerService;
 
     @Autowired
@@ -124,25 +124,21 @@ public class StreamPushServiceImpl implements IStreamPushService {
     public void onApplicationEvent(MediaDepartureEvent event) {
 
         // 兼容流注销时类型从redis记录获取
-        MediaInfo mediaInfo = redisCatchStorage.getStreamInfo(
-                event.getApp(), event.getStream(), event.getMediaServer().getId());
+        MediaInfo mediaInfo = redisCatchStorage.getPushListItem(event.getApp(), event.getStream());
+
         if (mediaInfo != null) {
+            log.info("[推流信息] 查询到redis存在推流缓存， 开始清理，{}/{}", event.getApp(), event.getStream());
             String type = OriginType.values()[mediaInfo.getOriginType()].getType();
-            redisCatchStorage.removeStream(event.getMediaServer().getId(), type, event.getApp(), event.getStream());
-            if ("PUSH".equalsIgnoreCase(type)) {
-                // 冗余数据，自己系统中自用
-                redisCatchStorage.removePushListItem(event.getApp(), event.getStream(), event.getMediaServer().getId());
-            }
-            if (type != null) {
-                // 发送流变化redis消息
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("serverId", userSetting.getServerId());
-                jsonObject.put("app", event.getApp());
-                jsonObject.put("stream", event.getStream());
-                jsonObject.put("register", false);
-                jsonObject.put("mediaServerId", event.getMediaServer().getId());
-                redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
-            }
+            // 冗余数据，自己系统中自用
+            redisCatchStorage.removePushListItem(event.getApp(), event.getStream(), event.getMediaServer().getId());
+            // 发送流变化redis消息
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("serverId", userSetting.getServerId());
+            jsonObject.put("app", event.getApp());
+            jsonObject.put("stream", event.getStream());
+            jsonObject.put("register", false);
+            jsonObject.put("mediaServerId", event.getMediaServer().getId());
+            redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
         }
         StreamPush streamPush = getPush(event.getApp(), event.getStream());
         if (streamPush == null) {
@@ -471,6 +467,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
     public void online(List<StreamPushItemFromRedis> onlineStreams) {
         // 更新部分设备上线streamPushService
         List<StreamPush> streamPushList = streamPushMapper.getListFromRedis(onlineStreams);
+        if (streamPushList.isEmpty()) {
+            return;
+        }
         List<CommonGBChannel> commonGBChannelList = gbChannelService.queryListByStreamPushList(streamPushList);
         gbChannelService.online(commonGBChannelList);
     }
@@ -574,26 +573,13 @@ public class StreamPushServiceImpl implements IStreamPushService {
         if (streamPushList.isEmpty()) {
             return;
         }
-        List<CommonGBChannel> commonGBChannelList = new ArrayList<>();
+        Set<Integer> channelIds = new HashSet<>();
         streamPushList.stream().forEach(streamPush -> {
             if (streamPush.getGbDeviceId() != null) {
-                commonGBChannelList.add(streamPush.buildCommonGBChannel());
+                channelIds.add(streamPush.getGbId());
             }
         });
         streamPushMapper.batchDel(streamPushList);
-        gbChannelService.delete(ids);
-    }
-
-    @Override
-    public void updateGPSFromGPSMsgInfo(List<GPSMsgInfo> gpsMsgInfoList) {
-        List<CommonGBChannel> channels = new ArrayList<>();
-        for (GPSMsgInfo gpsMsgInfo : gpsMsgInfoList) {
-            CommonGBChannel channel = new CommonGBChannel();
-            channel.setGbDeviceId(gpsMsgInfo.getId());
-            channel.setGbLongitude(gpsMsgInfo.getLng());
-            channel.setGbLatitude(gpsMsgInfo.getLat());
-            channels.add(channel);
-        }
-        gbChannelService.updateGpsByDeviceIdForStreamPush(channels);
+        gbChannelService.delete(channelIds);
     }
 }

@@ -1,9 +1,11 @@
 package com.genersoft.iot.vmp.service.redisMsg;
 
 import com.alibaba.fastjson2.JSON;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.streamPush.service.IStreamPushService;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +17,11 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
- * 接收来自redis的GPS更新通知, 此处只针对推流设备
+ * 接收来自redis的GPS更新通知
  *
  * @author lin
  * 监听：  SUBSCRIBE VM_MSG_GPS
@@ -33,6 +37,9 @@ public class RedisGpsMsgListener implements MessageListener {
     @Autowired
     private IStreamPushService streamPushService;
 
+    @Autowired
+    private IGbChannelService channelService;
+
     private final ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 
 
@@ -42,7 +49,7 @@ public class RedisGpsMsgListener implements MessageListener {
         taskQueue.offer(message);
     }
 
-    @Scheduled(fixedDelay = 200)   //每400毫秒执行一次
+    @Scheduled(fixedDelay = 200, timeUnit = TimeUnit.MILLISECONDS)   //每400毫秒执行一次
     public void executeTaskQueue() {
         if (taskQueue.isEmpty()) {
             return;
@@ -61,6 +68,7 @@ public class RedisGpsMsgListener implements MessageListener {
         for (Message msg : messageDataList) {
             try {
                 GPSMsgInfo gpsMsgInfo = JSON.parseObject(msg.getBody(), GPSMsgInfo.class);
+                gpsMsgInfo.setTime(DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(gpsMsgInfo.getTime()));
                 log.info("[REDIS的位置变化通知], {}", JSON.toJSONString(gpsMsgInfo));
                 // 只是放入redis缓存起来
                 redisCatchStorage.updateGpsMsgInfo(gpsMsgInfo);
@@ -74,15 +82,18 @@ public class RedisGpsMsgListener implements MessageListener {
     /**
      * 定时将经纬度更新到数据库
      */
-    @Scheduled(fixedDelay = 2 * 1000)   //每2秒执行一次
+    @Scheduled(fixedDelay = 2, timeUnit = TimeUnit.SECONDS)   //每2秒执行一次
     public void execute() {
         // 需要查询到
         List<GPSMsgInfo> gpsMsgInfoList = redisCatchStorage.getAllGpsMsgInfo();
         if (!gpsMsgInfoList.isEmpty()) {
-            streamPushService.updateGPSFromGPSMsgInfo(gpsMsgInfoList);
-            for (GPSMsgInfo msgInfo : gpsMsgInfoList) {
-                msgInfo.setStored(true);
-                redisCatchStorage.updateGpsMsgInfo(msgInfo);
+            gpsMsgInfoList = gpsMsgInfoList.stream().filter(gpsMsgInfo -> !gpsMsgInfo.isStored()).collect(Collectors.toList());;
+            if (!gpsMsgInfoList.isEmpty()) {
+                channelService.updateGPSFromGPSMsgInfo(gpsMsgInfoList);
+                for (GPSMsgInfo msgInfo : gpsMsgInfoList) {
+                    msgInfo.setStored(true);
+                    redisCatchStorage.updateGpsMsgInfo(msgInfo);
+                }
             }
         }
     }

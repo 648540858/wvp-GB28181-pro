@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
+import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -716,11 +717,6 @@ public class GbChannelServiceImpl implements IGbChannelService {
     }
 
     @Override
-    public void updateGpsByDeviceIdForStreamPush(List<CommonGBChannel> channels) {
-        commonGBChannelMapper.updateGpsByDeviceIdForStreamPush(ChannelDataType.STREAM_PUSH.value, channels);
-    }
-
-    @Override
     public PageInfo<CommonGBChannel> queryList(int page, int count, String query, Boolean online, Boolean hasRecordPlan, Integer channelType) {
         PageHelper.startPage(page, count);
         if (query != null) {
@@ -796,5 +792,13 @@ public class GbChannelServiceImpl implements IGbChannelService {
             channelIdsForClear = channelIds;
         }
         commonGBChannelMapper.removeParentIdByChannelIds(channelIdsForClear);
+    }
+
+    @Override
+    public void updateGPSFromGPSMsgInfo(List<GPSMsgInfo> gpsMsgInfoList) {
+        if (gpsMsgInfoList == null || gpsMsgInfoList.isEmpty()) {
+            return;
+        }
+        commonGBChannelMapper.updateGpsByDeviceId(gpsMsgInfoList);
     }
 }

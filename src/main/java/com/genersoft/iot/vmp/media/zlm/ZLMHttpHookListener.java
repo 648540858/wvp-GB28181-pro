@@ -103,7 +103,9 @@ public class ZLMHttpHookListener {
         String mediaServerId = json.getString("mediaServerId");
         MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
         if (mediaServer == null) {
-            return new HookResultForOnPublish(0, "success");
+            HookResultForOnPublish fail = HookResultForOnPublish.Fail();
+            log.warn("[ZLM HOOK]推流鉴权 响应：{}->找不到对应的mediaServer", param.getMediaServerId());
+            return fail;
         }
 
         ResultForOnPublish resultForOnPublish = mediaService.authenticatePublish(mediaServer, param.getApp(), param.getStream(), param.getParams());
@@ -176,6 +178,9 @@ public class ZLMHttpHookListener {
             JSONObject ret = new JSONObject();
             ret.put("code", 0);
             return ret;
+        }
+        if (mediaInfo.getTranscodeSuffix() != null && param.getStream().endsWith(mediaInfo.getTranscodeSuffix())) {
+            param.setStream(param.getStream().substring(0, param.getStream().lastIndexOf(mediaInfo.getTranscodeSuffix()) - 1));
         }
         if (!ObjectUtils.isEmpty(mediaInfo.getTranscodeSuffix())
                 && !"null".equalsIgnoreCase(mediaInfo.getTranscodeSuffix())

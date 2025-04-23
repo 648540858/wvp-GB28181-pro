@@ -1,5 +1,6 @@
 /*建表*/
-create table wvp_device
+drop table IF EXISTS wvp_device;
+create table IF NOT EXISTS wvp_device
 (
     id                                  serial primary key,
     device_id                           character varying(50) not null,
@@ -25,7 +26,7 @@ create table wvp_device
     charset                             character varying(50),
     ssrc_check                          bool    default false,
     geo_coord_sys                       character varying(50),
-    media_server_id                     character varying(50),
+    media_server_id                     character varying(50) default 'auto',
     custom_name                         character varying(255),
     sdp_ip                              character varying(50),
     local_ip                            character varying(50),
@@ -39,7 +40,8 @@ create table wvp_device
     constraint uk_device_device unique (device_id)
 );
 
-create table wvp_device_alarm
+drop table IF EXISTS wvp_device_alarm;
+create table IF NOT EXISTS wvp_device_alarm
 (
     id                serial primary key,
     device_id         character varying(50) not null,
@@ -54,7 +56,8 @@ create table wvp_device_alarm
     create_time       character varying(50) not null
 );
 
-create table wvp_device_mobile_position
+drop table IF EXISTS wvp_device_mobile_position;
+create table IF NOT EXISTS wvp_device_mobile_position
 (
     id              serial primary key,
     device_id       character varying(50) not null,
@@ -70,7 +73,8 @@ create table wvp_device_mobile_position
     create_time     character varying(50)
 );
 
-create table wvp_device_channel
+drop table IF EXISTS wvp_device_channel;
+create table IF NOT EXISTS wvp_device_channel
 (
     id                           serial primary key,
     device_id                    character varying(50),
@@ -152,10 +156,17 @@ create table wvp_device_channel
     record_plan_id               integer,
     data_type                    integer not null,
     data_device_id               integer not null,
+    gps_speed                    double precision,
+    gps_altitude                 double precision,
+    gps_direction                double precision,
     constraint uk_wvp_unique_channel unique (gb_device_id)
 );
 
-create table wvp_media_server
+CREATE INDEX idx_data_type ON wvp_device_channel (data_type);
+CREATE INDEX idx_data_device_id ON wvp_device_channel (data_device_id);
+
+drop table IF EXISTS wvp_media_server;
+create table IF NOT EXISTS wvp_media_server
 (
     id                  character varying(255) primary key,
     ip                  character varying(50),
@@ -191,7 +202,8 @@ create table wvp_media_server
     constraint uk_media_server_unique_ip_http_port unique (ip, http_port, server_id)
 );
 
-create table wvp_platform
+drop table IF EXISTS wvp_platform;
+create table IF NOT EXISTS wvp_platform
 (
     id                    serial primary key,
     enable                bool default false,
@@ -231,8 +243,8 @@ create table wvp_platform
     constraint uk_platform_unique_server_gb_id unique (server_gb_id)
 );
 
-
-create table wvp_platform_channel
+drop table IF EXISTS wvp_platform_channel;
+create table IF NOT EXISTS wvp_platform_channel
 (
     id                           serial primary key,
     platform_id                  integer,
@@ -275,7 +287,8 @@ create table wvp_platform_channel
     constraint uk_platform_gb_channel_device_id unique (custom_device_id)
 );
 
-create table wvp_platform_group
+drop table IF EXISTS wvp_platform_group;
+create table IF NOT EXISTS wvp_platform_group
 (
     id          serial primary key,
     platform_id integer,
@@ -283,7 +296,8 @@ create table wvp_platform_group
     constraint uk_wvp_platform_group_platform_id_group_id unique (platform_id, group_id)
 );
 
-create table wvp_platform_region
+drop table IF EXISTS wvp_platform_region;
+create table IF NOT EXISTS wvp_platform_region
 (
     id          serial primary key,
     platform_id integer,
@@ -291,7 +305,8 @@ create table wvp_platform_region
     constraint uk_wvp_platform_region_platform_id_group_id unique (platform_id, region_id)
 );
 
-create table wvp_stream_proxy
+drop table IF EXISTS wvp_stream_proxy;
+create table IF NOT EXISTS wvp_stream_proxy
 (
     id                         serial primary key,
     type                       character varying(50),
@@ -317,7 +332,8 @@ create table wvp_stream_proxy
     constraint uk_stream_proxy_app_stream unique (app, stream)
 );
 
-create table wvp_stream_push
+drop table IF EXISTS wvp_stream_push;
+create table IF NOT EXISTS wvp_stream_push
 (
     id                 serial primary key,
     app                character varying(255),
@@ -333,7 +349,9 @@ create table wvp_stream_push
     start_offline_push bool default true,
     constraint uk_stream_push_app_stream unique (app, stream)
 );
-create table wvp_cloud_record
+
+drop table IF EXISTS wvp_cloud_record;
+create table IF NOT EXISTS wvp_cloud_record
 (
     id              serial primary key,
     app             character varying(255),
@@ -348,11 +366,11 @@ create table wvp_cloud_record
     file_path       character varying(500),
     collect         bool default false,
     file_size       int8,
-    time_len        int8,
-    constraint uk_stream_push_app_stream_path unique (app, stream, file_path)
+    time_len        int8
 );
 
-create table wvp_user
+drop table IF EXISTS wvp_user;
+create table IF NOT EXISTS wvp_user
 (
     id          serial primary key,
     username    character varying(255),
@@ -364,7 +382,8 @@ create table wvp_user
     constraint uk_user_username unique (username)
 );
 
-create table wvp_user_role
+drop table IF EXISTS wvp_user_role;
+create table IF NOT EXISTS wvp_user_role
 (
     id          serial primary key,
     name        character varying(50),
@@ -372,18 +391,10 @@ create table wvp_user_role
     create_time character varying(50),
     update_time character varying(50)
 );
-create table wvp_resources_tree
-(
-    id                serial primary key,
-    is_catalog        bool default true,
-    device_channel_id integer,
-    gb_stream_id      integer,
-    name              character varying(255),
-    parentId          integer,
-    path              character varying(255)
-);
 
-create table wvp_user_api_key
+
+drop table IF EXISTS wvp_user_api_key;
+create table IF NOT EXISTS wvp_user_api_key
 (
     id          serial primary key,
     user_id     int8,
@@ -404,7 +415,8 @@ VALUES (1, 'admin', '21232f297a57a5a743894a0e4a801fc3', 1, '2021-04-13 14:14:57'
 INSERT INTO wvp_user_role
 VALUES (1, 'admin', '0', '2021-04-13 14:14:57', '2021-04-13 14:14:57');
 
-CREATE TABLE wvp_common_group
+drop table IF EXISTS wvp_common_group;
+create table IF NOT EXISTS wvp_common_group
 (
     id               serial primary key,
     device_id        varchar(50)  NOT NULL,
@@ -418,7 +430,8 @@ CREATE TABLE wvp_common_group
     constraint uk_common_group_device_platform unique (device_id)
 );
 
-CREATE TABLE wvp_common_region
+drop table IF EXISTS wvp_common_region;
+create table IF NOT EXISTS wvp_common_region
 (
     id               serial primary key,
     device_id        varchar(50)  NOT NULL,
@@ -430,7 +443,8 @@ CREATE TABLE wvp_common_region
     constraint uk_common_region_device_id unique (device_id)
 );
 
-create table wvp_record_plan
+drop table IF EXISTS wvp_record_plan;
+create table IF NOT EXISTS wvp_record_plan
 (
     id              serial primary key,
     snap            bool default false,
@@ -439,7 +453,8 @@ create table wvp_record_plan
     update_time     character varying(50)
 );
 
-create table wvp_record_plan_item
+drop table IF EXISTS wvp_record_plan_item;
+create table IF NOT EXISTS wvp_record_plan_item
 (
     id              serial primary key,
     "start"           int,

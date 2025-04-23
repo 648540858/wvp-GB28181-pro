@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.utils;
 
 import com.genersoft.iot.vmp.gb28181.bean.Gb28181Sdp;
-import com.genersoft.iot.vmp.gb28181.bean.RemoteAddressInfo;
+import com.genersoft.iot.vmp.common.RemoteAddressInfo;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.GitUtil;
 import gov.nist.javax.sip.address.AddressImpl;

@@ -27,12 +27,12 @@ public class SipConfig {
 	private String id;
 
 	private String password;
-	
+
 	Integer ptzSpeed = 50;
 
 	Integer registerTimeInterval = 120;
 
 	private boolean alarm = false;
 
-	private long timeout = 150;
+	private long timeout = 1000;
 }

@@ -186,7 +186,6 @@ public class ZLMMediaServerStatusManager {
             log.info("[ZLM-连接成功] ID：{}, 地址： {}:{}", mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
             mediaServerItem.setStatus(true);
             mediaServerItem.setHookAliveInterval(10F);
-            mediaServerService.update(mediaServerItem);
             // 发送上线通知
             eventPublisher.mediaServerOnlineEventPublish(mediaServerItem);
             if(mediaServerItem.isAutoConfig()) {
@@ -242,6 +241,11 @@ public class ZLMMediaServerStatusManager {
         }
         if (mediaServerItem.getWsFlvSSLPort() == 0) {
             mediaServerItem.setWsFlvSSLPort(zlmServerConfig.getHttpSSLport());
+        }
+        if (Objects.isNull(zlmServerConfig.getTranscodeSuffix())) {
+            mediaServerItem.setTranscodeSuffix(null);
+        }else {
+            mediaServerItem.setTranscodeSuffix(zlmServerConfig.getTranscodeSuffix());
         }
         mediaServerItem.setHookAliveInterval(10F);
     }

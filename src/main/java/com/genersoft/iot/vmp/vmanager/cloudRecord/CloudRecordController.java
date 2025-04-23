@@ -55,7 +55,12 @@ public class CloudRecordController {
     @Parameter(name = "year", description = "年，置空则查询当年", required = false)
     @Parameter(name = "month", description = "月，置空则查询当月", required = false)
     @Parameter(name = "mediaServerId", description = "流媒体ID，置空则查询全部", required = false)
-    public List<String> openRtpServer(@RequestParam(required = true) String app, @RequestParam(required = true) String stream, @RequestParam(required = false) Integer year, @RequestParam(required = false) Integer month, @RequestParam(required = false) String mediaServerId
+    public List<String> openRtpServer(
+            @RequestParam(required = true) String app,
+            @RequestParam(required = true) String stream,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) String mediaServerId
 
     ) {
         log.info("[云端录像] 查询存在云端录像的日期 app->{}, stream->{}, mediaServerId->{}, year->{}, month->{}", app, stream, mediaServerId, year, month);
@@ -96,7 +101,15 @@ public class CloudRecordController {
     @Parameter(name = "endTime", description = "结束时间(yyyy-MM-dd HH:mm:ss)", required = false)
     @Parameter(name = "mediaServerId", description = "流媒体ID，置空则查询全部流媒体", required = false)
     @Parameter(name = "callId", description = "每次录像的唯一标识，置空则查询全部流媒体", required = false)
-    public PageInfo<CloudRecordItem> openRtpServer(@RequestParam(required = false) String query, @RequestParam(required = false) String app, @RequestParam(required = false) String stream, @RequestParam int page, @RequestParam int count, @RequestParam(required = false) String startTime, @RequestParam(required = false) String endTime, @RequestParam(required = false) String mediaServerId, @RequestParam(required = false) String callId
+    public PageInfo<CloudRecordItem> openRtpServer(@RequestParam(required = false) String query,
+                                                   @RequestParam(required = false) String app,
+                                                   @RequestParam(required = false) String stream,
+                                                   @RequestParam int page,
+                                                   @RequestParam int count,
+                                                   @RequestParam(required = false) String startTime,
+                                                   @RequestParam(required = false) String endTime,
+                                                   @RequestParam(required = false) String mediaServerId,
+                                                   @RequestParam(required = false) String callId
 
     ) {
         log.info("[云端录像] 查询 app->{}, stream->{}, mediaServerId->{}, page->{}, count->{}, startTime->{}, endTime->{}, callId->{}", app, stream, mediaServerId, page, count, startTime, endTime, callId);

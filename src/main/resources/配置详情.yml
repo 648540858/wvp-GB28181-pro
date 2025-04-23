@@ -249,6 +249,8 @@ user-settings:
     jwk-file: classpath:jwk.json
     # wvp集群模式下如果注册向上级的wvp奔溃，则自动选择一个其他wvp继续注册到上级
     auto-register-platform: true
+    # 按需发送位置， 默认发送移动位置订阅时如果位置不变则不发送， 设置为false按照国标间隔持续发送
+    send-position-on-demand: true
 
 # 关闭在线文档（生产环境建议关闭）
 springdoc:

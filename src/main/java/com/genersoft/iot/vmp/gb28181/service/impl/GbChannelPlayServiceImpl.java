@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.exception.ServiceException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
@@ -145,6 +146,9 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
             deviceChannelPlayService.play(channel, record, callback);
         } catch (PlayException e) {
             callback.run(e.getCode(), e.getMsg(), null);
+        } catch (ControllerException e) {
+            log.error("[点播失败] {}({}), {}", channel.getGbName(), channel.getGbDeviceId(), e.getMsg());
+            callback.run(Response.BUSY_HERE, "busy here", null);
         } catch (Exception e) {
             log.error("[点播失败] {}({})", channel.getGbName(), channel.getGbDeviceId(), e);
             callback.run(Response.BUSY_HERE, "busy here", null);

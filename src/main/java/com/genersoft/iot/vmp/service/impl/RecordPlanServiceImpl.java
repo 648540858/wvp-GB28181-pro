@@ -81,7 +81,6 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
 
     @Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
     public void execution() {
-        log.info("[录制计划] 执行");
         // 查询现在需要录像的通道Id
         List<Integer> startChannelIdList = queryCurrentChannelRecord();
 
@@ -221,7 +220,7 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
             }
         }
         // TODO  更新录像队列
-       
+
     }
 
     @Override

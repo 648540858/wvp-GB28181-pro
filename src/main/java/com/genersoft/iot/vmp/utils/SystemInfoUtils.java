@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.utils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.DigestUtils;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.GlobalMemory;
@@ -9,6 +10,7 @@ import oshi.hardware.NetworkIF;
 import oshi.software.os.OperatingSystem;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -141,5 +143,20 @@ public class SystemInfoUtils {
             result.add(infoMap);
         }
         return result;
+    }
+
+    public static String getHardwareId(){
+        SystemInfo systemInfo = new SystemInfo();
+        HardwareAbstractionLayer hardware = systemInfo.getHardware();
+        // CPU ID
+        String cpuId = hardware.getProcessor().getProcessorIdentifier().getProcessorID();
+        // 主板序号
+        String serialNumber = hardware.getComputerSystem().getSerialNumber();
+
+        return DigestUtils.md5DigestAsHex(
+                (
+                        DigestUtils.md5DigestAsHex(cpuId.getBytes(StandardCharsets.UTF_8)) +
+                        DigestUtils.md5DigestAsHex(serialNumber.getBytes(StandardCharsets.UTF_8))
+                ).getBytes(StandardCharsets.UTF_8));
     }
 }

@@ -1,8 +1,12 @@
 package com.genersoft.iot.vmp.conf;
 
+import com.alibaba.fastjson2.JSON;
 import com.genersoft.iot.vmp.common.StatisticsInfo;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.GitUtil;
 import com.genersoft.iot.vmp.utils.SystemInfoUtils;
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
@@ -10,10 +14,17 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import javax.sql.DataSource;
 import java.io.File;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
+import java.sql.DatabaseMetaData;
+import java.util.Objects;
 
 @Component
 @Order(value=100)
+@Slf4j
 public class StatisticsInfoTask implements CommandLineRunner {
 
     @Autowired
@@ -22,23 +33,39 @@ public class StatisticsInfoTask implements CommandLineRunner {
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
 
+    @Autowired
+    private DataSource dataSource;
+
     @Override
     public void run(String... args) throws Exception {
-        StatisticsInfo statisticsInfo = new StatisticsInfo();
-        statisticsInfo.setDeviceId(SystemInfoUtils.getHardwareId());
-        statisticsInfo.setBranch(gitUtil.getBranch());
-        statisticsInfo.setGitCommitId(gitUtil.getGitCommitId());
-        statisticsInfo.setGitUrl(gitUtil.getGitUrl());
+        try {
+            StatisticsInfo statisticsInfo = new StatisticsInfo();
+            statisticsInfo.setDeviceId(SystemInfoUtils.getHardwareId());
+            statisticsInfo.setBranch(gitUtil.getBranch());
+            statisticsInfo.setGitCommitId(gitUtil.getGitCommitId());
+            statisticsInfo.setGitUrl(gitUtil.getGitUrl());
+            statisticsInfo.setVersion(gitUtil.getBuildVersion());
 
-        statisticsInfo.setOsName(System.getProperty("os.name"));
-        statisticsInfo.setArch(System.getProperty("os.arch"));
-        statisticsInfo.setJdkVersion(System.getProperty("java.version"));
+            statisticsInfo.setOsName(System.getProperty("os.name"));
+            statisticsInfo.setArch(System.getProperty("os.arch"));
+            statisticsInfo.setJdkVersion(System.getProperty("java.version"));
 
-        statisticsInfo.setDocker(new File("/.dockerenv").exists());
+            statisticsInfo.setDocker(new File("/.dockerenv").exists());
+            try {
+                statisticsInfo.setRedisVersion(getRedisVersion());
+            }catch (Exception ignored) {}
+            try {
+                DatabaseMetaData metaData = dataSource.getConnection().getMetaData();
+                statisticsInfo.setSqlVersion(metaData.getDatabaseProductVersion());
+                statisticsInfo.setSqlType(metaData.getDriverName());
+            }catch (Exception ignored) {}
+            statisticsInfo.setTime(DateUtil.getNow());
+            sendPost(statisticsInfo);
 
-        statisticsInfo.setRedisVersion(getRedisVersion());
 
-//        statisticsInfo.setSqlVersion();
+        }catch (Exception e) {
+            log.error("[获取信息失败] ", e);
+        }
     }
 
     public String getRedisVersion() {
@@ -50,5 +77,25 @@ public class StatisticsInfoTask implements CommandLineRunner {
             return null;
         }
         return connection.info().getProperty("redis_version");
+    }
+
+    public void sendPost(StatisticsInfo statisticsInfo) {
+        OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
+        OkHttpClient client = httpClientBuilder.build();
+
+        RequestBody requestBodyJson = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), JSON.toJSONString(statisticsInfo));
+
+        Request request = new Request.Builder()
+                .post(requestBodyJson)
+//                .url("https://doc.wvp-pro.cn:11236/api/statistics/ping")
+                .url("http://127.0.0.1:11236/api/statistics/ping")
+                .addHeader("Content-Type", "application/json")
+                .build();
+        try {
+            Response response = client.newCall(request).execute();
+            response.close();
+            Objects.requireNonNull(response.body()).close();
+
+        }catch (Exception ignored){}
     }
 }

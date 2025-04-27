@@ -16,9 +16,6 @@ import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
 import java.io.File;
-import java.io.IOException;
-import java.net.ConnectException;
-import java.net.SocketTimeoutException;
 import java.sql.DatabaseMetaData;
 import java.util.Objects;
 
@@ -87,8 +84,8 @@ public class StatisticsInfoTask implements CommandLineRunner {
 
         Request request = new Request.Builder()
                 .post(requestBodyJson)
-//                .url("https://doc.wvp-pro.cn:11236/api/statistics/ping")
-                .url("http://127.0.0.1:11236/api/statistics/ping")
+                .url("https://api.wvp-pro.cn:11236/api/statistics/ping")
+//                .url("http://127.0.0.1:11236/api/statistics/ping")
                 .addHeader("Content-Type", "application/json")
                 .build();
         try {

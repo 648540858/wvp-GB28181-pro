@@ -103,9 +103,17 @@ alter table wvp_device_channel add column if not exists gps_altitude double prec
 alter table wvp_device_channel add column if not exists gps_direction double precision;
 
 /*
+* 20250319
+*/
+update wvp_record_plan_item set start = start * 30, stop = (stop + 1) * 30
+/*
 * 20250402
 */
 create index if not exists data_type on wvp_device_channel (data_type);
 create index if not exists data_device_id on wvp_device_channel (data_device_id);
 
+/**
+* 20250414
+*/
+alter table wvp_cloud_record modify time_len double precision;
 

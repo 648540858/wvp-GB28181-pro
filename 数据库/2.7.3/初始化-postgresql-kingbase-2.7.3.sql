@@ -366,7 +366,7 @@ create table IF NOT EXISTS wvp_cloud_record
     file_path       character varying(500),
     collect         bool default false,
     file_size       int8,
-    time_len        int8
+    time_len        double precision
 );
 
 drop table IF EXISTS wvp_user;

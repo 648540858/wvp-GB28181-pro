@@ -23,7 +23,7 @@ import java.nio.file.Files;
  */
 @Slf4j
 @Configuration
-@Order(value=14)
+@Order(value=15)
 public class CivilCodeFileConf implements CommandLineRunner {
 
     @Autowired

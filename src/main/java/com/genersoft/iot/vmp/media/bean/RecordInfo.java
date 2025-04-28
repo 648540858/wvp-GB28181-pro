@@ -1,7 +1,9 @@
 package com.genersoft.iot.vmp.media.bean;
 
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRecordMp4HookParam;
+import lombok.Data;
 
+@Data
 public class RecordInfo {
     private String fileName;
     private String filePath;
@@ -22,70 +24,6 @@ public class RecordInfo {
         recordInfo.setStartTime(hookParam.getStart_time());
         recordInfo.setTimeLen(hookParam.getTime_len());
         return recordInfo;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public String getFilePath() {
-        return filePath;
-    }
-
-    public void setFilePath(String filePath) {
-        this.filePath = filePath;
-    }
-
-    public long getFileSize() {
-        return fileSize;
-    }
-
-    public void setFileSize(long fileSize) {
-        this.fileSize = fileSize;
-    }
-
-    public String getFolder() {
-        return folder;
-    }
-
-    public void setFolder(String folder) {
-        this.folder = folder;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public long getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(long startTime) {
-        this.startTime = startTime;
-    }
-
-    public double getTimeLen() {
-        return timeLen;
-    }
-
-    public void setTimeLen(double timeLen) {
-        this.timeLen = timeLen;
-    }
-
-    public String getParams() {
-        return params;
-    }
-
-    public void setParams(String params) {
-        this.params = params;
     }
 
     @Override

@@ -79,7 +79,7 @@ public class DeviceQuery {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@GetMapping("/devices/{deviceId}")
 	public Device devices(@PathVariable String deviceId){
-		
+
 		return deviceService.getDeviceByDeviceId(deviceId);
 	}
 
@@ -224,16 +224,19 @@ public class DeviceQuery {
 			"UDP（udp传输），TCP-ACTIVE（tcp主动模式），TCP-PASSIVE（tcp被动模式）", required = true)
 	@PostMapping("/transport/{deviceId}/{streamMode}")
 	public void updateTransport(@PathVariable String deviceId, @PathVariable String streamMode){
+		Assert.isTrue(streamMode.equalsIgnoreCase("UDP")
+				|| streamMode.equalsIgnoreCase("TCP-ACTIVE")
+				|| streamMode.equalsIgnoreCase("TCP-PASSIVE"), "数据流传输模式, 取值：UDP/TCP-ACTIVE/TCP-PASSIVE");
 		Device device = deviceService.getDeviceByDeviceId(deviceId);
-		device.setStreamMode(streamMode);
+		device.setStreamMode(streamMode.toUpperCase());
 		deviceService.updateCustomDevice(device);
 	}
 
 
 	@Operation(summary = "添加设备信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "device", description = "设备", required = true)
-	@PostMapping("/device/add/")
-	public void addDevice(Device device){
+	@PostMapping("/device/add")
+	public void addDevice(@RequestBody Device device){
 
 		if (device == null || device.getDeviceId() == null) {
 			throw new ControllerException(ErrorCode.ERROR400);
@@ -250,8 +253,8 @@ public class DeviceQuery {
 
 	@Operation(summary = "更新设备信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "device", description = "设备", required = true)
-	@PostMapping("/device/update/")
-	public void updateDevice(Device device){
+	@PostMapping("/device/update")
+	public void updateDevice(@RequestBody Device device){
 		if (device == null || device.getDeviceId() == null || device.getId() <= 0) {
 			throw new ControllerException(ErrorCode.ERROR400);
 		}

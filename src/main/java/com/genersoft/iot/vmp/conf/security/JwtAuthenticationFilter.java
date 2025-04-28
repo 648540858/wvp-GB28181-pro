@@ -97,7 +97,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 //                return;
             default:
         }
-
         // 构建UsernamePasswordAuthenticationToken,这里密码为null，是因为提供了正确的JWT,实现自动登录
         User user = new User();
         user.setId(jwtUser.getUserId());

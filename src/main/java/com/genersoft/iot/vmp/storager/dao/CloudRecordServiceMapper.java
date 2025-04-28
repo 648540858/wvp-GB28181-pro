@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
+import java.util.Set;
 
 @Mapper
 public interface CloudRecordServiceMapper {
@@ -55,12 +56,13 @@ public interface CloudRecordServiceMapper {
             " <if test= 'ids != null  ' > and id in " +
             " <foreach collection='ids'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
             " </if>" +
-            " order by start_time desc" +
+            " <if test= 'ascOrder != null and ascOrder == true'> order by start_time asc</if>" +
+            " <if test= 'ascOrder == null or ascOrder == false'> order by start_time desc</if>" +
             " </script>")
     List<CloudRecordItem> getList(@Param("query") String query, @Param("app") String app, @Param("stream") String stream,
                                   @Param("startTimeStamp")Long startTimeStamp, @Param("endTimeStamp")Long endTimeStamp,
                                   @Param("callId")String callId, List<MediaServer> mediaServerItemList,
-                                  List<Integer> ids);
+                                  List<Integer> ids, @Param("ascOrder") Boolean ascOrder);
 
 
     @Select(" <script>" +
@@ -124,4 +126,26 @@ public interface CloudRecordServiceMapper {
             "where id = #{id}" +
             " </script>")
     CloudRecordItem queryOne(@Param("id") Integer id);
+
+    @Select(" <script>" +
+            "select media_server_id " +
+            " from wvp_cloud_record " +
+            " where 0 = 0" +
+            " <if test= 'app != null '> and app=#{app}</if>" +
+            " <if test= 'stream != null '> and stream=#{stream}</if>" +
+            " <if test= 'startTimeStamp != null '> and end_time &gt;= #{startTimeStamp}</if>" +
+            " <if test= 'endTimeStamp != null '> and start_time &lt;= #{endTimeStamp}</if>" +
+            " group by media_server_id" +
+            " </script>")
+    List<String> queryMediaServerId(@Param("app") String app,
+                   @Param("stream") String stream,
+                   @Param("startTimeStamp")Long startTimeStamp,
+                   @Param("endTimeStamp")Long endTimeStamp);
+
+    @Select(" <script>" +
+            "select * " +
+            " from wvp_cloud_record where id in " +
+            " <foreach collection='ids'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
+            " </script>")
+    List<CloudRecordItem> queryRecordByIds(Set<Integer> ids);
 }

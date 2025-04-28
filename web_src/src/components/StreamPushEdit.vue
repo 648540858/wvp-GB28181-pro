@@ -86,9 +86,9 @@ export default {
             showClose: true,
             message: error
           })
-        }).finally(()=>[
+        }).finally(()=>{
           this.locading = false
-        ])
+        })
       }else {
         this.$axios({
           method: 'post',
@@ -113,9 +113,9 @@ export default {
             showClose: true,
             message: error
           })
-        }).finally(()=>[
+        }).finally(()=>{
           this.locading = false
-        ])
+        })
       }
 
     },

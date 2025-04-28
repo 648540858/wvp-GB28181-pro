@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.conf;
 
 
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
@@ -59,11 +60,14 @@ public class CloudRecordTimer {
                 // TODO 后续可以删除空了的过期日期文件夹
                 for (CloudRecordItem cloudRecordItem : cloudRecordItemList) {
                     String date = new File(cloudRecordItem.getFilePath()).getParentFile().getName();
-                    boolean deleteResult = mediaServerService.deleteRecordDirectory(mediaServerItem, cloudRecordItem.getApp(),
-                            cloudRecordItem.getStream(), date, cloudRecordItem.getFileName());
-                    if (deleteResult) {
-                        log.warn("[录像文件定时清理] 删除磁盘文件成功： {}", cloudRecordItem.getFilePath());
-                    }
+                    try {
+                        boolean deleteResult = mediaServerService.deleteRecordDirectory(mediaServerItem, cloudRecordItem.getApp(),
+                                cloudRecordItem.getStream(), date, cloudRecordItem.getFileName());
+                        if (deleteResult) {
+                            log.warn("[录像文件定时清理] 删除磁盘文件成功： {}", cloudRecordItem.getFilePath());
+                        }
+                    }catch (ControllerException ignored) {}
+
                 }
                 result += cloudRecordServiceMapper.deleteList(cloudRecordItemList);
             }

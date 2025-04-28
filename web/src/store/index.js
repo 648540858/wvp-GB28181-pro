@@ -21,6 +21,7 @@ import role from './modules/role'
 import userApiKeys from './modules/userApiKeys'
 import gbRecord from './modules/gbRecord'
 import log from './modules/log'
+import frontEnd from './modules/frontEnd'
 
 Vue.use(Vuex)
 
@@ -45,7 +46,8 @@ const store = new Vuex.Store({
     role,
     userApiKeys,
     gbRecord,
-    log
+    log,
+    frontEnd
   },
   getters
 })

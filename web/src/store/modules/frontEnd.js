@@ -9,9 +9,9 @@ import {
 } from '@/api/frontEnd'
 
 const actions = {
-  setSpeedForScan({ commit }, [deviceId, channelDeviceId, scanId, speed]) {
+  setSpeedForScan({ commit }, params) {
     return new Promise((resolve, reject) => {
-      setSpeedForScan(deviceId, channelDeviceId, scanId, speed).then(response => {
+      setSpeedForScan(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {
@@ -19,9 +19,9 @@ const actions = {
       })
     })
   },
-  setLeftForScan({ commit }, [deviceId, channelDeviceId, scanId]) {
+  setLeftForScan({ commit }, params) {
     return new Promise((resolve, reject) => {
-      setLeftForScan(deviceId, channelDeviceId, scanId).then(response => {
+      setLeftForScan(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {
@@ -29,9 +29,9 @@ const actions = {
       })
     })
   },
-  setRightForScan({ commit }, [deviceId, channelDeviceId, scanId]) {
+  setRightForScan({ commit }, params) {
     return new Promise((resolve, reject) => {
-      setRightForScan(deviceId, channelDeviceId, scanId).then(response => {
+      setRightForScan(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {
@@ -39,9 +39,9 @@ const actions = {
       })
     })
   },
-  startScan({ commit }, [deviceId, channelDeviceId, scanId]) {
+  startScan({ commit }, params) {
     return new Promise((resolve, reject) => {
-      startScan(deviceId, channelDeviceId, scanId).then(response => {
+      startScan(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {
@@ -49,9 +49,9 @@ const actions = {
       })
     })
   },
-  stopScan({ commit }, [deviceId, channelDeviceId, scanId]) {
+  stopScan({ commit }, params) {
     return new Promise((resolve, reject) => {
-      stopScan(deviceId, channelDeviceId, scanId).then(response => {
+      stopScan(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {
@@ -59,9 +59,9 @@ const actions = {
       })
     })
   },
-  queryPreset({ commit }, [deviceId, channelDeviceId]) {
+  addPointForCruise({ commit }, params) {
     return new Promise((resolve, reject) => {
-      queryPreset(deviceId, channelDeviceId).then(response => {
+      addPointForCruise(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {
@@ -69,9 +69,9 @@ const actions = {
       })
     })
   },
-  addPointForCruise({ commit }, [deviceId, channelDeviceId, cruiseId, presetId]) {
+  deletePointForCruise({ commit }, params) {
     return new Promise((resolve, reject) => {
-      addPointForCruise(deviceId, channelDeviceId, cruiseId, presetId).then(response => {
+      deletePointForCruise(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {
@@ -79,9 +79,9 @@ const actions = {
       })
     })
   },
-  deletePointForCruise({ commit }, [deviceId, channelDeviceId, cruiseId, presetId]) {
+  setCruiseSpeed({ commit }, params) {
     return new Promise((resolve, reject) => {
-      deletePointForCruise(deviceId, channelDeviceId, cruiseId, presetId).then(response => {
+      setCruiseSpeed(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {
@@ -89,9 +89,9 @@ const actions = {
       })
     })
   },
-  setCruiseSpeed({ commit }, [deviceId, channelDeviceId, cruiseId, cruiseSpeed]) {
+  setCruiseTime({ commit }, params) {
     return new Promise((resolve, reject) => {
-      setCruiseSpeed(deviceId, channelDeviceId, cruiseId, cruiseSpeed).then(response => {
+      setCruiseTime(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {
@@ -99,9 +99,9 @@ const actions = {
       })
     })
   },
-  setCruiseTime({ commit }, [deviceId, channelDeviceId, cruiseId, cruiseTime]) {
+  startCruise({ commit }, params) {
     return new Promise((resolve, reject) => {
-      setCruiseTime(deviceId, channelDeviceId, cruiseId, cruiseTime).then(response => {
+      startCruise(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {
@@ -109,9 +109,9 @@ const actions = {
       })
     })
   },
-  startCruise({ commit }, [deviceId, channelDeviceId, cruiseId]) {
+  stopCruise({ commit }, params) {
     return new Promise((resolve, reject) => {
-      startCruise(deviceId, channelDeviceId, cruiseId).then(response => {
+      stopCruise(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {
@@ -119,9 +119,9 @@ const actions = {
       })
     })
   },
-  stopCruise({ commit }, [deviceId, channelDeviceId, cruiseId]) {
+  addPreset({ commit }, params) {
     return new Promise((resolve, reject) => {
-      stopCruise(deviceId, channelDeviceId, cruiseId).then(response => {
+      addPreset(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {
@@ -129,9 +129,9 @@ const actions = {
       })
     })
   },
-  addPreset({ commit }, [deviceId, channelDeviceId, presetId]) {
+  queryPreset({ commit }, params) {
     return new Promise((resolve, reject) => {
-      addPreset(deviceId, channelDeviceId, presetId).then(response => {
+      queryPreset(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {
@@ -139,9 +139,9 @@ const actions = {
       })
     })
   },
-  callPreset({ commit }, [deviceId, channelDeviceId, presetId]) {
+  callPreset({ commit }, params) {
     return new Promise((resolve, reject) => {
-      callPreset(deviceId, channelDeviceId, presetId).then(response => {
+      callPreset(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {
@@ -149,9 +149,9 @@ const actions = {
       })
     })
   },
-  deletePreset({ commit }, [deviceId, channelDeviceId, presetId]) {
+  deletePreset({ commit }, params) {
     return new Promise((resolve, reject) => {
-      deletePreset(deviceId, channelDeviceId, presetId).then(response => {
+      deletePreset(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {
@@ -159,9 +159,9 @@ const actions = {
       })
     })
   },
-  auxiliary({ commit }, [deviceId, channelDeviceId, command, switchId]) {
+  auxiliary({ commit }, params) {
     return new Promise((resolve, reject) => {
-      auxiliary(deviceId, channelDeviceId, command, switchId).then(response => {
+      auxiliary(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {
@@ -169,9 +169,9 @@ const actions = {
       })
     })
   },
-  wiper({ commit }, [deviceId, channelDeviceId, command]) {
+  wiper({ commit }, params) {
     return new Promise((resolve, reject) => {
-      wiper(deviceId, channelDeviceId, command).then(response => {
+      wiper(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {
@@ -179,9 +179,9 @@ const actions = {
       })
     })
   },
-  ptz({ commit }, [deviceId, channelId, command, horizonSpeed, verticalSpeed, zoomSpeed]) {
+  ptz({ commit }, params) {
     return new Promise((resolve, reject) => {
-      ptz(deviceId, channelId, command, horizonSpeed, verticalSpeed, zoomSpeed).then(response => {
+      ptz(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {
@@ -189,9 +189,9 @@ const actions = {
       })
     })
   },
-  iris({ commit }, [deviceId, channelId, command, speed]) {
+  iris({ commit }, params) {
     return new Promise((resolve, reject) => {
-      iris(deviceId, channelId, command, speed).then(response => {
+      iris(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {
@@ -199,9 +199,9 @@ const actions = {
       })
     })
   },
-  focus({ commit }, [deviceId, channelDeviceId, command, speed]) {
+  focus({ commit }, params) {
     return new Promise((resolve, reject) => {
-      iris(deviceId, channelDeviceId, command, speed).then(response => {
+      focus(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

@@ -13,7 +13,7 @@ export function setSpeedForScan(deviceId, channelDeviceId, scanId, speed) {
   })
 }
 
-export function setLeftForScan(deviceId, channelDeviceId, scanId) {
+export function setLeftForScan([deviceId, channelDeviceId, scanId]) {
   return request({
     method: 'get',
     url: `/api/front-end/scan/set/left/${deviceId}/${channelDeviceId}`,
@@ -23,7 +23,7 @@ export function setLeftForScan(deviceId, channelDeviceId, scanId) {
   })
 }
 
-export function setRightForScan(deviceId, channelDeviceId, scanId) {
+export function setRightForScan([deviceId, channelDeviceId, scanId]) {
   return request({
     method: 'get',
     url: `/api/front-end/scan/set/right/${deviceId}/${channelDeviceId}`,
@@ -34,7 +34,7 @@ export function setRightForScan(deviceId, channelDeviceId, scanId) {
   })
 }
 
-export function startScan(deviceId, channelDeviceId, scanId) {
+export function startScan([deviceId, channelDeviceId, scanId]) {
   return request({
     method: 'get',
     url: `/api/front-end/scan/start/${deviceId}/${channelDeviceId}`,
@@ -44,7 +44,7 @@ export function startScan(deviceId, channelDeviceId, scanId) {
   })
 }
 
-export function stopScan(deviceId, channelDeviceId, scanId) {
+export function stopScan([deviceId, channelDeviceId, scanId]) {
   return request({
     method: 'get',
     url: `/api/front-end/scan/stop/${deviceId}/${channelDeviceId}`,
@@ -55,14 +55,14 @@ export function stopScan(deviceId, channelDeviceId, scanId) {
   })
 }
 
-export function queryPreset(deviceId, channelDeviceId) {
+export function queryPreset([deviceId, channelDeviceId]) {
   return request({
     method: 'get',
     url: `/api/front-end/preset/query/${deviceId}/${channelDeviceId}`
   })
 }
 
-export function addPointForCruise(deviceId, channelDeviceId, cruiseId, presetId) {
+export function addPointForCruise([deviceId, channelDeviceId, cruiseId, presetId]) {
   return request({
     method: 'get',
     url: `/api/front-end/cruise/point/add/${deviceId}/${channelDeviceId}`,
@@ -73,7 +73,7 @@ export function addPointForCruise(deviceId, channelDeviceId, cruiseId, presetId)
   })
 }
 
-export function deletePointForCruise(deviceId, channelDeviceId, cruiseId, presetId) {
+export function deletePointForCruise([deviceId, channelDeviceId, cruiseId, presetId]) {
   return request({
     method: 'get',
     url: `/api/front-end/cruise/point/delete/${deviceId}/${channelDeviceId}`,
@@ -84,7 +84,7 @@ export function deletePointForCruise(deviceId, channelDeviceId, cruiseId, preset
   })
 }
 
-export function setCruiseSpeed(deviceId, channelDeviceId, cruiseId, cruiseSpeed) {
+export function setCruiseSpeed([deviceId, channelDeviceId, cruiseId, cruiseSpeed]) {
   return request({
     method: 'get',
     url: `/api/front-end/cruise/speed/${deviceId}/${channelDeviceId}`,
@@ -95,7 +95,7 @@ export function setCruiseSpeed(deviceId, channelDeviceId, cruiseId, cruiseSpeed)
   })
 }
 
-export function setCruiseTime(deviceId, channelDeviceId, cruiseId, cruiseTime) {
+export function setCruiseTime([deviceId, channelDeviceId, cruiseId, cruiseTime]) {
   return request({
     method: 'get',
     url: `/api/front-end/cruise/time/${deviceId}/${channelDeviceId}`,
@@ -106,7 +106,7 @@ export function setCruiseTime(deviceId, channelDeviceId, cruiseId, cruiseTime) {
   })
 }
 
-export function startCruise(deviceId, channelDeviceId, cruiseId) {
+export function startCruise([deviceId, channelDeviceId, cruiseId]) {
   return request({
     method: 'get',
     url: `/api/front-end/cruise/start/${deviceId}/${channelDeviceId}`,
@@ -116,7 +116,7 @@ export function startCruise(deviceId, channelDeviceId, cruiseId) {
   })
 }
 
-export function stopCruise(deviceId, channelDeviceId, cruiseId) {
+export function stopCruise([deviceId, channelDeviceId, cruiseId]) {
   return request({
     method: 'get',
     url: `/api/front-end/cruise/stop/${deviceId}/${channelDeviceId}`,
@@ -126,7 +126,7 @@ export function stopCruise(deviceId, channelDeviceId, cruiseId) {
   })
 }
 
-export function addPreset(deviceId, channelDeviceId, presetId) {
+export function addPreset([deviceId, channelDeviceId, presetId]) {
   return request({
     method: 'get',
     url: `/api/front-end/preset/add/${deviceId}/${channelDeviceId}`,
@@ -136,7 +136,7 @@ export function addPreset(deviceId, channelDeviceId, presetId) {
   })
 }
 
-export function callPreset(deviceId, channelDeviceId, presetId) {
+export function callPreset([deviceId, channelDeviceId, presetId]) {
   return request({
     method: 'get',
     url: `/api/front-end/preset/call/${deviceId}/${channelDeviceId}`,
@@ -146,7 +146,7 @@ export function callPreset(deviceId, channelDeviceId, presetId) {
   })
 }
 
-export function deletePreset(deviceId, channelDeviceId, presetId) {
+export function deletePreset([deviceId, channelDeviceId, presetId]) {
   return request({
     method: 'get',
     url: `/api/front-end/preset/delete/${deviceId}/${channelDeviceId}`,
@@ -159,7 +159,7 @@ export function deletePreset(deviceId, channelDeviceId, presetId) {
 /**
  * command: on 开启， off 关闭
  */
-export function auxiliary(deviceId, channelDeviceId, command, switchId) {
+export function auxiliary([deviceId, channelDeviceId, command, switchId]) {
   return request({
     method: 'get',
     url: `/api/front-end/auxiliary/${deviceId}/${channelDeviceId}`,
@@ -172,7 +172,7 @@ export function auxiliary(deviceId, channelDeviceId, command, switchId) {
 /**
  * command: on 开启， off 关闭
  */
-export function wiper(deviceId, channelDeviceId, command) {
+export function wiper([deviceId, channelDeviceId, command]) {
   return request({
     method: 'get',
     url: `/api/front-end/wiper/${deviceId}/${channelDeviceId}`,
@@ -182,7 +182,7 @@ export function wiper(deviceId, channelDeviceId, command) {
   })
 }
 
-export function ptz(deviceId, channelId, command, horizonSpeed, verticalSpeed, zoomSpeed) {
+export function ptz([deviceId, channelId, command, horizonSpeed, verticalSpeed, zoomSpeed]) {
   return request({
     method: 'get',
     url: `/api/front-end/ptz/${deviceId}/${channelId}`,
@@ -195,7 +195,7 @@ export function ptz(deviceId, channelId, command, horizonSpeed, verticalSpeed, z
   })
 }
 
-export function iris(deviceId, channelId, command, speed) {
+export function iris([deviceId, channelId, command, speed]) {
   return request({
     method: 'get',
     url: `/api/front-end/fi/iris/${deviceId}/${channelId}`,
@@ -206,7 +206,7 @@ export function iris(deviceId, channelId, command, speed) {
   })
 }
 
-export function focus(deviceId, channelDeviceId, command, speed) {
+export function focus([deviceId, channelDeviceId, command, speed]) {
   return request({
     method: 'get',
     url: `/api/front-end/fi/focus/${deviceId}/${channelDeviceId}`,

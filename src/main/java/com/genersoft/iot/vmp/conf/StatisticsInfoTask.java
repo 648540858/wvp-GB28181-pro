@@ -84,7 +84,7 @@ public class StatisticsInfoTask implements CommandLineRunner {
 
         Request request = new Request.Builder()
                 .post(requestBodyJson)
-                .url("https://api.wvp-pro.cn:11236/api/statistics/ping")
+                .url("http://api.wvp-pro.cn:136/api/statistics/ping")
 //                .url("http://127.0.0.1:11236/api/statistics/ping")
                 .addHeader("Content-Type", "application/json")
                 .build();

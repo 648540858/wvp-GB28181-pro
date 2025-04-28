@@ -2,7 +2,7 @@
 
 # 云端录像
 
-![云端录像](_media/img_23.png)
+![云端录像](_media/img_26.png)
 云端录像是对录制在zlm服务下的录像文件的管理，录像的文件路径默认在ZLM/www/record下。
 
 - 国标设备是否录像: 可以再WVP的配置中user-settings.record-sip设置为true那么每次点播以及录像回放都会录像;

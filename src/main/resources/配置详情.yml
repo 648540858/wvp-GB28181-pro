@@ -117,8 +117,8 @@ sip:
     # keepalliveToOnline: false
     # 是否存储alarm信息
     alarm: false
-    # 命令发送等待回复的超时时间, 单位:秒
-    timeout: 15
+    # 命令发送等待回复的超时时间, 单位:毫秒
+    timeout: 1000
 
 # 做为JT1078服务器的配置
 jt1078:

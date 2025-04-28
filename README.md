@@ -30,19 +30,31 @@ ZLM使用文档 [https://github.com/ZLMediaKit/ZLMediaKit](https://github.com/ZL
 # 付费社群
 [![社群](doc/_media/shequ.png "shequ")](https://t.zsxq.com/0d8VAD3Dm)
 > 收费是为了提供更好的服务，也是对作者更大的激励。加入星球的用户三天后可以私信我留下微信号，我会拉大家入群。加入三天内不满意可以直接自行推出,星球会直接退款给大家。
+
 > 星球还提供了包括闭源的全功能试用包, 会随时更新。
 
 # gitee仓库
 https://gitee.com/pan648540858/wvp-GB28181-pro.git
 
 # 截图
-![index](doc/_media/1.png "1.png")
-![2](doc/_media/2.png "2.png")
-![3](doc/_media/3.png "3.png")
-![4](doc/_media/4.png "4.png")
-![5](doc/_media/5.png "5.png")
-![6](doc/_media/6.png "6.png")
-![7](doc/_media/7.png "7.png")
+<table>
+    <tr>
+        <td ><center><img src="doc/_media/1.png" >登录页面 </center></td>
+        <td ><center><img src="doc/_media/2.png" >首页</center></td>
+    </tr>
+    <tr>
+        <td ><center><img src="doc/_media/3.png" >分屏播放 </center></td>
+        <td ><center><img src="doc/_media/4.png" >国标设备列表</center></td>
+    </tr>
+    <tr>
+        <td ><center><img src="doc/_media/5.png" >行政区划管理 </center></td>
+        <td ><center><img src="doc/_media/8.png" >业务分组管理</center></td>
+    </tr>
+    <tr>
+        <td ><center><img src="doc/_media/6.png" >录制计划</center></td>
+        <td ><center><img src="doc/_media/7.png" >平台信息</center></td>
+    </tr>
+</table>
 
 # 功能特性
 - [X] 集成web界面
@@ -119,9 +131,9 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
 
 
 # 闭源内容
-- [X] ONVIF设备的接入，支持点播，云台控制，国标级联点播，自动点播。试用安装包以及使用教程: [知识星球](https://t.zsxq.com/10WAnH2MP)，没有使用时间限制，需要源码可以星球私信我或者邮箱联系。
+- [X] ONVIF设备的接入，支持点播，云台控制，国标级联点播，自动点播。
 - [X] 支持部标1078+808协议，支持点播，云台控制，录像回放，位置上报，自动点播。
-- [X] 支持国标28181-2022协议，支持巡航轨迹查询，PTZ精准控制，存储卡格式化，设备软件升级，OSD配置，h265+aac，支持辅码流，录像倒放等。具体的功能列表可在[知识星球](https://t.zsxq.com/18GXkpkqs)查看，试用安装包: [知识星球](https://t.zsxq.com/UJ6V3)，没有使用时间限制，需要源码可以星球私信我或者邮箱联系。
+- [X] 支持国标28181-2022协议，支持巡航轨迹查询，PTZ精准控制，存储卡格式化，设备软件升级，OSD配置，h265+aac，支持辅码流，录像倒放等。
 
 
 # 授权协议
@@ -132,7 +144,7 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
 [知识星球](https://t.zsxq.com/0d8VAD3Dm)专栏列表：，
 - [使用入门系列一：WVP-PRO能做什么](https://t.zsxq.com/0dLguVoSp)
 
-有偿技术支持，请发送邮件到648540858@qq.com
+有偿技术支持，一对一开发辅导，闭源内容合作请发送邮件到648540858@qq.com咨询
 
 # 致谢
 感谢作者[夏楚](https://github.com/xia-chu) 提供这么棒的开源流媒体服务框架,并在开发过程中给予支持与帮助。     

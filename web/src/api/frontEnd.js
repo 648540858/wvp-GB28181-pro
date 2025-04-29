@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 // 前端控制
 
-export function setSpeedForScan(deviceId, channelDeviceId, scanId, speed) {
+export function setSpeedForScan([deviceId, channelDeviceId, scanId, speed]) {
   return request({
     method: 'get',
     url: `/api/front-end/scan/set/speed/${deviceId}/${channelDeviceId}`,

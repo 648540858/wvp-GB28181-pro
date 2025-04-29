@@ -99,7 +99,7 @@ export default {
     },
     gotoPreset: function(preset) {
       console.log(preset)
-      this.$store.dispatch('frontEnd/callPreset', [this.deviceId, this.channelDeviceId, this.ptzPresetId])
+      this.$store.dispatch('frontEnd/callPreset', [this.deviceId, this.channelDeviceId, preset.presetId])
         .then(data => {
           this.$message({
             showClose: true,
@@ -128,7 +128,7 @@ export default {
           spinner: 'el-icon-loading',
           background: 'rgba(0, 0, 0, 0.7)'
         })
-        this.$store.dispatch('frontEnd/deletePreset', [this.deviceId, this.channelDeviceId, this.ptzPresetId])
+        this.$store.dispatch('frontEnd/deletePreset', [this.deviceId, this.channelDeviceId, preset.presetId])
           .then(data => {
             setTimeout(() => {
               this.getPresetList()

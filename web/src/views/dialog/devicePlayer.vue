@@ -1,8 +1,15 @@
 <template>
   <div id="devicePlayer" v-loading="isLoging">
 
-    <el-dialog v-el-drag-dialog v-if="showVideoDialog" title="视频播放" top="0" :close-on-click-modal="false"
-               :visible.sync="showVideoDialog" @close="close()">
+    <el-dialog
+      v-if="showVideoDialog"
+      v-el-drag-dialog
+      title="视频播放"
+      top="0"
+      :close-on-click-modal="false"
+      :visible.sync="showVideoDialog"
+      @close="close()"
+    >
       <div style="width: 100%; height: 100%">
         <el-tabs
           v-if="Object.keys(this.player).length > 1"
@@ -285,7 +292,7 @@
                     <div title="光圈+" @mousedown="irisCamera('in')" @mouseup="irisCamera('stop')">
                       <i class="iconfont icon-guangquan control-zoom-btn" style="font-size: 1.5rem;" />
                     </div>
-                    <div title="光圈-" @mousedown="pirisCamera('out')" @mouseup="irisCamera('stop')">
+                    <div title="光圈-" @mousedown="irisCamera('out')" @mouseup="irisCamera('stop')">
                       <i class="iconfont icon-guangquan- control-zoom-btn" style="font-size: 1.5rem;" />
                     </div>
                   </div>
@@ -364,7 +371,6 @@ import ptzWiper from '../common/ptzWiper.vue'
 import ptzSwitch from '../common/ptzSwitch.vue'
 import mediaInfo from '../common/mediaInfo.vue'
 import H265web from '../common/h265web.vue'
-
 
 export default {
   name: 'DevicePlayer',

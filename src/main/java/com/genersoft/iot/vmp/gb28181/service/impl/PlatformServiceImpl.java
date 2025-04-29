@@ -669,7 +669,6 @@ public class PlatformServiceImpl implements IPlatformService {
                     mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
                     mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                     sessionManager.removeByStream(ssrcInfo.getApp(), ssrcInfo.getStream());
-                    mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                 }
             }
         }, userSetting.getPlayTimeout());

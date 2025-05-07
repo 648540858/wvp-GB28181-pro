@@ -113,6 +113,9 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public int updateChannels(Device device, List<DeviceChannel> channels) {
+        if (CollectionUtils.isEmpty(channels)) {
+            return 0;
+        }
         List<DeviceChannel> addChannels = new ArrayList<>();
         List<DeviceChannel> updateChannels = new ArrayList<>();
         HashMap<String, DeviceChannel> channelsInStore = new HashMap<>();

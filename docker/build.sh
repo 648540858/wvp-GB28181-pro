@@ -9,6 +9,7 @@ cd wvp-GB28181-pro/web_src && \
     npm run build 
     
 cd ../../
+mkdir -p ./nginx/dist
 cp -r wvp-GB28181-pro/src/main/resources/static/* ./nginx/dist
 
 echo "构建ZLM容器"

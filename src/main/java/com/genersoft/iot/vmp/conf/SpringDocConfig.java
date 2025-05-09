@@ -39,7 +39,7 @@ public class SpringDocConfig {
                 .info(new Info().title("WVP-PRO 接口文档")
                         .contact(contact)
                         .description("开箱即用的28181协议视频平台。 <br/>" +
-                                "1. 打开http://127.0.0.1:18080/doc.html#/1.%20全部/用户管理/login_1，" +
+                                "1. 打开http://127.0.0.1:18080/doc.html#/1.%20全部/用户管理/login_1" +
                                 " 登录成功后返回AccessToken。 <br/>" +
                                 "2. 填写到AccessToken到参数值 http://127.0.0.1:18080/doc.html#/Authorize/1.%20全部  <br/>" +
                                 "后续接口就可以直接测试了")

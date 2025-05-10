@@ -327,8 +327,9 @@ public class ServerController {
 
         Map<String, String> docmap = new LinkedHashMap<>();
         result.put("文档地址", docmap);
-        docmap.put("部署文档", String.format("%s://%s:%s/doc.html", request.getScheme(), request.getServerName(), request.getServerPort()));
-        docmap.put("接口文档", "https://doc.wvp-pro.cn");
+        docmap.put("部署文档", "https://doc.wvp-pro.cn");
+        docmap.put("接口文档", String.format("%s://%s:%s/doc.html", request.getScheme(), request.getServerName(), request.getServerPort()));
+
 
         return result;
     }

@@ -268,6 +268,11 @@ DROP PROCEDURE wvp_20250319;
 DELIMITER ;
 
 /*
+* 20250319
+*/
+update wvp_record_plan_item set start = start * 30, stop = (stop + 1) * 30
+
+/*
 * 20250402
 */
 DELIMITER //  -- 重定义分隔符避免分号冲突
@@ -288,6 +293,11 @@ END; //
 call wvp_20250402();
 DROP PROCEDURE wvp_20250402;
 DELIMITER ;
+
+/**
+* 20250414
+*/
+alter table wvp_cloud_record modify time_len double precision;
 
 
 

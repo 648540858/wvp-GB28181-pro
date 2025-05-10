@@ -1,81 +1,64 @@
-FROM ubuntu:20.04   as   build
+FROM ubuntu:20.04 AS build
+ARG Platfrom=amd64
+ARG JDK_NAME
 
-ARG gitUrl="https://gitee.com/pan648540858"
-ARG zlmGitUrl="https://gitee.com/xia-chu/ZLMediaKit"
+EXPOSE 18978/tcp
+EXPOSE 8116/tcp
+EXPOSE 8116/udp
+EXPOSE 8080/tcp
 
-RUN export DEBIAN_FRONTEND=noninteractive &&\
-        apt-get update && \
-        apt-get install -y --no-install-recommends openjdk-11-jre git maven nodejs npm build-essential \
-        cmake ca-certificates openssl ffmpeg &&\
-        mkdir -p /opt/wvp/config /opt/wvp/heapdump /opt/wvp/config /opt/assist/config /opt/assist/heapdump /opt/media/www/record
+RUN apt-get update && \
+         DEBIAN_FRONTEND="noninteractive" \
+         apt-get install -y --no-install-recommends \
+         wget \
+         cmake \
+         maven \
+         git \
+         ca-certificates \
+         tzdata \
+         curl \
+         libpcre3 \
+         libpcre3-dev \
+         zlib1g-dev \
+         openssl \
+         libssl-dev \
+         gdb && \
+         apt-get autoremove -y && \
+         apt-get clean -y && \
+         rm -rf /var/lib/apt/lists/*
 
-RUN cd /home && \
-        git clone "${gitUrl}/maven.git" && \
-        cp maven/settings.xml /usr/share/maven/conf/
+# install jdk1.8
+RUN mkdir -p /opt/download
+WORKDIR /opt/download
+RUN if [ "$Platfrom" = "arm64" ]; \
+    then \
+        wget https://polaris-tian-generic.pkg.coding.net/qt/autopliot/jdk-8u411-linux-aarch64.tar.gz?version=latest --no-check-certificate -O jdk-8.tar.gz && \
+        tar -zxvf /opt/download/jdk-8.tar.gz -C /usr/local/ --transform 's/jdk1.8.0_411/java/' && \
+        rm /opt/download/jdk-8.tar.gz; \
+    else \
+        wget https://polaris-tian-generic.pkg.coding.net/qt/autopliot/jdk-8u202-linux-x64.tar.gz?version=latest --no-check-certificate -O jdk-8.tar.gz && \
+        tar -zxvf /opt/download/jdk-8.tar.gz -C /usr/local/ --transform 's/jdk1.8.0_202/java/' && \
+        rm /opt/download/jdk-8.tar.gz; \
+    fi
 
-RUN cd /home && \
-        git clone "${gitUrl}/wvp-GB28181-pro.git"
-RUN cd /home/wvp-GB28181-pro/web_src && \
-        npm install && \
-        npm run build
-RUN cd /home/wvp-GB28181-pro && \
-        mvn clean package -Dmaven.test.skip=true && \
-        cp /home/wvp-GB28181-pro/target/*.jar /opt/wvp/ && \
-        cp /home/wvp-GB28181-pro/src/main/resources/application-docker.yml /opt/wvp/config/application.yml
+ENV JAVA_HOME /usr/local/java/
+ENV JRE_HOME ${JAVA_HOME}/jre
+ENV CLASSPATH .:${JAVA_HOME}/lib:${JRE_HOME}/lib 
+ENV PATH ${JAVA_HOME}/bin:$PATH 
 
-RUN cd /home && \
-		git clone "${gitUrl}/wvp-pro-assist.git"
-RUN cd /home/wvp-pro-assist && \
-	git reset --hard 58f1a79136a55a7cd1593c95b56ddadcc2225b61 && \
-        mvn clean package -Dmaven.test.skip=true && \
-        cp /home/wvp-pro-assist/target/*.jar /opt/assist/ && \
-        cp /home/wvp-pro-assist/src/main/resources/application-dev.yml /opt/assist/config/application.yml
+RUN java -version && javac -version
 
-RUN cd /home && \
-        git clone --depth=1 "${zlmGitUrl}"
-RUN cd /home/ZLMediaKit && \
-        git submodule update --init --recursive && \
-        mkdir -p build release/linux/Release/ &&\
-        cd build && \
-        cmake -DCMAKE_BUILD_TYPE=Release .. && \
-        make -j4 && \
-        rm -rf ../release/linux/Release/config.ini && \
-        cp -r ../release/linux/Release/* /opt/media
-
-RUN cd /opt/wvp && \
-        echo '#!/bin/bash' > run.sh && \
-        echo 'echo ${WVP_IP}' >> run.sh && \
-        echo 'echo ${WVP_CONFIG}' >> run.sh && \
-        echo 'cd /opt/assist' >> run.sh && \
-        echo 'nohup java ${ASSIST_JVM_CONFIG} -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/opt/assist/heapdump/ -jar *.jar --spring.config.location=/opt/assist/config/application.yml --userSettings.record=/opt/media/www/record/  --media.record-assist-port=18081 ${ASSIST_CONFIG} &' >> run.sh && \
-        echo 'nohup /opt/media/MediaServer -d -m 3 &' >> run.sh && \
-        echo 'cd /opt/wvp' >> run.sh && \
-        echo 'java ${WVP_JVM_CONFIG} -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/opt/wvp/heapdump/ -jar *.jar --spring.config.location=/opt/wvp/config/application.yml --media.record-assist-port=18081 ${WVP_CONFIG}' >> run.sh && \
-        chmod +x run.sh
-
-FROM ubuntu:20.04
-
-EXPOSE 18080/tcp
-EXPOSE 5060/tcp
-EXPOSE 5060/udp
-EXPOSE 6379/tcp
-EXPOSE 18081/tcp
-EXPOSE 80/tcp
-EXPOSE 1935/tcp
-EXPOSE 554/tcp
-EXPOSE 554/udp
-EXPOSE 30000-30500/tcp
-EXPOSE 30000-30500/udp
-
-ENV LC_ALL zh_CN.UTF-8
-
-RUN export DEBIAN_FRONTEND=noninteractive &&\
-        apt-get update && \
-        apt-get install -y --no-install-recommends openjdk-11-jre ca-certificates ffmpeg language-pack-zh-hans && \
-        apt-get autoremove -y && \
-        apt-get clean -y && \
-        rm -rf /var/lib/apt/lists/*dic
-
-COPY --from=build /opt /opt
+RUN mkdir -p /opt/wvp
 WORKDIR /opt/wvp
-CMD ["sh", "run.sh"]
+COPY ./wvp /opt/wvp
+
+WORKDIR /home
+RUN cd /home && \
+    git clone https://gitee.com/pan648540858/wvp-GB28181-pro.git
+
+RUN cd /home/wvp-GB28181-pro && \
+    mvn clean package -Dmaven.test.skip=true && \
+    cp /home/wvp-GB28181-pro/target/*.jar /opt/wvp/wvp.jar
+
+WORKDIR /opt/wvp
+ENTRYPOINT ["java", "-Xms512m", "-Xmx1024m", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/opt/ylcx/", "-jar", "wvp.jar", "--spring.config.location=/opt/ylcx/wvp/application.yml"]

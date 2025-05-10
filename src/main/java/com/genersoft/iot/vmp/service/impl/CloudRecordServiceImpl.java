@@ -2,16 +2,22 @@ package com.genersoft.iot.vmp.service.impl;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.gb28181.service.ICloudRecordService;
+import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.media.event.hook.Hook;
+import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
+import com.genersoft.iot.vmp.media.event.hook.HookType;
 import com.genersoft.iot.vmp.media.event.media.MediaRecordMp4Event;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
+import com.genersoft.iot.vmp.service.ICloudRecordService;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.CloudRecordServiceMapper;
@@ -28,12 +34,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+import java.io.File;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -57,9 +61,12 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     @Autowired
     private IRedisRpcPlayService redisRpcPlayService;
 
+    @Autowired
+    private HookSubscribe subscribe;
+
     @Override
     public PageInfo<CloudRecordItem> getList(int page, int count, String query, String app, String stream, String startTime,
-                                             String endTime, List<MediaServer> mediaServerItems, String callId) {
+                                             String endTime, List<MediaServer> mediaServerItems, String callId, Boolean ascOrder) {
         // 开始时间和结束时间在数据库中都是以秒为单位的
         Long startTimeStamp = null;
         Long endTimeStamp = null;
@@ -84,7 +91,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
                     .replaceAll("_", "/_");
         }
         List<CloudRecordItem> all = cloudRecordServiceMapper.getList(query, app, stream, startTimeStamp, endTimeStamp,
-                callId, mediaServerItems, null);
+                callId, mediaServerItems, null, ascOrder);
         return new PageInfo<>(all);
     }
 
@@ -100,7 +107,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         long startTimeStamp = startDate.atStartOfDay().toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
         long endTimeStamp = endDate.atStartOfDay().toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
         List<CloudRecordItem> cloudRecordItemList = cloudRecordServiceMapper.getList(null, app, stream, startTimeStamp,
-                endTimeStamp, null, mediaServerItems, null);
+                endTimeStamp, null, mediaServerItems, null, null);
         if (cloudRecordItemList.isEmpty()) {
             return new ArrayList<>();
         }
@@ -213,7 +220,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         }
 
         List<CloudRecordItem> all = cloudRecordServiceMapper.getList(null, app, stream, startTimeStamp, endTimeStamp,
-                callId, mediaServerItems, null);
+                callId, mediaServerItems, null, null);
         if (all.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到待收藏的视频");
         }
@@ -273,6 +280,96 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
 
         }
         return cloudRecordServiceMapper.getList(query, app, stream, startTimeStamp, endTimeStamp,
-                callId, mediaServerItems, ids);
+                callId, mediaServerItems, ids, null);
+    }
+
+    @Override
+    public void loadRecord(String app, String stream, String date, ErrorCallback<StreamInfo> callback) {
+        long startTimestamp = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(date + " 00:00:00");
+        long endTimestamp = startTimestamp + 24 * 60 * 60 * 1000;
+
+        List<CloudRecordItem> recordItemList = cloudRecordServiceMapper.getList(null, app, stream, startTimestamp, endTimestamp, null, null, null, false);
+        if (recordItemList.isEmpty()) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "此时间无录像");
+        }
+        String mediaServerId = recordItemList.get(0).getMediaServerId();
+        MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+        if (mediaServer == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体节点不存在： " + mediaServerId);
+        }
+        String buildApp = "mp4_record";
+        String buildStream = app + "_" + stream + "_" + date;
+        MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, buildApp, buildStream);
+         if (mediaInfo != null) {
+             if (callback != null) {
+                 StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServer, buildApp, buildStream, mediaInfo, null);
+                 callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+             }
+             return;
+         }
+
+        Hook hook = Hook.getInstance(HookType.on_media_arrival, buildApp, buildStream, mediaServerId);
+        subscribe.addSubscribe(hook, (hookData) -> {
+            StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServer, buildApp, buildStream, hookData.getMediaInfo(), null);
+            if (callback != null) {
+                callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+            }
+        });
+        String dateDir = recordItemList.get(0).getFilePath().substring(0, recordItemList.get(0).getFilePath().lastIndexOf("/"));
+        mediaServerService.loadMP4File(mediaServer, buildApp, buildStream, dateDir);
+    }
+
+    @Override
+    public void seekRecord(String mediaServerId,String app, String stream, Double seek, String schema) {
+        MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+        if (mediaServer == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体节点不存在： " + mediaServerId);
+        }
+        mediaServerService.seekRecordStamp(mediaServer, app, stream, seek, schema);
+    }
+
+    @Override
+    public void setRecordSpeed(String mediaServerId, String app, String stream, Integer speed, String schema) {
+        MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+        if (mediaServer == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "媒体节点不存在： " + mediaServerId);
+        }
+        mediaServerService.setRecordSpeed(mediaServer, app, stream, speed, schema);
+    }
+
+    @Override
+    public void deleteFileByIds(Set<Integer> ids) {
+        log.info("[删除录像文件] ids: {}", ids.toArray());
+        List<CloudRecordItem> cloudRecordItemList = cloudRecordServiceMapper.queryRecordByIds(ids);
+        if (cloudRecordItemList.isEmpty()) {
+            return;
+        }
+        List<CloudRecordItem> cloudRecordItemIdListForDelete = new ArrayList<>();
+        StringBuilder stringBuilder = new StringBuilder();
+        for (CloudRecordItem cloudRecordItem : cloudRecordItemList) {
+            String date = new File(cloudRecordItem.getFilePath()).getParentFile().getName();
+            MediaServer mediaServer = mediaServerService.getOne(cloudRecordItem.getMediaServerId());
+            try {
+                boolean deleteResult = mediaServerService.deleteRecordDirectory(mediaServer, cloudRecordItem.getApp(),
+                        cloudRecordItem.getStream(), date, cloudRecordItem.getFileName());
+                if (deleteResult) {
+                    log.warn("[录像文件] 删除磁盘文件成功： {}", cloudRecordItem.getFilePath());
+                    cloudRecordItemIdListForDelete.add(cloudRecordItem);
+                }
+            }catch (ControllerException e) {
+                if (stringBuilder.length() > 0) {
+                    stringBuilder.append(", ");
+                }
+                stringBuilder.append(cloudRecordItem.getFileName());
+            }
+
+        }
+        if (!cloudRecordItemIdListForDelete.isEmpty()) {
+            cloudRecordServiceMapper.deleteList(cloudRecordItemIdListForDelete);
+        }
+        if (stringBuilder.length() > 0) {
+            stringBuilder.append(" 删除失败");
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), stringBuilder.toString());
+        }
     }
 }

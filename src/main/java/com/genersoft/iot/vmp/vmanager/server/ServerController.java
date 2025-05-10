@@ -28,6 +28,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,13 +42,14 @@ import oshi.hardware.HardwareAbstractionLayer;
 import oshi.hardware.NetworkIF;
 import oshi.software.os.OperatingSystem;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.*;
 
 @SuppressWarnings("rawtypes")
 @Tag(name = "服务控制")
-
+@Slf4j
 @RestController
 @RequestMapping("/api/server")
 public class ServerController {
@@ -79,6 +81,7 @@ public class ServerController {
 
     @Value("${server.port}")
     private int serverPort;
+
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -176,32 +179,13 @@ public class ServerController {
     }
 
 
-    @Operation(summary = "重启服务", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    @GetMapping(value = "/restart")
+    @Operation(summary = "关闭服务", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @GetMapping(value = "/shutdown")
     @ResponseBody
-    public void restart() {
-//        taskExecutor.execute(()-> {
-//            try {
-//                Thread.sleep(3000);
-//                SipProvider up = (SipProvider) SpringBeanFactory.getBean("udpSipProvider");
-//                SipStackImpl stack = (SipStackImpl) up.getSipStack();
-//                stack.stop();
-//                Iterator listener = stack.getListeningPoints();
-//                while (listener.hasNext()) {
-//                    stack.deleteListeningPoint((ListeningPoint) listener.next());
-//                }
-//                Iterator providers = stack.getSipProviders();
-//                while (providers.hasNext()) {
-//                    stack.deleteSipProvider((SipProvider) providers.next());
-//                }
-//                VManageBootstrap.restart();
-//            } catch (InterruptedException | ObjectInUseException e) {
-//                throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
-//            }
-//        });
+    public void shutdown() {
+        log.info("正在关闭服务。。。");
+        System.exit(1);
     }
-
-    ;
 
     @Operation(summary = "获取系统配置信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @GetMapping(value = "/system/configInfo")
@@ -293,7 +277,7 @@ public class ServerController {
     @GetMapping(value = "/info")
     @ResponseBody
     @Operation(summary = "获取系统信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    public Map<String, Map<String, String>> getInfo() {
+    public Map<String, Map<String, String>> getInfo(HttpServletRequest request) {
         Map<String, Map<String, String>> result = new LinkedHashMap<>();
         Map<String, String> hardwareMap = new LinkedHashMap<>();
         result.put("硬件信息", hardwareMap);
@@ -340,6 +324,12 @@ public class ServerController {
         platformMap.put("GIT日期", version.getGIT_DATE());
         platformMap.put("GIT版本", version.getGIT_Revision_SHORT());
         platformMap.put("DOCKER环境", new File("/.dockerenv").exists()?"是":"否");
+
+        Map<String, String> docmap = new LinkedHashMap<>();
+        result.put("文档地址", docmap);
+        docmap.put("部署文档", "https://doc.wvp-pro.cn");
+        docmap.put("接口文档", String.format("%s://%s:%s/doc.html", request.getScheme(), request.getServerName(), request.getServerPort()));
+
 
         return result;
     }

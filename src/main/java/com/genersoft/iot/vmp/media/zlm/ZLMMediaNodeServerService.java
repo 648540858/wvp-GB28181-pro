@@ -169,7 +169,7 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
             return true;
         }else {
             log.info("[zlm-deleteRecordDirectory] 删除磁盘文件错误, server: {} {}:{}->{}/{}, 结果： {}", mediaServer.getId(), app, stream, date, fileName, jsonObject);
-            return false;
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "删除磁盘文件失败");
         }
     }
 
@@ -548,5 +548,38 @@ public class ZLMMediaNodeServerService implements IMediaNodeServerService {
             result.add(dataJSONObject.getString("stream_id"));
         }
         return result;
+    }
+
+    @Override
+    public void loadMP4File(MediaServer mediaServer, String app, String stream, String datePath) {
+        JSONObject jsonObject =  zlmresTfulUtils.loadMP4File(mediaServer, app, stream, datePath);
+        if (jsonObject == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "请求失败");
+        }
+        if (jsonObject.getInteger("code") != 0) {
+            throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
+        }
+    }
+
+    @Override
+    public void seekRecordStamp(MediaServer mediaServer, String app, String stream, Double stamp, String schema) {
+        JSONObject jsonObject =  zlmresTfulUtils.seekRecordStamp(mediaServer, app, stream, stamp, schema);
+        if (jsonObject == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "请求失败");
+        }
+        if (jsonObject.getInteger("code") != 0) {
+            throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
+        }
+    }
+
+    @Override
+    public void setRecordSpeed(MediaServer mediaServer, String app, String stream, Integer speed, String schema) {
+        JSONObject jsonObject =  zlmresTfulUtils.setRecordSpeed(mediaServer, app, stream, speed, schema);
+        if (jsonObject == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "请求失败");
+        }
+        if (jsonObject.getInteger("code") != 0) {
+            throw new ControllerException(jsonObject.getInteger("code"), jsonObject.getString("msg"));
+        }
     }
 }

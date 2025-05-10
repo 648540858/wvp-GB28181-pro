@@ -44,7 +44,7 @@ public class MediaInfo {
     private Integer audioChannels;
     @Schema(description = "音频采样率")
     private Integer audioSampleRate;
-    @Schema(description = "音频采样率")
+    @Schema(description = "时长")
     private Long duration;
     @Schema(description = "在线")
     private Boolean online;

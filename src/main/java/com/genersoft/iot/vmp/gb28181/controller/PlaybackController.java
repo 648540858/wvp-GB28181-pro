@@ -215,7 +215,7 @@ public class PlaybackController {
 
 	@Operation(summary = "回放倍速播放", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "streamId", description = "回放流ID", required = true)
-	@Parameter(name = "speed", description = "倍速0.25 0.5 1、2、4", required = true)
+	@Parameter(name = "speed", description = "倍速0.25 0.5 1、2、4、8", required = true)
 	@GetMapping("/speed/{streamId}/{speed}")
 	public void playSpeed(@PathVariable String streamId, @PathVariable Double speed) {
 		log.info("playSpeed: "+streamId+", "+speed);
@@ -224,10 +224,6 @@ public class PlaybackController {
 		if (null == inviteInfo || inviteInfo.getStreamInfo() == null) {
 			log.warn("streamId不存在!");
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), "streamId不存在");
-		}
-		if(speed != 0.25 && speed != 0.5 && speed != 1 && speed != 2.0 && speed != 4.0) {
-			log.warn("不支持的speed： " + speed);
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "不支持的speed（0.25 0.5 1、2、4）");
 		}
 		Device device = deviceService.getDeviceByDeviceId(inviteInfo.getDeviceId());
 		DeviceChannel channel = channelService.getOneById(inviteInfo.getChannelId());

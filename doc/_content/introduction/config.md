@@ -44,15 +44,12 @@ wvp支持多种数据库，包括Mysql，Postgresql，金仓等，配置任选�
 
 ```yaml
 spring:
-  dynamic:
-    primary: master
-    datasource:
-      master:
-        type: com.zaxxer.hikari.HikariDataSource
-        driver-class-name: com.mysql.cj.jdbc.Driver
-        url: jdbc:mysql://127.0.0.1:3306/wvp?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true
-        username: root
-        password: root123
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/wvp?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true
+    username: root
+    password: root123
 ```
 
 #### 2.1.3 Postgresql数据库配置
@@ -61,14 +58,12 @@ spring:
 
 ```yaml
 spring:
-  dynamic:
-    primary: master
-    datasource:
-      type: com.zaxxer.hikari.HikariDataSource
-      driver-class-name: org.postgresql.Driver
-      url: jdbc:postgresql://127.0.0.1:3306/wvp?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true&allowPublicKeyRetrieval=true
-      username: root
-      password: 12345678
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://127.0.0.1:3306/wvp?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true&allowPublicKeyRetrieval=true
+    username: root
+    password: 12345678
 
 pagehelper:
   helper-dialect: postgresql
@@ -80,14 +75,13 @@ pagehelper:
 
 ```yaml
 spring:
-  dynamic:
-    primary: master
-    datasource:
-      type: com.zaxxer.hikari.HikariDataSource
-      driver-class-name: com.kingbase8.Driver
-      url: jdbc:kingbase8://127.0.0.1:3306/wvp?useUnicode=true&characterEncoding=utf8
-      username: root
-      password: 12345678
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.kingbase8.Driver
+    url: jdbc:kingbase8://127.0.0.1:3306/wvp?useUnicode=true&characterEncoding=utf8
+    username: root
+    password: 12345678
+    
 
 pagehelper:
   helper-dialect: postgresql

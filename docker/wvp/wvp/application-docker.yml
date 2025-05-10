@@ -1,0 +1,106 @@
+spring:
+  # 设置接口超时时间
+  mvc:
+    async:
+      request-timeout: 20000
+  thymeleaf:
+    cache: false
+  # [可选]上传文件大小限制
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 100MB
+  # REDIS数据库配置
+  redis:
+    # [必须修改] Redis服务器IP, REDIS安装在本机的,使用127.0.0.1
+    host: ${REDIS_HOST:127.0.0.1}
+    # [必须修改] 端口号
+    port: ${REDIS_PORT:6379}
+    # [可选] 数据库 DB
+    database: 1
+    # [可选] 访问密码,若你的redis服务器没有设置密码，就不需要用密码去连接
+    password: 
+    # [可选] 超时时间
+    timeout: 30000
+  # mysql数据源
+  datasource:
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://${DATABASE_HOST:127.0.0.1}:${DATABASE_PORT:3306}/wvp?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true&allowPublicKeyRetrieval=true
+      username: ${DATABASE_USER:root}
+      password: ${DATABASE_PASSWORD:root}
+
+#[可选] 监听的HTTP端口, 网页和接口调用都是这个端口
+server:
+  port: 18978
+  ssl:
+    # [可选] 是否开启HTTPS访问
+    enabled: false
+# 作为28181服务器的配置
+sip:
+  # [必须修改] 本机的IP
+  ip: ${SIP_HOST:127.0.0.1}
+  # [可选]
+  port: 8116
+  # [可选]
+  domain: 3402000000
+  # [可选]
+  id: 34020000002000000001
+  password:
+  alarm: true
+
+# 默认服务器配置
+media:
+  id: polaris
+  # [必须修改] ZLM 内网IP与端口
+  ip: ${ZLM_HOST:127.0.0.1}
+  http-port: ${ZLM_PORT:6080}
+  # [可选] 返回流地址时的ip，置空使用 media.ip
+  stream-ip: ${STREAM_HOST:127.0.0.1}
+  # [可选] wvp在国标信令中使用的ip，此ip为摄像机可以访问到的ip， 置空使用 media.ip
+  sdp-ip: ${SIP_HOST:127.0.0.1}
+  # [可选] Hook IP, 默认使用sip.ip
+  hook-ip: ${SIP_HOST:127.0.0.1}
+  # [可选] sslport
+  http-ssl-port: 4443
+  rtp-proxy-port: 10000
+  rtmp-port: 10935
+  rtmp-ssl-port: 41935
+  rtsp-port: 5540
+  rtsp-ssl-port: 45540
+  # [可选] 
+  secret: ${ZLM_SERCERT}
+  # 启用多端口模式, 多端口模式使用端口区分每路流，兼容性更好。 单端口使用流的ssrc区分， 点播超时建议使用多端口测试
+  rtp:
+    # [可选] 是否启用多端口模式, 开启后会在portRange范围内选择端口用于媒体流传输
+    enable: false
+    # [可选] 
+    port-range: 30000,30500 
+    # [可选] 
+    send-port-range: 50502,50506 
+
+  record-path: /opt/media/record
+  record-day: 7
+  record-assist-port: 0
+user-settings:
+    auto-apply-play: true
+    play-timeout: 30000
+    wait-track: false
+    record-push-live: false
+    record-sip: false
+    stream-on-demand: true
+    interface-authentication: false
+    broadcast-for-platform: TCP-PASSIVE
+    push-stream-after-ack: true
+    send-to-platforms-when-id-lost: true
+    interface-authentication-excludes:
+      - /api/**
+    push-authority: false
+    allowed-origins:
+      - http://localhost:8080
+      - http://127.0.0.1:8080
+      - http://0.0.0.0:8080
+      - ${NGINX_HOST}
+logging:
+  config: classpath:logback-spring.xml
+

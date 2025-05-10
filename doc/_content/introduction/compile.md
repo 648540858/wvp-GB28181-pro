@@ -87,9 +87,9 @@ git clone https://github.com/648540858/wvp-GB28181-pro.git
 ### 5.2 编译前端页面
 
 ```shell script
-cd wvp-GB28181-pro/web_src/
+cd wvp-GB28181-pro/web/
 npm --registry=https://registry.npmmirror.com install
-npm run build
+npm run build:prod
 ```
 
 编译如果报错, 一般都是网络问题, 导致的依赖包下载失败  

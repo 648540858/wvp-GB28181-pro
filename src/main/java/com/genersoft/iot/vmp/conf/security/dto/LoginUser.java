@@ -2,6 +2,8 @@ package com.genersoft.iot.vmp.conf.security.dto;
 
 import com.genersoft.iot.vmp.storager.dao.dto.Role;
 import com.genersoft.iot.vmp.storager.dao.dto.User;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.SpringSecurityCoreVersion;
@@ -19,8 +21,13 @@ public class LoginUser implements UserDetails, CredentialsContainer {
      */
     private User user;
 
+    @Getter
+    @Setter
     private String accessToken;
 
+    @Setter
+    @Getter
+    private String serverId;
 
     /**
      * 登录时间
@@ -104,11 +111,4 @@ public class LoginUser implements UserDetails, CredentialsContainer {
         return user.getPushKey();
     }
 
-    public String getAccessToken() {
-        return accessToken;
-    }
-
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
-    }
 }

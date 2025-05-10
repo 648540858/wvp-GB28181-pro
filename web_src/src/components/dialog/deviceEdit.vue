@@ -109,8 +109,8 @@ export default {
       console.log(this.form);
       this.$axios({
         method: 'post',
-        url:`/api/device/query/device/${this.isEdit?'update':'add'}/`,
-        params: this.form
+        url:`/api/device/query/device/${this.isEdit?'update':'add'}`,
+        data: this.form
       }).then((res) => {
         console.log(res.data)
         if (res.data.code === 0) {

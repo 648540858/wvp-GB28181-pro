@@ -28,6 +28,7 @@ import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaNotFoundEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
+import com.genersoft.iot.vmp.service.ICloudRecordService;
 import com.genersoft.iot.vmp.service.IReceiveRtpServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
 import com.genersoft.iot.vmp.service.bean.*;
@@ -1047,8 +1048,8 @@ public class PlayServiceImpl implements IPlayService {
                     null);
             return;
         }
-        log.info("[录像下载] deviceId: {}, channelId: {}, 下载速度：{}, 收流端口：{}, 收流模式：{}, SSRC: {}({}), SSRC校验：{}",
-                device.getDeviceId(), channel.getDeviceId(), downloadSpeed, ssrcInfo.getPort(), device.getStreamMode(),
+        log.info("[录像下载] deviceId: {}, channelId: {}, 开始时间： {}, 结束时间： {}， 下载速度：{}, 收流端口：{}, 收流模式：{}, SSRC: {}({}), SSRC校验：{}",
+                device.getDeviceId(), channel.getDeviceId(), startTime, endTime, downloadSpeed, ssrcInfo.getPort(), device.getStreamMode(),
                 ssrcInfo.getSsrc(), String.format("%08x", Long.parseLong(ssrcInfo.getSsrc())).toUpperCase(),
                 device.isSsrcCheck());
 
@@ -1723,7 +1724,14 @@ public class PlayServiceImpl implements IPlayService {
             throw new PlayException(Response.SERVER_INTERNAL_ERROR, "server internal error");
         }
         DeviceChannel deviceChannel = deviceChannelService.getOneForSourceById(channel.getGbId());
-        play(device, deviceChannel, callback);
+
+        MediaServer mediaServerItem = getNewMediaServerItem(device);
+        if (mediaServerItem == null) {
+            log.warn("[点播] 未找到可用的zlm deviceId: {},channelId:{}", device.getDeviceId(), deviceChannel.getDeviceId());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的zlm");
+        }
+        play(mediaServerItem, device, deviceChannel, null, record, callback);
+
     }
 
     @Override

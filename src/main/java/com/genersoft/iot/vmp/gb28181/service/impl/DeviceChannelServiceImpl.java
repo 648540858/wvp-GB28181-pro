@@ -23,7 +23,6 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
-import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -41,9 +40,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
-import javax.sip.InvalidArgumentException;
-import javax.sip.SipException;
-import java.text.ParseException;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import javax.sip.message.Response;
@@ -117,6 +113,9 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public int updateChannels(Device device, List<DeviceChannel> channels) {
+        if (CollectionUtils.isEmpty(channels)) {
+            return 0;
+        }
         List<DeviceChannel> addChannels = new ArrayList<>();
         List<DeviceChannel> updateChannels = new ArrayList<>();
         HashMap<String, DeviceChannel> channelsInStore = new HashMap<>();
@@ -442,7 +441,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             deviceMobilePositionMapper.insertNewPosition(mobilePosition);
         }
 
-        if (deviceChannel.getDeviceId().equals(deviceChannel.getDeviceId())) {
+        if (deviceChannel.getDeviceId().equals(device.getDeviceId())) {
             deviceChannel.setDeviceId(null);
         }
         if (deviceChannel.getGpsTime() == null) {

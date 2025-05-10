@@ -41,19 +41,7 @@ nohup ./MediaServer -d -m 3 &
 
 ### 前后端分离部署
 
-前后端部署目前在最新的版本已经支持，请使用3月15日之后的版本部署
-前端编译后的文件在`src/main/resources/static`中，将此目录下的文件部署。
-WVP默认开启全部接口支持跨域。部署前端文件到WEB容器，并将访问的地址设置为WVP的地址即可。
-**配置前端服务器**
-
-1. 在`src/main/resources/static/static/js/config.js`下配置服务器的地址，也就是wvp服务的地址
-
-```javascript
-window.baseUrl = "http://xxx.com:18080"
-```
-
-`这里的地址是需要客户电脑能访问到的，因为请求是客户端电脑发起，与代理不同`  
-[接入设备](./_content/ability/device.md)
+前端基于 [vue-admin-template](https://github.com/PanJiaChen/vue-admin-template/blob/master/README-zh.md) 构建， 参考这儿即可。
 
 ### 默认账号和密码
 

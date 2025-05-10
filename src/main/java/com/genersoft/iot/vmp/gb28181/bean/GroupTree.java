@@ -2,10 +2,12 @@ package com.genersoft.iot.vmp.gb28181.bean;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * 业务分组
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Schema(description = "业务分组树")
 public class GroupTree extends Group{

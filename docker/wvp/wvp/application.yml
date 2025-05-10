@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: wvp
+  profiles:
+    active: docker

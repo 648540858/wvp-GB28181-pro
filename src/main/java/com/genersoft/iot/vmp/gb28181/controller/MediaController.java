@@ -17,7 +17,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -89,7 +88,7 @@ public class MediaController {
         }
 
         if (streamInfo != null){
-            return  new StreamContent(streamInfo);
+            return new StreamContent(streamInfo);
         }else {
             //获取流失败，重启拉流后重试一次
             streamProxyService.stopByAppAndStream(app,stream);

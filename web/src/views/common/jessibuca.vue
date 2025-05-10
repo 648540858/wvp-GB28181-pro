@@ -143,7 +143,7 @@ export default {
         isFlv: false,
         isFullResize: false,
         isNotMute: this.isNotMute,
-        isResize: false,
+        isResize: true,
         keepScreenOn: true,
         loadingText: '请稍等, 视频加载中......',
         loadingTimeout: 10,

@@ -194,6 +194,15 @@ public class CatalogDataManager implements CommandLineRunner {
         for (String key : keySet) {
             CatalogData catalogData = dataMap.get(key);
             if (catalogData != null && deviceId.equals(catalogData.getDevice().getDeviceId())) {
+                // 此时检查是否过期
+                Instant instantBefore30S = Instant.now().minusMillis(TimeUnit.SECONDS.toMillis(30));
+                if ((catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end)
+                        || catalogData.getStatus().equals(CatalogData.CatalogDataStatus.ready))
+                        && catalogData.getTime().isBefore(instantBefore30S)) {
+                    dataMap.remove(key);
+                    return false;
+                }
+
                 return !catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end);
             }
         }
@@ -222,21 +231,26 @@ public class CatalogDataManager implements CommandLineRunner {
                     String deviceId = catalogData.getDevice().getDeviceId();
                     int sn = catalogData.getSn();
                     List<DeviceChannel> deviceChannelList = getDeviceChannelList(deviceId, sn);
-                    if (catalogData.getTotal() == deviceChannelList.size()) {
-                        deviceChannelService.resetChannels(catalogData.getDevice().getId(), deviceChannelList);
-                    }else {
-                        deviceChannelService.updateChannels(catalogData.getDevice(), deviceChannelList);
-                    }
-                    List<Region> regionList = getRegionList(deviceId, sn);
-                    if ( regionList!= null && !regionList.isEmpty()) {
-                        regionService.batchAdd(regionList);
-                    }
-                    List<Group> groupList = getGroupList(deviceId, sn);
-                    if (groupList != null && !groupList.isEmpty()) {
-                        groupService.batchAdd(groupList);
+                    try {
+                        if (catalogData.getTotal() == deviceChannelList.size()) {
+                            deviceChannelService.resetChannels(catalogData.getDevice().getId(), deviceChannelList);
+                        }else {
+                            deviceChannelService.updateChannels(catalogData.getDevice(), deviceChannelList);
+                        }
+                        List<Region> regionList = getRegionList(deviceId, sn);
+                        if ( regionList!= null && !regionList.isEmpty()) {
+                            regionService.batchAdd(regionList);
+                        }
+                        List<Group> groupList = getGroupList(deviceId, sn);
+                        if (groupList != null && !groupList.isEmpty()) {
+                            groupService.batchAdd(groupList);
+                        }
+                    }catch (Exception e) {
+                        log.error("[国标通道同步] 入库失败： ", e);
                     }
                     String errorMsg = "更新成功，共" + catalogData.getTotal() + "条，已更新" + deviceChannelList.size() + "条";
                     catalogData.setErrorMsg(errorMsg);
+                    catalogData.setStatus(CatalogData.CatalogDataStatus.end);
                 }else if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.ready)) {
                     String errorMsg = "同步失败，等待回复超时";
                     catalogData.setErrorMsg(errorMsg);

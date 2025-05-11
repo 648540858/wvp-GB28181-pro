@@ -293,7 +293,7 @@ public class DeviceServiceImpl implements IDeviceService {
                 }
             }
         }else {
-            log.info("[移除移动位置订阅]失败，设备已经离线 : {}", device.getDeviceId());
+            log.info("[移除目录订阅订阅]失败，设备已经离线 : {}", device.getDeviceId());
             if (callback != null) {
                 callback.run(false);
             }

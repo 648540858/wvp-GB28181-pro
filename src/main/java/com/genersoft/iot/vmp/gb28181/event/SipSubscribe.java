@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.event;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceNotFoundEvent;
+import com.genersoft.iot.vmp.gb28181.bean.SipSendFailEvent;
 import com.genersoft.iot.vmp.gb28181.event.sip.SipEvent;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
@@ -83,17 +84,17 @@ public class SipSubscribe {
         failedResult
     }
 
-    public static class EventResult<EventObject>{
+    public static class EventResult<T>{
         public int statusCode;
         public EventResultType type;
         public String msg;
         public String callId;
-        public EventObject event;
+        public T event;
 
         public EventResult() {
         }
 
-        public EventResult(EventObject event) {
+        public EventResult(T event) {
             this.event = event;
             if (event instanceof ResponseEvent) {
                 ResponseEvent responseEvent = (ResponseEvent)event;
@@ -149,6 +150,12 @@ public class SipSubscribe {
                 this.msg = "设备未找到";
                 this.statusCode = -1024;
                 this.callId = ((DeviceNotFoundEvent) event).getCallId();
+            }else if (event instanceof SipSendFailEvent) {
+                SipSendFailEvent sipSendFailEvent = (SipSendFailEvent) event;
+                this.type = EventResultType.deviceNotFoundEvent;
+                this.msg = sipSendFailEvent.getMsg();
+                this.statusCode = -1024;
+                this.callId = ((SipSendFailEvent) event).getCallId();
             }
         }
     }

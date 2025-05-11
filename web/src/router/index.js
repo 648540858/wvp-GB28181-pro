@@ -87,6 +87,26 @@ export const constantRoutes = [
     ]
   },
   {
+    path: '/jtDevice',
+    component: Layout,
+    redirect: '/jtDevice',
+    onlyIndex: 0,
+    children: [
+      {
+        path: '',
+        name: 'JTDevice',
+        component: () => import('@/views/jtDevice/index'),
+        meta: { title: '部标设备', icon: 'jtDevice' }
+      },
+      {
+        path: '/jtDevice/record/:deviceId/:channelDeviceId',
+        name: 'JTDeviceRecord',
+        component: () => import('@/views/jtDevice/channel/record'),
+        meta: { title: '部标录像' }
+      }
+    ]
+  },
+  {
     path: '/push',
     component: Layout,
     redirect: '/push',

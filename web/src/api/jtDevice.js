@@ -24,6 +24,22 @@ export function queryDeviceById(deviceId) {
   })
 }
 
+export function update(form) {
+  return request({
+    method: 'post',
+    url: `/api/jt1078/terminal/update`,
+    params: form
+  })
+}
+
+export function add(form) {
+  return request({
+    method: 'post',
+    url: `/api/jt1078/terminal/add`,
+    params: form
+  })
+}
+
 export function deleteDeviceById(deviceId) {
   return request({
     method: 'delete',

@@ -124,19 +124,16 @@
       @current-change="currentChange"
     />
     <deviceEdit ref="deviceEdit" />
-    <syncChannelProgress ref="syncChannelProgress" />
   </div>
 </template>
 
 <script>
 import deviceEdit from './edit.vue'
-import syncChannelProgress from '../dialog/SyncChannelProgress.vue'
 
 export default {
   name: 'App',
   components: {
-    deviceEdit,
-    syncChannelProgress
+    deviceEdit
   },
   data() {
     return {
@@ -171,17 +168,17 @@ export default {
     },
     getList: function() {
       this.getListLoading = true
-      this.$store.dispatch('jtDevice/getList', {})
-      this.deviceService.getDeviceList(this.currentPage, this.count, (data) => {
-        if (data.code === 0) {
-          this.total = data.data.total
-          this.deviceList = data.data.list
-        }
-        this.getListLoading = false
-      }, () => {
-        this.getListLoading = false
-      }
-      )
+      this.$store.dispatch('jtDevice/queryDevices', {
+        page: this.currentPage,
+        count: this.count
+      })
+        .then(data => {
+          this.total = data.total
+          this.deviceList = data.list
+        })
+        .finally(() => {
+          this.getListLoading = false
+        })
     },
     deleteDevice: function(row) {
       this.$confirm('确定删除此设备？', '提示', {
@@ -191,9 +188,10 @@ export default {
         center: true,
         type: 'warning'
       }).then(() => {
-        this.deviceService.deleteDevice(row.id, (data) => {
-          this.getList()
-        })
+        this.$store.dispatch('jtDevice/deleteDeviceById', row.id)
+          .then(data => {
+            this.getList()
+          })
       }).catch(() => {
 
       })
@@ -210,7 +208,7 @@ export default {
       })
     },
     showChannelList: function(row) {
-      this.$router.push(`/jtChannelList/${row.id}`)
+      this.$emit('show-channel', row.id)
     },
     add: function() {
       this.$refs.deviceEdit.openDialog(null, () => {
@@ -236,58 +234,3 @@ export default {
   }
 }
 </script>
-
-<style>
-.videoList {
-  display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
-}
-
-.video-item {
-  position: relative;
-  width: 15rem;
-  height: 10rem;
-  margin-right: 1rem;
-  background-color: #000000;
-}
-
-.video-item-img {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  margin: auto;
-  width: 100%;
-  height: 100%;
-}
-
-.video-item-img:after {
-  content: "";
-  display: inline-block;
-  position: absolute;
-  z-index: 2;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  margin: auto;
-  width: 3rem;
-  height: 3rem;
-  background-image: url("../assets/loading.png");
-  background-size: cover;
-  background-color: #000000;
-}
-
-.video-item-title {
-  position: absolute;
-  bottom: 0;
-  color: #000000;
-  background-color: #ffffff;
-  line-height: 1.5rem;
-  padding: 0.3rem;
-  width: 14.4rem;
-}
-
-</style>

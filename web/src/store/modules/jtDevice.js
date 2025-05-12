@@ -1,9 +1,31 @@
 import { deleteDeviceById, queryChannels, queryDeviceById, queryDevices } from '@/api/jtDevice'
+import { add } from '@/api/user'
+import { update } from '@/api/group'
 
 const actions = {
   queryDevices({ commit }, params) {
     return new Promise((resolve, reject) => {
       queryDevices(params).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  add({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      add(params).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  update({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      update(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

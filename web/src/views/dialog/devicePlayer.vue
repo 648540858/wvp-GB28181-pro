@@ -362,7 +362,7 @@
 <script>
 import elDragDialog from '@/directive/el-drag-dialog'
 import crypto from 'crypto'
-import rtcPlayer from '../dialog/rtcPlayer.vue'
+import rtcPlayer from '../common/rtcPlayer.vue'
 import jessibucaPlayer from '../common/jessibuca.vue'
 import PtzPreset from '../common/ptzPreset.vue'
 import PtzCruising from '../common/ptzCruising.vue'

@@ -60,7 +60,7 @@ export const constantRoutes = [
     component: Layout,
     redirect: '/live',
     children: [{
-      path: 'live',
+      path: '',
       name: 'Live',
       component: () => import('@/views/live/index'),
       meta: { title: '分屏监控', icon: 'live' }

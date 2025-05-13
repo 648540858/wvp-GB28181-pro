@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.gb28181.transmit;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.SipLayer;
-import com.genersoft.iot.vmp.gb28181.bean.SipSendFailEvent;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.event.sip.SipEvent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
@@ -13,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
-import javax.sip.ResponseEvent;
 import javax.sip.SipException;
 import javax.sip.header.CSeqHeader;
 import javax.sip.header.CallIdHeader;
@@ -115,14 +113,9 @@ public class SIPSender {
                 }
             }
         }catch (SipException e) {
-            log.error("[发送信息失败] ", e);
-            SipSendFailEvent sipSendFailEvent = SipSendFailEvent.getInstance(callIdHeader.getCallId(), e.getMessage());
-            SipSubscribe.EventResult<SipSendFailEvent> eventResult = new SipSubscribe.EventResult<>(sipSendFailEvent);
-            SipEvent subscribe = sipSubscribe.getSubscribe(key);
-            subscribe.getErrorEvent().response(eventResult);
             sipSubscribe.removeSubscribe(key);
+            throw e;
         }
-
     }
 
     public CallIdHeader getNewCallIdHeader(String ip, String transport) {

@@ -16,7 +16,8 @@ import '@/icons' // icon
 import '@/permission' // permission control
 
 import VueClipboards from 'vue-clipboards'
-import Contextmenu from "vue-contextmenujs"
+import Contextmenu from 'vue-contextmenujs'
+import VueClipboard from 'vue-clipboard2'
 
 /**
  * If you don't want to use mock-server
@@ -34,6 +35,7 @@ if (process.env.NODE_ENV === 'production') {
 Vue.use(ElementUI)
 Vue.use(VueClipboards)
 Vue.use(Contextmenu)
+Vue.use(VueClipboard)
 
 Vue.config.productionTip = false
 

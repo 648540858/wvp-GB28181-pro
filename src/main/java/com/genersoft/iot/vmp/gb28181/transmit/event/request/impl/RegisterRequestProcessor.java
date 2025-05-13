@@ -70,8 +70,6 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 
     /**
      * 收到注册请求 处理
-     *
-     * @param evt
      */
     @Override
     public void process(RequestEvent evt) {

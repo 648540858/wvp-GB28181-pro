@@ -116,9 +116,6 @@ export default {
         height = clientHeight
         width = (16 / 9) * height
       }
-
-      this.$refs.playerBox.style.width = width + 'px'
-      this.$refs.playerBox.style.height = height + 'px'
       this.playerWidth = width
       this.playerHeight = height
       if (this.playing) {

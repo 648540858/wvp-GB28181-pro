@@ -111,10 +111,10 @@
               <el-input v-model="getPlayerShared.sharedUrl" :disabled="true">
                 <template slot="append">
                   <i
-                    v-clipboard="getPlayerShared.sharedUrl"
                     class="cpoy-btn el-icon-document-copy"
                     title="点击拷贝"
-                    @success="$message({type:'success', message:'成功拷贝到粘贴板'})"
+                    style="cursor: pointer"
+                    @click="copyUrl(getPlayerShared.sharedUrl)"
                   />
                 </template>
               </el-input>
@@ -124,10 +124,10 @@
               <el-input v-model="getPlayerShared.sharedIframe" :disabled="true">
                 <template slot="append">
                   <i
-                    v-clipboard="getPlayerShared.sharedIframe"
                     class="cpoy-btn el-icon-document-copy"
                     title="点击拷贝"
-                    @success="$message({type:'success', message:'成功拷贝到粘贴板'})"
+                    style="cursor: pointer"
+                    @click="copyUrl(getPlayerShared.sharedIframe)"
                   />
                 </template>
               </el-input>
@@ -137,10 +137,10 @@
               <el-input v-model="getPlayerShared.sharedRtmp" :disabled="true">
                 <el-button
                   slot="append"
-                  v-clipboard="getPlayerShared.sharedRtmp"
                   icon="el-icon-document-copy"
                   title="点击拷贝"
-                  @success="$message({type:'success', message:'成功拷贝到粘贴板'})"
+                  style="cursor: pointer"
+                  @click="copyUrl(getPlayerShared.sharedIframe)"
                 />
                 <el-dropdown v-if="streamInfo" slot="prepend" trigger="click" @command="copyUrl">
                   <el-button>
@@ -362,7 +362,7 @@
 <script>
 import elDragDialog from '@/directive/el-drag-dialog'
 import crypto from 'crypto'
-import rtcPlayer from '../dialog/rtcPlayer.vue'
+import rtcPlayer from '../common/rtcPlayer.vue'
 import jessibucaPlayer from '../common/jessibuca.vue'
 import PtzPreset from '../common/ptzPreset.vue'
 import PtzCruising from '../common/ptzCruising.vue'

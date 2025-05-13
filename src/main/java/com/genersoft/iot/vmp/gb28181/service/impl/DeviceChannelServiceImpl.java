@@ -120,85 +120,83 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         List<DeviceChannel> updateChannels = new ArrayList<>();
         HashMap<String, DeviceChannel> channelsInStore = new HashMap<>();
         int result = 0;
-        if (channels != null && !channels.isEmpty()) {
-            List<DeviceChannel> channelList = channelMapper.queryChannelsByDeviceDbId(device.getId());
-            if (channelList.isEmpty()) {
-                for (DeviceChannel channel : channels) {
-                    channel.setDataDeviceId(device.getId());
-                    InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
-                    if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
-                        channel.setStreamId(inviteInfo.getStreamInfo().getStream());
-                    }
-                    String now = DateUtil.getNow();
+        List<DeviceChannel> channelList = channelMapper.queryChannelsByDeviceDbId(device.getId());
+        if (channelList.isEmpty()) {
+            for (DeviceChannel channel : channels) {
+                channel.setDataDeviceId(device.getId());
+                InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
+                if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
+                    channel.setStreamId(inviteInfo.getStreamInfo().getStream());
+                }
+                String now = DateUtil.getNow();
+                channel.setUpdateTime(now);
+                channel.setCreateTime(now);
+                addChannels.add(channel);
+            }
+        }else {
+            for (DeviceChannel deviceChannel : channelList) {
+                channelsInStore.put(deviceChannel.getDataDeviceId() + deviceChannel.getDeviceId(), deviceChannel);
+            }
+            for (DeviceChannel channel : channels) {
+                InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
+                if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
+                    channel.setStreamId(inviteInfo.getStreamInfo().getStream());
+                }
+                String now = DateUtil.getNow();
+                channel.setUpdateTime(now);
+                DeviceChannel deviceChannelInDb = channelsInStore.get(channel.getDataDeviceId() + channel.getDeviceId());
+                if ( deviceChannelInDb != null) {
+                    channel.setId(deviceChannelInDb.getId());
                     channel.setUpdateTime(now);
+                    updateChannels.add(channel);
+                }else {
                     channel.setCreateTime(now);
+                    channel.setUpdateTime(now);
                     addChannels.add(channel);
                 }
-            }else {
-                for (DeviceChannel deviceChannel : channelList) {
-                    channelsInStore.put(deviceChannel.getDataDeviceId() + deviceChannel.getDeviceId(), deviceChannel);
-                }
-                for (DeviceChannel channel : channels) {
-                    InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
-                    if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
-                        channel.setStreamId(inviteInfo.getStreamInfo().getStream());
-                    }
-                    String now = DateUtil.getNow();
-                    channel.setUpdateTime(now);
-                    DeviceChannel deviceChannelInDb = channelsInStore.get(channel.getDataDeviceId() + channel.getDeviceId());
-                    if ( deviceChannelInDb != null) {
-                        channel.setId(deviceChannelInDb.getId());
-                        channel.setUpdateTime(now);
-                        updateChannels.add(channel);
-                    }else {
-                        channel.setCreateTime(now);
-                        channel.setUpdateTime(now);
-                        addChannels.add(channel);
-                    }
-                }
             }
-            Set<String> channelSet = new HashSet<>();
-            // 滤重
-            List<DeviceChannel> addChannelList = new ArrayList<>();
-            List<DeviceChannel> updateChannelList = new ArrayList<>();
-            addChannels.forEach(channel -> {
-                if (channelSet.add(channel.getDeviceId())) {
-                    addChannelList.add(channel);
-                }
-            });
-            channelSet.clear();
-            updateChannels.forEach(channel -> {
-                if (channelSet.add(channel.getDeviceId())) {
-                    updateChannelList.add(channel);
-                }
-            });
+        }
+        Set<String> channelSet = new HashSet<>();
+        // 滤重
+        List<DeviceChannel> addChannelList = new ArrayList<>();
+        List<DeviceChannel> updateChannelList = new ArrayList<>();
+        addChannels.forEach(channel -> {
+            if (channelSet.add(channel.getDeviceId())) {
+                addChannelList.add(channel);
+            }
+        });
+        channelSet.clear();
+        updateChannels.forEach(channel -> {
+            if (channelSet.add(channel.getDeviceId())) {
+                updateChannelList.add(channel);
+            }
+        });
 
-            int limitCount = 500;
-            if (!addChannelList.isEmpty()) {
-                if (addChannelList.size() > limitCount) {
-                    for (int i = 0; i < addChannelList.size(); i += limitCount) {
-                        int toIndex = i + limitCount;
-                        if (i + limitCount > addChannelList.size()) {
-                            toIndex = addChannelList.size();
-                        }
-                        result += channelMapper.batchAdd(addChannelList.subList(i, toIndex));
+        int limitCount = 500;
+        if (!addChannelList.isEmpty()) {
+            if (addChannelList.size() > limitCount) {
+                for (int i = 0; i < addChannelList.size(); i += limitCount) {
+                    int toIndex = i + limitCount;
+                    if (i + limitCount > addChannelList.size()) {
+                        toIndex = addChannelList.size();
                     }
-                }else {
-                    result += channelMapper.batchAdd(addChannelList);
+                    result += channelMapper.batchAdd(addChannelList.subList(i, toIndex));
                 }
+            }else {
+                result += channelMapper.batchAdd(addChannelList);
             }
-            if (!updateChannelList.isEmpty()) {
-                if (updateChannelList.size() > limitCount) {
-                    for (int i = 0; i < updateChannelList.size(); i += limitCount) {
-                        int toIndex = i + limitCount;
-                        if (i + limitCount > updateChannelList.size()) {
-                            toIndex = updateChannelList.size();
-                        }
-                        result += channelMapper.batchUpdate(updateChannelList.subList(i, toIndex));
+        }
+        if (!updateChannelList.isEmpty()) {
+            if (updateChannelList.size() > limitCount) {
+                for (int i = 0; i < updateChannelList.size(); i += limitCount) {
+                    int toIndex = i + limitCount;
+                    if (i + limitCount > updateChannelList.size()) {
+                        toIndex = updateChannelList.size();
                     }
-                }else {
-                    result += channelMapper.batchUpdate(updateChannelList);
+                    result += channelMapper.batchUpdate(updateChannelList.subList(i, toIndex));
                 }
+            }else {
+                result += channelMapper.batchUpdate(updateChannelList);
             }
         }
         return result;

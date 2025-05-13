@@ -98,8 +98,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
                 log.warn("[设备未找到 ]deviceId: {}, callId: {}", deviceId, callIdHeader.getCallId());
                 SipEvent sipEvent = sipSubscribe.getSubscribe(callIdHeader.getCallId() + cSeqHeader.getSeqNumber());
                 if (sipEvent != null && sipEvent.getErrorEvent() != null){
-                    DeviceNotFoundEvent deviceNotFoundEvent = new DeviceNotFoundEvent(evt.getDialog());
-                    deviceNotFoundEvent.setCallId(callIdHeader.getCallId());
+                    DeviceNotFoundEvent deviceNotFoundEvent = new DeviceNotFoundEvent(callIdHeader.getCallId());
                     SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(deviceNotFoundEvent);
                     sipEvent.getErrorEvent().response(eventResult);
                 }

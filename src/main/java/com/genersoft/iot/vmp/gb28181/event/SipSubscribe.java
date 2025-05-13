@@ -83,17 +83,17 @@ public class SipSubscribe {
         failedResult
     }
 
-    public static class EventResult<EventObject>{
+    public static class EventResult<T>{
         public int statusCode;
         public EventResultType type;
         public String msg;
         public String callId;
-        public EventObject event;
+        public T event;
 
         public EventResult() {
         }
 
-        public EventResult(EventObject event) {
+        public EventResult(T event) {
             this.event = event;
             if (event instanceof ResponseEvent) {
                 ResponseEvent responseEvent = (ResponseEvent)event;

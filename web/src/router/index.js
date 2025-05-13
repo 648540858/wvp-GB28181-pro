@@ -60,7 +60,7 @@ export const constantRoutes = [
     component: Layout,
     redirect: '/live',
     children: [{
-      path: 'live',
+      path: '',
       name: 'Live',
       component: () => import('@/views/live/index'),
       meta: { title: '分屏监控', icon: 'live' }
@@ -263,6 +263,17 @@ export const constantRoutes = [
         meta: { title: '实时日志', icon: 'realLog' }
       }
     ]
+  },
+  {
+    path: '/play/wasm/:url',
+    name: 'wasmPlayer',
+    hidden: true,
+    component: () => import('@/views/common/jessibuca.vue')
+  },
+  {
+    path: '/play/rtc/:url',
+    name: 'rtcPlayer',
+    component: () => import('@/views/common/rtcPlayer.vue')
   },
   // 404 page must be placed at the end !!!
   { path: '*', redirect: '/404', hidden: true }

@@ -1,29 +1,27 @@
 <template>
   <div id="channelList" style="height: calc(100vh - 124px);">
     <div v-if="!jtChannel">
-      <div class="page-header">
-        <div class="page-title">
-          <el-button icon="el-icon-back" size="mini" style="font-size: 20px; color: #000;" type="text" @click="showDevice" />
-          <el-divider direction="vertical" />
-          通道列表
-        </div>
-        <div class="page-header-btn">
-          <div style="display: inline;">
-            搜索:
-            <el-input
-              v-model="searchSrt"
-              style="margin-right: 1rem; width: auto;"
-              size="mini"
-              placeholder="关键字"
-              prefix-icon="el-icon-search"
-              clearable
-              @input="search"
-            />
-            <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="add">添加通道</el-button>
-            <el-button icon="el-icon-refresh-right" circle size="mini" @click="refresh()" />
-          </div>
-        </div>
-      </div>
+      <el-form :inline="true" size="mini">
+        <el-form-item style="margin-right: 2rem">
+          <el-page-header content="通道列表" @back="showDevice" />
+        </el-form-item>
+        <el-form-item label="搜索">
+          <el-input
+            v-model="searchSrt"
+            style="margin-right: 1rem; width: auto;"
+            placeholder="关键字"
+            prefix-icon="el-icon-search"
+            clearable
+            @input="search"
+          />
+        </el-form-item>
+        <el-form-item>
+          <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="add">添加通道</el-button>
+        </el-form-item>
+        <el-form-item style="float: right;">
+          <el-button icon="el-icon-refresh-right" circle @click="refresh()" />
+        </el-form-item>
+      </el-form>
       <el-container v-loading="isLoging" style="height: 82vh;">
         <el-main style="padding: 5px;">
           <el-table
@@ -116,7 +114,6 @@
     </div>
     <devicePlayer ref="devicePlayer" />
     <channelEdit v-if="jtChannel" ref="channelEdit" :jt-channel="jtChannel" :close-edit="closeEdit" />
-    <!--设备列表-->
 
   </div>
 </template>
@@ -124,7 +121,6 @@
 <script>
 import devicePlayer from '../jtDevicePlayer.vue'
 import channelEdit from './edit.vue'
-import { play } from '@/api/jtDevice'
 
 export default {
   name: 'ChannelList',
@@ -170,7 +166,6 @@ export default {
       this.getDeviceChannelList()
     },
     initParam: function() {
-      this.deviceId = this.$route.params.deviceId
       this.currentPage = 1
       this.count = 15
       this.$store.dispatch('jtDevice/queryDeviceById', this.deviceId)
@@ -301,16 +296,9 @@ export default {
     },
     updateChannel: function(row) {
       this.$store.dispatch('jtDevice/updateChannel', row)
-        .then(data => {
-
+        .catch((e) => {
+          console.log(e)
         })
-      this.$axios({
-        method: 'post',
-        url: `/api/jt1078/terminal/channel/update`,
-        params: row
-      }).then(function(res) {
-        console.log(JSON.stringify(res))
-      })
     },
     refresh: function() {
       this.initData()

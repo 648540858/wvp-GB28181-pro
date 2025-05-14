@@ -87,4 +87,56 @@ export function stopPlay(params) {
     }
   })
 }
+export function updateChannel(data) {
+  return request({
+    method: 'post',
+    url: `/api/jt1078/terminal/channel/update`,
+    data: data
+  })
+}
+export function addChannel(data) {
+  return request({
+    method: 'post',
+    url: `/api/jt1078/terminal/channel/add`,
+    data: data
+  })
+}
+
+export function ptz(params) {
+  const { phoneNumber, channelId, command, speed } = params
+  return request({
+    method: 'get',
+    url: '/api/jt1078/ptz',
+    params: {
+      phoneNumber: phoneNumber,
+      channelId: channelId,
+      command: command,
+      speed: speed
+    }
+  })
+}
+export function wiper(params) {
+  const { phoneNumber, channelId, command } = params
+  return request({
+    method: 'get',
+    url: '/api/jt1078/wiper',
+    params: {
+      phoneNumber: phoneNumber,
+      channelId: channelId,
+      command: command
+    }
+  })
+}
+export function fillLight(params) {
+  const { phoneNumber, channelId, command } = params
+  return request({
+    method: 'get',
+    url: '/api/jt1078/fill-light',
+    params: {
+      phoneNumber: phoneNumber,
+      channelId: channelId,
+      command: command
+    }
+  })
+}
 

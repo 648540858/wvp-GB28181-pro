@@ -100,7 +100,7 @@ public class JT1078TerminalController {
     @Operation(summary = "1078-更新通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "channel", description = "通道", required = true)
     @PostMapping("/channel/update")
-    public void updateChannel(JTChannel channel){
+    public void updateChannel(@RequestBody JTChannel channel){
         assert channel.getId() > 0;
         assert channel.getChannelId() != null;
         service.updateChannel(channel);

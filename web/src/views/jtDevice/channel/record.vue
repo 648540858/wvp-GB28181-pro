@@ -109,20 +109,17 @@
 </template>
 
 <script>
-import uiHeader from '../layout/UiHeader.vue'
-import player from './common/jessibuca.vue'
+import player from '../../common/jessibuca.vue'
 import moment from 'moment'
-import JTDeviceService from './service/JTDeviceService'
 export default {
   name: 'App',
   components: {
-    uiHeader, player
+    player
   },
   data() {
     return {
       phoneNumber: this.$route.params.phoneNumber,
       channelId: this.$route.params.channelId,
-      deviceService: new JTDeviceService(),
       recordsLoading: false,
       streamId: '',
       hasAudio: false,

@@ -21,13 +21,13 @@
       height="calc(100% - 64px)"
       header-row-class-name="table-header"
     >
-      <el-table-column prop="phoneNumber" label="终端手机号" min-width="160" />
-      <el-table-column prop="terminalId" label="终端ID" min-width="160" />
-      <el-table-column prop="provinceText" label="省域" min-width="160" />
-      <el-table-column prop="cityText" label="市县域" min-width="160" />
-      <el-table-column prop="makerId" label="制造商" min-width="160" />
-      <el-table-column prop="model" label="型号" min-width="160" />
-      <el-table-column label="车牌颜色" min-width="160">
+      <el-table-column prop="phoneNumber" label="终端手机号" min-width="120" />
+      <el-table-column prop="terminalId" label="终端ID" min-width="120" />
+      <el-table-column prop="provinceText" label="省域" min-width="120" />
+      <el-table-column prop="cityText" label="市县域" min-width="120" />
+      <el-table-column prop="makerId" label="制造商" min-width="120" />
+      <el-table-column prop="model" label="型号" min-width="120" />
+      <el-table-column label="车牌颜色" min-width="120">
         <template slot-scope="scope">
           <div slot="reference" class="name-wrapper">
             <span v-if="scope.row.plateColor === 1">蓝色</span>
@@ -43,9 +43,9 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="plateNo" label="车牌" min-width="160" />
+      <el-table-column prop="plateNo" label="车牌" min-width="120" />
       <el-table-column prop="registerTime" label="注册时间" min-width="160" />
-      <el-table-column label="状态" min-width="160">
+      <el-table-column label="状态" min-width="120">
         <template slot-scope="scope">
           <div slot="reference" class="name-wrapper">
             <el-tag v-if="scope.row.status" size="medium">在线</el-tag>
@@ -208,6 +208,7 @@ export default {
       })
     },
     showChannelList: function(row) {
+      console.log(row)
       this.$emit('show-channel', row.id)
     },
     add: function() {

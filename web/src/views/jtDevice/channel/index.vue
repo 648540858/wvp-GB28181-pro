@@ -124,6 +124,7 @@
 <script>
 import devicePlayer from '../jtDevicePlayer.vue'
 import channelEdit from './edit.vue'
+import { play } from '@/api/jtDevice'
 
 export default {
   name: 'ChannelList',
@@ -131,11 +132,15 @@ export default {
     channelEdit,
     devicePlayer
   },
+  props: {
+    deviceId: {
+      type: String,
+      default: null
+    }
+  },
   data() {
     return {
-      deviceService: new JTDeviceService(),
       device: null,
-      deviceId: this.$route.params.deviceId,
       deviceChannelList: [],
       updateLooper: 0, // 数据刷新轮训标志
       searchSrt: '',
@@ -168,14 +173,13 @@ export default {
       this.deviceId = this.$route.params.deviceId
       this.currentPage = 1
       this.count = 15
-      this.deviceService.getDevice(this.deviceId, (result) => {
-        if (result.code === 0) {
-          this.device = result.data
-        }
-      }, (error) => {
-        console.log('获取设备信息失败')
-        console.error(error)
-      })
+      this.$store.dispatch('jtDevice/queryDeviceById', this.deviceId)
+        .then(data => {
+          this.device = data
+        })
+        .catch(err => {
+          console.error(err)
+        })
     },
     currentChange: function(val) {
       this.currentPage = val
@@ -187,17 +191,20 @@ export default {
     },
     getDeviceChannelList: function() {
       if (typeof (this.deviceId) === 'undefined') return
-      this.deviceService.getAllChannel(this.currentPage, this.count, this.searchSrt, this.deviceId, (data) => {
-        console.log(data)
-        if (data.code === 0) {
-          this.total = data.data.total
-          this.deviceChannelList = data.data.list
+      this.$store.dispatch('jtDevice/queryChannels', {
+        page: this.currentPage,
+        count: this.count,
+        query: this.searchSrt,
+        deviceId: this.deviceId
+      })
+        .then(data => {
+          this.total = data.total
+          this.deviceChannelList = data.list
           // 防止出现表格错位
           this.$nextTick(() => {
             this.$refs.channelListTable.doLayout()
           })
-        }
-      })
+        })
     },
 
     // 通知设备上传媒体流
@@ -205,38 +212,33 @@ export default {
       this.isLoging = true
       const channelId = itemData.channelId
       console.log('通知设备推流1：' + this.device.phoneNumber + ' : ' + channelId)
-      this.$axios({
-        method: 'get',
-        url: '/api/jt1078/live/start',
-        params: {
-          phoneNumber: this.device.phoneNumber,
-          channelId: channelId,
-          type: 0
-        }
-      }).then((res) => {
-        this.isLoging = false
-        if (res.data.code === 0) {
+
+      this.$store.dispatch('jtDevice/play', {
+        phoneNumber: this.device.phoneNumber,
+        channelId: channelId,
+        type: 0
+      })
+        .then(data => {
           setTimeout(() => {
             const snapId = this.device.phoneNumber + '_' + channelId
             this.loadSnap[this.device.phoneNumber + channelId] = 0
             this.getSnapErrorEvent(snapId)
           }, 5000)
-          itemData.streamId = res.data.data.stream
+          itemData.streamId = data.stream
           this.$refs.devicePlayer.openDialog('media', this.device.phoneNumber, channelId, {
-            streamInfo: res.data.data,
+            streamInfo: data,
             hasAudio: itemData.hasAudio
           })
           setTimeout(() => {
             this.initData()
           }, 1000)
-        } else {
-          this.$message.error(res.data.msg)
-        }
-      }).catch((e) => {
-        console.error(e)
-        this.isLoging = false
-        // that.$message.error("请求超时");
-      })
+        })
+        .catch(err => {
+          console.error(err)
+        })
+        .finally(() => {
+          this.isLoging = false
+        })
     },
     moreClick: function(command, itemData) {
       if (command === 'records') {
@@ -248,36 +250,28 @@ export default {
       }
     },
     queryRecords: function(itemData) {
-      this.$router.push(`/jtRecordDetail/${this.device.phoneNumber}/${itemData.channelId}`)
+      this.$router.push(`/jtDevice/record/${this.device.phoneNumber}/${itemData.channelId}`)
     },
     queryCloudRecords: function(itemData) {
-      const deviceId = this.deviceId
+      const deviceId = this.device.phoneNumber
       const channelId = itemData.channelId
-
-      this.$router.push(`/cloudRecordDetail/rtp/${deviceId}_${channelId}`)
+      this.$router.push(`/cloudRecord/detail/rtp/${deviceId}_${channelId}`)
     },
     stopDevicePush: function(itemData) {
-      this.$axios({
-        method: 'get',
-        url: '/api/jt1078/live/stop',
-        params: {
-          phoneNumber: this.device.phoneNumber,
-          channelId: itemData.channelId
-        }
-      }).then((res) => {
-        console.log(res)
-        if (res.data.code === 0) {
-          this.initData()
-        } else {
-          this.$message.error(res.data.msg)
-        }
-      }).catch(function(error) {
-        console.error(error)
+      this.$store.dispatch('jtDevice/stopPlay', {
+        phoneNumber: this.device.phoneNumber,
+        channelId: itemData.channelId
       })
+        .then((data) => {
+          this.initData()
+        })
+        .catch(function(error) {
+          console.error(error)
+        })
     },
     getSnap: function(row) {
       const baseUrl = window.baseUrl ? window.baseUrl : ''
-      return ((process.env.NODE_ENV === 'development') ? process.env.BASE_API : baseUrl) + '/api/device/query/snap/' + this.device.phoneNumber + '/' + row.channelId
+      return ((process.env.NODE_ENV === 'development') ? process.env.VUE_APP_BASE_API : baseUrl) + '/api/device/query/snap/' + this.device.phoneNumber + '/' + row.channelId
     },
     getBigSnap: function(row) {
       return [this.getSnap(row)]
@@ -290,17 +284,15 @@ export default {
           return
         }
         setTimeout(() => {
-          const url = (process.env.NODE_ENV === 'development' ? 'debug' : '') + '/api/device/query/snap/' + deviceId + '/' + channelId
+          const baseUrl = window.baseUrl ? window.baseUrl : ''
+          const url = (process.env.NODE_ENV === 'development' ? process.env.VUE_APP_BASE_API : baseUrl) + '/api/device/query/snap/' + deviceId + '/' + channelId
           this.loadSnap[deviceId + channelId]++
           document.getElementById(deviceId + channelId).setAttribute('src', url + '?' + new Date().getTime())
         }, 1000)
       }
     },
     showDevice: function() {
-      this.$router.push(this.beforeUrl).then(() => {
-        this.initParam()
-        this.initData()
-      })
+      this.$emit('show-device')
     },
     search: function() {
       this.currentPage = 1
@@ -308,6 +300,10 @@ export default {
       this.initData()
     },
     updateChannel: function(row) {
+      this.$store.dispatch('jtDevice/updateChannel', row)
+        .then(data => {
+
+        })
       this.$axios({
         method: 'post',
         url: `/api/jt1078/terminal/channel/update`,

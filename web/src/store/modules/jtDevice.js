@@ -1,4 +1,4 @@
-import { deleteDeviceById, queryChannels, queryDeviceById, queryDevices } from '@/api/jtDevice'
+import { deleteDeviceById, play, queryChannels, queryDeviceById, queryDevices, stopPlay } from '@/api/jtDevice'
 import { add } from '@/api/user'
 import { update } from '@/api/group'
 
@@ -56,6 +56,26 @@ const actions = {
   queryChannels({ commit }, params) {
     return new Promise((resolve, reject) => {
       queryChannels(params).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  play({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      play(params).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  stopPlay({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      stopPlay(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

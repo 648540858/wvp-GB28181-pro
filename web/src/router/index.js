@@ -99,7 +99,7 @@ export const constantRoutes = [
         meta: { title: '部标设备', icon: 'jtDevice' }
       },
       {
-        path: '/jtDevice/record/:deviceId/:channelDeviceId',
+        path: '/jtDevice/record/:phoneNumber/:channelId',
         name: 'JTDeviceRecord',
         component: () => import('@/views/jtDevice/channel/record'),
         meta: { title: '部标录像' }

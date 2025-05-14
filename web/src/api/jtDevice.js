@@ -64,3 +64,27 @@ export function queryChannels(params) {
   })
 }
 
+export function play(params) {
+  const { phoneNumber, channelId, type } = params
+  return request({
+    method: 'get',
+    url: '/api/jt1078/live/start',
+    params: {
+      phoneNumber: phoneNumber,
+      channelId: channelId,
+      type: type
+    }
+  })
+}
+export function stopPlay(params) {
+  const { phoneNumber, channelId } = params
+  return request({
+    method: 'get',
+    url: '/api/jt1078/live/stop',
+    params: {
+      phoneNumber: phoneNumber,
+      channelId: channelId
+    }
+  })
+}
+

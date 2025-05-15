@@ -3,8 +3,8 @@
     <el-form :inline="true" size="mini">
       <el-form-item>
         <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="add">新设备</el-button>
-        <el-button icon="el-icon-info" style="margin-right: 1rem;" @click="showInfo()">接入信息
-      </el-button></el-form-item>
+        <el-button icon="el-icon-info" style="margin-right: 1rem;" @click="showInfo()">接入信息</el-button>
+      </el-form-item>
       <el-form-item style="float: right;">
         <el-button
           icon="el-icon-refresh-right"
@@ -84,8 +84,8 @@
                 终端参数</el-dropdown-item>
               <!--              <el-dropdown-item command="attribute" v-bind:disabled="!scope.row.status">-->
               <!--                终端属性</el-dropdown-item>-->
-              <el-dropdown-item command="connection" :disabled="!scope.row.status">
-                终端连接</el-dropdown-item>
+<!--              <el-dropdown-item command="connection" :disabled="!scope.row.status">-->
+<!--                终端连接</el-dropdown-item>-->
               <!--              <el-dropdown-item command="linkDetection" v-bind:disabled="!scope.row.status" >-->
               <!--                链路检测</el-dropdown-item>-->
               <!--              <el-dropdown-item command="position" v-bind:disabled="!scope.row.status" >-->
@@ -213,6 +213,9 @@ export default {
       console.log(row)
       this.$emit('show-channel', row.id)
     },
+    showParam: function(row) {
+      this.$emit('show-param', row.phoneNumber)
+    },
     add: function() {
       this.$refs.deviceEdit.openDialog(null, () => {
         this.$refs.deviceEdit.close()
@@ -226,7 +229,7 @@ export default {
     },
     moreClick: function(command, itemData) {
       if (command === 'params') {
-        this.$router.push(`/jtDeviceParams/${itemData.phoneNumber}`)
+        this.showParam(itemData)
       } else if (command === 'connection') {
         // this.queryCloudRecords(itemData)
       } else {

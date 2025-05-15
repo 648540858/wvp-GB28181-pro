@@ -1,73 +1,167 @@
 <template>
-  <div style="width: 100%">
-    <div class="page-header">
-      <div class="page-title">
-        <el-page-header content="部标录像" @back="goBack" />
-      </div>
-    </div>
-    <el-container>
-      <el-aside width="300px">
+  <div id="DeviceRecord" class="app-container">
+    <div :style="boxStyle">
+      <div>
         <div class="record-list-box-box">
-          <el-date-picker v-model="chooseDate" size="mini" type="date" value-format="yyyy-MM-dd" placeholder="日期" @change="dateChange()" />
-          <div v-loading="recordsLoading" class="record-list-box" :style="recordListStyle">
+          <div v-if="showSidebar">
+            <el-date-picker
+              v-model="chooseDate"
+              size="mini"
+              :picker-options="pickerOptions"
+              type="date"
+              value-format="yyyy-MM-dd"
+              placeholder="日期"
+              style="width: 190px"
+              @change="dateChange()"
+            />
+            <!--            <el-button :disabled="!mediaServerId" size="mini" type="primary" icon="fa fa-cloud-download" style="margin: auto; margin-left: 12px " title="裁剪合并" @click="drawerOpen"></el-button>-->
+          </div>
+          <div class="record-list-box" style="height: calc(100vh - 170px); overflow: auto">
             <ul v-if="detailFiles.length >0" class="infinite-list record-list">
-              <li v-for="item in detailFiles" class="infinite-list-item record-list-item">
-
-                <el-tag v-if="chooseFile !== item" @click="checkedFile(item)">
+              <li v-for="(item,index) in detailFiles" :key="index" class="infinite-list-item record-list-item">
+                <el-tag
+                  v-if="chooseFileIndex !== index"
+                  style="background-color: #ecf5ff; color: #017690; "
+                  @click="chooseFile(index)"
+                >
                   <i class="el-icon-video-camera" />
-                  {{ moment(item.startTime).format('HH:mm:ss') }}-{{ moment(item.endTime).format('HH:mm:ss') }}
+                  {{ getFileShowName(item) }}
                 </el-tag>
-                <el-tag v-if="chooseFile === item" type="danger">
+                <el-tag v-if="chooseFileIndex === index" type="danger">
                   <i class="el-icon-video-camera" />
-                  {{ moment(item.startTime).format('HH:mm:ss') }}-{{ moment(item.endTime).format('HH:mm:ss') }}
+                  {{ getFileShowName(item) }}
                 </el-tag>
-                <i style="color: #409EFF;margin-left: 5px;" class="el-icon-download" @click="downloadRecord(item)" />
+                <a
+                  class="el-icon-download"
+                  style="color: #409EFF;font-weight: 600;margin-left: 10px;"
+                  target="_blank"
+                  @click="downloadFile(item)"
+                />
               </li>
             </ul>
+            <div v-if="detailFiles.length === 0" class="record-list-no-val">暂无数据</div>
           </div>
-          <div v-if="detailFiles.length ==0" size="mini" class="record-list-no-val">暂无数据</div>
         </div>
-
-      </el-aside>
-      <el-main style="padding-bottom: 10px;">
-        <div class="playBox" :style="playerStyle">
-          <player
+      </div>
+      <div id="playerBox">
+        <div class="playBox" style="height: calc(100% - 90px); width: 100%; background-color: #000000">
+          <div
+            v-if="playLoading"
+            style="position: relative; left: calc(50% - 32px); top: 43%; z-index: 100;color: #fff;float: left; text-align: center;"
+          >
+            <div class="el-icon-loading" />
+            <div style="width: 100%; line-height: 2rem">正在加载</div>
+          </div>
+          <h265web
             ref="recordVideoPlayer"
             :video-url="videoUrl"
-            :error="videoError"
-            :message="videoError"
-            :has-audio="hasAudio"
-            style="max-height: 100%"
-            fluent
-            autoplay
-            live
+            :height="'calc(100vh - 250px)'"
+            :show-button="false"
+            :has-audio="true"
+            @playStatusChange="playingChange"
+            @playTimeChange="showPlayTimeChange"
           />
         </div>
         <div class="player-option-box">
-          <div>
-            <el-button-group>
-              <el-time-picker
-                v-model="timeRange"
-                size="mini"
-                is-range
-                align="left"
-                value-format="yyyy-MM-dd HH:mm:ss"
-                range-separator="至"
-                start-placeholder="开始时间"
-                end-placeholder="结束时间"
-                placeholder="选择时间范围"
-                @change="timePickerChange"
+          <VideoTimeline
+            ref="Timeline"
+            :init-time="initTime"
+            :time-segments="timeSegments"
+            :init-zoom-index="4"
+            @timeChange="playTimeChange"
+            @mousedown="timelineMouseDown"
+            @mouseup="mouseupTimeline"
+          />
+          <div v-if="showTime" class="time-line-show">{{ showTimeValue }}</div>
+        </div>
+        <div style="height: 40px; background-color: #383838; display: grid; grid-template-columns: 1fr 400px 1fr">
+          <div style="text-align: left;">
+            <div class="record-play-control" style="background-color: transparent; box-shadow: 0 0 10px transparent">
+              <a
+                target="_blank"
+                class="record-play-control-item iconfont icon-list"
+                title="列表"
+                @click="sidebarControl()"
               />
-            </el-button-group>
-
-            <el-button-group>
-              <el-button size="mini" class="iconfont icon-zanting" title="开始" @click="control(0, 0)" />
-              <el-button size="mini" class="iconfont icon-kaishi" title="暂停" @click="control(1, 0)" />
-              <el-button size="mini" class="iconfont icon-stop" title="结束" @click="control(2, 0)" />
-              <el-dropdown size="mini" title="播放倍速" @command="scale">
-                <el-button size="mini">
-                  快进/快退 <i class="el-icon-arrow-down el-icon--right" />
-                </el-button>
+              <a
+                target="_blank"
+                class="record-play-control-item iconfont icon-camera1196054easyiconnet"
+                title="截图"
+                @click="snap()"
+              />
+              <a
+                target="_blank"
+                class="record-play-control-item iconfont icon-xiazai1"
+                title="下载录像"
+                @click="chooseTimeForRecord()"
+              />
+              <!--              <a target="_blank" class="record-play-control-item iconfont icon-xiazai011" title="下载" @click="gbPause()" />-->
+            </div>
+          </div>
+          <div style="text-align: center;">
+            <div class="record-play-control">
+              <a
+                v-if="chooseFileIndex > 0"
+                target="_blank"
+                class="record-play-control-item iconfont icon-diyigeshipin"
+                title="上一个"
+                @click="playLast()"
+              />
+              <a
+                v-else
+                style="color: #acacac; cursor: not-allowed"
+                target="_blank"
+                class="record-play-control-item iconfont icon-diyigeshipin"
+                title="上一个"
+              />
+              <a
+                target="_blank"
+                class="record-play-control-item iconfont icon-kuaijin"
+                title="快退五秒"
+                @click="seekBackward()"
+              />
+              <a
+                target="_blank"
+                class="record-play-control-item iconfont icon-stop1"
+                style="font-size: 14px"
+                title="停止"
+                @click="stopPLay()"
+              />
+              <a
+                v-if="playing"
+                target="_blank"
+                class="record-play-control-item iconfont icon-zanting"
+                title="暂停"
+                @click="pausePlay()"
+              />
+              <a v-if="!playing" target="_blank" class="record-play-control-item iconfont icon-kaishi" title="播放" @click="play()" />
+              <a
+                target="_blank"
+                class="record-play-control-item iconfont icon-houtui"
+                title="快进五秒"
+                @click="seekForward()"
+              />
+              <a
+                v-if="chooseFileIndex < detailFiles.length - 1"
+                target="_blank"
+                class="record-play-control-item iconfont icon-zuihouyigeshipin"
+                title="下一个"
+                @click="playNext()"
+              />
+              <a
+                v-else
+                style="color: #acacac; cursor: not-allowed"
+                target="_blank"
+                class="record-play-control-item iconfont icon-zuihouyigeshipin"
+                title="下一个"
+                @click="playNext()"
+              />
+              <el-dropdown @command="changePlaySpeed">
+                <a
+                  target="_blank"
+                  class="record-play-control-item record-play-control-speed"
+                  title="倍速播放"
+                >快进/快退</a>
                 <el-dropdown-menu slot="dropdown">
                   <el-dropdown-item :command="[3, 1]">正常快进</el-dropdown-item>
                   <el-dropdown-item :command="[3, 2]">2倍速快进</el-dropdown-item>
@@ -81,111 +175,118 @@
                   <el-dropdown-item :command="[4, 16]">16倍速快退</el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
-              <el-button size="mini" class="iconfont icon-xiazai1" title="下载选定录像" @click="downloadRecord()" />
-              <el-button v-if="sliderMIn === 0 && sliderMax === 86400" size="mini" class="iconfont icon-slider" title="放大滑块" @click="setSliderFit()" />
-              <el-button v-if="sliderMIn !== 0 || sliderMax !== 86400" size="mini" class="iconfont icon-slider-right" title="恢复滑块" @click="setSliderFit()" />
-            </el-button-group>
+            </div>
           </div>
-          <el-slider
-            id="playtimeSlider"
-            v-model="playTime"
-            class="playtime-slider"
-            :disabled="detailFiles.length === 0"
-            :min="sliderMIn"
-            :max="sliderMax"
-            :range="true"
-            :format-tooltip="playTimeFormat"
-            :marks="playTimeSliderMarks"
-            @change="playTimeChange"
-          />
-          <div class="slider-val-box">
-            <div v-for="item of detailFiles" class="slider-val" :style="'width:' + getDataWidth(item) + '%; left:' + getDataLeft(item) + '%'" />
+          <div style="text-align: right;">
+            <div class="record-play-control" style="background-color: transparent; box-shadow: 0 0 10px transparent">
+              <a
+                v-if="!isFullScreen"
+                target="_blank"
+                class="record-play-control-item iconfont icon-fangdazhanshi"
+                title="全屏"
+                @click="fullScreen()"
+              />
+              <a
+                v-else
+                target="_blank"
+                class="record-play-control-item iconfont icon-suoxiao1"
+                title="全屏"
+                @click="fullScreen()"
+              />
+            </div>
           </div>
         </div>
-
-      </el-main>
-    </el-container>
+      </div>
+    </div>
+    <record-download ref="recordDownload" />
+    <chooseTimeRange ref="chooseTimeRange" />
   </div>
 </template>
 
 <script>
-import player from '../../common/jessibuca.vue'
+
+import h265web from '../../common/h265web.vue'
+import VideoTimeline from '../../common/VideoTimeLine/index.vue'
+import recordDownload from '../../dialog/recordDownload.vue'
+import ChooseTimeRange from '../../dialog/chooseTimeRange.vue'
 import moment from 'moment'
+import screenfull from 'screenfull'
+
 export default {
-  name: 'App',
+  name: 'DeviceRecord',
   components: {
-    player
+    h265web, VideoTimeline, recordDownload, ChooseTimeRange
   },
   data() {
     return {
+      showSidebar: false,
       phoneNumber: this.$route.params.phoneNumber,
       channelId: this.$route.params.channelId,
-      recordsLoading: false,
-      streamId: '',
-      hasAudio: false,
-      detailFiles: [],
-      chooseDate: null,
-      videoUrl: null,
-      chooseFile: null,
-      streamInfo: null,
-      app: null,
       mediaServerId: null,
-      ssrc: null,
-
-      sliderMIn: 0,
-      sliderMax: 86400,
-      autoPlay: true,
-      taskUpdate: null,
-      tabVal: 'running',
-      recordListStyle: {
-        height: this.winHeight + 'px',
-        overflow: 'auto',
-        margin: '10px auto 10px auto'
-      },
-      playerStyle: {
-        'margin': '0 auto 20px auto',
-        'height': this.winHeight + 'px'
-      },
-      winHeight: window.innerHeight - 240,
+      dateFilesObj: [],
+      mediaServerList: [],
+      detailFiles: [],
+      videoUrl: null,
+      streamInfo: null,
+      loading: false,
+      chooseDate: null,
       playTime: null,
-      timeRange: null,
-      startTime: null,
-      endTime: null,
-      playTimeSliderMarks: {
-        0: '00:00',
-        3600: '01:00',
-        7200: '02:00',
-        10800: '03:00',
-        14400: '04:00',
-        18000: '05:00',
-        21600: '06:00',
-        25200: '07:00',
-        28800: '08:00',
-        32400: '09:00',
-        36000: '10:00',
-        39600: '11:00',
-        43200: '12:00',
-        46800: '13:00',
-        50400: '14:00',
-        54000: '15:00',
-        57600: '16:00',
-        61200: '17:00',
-        64800: '18:00',
-        68400: '19:00',
-        72000: '20:00',
-        75600: '21:00',
-        79200: '22:00',
-        82800: '23:00',
-        86400: '24:00'
-      }
+      playerTime: 0,
+      playSpeed: 1,
+      chooseFileIndex: null,
+      queryDate: new Date(),
+      currentPage: 1,
+      count: 1000000, // TODO 分页导致滑轨视频有效值无法获取完全
+      total: 0,
+      playLoading: false,
+      showTime: true,
+      isFullScreen: false,
+      playSeekValue: 0,
+      playing: false,
+      taskTimeRange: [],
+      timeFormat: '00:00:00',
+      initTime: null,
+      timelineControl: false,
+      showOtherSpeed: true,
+      timeSegments: [],
+      pickerOptions: {
+        cellClassName: (date) => {
+          // 通过显示一个点标识这一天有录像
+          const time = moment(date).format('YYYY-MM-DD')
+          if (this.dateFilesObj[time]) {
+            return 'data-picker-true'
+          } else {
+            return 'data-picker-false'
+          }
+        }
+      },
     }
   },
   computed: {
-
+    boxStyle() {
+      if (this.showSidebar) {
+        return {
+          display: 'grid',
+          gridTemplateColumns: '210px minmax(0, 1fr)'
+        }
+      } else {
+        return {
+          display: 'grid', gridTemplateColumns: '0 minmax(0, 1fr)'
+        }
+      }
+    },
+    showTimeValue() {
+      return moment(this.playTime).format('YYYY-MM-DD HH:mm:ss')
+    },
+    startTime() {
+      return this.chooseDate + ' 00:00:00'
+    },
+    endTime() {
+      return this.chooseDate + ' 23:59:59'
+    }
   },
   mounted() {
-    this.recordListStyle.height = this.winHeight + 'px'
-    this.playerStyle['height'] = this.winHeight + 'px'
+    // 查询当年有视频的日期
     this.chooseDate = moment().format('YYYY-MM-DD')
     this.dateChange()
     window.addEventListener('beforeunload', this.stopPlayRecord)
@@ -195,181 +296,178 @@ export default {
     window.removeEventListener('beforeunload', this.stopPlayRecord)
   },
   methods: {
-    dateChange() {
-      if (!this.chooseDate) {
-        return
+    sidebarControl() {
+      this.showSidebar = !this.showSidebar
+    },
+    snap() {
+      this.$refs.recordVideoPlayer.screenshot()
+    },
+    chooseTimeForRecord() {
+      let startTime = this.startTime
+      let endTime = this.endTime
+      if (this.detailFiles.length > 0) {
+        startTime = this.detailFiles[0].startTime
+        endTime = this.detailFiles[this.detailFiles.length - 1].endTime
       }
-
-      this.setTime(this.chooseDate + ' 00:00:00', this.chooseDate + ' 23:59:59')
-      this.recordsLoading = true
-      this.detailFiles = []
-      this.$axios({
-        method: 'get',
-        url: '/api/jt1078/record/list',
-        params: {
-          phoneNumber: this.phoneNumber,
-          channelId: this.channelId,
-          startTime: this.startTime,
-          endTime: this.endTime
-        }
-      }).then((res) => {
-        this.recordsLoading = false
-        if (res.data.code === 0) {
-          // 处理时间信息
-          this.detailFiles = res.data.data
-        } else {
-          this.$message({
-            showClose: true,
-            message: res.data.msg,
-            type: 'error'
-          })
-        }
-      }).catch((e) => {
-        this.recordsLoading = false
-        // that.videoHistory.searchHistoryResult = falsificationData.recordData;
+      console.log(startTime)
+      console.log(endTime)
+      this.$refs.chooseTimeRange.openDialog([new Date(startTime), new Date(endTime)], (time) => {
+        console.log(time)
+        const startTime = moment(time[0]).format('YYYY-MM-DD HH:mm:ss')
+        const endTime = moment(time[1]).format('YYYY-MM-DD HH:mm:ss')
+        this.downloadFile({
+          startTime: startTime,
+          endTime: endTime
+        })
       })
     },
-    moment: function(v) {
-      return moment(v)
+    playLast() {
+      // 播放上一个
+      if (this.chooseFileIndex === 0) {
+        return
+      }
+      this.chooseFile(this.chooseFileIndex - 1)
     },
-    setTime: function(startTime, endTime) {
-      this.startTime = startTime
-      this.endTime = endTime
-      const start = (new Date(this.startTime).getTime() - new Date(this.chooseDate + ' 00:00:00').getTime()) / 1000
-      const end = (new Date(this.endTime).getTime() - new Date(this.chooseDate + ' 00:00:00').getTime()) / 1000
-      console.log(start)
-      console.log(end)
-      this.playTime = [start, end]
-      this.timeRange = [startTime, endTime]
+    playNext() {
+      // 播放上一个
+      if (this.chooseFileIndex === this.detailFiles.length - 1) {
+        return
+      }
+      this.chooseFile(this.chooseFileIndex + 1)
     },
-    videoError: function(e) {
-      console.log('播放器错误：' + JSON.stringify(e))
-    },
-    checkedFile(file) {
-      this.chooseFile = file
-      this.setTime(file.startTime, file.endTime)
-      // 开始回放
-      this.playRecord()
-    },
-    playRecord: function() {
-      if (this.streamId !== '') {
-        this.stopPlayRecord(() => {
-          this.streamId = ''
-          this.playRecord()
+    changePlaySpeed(speed) {
+      console.log(this.streamInfo)
+      console.log(speed)
+      // 倍速播放
+      this.playSpeed = speed
+      this.$store.dispatch('playback/setSpeed', [this.streamInfo.stream, speed])
+        .then(data => {
+          this.$refs.recordVideoPlayer.setPlaybackRate(this.playSpeed)
         })
+        .catch((err) => {
+          console.log(err)
+        })
+    },
+    seekBackward() {
+      // 快退五秒
+      this.playSeekValue -= 5 * 1000
+      this.play()
+    },
+    seekForward() {
+      // 快进五秒
+      this.playSeekValue += 5 * 1000
+      this.play()
+    },
+    stopPLay() {
+      // 停止
+      this.$refs.recordVideoPlayer.destroy()
+    },
+    pausePlay() {
+      // 暂停
+      this.$refs.recordVideoPlayer.pause()
+    },
+    play() {
+      if (this.$refs.recordVideoPlayer.loaded) {
+        this.$refs.recordVideoPlayer.unPause()
       } else {
-        this.$axios({
-          method: 'get',
-          url: '/api/jt1078/playback/start/',
-          params: {
-            phoneNumber: this.phoneNumber,
-            channelId: this.channelId,
-            startTime: this.startTime,
-            endTime: this.endTime,
-            type: 0,
-            rate: 0,
-            playbackType: 0,
-            playbackSpeed: 0
+        this.playRecord(this.showTimeValue, this.endTime)
+      }
+    },
+    fullScreen() {
+      // 全屏
+      if (this.isFullScreen) {
+        screenfull.exit()
+        this.isFullScreen = false
+        return
+      }
+      const playerWidth = this.$refs.recordVideoPlayer.playerWidth
+      const playerHeight = this.$refs.recordVideoPlayer.playerHeight
+      screenfull.request(document.getElementById('playerBox'))
+      screenfull.on('change', (event) => {
+        this.$refs.recordVideoPlayer.resize(playerWidth, playerHeight)
+        this.isFullScreen = screenfull.isFullscreen
+      })
+      this.isFullScreen = true
+    },
+    dateChange() {
+      this.detailFiles = []
+      this.$store.dispatch('jtDevice/queryRecordList', {
+        phoneNumber: this.phoneNumber,
+        channelId: this.channelId,
+        startTime: this.startTime,
+        endTime: this.endTime
+      })
+        .then((data) => {
+          // 处理时间信息
+          if (data.length === 0) {
+            return
           }
-        }).then((res) => {
-          if (res.data.code === 0) {
-            this.streamInfo = res.data.data
-            this.app = this.streamInfo.app
-            this.streamId = this.streamInfo.stream
-            this.mediaServerId = this.streamInfo.mediaServerId
-            this.ssrc = this.streamInfo.ssrc
-            this.videoUrl = this.getUrlByStreamInfo()
-            this.hasAudio = this.streamInfo.tracks && this.streamInfo.tracks.length > 1
-          } else {
-            this.$message({
-              showClose: true,
-              message: res.data.msg,
-              type: 'error'
+          this.detailFiles = data
+          this.initTime = new Date(this.detailFiles[0].startTime).getTime()
+          for (let i = 0; i < this.detailFiles.length; i++) {
+            this.timeSegments.push({
+              beginTime: new Date(this.detailFiles[i].startTime).getTime(),
+              endTime: new Date(this.detailFiles[i].endTime).getTime(),
+              color: '#017690',
+              startRatio: 0.7,
+              endRatio: 0.85,
+              index: i
             })
           }
         })
-      }
+        .catch((e) => {
+          console.log(e)
+        })
+        .finally(() => {
+          this.recordsLoading = false
+        })
     },
-    gbPlay() {
-      console.log('前端控制：播放')
-      this.$axios({
-        method: 'get',
-        url: '/api/playback/resume/' + this.streamId
-      }).then((res) => {
-        this.$refs['recordVideoPlayer'].play(this.videoUrl)
-      })
-    },
-    control(command, playbackSpeed, time) {
-      this.$axios({
-        method: 'get',
-        url: '/api/jt1078/playback/control',
-        params: {
-          phoneNumber: this.phoneNumber,
-          channelId: this.channelId,
-          command: command,
-          playbackSpeed: playbackSpeed,
-          time: time
-        }
-      }).then(function(res) {})
-    },
-    scale(command) {
-      this.control(command[0], command[1])
-    },
-    downloadRecord: function(row) {
-      const baseUrl = window.baseUrl ? window.baseUrl : ''
-      const downloadFile = ((process.env.NODE_ENV === 'development') ? process.env.BASE_API : baseUrl) +
-        `/api/jt1078/playback/download?phoneNumber=${this.phoneNumber}&channelId=${this.channelId}&startTime=${row.startTime}&endTime=${row.endTime}` +
-        `&alarmSign=${row.alarmSign}&mediaType=${row.mediaType}&streamType=${row.streamType}&storageType=${row.storageType}`
-      console.log(downloadFile)
-      const x = new XMLHttpRequest()
-      x.open('GET', downloadFile, true)
-      x.responseType = 'blob'
-      x.onload = (e) => {
-        const url = window.URL.createObjectURL(x.response)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = this.phoneNumber + '-' + this.channelId + '.mp4'
-        a.click()
-      }
-      x.send()
-    },
-    stopDownloadRecord: function(callback) {
-      this.$refs['recordVideoPlayer'].pause()
-      this.videoUrl = ''
-      this.$axios({
-        method: 'get',
-        url: '/api/gb_record/download/stop/' + this.deviceId + '/' + this.channelId + '/' + this.streamId
-      }).then((res) => {
-        if (callback) callback(res)
-      })
-    },
-    stopPlayRecord: function(callback) {
+    stopPlayRecord(callback) {
       console.log('停止录像回放')
-      if (this.streamId !== '') {
+      if (this.streamInfo !== null) {
         this.$refs['recordVideoPlayer'].pause()
         this.videoUrl = ''
-        this.$axios({
-          method: 'get',
-          url: '/api/jt1078/playback/stop/',
-          params: {
-            phoneNumber: this.phoneNumber,
-            channelId: this.channelId,
-            streamId: this.streamId
-          }
-        }).then(function(res) {
-          if (callback) callback()
+        this.$store.dispatch('jtDevice/stopPlayback', {
+          phoneNumber: this.phoneNumber,
+          channelId: this.channelId,
+          streamId: this.streamId
         })
+          .then(function(res) {
+            if (callback) callback()
+          })
+      } else {
+        if (callback) callback()
       }
     },
-    getDataWidth(item) {
-      const timeForFile = this.getTimeForFile(item)
-      const result = (timeForFile[2]) / ((this.sliderMax - this.sliderMIn) * 1000)
-      return result * 100
+    chooseFile(index) {
+      this.chooseFileIndex = index
+      const chooseFile = this.detailFiles[this.chooseFileIndex]
+      this.playTime = new Date(chooseFile.startTime).getTime()
+      this.playRecord(chooseFile.startTime, this.endTime)
     },
-    getDataLeft(item) {
-      const timeForFile = this.getTimeForFile(item)
-      const differenceTime = timeForFile[0].getTime() - new Date(this.chooseDate + ' 00:00:00').getTime()
-      return parseFloat((differenceTime - this.sliderMIn * 1000) / ((this.sliderMax - this.sliderMIn) * 1000)) * 100
+    playRecord(startTime, endTime) {
+      if (this.streamInfo !== null) {
+        this.stopPlayRecord(() => {
+          this.playRecord(startTime, endTime)
+        })
+      } else {
+        this.playerTime = 0
+        this.$store.dispatch('jtDevice/startPlayback', {
+          phoneNumber: this.phoneNumber,
+          channelId: this.channelId,
+          startTime: this.startTime,
+          endTime: this.endTime,
+          type: 0,
+          rate: 0,
+          playbackType: 0,
+          playbackSpeed: 0
+        })
+          .then((data) => {
+            this.streamInfo = data
+            this.videoUrl = this.getUrlByStreamInfo()
+            this.hasAudio = this.streamInfo.tracks && this.streamInfo.tracks.length > 1
+          })
+      }
     },
     getUrlByStreamInfo() {
       if (location.protocol === 'https:') {
@@ -379,154 +477,147 @@ export default {
       }
       return this.videoUrl
     },
-    timePickerChange: function(val) {
-      this.setTime(val[0], val[1])
+    downloadFile(row) {
+      if (!row) {
+        const startTimeStr = moment(new Date(this.chooseDate + ' 00:00:00').getTime() + this.playTime[0] * 1000).format('YYYY-MM-DD HH:mm:ss')
+        const endTimeStr = moment(new Date(this.chooseDate + ' 00:00:00').getTime() + this.playTime[1] * 1000).format('YYYY-MM-DD HH:mm:ss')
+        row = {
+          startTime: startTimeStr,
+          endTime: endTimeStr
+        }
+      }
+      if (this.streamInfo !== null) {
+        this.stopPlayRecord(() => {
+          this.downloadFile(row)
+        })
+      } else {
+        const loading = this.$loading({
+          lock: true,
+          text: '正在请求录像',
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.7)'
+        })
+        this.$store.dispatch('gbRecord/startDownLoad', [
+          this.deviceId, this.channelId, row.startTime, row.endTime, this.playSpeedRange[this.playSpeedRange.length - 1]
+        ])
+          .then(streamInfo => {
+            this.$refs.recordDownload.openDialog(this.deviceId, this.channelId, streamInfo.app, streamInfo.stream, streamInfo.mediaServerId)
+          })
+          .finally(() => {
+            loading.close()
+          })
+      }
+    },
+    getFileShowName(item) {
+      return moment(item.startTime).format('HH:mm:ss') + '-' + moment(item.endTime).format('HH:mm:ss')
+    },
+
+    showPlayTimeChange(val) {
+      this.playTime += (val * 1000 - this.playerTime)
+      this.playerTime = val * 1000
+    },
+    playingChange(val) {
+      this.playing = val
     },
     playTimeChange(val) {
-      console.log(val)
-
-      const startTimeStr = moment(new Date(this.chooseDate + ' 00:00:00').getTime() + val[0] * 1000).format('YYYY-MM-DD HH:mm:ss')
-      const endTimeStr = moment(new Date(this.chooseDate + ' 00:00:00').getTime() + val[1] * 1000).format('YYYY-MM-DD HH:mm:ss')
-
-      this.setTime(startTimeStr, endTimeStr)
-
-      this.playRecord()
+      if (val === this.playTime) {
+        return
+      }
+      this.playTime = val
     },
-    setSliderFit() {
-      if (this.sliderMIn === 0 && this.sliderMax === 86400) {
-        if (this.detailFiles.length > 0) {
-          const timeForFile = this.getTimeForFile(this.detailFiles[0])
-          const lastTimeForFile = this.getTimeForFile(this.detailFiles[this.detailFiles.length - 1])
-          const timeNum = timeForFile[0].getTime() - new Date(this.chooseDate + ' ' + '00:00:00').getTime()
-          const lastTimeNum = lastTimeForFile[1].getTime() - new Date(this.chooseDate + ' ' + '00:00:00').getTime()
-
-          this.playTime = parseInt(timeNum / 1000)
-          this.sliderMIn = parseInt(timeNum / 1000 - timeNum / 1000 % (60 * 60))
-          this.sliderMax = parseInt(lastTimeNum / 1000 - lastTimeNum / 1000 % (60 * 60)) + 60 * 60
-
-          this.playTime = [this.sliderMIn, this.sliderMax]
-        }
-      } else {
-        this.sliderMIn = 0
-        this.sliderMax = 86400
-      }
+    timelineMouseDown() {
+      this.timelineControl = true
     },
-    getTimeForFile(file) {
-      const startTime = new Date(file.startTime)
-      const endTime = new Date(file.endTime)
-      return [startTime, endTime, endTime.getTime() - startTime.getTime()]
-    },
-    playTimeFormat(val) {
-      const h = parseInt(val / 3600)
-      const m = parseInt((val - h * 3600) / 60)
-      const s = parseInt(val - h * 3600 - m * 60)
-
-      let hStr = h
-      let mStr = m
-      let sStr = s
-      if (h < 10) {
-        hStr = '0' + hStr
+    mouseupTimeline(event) {
+      if (!this.timelineControl) {
+        this.timelineControl = false
+        return
       }
-      if (m < 10) {
-        mStr = '0' + mStr; s
-      }
-      if (s < 10) {
-        sStr = '0' + sStr
-      }
-      return hStr + ':' + mStr + ':' + sStr
-    },
-    goBack() {
-      // 如果正在进行录像回放则，发送停止
-      if (this.streamId !== '') {
-        this.stopPlayRecord(() => {
-          this.streamId = ''
-        })
-      }
-      window.history.go(-1)
+      this.timelineControl = false
+      this.playRecord(this.showTimeValue, this.endTime)
     }
   }
 }
 </script>
 
 <style>
-.el-slider__runway {
-  background-color:rgba(206, 206, 206, 0.47) !important;
-}
-.el-slider__bar {
-  background-color: rgba(153, 153, 153, 0) !important;
-}
-.playtime-slider {
-  position: relative;
-  z-index: 100;
-}
-.data-picker-true{
 
-}
-.data-picker-true:after{
-  content: "";
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  background-color: #606060;
-  border-radius: 4px;
-  left: 45%;
-  top: 74%;
-
-}
-.data-picker-false{
-
-}
-.slider-val-box{
-  height: 6px;
-  position: relative;
-  top: -22px;
-}
-.slider-val{
-  height: 6px;
-  background-color: #007CFF;
-  position: absolute;
-}
-.record-list-box-box{
-  width: 250px;
+.record-list-box-box {
+  width: fit-content;
   float: left;
 }
-.record-list-box{
+
+.record-list-box {
+  width: 100%;
   overflow: auto;
-  width: 220px;
   list-style: none;
   padding: 0;
   margin: 0;
-  margin-top: 0px;
-  padding: 1rem 0;
   background-color: #FFF;
   margin-top: 10px;
 }
-.record-list{
+
+.record-list {
   list-style: none;
   padding: 0;
   margin: 0;
   background-color: #FFF;
 
 }
+
 .record-list-no-val {
-  position: absolute;
+  width: fit-content;
+  position: relative;
   color: #9f9f9f;
   top: 50%;
-  left: 110px;
+  left: calc(50% - 2rem);
 }
-.record-list-item{
+
+.record-list-item {
   padding: 0;
   margin: 0;
   margin: 0.5rem 0;
   cursor: pointer;
 }
-.record-list-option {
-  width: 10px;
-  float: left;
-  margin-top: 39px;
 
+.record-play-control {
+  height: 32px;
+  line-height: 32px;
+  display: inline-block;
+  width: fit-content;
+  padding: 0 10px;
+  -webkit-box-shadow: 0 0 10px #262626;
+  box-shadow: 0 0 10px #262626;
+  background-color: #262626;
+  margin: 4px 0;
 }
-.player-option-box{
-  padding: 0 20px;
+
+.record-play-control-item {
+  display: inline-block;
+  padding: 0 10px;
+  color: #fff;
+  margin-right: 2px;
+}
+
+.record-play-control-item:hover {
+  color: #1f83e6;
+}
+
+.record-play-control-speed {
+  font-weight: bold;
+  color: #fff;
+  user-select: none;
+}
+
+.player-option-box {
+  height: 50px
+}
+
+.time-line-show {
+  position: relative;
+  color: rgba(250, 249, 249, 0.89);
+  left: calc(50% - 85px);
+  top: -72px;
+  text-shadow: 1px 0 #5f6b7c, -1px 0 #5f6b7c, 0 1px #5f6b7c, 0 -1px #5f6b7c, 1.1px 1.1px #5f6b7c, 1.1px -1.1px #5f6b7c, -1.1px 1.1px #5f6b7c, -1.1px -1.1px #5f6b7c;
 }
 </style>

@@ -139,4 +139,77 @@ export function fillLight(params) {
     }
   })
 }
+export function queryRecordList(params) {
+  const { phoneNumber, channelId, startTime, endTime } = params
+  return request({
+    method: 'get',
+    url: '/api/jt1078/record/list',
+    params: {
+      phoneNumber: phoneNumber,
+      channelId: channelId,
+      startTime: startTime,
+      endTime: endTime
+    }
+  })
+}
+export function startPlayback(params) {
+  const { phoneNumber, channelId, startTime, endTime, type, rate, playbackType, playbackSpeed } = params
+  return request({
+    method: 'get',
+    url: '/api/jt1078/playback/start/',
+    params: {
+      phoneNumber: phoneNumber,
+      channelId: channelId,
+      startTime: startTime,
+      endTime: endTime,
+      type: type,
+      rate: rate,
+      playbackType: playbackType,
+      playbackSpeed: playbackSpeed
+    }
+  })
+}
+export function controlPlayback(params) {
+  const { phoneNumber, channelId, command, playbackSpeed, time } = params
+  return request({
+    method: 'get',
+    url: '/api/jt1078/playback/control',
+    params: {
+      phoneNumber: phoneNumber,
+      channelId: channelId,
+      command: command,
+      playbackSpeed: playbackSpeed,
+      time: time
+    }
+  })
+}
+export function stopPlayback(params) {
+  const { phoneNumber, channelId, streamId } = params
+  return request({
+    method: 'get',
+    url: '/api/jt1078/playback/stop/',
+    params: {
+      phoneNumber: phoneNumber,
+      channelId: channelId,
+      streamId: streamId
+    }
+  })
+}
+export function queryConfig(phoneNumber) {
+  return request({
+    method: 'get',
+    url: `/api/jt1078/config`,
+    params: {
+      phoneNumber: phoneNumber
+    }
+  })
+}
+export function setConfig(data) {
+  return request({
+    method: 'post',
+    url: `/api/jt1078/set-config`,
+    data: data
+  })
+}
+
 

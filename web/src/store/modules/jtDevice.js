@@ -1,12 +1,12 @@
 import {
   add,
-  addChannel, deleteDevice,
-  deleteDeviceById, fillLight,
+  addChannel, controlPlayback, deleteDevice,
+  fillLight,
   play, ptz,
-  queryChannels,
+  queryChannels, queryConfig,
   queryDeviceById,
-  queryDevices,
-  stopPlay, update,
+  queryDevices, queryRecordList, setConfig, startPlayback,
+  stopPlay, stopPlayback, update,
   updateChannel, wiper
 } from '@/api/jtDevice'
 
@@ -134,6 +134,66 @@ const actions = {
   fillLight({ commit }, params) {
     return new Promise((resolve, reject) => {
       fillLight(params).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  queryConfig({ commit }, phoneNumber) {
+    return new Promise((resolve, reject) => {
+      queryConfig(phoneNumber).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  setConfig({ commit }, data) {
+    return new Promise((resolve, reject) => {
+      setConfig(data).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  queryRecordList({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      queryRecordList(params).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  startPlayback({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      startPlayback(params).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  controlPlayback({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      controlPlayback(params).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  stopPlayback({ commit }, params) {
+    return new Promise((resolve, reject) => {
+      stopPlayback(params).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

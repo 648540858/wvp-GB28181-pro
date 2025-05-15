@@ -250,7 +250,7 @@ export default {
     queryCloudRecords: function(itemData) {
       const deviceId = this.device.phoneNumber
       const channelId = itemData.channelId
-      this.$router.push(`/cloudRecord/detail/rtp/${deviceId}_${channelId}`)
+      this.$router.push(`/cloudRecord/detail/rtp/jt_${deviceId}_${channelId}`)
     },
     stopDevicePush: function(itemData) {
       this.$store.dispatch('jtDevice/stopPlay', {

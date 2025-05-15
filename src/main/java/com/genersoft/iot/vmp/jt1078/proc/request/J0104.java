@@ -131,6 +131,7 @@ public class J0104 extends Re {
                         JTChannelListParam channelListParam = JTChannelListParam.decode(buf);
                         Method methodForChannelListParam = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), JTChannelListParam.class);
                         methodForChannelListParam.invoke(deviceConfig, channelListParam);
+                        continue;
                     case "ChannelParam":
                         JTChannelParam channelParam = JTChannelParam.decode(buf);
                         Method methodForChannelParam = deviceConfig.getClass().getDeclaredMethod("set" + StringUtils.capitalize(field.getName()), JTChannelParam.class);
@@ -157,7 +158,7 @@ public class J0104 extends Re {
                         methodForAwakenParam.invoke(deviceConfig, awakenParamParam);
                         continue;
                     default:
-                            System.err.println(field.getGenericType().getTypeName());
+                        System.err.println(field.getGenericType().getTypeName());
                         continue;
                 }
             } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {

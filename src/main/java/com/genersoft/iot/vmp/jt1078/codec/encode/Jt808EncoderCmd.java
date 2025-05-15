@@ -34,7 +34,7 @@ public class Jt808EncoderCmd extends MessageToByteEncoder<Cmd> {
         List<ByteBuf> encodeList = encode(msg, session, cmd.getPackageNo().intValue());
         if (encodeList != null && !encodeList.isEmpty()) {
             for (ByteBuf byteBuf : encodeList) {
-                log.info("< {} hex:{}", session, ByteBufUtil.hexDump(byteBuf));
+                log.debug("< {} hex:{}", session, ByteBufUtil.hexDump(byteBuf));
                 out.writeBytes(byteBuf);
             }
         }

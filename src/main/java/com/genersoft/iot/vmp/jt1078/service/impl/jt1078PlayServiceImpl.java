@@ -240,8 +240,8 @@ public class jt1078PlayServiceImpl implements Ijt1078PlayService {
         dynamicTask.startDelay(playKey, () -> {
             log.info("[1078-点播] 超时， phoneNumber： {}， channelId： {}", phoneNumber, channelId);
             for (CommonCallback<WVPResult<StreamInfo>> errorCallback : errorCallbacks) {
-                errorCallback.run(new WVPResult<>(InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode(),
-                        InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getMsg(), null));
+                errorCallback.run(new WVPResult<>(InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode(),
+                        InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getMsg(), null));
             }
             mediaServerService.closeRTPServer(mediaServer, stream);
             subscribe.removeSubscribe(hook);

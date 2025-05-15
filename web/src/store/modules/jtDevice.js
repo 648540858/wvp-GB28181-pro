@@ -1,6 +1,6 @@
 import {
   add,
-  addChannel,
+  addChannel, deleteDevice,
   deleteDeviceById, fillLight,
   play, ptz,
   queryChannels,
@@ -51,9 +51,9 @@ const actions = {
       })
     })
   },
-  deleteDeviceById({ commit }, deviceId) {
+  deleteDevice({ commit }, phoneNumber) {
     return new Promise((resolve, reject) => {
-      deleteDeviceById(deviceId).then(response => {
+      deleteDevice(phoneNumber).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

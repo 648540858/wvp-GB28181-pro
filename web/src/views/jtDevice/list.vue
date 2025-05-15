@@ -2,9 +2,9 @@
   <div id="app" style="height: calc(100vh - 124px);">
     <el-form :inline="true" size="mini">
       <el-form-item>
-        <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="add">接入新设备
-        </el-button>
-      </el-form-item>
+        <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="add">新设备</el-button>
+        <el-button icon="el-icon-info" style="margin-right: 1rem;" @click="showInfo()">接入信息
+      </el-button></el-form-item>
       <el-form-item style="float: right;">
         <el-button
           icon="el-icon-refresh-right"
@@ -124,16 +124,18 @@
       @current-change="currentChange"
     />
     <deviceEdit ref="deviceEdit" />
+    <configInfo ref="configInfo" />
   </div>
 </template>
 
 <script>
 import deviceEdit from './edit.vue'
+import configInfo from '../dialog/configInfo.vue'
 
 export default {
   name: 'App',
   components: {
-    deviceEdit
+    deviceEdit, configInfo
   },
   data() {
     return {
@@ -188,7 +190,7 @@ export default {
         center: true,
         type: 'warning'
       }).then(() => {
-        this.$store.dispatch('jtDevice/deleteDeviceById', row.id)
+        this.$store.dispatch('jtDevice/deleteDevice', row.phoneNumber)
           .then(data => {
             this.getList()
           })
@@ -230,6 +232,13 @@ export default {
       } else {
         this.$message.info('尚不支持')
       }
+    },
+    showInfo: function() {
+      this.$store.dispatch('server/getSystemConfig')
+        .then((data) => {
+          this.serverId = data.addOn.serverId
+          this.$refs.configInfo.openDialog(data, 'jt1078Config')
+        })
     }
 
   }

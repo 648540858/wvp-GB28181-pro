@@ -40,12 +40,12 @@ export function add(form) {
   })
 }
 
-export function deleteDeviceById(deviceId) {
+export function deleteDevice(phoneNumber) {
   return request({
     method: 'delete',
     url: '/api/jt1078/terminal/delete',
     params: {
-      deviceId: deviceId
+      phoneNumber: phoneNumber
     }
   })
 }

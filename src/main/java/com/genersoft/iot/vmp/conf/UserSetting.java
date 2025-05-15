@@ -195,6 +195,15 @@ public class UserSetting {
      */
     private boolean sendPositionOnDemand = true;
 
+    /**
+     * 部分设备会在短时间内发送大量注册， 导致协议栈内存溢出， 开启此项可以防止这部分设备注册， 避免服务崩溃，但是会降低系统性能， 描述如下
+     * 默认值为 true。
+     * 将此设置为 false 会使 Stack 在 Server Transaction 进入 TERMINATED 状态后关闭服务器套接字。
+     * 这允许服务器防止客户端发起的基于 TCP 的拒绝服务攻击（即发起数百个客户端事务）。
+     * 如果为 true（默认作），则堆栈将保持套接字打开，以便以牺牲线程和内存资源为代价来最大化性能 - 使自身容易受到 DOS 攻击。
+     */
+    private boolean sipCacheServerConnections = true;
+
 
 
 }

@@ -12,19 +12,19 @@ import java.util.Properties;
  */
 public class DefaultProperties {
 
-    public static Properties getProperties(String name, boolean sipLog) {
+    public static Properties getProperties(String name, boolean sipLog, boolean sipCacheServerConnections) {
         Properties properties = new Properties();
         properties.setProperty("javax.sip.STACK_NAME", name);
 //        properties.setProperty("javax.sip.IP_ADDRESS", ip);
         // 关闭自动会话
         properties.setProperty("javax.sip.AUTOMATIC_DIALOG_SUPPORT", "off");
+
         /**
          * 完整配置参考 gov.nist.javax.sip.SipStackImpl，需要下载源码
          * gov/nist/javax/sip/SipStackImpl.class
          * sip消息的解析在 gov.nist.javax.sip.stack.UDPMessageChannel的processIncomingDataPacket方法
          */
 
-//		 * gov/nist/javax/sip/SipStackImpl.class
         // 接收所有notify请求，即使没有订阅
         properties.setProperty("gov.nist.javax.sip.DELIVER_UNSOLICITED_NOTIFY", "true");
         properties.setProperty("gov.nist.javax.sip.AUTOMATIC_DIALOG_ERROR_HANDLING", "false");
@@ -43,6 +43,13 @@ public class DefaultProperties {
         properties.setProperty("gov.nist.javax.sip.REENTRANT_LISTENER", "true");
         // 定义应用程序打算多久审计一次 SIP 堆栈，了解其内部线程的健康状况（该属性指定连续审计之间的时间（以毫秒为单位））
         properties.setProperty("gov.nist.javax.sip.THREAD_AUDIT_INTERVAL_IN_MILLISECS", "30000");
+
+        // 部分设备会在短时间内发送大量注册， 导致协议栈内存溢出， 开启此项可以防止这部分设备注册， 避免服务崩溃，但是会降低系统性能， 描述如下
+        // 默认值为 true。
+        // 将此设置为 false 会使 Stack 在 Server Transaction 进入 TERMINATED 状态后关闭服务器套接字。
+        // 这允许服务器防止客户端发起的基于 TCP 的拒绝服务攻击（即发起数百个客户端事务）。
+        // 如果为 true（默认作），则堆栈将保持套接字打开，以便以牺牲线程和内存资源为代价来最大化性能 - 使自身容易受到 DOS 攻击。
+        properties.setProperty("gov.nist.javax.sip.CACHE_SERVER_CONNECTIONS", String.valueOf(sipCacheServerConnections));
 
         properties.setProperty("gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", "gov.nist.javax.sip.stack.NioMessageProcessorFactory");
 

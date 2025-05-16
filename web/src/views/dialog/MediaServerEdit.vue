@@ -11,7 +11,7 @@
       @close="close()"
     >
       <div id="formStep" style="margin-top: 1rem; margin-right: 20px;">
-        <el-form v-if="currentStep == 1" ref="mediaServerForm" :rules="rules" :model="mediaServerForm" label-width="140px">
+        <el-form v-if="currentStep === 1" ref="mediaServerForm" :rules="rules" :model="mediaServerForm" label-width="140px">
           <el-form-item label="IP" prop="ip">
             <el-input v-model="mediaServerForm.ip" placeholder="媒体服务IP" clearable :disabled="mediaServerForm.defaultServer" />
           </el-form-item>
@@ -237,7 +237,7 @@ export default {
     },
     checkServer: function() {
       this.serverCheck = 0
-      this.$store.dispatch("server/checkMediaServer", this.mediaServerForm)
+      this.$store.dispatch('server/checkMediaServer', this.mediaServerForm)
         .then(data => {
           if (parseInt(this.mediaServerForm.httpPort) !== parseInt(data.httpPort)) {
             this.$message({

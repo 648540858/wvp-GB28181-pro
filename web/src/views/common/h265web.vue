@@ -208,15 +208,15 @@ export default {
     unPause: function() {
       if (h265webPlayer[this._uid]) {
         h265webPlayer[this._uid].play()
+        this.playing = h265webPlayer[this._uid].isPlaying()
       }
-      this.playing = h265webPlayer[this._uid].isPlaying()
       this.err = ''
     },
     pause: function() {
       if (h265webPlayer[this._uid]) {
         h265webPlayer[this._uid].pause()
+        this.playing = h265webPlayer[this._uid].isPlaying()
       }
-      this.playing = h265webPlayer[this._uid].isPlaying()
       this.err = ''
     },
     mute: function() {

@@ -24,13 +24,13 @@ export function getMediaServer(id) {
 }
 
 export function checkMediaServer(params) {
-  const { ip, port, secret, type } = params
+  const { ip, httpPort, secret, type } = params
   return request({
     method: 'get',
     url: `/api/server/media_server/check`,
     params: {
       ip: ip,
-      port: port,
+      port: httpPort,
       secret: secret,
       type: type
     }

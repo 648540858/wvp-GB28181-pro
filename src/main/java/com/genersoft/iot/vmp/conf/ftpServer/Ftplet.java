@@ -13,9 +13,9 @@ import java.io.IOException;
 
 
 @Component
-public class ftplet extends DefaultFtplet {
+public class Ftplet extends DefaultFtplet {
 
-    private final Logger logger = LoggerFactory.getLogger(ftplet.class);
+    private final Logger logger = LoggerFactory.getLogger(Ftplet.class);
 
     @Value("${ftp.username}")
     private String username;

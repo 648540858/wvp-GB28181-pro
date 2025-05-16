@@ -89,17 +89,25 @@
                 title="截图"
                 @click="snap()"
               />
-              <a
-                target="_blank"
-                class="record-play-control-item iconfont icon-xiazai1"
-                title="下载录像"
-                @click="chooseTimeForRecord()"
-              />
               <!--              <a target="_blank" class="record-play-control-item iconfont icon-xiazai011" title="下载" @click="gbPause()" />-->
             </div>
           </div>
           <div style="text-align: center;">
             <div class="record-play-control">
+              <el-dropdown @command="scale">
+                <a
+                    target="_blank"
+                    class="record-play-control-item record-play-control-speed"
+                    title="倍速播放"
+                >快退</a>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item :command="[4, 1]">1X</el-dropdown-item>
+                  <el-dropdown-item :command="[4, 2]">2X</el-dropdown-item>
+                  <el-dropdown-item :command="[4, 4]">4X</el-dropdown-item>
+                  <el-dropdown-item :command="[4, 8]">8X</el-dropdown-item>
+                  <el-dropdown-item :command="[4, 16]">16X</el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
               <a
                 v-if="chooseFileIndex > 0"
                 target="_blank"
@@ -116,12 +124,6 @@
               />
               <a
                 target="_blank"
-                class="record-play-control-item iconfont icon-kuaijin"
-                title="快退五秒"
-                @click="seekBackward()"
-              />
-              <a
-                target="_blank"
                 class="record-play-control-item iconfont icon-stop1"
                 style="font-size: 14px"
                 title="停止"
@@ -134,12 +136,12 @@
                 title="暂停"
                 @click="pausePlay()"
               />
-              <a v-if="!playing" target="_blank" class="record-play-control-item iconfont icon-kaishi" title="播放" @click="play()" />
               <a
+                v-if="!playing"
                 target="_blank"
-                class="record-play-control-item iconfont icon-houtui"
-                title="快进五秒"
-                @click="seekForward()"
+                class="record-play-control-item iconfont icon-kaishi"
+                title="播放"
+                @click="play()"
               />
               <a
                 v-if="chooseFileIndex < detailFiles.length - 1"
@@ -156,23 +158,18 @@
                 title="下一个"
                 @click="playNext()"
               />
-              <el-dropdown @command="changePlaySpeed">
+              <el-dropdown @command="scale">
                 <a
                   target="_blank"
                   class="record-play-control-item record-play-control-speed"
                   title="倍速播放"
-                >快进/快退</a>
+                >快进</a>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item :command="[3, 1]">正常快进</el-dropdown-item>
-                  <el-dropdown-item :command="[3, 2]">2倍速快进</el-dropdown-item>
-                  <el-dropdown-item :command="[3, 4]">4倍速快进</el-dropdown-item>
-                  <el-dropdown-item :command="[3, 8]">8倍速快进</el-dropdown-item>
-                  <el-dropdown-item :command="[3, 16]">16倍速快进</el-dropdown-item>
-                  <el-dropdown-item :command="[4, 1]">正常快退</el-dropdown-item>
-                  <el-dropdown-item :command="[4, 2]">2倍速快退</el-dropdown-item>
-                  <el-dropdown-item :command="[4, 4]">4倍速快退</el-dropdown-item>
-                  <el-dropdown-item :command="[4, 8]">8倍速快退</el-dropdown-item>
-                  <el-dropdown-item :command="[4, 16]">16倍速快退</el-dropdown-item>
+                  <el-dropdown-item :command="[3, 1]">1X</el-dropdown-item>
+                  <el-dropdown-item :command="[3, 2]">2X</el-dropdown-item>
+                  <el-dropdown-item :command="[3, 4]">4X</el-dropdown-item>
+                  <el-dropdown-item :command="[3, 8]">8X</el-dropdown-item>
+                  <el-dropdown-item :command="[3, 16]">16X</el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
             </div>
@@ -302,25 +299,6 @@ export default {
     snap() {
       this.$refs.recordVideoPlayer.screenshot()
     },
-    chooseTimeForRecord() {
-      let startTime = this.startTime
-      let endTime = this.endTime
-      if (this.detailFiles.length > 0) {
-        startTime = this.detailFiles[0].startTime
-        endTime = this.detailFiles[this.detailFiles.length - 1].endTime
-      }
-      console.log(startTime)
-      console.log(endTime)
-      this.$refs.chooseTimeRange.openDialog([new Date(startTime), new Date(endTime)], (time) => {
-        console.log(time)
-        const startTime = moment(time[0]).format('YYYY-MM-DD HH:mm:ss')
-        const endTime = moment(time[1]).format('YYYY-MM-DD HH:mm:ss')
-        this.downloadFile({
-          startTime: startTime,
-          endTime: endTime
-        })
-      })
-    },
     playLast() {
       // 播放上一个
       if (this.chooseFileIndex === 0) {
@@ -335,36 +313,30 @@ export default {
       }
       this.chooseFile(this.chooseFileIndex + 1)
     },
-    changePlaySpeed(speed) {
-      console.log(this.streamInfo)
-      console.log(speed)
+    scale(command) {
+      this.control(command[0], command[1])
+    },
+    control(command, playbackSpeed, time) {
       // 倍速播放
-      this.playSpeed = speed
-      this.$store.dispatch('playback/setSpeed', [this.streamInfo.stream, speed])
-        .then(data => {
-          this.$refs.recordVideoPlayer.setPlaybackRate(this.playSpeed)
-        })
-        .catch((err) => {
-          console.log(err)
-        })
-    },
-    seekBackward() {
-      // 快退五秒
-      this.playSeekValue -= 5 * 1000
-      this.play()
-    },
-    seekForward() {
-      // 快进五秒
-      this.playSeekValue += 5 * 1000
-      this.play()
+      this.playSpeed = playbackSpeed
+      this.$refs.recordVideoPlayer.setPlaybackRate(parseFloat(this.playSpeed))
+      this.$store.dispatch('jtDevice/controlPlayback', {
+        phoneNumber: this.phoneNumber,
+        channelId: this.channelId,
+        command: command,
+        playbackSpeed: playbackSpeed,
+        time: time
+      })
     },
     stopPLay() {
       // 停止
       this.$refs.recordVideoPlayer.destroy()
+      this.stopPlayRecord()
     },
     pausePlay() {
       // 暂停
       this.$refs.recordVideoPlayer.pause()
+      this.control(1, 0)
     },
     play() {
       if (this.$refs.recordVideoPlayer.loaded) {
@@ -448,6 +420,7 @@ export default {
     playRecord(startTime, endTime) {
       if (this.streamInfo !== null) {
         this.stopPlayRecord(() => {
+          this.streamInfo = null
           this.playRecord(startTime, endTime)
         })
       } else {
@@ -491,22 +464,46 @@ export default {
           this.downloadFile(row)
         })
       } else {
-        const loading = this.$loading({
-          lock: true,
-          text: '正在请求录像',
-          spinner: 'el-icon-loading',
-          background: 'rgba(0, 0, 0, 0.7)'
-        })
-        this.$store.dispatch('gbRecord/startDownLoad', [
-          this.deviceId, this.channelId, row.startTime, row.endTime, this.playSpeedRange[this.playSpeedRange.length - 1]
-        ])
-          .then(streamInfo => {
-            this.$refs.recordDownload.openDialog(this.deviceId, this.channelId, streamInfo.app, streamInfo.stream, streamInfo.mediaServerId)
-          })
-          .finally(() => {
-            loading.close()
-          })
+        this.downloadRecord(row)
       }
+    },
+    downloadRecord: function(row) {
+      const loading = this.$loading({
+        lock: true,
+        text: '正在请求录像',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      })
+      const baseUrl = window.baseUrl ? window.baseUrl : ''
+      const downloadFileUrl = ((process.env.NODE_ENV === 'development') ? process.env.VUE_APP_BASE_API : baseUrl) +
+        `/api/jt1078/playback/download?phoneNumber=${this.phoneNumber}&channelId=${this.channelId}&startTime=${row.startTime}&endTime=${row.endTime}` +
+        `&alarmSign=${row.alarmSign}&mediaType=${row.mediaType}&streamType=${row.streamType}&storageType=${row.storageType}&access-token=${this.$store.getters.token}`
+      const x = new XMLHttpRequest()
+      x.open('GET', downloadFileUrl, true)
+      x.responseType = 'blob'
+      x.onload = (e) => {
+        const url = window.URL.createObjectURL(x.response)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = this.phoneNumber + '-' + this.channelId + '.mp4'
+        a.click()
+        loading.close()
+      }
+      x.ontimeout = (e) => {
+        loading.close()
+        this.$message.error({
+          showClose: true,
+          message: '加载超时'
+        })
+      }
+      x.onerror = (e) => {
+        loading.close()
+        this.$message.error({
+          showClose: true,
+          message: e.error
+        })
+      }
+      x.send()
     },
     getFileShowName(item) {
       return moment(item.startTime).format('HH:mm:ss') + '-' + moment(item.endTime).format('HH:mm:ss')

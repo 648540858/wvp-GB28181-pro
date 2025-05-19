@@ -161,7 +161,10 @@ public class DeviceServiceImpl implements IDeviceService {
                         log.error("[命令发送失败] 查询设备信息: {}", e.getMessage());
                     }
                     sync(device);
-                    // TODO 如果设备下的通道级联到了其他平台，那么需要发送事件或者notify给上级平台
+                }else {
+                    if (!isPlatform(device.getDeviceId())) {
+                        sync(device);
+                    }
                 }
                 // 上线添加订阅
                 if (device.getSubscribeCycleForCatalog() > 0) {
@@ -224,9 +227,11 @@ public class DeviceServiceImpl implements IDeviceService {
         device.setOnLine(false);
         redisCatchStorage.updateDevice(device);
         deviceMapper.update(device);
-        if (device.getDeviceType() )
-        //进行通道离线
-//        deviceChannelMapper.offlineByDeviceId(deviceId);
+        if (!isPlatform(deviceId)) {
+            // 进行通道离线
+            deviceChannelMapper.offlineByDeviceId(device.getId());
+        }
+
         // 离线释放所有ssrc
         List<SsrcTransaction> ssrcTransactions = sessionManager.getSsrcTransactionByDeviceId(deviceId);
         if (ssrcTransactions != null && !ssrcTransactions.isEmpty()) {
@@ -256,7 +261,14 @@ public class DeviceServiceImpl implements IDeviceService {
         }
     }
 
-    private boolean is
+    private boolean isPlatform(String deviceId) {
+        GbCode decode = GbCode.decode(deviceId);
+        if (decode == null) {
+            return true;
+        }
+        int code = Integer.parseInt(decode.getTypeCode());
+        return code <= 199;
+    }
 
     @Override
     public boolean addCatalogSubscribe(Device device) {

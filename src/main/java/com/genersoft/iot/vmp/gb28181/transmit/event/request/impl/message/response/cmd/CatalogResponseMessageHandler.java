@@ -131,6 +131,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                             Element itemDevice = deviceListIterator.next();
                             Element channelDeviceElement = itemDevice.element("DeviceID");
                             if (channelDeviceElement == null) {
+                                // 总数减一， 避免最后总数不对 无法确定问题
                                 continue;
                             }
                             // 从xml解析内容到 DeviceChannel 对象

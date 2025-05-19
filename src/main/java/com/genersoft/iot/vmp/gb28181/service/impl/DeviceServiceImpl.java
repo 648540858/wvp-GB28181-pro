@@ -195,6 +195,7 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
+    @Transactional
     public void offline(String deviceId, String reason) {
         Device device = getDeviceByDeviceIdFromDb(deviceId);
         if (device == null) {
@@ -223,6 +224,7 @@ public class DeviceServiceImpl implements IDeviceService {
         device.setOnLine(false);
         redisCatchStorage.updateDevice(device);
         deviceMapper.update(device);
+        if (device.getDeviceType() )
         //进行通道离线
 //        deviceChannelMapper.offlineByDeviceId(deviceId);
         // 离线释放所有ssrc
@@ -253,6 +255,8 @@ public class DeviceServiceImpl implements IDeviceService {
             }
         }
     }
+
+    private boolean is
 
     @Override
     public boolean addCatalogSubscribe(Device device) {

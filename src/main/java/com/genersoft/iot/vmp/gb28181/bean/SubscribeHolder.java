@@ -41,6 +41,9 @@ public class SubscribeHolder {
     }
 
     public SubscribeInfo getCatalogSubscribe(String platformId) {
+        if (platformId == null) {
+            return null;
+        }
         return catalogMap.get(platformId);
     }
 

@@ -9,7 +9,6 @@ import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcResponse;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
-import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.service.redisMsg.dto.RedisRpcController;
@@ -72,6 +71,7 @@ public class RedisRpcPlatformController extends RpcController {
     public RedisRpcResponse catalogEventPublish(RedisRpcRequest request) {
         JSONObject jsonObject = JSONObject.parseObject(request.getParam().toString());
         Platform platform = jsonObject.getObject("platform", Platform.class);
+
         List<CommonGBChannel> channels = jsonObject.getJSONArray("channels").toJavaList(CommonGBChannel.class);
         String type = jsonObject.getString("type");
         eventPublisher.catalogEventPublish(platform, channels, type, false);

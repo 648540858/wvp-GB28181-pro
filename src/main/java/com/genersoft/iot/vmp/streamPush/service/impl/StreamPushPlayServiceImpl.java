@@ -39,7 +39,7 @@ public class StreamPushPlayServiceImpl implements IStreamPushPlayService {
 
     @Autowired
     private UserSetting userSetting;
-    
+
     @Autowired
     private DynamicTask dynamicTask;
 
@@ -57,7 +57,7 @@ public class StreamPushPlayServiceImpl implements IStreamPushPlayService {
         StreamPush streamPush = streamPushMapper.queryOne(id);
         Assert.notNull(streamPush, "推流信息未找到");
 
-        if (!userSetting.getServerId().equals(streamPush.getServerId())) {
+        if (streamPush.isPushing() && !userSetting.getServerId().equals(streamPush.getServerId())) {
             redisRpcPlayService.playPush(id, callback);
             return;
         }

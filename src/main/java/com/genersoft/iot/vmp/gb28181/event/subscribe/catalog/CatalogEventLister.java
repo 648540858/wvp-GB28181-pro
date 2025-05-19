@@ -44,6 +44,9 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
         Map<String, CommonGBChannel> channelMap = new HashMap<>();
         if (event.getPlatform() != null) {
             parentPlatform = event.getPlatform();
+            if (parentPlatform.getServerGBId() == null) {
+                return;
+            }
             subscribe = subscribeHolder.getCatalogSubscribe(parentPlatform.getServerGBId());
             if (subscribe == null) {
                 return;

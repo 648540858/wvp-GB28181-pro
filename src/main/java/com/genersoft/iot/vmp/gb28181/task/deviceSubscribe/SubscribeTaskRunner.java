@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.gb28181.task;
+package com.genersoft.iot.vmp.gb28181.task.deviceSubscribe;
 
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;

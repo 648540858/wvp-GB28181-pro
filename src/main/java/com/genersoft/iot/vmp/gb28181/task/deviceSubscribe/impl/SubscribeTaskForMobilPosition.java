@@ -1,9 +1,9 @@
-package com.genersoft.iot.vmp.gb28181.task.impl;
+package com.genersoft.iot.vmp.gb28181.task.deviceSubscribe.impl;
 
 import com.genersoft.iot.vmp.common.SubscribeCallback;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
-import com.genersoft.iot.vmp.gb28181.task.SubscribeTask;
+import com.genersoft.iot.vmp.gb28181.task.deviceSubscribe.SubscribeTask;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

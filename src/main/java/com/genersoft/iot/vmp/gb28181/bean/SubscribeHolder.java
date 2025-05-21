@@ -29,7 +29,6 @@ public class SubscribeHolder {
 
     private final String prefix = "VMP_SUBSCRIBE_OVERDUE";
 
-
     public void putCatalogSubscribe(String platformId, SubscribeInfo subscribeInfo) {
         log.info("[国标级联] 添加目录订阅，平台： {}， 有效期： {}", platformId, subscribeInfo.getExpires());
 
@@ -53,7 +52,7 @@ public class SubscribeHolder {
     }
 
     public void putMobilePositionSubscribe(String platformId, SubscribeInfo subscribeInfo, Runnable gpsTask) {
-        log.info("[国标级联] 添加移动位置订阅，平台： {}， 有效期： {}", platformId, subscribeInfo.getExpires());
+        log.info("[国标级联] 添加移动位置订阅，平台： {}， 有效期： {}s", platformId, subscribeInfo.getExpires());
         String key = String.format("%s_%s_%s_%s", prefix, userSetting.getServerId(), "mobilePosition", platformId);
         if (subscribeInfo.getExpires() > 0) {
             Duration duration = Duration.ofSeconds(subscribeInfo.getExpires());

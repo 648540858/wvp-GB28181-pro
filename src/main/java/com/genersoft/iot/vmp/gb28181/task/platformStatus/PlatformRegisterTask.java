@@ -30,13 +30,6 @@ public class PlatformRegisterTask implements Delayed {
     private SipTransactionInfo sipTransactionInfo;
 
     /**
-     * 过期时间
-     */
-    @Getter
-    @Setter
-    private long expireTime;
-
-    /**
      * 到期回调
      */
     @Getter

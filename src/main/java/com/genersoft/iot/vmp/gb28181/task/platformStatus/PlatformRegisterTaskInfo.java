@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,5 +22,8 @@ public class PlatformRegisterTaskInfo{
 
     private SipTransactionInfo sipTransactionInfo;
 
-
+    /**
+     * 过期时间
+     */
+    private long expireTime;
 }

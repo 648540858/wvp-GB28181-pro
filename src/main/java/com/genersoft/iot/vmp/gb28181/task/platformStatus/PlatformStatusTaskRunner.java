@@ -135,16 +135,16 @@ public class PlatformStatusTaskRunner {
         return registerSubscribes.containsKey(platformServerId);
     }
 
-    public List<PlatformRegisterTask> getAllRegisterTaskInfo(){
+    public List<PlatformRegisterTaskInfo> getAllRegisterTaskInfo(){
         String scanKey = String.format("%s_%s_*", prefix, userSetting.getServerId());
         List<Object> values = RedisUtil.scan(redisTemplate, scanKey);
         if (values.isEmpty()) {
             return new ArrayList<>();
         }
-        List<PlatformRegisterTask> result = new ArrayList<>();
+        List<PlatformRegisterTaskInfo> result = new ArrayList<>();
         for (Object value : values) {
             String redisKey = (String)value;
-            PlatformRegisterTask taskInfo = (PlatformRegisterTask)redisTemplate.opsForValue().get(redisKey);
+            PlatformRegisterTaskInfo taskInfo = (PlatformRegisterTaskInfo)redisTemplate.opsForValue().get(redisKey);
             if (taskInfo == null) {
                 continue;
             }

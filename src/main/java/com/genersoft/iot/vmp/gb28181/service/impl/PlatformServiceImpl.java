@@ -14,6 +14,9 @@ import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
+import com.genersoft.iot.vmp.gb28181.task.platformStatus.PlatformRegisterTask;
+import com.genersoft.iot.vmp.gb28181.task.platformStatus.PlatformRegisterTaskInfo;
+import com.genersoft.iot.vmp.gb28181.task.platformStatus.PlatformStatusTaskRunner;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
@@ -33,6 +36,7 @@ import com.github.pagehelper.PageInfo;
 import gov.nist.javax.sip.message.SIPResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -55,7 +59,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Service
-public class PlatformServiceImpl implements IPlatformService {
+public class PlatformServiceImpl implements IPlatformService, CommandLineRunner {
 
     private final static String REGISTER_KEY_PREFIX = "platform_register_";
 
@@ -107,6 +111,24 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Autowired
     private ISendRtpServerService sendRtpServerService;
+
+    @Autowired
+    private PlatformStatusTaskRunner statusTaskRunner;
+
+    @Override
+    public void run(String... args) throws Exception {
+        // 启动时 如果存在未过期的注册平台，则发送注销
+        List<PlatformRegisterTaskInfo> registerTaskInfoList = statusTaskRunner.getAllRegisterTaskInfo();
+        if (registerTaskInfoList.isEmpty()) {
+            return;
+        }
+        for (PlatformRegisterTaskInfo taskInfo : registerTaskInfoList) {
+
+        }
+    }
+
+
+    // 每隔20秒检测，是否存在启用但是未注册的平台，存在则发起注册
 
     // 定时监听国标级联所进行的WVP服务是否正常， 如果异常则选择新的wvp执行
     @Scheduled(fixedDelay = 2, timeUnit = TimeUnit.SECONDS)   //每3秒执行一次

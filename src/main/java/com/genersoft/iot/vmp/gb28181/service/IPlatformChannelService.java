@@ -48,4 +48,6 @@ public interface IPlatformChannelService {
     void checkRegionAdd(List<CommonGBChannel> channelList);
 
     void checkRegionRemove(List<CommonGBChannel> channelList, List<Region> regionList);
+
+    List<Platform> queryByPlatformBySharChannelId(String gbId);
 }

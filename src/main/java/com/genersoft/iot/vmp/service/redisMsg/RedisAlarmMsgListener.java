@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
@@ -54,6 +55,9 @@ public class RedisAlarmMsgListener implements MessageListener {
 
     @Autowired
     private IPlatformService platformService;
+
+    @Autowired
+    private IPlatformChannelService platformChannelService;
 
     private final ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 
@@ -145,22 +149,25 @@ public class RedisAlarmMsgListener implements MessageListener {
                     }
 
                 } else {
-                    Device device = deviceService.getDeviceByDeviceId(gbId);
-                    Platform platform = platformService.queryPlatformByServerGBId(gbId);
-                    if (device != null && platform == null) {
+                    // 获取该通道ID是属于设备还是对应的上级平台
+                    Device device = deviceService.getDeviceBySourceChannelDeviceId(gbId);
+                    List<Platform> platforms = platformChannelService.queryByPlatformBySharChannelId(gbId);
+                    if (device != null && (platforms == null || platforms.isEmpty())) {
                         try {
                             commander.sendAlarmMessage(device, deviceAlarm);
                         } catch (InvalidArgumentException | SipException | ParseException e) {
                             log.error("[命令发送失败] 发送报警: {}", e.getMessage());
                         }
-                    } else if (device == null && platform != null) {
-                        try {
-                            commanderForPlatform.sendAlarmMessage(platform, deviceAlarm);
-                        } catch (InvalidArgumentException | SipException | ParseException e) {
-                            log.error("[命令发送失败] 发送报警: {}", e.getMessage());
+                    } else if (device == null && (platforms != null && !platforms.isEmpty())) {
+                        for (Platform platform : platforms) {
+                            try {
+                                commanderForPlatform.sendAlarmMessage(platform, deviceAlarm);
+                            } catch (InvalidArgumentException | SipException | ParseException e) {
+                                log.error("[命令发送失败] 发送报警: {}", e.getMessage());
+                            }
                         }
                     } else {
-                        log.warn("无法确定" + gbId + "是平台还是设备");
+                        log.warn("[REDIS的ALARM通知] 未查询到" + gbId + "所属的平台或设备");
                     }
                 }
             } catch (Exception e) {

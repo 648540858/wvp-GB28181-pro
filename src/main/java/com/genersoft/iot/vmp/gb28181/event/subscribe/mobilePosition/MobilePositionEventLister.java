@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeInfo;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IPlatformService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderForPlatform;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,9 @@ import java.util.List;
 public class MobilePositionEventLister implements ApplicationListener<MobilePositionEvent> {
 
     @Autowired
+    private IPlatformService platformService;
+
+    @Autowired
     private IPlatformChannelService platformChannelService;
 
     @Autowired
@@ -38,9 +42,9 @@ public class MobilePositionEventLister implements ApplicationListener<MobilePosi
         if (event.getMobilePosition().getChannelId() == 0) {
             return;
         }
-
+        List<Platform> allPlatforms = platformService.queryAll();
         // 获取所用订阅
-        List<String> platforms = subscribeHolder.getAllMobilePositionSubscribePlatform();
+        List<String> platforms = subscribeHolder.getAllMobilePositionSubscribePlatform(allPlatforms);
         if (platforms.isEmpty()) {
             return;
         }
@@ -65,4 +69,3 @@ public class MobilePositionEventLister implements ApplicationListener<MobilePosi
         }
     }
 }
- 

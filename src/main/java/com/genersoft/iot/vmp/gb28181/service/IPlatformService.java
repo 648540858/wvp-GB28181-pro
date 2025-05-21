@@ -85,4 +85,7 @@ public interface IPlatformService {
     List<Platform> queryEnablePlatformList(String serverId);
 
     void delete(Integer platformId, CommonCallback<Object> callback);
+
+    List<Platform> queryAll();
+
 }

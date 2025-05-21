@@ -1,19 +1,20 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
-import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author lin
  */
+@Slf4j
 @Component
 public class SubscribeHolder {
 
@@ -23,44 +24,40 @@ public class SubscribeHolder {
     @Autowired
     private UserSetting userSetting;
 
-    private final String taskOverduePrefix = "subscribe_overdue_";
+    @Autowired
+    private RedisTemplate<Object, Object> redisTemplate;
 
-    private static ConcurrentHashMap<String, SubscribeInfo> catalogMap = new ConcurrentHashMap<>();
-    private static ConcurrentHashMap<String, SubscribeInfo> mobilePositionMap = new ConcurrentHashMap<>();
+    private final String prefix = "VMP_SUBSCRIBE_OVERDUE";
 
 
     public void putCatalogSubscribe(String platformId, SubscribeInfo subscribeInfo) {
-        catalogMap.put(platformId, subscribeInfo);
-        if (subscribeInfo.getExpires() > 0) {
-            // 添加订阅到期
-            String taskOverdueKey = taskOverduePrefix +  "catalog_" + platformId;
-            // 添加任务处理订阅过期
-            dynamicTask.startDelay(taskOverdueKey, () -> removeCatalogSubscribe(subscribeInfo.getId()),
-                    subscribeInfo.getExpires() * 1000);
+        log.info("[国标级联] 添加目录订阅，平台： {}， 有效期： {}", platformId, subscribeInfo.getExpires());
+        if (subscribeInfo.getExpires() < 0) {
+            return;
         }
+        String key = String.format("%s_%s_%s_%s", prefix, userSetting.getServerId(), "catalog", platformId);
+        Duration duration = Duration.ofSeconds(subscribeInfo.getExpires());
+        redisTemplate.opsForValue().set(key, subscribeInfo, duration);
     }
 
     public SubscribeInfo getCatalogSubscribe(String platformId) {
-        return catalogMap.get(platformId);
+        String key = String.format("%s_%s_%s_%s", prefix, userSetting.getServerId(), "catalog", platformId);
+        return (SubscribeInfo)redisTemplate.opsForValue().get(key);
     }
 
     public void removeCatalogSubscribe(String platformId) {
-
-        catalogMap.remove(platformId);
-        String taskOverdueKey = taskOverduePrefix +  "catalog_" + platformId;
-        Runnable runnable = dynamicTask.get(taskOverdueKey);
-        if (runnable instanceof ISubscribeTask) {
-            ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
-            subscribeTask.stop(null);
-        }
-        // 添加任务处理订阅过期
-        dynamicTask.stop(taskOverdueKey);
+        String key = String.format("%s_%s_%s_%s", prefix, userSetting.getServerId(), "catalog", platformId);
+        redisTemplate.delete(key);
     }
 
     public void putMobilePositionSubscribe(String platformId, SubscribeInfo subscribeInfo, Runnable gpsTask) {
-        mobilePositionMap.put(platformId, subscribeInfo);
-        String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetting.getServerId() + "MobilePosition_" + platformId;
-        // 添加任务处理GPS定时推送
+        log.info("[国标级联] 添加移动位置订阅，平台： {}， 有效期： {}", platformId, subscribeInfo.getExpires());
+        if (subscribeInfo.getExpires() < 0) {
+            return;
+        }
+        String key = String.format("%s_%s_%s_%s", prefix, userSetting.getServerId(), "mobilePosition", platformId);
+        Duration duration = Duration.ofSeconds(subscribeInfo.getExpires());
+        redisTemplate.opsForValue().set(key, subscribeInfo, duration);
 
         int cycleForCatalog;
         if (subscribeInfo.getGpsInterval() <= 0) {
@@ -68,59 +65,55 @@ public class SubscribeHolder {
         }else {
             cycleForCatalog = subscribeInfo.getGpsInterval();
         }
-        dynamicTask.startCron(key, gpsTask,
+        dynamicTask.startCron(
+                key,
+                () -> {
+                    SubscribeInfo subscribe = getMobilePositionSubscribe(platformId);
+                    if (subscribe != null) {
+                        gpsTask.run();
+                    }else {
+                        dynamicTask.stop(key);
+                    }
+                },
                 cycleForCatalog * 1000);
-        String taskOverdueKey = taskOverduePrefix +  "MobilePosition_" + platformId;
-        if (subscribeInfo.getExpires() > 0) {
-            // 添加任务处理订阅过期
-            dynamicTask.startDelay(taskOverdueKey, () -> {
-                        removeMobilePositionSubscribe(subscribeInfo.getId());
-                    },
-                    subscribeInfo.getExpires() * 1000);
-        }
+
     }
 
     public SubscribeInfo getMobilePositionSubscribe(String platformId) {
-        return mobilePositionMap.get(platformId);
+        String key = String.format("%s_%s_%s_%s", prefix, userSetting.getServerId(), "mobilePosition", platformId);
+        return (SubscribeInfo)redisTemplate.opsForValue().get(key);
     }
 
     public void removeMobilePositionSubscribe(String platformId) {
-        mobilePositionMap.remove(platformId);
-        String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetting.getServerId() + "MobilePosition_" + platformId;
-        // 结束任务处理GPS定时推送
-        dynamicTask.stop(key);
-        String taskOverdueKey = taskOverduePrefix +  "MobilePosition_" + platformId;
-        Runnable runnable = dynamicTask.get(taskOverdueKey);
-        if (runnable instanceof ISubscribeTask) {
-            ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
-            subscribeTask.stop(null);
-        }
-        // 添加任务处理订阅过期
-        dynamicTask.stop(taskOverdueKey);
+        String key = String.format("%s_%s_%s_%s", prefix, userSetting.getServerId(), "mobilePosition", platformId);
+        redisTemplate.delete(key);
     }
 
-    public List<String> getAllCatalogSubscribePlatform() {
-        List<String> platforms = new ArrayList<>();
-        if(catalogMap.size() > 0) {
-            for (String key : catalogMap.keySet()) {
-                platforms.add(catalogMap.get(key).getId());
+    public List<String> getAllCatalogSubscribePlatform(List<Platform> platformList) {
+        if (platformList == null || platformList.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<String> result = new ArrayList<>();
+        for (Platform platform : platformList) {
+            String key = String.format("%s_%s_%s_%s", prefix, userSetting.getServerId(), "catalog", platform.getServerGBId());
+            if (redisTemplate.hasKey(key)) {
+                result.add(platform.getServerId());
             }
         }
-        return platforms;
+        return result;
     }
 
-    public List<String> getAllMobilePositionSubscribePlatform() {
-        List<String> platforms = new ArrayList<>();
-        if(!mobilePositionMap.isEmpty()) {
-            for (String key : mobilePositionMap.keySet()) {
-                platforms.add(mobilePositionMap.get(key).getId());
+    public List<String> getAllMobilePositionSubscribePlatform(List<Platform> platformList) {
+        if (platformList == null || platformList.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<String> result = new ArrayList<>();
+        for (Platform platform : platformList) {
+            String key = String.format("%s_%s_%s_%s", prefix, userSetting.getServerId(), "mobilePosition", platform.getServerGBId());
+            if (redisTemplate.hasKey(key)) {
+                result.add(platform.getServerId());
             }
         }
-        return platforms;
-    }
-
-    public void removeAllSubscribe(String platformId) {
-        removeMobilePositionSubscribe(platformId);
-        removeCatalogSubscribe(platformId);
+        return result;
     }
 }

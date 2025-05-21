@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.service.impl;
 
-import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.*;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.SipConfig;
@@ -949,5 +948,10 @@ public class PlatformServiceImpl implements IPlatformService {
         redisCatchStorage.delPlatformCatchInfo(platform.getServerGBId());
         // 删除平台信息
         platformMapper.delete(platform.getId());
+    }
+
+    @Override
+    public List<Platform> queryAll() {
+        return platformMapper.queryAll();
     }
 }

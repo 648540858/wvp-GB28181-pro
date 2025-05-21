@@ -97,4 +97,7 @@ public interface PlatformMapper {
 
     @Select("SELECT * FROM wvp_platform WHERE server_id = #{serverId}")
     List<Platform> queryByServerId(@Param("serverId") String serverId);
+
+    @Select("SELECT * FROM wvp_platform ")
+    List<Platform> queryAll();
 }

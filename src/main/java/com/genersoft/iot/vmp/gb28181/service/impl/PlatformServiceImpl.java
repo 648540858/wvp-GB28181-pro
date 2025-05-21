@@ -123,12 +123,18 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
             return;
         }
         for (PlatformRegisterTaskInfo taskInfo : registerTaskInfoList) {
-
+            log.info("[国标级联] 启动服务是发现平台注册仍在有效期，注销： {}", taskInfo.getPlatformServerId());
+            Platform platform = queryPlatformByServerGBId(taskInfo.getPlatformServerId());
+            commanderForPlatform.unregister(platform, taskInfo.getSipTransactionInfo(), null, eventResult -> {
+                log.info("[国标级联] 注销成功， 平台：{}", taskInfo.getPlatformServerId());
+            });
         }
     }
 
 
-    // 每隔20秒检测，是否存在启用但是未注册的平台，存在则发起注册
+    // TODO 每隔20秒检测，是否存在启用但是未注册的平台，存在则发起注册
+    // TODO 平台注册成功通知处理
+    // TODO 平台注销成功通知处理
 
     // 定时监听国标级联所进行的WVP服务是否正常， 如果异常则选择新的wvp执行
     @Scheduled(fixedDelay = 2, timeUnit = TimeUnit.SECONDS)   //每3秒执行一次

@@ -389,7 +389,6 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             return false;
         }
         log.info("[移除目录订阅]: {}", device.getDeviceId());
-        device.setSubscribeCycleForCatalog(0);
         String key = SubscribeTaskForCatalog.getKey(device);
         if (subscribeTaskRunner.containsKey(key)) {
             SipTransactionInfo transactionInfo = subscribeTaskRunner.getTransactionInfo(key);
@@ -728,8 +727,6 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             // 开启订阅
             device.setSubscribeCycleForCatalog(cycle);
             addCatalogSubscribe(device, null);
-            deviceMapper.updateSubscribeCatalog(device);
-            redisCatchStorage.updateDevice(device);
         }
     }
 

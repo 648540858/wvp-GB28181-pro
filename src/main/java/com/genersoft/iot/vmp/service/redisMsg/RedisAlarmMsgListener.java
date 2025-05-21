@@ -133,7 +133,6 @@ public class RedisAlarmMsgListener implements MessageListener {
                                 }
                             }
                         }
-
                     }
                     // 获取开启了消息推送的设备和平台
                     List<Device> devices = channelService.queryDeviceWithAsMessageChannel();
@@ -147,7 +146,6 @@ public class RedisAlarmMsgListener implements MessageListener {
                             }
                         }
                     }
-
                 } else {
                     // 获取该通道ID是属于设备还是对应的上级平台
                     Device device = deviceService.getDeviceBySourceChannelDeviceId(gbId);

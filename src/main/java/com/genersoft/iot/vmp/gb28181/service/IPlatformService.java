@@ -53,7 +53,7 @@ public interface IPlatformService {
      * 平台离线
      * @param parentPlatform 平台信息
      */
-    void offline(Platform parentPlatform, boolean stopRegisterTask);
+    void offline(Platform parentPlatform);
 
     /**
      * 向上级平台发送位置订阅

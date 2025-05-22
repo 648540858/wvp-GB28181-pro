@@ -101,7 +101,7 @@ public interface PlatformMapper {
     @Select("SELECT * FROM wvp_platform ")
     List<Platform> queryAll();
 
-    @Select("SELECT * FROM wvp_platform WHERE enable=true and server_id == #{serverId} group by server_id")
+    @Select("SELECT * FROM wvp_platform WHERE enable=true and server_id = #{serverId}")
     List<Platform> queryServerIdsWithEnableAndServer(@Param("serverId") String serverId);
 
     @Update("UPDATE wvp_platform SET status=false" )

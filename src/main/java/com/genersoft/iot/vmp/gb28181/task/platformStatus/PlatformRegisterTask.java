@@ -38,7 +38,7 @@ public class PlatformRegisterTask implements Delayed {
 
     public PlatformRegisterTask(String platformServerId, long delayTime, SipTransactionInfo sipTransactionInfo, CommonCallback<String> callback) {
         this.platformServerId = platformServerId;
-        this.delayTime = System.currentTimeMillis() +  delayTime;
+        this.delayTime = System.currentTimeMillis() + delayTime;
         this.callback = callback;
         this.sipTransactionInfo = sipTransactionInfo;
     }

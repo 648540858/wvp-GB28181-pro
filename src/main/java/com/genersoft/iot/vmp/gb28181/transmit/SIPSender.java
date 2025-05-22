@@ -8,6 +8,9 @@ import com.genersoft.iot.vmp.gb28181.event.sip.SipEvent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.utils.GitUtil;
 import gov.nist.javax.sip.SipProviderImpl;
+import gov.nist.javax.sip.address.SipUri;
+import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.message.SIPResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -37,6 +40,7 @@ public class SIPSender {
 
     @Autowired
     private SipSubscribe sipSubscribe;
+
     @Autowired
     private SipConfig sipConfig;
 
@@ -86,15 +90,25 @@ public class SIPSender {
             }), timeout == null ? sipConfig.getTimeout() : timeout);
             SipTransactionInfo sipTransactionInfo = new SipTransactionInfo();
             sipTransactionInfo.setFromTag(fromHeader.getTag());
-            sipTransactionInfo.setFromTag(fromHeader.getTag());
+            sipTransactionInfo.setCallId(callIdHeader.getCallId());
 
-
-            if (message instanceof Response) {
-                ToHeader toHeader = (ToHeader) message.getHeader(ToHeader.NAME);
-                sipTransactionInfo.setToTag(toHeader.getTag());
+            if (message instanceof SIPResponse) {
+                SIPResponse response = (SIPResponse) message;
+                sipTransactionInfo.setToTag(response.getToHeader().getTag());
+                sipTransactionInfo.setViaBranch(response.getTopmostViaHeader().getBranch());
+            }else if (message instanceof SIPRequest) {
+                SIPRequest request = (SIPRequest) message;
+                sipTransactionInfo.setViaBranch(request.getTopmostViaHeader().getBranch());
+                SipUri sipUri = (SipUri)request.getRequestLine().getUri();
+                sipTransactionInfo.setUser(sipUri.getUser());
             }
 
 
+
+            ExpiresHeader expiresHeader = (ExpiresHeader) message.getHeader(ExpiresHeader.NAME);
+            if (expiresHeader != null) {
+                sipTransactionInfo.setExpires(expiresHeader.getExpires());
+            }
             sipEvent.setSipTransactionInfo(sipTransactionInfo);
             sipSubscribe.addSubscribe(key, sipEvent);
         }

@@ -38,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -59,6 +60,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Service
+@Order(value=15)
 public class PlatformServiceImpl implements IPlatformService, CommandLineRunner {
 
     private final static String REGISTER_KEY_PREFIX = "platform_register_";
@@ -142,14 +144,25 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
             return;
         }
         for (Platform platform : platformList) {
-            sendRegister(platform, null);
+             if (statusTaskRunner.containsRegister(platform.getServerGBId()) && statusTaskRunner.containsKeepAlive(platform.getServerGBId())) {
+                 continue;
+             }
+             if (statusTaskRunner.containsRegister(platform.getServerGBId())) {
+                 SipTransactionInfo transactionInfo = statusTaskRunner.getRegisterTransactionInfo(platform.getServerGBId());
+                 // 注销后出发平台离线， 如果是启用的平台，那么下次丢失检测会检测到并重新注册上线
+                 sendUnRegister(platform, transactionInfo);
+             }else {
+                 statusTaskRunner.removeKeepAliveTask(platform.getServerGBId());
+                 sendRegister(platform, null);
+             }
         }
     }
 
     private void sendRegister(Platform platform, SipTransactionInfo sipTransactionInfo) {
         try {
             commanderForPlatform.register(platform, sipTransactionInfo, eventResult -> {
-                log.info("[国标级联] {}（{}）,添加向上级注册失败，请确定上级平台可用时重新保存", platform.getName(), platform.getServerGBId());
+                log.info("[国标级联] {}（{}）,注册失败", platform.getName(), platform.getServerGBId());
+                offline(platform);
             }, null);
         } catch (InvalidArgumentException | ParseException | SipException e) {
             log.error("[命令发送失败] 国标级联: {}", e.getMessage());
@@ -339,6 +352,8 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
         return result > 0;
     }
 
+
+
     @Override
     public boolean update(Platform platform) {
         Assert.isTrue(platform.getId() > 0, "ID必须存在");
@@ -366,13 +381,13 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
     @Override
     public void online(Platform platform, SipTransactionInfo sipTransactionInfo) {
         log.info("[国标级联]：{}, 平台上线", platform.getServerGBId());
-        PlatformRegisterTask registerTask = new PlatformRegisterTask(platform.getServerId(), platform.getExpires() * 1000L - 500L,
+        PlatformRegisterTask registerTask = new PlatformRegisterTask(platform.getServerGBId(), platform.getExpires() * 1000L - 500L,
                 sipTransactionInfo, (platformServerGbId) -> {
             this.registerExpire(platformServerGbId, sipTransactionInfo);
         });
         statusTaskRunner.addRegisterTask(registerTask);
 
-        PlatformKeepaliveTask keepaliveTask = new PlatformKeepaliveTask(platform.getServerId(), platform.getKeepTimeout() * 1000L,
+        PlatformKeepaliveTask keepaliveTask = new PlatformKeepaliveTask(platform.getServerGBId(), platform.getKeepTimeout() * 1000L,
                 this::keepaliveExpire);
         statusTaskRunner.addKeepAliveTask(keepaliveTask);
 
@@ -421,31 +436,31 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
                 // 心跳超时失败
                 if (failCount < 2) {
                     log.info("[国标级联] 心跳发送超时， 平台服务编号： {}", platformServerId);
-                    PlatformKeepaliveTask keepaliveTask = new PlatformKeepaliveTask(platform.getServerId(), platform.getKeepTimeout() * 1000L,
+                    PlatformKeepaliveTask keepaliveTask = new PlatformKeepaliveTask(platform.getServerGBId(), platform.getKeepTimeout() * 1000L,
                             this::keepaliveExpire);
                     keepaliveTask.setFailCount(failCount + 1);
                     statusTaskRunner.addKeepAliveTask(keepaliveTask);
                 }else {
                     // 心跳超时三次, 不再发送心跳， 平台离线
                     log.info("[国标级联] 心跳发送超时三次，平台离线， 平台服务编号： {}", platformServerId);
-                    offline(platform, false);
+                    offline(platform);
                 }
             }, eventResult -> {
-                PlatformKeepaliveTask keepaliveTask = new PlatformKeepaliveTask(platform.getServerId(), platform.getKeepTimeout() * 1000L,
+                PlatformKeepaliveTask keepaliveTask = new PlatformKeepaliveTask(platform.getServerGBId(), platform.getKeepTimeout() * 1000L,
                         this::keepaliveExpire);
                 statusTaskRunner.addKeepAliveTask(keepaliveTask);
             });
         } catch (SipException | InvalidArgumentException | ParseException e) {
             log.error("[命令发送失败] 国标级联 发送心跳: {}", e.getMessage());
             if (failCount < 2) {
-                PlatformKeepaliveTask keepaliveTask = new PlatformKeepaliveTask(platform.getServerId(), platform.getKeepTimeout() * 1000L,
+                PlatformKeepaliveTask keepaliveTask = new PlatformKeepaliveTask(platform.getServerGBId(), platform.getKeepTimeout() * 1000L,
                         this::keepaliveExpire);
                 keepaliveTask.setFailCount(failCount + 1);
                 statusTaskRunner.addKeepAliveTask(keepaliveTask);
             }else {
                 // 心跳超时三次, 不再发送心跳， 平台离线
                 log.info("[国标级联] 心跳发送失败三次，平台离线， 平台服务编号： {}", platformServerId);
-                offline(platform, false);
+                offline(platform);
             }
         }
     }
@@ -458,7 +473,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
     }
 
     @Override
-    public void offline(Platform platform, boolean stopRegister) {
+    public void offline(Platform platform) {
         log.info("[平台离线]：{}({})", platform.getName(), platform.getServerGBId());
         statusTaskRunner.removeRegisterTask(platform.getServerGBId());
         statusTaskRunner.removeKeepAliveTask(platform.getServerGBId());
@@ -475,7 +490,7 @@ public class PlatformServiceImpl implements IPlatformService, CommandLineRunner 
 
     private void stopAllPush(String platformId) {
         List<SendRtpInfo> sendRtpItems = sendRtpServerService.queryForPlatform(platformId);
-        if (sendRtpItems != null && sendRtpItems.size() > 0) {
+        if (sendRtpItems != null && !sendRtpItems.isEmpty()) {
             for (SendRtpInfo sendRtpItem : sendRtpItems) {
                 ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
                 sendRtpServerService.delete(sendRtpItem);

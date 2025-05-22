@@ -21,7 +21,6 @@ import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.dao.dto.PlatformRegisterInfo;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.GitUtil;
 import gov.nist.javax.sip.message.MessageFactoryImpl;
@@ -121,9 +120,6 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
                 request = headerProviderPlatformProvider.createRegisterRequest(parentPlatform,
                         redisCatchStorage.getCSEQ(), fromTag,
                         toTag, callIdHeader, isRegister? parentPlatform.getExpires() : 0);
-                // 将 callid 写入缓存， 等注册成功可以更新状态
-                String callIdFromHeader = callIdHeader.getCallId();
-                redisCatchStorage.updatePlatformRegisterInfo(callIdFromHeader, PlatformRegisterInfo.getInstance(parentPlatform.getServerGBId(), isRegister));
             }else {
                 request = headerProviderPlatformProvider.createRegisterRequest(parentPlatform, fromTag, toTag, www, callIdHeader, isRegister? parentPlatform.getExpires() : 0);
             }
@@ -132,7 +128,6 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
                 if (event != null) {
                     log.info("[国标级联]：{},  注册失败: {} ", parentPlatform.getServerGBId(), event.msg);
                 }
-                redisCatchStorage.delPlatformRegisterInfo(callIdHeader.getCallId());
                 if (errorEvent != null ) {
                     errorEvent.response(event);
                 }

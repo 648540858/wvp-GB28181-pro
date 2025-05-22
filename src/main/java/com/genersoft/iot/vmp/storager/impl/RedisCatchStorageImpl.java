@@ -15,7 +15,6 @@ import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.dao.dto.PlatformRegisterInfo;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.JsonUtil;
 import com.genersoft.iot.vmp.utils.SystemInfoUtils;
@@ -72,35 +71,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         String key = VideoManagerConstants.SIP_CSEQ_PREFIX  + userSetting.getServerId();
         redisTemplate.opsForValue().set(key, 1);
     }
-
-    @Override
-    public PlatformCatch queryPlatformCatchInfo(String platformGbId) {
-        return (PlatformCatch)redisTemplate.opsForValue().get(VideoManagerConstants.PLATFORM_CATCH_PREFIX + userSetting.getServerId() + "_" + platformGbId);
-    }
-
-    @Override
-    public void delPlatformCatchInfo(String platformGbId) {
-        redisTemplate.delete(VideoManagerConstants.PLATFORM_CATCH_PREFIX + userSetting.getServerId() + "_" + platformGbId);
-    }
-
-    @Override
-    public void updatePlatformRegisterInfo(String callId, PlatformRegisterInfo platformRegisterInfo) {
-        String key = VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + userSetting.getServerId() + "_" + callId;
-        Duration duration = Duration.ofSeconds(30L);
-        redisTemplate.opsForValue().set(key, platformRegisterInfo, duration);
-    }
-
-
-    @Override
-    public PlatformRegisterInfo queryPlatformRegisterInfo(String callId) {
-        return (PlatformRegisterInfo)redisTemplate.opsForValue().get(VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + userSetting.getServerId() + "_" + callId);
-    }
-
-    @Override
-    public void delPlatformRegisterInfo(String callId) {
-         redisTemplate.delete(VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + userSetting.getServerId() + "_" + callId);
-    }
-
 
 
     @Override

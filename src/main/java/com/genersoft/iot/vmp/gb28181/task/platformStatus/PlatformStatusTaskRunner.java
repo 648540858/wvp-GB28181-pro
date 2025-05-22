@@ -147,10 +147,9 @@ public class PlatformStatusTaskRunner {
 
     public boolean removeKeepAliveTask(String platformServerId) {
         PlatformKeepaliveTask task = keepaliveSubscribes.get(platformServerId);
-        if (task == null) {
-            return false;
+        if (task != null) {
+            keepaliveSubscribes.remove(platformServerId);
         }
-        keepaliveSubscribes.remove(platformServerId);
         if (keepaliveTaskDelayQueue.contains(task)) {
             boolean remove = keepaliveTaskDelayQueue.remove(task);
             if (!remove) {

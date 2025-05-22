@@ -10,6 +10,8 @@ public class SipTransactionInfo {
     private String fromTag;
     private String toTag;
     private String viaBranch;
+    private int expires;
+    private String user;
 
     // 自己是否媒体流发送者
     private boolean asSender;

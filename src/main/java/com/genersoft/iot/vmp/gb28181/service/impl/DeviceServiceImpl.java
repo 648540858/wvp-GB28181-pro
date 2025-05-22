@@ -38,6 +38,7 @@ import gov.nist.javax.sip.message.SIPResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,6 +60,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Service
+@Order(value=16)
 public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
 
     @Autowired
@@ -707,6 +709,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
     public void subscribeMobilePosition(int id, int cycle, int interval) {
         Device device = deviceMapper.query(id);
         Assert.notNull(device, "未找到设备");
+
         if (device.getSubscribeCycleForMobilePosition() == cycle) {
             return;
         }
@@ -729,6 +732,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             // 订阅未开启
             device.setSubscribeCycleForMobilePosition(cycle);
             device.setMobilePositionSubmissionInterval(interval);
+            updateDevice(device);
             // 开启订阅
             addMobilePositionSubscribe(device, null);
         }

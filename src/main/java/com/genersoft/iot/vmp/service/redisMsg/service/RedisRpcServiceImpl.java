@@ -231,6 +231,9 @@ public class RedisRpcServiceImpl implements IRedisRpcService {
         RedisRpcRequest request = buildRequest("platform/update", platform);
         request.setToId(serverId);
         RedisRpcResponse response = redisRpcConfig.request(request, 40, TimeUnit.MILLISECONDS);
+        if(response == null) {
+            return false;
+        }
         return Boolean.parseBoolean(response.getBody().toString());
     }
 

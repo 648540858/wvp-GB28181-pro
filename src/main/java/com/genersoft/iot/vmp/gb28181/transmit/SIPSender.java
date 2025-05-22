@@ -71,13 +71,12 @@ public class SIPSender {
                 log.error("添加UserAgentHeader失败", e);
             }
         }
-
+        CallIdHeader callIdHeader = (CallIdHeader) message.getHeader(CallIdHeader.NAME);
+        CSeqHeader cSeqHeader = (CSeqHeader) message.getHeader(CSeqHeader.NAME);
+        String key = callIdHeader.getCallId() + cSeqHeader.getSeqNumber();
         if (okEvent != null || errorEvent != null) {
-            CallIdHeader callIdHeader = (CallIdHeader) message.getHeader(CallIdHeader.NAME);
-            CSeqHeader cSeqHeader = (CSeqHeader) message.getHeader(CSeqHeader.NAME);
-            FromHeader fromHeader = (FromHeader) message.getHeader(FromHeader.NAME);
-            String key = callIdHeader.getCallId() + cSeqHeader.getSeqNumber();
 
+            FromHeader fromHeader = (FromHeader) message.getHeader(FromHeader.NAME);
             SipEvent sipEvent = SipEvent.getInstance(key, eventResult -> {
                 sipSubscribe.removeSubscribe(key);
                 if(okEvent != null) {
@@ -103,8 +102,6 @@ public class SIPSender {
                 SipUri sipUri = (SipUri)request.getRequestLine().getUri();
                 sipTransactionInfo.setUser(sipUri.getUser());
             }
-
-
 
             ExpiresHeader expiresHeader = (ExpiresHeader) message.getHeader(ExpiresHeader.NAME);
             if (expiresHeader != null) {

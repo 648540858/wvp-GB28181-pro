@@ -78,7 +78,7 @@ public interface PlatformMapper {
     List<Platform> queryList(@Param("query") String query);
 
     @Select("SELECT * FROM wvp_platform WHERE server_id=#{serverId} and enable=#{enable} ")
-    List<Platform> queryEnableParentPlatformList(@Param("serverId") String serverId, @Param("enable") boolean enable);
+    List<Platform> queryEnableParentPlatformListByServerId(@Param("serverId") String serverId, @Param("enable") boolean enable);
 
     @Select("SELECT * FROM wvp_platform WHERE enable=true and as_message_channel=true")
     List<Platform> queryEnablePlatformListWithAsMessageChannel();
@@ -89,8 +89,8 @@ public interface PlatformMapper {
     @Select("SELECT * FROM wvp_platform WHERE id=#{id}")
     Platform query(int id);
 
-    @Update("UPDATE wvp_platform SET status=#{online} WHERE server_gb_id=#{platformGbID}" )
-    int updateStatus(@Param("platformGbID") String platformGbID, @Param("online") boolean online);
+    @Update("UPDATE wvp_platform SET status=#{online} WHERE id=#{id}" )
+    int updateStatus(@Param("id") int id, @Param("online") boolean online);
 
     @Select("SELECT server_id FROM wvp_platform WHERE enable=true and server_id != #{serverId} group by server_id")
     List<String> queryServerIdsWithEnableAndNotInServer(@Param("serverId") String serverId);
@@ -100,4 +100,11 @@ public interface PlatformMapper {
 
     @Select("SELECT * FROM wvp_platform ")
     List<Platform> queryAll();
+
+    @Select("SELECT * FROM wvp_platform WHERE enable=true and server_id == #{serverId} group by server_id")
+    List<Platform> queryServerIdsWithEnableAndServer(@Param("serverId") String serverId);
+
+    @Update("UPDATE wvp_platform SET status=false" )
+    void offlineAll();
+
 }

@@ -56,12 +56,6 @@ public interface IPlatformService {
     void offline(Platform parentPlatform, boolean stopRegisterTask);
 
     /**
-     * 向上级平台发起注册
-     * @param parentPlatform
-     */
-    void login(Platform parentPlatform);
-
-    /**
      * 向上级平台发送位置订阅
      * @param platformId 平台
      */

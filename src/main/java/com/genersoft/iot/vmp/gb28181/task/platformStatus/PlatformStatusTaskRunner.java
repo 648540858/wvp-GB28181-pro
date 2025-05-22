@@ -2,8 +2,6 @@ package com.genersoft.iot.vmp.gb28181.task.platformStatus;
 
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
-import com.genersoft.iot.vmp.gb28181.task.deviceSubscribe.SubscribeTask;
-import com.genersoft.iot.vmp.gb28181.task.deviceSubscribe.SubscribeTaskInfo;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,12 +86,11 @@ public class PlatformStatusTaskRunner {
 
     public boolean removeRegisterTask(String platformServerId) {
         PlatformRegisterTask task = registerSubscribes.get(platformServerId);
-        if (task == null) {
-            return false;
+        if (task != null) {
+            registerSubscribes.remove(platformServerId);
         }
         String redisKey = String.format("%s_%s_%s", prefix, userSetting.getServerId(), platformServerId);
         redisTemplate.delete(redisKey);
-        registerSubscribes.remove(platformServerId);
         if (registerDelayQueue.contains(task)) {
             boolean remove = registerDelayQueue.remove(task);
             if (!remove) {
@@ -136,24 +133,7 @@ public class PlatformStatusTaskRunner {
     }
 
     public List<PlatformRegisterTaskInfo> getAllRegisterTaskInfo(){
-        String scanKey = String.format("%s_%s_*", prefix, userSetting.getServerId());
-        List<Object> values = RedisUtil.scan(redisTemplate, scanKey);
-        if (values.isEmpty()) {
-            return new ArrayList<>();
-        }
-        List<PlatformRegisterTaskInfo> result = new ArrayList<>();
-        for (Object value : values) {
-            String redisKey = (String)value;
-            PlatformRegisterTaskInfo taskInfo = (PlatformRegisterTaskInfo)redisTemplate.opsForValue().get(redisKey);
-            if (taskInfo == null) {
-                continue;
-            }
-            Long expire = redisTemplate.getExpire(redisKey);
-            taskInfo.setExpireTime(expire);
-            result.add(taskInfo);
-        }
-        return result;
-
+        return getRegisterTransactionInfoByServerId(userSetting.getServerId());
     }
 
     public void addKeepAliveTask(PlatformKeepaliveTask task) {
@@ -199,5 +179,25 @@ public class PlatformStatusTaskRunner {
 
     public boolean containsKeepAlive(String platformServerId) {
         return keepaliveSubscribes.containsKey(platformServerId);
+    }
+
+    public List<PlatformRegisterTaskInfo> getRegisterTransactionInfoByServerId(String serverId) {
+        String scanKey = String.format("%s_%s_*", prefix, serverId);
+        List<Object> values = RedisUtil.scan(redisTemplate, scanKey);
+        if (values.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<PlatformRegisterTaskInfo> result = new ArrayList<>();
+        for (Object value : values) {
+            String redisKey = (String)value;
+            PlatformRegisterTaskInfo taskInfo = (PlatformRegisterTaskInfo)redisTemplate.opsForValue().get(redisKey);
+            if (taskInfo == null) {
+                continue;
+            }
+            Long expire = redisTemplate.getExpire(redisKey);
+            taskInfo.setExpireTime(expire);
+            result.add(taskInfo);
+        }
+        return result;
     }
 }

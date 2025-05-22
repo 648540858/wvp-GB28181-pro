@@ -21,10 +21,10 @@ import javax.sip.header.WWWAuthenticateHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
 
-/**    
+/**
  * @description:Register响应处理器
  * @author: swwheihei
- * @date:   2020年5月3日 下午5:32:23     
+ * @date:   2020年5月3日 下午5:32:23
  */
 @Slf4j
 @Component
@@ -88,7 +88,6 @@ public class RegisterResponseProcessor extends SIPResponseProcessorAbstract {
 				log.error("[命令发送失败] 国标级联 再次注册: {}", e.getMessage());
 			}
 		}else if (response.getStatusCode() == Response.OK){
-
 			if (platformRegisterInfo.isRegister()) {
 				SipTransactionInfo sipTransactionInfo = new SipTransactionInfo(response);
 				platformService.online(parentPlatform, sipTransactionInfo);

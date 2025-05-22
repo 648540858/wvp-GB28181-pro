@@ -23,8 +23,6 @@ public interface IRedisCatchStorage {
      */
     Long getCSEQ();
 
-    void updatePlatformCatchInfo(PlatformCatch parentPlatformCatch);
-
     PlatformCatch queryPlatformCatchInfo(String platformGbId);
 
     void delPlatformCatchInfo(String platformGbId);

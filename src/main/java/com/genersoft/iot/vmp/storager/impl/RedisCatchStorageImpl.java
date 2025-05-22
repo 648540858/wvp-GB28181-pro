@@ -74,12 +74,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void updatePlatformCatchInfo(PlatformCatch parentPlatformCatch) {
-        String key = VideoManagerConstants.PLATFORM_CATCH_PREFIX  + userSetting.getServerId() + "_" +  parentPlatformCatch.getId();
-        redisTemplate.opsForValue().set(key, parentPlatformCatch);
-    }
-
-    @Override
     public PlatformCatch queryPlatformCatchInfo(String platformGbId) {
         return (PlatformCatch)redisTemplate.opsForValue().get(VideoManagerConstants.PLATFORM_CATCH_PREFIX + userSetting.getServerId() + "_" + platformGbId);
     }

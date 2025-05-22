@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.SipLayer;
+import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.event.sip.SipEvent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
@@ -13,10 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
 import javax.sip.SipException;
-import javax.sip.header.CSeqHeader;
-import javax.sip.header.CallIdHeader;
-import javax.sip.header.UserAgentHeader;
-import javax.sip.header.ViaHeader;
+import javax.sip.header.*;
 import javax.sip.message.Message;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
@@ -73,6 +71,7 @@ public class SIPSender {
         if (okEvent != null || errorEvent != null) {
             CallIdHeader callIdHeader = (CallIdHeader) message.getHeader(CallIdHeader.NAME);
             CSeqHeader cSeqHeader = (CSeqHeader) message.getHeader(CSeqHeader.NAME);
+            FromHeader fromHeader = (FromHeader) message.getHeader(FromHeader.NAME);
             String key = callIdHeader.getCallId() + cSeqHeader.getSeqNumber();
             SipEvent sipEvent = SipEvent.getInstance(key, eventResult -> {
                 sipSubscribe.removeSubscribe(key);
@@ -85,6 +84,18 @@ public class SIPSender {
                     errorEvent.response(eventResult);
                 }
             }), timeout == null ? sipConfig.getTimeout() : timeout);
+            SipTransactionInfo sipTransactionInfo = new SipTransactionInfo();
+            sipTransactionInfo.setFromTag(fromHeader.getTag());
+            sipTransactionInfo.setFromTag(fromHeader.getTag());
+
+
+            if (message instanceof Response) {
+                ToHeader toHeader = (ToHeader) message.getHeader(ToHeader.NAME);
+                sipTransactionInfo.setToTag(toHeader.getTag());
+            }
+
+
+            sipEvent.setSipTransactionInfo(sipTransactionInfo);
             sipSubscribe.addSubscribe(key, sipEvent);
         }
 

@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.task.platformStatus;
 
-import com.genersoft.iot.vmp.common.CommonCallback;
+import com.genersoft.iot.vmp.gb28181.bean.PlatformKeepaliveCallback;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,7 @@ public class PlatformKeepaliveTask implements Delayed {
 
     @Getter
     private String platformServerId;
-    
+
     /**
      * 超时时间(单位： 毫秒)
      */
@@ -29,11 +29,18 @@ public class PlatformKeepaliveTask implements Delayed {
      * 到期回调
      */
     @Getter
-    private CommonCallback<String> callback;
+    private PlatformKeepaliveCallback callback;
 
-    public PlatformKeepaliveTask(String platformServerId, long delayTime, CommonCallback<String> callback) {
+    /**
+     * 心跳发送失败次数
+     */
+    @Getter
+    @Setter
+    private int failCount;
+
+    public PlatformKeepaliveTask(String platformServerId, long delayTime, PlatformKeepaliveCallback callback) {
         this.platformServerId = platformServerId;
-        this.delayTime = delayTime;
+        this.delayTime = System.currentTimeMillis() + delayTime;
         this.callback = callback;
     }
 
@@ -42,7 +49,7 @@ public class PlatformKeepaliveTask implements Delayed {
             log.info("[平台心跳到期] 未找到到期处理回调， 平台上级编号： {}", platformServerId);
             return;
         }
-        getCallback().run(platformServerId);
+        getCallback().run(platformServerId, failCount);
     }
 
     @Override

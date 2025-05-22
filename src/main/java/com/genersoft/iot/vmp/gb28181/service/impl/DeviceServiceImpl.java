@@ -344,7 +344,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
     }
 
     @Override
-    public boolean addCatalogSubscribe(Device device, SipTransactionInfo transactionInfo) {
+    public boolean addCatalogSubscribe(@NotNull Device device, SipTransactionInfo transactionInfo) {
         if (device == null || device.getSubscribeCycleForCatalog() < 0) {
             return false;
         }
@@ -371,23 +371,13 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             });
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error("[命令发送失败] 目录订阅: {}", e.getMessage());
-
-        } finally {
-            // 无论是否发起成功，都保存起来，如果失败后续任务会继续订阅
-            deviceMapper.updateSubscribeCatalog(device);
-            redisCatchStorage.updateDevice(device);
+            return false;
         }
         return true;
     }
 
     @Override
-    public boolean removeCatalogSubscribe(Device device, CommonCallback<Boolean> callback) {
-        if (device == null || device.getSubscribeCycleForCatalog() < 0) {
-            if (callback != null) {
-                callback.run(false);
-            }
-            return false;
-        }
+    public boolean removeCatalogSubscribe(@NotNull Device device, CommonCallback<Boolean> callback) {
         log.info("[移除目录订阅]: {}", device.getDeviceId());
         String key = SubscribeTaskForCatalog.getKey(device);
         if (subscribeTaskRunner.containsKey(key)) {
@@ -396,6 +386,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
                 log.warn("[移除目录订阅] 未找到事务信息，{}", device.getDeviceId());
             }
             try {
+                device.setSubscribeCycleForCatalog(0);
                 sipCommander.catalogSubscribe(device, transactionInfo, eventResult -> {
                     // 成功
                     log.info("[取消目录订阅]成功： {}", device.getDeviceId());
@@ -410,20 +401,13 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             }catch (Exception e) {
                 // 失败
                 log.warn("[取消目录订阅]失败： {}-{} ", device.getDeviceId(), e.getMessage());
-            }finally {
-                // 无论是否发起成功，都保存起来，如果失败，到期后将不再发起
-                deviceMapper.updateSubscribeCatalog(device);
-                redisCatchStorage.updateDevice(device);
             }
         }
         return true;
     }
 
     @Override
-    public boolean addMobilePositionSubscribe(Device device, SipTransactionInfo transactionInfo) {
-        if (device == null || device.getSubscribeCycleForMobilePosition() < 0) {
-            return false;
-        }
+    public boolean addMobilePositionSubscribe(@NotNull Device device, SipTransactionInfo transactionInfo) {
         log.info("[添加移动位置订阅] 设备 {}", device.getDeviceId());
         try {
             sipCommander.mobilePositionSubscribe(device, transactionInfo, eventResult -> {
@@ -447,24 +431,14 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             });
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error("[命令发送失败] 移动位置订阅: {}", e.getMessage());
-        }finally {
-            // 无论是否发起成功，都保存起来，如果失败后续任务会继续订阅
-            deviceMapper.updateSubscribeMobilePosition(device);
-            redisCatchStorage.updateDevice(device);
+            return false;
         }
         return true;
     }
 
     @Override
     public boolean removeMobilePositionSubscribe(Device device, CommonCallback<Boolean> callback) {
-        if (device == null || device.getSubscribeCycleForMobilePosition() < 0) {
-            if (callback != null) {
-                callback.run(false);
-            }
-            return false;
-        }
         log.info("[移除移动位置订阅]: {}", device.getDeviceId());
-        device.setSubscribeCycleForMobilePosition(0);
         String key = SubscribeTaskForMobilPosition.getKey(device);
         if (subscribeTaskRunner.containsKey(key)) {
             SipTransactionInfo transactionInfo = subscribeTaskRunner.getTransactionInfo(key);
@@ -472,6 +446,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
                 log.warn("[移除移动位置订阅] 未找到事务信息，{}", device.getDeviceId());
             }
             try {
+                device.setSubscribeCycleForMobilePosition(0);
                 sipCommander.mobilePositionSubscribe(device, transactionInfo, eventResult -> {
                     // 成功
                     log.info("[取消移动位置订阅]成功： {}", device.getDeviceId());
@@ -486,10 +461,6 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             }catch (Exception e) {
                 // 失败
                 log.warn("[取消移动位置订阅]失败： {}-{} ", device.getDeviceId(), e.getMessage());
-            }finally {
-                // 无论是否发起成功，都保存起来，如果失败，到期后将不再发起
-                deviceMapper.updateSubscribeMobilePosition(device);
-                redisCatchStorage.updateDevice(device);
             }
         }
         return true;
@@ -645,10 +616,10 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
     public boolean delete(String deviceId) {
         Device device = getDeviceByDeviceIdFromDb(deviceId);
         Assert.notNull(device, "未找到设备");
-        if (device.getSubscribeCycleForCatalog() > 0) {
+        if (subscribeTaskRunner.containsKey(SubscribeTaskForCatalog.getKey(device))) {
             removeCatalogSubscribe(device, null);
         }
-        if (device.getSubscribeCycleForMobilePosition() > 0) {
+        if (subscribeTaskRunner.containsKey(SubscribeTaskForMobilPosition.getKey(device))) {
             removeMobilePositionSubscribe(device, null);
         }
         // 停止状态检测
@@ -718,6 +689,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             // 订阅周期不同，则先取消
             removeCatalogSubscribe(device, result->{
                 device.setSubscribeCycleForCatalog(cycle);
+                updateDevice(device);
                 if (cycle > 0) {
                     // 开启订阅
                     addCatalogSubscribe(device, null);
@@ -726,6 +698,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
         }else {
             // 开启订阅
             device.setSubscribeCycleForCatalog(cycle);
+            updateDevice(device);
             addCatalogSubscribe(device, null);
         }
     }

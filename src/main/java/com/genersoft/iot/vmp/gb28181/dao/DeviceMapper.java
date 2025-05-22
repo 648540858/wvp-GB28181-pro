@@ -123,23 +123,27 @@ public interface DeviceMapper {
     @Update(value = {" <script>" +
                 "UPDATE wvp_device " +
                 "SET update_time=#{updateTime}" +
-                "<if test=\"name != null\">, name=#{name}</if>" +
-                "<if test=\"manufacturer != null\">, manufacturer=#{manufacturer}</if>" +
-                "<if test=\"model != null\">, model=#{model}</if>" +
-                "<if test=\"firmware != null\">, firmware=#{firmware}</if>" +
-                "<if test=\"transport != null\">, transport=#{transport}</if>" +
-                "<if test=\"ip != null\">, ip=#{ip}</if>" +
-                "<if test=\"localIp != null\">, local_ip=#{localIp}</if>" +
-                "<if test=\"port != null\">, port=#{port}</if>" +
-                "<if test=\"hostAddress != null\">, host_address=#{hostAddress}</if>" +
-                "<if test=\"onLine != null\">, on_line=#{onLine}</if>" +
-                "<if test=\"registerTime != null\">, register_time=#{registerTime}</if>" +
-                "<if test=\"keepaliveTime != null\">, keepalive_time=#{keepaliveTime}</if>" +
-                "<if test=\"heartBeatInterval != null\">, heart_beat_interval=#{heartBeatInterval}</if>" +
-                "<if test=\"positionCapability != null\">, position_capability=#{positionCapability}</if>" +
-                "<if test=\"heartBeatCount != null\">, heart_beat_count=#{heartBeatCount}</if>" +
-                "<if test=\"expires != null\">, expires=#{expires}</if>" +
-                "<if test=\"serverId != null\">, server_id=#{serverId}</if>" +
+                ", name=#{name}" +
+                ", manufacturer=#{manufacturer}" +
+                ", model=#{model}" +
+                ", firmware=#{firmware}" +
+                ", transport=#{transport}" +
+                ", ip=#{ip}" +
+                ", local_ip=#{localIp}" +
+                ", port=#{port}" +
+                ", host_address=#{hostAddress}" +
+                ", on_line=#{onLine}" +
+                ", register_time=#{registerTime}" +
+                ", keepalive_time=#{keepaliveTime}" +
+                ", heart_beat_interval=#{heartBeatInterval}" +
+                ", position_capability=#{positionCapability}" +
+                ", heart_beat_count=#{heartBeatCount}" +
+                ", subscribe_cycle_for_catalog=#{subscribeCycleForCatalog}" +
+                ", subscribe_cycle_for_mobile_position=#{subscribeCycleForMobilePosition}" +
+                ", mobile_position_submission_interval=#{mobilePositionSubmissionInterval}" +
+                ", subscribe_cycle_for_alarm=#{subscribeCycleForAlarm}" +
+                ", expires=#{expires}" +
+                ", server_id=#{serverId}" +
                 "WHERE device_id=#{deviceId}"+
             " </script>"})
     int update(Device device);

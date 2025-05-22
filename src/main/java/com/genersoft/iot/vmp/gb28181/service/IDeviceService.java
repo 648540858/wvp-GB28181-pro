@@ -32,7 +32,7 @@ public interface IDeviceService {
      * @param device 设备信息
      * @return 布尔
      */
-    boolean addCatalogSubscribe(Device device);
+    boolean addCatalogSubscribe(Device device, SipTransactionInfo transactionInfo);
 
     /**
      * 移除目录订阅
@@ -46,7 +46,7 @@ public interface IDeviceService {
      * @param device 设备信息
      * @return 布尔
      */
-    boolean addMobilePositionSubscribe(Device device);
+    boolean addMobilePositionSubscribe(Device device, SipTransactionInfo transactionInfo);
 
     /**
      * 移除移动位置订阅

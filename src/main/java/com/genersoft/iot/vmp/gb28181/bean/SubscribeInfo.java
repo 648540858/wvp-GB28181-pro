@@ -1,36 +1,19 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
-import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import lombok.Data;
 
-import javax.sip.header.*;
+import javax.sip.header.EventHeader;
 import java.util.UUID;
 
 @Data
 public class SubscribeInfo {
 
-
-    public SubscribeInfo(SIPRequest request, String id) {
-        this.id = id;
-        this.request = request;
-        this.expires = request.getExpires().getExpires();
-        EventHeader eventHeader = (EventHeader)request.getHeader(EventHeader.NAME);
-        this.eventId = eventHeader.getEventId();
-        this.eventType = eventHeader.getEventType();
-
-    }
-
-    public SubscribeInfo() {
-    }
-
     private String id;
-
-    private SIPRequest request;
     private int expires;
     private String eventId;
     private String eventType;
-    private SIPResponse response;
+    private SipTransactionInfo transactionInfo;
 
     /**
      * 以下为可选字段
@@ -55,6 +38,16 @@ public class SubscribeInfo {
     private String simulatedCallId;
 
 
+    public static SubscribeInfo getInstance(SIPResponse response, String id, int expires, EventHeader eventHeader){
+        SubscribeInfo subscribeInfo = new SubscribeInfo();
+        subscribeInfo.id = id;
+        subscribeInfo.transactionInfo = new SipTransactionInfo(response);
+
+        subscribeInfo.expires = expires;
+        subscribeInfo.eventId = eventHeader.getEventId();
+        subscribeInfo.eventType = eventHeader.getEventType();
+        return subscribeInfo;
+    }
     public static SubscribeInfo buildSimulated(String platFormServerId, String platFormServerIp){
         SubscribeInfo subscribeInfo = new SubscribeInfo();
         subscribeInfo.setId(platFormServerId);

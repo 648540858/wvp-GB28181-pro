@@ -97,10 +97,6 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             }
             Device device = sipMsgInfo.getDevice();
             SIPRequest request = (SIPRequest) evt.getRequest();
-//            if (!ObjectUtils.isEmpty(device.getKeepaliveTime()) && DateUtil.getDifferenceForNow(device.getKeepaliveTime()) <= 3000L) {
-//                log.info("[收到心跳] 心跳发送过于频繁，已忽略 device: {}, callId: {}", device.getDeviceId(), request.getCallIdHeader().getCallId());
-//                return;
-//            }
 
             RemoteAddressInfo remoteAddressInfo = SipUtils.getRemoteAddressFromRequest(request, userSetting.getSipUseSourceIpAsRemoteAddress());
             if (!device.getIp().equalsIgnoreCase(remoteAddressInfo.getIp()) || device.getPort() != remoteAddressInfo.getPort()) {
@@ -109,12 +105,6 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
                 device.setHostAddress(remoteAddressInfo.getIp().concat(":").concat(String.valueOf(remoteAddressInfo.getPort())));
                 device.setIp(remoteAddressInfo.getIp());
                 device.setLocalIp(request.getLocalAddress().getHostAddress());
-                // 设备地址变化会引起目录订阅任务失效，需要重新添加
-                if (device.getSubscribeCycleForCatalog() > 0) {
-                    deviceService.removeCatalogSubscribe(device, result -> {
-                        deviceService.addCatalogSubscribe(device);
-                    });
-                }
             }
 
             device.setKeepaliveTime(DateUtil.getNow());

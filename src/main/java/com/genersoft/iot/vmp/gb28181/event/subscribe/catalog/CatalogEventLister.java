@@ -27,6 +27,9 @@ import java.util.Map;
 public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
 
     @Autowired
+    private IPlatformService platformService;
+
+    @Autowired
     private IPlatformChannelService platformChannelService;
 
     @Autowired
@@ -50,8 +53,9 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
             }
 
         }else {
+            List<Platform> allPlatform = platformService.queryAll();
             // 获取所用订阅
-            List<String> platforms = subscribeHolder.getAllCatalogSubscribePlatform();
+            List<String> platforms = subscribeHolder.getAllCatalogSubscribePlatform(allPlatform);
             if (event.getChannels() != null) {
                 if (!platforms.isEmpty()) {
                     for (CommonGBChannel deviceChannel : event.getChannels()) {

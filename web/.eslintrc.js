@@ -4,7 +4,7 @@ module.exports = {
     node: true,
     browser: true,
   },
-  extends: ["plugin:vue/essential", "@vue/standard"],
+  extends: ["plugin:vue/essential", "eslint:recommended"],
   parserOptions: {
     parser: "babel-eslint",
   },
@@ -35,6 +35,10 @@ module.exports = {
     "arrow-spacing": "warn",
     semi: ["warn", "never"],
     "no-multi-spaces": "warn",
+
+    // Turn off console warnings for development
+    "no-console": process.env.NODE_ENV === "production" ? "warn" : "off",
+    "no-debugger": process.env.NODE_ENV === "production" ? "warn" : "off",
   },
   globals: {
     // Define global variables to prevent 'undefined' errors

@@ -194,7 +194,9 @@ public class RedisRpcPlayServiceImpl implements IRedisRpcPlayService {
 
     @Override
     public void playPush(String serverId, Integer id, ErrorCallback<StreamInfo> callback) {
-        RedisRpcRequest request = buildRequest("streamPush/play", id + "");
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("id", id);
+        RedisRpcRequest request = buildRequest("streamPush/play", jsonObject);
         request.setToId(serverId);
         RedisRpcResponse response = redisRpcConfig.request(request, userSetting.getPlayTimeout(), TimeUnit.SECONDS);
         if (response == null) {

@@ -339,7 +339,7 @@ public class PlayServiceImpl implements IPlayService {
         InviteInfo inviteInfoInCatch = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, channel.getId());
         if (inviteInfoInCatch != null ) {
             if (inviteInfoInCatch.getStreamInfo() == null) {
-                // 释放生成的ssrc，使用上一次申请的322
+                // 释放生成的ssrc，使用上一次申请的
 
                 ssrcFactory.releaseSsrc(mediaServerItem.getId(), ssrc);
                 // 点播发起了但是尚未成功, 仅注册回调等待结果即可

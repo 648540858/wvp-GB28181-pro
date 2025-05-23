@@ -93,11 +93,11 @@ public class RedisAlarmMsgListener implements MessageListener {
                     log.warn("[REDIS的ALARM通知]消息解析失败");
                     continue;
                 }
-                String gbId = alarmChannelMessage.getGbId();
+                String chanelId = alarmChannelMessage.getGbId();
 
                 DeviceAlarm deviceAlarm = new DeviceAlarm();
                 deviceAlarm.setCreateTime(DateUtil.getNow());
-                deviceAlarm.setChannelId(gbId);
+                deviceAlarm.setChannelId(chanelId);
                 deviceAlarm.setAlarmDescription(alarmChannelMessage.getAlarmDescription());
                 deviceAlarm.setAlarmMethod("" + alarmChannelMessage.getAlarmSn());
                 deviceAlarm.setAlarmType("" + alarmChannelMessage.getAlarmType());
@@ -106,7 +106,7 @@ public class RedisAlarmMsgListener implements MessageListener {
                 deviceAlarm.setLongitude(0);
                 deviceAlarm.setLatitude(0);
 
-                if (ObjectUtils.isEmpty(gbId)) {
+                if (ObjectUtils.isEmpty(chanelId)) {
                     if (userSetting.getSendToPlatformsWhenIdLost()) {
                         // 发送给所有的上级
                         List<Platform> parentPlatforms = platformService.queryEnablePlatformList(userSetting.getServerId());
@@ -148,24 +148,26 @@ public class RedisAlarmMsgListener implements MessageListener {
                     }
                 } else {
                     // 获取该通道ID是属于设备还是对应的上级平台
-                    Device device = deviceService.getDeviceBySourceChannelDeviceId(gbId);
-                    List<Platform> platforms = platformChannelService.queryByPlatformBySharChannelId(gbId);
-                    if (device != null && (platforms == null || platforms.isEmpty())) {
+                    Device device = deviceService.getDeviceBySourceChannelDeviceId(chanelId);
+                    List<Platform> platforms = platformChannelService.queryByPlatformBySharChannelId(chanelId);
+                    if (device != null && device.getServerId().equals(userSetting.getServerId()) && (platforms == null || platforms.isEmpty())) {
                         try {
                             commander.sendAlarmMessage(device, deviceAlarm);
                         } catch (InvalidArgumentException | SipException | ParseException e) {
                             log.error("[命令发送失败] 发送报警: {}", e.getMessage());
                         }
-                    } else if (device == null && (platforms != null && !platforms.isEmpty())) {
+                    } else if (device == null && (platforms != null && !platforms.isEmpty() )) {
                         for (Platform platform : platforms) {
-                            try {
-                                commanderForPlatform.sendAlarmMessage(platform, deviceAlarm);
-                            } catch (InvalidArgumentException | SipException | ParseException e) {
-                                log.error("[命令发送失败] 发送报警: {}", e.getMessage());
+                            if (platform.getServerId().equals(userSetting.getServerId())) {
+                                try {
+                                    commanderForPlatform.sendAlarmMessage(platform, deviceAlarm);
+                                } catch (InvalidArgumentException | SipException | ParseException e) {
+                                    log.error("[命令发送失败] 发送报警: {}", e.getMessage());
+                                }
                             }
                         }
                     } else {
-                        log.warn("[REDIS的ALARM通知] 未查询到" + gbId + "所属的平台或设备");
+                        log.warn("[REDIS的ALARM通知] 未查询到" + chanelId + "所属的平台或设备");
                     }
                 }
             } catch (Exception e) {

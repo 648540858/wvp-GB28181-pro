@@ -58,7 +58,7 @@ public class StreamPushPlayServiceImpl implements IStreamPushPlayService {
         Assert.notNull(streamPush, "推流信息未找到");
 
         if (streamPush.isPushing() && !userSetting.getServerId().equals(streamPush.getServerId())) {
-            redisRpcPlayService.playPush(id, callback);
+            redisRpcPlayService.playPush(streamPush.getServerId(), id, callback);
             return;
         }
 

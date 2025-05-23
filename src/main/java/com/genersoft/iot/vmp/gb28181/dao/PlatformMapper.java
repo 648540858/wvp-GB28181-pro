@@ -89,8 +89,8 @@ public interface PlatformMapper {
     @Select("SELECT * FROM wvp_platform WHERE id=#{id}")
     Platform query(int id);
 
-    @Update("UPDATE wvp_platform SET status=#{online} WHERE id=#{id}" )
-    int updateStatus(@Param("id") int id, @Param("online") boolean online);
+    @Update("UPDATE wvp_platform SET status=#{online}, server_id = #{serverId} WHERE id=#{id}" )
+    int updateStatus(@Param("id") int id, @Param("online") boolean online, @Param("serverId") String serverId);
 
     @Select("SELECT server_id FROM wvp_platform WHERE enable=true and server_id != #{serverId} group by server_id")
     List<String> queryServerIdsWithEnableAndNotInServer(@Param("serverId") String serverId);
@@ -104,7 +104,7 @@ public interface PlatformMapper {
     @Select("SELECT * FROM wvp_platform WHERE enable=true and server_id = #{serverId}")
     List<Platform> queryServerIdsWithEnableAndServer(@Param("serverId") String serverId);
 
-    @Update("UPDATE wvp_platform SET status=false" )
-    void offlineAll();
+    @Update("UPDATE wvp_platform SET status=false where server_id = #{serverId}" )
+    void offlineAll(@Param("serverId") String serverId);
 
 }

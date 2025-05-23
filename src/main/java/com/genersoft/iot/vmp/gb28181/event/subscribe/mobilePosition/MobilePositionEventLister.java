@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.event.subscribe.mobilePosition;
 
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
@@ -37,12 +38,15 @@ public class MobilePositionEventLister implements ApplicationListener<MobilePosi
     @Autowired
     private SubscribeHolder subscribeHolder;
 
+    @Autowired
+    private UserSetting userSetting;
+
     @Override
     public void onApplicationEvent(MobilePositionEvent event) {
         if (event.getMobilePosition().getChannelId() == 0) {
             return;
         }
-        List<Platform> allPlatforms = platformService.queryAll();
+        List<Platform> allPlatforms = platformService.queryAll(userSetting.getServerId());
         // 获取所用订阅
         List<String> platforms = subscribeHolder.getAllMobilePositionSubscribePlatform(allPlatforms);
         if (platforms.isEmpty()) {

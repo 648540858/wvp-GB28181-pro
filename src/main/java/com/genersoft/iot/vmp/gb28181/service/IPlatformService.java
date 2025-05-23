@@ -80,6 +80,6 @@ public interface IPlatformService {
 
     void delete(Integer platformId, CommonCallback<Object> callback);
 
-    List<Platform> queryAll();
+    List<Platform> queryAll(String serverId);
 
 }

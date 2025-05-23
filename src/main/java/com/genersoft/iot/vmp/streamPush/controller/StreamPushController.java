@@ -35,8 +35,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -245,7 +248,7 @@ public class StreamPushController {
     @GetMapping(value = "/start")
     @ResponseBody
     @Operation(summary = "开始播放", security = @SecurityRequirement(name = JwtUtils.HEADER))
-    public DeferredResult<WVPResult<StreamContent>> start(Integer id){
+    public DeferredResult<WVPResult<StreamContent>> start(HttpServletRequest request, Integer id){
         Assert.notNull(id, "推流ID不可为NULL");
         DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
         result.onTimeout(()->{
@@ -254,6 +257,17 @@ public class StreamPushController {
         });
         streamPushPlayService.start(id, (code, msg, streamInfo) -> {
             if (code == 0 && streamInfo != null) {
+                if (userSetting.getUseSourceIpAsStreamIp()) {
+                    streamInfo=streamInfo.clone();//深拷贝
+                    String host;
+                    try {
+                        URL url=new URL(request.getRequestURL().toString());
+                        host=url.getHost();
+                    } catch (MalformedURLException e) {
+                        host=request.getLocalAddr();
+                    }
+                    streamInfo.changeStreamIp(host);
+                }
                 WVPResult<StreamContent> success = WVPResult.success(new StreamContent(streamInfo));
                 result.setResult(success);
             }

@@ -181,7 +181,8 @@ public class RedisRpcStreamPushController extends RpcController {
      */
     @RedisRpcMapping("play")
     public RedisRpcResponse play(RedisRpcRequest request) {
-        int id = Integer.parseInt(request.getParam().toString());
+        JSONObject paramJson = JSONObject.parseObject(request.getParam().toString());
+        int id = paramJson.getInteger("id");
         RedisRpcResponse response = request.getResponse();
         if (id <= 0) {
             response.setStatusCode(ErrorCode.ERROR400.getCode());

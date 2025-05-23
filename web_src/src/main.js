@@ -89,15 +89,21 @@ Vue.prototype.$channelTypeList = {
 new Vue({
   beforeCreate: function () {
     // 获取本平台的服务ID
-    axios({
-      method: 'get',
-      url: `/api/server/system/configInfo`,
-    }).then( (res)=> {
-      if (res.data.code === 0) {
-        Vue.prototype.$myServerId = res.data.data.addOn.serverId;
-      }
-    }).catch( (error)=> {
-    });
+    console.log("获取本平台的服务ID")
+    if (!this.$myServerId) {
+      axios({
+        method: 'get',
+        url: `/api/server/system/configInfo`,
+      }).then( (res)=> {
+        if (res.data.code === 0) {
+          console.log(res.data)
+          console.log("当前服务ID： " + res.data.data.addOn.serverId)
+          Vue.prototype.$myServerId = res.data.data.addOn.serverId;
+        }
+      }).catch( (error)=> {
+      });
+    }
+
   },
   router: router,
   render: h => h(App),

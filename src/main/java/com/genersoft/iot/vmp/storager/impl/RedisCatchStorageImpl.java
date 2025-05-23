@@ -85,6 +85,13 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
+    public void removeOfflineWVPInfo(String serverId) {
+        String setKey = VideoManagerConstants.WVP_SERVER_LIST;
+        // 首次设置就设置为0, 后续值越小说明越是最近启动的
+        redisTemplate.opsForZSet().remove(setKey, serverId);
+    }
+
+    @Override
     public void sendStreamChangeMsg(String type, JSONObject jsonObject) {
         String key = VideoManagerConstants.WVP_MSG_STREAM_CHANGE_PREFIX + type;
         log.info("[redis 流变化事件] 发送 {}: {}", key, jsonObject.toString());

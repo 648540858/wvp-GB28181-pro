@@ -11,9 +11,6 @@ import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
-import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
-import com.genersoft.iot.vmp.gb28181.task.impl.CatalogSubscribeTask;
-import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
@@ -40,9 +37,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 @Tag(name  = "国标设备查询", description = "国标设备查询")
 @SuppressWarnings("rawtypes")
@@ -144,28 +138,10 @@ public class DeviceQuery {
 		}
 
 		// 清除redis记录
-		boolean isSuccess = deviceService.delete(deviceId);
-		if (isSuccess) {
-			inviteStreamService.clearInviteInfo(deviceId);
-			// 停止此设备的订阅更新
-			Set<String> allKeys = dynamicTask.getAllKeys();
-			for (String key : allKeys) {
-				if (key.startsWith(deviceId)) {
-					Runnable runnable = dynamicTask.get(key);
-					if (runnable instanceof ISubscribeTask) {
-						ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
-						subscribeTask.stop(null);
-					}
-					dynamicTask.stop(key);
-				}
-			}
-			JSONObject json = new JSONObject();
-			json.put("deviceId", deviceId);
-			return json.toString();
-		} else {
-			log.warn("设备信息删除API调用失败！");
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备信息删除API调用失败！");
-		}
+		deviceService.delete(deviceId);
+		JSONObject json = new JSONObject();
+		json.put("deviceId", deviceId);
+		return json.toString();
 	}
 
 	@Operation(summary = "分页查询子目录通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -355,28 +331,6 @@ public class DeviceQuery {
 			wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
 			wvpResult.setData(channelSyncStatus);
 		}
-		return wvpResult;
-	}
-
-	@GetMapping("/{deviceId}/subscribe_info")
-	@Operation(summary = "获取设备的订阅状态", security = @SecurityRequirement(name = JwtUtils.HEADER))
-	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
-	public WVPResult<Map<String, Integer>> getSubscribeInfo(@PathVariable String deviceId) {
-		Set<String> allKeys = dynamicTask.getAllKeys();
-		Map<String, Integer> dialogStateMap = new HashMap<>();
-		for (String key : allKeys) {
-			if (key.startsWith(deviceId)) {
-				ISubscribeTask subscribeTask = (ISubscribeTask)dynamicTask.get(key);
-				if (subscribeTask instanceof CatalogSubscribeTask) {
-					dialogStateMap.put("catalog", 1);
-				}else if (subscribeTask instanceof MobilePositionSubscribeTask) {
-					dialogStateMap.put("mobilePosition", 1);
-				}
-			}
-		}
-		WVPResult<Map<String, Integer>> wvpResult = new WVPResult<>();
-		wvpResult.setCode(0);
-		wvpResult.setData(dialogStateMap);
 		return wvpResult;
 	}
 

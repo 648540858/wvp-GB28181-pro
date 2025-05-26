@@ -208,6 +208,14 @@ public class DateUtil {
         }
         Instant startInstant = Instant.from(formatter.parse(startTime));
         Instant endInstant = Instant.from(formatter.parse(endTime));
-        return ChronoUnit.MILLIS.between(endInstant, startInstant);
+        return ChronoUnit.MILLIS.between(startInstant, endInstant);
     }
+
+
+
+    public static void main(String[] args) {
+        long difference = getDifference("2025-05-21 13:00:00", "2025-05-21 13:30:00")/1000;
+        System.out.println(difference);
+    }
+
 }

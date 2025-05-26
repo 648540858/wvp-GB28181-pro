@@ -53,13 +53,7 @@ public interface IPlatformService {
      * 平台离线
      * @param parentPlatform 平台信息
      */
-    void offline(Platform parentPlatform, boolean stopRegisterTask);
-
-    /**
-     * 向上级平台发起注册
-     * @param parentPlatform
-     */
-    void login(Platform parentPlatform);
+    void offline(Platform parentPlatform);
 
     /**
      * 向上级平台发送位置订阅
@@ -85,4 +79,7 @@ public interface IPlatformService {
     List<Platform> queryEnablePlatformList(String serverId);
 
     void delete(Integer platformId, CommonCallback<Object> callback);
+
+    List<Platform> queryAll(String serverId);
+
 }

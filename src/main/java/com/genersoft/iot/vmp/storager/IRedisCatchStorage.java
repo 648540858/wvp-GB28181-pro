@@ -9,7 +9,6 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
-import com.genersoft.iot.vmp.storager.dao.dto.PlatformRegisterInfo;
 
 import java.util.List;
 import java.util.Map;
@@ -23,22 +22,12 @@ public interface IRedisCatchStorage {
      */
     Long getCSEQ();
 
-    void updatePlatformCatchInfo(PlatformCatch parentPlatformCatch);
-
-    PlatformCatch queryPlatformCatchInfo(String platformGbId);
-
-    void delPlatformCatchInfo(String platformGbId);
-
-    void updatePlatformRegisterInfo(String callId, PlatformRegisterInfo platformRegisterInfo);
-
-    PlatformRegisterInfo queryPlatformRegisterInfo(String callId);
-
-    void delPlatformRegisterInfo(String callId);
-
     /**
      * 在redis添加wvp的信息
      */
     void updateWVPInfo(ServerInfo serverInfo, int time);
+
+    void removeOfflineWVPInfo(String serverId);
 
     /**
      * 发送推流生成与推流消失消息

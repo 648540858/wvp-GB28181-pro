@@ -15,7 +15,6 @@ import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.dao.dto.PlatformRegisterInfo;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.JsonUtil;
 import com.genersoft.iot.vmp.utils.SystemInfoUtils;
@@ -73,41 +72,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         redisTemplate.opsForValue().set(key, 1);
     }
 
-    @Override
-    public void updatePlatformCatchInfo(PlatformCatch parentPlatformCatch) {
-        String key = VideoManagerConstants.PLATFORM_CATCH_PREFIX  + userSetting.getServerId() + "_" +  parentPlatformCatch.getId();
-        redisTemplate.opsForValue().set(key, parentPlatformCatch);
-    }
-
-    @Override
-    public PlatformCatch queryPlatformCatchInfo(String platformGbId) {
-        return (PlatformCatch)redisTemplate.opsForValue().get(VideoManagerConstants.PLATFORM_CATCH_PREFIX + userSetting.getServerId() + "_" + platformGbId);
-    }
-
-    @Override
-    public void delPlatformCatchInfo(String platformGbId) {
-        redisTemplate.delete(VideoManagerConstants.PLATFORM_CATCH_PREFIX + userSetting.getServerId() + "_" + platformGbId);
-    }
-
-    @Override
-    public void updatePlatformRegisterInfo(String callId, PlatformRegisterInfo platformRegisterInfo) {
-        String key = VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + userSetting.getServerId() + "_" + callId;
-        Duration duration = Duration.ofSeconds(30L);
-        redisTemplate.opsForValue().set(key, platformRegisterInfo, duration);
-    }
-
-
-    @Override
-    public PlatformRegisterInfo queryPlatformRegisterInfo(String callId) {
-        return (PlatformRegisterInfo)redisTemplate.opsForValue().get(VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + userSetting.getServerId() + "_" + callId);
-    }
-
-    @Override
-    public void delPlatformRegisterInfo(String callId) {
-         redisTemplate.delete(VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + userSetting.getServerId() + "_" + callId);
-    }
-
-
 
     @Override
     public void updateWVPInfo(ServerInfo serverInfo, int time) {
@@ -118,6 +82,13 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         String setKey = VideoManagerConstants.WVP_SERVER_LIST;
         // 首次设置就设置为0, 后续值越小说明越是最近启动的
         redisTemplate.opsForZSet().add(setKey, userSetting.getServerId(), System.currentTimeMillis());
+    }
+
+    @Override
+    public void removeOfflineWVPInfo(String serverId) {
+        String setKey = VideoManagerConstants.WVP_SERVER_LIST;
+        // 首次设置就设置为0, 后续值越小说明越是最近启动的
+        redisTemplate.opsForZSet().remove(setKey, serverId);
     }
 
     @Override

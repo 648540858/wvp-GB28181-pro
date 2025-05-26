@@ -84,6 +84,11 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
 
         // Success
         if (((status >= Response.OK) && (status < Response.MULTIPLE_CHOICES)) || status == Response.UNAUTHORIZED) {
+            ISIPResponseProcessor sipRequestProcessor = responseProcessorMap.get(response.getCSeqHeader().getMethod());
+            if (sipRequestProcessor != null) {
+                sipRequestProcessor.process(responseEvent);
+            }
+
             CallIdHeader callIdHeader = response.getCallIdHeader();
             CSeqHeader cSeqHeader = response.getCSeqHeader();
             if (callIdHeader != null) {
@@ -95,10 +100,6 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
                     }
                     sipSubscribe.removeSubscribe(callIdHeader.getCallId() + cSeqHeader.getSeqNumber());
                 }
-            }
-            ISIPResponseProcessor sipRequestProcessor = responseProcessorMap.get(response.getCSeqHeader().getMethod());
-            if (sipRequestProcessor != null) {
-                sipRequestProcessor.process(responseEvent);
             }
         } else if ((status >= Response.TRYING) && (status < Response.OK)) {
             // 增加其它无需回复的响应，如101、180等

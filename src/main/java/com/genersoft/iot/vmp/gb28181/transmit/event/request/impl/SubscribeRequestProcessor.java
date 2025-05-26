@@ -70,6 +70,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 				return;
 			}
 			String cmd = XmlUtil.getText(rootElement, "CmdType");
+			log.info("[收到订阅请求] 类型： {}", cmd);
 			if (CmdType.MOBILE_POSITION.equals(cmd)) {
 				processNotifyMobilePosition(request, rootElement);
 //			} else if (CmdType.ALARM.equals(cmd)) {
@@ -157,12 +158,14 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 
 	private void processNotifyCatalogList(SIPRequest request, Element rootElement) throws SipException {
 		if (request == null) {
+			log.info("[处理目录订阅] 发现request为NUll。已忽略");
 			return;
 		}
 		String platformId = SipUtils.getUserIdFromFromHeader(request);
 		String deviceId = XmlUtil.getText(rootElement, "DeviceID");
 		Platform platform = platformService.queryPlatformByServerGBId(platformId);
 		if (platform == null){
+			log.info("[处理目录订阅] 未找到平台 {}。已忽略", platformId);
 			return;
 		}
 
@@ -185,12 +188,6 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 
 			SubscribeInfo subscribeInfo = SubscribeInfo.getInstance(response, platformId, expires,
 					(EventHeader)request.getHeader(EventHeader.NAME));
-
-			if (subscribeInfo.getExpires() > 0) {
-				subscribeHolder.putCatalogSubscribe(platformId, subscribeInfo);
-			}else if (subscribeInfo.getExpires() == 0) {
-				subscribeHolder.removeCatalogSubscribe(platformId);
-			}
 
 			if (subscribeInfo.getExpires() == 0) {
 				subscribeHolder.removeCatalogSubscribe(platformId);

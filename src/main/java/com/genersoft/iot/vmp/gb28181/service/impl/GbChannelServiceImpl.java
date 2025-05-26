@@ -160,30 +160,26 @@ public class GbChannelServiceImpl implements IGbChannelService {
             log.warn("[多个通道离线] 通道数量为0，更新失败");
             return 0;
         }
-        List<CommonGBChannel> onlineChannelList = commonGBChannelMapper.queryInListByStatus(commonGBChannelList, "ON");
-        if (onlineChannelList.isEmpty()) {
-            log.info("[多个通道离线] 更新失败, 参数内通道已经离线, 无需更新");
-            return 0;
-        }
+        log.info("[通道离线] 共 {} 个", commonGBChannelList.size());
         int limitCount = 1000;
         int result = 0;
-        if (onlineChannelList.size() > limitCount) {
-            for (int i = 0; i < onlineChannelList.size(); i += limitCount) {
+        if (commonGBChannelList.size() > limitCount) {
+            for (int i = 0; i < commonGBChannelList.size(); i += limitCount) {
                 int toIndex = i + limitCount;
-                if (i + limitCount > onlineChannelList.size()) {
-                    toIndex = onlineChannelList.size();
+                if (i + limitCount > commonGBChannelList.size()) {
+                    toIndex = commonGBChannelList.size();
                 }
-                result += commonGBChannelMapper.updateStatusForListById(onlineChannelList.subList(i, toIndex), "OFF");
+                result += commonGBChannelMapper.updateStatusForListById(commonGBChannelList.subList(i, toIndex), "OFF");
             }
         } else {
-            result += commonGBChannelMapper.updateStatusForListById(onlineChannelList, "OFF");
+            result += commonGBChannelMapper.updateStatusForListById(commonGBChannelList, "OFF");
         }
         if (result > 0) {
             try {
                 // 发送catalog
-                eventPublisher.catalogEventPublish(null, onlineChannelList, CatalogEvent.OFF);
+                eventPublisher.catalogEventPublish(null, commonGBChannelList, CatalogEvent.OFF);
             } catch (Exception e) {
-                log.warn("[多个通道离线] 发送失败，数量：{}", onlineChannelList.size(), e);
+                log.warn("[多个通道离线] 发送失败，数量：{}", commonGBChannelList.size(), e);
             }
         }
         return result;
@@ -214,32 +210,25 @@ public class GbChannelServiceImpl implements IGbChannelService {
             log.warn("[多个通道上线] 通道数量为0，更新失败");
             return 0;
         }
-        List<CommonGBChannel> offlineChannelList = commonGBChannelMapper.queryInListByStatus(commonGBChannelList, "OFF");
-        if (offlineChannelList.isEmpty()) {
-            log.warn("[多个通道上线] 更新失败, 参数内通道已经上线");
-            return 0;
-        }
         // 批量更新
         int limitCount = 1000;
         int result = 0;
-        if (offlineChannelList.size() > limitCount) {
-            for (int i = 0; i < offlineChannelList.size(); i += limitCount) {
+        if (commonGBChannelList.size() > limitCount) {
+            for (int i = 0; i < commonGBChannelList.size(); i += limitCount) {
                 int toIndex = i + limitCount;
-                if (i + limitCount > offlineChannelList.size()) {
-                    toIndex = offlineChannelList.size();
+                if (i + limitCount > commonGBChannelList.size()) {
+                    toIndex = commonGBChannelList.size();
                 }
-                result += commonGBChannelMapper.updateStatusForListById(offlineChannelList.subList(i, toIndex), "ON");
+                result += commonGBChannelMapper.updateStatusForListById(commonGBChannelList.subList(i, toIndex), "ON");
             }
         } else {
-            result += commonGBChannelMapper.updateStatusForListById(offlineChannelList, "ON");
+            result += commonGBChannelMapper.updateStatusForListById(commonGBChannelList, "ON");
         }
-        if (result > 0) {
-            try {
-                // 发送catalog
-                eventPublisher.catalogEventPublish(null, offlineChannelList, CatalogEvent.ON);
-            } catch (Exception e) {
-                log.warn("[多个通道上线] 发送失败，数量：{}", offlineChannelList.size(), e);
-            }
+        try {
+            // 发送catalog
+            eventPublisher.catalogEventPublish(null, commonGBChannelList, CatalogEvent.ON);
+        } catch (Exception e) {
+            log.warn("[多个通道上线] 发送失败，数量：{}", commonGBChannelList.size(), e);
         }
 
         return result;

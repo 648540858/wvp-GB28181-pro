@@ -23,6 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Map;
 
 @SuppressWarnings("rawtypes")
@@ -190,12 +193,23 @@ public class StreamProxyController {
     @ResponseBody
     @Operation(summary = "启用代理", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "id", description = "代理Id", required = true)
-    public StreamContent start(int id){
+    public StreamContent start(HttpServletRequest request, int id){
         log.info("播放代理： {}", id);
         StreamInfo streamInfo = streamProxyPlayService.start(id, null, null);
         if (streamInfo == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg());
         }else {
+            if (userSetting.getUseSourceIpAsStreamIp()) {
+                streamInfo=streamInfo.clone();//深拷贝
+                String host;
+                try {
+                    URL url=new URL(request.getRequestURL().toString());
+                    host=url.getHost();
+                } catch (MalformedURLException e) {
+                    host=request.getLocalAddr();
+                }
+                streamInfo.changeStreamIp(host);
+            }
             return new StreamContent(streamInfo);
         }
     }

@@ -458,16 +458,27 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Override
     public void offline(List<StreamPushItemFromRedis> offlineStreams) {
         // 更新部分设备离线
-        List<StreamPush> streamPushList = streamPushMapper.getListFromRedis(offlineStreams);
+        List<StreamPush> streamPushList = streamPushMapper.getListInList(offlineStreams);
+        if (streamPushList.isEmpty()) {
+            log.info("[推流设备] 设备离线操作未发现可操作数据。");
+            return;
+        }
         List<CommonGBChannel> commonGBChannelList = gbChannelService.queryListByStreamPushList(streamPushList);
         gbChannelService.offline(commonGBChannelList);
     }
 
     @Override
     public void online(List<StreamPushItemFromRedis> onlineStreams) {
+        if (onlineStreams.isEmpty()) {
+            log.info("[设备上线] 推流设备列表为空");
+            return;
+        }
         // 更新部分设备上线streamPushService
-        List<StreamPush> streamPushList = streamPushMapper.getListFromRedis(onlineStreams);
+        List<StreamPush> streamPushList = streamPushMapper.getListInList(onlineStreams);
         if (streamPushList.isEmpty()) {
+            for (StreamPushItemFromRedis onlineStream : onlineStreams) {
+                log.info("[设备上线] 未查询到这些通道： {}/{}", onlineStream.getApp(), onlineStream.getStream());
+            }
             return;
         }
         List<CommonGBChannel> commonGBChannelList = gbChannelService.queryListByStreamPushList(streamPushList);

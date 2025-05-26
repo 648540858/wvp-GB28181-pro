@@ -91,7 +91,7 @@ public interface StreamPushMapper {
             "(#{item.app}, #{item.stream}) " +
             "</foreach>" +
             ")</script>")
-    List<StreamPush> getListFromRedis(List<StreamPushItemFromRedis> offlineStreams);
+    List<StreamPush> getListInList(List<StreamPushItemFromRedis> offlineStreams);
 
 
     @Select("SELECT CONCAT(app,stream) from wvp_stream_push")

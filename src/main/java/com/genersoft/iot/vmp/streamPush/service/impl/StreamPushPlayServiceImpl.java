@@ -39,7 +39,7 @@ public class StreamPushPlayServiceImpl implements IStreamPushPlayService {
 
     @Autowired
     private UserSetting userSetting;
-    
+
     @Autowired
     private DynamicTask dynamicTask;
 
@@ -57,27 +57,28 @@ public class StreamPushPlayServiceImpl implements IStreamPushPlayService {
         StreamPush streamPush = streamPushMapper.queryOne(id);
         Assert.notNull(streamPush, "推流信息未找到");
 
-        if (!userSetting.getServerId().equals(streamPush.getServerId())) {
-            redisRpcPlayService.playPush(id, callback);
+        if (streamPush.isPushing() && !userSetting.getServerId().equals(streamPush.getServerId())) {
+            redisRpcPlayService.playPush(streamPush.getServerId(), id, callback);
             return;
         }
 
         MediaServer mediaServer = mediaServerService.getOne(streamPush.getMediaServerId());
-        Assert.notNull(mediaServer, "节点" + streamPush.getMediaServerId() + "未找到");
-        MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, streamPush.getApp(), streamPush.getStream());
-        if (mediaInfo != null) {
-            String callId = null;
-            StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(streamPush.getApp(), streamPush.getStream());
-            if (streamAuthorityInfo != null) {
-                callId = streamAuthorityInfo.getCallId();
+        if (mediaServer != null) {
+            MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, streamPush.getApp(), streamPush.getStream());
+            if (mediaInfo != null) {
+                String callId = null;
+                StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(streamPush.getApp(), streamPush.getStream());
+                if (streamAuthorityInfo != null) {
+                    callId = streamAuthorityInfo.getCallId();
+                }
+                callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), mediaServerService.getStreamInfoByAppAndStream(mediaServer,
+                        streamPush.getApp(), streamPush.getStream(), mediaInfo, callId));
+                if (!streamPush.isPushing()) {
+                    streamPush.setPushing(true);
+                    streamPushMapper.update(streamPush);
+                }
+                return;
             }
-            callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), mediaServerService.getStreamInfoByAppAndStream(mediaServer,
-                    streamPush.getApp(), streamPush.getStream(), mediaInfo, callId));
-            if (!streamPush.isPushing()) {
-                streamPush.setPushing(true);
-                streamPushMapper.update(streamPush);
-            }
-            return;
         }
         Assert.isTrue(streamPush.isStartOfflinePush(), "通道未推流");
         // 发送redis消息以使设备上线，流上线后被

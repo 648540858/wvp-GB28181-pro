@@ -7,7 +7,7 @@ import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.service.IMobilePositionService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.util.StringUtil;
@@ -37,10 +37,10 @@ public class MobilePositionController {
 
     @Autowired
     private IMobilePositionService mobilePositionService;
-    
+
 	@Autowired
-	private SIPCommander cmder;
-	
+	private ISIPCommander cmder;
+
 	@Autowired
 	private DeferredResultHolder resultHolder;
 

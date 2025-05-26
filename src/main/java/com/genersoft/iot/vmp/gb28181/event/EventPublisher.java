@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOfflineEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOnlineEvent;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -21,11 +22,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**    
+/**
  * @description:Event事件通知推送器，支持推送在线事件、离线事件
  * @author: swwheihei
- * @date:   2020年5月6日 上午11:30:50     
+ * @date:   2020年5月6日 上午11:30:50
  */
+@Slf4j
 @Component
 public class EventPublisher {
 
@@ -72,12 +74,7 @@ public class EventPublisher {
 	}
 	public void catalogEventPublish(Platform platform, List<CommonGBChannel> deviceChannels, String type, boolean share) {
 		if (platform != null && !userSetting.getServerId().equals(platform.getServerId())) {
-			// 指定了上级平台的推送，则发送到指定的设备，未指定的则全部发送， 接收后各自处理自己的
-			CatalogEvent outEvent = new CatalogEvent(this);
-			outEvent.setChannels(deviceChannels);
-			outEvent.setType(type);
-			outEvent.setPlatform(platform);
-			redisRpcService.catalogEventPublish(platform.getServerId(), outEvent);
+			log.info("[国标级联] 目录状态推送， 此上级平台由其他服务处理，消息已经忽略");
 			return;
 		}
 		CatalogEvent outEvent = new CatalogEvent(this);
@@ -96,12 +93,11 @@ public class EventPublisher {
 		}
 		outEvent.setChannels(channels);
 		outEvent.setType(type);
-		outEvent.setPlatform(platform);
-		applicationEventPublisher.publishEvent(outEvent);
-		if (platform == null && share) {
-			// 如果没指定上级平台，则推送消息到所有在线的wvp处理自己含有的平台的目录更新
-			redisRpcService.catalogEventPublish(null, outEvent);
+		if (platform != null) {
+			outEvent.setPlatform(platform);
 		}
+		applicationEventPublisher.publishEvent(outEvent);
+
 	}
 
 	public void mobilePositionEventPublish(MobilePosition mobilePosition) {

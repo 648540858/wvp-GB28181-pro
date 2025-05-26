@@ -1,25 +1,26 @@
 <template>
-  <div id="live" style="height: calc(100vh - 124px)">
-    <div v-loading="loading" style="height: 100%; display: grid; grid-template-columns: 400px auto" element-loading-text="拼命加载中">
-      <div style="background-color: #ffffff">
+  <div id="live" class="live-container">
+    <div v-loading="loading" class="live-content" element-loading-text="拼命加载中">
+      <div class="device-tree-container">
         <DeviceTree :click-event="clickEvent" :context-menu-event="contextMenuEvent" />
       </div>
-      <div style="display: grid; grid-template-rows: 5vh auto">
-        <div style="font-size: 17px;line-height:5vh; display: grid; grid-template-columns: 1fr 1fr">
-          <div style="text-align: left">
+      <div class="video-container">
+        <div class="control-bar">
+          <div class="split-controls">
             分屏:
             <i class="iconfont icon-a-mti-1fenpingshi btn" :class="{active:spiltIndex === 0}" @click="spiltIndex=0" />
             <i class="iconfont icon-a-mti-4fenpingshi btn" :class="{active: spiltIndex === 1}" @click="spiltIndex=1" />
             <i class="iconfont icon-a-mti-6fenpingshi btn" :class="{active: spiltIndex === 2}" @click="spiltIndex=2" />
             <i class="iconfont icon-a-mti-9fenpingshi btn" :class="{active: spiltIndex === 3}" @click="spiltIndex=3" />
           </div>
-          <div style="text-align: right; margin-right: 10px;">
+          <div class="fullscreen-control">
             <i class="el-icon-full-screen btn" @click="fullScreen()" />
           </div>
         </div>
-        <div style="padding: 0; margin: 0 auto;">
+        <div class="player-container">
           <div
             ref="playBox"
+            class="play-grid"
             :style="liveStyle"
           >
             <div
@@ -29,7 +30,7 @@
               :class="getPlayerClass(spiltIndex, i)"
               @click="playerIdx = (i-1)"
             >
-              <div v-if="!videoUrl[i-1]" style="color: #ffffff;font-size: 15px;font-weight: bold;">{{ videoTip[i-1]?videoTip[i-1]:"无信号" }}</div>
+              <div v-if="!videoUrl[i-1]" class="no-signal">{{ videoTip[i-1]?videoTip[i-1]:"无信号" }}</div>
               <player
                 v-else
                 :ref="'player'[i-1]"
@@ -111,21 +112,13 @@ export default {
 
   computed: {
     liveStyle() {
-      if (!this.$store.getters.sidebar.opened) {
-        return { width: '151vh', height: '85vh', display: 'grid', gridTemplateColumns: this.layout[this.spiltIndex].columns,
-          gridTemplateRows: this.layout[this.spiltIndex].rows, gap: '4px', backgroundColor: '#a9a8a8' }
-      } else {
-        return { width: '140vh', height: '79vh', display: 'grid', gridTemplateColumns: this.layout[this.spiltIndex].columns,
-          gridTemplateRows: this.layout[this.spiltIndex].rows, gap: '4px', backgroundColor: '#a9a8a8' }
+      return {
+        display: 'grid',
+        gridTemplateColumns: this.layout[this.spiltIndex].columns,
+        gridTemplateRows: this.layout[this.spiltIndex].rows,
+        gap: '4px',
+        backgroundColor: '#a9a8a8'
       }
-
-      // this.$nextTick(() => {
-      //   for (let i = 0; i < this.spilt; i++) {
-      //     const player = this.$refs.player
-      //     player && player[i] && player[i].updatePlayerDomSize()
-      //   }
-      // })
-      // return style
     }
   },
   watch: {
@@ -149,15 +142,37 @@ export default {
     '$route.fullPath': 'checkPlayByParam'
   },
   mounted() {
-
+    // Add window resize event listener to handle responsive behavior
+    window.addEventListener('resize', this.handleResize)
+    this.handleResize()
   },
   created() {
     this.checkPlayByParam()
   },
   destroyed() {
     clearTimeout(this.updateLooper)
+    // Remove event listener when component is destroyed
+    window.removeEventListener('resize', this.handleResize)
   },
   methods: {
+    handleResize() {
+      // Force update to recalculate responsive layout
+      this.$forceUpdate()
+
+      // Resize any active players
+      this.$nextTick(() => {
+        for (let i = 0; i < this.layout[this.spiltIndex].spilt; i++) {
+          const playerRef = this.$refs[`player${i + 1}`]
+          if (playerRef) {
+            if (playerRef instanceof Array) {
+              playerRef[0].resize && playerRef[0].resize()
+            } else {
+              playerRef.resize && playerRef.resize()
+            }
+          }
+        }
+      })
+    },
     destroy(idx) {
       console.log(idx)
       this.clear(idx.substring(idx.length - 1))
@@ -212,8 +227,6 @@ export default {
       }
     },
     shot(e) {
-      // console.log(e)
-      // send({code:'image',data:e})
       var base64ToBlob = function(code) {
         const parts = code.split(';base64,')
         const contentType = parts[0].split(':')[1]
@@ -257,9 +270,86 @@ export default {
 }
 </script>
 <style>
+.live-container {
+  height: calc(100vh - 124px);
+  width: 100%;
+}
+
+.live-content {
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.device-tree-container {
+  width: 300px;
+  min-width: 250px;
+  max-width: 400px;
+  background-color: #ffffff;
+  overflow: auto;
+  resize: horizontal;
+}
+
+@media (max-width: 768px) {
+  .live-content {
+    flex-direction: column;
+  }
+
+  .device-tree-container {
+    width: 100%;
+    max-width: 100%;
+    height: 200px;
+    min-height: 150px;
+    max-height: 300px;
+    resize: vertical;
+  }
+}
+
+.video-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.control-bar {
+  height: 5vh;
+  min-height: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 17px;
+}
+
+.split-controls {
+  text-align: left;
+  padding-left: 10px;
+}
+
+.fullscreen-control {
+  text-align: right;
+  padding-right: 10px;
+}
+
+.player-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  overflow: hidden;
+}
+
+.play-grid {
+  width: 100%;
+  height: 100%;
+  max-height: calc(100vh - 180px);
+  aspect-ratio: 16/9;
+}
+
 .btn {
   margin: 0 10px;
-
+  cursor: pointer;
 }
 
 .btn:hover {
@@ -268,7 +358,6 @@ export default {
 
 .btn.active {
   color: #409EFF;
-
 }
 
 .redborder {
@@ -280,13 +369,39 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
+
+.no-signal {
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: bold;
+}
+
 .play-box-2-1 {
   grid-column: 1 / span 2;
   grid-row: 1 / span 2;
 }
-</style>
-<style>
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 576px) {
+  .control-bar {
+    flex-direction: column;
+    height: auto;
+    padding: 5px 0;
+  }
+
+  .split-controls, .fullscreen-control {
+    width: 100%;
+    text-align: center;
+    padding: 5px 0;
+  }
+
+  .btn {
+    margin: 0 5px;
+  }
+}
+
 .videoList {
   display: flex;
   flex-wrap: wrap;

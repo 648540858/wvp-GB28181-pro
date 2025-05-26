@@ -34,7 +34,7 @@ public class SIPRequestHeaderPlarformProvider {
 
 	@Autowired
 	private SipConfig sipConfig;
-	
+
 	@Autowired
 	private SipLayer sipLayer;
 
@@ -225,11 +225,11 @@ public class SIPRequestHeaderPlarformProvider {
 		SipURI fromSipURI = SipFactory.getInstance().createAddressFactory().createSipURI(parentPlatform.getDeviceGBId(),
 				parentPlatform.getDeviceIp() + ":" + parentPlatform.getDevicePort());
 		Address fromAddress = SipFactory.getInstance().createAddressFactory().createAddress(fromSipURI);
-		FromHeader fromHeader = SipFactory.getInstance().createHeaderFactory().createFromHeader(fromAddress, subscribeInfo.getResponse() != null ? subscribeInfo.getResponse().getToTag(): subscribeInfo.getSimulatedToTag());
+		FromHeader fromHeader = SipFactory.getInstance().createHeaderFactory().createFromHeader(fromAddress, subscribeInfo.getTransactionInfo() != null ? subscribeInfo.getTransactionInfo() .getToTag(): subscribeInfo.getSimulatedToTag());
 		// to
 		SipURI toSipURI = SipFactory.getInstance().createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerGBDomain());
 		Address toAddress = SipFactory.getInstance().createAddressFactory().createAddress(toSipURI);
-		ToHeader toHeader = SipFactory.getInstance().createHeaderFactory().createToHeader(toAddress, subscribeInfo.getRequest() != null ?subscribeInfo.getRequest().getFromTag(): subscribeInfo.getSimulatedFromTag());
+		ToHeader toHeader = SipFactory.getInstance().createHeaderFactory().createToHeader(toAddress, subscribeInfo.getTransactionInfo() != null ?subscribeInfo.getTransactionInfo().getFromTag(): subscribeInfo.getSimulatedFromTag());
 
 		// Forwards
 		MaxForwardsHeader maxForwards = SipFactory.getInstance().createHeaderFactory().createMaxForwardsHeader(70);
@@ -239,7 +239,7 @@ public class SIPRequestHeaderPlarformProvider {
 		// 设置编码， 防止中文乱码
 		messageFactory.setDefaultContentEncodingCharset("gb2312");
 
-		CallIdHeader callIdHeader = SipFactory.getInstance().createHeaderFactory().createCallIdHeader(subscribeInfo.getRequest() != null ? subscribeInfo.getRequest().getCallIdHeader().getCallId(): subscribeInfo.getSimulatedCallId());
+		CallIdHeader callIdHeader = SipFactory.getInstance().createHeaderFactory().createCallIdHeader(subscribeInfo.getTransactionInfo() != null ? subscribeInfo.getTransactionInfo().getCallId(): subscribeInfo.getSimulatedCallId());
 
 		request = (SIPRequest) messageFactory.createRequest(requestURI, Request.NOTIFY, callIdHeader, cSeqHeader, fromHeader,
 				toHeader, viaHeaders, maxForwards);

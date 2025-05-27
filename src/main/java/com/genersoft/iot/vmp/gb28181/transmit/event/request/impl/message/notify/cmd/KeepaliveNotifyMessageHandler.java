@@ -114,8 +114,6 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             } else {
                 if (userSetting.getGbDeviceOnline() == 1) {
                     // 对于已经离线的设备判断他的注册是否已经过期
-                    device.setOnLine(true);
-                    device.setRegisterTime(DateUtil.getNow());
                     deviceService.online(device, null);
                 }
             }

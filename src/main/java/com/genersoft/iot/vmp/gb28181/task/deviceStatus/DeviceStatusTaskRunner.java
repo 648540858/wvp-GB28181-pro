@@ -2,8 +2,6 @@ package com.genersoft.iot.vmp.gb28181.task.deviceStatus;
 
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
-import com.genersoft.iot.vmp.gb28181.task.deviceSubscribe.SubscribeTask;
-import com.genersoft.iot.vmp.gb28181.task.deviceSubscribe.SubscribeTaskInfo;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +41,7 @@ public class DeviceStatusTaskRunner {
             try {
                 take = delayQueue.take();
                 try {
-                    removeSubscribe(take.getDeviceId());
+                    removeTask(take.getDeviceId());
                     take.expired();
                 }catch (Exception e) {
                     log.error("[设备状态到期] 到期处理时出现异常， 设备编号: {} ", take.getDeviceId());
@@ -54,7 +52,7 @@ public class DeviceStatusTaskRunner {
         }
     }
 
-    public void addSubscribe(DeviceStatusTask task) {
+    public void addTask(DeviceStatusTask task) {
         Duration duration = Duration.ofSeconds((task.getDelayTime() - System.currentTimeMillis())/1000);
         if (duration.getSeconds() < 0) {
             return;
@@ -65,7 +63,7 @@ public class DeviceStatusTaskRunner {
         delayQueue.offer(task);
     }
 
-    public boolean removeSubscribe(String key) {
+    public boolean removeTask(String key) {
         DeviceStatusTask task = subscribes.get(key);
         if (task == null) {
             return false;
@@ -95,7 +93,7 @@ public class DeviceStatusTaskRunner {
         if (task == null) {
             return false;
         }
-        log.info("[更新状态任务时间] {}, 编号： {}", task.getName(), key);
+        log.info("[更新状态任务时间] 编号： {}", key);
         if (delayQueue.contains(task)) {
             boolean remove = delayQueue.remove(task);
             if (!remove) {

@@ -15,6 +15,9 @@ import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
+import com.genersoft.iot.vmp.gb28181.task.deviceStatus.DeviceStatusTask;
+import com.genersoft.iot.vmp.gb28181.task.deviceStatus.DeviceStatusTaskInfo;
+import com.genersoft.iot.vmp.gb28181.task.deviceStatus.DeviceStatusTaskRunner;
 import com.genersoft.iot.vmp.gb28181.task.deviceSubscribe.SubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.deviceSubscribe.SubscribeTaskInfo;
 import com.genersoft.iot.vmp.gb28181.task.deviceSubscribe.SubscribeTaskRunner;
@@ -50,6 +53,7 @@ import javax.sip.SipException;
 import javax.validation.constraints.NotNull;
 import java.text.ParseException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.SynchronousQueue;
@@ -111,13 +115,45 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
     @Autowired
     private SubscribeTaskRunner subscribeTaskRunner;
 
+    @Autowired
+    private DeviceStatusTaskRunner deviceStatusTaskRunner;
+
     private Device getDeviceByDeviceIdFromDb(String deviceId) {
         return deviceMapper.getDeviceByDeviceId(deviceId);
     }
 
     @Override
     public void run(String... args) throws Exception {
-        // TODO 处理设备离线
+        List<DeviceStatusTaskInfo> allTaskInfo = deviceStatusTaskRunner.getAllTaskInfo();
+        List<String> onlineDeviceIds = new ArrayList<>();
+        if (!allTaskInfo.isEmpty()) {
+            for (DeviceStatusTaskInfo taskInfo : allTaskInfo) {
+                Device device = getDeviceByDeviceId(taskInfo.getDeviceId());
+                if (device == null) {
+                    deviceStatusTaskRunner.removeTask(taskInfo.getDeviceId());
+                    continue;
+                }
+                // 恢复定时任务, TCP因为连接已经断开必须等待设备重新连接
+                DeviceStatusTask deviceStatusTask = DeviceStatusTask.getInstance(taskInfo.getDeviceId(),
+                        taskInfo.getTransactionInfo(), taskInfo.getExpireTime(), this::deviceStatusExpire);
+                deviceStatusTaskRunner.addTask(deviceStatusTask);
+                onlineDeviceIds.add(taskInfo.getDeviceId());
+            }
+            // 除了记录的设备以外， 其他设备全部离线
+            List<Device> onlineDevice = getAllOnlineDevice(userSetting.getServerId());
+            if (!onlineDevice.isEmpty()) {
+                for (Device device : onlineDevice) {
+                    if (!onlineDeviceIds.contains(device.getDeviceId())) {
+                        // 此设备需要离线
+                        // 清理订阅
+                        // 更新数据库
+
+                    }
+                }
+            }
+
+        }
+
 
         // 处理订阅任务
         List<SubscribeTaskInfo> taskInfoList = subscribeTaskRunner.getAllTaskInfo();
@@ -127,7 +163,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
                     continue;
                 }
                 Device device = getDeviceByDeviceId(taskInfo.getDeviceId());
-                if (device == null || !device.isOnLine()) {
+                if (device == null || !device.isOnLine() || !onlineDeviceIds.contains(taskInfo.getDeviceId())) {
                     subscribeTaskRunner.removeSubscribe(taskInfo.getKey());
                     continue;
                 }
@@ -146,6 +182,11 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
                 }
             }
         }
+    }
+
+    private void deviceStatusExpire(String deviceId, SipTransactionInfo transactionInfo) {
+        log.info("[设备状态] 到期， 编号： {}", deviceId);
+        offline(deviceId, "");
     }
 
     @Override

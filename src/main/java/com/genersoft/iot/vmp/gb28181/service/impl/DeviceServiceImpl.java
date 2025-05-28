@@ -142,18 +142,22 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             // 除了记录的设备以外， 其他设备全部离线
             List<Device> onlineDevice = getAllOnlineDevice(userSetting.getServerId());
             if (!onlineDevice.isEmpty()) {
+                List<Device> offlineDevices = new ArrayList<>();
                 for (Device device : onlineDevice) {
                     if (!onlineDeviceIds.contains(device.getDeviceId())) {
                         // 此设备需要离线
-                        // 清理订阅
+                        device.setOnLine(false);
+                        // 清理离线设备的相关缓存
+                        cleanOfflineDevice(device);
                         // 更新数据库
-
+                        offlineDevices.add(device);
                     }
                 }
+                if (!offlineDevices.isEmpty()) {
+                    offlineByIds(offlineDevices);
+                }
             }
-
         }
-
 
         // 处理订阅任务
         List<SubscribeTaskInfo> taskInfoList = subscribeTaskRunner.getAllTaskInfo();
@@ -180,6 +184,56 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
                         subscribeTaskRunner.addSubscribe(subscribeTask);
                     }
                 }
+            }
+        }
+    }
+
+    private void offlineByIds(List<Device> offlineDevices) {
+        if (offlineDevices.isEmpty()) {
+            log.info("[更新多个离线设备信息] 参数为空");
+            return;
+        }
+        deviceMapper.offlineByList(offlineDevices);
+        for (Device device : offlineDevices) {
+            device.setOnLine(false);
+            redisCatchStorage.updateDevice(device);
+        }
+    }
+
+    private void cleanOfflineDevice(Device device) {
+        if (subscribeTaskRunner.containsKey(SubscribeTaskForCatalog.getKey(device))) {
+            subscribeTaskRunner.removeSubscribe(SubscribeTaskForCatalog.getKey(device));
+        }
+        if (subscribeTaskRunner.containsKey(SubscribeTaskForMobilPosition.getKey(device))) {
+            subscribeTaskRunner.removeSubscribe(SubscribeTaskForMobilPosition.getKey(device));
+        }
+        //进行通道离线
+//        deviceChannelMapper.offlineByDeviceId(deviceId);
+        // 离线释放所有ssrc
+        List<SsrcTransaction> ssrcTransactions = sessionManager.getSsrcTransactionByDeviceId(device.getDeviceId());
+        if (ssrcTransactions != null && !ssrcTransactions.isEmpty()) {
+            for (SsrcTransaction ssrcTransaction : ssrcTransactions) {
+                mediaServerService.releaseSsrc(ssrcTransaction.getMediaServerId(), ssrcTransaction.getSsrc());
+                mediaServerService.closeRTPServer(ssrcTransaction.getMediaServerId(), ssrcTransaction.getStream());
+                sessionManager.removeByCallId(ssrcTransaction.getCallId());
+            }
+        }
+        // 移除订阅
+        removeCatalogSubscribe(device, null);
+        removeMobilePositionSubscribe(device, null);
+
+        List<AudioBroadcastCatch> audioBroadcastCatches = audioBroadcastManager.getByDeviceId(device.getDeviceId());
+        if (!audioBroadcastCatches.isEmpty()) {
+            for (AudioBroadcastCatch audioBroadcastCatch : audioBroadcastCatches) {
+
+                SendRtpInfo sendRtpItem = sendRtpServerService.queryByChannelId(audioBroadcastCatch.getChannelId(), device.getDeviceId());
+                if (sendRtpItem != null) {
+                    sendRtpServerService.delete(sendRtpItem);
+                    MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+                    mediaServerService.stopSendRtp(mediaInfo, sendRtpItem.getApp(), sendRtpItem.getStream(), null);
+                }
+
+                audioBroadcastManager.del(audioBroadcastCatch.getChannelId());
             }
         }
     }
@@ -223,6 +277,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             device.setCreateTime(now);
             device.setUpdateTime(now);
             log.info("[设备上线,首次注册]: {}，查询设备信息以及通道信息", device.getDeviceId());
+            addCustomDevice(device);
             deviceMapper.add(device);
             redisCatchStorage.updateDevice(device);
             try {
@@ -297,47 +352,10 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
         }
         log.info("[设备离线] {}, device：{}， 心跳间隔： {}，心跳超时次数： {}， 上次心跳时间：{}， 上次注册时间： {}", reason, deviceId,
                 device.getHeartBeatInterval(), device.getHeartBeatCount(), device.getKeepaliveTime(), device.getRegisterTime());
-        String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + deviceId;
-        dynamicTask.stop(registerExpireTaskKey);
-        if (device.isOnLine()) {
-            if (userSetting.getDeviceStatusNotify()) {
-                // 发送redis消息
-                redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), null, false);
-            }
-        }
-
         device.setOnLine(false);
+        cleanOfflineDevice(device);
         redisCatchStorage.updateDevice(device);
         deviceMapper.update(device);
-        //进行通道离线
-//        deviceChannelMapper.offlineByDeviceId(deviceId);
-        // 离线释放所有ssrc
-        List<SsrcTransaction> ssrcTransactions = sessionManager.getSsrcTransactionByDeviceId(deviceId);
-        if (ssrcTransactions != null && !ssrcTransactions.isEmpty()) {
-            for (SsrcTransaction ssrcTransaction : ssrcTransactions) {
-                mediaServerService.releaseSsrc(ssrcTransaction.getMediaServerId(), ssrcTransaction.getSsrc());
-                mediaServerService.closeRTPServer(ssrcTransaction.getMediaServerId(), ssrcTransaction.getStream());
-                sessionManager.removeByCallId(ssrcTransaction.getCallId());
-            }
-        }
-        // 移除订阅
-        removeCatalogSubscribe(device, null);
-        removeMobilePositionSubscribe(device, null);
-
-        List<AudioBroadcastCatch> audioBroadcastCatches = audioBroadcastManager.getByDeviceId(deviceId);
-        if (!audioBroadcastCatches.isEmpty()) {
-            for (AudioBroadcastCatch audioBroadcastCatch : audioBroadcastCatches) {
-
-                SendRtpInfo sendRtpItem = sendRtpServerService.queryByChannelId(audioBroadcastCatch.getChannelId(), deviceId);
-                if (sendRtpItem != null) {
-                    sendRtpServerService.delete(sendRtpItem);
-                    MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-                    mediaServerService.stopSendRtp(mediaInfo, sendRtpItem.getApp(), sendRtpItem.getStream(), null);
-                }
-
-                audioBroadcastManager.del(audioBroadcastCatch.getChannelId());
-            }
-        }
     }
 
     // 订阅丢失检查
@@ -621,7 +639,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
     }
 
     @Override
-    public void addDevice(Device device) {
+    public void addCustomDevice(Device device) {
         device.setOnLine(false);
         device.setCreateTime(DateUtil.getNow());
         device.setUpdateTime(DateUtil.getNow());

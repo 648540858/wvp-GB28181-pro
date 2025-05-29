@@ -230,6 +230,7 @@ public interface DeviceMapper {
             "on_line"+
             " FROM wvp_device WHERE on_line = true")
     List<Device> getOnlineDevices();
+
     @Select("SELECT " +
             "id, " +
             "device_id, " +
@@ -423,4 +424,12 @@ public interface DeviceMapper {
             " WHERE id=#{id}"+
             " </script>"})
     void updateSubscribeMobilePosition(Device device);
+
+    @Update(value = {" <script>" +
+            "UPDATE wvp_device " +
+            "SET on_line=false" +
+            " WHERE id in"+
+            "<foreach collection='offlineDevices' item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
+            " </script>"})
+    void offlineByList(List<Device> offlineDevices);
 }

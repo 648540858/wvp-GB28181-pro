@@ -16,11 +16,11 @@ WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的开箱即用的网�
 前端页面基于vue-admin-template构建 [https://github.com/PanJiaChen/vue-admin-template?tab=readme-ov-file](https://github.com/PanJiaChen/vue-admin-template?tab=readme-ov-file)  
 
 # 应用场景：
-支持浏览器无插件播放摄像头视频。
-支持国标设备(摄像机、平台、NVR等)设备接入
-支持rtsp, rtmp，直播设备设备接入，充分利旧。
-支持国标级联。多平台级联。跨网视频预览。
-支持跨网网闸平台互联。
+- 支持浏览器无插件播放摄像头视频。
+- 支持国标设备(摄像机、平台、NVR等)设备接入
+- 支持rtsp, rtmp，直播设备设备接入，充分利旧。
+- 支持国标级联。多平台级联。跨网视频预览。
+- 支持跨网网闸平台互联。
 
 
 # 文档
@@ -132,6 +132,7 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
 - [X] 支持ONVIF协议，设备检索，支持点播，云台控制，国标级联点播，自动点播等。
 - [X] 支持部标1078+808协议，支持点播，云台控制，录像回放，位置上报，自动点播等。
 - [X] 支持国标28181-2022协议，支持巡航轨迹查询，PTZ精准控制，存储卡格式化，设备软件升级，OSD配置，h265+aac，支持辅码流，录像倒放等。
+- [X] 支持国网B接口协议。支持注册，获取资源，预览等
 
 
 # 授权协议

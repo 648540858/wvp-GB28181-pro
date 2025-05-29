@@ -1,13 +1,13 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.cmd;
 
-import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.genersoft.iot.vmp.common.RemoteAddressInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Platform;
-import com.genersoft.iot.vmp.common.RemoteAddressInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SipMsgInfo;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.task.deviceStatus.DeviceStatusTaskRunner;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
@@ -47,6 +47,9 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
 
     @Autowired
     private IDeviceService deviceService;
+
+    @Autowired
+    private DeviceStatusTaskRunner statusTaskRunner;
 
     @Autowired
     private UserSetting userSetting;
@@ -111,20 +114,16 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
 
             if (device.isOnLine()) {
                 deviceService.updateDevice(device);
+                long expiresTime = Math.min(device.getExpires(), device.getHeartBeatInterval() * device.getHeartBeatCount()) * 1000L;
+                if (statusTaskRunner.containsKey(device.getDeviceId())) {
+                    statusTaskRunner.updateDelay(device.getDeviceId(), expiresTime + System.currentTimeMillis());
+                }
             } else {
                 if (userSetting.getGbDeviceOnline() == 1) {
                     // 对于已经离线的设备判断他的注册是否已经过期
-                    device.setOnLine(true);
-                    device.setRegisterTime(DateUtil.getNow());
                     deviceService.online(device, null);
                 }
             }
-            // 刷新过期任务
-            String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
-            // 如果三次心跳失败，则设置设备离线
-            dynamicTask.startDelay(registerExpireTaskKey, () -> deviceService.offline(device.getDeviceId(), "三次心跳超时"),
-                    device.getHeartBeatInterval() * 1000 * device.getHeartBeatCount());
-
         }
     }
 

@@ -382,12 +382,14 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             return;
         }
 
-        // 主动查询设备状态
-        Boolean deviceStatus = getDeviceStatus(device);
-        if (deviceStatus != null && deviceStatus) {
-            log.info("[设备离线] 主动探测发现设备在线，暂不处理  device：{}", deviceId);
-            online(device, null);
-            return;
+        // 主动查询设备状态, 没有HostAddress无法发送请求，可能是手动添加的设备
+        if (device.getHostAddress() != null) {
+            Boolean deviceStatus = getDeviceStatus(device);
+            if (deviceStatus != null && deviceStatus) {
+                log.info("[设备离线] 主动探测发现设备在线，暂不处理  device：{}", deviceId);
+                online(device, null);
+                return;
+            }
         }
         log.info("[设备离线] {}, device：{}， 心跳间隔： {}，心跳超时次数： {}， 上次心跳时间：{}， 上次注册时间： {}", reason, deviceId,
                 device.getHeartBeatInterval(), device.getHeartBeatCount(), device.getKeepaliveTime(), device.getRegisterTime());
@@ -406,7 +408,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             return;
         }
         for (Device device : deviceList) {
-            if (device == null || !device.isOnLine() || !device.getServerId().equals(userSetting.getServerId())) {
+            if (device == null || !device.isOnLine() || !userSetting.getServerId().equals(device.getServerId())) {
                 continue;
             }
             if (device.getSubscribeCycleForCatalog() > 0 && !subscribeTaskRunner.containsKey(SubscribeTaskForCatalog.getKey(device))) {
@@ -862,7 +864,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
 
     @Override
     public WVPResult<SyncStatus> devicesSync(Device device) {
-        if (!userSetting.getServerId().equals(device.getServerId())) {
+        if (device.getServerId() != null && !userSetting.getServerId().equals(device.getServerId())) {
             return redisRpcService.devicesSync(device.getServerId(), device.getDeviceId());
         }
         // 已存在则返回进度

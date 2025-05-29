@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.gb28181.service.impl;
 
 import com.alibaba.fastjson2.JSON;
 import com.genersoft.iot.vmp.common.CommonCallback;
-import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.common.enums.ChannelDataType;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -15,6 +14,9 @@ import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
+import com.genersoft.iot.vmp.gb28181.task.deviceStatus.DeviceStatusTask;
+import com.genersoft.iot.vmp.gb28181.task.deviceStatus.DeviceStatusTaskInfo;
+import com.genersoft.iot.vmp.gb28181.task.deviceStatus.DeviceStatusTaskRunner;
 import com.genersoft.iot.vmp.gb28181.task.deviceSubscribe.SubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.deviceSubscribe.SubscribeTaskInfo;
 import com.genersoft.iot.vmp.gb28181.task.deviceSubscribe.SubscribeTaskRunner;
@@ -50,8 +52,7 @@ import javax.sip.SipException;
 import javax.validation.constraints.NotNull;
 import java.text.ParseException;
 import java.time.Instant;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -111,13 +112,83 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
     @Autowired
     private SubscribeTaskRunner subscribeTaskRunner;
 
+    @Autowired
+    private DeviceStatusTaskRunner deviceStatusTaskRunner;
+
     private Device getDeviceByDeviceIdFromDb(String deviceId) {
         return deviceMapper.getDeviceByDeviceId(deviceId);
     }
 
     @Override
     public void run(String... args) throws Exception {
-        // TODO 处理设备离线
+
+        // 清理数据库不存在但是redis中存在的数据
+        List<Device> devicesInDb = getAll();
+        if (devicesInDb.isEmpty()) {
+            redisCatchStorage.removeAllDevice();
+        }else {
+            List<Device> devicesInRedis = redisCatchStorage.getAllDevices();
+            if (!devicesInRedis.isEmpty()) {
+                Map<String, Device> deviceMapInDb = new HashMap<>();
+                devicesInDb.parallelStream().forEach(device -> {
+                    deviceMapInDb.put(device.getDeviceId(), device);
+                });
+                devicesInRedis.parallelStream().forEach(device -> {
+                    if (deviceMapInDb.get(device.getDeviceId()) == null
+                            && userSetting.getServerId().equals(device.getServerId())) {
+                        redisCatchStorage.removeDevice(device.getDeviceId());
+                    }
+                });
+            }
+        }
+
+        // 重置cseq计数
+        redisCatchStorage.resetAllCSEQ();
+        // 处理设备状态
+        List<DeviceStatusTaskInfo> allTaskInfo = deviceStatusTaskRunner.getAllTaskInfo();
+        List<String> onlineDeviceIds = new ArrayList<>();
+        if (!allTaskInfo.isEmpty()) {
+            for (DeviceStatusTaskInfo taskInfo : allTaskInfo) {
+                Device device = getDeviceByDeviceId(taskInfo.getDeviceId());
+                if (device == null) {
+                    deviceStatusTaskRunner.removeTask(taskInfo.getDeviceId());
+                    continue;
+                }
+                // 恢复定时任务, TCP因为连接已经断开必须等待设备重新连接
+                DeviceStatusTask deviceStatusTask = DeviceStatusTask.getInstance(taskInfo.getDeviceId(),
+                        taskInfo.getTransactionInfo(), taskInfo.getExpireTime(), this::deviceStatusExpire);
+                deviceStatusTaskRunner.addTask(deviceStatusTask);
+                onlineDeviceIds.add(taskInfo.getDeviceId());
+            }
+            // 除了记录的设备以外， 其他设备全部离线
+            List<Device> onlineDevice = getAllOnlineDevice(userSetting.getServerId());
+            if (!onlineDevice.isEmpty()) {
+                List<Device> offlineDevices = new ArrayList<>();
+                for (Device device : onlineDevice) {
+                    if (!onlineDeviceIds.contains(device.getDeviceId())) {
+                        // 此设备需要离线
+                        device.setOnLine(false);
+                        // 清理离线设备的相关缓存
+                        cleanOfflineDevice(device);
+                        // 更新数据库
+                        offlineDevices.add(device);
+                    }
+                }
+                if (!offlineDevices.isEmpty()) {
+                    offlineByIds(offlineDevices);
+                }
+            }
+        }else {
+            // 所有设备全部离线
+            List<Device> onlineDevice = getAllOnlineDevice(userSetting.getServerId());
+            for (Device device : onlineDevice) {
+                // 此设备需要离线
+                device.setOnLine(false);
+                // 清理离线设备的相关缓存
+                cleanOfflineDevice(device);
+            }
+            offlineByIds(onlineDevice);
+        }
 
         // 处理订阅任务
         List<SubscribeTaskInfo> taskInfoList = subscribeTaskRunner.getAllTaskInfo();
@@ -127,7 +198,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
                     continue;
                 }
                 Device device = getDeviceByDeviceId(taskInfo.getDeviceId());
-                if (device == null || !device.isOnLine()) {
+                if (device == null || !device.isOnLine() || !onlineDeviceIds.contains(taskInfo.getDeviceId())) {
                     subscribeTaskRunner.removeSubscribe(taskInfo.getKey());
                     continue;
                 }
@@ -146,6 +217,61 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
                 }
             }
         }
+    }
+
+    private void offlineByIds(List<Device> offlineDevices) {
+        if (offlineDevices.isEmpty()) {
+            log.info("[更新多个离线设备信息] 参数为空");
+            return;
+        }
+        deviceMapper.offlineByList(offlineDevices);
+        for (Device device : offlineDevices) {
+            device.setOnLine(false);
+            redisCatchStorage.updateDevice(device);
+        }
+    }
+
+    private void cleanOfflineDevice(Device device) {
+        if (subscribeTaskRunner.containsKey(SubscribeTaskForCatalog.getKey(device))) {
+            subscribeTaskRunner.removeSubscribe(SubscribeTaskForCatalog.getKey(device));
+        }
+        if (subscribeTaskRunner.containsKey(SubscribeTaskForMobilPosition.getKey(device))) {
+            subscribeTaskRunner.removeSubscribe(SubscribeTaskForMobilPosition.getKey(device));
+        }
+        //进行通道离线
+//        deviceChannelMapper.offlineByDeviceId(deviceId);
+        // 离线释放所有ssrc
+        List<SsrcTransaction> ssrcTransactions = sessionManager.getSsrcTransactionByDeviceId(device.getDeviceId());
+        if (ssrcTransactions != null && !ssrcTransactions.isEmpty()) {
+            for (SsrcTransaction ssrcTransaction : ssrcTransactions) {
+                mediaServerService.releaseSsrc(ssrcTransaction.getMediaServerId(), ssrcTransaction.getSsrc());
+                mediaServerService.closeRTPServer(ssrcTransaction.getMediaServerId(), ssrcTransaction.getStream());
+                sessionManager.removeByCallId(ssrcTransaction.getCallId());
+            }
+        }
+        // 移除订阅
+        removeCatalogSubscribe(device, null);
+        removeMobilePositionSubscribe(device, null);
+
+        List<AudioBroadcastCatch> audioBroadcastCatches = audioBroadcastManager.getByDeviceId(device.getDeviceId());
+        if (!audioBroadcastCatches.isEmpty()) {
+            for (AudioBroadcastCatch audioBroadcastCatch : audioBroadcastCatches) {
+
+                SendRtpInfo sendRtpItem = sendRtpServerService.queryByChannelId(audioBroadcastCatch.getChannelId(), device.getDeviceId());
+                if (sendRtpItem != null) {
+                    sendRtpServerService.delete(sendRtpItem);
+                    MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+                    mediaServerService.stopSendRtp(mediaInfo, sendRtpItem.getApp(), sendRtpItem.getStream(), null);
+                }
+
+                audioBroadcastManager.del(audioBroadcastCatch.getChannelId());
+            }
+        }
+    }
+
+    private void deviceStatusExpire(String deviceId, SipTransactionInfo transactionInfo) {
+        log.info("[设备状态] 到期， 编号： {}", deviceId);
+        offline(deviceId, "保活到期");
     }
 
     @Override
@@ -182,6 +308,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             device.setCreateTime(now);
             device.setUpdateTime(now);
             log.info("[设备上线,首次注册]: {}，查询设备信息以及通道信息", device.getDeviceId());
+            addCustomDevice(device);
             deviceMapper.add(device);
             redisCatchStorage.updateDevice(device);
             try {
@@ -193,7 +320,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             sync(device);
         }else {
             device.setServerId(userSetting.getServerId());
-            if(!device.isOnLine()){
+            if(!deviceInDb.isOnLine()){
                 device.setOnLine(true);
                 device.setCreateTime(now);
                 deviceMapper.update(device);
@@ -216,6 +343,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
                 if (device.getSubscribeCycleForMobilePosition() > 0 && !subscribeTaskRunner.containsKey(SubscribeTaskForMobilPosition.getKey(device))) {
                     addMobilePositionSubscribe(device, null);
                 }
+
                 if (userSetting.getDeviceStatusNotify()) {
                     // 发送redis消息
                     redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), null, true);
@@ -230,12 +358,19 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
                 sync(device);
             }
         }
-
-        // 刷新过期任务
-        String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
-        // 如果第一次注册那么必须在60 * 3时间内收到一个心跳，否则设备离线
-        dynamicTask.startDelay(registerExpireTaskKey, ()-> offline(device.getDeviceId(), "三次心跳超时"),
-                device.getHeartBeatInterval() * 1000 * device.getHeartBeatCount());
+        long expiresTime = Math.min(device.getExpires(), device.getHeartBeatInterval() * device.getHeartBeatCount()) * 1000L;
+        if (deviceStatusTaskRunner.containsKey(device.getDeviceId())) {
+            if (sipTransactionInfo == null) {
+                deviceStatusTaskRunner.updateDelay(device.getDeviceId(), System.currentTimeMillis() + expiresTime);
+            }else {
+                deviceStatusTaskRunner.removeTask(device.getDeviceId());
+                DeviceStatusTask task = DeviceStatusTask.getInstance(device.getDeviceId(), sipTransactionInfo, expiresTime, this::deviceStatusExpire);
+                deviceStatusTaskRunner.addTask(task);
+            }
+        }else {
+            DeviceStatusTask task = DeviceStatusTask.getInstance(device.getDeviceId(), sipTransactionInfo, expiresTime, this::deviceStatusExpire);
+            deviceStatusTaskRunner.addTask(task);
+        }
 
     }
 
@@ -256,47 +391,10 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
         }
         log.info("[设备离线] {}, device：{}， 心跳间隔： {}，心跳超时次数： {}， 上次心跳时间：{}， 上次注册时间： {}", reason, deviceId,
                 device.getHeartBeatInterval(), device.getHeartBeatCount(), device.getKeepaliveTime(), device.getRegisterTime());
-        String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + deviceId;
-        dynamicTask.stop(registerExpireTaskKey);
-        if (device.isOnLine()) {
-            if (userSetting.getDeviceStatusNotify()) {
-                // 发送redis消息
-                redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), null, false);
-            }
-        }
-
         device.setOnLine(false);
+        cleanOfflineDevice(device);
         redisCatchStorage.updateDevice(device);
         deviceMapper.update(device);
-        //进行通道离线
-//        deviceChannelMapper.offlineByDeviceId(deviceId);
-        // 离线释放所有ssrc
-        List<SsrcTransaction> ssrcTransactions = sessionManager.getSsrcTransactionByDeviceId(deviceId);
-        if (ssrcTransactions != null && !ssrcTransactions.isEmpty()) {
-            for (SsrcTransaction ssrcTransaction : ssrcTransactions) {
-                mediaServerService.releaseSsrc(ssrcTransaction.getMediaServerId(), ssrcTransaction.getSsrc());
-                mediaServerService.closeRTPServer(ssrcTransaction.getMediaServerId(), ssrcTransaction.getStream());
-                sessionManager.removeByCallId(ssrcTransaction.getCallId());
-            }
-        }
-        // 移除订阅
-        removeCatalogSubscribe(device, null);
-        removeMobilePositionSubscribe(device, null);
-
-        List<AudioBroadcastCatch> audioBroadcastCatches = audioBroadcastManager.getByDeviceId(deviceId);
-        if (!audioBroadcastCatches.isEmpty()) {
-            for (AudioBroadcastCatch audioBroadcastCatch : audioBroadcastCatches) {
-
-                SendRtpInfo sendRtpItem = sendRtpServerService.queryByChannelId(audioBroadcastCatch.getChannelId(), deviceId);
-                if (sendRtpItem != null) {
-                    sendRtpServerService.delete(sendRtpItem);
-                    MediaServer mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-                    mediaServerService.stopSendRtp(mediaInfo, sendRtpItem.getApp(), sendRtpItem.getStream(), null);
-                }
-
-                audioBroadcastManager.del(audioBroadcastCatch.getChannelId());
-            }
-        }
     }
 
     // 订阅丢失检查
@@ -329,7 +427,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             log.info("[目录订阅] 到期， 编号： {}, 设备不存在， 忽略", deviceId);
             return;
         }
-        if (device.getSubscribeCycleForCatalog() > 0) {
+        if (device.isOnLine() && device.getSubscribeCycleForCatalog() > 0) {
             addCatalogSubscribe(device, transactionInfo);
         }
     }
@@ -341,7 +439,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             log.info("[移动位置订阅] 到期， 编号： {}, 设备不存在， 忽略", deviceId);
             return;
         }
-        if (device.getSubscribeCycleForMobilePosition() > 0) {
+        if (device.isOnLine() && device.getSubscribeCycleForMobilePosition() > 0) {
             addMobilePositionSubscribe(device, transactionInfo);
         }
     }
@@ -381,9 +479,9 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
 
     @Override
     public boolean removeCatalogSubscribe(@NotNull Device device, CommonCallback<Boolean> callback) {
-        log.info("[移除目录订阅]: {}", device.getDeviceId());
         String key = SubscribeTaskForCatalog.getKey(device);
         if (subscribeTaskRunner.containsKey(key)) {
+            log.info("[移除目录订阅]: {}", device.getDeviceId());
             SipTransactionInfo transactionInfo = subscribeTaskRunner.getTransactionInfo(key);
             if (transactionInfo == null) {
                 log.warn("[移除目录订阅] 未找到事务信息，{}", device.getDeviceId());
@@ -441,9 +539,10 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
 
     @Override
     public boolean removeMobilePositionSubscribe(Device device, CommonCallback<Boolean> callback) {
-        log.info("[移除移动位置订阅]: {}", device.getDeviceId());
+
         String key = SubscribeTaskForMobilPosition.getKey(device);
         if (subscribeTaskRunner.containsKey(key)) {
+            log.info("[移除移动位置订阅]: {}", device.getDeviceId());
             SipTransactionInfo transactionInfo = subscribeTaskRunner.getTransactionInfo(key);
             if (transactionInfo == null) {
                 log.warn("[移除移动位置订阅] 未找到事务信息，{}", device.getDeviceId());
@@ -580,7 +679,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
     }
 
     @Override
-    public void addDevice(Device device) {
+    public void addCustomDevice(Device device) {
         device.setOnLine(false);
         device.setCreateTime(DateUtil.getNow());
         device.setUpdateTime(DateUtil.getNow());
@@ -625,9 +724,9 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
         if (subscribeTaskRunner.containsKey(SubscribeTaskForMobilPosition.getKey(device))) {
             removeMobilePositionSubscribe(device, null);
         }
-        // 停止状态检测
-        String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
-        dynamicTask.stop(registerExpireTaskKey);
+        if (deviceStatusTaskRunner.containsKey(deviceId)) {
+            deviceStatusTaskRunner.removeTask(deviceId);
+        }
         platformChannelMapper.delChannelForDeviceId(deviceId);
         deviceChannelMapper.cleanChannelsByDeviceId(device.getId());
         deviceMapper.del(deviceId);
@@ -679,7 +778,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
     public void subscribeCatalog(int id, int cycle) {
         Device device = deviceMapper.query(id);
         Assert.notNull(device, "未找到设备");
-
+        Assert.isTrue(device.isOnLine(), "设备已离线");
         if (device.getSubscribeCycleForCatalog() == cycle) {
             return;
         }
@@ -710,6 +809,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
     public void subscribeMobilePosition(int id, int cycle, int interval) {
         Device device = deviceMapper.query(id);
         Assert.notNull(device, "未找到设备");
+        Assert.isTrue(device.isOnLine(), "设备已离线");
 
         if (device.getSubscribeCycleForMobilePosition() == cycle) {
             return;
@@ -747,15 +847,16 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
         }
         if (!Objects.equals(deviceInDb.getHeartBeatCount(), device.getHeartBeatCount())
                 || !Objects.equals(deviceInDb.getHeartBeatInterval(), device.getHeartBeatInterval())) {
-            // 刷新过期任务
-            String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
-            // 如果第一次注册那么必须在60 * 3时间内收到一个心跳，否则设备离线
-            dynamicTask.startDelay(registerExpireTaskKey, ()-> offline(device.getDeviceId(), "三次心跳超时"),
-                    device.getHeartBeatInterval() * 1000 * device.getHeartBeatCount());
+
             deviceInDb.setHeartBeatCount(device.getHeartBeatCount());
             deviceInDb.setHeartBeatInterval(device.getHeartBeatInterval());
             deviceInDb.setPositionCapability(device.getPositionCapability());
             updateDevice(deviceInDb);
+
+            long expiresTime = Math.min(device.getExpires(), device.getHeartBeatInterval() * device.getHeartBeatCount()) * 1000L;
+            if (deviceStatusTaskRunner.containsKey(device.getDeviceId())) {
+                deviceStatusTaskRunner.updateDelay(device.getDeviceId(), expiresTime + System.currentTimeMillis());
+            }
         }
     }
 

@@ -223,7 +223,7 @@ public class DeviceQuery {
 		if (exist) {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备编号已存在");
 		}
-		deviceService.addDevice(device);
+		deviceService.addCustomDevice(device);
 	}
 
 

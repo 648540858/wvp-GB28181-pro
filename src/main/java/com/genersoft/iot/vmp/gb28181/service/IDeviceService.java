@@ -128,7 +128,7 @@ public interface IDeviceService {
      * 添加设备
      * @param device
      */
-    void addDevice(Device device);
+    void addCustomDevice(Device device);
 
     /**
      * 页面表单更新设备信息

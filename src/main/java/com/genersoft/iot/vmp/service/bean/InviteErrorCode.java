@@ -18,7 +18,8 @@ public enum InviteErrorCode {
     ERROR_FOR_SIP_SENDING_FAILED(-10, "命令发送失败"),
     ERROR_FOR_ASSIST_NOT_READY(-11, "没有可用的assist服务"),
     ERROR_FOR_PARAMETER_ERROR(-13, "参数异常"),
-    ERROR_FOR_FINISH(-14, "已结束"),
+    ERROR_FOR_TCP_ACTIVE_CONNECTION_REFUSED_ERROR(-14, "TCP主动连接失败"),
+    ERROR_FOR_FINISH(-20, "已结束"),
     ;
 
     private final int code;

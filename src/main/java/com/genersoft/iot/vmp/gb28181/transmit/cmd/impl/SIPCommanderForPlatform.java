@@ -136,16 +136,17 @@ public class SIPCommanderForPlatform implements ISIPCommanderForPlatform {
 
     @Override
     public String keepalive(Platform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws SipException, InvalidArgumentException, ParseException {
-            String characterSet = parentPlatform.getCharacterSet();
-            StringBuffer keepaliveXml = new StringBuffer(200);
-            keepaliveXml.append("<?xml version=\"1.0\" encoding=\"")
-                    .append(characterSet).append("\"?>\r\n")
-                    .append("<Notify>\r\n")
-                    .append("<CmdType>Keepalive</CmdType>\r\n")
-                    .append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n")
-                    .append("<DeviceID>" + parentPlatform.getDeviceGBId() + "</DeviceID>\r\n")
-                    .append("<Status>OK</Status>\r\n")
-                    .append("</Notify>\r\n");
+        log.info("[国标级联] 发送心跳， 上级平台编号： {}", parentPlatform.getServerGBId());
+        String characterSet = parentPlatform.getCharacterSet();
+        StringBuffer keepaliveXml = new StringBuffer(200);
+        keepaliveXml.append("<?xml version=\"1.0\" encoding=\"")
+                .append(characterSet).append("\"?>\r\n")
+                .append("<Notify>\r\n")
+                .append("<CmdType>Keepalive</CmdType>\r\n")
+                .append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n")
+                .append("<DeviceID>" + parentPlatform.getDeviceGBId() + "</DeviceID>\r\n")
+                .append("<Status>OK</Status>\r\n")
+                .append("</Notify>\r\n");
 
         CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
 

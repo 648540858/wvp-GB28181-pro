@@ -113,8 +113,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                     device.setTransport("TCP".equalsIgnoreCase(transport) ? "TCP" : "UDP");
                     sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), registerOkResponse);
                     device.setRegisterTime(DateUtil.getNow());
-                    SipTransactionInfo sipTransactionInfo = new SipTransactionInfo((SIPResponse) registerOkResponse);
-                    deviceService.online(device, sipTransactionInfo);
+                    deviceService.online(device, null);
                 } else {
                     deviceService.offline(deviceId, "主动注销");
                 }

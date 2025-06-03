@@ -147,8 +147,8 @@ public interface PlatformChannelMapper {
             " <if test='query != null'> " +
             " AND (coalesce(wdc.gb_device_id, wdc.device_id) LIKE concat('%',#{query},'%') OR wpgc.custom_device_id LIKE concat('%',#{query},'%') " +
             "      OR coalesce(wdc.gb_name, wdc.name)  LIKE concat('%',#{query},'%') OR wpgc.custom_name LIKE concat('%',#{query},'%'))</if> " +
-            " <if test='online == true'> AND coalesce(wpgc.status, wdc.gb_status, wdc.status) = 'ON'</if> " +
-            " <if test='online == false'> AND coalesce(wpgc.status, wdc.gb_status, wdc.status) = 'OFF'</if> " +
+            " <if test='online == true'> AND coalesce(wpgc.custom_status, wdc.gb_status, wdc.status) = 'ON'</if> " +
+            " <if test='online == false'> AND coalesce(wpgc.custom_status, wdc.gb_status, wdc.status) = 'OFF'</if> " +
             " <if test='hasShare == true'> AND wpgc.platform_id = #{platformId}</if> " +
             " <if test='hasShare == false'> AND wpgc.platform_id is null</if> " +
             " <if test='dataType != null'> AND wdc.data_type = #{dataType}</if> " +

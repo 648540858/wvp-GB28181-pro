@@ -87,7 +87,6 @@ public class EventPublisher {
 		}else {
 			channels = deviceChannels;
 		}
-		System.out.println(5);
 		outEvent.setChannels(channels);
 		outEvent.setType(type);
 		if (platform != null) {

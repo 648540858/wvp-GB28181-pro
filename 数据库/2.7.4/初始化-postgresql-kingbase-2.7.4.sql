@@ -37,7 +37,6 @@ create table IF NOT EXISTS wvp_device
     position_capability                 integer,
     broadcast_push_after_ack            bool    default false,
     server_id                           character varying(50),
-    device_type                         integer,
     constraint uk_device_device unique (device_id)
 );
 

@@ -47,7 +47,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
     public void onApplicationEvent(CatalogEvent event) {
         SubscribeInfo subscribe = null;
         Platform parentPlatform = null;
-        log.info("[Catalog事件: {}] 通道数量： {}", event.getType(), event.getChannels().size());
+        log.info("[Catalog事件: {}]通道数量： {}", event.getType(), event.getChannels().size());
         Map<String, List<Platform>> platformMap = new HashMap<>();
         Map<String, CommonGBChannel> channelMap = new HashMap<>();
         if (event.getPlatform() != null) {

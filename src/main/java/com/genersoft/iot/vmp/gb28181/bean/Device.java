@@ -212,7 +212,4 @@ public class Device {
 
 	@Schema(description = "所属服务Id")
 	private String serverId;
-
-	@Schema(description = "所属服务Id")
-	private Integer deviceType;
 }

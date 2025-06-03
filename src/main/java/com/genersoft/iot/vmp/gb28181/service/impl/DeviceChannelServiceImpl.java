@@ -224,7 +224,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public List<Device> getDeviceByChannelId(String channelId) {
-
         return channelMapper.getDeviceByChannelDeviceId(channelId);
     }
 
@@ -571,13 +570,17 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         for (DeviceChannel deviceChannel : deviceChannelList) {
             DeviceChannel channelInDb = allChannelMap.get(deviceChannel.getDataDeviceId() + deviceChannel.getDeviceId());
             if (channelInDb != null) {
+                System.out.println(1);
                 deviceChannel.setStreamId(channelInDb.getStreamId());
                 deviceChannel.setHasAudio(channelInDb.isHasAudio());
                 deviceChannel.setId(channelInDb.getId());
-                if (channelInDb.getStatus() != null && channelInDb.getStatus().equalsIgnoreCase(deviceChannel.getStatus())){
+                if (channelInDb.getStatus() != null && !channelInDb.getStatus().equalsIgnoreCase(deviceChannel.getStatus())){
+                    System.out.println(2);
                     List<Platform> platformList = platformChannelMapper.queryParentPlatformByChannelId(deviceChannel.getDeviceId());
                     if (!CollectionUtils.isEmpty(platformList)){
+                        System.out.println(3);
                         platformList.forEach(platform->{
+                            System.out.println(4);
                             eventPublisher.catalogEventPublish(platform, deviceChannel.buildCommonGBChannelForStatus(), deviceChannel.getStatus().equals("ON")? CatalogEvent.ON:CatalogEvent.OFF);
                         });
                     }

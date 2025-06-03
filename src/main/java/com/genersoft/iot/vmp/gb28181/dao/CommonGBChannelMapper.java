@@ -578,4 +578,8 @@ public interface CommonGBChannelMapper {
             " <foreach collection='channelIdsForClear'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
             " </script>"})
     void removeParentIdByChannelIds(List<Integer> channelIdsForClear);
+
+
+    @SelectProvider(type = ChannelProvider.class, method = "queryOnlineListsByGbDeviceId")
+    List<CommonGBChannel> queryOnlineListsByGbDeviceId(@Param("deviceId") int deviceId);
 }

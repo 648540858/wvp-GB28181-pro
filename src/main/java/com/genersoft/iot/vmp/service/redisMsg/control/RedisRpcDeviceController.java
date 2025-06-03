@@ -62,6 +62,11 @@ public class RedisRpcDeviceController extends RpcController {
             response.setBody("param error");
             return response;
         }
+        if (device.getRegisterTime() == null) {
+            response.setStatusCode(ErrorCode.ERROR400.getCode());
+            response.setBody("设备尚未注册过");
+            return response;
+        }
         WVPResult<SyncStatus> result = deviceService.devicesSync(device);
         response.setStatusCode(ErrorCode.SUCCESS.getCode());
         response.setBody(JSONObject.toJSONString(result));

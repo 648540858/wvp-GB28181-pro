@@ -46,7 +46,6 @@ public interface DeviceMapper {
             "server_id,"+
             "media_server_id," +
             "broadcast_push_after_ack," +
-            "device_type," +
             "(SELECT count(0) FROM wvp_device_channel dc WHERE dc.data_type = 1 and dc.data_device_id= de.id) as channel_count "+
             " FROM wvp_device de WHERE de.device_id = #{deviceId}")
     Device getDeviceByDeviceId( @Param("deviceId") String deviceId);
@@ -81,7 +80,6 @@ public interface DeviceMapper {
                 "ssrc_check,"+
                 "as_message_channel,"+
                 "broadcast_push_after_ack,"+
-                "device_type,"+
                 "geo_coord_sys,"+
                 "server_id,"+
                 "on_line"+
@@ -115,7 +113,6 @@ public interface DeviceMapper {
                 "#{ssrcCheck}," +
                 "#{asMessageChannel}," +
                 "#{broadcastPushAfterAck}," +
-                "#{deviceType}," +
                 "#{geoCoordSys}," +
                 "#{serverId}," +
                 "#{onLine}" +
@@ -181,7 +178,6 @@ public interface DeviceMapper {
             "ssrc_check,"+
             "as_message_channel,"+
             "broadcast_push_after_ack,"+
-            "device_type,"+
             "geo_coord_sys,"+
             "on_line,"+
             "media_server_id,"+
@@ -224,7 +220,6 @@ public interface DeviceMapper {
             "ssrc_check,"+
             "as_message_channel,"+
             "broadcast_push_after_ack,"+
-            "device_type,"+
             "geo_coord_sys,"+
             "server_id,"+
             "on_line"+
@@ -259,7 +254,6 @@ public interface DeviceMapper {
             "ssrc_check,"+
             "as_message_channel,"+
             "broadcast_push_after_ack,"+
-            "device_type,"+
             "geo_coord_sys,"+
             "server_id,"+
             "on_line"+
@@ -294,7 +288,6 @@ public interface DeviceMapper {
             "ssrc_check,"+
             "as_message_channel,"+
             "broadcast_push_after_ack,"+
-            "device_type,"+
             "geo_coord_sys,"+
             "on_line"+
             " FROM wvp_device WHERE ip = #{host} AND port=#{port}")
@@ -305,7 +298,7 @@ public interface DeviceMapper {
             "SET update_time=#{updateTime}, custom_name=#{name} , password=#{password}, stream_mode=#{streamMode}" +
             ", ip=#{ip}, sdp_ip=#{sdpIp}, port=#{port}, charset=#{charset}" +
             ", ssrc_check=#{ssrcCheck}, as_message_channel=#{asMessageChannel}" +
-            ", broadcast_push_after_ack=#{broadcastPushAfterAck}, device_type=#{deviceType}, geo_coord_sys=#{geoCoordSys}, media_server_id=#{mediaServerId}" +
+            ", broadcast_push_after_ack=#{broadcastPushAfterAck}, geo_coord_sys=#{geoCoordSys}, media_server_id=#{mediaServerId}" +
             " WHERE id=#{id}"+
             " </script>"})
     void updateCustom(Device device);
@@ -321,7 +314,6 @@ public interface DeviceMapper {
             "ssrc_check,"+
             "as_message_channel,"+
             "broadcast_push_after_ack,"+
-            "device_type,"+
             "geo_coord_sys,"+
             "on_line,"+
             "stream_mode," +
@@ -338,7 +330,6 @@ public interface DeviceMapper {
             "#{ssrcCheck}," +
             "#{asMessageChannel}," +
             "#{broadcastPushAfterAck}," +
-            "#{deviceType}," +
             "#{geoCoordSys}," +
             "#{onLine}," +
             "#{streamMode}," +

@@ -68,11 +68,7 @@ public class EventPublisher {
 		deviceChannelList.add(deviceChannel);
 		catalogEventPublish(platform, deviceChannelList, type);
 	}
-
 	public void catalogEventPublish(Platform platform, List<CommonGBChannel> deviceChannels, String type) {
-		catalogEventPublish(platform, deviceChannels, type, true);
-	}
-	public void catalogEventPublish(Platform platform, List<CommonGBChannel> deviceChannels, String type, boolean share) {
 		if (platform != null && !userSetting.getServerId().equals(platform.getServerId())) {
 			log.info("[国标级联] 目录状态推送， 此上级平台由其他服务处理，消息已经忽略");
 			return;

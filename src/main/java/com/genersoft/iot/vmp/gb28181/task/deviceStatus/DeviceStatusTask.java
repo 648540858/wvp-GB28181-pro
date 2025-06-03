@@ -28,7 +28,7 @@ public class DeviceStatusTask implements Delayed {
         DeviceStatusTask deviceStatusTask = new DeviceStatusTask();
         deviceStatusTask.setDeviceId(deviceId);
         deviceStatusTask.setTransactionInfo(transactionInfo);
-        deviceStatusTask.setDelayTime((delayTime * 1000L - 500L) + System.currentTimeMillis());
+        deviceStatusTask.setDelayTime(delayTime);
         deviceStatusTask.setCallback(callback);
         return deviceStatusTask;
     }

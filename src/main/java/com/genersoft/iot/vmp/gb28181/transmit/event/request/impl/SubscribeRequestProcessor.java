@@ -69,8 +69,9 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 				responseAck(request, Response.BAD_REQUEST);
 				return;
 			}
+			String platformId = SipUtils.getUserIdFromFromHeader(request);
 			String cmd = XmlUtil.getText(rootElement, "CmdType");
-			log.info("[收到订阅请求] 类型： {}", cmd);
+			log.info("[收到订阅请求] 类型： {}, 来自： {}", cmd, platformId);
 			if (CmdType.MOBILE_POSITION.equals(cmd)) {
 				processNotifyMobilePosition(request, rootElement);
 //			} else if (CmdType.ALARM.equals(cmd)) {

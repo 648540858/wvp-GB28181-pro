@@ -144,7 +144,7 @@ public interface DeviceMapper {
                 ", subscribe_cycle_for_alarm=#{subscribeCycleForAlarm}" +
                 ", expires=#{expires}" +
                 ", server_id=#{serverId}" +
-                "WHERE device_id=#{deviceId}"+
+                " WHERE device_id=#{deviceId}"+
             " </script>"})
     int update(Device device);
 

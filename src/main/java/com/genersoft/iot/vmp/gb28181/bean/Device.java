@@ -26,19 +26,19 @@ public class Device {
 	 */
 	@Schema(description = "名称")
 	private String name;
-	
+
 	/**
 	 * 生产厂商
 	 */
 	@Schema(description = "生产厂商")
 	private String manufacturer;
-	
+
 	/**
 	 * 型号
 	 */
 	@Schema(description = "型号")
 	private String model;
-	
+
 	/**
 	 * 固件版本
 	 */
@@ -78,7 +78,7 @@ public class Device {
 	 */
 	@Schema(description = "wan地址")
 	private String  hostAddress;
-	
+
 	/**
 	 * 在线
 	 */

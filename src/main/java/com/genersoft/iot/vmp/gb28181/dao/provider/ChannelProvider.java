@@ -455,6 +455,13 @@ public class ChannelProvider {
         return sqlBuild.toString();
     }
 
+    public String queryOnlineListsByGbDeviceId(Map<String, Object> params ){
+        StringBuilder sqlBuild = new StringBuilder();
+        sqlBuild.append(BASE_SQL_TABLE_NAME);
+        sqlBuild.append(" where wdc.channel_type = 0 AND coalesce(wdc.gb_status, wdc.status) = 'ON' AND wdc.data_type = 1 AND data_device_id = #{deviceId}");
+        return sqlBuild.toString();
+    }
+
     public String queryAllForUnusualCivilCode(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append("select wdc.id from wvp_device_channel wdc ");

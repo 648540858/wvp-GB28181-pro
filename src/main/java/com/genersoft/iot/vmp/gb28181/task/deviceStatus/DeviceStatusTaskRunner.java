@@ -93,7 +93,7 @@ public class DeviceStatusTaskRunner {
         if (task == null) {
             return false;
         }
-        log.info("[更新状态任务时间] 编号： {}", key);
+        log.debug("[更新状态任务时间] 编号： {}", key);
         if (delayQueue.contains(task)) {
             boolean remove = delayQueue.remove(task);
             if (!remove) {

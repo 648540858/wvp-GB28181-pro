@@ -224,7 +224,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public List<Device> getDeviceByChannelId(String channelId) {
-
         return channelMapper.getDeviceByChannelDeviceId(channelId);
     }
 
@@ -574,7 +573,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 deviceChannel.setStreamId(channelInDb.getStreamId());
                 deviceChannel.setHasAudio(channelInDb.isHasAudio());
                 deviceChannel.setId(channelInDb.getId());
-                if (channelInDb.getStatus() != null && channelInDb.getStatus().equalsIgnoreCase(deviceChannel.getStatus())){
+                if (channelInDb.getStatus() != null && !channelInDb.getStatus().equalsIgnoreCase(deviceChannel.getStatus())){
                     List<Platform> platformList = platformChannelMapper.queryParentPlatformByChannelId(deviceChannel.getDeviceId());
                     if (!CollectionUtils.isEmpty(platformList)){
                         platformList.forEach(platform->{

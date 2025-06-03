@@ -298,7 +298,7 @@
                   </div>
                 </div>
               </div>
-              <div style="text-align: left">
+              <div style="text-align: left" v-if="tabActiveName === 'control'">
                 <el-select
                   v-model="ptzMethod"
                   style="width: 100%"

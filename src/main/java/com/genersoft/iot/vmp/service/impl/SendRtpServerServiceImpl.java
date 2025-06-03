@@ -28,7 +28,7 @@ public class SendRtpServerServiceImpl implements ISendRtpServerService {
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
-    
+
 
     @Override
     public SendRtpInfo createSendRtpInfo(MediaServer mediaServer, String ip, Integer port, String ssrc, String requesterId,
@@ -230,31 +230,27 @@ public class SendRtpServerServiceImpl implements ISendRtpServerService {
             log.warn("{}获取redis连接信息失败", mediaServer.getId());
             return -1;
         }
-        return getSendPort(startPort, endPort, sendIndexKey, sendRtpSet);
-    }
-
-    private synchronized int getSendPort(int startPort, int endPort, String sendIndexKey, Set<Integer> sendRtpPortSet){
-        // TODO 这里改为只取偶数端口
         RedisAtomicInteger redisAtomicInteger = new RedisAtomicInteger(sendIndexKey , redisTemplate.getConnectionFactory());
         if (redisAtomicInteger.get() < startPort) {
             redisAtomicInteger.set(startPort);
             return startPort;
         }else {
-            int port = redisAtomicInteger.getAndIncrement();
-            if (port > endPort) {
-                redisAtomicInteger.set(startPort);
-                if (sendRtpPortSet.contains(startPort)) {
-                    return getSendPort(startPort, endPort, sendIndexKey, sendRtpPortSet);
-                }else {
-                    return startPort;
+            for (int i = 0; i < endPort - startPort; i++) {
+                int port = redisAtomicInteger.getAndIncrement();
+                if (port > endPort) {
+                    redisAtomicInteger.set(startPort);
+                    if (sendRtpSet.contains(startPort)) {
+                        continue;
+                    }else {
+                        return startPort;
+                    }
+                }
+                if (!sendRtpSet.contains(port)) {
+                    return port;
                 }
             }
-            if (sendRtpPortSet.contains(port)) {
-                return getSendPort(startPort, endPort, sendIndexKey, sendRtpPortSet);
-            }else {
-                return port;
-            }
         }
+        log.warn("{}获取发送端口失败, 无可用端口", mediaServer.getId());
+        return -1;
     }
-
 }

@@ -666,4 +666,8 @@ public interface DeviceChannelMapper {
             " where data_type = 1 and data_device_id=#{dataDeviceId} and device_id = #{channelId}" +
             " </script>"})
     DeviceChannel getOneBySourceChannelId(@Param("dataDeviceId") int dataDeviceId, @Param("channelId") String channelId);
+
+    @Update(value = {"UPDATE wvp_device_channel SET status = 'OFF' WHERE data_type = 1 and data_device_id=#{deviceId}"})
+    void offlineByDeviceId(@Param("deviceId") int deviceId);
+
 }

@@ -178,7 +178,7 @@ public class UserSetting {
     /**
      *    登录超时时间(分钟)，
      */
-    private long loginTimeout = 60;
+    private long loginTimeout = 10;
 
     /**
      * jwk文件路径，若不指定则使用resources目录下的jwk.json

@@ -68,6 +68,10 @@ const actions = {
       })
     })
   },
+  updateToken({ commit }, token) {
+    commit('SET_TOKEN', token)
+    setToken(token)
+  },
   // user logout
   logout({ commit, state }) {
     return new Promise((resolve, reject) => {

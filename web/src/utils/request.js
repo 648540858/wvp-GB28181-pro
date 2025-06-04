@@ -42,6 +42,9 @@ service.interceptors.response.use(
     if (response.config.url.indexOf('/api/user/logout') >= 0) {
       return
     }
+    if (response.config.url.indexOf('/api/user/login') < 0 && response.headers['access-token']) {
+      store.dispatch('user/updateToken', response.headers['access-token'])
+    }
     const res = response.data
     if (res.code && res.code !== 0) {
       Message({

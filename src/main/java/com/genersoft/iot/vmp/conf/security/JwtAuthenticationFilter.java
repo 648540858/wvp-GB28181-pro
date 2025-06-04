@@ -53,8 +53,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-
-
         String jwt = request.getHeader(JwtUtils.getHeader());
         // 这里如果没有jwt，继续往后走，因为后面还有鉴权管理器等去判断是否拥有身份凭证，所以是可以放行的
         // 没有jwt相当于匿名访问，若有一些接口是需要权限的，则不能访问这些接口
@@ -80,21 +78,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         JwtUser jwtUser = JwtUtils.verifyToken(jwt);
         String username = jwtUser.getUserName();
+        String newJwt = null;
         // TODO 处理各个状态
         switch (jwtUser.getStatus()){
             case EXPIRED:
                 response.setStatus(400);
                 chain.doFilter(request, response);
-                // 异常
+                // 过期
                 return;
             case EXCEPTION:
-                // 过期
+                // 异常
                 response.setStatus(400);
                 chain.doFilter(request, response);
                 return;
             case EXPIRING_SOON:
-                // 即将过期
-//                return;
+                // 即将过期， 为客户端返回新的token信息
+                newJwt = JwtUtils.createToken(username);
+                break;
             default:
         }
         // 构建UsernamePasswordAuthenticationToken,这里密码为null，是因为提供了正确的JWT,实现自动登录
@@ -107,6 +107,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         user.setRole(role);
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(user, jwtUser.getPassword(), new ArrayList<>() );
         SecurityContextHolder.getContext().setAuthentication(token);
+
+        if (newJwt != null) {
+            response.setHeader(JwtUtils.HEADER, newJwt);
+        }
         chain.doFilter(request, response);
     }
 

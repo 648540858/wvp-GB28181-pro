@@ -1,0 +1,72 @@
+{
+  "name": "datax-ui",
+  "version": "1.0.0",
+  "description": "A vue admin template with Element UI & axios & iconfont & permission control & lint",
+  "author": "xzh",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "dev": "npm run serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "@riophae/vue-treeselect": "^0.4.0",
+    "axios": "0.18.1",
+    "@vue/composition-api": "^1.4.3",
+    "butterfly-dag": "^4.1.23",
+    "core-js": "3.6.5",
+    "echarts": "^4.8.0",
+    "echarts-liquidfill": "^2.0.6",
+    "echarts-wordcloud": "^1.1.3",
+    "element-ui": "2.13.2",
+    "good-storage": "^1.1.1",
+    "jsplumb": "^2.14.6",
+    "moment": "^2.29.1",
+    "normalize.css": "7.0.0",
+    "nprogress": "0.2.0",
+    "path-to-regexp": "2.4.0",
+    "screenfull": "^5.0.2",
+    "sql-formatter": "^2.3.3",
+    "vue": "2.6.10",
+    "vue-codemirror": "^4.0.6",
+    "vue-draggable-resizable-gorkys": "^2.4.4",
+    "vue-grid-layout": "^2.3.11",
+    "vue-router": "3.0.6",
+    "vue2-editor": "^2.10.2",
+    "vuedraggable": "^2.24.0",
+    "vuex": "3.1.0"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "4.4.4",
+    "@vue/cli-plugin-eslint": "4.4.4",
+    "@vue/cli-plugin-unit-jest": "4.4.4",
+    "@vue/cli-service": "4.4.4",
+    "@vue/test-utils": "1.0.0-beta.29",
+    "autoprefixer": "9.5.1",
+    "babel-eslint": "10.1.0",
+    "babel-jest": "23.6.0",
+    "babel-plugin-dynamic-import-node": "2.3.3",
+    "chalk": "2.4.2",
+    "connect": "3.6.6",
+    "eslint": "6.7.2",
+    "eslint-plugin-vue": "6.2.2",
+    "html-webpack-plugin": "3.2.0",
+    "runjs": "4.3.2",
+    "sass": "1.26.8",
+    "sass-loader": "8.0.2",
+    "script-ext-html-webpack-plugin": "2.1.3",
+    "serve-static": "1.13.2",
+    "svg-sprite-loader": "4.1.3",
+    "svgo": "1.2.2",
+    "vue-template-compiler": "2.6.10"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions"
+  ],
+  "engines": {
+    "node": ">=8.9",
+    "npm": ">= 3.0.0"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,374 @@
+.form-design-container {
+  height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+
+  ::-webkit-scrollbar {
+    width: 3px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track-piece {
+    background: #d3dce6;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #99a9bf;
+    border-radius: 10px;
+  }
+
+  .form-design-content {
+    height: 100%;
+    background: #fff;
+
+    // 左右栏
+    aside {
+      box-shadow: 0px 0px 1px 1px #ccc;
+      height: 100%;
+      // 左侧区域
+      &.left {
+        height: 100%;
+        overflow: auto;
+        user-select: none;
+        .widget-cate{
+          padding: 12px;
+          font-size: 14px;
+        }
+        ul {
+          position: relative;
+          overflow: hidden;
+          padding: 0 10px 10px;
+          margin: 0;
+          li {
+            font-size: 12px;
+            display: block;
+            width: 48%;
+            line-height: 26px;
+            position: relative;
+            float: left;
+            left: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin: 1%;
+            color: #333;
+            border: 1px solid #F4F6FC;
+            &:hover {
+              color     : #409eff;
+              border    : 1px solid #409eff;
+              position  : relative;
+              z-index   : 1;
+              box-shadow: 0 2px 6px #409eff;
+            }
+            &>a {
+              display: block;
+              cursor: move;
+              background: #F4F6FC;
+              border: 1px solid #F4F6FC;
+              .icon {
+                margin-right: 6px;
+                margin-left: 8px;
+                font-size: 14px;
+                display: inline-block;
+                vertical-align: middle;
+              }
+              span {
+                display: inline-block;
+                vertical-align: middle;
+              }
+            }
+          }
+        }
+      }
+      // 右侧区域
+      &.right {
+        height: 100%;
+        color: #fff;
+        overflow: hidden;
+        position: relative;
+      }
+    }
+    // 中间内容区域
+    .widget-center-container {
+      border-left: 1px solid #e0e0e0;
+      border-right: 1px solid #e0e0e0;
+      .btn-bar {
+        height: 45px;
+        line-height: 45px;
+        font-size: 18px;
+        border-bottom: 2px solid #e4e7ed;
+        text-align: right;
+      }
+      // 内容操作区域
+      .el-main {
+        padding: 0;
+        position: relative;
+        background: #fafafa;
+        .widget-form-wrapper {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          ::v-deep .el-form {
+            height: 100%;
+            .form-empty {
+              position: absolute;
+              left: 0;
+              top: 45%;
+              width: 100%;
+              text-align: center;
+              font-size: 20px;
+              color: #aaa;
+            }
+            .draggable-box {
+              height: 100%;
+              overflow: auto;
+              .draggable-list {
+                min-height: 100%;
+                padding: 5px;
+                position: relative;
+                background: #fafafa;
+                .moving {
+                  // 拖放移动中
+                  background: #409EFF;
+                  border: 2px solid #409EFF;
+                  outline-width: 0;
+                  height: 3px;
+                  box-sizing: border-box;
+                  font-size: 0;
+                  content: '';
+                  overflow: hidden;
+                  padding: 0;
+                }
+                .draggable-move {
+                  border: 1px dashed hsla(0,0%,66.7%,.5);
+                  background-color: rgba(236,245,255,.3);
+                  .draggable-move-box {
+                    position: relative;
+                    box-sizing: border-box;
+                    padding: 8px;
+                    overflow: hidden;
+                    transition: all .3s;
+                    min-height: 36px;
+                    &:hover {
+                      background: #ecf5ff;
+                    }
+                    &::before {
+                      content: '';
+                      height: 5px;
+                      width: 100%;
+                      background: #13c2c2;
+                      position: absolute;
+                      top: 0;
+                      right: -100%;
+                      transition: all .3s;
+                    }
+                    &.active {
+                      &::before {
+                        right: 0;
+                      }
+                      background: #ecf5ff;
+                      outline-offset: 0;
+                    }
+                    &.is_hidden {
+                      background: #fef0f0;
+                    }
+                    .form-item-box {
+                      position: relative;
+                      box-sizing: border-box;
+                      word-wrap: break-word;
+                      &::before {
+                        content: "";
+                        position: absolute;
+                        width: 100%;
+                        height: 100%;
+                        top: 0;
+                        left: 0;
+                        z-index: 888;
+                      }
+                      .el-form-item {
+                        margin-bottom: 5px;
+                      }
+                      &.is_req {
+                        .el-form-item__label::before {
+                          content: '*';
+                          color: #f56c6c;
+                          margin-right: 4px;
+                        }
+                      }
+                    }
+                    .widget-view-action {
+                      position: absolute;
+                      right: 0;
+                      bottom: 0;
+                      height: 28px;
+                      line-height: 28px;
+                      background: #409eff;
+                      z-index: 9;
+                      i {
+                        font-size: 14px;
+                        color: #fff;
+                        margin: 0 5px;
+                        cursor: pointer;
+                      }
+                    }
+                    .widget-view-drag {
+                      position: absolute;
+                      left: 0px;
+                      top: 0px;
+                      height: 28px;
+                      line-height: 28px;
+                      background: #409eff;
+                      z-index: 9;
+                      i {
+                        font-size: 14px;
+                        color: #fff;
+                        margin: 0 5px;
+                        cursor: move;
+                      }
+                    }
+                    .widget-view-model {
+                      position: absolute;
+                      top: 10px;
+                      right: 10px;
+                      font-size: 12px;
+                      color: #13c2c2;
+                      z-index: 9;
+                      font-weight: 500;
+                    }
+                  }
+                  .subform-box,
+                  .tabs-box,
+                  .grid-box,
+                  .table-box,
+                  .card-box {
+                    position: relative;
+                    box-sizing: border-box;
+                    padding: 5px;
+                    background: rgba(253,246,236,.3);
+                    width: 100%;
+                    transition: all .3s;
+                    overflow: hidden;
+                    &:hover {
+                      background: rgba(152, 103, 247, 0.24);
+                    }
+                    .subform-label {
+                      font-size: 16px;
+                      font-weight: 500;
+                      padding: 10px 20px;
+                    }
+                    .form-item-box {
+                      position: relative;
+                      box-sizing: border-box;
+                    }
+                    .draggable-box {
+                      min-height: 60px;
+                      min-width: 50px;
+                      border: 1px #ccc dashed;
+                      background: #fff;
+                      .draggable-list {
+                        min-height: 60px;
+                        position: relative;
+                        border: 1px #ccc dashed;
+                      }
+                    }
+                    &::before {
+                      content: '';
+                      height: 5px;
+                      width: 100%;
+                      background: transparent;
+                      position: absolute;
+                      top: 0;
+                      right: -100%;
+                      transition: all .3s;
+                    }
+                    &.active {
+                      &::before {
+                        background: #9867f7;
+                        right: 0;
+                      }
+                      background: rgba(152, 103, 247, 0.24);
+                      outline-offset: 0;
+                    }
+                    .table-layout {
+                      background: rgba(152, 103, 247, 0.12);
+                      width: 100%;
+                      box-sizing: border-box;
+                      transition: all 0.3s;
+                      border-collapse: collapse;
+                      tr {
+                        transition: all 0.3s;
+                        border-collapse: collapse;
+                        td {
+                          box-sizing: border-box;
+                          transition: all 0.3s;
+                          padding: 12px 12px;
+                          border-collapse: collapse;
+                          vertical-align:top;
+                        }
+                      }
+                      &.bordered {
+                        // 添加边框
+                        tr {
+                          td {
+                            border: 1px solid #e8e8e8 !important;
+                          }
+                        }
+                      }
+                      &.bright {
+                        // 点亮行
+                        tr {
+                          &:hover > td {
+                            background: #e6f7ff;
+                          }
+                        }
+                      }
+                      &.small {
+                        // 紧凑型
+                        tr {
+                          td {
+                            padding: 8px 8px;
+                          }
+                        }
+                      }
+                    }
+                    >.widget-view-action {
+                      position: absolute;
+                      right: 0;
+                      bottom: 0;
+                      height: 28px;
+                      line-height: 28px;
+                      background: #9867f7;
+                      z-index: 9;
+                      i {
+                        font-size: 14px;
+                        color: #fff;
+                        margin: 0 5px;
+                        cursor: pointer;
+                      }
+                    }
+                    >.widget-view-drag {
+                      position: absolute;
+                      left: 0px;
+                      top: 0px;
+                      height: 28px;
+                      line-height: 28px;
+                      background: #9867f7;
+                      z-index: 9;
+                      i {
+                        font-size: 14px;
+                        color: #fff;
+                        margin: 0 5px;
+                        cursor: move;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

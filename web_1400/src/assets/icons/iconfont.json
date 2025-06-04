@@ -1,0 +1,471 @@
+{
+  "id": "1608019",
+  "name": "data-ui",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "3862606",
+      "name": "极坐标图",
+      "font_class": "chart_polar_active",
+      "unicode": "e618",
+      "unicode_decimal": 58904
+    },
+    {
+      "icon_id": "12450533",
+      "name": "树图",
+      "font_class": "chart_tree_active",
+      "unicode": "e94d",
+      "unicode_decimal": 59725
+    },
+    {
+      "icon_id": "18082708",
+      "name": "树图",
+      "font_class": "chart_tree",
+      "unicode": "e94f",
+      "unicode_decimal": 59727
+    },
+    {
+      "icon_id": "18082601",
+      "name": "极坐标图",
+      "font_class": "chart_polar",
+      "unicode": "e94e",
+      "unicode_decimal": 59726
+    },
+    {
+      "icon_id": "6791681",
+      "name": "fsux_图表_表格",
+      "font_class": "chart_table",
+      "unicode": "e601",
+      "unicode_decimal": 58881
+    },
+    {
+      "icon_id": "7009346",
+      "name": "水球图",
+      "font_class": "chart_liquidfill_active",
+      "unicode": "e65f",
+      "unicode_decimal": 58975
+    },
+    {
+      "icon_id": "12746969",
+      "name": "fsux_图表_表格",
+      "font_class": "chart_table_active",
+      "unicode": "e616",
+      "unicode_decimal": 58902
+    },
+    {
+      "icon_id": "17078539",
+      "name": "水球图",
+      "font_class": "chart_liquidfill",
+      "unicode": "e602",
+      "unicode_decimal": 58882
+    },
+    {
+      "icon_id": "4781595",
+      "name": "旭日图",
+      "font_class": "chart_sunburst",
+      "unicode": "e60e",
+      "unicode_decimal": 58894
+    },
+    {
+      "icon_id": "4781609",
+      "name": "漏斗图",
+      "font_class": "chart_funnel",
+      "unicode": "e614",
+      "unicode_decimal": 58900
+    },
+    {
+      "icon_id": "4781612",
+      "name": "桑基图",
+      "font_class": "chart_sankey",
+      "unicode": "e615",
+      "unicode_decimal": 58901
+    },
+    {
+      "icon_id": "4781685",
+      "name": "指标卡",
+      "font_class": "chart_kpi",
+      "unicode": "e617",
+      "unicode_decimal": 58903
+    },
+    {
+      "icon_id": "4878750",
+      "name": "漏斗图",
+      "font_class": "chart_funnel_active",
+      "unicode": "e62a",
+      "unicode_decimal": 58922
+    },
+    {
+      "icon_id": "4878756",
+      "name": "桑基图",
+      "font_class": "chart_sankey_active",
+      "unicode": "e634",
+      "unicode_decimal": 58932
+    },
+    {
+      "icon_id": "4878762",
+      "name": "旭日图",
+      "font_class": "chart_sunburst_active",
+      "unicode": "e635",
+      "unicode_decimal": 58933
+    },
+    {
+      "icon_id": "4879224",
+      "name": "指标卡",
+      "font_class": "chart_kpi_active",
+      "unicode": "e636",
+      "unicode_decimal": 58934
+    },
+    {
+      "icon_id": "10451644",
+      "name": "环形图",
+      "font_class": "chart_donut_active",
+      "unicode": "e622",
+      "unicode_decimal": 58914
+    },
+    {
+      "icon_id": "10451648",
+      "name": "雷达图",
+      "font_class": "chart_radar_active",
+      "unicode": "e623",
+      "unicode_decimal": 58915
+    },
+    {
+      "icon_id": "10451655",
+      "name": "矩形树图",
+      "font_class": "chart_treemap_active",
+      "unicode": "e624",
+      "unicode_decimal": 58916
+    },
+    {
+      "icon_id": "10451656",
+      "name": "散点图",
+      "font_class": "chart_scatter_active",
+      "unicode": "e625",
+      "unicode_decimal": 58917
+    },
+    {
+      "icon_id": "10451658",
+      "name": "仪表盘",
+      "font_class": "chart_gauge_active",
+      "unicode": "e626",
+      "unicode_decimal": 58918
+    },
+    {
+      "icon_id": "10451663",
+      "name": "基本柱状图",
+      "font_class": "chart_bar_active",
+      "unicode": "e628",
+      "unicode_decimal": 58920
+    },
+    {
+      "icon_id": "10451666",
+      "name": "基本折线图",
+      "font_class": "chart_line_active",
+      "unicode": "e629",
+      "unicode_decimal": 58921
+    },
+    {
+      "icon_id": "10451680",
+      "name": "基本折线图",
+      "font_class": "chart_line",
+      "unicode": "e62b",
+      "unicode_decimal": 58923
+    },
+    {
+      "icon_id": "10451684",
+      "name": "环形图",
+      "font_class": "chart_donut",
+      "unicode": "e62c",
+      "unicode_decimal": 58924
+    },
+    {
+      "icon_id": "10451687",
+      "name": "基本柱状图",
+      "font_class": "chart_bar",
+      "unicode": "e62e",
+      "unicode_decimal": 58926
+    },
+    {
+      "icon_id": "10451690",
+      "name": "散点图",
+      "font_class": "chart_scatter",
+      "unicode": "e630",
+      "unicode_decimal": 58928
+    },
+    {
+      "icon_id": "10451695",
+      "name": "矩形树图",
+      "font_class": "chart_treemap",
+      "unicode": "e631",
+      "unicode_decimal": 58929
+    },
+    {
+      "icon_id": "10451701",
+      "name": "雷达图",
+      "font_class": "chart_radar",
+      "unicode": "e632",
+      "unicode_decimal": 58930
+    },
+    {
+      "icon_id": "10451703",
+      "name": "仪表盘",
+      "font_class": "chart_gauge",
+      "unicode": "e633",
+      "unicode_decimal": 58931
+    },
+    {
+      "icon_id": "11671969",
+      "name": "词云",
+      "font_class": "chart_wordcloud_active",
+      "unicode": "e66f",
+      "unicode_decimal": 58991
+    },
+    {
+      "icon_id": "11671976",
+      "name": "地图",
+      "font_class": "chart_geo_active",
+      "unicode": "e670",
+      "unicode_decimal": 58992
+    },
+    {
+      "icon_id": "11671984",
+      "name": "词云",
+      "font_class": "chart_wordcloud",
+      "unicode": "e672",
+      "unicode_decimal": 58994
+    },
+    {
+      "icon_id": "11671987",
+      "name": "地图",
+      "font_class": "chart_geo",
+      "unicode": "e673",
+      "unicode_decimal": 58995
+    },
+    {
+      "icon_id": "10451635",
+      "name": "饼图",
+      "font_class": "chart_pie_active",
+      "unicode": "e63b",
+      "unicode_decimal": 58939
+    },
+    {
+      "icon_id": "10451672",
+      "name": "饼图",
+      "font_class": "chart_pie",
+      "unicode": "e650",
+      "unicode_decimal": 58960
+    },
+    {
+      "icon_id": "12150272",
+      "name": "文件夹",
+      "font_class": "-folder-empty3",
+      "unicode": "e64f",
+      "unicode_decimal": 58959
+    },
+    {
+      "icon_id": "10798549",
+      "name": "组织",
+      "font_class": "zuzhi",
+      "unicode": "e67d",
+      "unicode_decimal": 59005
+    },
+    {
+      "icon_id": "4186384",
+      "name": "数据字段",
+      "font_class": "shujuziduan",
+      "unicode": "e658",
+      "unicode_decimal": 58968
+    },
+    {
+      "icon_id": "4305953",
+      "name": "数据表",
+      "font_class": "shujubiao",
+      "unicode": "e686",
+      "unicode_decimal": 59014
+    },
+    {
+      "icon_id": "7159343",
+      "name": "数据库",
+      "font_class": "shujuku",
+      "unicode": "e64e",
+      "unicode_decimal": 58958
+    },
+    {
+      "icon_id": "9720183",
+      "name": "维度",
+      "font_class": "weidu",
+      "unicode": "e64c",
+      "unicode_decimal": 58956
+    },
+    {
+      "icon_id": "15381567",
+      "name": "指标",
+      "font_class": "zhibiao",
+      "unicode": "e64d",
+      "unicode_decimal": 58957
+    },
+    {
+      "icon_id": "8841995",
+      "name": "刷新",
+      "font_class": "shuaxin",
+      "unicode": "e63f",
+      "unicode_decimal": 58943
+    },
+    {
+      "icon_id": "7817227",
+      "name": "设置",
+      "font_class": "shezhi",
+      "unicode": "e613",
+      "unicode_decimal": 58899
+    },
+    {
+      "icon_id": "4767026",
+      "name": "colum-height",
+      "font_class": "colum-height",
+      "unicode": "e7ef",
+      "unicode_decimal": 59375
+    },
+    {
+      "icon_id": "4767092",
+      "name": "column-width",
+      "font_class": "column-width",
+      "unicode": "e7fc",
+      "unicode_decimal": 59388
+    },
+    {
+      "icon_id": "9519626",
+      "name": "ScreenFull",
+      "font_class": "ScreenFull",
+      "unicode": "e83a",
+      "unicode_decimal": 59450
+    },
+    {
+      "icon_id": "6664146",
+      "name": "dashboard",
+      "font_class": "dashboard",
+      "unicode": "e60b",
+      "unicode_decimal": 58891
+    },
+    {
+      "icon_id": "287169",
+      "name": "删除",
+      "font_class": "shanchu",
+      "unicode": "e62d",
+      "unicode_decimal": 58925
+    },
+    {
+      "icon_id": "427205",
+      "name": "新增",
+      "font_class": "xinzeng",
+      "unicode": "e64a",
+      "unicode_decimal": 58954
+    },
+    {
+      "icon_id": "584245",
+      "name": "搜索",
+      "font_class": "sousuo",
+      "unicode": "e62f",
+      "unicode_decimal": 58927
+    },
+    {
+      "icon_id": "1013824",
+      "name": "PDF文件",
+      "font_class": "pdf",
+      "unicode": "e78d",
+      "unicode_decimal": 59277
+    },
+    {
+      "icon_id": "1069107",
+      "name": "修改",
+      "font_class": "xiugai",
+      "unicode": "e63a",
+      "unicode_decimal": 58938
+    },
+    {
+      "icon_id": "3978297",
+      "name": "退出",
+      "font_class": "tuichu",
+      "unicode": "e641",
+      "unicode_decimal": 58945
+    },
+    {
+      "icon_id": "4360962",
+      "name": "查看",
+      "font_class": "chakan",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    },
+    {
+      "icon_id": "4889788",
+      "name": "头像",
+      "font_class": "touxiang",
+      "unicode": "e620",
+      "unicode_decimal": 58912
+    },
+    {
+      "icon_id": "5321591",
+      "name": "Excel",
+      "font_class": "excel",
+      "unicode": "e637",
+      "unicode_decimal": 58935
+    },
+    {
+      "icon_id": "5653009",
+      "name": "重置密码",
+      "font_class": "psw-reset",
+      "unicode": "e7de",
+      "unicode_decimal": 59358
+    },
+    {
+      "icon_id": "5666416",
+      "name": "下载",
+      "font_class": "xiazai",
+      "unicode": "e611",
+      "unicode_decimal": 58897
+    },
+    {
+      "icon_id": "5666420",
+      "name": "上传",
+      "font_class": "shangchuan",
+      "unicode": "e612",
+      "unicode_decimal": 58898
+    },
+    {
+      "icon_id": "6265237",
+      "name": "菜单",
+      "font_class": "menu-line",
+      "unicode": "e653",
+      "unicode_decimal": 58963
+    },
+    {
+      "icon_id": "6326748",
+      "name": "重置",
+      "font_class": "chongzhi",
+      "unicode": "e627",
+      "unicode_decimal": 58919
+    },
+    {
+      "icon_id": "8765263",
+      "name": "word",
+      "font_class": "word",
+      "unicode": "e640",
+      "unicode_decimal": 58944
+    },
+    {
+      "icon_id": "9512645",
+      "name": "提交",
+      "font_class": "submit",
+      "unicode": "e638",
+      "unicode_decimal": 58936
+    },
+    {
+      "icon_id": "10166354",
+      "name": "size",
+      "font_class": "size",
+      "unicode": "e63c",
+      "unicode_decimal": 58940
+    }
+  ]
+}

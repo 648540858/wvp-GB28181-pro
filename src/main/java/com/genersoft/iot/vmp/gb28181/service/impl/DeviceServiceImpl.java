@@ -506,7 +506,11 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
         if (device == null || device.getSubscribeCycleForCatalog() < 0) {
             return false;
         }
-        log.info("[添加目录订阅] 设备 {}", device.getDeviceId());
+        if (transactionInfo == null) {
+            log.info("[添加目录订阅] 设备 {}", device.getDeviceId());
+        }else {
+            log.info("[目录订阅续期] 设备 {}", device.getDeviceId());
+        }
         try {
             sipCommander.catalogSubscribe(device, transactionInfo, eventResult -> {
                 ResponseEvent event = (ResponseEvent) eventResult.event;
@@ -566,7 +570,11 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
 
     @Override
     public boolean addMobilePositionSubscribe(@NotNull Device device, SipTransactionInfo transactionInfo) {
-        log.info("[添加移动位置订阅] 设备 {}", device.getDeviceId());
+        if (transactionInfo == null) {
+            log.info("[添加移动位置订阅] 设备 {}", device.getDeviceId());
+        }else {
+            log.info("[移动位置订阅续期] 设备 {}", device.getDeviceId());
+        }
         try {
             sipCommander.mobilePositionSubscribe(device, transactionInfo, eventResult -> {
                 ResponseEvent event = (ResponseEvent) eventResult.event;

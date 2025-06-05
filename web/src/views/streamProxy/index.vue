@@ -259,7 +259,7 @@ export default {
         })
     },
     queryCloudRecords: function(row) {
-      this.$router.push(`/cloudRecordDetail/${row.app}/${row.stream}`)
+      this.$router.push(`/cloudRecord/detail/${row.app}/${row.stream}`)
     },
     deleteStreamProxy: function(row) {
       this.$confirm('确定删除此代理吗？', '提示', {

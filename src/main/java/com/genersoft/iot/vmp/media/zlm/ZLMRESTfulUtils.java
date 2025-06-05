@@ -446,7 +446,6 @@ public class ZLMRESTfulUtils {
         BigDecimal bigDecimal = new BigDecimal(stamp);
         param.put("stamp", bigDecimal);
         param.put("schema", schema);
-        System.out.println(bigDecimal);
         return sendPost(mediaServer, "seekRecordStamp",param, null);
     }
 }

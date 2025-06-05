@@ -255,7 +255,7 @@ export default {
       this.getPushList()
     },
     queryCloudRecords: function(row) {
-      this.$router.push(`/cloudRecordDetail/${row.app}/${row.stream}`)
+      this.$router.push(`/cloudRecord/detail/${row.app}/${row.stream}`)
     },
     importChannel: function() {
       this.$refs.importChannel.openDialog(() => {})

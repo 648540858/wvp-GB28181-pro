@@ -518,8 +518,8 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
                 log.info("[目录订阅]成功： {}", device.getDeviceId());
                 if (!subscribeTaskRunner.containsKey(SubscribeTaskForCatalog.getKey(device))) {
                     SIPResponse response = (SIPResponse) event.getResponse();
-                    SipTransactionInfo transactionInfoForResonse = new SipTransactionInfo(response);
-                    SubscribeTask subscribeTask = SubscribeTaskForCatalog.getInstance(device, this::catalogSubscribeExpire, transactionInfoForResonse);
+                    SipTransactionInfo transactionInfoForResponse = new SipTransactionInfo(response);
+                    SubscribeTask subscribeTask = SubscribeTaskForCatalog.getInstance(device, this::catalogSubscribeExpire, transactionInfoForResponse);
                     if (subscribeTask != null) {
                         subscribeTaskRunner.addSubscribe(subscribeTask);
                     }
@@ -582,13 +582,13 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
                 log.info("[移动位置订阅]成功： {}", device.getDeviceId());
                 if (!subscribeTaskRunner.containsKey(SubscribeTaskForMobilPosition.getKey(device))) {
                     SIPResponse response = (SIPResponse) event.getResponse();
-                    SipTransactionInfo transactionInfoForResonse = new SipTransactionInfo(response);
-                    SubscribeTask subscribeTask = SubscribeTaskForMobilPosition.getInstance(device, this::catalogSubscribeExpire, transactionInfoForResonse);
+                    SipTransactionInfo transactionInfoForResponse = new SipTransactionInfo(response);
+                    SubscribeTask subscribeTask = SubscribeTaskForMobilPosition.getInstance(device, this::mobilPositionSubscribeExpire, transactionInfoForResponse);
                     if (subscribeTask != null) {
                         subscribeTaskRunner.addSubscribe(subscribeTask);
                     }
                 }else {
-                    subscribeTaskRunner.updateDelay(SubscribeTaskForMobilPosition.getKey(device), (device.getSubscribeCycleForCatalog() * 1000L - 500L) + System.currentTimeMillis());
+                    subscribeTaskRunner.updateDelay(SubscribeTaskForMobilPosition.getKey(device), (device.getSubscribeCycleForMobilePosition() * 1000L - 500L) + System.currentTimeMillis());
                 }
 
             },eventResult -> {
@@ -874,7 +874,16 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
     public void subscribeMobilePosition(int id, int cycle, int interval) {
         Device device = deviceMapper.query(id);
         Assert.notNull(device, "未找到设备");
-        Assert.isTrue(device.isOnLine(), "设备已离线");
+        if (!device.isOnLine()) {
+            // 开启订阅
+            device.setSubscribeCycleForMobilePosition(cycle);
+            device.setMobilePositionSubmissionInterval(interval);
+            updateDevice(device);
+            if (subscribeTaskRunner.containsKey(SubscribeTaskForMobilPosition.getKey(device))) {
+                subscribeTaskRunner.removeSubscribe(SubscribeTaskForMobilPosition.getKey(device));
+            }
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备已离线");
+        }
 
         if (device.getSubscribeCycleForMobilePosition() == cycle) {
             return;
@@ -890,6 +899,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
                 // 开启订阅
                 device.setSubscribeCycleForMobilePosition(cycle);
                 device.setMobilePositionSubmissionInterval(interval);
+                updateDevice(device);
                 if (cycle > 0) {
                     addMobilePositionSubscribe(device, null);
                 }

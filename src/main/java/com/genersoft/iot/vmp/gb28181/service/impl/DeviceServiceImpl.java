@@ -729,12 +729,44 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
     @Override
     public void updateDevice(Device device) {
 
-        String now = DateUtil.getNow();
-        device.setUpdateTime(now);
         device.setCharset(device.getCharset() == null ? "" : device.getCharset().toUpperCase());
         device.setUpdateTime(DateUtil.getNow());
         if (deviceMapper.update(device) > 0) {
             redisCatchStorage.updateDevice(device);
+        }
+    }
+
+    @Transactional
+    @Override
+    public void updateDeviceList(List<Device> deviceList) {
+        if (deviceList.isEmpty()){
+            log.info("[批量更新设备] 列表为空，更细失败");
+            return;
+        }
+        if (deviceList.size() == 1) {
+            updateDevice(deviceList.get(0));
+        }else {
+            for (Device device : deviceList) {
+                device.setCharset(device.getCharset() == null ? "" : device.getCharset().toUpperCase());
+                device.setUpdateTime(DateUtil.getNow());
+            }
+            int limitCount = 300;
+            if (!deviceList.isEmpty()) {
+                if (deviceList.size() > limitCount) {
+                    for (int i = 0; i < deviceList.size(); i += limitCount) {
+                        int toIndex = i + limitCount;
+                        if (i + limitCount > deviceList.size()) {
+                            toIndex = deviceList.size();
+                        }
+                        deviceMapper.batchUpdate(deviceList.subList(i, toIndex));
+                    }
+                }else {
+                    deviceMapper.batchUpdate(deviceList);
+                }
+                for (Device device : deviceList) {
+                    redisCatchStorage.updateDevice(device);
+                }
+            }
         }
     }
 

@@ -426,4 +426,36 @@ public interface DeviceMapper {
             "<foreach collection='offlineDevices' item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
             " </script>"})
     void offlineByList(List<Device> offlineDevices);
+
+
+    @Update({"<script>" +
+            "<foreach collection='devices' item='item' separator=';'>" +
+            " UPDATE" +
+            " wvp_device" +
+            " SET update_time=#{item.updateTime}" +
+            ", name=#{item.name}" +
+            ", manufacturer=#{item.manufacturer}" +
+            ", model=#{item.model}" +
+            ", firmware=#{item.firmware}" +
+            ", transport=#{item.transport}" +
+            ", ip=#{item.ip}" +
+            ", local_ip=#{item.localIp}" +
+            ", port=#{item.port}" +
+            ", host_address=#{item.hostAddress}" +
+            ", on_line=#{item.onLine}" +
+            ", register_time=#{item.registerTime}" +
+            ", keepalive_time=#{item.keepaliveTime}" +
+            ", heart_beat_interval=#{item.heartBeatInterval}" +
+            ", position_capability=#{item.positionCapability}" +
+            ", heart_beat_count=#{item.heartBeatCount}" +
+            ", subscribe_cycle_for_catalog=#{item.subscribeCycleForCatalog}" +
+            ", subscribe_cycle_for_mobile_position=#{item.subscribeCycleForMobilePosition}" +
+            ", mobile_position_submission_interval=#{item.mobilePositionSubmissionInterval}" +
+            ", subscribe_cycle_for_alarm=#{item.subscribeCycleForAlarm}" +
+            ", expires=#{item.expires}" +
+            ", server_id=#{item.serverId}" +
+            " WHERE device_id=#{item.deviceId}"+
+            "</foreach>" +
+            "</script>"})
+    void batchUpdate(List<Device> devices);
 }

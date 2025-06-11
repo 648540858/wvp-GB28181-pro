@@ -12,19 +12,20 @@ spring:
       max-request-size: 100MB
   cache:
     type: redis
-  # REDIS数据库配置
-  redis:
-    # [必须修改] Redis服务器IP, REDIS安装在本机的,使用127.0.0.1
-    host: 127.0.0.1
-    # [必须修改] 端口号
-    port: 6379
-    # [可选] 数据库 DB
-    database: 7
-    # [可选] 访问密码,若你的redis服务器没有设置密码，就不需要用密码去连接
-    password: luna
-    # [可选] 超时时间
-    timeout: 10000
-    # mysql数据源
+  data:
+    # REDIS数据库配置
+    redis:
+      # [必须修改] Redis服务器IP, REDIS安装在本机的,使用127.0.0.1
+      host: 127.0.0.1
+      # [必须修改] 端口号
+      port: 6379
+      # [可选] 数据库 DB
+      database: 7
+      # [可选] 访问密码,若你的redis服务器没有设置密码，就不需要用密码去连接
+      password: luna
+      # [可选] 超时时间
+      timeout: 10000
+  # mysql数据源
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver

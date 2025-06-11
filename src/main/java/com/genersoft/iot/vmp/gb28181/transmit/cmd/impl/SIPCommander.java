@@ -421,12 +421,10 @@ public class SIPCommander implements ISIPCommander {
         String streamMode = device.getStreamMode().toUpperCase();
 
         if (userSetting.getSeniorSdp()) {
-            if ("TCP-PASSIVE".equals(streamMode)) {
-                content.append("m=video " + ssrcInfo.getPort() + " TCP/RTP/AVP 96 126 125 99 34 98 97\r\n");
-            } else if ("TCP-ACTIVE".equals(streamMode)) {
-                content.append("m=video " + ssrcInfo.getPort() + " TCP/RTP/AVP 96 126 125 99 34 98 97\r\n");
-            } else if ("UDP".equals(streamMode)) {
-                content.append("m=video " + ssrcInfo.getPort() + " RTP/AVP 96 126 125 99 34 98 97\r\n");
+            switch (streamMode) {
+                case "TCP-PASSIVE" -> content.append("m=video " + ssrcInfo.getPort() + " TCP/RTP/AVP 96 126 125 99 34 98 97\r\n");
+                case "TCP-ACTIVE" -> content.append("m=video " + ssrcInfo.getPort() + " TCP/RTP/AVP 96 126 125 99 34 98 97\r\n");
+                case "UDP" -> content.append("m=video " + ssrcInfo.getPort() + " RTP/AVP 96 126 125 99 34 98 97\r\n");
             }
             content.append("a=recvonly\r\n");
             content.append("a=rtpmap:96 PS/90000\r\n");
@@ -446,12 +444,10 @@ public class SIPCommander implements ISIPCommander {
                 content.append("a=connection:new\r\n");
             }
         } else {
-            if ("TCP-PASSIVE".equals(streamMode)) {
-                content.append("m=video " + ssrcInfo.getPort() + " TCP/RTP/AVP 96 97 98 99\r\n");
-            } else if ("TCP-ACTIVE".equals(streamMode)) {
-                content.append("m=video " + ssrcInfo.getPort() + " TCP/RTP/AVP 96 97 98 99\r\n");
-            } else if ("UDP".equals(streamMode)) {
-                content.append("m=video " + ssrcInfo.getPort() + " RTP/AVP 96 97 98 99\r\n");
+            switch (streamMode) {
+                case "TCP-PASSIVE" -> content.append("m=video " + ssrcInfo.getPort() + " TCP/RTP/AVP 96 97 98 99\r\n");
+                case "TCP-ACTIVE" -> content.append("m=video " + ssrcInfo.getPort() + " TCP/RTP/AVP 96 97 98 99\r\n");
+                case "UDP" -> content.append("m=video " + ssrcInfo.getPort() + " RTP/AVP 96 97 98 99\r\n");
             }
             content.append("a=recvonly\r\n");
             content.append("a=rtpmap:96 PS/90000\r\n");

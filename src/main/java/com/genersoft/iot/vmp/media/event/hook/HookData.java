@@ -46,22 +46,19 @@ public class HookData {
     private String params;
     public static HookData getInstance(MediaEvent mediaEvent) {
         HookData hookData = new HookData();
-        if (mediaEvent instanceof MediaPublishEvent) {
-            MediaPublishEvent event = (MediaPublishEvent) mediaEvent;
+        if (mediaEvent instanceof MediaPublishEvent event) {
             hookData.setApp(event.getApp());
             hookData.setStream(event.getStream());
             hookData.setSchema(event.getSchema());
             hookData.setMediaServer(event.getMediaServer());
             hookData.setParams(event.getParams());
-        }else if (mediaEvent instanceof MediaArrivalEvent) {
-            MediaArrivalEvent event = (MediaArrivalEvent) mediaEvent;
+        }else if (mediaEvent instanceof MediaArrivalEvent event) {
             hookData.setApp(event.getApp());
             hookData.setStream(event.getStream());
             hookData.setSchema(event.getSchema());
             hookData.setMediaServer(event.getMediaServer());
             hookData.setMediaInfo(event.getMediaInfo());
-        }else if (mediaEvent instanceof MediaRecordMp4Event) {
-            MediaRecordMp4Event event = (MediaRecordMp4Event) mediaEvent;
+        }else if (mediaEvent instanceof MediaRecordMp4Event event) {
             hookData.setApp(event.getApp());
             hookData.setStream(event.getStream());
             hookData.setSchema(event.getSchema());

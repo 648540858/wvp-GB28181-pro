@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -66,11 +67,7 @@ public class ZLMServerFactory {
             param.put("re_use_port", reUsePort?"1":"0");
         }
         // 推流端口设置0则使用随机端口
-        if (port == null) {
-            param.put("port", 0);
-        }else {
-            param.put("port", port);
-        }
+        param.put("port", Objects.requireNonNullElse(port, 0));
         if (onlyAuto != null) {
             param.put("only_audio", onlyAuto?"1":"0");
         }

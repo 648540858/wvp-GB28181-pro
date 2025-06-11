@@ -101,13 +101,10 @@ public class Region implements Comparable<Region>{
             return false;
         if (this == obj)
             return true;
-        if (obj instanceof Region) {
-            Region region = (Region) obj;
+        if (obj instanceof Region region) {
 
             // 比较每个属性的值一致时才返回true
-            if (region.getId() == this.id) {
-                return true;
-            }
+            return region.getId() == this.id;
         }
         return false;
     }

@@ -42,8 +42,7 @@ public class GlobalResponseAdvice implements ResponseBodyAdvice<Object> {
             return body;
         }
 
-        if (body instanceof ErrorCode) {
-            ErrorCode errorCode = (ErrorCode) body;
+        if (body instanceof ErrorCode errorCode) {
             return new WVPResult<>(errorCode.getCode(), errorCode.getMsg(), null);
         }
 
@@ -51,7 +50,7 @@ public class GlobalResponseAdvice implements ResponseBodyAdvice<Object> {
             return JSON.toJSONString(WVPResult.success(body));
         }
 
-        if (body instanceof LinkedHashMap) {
+        if (body instanceof LinkedHashMap ) {
             LinkedHashMap<String, Object> bodyMap = (LinkedHashMap<String, Object>) body;
             if (bodyMap.get("status") != null && (Integer)bodyMap.get("status") != 200) {
                 return body;

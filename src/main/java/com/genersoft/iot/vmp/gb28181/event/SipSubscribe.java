@@ -95,8 +95,7 @@ public class SipSubscribe {
 
         public EventResult(T event) {
             this.event = event;
-            if (event instanceof ResponseEvent) {
-                ResponseEvent responseEvent = (ResponseEvent)event;
+            if (event instanceof ResponseEvent responseEvent) {
                 SIPResponse response = (SIPResponse)responseEvent.getResponse();
                 this.type = EventResultType.response;
                 if (response != null) {
@@ -118,8 +117,7 @@ public class SipSubscribe {
                     this.statusCode = response.getStatusCode();
                     this.callId = response.getCallIdHeader().getCallId();
                 }
-            }else if (event instanceof TimeoutEvent) {
-                TimeoutEvent timeoutEvent = (TimeoutEvent)event;
+            }else if (event instanceof TimeoutEvent timeoutEvent) {
                 this.type = EventResultType.timeout;
                 this.msg = "消息超时未回复";
                 this.statusCode = -1024;
@@ -128,8 +126,7 @@ public class SipSubscribe {
                 }else {
                     this.callId = ((SIPRequest)timeoutEvent.getClientTransaction().getRequest()).getCallIdHeader().getCallId();
                 }
-            }else if (event instanceof TransactionTerminatedEvent) {
-                TransactionTerminatedEvent transactionTerminatedEvent = (TransactionTerminatedEvent)event;
+            }else if (event instanceof TransactionTerminatedEvent transactionTerminatedEvent) {
                 this.type = EventResultType.transactionTerminated;
                 this.msg = "事务已结束";
                 this.statusCode = -1024;
@@ -138,8 +135,7 @@ public class SipSubscribe {
                 }else {
                     this.callId = ((SIPRequest)transactionTerminatedEvent.getClientTransaction().getRequest()).getCallIdHeader().getCallId();
                 }
-            }else if (event instanceof DialogTerminatedEvent) {
-                DialogTerminatedEvent dialogTerminatedEvent = (DialogTerminatedEvent)event;
+            }else if (event instanceof DialogTerminatedEvent dialogTerminatedEvent) {
                 this.type = EventResultType.dialogTerminated;
                 this.msg = "会话已结束";
                 this.statusCode = -1024;

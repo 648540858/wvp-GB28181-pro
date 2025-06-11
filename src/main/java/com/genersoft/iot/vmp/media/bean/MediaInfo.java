@@ -10,6 +10,7 @@ import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 视频信息
@@ -84,11 +85,7 @@ public class MediaInfo {
         Long aliveSecond = jsonObject.getLong("aliveSecond");
         String params = jsonObject.getString("params");
         Long bytesSpeed = jsonObject.getLong("bytesSpeed");
-        if (totalReaderCount != null) {
-            mediaInfo.setReaderCount(totalReaderCount);
-        } else {
-            mediaInfo.setReaderCount(0);
-        }
+        mediaInfo.setReaderCount(Objects.requireNonNullElse(totalReaderCount, 0));
         if (online != null) {
             mediaInfo.setOnline(online);
         }

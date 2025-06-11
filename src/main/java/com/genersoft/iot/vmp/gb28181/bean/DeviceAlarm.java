@@ -38,18 +38,13 @@ public class DeviceAlarm {
     private String alarmPriorityDescription;
 
     public String getAlarmPriorityDescription() {
-        switch (alarmPriority) {
-            case "1":
-                return "一级警情";
-            case "2":
-                return "二级警情";
-            case "3":
-                return "三级警情";
-            case "4":
-                return "四级警情";
-            default:
-                return alarmPriority;
-        }
+        return switch (alarmPriority) {
+            case "1" -> "一级警情";
+            case "2" -> "二级警情";
+            case "3" -> "三级警情";
+            case "4" -> "四级警情";
+            default -> alarmPriority;
+        };
     }
 
     /**
@@ -159,103 +154,48 @@ public class DeviceAlarm {
 		}
 		String result = alarmType;
 		if (alarmMethodSet.contains("2")) {
-			switch (alarmType) {
-				case "1":
-					result = "视频丢失报警";
-					break;
-				case "2":
-					result = "设备防拆报警";
-					break;
-				case "3":
-					result = "存储设备磁盘满报警";
-					break;
-				case "4":
-					result = "设备高温报警";
-					break;
-				case "5":
-					result = "设备低温报警";
-					break;
-			}
+            result = switch (alarmType) {
+                case "1" -> "视频丢失报警";
+                case "2" -> "设备防拆报警";
+                case "3" -> "存储设备磁盘满报警";
+                case "4" -> "设备高温报警";
+                case "5" -> "设备低温报警";
+                default -> result;
+            };
 		}
 		if (alarmMethodSet.contains("5")) {
-			switch (alarmType) {
-				case "1":
-					result = "人工视频报警";
-					break;
-				case "2":
-					result = "运动目标检测报警";
-					break;
-				case "3":
-					result = "遗留物检测报警";
-					break;
-				case "4":
-					result = "物体移除检测报警";
-					break;
-				case "5":
-					result = "绊线检测报警";
-					break;
-				case "6":
-					result = "入侵检测报警";
-					break;
-				case "7":
-					result = "逆行检测报警";
-					break;
-				case "8":
-					result = "徘徊检测报警";
-					break;
-				case "9":
-					result = "流量统计报警";
-					break;
-				case "10":
-					result = "密度检测报警";
-					break;
-				case "11":
-					result = "视频异常检测报警";
-					break;
-				case "12":
-					result = "快速移动报警";
-					break;
-			}
+            result = switch (alarmType) {
+                case "1" -> "人工视频报警";
+                case "2" -> "运动目标检测报警";
+                case "3" -> "遗留物检测报警";
+                case "4" -> "物体移除检测报警";
+                case "5" -> "绊线检测报警";
+                case "6" -> "入侵检测报警";
+                case "7" -> "逆行检测报警";
+                case "8" -> "徘徊检测报警";
+                case "9" -> "流量统计报警";
+                case "10" -> "密度检测报警";
+                case "11" -> "视频异常检测报警";
+                case "12" -> "快速移动报警";
+                default -> result;
+            };
 		}
 		if (alarmMethodSet.contains("6")) {
-			switch (alarmType) {
-				case "1":
-					result = "人工视频报警";
-					break;
-				case "2":
-					result = "运动目标检测报警";
-					break;
-				case "3":
-					result = "遗留物检测报警";
-					break;
-				case "4":
-					result = "物体移除检测报警";
-					break;
-				case "5":
-					result = "绊线检测报警";
-					break;
-				case "6":
-					result = "入侵检测报警";
-					break;
-				case "7":
-					result = "逆行检测报警";
-					break;
-				case "8":
-					result = "徘徊检测报警";
-					break;
-				case "9":
-					result = "流量统计报警";
-					break;
-				case "10":
-					result = "密度检测报警";
-					break;
-				case "11":
-					result = "视频异常检测报警";
-					break;
-				case "12":
-					result = "快速移动报警";
-					break;
-			}
+            result = switch (alarmType) {
+                case "1" -> "人工视频报警";
+                case "2" -> "运动目标检测报警";
+                case "3" -> "遗留物检测报警";
+                case "4" -> "物体移除检测报警";
+                case "5" -> "绊线检测报警";
+                case "6" -> "入侵检测报警";
+                case "7" -> "逆行检测报警";
+                case "8" -> "徘徊检测报警";
+                case "9" -> "流量统计报警";
+                case "10" -> "密度检测报警";
+                case "11" -> "视频异常检测报警";
+                case "12" -> "快速移动报警";
+                default -> result;
+            };
 		}
 		return result;
 	}

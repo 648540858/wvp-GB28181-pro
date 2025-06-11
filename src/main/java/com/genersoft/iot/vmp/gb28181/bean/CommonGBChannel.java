@@ -155,35 +155,21 @@ public class CommonGBChannel {
     }
 
     public String encode(String event,String serverDeviceId) {
-        String content;
         if (event == null) {
             return getFullContent(null, serverDeviceId);
         }
-        switch (event) {
-            case CatalogEvent.DEL:
-            case CatalogEvent.DEFECT:
-            case CatalogEvent.VLOST:
-                content = "<Item>\n" +
-                        "<DeviceID>" + this.getGbDeviceId() + "</DeviceID>\n" +
-                        "<Event>" + event + "</Event>\n" +
-                        "</Item>\n";
-                break;
-            case CatalogEvent.ON:
-            case CatalogEvent.OFF:
-                content = "<Item>\n" +
-                        "<DeviceID>" + this.getGbDeviceId() + "</DeviceID>\n" +
-                        "<Event>" + event + "</Event>\r\n" +
-                        "</Item>\n";
-                break;
-            case CatalogEvent.ADD:
-            case CatalogEvent.UPDATE:
-                content = getFullContent(event, serverDeviceId);
-                break;
-            default:
-                content = null;
-                break;
-        }
-        return content;
+        return switch (event) {
+            case CatalogEvent.DEL, CatalogEvent.DEFECT, CatalogEvent.VLOST -> "<Item>\n" +
+                    "<DeviceID>" + this.getGbDeviceId() + "</DeviceID>\n" +
+                    "<Event>" + event + "</Event>\n" +
+                    "</Item>\n";
+            case CatalogEvent.ON, CatalogEvent.OFF -> "<Item>\n" +
+                    "<DeviceID>" + this.getGbDeviceId() + "</DeviceID>\n" +
+                    "<Event>" + event + "</Event>\r\n" +
+                    "</Item>\n";
+            case CatalogEvent.ADD, CatalogEvent.UPDATE -> getFullContent(event, serverDeviceId);
+            default -> null;
+        };
     }
 
     private String getFullContent(String event, String serverDeviceId) {
@@ -197,147 +183,152 @@ public class CommonGBChannel {
         if (this.getGbDeviceId().length() > 8) {
 
             String type = this.getGbDeviceId().substring(10, 13);
-            if (type.equals("200")) {
-                // 业务分组目录项
-                if (this.getGbManufacturer() != null) {
-                    content.append("<Manufacturer>" + this.getGbManufacturer() + "</Manufacturer>\n");
+            switch (type) {
+                case "200" -> {
+                    // 业务分组目录项
+                    if (this.getGbManufacturer() != null) {
+                        content.append("<Manufacturer>" + this.getGbManufacturer() + "</Manufacturer>\n");
+                    }
+                    if (this.getGbModel() != null) {
+                        content.append("<Model>" + this.getGbModel() + "</Model>\n");
+                    }
+                    if (this.getGbOwner() != null) {
+                        content.append("<Owner>" + this.getGbOwner() + "</Owner>\n");
+                    }
+                    if (this.getGbCivilCode() != null) {
+                        content.append("<CivilCode>" + this.getGbCivilCode() + "</CivilCode>\n");
+                    }
+                    if (this.getGbAddress() != null) {
+                        content.append("<Address>" + this.getGbAddress() + "</Address>\n");
+                    }
+                    if (this.getGbRegisterWay() != null) {
+                        content.append("<RegisterWay>" + this.getGbRegisterWay() + "</RegisterWay>\n");
+                    }
+                    if (this.getGbSecrecy() != null) {
+                        content.append("<Secrecy>" + this.getGbSecrecy() + "</Secrecy>\n");
+                    }
                 }
-                if (this.getGbModel() != null) {
-                    content.append("<Model>" + this.getGbModel() + "</Model>\n");
+                case "215" -> {
+                    // 业务分组
+                    if (this.getGbCivilCode() != null) {
+                        content.append("<CivilCode>" + this.getGbCivilCode() + "</CivilCode>\n");
+                    }
+                    content.append("<ParentID>" + serverDeviceId + "</ParentID>\n");
                 }
-                if (this.getGbOwner() != null) {
-                    content.append("<Owner>" + this.getGbOwner() + "</Owner>\n");
+                case "216" -> {
+                    // 虚拟组织目录项
+                    if (this.getGbCivilCode() != null) {
+                        content.append("<CivilCode>" + this.getGbCivilCode() + "</CivilCode>\n");
+                    }
+                    if (this.getGbParentId() != null) {
+                        content.append("<ParentID>" + this.getGbParentId() + "</ParentID>\n");
+                    }
+                    content.append("<BusinessGroupID>" + this.getGbBusinessGroupId() + "</BusinessGroupID>\n");
                 }
-                if (this.getGbCivilCode() != null) {
-                    content.append("<CivilCode>" + this.getGbCivilCode() + "</CivilCode>\n");
-                }
-                if (this.getGbAddress() != null) {
-                    content.append("<Address>" + this.getGbAddress() + "</Address>\n");
-                }
-                if (this.getGbRegisterWay() != null) {
-                    content.append("<RegisterWay>" + this.getGbRegisterWay() + "</RegisterWay>\n");
-                }
-                if (this.getGbSecrecy() != null) {
-                    content.append("<Secrecy>" + this.getGbSecrecy() + "</Secrecy>\n");
-                }
-            } else if (type.equals("215")) {
-                // 业务分组
-                if (this.getGbCivilCode() != null) {
-                    content.append("<CivilCode>" + this.getGbCivilCode() + "</CivilCode>\n");
-                }
-                content.append("<ParentID>" + serverDeviceId + "</ParentID>\n");
-            } else if (type.equals("216")) {
-                // 虚拟组织目录项
-                if (this.getGbCivilCode() != null) {
-                    content.append("<CivilCode>" + this.getGbCivilCode() + "</CivilCode>\n");
-                }
-                if (this.getGbParentId() != null) {
-                    content.append("<ParentID>" + this.getGbParentId() + "</ParentID>\n");
-                }
-                content.append("<BusinessGroupID>" + this.getGbBusinessGroupId() + "</BusinessGroupID>\n");
-            } else {
-                if (this.getGbManufacturer() != null) {
-                    content.append("<Manufacturer>" + this.getGbManufacturer() + "</Manufacturer>\n");
-                }
-                if (this.getGbModel() != null) {
-                    content.append("<Model>" + this.getGbModel() + "</Model>\n");
-                }
-                if (this.getGbOwner() != null) {
-                    content.append("<Owner>" + this.getGbOwner() + "</Owner>\n");
-                }
-                if (this.getGbCivilCode() != null) {
-                    content.append("<CivilCode>" + this.getGbCivilCode() + "</CivilCode>\n");
-                }
-                if (this.getGbAddress() != null) {
-                    content.append("<Address>" + this.getGbAddress() + "</Address>\n");
-                }
-                if (this.getGbRegisterWay() != null) {
-                    content.append("<RegisterWay>" + this.getGbRegisterWay() + "</RegisterWay>\n");
-                }
-                if (this.getGbSecrecy() != null) {
-                    content.append("<Secrecy>" + this.getGbSecrecy() + "</Secrecy>\n");
-                }
-                if (this.getGbParentId() != null) {
-                    content.append("<ParentID>" + this.getGbParentId() + "</ParentID>\n");
-                }
-                if (this.getGbParental() != null) {
-                    content.append("<Parental>" + this.getGbParental() + "</Parental>\n");
-                }
-                if (this.getGbSafetyWay() != null) {
-                    content.append("<SafetyWay>" + this.getGbSafetyWay() + "</SafetyWay>\n");
-                }
-                if (this.getGbRegisterWay() != null) {
-                    content.append("<RegisterWay>" + this.getGbRegisterWay() + "</RegisterWay>\n");
-                }
-                if (this.getGbCertNum() != null) {
-                    content.append("<CertNum>" + this.getGbCertNum() + "</CertNum>\n");
-                }
-                if (this.getGbCertifiable() != null) {
-                    content.append("<Certifiable>" + this.getGbCertifiable() + "</Certifiable>\n");
-                }
-                if (this.getGbErrCode() != null) {
-                    content.append("<ErrCode>" + this.getGbErrCode() + "</ErrCode>\n");
-                }
-                if (this.getGbEndTime() != null) {
-                    content.append("<EndTime>" + this.getGbEndTime() + "</EndTime>\n");
-                }
-                if (this.getGbSecrecy() != null) {
-                    content.append("<Secrecy>" + this.getGbSecrecy() + "</Secrecy>\n");
-                }
-                if (this.getGbIpAddress() != null) {
-                    content.append("<IPAddress>" + this.getGbIpAddress() + "</IPAddress>\n");
-                }
-                if (this.getGbPort() != null) {
-                    content.append("<Port>" + this.getGbPort() + "</Port>\n");
-                }
-                if (this.getGbPassword() != null) {
-                    content.append("<Password>" + this.getGbPassword() + "</Password>\n");
-                }
-                if (this.getGbStatus() != null) {
-                    content.append("<Status>" + this.getGbStatus() + "</Status>\n");
-                }
-                if (this.getGbLongitude() != null) {
-                    content.append("<Longitude>" + this.getGbLongitude() + "</Longitude>\n");
-                }
-                if (this.getGbLatitude() != null) {
-                    content.append("<Latitude>" + this.getGbLatitude() + "</Latitude>\n");
-                }
-                content.append("<Info>\n");
+                default -> {
+                    if (this.getGbManufacturer() != null) {
+                        content.append("<Manufacturer>" + this.getGbManufacturer() + "</Manufacturer>\n");
+                    }
+                    if (this.getGbModel() != null) {
+                        content.append("<Model>" + this.getGbModel() + "</Model>\n");
+                    }
+                    if (this.getGbOwner() != null) {
+                        content.append("<Owner>" + this.getGbOwner() + "</Owner>\n");
+                    }
+                    if (this.getGbCivilCode() != null) {
+                        content.append("<CivilCode>" + this.getGbCivilCode() + "</CivilCode>\n");
+                    }
+                    if (this.getGbAddress() != null) {
+                        content.append("<Address>" + this.getGbAddress() + "</Address>\n");
+                    }
+                    if (this.getGbRegisterWay() != null) {
+                        content.append("<RegisterWay>" + this.getGbRegisterWay() + "</RegisterWay>\n");
+                    }
+                    if (this.getGbSecrecy() != null) {
+                        content.append("<Secrecy>" + this.getGbSecrecy() + "</Secrecy>\n");
+                    }
+                    if (this.getGbParentId() != null) {
+                        content.append("<ParentID>" + this.getGbParentId() + "</ParentID>\n");
+                    }
+                    if (this.getGbParental() != null) {
+                        content.append("<Parental>" + this.getGbParental() + "</Parental>\n");
+                    }
+                    if (this.getGbSafetyWay() != null) {
+                        content.append("<SafetyWay>" + this.getGbSafetyWay() + "</SafetyWay>\n");
+                    }
+                    if (this.getGbRegisterWay() != null) {
+                        content.append("<RegisterWay>" + this.getGbRegisterWay() + "</RegisterWay>\n");
+                    }
+                    if (this.getGbCertNum() != null) {
+                        content.append("<CertNum>" + this.getGbCertNum() + "</CertNum>\n");
+                    }
+                    if (this.getGbCertifiable() != null) {
+                        content.append("<Certifiable>" + this.getGbCertifiable() + "</Certifiable>\n");
+                    }
+                    if (this.getGbErrCode() != null) {
+                        content.append("<ErrCode>" + this.getGbErrCode() + "</ErrCode>\n");
+                    }
+                    if (this.getGbEndTime() != null) {
+                        content.append("<EndTime>" + this.getGbEndTime() + "</EndTime>\n");
+                    }
+                    if (this.getGbSecrecy() != null) {
+                        content.append("<Secrecy>" + this.getGbSecrecy() + "</Secrecy>\n");
+                    }
+                    if (this.getGbIpAddress() != null) {
+                        content.append("<IPAddress>" + this.getGbIpAddress() + "</IPAddress>\n");
+                    }
+                    if (this.getGbPort() != null) {
+                        content.append("<Port>" + this.getGbPort() + "</Port>\n");
+                    }
+                    if (this.getGbPassword() != null) {
+                        content.append("<Password>" + this.getGbPassword() + "</Password>\n");
+                    }
+                    if (this.getGbStatus() != null) {
+                        content.append("<Status>" + this.getGbStatus() + "</Status>\n");
+                    }
+                    if (this.getGbLongitude() != null) {
+                        content.append("<Longitude>" + this.getGbLongitude() + "</Longitude>\n");
+                    }
+                    if (this.getGbLatitude() != null) {
+                        content.append("<Latitude>" + this.getGbLatitude() + "</Latitude>\n");
+                    }
+                    content.append("<Info>\n");
 
-                if (this.getGbPtzType() != null) {
-                    content.append("  <PTZType>" + this.getGbPtzType() + "</PTZType>\n");
+                    if (this.getGbPtzType() != null) {
+                        content.append("  <PTZType>" + this.getGbPtzType() + "</PTZType>\n");
+                    }
+                    if (this.getGbPositionType() != null) {
+                        content.append("  <PositionType>" + this.getGbPositionType() + "</PositionType>\n");
+                    }
+                    if (this.getGbRoomType() != null) {
+                        content.append("  <RoomType>" + this.getGbRoomType() + "</RoomType>\n");
+                    }
+                    if (this.getGbUseType() != null) {
+                        content.append("  <UseType>" + this.getGbUseType() + "</UseType>\n");
+                    }
+                    if (this.getGbSupplyLightType() != null) {
+                        content.append("  <SupplyLightType>" + this.getGbSupplyLightType() + "</SupplyLightType>\n");
+                    }
+                    if (this.getGbDirectionType() != null) {
+                        content.append("  <DirectionType>" + this.getGbDirectionType() + "</DirectionType>\n");
+                    }
+                    if (this.getGbResolution() != null) {
+                        content.append("  <Resolution>" + this.getGbResolution() + "</Resolution>\n");
+                    }
+                    if (this.getGbBusinessGroupId() != null) {
+                        content.append("  <BusinessGroupID>" + this.getGbBusinessGroupId() + "</BusinessGroupID>\n");
+                    }
+                    if (this.getGbDownloadSpeed() != null) {
+                        content.append("  <DownloadSpeed>" + this.getGbDownloadSpeed() + "</DownloadSpeed>\n");
+                    }
+                    if (this.getGbSvcSpaceSupportMod() != null) {
+                        content.append("  <SVCSpaceSupportMode>" + this.getGbSvcSpaceSupportMod() + "</SVCSpaceSupportMode>\n");
+                    }
+                    if (this.getGbSvcTimeSupportMode() != null) {
+                        content.append("  <SVCTimeSupportMode>" + this.getGbSvcTimeSupportMode() + "</SVCTimeSupportMode>\n");
+                    }
+                    content.append("</Info>\n");
                 }
-                if (this.getGbPositionType() != null) {
-                    content.append("  <PositionType>" + this.getGbPositionType() + "</PositionType>\n");
-                }
-                if (this.getGbRoomType() != null) {
-                    content.append("  <RoomType>" + this.getGbRoomType() + "</RoomType>\n");
-                }
-                if (this.getGbUseType() != null) {
-                    content.append("  <UseType>" + this.getGbUseType() + "</UseType>\n");
-                }
-                if (this.getGbSupplyLightType() != null) {
-                    content.append("  <SupplyLightType>" + this.getGbSupplyLightType() + "</SupplyLightType>\n");
-                }
-                if (this.getGbDirectionType() != null) {
-                    content.append("  <DirectionType>" + this.getGbDirectionType() + "</DirectionType>\n");
-                }
-                if (this.getGbResolution() != null) {
-                    content.append("  <Resolution>" + this.getGbResolution() + "</Resolution>\n");
-                }
-                if (this.getGbBusinessGroupId() != null) {
-                    content.append("  <BusinessGroupID>" + this.getGbBusinessGroupId() + "</BusinessGroupID>\n");
-                }
-                if (this.getGbDownloadSpeed() != null) {
-                    content.append("  <DownloadSpeed>" + this.getGbDownloadSpeed() + "</DownloadSpeed>\n");
-                }
-                if (this.getGbSvcSpaceSupportMod() != null) {
-                    content.append("  <SVCSpaceSupportMode>" + this.getGbSvcSpaceSupportMod() + "</SVCSpaceSupportMode>\n");
-                }
-                if (this.getGbSvcTimeSupportMode() != null) {
-                    content.append("  <SVCTimeSupportMode>" + this.getGbSvcTimeSupportMode() + "</SVCTimeSupportMode>\n");
-                }
-                content.append("</Info>\n");
             }
         }
         if (event != null) {

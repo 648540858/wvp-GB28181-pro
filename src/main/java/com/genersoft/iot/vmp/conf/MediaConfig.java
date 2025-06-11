@@ -10,6 +10,7 @@ import org.springframework.util.ObjectUtils;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -128,12 +129,7 @@ public class MediaConfig{
     }
 
     public int getRtpProxyPort() {
-        if (rtpProxyPort == null) {
-            return 0;
-        }else {
-            return rtpProxyPort;
-        }
-
+        return Objects.requireNonNullElse(rtpProxyPort, 0);
     }
 
     public int getRtspPort() {

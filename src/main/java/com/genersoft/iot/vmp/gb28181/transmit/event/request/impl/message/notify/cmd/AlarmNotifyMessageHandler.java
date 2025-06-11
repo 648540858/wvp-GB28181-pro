@@ -31,6 +31,7 @@ import javax.sip.message.Response;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
@@ -126,11 +127,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                 }
                 deviceAlarm.setAlarmTime(DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(alarmTime));
                 String alarmDescription = getText(sipMsgInfo.getRootElement(), "AlarmDescription");
-                if (alarmDescription == null) {
-                    deviceAlarm.setAlarmDescription("");
-                } else {
-                    deviceAlarm.setAlarmDescription(alarmDescription);
-                }
+                deviceAlarm.setAlarmDescription(Objects.requireNonNullElse(alarmDescription, ""));
                 String longitude = getText(sipMsgInfo.getRootElement(), "Longitude");
                 if (longitude != null && NumericUtil.isDouble(longitude)) {
                     deviceAlarm.setLongitude(Double.parseDouble(longitude));
@@ -233,11 +230,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
         }
         deviceAlarm.setAlarmTime(DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(alarmTime));
         String alarmDescription = getText(rootElement, "AlarmDescription");
-        if (alarmDescription == null) {
-            deviceAlarm.setAlarmDescription("");
-        } else {
-            deviceAlarm.setAlarmDescription(alarmDescription);
-        }
+        deviceAlarm.setAlarmDescription(Objects.requireNonNullElse(alarmDescription, ""));
         String longitude = getText(rootElement, "Longitude");
         if (longitude != null && NumericUtil.isDouble(longitude)) {
             deviceAlarm.setLongitude(Double.parseDouble(longitude));

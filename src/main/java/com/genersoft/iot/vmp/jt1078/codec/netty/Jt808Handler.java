@@ -56,8 +56,7 @@ public class Jt808Handler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
-        if (evt instanceof IdleStateEvent) {
-            IdleStateEvent event = (IdleStateEvent) evt;
+        if (evt instanceof IdleStateEvent event) {
             IdleState state = event.state();
             if (state == IdleState.READER_IDLE || state == IdleState.WRITER_IDLE) {
                 Session session = ctx.channel().attr(Session.KEY).get();

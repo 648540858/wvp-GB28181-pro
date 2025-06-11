@@ -34,8 +34,7 @@ public class Hook {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof Hook) {
-            Hook param = (Hook) obj;
+        if (obj instanceof Hook param) {
             return param.getHookType().equals(this.hookType)
                     && param.getApp().equals(this.app)
                     && param.getStream().equals(this.stream);

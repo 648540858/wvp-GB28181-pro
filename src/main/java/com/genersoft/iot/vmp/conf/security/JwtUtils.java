@@ -24,7 +24,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;

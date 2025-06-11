@@ -12,9 +12,12 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -35,7 +38,7 @@ import java.util.List;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @Order(1)
 @Slf4j
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfig {
 
     @Autowired
     private UserSetting userSetting;
@@ -55,15 +58,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    @Bean
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        return http.getSharedObject(AuthenticationManagerBuilder.class)
+                .authenticationProvider(authProvider())
+                .build();
+    }
 
-    /**
-     * 配置认证方式
-     *
-     * @param auth
-     * @throws Exception
-     */
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    @Bean
+    public DaoAuthenticationProvider authProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         // 设置不隐藏 未找到用户异常
         provider.setHideUserNotFoundExceptions(true);
@@ -71,11 +74,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         provider.setUserDetailsService(userDetailsService);
         // 设置密码加密算法
         provider.setPasswordEncoder(passwordEncoder());
-        auth.authenticationProvider(provider);
+        return provider;
     }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         List<String> defaultExcludes = new ArrayList<>();
         defaultExcludes.add("/");
         defaultExcludes.add("/#/**");
@@ -101,33 +104,30 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         defaultExcludes.add("/api/device/query/snap/**");
         defaultExcludes.add("/index/hook/abl/**");
 
-
-
         if (userSetting.getInterfaceAuthentication() && !userSetting.getInterfaceAuthenticationExcludes().isEmpty()) {
             defaultExcludes.addAll(userSetting.getInterfaceAuthenticationExcludes());
         }
 
-        http.headers().contentTypeOptions().disable()
-                .and().cors().configurationSource(configurationSource())
-                .and().csrf().disable()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        http
+                .headers(headers -> headers.contentTypeOptions(contentType -> contentType.disable()))
+                .cors(cors -> cors.configurationSource(configurationSource()))
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 // 配置拦截规则
-                .and()
-                .authorizeRequests()
-                .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
-                .antMatchers(defaultExcludes.toArray(new String[0])).permitAll()
-                .anyRequest().authenticated()
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
+                        .requestMatchers(defaultExcludes.toArray(new String[0])).permitAll()
+                        .anyRequest().authenticated()
+                )
                 // 异常处理器
-                .and()
-                .exceptionHandling()
-                .authenticationEntryPoint(anonymousAuthenticationEntryPoint)
-                .and().logout().logoutUrl("/api/user/logout").permitAll()
-                .logoutSuccessHandler(logoutHandler)
-        ;
-        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(anonymousAuthenticationEntryPoint))
+                .logout(logout -> logout.logoutUrl("/api/user/logout")
+                        .permitAll()
+                        .logoutSuccessHandler(logoutHandler));
 
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        return http.build();
     }
 
     CorsConfigurationSource configurationSource() {
@@ -139,7 +139,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         if (userSetting.getAllowedOrigins() != null && !userSetting.getAllowedOrigins().isEmpty()) {
             corsConfiguration.setAllowCredentials(true);
             corsConfiguration.setAllowedOrigins(userSetting.getAllowedOrigins());
-        }else {
+        } else {
             // 在SpringBoot 2.4及以上版本处理跨域时，遇到错误提示：当allowCredentials为true时，allowedOrigins不能包含特殊值"*"。
             // 解决方法是明确指定allowedOrigins或使用allowedOriginPatterns。
             corsConfiguration.setAllowCredentials(true);
@@ -156,17 +156,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     /**
      * 描述: 密码加密算法 BCrypt 推荐使用
      **/
-    @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    /**
-     * 描述: 注入AuthenticationManager管理器
-     **/
-    @Override
-    @Bean
-    public AuthenticationManager authenticationManager() throws Exception {
-        return super.authenticationManager();
     }
 }

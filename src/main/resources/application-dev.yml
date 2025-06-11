@@ -15,22 +15,38 @@ spring:
   # REDIS数据库配置
   redis:
     # [必须修改] Redis服务器IP, REDIS安装在本机的,使用127.0.0.1
-    host: 127.0.0.1
+    host: 10.59.3.218
     # [必须修改] 端口号
     port: 6379
     # [可选] 数据库 DB
     database: 7
     # [可选] 访问密码,若你的redis服务器没有设置密码，就不需要用密码去连接
-    password: luna
+    password: ZhEnTuAi
     # [可选] 超时时间
     timeout: 10000
     # mysql数据源
+#  datasource:
+#    type: com.zaxxer.hikari.HikariDataSource
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    url: jdbc:mysql://127.0.0.1:3306/wvp273数据库统合?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true&allowPublicKeyRetrieval=true
+#    username: root
+#    password: 12345678
+  # h2数据库
   datasource:
-    type: com.zaxxer.hikari.HikariDataSource
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/wvp273数据库统合?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true&allowPublicKeyRetrieval=true
-    username: root
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:wvp
+    username: sa
     password: 12345678
+  sql:
+    init:
+      # 启动时仅初始化内置的数据库，例如h2:mem
+      mode: embedded
+      schema-locations: file:数据库/2.7.4-h2/h2-schema.sql
+      data-locations: file:数据库/2.7.4-h2/h2-data.sql
+#  # h2数据库控制台，请注意仅在测试环境下使用！
+#  h2:
+#    console:
+#      enabled: true
 #[可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
 server:
   port: 18080

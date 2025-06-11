@@ -147,6 +147,12 @@
         </dependency>
 
 
+        <!-- h2 -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.3.232</version>
+        </dependency>
         <!-- mysql数据库 -->
         <dependency>
             <groupId>com.mysql</groupId>

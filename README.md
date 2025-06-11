@@ -33,6 +33,8 @@ ZLM使用文档 [https://github.com/ZLMediaKit/ZLMediaKit](https://github.com/ZL
 
 > 星球还提供了包括闭源的全功能试用包, 会随时更新。
 
+> 付费社群即可以对作者提供支持，也可以为大家更加快速的解决问题。如果暂时无法加入，给项目点个星也是极大的鼓励。
+
 # gitee仓库
 https://gitee.com/pan648540858/wvp-GB28181-pro.git
 

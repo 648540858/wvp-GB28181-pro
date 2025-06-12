@@ -116,8 +116,8 @@ export const constantRoutes = [
     path: '/commonChannel',
     component: Layout,
     redirect: '/commonChannel/region',
-    name: '通道管理',
-    meta: { title: '通道管理', icon: 'channelManger' },
+    name: '组织结构',
+    meta: { title: '组织结构', icon: 'tree' },
     children: [
       {
         path: 'region',

@@ -204,6 +204,9 @@ public class UserSetting {
      */
     private boolean sipCacheServerConnections = true;
 
-
+    /**
+     * 自定义流地址前缀，方便被nginx代理，如：https://zlm.example.com/a
+     */
+    private String customStreamUrl = "";
 
 }

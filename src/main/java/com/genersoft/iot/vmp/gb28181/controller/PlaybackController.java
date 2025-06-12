@@ -25,6 +25,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -123,6 +124,14 @@ public class PlaybackController {
 									host=request.getLocalAddr();
 								}
 								streamInfo.changeStreamIp(host);
+							} else if (StringUtils.isNotBlank(userSetting.getCustomStreamUrl())) {
+								streamInfo=streamInfo.clone();//深拷贝
+								try {
+									URL url=new URL(userSetting.getCustomStreamUrl());
+									streamInfo.changeStreamPrefix(url);
+								} catch (MalformedURLException e) {
+									log.warn("[配置错误]customStreamUrl异常！异常值为：{}", userSetting.getCustomStreamUrl());
+								}
 							}
 							wvpResult.setData(new StreamContent(streamInfo));
 						}

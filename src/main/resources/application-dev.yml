@@ -90,4 +90,6 @@ user-settings:
   record-sip: true
   # 国标点播 按需拉流, true：有人观看拉流，无人观看释放， false：拉起后不自动释放
   stream-on-demand: true
+  # 自定义流地址前缀，方便zlm已被nginx代理，如：https://zlm.example.com/a/
+  custom-stream-url: ''
 

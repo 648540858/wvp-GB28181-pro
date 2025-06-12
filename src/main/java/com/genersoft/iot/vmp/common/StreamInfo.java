@@ -5,10 +5,14 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
+import java.net.URL;
 import java.util.Objects;
 
+@Slf4j
 @Data
 @Schema(description = "流信息")
 public class StreamInfo implements Serializable, Cloneable{
@@ -254,6 +258,112 @@ public class StreamInfo implements Serializable, Cloneable{
         }
         if (this.rtmps != null) {
             this.rtmps.setHost(localAddr);
+        }
+    }
+
+    public void changeStreamPrefix(URL url) {
+        if (url.getProtocol() == null) {
+            return;
+        }
+        String newPrefix = url.getPath();
+        if (newPrefix.startsWith("/")) {
+            newPrefix = newPrefix.substring(1);
+        }
+        if (StringUtils.isNotBlank(newPrefix) && !newPrefix.endsWith("/")) {
+            newPrefix = newPrefix + "/";
+        }
+        if (url.getProtocol().equalsIgnoreCase("http")) {
+            // 修改http部分
+            if (this.flv != null) {
+                this.flv.setHost(url.getHost());
+                this.flv.setPort(url.getPort());
+                this.flv.setFile(newPrefix + this.flv.getFile());
+            }
+            if (this.ws_flv != null ){
+                this.ws_flv.setHost(url.getHost());
+                this.ws_flv.setPort(url.getPort());
+                this.ws_flv.setFile(newPrefix + this.flv.getFile());
+            }
+            if (this.hls != null ) {
+                this.hls.setHost(url.getHost());
+                this.hls.setPort(url.getPort());
+                this.hls.setFile(newPrefix + this.hls.getFile());
+            }
+            if (this.ws_hls != null ) {
+                this.ws_hls.setHost(url.getHost());
+                this.ws_hls.setPort(url.getPort());
+                this.ws_hls.setFile(newPrefix + this.hls.getFile());
+            }
+            if (this.ts != null ) {
+                this.ts.setHost(url.getHost());
+                this.ts.setPort(url.getPort());
+                this.ts.setFile(newPrefix + this.ts.getFile());
+            }
+            if (this.ws_ts != null ) {
+                this.ws_ts.setHost(url.getHost());
+                this.ws_ts.setPort(url.getPort());
+                this.ws_ts.setFile(newPrefix + this.ts.getFile());
+            }
+            if (this.fmp4 != null ) {
+                this.fmp4.setHost(url.getHost());
+                this.fmp4.setPort(url.getPort());
+                this.fmp4.setFile(newPrefix + this.fmp4.getFile());
+            }
+            if (this.ws_fmp4 != null ) {
+                this.ws_fmp4.setHost(url.getHost());
+                this.ws_fmp4.setPort(url.getPort());
+                this.ws_fmp4.setFile(newPrefix + this.fmp4.getFile());
+            }
+        } else if (url.getProtocol().equalsIgnoreCase("https")) {
+            if (this.https_flv != null) {
+                this.https_flv.setHost(url.getHost());
+                this.https_flv.setPort(url.getPort());
+                this.https_flv.setFile(newPrefix + this.https_flv.getFile());
+            } else if (this.flv != null) { // 为什么设置这个，因为你既然有https的地址，那http/ws相关的内容都被代理了
+                this.https_flv = new StreamURL("https", url.getHost(), url.getPort(), newPrefix + this.flv.getFile());
+            }
+            if (this.wss_flv != null) {
+                this.wss_flv.setHost(url.getHost());
+                this.wss_flv.setPort(url.getPort());
+                this.wss_flv.setFile(newPrefix + this.wss_flv.getFile());
+            } else if (this.ws_flv != null) {
+                this.wss_flv = new StreamURL("wss", url.getHost(), url.getPort(), newPrefix + this.ws_flv.getFile());
+            }
+            if (this.https_hls != null) {
+                this.https_hls.setHost(url.getHost());
+                this.https_hls.setPort(url.getPort());
+                this.https_hls.setFile(newPrefix + this.https_hls.getFile());
+            } else if (this.hls != null) {
+                this.https_hls = new StreamURL("https", url.getHost(), url.getPort(), newPrefix + this.hls.getFile());
+            }
+            if (this.wss_hls != null) {
+                this.wss_hls.setHost(url.getHost());
+                this.wss_hls.setPort(url.getPort());
+                this.wss_hls.setFile(newPrefix + this.wss_hls.getFile());
+            } else if (this.ws_hls != null) {
+                this.wss_hls = new StreamURL("wss", url.getHost(), url.getPort(), newPrefix + this.ws_hls.getFile());
+            }
+            if (this.wss_ts != null) {
+                this.wss_ts.setHost(url.getHost());
+                this.wss_ts.setPort(url.getPort());
+                this.wss_ts.setFile(newPrefix + this.wss_ts.getFile());
+            } else if (this.ws_ts != null) {
+                this.wss_ts = new StreamURL("wss", url.getHost(), url.getPort(), newPrefix + this.ws_ts.getFile());
+            }
+            if (this.https_fmp4 != null) {
+                this.https_fmp4.setHost(url.getHost());
+                this.https_fmp4.setPort(url.getPort());
+                this.https_fmp4.setFile(newPrefix + this.https_fmp4.getFile());
+            } else if (this.fmp4 != null) {
+                this.https_fmp4 = new StreamURL("https", url.getHost(), url.getPort(), newPrefix + this.fmp4.getFile());
+            }
+            if (this.wss_fmp4 != null) {
+                this.wss_fmp4.setHost(url.getHost());
+                this.wss_fmp4.setPort(url.getPort());
+                this.wss_fmp4.setFile(newPrefix + this.wss_fmp4.getFile());
+            } else if (this.ws_fmp4 != null) {
+                this.wss_fmp4 = new StreamURL("wss", url.getHost(), url.getPort(), newPrefix + this.ws_fmp4.getFile());
+            }
         }
     }
 

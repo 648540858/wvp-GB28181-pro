@@ -25,6 +25,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -288,6 +289,14 @@ public class CloudRecordController {
                             host=request.getLocalAddr();
                         }
                         streamInfo.changeStreamIp(host);
+                    } else if (StringUtils.isNotBlank(userSetting.getCustomStreamUrl())) {
+                        streamInfo=streamInfo.clone();//深拷贝
+                        try {
+                            URL url=new URL(userSetting.getCustomStreamUrl());
+                            streamInfo.changeStreamPrefix(url);
+                        } catch (MalformedURLException e) {
+                            log.warn("[配置错误]customStreamUrl异常！异常值为：{}", userSetting.getCustomStreamUrl());
+                        }
                     }
                     if (!org.springframework.util.ObjectUtils.isEmpty(streamInfo.getMediaServer().getTranscodeSuffix()) && !"null".equalsIgnoreCase(streamInfo.getMediaServer().getTranscodeSuffix())) {
                         streamInfo.setStream(streamInfo.getStream() + "_" + streamInfo.getMediaServer().getTranscodeSuffix());

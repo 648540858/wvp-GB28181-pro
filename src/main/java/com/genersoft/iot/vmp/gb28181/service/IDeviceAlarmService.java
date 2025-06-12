@@ -23,7 +23,7 @@ public interface IDeviceAlarmService {
      * @param endTime 结束时间
      * @return 报警列表
      */
-    PageInfo<DeviceAlarm> getAllAlarm(int page, int count, String deviceId, String alarmPriority, String alarmMethod,
+    PageInfo<DeviceAlarm> getAllAlarm(int page, int count, String deviceId, String channelId, String alarmPriority, String alarmMethod,
                                       String alarmType, String startTime, String endTime);
 
     /**

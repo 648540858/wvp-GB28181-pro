@@ -26,6 +26,7 @@ public interface DeviceAlarmMapper {
             " SELECT * FROM wvp_device_alarm " +
             " WHERE 1=1 " +
             " <if test=\"deviceId != null\" >  AND device_id = #{deviceId}</if>" +
+            " <if test=\"channelId != null\" >  AND channel_id = #{channelId}</if>" +
             " <if test=\"alarmPriority != null\" >  AND alarm_priority = #{alarmPriority} </if>" +
             " <if test=\"alarmMethod != null\" >  AND alarm_method = #{alarmMethod} </if>" +
             " <if test=\"alarmType != null\" >  AND alarm_type = #{alarmType} </if>" +
@@ -33,7 +34,7 @@ public interface DeviceAlarmMapper {
             " <if test=\"endTime != null\" >  AND alarm_time &lt;= #{endTime} </if>" +
             " ORDER BY alarm_time ASC " +
             " </script>"})
-    List<DeviceAlarm> query(@Param("deviceId") String deviceId, @Param("alarmPriority") String alarmPriority, @Param("alarmMethod") String alarmMethod,
+    List<DeviceAlarm> query(@Param("deviceId") String deviceId, @Param("channelId") String channelId, @Param("alarmPriority") String alarmPriority, @Param("alarmMethod") String alarmMethod,
                             @Param("alarmType") String alarmType, @Param("startTime") String startTime, @Param("endTime") String endTime);
 
 

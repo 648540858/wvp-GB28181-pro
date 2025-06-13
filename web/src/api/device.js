@@ -5,7 +5,7 @@ import request from '@/utils/request'
 export function queryDeviceSyncStatus(deviceId) {
   return request({
     method: 'get',
-    url: `/api/device/query/${deviceId}/sync_status/`
+    url: `/api/device/query/${deviceId}/sync_status`
   })
 }
 

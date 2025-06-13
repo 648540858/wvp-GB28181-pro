@@ -1,6 +1,18 @@
 package com.genersoft.iot.vmp.gat1400.listener;
 
-import com.alibaba.fastjson.JSONObject;
+
+import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.gat1400.framework.S3StorageService;
+import com.genersoft.iot.vmp.gat1400.framework.config.Constants;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDFace;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDMotorVehicle;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDNonMotorVehicle;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDPerson;
+import com.genersoft.iot.vmp.gat1400.framework.service.VIIDFaceService;
+import com.genersoft.iot.vmp.gat1400.framework.service.VIIDMotorVehicleService;
+import com.genersoft.iot.vmp.gat1400.framework.service.VIIDNonMotorVehicleService;
+import com.genersoft.iot.vmp.gat1400.framework.service.VIIDPersonService;
+import com.genersoft.iot.vmp.gat1400.utils.DateUtil;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -16,17 +28,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import cz.data.viid.framework.S3StorageService;
-import cz.data.viid.framework.config.Constants;
-import cz.data.viid.framework.domain.entity.VIIDFace;
-import cz.data.viid.framework.domain.entity.VIIDMotorVehicle;
-import cz.data.viid.framework.domain.entity.VIIDNonMotorVehicle;
-import cz.data.viid.framework.domain.entity.VIIDPerson;
-import cz.data.viid.framework.service.VIIDFaceService;
-import cz.data.viid.framework.service.VIIDMotorVehicleService;
-import cz.data.viid.framework.service.VIIDNonMotorVehicleService;
-import cz.data.viid.framework.service.VIIDPersonService;
-import cz.data.viid.utils.DateUtil;
+import javax.annotation.Resource;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -34,15 +37,15 @@ import lombok.extern.slf4j.Slf4j;
 @ConditionalOnExpression("${VIID_DB_STORAGE:false}")
 public class KafkaEventListener {
 
-    @Autowired
+    @Resource
     VIIDFaceService viidFaceService;
-    @Autowired
+    @Resource
     VIIDPersonService viidPersonService;
-    @Autowired
+    @Resource
     VIIDMotorVehicleService viidMotorVehicleService;
-    @Autowired
+    @Resource
     VIIDNonMotorVehicleService viidNonMotorVehicleService;
-    @Autowired
+    @Resource
     S3StorageService storageService;
 
     @KafkaListener(topicPattern = "^" + Constants.DEFAULT_TOPIC_PREFIX.FACE_RECORD + ".*"

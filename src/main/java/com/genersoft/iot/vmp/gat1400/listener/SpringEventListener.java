@@ -1,5 +1,26 @@
 package com.genersoft.iot.vmp.gat1400.listener;
 
+import com.genersoft.iot.vmp.gat1400.backend.task.SocketClientTask;
+import com.genersoft.iot.vmp.gat1400.backend.task.action.KeepaliveAction;
+import com.genersoft.iot.vmp.gat1400.framework.SpringContextHolder;
+import com.genersoft.iot.vmp.gat1400.framework.config.Constants;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.APEDevice;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.NodeDevice;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDPublish;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDServer;
+import com.genersoft.iot.vmp.gat1400.framework.service.APEDeviceService;
+import com.genersoft.iot.vmp.gat1400.framework.service.VIIDServerService;
+import com.genersoft.iot.vmp.gat1400.kafka.KafkaStartupService;
+import com.genersoft.iot.vmp.gat1400.listener.event.DeviceChangeEvent;
+import com.genersoft.iot.vmp.gat1400.listener.event.ServerChangeEvent;
+import com.genersoft.iot.vmp.gat1400.listener.event.ServerOfflineEvent;
+import com.genersoft.iot.vmp.gat1400.listener.event.ServerOnlineEvent;
+import com.genersoft.iot.vmp.gat1400.listener.event.VIIDPublishActiveEvent;
+import com.genersoft.iot.vmp.gat1400.listener.event.VIIDPublishInactiveEvent;
+import com.genersoft.iot.vmp.gat1400.listener.event.WebSocketCloseEvent;
+import com.genersoft.iot.vmp.gat1400.utils.DurationUtil;
+import com.genersoft.iot.vmp.gat1400.utils.StructCodec;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -14,26 +35,6 @@ import java.util.Objects;
 
 import javax.annotation.Resource;
 
-import cz.data.viid.be.task.SocketClientTask;
-import cz.data.viid.be.task.action.KeepaliveAction;
-import cz.data.viid.framework.SpringContextHolder;
-import cz.data.viid.framework.config.Constants;
-import cz.data.viid.framework.domain.entity.APEDevice;
-import cz.data.viid.framework.domain.entity.NodeDevice;
-import cz.data.viid.framework.domain.entity.VIIDPublish;
-import cz.data.viid.framework.domain.entity.VIIDServer;
-import cz.data.viid.framework.service.APEDeviceService;
-import cz.data.viid.framework.service.VIIDServerService;
-import cz.data.viid.kafka.KafkaStartupService;
-import cz.data.viid.listener.event.DeviceChangeEvent;
-import cz.data.viid.listener.event.ServerChangeEvent;
-import cz.data.viid.listener.event.ServerOfflineEvent;
-import cz.data.viid.listener.event.ServerOnlineEvent;
-import cz.data.viid.listener.event.VIIDPublishActiveEvent;
-import cz.data.viid.listener.event.VIIDPublishInactiveEvent;
-import cz.data.viid.listener.event.WebSocketCloseEvent;
-import cz.data.viid.utils.DurationUtil;
-import cz.data.viid.utils.StructCodec;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

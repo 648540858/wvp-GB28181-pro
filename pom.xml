@@ -51,6 +51,8 @@
         <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
 
         <spring-cloud.version>2021.0.6</spring-cloud.version>
+        <mybatis-plus.version>3.5.3.1</mybatis-plus.version>
+        <s3-java-sdk.version>1.12.552</s3-java-sdk.version>
 
         <!-- 依赖版本 -->
         <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
@@ -383,6 +385,26 @@
         <dependency>
             <groupId>io.github.openfeign</groupId>
             <artifactId>feign-okhttp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <version>${mybatis-plus.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-annotations</artifactId>
+            <version>1.6.9</version>
+        </dependency>
+        <!-- S3标准OSS -->
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-s3</artifactId>
+            <version>${s3-java-sdk.version}</version>
         </dependency>
 
     </dependencies>

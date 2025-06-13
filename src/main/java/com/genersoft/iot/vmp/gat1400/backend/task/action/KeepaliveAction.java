@@ -1,5 +1,10 @@
 package com.genersoft.iot.vmp.gat1400.backend.task.action;
 
+import com.genersoft.iot.vmp.gat1400.framework.config.Constants;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.NodeDevice;
+import com.genersoft.iot.vmp.gat1400.framework.service.APEDeviceService;
+import com.genersoft.iot.vmp.gat1400.framework.service.VIIDServerService;
+import com.genersoft.iot.vmp.gat1400.utils.DurationUtil;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.RemovalCause;
@@ -23,11 +28,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Resource;
 
-import cz.data.viid.framework.config.Constants;
-import cz.data.viid.framework.domain.entity.NodeDevice;
-import cz.data.viid.framework.service.APEDeviceService;
-import cz.data.viid.framework.service.VIIDServerService;
-import cz.data.viid.utils.DurationUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

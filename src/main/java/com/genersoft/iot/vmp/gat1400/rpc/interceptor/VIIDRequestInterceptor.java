@@ -1,8 +1,9 @@
 package com.genersoft.iot.vmp.gat1400.rpc.interceptor;
 
+import com.genersoft.iot.vmp.gat1400.backend.task.action.KeepaliveAction;
+
 import org.springframework.stereotype.Component;
 
-import cz.data.viid.be.task.action.KeepaliveAction;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
 

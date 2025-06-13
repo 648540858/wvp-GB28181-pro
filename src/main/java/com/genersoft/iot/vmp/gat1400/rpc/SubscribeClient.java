@@ -1,5 +1,9 @@
 package com.genersoft.iot.vmp.gat1400.rpc;
 
+import com.genersoft.iot.vmp.gat1400.framework.domain.vo.SubscribeNotificationRequest;
+import com.genersoft.iot.vmp.gat1400.framework.domain.vo.SubscribesRequest;
+import com.genersoft.iot.vmp.gat1400.framework.domain.vo.VIIDResponseStatusObject;
+
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,9 +14,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.net.URI;
 import java.util.List;
 
-import cz.data.viid.framework.domain.vo.SubscribeNotificationRequest;
-import cz.data.viid.framework.domain.vo.SubscribesRequest;
-import cz.data.viid.framework.domain.vo.VIIDResponseStatusObject;
 
 @FeignClient(name = "SubscribeClient", url = "http://127.0.0.254")
 public interface SubscribeClient {

@@ -1,5 +1,8 @@
 package com.genersoft.iot.vmp.gat1400.rpc;
 
+import com.genersoft.iot.vmp.gat1400.backend.domain.vo.DispositionRequest;
+import com.genersoft.iot.vmp.gat1400.framework.domain.vo.VIIDResponseStatusObject;
+
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -9,8 +12,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.net.URI;
 
-import cz.data.viid.be.domain.vo.DispositionRequest;
-import cz.data.viid.framework.domain.vo.VIIDResponseStatusObject;
 
 /**
  * 布控API远程调用

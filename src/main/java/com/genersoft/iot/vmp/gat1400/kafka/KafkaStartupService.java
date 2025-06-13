@@ -1,5 +1,22 @@
 package com.genersoft.iot.vmp.gat1400.kafka;
 
+import com.genersoft.iot.vmp.gat1400.backend.service.IPublishService;
+import com.genersoft.iot.vmp.gat1400.framework.config.Constants;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDPublish;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDServer;
+import com.genersoft.iot.vmp.gat1400.framework.service.VIIDServerService;
+import com.genersoft.iot.vmp.gat1400.kafka.listener.APEMessageListener;
+import com.genersoft.iot.vmp.gat1400.kafka.listener.CustomMessageListener;
+import com.genersoft.iot.vmp.gat1400.kafka.listener.FaceMessageListener;
+import com.genersoft.iot.vmp.gat1400.kafka.listener.LaneMessageListener;
+import com.genersoft.iot.vmp.gat1400.kafka.listener.MotorVehicleMessageListener;
+import com.genersoft.iot.vmp.gat1400.kafka.listener.NonMotorVehicleMessageListener;
+import com.genersoft.iot.vmp.gat1400.kafka.listener.PersonMessageListener;
+import com.genersoft.iot.vmp.gat1400.kafka.listener.RawMessageListener;
+import com.genersoft.iot.vmp.gat1400.kafka.listener.TollgateMessageListener;
+import com.genersoft.iot.vmp.gat1400.utils.DurationUtil;
+import com.genersoft.iot.vmp.gat1400.utils.VIIDRandomUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.OffsetSpec;
@@ -42,14 +59,6 @@ import java.util.stream.Stream;
 
 import javax.annotation.Resource;
 
-import cz.data.viid.be.service.IPublishService;
-import cz.data.viid.framework.config.Constants;
-import cz.data.viid.framework.domain.entity.VIIDPublish;
-import cz.data.viid.framework.domain.entity.VIIDServer;
-import cz.data.viid.framework.service.VIIDServerService;
-import cz.data.viid.kafka.listener.*;
-import cz.data.viid.utils.DurationUtil;
-import cz.data.viid.utils.VIIDRandomUtil;
 
 @Order(1)
 @Component
@@ -58,13 +67,13 @@ public class KafkaStartupService {
     private final DefaultKafkaListenerErrorHandler errorHandler = new DefaultKafkaListenerErrorHandler();
     private final StringMessageConverter converter = new StringMessageConverter();
     private final MessageHandlerMethodFactory methodFactory = new DefaultMessageHandlerMethodFactory();
-    @Autowired
+    @Resource
     KafkaListenerEndpointRegistry registry;
-    @Autowired
+    @Resource
     KafkaListenerContainerFactory<MessageListenerContainer> factory;
-    @Autowired
+    @Resource
     IPublishService publishService;
-    @Autowired
+    @Resource
     VIIDServerService viidServerService;
     @Lazy
     @Resource

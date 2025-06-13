@@ -6,10 +6,10 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.SubImageList;
 
 import java.time.LocalDateTime;
 
-import cz.data.viid.framework.domain.dto.SubImageList;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 

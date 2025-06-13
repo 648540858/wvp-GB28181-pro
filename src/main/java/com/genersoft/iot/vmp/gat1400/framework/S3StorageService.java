@@ -13,6 +13,12 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.*;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.genersoft.iot.vmp.gat1400.framework.config.OSSProperties;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.SubImageInfoObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.SubImageList;
+import com.genersoft.iot.vmp.gat1400.framework.exception.VIIDRuntimeException;
+import com.genersoft.iot.vmp.gat1400.rpc.ResourceClient;
+import com.genersoft.iot.vmp.gat1400.utils.Base64Utils;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -34,12 +40,6 @@ import java.util.Optional;
 
 import javax.annotation.Resource;
 
-import cz.data.viid.framework.config.OSSProperties;
-import cz.data.viid.framework.domain.dto.SubImageInfoObject;
-import cz.data.viid.framework.domain.dto.SubImageList;
-import cz.data.viid.framework.exception.VIIDRuntimeException;
-import cz.data.viid.rpc.ResourceClient;
-import cz.data.viid.utils.Base64Utils;
 import feign.Response;
 import lombok.extern.slf4j.Slf4j;
 

@@ -1,12 +1,13 @@
 package com.genersoft.iot.vmp.gat1400.listener;
 
+import com.genersoft.iot.vmp.gat1400.framework.SpringContextHolder;
+import com.genersoft.iot.vmp.gat1400.framework.mapper.MetricsMapper;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import cz.data.viid.framework.SpringContextHolder;
-import cz.data.viid.framework.mapper.MetricsMapper;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

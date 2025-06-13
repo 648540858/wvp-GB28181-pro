@@ -1,7 +1,21 @@
 package com.genersoft.iot.vmp.gat1400.kafka.listener;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.genersoft.iot.vmp.gat1400.backend.service.IPublishService;
+import com.genersoft.iot.vmp.gat1400.backend.socket.WebSocketEndpoint;
+import com.genersoft.iot.vmp.gat1400.backend.task.action.KeepaliveAction;
+import com.genersoft.iot.vmp.gat1400.framework.S3StorageService;
+import com.genersoft.iot.vmp.gat1400.framework.SpringContextHolder;
+import com.genersoft.iot.vmp.gat1400.framework.config.Constants;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.ResponseStatusObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.SubImageList;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDPublish;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDServer;
+import com.genersoft.iot.vmp.gat1400.framework.domain.vo.SubscribeNotificationRequest;
+import com.genersoft.iot.vmp.gat1400.framework.domain.vo.VIIDResponseStatusObject;
+import com.genersoft.iot.vmp.gat1400.kafka.KafkaStartupService;
+import com.genersoft.iot.vmp.gat1400.rpc.SubscribeClient;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
@@ -16,22 +30,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import cz.data.viid.be.service.IPublishService;
-import cz.data.viid.be.socket.WebSocketEndpoint;
-import cz.data.viid.be.task.action.KeepaliveAction;
-import cz.data.viid.framework.S3StorageService;
-import cz.data.viid.framework.SpringContextHolder;
-import cz.data.viid.framework.config.Constants;
-import cz.data.viid.framework.domain.dto.ResponseStatusListObject;
-import cz.data.viid.framework.domain.dto.ResponseStatusObject;
-import cz.data.viid.framework.domain.dto.SubImageList;
-import cz.data.viid.framework.domain.entity.VIIDPublish;
-import cz.data.viid.framework.domain.entity.VIIDServer;
-import cz.data.viid.framework.domain.vo.SubscribeNotificationRequest;
-import cz.data.viid.framework.domain.vo.VIIDResponseStatusObject;
-import cz.data.viid.kafka.KafkaStartupService;
-import cz.data.viid.rpc.SubscribeClient;
 
 public abstract class AbstractMessageListener<T> implements CustomMessageListener {
     private final Logger log = LoggerFactory.getLogger(getClass());

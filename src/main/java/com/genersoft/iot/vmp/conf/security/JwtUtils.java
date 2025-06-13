@@ -24,7 +24,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
@@ -231,7 +231,7 @@ public class JwtUtils implements InitializingBean {
             if (expirationTime != null) {
                 // 判断是否即将过期, 默认剩余时间小于5分钟未即将过期
                 // 剩余时间 （秒）
-                long timeRemaining = LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(8)) - expirationTime.getValue();
+                long timeRemaining = expirationTime.getValue() - LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(8));
                 if (timeRemaining < 5 * 60) {
                     jwtUser.setStatus(JwtUser.TokenStatus.EXPIRING_SOON);
                 } else {

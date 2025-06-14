@@ -32,6 +32,22 @@ spring:
     url: jdbc:mysql://127.0.0.1:3306/wvp273数据库统合?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true&allowPublicKeyRetrieval=true
     username: root
     password: 12345678
+  # h2数据库
+  #  datasource:
+  #    driver-class-name: org.h2.Driver
+  #    url: jdbc:h2:mem:wvp
+  #    username: sa
+  #    password: 12345678
+  #    sql:
+  #      init:
+  #        # 启动时仅初始化内置的数据库，例如h2:mem
+  #        mode: embedded
+  #        schema-locations: file:数据库/2.7.4-h2/h2-schema.sql
+  #        data-locations: file:数据库/2.7.4-h2/h2-data.sql
+  #  # h2数据库控制台，请注意仅在测试环境下使用！
+  #  h2:
+  #    console:
+  #      enabled: true
 #[可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
 server:
   port: 18080

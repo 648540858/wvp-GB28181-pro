@@ -1,6 +1,20 @@
 package com.genersoft.iot.vmp.gat1400.kafka.listener;
 
-import com.alibaba.fastjson.JSONObject;
+
+import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.gat1400.backend.domain.vo.MotorVehicleRequest;
+import com.genersoft.iot.vmp.gat1400.framework.SpringContextHolder;
+import com.genersoft.iot.vmp.gat1400.framework.config.Constants;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.MotorVehicleListObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.MotorVehicleObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.SubscribeNotificationObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.SubscribeNotifications;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDPublish;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDServer;
+import com.genersoft.iot.vmp.gat1400.framework.domain.vo.SubscribeNotificationRequest;
+import com.genersoft.iot.vmp.gat1400.rpc.MotorVehicleClient;
+import com.genersoft.iot.vmp.gat1400.utils.JsonCommon;
+import com.genersoft.iot.vmp.gat1400.utils.StructCodec;
 
 import org.apache.commons.lang3.time.DateFormatUtils;
 
@@ -12,19 +26,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import cz.data.viid.be.domain.vo.MotorVehicleRequest;
-import cz.data.viid.framework.SpringContextHolder;
-import cz.data.viid.framework.config.Constants;
-import cz.data.viid.framework.domain.dto.MotorVehicleListObject;
-import cz.data.viid.framework.domain.dto.MotorVehicleObject;
-import cz.data.viid.framework.domain.dto.SubscribeNotificationObject;
-import cz.data.viid.framework.domain.dto.SubscribeNotifications;
-import cz.data.viid.framework.domain.entity.VIIDPublish;
-import cz.data.viid.framework.domain.entity.VIIDServer;
-import cz.data.viid.framework.domain.vo.SubscribeNotificationRequest;
-import cz.data.viid.rpc.MotorVehicleClient;
-import cz.data.viid.utils.JsonCommon;
-import cz.data.viid.utils.StructCodec;
 import lombok.extern.slf4j.Slf4j;
 
 /**

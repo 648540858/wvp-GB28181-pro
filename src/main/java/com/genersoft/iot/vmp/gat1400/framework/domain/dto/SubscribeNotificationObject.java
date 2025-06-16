@@ -24,7 +24,7 @@ public class SubscribeNotificationObject {
     private MotorVehicleListObject MotorVehicleObjectList;
     //自动采集的非机动车辆信息订阅接收对象
     @JsonProperty("NonMotorVehicleObjectList")
-    private cz.data.viid.framework.domain.dto.NonMotorVehicleObjectList NonMotorVehicleObjectList;
+    private NonMotorVehicleObjectList NonMotorVehicleObjectList;
     //视频卡口目录订阅接受对象
     @JsonProperty("TollgateObjectList")
     private TollgateObjectList TollgateObjectList;

@@ -1,6 +1,15 @@
 package com.genersoft.iot.vmp.gat1400.kafka.listener;
 
-import com.alibaba.fastjson.JSONObject;
+
+import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.gat1400.framework.config.Constants;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.PersonObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.SubscribeNotifications;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDPublish;
+import com.genersoft.iot.vmp.gat1400.framework.domain.vo.SubscribeNotificationRequest;
+import com.genersoft.iot.vmp.gat1400.utils.StructCodec;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.SubscribeNotificationObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.PersonListObject;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -13,14 +22,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import cz.data.viid.framework.config.Constants;
-import cz.data.viid.framework.domain.dto.PersonListObject;
-import cz.data.viid.framework.domain.dto.PersonObject;
-import cz.data.viid.framework.domain.dto.SubscribeNotificationObject;
-import cz.data.viid.framework.domain.dto.SubscribeNotifications;
-import cz.data.viid.framework.domain.entity.VIIDPublish;
-import cz.data.viid.framework.domain.vo.SubscribeNotificationRequest;
-import cz.data.viid.utils.StructCodec;
 
 /**
  * 自动采集的人员消息监听器

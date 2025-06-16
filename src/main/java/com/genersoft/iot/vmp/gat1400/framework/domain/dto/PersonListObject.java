@@ -10,5 +10,5 @@ import lombok.Data;
 public class PersonListObject {
 
     @JsonProperty("PersonObject")
-    private List<cz.data.viid.framework.domain.dto.PersonObject> PersonObject;
+    private List<PersonObject> PersonObject;
 }

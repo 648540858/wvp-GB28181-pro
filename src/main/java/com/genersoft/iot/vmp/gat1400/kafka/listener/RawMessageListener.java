@@ -1,10 +1,11 @@
 package com.genersoft.iot.vmp.gat1400.kafka.listener;
 
+import com.genersoft.iot.vmp.gat1400.framework.config.Constants;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDPublish;
+import com.genersoft.iot.vmp.gat1400.framework.domain.vo.SubscribeNotificationRequest;
+
 import java.util.List;
 
-import cz.data.viid.framework.config.Constants;
-import cz.data.viid.framework.domain.entity.VIIDPublish;
-import cz.data.viid.framework.domain.vo.SubscribeNotificationRequest;
 
 /**
  * 测试用监听器

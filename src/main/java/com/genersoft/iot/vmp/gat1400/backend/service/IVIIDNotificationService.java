@@ -1,16 +1,17 @@
 package com.genersoft.iot.vmp.gat1400.backend.service;
 
+import com.genersoft.iot.vmp.gat1400.backend.domain.dto.DispositionNotificationObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.APEObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.FaceObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.MotorVehicleObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.NonMotorVehicle;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.PersonObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.ResponseStatusObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.SubscribeNotificationObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.TollgateObject;
+
 import java.util.List;
 
-import cz.data.viid.be.domain.dto.DispositionNotificationObject;
-import cz.data.viid.framework.domain.dto.APEObject;
-import cz.data.viid.framework.domain.dto.FaceObject;
-import cz.data.viid.framework.domain.dto.MotorVehicleObject;
-import cz.data.viid.framework.domain.dto.NonMotorVehicle;
-import cz.data.viid.framework.domain.dto.PersonObject;
-import cz.data.viid.framework.domain.dto.ResponseStatusObject;
-import cz.data.viid.framework.domain.dto.SubscribeNotificationObject;
-import cz.data.viid.framework.domain.dto.TollgateObject;
 
 public interface IVIIDNotificationService {
 

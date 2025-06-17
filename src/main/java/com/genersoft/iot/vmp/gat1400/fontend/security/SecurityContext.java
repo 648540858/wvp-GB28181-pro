@@ -1,5 +1,10 @@
 package com.genersoft.iot.vmp.gat1400.fontend.security;
 
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.APEDevice;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.NodeDevice;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDServer;
+import com.genersoft.iot.vmp.gat1400.framework.exception.VIIDRuntimeException;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.request.RequestAttributes;
@@ -10,10 +15,6 @@ import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
 
-import cz.data.viid.framework.domain.entity.APEDevice;
-import cz.data.viid.framework.domain.entity.NodeDevice;
-import cz.data.viid.framework.domain.entity.VIIDServer;
-import cz.data.viid.framework.exception.VIIDRuntimeException;
 
 public class SecurityContext {
 

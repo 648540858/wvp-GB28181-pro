@@ -4,22 +4,22 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.genersoft.iot.vmp.gat1400.backend.task.action.KeepaliveAction;
+import com.genersoft.iot.vmp.gat1400.fontend.domain.APEDeviceQuery;
+import com.genersoft.iot.vmp.gat1400.framework.SpringContextHolder;
+import com.genersoft.iot.vmp.gat1400.framework.config.Constants;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.APEDevice;
+import com.genersoft.iot.vmp.gat1400.framework.mapper.APEDeviceMapper;
+import com.genersoft.iot.vmp.gat1400.framework.service.APEDeviceService;
+import com.genersoft.iot.vmp.gat1400.listener.event.DeviceChangeEvent;
+import com.genersoft.iot.vmp.gat1400.utils.JsonCommon;
+import com.genersoft.iot.vmp.gat1400.utils.StructCodec;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
-import cz.data.viid.be.task.action.KeepaliveAction;
-import cz.data.viid.fe.domain.APEDeviceQuery;
-import cz.data.viid.framework.SpringContextHolder;
-import cz.data.viid.framework.config.Constants;
-import cz.data.viid.framework.domain.entity.APEDevice;
-import cz.data.viid.framework.mapper.APEDeviceMapper;
-import cz.data.viid.framework.service.APEDeviceService;
-import cz.data.viid.listener.event.DeviceChangeEvent;
-import cz.data.viid.utils.JsonCommon;
-import cz.data.viid.utils.StructCodec;
 
 @Service
 public class APEDeviceServiceImpl extends ServiceImpl<APEDeviceMapper, APEDevice>

@@ -1,8 +1,8 @@
 package com.genersoft.iot.vmp.gat1400.framework.domain.vo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.SystemTimeObject;
 
-import cz.data.viid.framework.domain.dto.SystemTimeObject;
 import lombok.Data;
 
 @Data

@@ -1,9 +1,10 @@
 package com.genersoft.iot.vmp.gat1400.backend.service;
 
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.ResponseStatusObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.SubscribeObject;
+
 import java.util.List;
 
-import cz.data.viid.framework.domain.dto.ResponseStatusObject;
-import cz.data.viid.framework.domain.dto.SubscribeObject;
 
 public interface ISubscribeService {
 

@@ -1,12 +1,12 @@
 package com.genersoft.iot.vmp.gat1400.framework.domain.vo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.SubscribeListObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.SubscribeObject;
 
 import java.util.Collections;
 import java.util.List;
 
-import cz.data.viid.framework.domain.dto.SubscribeListObject;
-import cz.data.viid.framework.domain.dto.SubscribeObject;
 import lombok.Data;
 
 @Data

@@ -3,6 +3,18 @@ package com.genersoft.iot.vmp.gat1400.framework.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.genersoft.iot.vmp.gat1400.backend.domain.container.DispositionListObject;
+import com.genersoft.iot.vmp.gat1400.backend.domain.dto.DispositionObject;
+import com.genersoft.iot.vmp.gat1400.backend.domain.vo.DispositionRequest;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDDisposition;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDServer;
+import com.genersoft.iot.vmp.gat1400.framework.domain.vo.VIIDResponseStatusObject;
+import com.genersoft.iot.vmp.gat1400.framework.exception.VIIDRuntimeException;
+import com.genersoft.iot.vmp.gat1400.framework.mapper.VIIDDispositionMapper;
+import com.genersoft.iot.vmp.gat1400.framework.service.IVIIDDispositionService;
+import com.genersoft.iot.vmp.gat1400.framework.service.VIIDServerService;
+import com.genersoft.iot.vmp.gat1400.rpc.DispositionClient;
+import com.genersoft.iot.vmp.gat1400.utils.StructCodec;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,18 +24,6 @@ import java.util.Collections;
 
 import javax.annotation.Resource;
 
-import cz.data.viid.be.domain.container.DispositionListObject;
-import cz.data.viid.be.domain.dto.DispositionObject;
-import cz.data.viid.be.domain.vo.DispositionRequest;
-import cz.data.viid.framework.domain.entity.VIIDDisposition;
-import cz.data.viid.framework.domain.entity.VIIDServer;
-import cz.data.viid.framework.domain.vo.VIIDResponseStatusObject;
-import cz.data.viid.framework.exception.VIIDRuntimeException;
-import cz.data.viid.framework.mapper.VIIDDispositionMapper;
-import cz.data.viid.framework.service.IVIIDDispositionService;
-import cz.data.viid.framework.service.VIIDServerService;
-import cz.data.viid.rpc.DispositionClient;
-import cz.data.viid.utils.StructCodec;
 
 @Service
 public class VIIDDispositionService extends ServiceImpl<VIIDDispositionMapper, VIIDDisposition>

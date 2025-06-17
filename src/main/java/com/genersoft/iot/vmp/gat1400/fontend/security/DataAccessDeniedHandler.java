@@ -2,6 +2,8 @@ package com.genersoft.iot.vmp.gat1400.fontend.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.genersoft.iot.vmp.gat1400.framework.domain.core.BaseResponse;
+import com.genersoft.iot.vmp.gat1400.utils.ResponseUtil;
 
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
@@ -12,8 +14,6 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import cz.data.viid.framework.domain.core.BaseResponse;
-import cz.data.viid.utils.ResponseUtil;
 
 public class DataAccessDeniedHandler implements AccessDeniedHandler {
 

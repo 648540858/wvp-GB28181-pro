@@ -1,11 +1,14 @@
 package com.genersoft.iot.vmp.gat1400.fontend.security;
 
+import com.genersoft.iot.vmp.gat1400.framework.CacheService;
+import com.genersoft.iot.vmp.gat1400.utils.SecurityUtil;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.JWSKeySelector;
 import com.nimbusds.jose.proc.JWSVerificationKeySelector;
+import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 
@@ -32,8 +35,6 @@ import java.text.ParseException;
 import java.util.HashSet;
 import java.util.Set;
 
-import cz.data.viid.framework.CacheService;
-import cz.data.viid.utils.SecurityUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

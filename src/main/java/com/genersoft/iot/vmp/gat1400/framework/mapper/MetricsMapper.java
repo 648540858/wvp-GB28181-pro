@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gat1400.framework.mapper;
 
-import com.alibaba.fastjson.JSONObject;
+
+import com.alibaba.fastjson2.JSONObject;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.ibatis.annotations.Mapper;

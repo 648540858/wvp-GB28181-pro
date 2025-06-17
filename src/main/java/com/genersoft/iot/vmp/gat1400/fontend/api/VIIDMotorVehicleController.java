@@ -2,6 +2,14 @@ package com.genersoft.iot.vmp.gat1400.fontend.api;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.genersoft.iot.vmp.gat1400.fontend.DictContextHolder;
+import com.genersoft.iot.vmp.gat1400.fontend.domain.MotorVehicleQuery;
+import com.genersoft.iot.vmp.gat1400.framework.domain.core.BaseResponse;
+import com.genersoft.iot.vmp.gat1400.framework.domain.core.SearchDataResponse;
+import com.genersoft.iot.vmp.gat1400.framework.domain.core.SimpleDataResponse;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDMotorVehicle;
+import com.genersoft.iot.vmp.gat1400.framework.service.VIIDMotorVehicleService;
+import com.genersoft.iot.vmp.gat1400.utils.DateUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,14 +24,6 @@ import java.util.Arrays;
 
 import javax.annotation.Resource;
 
-import cz.data.viid.fe.DictContextHolder;
-import cz.data.viid.fe.domain.MotorVehicleQuery;
-import cz.data.viid.framework.domain.core.BaseResponse;
-import cz.data.viid.framework.domain.core.SearchDataResponse;
-import cz.data.viid.framework.domain.core.SimpleDataResponse;
-import cz.data.viid.framework.domain.entity.VIIDMotorVehicle;
-import cz.data.viid.framework.service.VIIDMotorVehicleService;
-import cz.data.viid.utils.DateUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 

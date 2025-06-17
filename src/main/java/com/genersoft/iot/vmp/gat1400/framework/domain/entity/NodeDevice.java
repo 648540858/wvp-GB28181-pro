@@ -1,8 +1,9 @@
 package com.genersoft.iot.vmp.gat1400.framework.domain.entity;
 
+import com.genersoft.iot.vmp.gat1400.framework.config.Constants;
+
 import org.apache.commons.lang3.math.NumberUtils;
 
-import cz.data.viid.framework.config.Constants;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;

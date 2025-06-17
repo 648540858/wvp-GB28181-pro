@@ -3,7 +3,14 @@ package com.genersoft.iot.vmp.gat1400.framework.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-
+import com.genersoft.iot.vmp.gat1400.backend.task.action.KeepaliveAction;
+import com.genersoft.iot.vmp.gat1400.framework.config.Constants;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.TollgateDevice;
+import com.genersoft.iot.vmp.gat1400.utils.JsonCommon;
+import com.genersoft.iot.vmp.gat1400.utils.StructCodec;
+import com.genersoft.iot.vmp.gat1400.fontend.domain.TollgateQuery;
+import com.genersoft.iot.vmp.gat1400.framework.mapper.TollgateDeviceMapper;
+import com.genersoft.iot.vmp.gat1400.framework.service.TollgateDeviceService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -11,14 +18,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
-import cz.data.viid.be.task.action.KeepaliveAction;
-import cz.data.viid.fe.domain.TollgateQuery;
-import cz.data.viid.framework.config.Constants;
-import cz.data.viid.framework.domain.entity.TollgateDevice;
-import cz.data.viid.framework.mapper.TollgateDeviceMapper;
-import cz.data.viid.framework.service.TollgateDeviceService;
-import cz.data.viid.utils.JsonCommon;
-import cz.data.viid.utils.StructCodec;
 
 @Service
 public class TollgateDeviceServiceImpl extends ServiceImpl<TollgateDeviceMapper, TollgateDevice>

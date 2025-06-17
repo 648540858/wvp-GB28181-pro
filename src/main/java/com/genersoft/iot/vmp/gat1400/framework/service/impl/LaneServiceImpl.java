@@ -3,25 +3,26 @@ package com.genersoft.iot.vmp.gat1400.framework.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.genersoft.iot.vmp.gat1400.backend.task.action.KeepaliveAction;
+import com.genersoft.iot.vmp.gat1400.fontend.domain.LaneQuery;
+import com.genersoft.iot.vmp.gat1400.framework.config.Constants;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.LaneObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.Lane;
+import com.genersoft.iot.vmp.gat1400.framework.mapper.LaneMapper;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.genersoft.iot.vmp.gat1400.fontend.domain.TollgateQuery;
+import com.genersoft.iot.vmp.gat1400.framework.service.LaneService;
+import com.genersoft.iot.vmp.gat1400.utils.JsonCommon;
+import com.genersoft.iot.vmp.gat1400.utils.StructCodec;
 
 import java.util.Arrays;
 import java.util.Objects;
 
-import cz.data.viid.be.task.action.KeepaliveAction;
-import cz.data.viid.fe.domain.LaneQuery;
-import cz.data.viid.framework.config.Constants;
-import cz.data.viid.framework.domain.dto.LaneObject;
-import cz.data.viid.framework.domain.entity.Lane;
-import cz.data.viid.framework.mapper.LaneMapper;
-import cz.data.viid.framework.service.LaneService;
-import cz.data.viid.utils.JsonCommon;
-import cz.data.viid.utils.StructCodec;
 
 @Service
 public class LaneServiceImpl extends ServiceImpl<LaneMapper, Lane>

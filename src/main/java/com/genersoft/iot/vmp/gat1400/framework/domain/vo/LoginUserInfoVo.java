@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.gat1400.framework.domain.vo;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;

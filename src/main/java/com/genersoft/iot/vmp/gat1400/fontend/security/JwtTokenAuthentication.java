@@ -1,11 +1,12 @@
 package com.genersoft.iot.vmp.gat1400.fontend.security;
 
+import com.genersoft.iot.vmp.gat1400.framework.domain.core.LoginUser;
+
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.util.Collections;
 
-import cz.data.viid.framework.domain.core.LoginUser;
 
 public class JwtTokenAuthentication extends AbstractAuthenticationToken {
 

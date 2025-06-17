@@ -14,5 +14,5 @@ import lombok.Setter;
 public class DispositionRequest {
 
     @JsonProperty("DispositionListObject")
-    private cz.data.viid.be.domain.container.DispositionListObject DispositionListObject;
+    private com.genersoft.iot.vmp.gat1400.backend.domain.container.DispositionListObject DispositionListObject;
 }

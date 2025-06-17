@@ -1,11 +1,11 @@
 package com.genersoft.iot.vmp.gat1400.backend.domain.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.FaceObjectList;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.MotorVehicleListObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.NonMotorVehicleObjectList;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.PersonListObject;
 
-import cz.data.viid.framework.domain.dto.FaceObjectList;
-import cz.data.viid.framework.domain.dto.MotorVehicleListObject;
-import cz.data.viid.framework.domain.dto.NonMotorVehicleObjectList;
-import cz.data.viid.framework.domain.dto.PersonListObject;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 

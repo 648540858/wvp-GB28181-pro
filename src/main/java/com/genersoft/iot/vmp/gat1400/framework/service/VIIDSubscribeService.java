@@ -2,11 +2,11 @@ package com.genersoft.iot.vmp.gat1400.framework.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.genersoft.iot.vmp.gat1400.fontend.domain.SubscribeQuery;
+import com.genersoft.iot.vmp.gat1400.fontend.domain.VIIDSubscribeRequest;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDSubscribe;
+import com.genersoft.iot.vmp.gat1400.framework.domain.vo.VIIDResponseStatusObject;
 
-import cz.data.viid.fe.domain.SubscribeQuery;
-import cz.data.viid.fe.domain.VIIDSubscribeRequest;
-import cz.data.viid.framework.domain.entity.VIIDSubscribe;
-import cz.data.viid.framework.domain.vo.VIIDResponseStatusObject;
 
 public interface VIIDSubscribeService extends IService<VIIDSubscribe> {
 

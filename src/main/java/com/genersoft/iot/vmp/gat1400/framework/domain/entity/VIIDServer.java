@@ -6,10 +6,10 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.genersoft.iot.vmp.gat1400.framework.config.Constants;
 
 import java.util.Date;
 
-import cz.data.viid.framework.config.Constants;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 

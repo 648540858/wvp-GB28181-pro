@@ -1,6 +1,17 @@
 package com.genersoft.iot.vmp.gat1400.fontend.api;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.genersoft.iot.vmp.gat1400.fontend.domain.DataSelectOption;
+import com.genersoft.iot.vmp.gat1400.fontend.domain.SubscribeQuery;
+import com.genersoft.iot.vmp.gat1400.fontend.domain.VIIDSubscribeRequest;
+import com.genersoft.iot.vmp.gat1400.fontend.domain.VIIDSubscribeVo;
+import com.genersoft.iot.vmp.gat1400.framework.config.Constants;
+import com.genersoft.iot.vmp.gat1400.framework.domain.core.SearchDataResponse;
+import com.genersoft.iot.vmp.gat1400.framework.domain.core.SimpleDataResponse;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.ResponseStatusObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDSubscribe;
+import com.genersoft.iot.vmp.gat1400.framework.domain.vo.VIIDResponseStatusObject;
+import com.genersoft.iot.vmp.gat1400.framework.service.VIIDSubscribeService;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,20 +28,17 @@ import java.util.stream.Stream;
 
 import javax.annotation.Resource;
 
-import cz.data.viid.fe.domain.DataSelectOption;
-import cz.data.viid.fe.domain.SubscribeQuery;
-import cz.data.viid.fe.domain.VIIDSubscribeRequest;
-import cz.data.viid.fe.domain.VIIDSubscribeVo;
-import cz.data.viid.framework.config.Constants;
-import cz.data.viid.framework.domain.core.SearchDataResponse;
-import cz.data.viid.framework.domain.core.SimpleDataResponse;
-import cz.data.viid.framework.domain.dto.ResponseStatusListObject;
-import cz.data.viid.framework.domain.dto.ResponseStatusObject;
-import cz.data.viid.framework.domain.entity.VIIDSubscribe;
-import cz.data.viid.framework.domain.vo.VIIDResponseStatusObject;
-import cz.data.viid.framework.service.VIIDSubscribeService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+
+import static com.genersoft.iot.vmp.gat1400.framework.config.Constants.SubscribeDetail.DEVICE;
+import static com.genersoft.iot.vmp.gat1400.framework.config.Constants.SubscribeDetail.FACE_INFO;
+import static com.genersoft.iot.vmp.gat1400.framework.config.Constants.SubscribeDetail.PERSON_INFO;
+import static com.genersoft.iot.vmp.gat1400.framework.config.Constants.SubscribeDetail.PLATE_INFO;
+import static com.genersoft.iot.vmp.gat1400.framework.config.Constants.SubscribeDetail.PLATE_MIRCO_INFO;
+import static com.genersoft.iot.vmp.gat1400.framework.config.Constants.SubscribeDetail.RAW;
+import static com.genersoft.iot.vmp.gat1400.framework.config.Constants.SubscribeDetail.TOLLGATE;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.ResponseStatusListObject;
 
 @Api(tags = {"视图库订阅"})
 @RestController

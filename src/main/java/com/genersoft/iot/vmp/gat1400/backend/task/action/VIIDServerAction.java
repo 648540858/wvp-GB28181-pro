@@ -1,6 +1,16 @@
 package com.genersoft.iot.vmp.gat1400.backend.task.action;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.genersoft.iot.vmp.gat1400.backend.security.DigestData;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.DeviceIdObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.ResponseStatusObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDServer;
+import com.genersoft.iot.vmp.gat1400.framework.domain.vo.KeepaliveRequest;
+import com.genersoft.iot.vmp.gat1400.framework.domain.vo.RegisterRequest;
+import com.genersoft.iot.vmp.gat1400.framework.domain.vo.UnRegisterRequest;
+import com.genersoft.iot.vmp.gat1400.framework.domain.vo.VIIDBaseResponse;
+import com.genersoft.iot.vmp.gat1400.framework.exception.VIIDRuntimeException;
+import com.genersoft.iot.vmp.gat1400.rpc.SystemClient;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -15,16 +25,8 @@ import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Optional;
 
-import cz.data.viid.be.security.DigestData;
-import cz.data.viid.framework.domain.dto.DeviceIdObject;
-import cz.data.viid.framework.domain.dto.ResponseStatusObject;
-import cz.data.viid.framework.domain.entity.VIIDServer;
-import cz.data.viid.framework.domain.vo.KeepaliveRequest;
-import cz.data.viid.framework.domain.vo.RegisterRequest;
-import cz.data.viid.framework.domain.vo.UnRegisterRequest;
-import cz.data.viid.framework.domain.vo.VIIDBaseResponse;
-import cz.data.viid.framework.exception.VIIDRuntimeException;
-import cz.data.viid.rpc.SystemClient;
+import javax.annotation.Resource;
+
 import feign.Response;
 
 @Component
@@ -32,7 +34,7 @@ public class VIIDServerAction {
 
     @Autowired
     ObjectMapper objectMapper;
-    @Autowired
+    @Resource
     SystemClient systemClient;
 
     public VIIDBaseResponse register(VIIDServer domain) throws IOException {

@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gat1400.framework.exception;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.genersoft.iot.vmp.gat1400.framework.domain.core.BaseResponse;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -15,7 +16,6 @@ import java.util.stream.Collectors;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 
-import cz.data.viid.framework.domain.core.BaseResponse;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

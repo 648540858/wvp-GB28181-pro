@@ -3,15 +3,15 @@ package com.genersoft.iot.vmp.gat1400.backend.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.genersoft.iot.vmp.gat1400.backend.service.IPublishService;
+import com.genersoft.iot.vmp.gat1400.framework.config.Constants;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDPublish;
+import com.genersoft.iot.vmp.gat1400.framework.mapper.VIIDPublishMapper;
 
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import cz.data.viid.be.service.IPublishService;
-import cz.data.viid.framework.config.Constants;
-import cz.data.viid.framework.domain.entity.VIIDPublish;
-import cz.data.viid.framework.mapper.VIIDPublishMapper;
 
 @Service
 public class PublishService extends ServiceImpl<VIIDPublishMapper, VIIDPublish>

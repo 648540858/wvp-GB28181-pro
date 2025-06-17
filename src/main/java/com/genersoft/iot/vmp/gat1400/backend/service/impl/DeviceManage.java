@@ -1,5 +1,19 @@
 package com.genersoft.iot.vmp.gat1400.backend.service.impl;
 
+import com.genersoft.iot.vmp.gat1400.backend.service.IDeviceManage;
+import com.genersoft.iot.vmp.gat1400.backend.service.IVIIDNotificationService;
+import com.genersoft.iot.vmp.gat1400.backend.task.action.KeepaliveAction;
+import com.genersoft.iot.vmp.gat1400.fontend.DictContextHolder;
+import com.genersoft.iot.vmp.gat1400.fontend.security.SecurityContext;
+import com.genersoft.iot.vmp.gat1400.framework.S3StorageService;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.FaceObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.MotorVehicleObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.NonMotorVehicle;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.PersonObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.ResponseStatusObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.APEDevice;
+import com.genersoft.iot.vmp.gat1400.framework.service.TollgateDeviceService;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -7,19 +21,6 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
-import cz.data.viid.be.service.IDeviceManage;
-import cz.data.viid.be.service.IVIIDNotificationService;
-import cz.data.viid.be.task.action.KeepaliveAction;
-import cz.data.viid.fe.DictContextHolder;
-import cz.data.viid.fe.security.SecurityContext;
-import cz.data.viid.framework.S3StorageService;
-import cz.data.viid.framework.domain.dto.FaceObject;
-import cz.data.viid.framework.domain.dto.MotorVehicleObject;
-import cz.data.viid.framework.domain.dto.NonMotorVehicle;
-import cz.data.viid.framework.domain.dto.PersonObject;
-import cz.data.viid.framework.domain.dto.ResponseStatusObject;
-import cz.data.viid.framework.domain.entity.APEDevice;
-import cz.data.viid.framework.service.TollgateDeviceService;
 
 /**
  * 处理设备上推数据

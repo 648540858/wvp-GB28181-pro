@@ -1,5 +1,8 @@
 package com.genersoft.iot.vmp.gat1400.fontend.security;
 
+import com.genersoft.iot.vmp.gat1400.framework.CacheService;
+import com.genersoft.iot.vmp.gat1400.framework.domain.core.LoginUser;
+
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -7,8 +10,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.util.Objects;
 
-import cz.data.viid.framework.CacheService;
-import cz.data.viid.framework.domain.core.LoginUser;
 
 public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
     private final CacheService cacheService;

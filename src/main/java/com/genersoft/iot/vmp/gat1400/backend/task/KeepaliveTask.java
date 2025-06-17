@@ -1,5 +1,18 @@
 package com.genersoft.iot.vmp.gat1400.backend.task;
 
+import com.genersoft.iot.vmp.gat1400.backend.task.action.KeepaliveAction;
+import com.genersoft.iot.vmp.gat1400.backend.task.action.VIIDServerAction;
+import com.genersoft.iot.vmp.gat1400.framework.SpringContextHolder;
+import com.genersoft.iot.vmp.gat1400.framework.config.Constants;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.ResponseStatusObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.NodeDevice;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDServer;
+import com.genersoft.iot.vmp.gat1400.framework.domain.vo.VIIDBaseResponse;
+import com.genersoft.iot.vmp.gat1400.framework.exception.VIIDRuntimeException;
+import com.genersoft.iot.vmp.gat1400.framework.service.VIIDServerService;
+import com.genersoft.iot.vmp.gat1400.listener.event.ServerOfflineEvent;
+import com.genersoft.iot.vmp.gat1400.listener.event.ServerOnlineEvent;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -13,18 +26,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import cz.data.viid.be.task.action.KeepaliveAction;
-import cz.data.viid.be.task.action.VIIDServerAction;
-import cz.data.viid.framework.SpringContextHolder;
-import cz.data.viid.framework.config.Constants;
-import cz.data.viid.framework.domain.dto.ResponseStatusObject;
-import cz.data.viid.framework.domain.entity.NodeDevice;
-import cz.data.viid.framework.domain.entity.VIIDServer;
-import cz.data.viid.framework.domain.vo.VIIDBaseResponse;
-import cz.data.viid.framework.exception.VIIDRuntimeException;
-import cz.data.viid.framework.service.VIIDServerService;
-import cz.data.viid.listener.event.ServerOfflineEvent;
-import cz.data.viid.listener.event.ServerOnlineEvent;
 
 @Order(Integer.MIN_VALUE)
 @Component

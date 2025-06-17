@@ -1,8 +1,8 @@
 package com.genersoft.iot.vmp.gat1400.backend.domain.vo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.NonMotorVehicleObjectList;
 
-import cz.data.viid.framework.domain.dto.NonMotorVehicleObjectList;
 import lombok.Getter;
 import lombok.Setter;
 

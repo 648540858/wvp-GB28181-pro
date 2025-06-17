@@ -1,17 +1,29 @@
 package com.genersoft.iot.vmp.gat1400.fontend.service;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.genersoft.iot.vmp.gat1400.fontend.domain.AdminLoginDto;
+import com.genersoft.iot.vmp.gat1400.framework.CacheService;
+import com.genersoft.iot.vmp.gat1400.framework.SpringContextHolder;
+import com.genersoft.iot.vmp.gat1400.framework.config.Constants;
+import com.genersoft.iot.vmp.gat1400.framework.domain.core.LoginUser;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.APEDevice;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDServer;
+import com.genersoft.iot.vmp.gat1400.framework.domain.vo.LoginUserInfoVo;
+import com.genersoft.iot.vmp.gat1400.framework.mapper.MetricsMapper;
+import com.genersoft.iot.vmp.gat1400.framework.service.APEDeviceService;
+import com.genersoft.iot.vmp.gat1400.framework.service.VIIDServerService;
+import com.genersoft.iot.vmp.gat1400.utils.SecurityUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
@@ -26,19 +38,6 @@ import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Resource;
-
-import cz.data.viid.fe.domain.AdminLoginDto;
-import cz.data.viid.framework.CacheService;
-import cz.data.viid.framework.SpringContextHolder;
-import cz.data.viid.framework.config.Constants;
-import cz.data.viid.framework.domain.core.LoginUser;
-import cz.data.viid.framework.domain.entity.APEDevice;
-import cz.data.viid.framework.domain.entity.VIIDServer;
-import cz.data.viid.framework.domain.vo.LoginUserInfoVo;
-import cz.data.viid.framework.mapper.MetricsMapper;
-import cz.data.viid.framework.service.APEDeviceService;
-import cz.data.viid.framework.service.VIIDServerService;
-import cz.data.viid.utils.SecurityUtil;
 
 @Component
 public class PlatformService implements InitializingBean {

@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.gat1400.fontend;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.APEDevice;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
@@ -17,7 +18,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import cz.data.viid.framework.domain.entity.APEDevice;
 
 @Component
 public class DictContextHolder implements InitializingBean {

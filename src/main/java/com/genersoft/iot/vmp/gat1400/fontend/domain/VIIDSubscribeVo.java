@@ -1,6 +1,8 @@
 package com.genersoft.iot.vmp.gat1400.fontend.domain;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.genersoft.iot.vmp.gat1400.framework.config.Constants;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDSubscribe;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -10,8 +12,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
-import cz.data.viid.framework.config.Constants;
-import cz.data.viid.framework.domain.entity.VIIDSubscribe;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;

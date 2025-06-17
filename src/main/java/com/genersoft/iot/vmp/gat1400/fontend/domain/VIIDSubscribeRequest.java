@@ -1,11 +1,11 @@
 package com.genersoft.iot.vmp.gat1400.fontend.domain;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.genersoft.iot.vmp.gat1400.framework.domain.core.PaginationRequest;
 
 import java.util.Date;
 import java.util.List;
 
-import cz.data.viid.framework.domain.core.PaginationRequest;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

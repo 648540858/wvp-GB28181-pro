@@ -1,12 +1,12 @@
 package com.genersoft.iot.vmp.gat1400.framework.domain.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.genersoft.iot.vmp.gat1400.utils.DateUtil;
 
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 
-import cz.data.viid.utils.DateUtil;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 

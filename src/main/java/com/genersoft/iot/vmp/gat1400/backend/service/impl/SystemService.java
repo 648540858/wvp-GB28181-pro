@@ -1,5 +1,20 @@
 package com.genersoft.iot.vmp.gat1400.backend.service.impl;
 
+import com.genersoft.iot.vmp.gat1400.backend.service.ISystemService;
+import com.genersoft.iot.vmp.gat1400.backend.task.action.KeepaliveAction;
+import com.genersoft.iot.vmp.gat1400.fontend.security.SecurityContext;
+import com.genersoft.iot.vmp.gat1400.framework.SpringContextHolder;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.ResponseStatusObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.APEDevice;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.NodeDevice;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDServer;
+import com.genersoft.iot.vmp.gat1400.framework.domain.vo.RegisterRequest;
+import com.genersoft.iot.vmp.gat1400.framework.exception.VIIDAuthException;
+import com.genersoft.iot.vmp.gat1400.framework.service.APEDeviceService;
+import com.genersoft.iot.vmp.gat1400.framework.service.VIIDServerService;
+import com.genersoft.iot.vmp.gat1400.listener.event.ServerOfflineEvent;
+import com.genersoft.iot.vmp.gat1400.utils.StructCodec;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.DeviceIdObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -8,21 +23,6 @@ import java.util.Optional;
 
 import javax.annotation.Resource;
 
-import cz.data.viid.be.service.ISystemService;
-import cz.data.viid.be.task.action.KeepaliveAction;
-import cz.data.viid.fe.security.SecurityContext;
-import cz.data.viid.framework.SpringContextHolder;
-import cz.data.viid.framework.domain.dto.DeviceIdObject;
-import cz.data.viid.framework.domain.dto.ResponseStatusObject;
-import cz.data.viid.framework.domain.entity.APEDevice;
-import cz.data.viid.framework.domain.entity.NodeDevice;
-import cz.data.viid.framework.domain.entity.VIIDServer;
-import cz.data.viid.framework.domain.vo.RegisterRequest;
-import cz.data.viid.framework.exception.VIIDAuthException;
-import cz.data.viid.framework.service.APEDeviceService;
-import cz.data.viid.framework.service.VIIDServerService;
-import cz.data.viid.listener.event.ServerOfflineEvent;
-import cz.data.viid.utils.StructCodec;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

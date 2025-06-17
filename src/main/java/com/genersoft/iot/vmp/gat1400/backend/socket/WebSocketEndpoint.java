@@ -1,5 +1,10 @@
 package com.genersoft.iot.vmp.gat1400.backend.socket;
 
+import com.genersoft.iot.vmp.gat1400.framework.SpringContextHolder;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.NodeDevice;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDServer;
+import com.genersoft.iot.vmp.gat1400.listener.event.WebSocketCloseEvent;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -16,10 +21,6 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import cz.data.viid.framework.SpringContextHolder;
-import cz.data.viid.framework.domain.entity.NodeDevice;
-import cz.data.viid.framework.domain.entity.VIIDServer;
-import cz.data.viid.listener.event.WebSocketCloseEvent;
 
 @Component
 @ServerEndpoint("/VIID/Subscribe/WebSocket")

@@ -1,6 +1,12 @@
 package com.genersoft.iot.vmp.gat1400.fontend.api;
 
-import com.alibaba.fastjson.JSONObject;
+
+import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.gat1400.fontend.domain.AdminLoginDto;
+import com.genersoft.iot.vmp.gat1400.fontend.service.PlatformService;
+import com.genersoft.iot.vmp.gat1400.framework.domain.core.BaseResponse;
+import com.genersoft.iot.vmp.gat1400.framework.domain.core.SimpleDataResponse;
+import com.genersoft.iot.vmp.gat1400.framework.domain.vo.LoginUserInfoVo;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,11 +18,6 @@ import java.util.Objects;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 
-import cz.data.viid.fe.domain.AdminLoginDto;
-import cz.data.viid.fe.service.PlatformService;
-import cz.data.viid.framework.domain.core.BaseResponse;
-import cz.data.viid.framework.domain.core.SimpleDataResponse;
-import cz.data.viid.framework.domain.vo.LoginUserInfoVo;
 
 @RestController
 public class PlatformController {

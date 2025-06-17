@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gat1400.framework;
 
+import com.genersoft.iot.vmp.gat1400.framework.domain.core.LoginUser;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
@@ -7,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 
-import cz.data.viid.framework.domain.core.LoginUser;
 
 @Component
 public class CacheService {

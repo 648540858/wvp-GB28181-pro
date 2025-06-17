@@ -1,10 +1,11 @@
 package com.genersoft.iot.vmp.gat1400.fontend.domain;
 
 
+import com.genersoft.iot.vmp.gat1400.framework.domain.core.BaseResponse;
+
 import java.util.List;
 import java.util.Optional;
 
-import cz.data.viid.framework.domain.core.BaseResponse;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

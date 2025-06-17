@@ -2,10 +2,9 @@ package com.genersoft.iot.vmp.gat1400.backend.domain.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.SubImageList;
 import java.util.Date;
 
-import cz.data.viid.framework.domain.dto.SubImageList;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

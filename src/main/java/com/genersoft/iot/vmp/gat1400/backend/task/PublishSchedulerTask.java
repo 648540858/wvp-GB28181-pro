@@ -1,5 +1,14 @@
 package com.genersoft.iot.vmp.gat1400.backend.task;
 
+import com.genersoft.iot.vmp.gat1400.backend.service.IPublishService;
+import com.genersoft.iot.vmp.gat1400.framework.config.Constants;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDPublish;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDServer;
+import com.genersoft.iot.vmp.gat1400.framework.service.VIIDServerService;
+import com.genersoft.iot.vmp.gat1400.kafka.listener.APEMessageListener;
+import com.genersoft.iot.vmp.gat1400.kafka.listener.CustomMessageListener;
+import com.genersoft.iot.vmp.gat1400.kafka.listener.TollgateMessageListener;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -10,14 +19,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import cz.data.viid.be.service.IPublishService;
-import cz.data.viid.framework.config.Constants;
-import cz.data.viid.framework.domain.entity.VIIDPublish;
-import cz.data.viid.framework.domain.entity.VIIDServer;
-import cz.data.viid.framework.service.VIIDServerService;
-import cz.data.viid.kafka.listener.APEMessageListener;
-import cz.data.viid.kafka.listener.CustomMessageListener;
-import cz.data.viid.kafka.listener.TollgateMessageListener;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

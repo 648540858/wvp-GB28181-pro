@@ -2,10 +2,11 @@ package com.genersoft.iot.vmp.gat1400.backend.domain.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.PersonObject;
+import com.genersoft.iot.vmp.gat1400.framework.domain.dto.MotorVehicleObject;
 
 import java.util.Date;
 
-import cz.data.viid.framework.domain.dto.MotorVehicleObject;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -32,7 +33,7 @@ public class DispositionNotificationObject {
     private String CntObjectID;
     @ApiModelProperty(value = "人员", notes = "自动采集的人员数据")
     @JsonProperty("PersonObject")
-    private cz.data.viid.framework.domain.dto.PersonObject PersonObject;
+    private PersonObject PersonObject;
     @ApiModelProperty(value = "车辆", notes = "自动采集的车辆信息")
     @JsonProperty("MotorVehicleObject")
     private MotorVehicleObject MotorVehicleObject;

@@ -1,9 +1,9 @@
 package com.genersoft.iot.vmp.gat1400.framework.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDDisposition;
+import com.genersoft.iot.vmp.gat1400.framework.domain.vo.VIIDResponseStatusObject;
 
-import cz.data.viid.framework.domain.entity.VIIDDisposition;
-import cz.data.viid.framework.domain.vo.VIIDResponseStatusObject;
 
 public interface IVIIDDispositionService extends IService<VIIDDisposition> {
 

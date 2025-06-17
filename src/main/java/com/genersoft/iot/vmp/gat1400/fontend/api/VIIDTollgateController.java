@@ -1,6 +1,14 @@
 package com.genersoft.iot.vmp.gat1400.fontend.api;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.genersoft.iot.vmp.gat1400.fontend.DictContextHolder;
+import com.genersoft.iot.vmp.gat1400.fontend.domain.DataSelectOption;
+import com.genersoft.iot.vmp.gat1400.fontend.domain.TollgateQuery;
+import com.genersoft.iot.vmp.gat1400.framework.domain.core.BaseResponse;
+import com.genersoft.iot.vmp.gat1400.framework.domain.core.SearchDataResponse;
+import com.genersoft.iot.vmp.gat1400.framework.domain.core.SimpleDataResponse;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.TollgateDevice;
+import com.genersoft.iot.vmp.gat1400.framework.service.TollgateDeviceService;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,14 +24,6 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
-import cz.data.viid.fe.DictContextHolder;
-import cz.data.viid.fe.domain.DataSelectOption;
-import cz.data.viid.fe.domain.TollgateQuery;
-import cz.data.viid.framework.domain.core.BaseResponse;
-import cz.data.viid.framework.domain.core.SearchDataResponse;
-import cz.data.viid.framework.domain.core.SimpleDataResponse;
-import cz.data.viid.framework.domain.entity.TollgateDevice;
-import cz.data.viid.framework.service.TollgateDeviceService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 

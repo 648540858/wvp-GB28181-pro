@@ -31,7 +31,7 @@ module.exports = {
     "comma-dangle": ["warn", "never"],
     "space-in-parens": "warn",
     "comma-spacing": "warn",
-    "object-curly-spacing": "warn",
+    "object-curly-spacing": ["warn", "always"],
     "arrow-spacing": "warn",
     semi: ["warn", "never"],
     "no-multi-spaces": "warn",

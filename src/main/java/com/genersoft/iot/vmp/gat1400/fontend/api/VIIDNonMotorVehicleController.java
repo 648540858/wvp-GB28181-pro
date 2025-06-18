@@ -1,0 +1,86 @@
+package com.genersoft.iot.vmp.gat1400.fontend.api;
+
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.genersoft.iot.vmp.gat1400.fontend.DictContextHolder;
+import com.genersoft.iot.vmp.gat1400.fontend.domain.MotorVehicleQuery;
+import com.genersoft.iot.vmp.gat1400.framework.domain.core.BaseResponse;
+import com.genersoft.iot.vmp.gat1400.framework.domain.core.SearchDataResponse;
+import com.genersoft.iot.vmp.gat1400.framework.domain.core.SimpleDataResponse;
+import com.genersoft.iot.vmp.gat1400.framework.domain.entity.VIIDNonMotorVehicle;
+import com.genersoft.iot.vmp.gat1400.framework.service.VIIDNonMotorVehicleService;
+import com.genersoft.iot.vmp.gat1400.utils.DateUtil;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Arrays;
+
+import javax.annotation.Resource;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+
+@Api(tags = {"非机动车"})
+@RestController
+public class VIIDNonMotorVehicleController {
+
+    @Resource
+    VIIDNonMotorVehicleService service;
+
+    @ApiOperation(value = "非机动车-分页列表")
+    @GetMapping("/api/viid/nonmotorvehicles/page")
+    public SearchDataResponse<VIIDNonMotorVehicle> page(MotorVehicleQuery request) {
+        QueryWrapper<VIIDNonMotorVehicle> wrapper = new QueryWrapper<>();
+        wrapper.lambda().eq(StringUtils.isNotBlank(request.getDeviceId()),
+                VIIDNonMotorVehicle::getDeviceId, request.getDeviceId());
+        wrapper.lambda().between(StringUtils.isNotBlank(request.getStartTime())
+                        && StringUtils.isNotBlank(request.getEndTime()),
+                VIIDNonMotorVehicle::getDataTime, request.getStartTime(), request.getEndTime()
+        );
+        wrapper.lambda().orderByDesc(VIIDNonMotorVehicle::getId);
+        Page<VIIDNonMotorVehicle> page = service.page(request.pageable(), wrapper);
+        for (VIIDNonMotorVehicle record : page.getRecords()) {
+            String format = DateUtil.viidDateFormat(record.getAppearTime());
+            record.setAppearTime(format);
+            format = DateUtil.viidDateFormat(record.getDisappearTime());
+            record.setDisappearTime(format);
+            DictContextHolder.setDictValue("color", record::getVehicleColor, record::setVehicleColor);
+            DictContextHolder.setDictValue("color", record::getPlateColor, record::setPlateColor);
+            DictContextHolder.setDictValue("plateClassType", record::getPlateClass, record::setPlateClass);
+            DictContextHolder.setDictValue("vehicleBrandType", record::getVehicleBrand, record::setVehicleBrand);
+        }
+        return new SearchDataResponse<>(page.getRecords(), page.getTotal());
+    }
+
+    @ApiOperation(value = "非机动车-详情")
+    @GetMapping("/api/viid/nonmotorvehicles/{id}")
+    public SimpleDataResponse<VIIDNonMotorVehicle> getInfo(@PathVariable("id") String id) {
+        return new SimpleDataResponse<>(service.getById(id));
+    }
+
+    @ApiOperation(value = "非机动车-新增")
+    @PostMapping("/api/viid/nonmotorvehicles")
+    public BaseResponse add(@RequestBody VIIDNonMotorVehicle request) {
+        return BaseResponse.withBoolean(service.save(request));
+    }
+
+    @ApiOperation(value = "非机动车-修改")
+    @PutMapping("/api/viid/nonmotorvehicles")
+    public BaseResponse edit(@RequestBody VIIDNonMotorVehicle request) {
+        return BaseResponse.withBoolean(service.updateById(request));
+    }
+
+    @ApiOperation(value = "非机动车-删除")
+    @DeleteMapping("/api/viid/nonmotorvehicles/{ids}")
+    public BaseResponse remove(@PathVariable String[] ids) {
+        boolean res = service.removeByIds(Arrays.asList(ids));
+        return BaseResponse.withBoolean(res);
+    }
+}

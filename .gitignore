@@ -28,3 +28,5 @@ hs_err_pid*
 
 /src/main/resources/static/
 certificates
+/src/main/resources/*.yml
+/src/main/resources/*.yml

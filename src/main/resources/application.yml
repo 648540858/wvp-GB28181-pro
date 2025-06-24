@@ -1,5 +1,0 @@
-spring:
-  application:
-    name: wvp
-  profiles:
-    active: 274

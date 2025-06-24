@@ -10,6 +10,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -22,6 +23,7 @@ import java.util.Collections;
 /**
  * 启动类
  */
+@EnableFeignClients
 @ServletComponentScan("com.genersoft.iot.vmp.conf")
 @SpringBootApplication
 @EnableScheduling

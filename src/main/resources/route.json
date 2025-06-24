@@ -1,0 +1,209 @@
+{
+  "routes": [
+    {
+      "path": "/viid",
+      "component": "Layout",
+      "redirect": "/viid/index",
+      "name": "VIID平台",
+      "meta": {
+        "title": "VIID平台",
+        "icon": "form"
+      },
+      "hidden": false,
+      "children": [
+        {
+          "path": "index",
+          "component": "/viid/index",
+          "redirect": null,
+          "name": "VIID首页",
+          "meta": {
+            "title": "VIID首页",
+            "icon": "form"
+          },
+          "hidden": true,
+          "children": null
+        },
+        {
+          "path": "/viid/viid",
+          "component": "/viid/index",
+          "redirect": null,
+          "name": "视图库对接",
+          "meta": {
+            "title": "视图库对接",
+            "icon": "form"
+          },
+          "hidden": false,
+          "children": [
+            {
+              "path": "/viid/current",
+              "component": "/viid/server/me",
+              "redirect": null,
+              "name": "视图库设置",
+              "meta": {
+                "title": "视图库设置",
+                "icon": "form"
+              },
+              "hidden": false,
+              "children": null
+            },
+            {
+              "path": "/viid/server",
+              "component": "/viid/server/index",
+              "redirect": null,
+              "name": "视图库节点",
+              "meta": {
+                "title": "视图库节点",
+                "icon": "form"
+              },
+              "hidden": false,
+              "children": null
+            },
+            {
+              "path": "/viid/tollgate",
+              "component": "/viid/tollgate/index",
+              "redirect": null,
+              "name": "视图库卡口",
+              "meta": {
+                "title": "视图库卡口",
+                "icon": "form"
+              },
+              "hidden": false,
+              "children": null
+            },
+            {
+              "path": "/viid/apedevice",
+              "component": "/viid/device/index",
+              "redirect": null,
+              "name": "视图库设备",
+              "meta": {
+                "title": "视图库设备",
+                "icon": "form"
+              },
+              "hidden": false,
+              "children": null
+            },
+            {
+              "path": "/viid/lane",
+              "component": "/viid/lane/index",
+              "redirect": null,
+              "name": "视图库车道",
+              "meta": {
+                "title": "视图库车道",
+                "icon": "form"
+              },
+              "hidden": false,
+              "children": null
+            },
+            {
+              "path": "/viid/subscribe",
+              "component": "/viid/subscribe/index",
+              "redirect": null,
+              "name": "视图库下级订阅",
+              "meta": {
+                "title": "下级订阅",
+                "icon": "form"
+              },
+              "hidden": false,
+              "children": null
+            },
+            {
+              "path": "/viid/publish",
+              "component": "/viid/publish/index",
+              "redirect": null,
+              "name": "视图库上级推送",
+              "meta": {
+                "title": "上级推送",
+                "icon": "form"
+              },
+              "hidden": false,
+              "children": null
+            }
+          ]
+        },
+        {
+          "path": "/viid/face/index",
+          "component": "/viid/face/index",
+          "redirect": null,
+          "name": "视图库人脸",
+          "meta": {
+            "title": "视图库人脸",
+            "icon": "form"
+          },
+          "hidden": false,
+          "children": null
+        },
+        {
+          "path": "/viid/person/index",
+          "component": "/viid/person/index",
+          "redirect": null,
+          "name": "视图库人员",
+          "meta": {
+            "title": "视图库人员",
+            "icon": "form"
+          },
+          "hidden": false,
+          "children": null
+        },
+        {
+          "path": "/viid/motorvehicle/index",
+          "component": "/viid/motorvehicle/index",
+          "redirect": null,
+          "name": "视图库机动车",
+          "meta": {
+            "title": "视图库机动车",
+            "icon": "form"
+          },
+          "hidden": false,
+          "children": null
+        },
+        {
+          "path": "/viid/nonmotorvehicle/index",
+          "component": "/viid/nonmotorvehicle/index",
+          "redirect": null,
+          "name": "视图库非机动车",
+          "meta": {
+            "title": "视图库非机动车",
+            "icon": "form"
+          },
+          "hidden": false,
+          "children": null
+        },
+        {
+          "path": "http://159.75.161.94",
+          "component": "Layout",
+          "redirect": null,
+          "name": "v3上级平台",
+          "meta": {
+            "title": "v3上级平台",
+            "icon": "form",
+            "link": true
+          },
+          "hidden": false,
+          "children": null
+        }
+      ]
+    }
+  ],
+  "perms": [
+    "viid:server:add",
+    "viid:server:edit",
+    "viid:server:detail",
+    "viid:server:remove",
+    "viid:tollgate:add",
+    "viid:tollgate:edit",
+    "viid:tollgate:remove",
+    "viid:publish:add",
+    "viid:publish:edit",
+    "viid:publish:remove",
+    "viid:subscribe:add",
+    "viid:subscribe:edit",
+    "viid:subscribe:remove",
+    "viid:apedevice:add",
+    "viid:apedevice:edit",
+    "viid:apedevice:remove",
+    "viid:face:remove",
+    "viid:person:remove",
+    "viid:vehicle:remove",
+    "viid:nonvehicle:remove"
+  ]
+}

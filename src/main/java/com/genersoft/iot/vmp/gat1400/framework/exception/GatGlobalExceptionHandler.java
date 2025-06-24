@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestControllerAdvice(basePackages = "cz.data.viid.fe.api")
-public class GlobalExceptionHandler {
+public class GatGlobalExceptionHandler {
 
     /**
      * 请求的 JSON 参数在请求体内的参数校验

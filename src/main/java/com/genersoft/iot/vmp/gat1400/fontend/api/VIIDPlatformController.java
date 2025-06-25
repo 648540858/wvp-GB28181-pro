@@ -20,7 +20,7 @@ import javax.validation.Valid;
 
 
 @RestController
-public class PlatformController {
+public class VIIDPlatformController {
 
     @Resource
     PlatformService platformService;

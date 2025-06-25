@@ -12,12 +12,15 @@ import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.config.annotation.web.configurers.FormLoginConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -26,7 +29,6 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
-import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.util.FileCopyUtils;
 
 import java.io.IOException;
@@ -35,39 +37,18 @@ import java.text.ParseException;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.annotation.Resource;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Configuration
-public class WebSecurityConfiguration {
+@EnableWebSecurity
+@Order(2)
+public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    @Order(9)
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   JwtDecoder jwtDecoder,
-                                                   CacheService cacheService) throws Exception {
-        log.info("载入默认Jwt鉴权Security过滤链");
-        return http
-                .requestMatchers(request -> request.mvcMatchers("/api/**"))
-                .authorizeRequests(
-                        request -> request.mvcMatchers(HttpMethod.POST, "/api/admin/login").permitAll()
-                                .anyRequest().authenticated()
-                )
-                .oauth2ResourceServer(
-                        config -> config.bearerTokenResolver(SecurityUtil::bearerTokenResolver)
-                                .jwt()
-                                .decoder(jwtDecoder)
-                                .jwtAuthenticationConverter(jwtTokenAuthenticationConverter())
-                                .and()
-                                .accessDeniedHandler(new DataAccessDeniedHandler())
-                                .authenticationEntryPoint(new DataAuthExceptionEntryPoint())
-                )
-                .authenticationProvider(new JwtTokenAuthenticationProvider(cacheService))
-                .formLogin(FormLoginConfigurer::disable)
-                .csrf(CsrfConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .build();
-    }
+    @Resource
+    private CacheService cacheService;
 
     @Bean
     public JwtTokenAuthenticationConverter jwtTokenAuthenticationConverter() {
@@ -109,4 +90,30 @@ public class WebSecurityConfiguration {
         }
         return new ImmutableJWKSet<>(jwkSet);
     }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        log.info("载入默认Jwt鉴权Security过滤链");
+        http
+            .requestMatchers(request -> request.mvcMatchers("/api/**"))
+            .authorizeRequests(
+                    request -> request.mvcMatchers(HttpMethod.POST, "/api/admin/login").permitAll()
+                            .anyRequest().authenticated()
+            )
+            .oauth2ResourceServer(
+                    config -> config.bearerTokenResolver(SecurityUtil::bearerTokenResolver)
+                            .jwt()
+//                            .decoder(jwtDecoder)
+                            .jwtAuthenticationConverter(jwtTokenAuthenticationConverter())
+                            .and()
+                            .accessDeniedHandler(new DataAccessDeniedHandler())
+                            .authenticationEntryPoint(new DataAuthExceptionEntryPoint())
+            )
+            .authenticationProvider(new JwtTokenAuthenticationProvider(cacheService))
+            .formLogin(FormLoginConfigurer::disable)
+            .csrf(CsrfConfigurer::disable)
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+//            .build();
+    }
+
 }

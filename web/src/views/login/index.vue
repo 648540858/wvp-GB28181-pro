@@ -7,7 +7,7 @@
       width: 100%;
       height: 100vh;
       display: flex;
-      background-image: url(/static/images/bg19.webp);
+      background-image: url(/static/images/bg19.png);
       background-position: center center;
       background-repeat: no-repeat;
       background-size: cover;"
@@ -61,7 +61,7 @@
 </template>
 
 <script>
-import { validUsername } from '@/utils/validate'
+import {validUsername} from '@/utils/validate'
 
 export default {
   name: 'Login',

@@ -90,12 +90,10 @@ export default {
       total: 0
     }
   },
-  mounted() {
-    this.getChannelList()
-  },
   methods: {
     openDialog: function () {
       this.showDialog = true;
+      this.getChannelList();
     },
     getChannelList: function () {
       this.loading = true;

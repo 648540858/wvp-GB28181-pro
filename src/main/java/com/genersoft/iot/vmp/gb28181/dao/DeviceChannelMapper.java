@@ -86,10 +86,11 @@ public interface DeviceChannelMapper {
     int update(DeviceChannel channel);
 
     @SelectProvider(type = DeviceChannelProvider.class, method = "queryChannels")
-    List<DeviceChannel> queryChannels(@Param("dataDeviceId") int dataDeviceId, @Param("civilCode") String civilCode,
+    List<DeviceChannel> queryChannels(@Param("dataDeviceId") Integer dataDeviceId, @Param("civilCode") String civilCode,
                                       @Param("businessGroupId") String businessGroupId, @Param("parentChannelId") String parentChannelId,
-                                      @Param("query") String query, @Param("hasSubChannel") Boolean hasSubChannel,
-                                      @Param("online") Boolean online, @Param("channelIds") List<String> channelIds);
+                                      @Param("query") String query, @Param("queryParent") Boolean queryParent,
+                                      @Param("hasSubChannel") Boolean hasSubChannel, @Param("online") Boolean online,
+                                      @Param("channelIds") List<String> channelIds, @Param("hasStream") Boolean hasStream);
 
     @SelectProvider(type = DeviceChannelProvider.class, method = "queryChannelsByDeviceDbId")
     List<DeviceChannel> queryChannelsByDeviceDbId(@Param("dataDeviceId") int dataDeviceId);

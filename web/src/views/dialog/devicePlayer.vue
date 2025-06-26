@@ -6,6 +6,7 @@
       v-el-drag-dialog
       title="视频播放"
       top="0"
+      append-to-body
       :close-on-click-modal="false"
       :visible.sync="showVideoDialog"
       @close="close()"

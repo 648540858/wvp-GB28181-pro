@@ -118,6 +118,19 @@ export function queryChannels(deviceId, params) {
   })
 }
 
+export function queryHasStreamChannels(params) {
+  const {page, count, query} = params
+  return request({
+    method: 'get',
+    url: `/api/device/query/streams`,
+    params: {
+      page: page,
+      count: count,
+      query: query
+    }
+  })
+}
+
 export function deviceRecord(params) {
   const { deviceId, channelId, recordCmdStr } = params
   return request({

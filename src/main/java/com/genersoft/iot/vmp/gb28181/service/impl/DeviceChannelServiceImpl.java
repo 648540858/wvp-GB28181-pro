@@ -696,7 +696,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     .replaceAll("%", "/%")
                     .replaceAll("_", "/_");
         }
-        List<DeviceChannel> all = channelMapper.queryChannels(deviceDbId, civilCode, businessGroupId, parentId, query, channelType, online,null);
+        List<DeviceChannel> all = channelMapper.queryChannels(deviceDbId, civilCode, businessGroupId, parentId, query, false, channelType, online, null, null);
         return new PageInfo<>(all);
     }
 
@@ -717,7 +717,19 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     .replaceAll("_", "/_");
         }
         PageHelper.startPage(page, count);
-        List<DeviceChannel> all = channelMapper.queryChannels(device.getId(), null,null, null, query, hasSubChannel, online,null);
+        List<DeviceChannel> all = channelMapper.queryChannels(device.getId(), null, null, null, query, false, hasSubChannel, online, null, null);
+        return new PageInfo<>(all);
+    }
+
+    @Override
+    public PageInfo<DeviceChannel> queryChannels(String query, Boolean queryParent, Boolean hasSubChannel, Boolean online, Boolean hasStream, int page, int count) {
+        PageHelper.startPage(page, count);
+        if (query != null) {
+            query = query.replaceAll("/", "//")
+                    .replaceAll("%", "/%")
+                    .replaceAll("_", "/_");
+        }
+        List<DeviceChannel> all = channelMapper.queryChannels(null, null, null, null, query, queryParent, hasSubChannel, online, null, hasStream);
         return new PageInfo<>(all);
     }
 

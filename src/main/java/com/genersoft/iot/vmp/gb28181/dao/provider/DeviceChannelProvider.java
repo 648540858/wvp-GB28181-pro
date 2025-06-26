@@ -20,6 +20,8 @@ public class DeviceChannelProvider {
                 " dc.gps_time,\n" +
                 " dc.stream_identification,\n" +
                 " dc.channel_type,\n" +
+                " d.device_id as parent_device_id,\n" +
+                " coalesce(d.custom_name, d.name) as parent_name,\n" +
                 " coalesce(dc.gb_device_id, dc.device_id) as device_id,\n" +
                 " coalesce(dc.gb_name, dc.name) as name,\n" +
                 " coalesce(dc.gb_manufacturer, dc.manufacturer) as manufacturer,\n" +
@@ -55,13 +57,17 @@ public class DeviceChannelProvider {
                 " coalesce(dc.gb_svc_space_support_mod, dc.svc_space_support_mod) as svc_space_support_mod,\n" +
                 " coalesce(dc.gb_svc_time_support_mode,dc.svc_time_support_mode) as svc_time_support_mode\n" +
                 " from " +
-                " wvp_device_channel dc "
+                " wvp_device_channel dc " +
+                " left join wvp_device d on d.id = dc.data_device_id "
                 ;
     }
     public String queryChannels(Map<String, Object> params ){
         StringBuilder sqlBuild = new StringBuilder();
         sqlBuild.append(getBaseSelectSql());
-        sqlBuild.append(" where data_type = " + ChannelDataType.GB28181.value + " and dc.data_device_id = #{dataDeviceId} ");
+        sqlBuild.append(" where data_type = " + ChannelDataType.GB28181.value);
+        if (params.get("dataDeviceId") != null) {
+            sqlBuild.append(" AND dc.data_device_id = #{dataDeviceId} ");
+        }
         if (params.get("businessGroupId") != null ) {
             sqlBuild.append(" AND coalesce(dc.gb_business_group_id, dc.business_group_id)=#{businessGroupId} AND coalesce(dc.gb_parent_id, dc.parent_id) is null");
         }else if (params.get("parentChannelId") != null ) {
@@ -73,8 +79,15 @@ public class DeviceChannelProvider {
         }
         if (params.get("query") != null && !ObjectUtils.isEmpty(params.get("query"))) {
             sqlBuild.append(" AND (coalesce(dc.gb_device_id, dc.device_id) LIKE concat('%',#{query},'%') escape '/'" +
-                    " OR coalesce(dc.gb_name, dc.name) LIKE concat('%',#{query},'%') escape '/')")
-            ;
+                    " OR coalesce(dc.gb_name, dc.name) LIKE concat('%',#{query},'%') escape '/'");
+            if (params.get("queryParent") != null && (Boolean) params.get("queryParent")) {
+                sqlBuild.append(" OR d.device_id LIKE concat('%',#{query},'%') escape '/'");
+                sqlBuild.append(" OR coalesce(d.custom_name, d.name) LIKE concat('%',#{query},'%') escape '/'");
+            }
+            sqlBuild.append(")");
+        }
+        if (params.get("hasStream") != null && (Boolean) params.get("hasStream")) {
+            sqlBuild.append(" AND dc.stream_id IS NOT NULL");
         }
         if (params.get("online") != null && (Boolean)params.get("online")) {
             sqlBuild.append(" AND coalesce(gb_status, status) = 'ON'");
@@ -101,7 +114,7 @@ public class DeviceChannelProvider {
             }
             sqlBuild.append(" )");
         }
-        sqlBuild.append(" ORDER BY device_id");
+        sqlBuild.append(" ORDER BY d.device_id, dc.device_id");
         return sqlBuild.toString();
     }
 

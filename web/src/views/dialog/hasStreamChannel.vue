@@ -119,7 +119,7 @@ export default {
     sendDevicePush: function (row) {
       const deviceId = row.parentDeviceId
       const channelId = row.deviceId
-      row.playing = true
+      this.$set(row, "playing", true)
       this.$store.dispatch("play/play", [deviceId, channelId])
         .then((data) => {
           this.$refs.devicePlayer.openDialog("media", deviceId, channelId, {
@@ -128,7 +128,7 @@ export default {
           })
         })
         .finally(() => {
-          row.playing = false
+          this.$set(row, "playing", false)
         })
     },
     stopDevicePush: function (row) {

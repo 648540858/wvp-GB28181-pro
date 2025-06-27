@@ -1,7 +1,7 @@
 <template>
-  <div id="linkChannelRecord" style="width: 100%;  background-color: #FFFFFF; display: grid; grid-template-columns: 200px auto;">
+  <div id="linkChannelRecord" style="width: 100%;  background-color: #FFFFFF;">
     <el-dialog v-el-drag-dialog v-if="showDialog" v-loading="dialogLoading" title="通道关联" top="2rem" width="80%" :close-on-click-modal="false" :visible.sync="showDialog" :destroy-on-close="true" @close="close()">
-      <div style="display: grid; grid-template-columns: 100px auto;">
+      <div style="display: grid; grid-template-columns: 100px minmax(0, 1fr);">
         <el-tabs v-model="hasLink" tab-position="left" style="" @tab-click="search">
           <el-tab-pane label="未关联" name="false" />
           <el-tab-pane label="已关联" name="true" />

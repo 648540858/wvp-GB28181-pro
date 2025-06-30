@@ -378,6 +378,7 @@ public class ZLMRESTfulUtils {
         param.put("url", streamUrl);
         param.put("timeout_sec", timeout_sec);
         param.put("expire_sec", expire_sec);
+        param.put("async", 1);
         sendGetForImg(mediaServerItem, "getSnap", param, targetPath, fileName);
     }
 

@@ -45,24 +45,27 @@
         <el-form-item>
           <el-button icon="el-icon-plus" style="margin-right: 1rem;" type="primary" @click="addStream">添加
           </el-button>
-          <el-button icon="el-icon-upload2" style="margin-right: 1rem;" @click="importChannel">
-            通道导入
-          </el-button>
-          <el-button icon="el-icon-download" style="margin-right: 1rem;">
-            <a
-              style="text-align: center; text-decoration: none"
-              href="/static/file/推流通道导入.zip"
-              download="推流通道导入.zip"
-            >下载模板</a>
-          </el-button>
+          <el-button-group>
+            <el-button icon="el-icon-upload2" @click="importChannel">
+              通道导入
+            </el-button>
+            <el-button icon="el-icon-download">
+              <a
+                style="text-align: center; text-decoration: none"
+                href="/static/file/推流通道导入.zip"
+                download="推流通道导入.zip"
+              >下载模板</a>
+            </el-button>
+          </el-button-group>
           <el-button
             icon="el-icon-delete"
-            style="margin-right: 1rem;"
+            style="margin-left: 1rem;"
             :disabled="multipleSelection.length === 0"
             type="danger"
             @click="batchDel"
           >移除
           </el-button>
+          <el-button icon="el-icon-chicken" @click="buildPushStream">生成推流地址</el-button>
         </el-form-item>
         <el-form-item style="float: right;">
           <el-button icon="el-icon-refresh-right" circle @click="refresh()" />
@@ -135,6 +138,7 @@
     <addStreamTOGB ref="addStreamTOGB" />
     <importChannel ref="importChannel" />
     <stream-push-edit v-if="streamPush" :stream-push="streamPush" :close-edit="closeEdit" style="height: calc(100vh - 90px);" />
+    <buildPushStreamUrl ref="buildPushStreamUrl" />
   </div>
 </template>
 
@@ -143,6 +147,7 @@ import devicePlayer from '../dialog/devicePlayer.vue'
 import addStreamTOGB from '../dialog/pushStreamEdit.vue'
 import importChannel from '../dialog/importChannel.vue'
 import StreamPushEdit from './edit.vue'
+import buildPushStreamUrl from './buildPushStreamUrl.vue'
 
 export default {
   name: 'PushList',
@@ -150,7 +155,8 @@ export default {
     StreamPushEdit,
     devicePlayer,
     addStreamTOGB,
-    importChannel
+    importChannel,
+    buildPushStreamUrl
   },
   data() {
     return {
@@ -287,6 +293,9 @@ export default {
     },
     refresh: function() {
       this.initData()
+    },
+    buildPushStream: function() {
+      this.$refs.buildPushStreamUrl.openDialog()
     }
   }
 }

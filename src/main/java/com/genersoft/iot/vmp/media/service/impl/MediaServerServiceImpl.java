@@ -952,13 +952,13 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public StreamInfo startProxy(MediaServer mediaServer, StreamProxy streamProxy) {
+    public void startProxy(MediaServer mediaServer, StreamProxy streamProxy) {
         IMediaNodeServerService mediaNodeServerService = nodeServerServiceMap.get(mediaServer.getType());
         if (mediaNodeServerService == null) {
             log.info("[startProxy] 失败, mediaServer的类型： {}，未找到对应的实现类", mediaServer.getType());
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到mediaServer对应的实现类");
         }
-        return mediaNodeServerService.startProxy(mediaServer, streamProxy);
+        mediaNodeServerService.startProxy(mediaServer, streamProxy);
     }
 
     @Override

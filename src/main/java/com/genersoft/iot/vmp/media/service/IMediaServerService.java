@@ -150,7 +150,7 @@ public interface IMediaServerService {
 
     Long updateDownloadProcess(MediaServer mediaServerItem, String app, String stream);
 
-    StreamInfo startProxy(MediaServer mediaServer, StreamProxy streamProxy);
+    void startProxy(MediaServer mediaServer, StreamProxy streamProxy);
 
     void stopProxy(MediaServer mediaServer, String streamKey);
 

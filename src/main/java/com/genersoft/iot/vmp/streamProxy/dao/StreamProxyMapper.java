@@ -92,5 +92,5 @@ public interface StreamProxyMapper {
             " SET pulling=#{pulling}, media_server_id = #{mediaServerId}, " +
             " stream_key = #{streamKey} " +
             " WHERE id=#{id}")
-    void addStream(StreamProxy streamProxy);
+    void updateStream(StreamProxy streamProxy);
 }

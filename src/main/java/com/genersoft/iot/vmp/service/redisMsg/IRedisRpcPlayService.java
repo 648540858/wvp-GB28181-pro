@@ -28,7 +28,7 @@ public interface IRedisRpcPlayService {
 
     void playPush(String serverId, Integer id, ErrorCallback<StreamInfo> callback);
 
-    StreamInfo playProxy(String serverId, int id);
+    void playProxy(String serverId, int id, ErrorCallback<StreamInfo> callback);
 
     void stopProxy(String serverId, int id);
 

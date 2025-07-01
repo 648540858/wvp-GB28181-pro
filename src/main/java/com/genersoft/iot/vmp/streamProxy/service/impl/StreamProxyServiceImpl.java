@@ -15,6 +15,7 @@ import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOfflineEvent;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerOnlineEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OriginType;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxyParam;
@@ -109,7 +110,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         // 拉流代理
         StreamProxy streamProxyByAppAndStream = getStreamProxyByAppAndStream(event.getApp(), event.getStream());
         if (streamProxyByAppAndStream != null && streamProxyByAppAndStream.isEnableDisableNoneReader()) {
-            startByAppAndStream(event.getApp(), event.getStream());
+            startByAppAndStream(event.getApp(), event.getStream(), ((code, msg, data) -> {
+                log.info("[拉流代理] 自动点播成功， app： {}， stream: {}", event.getApp(), event.getStream());
+            }));
         }
     }
 
@@ -136,7 +139,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Override
     @Transactional
-    public StreamInfo save(StreamProxyParam param) {
+    public void save(StreamProxyParam param, ErrorCallback<StreamInfo> callback) {
         // 兼容旧接口
         StreamProxy streamProxyInDb = getStreamProxyByAppAndStream(param.getApp(), param.getStream());
         if (streamProxyInDb != null && streamProxyInDb.getPulling() != null && streamProxyInDb.getPulling()) {
@@ -159,9 +162,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }
 
         if (param.isEnable()) {
-            return playService.startProxy(streamProxy);
-        } else {
-            return null;
+            playService.startProxy(streamProxy, callback);
         }
     }
 
@@ -247,13 +248,12 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
 
     @Override
-    public boolean startByAppAndStream(String app, String stream) {
+    public void startByAppAndStream(String app, String stream, ErrorCallback<StreamInfo> callback) {
         StreamProxy streamProxy = streamProxyMapper.selectOneByAppAndStream(app, stream);
         if (streamProxy == null) {
             throw new ControllerException(ErrorCode.ERROR404.getCode(), "代理信息未找到");
         }
-        StreamInfo streamInfo = playService.startProxy(streamProxy);
-        return streamInfo != null;
+        playService.startProxy(streamProxy, callback);
     }
 
     @Override
@@ -406,7 +406,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         streamProxy.setPulling(status);
         streamProxy.setMediaServerId(mediaServerId);
         streamProxy.setUpdateTime(DateUtil.getNow());
-        streamProxyMapper.addStream(streamProxy);
+        streamProxyMapper.updateStream(streamProxy);
 
         streamProxy.setGbStatus(status ? "ON" : "OFF");
         if (streamProxy.getGbId() > 0) {

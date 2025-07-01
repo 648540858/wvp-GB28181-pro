@@ -212,13 +212,20 @@ public class RedisRpcPlayServiceImpl implements IRedisRpcPlayService {
     }
 
     @Override
-    public StreamInfo playProxy(String serverId, int id) {
+    public void playProxy(String serverId, int id, ErrorCallback<StreamInfo> callback) {
         RedisRpcRequest request = buildRequest("streamProxy/play", id);
+        request.setToId(serverId);
         RedisRpcResponse response = redisRpcConfig.request(request, userSetting.getPlayTimeout(), TimeUnit.SECONDS);
-        if (response != null && response.getStatusCode() == ErrorCode.SUCCESS.getCode()) {
-            return JSON.parseObject(response.getBody().toString(), StreamInfo.class);
+        if (response == null) {
+            callback.run(ErrorCode.ERROR100.getCode(), ErrorCode.ERROR100.getMsg(), null);
+        }else {
+            if (response.getStatusCode() == ErrorCode.SUCCESS.getCode()) {
+                StreamInfo streamInfo = JSON.parseObject(response.getBody().toString(), StreamInfo.class);
+                callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
+            }else {
+                callback.run(response.getStatusCode(), response.getBody().toString(), null);
+            }
         }
-        return null;
     }
 
     @Override

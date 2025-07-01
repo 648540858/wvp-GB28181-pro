@@ -4,12 +4,10 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.hook.Hook;
 import com.genersoft.iot.vmp.media.event.hook.HookSubscribe;
 import com.genersoft.iot.vmp.media.event.hook.HookType;
-import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
@@ -20,16 +18,12 @@ import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyPlayService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
-import javax.sip.message.Response;
+import javax.validation.constraints.NotNull;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 视频代理业务
@@ -56,107 +50,42 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
     @Autowired
     private IRedisRpcPlayService redisRpcPlayService;
 
-    private ConcurrentHashMap<Integer, ErrorCallback<StreamInfo>> callbackMap = new ConcurrentHashMap<>();
-
-    private ConcurrentHashMap<Integer, StreamInfo> streamInfoMap = new ConcurrentHashMap<>();
-
-    /**
-     * 流到来的处理
-     */
-    @Async("taskExecutor")
-    @Transactional
-    @EventListener
-    public void onApplicationEvent(MediaArrivalEvent event) {
-        if ("rtsp".equals(event.getSchema())) {
-            StreamProxy streamProxy = streamProxyMapper.selectOneByAppAndStream(event.getApp(), event.getStream());
-            if (streamProxy != null) {
-                ErrorCallback<StreamInfo> callback = callbackMap.remove(streamProxy.getId());
-                StreamInfo streamInfo = streamInfoMap.remove(streamProxy.getId());
-                if (callback != null && streamInfo != null) {
-                    callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
-                }
-            }
-        }
-    }
-
     @Override
-    public void start(int id, ErrorCallback<StreamInfo> callback) {
-        StreamProxy streamProxy = streamProxyMapper.select(id);
-        if (streamProxy == null) {
-            throw new ControllerException(ErrorCode.ERROR404.getCode(), "代理信息未找到");
-        }
-        StreamInfo streamInfo = startProxy(streamProxy);
-        if (streamInfo == null) {
-            callback.run(Response.BUSY_HERE, "busy here", null);
-            return;
-        }
-        callbackMap.put(id, callback);
-        streamInfoMap.put(id, streamInfo);
-
-        MediaServer mediaServer = mediaServerService.getOne(streamProxy.getMediaServerId());
-        if (mediaServer != null) {
-            MediaInfo mediaInfo = mediaServerService.getMediaInfo(mediaServer, streamProxy.getApp(), streamProxy.getStream());
-            if (mediaInfo != null) {
-                callbackMap.remove(id);
-                streamInfoMap.remove(id);
-                callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
-            }
-        }
-    }
-
-    @Override
-    public StreamInfo start(int id, Boolean record, ErrorCallback<StreamInfo> callback) {
+    public void start(int id, Boolean record, ErrorCallback<StreamInfo> callback) {
         log.info("[拉流代理]， 开始拉流，ID：{}", id);
         StreamProxy streamProxy = streamProxyMapper.select(id);
         if (streamProxy == null) {
             throw new ControllerException(ErrorCode.ERROR404.getCode(), "代理信息未找到");
         }
+        log.info("[拉流代理] 类型： {}， app：{}, stream: {}, 流地址： {}", streamProxy.getType(), streamProxy.getApp(), streamProxy.getStream(), streamProxy.getSrcUrl());
         if (record != null) {
             streamProxy.setEnableMp4(record);
         }
-        if (streamProxy.getMediaServerId() != null) {
-            StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStreamWithCheck(streamProxy.getApp(), streamProxy.getStream(), streamProxy.getMediaServerId(), false);
-            if (streamInfo != null) {
-                callbackMap.remove(id);
-                streamInfoMap.remove(id);
-                callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
-                return streamInfo;
-            }
-        }
 
-        StreamInfo streamInfo = startProxy(streamProxy);
-        if (callback != null) {
-            // 设置流超时的定时任务
-            String timeOutTaskKey = UUID.randomUUID().toString();
-            Hook rtpHook = Hook.getInstance(HookType.on_media_arrival, streamProxy.getApp(), streamProxy.getStream(), streamInfo.getMediaServer().getId());
-            dynamicTask.startDelay(timeOutTaskKey, () -> {
-                log.info("[拉流代理]， 收流超时，ID：{}", id);
-                // 收流超时
-                subscribe.removeSubscribe(rtpHook);
-                callback.run(InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode(), InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getMsg(), streamInfo);
-            }, userSetting.getPlayTimeout());
-
-            // 开启流到来的监听
-            subscribe.addSubscribe(rtpHook, (hookData) -> {
-                dynamicTask.stop(timeOutTaskKey);
-                // hook响应
-                callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
-                subscribe.removeSubscribe(rtpHook);
-            });
-        }
-        return streamInfo;
+        startProxy(streamProxy, callback);
     }
 
     @Override
-    public StreamInfo startProxy(StreamProxy streamProxy){
+    public void startProxy(@NotNull StreamProxy streamProxy, ErrorCallback<StreamInfo> callback){
         if (!streamProxy.isEnable()) {
-            return null;
+            callback.run(ErrorCode.ERROR100.getCode(), "代理未启用", null);
+            return;
         }
         if (streamProxy.getServerId() == null) {
             streamProxy.setServerId(userSetting.getServerId());
         }
         if (!userSetting.getServerId().equals(streamProxy.getServerId())) {
-            return redisRpcPlayService.playProxy(streamProxy.getServerId(), streamProxy.getId());
+            log.info("[拉流代理] 由其他服务{}管理", streamProxy.getServerId());
+            redisRpcPlayService.playProxy(streamProxy.getServerId(), streamProxy.getId(), callback);
+            return;
+        }
+
+        if (streamProxy.getMediaServerId() != null) {
+            StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStreamWithCheck(streamProxy.getApp(), streamProxy.getStream(), streamProxy.getMediaServerId(), null, false);
+            if (streamInfo != null) {
+                callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+                return;
+            }
         }
 
         MediaServer mediaServer;
@@ -169,12 +98,32 @@ public class StreamProxyPlayServiceImpl implements IStreamProxyPlayService {
         if (mediaServer == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), mediaServerId == null?"未找到可用的媒体节点":"未找到节点" + mediaServerId);
         }
-        StreamInfo streamInfo = mediaServerService.startProxy(mediaServer, streamProxy);
+
+        // 设置流超时的定时任务
+        String timeOutTaskKey = UUID.randomUUID().toString();
+        Hook rtpHook = Hook.getInstance(HookType.on_media_arrival, streamProxy.getApp(), streamProxy.getStream(), mediaServer.getId());
+        dynamicTask.startDelay(timeOutTaskKey, () -> {
+            log.info("[拉流代理] 收流超时，app：{}，stream: {}", streamProxy.getApp(), streamProxy.getStream());
+            // 收流超时
+            subscribe.removeSubscribe(rtpHook);
+            callback.run(InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode(), InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getMsg(), null);
+        }, userSetting.getPlayTimeout());
+
+        // 开启流到来的监听
+        subscribe.addSubscribe(rtpHook, (hookData) -> {
+            log.info("[拉流代理] 收流成功，app：{}，stream: {}", hookData.getApp(), hookData.getStream());
+            dynamicTask.stop(timeOutTaskKey);
+            StreamInfo streamInfo = mediaServerService.getStreamInfoByAppAndStream(mediaServer, hookData.getApp(), hookData.getStream(), hookData.getMediaInfo(), null);
+            // hook响应
+            callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
+            subscribe.removeSubscribe(rtpHook);
+        });
+
+        mediaServerService.startProxy(mediaServer, streamProxy);
         if (mediaServerId == null || !mediaServerId.equals(mediaServer.getId())) {
             streamProxy.setMediaServerId(mediaServer.getId());
-            streamProxyMapper.addStream(streamProxy);
+            streamProxyMapper.updateStream(streamProxy);
         }
-        return streamInfo;
     }
 
     @Override

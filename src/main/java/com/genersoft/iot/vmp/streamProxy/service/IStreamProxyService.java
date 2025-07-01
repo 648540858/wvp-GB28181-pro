@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.streamProxy.service;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.streamProxy.bean.StreamProxyParam;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
@@ -15,7 +16,7 @@ public interface IStreamProxyService {
      * 保存视频代理
      * @param param
      */
-    StreamInfo save(StreamProxyParam param);
+    void save(StreamProxyParam param, ErrorCallback<StreamInfo> callback);
 
     /**
      * 分页查询
@@ -38,7 +39,7 @@ public interface IStreamProxyService {
      * @param stream
      * @return
      */
-    boolean startByAppAndStream(String app, String stream);
+    void startByAppAndStream(String app, String stream, ErrorCallback<StreamInfo> callback);
 
     /**
      * 停用用视频代理

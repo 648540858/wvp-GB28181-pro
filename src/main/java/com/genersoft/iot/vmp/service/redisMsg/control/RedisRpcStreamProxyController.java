@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.service.redisMsg.control;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.redis.RedisRpcConfig;
 import com.genersoft.iot.vmp.conf.redis.bean.RedisRpcMessage;
@@ -63,10 +62,13 @@ public class RedisRpcStreamProxyController extends RpcController {
             response.setBody("param error");
             return response;
         }
-        StreamInfo streamInfo = streamProxyPlayService.startProxy(streamProxy);
-        response.setStatusCode(ErrorCode.SUCCESS.getCode());
-        response.setBody(JSONObject.toJSONString(streamInfo));
-        return response;
+        streamProxyPlayService.startProxy(streamProxy, (code, msg, streamInfo) -> {
+            response.setStatusCode(code);
+            response.setBody(JSONObject.toJSONString(streamInfo));
+            sendResponse(response);
+        });
+
+        return null;
     }
 
     /**

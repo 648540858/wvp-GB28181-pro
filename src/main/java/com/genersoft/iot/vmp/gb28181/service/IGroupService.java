@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.service;
 
 import com.genersoft.iot.vmp.gb28181.bean.Group;
 import com.genersoft.iot.vmp.gb28181.bean.GroupTree;
+import com.github.pagehelper.PageInfo;
 
 import java.util.List;
 
@@ -23,4 +24,6 @@ public interface IGroupService {
     boolean batchAdd(List<Group> groupList);
 
     List<Group> getPath(String deviceId, String businessGroup);
+
+    PageInfo<Group> queryList(Integer page, Integer count, String query);
 }

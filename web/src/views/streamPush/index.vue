@@ -4,7 +4,7 @@
       <el-form :inline="true" size="mini">
         <el-form-item label="搜索">
           <el-input
-            v-model="searchSrt"
+            v-model="searchStr"
             style="margin-right: 1rem; width: auto;"
             placeholder="关键字"
             prefix-icon="el-icon-search"
@@ -167,7 +167,7 @@ export default {
       currentPage: 1,
       count: 15,
       total: 0,
-      searchSrt: '',
+      searchStr: '',
       pushing: '',
       mediaServerId: '',
       mediaServerList: [],
@@ -204,7 +204,7 @@ export default {
       this.$store.dispatch('streamPush/queryList', {
         page: this.currentPage,
         count: this.count,
-        query: this.searchSrt,
+        query: this.searchStr,
         pushing: this.pushing,
         mediaServerId: this.mediaServerId
       })

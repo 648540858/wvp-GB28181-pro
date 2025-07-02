@@ -50,20 +50,29 @@ public class RegionController {
         return regionService.query(query, page, count);
     }
 
-    @Operation(summary = "查询区域")
+    @Operation(summary = "查询区域节点")
     @Parameter(name = "query", description = "要搜索的内容", required = true)
     @Parameter(name = "parent", description = "所属行政区划编号", required = true)
+    @Parameter(name = "hasChannel", description = "是否查询通道", required = true)
     @ResponseBody
     @GetMapping("/tree/list")
     public List<RegionTree> queryForTree(
-            @RequestParam(required = false) String query,
             @RequestParam(required = false) Integer parent,
             @RequestParam(required = false) Boolean hasChannel
     ){
-        if (ObjectUtils.isEmpty(query)) {
-            query = null;
-        }
-        return regionService.queryForTree(query, parent, hasChannel);
+        return regionService.queryForTree(parent, hasChannel);
+    }
+
+
+    @Operation(summary = "查询区域")
+    @Parameter(name = "query", description = "要搜索的内容", required = true)
+    @Parameter(name = "channel", description = "true为查询通道，false为查询节点", required = true)
+    @ResponseBody
+    @GetMapping("/tree/query")
+    public PageInfo<Region> queryTree(Integer page, Integer count,
+            @RequestParam(required = true) String query
+    ){
+        return regionService.queryList(page, count, query);
     }
 
     @Operation(summary = "更新区域")

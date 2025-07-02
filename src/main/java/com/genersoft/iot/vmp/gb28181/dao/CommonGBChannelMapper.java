@@ -275,10 +275,8 @@ public interface CommonGBChannelMapper {
             "    true as is_leaf " +
             " from wvp_device_channel " +
             " where coalesce(gb_civil_code, civil_code) = #{parentDeviceId} " +
-            " <if test='query != null'> AND (coalesce(gb_device_id, device_id) LIKE concat('%',#{query},'%') " +
-            " OR coalesce(gb_name, name) LIKE concat('%',#{query},'%'))</if> " +
             " </script>")
-    List<RegionTree> queryForRegionTreeByCivilCode(@Param("query") String query, @Param("parentDeviceId") String parentDeviceId);
+    List<RegionTree> queryForRegionTreeByCivilCode(@Param("parentDeviceId") String parentDeviceId);
 
     @Update(value = {" <script>" +
             " UPDATE wvp_device_channel " +

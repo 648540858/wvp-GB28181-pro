@@ -4,7 +4,7 @@
       <el-form :inline="true" size="mini">
         <el-form-item label="搜索">
           <el-input
-            v-model="searchSrt"
+            v-model="searchStr"
             style="margin-right: 1rem; width: auto;"
             size="mini"
             placeholder="关键字"
@@ -159,7 +159,7 @@ export default {
       defaultPlatform: null,
       platform: null,
       pushChannelLoading: false,
-      searchSrt: '',
+      searchStr: '',
       currentPage: 1,
       count: 15,
       total: 0
@@ -296,7 +296,7 @@ export default {
       this.$store.dispatch('platform/query', {
         count: this.count,
         page: this.currentPage,
-        query: this.searchSrt
+        query: this.searchStr
       })
         .then((data) => {
           this.total = data.total

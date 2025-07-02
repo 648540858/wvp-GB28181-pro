@@ -27,7 +27,7 @@ public interface IRegionService {
 
     Region queryRegionByDeviceId(String regionDeviceId);
 
-    List<RegionTree> queryForTree(String query, Integer parent, Boolean hasChannel);
+    List<RegionTree> queryForTree(Integer parent, Boolean hasChannel);
 
     void syncFromChannel();
 
@@ -40,4 +40,6 @@ public interface IRegionService {
     String getDescription(String civilCode);
 
     void addByCivilCode(String civilCode);
+
+    PageInfo<Region> queryList(int page, int count, String query);
 }

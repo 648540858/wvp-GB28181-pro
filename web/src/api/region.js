@@ -81,4 +81,16 @@ export function queryPath(deviceId) {
     }
   })
 }
+export function queryTree(params) {
+  const { page, count, query } = params
+  return request({
+    method: 'get',
+    url: `/api/region/tree/query`,
+    params: {
+      query: query,
+      page: page,
+      count: count
+    }
+  })
+}
 

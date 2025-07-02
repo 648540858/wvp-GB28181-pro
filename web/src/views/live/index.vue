@@ -1,8 +1,8 @@
 <template>
   <div id="live" class="live-container">
     <div v-loading="loading" class="live-content" element-loading-text="拼命加载中">
-      <div class="device-tree-container">
-        <DeviceTree :click-event="clickEvent" :context-menu-event="contextMenuEvent" />
+      <div class="device-tree-container-box">
+        <DeviceTree @clickEvent="clickEvent" :context-menu-event="contextMenuEvent" />
       </div>
       <div class="video-container">
         <div class="control-bar">
@@ -281,7 +281,7 @@ export default {
   flex-direction: row;
 }
 
-.device-tree-container {
+.device-tree-container-box {
   width: 300px;
   min-width: 250px;
   max-width: 400px;
@@ -295,7 +295,7 @@ export default {
     flex-direction: column;
   }
 
-  .device-tree-container {
+  .device-tree-container-box {
     width: 100%;
     max-width: 100%;
     height: 200px;
@@ -402,76 +402,5 @@ export default {
   }
 }
 
-.videoList {
-  display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
-}
 
-.video-item {
-  position: relative;
-  width: 15rem;
-  height: 10rem;
-  margin-right: 1rem;
-  background-color: #000000;
-}
-
-.video-item-img {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  margin: auto;
-  width: 100%;
-  height: 100%;
-}
-
-.video-item-img:after {
-  content: "";
-  display: inline-block;
-  position: absolute;
-  z-index: 2;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  margin: auto;
-  width: 3rem;
-  height: 3rem;
-  background-image: url("../../assets/loading.png");
-  background-size: cover;
-  background-color: #000000;
-}
-
-.video-item-title {
-  position: absolute;
-  bottom: 0;
-  color: #000000;
-  background-color: #ffffff;
-  line-height: 1.5rem;
-  padding: 0.3rem;
-  width: 14.4rem;
-}
-
-.baidumap {
-  width: 100%;
-  height: 100%;
-  border: none;
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  margin: auto;
-}
-
-/* 去除百度地图版权那行字 和 百度logo */
-.baidumap > .BMap_cpyCtrl {
-  display: none !important;
-}
-
-.baidumap > .anchorBL {
-  display: none !important;
-}
 </style>

@@ -14,7 +14,7 @@
       <el-form :inline="true" size="mini">
         <el-form-item label="搜索">
           <el-input
-            v-model="searchSrt"
+            v-model="searchStr"
             style="margin-right: 1rem; width: auto;"
             size="mini"
             placeholder="关键字"
@@ -144,7 +144,7 @@ export default {
     return {
       showDialog: false,
       channelList: [], // 设备列表
-      searchSrt: '',
+      searchStr: '',
       online: null,
       channelType: '',
       winHeight: 580,
@@ -177,7 +177,7 @@ export default {
         page: this.currentPage,
         count: this.count,
         channelType: this.channelType,
-        query: this.searchSrt,
+        query: this.searchStr,
         online: this.online
       })
         .then((data) => {

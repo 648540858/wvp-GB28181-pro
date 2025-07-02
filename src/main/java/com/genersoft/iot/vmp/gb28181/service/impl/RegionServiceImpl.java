@@ -144,17 +144,12 @@ public class RegionServiceImpl implements IRegionService {
     }
 
     @Override
-    public List<RegionTree> queryForTree(String query, Integer parent, Boolean hasChannel) {
-        if (query != null) {
-            query = query.replaceAll("/", "//")
-                    .replaceAll("%", "/%")
-                    .replaceAll("_", "/_");
-        }
-        List<RegionTree> regionList = regionMapper.queryForTree(query, parent);
+    public List<RegionTree> queryForTree(Integer parent, Boolean hasChannel) {
+        List<RegionTree> regionList = regionMapper.queryForTree(parent);
         if (parent != null && hasChannel != null && hasChannel) {
             Region parentRegion = regionMapper.queryOne(parent);
             if (parentRegion != null) {
-                List<RegionTree> channelList = commonGBChannelMapper.queryForRegionTreeByCivilCode(query, parentRegion.getDeviceId());
+                List<RegionTree> channelList = commonGBChannelMapper.queryForRegionTreeByCivilCode(parentRegion.getDeviceId());
                 regionList.addAll(channelList);
             }
         }
@@ -323,5 +318,17 @@ public class RegionServiceImpl implements IRegionService {
             regionMapper.add(region);
             parentId = region.getId();
         }
+    }
+
+    @Override
+    public PageInfo<Region> queryList(int page, int count, String query) {
+        PageHelper.startPage(page, count);
+        if (query != null) {
+            query = query.replaceAll("/", "//")
+                    .replaceAll("%", "/%")
+                    .replaceAll("_", "/_");
+        }
+        List<Region> all = regionMapper.query(query, null);
+        return new PageInfo<>(all);
     }
 }

@@ -67,13 +67,24 @@ export const constantRoutes = [
     }]
   },
   {
+    path: '/channel',
+    component: Layout,
+    redirect: '/channel',
+    children: [{
+      path: '',
+      name: 'Channel',
+      component: () => import('@/views/channel/index'),
+      meta: {title: '通道列表', icon: 'channelManger'}
+    }]
+  },
+  {
     path: '/device',
     component: Layout,
-    redirect: '/device',
-    onlyIndex: 0,
+    name: '设备接入',
+    meta: { title: '设备接入', icon: 'devices' },
     children: [
       {
-        path: '',
+        path: '/device',
         name: 'Device',
         component: () => import('@/views/device/index'),
         meta: { title: '国标设备', icon: 'device' }
@@ -82,30 +93,15 @@ export const constantRoutes = [
         path: '/device/record/:deviceId/:channelDeviceId',
         name: 'DeviceRecord',
         component: () => import('@/views/device/channel/record'),
-        meta: { title: '国标录像' }
-      }
-    ]
-  },
-  {
-    path: '/push',
-    component: Layout,
-    redirect: '/push',
-    children: [
+      },
       {
-        path: '',
+        path: '/push',
         name: 'PushList',
         component: () => import('@/views/streamPush/index'),
         meta: { title: '推流列表', icon: 'streamPush' }
-      }
-    ]
-  },
-  {
-    path: '/proxy',
-    component: Layout,
-    redirect: '/proxy',
-    children: [
+      },
       {
-        path: '',
+        path: '/proxy',
         name: 'Proxy',
         component: () => import('@/views/streamProxy/index'),
         meta: { title: '拉流代理', icon: 'streamProxy' }

@@ -10,6 +10,8 @@ import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IGroupService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -292,5 +294,17 @@ public class GroupServiceImpl implements IGroupService {
         List<Group> allParent = getAllParent(parent);
         allParent.add(parent);
         return allParent;
+    }
+
+    @Override
+    public PageInfo<Group> queryList(Integer page, Integer count, String query) {
+        PageHelper.startPage(page, count);
+        if (query != null) {
+            query = query.replaceAll("/", "//")
+                    .replaceAll("%", "/%")
+                    .replaceAll("_", "/_");
+        }
+        List<Group> all = groupManager.query(query, null, null);
+        return new PageInfo<>(all);
     }
 }

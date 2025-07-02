@@ -14,7 +14,7 @@
       <el-form :inline="true" size="mini">
         <el-form-item label="搜索">
           <el-input
-            v-model="searchSrt"
+            v-model="searchStr"
             style="margin-right: 1rem; width: auto;"
             placeholder="关键字"
             prefix-icon="el-icon-search"
@@ -117,7 +117,7 @@ export default {
       showDialog: false,
       channelList: [], // 设备列表
       currentDevice: {}, // 当前操作设备对象
-      searchSrt: '',
+      searchStr: '',
       online: null,
       channelType: '',
       videoComponentList: [],
@@ -154,7 +154,7 @@ export default {
           page: this.currentPage,
           count: this.count,
           channelType: this.channelType,
-          query: this.searchSrt,
+          query: this.searchStr,
           online: this.online
         })
           .then(data => {
@@ -167,7 +167,7 @@ export default {
         this.$store.dispatch('commonChanel/getParentList', {
           page: this.currentPage,
           count: this.count,
-          query: this.searchSrt,
+          query: this.searchStr,
           channelType: this.channelType,
           online: this.online
         })

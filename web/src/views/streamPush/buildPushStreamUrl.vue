@@ -56,7 +56,7 @@
           </el-form-item>
           <el-form-item>
             <div style="float: right;">
-              <el-button type="primary" @click="onSubmit">确认</el-button>
+              <el-button @click="close">关闭</el-button>
             </div>
           </el-form-item>
         </el-form>
@@ -126,9 +126,6 @@ export default {
     openDialog: function(callback) {
       this.endCallback = callback
       this.showDialog = true
-    },
-    onSubmit: function() {
-
     },
     close: function() {
       this.showDialog = false

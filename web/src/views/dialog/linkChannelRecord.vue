@@ -10,7 +10,7 @@
           <el-form :inline="true" size="mini">
             <el-form-item label="搜索">
               <el-input
-                v-model="searchSrt"
+                v-model="searchStr"
                 style="margin-right: 1rem; width: auto;"
                 placeholder="关键字"
                 prefix-icon="el-icon-search"
@@ -120,7 +120,7 @@ export default {
       showDialog: false,
       chooseData: {},
       channelList: [],
-      searchSrt: '',
+      searchStr: '',
       channelType: '',
       online: '',
       hasLink: 'false',
@@ -161,7 +161,7 @@ export default {
       this.$store.dispatch('recordPlan/queryChannelList', {
         page: this.currentPage,
         count: this.count,
-        query: this.searchSrt,
+        query: this.searchStr,
         online: this.online,
         channelType: this.channelType,
         planId: this.planId,

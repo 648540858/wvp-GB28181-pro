@@ -378,6 +378,7 @@ public class ZLMRESTfulUtils {
         param.put("url", streamUrl);
         param.put("timeout_sec", timeout_sec);
         param.put("expire_sec", expire_sec);
+        param.put("async", 1);
         sendGetForImg(mediaServerItem, "getSnap", param, targetPath, fileName);
     }
 
@@ -446,7 +447,6 @@ public class ZLMRESTfulUtils {
         BigDecimal bigDecimal = new BigDecimal(stamp);
         param.put("stamp", bigDecimal);
         param.put("schema", schema);
-        System.out.println(bigDecimal);
         return sendPost(mediaServer, "seekRecordStamp",param, null);
     }
 }

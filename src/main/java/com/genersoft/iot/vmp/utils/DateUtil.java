@@ -15,7 +15,7 @@ import java.time.temporal.TemporalAccessor;
 
 import java.util.Locale;
 
-/**    
+/**
  * 全局时间工具类
  * @author lin
  */
@@ -74,7 +74,7 @@ public class DateUtil {
 	public static String yyyy_MM_dd_HH_mm_ssToISO8601(@NotNull String formatTime) {
         return formatterISO8601.format(formatter.parse(formatTime));
     }
-	
+
 	public static String ISO8601Toyyyy_MM_dd_HH_mm_ss(String formatTime) {
         // 三种日期格式都尝试，为了兼容不同厂家的日期格式
         if (verification(formatTime, formatterCompatibleISO8601)) {
@@ -209,13 +209,6 @@ public class DateUtil {
         Instant startInstant = Instant.from(formatter.parse(startTime));
         Instant endInstant = Instant.from(formatter.parse(endTime));
         return ChronoUnit.MILLIS.between(startInstant, endInstant);
-    }
-
-
-
-    public static void main(String[] args) {
-        long difference = getDifference("2025-05-21 13:00:00", "2025-05-21 13:30:00")/1000;
-        System.out.println(difference);
     }
 
 }

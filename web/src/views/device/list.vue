@@ -3,7 +3,7 @@
     <el-form :inline="true" size="mini">
       <el-form-item label="搜索">
         <el-input
-          v-model="searchSrt"
+          v-model="searchStr"
           style="margin-right: 1rem; width: auto;"
           placeholder="关键字"
           prefix-icon="el-icon-search"
@@ -185,7 +185,7 @@ export default {
     return {
       deviceList: [], // 设备列表
       currentDevice: {}, // 当前操作设备对象
-      searchSrt: '',
+      searchStr: '',
       online: null,
       videoComponentList: [],
       updateLooper: 0, // 数据刷新轮训标志
@@ -231,7 +231,7 @@ export default {
       this.$store.dispatch('device/queryDevices', {
         page: this.currentPage,
         count: this.count,
-        query: this.searchSrt,
+        query: this.searchStr,
         status: this.online
       }).then((data) => {
         this.total = data.total

@@ -118,6 +118,7 @@ public class GbChannelPlayServiceImpl implements IGbChannelPlayService {
 
     @Override
     public void play(CommonGBChannel channel, Platform platform, Boolean record, ErrorCallback<StreamInfo> callback) {
+        log.info("[通用通道] 播放， 类型： {}， 编号：{}", channel.getDataType(), channel.getGbDeviceId());
         if (channel.getDataType() == ChannelDataType.GB28181.value) {
             // 国标通道
             playGbDeviceChannel(channel, record, callback);

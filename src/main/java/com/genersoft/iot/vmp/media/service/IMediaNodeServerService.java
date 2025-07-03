@@ -64,7 +64,7 @@ public interface IMediaNodeServerService {
 
     Long updateDownloadProcess(MediaServer mediaServer, String app, String stream);
 
-    StreamInfo startProxy(MediaServer mediaServer, StreamProxy streamProxy);
+    void startProxy(MediaServer mediaServer, StreamProxy streamProxy);
 
     void stopProxy(MediaServer mediaServer, String streamKey);
 

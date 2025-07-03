@@ -204,6 +204,9 @@ public class UserSetting {
      */
     private boolean sipCacheServerConnections = true;
 
-
+    /**
+     * 禁用date头，变相禁用了校时
+     */
+    private boolean disableDateHeader = false;
 
 }

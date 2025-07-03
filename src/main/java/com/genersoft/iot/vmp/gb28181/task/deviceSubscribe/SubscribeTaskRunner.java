@@ -94,14 +94,7 @@ public class SubscribeTaskRunner{
             return false;
         }
         log.info("[更新订阅任务时间] {}, 编号： {}", task.getName(), key);
-        if (delayQueue.contains(task)) {
-            boolean remove = delayQueue.remove(task);
-            if (!remove) {
-                log.info("[更新订阅任务时间] 从延时队列内移除失败： {}", key);
-            }
-        }
         task.setDelayTime(expirationTime);
-        delayQueue.offer(task);
         String redisKey = String.format("%s_%s_%s", prefix, userSetting.getServerId(), task.getKey());
         Duration duration = Duration.ofSeconds((expirationTime - System.currentTimeMillis())/1000);
         redisTemplate.expire(redisKey, duration);

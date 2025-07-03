@@ -114,14 +114,7 @@ public class PlatformStatusTaskRunner {
             return false;
         }
         log.info("[更新平台注册任务时间] 平台上级编号： {}", platformServerId);
-        if (registerDelayQueue.contains(task)) {
-            boolean remove = registerDelayQueue.remove(task);
-            if (!remove) {
-                log.info("[更新平台注册任务时间] 从延时队列内移除失败： {}", platformServerId);
-            }
-        }
         task.setDelayTime(expirationTime);
-        registerDelayQueue.offer(task);
         String redisKey = String.format("%s_%s_%s", prefix, userSetting.getServerId(), platformServerId);
         Duration duration = Duration.ofSeconds((expirationTime - System.currentTimeMillis())/1000);
         redisTemplate.expire(redisKey, duration);
@@ -165,14 +158,7 @@ public class PlatformStatusTaskRunner {
             return false;
         }
         log.info("[更新平台心跳任务时间] 平台上级编号： {}", platformServerId);
-        if (keepaliveTaskDelayQueue.contains(task)) {
-            boolean remove = keepaliveTaskDelayQueue.remove(task);
-            if (!remove) {
-                log.info("[更新平台心跳任务时间] 从延时队列内移除失败： {}", platformServerId);
-            }
-        }
         task.setDelayTime(expirationTime);
-        keepaliveTaskDelayQueue.offer(task);
         return true;
     }
 

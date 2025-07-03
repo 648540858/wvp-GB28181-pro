@@ -4,7 +4,7 @@
       <el-form :inline="true" size="mini">
         <el-form-item label="搜索">
           <el-input
-            v-model="searchSrt"
+            v-model="searchStr"
             style="margin-right: 1rem; width: auto;"
             placeholder="关键字"
             prefix-icon="el-icon-search"
@@ -144,7 +144,7 @@ export default {
       count: 15,
       total: 0,
       streamProxy: null,
-      searchSrt: '',
+      searchStr: '',
       mediaServerId: '',
       pulling: '',
       mediaServerList: []
@@ -193,7 +193,7 @@ export default {
       this.$store.dispatch('streamProxy/queryList', {
         page: this.currentPage,
         count: this.count,
-        query: this.searchSrt,
+        query: this.searchStr,
         pulling: this.pulling,
         mediaServerId: this.mediaServerId
       })
@@ -259,7 +259,7 @@ export default {
         })
     },
     queryCloudRecords: function(row) {
-      this.$router.push(`/cloudRecordDetail/${row.app}/${row.stream}`)
+      this.$router.push(`/cloudRecord/detail/${row.app}/${row.stream}`)
     },
     deleteStreamProxy: function(row) {
       this.$confirm('确定删除此代理吗？', '提示', {

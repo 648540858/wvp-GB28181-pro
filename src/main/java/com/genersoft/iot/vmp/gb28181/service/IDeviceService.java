@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -116,6 +117,9 @@ public interface IDeviceService {
      * @param device 设备信息
      */
     void updateDevice(Device device);
+
+    @Transactional
+    void updateDeviceList(List<Device> deviceList);
 
     /**
      * 检查设备编号是否已经存在

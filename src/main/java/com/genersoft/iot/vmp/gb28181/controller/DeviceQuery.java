@@ -113,6 +113,19 @@ public class DeviceQuery {
 		return deviceChannelService.queryChannelsByDeviceId(deviceId, query, channelType, online, page, count);
 	}
 
+	@GetMapping("/streams")
+	@Operation(summary = "分页查询存在流的通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
+	@Parameter(name = "page", description = "当前页", required = true)
+	@Parameter(name = "count", description = "每页查询数量", required = true)
+	@Parameter(name = "query", description = "查询内容")
+	public PageInfo<DeviceChannel> streamChannels(int page, int count,
+												  @RequestParam(required = false) String query) {
+		if (ObjectUtils.isEmpty(query)) {
+			query = null;
+		}
+
+		return deviceChannelService.queryChannels(query, true, null, null, true, page, count);
+	}
 
 	@Operation(summary = "同步设备通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)

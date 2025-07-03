@@ -1,17 +1,24 @@
 import {
-  add, changeChannelAudio,
+  add,
+  changeChannelAudio,
   deleteDevice,
   deviceRecord,
   queryBasicParam,
   queryChannelOne,
-  queryChannels, queryChannelTree, queryDeviceOne,
+  queryChannels,
+  queryChannelTree,
+  queryDeviceOne,
   queryDevices,
-  queryDeviceSyncStatus, queryDeviceTree,
+  queryDeviceSyncStatus,
+  queryDeviceTree,
+  queryHasStreamChannels,
   resetGuard,
   setGuard,
   subscribeCatalog,
   subscribeMobilePosition,
-  sync, update, updateChannelStreamIdentification,
+  sync,
+  update,
+  updateChannelStreamIdentification,
   updateDeviceTransport
 } from '@/api/device'
 
@@ -120,6 +127,16 @@ const actions = {
     return new Promise((resolve, reject) => {
       queryChannels(deviceId, params).then(response => {
         const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  queryHasStreamChannels({commit}, params) {
+    return new Promise((resolve, reject) => {
+      queryHasStreamChannels(params).then(response => {
+        const {data} = response
         resolve(data)
       }).catch(error => {
         reject(error)

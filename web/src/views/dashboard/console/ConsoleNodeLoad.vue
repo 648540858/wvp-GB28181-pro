@@ -1,17 +1,21 @@
 <template>
   <div id="ConsoleNodeLoad" style="width: 100%; height: 100%; background: #FFFFFF; text-align: center">
-    <ve-histogram ref="consoleNodeLoad" :data="chartData" :extend="extend" :settings="chartSettings" width="100%" height="100%" :legend-visible="true" />
+    <ve-histogram ref="consoleNodeLoad" :data="chartData" :extend="extend" :events="events" :settings="chartSettings"
+                  width="100%" height="100%" :legend-visible="true"/>
+
+    <HasStreamChannel ref="hasStreamChannel"/>
   </div>
 </template>
 
 <script>
-
 import veHistogram from 'v-charts/lib/histogram'
+import HasStreamChannel from "@/views/dialog/hasStreamChannel";
 
 export default {
   name: 'ConsoleNodeLoad',
   components: {
-    veHistogram
+    veHistogram,
+    HasStreamChannel
   },
   data() {
     return {
@@ -43,6 +47,9 @@ export default {
           show: true,
           position: 'top'
         }
+      },
+      events: {
+        click: this.onClick
       }
     }
   },
@@ -56,10 +63,14 @@ export default {
   destroyed() {
   },
   methods: {
-    setData: function(data) {
+    setData: function (data) {
       this.chartData.rows = data
+    },
+    onClick(v) {
+      if (v.seriesName === "国标收流") {
+        this.$refs.hasStreamChannel.openDialog();
+      }
     }
-
   }
 }
 </script>

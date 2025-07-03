@@ -144,12 +144,15 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 
             // 携带授权头并且密码正确
             response = getMessageFactory().createResponse(Response.OK, request);
-            // 添加date头
-            SIPDateHeader dateHeader = new SIPDateHeader();
-            // 使用自己修改的
-            GbSipDate gbSipDate = new GbSipDate(Calendar.getInstance(Locale.ENGLISH).getTimeInMillis());
-            dateHeader.setDate(gbSipDate);
-            response.addHeader(dateHeader);
+            // 如果主动禁用了Date头，则不添加
+            if (!userSetting.isDisableDateHeader()) {
+                // 添加date头
+                SIPDateHeader dateHeader = new SIPDateHeader();
+                // 使用自己修改的
+                GbSipDate gbSipDate = new GbSipDate(Calendar.getInstance(Locale.ENGLISH).getTimeInMillis());
+                dateHeader.setDate(gbSipDate);
+                response.addHeader(dateHeader);
+            }
 
             if (request.getExpires() == null) {
                 response = getMessageFactory().createResponse(Response.BAD_REQUEST, request);
@@ -218,12 +221,15 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
     private Response getRegisterOkResponse(Request request) throws ParseException {
         // 携带授权头并且密码正确
         Response response = getMessageFactory().createResponse(Response.OK, request);
-        // 添加date头
-        SIPDateHeader dateHeader = new SIPDateHeader();
-        // 使用自己修改的
-        GbSipDate gbSipDate = new GbSipDate(Calendar.getInstance(Locale.ENGLISH).getTimeInMillis());
-        dateHeader.setDate(gbSipDate);
-        response.addHeader(dateHeader);
+        // 如果主动禁用了Date头，则不添加
+        if (!userSetting.isDisableDateHeader()) {
+            // 添加date头
+            SIPDateHeader dateHeader = new SIPDateHeader();
+            // 使用自己修改的
+            GbSipDate gbSipDate = new GbSipDate(Calendar.getInstance(Locale.ENGLISH).getTimeInMillis());
+            dateHeader.setDate(gbSipDate);
+            response.addHeader(dateHeader);
+        }
 
         // 添加Contact头
         response.addHeader(request.getHeader(ContactHeader.NAME));

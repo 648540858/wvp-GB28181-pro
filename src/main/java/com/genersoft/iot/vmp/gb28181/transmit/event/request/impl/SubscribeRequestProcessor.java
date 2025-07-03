@@ -69,6 +69,12 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 				responseAck(request, Response.BAD_REQUEST);
 				return;
 			}
+			ExpiresHeader expires = request.getExpires();
+			if (expires == null) {
+				log.error("处理SUBSCRIBE请求  未获取到ExpiresHeader{}", evt.getRequest());
+				responseAck(request, Response.BAD_REQUEST, "missing expires");
+				return;
+			}
 			String platformId = SipUtils.getUserIdFromFromHeader(request);
 			String cmd = XmlUtil.getText(rootElement, "CmdType");
 			log.info("[收到订阅请求] 类型： {}, 来自： {}", cmd, platformId);
@@ -180,7 +186,6 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 				.append("<DeviceID>").append(deviceId).append("</DeviceID>\r\n")
 				.append("<Result>OK</Result>\r\n")
 				.append("</Response>\r\n");
-
 
 		try {
 			int expires = request.getExpires().getExpires();

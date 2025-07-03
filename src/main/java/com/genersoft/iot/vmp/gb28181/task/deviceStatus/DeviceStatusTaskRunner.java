@@ -94,14 +94,7 @@ public class DeviceStatusTaskRunner {
             return false;
         }
         log.debug("[更新状态任务时间] 编号： {}", key);
-        if (delayQueue.contains(task)) {
-            boolean remove = delayQueue.remove(task);
-            if (!remove) {
-                log.info("[更新状态任务时间] 从延时队列内移除失败： {}", key);
-            }
-        }
         task.setDelayTime(expirationTime);
-        delayQueue.offer(task);
         String redisKey = String.format("%s_%s_%s", prefix, userSetting.getServerId(), task.getDeviceId());
         Duration duration = Duration.ofSeconds((expirationTime - System.currentTimeMillis())/1000);
         redisTemplate.expire(redisKey, duration);

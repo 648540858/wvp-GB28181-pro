@@ -148,6 +148,7 @@ public class AlarmController {
     @Parameter(name = "page",description = "当前页",required = true)
     @Parameter(name = "count",description = "每页查询数量",required = true)
     @Parameter(name = "deviceId",description = "设备id")
+    @Parameter(name = "channelId",description = "通道id")
     @Parameter(name = "alarmPriority",description = "查询内容")
     @Parameter(name = "alarmMethod",description = "查询内容")
     @Parameter(name = "alarmType",description = "每页查询数量")
@@ -157,7 +158,8 @@ public class AlarmController {
     public PageInfo<DeviceAlarm> getAll(
             @RequestParam int page,
             @RequestParam int count,
-            @RequestParam(required = false)  String deviceId,
+            @RequestParam(required = false) String deviceId,
+            @RequestParam(required = false) String channelId,
             @RequestParam(required = false) String alarmPriority,
             @RequestParam(required = false) String alarmMethod,
             @RequestParam(required = false) String alarmType,
@@ -186,7 +188,7 @@ public class AlarmController {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "endTime格式为" + DateUtil.PATTERN);
         }
 
-        return deviceAlarmService.getAllAlarm(page, count, deviceId, alarmPriority, alarmMethod,
+        return deviceAlarmService.getAllAlarm(page, count, deviceId, channelId, alarmPriority, alarmMethod,
                 alarmType, startTime, endTime);
     }
 }

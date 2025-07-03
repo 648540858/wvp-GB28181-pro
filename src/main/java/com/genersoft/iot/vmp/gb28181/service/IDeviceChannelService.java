@@ -1,10 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.service;
 
-import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.common.enums.DeviceControlType;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.controller.bean.ChannelReduce;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
@@ -104,6 +101,7 @@ public interface IDeviceChannelService {
 
     PageInfo<DeviceChannel> queryChannelsByDeviceId(String deviceId, String query, Boolean channelType, Boolean online, int page, int count);
 
+    PageInfo<DeviceChannel> queryChannels(String query, Boolean queryParent, Boolean channelType, Boolean online, Boolean hasStream, int page, int count);
 
     List<Device> queryDeviceWithAsMessageChannel();
 

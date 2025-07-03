@@ -346,38 +346,41 @@ public interface DeviceMapper {
 
     @Select(" <script>" +
             "SELECT " +
-            "id, " +
-            "device_id, " +
             "coalesce(custom_name, name) as name, " +
-            "password, " +
-            "manufacturer, " +
-            "model, " +
-            "firmware, " +
-            "transport," +
-            "stream_mode," +
-            "ip,"+
-            "sdp_ip,"+
-            "local_ip,"+
-            "port,"+
-            "host_address,"+
-            "expires,"+
-            "register_time,"+
-            "keepalive_time,"+
-            "create_time,"+
-            "update_time,"+
-            "charset,"+
-            "subscribe_cycle_for_catalog,"+
-            "subscribe_cycle_for_mobile_position,"+
-            "mobile_position_submission_interval,"+
-            "subscribe_cycle_for_alarm,"+
-            "ssrc_check,"+
-            "as_message_channel,"+
-            "broadcast_push_after_ack,"+
-            "geo_coord_sys,"+
-            "on_line,"+
-            "media_server_id,"+
-            "server_id,"+
-            "(SELECT count(0) FROM wvp_device_channel dc WHERE dc.data_type = #{dataType} and dc.data_device_id= de.id) as channel_count " +
+            "id" +
+            ",device_id" +
+            ",manufacturer" +
+            ",model" +
+            ",firmware" +
+            ",transport" +
+            ",stream_mode" +
+            ",on_line" +
+            ",register_time" +
+            ",keepalive_time" +
+            ",ip" +
+            ",create_time" +
+            ",update_time" +
+            ",port" +
+            ",expires" +
+            ",subscribe_cycle_for_catalog" +
+            ",subscribe_cycle_for_mobile_position" +
+            ",mobile_position_submission_interval" +
+            ",subscribe_cycle_for_alarm" +
+            ",host_address" +
+            ",charset" +
+            ",ssrc_check" +
+            ",geo_coord_sys" +
+            ",media_server_id" +
+            ",sdp_ip" +
+            ",local_ip" +
+            ",password" +
+            ",as_message_channel" +
+            ",heart_beat_interval" +
+            ",heart_beat_count" +
+            ",position_capability" +
+            ",broadcast_push_after_ack" +
+            ",server_id" +
+            ",(SELECT count(0) FROM wvp_device_channel dc WHERE dc.data_type = #{dataType} and dc.data_device_id= de.id) as channel_count " +
             " FROM wvp_device de" +
             " where 1 = 1 "+
             " <if test='status != null'> AND de.on_line=${status}</if>"+
@@ -423,4 +426,36 @@ public interface DeviceMapper {
             "<foreach collection='offlineDevices' item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
             " </script>"})
     void offlineByList(List<Device> offlineDevices);
+
+
+    @Update({"<script>" +
+            "<foreach collection='devices' item='item' separator=';'>" +
+            " UPDATE" +
+            " wvp_device" +
+            " SET update_time=#{item.updateTime}" +
+            ", name=#{item.name}" +
+            ", manufacturer=#{item.manufacturer}" +
+            ", model=#{item.model}" +
+            ", firmware=#{item.firmware}" +
+            ", transport=#{item.transport}" +
+            ", ip=#{item.ip}" +
+            ", local_ip=#{item.localIp}" +
+            ", port=#{item.port}" +
+            ", host_address=#{item.hostAddress}" +
+            ", on_line=#{item.onLine}" +
+            ", register_time=#{item.registerTime}" +
+            ", keepalive_time=#{item.keepaliveTime}" +
+            ", heart_beat_interval=#{item.heartBeatInterval}" +
+            ", position_capability=#{item.positionCapability}" +
+            ", heart_beat_count=#{item.heartBeatCount}" +
+            ", subscribe_cycle_for_catalog=#{item.subscribeCycleForCatalog}" +
+            ", subscribe_cycle_for_mobile_position=#{item.subscribeCycleForMobilePosition}" +
+            ", mobile_position_submission_interval=#{item.mobilePositionSubmissionInterval}" +
+            ", subscribe_cycle_for_alarm=#{item.subscribeCycleForAlarm}" +
+            ", expires=#{item.expires}" +
+            ", server_id=#{item.serverId}" +
+            " WHERE device_id=#{item.deviceId}"+
+            "</foreach>" +
+            "</script>"})
+    void batchUpdate(List<Device> devices);
 }

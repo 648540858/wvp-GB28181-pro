@@ -100,7 +100,7 @@ public class RecordPlanController {
         return recordPlanService.query(page, count, query);
     }
 
-    @Operation(summary = "分页查询级联平台的所有所有通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
+    @Operation(summary = "分页查询录制计划关联的所有通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页条数", required = true)
     @Parameter(name = "planId", description = "录制计划ID")

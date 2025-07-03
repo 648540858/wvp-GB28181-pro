@@ -3,6 +3,7 @@ import Cookies from 'js-cookie'
 const TokenKey = 'wvp_token'
 const NameKey = 'wvp_username'
 const serverIdKey = 'wvp_server_id'
+const expires = 30
 
 export function getToken() {
   console.log('Getting token...')
@@ -10,7 +11,7 @@ export function getToken() {
 }
 
 export function setToken(token) {
-  return Cookies.set(TokenKey, token)
+  return Cookies.set(TokenKey, token, {expires: expires})
 }
 
 export function removeToken() {
@@ -22,7 +23,7 @@ export function getName() {
 }
 
 export function setName(name) {
-  return Cookies.set(NameKey, name)
+  return Cookies.set(NameKey, name, {expires: expires})
 }
 
 export function removeName() {
@@ -34,7 +35,7 @@ export function getServerId() {
 }
 
 export function setServerId(serverId) {
-  return Cookies.set(serverIdKey, serverId)
+  return Cookies.set(serverIdKey, serverId, {expires: expires})
 }
 
 export function removeServerId() {

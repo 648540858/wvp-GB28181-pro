@@ -148,6 +148,18 @@ public class DateUtil {
     }
 
     /**
+     * yyyy_MM_dd_HH_mm_ss 转时间戳（毫秒）
+     *
+     * @param formatTime
+     * @return
+     */
+    public static long urlToTimestampMs(String formatTime) {
+        TemporalAccessor temporalAccessor = urlFormatter.parse(formatTime);
+        Instant instant = Instant.from(temporalAccessor);
+        return instant.toEpochMilli();
+    }
+
+    /**
      * 时间戳 转 yyyy_MM_dd
      */
     public static String timestampTo_yyyy_MM_dd(long timestamp) {

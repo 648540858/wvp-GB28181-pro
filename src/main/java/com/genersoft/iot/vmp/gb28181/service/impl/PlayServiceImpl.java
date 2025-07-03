@@ -684,17 +684,11 @@ public class PlayServiceImpl implements IPlayService {
      * @param stream               ssrc
      */
     private void snapOnPlay(MediaServer mediaServerItemInuse, String deviceId, String channelId, String stream) {
-        String streamUrl;
-        if (mediaServerItemInuse.getRtspPort() != 0) {
-            streamUrl = String.format("rtsp://127.0.0.1:%s/%s/%s", mediaServerItemInuse.getRtspPort(), "rtp", stream);
-        } else {
-            streamUrl = String.format("http://127.0.0.1:%s/%s/%s.live.mp4", mediaServerItemInuse.getHttpPort(), "rtp", stream);
-        }
         String path = "snap";
         String fileName = deviceId + "_" + channelId + ".jpg";
         // 请求截图
         log.info("[请求截图]: " + fileName);
-        mediaServerService.getSnap(mediaServerItemInuse, streamUrl, 15, 1, path, fileName);
+        mediaServerService.getSnap(mediaServerItemInuse, "rtp", stream, 15, 1, path, fileName);
     }
 
     public StreamInfo onPublishHandlerForPlay(MediaServer mediaServerItem, MediaInfo mediaInfo, Device device, DeviceChannel channel) {
@@ -1617,17 +1611,11 @@ public class PlayServiceImpl implements IPlayService {
         if (inviteInfo != null) {
             if (inviteInfo.getStreamInfo() != null) {
                 // 已存在线直接截图
-                MediaServer mediaServerItemInuse = inviteInfo.getStreamInfo().getMediaServer();
-                String streamUrl;
-                if (mediaServerItemInuse.getRtspPort() != 0) {
-                    streamUrl = String.format("rtsp://127.0.0.1:%s/%s/%s", mediaServerItemInuse.getRtspPort(), "rtp",  inviteInfo.getStreamInfo().getStream());
-                }else {
-                    streamUrl = String.format("http://127.0.0.1:%s/%s/%s.live.mp4", mediaServerItemInuse.getHttpPort(), "rtp",  inviteInfo.getStreamInfo().getStream());
-                }
+                MediaServer mediaServer = inviteInfo.getStreamInfo().getMediaServer();
                 String path = "snap";
                 // 请求截图
                 log.info("[请求截图]: " + fileName);
-                mediaServerService.getSnap(mediaServerItemInuse, streamUrl, 15, 1, path, fileName);
+                mediaServerService.getSnap(mediaServer, "rtp",  inviteInfo.getStreamInfo().getStream(), 15, 1, path, fileName);
                 File snapFile = new File(path + File.separator + fileName);
                 if (snapFile.exists()) {
                     errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), snapFile.getAbsoluteFile());

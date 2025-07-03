@@ -64,13 +64,13 @@ public class ABLMediaServerStatusManger {
                 || event.getMediaServerItemList().isEmpty()) {
             return;
         }
-        for (MediaServer mediaServerItem : event.getMediaServerItemList()) {
-            if (!type.equals(mediaServerItem.getType())) {
+        for (MediaServer mediaServer : event.getMediaServerItemList()) {
+            if (!type.equals(mediaServer.getType())) {
                 continue;
             }
-            logger.info("[ABL-添加待上线节点] ID：" + mediaServerItem.getId());
-            offlineABLPrimaryMap.put(mediaServerItem.getId(), mediaServerItem);
-            offlineAblTimeMap.put(mediaServerItem.getId(), System.currentTimeMillis());
+            logger.info("[ABL-添加待上线节点] ID：" + mediaServer.getId());
+            offlineABLPrimaryMap.put(mediaServer.getId(), mediaServer);
+            offlineAblTimeMap.put(mediaServer.getId(), System.currentTimeMillis());
         }
         execute();
     }
@@ -108,13 +108,13 @@ public class ABLMediaServerStatusManger {
     @Async("taskExecutor")
     @EventListener
     public void onApplicationEvent(MediaServerDeleteEvent event) {
-        if (event.getMediaServerId() == null) {
+        if (event.getMediaServer() == null) {
             return;
         }
-        logger.info("[ABL-节点被移除] ID：" + event.getMediaServerId());
-        offlineABLPrimaryMap.remove(event.getMediaServerId());
-        offlineAblsecondaryMap.remove(event.getMediaServerId());
-        offlineAblTimeMap.remove(event.getMediaServerId());
+        logger.info("[ABL-节点被移除] ID：" + event.getMediaServer().getServerId());
+        offlineABLPrimaryMap.remove(event.getMediaServer().getServerId());
+        offlineAblsecondaryMap.remove(event.getMediaServer().getServerId());
+        offlineAblTimeMap.remove(event.getMediaServer().getServerId());
     }
 
     @Scheduled(fixedDelay = 10*1000)   //每隔10秒检查一次

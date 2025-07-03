@@ -3,9 +3,11 @@ package com.genersoft.iot.vmp.media.abl;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.gb28181.service.IDeviceService;
+import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
+import com.genersoft.iot.vmp.gb28181.service.IPlayService;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
-import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.media.abl.bean.hook.*;
 import com.genersoft.iot.vmp.media.abl.event.HookAblServerKeepaliveEvent;
@@ -18,7 +20,6 @@ import com.genersoft.iot.vmp.media.zlm.dto.hook.HookResult;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.HookResultForOnPublish;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,9 +56,6 @@ public class ABLHttpHookListener {
     private IPlayService playService;
 
     @Autowired
-    private IVideoManagerStorage storager;
-
-    @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
@@ -76,9 +74,6 @@ public class ABLHttpHookListener {
 
     @Autowired
     private UserSetting userSetting;
-
-    @Autowired
-    private VideoStreamSessionManager sessionManager;
 
     @Autowired
     private SSRCFactory ssrcFactory;
@@ -272,7 +267,7 @@ public class ABLHttpHookListener {
 
         logger.info("[ABL HOOK] 流未找到：{}->{}/{}", param.getMediaServerId(), param.getApp(), param.getStream());
         MediaServer mediaServer = mediaServerService.getOne(param.getMediaServerId());
-        if (!userSetting.isAutoApplyPlay() || mediaServer == null) {
+        if (!userSetting.getAutoApplyPlay() || mediaServer == null) {
             return HookResult.SUCCESS();
         }
         MediaNotFoundEvent mediaNotFoundEvent = MediaNotFoundEvent.getInstance(this, param, mediaServer);

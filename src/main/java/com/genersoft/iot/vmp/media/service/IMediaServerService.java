@@ -85,7 +85,7 @@ public interface IMediaServerService {
 
     Boolean connectRtpServer(MediaServer mediaServerItem, String address, int port, String stream);
 
-    void getSnap(MediaServer mediaServerItemInuse, String app, String stream, int timeoutSec, int expireSec, String path, String fileName);
+    void getSnap(MediaServer mediaServer, String app, String stream, int timeoutSec, int expireSec, String path, String fileName);
 
     MediaInfo getMediaInfo(MediaServer mediaServerItem, String app, String stream);
 

@@ -8,7 +8,8 @@ import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
+import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.media.abl.bean.AblServerConfig;
 import com.genersoft.iot.vmp.media.abl.bean.hook.OnStreamArriveABLHookParam;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
@@ -17,10 +18,10 @@ import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.media.event.media.MediaRecordMp4Event;
 import com.genersoft.iot.vmp.media.event.media.MediaRecordProcessEvent;
 import com.genersoft.iot.vmp.media.service.IMediaNodeServerService;
-import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.service.bean.DownloadFileInfo;
 import com.genersoft.iot.vmp.storager.dao.CloudRecordServiceMapper;
+import com.genersoft.iot.vmp.streamProxy.bean.StreamProxy;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.slf4j.Logger;
@@ -30,10 +31,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service("abl")
 public class ABLMediaNodeServerService implements IMediaNodeServerService {
@@ -183,7 +181,7 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
         streamInfoResult.setApp(app);
         String addr = mediaServer.getStreamIp();
         streamInfoResult.setIp(addr);
-        streamInfoResult.setMediaServerId(mediaServer.getId());
+        streamInfoResult.setMediaServer(mediaServer);
         String callIdParam = ObjectUtils.isEmpty(callId)?"":"?callId=" + callId;
         streamInfoResult.setRtmp(addr, mediaServer.getRtmpPort(),mediaServer.getRtmpSSlPort(), app,  stream, callIdParam);
         streamInfoResult.setRtsp(addr, mediaServer.getRtspPort(),mediaServer.getRtspSSLPort(), app,  stream, callIdParam);
@@ -207,8 +205,8 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public void getSnap(MediaServer mediaServerItem, String app, String stream, int timeoutSec, int expireSec, String path, String fileName) {
-        ablresTfulUtils.getSnap(mediaServerItem, app, stream, timeoutSec, path, fileName);
+    public void getSnap(MediaServer mediaServer, String app, String stream, int timeoutSec, int expireSec, String path, String fileName) {
+        ablresTfulUtils.getSnap(mediaServer, app, stream, timeoutSec, path, fileName);
     }
 
     @Override
@@ -259,12 +257,6 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
     }
 
     @Override
-    public WVPResult<String> addStreamProxy(MediaServer mediaServer, String app, String stream, String url, boolean enableAudio, boolean enableMp4, String rtpType) {
-        logger.warn("[abl-addStreamProxy] 未实现");
-        return null;
-    }
-
-    @Override
     public Boolean delFFmpegSource(MediaServer mediaServer, String streamKey) {
         logger.warn("[abl-delFFmpegSource] 未实现");
         return null;
@@ -282,16 +274,6 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
         return null;
     }
 
-    @Override
-    public void startSendRtpPassive(MediaServer mediaServer, SendRtpItem sendRtpItem, Integer timeout) {
-        logger.warn("[abl-startSendRtpPassive] 未实现");
-    }
-
-    @Override
-    public void startSendRtpStream(MediaServer mediaServer, SendRtpItem sendRtpItem) {
-        logger.warn("[abl-startSendRtpStream] 未实现");
-    }
-
     // 接受进度通知
     @EventListener
     public void onApplicationEvent(MediaRecordProcessEvent event) {
@@ -307,11 +289,12 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
     }
     @EventListener
     public void onApplicationEvent(MediaRecordMp4Event event) {
-        InviteInfo inviteInfo = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, null, null, event.getStream());
+        InviteInfo inviteInfo = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, null, event.getStream());
         if (inviteInfo == null || inviteInfo.getStreamInfo() == null) {
             return;
         }
-        List<CloudRecordItem> cloudRecordItemList = cloudRecordServiceMapper.getList(null, event.getApp(), event.getStream(), null, null, null, null, null);
+        List<CloudRecordItem> cloudRecordItemList = cloudRecordServiceMapper.getList(null, event.getApp(), event.getStream(),
+                null, null, null, null, null, null);
         if (cloudRecordItemList.isEmpty()) {
             return;
         }
@@ -337,14 +320,62 @@ public class ABLMediaNodeServerService implements IMediaNodeServerService {
 
     @Override
     public Long updateDownloadProcess(MediaServer mediaServer, String app, String stream) {
-        List<CloudRecordItem> list = cloudRecordServiceMapper.getList(null, app, stream, null, null, null, null, null);
+        List<CloudRecordItem> list = cloudRecordServiceMapper.getList(null, app, stream, null,
+                null, null, null, null, null);
         if (list.isEmpty()) {
             return null;
         }
-        Long downloadProcess = 0L;
+        long downloadProcess = 0L;
         for (CloudRecordItem cloudRecordItem : list) {
-            downloadProcess += cloudRecordItem.getTimeLen();
+            downloadProcess += (long) cloudRecordItem.getTimeLen();
         }
         return downloadProcess;
+    }
+
+    @Override
+    public WVPResult<String> addStreamProxy(MediaServer mediaServer, String app, String stream, String url, boolean enableAudio, boolean enableMp4, String rtpType, Integer timeout) {
+        logger.warn("[abl-addStreamProxy] 未实现");
+        return null;
+    }
+
+    @Override
+    public Integer startSendRtpPassive(MediaServer mediaServer, SendRtpInfo sendRtpItem, Integer timeout) {
+        logger.warn("[abl-startSendRtpPassive] 未实现");
+        return 0;
+    }
+
+    @Override
+    public void startSendRtpStream(MediaServer mediaServer, SendRtpInfo sendRtpItem) {
+        logger.warn("[abl-startSendRtpStream] 未实现");
+    }
+
+    @Override
+    public void startProxy(MediaServer mediaServer, StreamProxy streamProxy) {
+        logger.warn("[abl-startProxy] 未实现");
+    }
+
+    @Override
+    public void stopProxy(MediaServer mediaServer, String streamKey) {
+        logger.warn("[abl-stopProxy] 未实现");
+    }
+
+    @Override
+    public List<String> listRtpServer(MediaServer mediaServer) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void loadMP4File(MediaServer mediaServer, String app, String stream, String datePath) {
+        logger.warn("[abl-loadMP4File] 未实现");
+    }
+
+    @Override
+    public void seekRecordStamp(MediaServer mediaServer, String app, String stream, Double stamp, String schema) {
+        logger.warn("[abl-seekRecordStamp] 未实现");
+    }
+
+    @Override
+    public void setRecordSpeed(MediaServer mediaServer, String app, String stream, Integer speed, String schema) {
+        logger.warn("[abl-setRecordSpeed] 未实现");
     }
 }

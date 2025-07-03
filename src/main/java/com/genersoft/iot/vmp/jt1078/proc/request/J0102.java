@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.jt1078.proc.response.Rs;
 import com.genersoft.iot.vmp.jt1078.service.Ijt1078Service;
 import com.genersoft.iot.vmp.jt1078.session.Session;
 import io.netty.buffer.ByteBuf;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEvent;
 
 import java.nio.charset.Charset;
@@ -19,6 +20,7 @@ import java.nio.charset.Charset;
  * @date 2023/4/27 18:06
  * @email qingtaij@163.com
  */
+@Slf4j
 @MsgId(id = "0102")
 public class J0102 extends Re {
 
@@ -30,7 +32,7 @@ public class J0102 extends Re {
         byte[] authenticationCodeBytes = new byte[lenCode];
 //        ByteBuf byteBuf = buf.readBytes(authenticationCodeBytes);
         authenticationCode = buf.readCharSequence(lenCode, Charset.forName("GBK")).toString();
-        System.out.println("设备鉴权： authenticationCode： " + authenticationCode);
+        log.info("设备鉴权： authenticationCode： " + authenticationCode);
         // if 2019 to decode next
         return null;
     }

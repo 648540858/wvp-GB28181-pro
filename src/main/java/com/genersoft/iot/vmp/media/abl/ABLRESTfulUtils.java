@@ -313,12 +313,15 @@ public class ABLRESTfulUtils {
     }
 
 
+
     public Integer openRtpServer(MediaServer mediaServer, String app, String stream, int payload, Integer port, Integer tcpMode, Integer disableAudio, Boolean record) {
         Map<String, Object> param = new HashMap<>();
         param.put("vhost", "_defaultVhost_");
         param.put("app", app);
         param.put("stream_id", stream);
         param.put("payload", payload);
+        param.put("jtt1078_version", "2016");
+        param.put("RtpPayloadDataType", 4);
         if (port != null) {
             param.put("port", port);
         }
